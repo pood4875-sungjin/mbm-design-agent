@@ -87,8 +87,8 @@ function normalize(out, state) {
   };
 }
 
-/* ── 키 없을 때: 규칙 기반 진행자 (같은 계약) ── */
-function scriptedTurn({ state, userText }) {
+/* ── 키가 없거나 AI 호출이 실패했을 때: 규칙 기반 진행자 (같은 계약) ── */
+export function scriptedTurn({ state, userText }) {
   const f = { ...(state.fields ?? {}) };
   const patch = { fields: {}, channels: [], signage: null, style: {} };
   const t = userText ?? '';

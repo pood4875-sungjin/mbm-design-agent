@@ -12,7 +12,7 @@ import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
-import { agentTurn, PHASES, PHASE_LABEL } from './agent.js';
+import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL } from './agent.js';
 import { parseRoster } from '../core/roster.js';
 
 const FIELD_LABEL = {
@@ -253,7 +253,9 @@ async function turn(userText) {
   try {
     res = await agentTurn({ state: agentState(), history: it.history, userText });
   } catch (e) {
-    res = { say: `AI 호출에 실패했어요(${e.message}). 규칙 진행으로 이어갈게요.`, patch: { fields: {}, channels: [], style: {} }, phase: it.phase, ready: false };
+    // AI가 실패해도 대화는 멈추면 안 된다 — 규칙 진행자가 같은 계약으로 이어받는다
+    res = scriptedTurn({ state: agentState(), userText });
+    res.say = `AI 호출에 실패해 규칙 진행으로 이어갑니다.\n(${e.message})\n\n${res.say}`;
   }
   think?.remove();
   applyPatch(res.patch);
@@ -592,7 +594,7 @@ function applyTransform() {
   $('zoomPct').textContent = Math.round(state.zoom * 100) + '%';
 }
 function setZoom(z, cx, cy) {
-  z = Math.min(2, Math.max(0.08, z));
+  z = Math.min(8, Math.max(0.05, z));   // 인쇄물 실측 확인엔 800%까지 필요하다
   const vp = $('viewport').getBoundingClientRect();
   cx = cx ?? vp.width / 2; cy = cy ?? vp.height / 2;
   const wx = (cx - state.panX) / state.zoom, wy = (cy - state.panY) / state.zoom;
