@@ -30,11 +30,11 @@ function draw(source, w, h) {
 // 목표 픽셀 크기까지 단계적으로 확대. 결과는 dataURL.
 export async function upscale(dataUrl, targetW, targetH, type = 'image/png') {
   const img = await loadImage(dataUrl);
+  const askedW = targetW;   // 클램프 전에 잡아야 "목표에 못 미쳤다"를 판정할 수 있다
   if (targetW * targetH > MAX_PIXELS) {
     const k = Math.sqrt(MAX_PIXELS / (targetW * targetH));
     targetW = Math.floor(targetW * k); targetH = Math.floor(targetH * k);
   }
-  const askedW = targetW;
   let cur = img, w = img.width, h = img.height;
   if (targetW <= w) return { dataUrl, w, h, steps: 0, capped: false, askedW };
 
