@@ -34,7 +34,7 @@ export const PURPOSES = [
   { id: 'agenda',    label: '프로그램 안내',    channels: ['xbanner', 'poster'] },
   { id: 'reception', label: '사전등록 · 안내데스크', channels: ['xbanner', 'poster'] },
 ];
-export const ARROWS = { up: '↑', down: '↓', left: '←', right: '→' };
+export const ARROWS = { up: '↑', down: '↓', left: '←', right: '→', none: '' };   // none = 화살표 없이 정보만
 
 // 규격 프리셋 — 캠페인에서 골라 조정 (실측 발주 이력 확보 시 갱신)
 export const SIZE_PRESETS = {

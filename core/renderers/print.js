@@ -65,18 +65,21 @@ export function renderPrint(ctx, style, spec) {
   const centered = spec.variant === 1 || landscape || purpose === 'way' || purpose === 'reception';
   const pad = (base * 0.09 + spec.bleed).toFixed(1);
   const mm = k => (base * k).toFixed(1);
-  const useKv = style.keyVisual && purpose === 'main';
+  const useKv = !!style.keyVisual;   // 용도와 무관하게 배경으로 쓴다 — 안내형은 위에서 가림막으로 가독성을 지킨다
   const rd = useKv ? (style.kvReadability?.print ?? null) : null;
   const fg = rd?.text ?? p.onPrimary;
   let bg = `background:${p.primary}`;
   if (useKv) {
     const fit = fitKeyVisual(spec.wmm / spec.hmm, style.kvMeta?.ar, style.kvMeta?.edge ?? p.primary);
     bg = fit.mode === 'contain'
-      ? `background:${fit.bg};background-image:${fit.bg},url('${esc(style.keyVisual)}');background-size:cover,contain;background-position:center,center bottom;background-repeat:no-repeat,no-repeat`
+      ? `background:${fit.bg};background-image:url('${esc(style.keyVisual)}'),${fit.bg};background-size:contain,cover;background-position:center bottom,center;background-repeat:no-repeat,no-repeat`
       : `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`;
   }
-  const scrim = rd?.scrim
-    ? `<div style="position:absolute;inset:0;background:linear-gradient(180deg,${fg === '#FFFFFF' ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.58)'},transparent 70%);pointer-events:none"></div>`
+  // 안내형(방향·데스크)은 글자가 절대 우선이라 배경이 깨끗해도 가림막을 깐다.
+  const needScrim = useKv && (rd?.scrim || purpose === 'way' || purpose === 'reception');
+  const veil = fg === '#FFFFFF' ? 'rgba(0,0,0,.46)' : 'rgba(255,255,255,.52)';
+  const scrim = needScrim
+    ? `<div class="scrim" style="inset:0;background:${veil};pointer-events:none"></div>`
     : '';
   const pxW = (W * 3.7795).toFixed(0);
   const pxH = (H * 3.7795).toFixed(0);
@@ -113,6 +116,9 @@ ${fontLink(style.fonts.heading)}
 @page{size:${W}mm ${H}mm;margin:0}
 *{box-sizing:border-box;margin:0}
 .sheet{width:${W}mm;height:${H}mm;${bg};color:${fg};font-family:${fontStack(style.fonts.heading)};display:flex;flex-direction:column;align-items:${centered ? 'center' : 'flex-start'};justify-content:${topAnchored ? 'flex-start' : 'center'};${centered ? 'text-align:center;' : ''}gap:${mm(0.05)}mm;padding:${pad}mm ${pad}mm ${padBottom}mm;overflow:hidden;position:relative}
+/* 스크림은 절대배치라 정적 요소보다 위에 칠해진다 — 내용에도 position을 줘서 DOM 순서대로 쌓이게 한다 */
+.sheet > *{position:relative}
+.sheet > .scrim{position:absolute}
 .title{font-size:${mm(0.125)}mm;font-weight:800;line-height:1.15;word-break:keep-all}
 .sub{font-size:${mm(0.045)}mm;opacity:.92;line-height:1.5}
 .eyebrow{font-size:${mm(0.054)}mm;font-weight:700;letter-spacing:0.2em;opacity:.75}
@@ -221,11 +227,19 @@ function chipRow(topics) {
 //   상단 행사명 → 중앙 원형 배지 속 화살표 → 목적지 한 줄.
 //   목적지는 산출물마다 다르다("2F Conference Hall") — 없으면 장소로 대체.
 function wayBody(ctx, style, spec, mm) {
-  const { name, venue } = ctx.core;
+  const { name, venue, date } = ctx.core;
   const dir = spec.arrow ?? 'right';
   const dest = spec.dest || venue;
+  const glyph = ARROW_GLYPH[dir];
+  // 화살표 없는 안내형 — 방향을 가리키지 않고 장소·일정만 알린다(입구 옆 정보판 등).
+  if (!glyph) {
+    return `<div class="wayTop">${esc(name)}</div>
+    <div class="rule"></div>
+    <div class="dest">${esc(dest)}</div>
+    <div class="sub" style="margin-top:${mm(0.03)}mm">${esc(date)}</div>`;
+  }
   return `<div class="wayTop">${esc(name)}</div>
-  <div class="disc"><span>${ARROW_GLYPH[dir] ?? '→'}</span></div>
+  <div class="disc"><span>${glyph}</span></div>
   <div class="dest">${esc(dest)}</div>`;
 }
 

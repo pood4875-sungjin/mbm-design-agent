@@ -27,7 +27,7 @@ export function renderBanner(ctx, style, spec) {
       const fit = fitKeyVisual(spec.w / spec.h, style.kvMeta?.ar, style.kvMeta?.edge ?? p.primary);
       bg = fit.mode === 'contain'
         // 비율이 크게 다르면 잘라내지 않고 넣어 맞추고, 여백은 가장자리 색으로 잇는다
-        ? `background:${fit.bg};background-image:${fit.bg},url('${esc(style.keyVisual)}');background-size:cover,contain;background-position:center,${fit.wide ? 'right center' : 'center bottom'};background-repeat:no-repeat,no-repeat`
+        ? `background:${fit.bg};background-image:url('${esc(style.keyVisual)}'),${fit.bg};background-size:contain,cover;background-position:${fit.wide ? 'right center' : 'center bottom'},center;background-repeat:no-repeat,no-repeat`
         : `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`;
     } else {
       bg = `background:${p.primary}`;

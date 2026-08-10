@@ -204,3 +204,37 @@ test('portrait sheet reserves the foot band so content never collides with the l
   assert.equal(top, side, '좌우·상단 여백은 같다');
   assert.ok(bottom > top, '하단은 로고 자리만큼 더 비운다');
 });
+
+test('scrim never paints over the text', () => {
+  const kvStyle = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png',
+    kvReadability: { print: { text: '#FFFFFF', scrim: true } } });
+  const html = renderPrint(ctx, kvStyle, SPECS['poster-a2']);
+  assert.match(html, /\.sheet > \*\{position:relative\}/, '내용도 positioned여야 DOM 순서대로 쌓인다');
+  assert.ok(html.indexOf('class="scrim"') < html.indexOf('class="title"'), '가림막이 글자보다 먼저 = 아래');
+});
+
+test('key visual reaches every purpose, not just the main one', () => {
+  const kvStyle = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png' });
+  for (const purpose of ['main', 'way', 'agenda', 'reception']) {
+    const html = renderPrint(ctx, kvStyle, { ...SPECS['xbanner-600x1800'], purpose, arrow: 'right' });
+    assert.match(html, /kv\.png/, `${purpose}에도 배경이 들어가야 한다`);
+  }
+});
+
+test('wayfinding purposes always get a scrim so text wins', () => {
+  const kvStyle = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png',
+    kvReadability: { print: { text: '#FFFFFF', scrim: false } } });
+  const way = renderPrint(ctx, kvStyle, { ...SPECS['xbanner-600x1800'], purpose: 'way', arrow: 'up' });
+  assert.match(way, /class="scrim"/, '배경이 깨끗해도 안내형은 가린다');
+  const main = renderPrint(ctx, kvStyle, SPECS['xbanner-600x1800']);
+  assert.doesNotMatch(main, /class="scrim"/, '메인은 깨끗하면 가리지 않는다');
+});
+
+test('wayfinding can drop the arrow and show info only', () => {
+  const spec = { ...SPECS['xbanner-600x1800'], purpose: 'way', arrow: 'none', dest: '2F Conference Hall' };
+  const html = renderPrint(ctx, style, spec);
+  assert.doesNotMatch(html, /class="disc"/, '화살표 배지 없음');
+  assert.match(html, /2F Conference Hall/);
+  assert.match(html, /2026-10-15/, '대신 일정을 알린다');
+  assert.doesNotMatch(html, /[↑↓←→]/);
+});
