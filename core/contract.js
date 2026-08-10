@@ -41,7 +41,9 @@ export const SIZE_PRESETS = {
   poster:    [{ label: 'A2 420×594', wmm: 420, hmm: 594 }, { label: 'A1 594×841', wmm: 594, hmm: 841 }, { label: 'A3 297×420', wmm: 297, hmm: 420 }],
   xbanner:   [{ label: '600×1800', wmm: 600, hmm: 1800 }, { label: '600×1600', wmm: 600, hmm: 1600 }, { label: '800×1800', wmm: 800, hmm: 1800 }],
   hyunsumak: [{ label: '4000×900 (가로)', wmm: 4000, hmm: 900 }, { label: '3000×700 (가로)', wmm: 3000, hmm: 700 }, { label: '5000×1000 (가로)', wmm: 5000, hmm: 1000 }],
-  badge:     [{ label: '110×140 (템플릿)', wmm: 110, hmm: 140 }, { label: '90×120 (세로)', wmm: 90, hmm: 120 }, { label: '105×74 (가로)', wmm: 105, hmm: 74 }],
+  // 가로 규격은 H.Solution Day 명찰 자체인쇄 실측(Figma 258:2023, 284×255pt ×0.3528 → 100.2×90.0mm).
+  // 가로 규격을 고르면 renderBadge가 variant와 상관없이 가로형 레이아웃으로 넘어간다.
+  badge:     [{ label: '110×140 (템플릿)', wmm: 110, hmm: 140 }, { label: '90×120 (세로)', wmm: 90, hmm: 120 }, { label: '100×90 (가로)', wmm: 100, hmm: 90 }],
   // 시안 비율 2:1을 유지하는 세 규격. 벗어난 비율을 넣으면 도형이 늘어나지 않고 잘린다.
   photobooth: [{ label: '4000×2000 (2:1)', wmm: 4000, hmm: 2000 }, { label: '3000×1500 (2:1)', wmm: 3000, hmm: 1500 }, { label: '2400×1200 (2:1)', wmm: 2400, hmm: 1200 }],
 };
