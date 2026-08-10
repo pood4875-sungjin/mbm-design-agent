@@ -1022,13 +1022,32 @@ $('keyBtn').onclick = () => {
   modal({
     title: 'AI 해석 설정 (BYOK)',
     desc: '개인 Anthropic API 키를 이 브라우저에만 저장합니다. 키가 있으면 기획·지시를 AI가 해석하고, 없으면 규칙 파서로 동작합니다.',
-    body: `<label>API 키</label><input type="password" id="keyIn" value="${LLM.getKey()}" placeholder="sk-ant-...">`,
+    body: `<label>API 키</label><input type="password" id="keyIn" value="${LLM.getKey()}" placeholder="sk-ant-...">
+      <div id="keyMsg" style="font-size:12px;margin-top:10px;line-height:1.55;color:var(--sub);word-break:break-all">모델: ${LLM.currentModel()}</div>`,
     actions: [
       { label: '지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('키 삭제됨'); } },
-      { label: '저장', pri: true, fn: () => { LLM.setKey($('modalBody').querySelector('#keyIn').value.trim()); refreshAiChip(); toast('키 저장됨'); } },
+      { label: '연결 테스트', fn: () => { runKeyTest(); return false; } },
+      { label: '저장', pri: true, fn: () => { LLM.setKey($('modalBody').querySelector('#keyIn').value); refreshAiChip(); toast('키 저장됨'); } },
     ],
   });
 };
+
+async function runKeyTest() {
+  const box = $('modalBody');
+  LLM.setKey(box.querySelector('#keyIn').value);
+  const msg = box.querySelector('#keyMsg');
+  msg.style.color = 'var(--sub)';
+  msg.textContent = '확인 중…';
+  try {
+    const reply = await LLM.testKey();
+    msg.style.color = 'var(--good)';
+    msg.textContent = `연결 성공 · 모델 ${LLM.currentModel()} · 응답 "${reply}"`;
+    refreshAiChip();
+  } catch (e) {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = e.message;
+  }
+}
 
 /* ═══ boot ═══ */
 $('homeBtn').onclick = () => show('home');

@@ -8,8 +8,8 @@ const KEY_LS = 'mbm-ai-key';
 const EMBEDDED = (typeof window !== 'undefined' && window.MBM_API_KEY) || '';
 const MODEL = 'claude-sonnet-5';
 
-export function getKey() { try { return localStorage.getItem(KEY_LS) || EMBEDDED; } catch { return EMBEDDED; } }
-export function setKey(v) { try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch {} }
+export function getKey() { try { return (localStorage.getItem(KEY_LS) || EMBEDDED || '').trim(); } catch { return (EMBEDDED || '').trim(); } }
+export function setKey(v) { v = (v || '').trim(); try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch {} }
 export function hasKey() { return !!getKey(); }
 export function maskKey() { const k = getKey(); return k ? (k.length <= 12 ? '••••' : k.slice(0, 7) + '…' + k.slice(-4)) : ''; }
 
@@ -24,7 +24,18 @@ async function messages(system, user, maxTokens = 800) {
     },
     body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }),
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
+  if (!res.ok) {
+    // 서버가 알려주는 진짜 이유를 그대로 전달한다 — "HTTP 401"만으로는 원인을 못 찾는다
+    let detail = '';
+    try {
+      const body = await res.json();
+      detail = body?.error?.message || '';
+    } catch { try { detail = (await res.text()).slice(0, 200); } catch {} }
+    const hint = res.status === 401
+      ? ' (키가 올바른지, 앞뒤 공백·따옴표가 섞이지 않았는지 확인하세요)'
+      : res.status === 400 && /model/i.test(detail) ? ' (이 계정에서 쓸 수 없는 모델일 수 있습니다)' : '';
+    throw new Error(`HTTP ${res.status}${detail ? ' · ' + detail : ''}${hint}`);
+  }
   const data = await res.json();
   return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 }
@@ -59,3 +70,10 @@ export async function parseCommandLLM(text) {
     + '{"date":"YYYY-MM-DD"|생략,"venue":장소|생략,"cta":문구|생략,"name":행사명|생략}. 해당 없으면 {}. JSON만.';
   return parseJson(await messages(system, text, 300));
 }
+
+// 키·모델이 실제로 통하는지 최소 호출로 확인한다.
+export async function testKey() {
+  const t = await messages('Reply with OK only.', 'ping', 16);
+  return t.trim().slice(0, 40) || '(빈 응답)';
+}
+export function currentModel() { return MODEL; }
