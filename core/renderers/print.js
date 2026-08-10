@@ -14,9 +14,13 @@ export function renderPrint(ctx, style, spec) {
   const sub = (base * 0.038).toFixed(1);
   const pill = (base * 0.042).toFixed(1);
   const pad = (base * 0.09 + spec.bleed).toFixed(1);
+  const centered = spec.variant === 1;
   const bg = style.keyVisual
     ? `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`
     : `background:${p.primary}`;
+  const align = centered ? 'center' : (landscape ? 'center' : 'flex-start');
+  const justify = centered ? 'center' : 'space-between';
+  const dir = centered ? 'column' : (landscape ? 'row' : 'column');
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -24,7 +28,7 @@ export function renderPrint(ctx, style, spec) {
 <style>
 @page{size:${W}mm ${H}mm;margin:0}
 *{box-sizing:border-box;margin:0}
-body{width:${W}mm;height:${H}mm;${bg};color:#fff;font-family:'${esc(style.fonts.heading)}','Apple SD Gothic Neo',sans-serif;display:flex;flex-direction:${landscape ? 'row' : 'column'};align-items:${landscape ? 'center' : 'flex-start'};justify-content:space-between;padding:${pad}mm;overflow:hidden}
+body{width:${W}mm;height:${H}mm;${bg};color:#fff;font-family:'${esc(style.fonts.heading)}','Apple SD Gothic Neo',sans-serif;display:flex;flex-direction:${dir};align-items:${align};justify-content:${justify};${centered ? 'text-align:center;gap:' + (base * 0.06).toFixed(1) + 'mm;' : ''}padding:${pad}mm;overflow:hidden}
 </style>
 </head>
 <body>

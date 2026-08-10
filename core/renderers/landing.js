@@ -2,12 +2,19 @@
 
 import { esc } from './banner.js';
 
-export function renderLanding(ctx, style) {
+export function renderLanding(ctx, style, spec = {}) {
   const { name, date, venue, audience, cta } = ctx.core;
   const p = style.palette;
-  const heroBg = style.keyVisual
-    ? `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`
-    : `background:${p.primary}`;
+  const light = spec.variant === 1;
+  const heroBg = light
+    ? `background:${p.bg}`
+    : style.keyVisual
+      ? `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`
+      : `background:${p.primary}`;
+  const heroFg = light ? p.primary : '#fff';
+  const heroBtn = light
+    ? `background:${p.primary};color:#fff`
+    : `background:#fff;color:${p.primary}`;
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -17,10 +24,10 @@ export function renderLanding(ctx, style) {
 <style>
   *{box-sizing:border-box;margin:0}
   body{font-family:'${esc(style.fonts.body)}','Apple SD Gothic Neo',sans-serif;color:${p.ink};background:${p.bg}}
-  .hero{${heroBg};color:#fff;padding:96px 24px;text-align:center}
+  .hero{${heroBg};color:${heroFg};padding:96px 24px;text-align:center}
   .hero h1{font-size:clamp(28px,5vw,44px);line-height:1.25}
   .hero p{margin-top:14px;font-size:16px;opacity:.9}
-  .btn{display:inline-block;margin-top:32px;background:#fff;color:${p.primary};font-weight:700;padding:16px 36px;border-radius:8px;text-decoration:none}
+  .btn{display:inline-block;margin-top:32px;${heroBtn};font-weight:700;padding:16px 36px;border-radius:8px;text-decoration:none}
   .info{max-width:760px;margin:0 auto;padding:64px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
   .card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:24px}
   .card b{display:block;font-size:13px;color:#888;margin-bottom:6px}
@@ -31,7 +38,7 @@ export function renderLanding(ctx, style) {
 </style>
 </head>
 <body>
-<section class="hero">
+<section class="hero" data-hero="${light ? 'light' : 'dark'}">
   <h1>${esc(name)}</h1>
   <p>${esc(date)} · ${esc(venue)}</p>
   <a class="btn" href="#register">${esc(cta)}</a>

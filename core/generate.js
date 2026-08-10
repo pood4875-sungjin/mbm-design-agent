@@ -28,14 +28,14 @@ export function generateArtifacts(campaign) {
   for (const specId of specIds) {
     let artifact = campaign.artifacts.find(a => a.specId === specId);
     if (!artifact) {
-      artifact = { specId, channel: SPECS[specId].channel, overrides: {}, status: 'draft', html: null, contextVersion: null };
+      artifact = { specId, channel: SPECS[specId].channel, overrides: {}, variant: 0, status: 'draft', html: null, contextVersion: null };
       campaign.artifacts.push(artifact);
     }
     const effContext = {
       ...campaign.context,
       core: { ...campaign.context.core, ...(artifact.overrides.core ?? {}) },
     };
-    artifact.html = renderArtifact(specId, effContext, campaign.style);
+    artifact.html = renderArtifact(specId, effContext, campaign.style, artifact.variant ?? 0);
     artifact.contextVersion = campaign.context.version;
     logEvent(campaign, 'artifact_generated', { specId });
   }

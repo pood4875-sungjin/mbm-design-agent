@@ -50,3 +50,12 @@ test('logEvent appends timestamped events', () => {
   assert.equal(c.log[1].type, 'artifact_generated');
   assert.ok(c.log[0].t > 0);
 });
+
+test('generateArtifacts passes artifact.variant to renderer spec', () => {
+  registerAll();
+  const c = fullCampaign(['banner']);
+  generateArtifacts(c);
+  c.artifacts[0].variant = 1;
+  generateArtifacts(c);
+  assert.match(c.artifacts[0].html, /background:#fff/i);
+});

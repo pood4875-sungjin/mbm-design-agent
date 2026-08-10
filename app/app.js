@@ -1,12 +1,14 @@
-// MBM Design Agent — 앞문 UI. 플로우차트 그대로: 기획 입력 → Context → 산출물 선택
-// → 추가 항목 → 그래픽 가이드 → 자동 생성 → 리뷰(일괄 전파·개별 편집) → 승인.
-// 코어 엔진(순수 모듈)을 브라우저에서 직접 사용. LLM 파싱 자리는 parseBrief()가 대역.
+// MBM Design Agent — Stitch 스타일 앞문.
+// 홈: 사이드바(내 캠페인·자산 검색) + 웰컴 히어로 + 대형 입력 카드.
+// 작업: 좌 대화 카드 · 중앙 캔버스(산출물 그리드) · 우 Context/Style 패널 · 하단 지시 바.
+// 기획 해석: AI 키 있으면 LLM(llm.js), 없으면 정규식 폴백 — 데모 항상 동작.
 
 import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
 import { normalizeStyle } from '../core/style.js';
 import { SPECS } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
+import * as LLM from './llm.js';
 
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
@@ -18,48 +20,73 @@ const CHANNEL_LABEL = {
 };
 const ONLINE = ['edm', 'landing', 'banner'];
 const OFFLINE = ['poster', 'xbanner', 'hyunsumak'];
+const VARIANTS = { banner: 3, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1 };
+const STORE_LS = 'mbm-campaigns';
 
-const SAMPLE = `10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행.
-대상은 건설 구조 엔지니어, 사전등록 받아야 함.
-eDM이랑 랜딩페이지, 배너, 포스터, X배너 필요해.`;
+const SAMPLES = [
+  '10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행. 대상은 건설 구조 엔지니어, 사전등록 받아야 함. eDM이랑 랜딩페이지, 배너, 포스터, X배너 필요해.',
+  '내년 3월 킨텍스 MBM 부산 세미나. 교량 설계 실무자 대상, 현장 데모 신청 유도. 랜딩이랑 현수막, 배너만.',
+  '2026 ONSITE MBM 도쿄 — 6월 20일, 대상 일본 파트너사. eDM과 포스터.',
+];
 
-const state = { step: 'brief', ctx: null, channels: [], style: null, campaign: null };
-
-const chat = document.getElementById('chat');
+const state = { step: 'brief', ctx: null, channels: [], style: null, campaign: null, detectedChannels: [] };
 const $ = id => document.getElementById(id);
+const chat = () => $('chat');
 
-/* ---------- chat helpers ---------- */
+/* ═══════════ helpers ═══════════ */
 function agent(text) {
   const d = document.createElement('div');
   d.className = 'msg agent'; d.textContent = text;
-  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+  chat().appendChild(d); chat().scrollTop = 1e9;
+  return d;
 }
 function user(text) {
   const d = document.createElement('div');
   d.className = 'msg user'; d.textContent = text;
-  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+  chat().appendChild(d); chat().scrollTop = 1e9;
 }
 function widget(html) {
   const d = document.createElement('div');
   d.className = 'widget'; d.innerHTML = html;
-  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+  chat().appendChild(d); chat().scrollTop = 1e9;
   return d;
 }
 function toast(t) {
   const el = $('toast'); el.textContent = t; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
+  setTimeout(() => el.classList.remove('show'), 2400);
 }
-function setStep(s) {
-  state.step = s;
-  const order = ['brief', 'context', 'channels', 'style', 'review', 'done'];
-  document.querySelectorAll('#stepper span').forEach(el => {
-    const i = order.indexOf(el.dataset.s), cur = order.indexOf(s);
-    el.className = i < cur ? 'done' : i === cur ? 'on' : '';
-  });
+const STEP_LABEL = { brief: '기획 입력', context: 'Context 확정', channels: '산출물 선택', style: '그래픽 가이드', review: '생성 · 리뷰', done: '완료' };
+function setStep(s) { state.step = s; $('stepLabel').textContent = STEP_LABEL[s] ?? ''; }
+
+function showHome() {
+  $('home').style.display = 'flex'; $('work').style.display = 'none';
+  $('campPill').style.display = 'none'; $('approveAll').style.display = 'none';
+  renderSidebar();
+}
+function showWork() {
+  $('home').style.display = 'none'; $('work').style.display = 'block';
 }
 
-/* ---------- brief parsing (LLM 대역 — 앞문 서브플랜에서 교체) ---------- */
-function parseBrief(text) {
+/* ═══════════ modal ═══════════ */
+function modal({ title, desc, body, actions }) {
+  $('modalTitle').textContent = title;
+  $('modalDesc').textContent = desc ?? '';
+  $('modalBody').innerHTML = body;
+  const btns = $('modalBtns'); btns.innerHTML = '';
+  for (const a of actions) {
+    const b = document.createElement('button');
+    b.className = 'btn' + (a.pri ? ' pri' : '');
+    b.textContent = a.label;
+    b.onclick = () => { if (a.fn && a.fn() === false) return; closeModal(); };
+    btns.appendChild(b);
+  }
+  $('overlay').style.display = 'flex';
+}
+function closeModal() { $('overlay').style.display = 'none'; }
+$('overlay').onclick = e => { if (e.target === $('overlay')) closeModal(); };
+
+/* ═══════════ brief parsing (정규식 폴백) ═══════════ */
+function parseBriefRegex(text) {
   const out = {};
   const nameM = text.match(/[\w가-힣 ]*MBM[\w가-힣 ]*/);
   if (nameM) {
@@ -82,6 +109,7 @@ function parseBrief(text) {
   const audM = text.match(/대상은?\s*([가-힣A-Za-z ,·]+?)(?:[,.]|이고|이며|$)/m);
   if (audM) out.audience = audM[1].trim();
   if (/사전\s?등록/.test(text)) out.cta = '사전등록';
+  else if (/신청/.test(text)) out.cta = '신청하기';
   const channels = [];
   if (/eDM|이디엠|메일/i.test(text)) channels.push('edm');
   if (/랜딩/.test(text)) channels.push('landing');
@@ -92,35 +120,135 @@ function parseBrief(text) {
   return { fields: out, channels: [...new Set(channels)] };
 }
 
-/* ---------- step 1: brief ---------- */
-function stepBrief() {
-  setStep('brief');
-  agent('안녕하세요, MBM 캠페인 디자인 에이전트입니다.\n기획 내용을 자유롭게 붙여넣어 주세요. PPT·워드 파일도 좋습니다.');
-  const w = widget(`
-    <h4>기획 입력</h4>
-    <textarea id="briefText" placeholder="예) 10월 15일 코엑스에서 MBM 진행..."></textarea>
-    <div class="btn-row">
-      <button class="btn" id="sampleBtn">샘플 기획 넣기</button>
-      <button class="btn pri" id="briefGo">보내기</button>
-    </div>`);
-  w.querySelector('#sampleBtn').onclick = () => { w.querySelector('#briefText').value = SAMPLE; };
-  w.querySelector('#briefGo').onclick = () => {
-    const t = w.querySelector('#briefText').value.trim();
-    if (!t) return;
-    w.remove(); user(t); onBrief(t);
+/* ═══════════ home ═══════════ */
+function initHome() {
+  const box = $('samples');
+  box.innerHTML = '';
+  for (const s of SAMPLES) {
+    const b = document.createElement('button');
+    b.textContent = s.slice(0, 34) + '…';
+    b.title = s;
+    b.onclick = () => { $('briefText').value = s; };
+    box.appendChild(b);
+  }
+  $('briefGo').onclick = () => {
+    const t = $('briefText').value.trim();
+    if (!t) { toast('기획 내용을 입력하세요'); return; }
+    startCampaign(t);
   };
+  $('fileBtn').onclick = () => $('fileIn').click();
+  $('fileIn').onchange = () => {
+    const f = $('fileIn').files[0]; if (!f) return;
+    if (!/\.(txt|md)$/i.test(f.name)) { toast('PPT·워드 파싱은 서버 연동 후 지원 — 지금은 txt/md'); return; }
+    const r = new FileReader();
+    r.onload = () => { $('briefText').value = r.result.slice(0, 4000); toast(`${f.name} 읽음`); };
+    r.readAsText(f);
+  };
+  $('searchIn').oninput = () => renderSidebar($('searchIn').value.trim());
+  refreshAiChip();
+}
+function refreshAiChip() {
+  $('aiChip').textContent = LLM.hasKey() ? `AI 해석: 켜짐 (${LLM.maskKey()})` : 'AI 해석: 꺼짐 — 정규식 파서';
 }
 
-function onBrief(text) {
-  const { fields, channels } = parseBrief(text);
-  state.ctx = createContext(fields);
-  state.detectedChannels = channels;
+/* ═══════════ 자산 검색 (사이드바) ═══════════ */
+function loadStore() { try { return JSON.parse(localStorage.getItem(STORE_LS) || '[]'); } catch { return []; } }
+function saveStore(list) { localStorage.setItem(STORE_LS, JSON.stringify(list)); }
+
+function parseQuery(q) {
+  const cond = {};
+  const y = q.match(/20\d{2}/); if (y) cond.year = y[0];
+  if (/작년/.test(q)) cond.year = String(new Date().getFullYear() - 1);
+  const CH = { 배너: 'banner', 포스터: 'poster', X배너: 'xbanner', 엑스배너: 'xbanner', 현수막: 'hyunsumak', eDM: 'edm', 랜딩: 'landing' };
+  for (const [k, v] of Object.entries(CH)) if (q.includes(k)) { cond.channel = v; break; }
+  const kw = q.replace(/20\d{2}|작년|배너|포스터|X배너|엑스배너|현수막|eDM|랜딩(페이지)?/gi, '').replace(/\s+/g, ' ').trim();
+  if (kw) cond.q = kw;
+  return cond;
+}
+
+function renderSidebar(query = '') {
+  const cond = query ? parseQuery(query) : {};
+  const chips = $('qchips');
+  chips.innerHTML = '';
+  if (query) {
+    for (const [k, v] of Object.entries(cond)) {
+      const s = document.createElement('span');
+      s.textContent = { year: `연도 ${v}`, channel: CHANNEL_LABEL[v] ?? v, q: `"${v}"` }[k];
+      chips.appendChild(s);
+    }
+  }
+  let list = loadStore();
+  if (cond.year) list = list.filter(c => (c.context.core.date ?? '').startsWith(cond.year));
+  if (cond.channel) list = list.filter(c => c.channels.includes(cond.channel));
+  if (cond.q) list = list.filter(c => (c.context.core.name ?? '').includes(cond.q));
+  list.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
+
+  const box = $('campList');
+  box.innerHTML = '';
+  $('campEmpty').style.display = list.length ? 'none' : 'block';
+  if (query && !list.length) $('campEmpty').textContent = '조건에 맞는 캠페인이 없습니다 — 조건을 바꿔 다시 검색해 보세요.';
+  for (const c of list) {
+    const d = document.createElement('div');
+    d.className = 'citem';
+    const initial = (c.context.core.name ?? 'MB').replace(/[^A-Za-z가-힣0-9]/g, '').slice(0, 2) || 'MB';
+    d.innerHTML = `<div class="thumb" style="background:${c.style.palette.primary}">${initial}</div>
+      <div class="m"><b>${c.context.core.name ?? c.id}</b><span>${c.context.core.date ?? ''} · ${c.channels.length}채널 · ${c.artifacts?.length ?? 0}종</span></div>`;
+    d.onclick = () => openStored(c);
+    box.appendChild(d);
+  }
+}
+
+function openStored(saved) {
+  state.ctx = saved.context;
+  state.channels = saved.channels;
+  state.style = saved.style;
+  state.campaign = { ...saved, log: saved.log ?? [] };
+  registerAll();
+  generateArtifacts(state.campaign);           // 원본 재현 — context+style+overrides+variant에서 복원
+  for (const a of state.campaign.artifacts) {
+    const s = (saved.artifacts ?? []).find(x => x.specId === a.specId);
+    if (s?.status) a.status = s.status;
+  }
+  showWork();
+  setStep('review');
+  chat().innerHTML = '';
+  agent(`저장된 캠페인 "${saved.context.core.name}"을 열었습니다. 원본을 그대로 재현했어요.\n수정하거나 그대로 재사용할 수 있습니다.`);
+  enterReview();
+  logEvent(state.campaign, 'campaign_reopened', {});
+}
+
+/* ═══════════ 캠페인 시작 ═══════════ */
+async function startCampaign(text) {
+  showWork();
+  setStep('brief');
+  chat().innerHTML = '';
+  $('grid').innerHTML = '';
+  $('stylePanel').style.display = 'none';
+  $('cmdBar').style.display = 'none';
+  user(text.length > 140 ? text.slice(0, 140) + '…' : text);
+
+  let parsed = null;
+  if (LLM.hasKey()) {
+    const wait = agent('AI가 기획을 해석하는 중…');
+    try {
+      const r = await LLM.parseBriefLLM(text);
+      parsed = { fields: {}, channels: r.channels ?? [] };
+      for (const f of CORE_FIELDS) if (r[f]) parsed.fields[f] = r[f];
+      wait.remove();
+    } catch (e) {
+      wait.textContent = `AI 해석 실패(${e.message}) — 규칙 파서로 대신할게요.`;
+    }
+  }
+  if (!parsed) parsed = parseBriefRegex(text);
+
+  state.ctx = createContext(parsed.fields);
+  state.detectedChannels = parsed.channels;
   const found = CORE_FIELDS.filter(f => state.ctx.core[f]);
-  agent(`이렇게 정리했어요.\n${found.map(f => `· ${FIELD_LABEL[f]} — ${state.ctx.core[f]}`).join('\n')}`);
+  agent(`이렇게 정리했어요.\n${found.map(f => `· ${FIELD_LABEL[f]} — ${state.ctx.core[f]}`).join('\n') || '· (추출된 정보 없음)'}`);
   stepContext();
 }
 
-/* ---------- step 2: context 빈칸 ---------- */
+/* ═══════════ steps ═══════════ */
 function stepContext() {
   setStep('context');
   const missing = missingFields(state.ctx, []);
@@ -141,12 +269,12 @@ function stepContext() {
   };
 }
 
-/* ---------- step 3: 산출물 선택 ---------- */
 function stepChannels() {
   setStep('channels');
   const pre = state.detectedChannels ?? [];
-  if (pre.length) agent(`기획에서 ${pre.map(c => CHANNEL_LABEL[c]).join(', ')}를 발견해 미리 선택했어요. 필요한 산출물을 확정해 주세요.`);
-  else agent('어떤 산출물을 만들까요?');
+  agent(pre.length
+    ? `기획에서 ${pre.map(c => CHANNEL_LABEL[c]).join(', ')}를 발견해 미리 선택했어요.`
+    : '어떤 산출물을 만들까요?');
   const group = (title, list) => `<h4>${title}</h4>` + list.map(c =>
     `<label class="chk ${pre.includes(c) ? 'on' : ''}"><input type="checkbox" value="${c}" ${pre.includes(c) ? 'checked' : ''}>${CHANNEL_LABEL[c]}</label>`).join('');
   const w = widget(`${group('온라인', ONLINE)}${group('오프라인', OFFLINE)}
@@ -161,7 +289,6 @@ function stepChannels() {
   };
 }
 
-/* ---------- step 4: 채널별 추가 항목 ---------- */
 function stepChannelFields() {
   const missing = missingFields(state.ctx, state.channels);
   if (!missing.length) { stepStyle(); return; }
@@ -173,8 +300,7 @@ function stepChannelFields() {
   w.querySelector('#cfGo').onclick = () => {
     const patch = {};
     w.querySelectorAll('input').forEach(i => {
-      const v = i.value.trim() || '기본';
-      (patch[i.dataset.ch] ??= {})[i.dataset.f] = v;
+      (patch[i.dataset.ch] ??= {})[i.dataset.f] = i.value.trim() || '기본';
     });
     state.ctx = updateContext(state.ctx, { channelFields: patch });
     w.remove(); user('입력 완료');
@@ -182,10 +308,9 @@ function stepChannelFields() {
   };
 }
 
-/* ---------- step 5: 그래픽 가이드 ---------- */
 function stepStyle() {
   setStep('style');
-  agent('이제 그래픽 가이드를 주세요. 키비주얼 이미지를 첨부하고 메인 컬러를 고르면, 모든 산출물에 하나의 스타일로 적용됩니다.');
+  agent('이제 그래픽 가이드를 주세요. 키비주얼과 컬러가 모든 산출물에 하나의 스타일로 적용됩니다.');
   const w = widget(`
     <h4>그래픽 가이드</h4>
     <div class="kvthumb" id="kvThumb">키비주얼 업로드 (선택)</div>
@@ -223,10 +348,14 @@ function stepStyle() {
   };
 }
 
-/* ---------- step 6: 자동 생성 ---------- */
+/* ═══════════ 생성 · 리뷰 ═══════════ */
+function slug(name) {
+  return (name || 'campaign').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
+}
+
 function runGenerate() {
   setStep('review');
-  agent('자동 생성 중...');
+  agent('자동 생성 중…');
   state.campaign = {
     id: slug(state.ctx.core.name), context: state.ctx, style: state.style,
     channels: state.channels, artifacts: [], log: [],
@@ -235,59 +364,77 @@ function runGenerate() {
   registerAll();
   setTimeout(() => {
     generateArtifacts(state.campaign);
-    renderBoard();
-    const n = state.campaign.artifacts.length;
-    agent(`${n}종 산출물을 생성했습니다. 오른쪽 보드에서 확인하세요.\n\n· 수정은 두 가지 — Context 값을 바꿔 [일괄 반영]하거나, 카드의 [편집]으로 개별 산출물만 고칠 수 있어요.\n· 검토가 끝나면 [전체 승인]을 눌러 주세요.`);
-  }, 400);
+    agent(`${state.campaign.artifacts.length}종 산출물을 생성했습니다.\n\n· 오른쪽 패널 — Context·컬러를 바꾸고 [일괄 반영]\n· 카드 [편집] — 그 산출물만 예외 수정\n· 카드 [다른 시안] — 레이아웃 베리에이션\n· 아래 입력바 — "장소 킨텍스로 변경" 같은 자유 지시`);
+    enterReview();
+  }, 350);
 }
 
-function slug(name) {
-  return (name || 'campaign').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
+function enterReview() {
+  $('campPill').textContent = state.campaign.context.core.name;
+  $('campPill').style.display = 'block';
+  $('approveAll').style.display = 'block';
+  $('stylePanel').style.display = 'block';
+  $('cmdBar').style.display = 'flex';
+  renderPanel();
+  renderGrid();
 }
 
-/* ---------- board ---------- */
-const PREVIEW_W = { banner: s => s.w, edm: () => 600, landing: () => 1000 };
+/* ═══════════ 우측 패널 ═══════════ */
+function renderPanel() {
+  const fields = ['name', 'date', 'venue', 'cta'];
+  $('ctxFields').innerHTML = fields.map(f =>
+    `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${state.campaign.context.core[f] ?? ''}">`
+  ).join('');
+  $('pColor1').value = state.campaign.style.palette.primary;
+  $('pColor2').value = state.campaign.style.palette.bg;
+  $('pFont').value = state.campaign.style.fonts.heading;
+  $('propBtn').onclick = applyPanel;
+}
+
+function applyPanel() {
+  const patch = {};
+  $('ctxFields').querySelectorAll('input').forEach(i => {
+    if (i.value.trim() !== (state.campaign.context.core[i.dataset.f] ?? '')) patch[i.dataset.f] = i.value.trim();
+  });
+  const c1 = $('pColor1').value.toUpperCase(), c2 = $('pColor2').value.toUpperCase(), font = $('pFont').value;
+  const styleChanged = c1 !== state.campaign.style.palette.primary || c2 !== state.campaign.style.palette.bg || font !== state.campaign.style.fonts.heading;
+  if (styleChanged) {
+    state.campaign.style = normalizeStyle({
+      keyVisual: state.campaign.style.keyVisual,
+      colors: [c1, c2], fonts: { heading: font, body: font },
+      mood: state.campaign.style.mood,
+    });
+    logEvent(state.campaign, 'style_changed', {});
+  }
+  if (!Object.keys(patch).length && !styleChanged) { toast('변경된 값이 없습니다'); return; }
+
+  let impacted = [], conflicts = [];
+  if (Object.keys(patch).length) {
+    ({ impacted, conflicts } = propagate(state.campaign, patch));
+    state.ctx = state.campaign.context;
+  } else {
+    generateArtifacts(state.campaign);
+    impacted = state.campaign.artifacts.map(a => a.specId);
+  }
+  if (styleChanged && Object.keys(patch).length) generateArtifacts(state.campaign);
+  renderGrid();
+  const note = $('propNote');
+  note.style.display = 'block';
+  note.textContent = conflicts.length
+    ? `${impacted.length}종 반영 · ${conflicts.length}건 충돌 — 노란 카드 확인`
+    : `${impacted.length}종 일괄 반영 완료 — 개별 편집한 표현은 보존`;
+  agent(`일괄 반영 → ${impacted.length}종 갱신${conflicts.length ? `, ${conflicts.length}건은 확인 필요` : ''}.`);
+}
+
+/* ═══════════ 캔버스 ═══════════ */
 function naturalSize(spec) {
   if (spec.unit === 'mm') {
     const k = 3.7795;
-    return [ (spec.wmm + spec.bleed * 2) * k, (spec.hmm + spec.bleed * 2) * k ];
+    return [(spec.wmm + spec.bleed * 2) * k, (spec.hmm + spec.bleed * 2) * k];
   }
   if (spec.channel === 'banner') return [spec.w, spec.h];
   if (spec.channel === 'edm') return [600, 900];
   return [1000, 1400];
-}
-
-function renderBoard() {
-  $('boardEmpty').style.display = 'none';
-  $('boardHead').style.display = 'flex';
-  $('ctxbar').style.display = 'block';
-  $('campName').textContent = state.campaign.id;
-  $('boardTitle').textContent = `${state.ctx.core.name} — 산출물 ${state.campaign.artifacts.length}종`;
-  renderCtxBar();
-  renderGrid();
-}
-
-function renderCtxBar() {
-  const fields = ['date', 'venue', 'cta'];
-  $('ctxFields').innerHTML = fields.map(f =>
-    `<div class="f"><label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${state.campaign.context.core[f] ?? ''}"></div>`
-  ).join('') + `<button class="btn pri" id="propBtn">일괄 반영</button>`;
-  $('propBtn').onclick = () => {
-    const patch = {};
-    $('ctxFields').querySelectorAll('input').forEach(i => {
-      if (i.value.trim() !== (state.campaign.context.core[i.dataset.f] ?? '')) patch[i.dataset.f] = i.value.trim();
-    });
-    if (!Object.keys(patch).length) { toast('변경된 값이 없습니다'); return; }
-    const { impacted, conflicts } = propagate(state.campaign, patch);
-    state.ctx = state.campaign.context;
-    renderGrid();
-    const note = $('propNote');
-    note.style.display = 'block';
-    note.textContent = conflicts.length
-      ? `${impacted.length}종 일괄 반영 · ${conflicts.length}건 충돌(직접 편집한 값과 겹침) — 노란 배지 카드를 확인하세요`
-      : `${impacted.length}종에 일괄 반영 완료 — 직접 편집한 표현은 그대로 보존됐습니다`;
-    agent(`Context 변경(${Object.keys(patch).map(f => FIELD_LABEL[f]).join(', ')}) → 산출물 ${impacted.length}종 일괄 반영${conflicts.length ? `, ${conflicts.length}건은 확인 필요` : ''}.`);
-  };
 }
 
 function renderGrid() {
@@ -298,24 +445,27 @@ function renderGrid() {
     const [nw, nh] = naturalSize(spec);
     const card = document.createElement('div');
     card.className = 'card';
+    const nVar = VARIANTS[a.channel] ?? 1;
     card.innerHTML = `
       <div class="prev"></div>
-      <div class="meta"><b>${a.specId}</b><span class="badge ${a.status}">${
+      <div class="meta"><b>${a.specId}${a.variant ? ` · 시안${a.variant + 1}` : ''}</b><span class="badge ${a.status}">${
         { draft: 'DRAFT', approved: '승인됨', needsReview: '확인 필요' }[a.status] ?? a.status}</span></div>
       <div class="acts">
         <button class="btn ghost" data-act="edit">편집</button>
-        <button class="btn ghost" data-act="open">크게 보기</button>
+        ${nVar > 1 ? '<button class="btn ghost" data-act="var">다른 시안</button>' : ''}
+        <button class="btn ghost" data-act="open">크게</button>
         <button class="btn ghost" data-act="dl">HTML</button>
       </div>`;
     const prev = card.querySelector('.prev');
     const iframe = document.createElement('iframe');
-    const scale = Math.min(250 / nw, 210 / nh);
+    const scale = Math.min(240 / nw, 195 / nh);
     iframe.width = nw; iframe.height = nh;
     iframe.style.transform = `translateX(-50%) scale(${scale})`;
-    iframe.style.transformOrigin = 'top center';
     iframe.srcdoc = a.html;
     prev.appendChild(iframe);
     card.querySelector('[data-act=edit]').onclick = () => editArtifact(a);
+    const vb = card.querySelector('[data-act=var]');
+    if (vb) vb.onclick = () => cycleVariant(a);
     card.querySelector('[data-act=open]').onclick = () => {
       const win = window.open('', '_blank'); win.document.write(a.html); win.document.close();
     };
@@ -329,31 +479,123 @@ function renderGrid() {
   $('approveAll').onclick = approveAll;
 }
 
+function cycleVariant(a) {
+  a.variant = ((a.variant ?? 0) + 1) % (VARIANTS[a.channel] ?? 1);
+  a.status = 'draft';
+  logEvent(state.campaign, 'variation_cycled', { specId: a.specId, variant: a.variant });
+  generateArtifacts(state.campaign);
+  renderGrid();
+  toast(`${a.specId} — 시안 ${a.variant + 1}/${VARIANTS[a.channel]}`);
+}
+
 function editArtifact(a) {
   const cur = a.overrides.core ?? {};
-  const val = prompt(`[${a.specId}] 이 산출물에서만 바꿀 행사명 표기 (비우면 원복)`, cur.name ?? state.campaign.context.core.name);
-  if (val === null) return;
-  if (val.trim() && val.trim() !== state.campaign.context.core.name) {
-    a.overrides.core = { ...cur, name: val.trim() };
-  } else {
-    delete (a.overrides.core ?? {}).name;
-  }
+  const fields = ['name', 'date', 'venue', 'cta'];
+  modal({
+    title: `${a.specId} 개별 편집`,
+    desc: '이 산출물에서만 다르게 표기할 값을 입력하세요. 비워두면 캠페인 공통값을 따릅니다. (표현은 디자이너 소유 — 일괄 반영에서 보존됩니다)',
+    body: fields.map(f =>
+      `<label>${FIELD_LABEL[f]} <span style="opacity:.6">공통: ${state.campaign.context.core[f] ?? '—'}</span></label>
+       <input type="text" data-f="${f}" value="${cur[f] ?? ''}" placeholder="${state.campaign.context.core[f] ?? ''}">`
+    ).join(''),
+    actions: [
+      { label: '초기화', fn: () => { a.overrides.core = {}; applyEdit(a); } },
+      { label: '적용', pri: true, fn: () => {
+        const o = {};
+        $('modalBody').querySelectorAll('input').forEach(i => { if (i.value.trim()) o[i.dataset.f] = i.value.trim(); });
+        a.overrides.core = o;
+        applyEdit(a);
+      } },
+    ],
+  });
+}
+function applyEdit(a) {
   a.status = 'draft';
   logEvent(state.campaign, 'manual_edit', { specId: a.specId });
   generateArtifacts(state.campaign);
   renderGrid();
-  toast(`${a.specId} 개별 편집 적용 — 다른 산출물은 그대로`);
+  toast(`${a.specId} 개별 편집 적용`);
 }
 
+/* ═══════════ 하단 지시 바 ═══════════ */
+function parseCommandRegex(text) {
+  const patch = {};
+  const venue = text.match(/(?:장소|장소를)\s*([가-힣A-Za-z0-9 ]+?)\s*(?:으로|로)\s*(?:변경|바꿔|수정)/) || text.match(/([가-힣A-Za-z0-9]+)(?:으로|로)\s*장소\s*변경/);
+  if (venue) patch.venue = venue[1].trim();
+  const date = text.match(/(?:일시|날짜)를?\s*([\d\-\.년월일\s]+?)\s*(?:으로|로)\s*(?:변경|바꿔|수정)/);
+  if (date) patch.date = date[1].trim();
+  const cta = text.match(/CTA를?\s*([가-힣A-Za-z0-9 ]+?)\s*(?:으로|로)\s*(?:변경|바꿔|수정)/i);
+  if (cta) patch.cta = cta[1].trim();
+  return Object.keys(patch).length ? patch : null;
+}
+
+async function onCommand(text) {
+  user(text);
+  if (/다른\s*시안|시안\s*바꿔/.test(text)) {
+    for (const a of state.campaign.artifacts) if ((VARIANTS[a.channel] ?? 1) > 1) a.variant = ((a.variant ?? 0) + 1) % VARIANTS[a.channel];
+    generateArtifacts(state.campaign);
+    renderGrid();
+    agent('전 산출물의 레이아웃 시안을 한 단계씩 바꿨어요.');
+    return;
+  }
+  let patch = parseCommandRegex(text);
+  if (!patch && LLM.hasKey()) {
+    const wait = agent('지시 해석 중…');
+    try { patch = await LLM.parseCommandLLM(text); } catch {}
+    wait.remove();
+    if (patch && !Object.keys(patch).length) patch = null;
+  }
+  if (!patch) { agent('이해하지 못했어요. 예: "장소 킨텍스로 변경" · "일시 11월 3일로 바꿔" · "다른 시안"'); return; }
+  const { impacted, conflicts } = propagate(state.campaign, patch);
+  state.ctx = state.campaign.context;
+  renderPanel(); renderGrid();
+  agent(`${Object.entries(patch).map(([f, v]) => `${FIELD_LABEL[f]} → ${v}`).join(', ')} — ${impacted.length}종 일괄 반영${conflicts.length ? `, ${conflicts.length}건 확인 필요` : ''}.`);
+}
+$('cmdGo').onclick = () => { const t = $('cmdIn').value.trim(); if (t) { $('cmdIn').value = ''; onCommand(t); } };
+$('cmdIn').onkeydown = e => { if (e.key === 'Enter') $('cmdGo').click(); };
+
+/* ═══════════ 승인 · 저장 ═══════════ */
 function approveAll() {
   for (const a of state.campaign.artifacts) a.status = 'approved';
   logEvent(state.campaign, 'artifact_approved', { all: true });
   renderGrid();
   setStep('done');
   const kpi = state.campaign.log.reduce((m, e) => (m[e.type] = (m[e.type] ?? 0) + 1, m), {});
-  agent(`전체 승인 완료.\n\n산출물 ${state.campaign.artifacts.length}종 — 배너·eDM·랜딩은 파일로, 포스터·X배너·현수막은 인쇄용 PDF 변환(scripts) 대상입니다.\n\nKPI 로그: 생성 ${kpi.artifact_generated ?? 0} · 개별 편집 ${kpi.manual_edit ?? 0} · 일괄 전파 ${kpi.propagation_run ?? 0}`);
-  toast('전체 승인 완료');
+  agent(`전체 승인 완료 — 캠페인이 자산 서랍에 저장됐습니다.\n\nKPI 로그: 생성 ${kpi.artifact_generated ?? 0} · 개별 편집 ${kpi.manual_edit ?? 0} · 일괄 전파 ${kpi.propagation_run ?? 0} · 시안 변경 ${kpi.variation_cycled ?? 0}`);
+  saveCampaignToStore();
+  toast('전체 승인 완료 — 홈의 내 캠페인에 저장됨');
 }
 
-/* ---------- boot ---------- */
-stepBrief();
+function saveCampaignToStore() {
+  const c = state.campaign;
+  const snapshot = {
+    id: c.id, savedAt: Date.now(),
+    context: c.context, style: c.style, channels: c.channels,
+    artifacts: c.artifacts.map(a => ({ specId: a.specId, channel: a.channel, overrides: a.overrides, variant: a.variant ?? 0, status: a.status })),
+    log: c.log,
+  };
+  const list = loadStore().filter(x => x.id !== c.id);
+  list.push(snapshot);
+  try { saveStore(list); } catch {
+    snapshot.style = { ...snapshot.style, keyVisual: null };   // 쿼터 초과 — 키비주얼만 빼고 저장
+    try { saveStore(list); } catch { toast('저장 공간 부족 — 캠페인 저장 실패'); }
+  }
+}
+
+/* ═══════════ AI 키 ═══════════ */
+$('keyBtn').onclick = () => {
+  modal({
+    title: 'AI 해석 설정 (BYOK)',
+    desc: '개인 Anthropic API 키를 이 브라우저에만 저장합니다. 키가 있으면 기획·지시를 AI가 해석하고, 없으면 규칙 파서로 동작합니다.',
+    body: `<label>API 키</label><input type="password" id="keyIn" value="${LLM.getKey()}" placeholder="sk-ant-...">`,
+    actions: [
+      { label: '지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('키 삭제됨'); } },
+      { label: '저장', pri: true, fn: () => { LLM.setKey($('modalBody').querySelector('#keyIn').value.trim()); refreshAiChip(); toast('키 저장됨'); } },
+    ],
+  });
+};
+
+/* ═══════════ boot ═══════════ */
+$('homeBtn').onclick = showHome;
+initHome();
+showHome();

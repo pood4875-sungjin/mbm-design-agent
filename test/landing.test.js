@@ -33,3 +33,8 @@ test('renderLanding is self-contained', () => {
   const html = renderLanding(ctx, style, spec);
   assert.doesNotMatch(html, /https?:\/\//, '외부 리소스 참조 금지');
 });
+
+test('renderLanding variant 1 uses light hero', () => {
+  const html = renderLanding(ctx, style, { ...spec, variant: 1 });
+  assert.match(html, /data-hero="light"/);
+});

@@ -30,3 +30,14 @@ test('renderBanner escapes html in context values', () => {
   const bad = createContext({ name: '<script>x</script>', date: 'd', venue: 'v', audience: 'a', cta: 'c' });
   assert.doesNotMatch(renderBanner(bad, style, spec), /<script>/);
 });
+
+test('renderBanner variant 1 inverts to white background', () => {
+  const html = renderBanner(ctx, style, { ...spec, variant: 1 });
+  assert.match(html, /background:#fff/i);
+  assert.match(html, /color:#0A3D91/);
+});
+
+test('renderBanner variant 2 adds bottom color band', () => {
+  const html = renderBanner(ctx, style, { ...spec, variant: 2 });
+  assert.match(html, /data-band/);
+});

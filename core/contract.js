@@ -20,12 +20,12 @@ export function registerRenderer(channel, fn) {
   renderers.set(channel, fn);
 }
 
-export function renderArtifact(specId, context, style) {
+export function renderArtifact(specId, context, style, variant = 0) {
   const spec = SPECS[specId];
   if (!spec) throw new Error(`알 수 없는 스펙: ${specId}`);
   const fn = renderers.get(spec.channel);
   if (!fn) throw new Error(`렌더러 없음: ${spec.channel}`);
-  return fn(context, style, spec);
+  return fn(context, style, { ...spec, variant });
 }
 
 export function _clearRenderers() {

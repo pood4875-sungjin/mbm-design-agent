@@ -32,3 +32,9 @@ test('renderPrint scales typography with format size', () => {
   const size = h => Number(h.match(/font-size:([\d.]+)mm/)[1]);
   assert.ok(size(xbanner) > size(poster), '큰 매체일수록 큰 글자');
 });
+
+test('renderPrint variant 1 centers layout', () => {
+  const html = renderPrint(ctx, style, { ...SPECS['poster-a2'], variant: 1 });
+  assert.match(html, /align-items:center/);
+  assert.match(html, /text-align:center/);
+});
