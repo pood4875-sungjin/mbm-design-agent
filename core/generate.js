@@ -79,6 +79,9 @@ export function generateArtifacts(campaign) {
       size: artifact.size,
       roster: campaign.roster ?? null,   // 명찰은 사람 수만큼 페이지가 된다
       dest: artifact.dest ?? null,       // 방향 안내 목적지 ("2F Conference Hall")
+      // 프로그램·토픽은 캠페인 전체 값이 기본, 산출물별로 덮어쓸 수 있다(표현 소유 = 디자이너).
+      program: artifact.program ?? campaign.program ?? null,
+      topics: artifact.topics ?? campaign.topics ?? null,
     });
     artifact.contextVersion = campaign.context.version;
     logEvent(campaign, 'artifact_generated', { key });

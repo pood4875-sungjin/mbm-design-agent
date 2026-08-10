@@ -40,7 +40,11 @@ export const ARROWS = { up: '↑', down: '↓', left: '←', right: '→' };
 export const SIZE_PRESETS = {
   poster:    [{ label: 'A2 420×594', wmm: 420, hmm: 594 }, { label: 'A1 594×841', wmm: 594, hmm: 841 }, { label: 'A3 297×420', wmm: 297, hmm: 420 }],
   xbanner:   [{ label: '600×1800', wmm: 600, hmm: 1800 }, { label: '600×1600', wmm: 600, hmm: 1600 }, { label: '800×1800', wmm: 800, hmm: 1800 }],
-  hyunsumak: [{ label: '4000×900 (가로)', wmm: 4000, hmm: 900 }, { label: '3000×700 (가로)', wmm: 3000, hmm: 700 }, { label: '5000×1000 (가로)', wmm: 5000, hmm: 1000 }],
+  // 앞의 셋은 파일럿 가정값, 뒤의 둘은 엔솔 오프라인 MBM 템플릿 실측이다 —
+  //   2980×2300 = "Wall 현수막"(Figma 441:1605, 845×652pt ×3.528), 무대 뒤 벽면용이라 거의 정사각.
+  //   1800×750  = "데스크 가림 현수막"(441:1804, 510×213pt), 안내데스크 앞면 가림막.
+  hyunsumak: [{ label: '4000×900 (가로)', wmm: 4000, hmm: 900 }, { label: '3000×700 (가로)', wmm: 3000, hmm: 700 }, { label: '5000×1000 (가로)', wmm: 5000, hmm: 1000 },
+              { label: '2980×2300 (벽면 · 템플릿)', wmm: 2980, hmm: 2300 }, { label: '1800×750 (데스크 가림 · 템플릿)', wmm: 1800, hmm: 750 }],
   // 가로 규격은 H.Solution Day 명찰 자체인쇄 실측(Figma 258:2023, 284×255pt ×0.3528 → 100.2×90.0mm).
   // 가로 규격을 고르면 renderBadge가 variant와 상관없이 가로형 레이아웃으로 넘어간다.
   badge:     [{ label: '110×140 (템플릿)', wmm: 110, hmm: 140 }, { label: '90×120 (세로)', wmm: 90, hmm: 120 }, { label: '100×90 (가로)', wmm: 100, hmm: 90 }],
@@ -52,13 +56,15 @@ export function purposesFor(channel) {
   return PURPOSES.filter(p => p.channels.includes(channel));
 }
 
-// opts: { variant, purpose, arrow, size:{wmm,hmm} } — size는 캠페인별 규격 조정
+// opts: { variant, purpose, arrow, size:{wmm,hmm}, program, topics, heading } — size는 캠페인별 규격 조정
+//   program = [{time,title,presenter}] 프로그램 안내 표 (없으면 렌더러가 플레이스홀더를 낸다)
+//   topics  = ['Solution','Geotechnical'] 메인 홍보의 헤어라인 토픽 칩 (없으면 칩 자체가 안 나온다)
 export function renderArtifact(specId, context, style, opts = {}) {
   const base = SPECS[specId];
   if (!base) throw new Error(`알 수 없는 스펙: ${specId}`);
   const fn = renderers.get(base.channel);
   if (!fn) throw new Error(`렌더러 없음: ${base.channel}`);
-  const spec = { ...base, variant: opts.variant ?? 0, purpose: opts.purpose ?? 'main', arrow: opts.arrow ?? null, roster: opts.roster ?? null, dest: opts.dest ?? null };
+  const spec = { ...base, variant: opts.variant ?? 0, purpose: opts.purpose ?? 'main', arrow: opts.arrow ?? null, roster: opts.roster ?? null, dest: opts.dest ?? null, program: opts.program ?? null, topics: opts.topics ?? null, heading: opts.heading ?? null };
   if (opts.size?.wmm) { spec.wmm = opts.size.wmm; spec.hmm = opts.size.hmm; }
   if (opts.size?.w) { spec.w = opts.size.w; spec.h = opts.size.h; }
   return fn(context, style, spec);
