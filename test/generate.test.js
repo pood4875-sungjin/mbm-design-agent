@@ -59,3 +59,44 @@ test('generateArtifacts passes artifact.variant to renderer spec', () => {
   generateArtifacts(c);
   assert.match(c.artifacts[0].html, /background:#fff/i);
 });
+
+test('signage set produces one artifact per purpose', () => {
+  registerAll();
+  const c = fullCampaign(['xbanner']);
+  c.signage = { xbanner: [
+    { purpose: 'main' },
+    { purpose: 'way', arrow: 'left' },
+    { purpose: 'way', arrow: 'right' },
+    { purpose: 'reception' },
+  ] };
+  generateArtifacts(c);
+  assert.deepEqual(c.artifacts.map(a => a.key), [
+    'xbanner-600x1800',
+    'xbanner-600x1800--way-left',
+    'xbanner-600x1800--way-right',
+    'xbanner-600x1800--reception',
+  ]);
+  assert.match(c.artifacts[1].html, /←/);
+  assert.match(c.artifacts[2].html, /→/);
+  assert.match(c.artifacts[3].html, /REGISTRATION/);
+});
+
+test('removing a purpose drops its artifact', () => {
+  registerAll();
+  const c = fullCampaign(['xbanner']);
+  c.signage = { xbanner: [{ purpose: 'main' }, { purpose: 'agenda' }] };
+  generateArtifacts(c);
+  assert.equal(c.artifacts.length, 2);
+  c.signage.xbanner = [{ purpose: 'main' }];
+  generateArtifacts(c);
+  assert.deepEqual(c.artifacts.map(a => a.key), ['xbanner-600x1800']);
+});
+
+test('per-artifact size override reaches the renderer', () => {
+  registerAll();
+  const c = fullCampaign(['poster']);
+  generateArtifacts(c);
+  c.artifacts[0].size = { wmm: 594, hmm: 841 };
+  generateArtifacts(c);
+  assert.match(c.artifacts[0].html, /@page\{size:600mm 847mm/);
+});

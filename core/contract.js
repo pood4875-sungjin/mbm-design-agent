@@ -20,12 +20,36 @@ export function registerRenderer(channel, fn) {
   renderers.set(channel, fn);
 }
 
-export function renderArtifact(specId, context, style, variant = 0) {
-  const spec = SPECS[specId];
-  if (!spec) throw new Error(`알 수 없는 스펙: ${specId}`);
-  const fn = renderers.get(spec.channel);
-  if (!fn) throw new Error(`렌더러 없음: ${spec.channel}`);
-  return fn(context, style, { ...spec, variant });
+// 사이니지 용도 — 같은 규격이라도 현장에서 쓰임이 다르다 (세트로 함께 나감)
+export const PURPOSES = [
+  { id: 'main',      label: '메인 홍보',        channels: ['xbanner', 'hyunsumak', 'poster'] },
+  { id: 'way',       label: '방향 안내',        channels: ['xbanner'], needsArrow: true },
+  { id: 'agenda',    label: '프로그램 안내',    channels: ['xbanner', 'poster'] },
+  { id: 'reception', label: '사전등록 · 안내데스크', channels: ['xbanner', 'poster'] },
+];
+export const ARROWS = { up: '↑', down: '↓', left: '←', right: '→' };
+
+// 규격 프리셋 — 캠페인에서 골라 조정 (실측 발주 이력 확보 시 갱신)
+export const SIZE_PRESETS = {
+  poster:    [{ label: 'A2 420×594', wmm: 420, hmm: 594 }, { label: 'A1 594×841', wmm: 594, hmm: 841 }, { label: 'A3 297×420', wmm: 297, hmm: 420 }],
+  xbanner:   [{ label: '600×1800', wmm: 600, hmm: 1800 }, { label: '600×1600', wmm: 600, hmm: 1600 }, { label: '800×1800', wmm: 800, hmm: 1800 }],
+  hyunsumak: [{ label: '4000×900 (가로)', wmm: 4000, hmm: 900 }, { label: '3000×700 (가로)', wmm: 3000, hmm: 700 }, { label: '5000×1000 (가로)', wmm: 5000, hmm: 1000 }],
+};
+
+export function purposesFor(channel) {
+  return PURPOSES.filter(p => p.channels.includes(channel));
+}
+
+// opts: { variant, purpose, arrow, size:{wmm,hmm} } — size는 캠페인별 규격 조정
+export function renderArtifact(specId, context, style, opts = {}) {
+  const base = SPECS[specId];
+  if (!base) throw new Error(`알 수 없는 스펙: ${specId}`);
+  const fn = renderers.get(base.channel);
+  if (!fn) throw new Error(`렌더러 없음: ${base.channel}`);
+  const spec = { ...base, variant: opts.variant ?? 0, purpose: opts.purpose ?? 'main', arrow: opts.arrow ?? null };
+  if (opts.size?.wmm) { spec.wmm = opts.size.wmm; spec.hmm = opts.size.hmm; }
+  if (opts.size?.w) { spec.w = opts.size.w; spec.h = opts.size.h; }
+  return fn(context, style, spec);
 }
 
 export function _clearRenderers() {

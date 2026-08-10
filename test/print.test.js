@@ -18,12 +18,11 @@ test('renderPrint sets @page to trim size plus bleed', () => {
   assert.match(html, /mm/);
 });
 
-test('renderPrint switches to landscape layout for wide fabric', () => {
+test('hyunsumak is landscape with centered big type', () => {
   const wide = renderPrint(ctx, style, SPECS['hyunsumak-4000x900']);
   assert.match(wide, /@page\{size:4020mm 920mm;margin:0\}/);
-  assert.match(wide, /flex-direction:row/);
-  const tall = renderPrint(ctx, style, SPECS['xbanner-600x1800']);
-  assert.match(tall, /flex-direction:column/);
+  assert.match(wide, /text-align:center/);
+  assert.match(wide, /class="big"/, '가로 현수막은 센터 대형 타이포');
 });
 
 test('renderPrint scales typography with format size', () => {
@@ -37,4 +36,49 @@ test('renderPrint variant 1 centers layout', () => {
   const html = renderPrint(ctx, style, { ...SPECS['poster-a2'], variant: 1 });
   assert.match(html, /align-items:center/);
   assert.match(html, /text-align:center/);
+});
+
+test('print has no button chrome — paper is not clickable', () => {
+  const html = renderPrint(ctx, style, SPECS['poster-a2']);
+  assert.doesNotMatch(html, /<button|<a\s/i);
+  assert.doesNotMatch(html, /border-radius:[\d.]+mm/, '알약형 버튼 금지');
+  assert.match(html, /class="ctaText"/, 'CTA는 텍스트로');
+  assert.match(html, /사전등록/);
+});
+
+test('print fits to screen for preview but keeps exact mm for print', () => {
+  const html = renderPrint(ctx, style, SPECS['xbanner-600x1800']);
+  assert.match(html, /@media screen/);
+  assert.match(html, /@media print/);
+  assert.match(html, /transform:none!important/, '인쇄 시 축소 해제');
+  assert.match(html, /class="trim"/, '재단선 가이드');
+});
+
+test('xbanner purposes produce distinct layouts as a set', () => {
+  const spec = SPECS['xbanner-600x1800'];
+  const way = renderPrint(ctx, style, { ...spec, purpose: 'way', arrow: 'left' });
+  assert.match(way, /←/);
+  assert.match(way, /class="arrow"/);
+
+  const agenda = renderPrint(ctx, style, { ...spec, purpose: 'agenda' });
+  assert.match(agenda, /PROGRAM/);
+  assert.match(agenda, /class="row"/);
+
+  const reception = renderPrint(ctx, style, { ...spec, purpose: 'reception' });
+  assert.match(reception, /REGISTRATION/);
+  assert.match(reception, /안내데스크/);
+
+  const main = renderPrint(ctx, style, spec);
+  assert.doesNotMatch(main, /PROGRAM|REGISTRATION|class="arrow"/);
+});
+
+test('custom size overrides the preset', () => {
+  const html = renderPrint(ctx, style, { ...SPECS['xbanner-600x1800'], wmm: 800, hmm: 2000 });
+  assert.match(html, /@page\{size:806mm 2006mm;margin:0\}/);
+});
+
+test('print sheet shows cmyk reference for the primary color', () => {
+  const html = renderPrint(ctx, style, SPECS['poster-a2']);
+  assert.match(html, /C93 M58 Y0 K43/);
+  assert.match(html, /인쇄소 프로파일/, 'CMYK는 근사값임을 명시');
 });

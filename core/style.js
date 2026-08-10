@@ -2,6 +2,22 @@
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
+// RGB → CMYK 근사(naive). 인쇄 사양서·화면 표기용 참고값이며,
+// 실제 분판은 인쇄소 ICC 프로파일 기준이다(브라우저는 CMYK를 직접 출력하지 못함).
+export function toCmyk(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const k = 1 - Math.max(r, g, b);
+  if (k === 1) return [0, 0, 0, 100];
+  const c = (1 - r - k) / (1 - k), m = (1 - g - k) / (1 - k), y = (1 - b - k) / (1 - k);
+  return [c, m, y, k].map(v => Math.round(v * 100));
+}
+export function cmykText(hex) {
+  const [c, m, y, k] = toCmyk(hex);
+  return `C${c} M${m} Y${y} K${k}`;
+}
+
 export function normalizeStyle(input = {}) {
   const colors = input.colors ?? [];
   for (const c of colors) {
@@ -21,5 +37,10 @@ export function normalizeStyle(input = {}) {
     logo: input.logo ?? null,
     mood: input.mood ?? [],
     presetId: input.presetId ?? null,
+    // 인쇄 사양 — 근사 CMYK(사양서·미리보기 표기용)
+    cmyk: {
+      primary: toCmyk(colors[0] ?? '#2456D6'),
+      bg: toCmyk(colors[1] ?? '#FFFFFF'),
+    },
   };
 }
