@@ -9,6 +9,7 @@ import { renderEdm } from './renderers/edm.js';
 import { renderLanding } from './renderers/landing.js';
 import { renderPrint } from './renderers/print.js';
 import { renderBadge } from './renderers/badge.js';
+import { renderPhotobooth } from './renderers/photobooth.js';
 
 export function registerAll() {
   _clearRenderers();
@@ -20,6 +21,7 @@ export function registerAll() {
   registerRenderer('xbanner', renderPrint);
   registerRenderer('hyunsumak', renderPrint);
   registerRenderer('badge', renderBadge);
+  registerRenderer('photobooth', renderPhotobooth);
 }
 
 export function channelSpecIds(channels) {

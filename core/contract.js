@@ -16,6 +16,9 @@ export const SPECS = {
   'xbanner-600x1800':   { channel: 'xbanner', wmm: 600, hmm: 1800, bleed: 3, unit: 'mm', output: 'pdf' },
   'hyunsumak-4000x900': { channel: 'hyunsumak', wmm: 4000, hmm: 900, bleed: 10, unit: 'mm', output: 'pdf' },
   'badge-110x140':      { channel: 'badge', wmm: 110, hmm: 140, bleed: 2, unit: 'mm', output: 'pdf', perPerson: true },  // 엔솔 MBM 템플릿 실측
+  // 포토부스 백드롭 — 2024 MIDAS WEEK 포토존 시안은 정확히 2:1(1553.39×776.69pt)이었다.
+  // 비율만 실측이고 실물 mm는 시안에 없다 ⚠확정 필요 — 아래는 2:1을 지키는 일반 백드롭 규격.
+  'photobooth-4000x2000': { channel: 'photobooth', wmm: 4000, hmm: 2000, bleed: 10, unit: 'mm', output: 'pdf' },
 };
 
 const renderers = new Map();
@@ -39,6 +42,8 @@ export const SIZE_PRESETS = {
   xbanner:   [{ label: '600×1800', wmm: 600, hmm: 1800 }, { label: '600×1600', wmm: 600, hmm: 1600 }, { label: '800×1800', wmm: 800, hmm: 1800 }],
   hyunsumak: [{ label: '4000×900 (가로)', wmm: 4000, hmm: 900 }, { label: '3000×700 (가로)', wmm: 3000, hmm: 700 }, { label: '5000×1000 (가로)', wmm: 5000, hmm: 1000 }],
   badge:     [{ label: '110×140 (템플릿)', wmm: 110, hmm: 140 }, { label: '90×120 (세로)', wmm: 90, hmm: 120 }, { label: '105×74 (가로)', wmm: 105, hmm: 74 }],
+  // 시안 비율 2:1을 유지하는 세 규격. 벗어난 비율을 넣으면 도형이 늘어나지 않고 잘린다.
+  photobooth: [{ label: '4000×2000 (2:1)', wmm: 4000, hmm: 2000 }, { label: '3000×1500 (2:1)', wmm: 3000, hmm: 1500 }, { label: '2400×1200 (2:1)', wmm: 2400, hmm: 1200 }],
 };
 
 export function purposesFor(channel) {

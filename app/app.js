@@ -21,16 +21,17 @@ const FIELD_LABEL = {
 };
 const CHANNEL_LABEL = {
   banner: '홍보 배너', edm: 'eDM', landing: '랜딩페이지', gwthumb: '그룹웨어 썸네일',
-  poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰',
+  poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰', photobooth: '포토부스',
 };
 const CHANNEL_DESC = {
   banner: 'Google Ads 5규격', edm: '이메일 HTML', landing: '등록 폼 포함', gwthumb: '374×271 · PNG',
   poster: 'A2 · 인쇄 PDF', xbanner: '600×1800 · PDF', hyunsumak: '인쇄 PDF', badge: '110×140 · 명단 일괄',
+  photobooth: '4000×2000 · 백드롭 PDF',
 };
 const ONLINE = ['edm', 'landing', 'banner', 'gwthumb'];
-const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge'];
-const VARIANTS = { banner: 3, gwthumb: 3, badge: 1, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1 };
-const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05 };
+const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
+const VARIANTS = { banner: 3, gwthumb: 3, badge: 1, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
+const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05, photobooth: 0.05 };
 const STORE_LS = 'mbm-campaigns';
 
 const SAMPLES = [
@@ -413,8 +414,8 @@ $('cvFileIn').onchange = () => {
   r.readAsDataURL(f);
 };
 
-const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'] };
-const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak', 'badge'];
+const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'], photobooth: ['printSize'] };
+const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
 
 function bindUpload(thumb, file, set) {
   thumb.onclick = () => file.click();
