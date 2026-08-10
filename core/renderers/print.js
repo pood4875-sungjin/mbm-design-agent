@@ -18,6 +18,7 @@
 import { esc } from './banner.js';
 import { cmykText } from '../style.js';
 import { fontStack, fontLink } from '../fonts.js';
+import { fitKeyVisual } from '../palette.js';
 
 const ARROW_GLYPH = { up: '↑', down: '↓', left: '←', right: '→' };
 const PURPOSE_LABEL = { main: '', way: '', agenda: 'PROGRAM', reception: 'REGISTRATION' };
@@ -36,9 +37,13 @@ export function renderPrint(ctx, style, spec) {
   const useKv = style.keyVisual && purpose === 'main';
   const rd = useKv ? (style.kvReadability?.print ?? null) : null;
   const fg = rd?.text ?? p.onPrimary;
-  const bg = useKv
-    ? `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`
-    : `background:${p.primary}`;
+  let bg = `background:${p.primary}`;
+  if (useKv) {
+    const fit = fitKeyVisual(spec.wmm / spec.hmm, style.kvMeta?.ar, style.kvMeta?.edge ?? p.primary);
+    bg = fit.mode === 'contain'
+      ? `background:${fit.bg};background-image:${fit.bg},url('${esc(style.keyVisual)}');background-size:cover,contain;background-position:center,center bottom;background-repeat:no-repeat,no-repeat`
+      : `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`;
+  }
   const scrim = rd?.scrim
     ? `<div style="position:absolute;inset:0;background:linear-gradient(180deg,${fg === '#FFFFFF' ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.58)'},transparent 70%);pointer-events:none"></div>`
     : '';
@@ -63,6 +68,11 @@ ${fontLink(style.fonts.heading)}
 .eyebrow{font-size:${mm(0.03)}mm;font-weight:700;letter-spacing:0.2em;opacity:.75}
 .cta{padding-top:${mm(0.03)}mm;border-top:${mm(0.004)}mm solid ${fg}8c;${centered ? '' : `min-width:${mm(0.42)}mm;`}}
 .ctaText{font-size:${mm(0.055)}mm;font-weight:800}
+.wayTop{font-size:${mm(0.06)}mm;font-weight:800;line-height:1.25;word-break:keep-all}
+.disc{width:${mm(0.44)}mm;height:${mm(0.44)}mm;border-radius:50%;background:${fg};display:flex;align-items:center;justify-content:center;margin:${mm(0.1)}mm 0}
+.disc span{font-size:${mm(0.2)}mm;line-height:1;color:${p.primary};font-weight:400}
+.dest{font-size:${mm(0.05)}mm;font-weight:800;letter-spacing:-0.01em}
+.rule{width:${mm(0.32)}mm;height:${mm(0.004)}mm;background:${fg};opacity:.6;margin:${mm(0.08)}mm 0}
 .arrow{font-size:${mm(0.42)}mm;line-height:.9;font-weight:400}
 .wayText{font-size:${mm(0.11)}mm;font-weight:800;line-height:1.2;word-break:keep-all}
 .big{font-size:${mm(0.16)}mm;font-weight:800;line-height:1.1;word-break:keep-all}
@@ -124,12 +134,16 @@ function mainBody(ctx, style, spec, mm, landscape) {
   <div class="cta"><div class="ctaText">${esc(cta)}</div></div>`;
 }
 
+// 방향 안내 — H.Solution Day 엑스배너 4종(Figma 181:6932) 구성을 따른다:
+//   상단 행사명 → 중앙 원형 배지 속 화살표 → 목적지 한 줄.
+//   목적지는 산출물마다 다르다("2F Conference Hall") — 없으면 장소로 대체.
 function wayBody(ctx, style, spec, mm) {
-  const { name } = ctx.core;
+  const { name, venue } = ctx.core;
   const dir = spec.arrow ?? 'right';
-  return `<div class="arrow">${ARROW_GLYPH[dir] ?? '→'}</div>
-  <div class="wayText">${esc(name)}</div>
-  <div class="sub">이 방향입니다</div>`;
+  const dest = spec.dest || venue;
+  return `<div class="wayTop">${esc(name)}</div>
+  <div class="disc"><span>${ARROW_GLYPH[dir] ?? '→'}</span></div>
+  <div class="dest">${esc(dest)}</div>`;
 }
 
 function agendaBody(ctx, style, spec, mm) {
@@ -144,10 +158,11 @@ function agendaBody(ctx, style, spec, mm) {
   </div>`;
 }
 
+// 사전등록·안내데스크 — 상단 행사명, 가는 구분선, 역할 라벨 하나가 크게.
 function receptionBody(ctx, style, spec, mm) {
   const { name, cta } = ctx.core;
-  return `<div class="eyebrow">${PURPOSE_LABEL.reception}</div>
-  <div class="big" style="font-size:${mm(0.13)}mm">${esc(cta)}</div>
-  <div class="sub">${esc(name)}</div>
-  <div class="cta" style="min-width:0"><div class="ctaText" style="font-size:${mm(0.042)}mm">안내데스크</div></div>`;
+  return `<div class="wayTop">${esc(name)}</div>
+  <div class="rule"></div>
+  <div class="big" style="font-size:${mm(0.125)}mm">${esc(spec.dest || '안내데스크')}</div>
+  <div class="sub" style="margin-top:${mm(0.03)}mm">${esc(cta)}</div>`;
 }

@@ -76,6 +76,7 @@ export function generateArtifacts(campaign) {
       arrow: artifact.arrow,
       size: artifact.size,
       roster: campaign.roster ?? null,   // 명찰은 사람 수만큼 페이지가 된다
+      dest: artifact.dest ?? null,       // 방향 안내 목적지 ("2F Conference Hall")
     });
     artifact.contextVersion = campaign.context.version;
     logEvent(campaign, 'artifact_generated', { key });

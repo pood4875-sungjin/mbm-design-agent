@@ -79,7 +79,7 @@ test('signage set produces one artifact per purpose', () => {
   ]);
   assert.match(c.artifacts[1].html, /←/);
   assert.match(c.artifacts[2].html, /→/);
-  assert.match(c.artifacts[3].html, /REGISTRATION/);
+  assert.match(c.artifacts[3].html, /안내데스크/);
 });
 
 test('removing a purpose drops its artifact', () => {

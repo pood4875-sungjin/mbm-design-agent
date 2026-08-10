@@ -136,3 +136,27 @@ export const TEXT_ZONES = {
   landing: { x: 0, y: 0, w: 1, h: 0.6 },
   print: { x: 0, y: 0, w: 1, h: 0.45 },
 };
+
+// 키비주얼 가장자리 평균색 — 이미지를 축소 배치했을 때 남는 여백을 이 색으로 잇는다.
+export function edgeColor(rgba, w, h, band = 0.08) {
+  const bw = Math.max(1, Math.round(w * band)), bh = Math.max(1, Math.round(h * band));
+  let n = 0, r = 0, g = 0, b = 0;
+  const take = (x, y) => { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; n++; };
+  for (let y = 0; y < h; y += 2) { for (let x = 0; x < bw; x += 2) take(x, y); for (let x = w - bw; x < w; x += 2) take(x, y); }
+  for (let x = 0; x < w; x += 2) { for (let y = 0; y < bh; y += 2) take(x, y); for (let y = h - bh; y < h; y += 2) take(x, y); }
+  return n ? rgbToHex([r / n, g / n, b / n]) : '#FFFFFF';
+}
+
+// 매체 비율과 이미지 비율이 많이 다르면 잘라내지 말고 넣어서 맞춘다(레터박스).
+// 남는 면은 가장자리 색 그라데이션으로 이어 자연스럽게 만든다.
+export function fitKeyVisual(specAR, imgAR, edge) {
+  if (!imgAR || !specAR) return { mode: 'cover', bg: null };
+  const diff = Math.abs(Math.log(specAR / imgAR));
+  if (diff < 0.42) return { mode: 'cover', bg: null };      // 비슷하면 꽉 채워 크롭
+  const wide = specAR > imgAR;                               // 매체가 이미지보다 가로로 김
+  return {
+    mode: 'contain',
+    wide,
+    bg: `linear-gradient(${wide ? '90deg' : '180deg'}, ${edge} 0%, ${edge} 22%, ${shiftHue(edge, 0, -0.06)} 100%)`,
+  };
+}

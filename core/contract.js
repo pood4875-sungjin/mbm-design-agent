@@ -51,7 +51,7 @@ export function renderArtifact(specId, context, style, opts = {}) {
   if (!base) throw new Error(`알 수 없는 스펙: ${specId}`);
   const fn = renderers.get(base.channel);
   if (!fn) throw new Error(`렌더러 없음: ${base.channel}`);
-  const spec = { ...base, variant: opts.variant ?? 0, purpose: opts.purpose ?? 'main', arrow: opts.arrow ?? null, roster: opts.roster ?? null };
+  const spec = { ...base, variant: opts.variant ?? 0, purpose: opts.purpose ?? 'main', arrow: opts.arrow ?? null, roster: opts.roster ?? null, dest: opts.dest ?? null };
   if (opts.size?.wmm) { spec.wmm = opts.size.wmm; spec.hmm = opts.size.hmm; }
   if (opts.size?.w) { spec.w = opts.size.w; spec.h = opts.size.h; }
   return fn(context, style, spec);

@@ -67,3 +67,19 @@ test('busy key visual gets a scrim and contrast-picked text color', () => {
   assert.match(html, /color:#000000/, '밝은 키비주얼 위에는 검은 글자');
   assert.doesNotMatch(html, /data-scrim/, '깨끗한 배경이면 가림막 없음');
 });
+
+test('key visual is contained with a matching color field when ratios clash', async () => {
+  const { fitKeyVisual } = await import('../core/palette.js');
+  assert.equal(fitKeyVisual(1.2, 1.0, '#88CCFF').mode, 'cover', '비율이 비슷하면 크롭');
+  const wide = fitKeyVisual(728 / 90, 1.0, '#88CCFF');       // 리더보드에 정사각 일러스트
+  assert.equal(wide.mode, 'contain');
+  assert.match(wide.bg, /#88CCFF/, '여백은 가장자리 색으로 잇는다');
+
+  const s = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png', kvMeta: { ar: 1, edge: '#88CCFF' } });
+  const html = renderBanner(ctx, s, SPECS['banner-728x90']);
+  assert.match(html, /background-size:cover,contain/);
+  assert.doesNotMatch(html, /center\/cover/, '넓은 배너는 크롭하지 않는다');
+
+  const square = renderBanner(ctx, s, SPECS['banner-300x250']);
+  assert.match(square, /center\/cover/, '비율이 맞으면 원래대로 꽉 채운다');
+});

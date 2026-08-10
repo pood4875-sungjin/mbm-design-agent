@@ -6,7 +6,7 @@
 import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, FONT_IDS } from '../core/fonts.js';
-import { extractPalette, analyzeRegion, buildPalette, TEXT_ZONES } from '../core/palette.js';
+import { extractPalette, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -223,7 +223,7 @@ async function startIntake(text) {
   state.intake = {
     fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
     mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
-    kvReadability: null, suggests: [], roster: [], phase: 'brief', styleDone: false, history: [],
+    kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'brief', styleDone: false, history: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -353,8 +353,8 @@ function slotStyle() {
     it.kv = d;
     $('kvHint').textContent = '분석 중…';
     try {
-      const { suggests, readability } = await analyzeKeyVisual(d);
-      it.suggests = suggests; it.kvReadability = readability;
+      const { suggests, readability, meta } = await analyzeKeyVisual(d);
+      it.suggests = suggests; it.kvReadability = readability; it.kvMeta = meta;
       if (suggests[0]) it.colors = [suggests[0], suggests[1] ?? it.colors[1], suggests[2] ?? it.colors[2]];
       applyDerived(); slotStyle();
       bub('agent', `키비주얼에서 대표 컬러 ${suggests.slice(0, 2).join(', ')}를 뽑았어요. 글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.`);
@@ -403,8 +403,8 @@ $('cvFileIn').onchange = () => {
   r.onload = () => {
     state.intake.kv = r.result;
     bub('user', `키비주얼 첨부: ${f.name}`);
-    analyzeKeyVisual(r.result).then(({ suggests, readability }) => {
-      state.intake.suggests = suggests; state.intake.kvReadability = readability;
+    analyzeKeyVisual(r.result).then(({ suggests, readability, meta }) => {
+      state.intake.suggests = suggests; state.intake.kvReadability = readability; state.intake.kvMeta = meta;
       if (suggests[0]) { state.intake.colors[0] = suggests[0]; applyDerived(); }
       bub('agent', `대표 컬러 ${suggests.join(', ')}를 감지했어요.`);
       if (state.intake.phase === 'style') slotStyle();
@@ -437,7 +437,8 @@ async function analyzeKeyVisual(dataUrl) {
   const { data } = g.getImageData(0, 0, W, H);
   const readability = {};
   for (const [k, zone] of Object.entries(TEXT_ZONES)) readability[k] = analyzeRegion(data, W, H, zone);
-  return { suggests: extractPalette(data, 3), readability };
+  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H) };
+  return { suggests: extractPalette(data, 3), readability, meta };
 }
 
 function specIdsFor(channels) {
@@ -457,6 +458,7 @@ function buildAndGenerate() {
   const style = normalizeStyle({
     keyVisual: it.kv,
     kvReadability: it.kvReadability,
+    kvMeta: it.kvMeta,
     logo: it.logo,
     mode: it.mode,
     colors: it.colors,
@@ -678,6 +680,7 @@ function renderInspector() {
       c.style = normalizeStyle({
         keyVisual: c.style.keyVisual,
         kvReadability: c.style.kvReadability,
+        kvMeta: c.style.kvMeta,
         logo: c.style.logo,
         mode: c.style.mode,
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
@@ -708,16 +711,16 @@ function renderInspector() {
       const f = kvIn.files[0]; if (!f) return;
       const r = new FileReader();
       r.onload = async () => {
-        let readability = null, suggests = [];
-        try { ({ readability, suggests } = await analyzeKeyVisual(r.result)); } catch {}
-        restyle({ keyVisual: r.result, kvReadability: readability });
+        let readability = null, suggests = [], meta = null;
+        try { ({ readability, suggests, meta } = await analyzeKeyVisual(r.result)); } catch {}
+        restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta });
         renderInspector();
         toast(suggests.length ? `키비주얼 교체 — 대표색 ${suggests[0]} 감지` : '키비주얼 교체');
       };
       r.readAsDataURL(f);
     };
     insp.querySelector('#iKvClear')?.addEventListener('click', () => {
-      restyle({ keyVisual: null, kvReadability: null });
+      restyle({ keyVisual: null, kvReadability: null, kvMeta: null });
       renderInspector();
     });
     return;

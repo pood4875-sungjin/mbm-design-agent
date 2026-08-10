@@ -3,6 +3,7 @@
 // variant: 0=컬러 솔리드/키비주얼 · 1=화이트 반전 · 2=하단 컬러 밴드
 
 import { fontStack } from '../fonts.js';
+import { fitKeyVisual } from '../palette.js';
 
 export function esc(s) {
   return String(s).replace(/[&<>"']/g, c => (
@@ -22,9 +23,15 @@ export function renderBanner(ctx, style, spec) {
     fg = p.primary; subFg = p.inkSub;
     ctaBg = p.primary; ctaFg = p.onPrimary;
   } else {
-    bg = style.keyVisual
-      ? `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`
-      : `background:${p.primary}`;
+    if (style.keyVisual) {
+      const fit = fitKeyVisual(spec.w / spec.h, style.kvMeta?.ar, style.kvMeta?.edge ?? p.primary);
+      bg = fit.mode === 'contain'
+        // 비율이 크게 다르면 잘라내지 않고 넣어 맞추고, 여백은 가장자리 색으로 잇는다
+        ? `background:${fit.bg};background-image:${fit.bg},url('${esc(style.keyVisual)}');background-size:cover,contain;background-position:center,${fit.wide ? 'right center' : 'center bottom'};background-repeat:no-repeat,no-repeat`
+        : `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`;
+    } else {
+      bg = `background:${p.primary}`;
+    }
     const rd = style.keyVisual ? (style.kvReadability?.banner ?? null) : null;
     fg = rd?.text ?? p.onPrimary;
     subFg = fg === '#FFFFFF' ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.6)';

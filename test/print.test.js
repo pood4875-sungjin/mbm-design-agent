@@ -58,18 +58,18 @@ test('xbanner purposes produce distinct layouts as a set', () => {
   const spec = SPECS['xbanner-600x1800'];
   const way = renderPrint(ctx, style, { ...spec, purpose: 'way', arrow: 'left' });
   assert.match(way, /←/);
-  assert.match(way, /class="arrow"/);
+  assert.match(way, /class="disc"/);
 
   const agenda = renderPrint(ctx, style, { ...spec, purpose: 'agenda' });
   assert.match(agenda, /PROGRAM/);
   assert.match(agenda, /class="row"/);
 
   const reception = renderPrint(ctx, style, { ...spec, purpose: 'reception' });
-  assert.match(reception, /REGISTRATION/);
+  assert.match(reception, /class="rule"/);
   assert.match(reception, /안내데스크/);
 
   const main = renderPrint(ctx, style, spec);
-  assert.doesNotMatch(main, /PROGRAM|REGISTRATION|class="arrow"/);
+  assert.doesNotMatch(main, /PROGRAM|class="disc"|class="rule"/);
 });
 
 test('custom size overrides the preset', () => {
@@ -81,4 +81,24 @@ test('print sheet shows cmyk reference for the primary color', () => {
   const html = renderPrint(ctx, style, SPECS['poster-a2']);
   assert.match(html, /C93 M58 Y0 K43/);
   assert.match(html, /인쇄소 프로파일/, 'CMYK는 근사값임을 명시');
+});
+
+test('way banner uses a disc arrow and a destination line', () => {
+  const spec = { ...SPECS['xbanner-600x1800'], purpose: 'way', arrow: 'left', dest: '2F Conference Hall' };
+  const html = renderPrint(ctx, style, spec);
+  assert.match(html, /class="disc"/, '원형 배지 안 화살표');
+  assert.match(html, /←/);
+  assert.match(html, /2F Conference Hall/);
+  assert.match(html, /2026 ONSITE MBM 서울/, '상단 행사명');
+});
+
+test('way banner falls back to venue when no destination given', () => {
+  const html = renderPrint(ctx, style, { ...SPECS['xbanner-600x1800'], purpose: 'way', arrow: 'up' });
+  assert.match(html, /코엑스/);
+});
+
+test('reception banner shows a rule and a single role label', () => {
+  const html = renderPrint(ctx, style, { ...SPECS['xbanner-600x1800'], purpose: 'reception' });
+  assert.match(html, /class="rule"/);
+  assert.match(html, /안내데스크/);
 });

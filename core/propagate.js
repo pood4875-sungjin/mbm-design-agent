@@ -23,7 +23,7 @@ export function propagate(campaign, corePatch) {
       core: { ...campaign.context.core, ...(artifact.overrides?.core ?? {}) },
     };
     artifact.html = renderArtifact(artifact.specId, effContext, campaign.style, {
-      variant: artifact.variant ?? 0, purpose: artifact.purpose, arrow: artifact.arrow, size: artifact.size, roster: campaign.roster ?? null,
+      variant: artifact.variant ?? 0, purpose: artifact.purpose, arrow: artifact.arrow, size: artifact.size, roster: campaign.roster ?? null, dest: artifact.dest ?? null,
     });
     artifact.contextVersion = campaign.context.version;
     impacted.push(artifact.key ?? artifact.specId);

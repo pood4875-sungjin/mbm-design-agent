@@ -29,7 +29,8 @@ export function normalizeStyle(input = {}) {
   const mode = MODES[input.mode] ? input.mode : 'light';
   return {
     keyVisual: input.keyVisual ?? null,
-    kvReadability: input.kvReadability ?? null,   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
+    kvReadability: input.kvReadability ?? null,
+    kvMeta: input.kvMeta ?? null,                 // {ar, edge} — 비율 대응·여백 색   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
     mode,
     palette: buildPalette({
       primary: colors[0] ?? '#2456D6',
