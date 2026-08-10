@@ -1,7 +1,7 @@
-// MBM Design Agent — Stitch 스타일 앞문.
-// 홈: 사이드바(내 캠페인·자산 검색) + 웰컴 히어로 + 대형 입력 카드.
-// 작업: 좌 대화 카드 · 중앙 캔버스(산출물 그리드) · 우 Context/Style 패널 · 하단 지시 바.
-// 기획 해석: AI 키 있으면 LLM(llm.js), 없으면 정규식 폴백 — 데모 항상 동작.
+// Campaign Agent — 도구형 앞문 (챗봇 아님).
+// 홈(입력 우선) → 인테이크 시트(질문지 한 장) → 아트보드 워크스페이스(줌·팬·선택·즉시 편집).
+// 편집: 우측 인스펙터 — 선택 없음 = 캠페인 전체(타이핑 즉시 전 산출물 일괄 반영),
+//        산출물 선택 = 그것만 즉시 반영(override, 일괄 반영에서 보존).
 
 import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
 import { normalizeStyle } from '../core/style.js';
@@ -9,65 +9,62 @@ import { SPECS } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
+import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
 };
 const CHANNEL_LABEL = {
-  banner: '홍보 배너 (3규격)', edm: 'eDM', landing: '랜딩페이지',
+  banner: '홍보 배너', edm: 'eDM', landing: '랜딩페이지',
   poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막',
+};
+const CHANNEL_DESC = {
+  banner: '3규격 · PNG', edm: '이메일 HTML', landing: '등록 폼 포함',
+  poster: 'A2 · 인쇄 PDF', xbanner: '600×1800 · PDF', hyunsumak: '인쇄 PDF',
 };
 const ONLINE = ['edm', 'landing', 'banner'];
 const OFFLINE = ['poster', 'xbanner', 'hyunsumak'];
 const VARIANTS = { banner: 3, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1 };
+const DISPLAY_SCALE = { banner: 1, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05 };
 const STORE_LS = 'mbm-campaigns';
 
 const SAMPLES = [
   '10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행. 대상은 건설 구조 엔지니어, 사전등록 받아야 함. eDM이랑 랜딩페이지, 배너, 포스터, X배너 필요해.',
-  '내년 3월 킨텍스 MBM 부산 세미나. 교량 설계 실무자 대상, 현장 데모 신청 유도. 랜딩이랑 현수막, 배너만.',
+  '내년 3월 킨텍스 MBM 신제품 발표회. 교량 설계 실무자 대상, 현장 데모 신청 유도. 랜딩이랑 현수막, 배너만.',
   '2026 ONSITE MBM 도쿄 — 6월 20일, 대상 일본 파트너사. eDM과 포스터.',
 ];
 
-const state = { step: 'brief', ctx: null, channels: [], style: null, campaign: null, detectedChannels: [] };
+const state = {
+  intake: { fields: {}, channels: [], extra: {}, kv: null },
+  campaign: null,
+  selected: null,          // specId | null
+  zoom: 1, panX: 0, panY: 0,
+};
 const $ = id => document.getElementById(id);
-const chat = () => $('chat');
+const frames = new Map();  // specId → {frame, iframe, badge}
 
-/* ═══════════ helpers ═══════════ */
-function agent(text) {
-  const d = document.createElement('div');
-  d.className = 'msg agent'; d.textContent = text;
-  chat().appendChild(d); chat().scrollTop = 1e9;
-  return d;
-}
-function user(text) {
-  const d = document.createElement('div');
-  d.className = 'msg user'; d.textContent = text;
-  chat().appendChild(d); chat().scrollTop = 1e9;
-}
-function widget(html) {
-  const d = document.createElement('div');
-  d.className = 'widget'; d.innerHTML = html;
-  chat().appendChild(d); chat().scrollTop = 1e9;
-  return d;
-}
+/* ═══ helpers ═══ */
 function toast(t) {
   const el = $('toast'); el.textContent = t; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2400);
 }
-const STEP_LABEL = { brief: '기획 입력', context: 'Context 확정', channels: '산출물 선택', style: '그래픽 가이드', review: '생성 · 리뷰', done: '완료' };
-function setStep(s) { state.step = s; $('stepLabel').textContent = STEP_LABEL[s] ?? ''; }
-
-function showHome() {
-  $('home').style.display = 'flex'; $('work').style.display = 'none';
-  $('campPill').style.display = 'none'; $('approveAll').style.display = 'none';
-  renderSidebar();
+function log(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  $('logBody').prepend(d);
+  $('logCount').textContent = $('logBody').children.length;
 }
-function showWork() {
-  $('home').style.display = 'none'; $('work').style.display = 'block';
+function show(view) {
+  for (const v of ['home', 'intake', 'work']) $(v).style.display = v === view ? (v === 'home' ? 'flex' : 'block') : 'none';
+  $('campPill').style.display = view === 'work' ? 'block' : 'none';
+  $('approveAll').style.display = view === 'work' ? 'block' : 'none';
+  $('exportAll').style.display = view === 'work' ? 'block' : 'none';
+  if (view === 'home') renderSidebar();
 }
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
-/* ═══════════ modal ═══════════ */
+/* ═══ modal ═══ */
 function modal({ title, desc, body, actions }) {
   $('modalTitle').textContent = title;
   $('modalDesc').textContent = desc ?? '';
@@ -85,7 +82,7 @@ function modal({ title, desc, body, actions }) {
 function closeModal() { $('overlay').style.display = 'none'; }
 $('overlay').onclick = e => { if (e.target === $('overlay')) closeModal(); };
 
-/* ═══════════ brief parsing (정규식 폴백) ═══════════ */
+/* ═══ brief parsing ═══ */
 function parseBriefRegex(text) {
   const out = {};
   const nameM = text.match(/[\w가-힣 ]*MBM[\w가-힣 ]*/);
@@ -120,26 +117,25 @@ function parseBriefRegex(text) {
   return { fields: out, channels: [...new Set(channels)] };
 }
 
-/* ═══════════ home ═══════════ */
+/* ═══ home ═══ */
 function initHome() {
   const box = $('samples');
   box.innerHTML = '';
   for (const s of SAMPLES) {
     const b = document.createElement('button');
-    b.textContent = s.slice(0, 34) + '…';
-    b.title = s;
+    b.textContent = s.slice(0, 34) + '…'; b.title = s;
     b.onclick = () => { $('briefText').value = s; };
     box.appendChild(b);
   }
   $('briefGo').onclick = () => {
     const t = $('briefText').value.trim();
     if (!t) { toast('기획 내용을 입력하세요'); return; }
-    startCampaign(t);
+    startIntake(t);
   };
   $('fileBtn').onclick = () => $('fileIn').click();
   $('fileIn').onchange = () => {
     const f = $('fileIn').files[0]; if (!f) return;
-    if (!/\.(txt|md)$/i.test(f.name)) { toast('PPT·워드 파싱은 서버 연동 후 지원 — 지금은 txt/md'); return; }
+    if (!/\.(txt|md)$/i.test(f.name)) { toast('PPT·워드 파싱은 서버 연동 후 — 지금은 txt/md'); return; }
     const r = new FileReader();
     r.onload = () => { $('briefText').value = r.result.slice(0, 4000); toast(`${f.name} 읽음`); };
     r.readAsText(f);
@@ -148,13 +144,12 @@ function initHome() {
   refreshAiChip();
 }
 function refreshAiChip() {
-  $('aiChip').textContent = LLM.hasKey() ? `AI 해석: 켜짐 (${LLM.maskKey()})` : 'AI 해석: 꺼짐 — 정규식 파서';
+  $('aiChip').textContent = LLM.hasKey() ? `AI 해석 켜짐 · ${LLM.maskKey()}` : 'AI 해석 꺼짐 — 규칙 파서';
 }
 
-/* ═══════════ 자산 검색 (사이드바) ═══════════ */
+/* ═══ 자산 검색 사이드바 ═══ */
 function loadStore() { try { return JSON.parse(localStorage.getItem(STORE_LS) || '[]'); } catch { return []; } }
 function saveStore(list) { localStorage.setItem(STORE_LS, JSON.stringify(list)); }
-
 function parseQuery(q) {
   const cond = {};
   const y = q.match(/20\d{2}/); if (y) cond.year = y[0];
@@ -165,26 +160,20 @@ function parseQuery(q) {
   if (kw) cond.q = kw;
   return cond;
 }
-
 function renderSidebar(query = '') {
   const cond = query ? parseQuery(query) : {};
-  const chips = $('qchips');
-  chips.innerHTML = '';
-  if (query) {
-    for (const [k, v] of Object.entries(cond)) {
-      const s = document.createElement('span');
-      s.textContent = { year: `연도 ${v}`, channel: CHANNEL_LABEL[v] ?? v, q: `"${v}"` }[k];
-      chips.appendChild(s);
-    }
+  const chips = $('qchips'); chips.innerHTML = '';
+  if (query) for (const [k, v] of Object.entries(cond)) {
+    const s = document.createElement('span');
+    s.textContent = { year: `연도 ${v}`, channel: CHANNEL_LABEL[v] ?? v, q: `"${v}"` }[k];
+    chips.appendChild(s);
   }
   let list = loadStore();
   if (cond.year) list = list.filter(c => (c.context.core.date ?? '').startsWith(cond.year));
   if (cond.channel) list = list.filter(c => c.channels.includes(cond.channel));
   if (cond.q) list = list.filter(c => (c.context.core.name ?? '').includes(cond.q));
   list.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
-
-  const box = $('campList');
-  box.innerHTML = '';
+  const box = $('campList'); box.innerHTML = '';
   $('campEmpty').style.display = list.length ? 'none' : 'block';
   if (query && !list.length) $('campEmpty').textContent = '조건에 맞는 캠페인이 없습니다 — 조건을 바꿔 다시 검색해 보세요.';
   for (const c of list) {
@@ -198,235 +187,142 @@ function renderSidebar(query = '') {
   }
 }
 
-function openStored(saved) {
-  state.ctx = saved.context;
-  state.channels = saved.channels;
-  state.style = saved.style;
-  state.campaign = { ...saved, log: saved.log ?? [] };
-  registerAll();
-  generateArtifacts(state.campaign);           // 원본 재현 — context+style+overrides+variant에서 복원
-  for (const a of state.campaign.artifacts) {
-    const s = (saved.artifacts ?? []).find(x => x.specId === a.specId);
-    if (s?.status) a.status = s.status;
-  }
-  showWork();
-  setStep('review');
-  chat().innerHTML = '';
-  agent(`저장된 캠페인 "${saved.context.core.name}"을 열었습니다. 원본을 그대로 재현했어요.\n수정하거나 그대로 재사용할 수 있습니다.`);
-  enterReview();
-  logEvent(state.campaign, 'campaign_reopened', {});
-}
-
-/* ═══════════ 캠페인 시작 ═══════════ */
-async function startCampaign(text) {
-  showWork();
-  setStep('brief');
-  chat().innerHTML = '';
-  $('grid').innerHTML = '';
-  $('stylePanel').style.display = 'none';
-  $('cmdBar').style.display = 'none';
-  user(text.length > 140 ? text.slice(0, 140) + '…' : text);
-
+/* ═══ intake — 질문지 한 장 ═══ */
+async function startIntake(text) {
   let parsed = null;
   if (LLM.hasKey()) {
-    const wait = agent('AI가 기획을 해석하는 중…');
+    toast('AI가 기획을 해석하는 중…');
     try {
       const r = await LLM.parseBriefLLM(text);
       parsed = { fields: {}, channels: r.channels ?? [] };
       for (const f of CORE_FIELDS) if (r[f]) parsed.fields[f] = r[f];
-      wait.remove();
-    } catch (e) {
-      wait.textContent = `AI 해석 실패(${e.message}) — 규칙 파서로 대신할게요.`;
-    }
+    } catch (e) { toast(`AI 해석 실패 — 규칙 파서로 진행`); }
   }
   if (!parsed) parsed = parseBriefRegex(text);
-
-  state.ctx = createContext(parsed.fields);
-  state.detectedChannels = parsed.channels;
-  const found = CORE_FIELDS.filter(f => state.ctx.core[f]);
-  agent(`이렇게 정리했어요.\n${found.map(f => `· ${FIELD_LABEL[f]} — ${state.ctx.core[f]}`).join('\n') || '· (추출된 정보 없음)'}`);
-  stepContext();
+  state.intake = { fields: parsed.fields, channels: parsed.channels, extra: {}, kv: null };
+  renderIntake();
+  show('intake');
 }
 
-/* ═══════════ steps ═══════════ */
-function stepContext() {
-  setStep('context');
-  const missing = missingFields(state.ctx, []);
-  if (!missing.length) { agent('필수 정보가 모두 채워졌습니다.'); stepChannels(); return; }
-  agent(`${missing.map(m => FIELD_LABEL[m.field]).join(' · ')} 정보가 비어 있어요. 추측하지 않고 여쭤볼게요.`);
-  const w = widget(`
-    <h4>빈칸 채우기</h4>
-    ${missing.map(m => `<label>${FIELD_LABEL[m.field]}</label><input type="text" data-f="${m.field}">`).join('')}
-    <div class="btn-row"><button class="btn pri" id="ctxGo">확정</button></div>`);
-  w.querySelector('#ctxGo').onclick = () => {
-    const patch = {};
-    w.querySelectorAll('input').forEach(i => { if (i.value.trim()) patch[i.dataset.f] = i.value.trim(); });
-    state.ctx = updateContext(state.ctx, { core: patch });
-    const still = missingFields(state.ctx, []);
-    if (still.length) { toast(`아직 비어 있음: ${still.map(m => FIELD_LABEL[m.field]).join(', ')}`); return; }
-    w.remove(); user(Object.values(patch).join(' / ') || '확정');
-    stepChannels();
-  };
-}
-
-function stepChannels() {
-  setStep('channels');
-  const pre = state.detectedChannels ?? [];
-  agent(pre.length
-    ? `기획에서 ${pre.map(c => CHANNEL_LABEL[c]).join(', ')}를 발견해 미리 선택했어요.`
-    : '어떤 산출물을 만들까요?');
-  const group = (title, list) => `<h4>${title}</h4>` + list.map(c =>
-    `<label class="chk ${pre.includes(c) ? 'on' : ''}"><input type="checkbox" value="${c}" ${pre.includes(c) ? 'checked' : ''}>${CHANNEL_LABEL[c]}</label>`).join('');
-  const w = widget(`${group('온라인', ONLINE)}${group('오프라인', OFFLINE)}
-    <div class="btn-row"><button class="btn pri" id="chGo">선택 완료</button></div>`);
-  w.querySelectorAll('input').forEach(i => i.onchange = () => i.closest('.chk').classList.toggle('on', i.checked));
-  w.querySelector('#chGo').onclick = () => {
-    const sel = [...w.querySelectorAll('input:checked')].map(i => i.value);
-    if (!sel.length) { toast('산출물을 하나 이상 선택하세요'); return; }
-    w.remove(); user(sel.map(c => CHANNEL_LABEL[c]).join(', '));
-    state.channels = sel;
-    stepChannelFields();
-  };
-}
-
-function stepChannelFields() {
-  const missing = missingFields(state.ctx, state.channels);
-  if (!missing.length) { stepStyle(); return; }
-  agent('선택한 채널에 필요한 정보가 몇 가지 더 있어요.');
-  const w = widget(`
-    <h4>채널별 추가 항목</h4>
-    ${missing.map(m => `<label>${CHANNEL_LABEL[m.channel]} — ${FIELD_LABEL[m.field]}</label><input type="text" data-ch="${m.channel}" data-f="${m.field}" placeholder="${m.field === 'printSize' ? '예: 기본 규격 사용' : ''}">`).join('')}
-    <div class="btn-row"><button class="btn pri" id="cfGo">입력 완료</button></div>`);
-  w.querySelector('#cfGo').onclick = () => {
-    const patch = {};
-    w.querySelectorAll('input').forEach(i => {
-      (patch[i.dataset.ch] ??= {})[i.dataset.f] = i.value.trim() || '기본';
-    });
-    state.ctx = updateContext(state.ctx, { channelFields: patch });
-    w.remove(); user('입력 완료');
-    stepStyle();
-  };
-}
-
-function stepStyle() {
-  setStep('style');
-  agent('이제 그래픽 가이드를 주세요. 키비주얼과 컬러가 모든 산출물에 하나의 스타일로 적용됩니다.');
-  const w = widget(`
-    <h4>그래픽 가이드</h4>
-    <div class="kvthumb" id="kvThumb">키비주얼 업로드 (선택)</div>
-    <input type="file" id="kvFile" accept="image/*" style="display:none">
-    <label>컬러 (메인 · 배경)</label>
-    <div class="palette">
-      <input type="color" class="swatch" id="c1" value="#0A3D91">
-      <input type="color" class="swatch" id="c2" value="#F5F7FA">
-    </div>
-    <label>폰트</label>
-    <select id="fontSel"><option>Pretendard</option><option>Noto Sans KR</option><option>Apple SD Gothic Neo</option></select>
-    <label>무드 키워드</label>
-    <input type="text" id="moodIn" placeholder="예: 테크, 신뢰">
-    <div class="btn-row"><button class="btn pri" id="styleGo">이 스타일로 확정</button></div>`);
-  let kvData = null;
-  const thumb = w.querySelector('#kvThumb'), file = w.querySelector('#kvFile');
+function renderIntake() {
+  const it = state.intake;
+  const foundN = CORE_FIELDS.filter(f => it.fields[f]).length;
+  $('intakeSub').textContent = foundN
+    ? `기획에서 ${foundN}개 항목을 읽었습니다. 빈칸을 채우고 산출물을 확정하면 바로 생성합니다.`
+    : '기획에서 읽어낸 정보가 없어 직접 입력이 필요합니다.';
+  $('coreFields').innerHTML = CORE_FIELDS.map(f => `
+    <div class="f"><label>${FIELD_LABEL[f]} <span class="req">*</span></label>
+    <input type="text" data-f="${f}" value="${it.fields[f] ?? ''}" class="${it.fields[f] ? '' : 'miss'}"></div>`).join('');
+  const group = list => list.map(c => `
+    <label class="chcard ${it.channels.includes(c) ? 'on' : ''}">
+      <input type="checkbox" value="${c}" ${it.channels.includes(c) ? 'checked' : ''}>
+      <span>${CHANNEL_LABEL[c]}<small>${CHANNEL_DESC[c]}</small></span></label>`).join('');
+  $('chGrid').innerHTML = group(ONLINE) + group(OFFLINE);
+  $('coreFields').querySelectorAll('input').forEach(i => i.oninput = () => {
+    it.fields[i.dataset.f] = i.value.trim();
+    i.classList.toggle('miss', !i.value.trim());
+    validateIntake();
+  });
+  $('chGrid').querySelectorAll('input').forEach(i => i.onchange = () => {
+    i.closest('.chcard').classList.toggle('on', i.checked);
+    it.channels = [...$('chGrid').querySelectorAll('input:checked')].map(x => x.value);
+    renderExtra(); validateIntake();
+  });
+  const thumb = $('kvThumb'), file = $('kvFile');
   thumb.onclick = () => file.click();
   file.onchange = () => {
     const f = file.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = () => { kvData = r.result; thumb.style.backgroundImage = `url(${kvData})`; thumb.textContent = ''; };
+    r.onload = () => { it.kv = r.result; thumb.style.backgroundImage = `url(${it.kv})`; thumb.textContent = ''; };
     r.readAsDataURL(f);
   };
-  w.querySelector('#styleGo').onclick = () => {
-    const c1 = w.querySelector('#c1').value.toUpperCase();
-    const c2 = w.querySelector('#c2').value.toUpperCase();
-    state.style = normalizeStyle({
-      keyVisual: kvData,
-      colors: [c1, c2],
-      fonts: { heading: w.querySelector('#fontSel').value, body: w.querySelector('#fontSel').value },
-      mood: w.querySelector('#moodIn').value.split(',').map(s => s.trim()).filter(Boolean),
-    });
-    w.remove(); user(`컬러 ${c1} · ${w.querySelector('#fontSel').value}${kvData ? ' · 키비주얼 첨부' : ''}`);
-    runGenerate();
-  };
+  renderExtra();
+  validateIntake();
+  $('genBtn').onclick = buildAndGenerate;
 }
 
-/* ═══════════ 생성 · 리뷰 ═══════════ */
+const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'] };
+function renderExtra() {
+  const it = state.intake;
+  const items = [];
+  for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) items.push([ch, f]);
+  $('extraSec').style.display = items.length ? 'block' : 'none';
+  $('extraFields').innerHTML = items.map(([ch, f]) => `
+    <div class="f"><label>${CHANNEL_LABEL[ch]} — ${FIELD_LABEL[f]}</label>
+    <input type="text" data-ch="${ch}" data-f="${f}" value="${it.extra[ch]?.[f] ?? ''}" placeholder="${f === 'printSize' ? '기본 규격' : ''}"></div>`).join('');
+  $('extraFields').querySelectorAll('input').forEach(i => i.oninput = () => {
+    (it.extra[i.dataset.ch] ??= {})[i.dataset.f] = i.value.trim();
+  });
+}
+function validateIntake() {
+  const it = state.intake;
+  const missing = CORE_FIELDS.filter(f => !it.fields[f]);
+  const ok = !missing.length && it.channels.length;
+  $('genBtn').disabled = !ok;
+  $('intakeNote').textContent = !it.channels.length
+    ? '산출물을 하나 이상 선택하세요'
+    : missing.length ? `필수 입력: ${missing.map(f => FIELD_LABEL[f]).join(', ')}` : `${specIdsFor(it.channels).length}종을 생성합니다`;
+}
+function specIdsFor(channels) {
+  return Object.entries(SPECS).filter(([, s]) => channels.includes(s.channel)).map(([id]) => id);
+}
+
+/* ═══ 생성 → 아트보드 ═══ */
 function slug(name) {
   return (name || 'campaign').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
 }
-
-function runGenerate() {
-  setStep('review');
-  agent('자동 생성 중…');
-  state.campaign = {
-    id: slug(state.ctx.core.name), context: state.ctx, style: state.style,
-    channels: state.channels, artifacts: [], log: [],
-  };
+function buildAndGenerate() {
+  const it = state.intake;
+  let ctx = createContext(it.fields);
+  const extraPatch = {};
+  for (const [ch, fields] of Object.entries(it.extra)) {
+    extraPatch[ch] = {};
+    for (const [f, v] of Object.entries(fields)) extraPatch[ch][f] = v || '기본';
+  }
+  for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) (extraPatch[ch] ??= {})[f] ??= '기본';
+  ctx = updateContext(ctx, { channelFields: extraPatch });
+  const style = normalizeStyle({
+    keyVisual: it.kv,
+    colors: [$('c1').value.toUpperCase(), $('c2').value.toUpperCase()],
+    fonts: { heading: $('fontSel').value, body: $('fontSel').value },
+    mood: $('moodIn').value.split(',').map(s => s.trim()).filter(Boolean),
+  });
+  state.campaign = { id: slug(ctx.core.name), context: ctx, style, channels: it.channels, artifacts: [], log: [] };
   logEvent(state.campaign, 'campaign_created', {});
   registerAll();
-  setTimeout(() => {
-    generateArtifacts(state.campaign);
-    agent(`${state.campaign.artifacts.length}종 산출물을 생성했습니다.\n\n· 오른쪽 패널 — Context·컬러를 바꾸고 [일괄 반영]\n· 카드 [편집] — 그 산출물만 예외 수정\n· 카드 [다른 시안] — 레이아웃 베리에이션\n· 아래 입력바 — "장소 킨텍스로 변경" 같은 자유 지시`);
-    enterReview();
-  }, 350);
+  generateArtifacts(state.campaign);
+  enterWork({ staged: true });
 }
 
-function enterReview() {
+// 스켈레톤 → 하나씩 실제 산출물로 채워지는 연출 (생성이 눈에 보이게)
+function revealStaged() {
+  const ids = state.campaign.artifacts.map(a => a.specId);
+  for (const id of ids) frames.get(id)?.frame.classList.add('gen');
+  ids.forEach((id, i) => setTimeout(() => {
+    const a = state.campaign.artifacts.find(x => x.specId === id);
+    const f = frames.get(id);
+    if (!f) return;
+    f.frame.classList.remove('gen');
+    f.iframe.style.visibility = 'visible';
+    f.iframe.srcdoc = a.html;
+    f.label.textContent = id;
+    log(`생성: ${id}`);
+    if (i === ids.length - 1) toast(`${ids.length}종 생성 완료`);
+  }, 240 + i * 260));
+}
+
+function enterWork(opts = {}) {
+  show('work');
   $('campPill').textContent = state.campaign.context.core.name;
-  $('campPill').style.display = 'block';
-  $('approveAll').style.display = 'block';
-  $('stylePanel').style.display = 'block';
-  $('cmdBar').style.display = 'flex';
-  renderPanel();
-  renderGrid();
+  $('logBody').innerHTML = ''; $('logCount').textContent = '';
+  state.selected = null;
+  layoutArtboard({ blank: !!opts.staged });
+  renderInspector();
+  fitZoom();
+  if (opts.staged) revealStaged();
 }
 
-/* ═══════════ 우측 패널 ═══════════ */
-function renderPanel() {
-  const fields = ['name', 'date', 'venue', 'cta'];
-  $('ctxFields').innerHTML = fields.map(f =>
-    `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${state.campaign.context.core[f] ?? ''}">`
-  ).join('');
-  $('pColor1').value = state.campaign.style.palette.primary;
-  $('pColor2').value = state.campaign.style.palette.bg;
-  $('pFont').value = state.campaign.style.fonts.heading;
-  $('propBtn').onclick = applyPanel;
-}
-
-function applyPanel() {
-  const patch = {};
-  $('ctxFields').querySelectorAll('input').forEach(i => {
-    if (i.value.trim() !== (state.campaign.context.core[i.dataset.f] ?? '')) patch[i.dataset.f] = i.value.trim();
-  });
-  const c1 = $('pColor1').value.toUpperCase(), c2 = $('pColor2').value.toUpperCase(), font = $('pFont').value;
-  const styleChanged = c1 !== state.campaign.style.palette.primary || c2 !== state.campaign.style.palette.bg || font !== state.campaign.style.fonts.heading;
-  if (styleChanged) {
-    state.campaign.style = normalizeStyle({
-      keyVisual: state.campaign.style.keyVisual,
-      colors: [c1, c2], fonts: { heading: font, body: font },
-      mood: state.campaign.style.mood,
-    });
-    logEvent(state.campaign, 'style_changed', {});
-  }
-  if (!Object.keys(patch).length && !styleChanged) { toast('변경된 값이 없습니다'); return; }
-
-  let impacted = [], conflicts = [];
-  if (Object.keys(patch).length) {
-    ({ impacted, conflicts } = propagate(state.campaign, patch));
-    state.ctx = state.campaign.context;
-  } else {
-    generateArtifacts(state.campaign);
-    impacted = state.campaign.artifacts.map(a => a.specId);
-  }
-  if (styleChanged && Object.keys(patch).length) generateArtifacts(state.campaign);
-  renderGrid();
-  const note = $('propNote');
-  note.style.display = 'block';
-  note.textContent = conflicts.length
-    ? `${impacted.length}종 반영 · ${conflicts.length}건 충돌 — 노란 카드 확인`
-    : `${impacted.length}종 일괄 반영 완료 — 개별 편집한 표현은 보존`;
-  agent(`일괄 반영 → ${impacted.length}종 갱신${conflicts.length ? `, ${conflicts.length}건은 확인 필요` : ''}.`);
-}
-
-/* ═══════════ 캔버스 ═══════════ */
+/* ═══ 아트보드 ═══ */
 function naturalSize(spec) {
   if (spec.unit === 'mm') {
     const k = 3.7795;
@@ -437,90 +333,308 @@ function naturalSize(spec) {
   return [1000, 1400];
 }
 
-function renderGrid() {
-  const grid = $('grid');
-  grid.innerHTML = '';
-  for (const a of state.campaign.artifacts) {
-    const spec = SPECS[a.specId];
-    const [nw, nh] = naturalSize(spec);
-    const card = document.createElement('div');
-    card.className = 'card';
-    const nVar = VARIANTS[a.channel] ?? 1;
-    card.innerHTML = `
-      <div class="prev"></div>
-      <div class="meta"><b>${a.specId}${a.variant ? ` · 시안${a.variant + 1}` : ''}</b><span class="badge ${a.status}">${
-        { draft: 'DRAFT', approved: '승인됨', needsReview: '확인 필요' }[a.status] ?? a.status}</span></div>
-      <div class="acts">
-        <button class="btn ghost" data-act="edit">편집</button>
-        ${nVar > 1 ? '<button class="btn ghost" data-act="var">다른 시안</button>' : ''}
-        <button class="btn ghost" data-act="open">크게</button>
-        <button class="btn ghost" data-act="dl">HTML</button>
-      </div>`;
-    const prev = card.querySelector('.prev');
-    const iframe = document.createElement('iframe');
-    const scale = Math.min(240 / nw, 195 / nh);
-    iframe.width = nw; iframe.height = nh;
-    iframe.style.transform = `translateX(-50%) scale(${scale})`;
-    iframe.srcdoc = a.html;
-    prev.appendChild(iframe);
-    card.querySelector('[data-act=edit]').onclick = () => editArtifact(a);
-    const vb = card.querySelector('[data-act=var]');
-    if (vb) vb.onclick = () => cycleVariant(a);
-    card.querySelector('[data-act=open]').onclick = () => {
-      const win = window.open('', '_blank'); win.document.write(a.html); win.document.close();
-    };
-    card.querySelector('[data-act=dl]').onclick = () => {
-      const blob = new Blob([a.html], { type: 'text/html' });
-      const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${a.specId}.html` });
-      link.click();
-    };
-    grid.appendChild(card);
+function layoutArtboard(opts = {}) {
+  const board = $('artboard');
+  board.innerHTML = '';
+  frames.clear();
+  const rows = [ONLINE.filter(c => state.campaign.channels.includes(c)), OFFLINE.filter(c => state.campaign.channels.includes(c))];
+  let y = 60;
+  for (const rowChannels of rows) {
+    if (!rowChannels.length) continue;
+    let x = 60, rowH = 0;
+    for (const ch of rowChannels) {
+      for (const a of state.campaign.artifacts.filter(a => a.channel === ch)) {
+        const spec = SPECS[a.specId];
+        const [nw, nh] = naturalSize(spec);
+        const ds = DISPLAY_SCALE[ch] ?? 1;
+        const w = nw * ds, h = nh * ds;
+        const frame = document.createElement('div');
+        frame.className = 'frame';
+        frame.style.left = x + 'px'; frame.style.top = y + 'px';
+        frame.innerHTML = `
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : a.specId}</span><span class="badge ${a.status}">${badgeText(a.status)}</span>${spec.unit === 'mm' ? `<span style="font-weight:400;font-size:11px">${spec.wmm}×${spec.hmm}mm</span>` : ''}</div>
+          <div class="fbody" style="width:${w}px;height:${h}px">
+            <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
+            <div class="hit"></div>
+          </div>`;
+        const iframe = frame.querySelector('iframe');
+        if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = a.html;
+        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.specId); };
+        board.appendChild(frame);
+        frames.set(a.specId, { frame, iframe, badge: frame.querySelector('.badge'), label: frame.querySelector('.fname') });
+        x += w + 70;
+        rowH = Math.max(rowH, h);
+      }
+    }
+    y += rowH + 130;
+    state.boardW = Math.max(state.boardW ?? 0, x);
   }
-  $('approveAll').onclick = approveAll;
+  state.boardH = y;
+}
+function badgeText(s) { return { draft: 'DRAFT', approved: '승인됨', needsReview: '확인 필요' }[s] ?? s; }
+
+function refreshFrames(only = null) {
+  for (const a of state.campaign.artifacts) {
+    if (only && a.specId !== only) continue;
+    const f = frames.get(a.specId);
+    if (!f) continue;
+    f.iframe.srcdoc = a.html;
+    f.badge.className = 'badge ' + a.status;
+    f.badge.textContent = badgeText(a.status);
+  }
 }
 
-function cycleVariant(a) {
-  a.variant = ((a.variant ?? 0) + 1) % (VARIANTS[a.channel] ?? 1);
-  a.status = 'draft';
-  logEvent(state.campaign, 'variation_cycled', { specId: a.specId, variant: a.variant });
-  generateArtifacts(state.campaign);
-  renderGrid();
-  toast(`${a.specId} — 시안 ${a.variant + 1}/${VARIANTS[a.channel]}`);
+/* zoom · pan */
+function applyTransform() {
+  $('artboard').style.transform = `translate(${state.panX}px,${state.panY}px) scale(${state.zoom})`;
+  $('zoomPct').textContent = Math.round(state.zoom * 100) + '%';
+}
+function setZoom(z, cx, cy) {
+  z = Math.min(2, Math.max(0.08, z));
+  const vp = $('viewport').getBoundingClientRect();
+  cx = cx ?? vp.width / 2; cy = cy ?? vp.height / 2;
+  const wx = (cx - state.panX) / state.zoom, wy = (cy - state.panY) / state.zoom;
+  state.zoom = z;
+  state.panX = cx - wx * z; state.panY = cy - wy * z;
+  applyTransform();
+}
+function fitZoom() {
+  const vp = $('viewport').getBoundingClientRect();
+  const z = Math.min((vp.width - 320) / (state.boardW || 1000), (vp.height - 80) / (state.boardH || 800), 1);
+  state.zoom = Math.max(0.08, z);
+  state.panX = 20; state.panY = 10;
+  applyTransform();
+}
+$('zIn').onclick = () => setZoom(state.zoom * 1.25);
+$('zOut').onclick = () => setZoom(state.zoom / 1.25);
+$('zFit').onclick = fitZoom;
+{
+  const vp = $('viewport');
+  let panning = false, sx = 0, sy = 0;
+  vp.addEventListener('pointerdown', e => {
+    if (e.target.closest('.hit')) return;
+    panning = true; sx = e.clientX - state.panX; sy = e.clientY - state.panY;
+    vp.classList.add('panning'); vp.setPointerCapture(e.pointerId);
+    if (!e.target.closest('.frame')) select(null);
+  });
+  vp.addEventListener('pointermove', e => {
+    if (!panning) return;
+    state.panX = e.clientX - sx; state.panY = e.clientY - sy;
+    applyTransform();
+  });
+  vp.addEventListener('pointerup', () => { panning = false; vp.classList.remove('panning'); });
+  vp.addEventListener('wheel', e => {
+    e.preventDefault();
+    const r = vp.getBoundingClientRect();
+    setZoom(state.zoom * (e.deltaY < 0 ? 1.09 : 0.92), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
 }
 
-function editArtifact(a) {
-  const cur = a.overrides.core ?? {};
-  const fields = ['name', 'date', 'venue', 'cta'];
+/* ═══ 선택 · 인스펙터 ═══ */
+function select(specId) {
+  state.selected = specId;
+  for (const [id, f] of frames) f.frame.classList.toggle('sel', id === specId);
+  renderInspector();
+}
+
+function renderInspector() {
+  const insp = $('inspector');
+  const c = state.campaign;
+  if (!state.selected) {
+    insp.innerHTML = `
+      <h3>CAMPAIGN <span class="mode">전체 일괄</span></h3>
+      <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
+      ${['name', 'date', 'venue', 'cta'].map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
+      <h3 style="margin-top:18px">STYLE</h3>
+      <label>컬러 (메인 · 배경)</label>
+      <div style="display:flex;gap:8px">
+        <input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}">
+        <input type="color" class="swatch" id="iColor2" value="${c.style.palette.bg}">
+      </div>
+      <label>폰트</label>
+      <select id="iFont"><option>Pretendard</option><option>Noto Sans KR</option><option>Apple SD Gothic Neo</option></select>
+      <div id="inspNote"></div>`;
+    insp.querySelector('#iFont').value = c.style.fonts.heading;
+    insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
+      const f = i.dataset.f, v = i.value.trim();
+      if (v === (c.context.core[f] ?? '')) return;
+      const { impacted, conflicts } = propagate(c, { [f]: v });
+      refreshFrames();
+      $('inspNote').textContent = conflicts.length
+        ? `${impacted.length}종 반영 · ${conflicts.length}건은 개별 편집값 유지(확인 필요)`
+        : `${impacted.length}종 즉시 반영됨`;
+      log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+    }, 450));
+    const styleChange = debounce(() => {
+      c.style = normalizeStyle({
+        keyVisual: c.style.keyVisual,
+        colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase()],
+        fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
+        mood: c.style.mood,
+      });
+      logEvent(c, 'style_changed', {});
+      generateArtifacts(c);
+      refreshFrames();
+      $('inspNote').textContent = '스타일 전체 반영됨';
+      log('스타일 변경 → 전체 재생성');
+    }, 350);
+    insp.querySelector('#iColor1').oninput = styleChange;
+    insp.querySelector('#iColor2').oninput = styleChange;
+    insp.querySelector('#iFont').onchange = styleChange;
+    return;
+  }
+
+  const a = c.artifacts.find(x => x.specId === state.selected);
+  const nVar = VARIANTS[a.channel] ?? 1;
+  insp.innerHTML = `
+    <h3>${a.specId} <span class="mode">개별 편집</span></h3>
+    <div class="hint">이 산출물에서만 다르게 표기할 값. 비우면 공통값. 개별 값은 일괄 반영에서 보존됩니다.</div>
+    ${['name', 'date', 'venue', 'cta'].map(f => `
+      <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
+      <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
+    ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
+      `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${i + 1}</button>`).join('')}</div>` : ''}
+    <div class="row">
+      <button class="btn" id="iOpen">크게</button>
+      <button class="btn pri" id="iExp">내보내기</button>
+      <button class="btn" id="iDesel">해제</button>
+    </div>
+    <div id="inspNote"></div>`;
+  insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
+    const f = i.dataset.f, v = i.value.trim();
+    const o = { ...(a.overrides.core ?? {}) };
+    if (v && v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
+    a.overrides.core = o;
+    a.status = 'draft';
+    logEvent(c, 'manual_edit', { specId: a.specId });
+    generateArtifacts(c);
+    refreshFrames(a.specId);
+    $('inspNote').textContent = '이 산출물만 반영됨';
+    log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
+  }, 450));
+  insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
+    a.variant = Number(b.dataset.v);
+    a.status = 'draft';
+    logEvent(c, 'variation_cycled', { specId: a.specId, variant: a.variant });
+    generateArtifacts(c);
+    refreshFrames(a.specId);
+    renderInspector();
+    log(`${a.specId} 시안 ${a.variant + 1}`);
+  });
+  insp.querySelector('#iOpen').onclick = () => { const w = window.open('', '_blank'); w.document.write(a.html); w.document.close(); };
+  insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
+  insp.querySelector('#iDesel').onclick = () => select(null);
+}
+
+/* ═══ 내보내기 ═══ */
+function exportArtifactModal(a) {
+  const spec = SPECS[a.specId];
+  if (spec.channel === 'banner') {
+    modal({
+      title: `${a.specId} 내보내기`,
+      desc: '온라인 배너 — 이미지 파일로 내보냅니다. 배수를 고르면 고해상도로 뽑힙니다.',
+      body: `
+        <label>포맷</label>
+        <div class="vseg" id="expFmt"><button data-v="png" class="on">PNG</button><button data-v="jpg">JPG</button></div>
+        <label>배수 (해상도)</label>
+        <div class="vseg" id="expScale">${[1, 2, 3, 4].map(s => `<button data-v="${s}" class="${s === 2 ? 'on' : ''}">${s}x</button>`).join('')}</div>
+        <div style="font-size:11.5px;color:var(--sub);margin-top:8px" id="expDim"></div>`,
+      actions: [
+        { label: '닫기' },
+        { label: '다운로드', pri: true, fn: () => { doBannerExport(a); return false; } },
+      ],
+    });
+    const upd = () => {
+      const s = Number($('modalBody').querySelector('#expScale .on').dataset.v);
+      $('modalBody').querySelector('#expDim').textContent = `${spec.w * s} × ${spec.h * s}px`;
+    };
+    for (const segId of ['expFmt', 'expScale']) {
+      $('modalBody').querySelectorAll(`#${segId} button`).forEach(b => b.onclick = () => {
+        $('modalBody').querySelectorAll(`#${segId} button`).forEach(x => x.classList.remove('on'));
+        b.classList.add('on'); upd();
+      });
+    }
+    upd();
+    return;
+  }
+  if (spec.channel === 'edm' || spec.channel === 'landing') {
+    modal({
+      title: `${a.specId} 내보내기`,
+      desc: spec.channel === 'edm'
+        ? '이메일 호환 HTML — 메일 도구에 붙여넣거나 업로드해 사용합니다. (HubSpot 자동 등록은 추후)'
+        : '자기완결 HTML 패키지 — 어디든 게시할 수 있습니다.',
+      body: '',
+      actions: [
+        { label: '닫기' },
+        { label: 'HTML 다운로드', pri: true, fn: () => { downloadText(a.html, `${a.specId}.html`); log(`내보내기: ${a.specId}.html`); } },
+      ],
+    });
+    return;
+  }
+  // 인쇄물
   modal({
-    title: `${a.specId} 개별 편집`,
-    desc: '이 산출물에서만 다르게 표기할 값을 입력하세요. 비워두면 캠페인 공통값을 따릅니다. (표현은 디자이너 소유 — 일괄 반영에서 보존됩니다)',
-    body: fields.map(f =>
-      `<label>${FIELD_LABEL[f]} <span style="opacity:.6">공통: ${state.campaign.context.core[f] ?? '—'}</span></label>
-       <input type="text" data-f="${f}" value="${cur[f] ?? ''}" placeholder="${state.campaign.context.core[f] ?? ''}">`
-    ).join(''),
+    title: `${a.specId} 내보내기`,
+    desc: '인쇄 가이드 적용 — 재단 여백(블리드) 포함 실측 규격의 PDF로 저장됩니다.',
+    body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">
+      · 용지: <b>${spec.wmm + spec.bleed * 2} × ${spec.hmm + spec.bleed * 2}mm</b> (재단 ${spec.wmm}×${spec.hmm} + 블리드 ${spec.bleed}mm)<br>
+      · 인쇄 대화상자에서 <b>"PDF로 저장"</b> · 여백 없음 · 배율 100%<br>
+      · 인디자인 작업 시 이 PDF를 배치(Place)해 사용<br>
+      · 대량·자동 변환은 <code>scripts/demo.js</code>(Chrome headless)</div>`,
     actions: [
-      { label: '초기화', fn: () => { a.overrides.core = {}; applyEdit(a); } },
-      { label: '적용', pri: true, fn: () => {
-        const o = {};
-        $('modalBody').querySelectorAll('input').forEach(i => { if (i.value.trim()) o[i.dataset.f] = i.value.trim(); });
-        a.overrides.core = o;
-        applyEdit(a);
-      } },
+      { label: '닫기' },
+      { label: 'HTML', fn: () => { downloadText(a.html, `${a.specId}.html`); } },
+      { label: 'PDF로 저장', pri: true, fn: () => { openPrintPdf(a.html); log(`내보내기: ${a.specId} PDF`); } },
     ],
   });
 }
-function applyEdit(a) {
-  a.status = 'draft';
-  logEvent(state.campaign, 'manual_edit', { specId: a.specId });
-  generateArtifacts(state.campaign);
-  renderGrid();
-  toast(`${a.specId} 개별 편집 적용`);
+
+async function doBannerExport(a) {
+  const spec = SPECS[a.specId];
+  const fmt = $('modalBody').querySelector('#expFmt .on').dataset.v;
+  const s = Number($('modalBody').querySelector('#expScale .on').dataset.v);
+  toast('이미지 생성 중…');
+  try {
+    const blob = await rasterize(a.html, spec.w, spec.h, s, fmt);
+    download(blob, `${a.specId}@${s}x.${fmt}`);
+    log(`내보내기: ${a.specId}@${s}x.${fmt}`);
+    closeModal();
+  } catch (e) { toast(`실패: ${e.message}`); }
 }
 
-/* ═══════════ 하단 지시 바 ═══════════ */
+function exportAllModal() {
+  const c = state.campaign;
+  const banners = c.artifacts.filter(a => a.channel === 'banner');
+  const htmls = c.artifacts.filter(a => ['edm', 'landing'].includes(a.channel));
+  const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner'].includes(a.channel));
+  modal({
+    title: '전체 내보내기',
+    desc: '온라인은 파일로 즉시, 인쇄물은 산출물별 PDF 저장으로 진행합니다.',
+    body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.8">
+      · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
+      · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
+      · 인쇄 PDF — ${prints.map(a => a.specId).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>`,
+    actions: [
+      { label: '닫기' },
+      { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
+      { label: '배너 PNG 2x 일괄', pri: true, fn: () => { batchBanners(banners); return false; } },
+    ],
+  });
+}
+async function batchBanners(banners) {
+  toast('배너 이미지 생성 중…');
+  for (const a of banners) {
+    const spec = SPECS[a.specId];
+    try { download(await rasterize(a.html, spec.w, spec.h, 2, 'png'), `${a.specId}@2x.png`); } catch {}
+  }
+  log(`내보내기: 배너 PNG 2x ${banners.length}개`);
+  closeModal();
+}
+$('exportAll').onclick = () => exportAllModal();
+
+/* ═══ 지시 바 ═══ */
 function parseCommandRegex(text) {
   const patch = {};
-  const venue = text.match(/(?:장소|장소를)\s*([가-힣A-Za-z0-9 ]+?)\s*(?:으로|로)\s*(?:변경|바꿔|수정)/) || text.match(/([가-힣A-Za-z0-9]+)(?:으로|로)\s*장소\s*변경/);
+  const venue = text.match(/(?:장소|장소를)\s*([가-힣A-Za-z0-9 ]+?)\s*(?:으로|로)\s*(?:변경|바꿔|수정)/);
   if (venue) patch.venue = venue[1].trim();
   const date = text.match(/(?:일시|날짜)를?\s*([\d\-\.년월일\s]+?)\s*(?:으로|로)\s*(?:변경|바꿔|수정)/);
   if (date) patch.date = date[1].trim();
@@ -528,43 +642,44 @@ function parseCommandRegex(text) {
   if (cta) patch.cta = cta[1].trim();
   return Object.keys(patch).length ? patch : null;
 }
-
 async function onCommand(text) {
-  user(text);
+  const c = state.campaign;
   if (/다른\s*시안|시안\s*바꿔/.test(text)) {
-    for (const a of state.campaign.artifacts) if ((VARIANTS[a.channel] ?? 1) > 1) a.variant = ((a.variant ?? 0) + 1) % VARIANTS[a.channel];
-    generateArtifacts(state.campaign);
-    renderGrid();
-    agent('전 산출물의 레이아웃 시안을 한 단계씩 바꿨어요.');
+    for (const a of c.artifacts) if ((VARIANTS[a.channel] ?? 1) > 1) a.variant = ((a.variant ?? 0) + 1) % VARIANTS[a.channel];
+    generateArtifacts(c);
+    refreshFrames();
+    log('전체 시안 사이클');
+    toast('전 산출물 레이아웃 시안 변경');
     return;
   }
   let patch = parseCommandRegex(text);
   if (!patch && LLM.hasKey()) {
-    const wait = agent('지시 해석 중…');
+    toast('지시 해석 중…');
     try { patch = await LLM.parseCommandLLM(text); } catch {}
-    wait.remove();
     if (patch && !Object.keys(patch).length) patch = null;
   }
-  if (!patch) { agent('이해하지 못했어요. 예: "장소 킨텍스로 변경" · "일시 11월 3일로 바꿔" · "다른 시안"'); return; }
-  const { impacted, conflicts } = propagate(state.campaign, patch);
-  state.ctx = state.campaign.context;
-  renderPanel(); renderGrid();
-  agent(`${Object.entries(patch).map(([f, v]) => `${FIELD_LABEL[f]} → ${v}`).join(', ')} — ${impacted.length}종 일괄 반영${conflicts.length ? `, ${conflicts.length}건 확인 필요` : ''}.`);
+  if (!patch) { toast('이해 못함 — 예: "장소 킨텍스로 변경" · "다른 시안"'); return; }
+  const { impacted, conflicts } = propagate(c, patch);
+  refreshFrames();
+  renderInspector();
+  log(`지시: ${Object.entries(patch).map(([f, v]) => `${FIELD_LABEL[f]}→${v}`).join(', ')} (${impacted.length}종${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+  toast(`${impacted.length}종 일괄 반영${conflicts.length ? ` · ${conflicts.length}건 확인 필요` : ''}`);
 }
 $('cmdGo').onclick = () => { const t = $('cmdIn').value.trim(); if (t) { $('cmdIn').value = ''; onCommand(t); } };
 $('cmdIn').onkeydown = e => { if (e.key === 'Enter') $('cmdGo').click(); };
 
-/* ═══════════ 승인 · 저장 ═══════════ */
+/* ═══ 승인 · 저장 · 재열기 ═══ */
 function approveAll() {
-  for (const a of state.campaign.artifacts) a.status = 'approved';
-  logEvent(state.campaign, 'artifact_approved', { all: true });
-  renderGrid();
-  setStep('done');
-  const kpi = state.campaign.log.reduce((m, e) => (m[e.type] = (m[e.type] ?? 0) + 1, m), {});
-  agent(`전체 승인 완료 — 캠페인이 자산 서랍에 저장됐습니다.\n\nKPI 로그: 생성 ${kpi.artifact_generated ?? 0} · 개별 편집 ${kpi.manual_edit ?? 0} · 일괄 전파 ${kpi.propagation_run ?? 0} · 시안 변경 ${kpi.variation_cycled ?? 0}`);
+  const c = state.campaign;
+  for (const a of c.artifacts) a.status = 'approved';
+  logEvent(c, 'artifact_approved', { all: true });
+  refreshFrames();
+  const kpi = c.log.reduce((m, e) => (m[e.type] = (m[e.type] ?? 0) + 1, m), {});
+  log(`전체 승인 — 생성 ${kpi.artifact_generated ?? 0} · 편집 ${kpi.manual_edit ?? 0} · 전파 ${kpi.propagation_run ?? 0}`);
   saveCampaignToStore();
-  toast('전체 승인 완료 — 홈의 내 캠페인에 저장됨');
+  toast('전체 승인 — 홈 "내 캠페인"에 저장됨');
 }
+$('approveAll').onclick = approveAll;
 
 function saveCampaignToStore() {
   const c = state.campaign;
@@ -577,12 +692,25 @@ function saveCampaignToStore() {
   const list = loadStore().filter(x => x.id !== c.id);
   list.push(snapshot);
   try { saveStore(list); } catch {
-    snapshot.style = { ...snapshot.style, keyVisual: null };   // 쿼터 초과 — 키비주얼만 빼고 저장
-    try { saveStore(list); } catch { toast('저장 공간 부족 — 캠페인 저장 실패'); }
+    snapshot.style = { ...snapshot.style, keyVisual: null };
+    try { saveStore(list); } catch { toast('저장 공간 부족 — 저장 실패'); }
   }
 }
 
-/* ═══════════ AI 키 ═══════════ */
+function openStored(saved) {
+  state.campaign = { ...saved, log: saved.log ?? [] };
+  registerAll();
+  generateArtifacts(state.campaign);
+  for (const a of state.campaign.artifacts) {
+    const s = (saved.artifacts ?? []).find(x => x.specId === a.specId);
+    if (s?.status) a.status = s.status;
+  }
+  logEvent(state.campaign, 'campaign_reopened', {});
+  enterWork();
+  log(`저장된 캠페인 재현: ${saved.context.core.name}`);
+}
+
+/* ═══ AI 키 ═══ */
 $('keyBtn').onclick = () => {
   modal({
     title: 'AI 해석 설정 (BYOK)',
@@ -595,7 +723,8 @@ $('keyBtn').onclick = () => {
   });
 };
 
-/* ═══════════ boot ═══════════ */
-$('homeBtn').onclick = showHome;
+/* ═══ boot ═══ */
+$('homeBtn').onclick = () => show('home');
+$('logHead').onclick = () => $('logCard').classList.toggle('open');
 initHome();
-showHome();
+show('home');

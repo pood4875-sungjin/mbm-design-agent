@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MBM Design Agent</title>
+<title>Campaign Agent</title>
 <style>
   :root{
     --ink:#1f1f1f; --sub:#6f6f6f; --line:#e6e6e4; --panel:#ffffff; --soft:#f1f3f4;
-    --accent:#2456d6; --accent-soft:#edf2fd; --accent-line:#c9d8f6;
-    --good:#1d7a4f; --good-soft:#e9f5ee; --amber:#b07d10; --amber-soft:#fdf3df;
+    --accent:#0d9d8a; --accent-soft:#e6f7f3; --accent-line:#bfe8df;
+    --grad:linear-gradient(92deg,#0d9d8a,#43cdb8);
+    --good:#1d7a4f; --good-soft:#e9f5ee; --amber:#b07d10; --amber-soft:#fdf3df; --danger:#c5303f;
     --shadow:0 1px 2px rgba(0,0,0,.05), 0 8px 28px rgba(0,0,0,.07);
   }
   *{box-sizing:border-box;margin:0}
@@ -23,7 +24,6 @@
   button{font-family:inherit;cursor:pointer}
   input,textarea,select{font-family:inherit}
 
-  /* ─ header ─ */
   header{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;z-index:20}
   .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;cursor:pointer}
   .logo i{width:24px;height:24px;border-radius:7px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:12px;font-weight:800}
@@ -31,7 +31,7 @@
   #campPill{display:none;font-size:13px;font-weight:600;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 16px;box-shadow:var(--shadow)}
   .spacer{flex:1}
   .hbtn{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:8px 16px;font-size:13px;font-weight:600;box-shadow:var(--shadow)}
-  .hbtn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+  .hbtn.pri{background:var(--grad);border-color:transparent;color:#fff}
 
   /* ─ home ─ */
   #home{position:absolute;inset:56px 0 0 0;display:flex}
@@ -49,69 +49,98 @@
   .citem span{font-size:11.5px;color:var(--sub)}
   .citem .m{min-width:0;flex:1}
   #campEmpty{font-size:12.5px;color:var(--sub);padding:10px 18px;line-height:1.6}
-
   #hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;min-width:0}
-  #hero h1{font-size:clamp(26px,3.4vw,40px);font-weight:800;letter-spacing:-.01em;margin-bottom:26px;text-align:center}
-  .inputCard{width:min(760px,100%);background:var(--soft);border-radius:24px;padding:20px 20px 14px;box-shadow:var(--shadow)}
+  #hero h1{font-size:clamp(26px,3.4vw,40px);font-weight:800;letter-spacing:-.01em;margin-bottom:26px;text-align:center;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .inputCard{position:relative;width:min(760px,100%);background:var(--panel);border-radius:24px;padding:20px 20px 14px;
+    box-shadow:0 0 0 1px rgba(13,157,138,.18), 0 6px 30px rgba(13,157,138,.13), var(--shadow)}
+  .inputCard::before{content:"";position:absolute;inset:-1.5px;border-radius:25px;background:var(--grad);z-index:-1;opacity:.5}
+  .inputCard:focus-within{box-shadow:0 0 0 1px rgba(13,157,138,.4), 0 8px 38px rgba(13,157,138,.2), var(--shadow)}
+  .inputCard:focus-within::before{opacity:1}
   .inputCard textarea{width:100%;min-height:96px;border:0;background:none;outline:0;resize:none;font-size:15px;line-height:1.65}
   .inputCard .bar{display:flex;align-items:center;gap:8px;margin-top:6px}
   .iconb{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:16px;display:inline-flex;align-items:center;justify-content:center}
   .chip{font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 12px;color:var(--sub)}
-  .sendb{width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:16px;font-weight:800;margin-left:auto}
-  .sendb:disabled{opacity:.35}
+  .sendb{width:38px;height:38px;border-radius:50%;border:0;background:var(--grad);color:#fff;font-size:16px;font-weight:800;margin-left:auto;flex:none}
   #samples{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:20px}
   #samples button{font-size:12.5px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 15px;color:var(--sub);box-shadow:var(--shadow)}
 
-  /* ─ work ─ */
-  #work{position:absolute;inset:56px 0 0 0;display:none}
-  #chatCard{position:absolute;left:16px;top:8px;bottom:96px;width:330px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;z-index:10}
-  #chatCard .head{padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
-  #chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-  .msg{max-width:92%;font-size:13px;line-height:1.6;border-radius:13px;padding:9px 13px;white-space:pre-wrap;word-break:keep-all}
-  .msg.agent{background:var(--soft);align-self:flex-start;border-bottom-left-radius:4px}
-  .msg.user{background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
-  .widget{align-self:stretch;border:1px solid var(--line);border-radius:13px;padding:13px}
-  .widget h4{font-size:11.5px;color:var(--sub);font-weight:700;margin-bottom:9px;letter-spacing:.04em}
-  .widget label{display:block;font-size:12px;color:var(--sub);margin:8px 0 4px}
-  .widget input[type=text]{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px}
-  .widget .chk{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;cursor:pointer;margin-bottom:6px}
-  .widget .chk input{accent-color:var(--accent)}
-  .widget .chk.on{border-color:var(--accent-line);background:var(--accent-soft)}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 15px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:12.5px;font-weight:600}
-  .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
-  .btn.ghost{border:none;background:none;color:var(--accent);padding:5px 7px;border-radius:8px}
-  .btn-row{display:flex;gap:8px;margin-top:11px;justify-content:flex-end}
-  .kvthumb{width:100%;height:96px;border-radius:9px;background:var(--soft) center/cover no-repeat;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:12px;cursor:pointer}
+  /* ─ intake (질문지 한 장) ─ */
+  #intake{position:absolute;inset:56px 0 0 0;display:none;overflow-y:auto;padding:12px 20px 60px}
+  .sheet{width:min(860px,100%);margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:30px 34px}
+  .sheet h2{font-size:19px;margin-bottom:4px}
+  .sheet .sub{font-size:13px;color:var(--sub);margin-bottom:22px}
+  .sheet section{border-top:1px solid var(--line);padding:20px 0}
+  .sheet section h3{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.05em;margin-bottom:14px;display:flex;gap:8px;align-items:center}
+  .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .f label{display:block;font-size:12px;color:var(--sub);margin-bottom:4px}
+  .f label .req{color:var(--danger);font-weight:700}
+  .f input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px}
+  .f input.miss{border-color:var(--danger);background:#fdf3f4}
+  .chgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+  .chcard{border:1px solid var(--line);border-radius:12px;padding:12px 13px;cursor:pointer;font-size:13px;font-weight:600;display:flex;gap:9px;align-items:center}
+  .chcard input{accent-color:var(--accent)}
+  .chcard.on{border-color:var(--accent);background:var(--accent-soft)}
+  .chcard small{display:block;font-weight:400;color:var(--sub);font-size:11px;margin-top:2px}
+  .styleRow{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .kvthumb{width:190px;height:120px;border-radius:12px;background:var(--soft) center/cover no-repeat;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:12px;cursor:pointer;flex:none}
   .palette{display:flex;gap:8px;align-items:center}
-  .swatch{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);padding:0;cursor:pointer}
-  .widget select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  .swatch{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);padding:0;cursor:pointer}
+  .sheet select{padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px}
+  .sheetFoot{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:20px}
+  .sheetFoot .note{font-size:12.5px;color:var(--sub)}
+  .bigbtn{margin-left:auto;background:var(--grad);color:#fff;border:0;border-radius:99px;padding:13px 30px;font-size:14.5px;font-weight:700}
+  .bigbtn:disabled{opacity:.35;cursor:default}
 
-  #canvas{position:absolute;left:366px;right:300px;top:8px;bottom:96px;overflow-y:auto;padding:8px 4px 20px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
-  .card .prev{height:195px;background:#eeeeec;position:relative;overflow:hidden}
-  .card .prev iframe{position:absolute;top:0;left:50%;border:0;transform-origin:top center;background:#fff;pointer-events:none}
-  .card .meta{padding:9px 12px 2px;display:flex;align-items:center;gap:8px}
-  .card .meta b{font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;flex:none}
-  .badge.draft{background:var(--soft);color:var(--sub)}
+  /* ─ work (아트보드) ─ */
+  #work{position:absolute;inset:56px 0 0 0;display:none}
+  #viewport{position:absolute;inset:0;overflow:hidden;cursor:grab}
+  #viewport.panning{cursor:grabbing}
+  #artboard{position:absolute;left:0;top:0;transform-origin:0 0}
+  .frame{position:absolute}
+  .flabel{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--sub);white-space:nowrap}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px}
+  .badge.draft{background:#e7e7e5;color:var(--sub)}
   .badge.approved{background:var(--good-soft);color:var(--good)}
   .badge.needsReview{background:var(--amber-soft);color:var(--amber)}
-  .card .acts{display:flex;gap:1px;padding:2px 7px 7px;flex-wrap:wrap}
-  .card .acts .btn.ghost{font-size:11.5px}
+  .fbody{position:relative;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.09);border-radius:4px;overflow:hidden}
+  .frame.sel .fbody{outline:3px solid var(--accent);outline-offset:2px}
+  .fbody iframe{border:0;transform-origin:0 0;pointer-events:none;background:#fff;display:block}
+  .frame.gen .fbody{background:linear-gradient(105deg,#f4f6f6 30%,#e6f7f3 48%,#f4f6f6 66%);background-size:280% 100%;animation:shim 1.5s linear infinite}
+  .frame.gen .flabel{color:var(--accent)}
+  @keyframes shim{from{background-position:180% 0}to{background-position:-80% 0}}
+  .fbody .hit{position:absolute;inset:0;cursor:pointer}
 
-  #stylePanel{position:absolute;right:16px;top:8px;bottom:96px;width:268px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow-y:auto;padding:16px;display:none;z-index:10}
-  #stylePanel h3{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.05em;margin-bottom:12px}
-  #stylePanel .sec{margin-bottom:18px}
-  #stylePanel label{display:block;font-size:11.5px;color:var(--sub);margin:9px 0 4px}
-  #stylePanel input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
-  #stylePanel select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px}
-  #propNote{font-size:11.5px;color:var(--accent);margin-top:8px;display:none;line-height:1.5}
+  #zoomCtl{position:absolute;right:16px;bottom:20px;display:flex;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow);padding:4px;z-index:11}
+  #zoomCtl button{border:0;background:none;width:32px;height:32px;font-size:15px;border-radius:99px}
+  #zoomCtl button:hover{background:var(--soft)}
+  #zoomPct{display:flex;align-items:center;font-size:12px;color:var(--sub);padding:0 6px;min-width:44px;justify-content:center}
 
-  #cmdBar{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);width:min(640px,56%);background:var(--panel);border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow);display:none;align-items:center;gap:8px;padding:7px 8px 7px 20px;z-index:11}
+  #inspector{position:absolute;right:16px;top:8px;width:280px;max-height:calc(100% - 120px);background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow-y:auto;padding:18px;z-index:10}
+  #inspector h3{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.05em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  #inspector .mode{font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:2px 9px;font-weight:700}
+  #inspector .hint{font-size:11.5px;color:var(--sub);line-height:1.55;margin-bottom:12px}
+  #inspector label{display:block;font-size:11.5px;color:var(--sub);margin:10px 0 4px}
+  #inspector input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  #inspector select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  #inspector .vseg{display:flex;gap:5px;margin-top:4px}
+  #inspector .vseg button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 0;font-size:12px;font-weight:600}
+  #inspector .vseg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  #inspector .row{display:flex;gap:6px;margin-top:14px}
+  #inspector .row .btn{flex:1}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:12.5px;font-weight:600}
+  .btn.pri{background:var(--grad);border-color:transparent;color:#fff}
+  #inspNote{font-size:11.5px;color:var(--accent);margin-top:10px;line-height:1.5;min-height:16px}
+
+  #logCard{position:absolute;left:16px;bottom:20px;width:280px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);z-index:11;overflow:hidden}
+  #logCard .lhead{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;font-weight:700;color:var(--sub);cursor:pointer}
+  #logBody{max-height:170px;overflow-y:auto;padding:0 14px 10px;display:none}
+  #logBody div{font-size:12px;color:var(--sub);padding:4px 0;border-top:1px solid var(--line);line-height:1.5}
+  #logCard.open #logBody{display:block}
+
+  #cmdBar{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);width:min(560px,46%);background:var(--panel);border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;padding:7px 8px 7px 20px;z-index:11}
   #cmdBar input{flex:1;border:0;outline:0;background:none;font-size:14px}
 
-  /* ─ modal ─ */
+  /* modal · toast */
   #overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:40}
   #modal{width:min(420px,92vw);background:var(--panel);border-radius:18px;box-shadow:var(--shadow);padding:22px}
   #modal h3{font-size:15px;margin-bottom:4px}
@@ -119,17 +148,17 @@
   #modal label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}
   #modal input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px}
   #modalBtns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
-
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
   .toast.show{opacity:1}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo" id="homeBtn"><i>M</i>MBM Design Agent <span class="beta">PILOT</span></div>
+  <div class="logo" id="homeBtn">Campaign Agent <span class="beta">PILOT</span></div>
   <div id="campPill"></div>
   <div class="spacer"></div>
   <button class="hbtn" id="keyBtn">AI 키</button>
+  <button class="hbtn" id="exportAll" style="display:none">내보내기</button>
   <button class="hbtn pri" id="approveAll" style="display:none">전체 승인</button>
 </header>
 
@@ -146,9 +175,9 @@
     <div class="inputCard">
       <textarea id="briefText" placeholder="기획 내용을 자유롭게 적어주세요 — 일정, 장소, 대상, 필요한 산출물..."></textarea>
       <div class="bar">
-        <button class="iconb" id="fileBtn" title="PPT·워드 첨부 — txt는 즉시, 그 외는 서버 연동 후">＋</button>
+        <button class="iconb" id="fileBtn" title="txt·md 첨부 (PPT·워드는 서버 연동 후)">＋</button>
         <input type="file" id="fileIn" accept=".txt,.md" style="display:none">
-        <span class="chip" id="aiChip">AI 해석: 꺼짐</span>
+        <span class="chip" id="aiChip"></span>
         <button class="sendb" id="briefGo" title="시작">↑</button>
       </div>
     </div>
@@ -156,28 +185,58 @@
   </section>
 </div>
 
-<div id="work">
-  <div id="chatCard">
-    <div class="head">에이전트 <span class="spacer"></span><span id="stepLabel" style="font-weight:400"></span></div>
-    <div id="chat"></div>
-  </div>
-  <div id="canvas"><div class="grid" id="grid"></div></div>
-  <aside id="stylePanel">
-    <h3>CAMPAIGN</h3>
-    <div class="sec" id="ctxFields"></div>
-    <h3>STYLE</h3>
-    <div class="sec">
-      <label>컬러 (메인 · 배경)</label>
-      <div class="palette">
-        <input type="color" class="swatch" id="pColor1">
-        <input type="color" class="swatch" id="pColor2">
+<div id="intake">
+  <div class="sheet">
+    <h2>캠페인 준비</h2>
+    <div class="sub" id="intakeSub">기획에서 읽어낸 내용입니다. 빈칸을 채우고, 만들 산출물을 확정해 주세요.</div>
+    <section>
+      <h3>행사 정보</h3>
+      <div class="fgrid" id="coreFields"></div>
+    </section>
+    <section>
+      <h3>만들 산출물</h3>
+      <div class="chgrid" id="chGrid"></div>
+    </section>
+    <section id="extraSec" style="display:none">
+      <h3>채널 추가 정보</h3>
+      <div class="fgrid" id="extraFields"></div>
+    </section>
+    <section>
+      <h3>그래픽 가이드</h3>
+      <div class="styleRow">
+        <div>
+          <div class="kvthumb" id="kvThumb">키비주얼 업로드<br>(선택)</div>
+          <input type="file" id="kvFile" accept="image/*" style="display:none">
+        </div>
+        <div class="f">
+          <label>컬러 (메인 · 배경)</label>
+          <div class="palette">
+            <input type="color" class="swatch" id="c1" value="#0A3D91">
+            <input type="color" class="swatch" id="c2" value="#F5F7FA">
+          </div>
+          <label style="margin-top:12px">폰트</label>
+          <select id="fontSel"><option>Pretendard</option><option>Noto Sans KR</option><option>Apple SD Gothic Neo</option></select>
+        </div>
+        <div class="f" style="flex:1;min-width:180px">
+          <label>무드 키워드</label>
+          <input type="text" id="moodIn" placeholder="예: 테크, 신뢰">
+        </div>
       </div>
-      <label>폰트</label>
-      <select id="pFont"><option>Pretendard</option><option>Noto Sans KR</option><option>Apple SD Gothic Neo</option></select>
+    </section>
+    <div class="sheetFoot">
+      <div class="note" id="intakeNote"></div>
+      <button class="bigbtn" id="genBtn">생성하기 →</button>
     </div>
-    <button class="btn pri" id="propBtn" style="width:100%">일괄 반영</button>
-    <div id="propNote"></div>
-  </aside>
+  </div>
+</div>
+
+<div id="work">
+  <div id="viewport"><div id="artboard"></div></div>
+  <aside id="inspector"></aside>
+  <div id="zoomCtl">
+    <button id="zOut">−</button><div id="zoomPct">100%</div><button id="zIn">＋</button><button id="zFit" title="전체 보기">⤢</button>
+  </div>
+  <div id="logCard"><div class="lhead" id="logHead">에이전트 로그 <span class="spacer"></span><span id="logCount"></span></div><div id="logBody"></div></div>
   <div id="cmdBar">
     <input id="cmdIn" placeholder="무엇을 변경할까요? — 예: 장소 킨텍스로 변경">
     <button class="sendb" id="cmdGo">↑</button>
@@ -186,10 +245,8 @@
 
 <div id="overlay">
   <div id="modal">
-    <h3 id="modalTitle"></h3>
-    <p id="modalDesc"></p>
-    <div id="modalBody"></div>
-    <div id="modalBtns"></div>
+    <h3 id="modalTitle"></h3><p id="modalDesc"></p>
+    <div id="modalBody"></div><div id="modalBtns"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
