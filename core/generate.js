@@ -8,15 +8,18 @@ import { renderBanner } from './renderers/banner.js';
 import { renderEdm } from './renderers/edm.js';
 import { renderLanding } from './renderers/landing.js';
 import { renderPrint } from './renderers/print.js';
+import { renderBadge } from './renderers/badge.js';
 
 export function registerAll() {
   _clearRenderers();
   registerRenderer('banner', renderBanner);
+  registerRenderer('gwthumb', renderBanner);   // 썸네일도 같은 계약 — 규격만 다르다
   registerRenderer('edm', renderEdm);
   registerRenderer('landing', renderLanding);
   registerRenderer('poster', renderPrint);
   registerRenderer('xbanner', renderPrint);
   registerRenderer('hyunsumak', renderPrint);
+  registerRenderer('badge', renderBadge);
 }
 
 export function channelSpecIds(channels) {
@@ -72,6 +75,7 @@ export function generateArtifacts(campaign) {
       purpose: artifact.purpose,
       arrow: artifact.arrow,
       size: artifact.size,
+      roster: campaign.roster ?? null,   // 명찰은 사람 수만큼 페이지가 된다
     });
     artifact.contextVersion = campaign.context.version;
     logEvent(campaign, 'artifact_generated', { key });

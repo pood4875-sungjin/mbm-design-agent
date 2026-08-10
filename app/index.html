@@ -72,7 +72,19 @@
   #samples button:hover{background:var(--soft)}
 
   /* ─ intake (질문지 한 장) ─ */
-  #intake{position:absolute;inset:56px 0 0 0;display:none;overflow-y:auto;padding:12px 20px 60px}
+  #intake{position:absolute;inset:56px 0 0 0;display:none;padding:8px 20px 16px}
+  .convo{max-width:760px;height:100%;margin:0 auto;display:flex;flex-direction:column;min-height:0}
+  #thread{flex:1;overflow-y:auto;padding:10px 2px 18px;display:flex;flex-direction:column;gap:12px}
+  .bub{max-width:80%;font-size:14.5px;line-height:1.65;border-radius:16px;padding:12px 16px;white-space:pre-wrap;word-break:keep-all}
+  .bub.agent{background:var(--soft);align-self:flex-start;border-bottom-left-radius:5px}
+  .bub.user{background:var(--ink);color:#fff;align-self:flex-end;border-bottom-right-radius:5px}
+  .bub.think{background:var(--gen-soft);color:var(--gen1);align-self:flex-start;font-size:13px}
+  .card2{align-self:stretch;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .card2 h4{font-size:11.5px;color:var(--sub);font-weight:700;letter-spacing:.04em;margin-bottom:11px}
+  .composer{background:#eef0f1;border-radius:22px;padding:12px 14px;margin-bottom:8px}
+  .composer .crow{display:flex;align-items:center;gap:8px}
+  .composer input#cvIn{flex:1;border:0;background:none;outline:0;font-size:15px}
+  #slot:not(:empty){margin-bottom:12px}
   .sheet{width:min(860px,100%);margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:30px 34px}
   .sheet h2{font-size:19px;margin-bottom:4px}
   .steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
@@ -222,59 +234,17 @@
 </div>
 
 <div id="intake">
-  <div class="sheet">
+  <div class="convo">
     <div class="steps" id="steps"></div>
-    <div class="say" id="intakeSay"></div>
-    <div class="sub" id="intakeSub" style="display:none"></div>
-    <section data-step="core">
-      <h3>행사 정보</h3>
-      <div class="fgrid" id="coreFields"></div>
-    </section>
-    <section data-step="channels">
-      <h3>만들 산출물</h3>
-      <div class="chgrid" id="chGrid"></div>
-    </section>
-    <section id="signageSec" data-step="signage" style="display:none">
-      <h3>오프라인 세트 구성 <span style="font-weight:400;text-transform:none;letter-spacing:0">현장에 함께 나가는 것들</span></h3>
-      <div id="signageBox"></div>
-    </section>
-    <section id="extraSec" data-step="extra" style="display:none">
-      <h3>채널 추가 정보</h3>
-      <div class="fgrid" id="extraFields"></div>
-    </section>
-    <section data-step="style">
-      <h3>그래픽 가이드</h3>
-      <div class="styleRow">
-        <div>
-          <div class="kvthumb" id="kvThumb">키비주얼 업로드<br>(선택)</div>
-          <input type="file" id="kvFile" accept="image/*" style="display:none">
-        </div>
-        <div>
-          <div class="kvthumb logo" id="logoThumb">로고 업로드<br>(선택)</div>
-          <input type="file" id="logoFile" accept="image/*" style="display:none">
-        </div>
-        <div class="f" style="flex:1;min-width:250px">
-          <label>모드</label>
-          <div class="vseg" id="modeSeg"><button data-m="light" class="on">라이트</button><button data-m="dark">다크</button></div>
-          <label style="margin-top:12px">컬러 세트 <span id="kvHint" style="color:var(--accent)"></span></label>
-          <div class="palette">
-            <span class="sw"><input type="color" class="swatch" id="c1" value="#0A3D91"><small>주색</small></span>
-            <span class="sw"><input type="color" class="swatch" id="c2" value="#11095F"><small>보조</small></span>
-            <span class="sw"><input type="color" class="swatch" id="c3" value="#B56705"><small>포인트</small></span>
-          </div>
-          <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
-          <label style="margin-top:12px">폰트</label>
-          <select id="fontSel"></select>
-          <label style="margin-top:12px">무드 키워드</label>
-          <input type="text" id="moodIn" placeholder="예: 테크, 신뢰" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px">
-        </div>
+    <div id="thread"></div>
+    <div class="composer">
+      <div id="slot"></div>
+      <div class="crow">
+        <button class="iconb" id="cvFile" title="키비주얼·로고 첨부">＋</button>
+        <input type="file" id="cvFileIn" accept="image/*" style="display:none">
+        <input id="cvIn" placeholder="답장을 입력하세요…">
+        <button class="sendb" id="cvGo">↑</button>
       </div>
-    </section>
-    <div class="sheetFoot">
-      <button class="btn" id="prevBtn">이전</button>
-      <div class="note" id="intakeNote"></div>
-      <button class="bigbtn" id="nextBtn">다음 →</button>
-      <button class="bigbtn" id="genBtn" style="display:none">생성하기 →</button>
     </div>
   </div>
 </div>
@@ -299,6 +269,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<script src="config.local.js" onerror="void 0"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

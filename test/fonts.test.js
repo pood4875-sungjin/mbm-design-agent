@@ -62,8 +62,8 @@ test('busy key visual gets a scrim and contrast-picked text color', () => {
   assert.match(renderPrint(ctx, dark, SPECS['poster-a2']), /linear-gradient\(180deg,rgba\(0,0,0/);
 
   const bright = normalizeStyle({ colors: ['#0A3D91'], keyVisual: kv,
-    kvReadability: { banner: { text: '#111111', scrim: false } } });
+    kvReadability: { banner: { text: '#000000', scrim: false } } });
   const html = renderBanner(ctx, bright, SPECS['banner-300x250']);
-  assert.match(html, /color:#111111/, '밝은 키비주얼 위에는 검은 글자');
+  assert.match(html, /color:#000000/, '밝은 키비주얼 위에는 검은 글자');
   assert.doesNotMatch(html, /data-scrim/, '깨끗한 배경이면 가림막 없음');
 });

@@ -16,8 +16,9 @@ function fullCampaign(channels) {
 
 test('channelSpecIds maps channels to spec lists', () => {
   assert.deepEqual(channelSpecIds(['banner', 'edm']), [
-    'banner-300x250', 'banner-728x90', 'banner-160x600', 'edm-600',
+    'banner-300x250', 'banner-728x90', 'banner-160x600', 'banner-320x100', 'banner-336x280', 'edm-600',
   ]);
+  assert.deepEqual(channelSpecIds(['gwthumb']), ['gwthumb-374x271'], '그룹웨어 홍보 썸네일');
   assert.deepEqual(channelSpecIds(['landing']), ['landing']);
 });
 
@@ -25,7 +26,7 @@ test('generateArtifacts fills artifacts with html per spec', () => {
   registerAll();
   const c = fullCampaign(['banner', 'landing']);
   generateArtifacts(c);
-  assert.equal(c.artifacts.length, 4);
+  assert.equal(c.artifacts.length, 6);
   const landing = c.artifacts.find(a => a.specId === 'landing');
   assert.equal(landing.status, 'draft');
   assert.equal(landing.contextVersion, 1);

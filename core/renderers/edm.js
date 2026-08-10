@@ -9,20 +9,37 @@ export function renderEdm(ctx, style, spec) {
   const edm = ctx.channelFields.edm ?? {};
   const p = style.palette;
   const w = spec.w;
+  // 히어로: 키비주얼이 있어도 그 위에 제목이 얹힌다(배경 이미지 + 텍스트 셀).
+  // 이메일에서 겹치기는 background 속성이 가장 안전하다(아웃룩은 VML 폴백이 필요하지만
+  // 배경색을 함께 지정해 최소한 읽히도록 한다).
+  const heroText = style.kvReadability?.edm?.text ?? p.onPrimary;
   const hero = style.keyVisual
-    ? `<img src="${esc(style.keyVisual)}" width="${w}" alt="${esc(name)}" style="display:block;width:100%;height:auto">`
-    : `<div style="background:${p.primary};color:${p.onPrimary};padding:48px 32px;font-size:26px;font-weight:bold;line-height:1.35">${esc(name)}</div>`;
+    ? `<td background="${esc(style.keyVisual)}" bgcolor="${p.primary}" valign="middle" style="background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat;padding:56px 32px;color:${heroText}">
+        <div style="font-size:13px;letter-spacing:.14em;opacity:.85;margin-bottom:10px">INVITATION</div>
+        <div style="font-size:27px;font-weight:bold;line-height:1.3">${esc(name)}</div>
+        <div style="font-size:14px;margin-top:12px;opacity:.9">${esc(date)} · ${esc(venue)}</div>
+      </td>`
+    : `<td style="background:${p.primary};color:${p.onPrimary};padding:52px 32px">
+        <div style="font-size:13px;letter-spacing:.14em;opacity:.85;margin-bottom:10px">INVITATION</div>
+        <div style="font-size:27px;font-weight:bold;line-height:1.3">${esc(name)}</div>
+        <div style="font-size:14px;margin-top:12px;opacity:.9">${esc(date)} · ${esc(venue)}</div>
+      </td>`;
   return `<table role="presentation" width="${w}" cellpadding="0" cellspacing="0" border="0" align="center" style="width:${w}px;max-width:100%;background:#ffffff;font-family:${fontStack(style.fonts.body)};color:${p.ink}">
   ${style.logo ? `<tr><td style="padding:22px 32px 0"><img src="${esc(style.logo)}" alt="" height="26" style="display:block;height:26px;width:auto"></td></tr>` : ''}
-  <tr><td>${hero}</td></tr>
-  <tr><td style="padding:32px 32px 8px;font-size:15px;line-height:1.7">
-    안녕하세요, ${esc(audience)} 여러분.<br>
+  <tr>${hero}</tr>
+  <tr><td style="padding:34px 32px 6px;font-size:15.5px;line-height:1.75;color:${p.ink}">
+    안녕하세요, <b>${esc(audience)}</b> 여러분.<br>
     <b>${esc(name)}</b>에 초대합니다.
   </td></tr>
-  <tr><td style="padding:8px 32px">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;line-height:1.9;color:${p.ink}">
-      <tr><td style="color:#888888;padding-right:16px">일시</td><td>${esc(date)}</td></tr>
-      <tr><td style="color:#888888;padding-right:16px">장소</td><td>${esc(venue)}</td></tr>
+  <tr><td style="padding:14px 32px 4px">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f6f7f8;border-radius:8px">
+      <tr><td style="padding:18px 20px;font-size:14px;line-height:1.9;color:${p.ink}">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;line-height:1.9">
+          <tr><td width="56" style="color:#888888">일시</td><td><b>${esc(date)}</b></td></tr>
+          <tr><td style="color:#888888">장소</td><td><b>${esc(venue)}</b></td></tr>
+          <tr><td style="color:#888888">대상</td><td>${esc(audience)}</td></tr>
+        </table>
+      </td></tr>
     </table>
   </td></tr>
   <tr><td style="padding:24px 32px 40px">

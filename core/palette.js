@@ -59,14 +59,15 @@ export function contrast(a, b) {
   const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x);
   return (l1 + 0.05) / (l2 + 0.05);
 }
-// 배경 위에서 읽히는 글자색 선택
+// 글자색은 순흑·순백 둘 중 하나만 쓴다 — 중간 회색 글자는 인쇄·이메일에서 탁해진다.
+export const BLACK = '#000000', WHITE = '#FFFFFF';
 export function onColor(bg) {
-  return contrast(bg, '#FFFFFF') >= contrast(bg, '#111111') ? '#FFFFFF' : '#111111';
+  return contrast(bg, WHITE) >= contrast(bg, BLACK) ? WHITE : BLACK;
 }
 
 export const MODES = {
-  light: { bg: '#FFFFFF', surface: '#F5F6F7', ink: '#1A1A1A', inkSub: '#6B6B6B' },
-  dark: { bg: '#111214', surface: '#1C1E22', ink: '#F2F3F4', inkSub: '#A7ABB0' },
+  light: { bg: '#FFFFFF', surface: '#F5F6F7', ink: BLACK, inkSub: 'rgba(0,0,0,.6)' },
+  dark: { bg: '#111214', surface: '#1C1E22', ink: WHITE, inkSub: 'rgba(255,255,255,.68)' },
 };
 
 // 색 세트 구성 — 주어진 것은 쓰고, 빈 자리는 프라이머리에서 파생한다.
@@ -122,7 +123,7 @@ export function analyzeRegion(rgba, w, h, box) {
   if (!n) return { lum: 0.5, sd: 0, text: '#FFFFFF', scrim: false };
   const mean = sum / n;
   const sd = Math.sqrt(Math.max(0, sumSq / n - mean * mean));
-  const text = mean > 0.55 ? '#111111' : '#FFFFFF';
+  const text = mean > 0.55 ? BLACK : WHITE;
   // 중간 밝기이거나 얼룩덜룩하면 글자가 묻힌다 → 스크림
   const scrim = sd > 0.17 || (mean > 0.32 && mean < 0.68);
   return { lum: Number(mean.toFixed(3)), sd: Number(sd.toFixed(3)), text, scrim };

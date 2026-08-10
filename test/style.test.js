@@ -48,7 +48,7 @@ test('analyzeRegion picks readable text color and flags busy backgrounds', async
   assert.equal(dark.scrim, false, '균일하고 어두우면 가림막 불필요');
 
   const bright = analyzeRegion(px(20, 20, () => [240, 240, 235]), 20, 20, box);
-  assert.equal(bright.text, '#111111', '밝은 배경엔 검은 글자');
+  assert.equal(bright.text, '#000000', '밝은 배경엔 검은 글자');
 
   const busy = analyzeRegion(px(20, 20, (x, y) => ((x + y) % 2 ? [10, 10, 10] : [250, 250, 250])), 20, 20, box);
   assert.equal(busy.scrim, true, '명암 편차가 크면 가림막을 켠다');

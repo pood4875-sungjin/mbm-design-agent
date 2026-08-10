@@ -12,23 +12,25 @@ import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
+import { agentTurn, PHASES, PHASE_LABEL } from './agent.js';
+import { parseRoster } from '../core/roster.js';
 
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
 };
 const CHANNEL_LABEL = {
-  banner: '홍보 배너', edm: 'eDM', landing: '랜딩페이지',
-  poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막',
+  banner: '홍보 배너', edm: 'eDM', landing: '랜딩페이지', gwthumb: '그룹웨어 썸네일',
+  poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰',
 };
 const CHANNEL_DESC = {
-  banner: '3규격 · PNG', edm: '이메일 HTML', landing: '등록 폼 포함',
-  poster: 'A2 · 인쇄 PDF', xbanner: '600×1800 · PDF', hyunsumak: '인쇄 PDF',
+  banner: 'Google Ads 5규격', edm: '이메일 HTML', landing: '등록 폼 포함', gwthumb: '374×271 · PNG',
+  poster: 'A2 · 인쇄 PDF', xbanner: '600×1800 · PDF', hyunsumak: '인쇄 PDF', badge: '110×140 · 명단 일괄',
 };
-const ONLINE = ['edm', 'landing', 'banner'];
-const OFFLINE = ['poster', 'xbanner', 'hyunsumak'];
-const VARIANTS = { banner: 3, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1 };
-const DISPLAY_SCALE = { banner: 1, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05 };
+const ONLINE = ['edm', 'landing', 'banner', 'gwthumb'];
+const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge'];
+const VARIANTS = { banner: 3, gwthumb: 3, badge: 1, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1 };
+const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05 };
 const STORE_LS = 'mbm-campaigns';
 
 const SAMPLES = [
@@ -63,6 +65,11 @@ function show(view) {
   $('approveAll').style.display = view === 'work' ? 'block' : 'none';
   $('exportAll').style.display = view === 'work' ? 'block' : 'none';
   if (view === 'home') renderSidebar();
+}
+function openHtml(html) {
+  const w = window.open('', '_blank');
+  if (!w) { toast('팝업이 차단됐어요 — 브라우저에서 허용해 주세요'); return; }
+  w.document.write(html); w.document.close();
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
@@ -189,123 +196,158 @@ function renderSidebar(query = '') {
   }
 }
 
-/* ═══ intake — 질문지 한 장 ═══ */
-async function startIntake(text) {
-  let parsed = null;
-  if (LLM.hasKey()) {
-    toast('AI가 기획을 해석하는 중…');
-    try {
-      const r = await LLM.parseBriefLLM(text);
-      parsed = { fields: {}, channels: r.channels ?? [] };
-      for (const f of CORE_FIELDS) if (r[f]) parsed.fields[f] = r[f];
-    } catch (e) { toast(`AI 해석 실패 — 규칙 파서로 진행`); }
-  }
-  if (!parsed) parsed = parseBriefRegex(text);
-  state.intake = { fields: parsed.fields, channels: parsed.channels, extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '', kvReadability: null, suggests: [], step: 0 };
-  renderIntake();
-  show('intake');
+/* ═══ intake — 대화 ═══ */
+const CH_LIST = [...ONLINE, ...OFFLINE];
+
+function bub(role, text) {
+  const d = document.createElement('div');
+  d.className = 'bub ' + role;
+  d.textContent = text;
+  $('thread').appendChild(d);
+  $('thread').scrollTop = 1e9;
+  return d;
 }
-
-const STEPS = [
-  { id: 'core', label: '행사 정보' },
-  { id: 'channels', label: '산출물' },
-  { id: 'signage', label: '오프라인 세트' },
-  { id: 'extra', label: '채널 정보' },
-  { id: 'style', label: '그래픽 가이드' },
-];
-
-function activeSteps() {
-  const it = state.intake;
-  return STEPS.filter(s => {
-    if (s.id === 'signage') return it.channels.some(c => OFFLINE_CH.includes(c));
-    if (s.id === 'extra') return it.channels.some(c => (EXTRA_FIELDS[c] ?? []).length);
-    return true;
-  });
+function slot(html) {
+  $('slot').innerHTML = html;
+  return $('slot');
 }
-
-const STEP_SAY = {
-  core: it => {
-    const n = CORE_FIELDS.filter(f => it.fields[f]).length;
-    const miss = CORE_FIELDS.filter(f => !it.fields[f]);
-    return n
-      ? `기획에서 ${n}개 항목을 읽었어요.${miss.length ? `\n${miss.map(f => FIELD_LABEL[f]).join(' · ')}가 비어 있는데, 추측하지 않고 여쭤볼게요.` : '\n확인만 해주시면 다음으로 넘어갈게요.'}`
-      : '기획에서 정보를 읽지 못했어요. 행사 정보를 직접 입력해 주세요.';
-  },
-  channels: it => it.channels.length
-    ? `기획에서 ${it.channels.map(c => CHANNEL_LABEL[c]).join(', ')}를 발견해 미리 선택했어요.\n필요한 산출물을 확정해 주세요.`
-    : '어떤 산출물을 만들까요? 온라인·오프라인에서 필요한 것을 골라 주세요.',
-  signage: () => '오프라인은 현장에서 여러 장이 세트로 나갑니다.\n방향 안내는 고른 화살표마다 한 장씩 만들어져요. 규격도 여기서 정할 수 있습니다.',
-  extra: () => '선택한 채널에 필요한 정보가 몇 가지 더 있어요.',
-  style: () => '마지막으로 그래픽 가이드예요.\n키비주얼을 올리면 대표 컬러를 제안하고, 글자가 묻히지 않도록 색과 가림막을 자동으로 잡아 드립니다.',
-};
+function clearSlot() { $('slot').innerHTML = ''; }
 
 function renderSteps() {
   const it = state.intake;
-  const list = activeSteps();
-  it.step = Math.min(it.step, list.length - 1);
-  const cur = list[it.step];
-  $('steps').innerHTML = list.map((s, i) =>
-    `<span class="${i === it.step ? 'on' : i < it.step ? 'done' : ''}">${i + 1}. ${s.label}</span>`).join('');
-  $('intakeSay').textContent = STEP_SAY[cur.id](it);
-  document.querySelectorAll('#intake section[data-step]').forEach(sec => {
-    const on = sec.dataset.step === cur.id;
-    sec.classList.toggle('active', on);
-    sec.style.display = on ? 'block' : 'none';   // 스텝이 표시를 단독 제어
-  });
-  $('prevBtn').style.visibility = it.step === 0 ? 'hidden' : 'visible';
-  const last = it.step === list.length - 1;
-  $('nextBtn').style.display = last ? 'none' : 'inline-flex';
-  $('genBtn').style.display = last ? 'inline-flex' : 'none';
-  validateIntake();
+  $('steps').innerHTML = PHASES.map(p =>
+    `<span class="${p === it.phase ? 'on' : PHASES.indexOf(p) < PHASES.indexOf(it.phase) ? 'done' : ''}">${PHASE_LABEL[p]}</span>`).join('');
 }
 
-function stepValid() {
-  const it = state.intake;
-  const cur = activeSteps()[it.step];
-  if (cur.id === 'core') return CORE_FIELDS.every(f => it.fields[f]);
-  if (cur.id === 'channels') return it.channels.length > 0;
-  return true;
+async function startIntake(text) {
+  state.intake = {
+    fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
+    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
+    kvReadability: null, suggests: [], roster: [], phase: 'brief', styleDone: false, history: [],
+  };
+  const seed = parseBriefRegex(text);
+  Object.assign(state.intake.fields, seed.fields);
+  state.intake.channels = seed.channels;
+  $('thread').innerHTML = '';
+  clearSlot();
+  show('intake');
+  renderSteps();
+  bub('user', text);
+  await turn(text);
 }
 
-function renderIntake() {
+function agentState() {
   const it = state.intake;
-  const foundN = CORE_FIELDS.filter(f => it.fields[f]).length;
-  $('intakeSub').textContent = foundN
-    ? `기획에서 ${foundN}개 항목을 읽었습니다. 빈칸을 채우고 산출물을 확정하면 바로 생성합니다.`
-    : '기획에서 읽어낸 정보가 없어 직접 입력이 필요합니다.';
-  $('coreFields').innerHTML = CORE_FIELDS.map(f => `
-    <div class="f"><label>${FIELD_LABEL[f]} <span class="req">*</span></label>
-    <input type="text" data-f="${f}" value="${it.fields[f] ?? ''}" class="${it.fields[f] ? '' : 'miss'}"></div>`).join('');
-  const group = list => list.map(c => `
-    <label class="chcard ${it.channels.includes(c) ? 'on' : ''}">
-      <input type="checkbox" value="${c}" ${it.channels.includes(c) ? 'checked' : ''}>
-      <span>${CHANNEL_LABEL[c]}<small>${CHANNEL_DESC[c]}</small></span></label>`).join('');
-  $('chGrid').innerHTML = group(ONLINE) + group(OFFLINE);
-  $('coreFields').querySelectorAll('input').forEach(i => i.oninput = () => {
-    it.fields[i.dataset.f] = i.value.trim();
-    i.classList.toggle('miss', !i.value.trim());
-    validateIntake();
-  });
-  $('chGrid').querySelectorAll('input').forEach(i => i.onchange = () => {
+  return {
+    phase: it.phase, fields: it.fields, channels: it.channels, kv: it.kv, styleDone: it.styleDone,
+    style: { mode: it.mode, colors: it.colors, font: it.font },
+  };
+}
+
+async function turn(userText) {
+  const it = state.intake;
+  it.history.push({ role: 'user', text: userText });
+  const think = LLM.hasKey() ? bub('think', '생각하는 중…') : null;
+  let res;
+  try {
+    res = await agentTurn({ state: agentState(), history: it.history, userText });
+  } catch (e) {
+    res = { say: `AI 호출에 실패했어요(${e.message}). 규칙 진행으로 이어갈게요.`, patch: { fields: {}, channels: [], style: {} }, phase: it.phase, ready: false };
+  }
+  think?.remove();
+  applyPatch(res.patch);
+  it.phase = res.phase;
+  renderSteps();
+  bub('agent', res.say);
+  it.history.push({ role: 'agent', text: res.say });
+  if (res.ready) { buildAndGenerate(); return; }
+  renderSlot();
+}
+
+function applyPatch(patch = {}) {
+  const it = state.intake;
+  Object.assign(it.fields, patch.fields ?? {});
+  if (patch.channels?.length) it.channels = [...new Set([...it.channels, ...patch.channels])];
+  if (patch.signage) for (const [ch, list] of Object.entries(patch.signage)) if (Array.isArray(list)) it.signage[ch] = list;
+  const st = patch.style ?? {};
+  if (st.mode) it.mode = st.mode;
+  if (st.colors?.length) { it.colors = [st.colors[0], st.colors[1] ?? it.colors[1], st.colors[2] ?? it.colors[2]]; applyDerived(); }
+  if (st.font) it.font = st.font;
+  if (typeof st.mood === 'string') it.mood = st.mood;
+}
+
+// 단계에 맞는 보조 입력만 노출한다 — 대화가 주, 위젯은 거들 뿐
+function renderSlot() {
+  const it = state.intake;
+  if (it.phase === 'brief') return slotChannels();
+  if (it.phase === 'info') return slotFields();
+  if (it.phase === 'style') return slotStyle();
+  clearSlot();
+}
+
+function slotChannels() {
+  const it = state.intake;
+  slot(`<div class="card2"><h4>만들 산출물</h4><div class="chgrid">${CH_LIST.map(c =>
+    `<label class="chcard ${it.channels.includes(c) ? 'on' : ''}"><input type="checkbox" value="${c}" ${it.channels.includes(c) ? 'checked' : ''}>
+      <span>${CHANNEL_LABEL[c]}<small>${CHANNEL_DESC[c]}</small></span></label>`).join('')}</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="chOk">이걸로 진행</button></div></div>`);
+  $('slot').querySelectorAll('input').forEach(i => i.onchange = () => {
     i.closest('.chcard').classList.toggle('on', i.checked);
-    it.channels = [...$('chGrid').querySelectorAll('input:checked')].map(x => x.value);
-    renderSignage(); renderExtra(); renderSteps();
+    it.channels = [...$('slot').querySelectorAll('input:checked')].map(x => x.value);
   });
-  $('fontSel').innerHTML = FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('');
+  $('chOk').onclick = () => {
+    if (!it.channels.length) { toast('하나 이상 선택하세요'); return; }
+    const said = it.channels.map(c => CHANNEL_LABEL[c]).join(', ');
+    bub('user', said); clearSlot(); turn(said);
+  };
+}
+
+function slotFields() {
+  const it = state.intake;
+  const missing = CORE_FIELDS.filter(f => !it.fields[f]);
+  if (!missing.length) { clearSlot(); return; }
+  slot(`<div class="card2"><h4>비어 있는 정보</h4><div class="fgrid">${missing.map(f =>
+    `<div class="f"><label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}"></div>`).join('')}</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="fOk">입력 완료</button></div></div>`);
+  $('fOk').onclick = () => {
+    const said = [];
+    $('slot').querySelectorAll('input').forEach(i => {
+      if (i.value.trim()) { it.fields[i.dataset.f] = i.value.trim(); said.push(`${FIELD_LABEL[i.dataset.f]} ${i.value.trim()}`); }
+    });
+    if (!said.length) { toast('한 가지는 채워 주세요'); return; }
+    bub('user', said.join(' · ')); clearSlot(); turn(said.join(', '));
+  };
+}
+
+function slotStyle() {
+  const it = state.intake;
+  slot(`<div class="card2"><h4>그래픽 가이드</h4>
+    <div class="styleRow">
+      <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(선택)'}</div>
+        <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
+      <div><div class="kvthumb logo" id="logoThumb" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(선택)'}</div>
+        <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
+      <div class="f" style="flex:1;min-width:210px">
+        <label>모드</label>
+        <div class="vseg" id="modeSeg"><button data-m="light" class="${it.mode === 'light' ? 'on' : ''}">라이트</button><button data-m="dark" class="${it.mode === 'dark' ? 'on' : ''}">다크</button></div>
+        <label style="margin-top:10px">컬러 세트 <span id="kvHint" style="color:var(--gen1)"></span></label>
+        <div class="palette">
+          <span class="sw"><input type="color" class="swatch" id="c1" value="${it.colors[0]}"><small>주색</small></span>
+          <span class="sw"><input type="color" class="swatch" id="c2" value="${it.colors[1]}"><small>보조</small></span>
+          <span class="sw"><input type="color" class="swatch" id="c3" value="${it.colors[2]}"><small>포인트</small></span>
+        </div>
+        <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+        <label style="margin-top:10px">폰트</label>
+        <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
-  $('moodIn').value = it.mood;
-  $('moodIn').oninput = () => { it.mood = $('moodIn').value; };
-  ['c1', 'c2', 'c3'].forEach((id, i) => {
-    $(id).value = it.colors[i];
-    $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); };
+  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); }; });
+  $('modeSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+    it.mode = b.dataset.m; applyDerived(); slotStyle();
   });
-  $('modeSeg').querySelectorAll('button').forEach(b => {
-    b.classList.toggle('on', b.dataset.m === it.mode);
-    b.onclick = () => { it.mode = b.dataset.m; applyDerived(); renderIntake(); };
-  });
-  if (it.kv) { $('kvThumb').style.backgroundImage = `url(${it.kv})`; $('kvThumb').textContent = ''; }
-  if (it.logo) { $('logoThumb').style.backgroundImage = `url(${it.logo})`; $('logoThumb').textContent = ''; }
   renderSuggests();
   bindUpload($('kvThumb'), $('kvFile'), async d => {
     it.kv = d;
@@ -314,26 +356,76 @@ function renderIntake() {
       const { suggests, readability } = await analyzeKeyVisual(d);
       it.suggests = suggests; it.kvReadability = readability;
       if (suggests[0]) it.colors = [suggests[0], suggests[1] ?? it.colors[1], suggests[2] ?? it.colors[2]];
-      applyDerived();
-      renderIntake();
-      toast('키비주얼에서 컬러를 제안했어요 — 스와치를 눌러 바꿀 수 있습니다');
+      applyDerived(); slotStyle();
+      bub('agent', `키비주얼에서 대표 컬러 ${suggests.slice(0, 2).join(', ')}를 뽑았어요. 글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.`);
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), d => { it.logo = d; });
-  renderSignage();
-  renderExtra();
-  renderSteps();
-  $('genBtn').onclick = buildAndGenerate;
-  $('nextBtn').onclick = () => {
-    if (!stepValid()) { toast($('intakeNote').textContent || '이 단계를 먼저 채워 주세요'); return; }
-    state.intake.step++; renderSteps(); $('intake').scrollTop = 0;
+  $('stOk').onclick = () => {
+    it.styleDone = true;
+    const said = `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
+    bub('user', said); clearSlot(); turn(said);
   };
-  $('prevBtn').onclick = () => { state.intake.step = Math.max(0, state.intake.step - 1); renderSteps(); $('intake').scrollTop = 0; };
 }
 
-const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak'];
+function applyDerived() {
+  const it = state.intake;
+  const auto = buildPalette({ primary: it.colors[0], mode: it.mode });
+  if (!it.suggests[1]) it.colors[1] = auto.secondary;
+  if (!it.suggests[2]) it.colors[2] = auto.accent;
+}
 
-// 키비주얼 픽셀 분석 — 대표색 제안 + 매체별 글자 가독성(자동 글자색·스크림 필요 여부)
+function renderSuggests() {
+  const it = state.intake;
+  const box = $('suggests');
+  if (!box) return;
+  if ($('kvHint')) $('kvHint').textContent = it.suggests.length ? '키비주얼에서 추출' : '';
+  box.innerHTML = it.suggests.map(c => `<button class="sugg" data-c="${c}"><i style="background:${c}"></i>${c}</button>`).join('');
+  box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+    it.colors[0] = b.dataset.c; applyDerived(); slotStyle();
+  });
+}
+
+// 대화 입력
+$('cvGo').onclick = () => {
+  const t = $('cvIn').value.trim();
+  if (!t) return;
+  $('cvIn').value = '';
+  bub('user', t);
+  clearSlot();
+  turn(t);
+};
+$('cvIn').onkeydown = e => { if (e.key === 'Enter') $('cvGo').click(); };
+$('cvFile').onclick = () => $('cvFileIn').click();
+$('cvFileIn').onchange = () => {
+  const f = $('cvFileIn').files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    state.intake.kv = r.result;
+    bub('user', `키비주얼 첨부: ${f.name}`);
+    analyzeKeyVisual(r.result).then(({ suggests, readability }) => {
+      state.intake.suggests = suggests; state.intake.kvReadability = readability;
+      if (suggests[0]) { state.intake.colors[0] = suggests[0]; applyDerived(); }
+      bub('agent', `대표 컬러 ${suggests.join(', ')}를 감지했어요.`);
+      if (state.intake.phase === 'style') slotStyle();
+    }).catch(() => {});
+  };
+  r.readAsDataURL(f);
+};
+
+const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'] };
+const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak', 'badge'];
+
+function bindUpload(thumb, file, set) {
+  thumb.onclick = () => file.click();
+  file.onchange = () => {
+    const f = file.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { set(r.result); thumb.style.backgroundImage = `url(${r.result})`; thumb.innerHTML = ''; };
+    r.readAsDataURL(f);
+  };
+}
+
 async function analyzeKeyVisual(dataUrl) {
   const img = new Image();
   await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
@@ -348,137 +440,6 @@ async function analyzeKeyVisual(dataUrl) {
   return { suggests: extractPalette(data, 3), readability };
 }
 
-function bindUpload(thumb, file, set) {
-  thumb.onclick = () => file.click();
-  file.onchange = () => {
-    const f = file.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => { set(r.result); thumb.style.backgroundImage = `url(${r.result})`; thumb.textContent = ''; };
-    r.readAsDataURL(f);
-  };
-}
-
-function renderSignage() {
-  const it = state.intake;
-  const chans = it.channels.filter(c => OFFLINE_CH.includes(c));
-  if (!chans.length) { $('signageBox').innerHTML = ''; return; }
-  const box = $('signageBox');
-  box.innerHTML = chans.map(ch => {
-    const ps = purposesFor(ch);
-    const cur = it.signage[ch] ?? (it.signage[ch] = [{ purpose: 'main' }]);
-    const presets = SIZE_PRESETS[ch] ?? [];
-    const specId = Object.entries(SPECS).find(([, s]) => s.channel === ch)[0];
-    const sz = it.sizes[ch];
-    return `<div class="sgroup" data-ch="${ch}">
-      <div class="sh">${CHANNEL_LABEL[ch]}
-        <select data-size="${ch}">${presets.map((pr, i) =>
-          `<option value="${i}" ${sz && sz.wmm === pr.wmm && sz.hmm === pr.hmm ? 'selected' : (!sz && i === 0 ? 'selected' : '')}>${pr.label}mm</option>`).join('')}
-          <option value="custom" ${sz?.custom ? 'selected' : ''}>직접 입력…</option></select>
-      </div>
-      <div class="customSz" data-ch="${ch}" style="display:${sz?.custom ? 'flex' : 'none'};gap:8px;margin-bottom:8px">
-        <input type="text" data-dim="w" value="${sz?.wmm ?? ''}" placeholder="가로 mm" style="width:110px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px">
-        <input type="text" data-dim="h" value="${sz?.hmm ?? ''}" placeholder="세로 mm" style="width:110px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px">
-      </div>
-      ${ps.map(p => {
-        const sel = cur.filter(x => x.purpose === p.id);
-        const on = sel.length > 0;
-        return `<div class="prow" data-p="${p.id}">
-          <input type="checkbox" ${on ? 'checked' : ''}>
-          <span>${p.label}</span>
-          ${p.needsArrow ? `<span class="arrows">${Object.entries(ARROWS).map(([k, g]) =>
-            `<button data-arrow="${k}" class="${sel.some(x => x.arrow === k) ? 'on' : ''}" ${on ? '' : 'disabled'}>${g}</button>`).join('')}</span>` : ''}
-        </div>`;
-      }).join('')}
-    </div>`;
-  }).join('');
-
-  box.querySelectorAll('.prow input').forEach(cb => cb.onchange = () => {
-    const ch = cb.closest('.sgroup').dataset.ch, pid = cb.closest('.prow').dataset.p;
-    const list = it.signage[ch] ?? [];
-    if (cb.checked) {
-      const needsArrow = PURPOSES.find(p => p.id === pid)?.needsArrow;
-      list.push({ purpose: pid, arrow: needsArrow ? 'right' : null });
-    } else {
-      it.signage[ch] = list.filter(x => x.purpose !== pid);
-    }
-    renderSignage(); renderSteps();
-  });
-  box.querySelectorAll('.arrows button').forEach(b => b.onclick = () => {
-    const ch = b.closest('.sgroup').dataset.ch, pid = b.closest('.prow').dataset.p, ar = b.dataset.arrow;
-    const list = it.signage[ch];
-    const has = list.some(x => x.purpose === pid && x.arrow === ar);
-    if (has) it.signage[ch] = list.filter(x => !(x.purpose === pid && x.arrow === ar));
-    else list.push({ purpose: pid, arrow: ar });
-    if (!it.signage[ch].some(x => x.purpose === pid)) it.signage[ch].push({ purpose: pid, arrow: 'right' });
-    renderSignage(); validateIntake();
-  });
-  box.querySelectorAll('select[data-size]').forEach(sel => sel.onchange = () => {
-    const ch = sel.dataset.size;
-    if (sel.value === 'custom') { it.sizes[ch] = { custom: true }; }
-    else { const pr = SIZE_PRESETS[ch][+sel.value]; it.sizes[ch] = { wmm: pr.wmm, hmm: pr.hmm }; }
-    renderSignage(); validateIntake();
-  });
-  box.querySelectorAll('.customSz input').forEach(i => i.oninput = () => {
-    const ch = i.closest('.customSz').dataset.ch;
-    const wrap = i.closest('.customSz');
-    const w = +wrap.querySelector('[data-dim=w]').value, h = +wrap.querySelector('[data-dim=h]').value;
-    it.sizes[ch] = { custom: true, wmm: w || null, hmm: h || null };
-    validateIntake();
-  });
-}
-
-function applyDerived() {
-  const it = state.intake;
-  const auto = buildPalette({ primary: it.colors[0], mode: it.mode });
-  if (!it.suggests[1]) it.colors[1] = auto.secondary;
-  if (!it.suggests[2]) it.colors[2] = auto.accent;
-}
-
-function renderSuggests() {
-  const it = state.intake;
-  const box = $('suggests');
-  if (!box) return;
-  $('kvHint').textContent = it.suggests.length ? '키비주얼에서 추출' : '';
-  box.innerHTML = it.suggests.length
-    ? it.suggests.map((c, i) => `<button class="sugg" data-c="${c}"><i style="background:${c}"></i>${c}</button>`).join('')
-      + `<button class="sugg" data-reset="1">기본값으로</button>`
-    : '';
-  box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
-    it.colors[0] = b.dataset.c; applyDerived(); renderIntake();
-  });
-  box.querySelector('[data-reset]')?.addEventListener('click', () => {
-    it.colors = ['#0A3D91', '#11095F', '#B56705']; it.suggests = []; renderIntake();
-  });
-}
-
-const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'] };
-function renderExtra() {
-  const it = state.intake;
-  const items = [];
-  for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) items.push([ch, f]);
-  $('extraFields').innerHTML = items.map(([ch, f]) => `
-    <div class="f"><label>${CHANNEL_LABEL[ch]} — ${FIELD_LABEL[f]}</label>
-    <input type="text" data-ch="${ch}" data-f="${f}" value="${it.extra[ch]?.[f] ?? ''}" placeholder="${f === 'printSize' ? '기본 규격' : ''}"></div>`).join('');
-  $('extraFields').querySelectorAll('input').forEach(i => i.oninput = () => {
-    (it.extra[i.dataset.ch] ??= {})[i.dataset.f] = i.value.trim();
-  });
-}
-function validateIntake() {
-  const it = state.intake;
-  const missing = CORE_FIELDS.filter(f => !it.fields[f]);
-  const ok = !missing.length && it.channels.length;
-  $('genBtn').disabled = !ok;
-  $('nextBtn').disabled = !stepValid();
-  let n = 0;
-  for (const specId of specIdsFor(it.channels)) {
-    const ch = SPECS[specId].channel;
-    const set = it.signage[ch];
-    n += (set?.length && purposesFor(ch).length) ? set.length : 1;
-  }
-  $('intakeNote').textContent = !it.channels.length
-    ? '산출물을 하나 이상 선택하세요'
-    : missing.length ? `필수 입력: ${missing.map(f => FIELD_LABEL[f]).join(', ')}` : `${n}종을 생성합니다`;
-}
 function specIdsFor(channels) {
   return Object.entries(SPECS).filter(([, s]) => channels.includes(s.channel)).map(([id]) => id);
 }
@@ -491,11 +452,7 @@ function buildAndGenerate() {
   const it = state.intake;
   let ctx = createContext(it.fields);
   const extraPatch = {};
-  for (const [ch, fields] of Object.entries(it.extra)) {
-    extraPatch[ch] = {};
-    for (const [f, v] of Object.entries(fields)) extraPatch[ch][f] = v || '기본';
-  }
-  for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) (extraPatch[ch] ??= {})[f] ??= '기본';
+  for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) (extraPatch[ch] ??= {})[f] = it.extra[ch]?.[f] || '기본';
   ctx = updateContext(ctx, { channelFields: extraPatch });
   const style = normalizeStyle({
     keyVisual: it.kv,
@@ -508,7 +465,7 @@ function buildAndGenerate() {
   });
   const signage = {};
   for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
-  state.campaign = { id: slug(ctx.core.name), context: ctx, style, channels: it.channels, signage, artifacts: [], log: [] };
+  state.campaign = { id: slug(ctx.core.name), context: ctx, style, channels: it.channels, signage, roster: it.roster ?? [], artifacts: [], log: [] };
   logEvent(state.campaign, 'campaign_created', {});
   registerAll();
   generateArtifacts(state.campaign);
@@ -779,6 +736,14 @@ function renderInspector() {
       <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
     ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
       `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${i + 1}</button>`).join('')}</div>` : ''}
+    ${a.channel === 'badge' ? `
+      <label>참석자 명단 <span style="opacity:.6">${(c.roster ?? []).length}명</span></label>
+      <textarea id="iRoster" placeholder="엑셀에서 복사해 붙여넣기\n이름\t소속\t직급" style="width:100%;min-height:76px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn" id="iRosterFileBtn" style="flex:1">CSV 열기</button>
+        <button class="btn pri" id="iRosterApply" style="flex:1">명단 적용</button>
+      </div>
+      <input type="file" id="iRosterFile" accept=".csv,.tsv,.txt" style="display:none">` : ''}
     ${isPrint ? `
       <label>인쇄 규격 (mm)</label>
       <select id="iSize">${presets.map(pr =>
@@ -835,7 +800,30 @@ function renderInspector() {
     const w = +insp.querySelector('#iW').value, h = +insp.querySelector('#iH').value;
     if (w > 0 && h > 0) applySize(w, h);
   });
-  insp.querySelector('#iOpen').onclick = () => { const w = window.open('', '_blank'); w.document.write(a.html); w.document.close(); };
+  const rosterTa = insp.querySelector('#iRoster');
+  if (rosterTa) {
+    rosterTa.value = (c.roster ?? []).map(p => [p.name, p.org, p.role].filter(Boolean).join('\t')).join('\n');
+    const apply = text => {
+      const list = parseRoster(text);
+      if (!list.length) { toast('명단을 읽지 못했어요 — 이름 한 줄씩 또는 이름/소속/직급 열'); return; }
+      c.roster = list;
+      logEvent(c, 'roster_loaded', { count: list.length });
+      generateArtifacts(c);
+      refreshFrames();
+      renderInspector();
+      toast(`${list.length}명 적용 — 명찰이 ${list.length}장으로 생성됐어요`);
+      log(`명단 ${list.length}명 적용`);
+    };
+    insp.querySelector('#iRosterApply').onclick = () => apply(rosterTa.value);
+    insp.querySelector('#iRosterFileBtn').onclick = () => insp.querySelector('#iRosterFile').click();
+    insp.querySelector('#iRosterFile').onchange = e => {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => { rosterTa.value = r.result; apply(r.result); };
+      r.readAsText(f);
+    };
+  }
+  insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
   insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
   insp.querySelector('#iDesel').onclick = () => select(null);
 }

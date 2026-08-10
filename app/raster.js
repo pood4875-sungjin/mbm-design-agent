@@ -30,6 +30,7 @@ export function downloadText(text, filename, mime = 'text/html') {
 // Chrome이 @page size를 용지 크기로 사용 — 블리드 포함 실측 mm 그대로 나온다.
 export function openPrintPdf(html) {
   const w = window.open('', '_blank');
+  if (!w) throw new Error('팝업이 차단됐습니다 — 브라우저에서 허용해 주세요');
   w.document.write(html + '<script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>');
   w.document.close();
 }

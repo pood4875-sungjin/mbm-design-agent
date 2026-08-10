@@ -32,8 +32,18 @@ test('renderEdm avoids email-hostile constructs', () => {
   assert.doesNotMatch(html, /display:flex/, '아웃룩 미지원');
 });
 
-test('renderEdm uses key visual img when present, color cell otherwise', () => {
+test('renderEdm puts the title over the key visual, not beside it', () => {
   const kv = normalizeStyle({ keyVisual: 'kv.png', colors: ['#0A3D91'] });
-  assert.match(renderEdm(ctx, kv, spec), /<img[^>]+kv\.png/);
-  assert.doesNotMatch(renderEdm(ctx, style, spec), /<img/);
+  const html = renderEdm(ctx, kv, spec);
+  assert.match(html, /background="kv\.png"/, '아웃룩용 background 속성');
+  assert.match(html, /bgcolor="#0A3D91"/, '이미지 차단 시 배경색 폴백');
+  const heroCell = html.slice(html.indexOf('background="kv.png"'), html.indexOf('</td>'));
+  assert.match(heroCell, /2026 ONSITE MBM 서울/, '제목이 비주얼 위에 얹힌다');
+});
+
+test('renderEdm body has a styled info block', () => {
+  const html = renderEdm(ctx, style, spec);
+  assert.match(html, /background:#f6f7f8/, '본문 정보 블록');
+  assert.match(html, /INVITATION/);
+  assert.match(html, /건설 엔지니어|건설 구조 엔지니어/);
 });
