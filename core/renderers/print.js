@@ -17,6 +17,7 @@
 
 import { esc } from './banner.js';
 import { cmykText } from '../style.js';
+import { fontStack, fontLink } from '../fonts.js';
 
 const ARROW_GLYPH = { up: '↑', down: '↓', left: '←', right: '→' };
 const PURPOSE_LABEL = { main: '', way: '', agenda: 'PROGRAM', reception: 'REGISTRATION' };
@@ -32,9 +33,15 @@ export function renderPrint(ctx, style, spec) {
   const centered = spec.variant === 1 || landscape || purpose === 'way' || purpose === 'reception';
   const pad = (base * 0.09 + spec.bleed).toFixed(1);
   const mm = k => (base * k).toFixed(1);
-  const bg = style.keyVisual && purpose === 'main'
+  const useKv = style.keyVisual && purpose === 'main';
+  const rd = useKv ? (style.kvReadability?.print ?? null) : null;
+  const fg = rd?.text ?? p.onPrimary;
+  const bg = useKv
     ? `background:${p.primary} url('${esc(style.keyVisual)}') center/cover no-repeat`
     : `background:${p.primary}`;
+  const scrim = rd?.scrim
+    ? `<div style="position:absolute;inset:0;background:linear-gradient(180deg,${fg === '#FFFFFF' ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.58)'},transparent 70%);pointer-events:none"></div>`
+    : '';
   const pxW = (W * 3.7795).toFixed(0);
   const pxH = (H * 3.7795).toFixed(0);
 
@@ -46,26 +53,28 @@ export function renderPrint(ctx, style, spec) {
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+${fontLink(style.fonts.heading)}
 <style>
 @page{size:${W}mm ${H}mm;margin:0}
 *{box-sizing:border-box;margin:0}
-.sheet{width:${W}mm;height:${H}mm;${bg};color:#fff;font-family:'${esc(style.fonts.heading)}','Apple SD Gothic Neo',sans-serif;display:flex;flex-direction:column;align-items:${centered ? 'center' : 'flex-start'};justify-content:${purpose === 'main' && !landscape ? 'space-between' : 'center'};${centered ? 'text-align:center;' : ''}gap:${mm(0.05)}mm;padding:${pad}mm;overflow:hidden;position:relative}
+.sheet{width:${W}mm;height:${H}mm;${bg};color:${fg};font-family:${fontStack(style.fonts.heading)};display:flex;flex-direction:column;align-items:${centered ? 'center' : 'flex-start'};justify-content:${purpose === 'main' && !landscape ? 'space-between' : 'center'};${centered ? 'text-align:center;' : ''}gap:${mm(0.05)}mm;padding:${pad}mm;overflow:hidden;position:relative}
 .title{font-size:${mm(0.10)}mm;font-weight:800;line-height:1.15;word-break:keep-all}
 .sub{font-size:${mm(0.038)}mm;opacity:.92;line-height:1.5}
 .eyebrow{font-size:${mm(0.03)}mm;font-weight:700;letter-spacing:0.2em;opacity:.75}
-.cta{padding-top:${mm(0.03)}mm;border-top:${mm(0.004)}mm solid rgba(255,255,255,.55);${centered ? '' : `min-width:${mm(0.42)}mm;`}}
+.cta{padding-top:${mm(0.03)}mm;border-top:${mm(0.004)}mm solid ${fg}8c;${centered ? '' : `min-width:${mm(0.42)}mm;`}}
 .ctaText{font-size:${mm(0.055)}mm;font-weight:800}
 .arrow{font-size:${mm(0.42)}mm;line-height:.9;font-weight:400}
 .wayText{font-size:${mm(0.11)}mm;font-weight:800;line-height:1.2;word-break:keep-all}
 .big{font-size:${mm(0.16)}mm;font-weight:800;line-height:1.1;word-break:keep-all}
 .rows{width:100%;text-align:left;margin-top:${mm(0.04)}mm}
-.row{display:flex;gap:${mm(0.05)}mm;padding:${mm(0.028)}mm 0;border-top:${mm(0.003)}mm solid rgba(255,255,255,.35);font-size:${mm(0.036)}mm}
+.row{display:flex;gap:${mm(0.05)}mm;padding:${mm(0.028)}mm 0;border-top:${mm(0.003)}mm solid ${fg}59;font-size:${mm(0.036)}mm}
 .row b{min-width:${mm(0.24)}mm;font-weight:700;opacity:.85}
+.brand{position:absolute;left:${pad}mm;top:${pad}mm;height:${mm(0.05)}mm;width:auto;${fg === '#FFFFFF' ? 'filter:brightness(0) invert(1)' : ''}}
 .trim{display:none}
 @media screen{
   html{background:#2e2e2e}
   body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:38px 20px 20px}
-  .trim{display:block;position:absolute;inset:${spec.bleed}mm;border:0.4mm dashed rgba(255,255,255,.45);pointer-events:none}
+  .trim{display:block;position:absolute;inset:${spec.bleed}mm;border:0.4mm dashed ${fg}73;pointer-events:none}
   .cap{position:fixed;top:9px;left:0;right:0;text-align:center;color:#c9c9c9;font:12px/1.5 system-ui,sans-serif}
   .cap b{color:#eee}
 }
@@ -76,6 +85,8 @@ export function renderPrint(ctx, style, spec) {
 <div class="cap"><b>${W} × ${H}mm</b> (재단 ${spec.wmm}×${spec.hmm} + 블리드 ${spec.bleed}mm) · 점선 = 재단선 · 인쇄 시 실측 출력<br>메인 ${p.primary} ≈ ${cmykText(p.primary)} <span style="opacity:.6">(근사값 — 분판은 인쇄소 프로파일 기준)</span></div>
 <div class="stage" id="stage">
   <div class="sheet">
+    ${scrim}
+    ${style.logo ? `<img class="brand" src="${esc(style.logo)}" alt="">` : ''}
     ${body}
     <div class="trim"></div>
   </div>

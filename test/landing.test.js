@@ -29,9 +29,10 @@ test('renderLanding includes a registration form', () => {
   assert.match(html, /사전등록/);
 });
 
-test('renderLanding is self-contained', () => {
+test('renderLanding depends on nothing but the font CDN', () => {
   const html = renderLanding(ctx, style, spec);
-  assert.doesNotMatch(html, /https?:\/\//, '외부 리소스 참조 금지');
+  const urls = (html.match(/https?:\/\/[^"')\s]+/g) ?? []);
+  assert.ok(urls.every(u => u.includes('jsdelivr.net')), `허용된 외부 참조는 웹폰트 CDN뿐: ${urls}`);
 });
 
 test('renderLanding variant 1 uses light hero', () => {

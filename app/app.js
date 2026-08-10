@@ -5,6 +5,8 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
+import { FONTS, FONT_IDS } from '../core/fonts.js';
+import { extractPalette, analyzeRegion, buildPalette, TEXT_ZONES } from '../core/palette.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -36,7 +38,7 @@ const SAMPLES = [
 ];
 
 const state = {
-  intake: { fields: {}, channels: [], extra: {}, kv: null, signage: {}, sizes: {} },
+  intake: { fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '', kvReadability: null, suggests: [], step: 0 },
   campaign: null,
   selected: null,          // specId | null
   zoom: 1, panX: 0, panY: 0,
@@ -199,9 +201,70 @@ async function startIntake(text) {
     } catch (e) { toast(`AI 해석 실패 — 규칙 파서로 진행`); }
   }
   if (!parsed) parsed = parseBriefRegex(text);
-  state.intake = { fields: parsed.fields, channels: parsed.channels, extra: {}, kv: null, signage: {}, sizes: {} };
+  state.intake = { fields: parsed.fields, channels: parsed.channels, extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '', kvReadability: null, suggests: [], step: 0 };
   renderIntake();
   show('intake');
+}
+
+const STEPS = [
+  { id: 'core', label: '행사 정보' },
+  { id: 'channels', label: '산출물' },
+  { id: 'signage', label: '오프라인 세트' },
+  { id: 'extra', label: '채널 정보' },
+  { id: 'style', label: '그래픽 가이드' },
+];
+
+function activeSteps() {
+  const it = state.intake;
+  return STEPS.filter(s => {
+    if (s.id === 'signage') return it.channels.some(c => OFFLINE_CH.includes(c));
+    if (s.id === 'extra') return it.channels.some(c => (EXTRA_FIELDS[c] ?? []).length);
+    return true;
+  });
+}
+
+const STEP_SAY = {
+  core: it => {
+    const n = CORE_FIELDS.filter(f => it.fields[f]).length;
+    const miss = CORE_FIELDS.filter(f => !it.fields[f]);
+    return n
+      ? `기획에서 ${n}개 항목을 읽었어요.${miss.length ? `\n${miss.map(f => FIELD_LABEL[f]).join(' · ')}가 비어 있는데, 추측하지 않고 여쭤볼게요.` : '\n확인만 해주시면 다음으로 넘어갈게요.'}`
+      : '기획에서 정보를 읽지 못했어요. 행사 정보를 직접 입력해 주세요.';
+  },
+  channels: it => it.channels.length
+    ? `기획에서 ${it.channels.map(c => CHANNEL_LABEL[c]).join(', ')}를 발견해 미리 선택했어요.\n필요한 산출물을 확정해 주세요.`
+    : '어떤 산출물을 만들까요? 온라인·오프라인에서 필요한 것을 골라 주세요.',
+  signage: () => '오프라인은 현장에서 여러 장이 세트로 나갑니다.\n방향 안내는 고른 화살표마다 한 장씩 만들어져요. 규격도 여기서 정할 수 있습니다.',
+  extra: () => '선택한 채널에 필요한 정보가 몇 가지 더 있어요.',
+  style: () => '마지막으로 그래픽 가이드예요.\n키비주얼을 올리면 대표 컬러를 제안하고, 글자가 묻히지 않도록 색과 가림막을 자동으로 잡아 드립니다.',
+};
+
+function renderSteps() {
+  const it = state.intake;
+  const list = activeSteps();
+  it.step = Math.min(it.step, list.length - 1);
+  const cur = list[it.step];
+  $('steps').innerHTML = list.map((s, i) =>
+    `<span class="${i === it.step ? 'on' : i < it.step ? 'done' : ''}">${i + 1}. ${s.label}</span>`).join('');
+  $('intakeSay').textContent = STEP_SAY[cur.id](it);
+  document.querySelectorAll('#intake section[data-step]').forEach(sec => {
+    const on = sec.dataset.step === cur.id;
+    sec.classList.toggle('active', on);
+    sec.style.display = on ? 'block' : 'none';   // 스텝이 표시를 단독 제어
+  });
+  $('prevBtn').style.visibility = it.step === 0 ? 'hidden' : 'visible';
+  const last = it.step === list.length - 1;
+  $('nextBtn').style.display = last ? 'none' : 'inline-flex';
+  $('genBtn').style.display = last ? 'inline-flex' : 'none';
+  validateIntake();
+}
+
+function stepValid() {
+  const it = state.intake;
+  const cur = activeSteps()[it.step];
+  if (cur.id === 'core') return CORE_FIELDS.every(f => it.fields[f]);
+  if (cur.id === 'channels') return it.channels.length > 0;
+  return true;
 }
 
 function renderIntake() {
@@ -226,29 +289,79 @@ function renderIntake() {
   $('chGrid').querySelectorAll('input').forEach(i => i.onchange = () => {
     i.closest('.chcard').classList.toggle('on', i.checked);
     it.channels = [...$('chGrid').querySelectorAll('input:checked')].map(x => x.value);
-    renderSignage(); renderExtra(); validateIntake();
+    renderSignage(); renderExtra(); renderSteps();
   });
-  const thumb = $('kvThumb'), file = $('kvFile');
-  thumb.onclick = () => file.click();
-  file.onchange = () => {
-    const f = file.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => { it.kv = r.result; thumb.style.backgroundImage = `url(${it.kv})`; thumb.textContent = ''; };
-    r.readAsDataURL(f);
-  };
+  $('fontSel').innerHTML = FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('');
+  $('fontSel').value = it.font;
+  $('fontSel').onchange = () => { it.font = $('fontSel').value; };
+  $('moodIn').value = it.mood;
+  $('moodIn').oninput = () => { it.mood = $('moodIn').value; };
+  ['c1', 'c2', 'c3'].forEach((id, i) => {
+    $(id).value = it.colors[i];
+    $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); };
+  });
+  $('modeSeg').querySelectorAll('button').forEach(b => {
+    b.classList.toggle('on', b.dataset.m === it.mode);
+    b.onclick = () => { it.mode = b.dataset.m; applyDerived(); renderIntake(); };
+  });
+  if (it.kv) { $('kvThumb').style.backgroundImage = `url(${it.kv})`; $('kvThumb').textContent = ''; }
+  if (it.logo) { $('logoThumb').style.backgroundImage = `url(${it.logo})`; $('logoThumb').textContent = ''; }
+  renderSuggests();
+  bindUpload($('kvThumb'), $('kvFile'), async d => {
+    it.kv = d;
+    $('kvHint').textContent = '분석 중…';
+    try {
+      const { suggests, readability } = await analyzeKeyVisual(d);
+      it.suggests = suggests; it.kvReadability = readability;
+      if (suggests[0]) it.colors = [suggests[0], suggests[1] ?? it.colors[1], suggests[2] ?? it.colors[2]];
+      applyDerived();
+      renderIntake();
+      toast('키비주얼에서 컬러를 제안했어요 — 스와치를 눌러 바꿀 수 있습니다');
+    } catch { $('kvHint').textContent = ''; }
+  });
+  bindUpload($('logoThumb'), $('logoFile'), d => { it.logo = d; });
   renderSignage();
   renderExtra();
-  validateIntake();
+  renderSteps();
   $('genBtn').onclick = buildAndGenerate;
+  $('nextBtn').onclick = () => {
+    if (!stepValid()) { toast($('intakeNote').textContent || '이 단계를 먼저 채워 주세요'); return; }
+    state.intake.step++; renderSteps(); $('intake').scrollTop = 0;
+  };
+  $('prevBtn').onclick = () => { state.intake.step = Math.max(0, state.intake.step - 1); renderSteps(); $('intake').scrollTop = 0; };
 }
 
 const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak'];
 
+// 키비주얼 픽셀 분석 — 대표색 제안 + 매체별 글자 가독성(자동 글자색·스크림 필요 여부)
+async function analyzeKeyVisual(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const W = 240, H = Math.max(1, Math.round(W * img.height / img.width));
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0, W, H);
+  const { data } = g.getImageData(0, 0, W, H);
+  const readability = {};
+  for (const [k, zone] of Object.entries(TEXT_ZONES)) readability[k] = analyzeRegion(data, W, H, zone);
+  return { suggests: extractPalette(data, 3), readability };
+}
+
+function bindUpload(thumb, file, set) {
+  thumb.onclick = () => file.click();
+  file.onchange = () => {
+    const f = file.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { set(r.result); thumb.style.backgroundImage = `url(${r.result})`; thumb.textContent = ''; };
+    r.readAsDataURL(f);
+  };
+}
+
 function renderSignage() {
   const it = state.intake;
   const chans = it.channels.filter(c => OFFLINE_CH.includes(c));
-  $('signageSec').style.display = chans.length ? 'block' : 'none';
-  if (!chans.length) return;
+  if (!chans.length) { $('signageBox').innerHTML = ''; return; }
   const box = $('signageBox');
   box.innerHTML = chans.map(ch => {
     const ps = purposesFor(ch);
@@ -288,7 +401,7 @@ function renderSignage() {
     } else {
       it.signage[ch] = list.filter(x => x.purpose !== pid);
     }
-    renderSignage(); validateIntake();
+    renderSignage(); renderSteps();
   });
   box.querySelectorAll('.arrows button').forEach(b => b.onclick = () => {
     const ch = b.closest('.sgroup').dataset.ch, pid = b.closest('.prow').dataset.p, ar = b.dataset.arrow;
@@ -314,12 +427,35 @@ function renderSignage() {
   });
 }
 
+function applyDerived() {
+  const it = state.intake;
+  const auto = buildPalette({ primary: it.colors[0], mode: it.mode });
+  if (!it.suggests[1]) it.colors[1] = auto.secondary;
+  if (!it.suggests[2]) it.colors[2] = auto.accent;
+}
+
+function renderSuggests() {
+  const it = state.intake;
+  const box = $('suggests');
+  if (!box) return;
+  $('kvHint').textContent = it.suggests.length ? '키비주얼에서 추출' : '';
+  box.innerHTML = it.suggests.length
+    ? it.suggests.map((c, i) => `<button class="sugg" data-c="${c}"><i style="background:${c}"></i>${c}</button>`).join('')
+      + `<button class="sugg" data-reset="1">기본값으로</button>`
+    : '';
+  box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+    it.colors[0] = b.dataset.c; applyDerived(); renderIntake();
+  });
+  box.querySelector('[data-reset]')?.addEventListener('click', () => {
+    it.colors = ['#0A3D91', '#11095F', '#B56705']; it.suggests = []; renderIntake();
+  });
+}
+
 const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'] };
 function renderExtra() {
   const it = state.intake;
   const items = [];
   for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) items.push([ch, f]);
-  $('extraSec').style.display = items.length ? 'block' : 'none';
   $('extraFields').innerHTML = items.map(([ch, f]) => `
     <div class="f"><label>${CHANNEL_LABEL[ch]} — ${FIELD_LABEL[f]}</label>
     <input type="text" data-ch="${ch}" data-f="${f}" value="${it.extra[ch]?.[f] ?? ''}" placeholder="${f === 'printSize' ? '기본 규격' : ''}"></div>`).join('');
@@ -332,6 +468,7 @@ function validateIntake() {
   const missing = CORE_FIELDS.filter(f => !it.fields[f]);
   const ok = !missing.length && it.channels.length;
   $('genBtn').disabled = !ok;
+  $('nextBtn').disabled = !stepValid();
   let n = 0;
   for (const specId of specIdsFor(it.channels)) {
     const ch = SPECS[specId].channel;
@@ -362,9 +499,12 @@ function buildAndGenerate() {
   ctx = updateContext(ctx, { channelFields: extraPatch });
   const style = normalizeStyle({
     keyVisual: it.kv,
-    colors: [$('c1').value.toUpperCase(), $('c2').value.toUpperCase()],
-    fonts: { heading: $('fontSel').value, body: $('fontSel').value },
-    mood: $('moodIn').value.split(',').map(s => s.trim()).filter(Boolean),
+    kvReadability: it.kvReadability,
+    logo: it.logo,
+    mode: it.mode,
+    colors: it.colors,
+    fonts: { heading: it.font, body: it.font },
+    mood: it.mood.split(',').map(s => s.trim()).filter(Boolean),
   });
   const signage = {};
   for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
@@ -389,6 +529,8 @@ function revealStaged() {
     const f = frames.get(id);
     if (!f) return;
     f.frame.classList.remove('gen');
+    f.frame.classList.add('done');
+    setTimeout(() => f.frame.classList.remove('done'), 600);
     f.iframe.style.visibility = 'visible';
     f.iframe.srcdoc = a.html;
     f.label.textContent = artLabel(a);
@@ -546,13 +688,23 @@ function renderInspector() {
       <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
       ${['name', 'date', 'venue', 'cta'].map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
       <h3 style="margin-top:18px">STYLE</h3>
-      <label>컬러 (메인 · 배경)</label>
-      <div style="display:flex;gap:8px">
-        <input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}">
-        <input type="color" class="swatch" id="iColor2" value="${c.style.palette.bg}">
+      <label>모드</label>
+      <div class="vseg" id="iMode">
+        <button data-m="light" class="${c.style.mode !== 'dark' ? 'on' : ''}">라이트</button>
+        <button data-m="dark" class="${c.style.mode === 'dark' ? 'on' : ''}">다크</button>
       </div>
+      <label>컬러 세트</label>
+      <div style="display:flex;gap:10px">
+        <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
+        <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor2" value="${c.style.palette.secondary}"><small style="font-size:10px;color:var(--sub)">보조</small></span>
+        <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor3" value="${c.style.palette.accent}"><small style="font-size:10px;color:var(--sub)">포인트</small></span>
+      </div>
+      <label>키비주얼</label>
+      <div class="kvthumb" id="iKv" style="width:100%;height:76px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
+      <input type="file" id="iKvFile" accept="image/*" style="display:none">
+      ${c.style.keyVisual ? '<button class="btn" id="iKvClear" style="width:100%;margin-top:6px">키비주얼 제거</button>' : ''}
       <label>폰트</label>
-      <select id="iFont"><option>Pretendard</option><option>Noto Sans KR</option><option>Apple SD Gothic Neo</option></select>
+      <select id="iFont">${FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('')}</select>
       <div id="inspNote"></div>`;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
@@ -565,22 +717,52 @@ function renderInspector() {
         : `${impacted.length}종 즉시 반영됨`;
       log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
     }, 450));
-    const styleChange = debounce(() => {
+    const restyle = (patch = {}) => {
       c.style = normalizeStyle({
         keyVisual: c.style.keyVisual,
-        colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase()],
+        kvReadability: c.style.kvReadability,
+        logo: c.style.logo,
+        mode: c.style.mode,
+        colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
         mood: c.style.mood,
+        ...patch,
       });
       logEvent(c, 'style_changed', {});
       generateArtifacts(c);
       refreshFrames();
       $('inspNote').textContent = '스타일 전체 반영됨';
       log('스타일 변경 → 전체 재생성');
-    }, 350);
+    };
+    const styleChange = debounce(() => restyle(), 350);
     insp.querySelector('#iColor1').oninput = styleChange;
     insp.querySelector('#iColor2').oninput = styleChange;
+    insp.querySelector('#iColor3').oninput = styleChange;
     insp.querySelector('#iFont').onchange = styleChange;
+    insp.querySelector('#iFont').value = c.style.fonts.heading;
+    insp.querySelectorAll('#iMode button').forEach(b => b.onclick = () => {
+      restyle({ mode: b.dataset.m });
+      renderInspector();
+    });
+    // 키비주얼 교체 — 새 이미지의 대표색·가독성을 다시 재고 반영
+    const kvIn = insp.querySelector('#iKvFile');
+    insp.querySelector('#iKv').onclick = () => kvIn.click();
+    kvIn.onchange = () => {
+      const f = kvIn.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = async () => {
+        let readability = null, suggests = [];
+        try { ({ readability, suggests } = await analyzeKeyVisual(r.result)); } catch {}
+        restyle({ keyVisual: r.result, kvReadability: readability });
+        renderInspector();
+        toast(suggests.length ? `키비주얼 교체 — 대표색 ${suggests[0]} 감지` : '키비주얼 교체');
+      };
+      r.readAsDataURL(f);
+    };
+    insp.querySelector('#iKvClear')?.addEventListener('click', () => {
+      restyle({ keyVisual: null, kvReadability: null });
+      renderInspector();
+    });
     return;
   }
 

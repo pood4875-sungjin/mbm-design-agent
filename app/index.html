@@ -4,11 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Campaign Agent</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap">
 <style>
   :root{
     --ink:#1f1f1f; --sub:#6f6f6f; --line:#e6e6e4; --panel:#ffffff; --soft:#f1f3f4;
-    --accent:#0d9d8a; --accent-soft:#e6f7f3; --accent-line:#bfe8df;
-    --grad:linear-gradient(92deg,#0d9d8a,#43cdb8);
+    --accent:#111111; --accent-soft:#f1f1f0; --accent-line:#d8d8d6;
+    --grad:#111111;
+    /* 생성(AI) 전용 — 포인트 컬러가 아니라 "만들어지는 중" 신호로만 쓴다 */
+    --gen1:#6d5cf5; --gen2:#3b82f6; --gen3:#a78bfa;
+    --gen:linear-gradient(100deg,var(--gen1),var(--gen2),var(--gen3));
+    --gen-soft:#f2f0ff;
     --good:#1d7a4f; --good-soft:#e9f5ee; --amber:#b07d10; --amber-soft:#fdf3df; --danger:#c5303f;
     --shadow:0 1px 2px rgba(0,0,0,.05), 0 8px 28px rgba(0,0,0,.07);
   }
@@ -25,7 +31,7 @@
   input,textarea,select{font-family:inherit}
 
   header{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;z-index:20}
-  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;cursor:pointer}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Poppins',Pretendard,sans-serif;font-weight:600;font-size:21px;letter-spacing:-.015em;cursor:pointer}
   .logo i{width:24px;height:24px;border-radius:7px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:12px;font-weight:800}
   .beta{font-size:10.5px;font-weight:700;border:1.5px solid var(--ink);border-radius:99px;padding:2px 8px}
   #campPill{display:none;font-size:13px;font-weight:600;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 16px;box-shadow:var(--shadow)}
@@ -50,24 +56,32 @@
   .citem .m{min-width:0;flex:1}
   #campEmpty{font-size:12.5px;color:var(--sub);padding:10px 18px;line-height:1.6}
   #hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;min-width:0}
-  #hero h1{font-size:clamp(26px,3.4vw,40px);font-weight:800;letter-spacing:-.01em;margin-bottom:26px;text-align:center;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .inputCard{position:relative;width:min(760px,100%);background:var(--panel);border-radius:24px;padding:20px 20px 14px;
-    box-shadow:0 0 0 1px rgba(13,157,138,.18), 0 6px 30px rgba(13,157,138,.13), var(--shadow)}
-  .inputCard::before{content:"";position:absolute;inset:-1.5px;border-radius:25px;background:var(--grad);z-index:-1;opacity:.5}
-  .inputCard:focus-within{box-shadow:0 0 0 1px rgba(13,157,138,.4), 0 8px 38px rgba(13,157,138,.2), var(--shadow)}
-  .inputCard:focus-within::before{opacity:1}
-  .inputCard textarea{width:100%;min-height:96px;border:0;background:none;outline:0;resize:none;font-size:15px;line-height:1.65}
-  .inputCard .bar{display:flex;align-items:center;gap:8px;margin-top:6px}
-  .iconb{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:16px;display:inline-flex;align-items:center;justify-content:center}
-  .chip{font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 12px;color:var(--sub)}
-  .sendb{width:38px;height:38px;border-radius:50%;border:0;background:var(--grad);color:#fff;font-size:16px;font-weight:800;margin-left:auto;flex:none}
+  #hero h1{font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.02em;margin-bottom:28px;text-align:center;color:var(--ink)}
+  .inputCard{position:relative;width:min(880px,100%);background:#eef0f1;border-radius:24px;padding:24px 24px 16px;transition:box-shadow .25s}
+  .inputCard:focus-within{box-shadow:0 0 0 2px rgba(109,92,245,.35), 0 10px 40px rgba(109,92,245,.14)}
+  .inputCard textarea{width:100%;min-height:150px;border:0;background:none;outline:0;resize:none;font-size:16.5px;line-height:1.6;color:var(--ink)}
+  .inputCard textarea::placeholder{color:#8a8f93}
+  .inputCard .bar{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .iconb{width:40px;height:40px;border-radius:50%;border:0;background:transparent;font-size:19px;color:#5f6368;display:inline-flex;align-items:center;justify-content:center}
+  .iconb:hover{background:#e3e5e7}
+  .chip{font-size:12.5px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 14px;color:var(--sub)}
+  .sendb{width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:17px;font-weight:600;margin-left:auto;flex:none;transition:transform .15s}
+  .sendb:hover{transform:scale(1.06)}
   #samples{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:20px}
-  #samples button{font-size:12.5px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 15px;color:var(--sub);box-shadow:var(--shadow)}
+  #samples button{font-size:13.5px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:10px 18px;color:var(--ink)}
+  #samples button:hover{background:var(--soft)}
 
   /* ─ intake (질문지 한 장) ─ */
   #intake{position:absolute;inset:56px 0 0 0;display:none;overflow-y:auto;padding:12px 20px 60px}
   .sheet{width:min(860px,100%);margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:30px 34px}
   .sheet h2{font-size:19px;margin-bottom:4px}
+  .steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+  .steps span{font-size:11.5px;color:var(--sub);padding:5px 12px;border-radius:99px;background:var(--soft)}
+  .steps span.on{background:var(--ink);color:#fff;font-weight:600}
+  .steps span.done{color:var(--good)}
+  .say{background:var(--soft);border-radius:14px;border-bottom-left-radius:4px;padding:13px 16px;font-size:14px;line-height:1.65;margin-bottom:6px;white-space:pre-wrap}
+  .sheet section{border-top:1px solid var(--line);padding:20px 0;display:none}
+  .sheet section.active{display:block}
   .sheet .sub{font-size:13px;color:var(--sub);margin-bottom:22px}
   .sheet section{border-top:1px solid var(--line);padding:20px 0}
   .sheet section h3{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.05em;margin-bottom:14px;display:flex;gap:8px;align-items:center}
@@ -91,8 +105,16 @@
   .chcard.on{border-color:var(--accent);background:var(--accent-soft)}
   .chcard small{display:block;font-weight:400;color:var(--sub);font-size:11px;margin-top:2px}
   .styleRow{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .kvthumb.logo{background-size:contain;background-color:#fafafa}
   .kvthumb{width:190px;height:120px;border-radius:12px;background:var(--soft) center/cover no-repeat;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:12px;cursor:pointer;flex:none}
-  .palette{display:flex;gap:8px;align-items:center}
+  .palette{display:flex;gap:10px;align-items:flex-start}
+  .palette .sw{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .palette .sw small{font-size:10.5px;color:var(--sub)}
+  .vseg{display:flex;gap:5px}
+  .vseg button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600}
+  .vseg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .sugg{border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 4px;display:flex;align-items:center;gap:6px;font-size:11px;background:var(--panel)}
+  .sugg i{width:16px;height:16px;border-radius:4px;display:inline-block}
   .swatch{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);padding:0;cursor:pointer}
   .sheet select{padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px}
   .sheetFoot{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:20px}
@@ -114,9 +136,14 @@
   .fbody{position:relative;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.09);border-radius:4px;overflow:hidden}
   .frame.sel .fbody{outline:3px solid var(--accent);outline-offset:2px}
   .fbody iframe{border:0;transform-origin:0 0;pointer-events:none;background:#fff;display:block}
-  .frame.gen .fbody{background:linear-gradient(105deg,#f4f6f6 30%,#e6f7f3 48%,#f4f6f6 66%);background-size:280% 100%;animation:shim 1.5s linear infinite}
-  .frame.gen .flabel{color:var(--accent)}
-  @keyframes shim{from{background-position:180% 0}to{background-position:-80% 0}}
+  .frame.gen .fbody{background:linear-gradient(105deg,#f5f5fb 28%,var(--gen-soft) 46%,#eef3ff 58%,#f5f5fb 72%);background-size:300% 100%;animation:shim 1.4s linear infinite;box-shadow:0 0 0 1.5px rgba(109,92,245,.35), 0 0 26px rgba(109,92,245,.22)}
+  .frame.gen .fbody::after{content:"";position:absolute;inset:-2px;border-radius:6px;padding:2px;background:var(--gen);background-size:220% 100%;animation:flow 2.2s linear infinite;
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .frame.gen .flabel{color:var(--gen1)}
+  .frame.done .fbody{animation:pop .5s ease-out}
+  @keyframes shim{from{background-position:200% 0}to{background-position:-100% 0}}
+  @keyframes flow{from{background-position:0% 0}to{background-position:220% 0}}
+  @keyframes pop{0%{box-shadow:0 0 0 2px rgba(109,92,245,.5), 0 0 30px rgba(109,92,245,.35)}100%{box-shadow:0 2px 10px rgba(0,0,0,.09)}}
   .fbody .hit{position:absolute;inset:0;cursor:pointer}
 
   #zoomCtl{position:absolute;right:16px;bottom:20px;display:flex;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow);padding:4px;z-index:11}
@@ -163,7 +190,7 @@
 </head>
 <body>
 <header>
-  <div class="logo" id="homeBtn">Campaign Agent <span class="beta">PILOT</span></div>
+  <div class="logo" id="homeBtn">Campaign Agent</div>
   <div id="campPill"></div>
   <div class="spacer"></div>
   <button class="hbtn" id="keyBtn">AI 키</button>
@@ -196,49 +223,58 @@
 
 <div id="intake">
   <div class="sheet">
-    <h2>캠페인 준비</h2>
-    <div class="sub" id="intakeSub">기획에서 읽어낸 내용입니다. 빈칸을 채우고, 만들 산출물을 확정해 주세요.</div>
-    <section>
+    <div class="steps" id="steps"></div>
+    <div class="say" id="intakeSay"></div>
+    <div class="sub" id="intakeSub" style="display:none"></div>
+    <section data-step="core">
       <h3>행사 정보</h3>
       <div class="fgrid" id="coreFields"></div>
     </section>
-    <section>
+    <section data-step="channels">
       <h3>만들 산출물</h3>
       <div class="chgrid" id="chGrid"></div>
     </section>
-    <section id="signageSec" style="display:none">
+    <section id="signageSec" data-step="signage" style="display:none">
       <h3>오프라인 세트 구성 <span style="font-weight:400;text-transform:none;letter-spacing:0">현장에 함께 나가는 것들</span></h3>
       <div id="signageBox"></div>
     </section>
-    <section id="extraSec" style="display:none">
+    <section id="extraSec" data-step="extra" style="display:none">
       <h3>채널 추가 정보</h3>
       <div class="fgrid" id="extraFields"></div>
     </section>
-    <section>
+    <section data-step="style">
       <h3>그래픽 가이드</h3>
       <div class="styleRow">
         <div>
           <div class="kvthumb" id="kvThumb">키비주얼 업로드<br>(선택)</div>
           <input type="file" id="kvFile" accept="image/*" style="display:none">
         </div>
-        <div class="f">
-          <label>컬러 (메인 · 배경)</label>
-          <div class="palette">
-            <input type="color" class="swatch" id="c1" value="#0A3D91">
-            <input type="color" class="swatch" id="c2" value="#F5F7FA">
-          </div>
-          <label style="margin-top:12px">폰트</label>
-          <select id="fontSel"><option>Pretendard</option><option>Noto Sans KR</option><option>Apple SD Gothic Neo</option></select>
+        <div>
+          <div class="kvthumb logo" id="logoThumb">로고 업로드<br>(선택)</div>
+          <input type="file" id="logoFile" accept="image/*" style="display:none">
         </div>
-        <div class="f" style="flex:1;min-width:180px">
-          <label>무드 키워드</label>
-          <input type="text" id="moodIn" placeholder="예: 테크, 신뢰">
+        <div class="f" style="flex:1;min-width:250px">
+          <label>모드</label>
+          <div class="vseg" id="modeSeg"><button data-m="light" class="on">라이트</button><button data-m="dark">다크</button></div>
+          <label style="margin-top:12px">컬러 세트 <span id="kvHint" style="color:var(--accent)"></span></label>
+          <div class="palette">
+            <span class="sw"><input type="color" class="swatch" id="c1" value="#0A3D91"><small>주색</small></span>
+            <span class="sw"><input type="color" class="swatch" id="c2" value="#11095F"><small>보조</small></span>
+            <span class="sw"><input type="color" class="swatch" id="c3" value="#B56705"><small>포인트</small></span>
+          </div>
+          <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+          <label style="margin-top:12px">폰트</label>
+          <select id="fontSel"></select>
+          <label style="margin-top:12px">무드 키워드</label>
+          <input type="text" id="moodIn" placeholder="예: 테크, 신뢰" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px">
         </div>
       </div>
     </section>
     <div class="sheetFoot">
+      <button class="btn" id="prevBtn">이전</button>
       <div class="note" id="intakeNote"></div>
-      <button class="bigbtn" id="genBtn">생성하기 →</button>
+      <button class="bigbtn" id="nextBtn">다음 →</button>
+      <button class="bigbtn" id="genBtn" style="display:none">생성하기 →</button>
     </div>
   </div>
 </div>

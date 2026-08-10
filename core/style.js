@@ -1,5 +1,8 @@
 // Campaign Style — 3경로(업로드·프리셋·AI 생성 추후) 어디서 와도 이 구조 하나로 정규화 (PRD 불변식 2)
 
+import { FONTS } from './fonts.js';
+import { buildPalette, MODES } from './palette.js';
+
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
 // RGB → CMYK 근사(naive). 인쇄 사양서·화면 표기용 참고값이며,
@@ -23,16 +26,20 @@ export function normalizeStyle(input = {}) {
   for (const c of colors) {
     if (!HEX.test(c)) throw new Error(`hex 컬러 형식이 아님: ${c}`);
   }
+  const mode = MODES[input.mode] ? input.mode : 'light';
   return {
     keyVisual: input.keyVisual ?? null,
-    palette: {
+    kvReadability: input.kvReadability ?? null,   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
+    mode,
+    palette: buildPalette({
       primary: colors[0] ?? '#2456D6',
-      bg: colors[1] ?? '#FFFFFF',
-      ink: colors[2] ?? '#1A1A1A',
-    },
+      secondary: colors[1],
+      accent: colors[2],
+      mode,
+    }),
     fonts: {
-      heading: input.fonts?.heading ?? 'Pretendard',
-      body: input.fonts?.body ?? 'Pretendard',
+      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : 'Pretendard',
+      body: FONTS[input.fonts?.body] ? input.fonts.body : 'Pretendard',
     },
     logo: input.logo ?? null,
     mood: input.mood ?? [],
@@ -40,7 +47,7 @@ export function normalizeStyle(input = {}) {
     // 인쇄 사양 — 근사 CMYK(사양서·미리보기 표기용)
     cmyk: {
       primary: toCmyk(colors[0] ?? '#2456D6'),
-      bg: toCmyk(colors[1] ?? '#FFFFFF'),
+      secondary: toCmyk(buildPalette({ primary: colors[0] ?? '#2456D6', secondary: colors[1], mode }).secondary),
     },
   };
 }
