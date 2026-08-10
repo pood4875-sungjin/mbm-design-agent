@@ -4,8 +4,8 @@
 //        산출물 선택 = 그것만 즉시 반영(override, 일괄 반영에서 보존).
 
 import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
-import { normalizeStyle } from '../core/style.js';
-import { SPECS } from '../core/contract.js';
+import { normalizeStyle, cmykText } from '../core/style.js';
+import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
@@ -36,13 +36,13 @@ const SAMPLES = [
 ];
 
 const state = {
-  intake: { fields: {}, channels: [], extra: {}, kv: null },
+  intake: { fields: {}, channels: [], extra: {}, kv: null, signage: {}, sizes: {} },
   campaign: null,
   selected: null,          // specId | null
   zoom: 1, panX: 0, panY: 0,
 };
 const $ = id => document.getElementById(id);
-const frames = new Map();  // specId → {frame, iframe, badge}
+const frames = new Map();  // artifact.key → {frame, iframe, badge, label}
 
 /* ═══ helpers ═══ */
 function toast(t) {
@@ -199,7 +199,7 @@ async function startIntake(text) {
     } catch (e) { toast(`AI 해석 실패 — 규칙 파서로 진행`); }
   }
   if (!parsed) parsed = parseBriefRegex(text);
-  state.intake = { fields: parsed.fields, channels: parsed.channels, extra: {}, kv: null };
+  state.intake = { fields: parsed.fields, channels: parsed.channels, extra: {}, kv: null, signage: {}, sizes: {} };
   renderIntake();
   show('intake');
 }
@@ -226,7 +226,7 @@ function renderIntake() {
   $('chGrid').querySelectorAll('input').forEach(i => i.onchange = () => {
     i.closest('.chcard').classList.toggle('on', i.checked);
     it.channels = [...$('chGrid').querySelectorAll('input:checked')].map(x => x.value);
-    renderExtra(); validateIntake();
+    renderSignage(); renderExtra(); validateIntake();
   });
   const thumb = $('kvThumb'), file = $('kvFile');
   thumb.onclick = () => file.click();
@@ -236,9 +236,82 @@ function renderIntake() {
     r.onload = () => { it.kv = r.result; thumb.style.backgroundImage = `url(${it.kv})`; thumb.textContent = ''; };
     r.readAsDataURL(f);
   };
+  renderSignage();
   renderExtra();
   validateIntake();
   $('genBtn').onclick = buildAndGenerate;
+}
+
+const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak'];
+
+function renderSignage() {
+  const it = state.intake;
+  const chans = it.channels.filter(c => OFFLINE_CH.includes(c));
+  $('signageSec').style.display = chans.length ? 'block' : 'none';
+  if (!chans.length) return;
+  const box = $('signageBox');
+  box.innerHTML = chans.map(ch => {
+    const ps = purposesFor(ch);
+    const cur = it.signage[ch] ?? (it.signage[ch] = [{ purpose: 'main' }]);
+    const presets = SIZE_PRESETS[ch] ?? [];
+    const specId = Object.entries(SPECS).find(([, s]) => s.channel === ch)[0];
+    const sz = it.sizes[ch];
+    return `<div class="sgroup" data-ch="${ch}">
+      <div class="sh">${CHANNEL_LABEL[ch]}
+        <select data-size="${ch}">${presets.map((pr, i) =>
+          `<option value="${i}" ${sz && sz.wmm === pr.wmm && sz.hmm === pr.hmm ? 'selected' : (!sz && i === 0 ? 'selected' : '')}>${pr.label}mm</option>`).join('')}
+          <option value="custom" ${sz?.custom ? 'selected' : ''}>직접 입력…</option></select>
+      </div>
+      <div class="customSz" data-ch="${ch}" style="display:${sz?.custom ? 'flex' : 'none'};gap:8px;margin-bottom:8px">
+        <input type="text" data-dim="w" value="${sz?.wmm ?? ''}" placeholder="가로 mm" style="width:110px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px">
+        <input type="text" data-dim="h" value="${sz?.hmm ?? ''}" placeholder="세로 mm" style="width:110px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px">
+      </div>
+      ${ps.map(p => {
+        const sel = cur.filter(x => x.purpose === p.id);
+        const on = sel.length > 0;
+        return `<div class="prow" data-p="${p.id}">
+          <input type="checkbox" ${on ? 'checked' : ''}>
+          <span>${p.label}</span>
+          ${p.needsArrow ? `<span class="arrows">${Object.entries(ARROWS).map(([k, g]) =>
+            `<button data-arrow="${k}" class="${sel.some(x => x.arrow === k) ? 'on' : ''}" ${on ? '' : 'disabled'}>${g}</button>`).join('')}</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('.prow input').forEach(cb => cb.onchange = () => {
+    const ch = cb.closest('.sgroup').dataset.ch, pid = cb.closest('.prow').dataset.p;
+    const list = it.signage[ch] ?? [];
+    if (cb.checked) {
+      const needsArrow = PURPOSES.find(p => p.id === pid)?.needsArrow;
+      list.push({ purpose: pid, arrow: needsArrow ? 'right' : null });
+    } else {
+      it.signage[ch] = list.filter(x => x.purpose !== pid);
+    }
+    renderSignage(); validateIntake();
+  });
+  box.querySelectorAll('.arrows button').forEach(b => b.onclick = () => {
+    const ch = b.closest('.sgroup').dataset.ch, pid = b.closest('.prow').dataset.p, ar = b.dataset.arrow;
+    const list = it.signage[ch];
+    const has = list.some(x => x.purpose === pid && x.arrow === ar);
+    if (has) it.signage[ch] = list.filter(x => !(x.purpose === pid && x.arrow === ar));
+    else list.push({ purpose: pid, arrow: ar });
+    if (!it.signage[ch].some(x => x.purpose === pid)) it.signage[ch].push({ purpose: pid, arrow: 'right' });
+    renderSignage(); validateIntake();
+  });
+  box.querySelectorAll('select[data-size]').forEach(sel => sel.onchange = () => {
+    const ch = sel.dataset.size;
+    if (sel.value === 'custom') { it.sizes[ch] = { custom: true }; }
+    else { const pr = SIZE_PRESETS[ch][+sel.value]; it.sizes[ch] = { wmm: pr.wmm, hmm: pr.hmm }; }
+    renderSignage(); validateIntake();
+  });
+  box.querySelectorAll('.customSz input').forEach(i => i.oninput = () => {
+    const ch = i.closest('.customSz').dataset.ch;
+    const wrap = i.closest('.customSz');
+    const w = +wrap.querySelector('[data-dim=w]').value, h = +wrap.querySelector('[data-dim=h]').value;
+    it.sizes[ch] = { custom: true, wmm: w || null, hmm: h || null };
+    validateIntake();
+  });
 }
 
 const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'] };
@@ -259,9 +332,15 @@ function validateIntake() {
   const missing = CORE_FIELDS.filter(f => !it.fields[f]);
   const ok = !missing.length && it.channels.length;
   $('genBtn').disabled = !ok;
+  let n = 0;
+  for (const specId of specIdsFor(it.channels)) {
+    const ch = SPECS[specId].channel;
+    const set = it.signage[ch];
+    n += (set?.length && purposesFor(ch).length) ? set.length : 1;
+  }
   $('intakeNote').textContent = !it.channels.length
     ? '산출물을 하나 이상 선택하세요'
-    : missing.length ? `필수 입력: ${missing.map(f => FIELD_LABEL[f]).join(', ')}` : `${specIdsFor(it.channels).length}종을 생성합니다`;
+    : missing.length ? `필수 입력: ${missing.map(f => FIELD_LABEL[f]).join(', ')}` : `${n}종을 생성합니다`;
 }
 function specIdsFor(channels) {
   return Object.entries(SPECS).filter(([, s]) => channels.includes(s.channel)).map(([id]) => id);
@@ -287,25 +366,32 @@ function buildAndGenerate() {
     fonts: { heading: $('fontSel').value, body: $('fontSel').value },
     mood: $('moodIn').value.split(',').map(s => s.trim()).filter(Boolean),
   });
-  state.campaign = { id: slug(ctx.core.name), context: ctx, style, channels: it.channels, artifacts: [], log: [] };
+  const signage = {};
+  for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
+  state.campaign = { id: slug(ctx.core.name), context: ctx, style, channels: it.channels, signage, artifacts: [], log: [] };
   logEvent(state.campaign, 'campaign_created', {});
   registerAll();
+  generateArtifacts(state.campaign);
+  for (const a of state.campaign.artifacts) {
+    const sz = it.sizes[a.channel];
+    if (sz?.wmm && sz?.hmm) a.size = { wmm: sz.wmm, hmm: sz.hmm };
+  }
   generateArtifacts(state.campaign);
   enterWork({ staged: true });
 }
 
 // 스켈레톤 → 하나씩 실제 산출물로 채워지는 연출 (생성이 눈에 보이게)
 function revealStaged() {
-  const ids = state.campaign.artifacts.map(a => a.specId);
+  const ids = state.campaign.artifacts.map(a => a.key ?? a.specId);
   for (const id of ids) frames.get(id)?.frame.classList.add('gen');
   ids.forEach((id, i) => setTimeout(() => {
-    const a = state.campaign.artifacts.find(x => x.specId === id);
+    const a = state.campaign.artifacts.find(x => (x.key ?? x.specId) === id);
     const f = frames.get(id);
     if (!f) return;
     f.frame.classList.remove('gen');
     f.iframe.style.visibility = 'visible';
     f.iframe.srcdoc = a.html;
-    f.label.textContent = id;
+    f.label.textContent = artLabel(a);
     log(`생성: ${id}`);
     if (i === ids.length - 1) toast(`${ids.length}종 생성 완료`);
   }, 240 + i * 260));
@@ -323,6 +409,11 @@ function enterWork(opts = {}) {
 }
 
 /* ═══ 아트보드 ═══ */
+function effSpec(a) {
+  const s = { ...SPECS[a.specId] };
+  if (a.size?.wmm) { s.wmm = a.size.wmm; s.hmm = a.size.hmm; }
+  return s;
+}
 function naturalSize(spec) {
   if (spec.unit === 'mm') {
     const k = 3.7795;
@@ -344,7 +435,7 @@ function layoutArtboard(opts = {}) {
     let x = 60, rowH = 0;
     for (const ch of rowChannels) {
       for (const a of state.campaign.artifacts.filter(a => a.channel === ch)) {
-        const spec = SPECS[a.specId];
+        const spec = effSpec(a);
         const [nw, nh] = naturalSize(spec);
         const ds = DISPLAY_SCALE[ch] ?? 1;
         const w = nw * ds, h = nh * ds;
@@ -352,16 +443,16 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : a.specId}</span><span class="badge ${a.status}">${badgeText(a.status)}</span>${spec.unit === 'mm' ? `<span style="font-weight:400;font-size:11px">${spec.wmm}×${spec.hmm}mm</span>` : ''}</div>
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
           </div>`;
         const iframe = frame.querySelector('iframe');
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = a.html;
-        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.specId); };
+        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
-        frames.set(a.specId, { frame, iframe, badge: frame.querySelector('.badge'), label: frame.querySelector('.fname') });
+        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), label: frame.querySelector('.fname') });
         x += w + 70;
         rowH = Math.max(rowH, h);
       }
@@ -371,12 +462,21 @@ function layoutArtboard(opts = {}) {
   }
   state.boardH = y;
 }
+const PURPOSE_SHORT = { main: '', way: '방향', agenda: '프로그램', reception: '등록데스크' };
+function artLabel(a) {
+  const spec = SPECS[a.specId];
+  const sz = a.size ? `${a.size.wmm}×${a.size.hmm}` : (spec.unit === 'mm' ? `${spec.wmm}×${spec.hmm}` : '');
+  const pur = a.purpose && a.purpose !== 'main'
+    ? ` · ${PURPOSE_SHORT[a.purpose]}${a.arrow ? ' ' + (ARROWS[a.arrow] ?? '') : ''}` : '';
+  return `${CHANNEL_LABEL[a.channel] ?? a.specId}${pur}${sz ? ` · ${sz}mm` : ''}`;
+}
 function badgeText(s) { return { draft: 'DRAFT', approved: '승인됨', needsReview: '확인 필요' }[s] ?? s; }
 
 function refreshFrames(only = null) {
   for (const a of state.campaign.artifacts) {
-    if (only && a.specId !== only) continue;
-    const f = frames.get(a.specId);
+    const k = a.key ?? a.specId;
+    if (only && k !== only) continue;
+    const f = frames.get(k);
     if (!f) continue;
     f.iframe.srcdoc = a.html;
     f.badge.className = 'badge ' + a.status;
@@ -484,16 +584,31 @@ function renderInspector() {
     return;
   }
 
-  const a = c.artifacts.find(x => x.specId === state.selected);
+  const a = c.artifacts.find(x => (x.key ?? x.specId) === state.selected);
   const nVar = VARIANTS[a.channel] ?? 1;
+  const spec = effSpec(a);
+  const isPrint = spec.unit === 'mm';
+  const presets = SIZE_PRESETS[a.channel] ?? [];
   insp.innerHTML = `
-    <h3>${a.specId} <span class="mode">개별 편집</span></h3>
+    <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
     <div class="hint">이 산출물에서만 다르게 표기할 값. 비우면 공통값. 개별 값은 일괄 반영에서 보존됩니다.</div>
     ${['name', 'date', 'venue', 'cta'].map(f => `
       <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
       <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
     ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
       `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${i + 1}</button>`).join('')}</div>` : ''}
+    ${isPrint ? `
+      <label>인쇄 규격 (mm)</label>
+      <select id="iSize">${presets.map(pr =>
+        `<option value="${pr.wmm}x${pr.hmm}" ${spec.wmm === pr.wmm && spec.hmm === pr.hmm ? 'selected' : ''}>${pr.label}</option>`).join('')}
+        <option value="custom" ${!presets.some(pr => pr.wmm === spec.wmm && pr.hmm === spec.hmm) ? 'selected' : ''}>직접 입력…</option></select>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <input type="text" id="iW" value="${spec.wmm}" style="width:50%"><input type="text" id="iH" value="${spec.hmm}" style="width:50%">
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:8px;line-height:1.6">
+        용지 ${spec.wmm + spec.bleed * 2}×${spec.hmm + spec.bleed * 2}mm (블리드 ${spec.bleed}mm)<br>
+        메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
+      </div>` : ''}
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
       <button class="btn pri" id="iExp">내보내기</button>
@@ -521,6 +636,23 @@ function renderInspector() {
     renderInspector();
     log(`${a.specId} 시안 ${a.variant + 1}`);
   });
+  const applySize = (w, h) => {
+    a.size = { wmm: w, hmm: h };
+    logEvent(c, 'size_changed', { key: a.key, wmm: w, hmm: h });
+    generateArtifacts(c);
+    layoutArtboard();
+    select(a.key ?? a.specId);
+    log(`${artLabel(a)} 규격 변경`);
+  };
+  insp.querySelector('#iSize')?.addEventListener('change', e => {
+    if (e.target.value === 'custom') return;
+    const [w, h] = e.target.value.split('x').map(Number);
+    applySize(w, h);
+  });
+  for (const id of ['#iW', '#iH']) insp.querySelector(id)?.addEventListener('change', () => {
+    const w = +insp.querySelector('#iW').value, h = +insp.querySelector('#iH').value;
+    if (w > 0 && h > 0) applySize(w, h);
+  });
   insp.querySelector('#iOpen').onclick = () => { const w = window.open('', '_blank'); w.document.write(a.html); w.document.close(); };
   insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
   insp.querySelector('#iDesel').onclick = () => select(null);
@@ -528,10 +660,11 @@ function renderInspector() {
 
 /* ═══ 내보내기 ═══ */
 function exportArtifactModal(a) {
-  const spec = SPECS[a.specId];
+  const spec = effSpec(a);
+  const kk = a.key ?? a.specId;
   if (spec.channel === 'banner') {
     modal({
-      title: `${a.specId} 내보내기`,
+      title: `${artLabel(a)} 내보내기`,
       desc: '온라인 배너 — 이미지 파일로 내보냅니다. 배수를 고르면 고해상도로 뽑힙니다.',
       body: `
         <label>포맷</label>
@@ -559,21 +692,21 @@ function exportArtifactModal(a) {
   }
   if (spec.channel === 'edm' || spec.channel === 'landing') {
     modal({
-      title: `${a.specId} 내보내기`,
+      title: `${artLabel(a)} 내보내기`,
       desc: spec.channel === 'edm'
         ? '이메일 호환 HTML — 메일 도구에 붙여넣거나 업로드해 사용합니다. (HubSpot 자동 등록은 추후)'
         : '자기완결 HTML 패키지 — 어디든 게시할 수 있습니다.',
       body: '',
       actions: [
         { label: '닫기' },
-        { label: 'HTML 다운로드', pri: true, fn: () => { downloadText(a.html, `${a.specId}.html`); log(`내보내기: ${a.specId}.html`); } },
+        { label: 'HTML 다운로드', pri: true, fn: () => { downloadText(a.html, `${kk}.html`); log(`내보내기: ${kk}.html`); } },
       ],
     });
     return;
   }
   // 인쇄물
   modal({
-    title: `${a.specId} 내보내기`,
+    title: `${artLabel(a)} 내보내기`,
     desc: '인쇄 가이드 적용 — 재단 여백(블리드) 포함 실측 규격의 PDF로 저장됩니다.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">
       · 용지: <b>${spec.wmm + spec.bleed * 2} × ${spec.hmm + spec.bleed * 2}mm</b> (재단 ${spec.wmm}×${spec.hmm} + 블리드 ${spec.bleed}mm)<br>
@@ -582,21 +715,22 @@ function exportArtifactModal(a) {
       · 대량·자동 변환은 <code>scripts/demo.js</code>(Chrome headless)</div>`,
     actions: [
       { label: '닫기' },
-      { label: 'HTML', fn: () => { downloadText(a.html, `${a.specId}.html`); } },
-      { label: 'PDF로 저장', pri: true, fn: () => { openPrintPdf(a.html); log(`내보내기: ${a.specId} PDF`); } },
+      { label: 'HTML', fn: () => { downloadText(a.html, `${kk}.html`); } },
+      { label: 'PDF로 저장', pri: true, fn: () => { openPrintPdf(a.html); log(`내보내기: ${kk} PDF`); } },
     ],
   });
 }
 
 async function doBannerExport(a) {
-  const spec = SPECS[a.specId];
+  const spec = effSpec(a);
+  const kk = a.key ?? a.specId;
   const fmt = $('modalBody').querySelector('#expFmt .on').dataset.v;
   const s = Number($('modalBody').querySelector('#expScale .on').dataset.v);
   toast('이미지 생성 중…');
   try {
     const blob = await rasterize(a.html, spec.w, spec.h, s, fmt);
-    download(blob, `${a.specId}@${s}x.${fmt}`);
-    log(`내보내기: ${a.specId}@${s}x.${fmt}`);
+    download(blob, `${kk}@${s}x.${fmt}`);
+    log(`내보내기: ${kk}@${s}x.${fmt}`);
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
@@ -612,7 +746,7 @@ function exportAllModal() {
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.8">
       · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
-      · 인쇄 PDF — ${prints.map(a => a.specId).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>`,
+      · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
@@ -623,8 +757,8 @@ function exportAllModal() {
 async function batchBanners(banners) {
   toast('배너 이미지 생성 중…');
   for (const a of banners) {
-    const spec = SPECS[a.specId];
-    try { download(await rasterize(a.html, spec.w, spec.h, 2, 'png'), `${a.specId}@2x.png`); } catch {}
+    const spec = effSpec(a);
+    try { download(await rasterize(a.html, spec.w, spec.h, 2, 'png'), `${a.key ?? a.specId}@2x.png`); } catch {}
   }
   log(`내보내기: 배너 PNG 2x ${banners.length}개`);
   closeModal();

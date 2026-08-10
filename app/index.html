@@ -76,6 +76,15 @@
   .f label .req{color:var(--danger);font-weight:700}
   .f input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px}
   .f input.miss{border-color:var(--danger);background:#fdf3f4}
+  .sgroup{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .sgroup .sh{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;margin-bottom:10px}
+  .sgroup .sh select{margin-left:auto;font-size:12px;padding:5px 8px}
+  .prow{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+  .prow input[type=checkbox]{accent-color:var(--accent)}
+  .prow .arrows{display:flex;gap:4px;margin-left:auto}
+  .prow .arrows button{width:30px;height:30px;border:1px solid var(--line);background:var(--panel);border-radius:8px;font-size:14px}
+  .prow .arrows button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .prow .arrows button:disabled{opacity:.3}
   .chgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
   .chcard{border:1px solid var(--line);border-radius:12px;padding:12px 13px;cursor:pointer;font-size:13px;font-weight:600;display:flex;gap:9px;align-items:center}
   .chcard input{accent-color:var(--accent)}
@@ -196,6 +205,10 @@
     <section>
       <h3>만들 산출물</h3>
       <div class="chgrid" id="chGrid"></div>
+    </section>
+    <section id="signageSec" style="display:none">
+      <h3>오프라인 세트 구성 <span style="font-weight:400;text-transform:none;letter-spacing:0">현장에 함께 나가는 것들</span></h3>
+      <div id="signageBox"></div>
     </section>
     <section id="extraSec" style="display:none">
       <h3>채널 추가 정보</h3>
