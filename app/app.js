@@ -14,6 +14,8 @@ import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL } from './agent.js';
 import { parseRoster } from '../core/roster.js';
+import { assessForSpecs } from '../core/imagequality.js';
+import { upscale } from './upscale.js';
 
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
@@ -340,6 +342,7 @@ function slotStyle() {
           <span class="sw"><input type="color" class="swatch" id="c3" value="${it.colors[2]}"><small>포인트</small></span>
         </div>
         <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+        <div id="dpiBox" style="margin-top:8px"></div>
         <label style="margin-top:10px">폰트</label>
         <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('')}</select>
       </div>
@@ -352,6 +355,7 @@ function slotStyle() {
     it.mode = b.dataset.m; applyDerived(); slotStyle();
   });
   renderSuggests();
+  renderDpi();
   bindUpload($('kvThumb'), $('kvFile'), async d => {
     it.kv = d;
     $('kvHint').textContent = '분석 중…';
@@ -360,6 +364,7 @@ function slotStyle() {
       it.suggests = suggests; it.kvReadability = readability; it.kvMeta = meta;
       if (suggests[0]) it.colors = [suggests[0], suggests[1] ?? it.colors[1], suggests[2] ?? it.colors[2]];
       applyDerived(); slotStyle();
+      announceDpi();
       bub('agent', `키비주얼에서 대표 컬러 ${suggests.slice(0, 2).join(', ')}를 뽑았어요. 글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.`);
     } catch { $('kvHint').textContent = ''; }
   });
@@ -369,6 +374,58 @@ function slotStyle() {
     const said = `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
     bub('user', said); clearSlot(); turn(said);
   };
+}
+
+// 선택한 산출물 중 가장 빡빡한 규격을 기준으로 키비주얼 해상도를 판정한다.
+function currentAssessment() {
+  const it = state.intake;
+  if (!it.kvMeta?.px) return null;
+  const specs = specIdsFor(it.channels).map(id => {
+    const s = { ...SPECS[id] };
+    const sz = it.sizes[s.channel];
+    if (sz?.wmm) { s.wmm = sz.wmm; s.hmm = sz.hmm; }
+    return s;
+  });
+  const a = assessForSpecs(it.kvMeta.px[0], it.kvMeta.px[1], specs);
+  return a.level === 'na' ? null : a;
+}
+
+const DPI_TONE = { ok: 'var(--good)', fixable: 'var(--amber)', weak: 'var(--amber)', hopeless: 'var(--danger)' };
+
+function renderDpi() {
+  const box = $('dpiBox');
+  if (!box) return;
+  const a = currentAssessment();
+  if (!a) { box.innerHTML = ''; return; }
+  const canFix = a.level === 'fixable' || a.level === 'weak';
+  box.innerHTML = `<div style="font-size:11.5px;line-height:1.55;color:${DPI_TONE[a.level]}">${a.text}</div>` +
+    (canFix ? `<button class="btn" id="upBtn" style="margin-top:6px">해상도 올리기 (${a.targetW}×${a.targetH})</button>` : '');
+  box.querySelector('#upBtn')?.addEventListener('click', () => doUpscale(a));
+}
+
+function announceDpi() {
+  const a = currentAssessment();
+  if (!a || a.level === 'ok') return;
+  bub('agent', `키비주얼 해상도를 확인했어요. ${a.text}`);
+}
+
+async function doUpscale(a) {
+  const it = state.intake;
+  const btn = $('upBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '확대 중…'; }
+  try {
+    const r = await upscale(it.kv, a.targetW, a.targetH);
+    it.kv = r.dataUrl;
+    it.kvMeta = { ...it.kvMeta, px: [r.w, r.h] };
+    slotStyle();
+    bub('agent', r.capped
+      ? `${r.w}×${r.h}px까지만 키웠어요 — 목표 ${r.askedW}px는 브라우저 캔버스 한계를 넘습니다(${r.steps}단계 리샘플링).\n이 규격을 제대로 채우려면 더 큰 원본이 필요합니다.`
+      : `${r.w}×${r.h}px로 키웠어요(${r.steps}단계 리샘플링). 인쇄 규격은 채우지만, 없던 디테일이 생기지는 않습니다 — 원본이 있으면 그쪽이 항상 낫습니다.`);
+    log(`키비주얼 확대 ${r.w}×${r.h}`);
+  } catch (e) {
+    toast(`확대 실패: ${e.message}`);
+    if (btn) { btn.disabled = false; btn.textContent = '해상도 올리기'; }
+  }
 }
 
 function applyDerived() {
@@ -440,7 +497,7 @@ async function analyzeKeyVisual(dataUrl) {
   const { data } = g.getImageData(0, 0, W, H);
   const readability = {};
   for (const [k, zone] of Object.entries(TEXT_ZONES)) readability[k] = analyzeRegion(data, W, H, zone);
-  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H) };
+  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H), px: [img.width, img.height] };
   return { suggests: extractPalette(data, 3), readability, meta };
 }
 
@@ -662,6 +719,7 @@ function renderInspector() {
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor3" value="${c.style.palette.accent}"><small style="font-size:10px;color:var(--sub)">포인트</small></span>
       </div>
       <label>키비주얼</label>
+      <div id="iDpi" style="font-size:11px;line-height:1.5;margin-bottom:6px"></div>
       <div class="kvthumb" id="iKv" style="width:100%;height:76px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
       ${c.style.keyVisual ? '<button class="btn" id="iKvClear" style="width:100%;margin-top:6px">키비주얼 제거</button>' : ''}
@@ -707,6 +765,34 @@ function renderInspector() {
       restyle({ mode: b.dataset.m });
       renderInspector();
     });
+    // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
+    const dpiBox = insp.querySelector('#iDpi');
+    if (dpiBox && c.style.keyVisual && c.style.kvMeta?.px) {
+      const specs = c.artifacts.map(x => effSpec(x));
+      const as = assessForSpecs(c.style.kvMeta.px[0], c.style.kvMeta.px[1], specs);
+      if (as.level !== 'na') {
+        dpiBox.style.color = DPI_TONE[as.level];
+        dpiBox.textContent = as.text;
+        if (as.level === 'fixable' || as.level === 'weak') {
+          const b = document.createElement('button');
+          b.className = 'btn'; b.style.cssText = 'width:100%;margin-top:6px';
+          b.textContent = `해상도 올리기 (${as.targetW}×${as.targetH})`;
+          b.onclick = async () => {
+            b.disabled = true; b.textContent = '확대 중…';
+            try {
+              const r = await upscale(c.style.keyVisual, as.targetW, as.targetH);
+              restyle({ keyVisual: r.dataUrl, kvMeta: { ...c.style.kvMeta, px: [r.w, r.h] } });
+              renderInspector();
+              toast(r.capped
+                ? `${r.w}×${r.h}px까지만 확대 — 목표는 캔버스 한계를 넘습니다`
+                : `${r.w}×${r.h}px로 확대 — 규격은 채우지만 디테일이 생기진 않습니다`);
+              log(`키비주얼 확대 ${r.w}×${r.h}`);
+            } catch (e) { toast(`확대 실패: ${e.message}`); b.disabled = false; }
+          };
+          dpiBox.appendChild(b);
+        }
+      }
+    }
     // 키비주얼 교체 — 새 이미지의 대표색·가독성을 다시 재고 반영
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
