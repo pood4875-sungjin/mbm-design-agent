@@ -13,7 +13,7 @@
 // 색은 캠페인 팔레트를 따른다 — 시안의 파랑/초록/주황 자리에 primary/secondary/accent가 들어간다.
 //   (시안 고정색은 #5473B6 / #1DB29F / #FF6025 였다. 캠페인마다 주색이 다르므로 하드코딩하지 않는다.)
 
-import { esc } from './banner.js';
+import { esc, fitFontSize, textWidth, WRAP } from './banner.js';
 import { cmykText } from '../style.js';
 import { fontStack, fontLink } from '../fonts.js';
 import { onColor, contrast, BLACK, WHITE } from '../palette.js';
@@ -119,7 +119,18 @@ export function renderPhotobooth(ctx, style, spec) {
     return `<path d="${s.d}" ${paint} ${g}/>`;
   }).join('');
 
-  const lines = titleLines(name, L.lines).map(esc).join('<br>');
+  /* ── 로크업 크기·줄 수 ──
+     시안은 "2024 MIDAS WEEK"처럼 짧은 워드마크라 줄 수(L.lines)와 크기가 고정이어도 됐다.
+     실제 행사명("… 및 디지털 트윈 기술 혁신 컨퍼런스 with MIDAS IT")이 들어오면
+     비워 둔 폭(L.box%)에서 CSS가 알아서 예닐곱 줄로 접었고, 그 줄들이 아래 도형 띠까지 내려와
+     검은 글자가 남색 도형 위에 얹혀 사라졌다. 이 매체는 "가운데 아래는 도형만" 이라는 규칙이
+     구성의 핵심이라(사람이 그 앞에 선다) 로크업은 반드시 위쪽 띠 안에 머물러야 한다. */
+  const lockW = spec.wmm * (L.box / 100);
+  // 상단 배치는 여백(11%) 아래 42%까지, 정중앙 배치는 중앙 기준 44%까지. 그 아래는 도형 몫이다.
+  const lockH = spec.hmm * (L.place === 'center' ? 0.44 : 0.42);
+  const lock = fitLockup(name, lockW, lockH, base * L.title, base * L.title * 0.3, L.lines);
+  const titleMm = lock.fs;
+  const lines = titleLines(name, lock.lines).map(esc).join('<br>');
   // 로고 자리는 시안에서 브랜드 워드마크였다. 로고가 없으면 비운다 —
   // 장소나 날짜로 대신 채우면 그게 브랜드인 것처럼 읽힌다.
   const brand = style.logo
@@ -142,11 +153,13 @@ ${fontLink(style.fonts.heading)}
 /* box = 시안이 로크업에 비워 둔 구역의 폭(지면 대비 %). 행사명이 시안보다 길어도
    글자가 도형 위로 흘러나가 읽히지 않는 일이 없도록 그 안에서 줄바꿈시킨다. */
 .lock{position:absolute;color:${ink};max-width:${L.box}%}
-.title{font-size:${mm(L.title)}mm;font-weight:800;line-height:1;letter-spacing:-0.01em;word-break:keep-all}
+.title{font-size:${titleMm.toFixed(2)}mm;font-weight:800;line-height:1.04;letter-spacing:-0.01em;${WRAP}}
 .sub{font-size:${mm(0.035)}mm;font-weight:600;opacity:.9;margin-top:${mm(0.03)}mm}
 .date{position:absolute;right:${pad}mm;top:${pad}mm;font-size:${mm(0.043)}mm;font-weight:700;letter-spacing:0.02em;color:${groundInk}}
 .logo{position:absolute;line-height:0}
-.brand{height:${mm(0.031)}mm;width:auto;${logoInk === '#FFFFFF' ? 'filter:brightness(0) invert(1)' : ''}}
+/* 로고 폭을 물리지 않으면 초가로 로크업이 백드롭을 가로질러 로크업 글자와 겹친다.
+   contain이라 정사각·가로긴 로고 모두 이 상자 안에서만 산다. */
+.brand{height:${mm(0.031)}mm;width:auto;max-width:${(spec.wmm * 0.22).toFixed(2)}mm;object-fit:contain;${logoInk === '#FFFFFF' ? 'filter:brightness(0) invert(1)' : ''}}
 .topLeft{left:${pad}mm;top:${pad}mm}
 .topCenter{left:0;right:0;margin:0 auto;top:${pad}mm;text-align:center}
 .center{left:0;right:0;margin:0 auto;top:50%;transform:translateY(-58%);text-align:center}
@@ -199,6 +212,23 @@ ${fontLink(style.fonts.heading)}
 function inkOver(...grounds) {
   const worst = c => Math.min(...grounds.map(g => contrast(c, g)));
   return worst(WHITE) >= worst(BLACK) ? WHITE : BLACK;
+}
+
+/* 로크업은 titleLines()가 단어 단위로 미리 줄을 나눠 <br>로 박는다 — 그래서 "한 줄에 몇 글자"가
+   아니라 "가장 긴 줄이 얼마나 넓은가"가 크기를 정한다. 줄 수를 시안 값부터 하나씩 늘려 보며
+   폭·높이 둘 다 만족하는 가장 큰 크기를 고른다. 시안 크기 그대로 들어가면 거기서 멈춘다 —
+   짧은 워드마크에서는 시안 구성이 그대로 유지돼야 한다. */
+function fitLockup(name, boxW, boxH, max, min, minLines) {
+  let best = { fs: 0, lines: minLines };
+  for (let n = minLines; n <= minLines + 6; n++) {
+    const parts = titleLines(name, n);
+    const widest = Math.max(...parts.map(textWidth), 0.001);
+    const fs = Math.min(max, boxW / widest, boxH / (parts.length * 1.04));
+    if (fs > best.fs) best = { fs, lines: parts.length };
+    if (fs >= max) break;                       // 시안 크기 그대로 — 더 쪼갤 이유가 없다
+    if (parts.length < n) break;                // 단어를 다 써서 더는 줄이 늘지 않는다
+  }
+  return { fs: Math.max(min, best.fs), lines: best.lines };
 }
 
 // 시안 로크업은 "2024 / MIDAS WEEK"처럼 맨 앞 연도를 떼어 첫 줄에 세운다.

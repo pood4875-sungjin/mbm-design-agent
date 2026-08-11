@@ -82,8 +82,18 @@ export function buildPalette({ primary = '#2456D6', secondary, accent, mode = 'l
   };
 }
 
+// 두 색이 사실상 같은 색인가 — 색상환은 원형이라 0.98과 0.02는 이웃이다.
+function tooClose(a, b) {
+  const [h1, s1, l1] = rgbToHsl(hexToRgb(a));
+  const [h2, s2, l2] = rgbToHsl(hexToRgb(b));
+  const dh = Math.abs(h1 - h2);
+  return Math.min(dh, 1 - dh) < 0.07 && Math.abs(l1 - l2) < 0.16 && Math.abs(s1 - s2) < 0.3;
+}
+
 // 키비주얼 픽셀 → 대표색 제안. rgba 배열(Uint8ClampedArray 형태)을 받는다.
 // 채도 낮고 극단 밝기인 픽셀은 배경/노이즈로 보고 제외, HSL 버킷으로 군집화.
+// 상위 버킷을 그대로 잘라 쓰면 같은 색의 미세한 변주가 1·2·3위를 나눠 가져
+// 주색·보조·포인트가 눈으로는 한 색이 된다 — 이미 고른 색과 가까운 버킷은 건너뛴다.
 export function extractPalette(rgba, count = 3) {
   const buckets = new Map();
   for (let i = 0; i < rgba.length; i += 4) {
@@ -97,8 +107,42 @@ export function extractPalette(rgba, count = 3) {
     b.n++; b.r += rgb[0]; b.g += rgb[1]; b.b += rgb[2];
     buckets.set(key, b);
   }
-  const sorted = [...buckets.values()].sort((x, y) => y.n - x.n).slice(0, count);
-  return sorted.map(b => rgbToHex([b.r / b.n, b.g / b.n, b.b / b.n]));
+  const sorted = [...buckets.values()].sort((x, y) => y.n - x.n)
+    .map(b => rgbToHex([b.r / b.n, b.g / b.n, b.b / b.n]));
+  const out = [];
+  for (const hex of sorted) {
+    if (out.length >= count) break;
+    if (out.some(c => tooClose(c, hex))) continue;
+    out.push(hex);
+  }
+  return out;
+}
+
+// 뽑은 대표색을 역할에 배치한다.
+//   주색   = 이미지에서 가장 넓게 쓰인 색 — 키비주얼의 첫인상이 곧 캠페인 주색이 된다
+//   보조   = 그 다음으로 넓은, 주색과 구별되는 색
+//   포인트 = 남은 후보 중 채도가 가장 높은 색 — 작은 면적에서 눈에 띄어야 하기 때문
+// 후보가 모자랄 때 색상환을 크게 돌리지 않는 이유: 보색(+176°)은 키비주얼에 없던 색이라
+// 산출물에 얹으면 이미지와 따로 논다. 대신 이미 뽑힌 색의 명도·채도만 밀어
+// 같은 색 가족 안에서 자리를 만든다.
+export function rolesFromKeyVisual(colors = [], mode = 'light') {
+  const list = colors.filter(c => typeof c === 'string' && /^#[0-9A-Fa-f]{6}$/.test(c));
+  if (!list.length) return null;
+  const dark = mode === 'dark';
+  const sat = c => rgbToHsl(hexToRgb(c))[1];
+  const pop = c => shiftHue(c, 8, dark ? 0.08 : 0.02, 0.3);          // 같은 계열에서 채도만 올린 포인트색
+  const primary = list[0];
+  if (list.length === 1) {
+    // 한 색뿐 — 보조는 같은 색상의 명도 대비로, 포인트는 그 색을 더 진하게 짜서 만든다
+    return [primary, shiftHue(primary, 0, dark ? 0.16 : -0.16, -0.06), pop(primary)];
+  }
+  if (list.length === 2) {
+    // 둘 다 넓은 면적이므로 주색·보조로 쓰고, 포인트는 둘 중 더 쨍한 쪽에서 파생한다
+    return [primary, list[1], pop(sat(list[1]) >= sat(primary) ? list[1] : primary)];
+  }
+  const rest = list.slice(2);
+  const accent = rest.reduce((a, b) => (sat(b) > sat(a) ? b : a));
+  return [primary, list[1], accent];
 }
 
 // 키비주얼 위 글자 가독성 — 텍스트가 놓일 영역의 밝기·편차를 재서

@@ -15,8 +15,12 @@ function fullCampaign(channels) {
 }
 
 test('channelSpecIds maps channels to spec lists', () => {
+  // Google Ads 표준 규격 전개 — 앞의 5종이 실적 상위 기본 세트, 나머지는 선택 규격이다.
+  // 전개는 채널 단위라 여기서는 선택 규격까지 전부 나온다(기본 세트만 만드는 일은 앱이 걸러 낸다).
   assert.deepEqual(channelSpecIds(['banner', 'edm']), [
-    'banner-300x250', 'banner-728x90', 'banner-160x600', 'banner-320x100', 'banner-336x280', 'edm-600',
+    'banner-300x250', 'banner-336x280', 'banner-728x90', 'banner-300x600', 'banner-320x100',
+    'banner-160x600', 'banner-300x1050', 'banner-970x250', 'banner-970x90', 'banner-468x60',
+    'banner-250x250', 'banner-200x200', 'banner-320x50', 'banner-300x50', 'edm-600',
   ]);
   assert.deepEqual(channelSpecIds(['gwthumb']), ['gwthumb-374x271'], '그룹웨어 홍보 썸네일');
   assert.deepEqual(channelSpecIds(['landing']), ['landing']);
@@ -26,7 +30,7 @@ test('generateArtifacts fills artifacts with html per spec', () => {
   registerAll();
   const c = fullCampaign(['banner', 'landing']);
   generateArtifacts(c);
-  assert.equal(c.artifacts.length, 6);
+  assert.equal(c.artifacts.length, 15, '배너 14규격 + 랜딩');
   const landing = c.artifacts.find(a => a.specId === 'landing');
   assert.equal(landing.status, 'draft');
   assert.equal(landing.contextVersion, 1);

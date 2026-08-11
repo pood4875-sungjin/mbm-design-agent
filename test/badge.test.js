@@ -134,3 +134,33 @@ test('campaign roster reaches the badge renderer', () => {
   assert.match(c.artifacts[0].html, /박민수/);
   assert.match(c.artifacts[0].html, /최지우/);
 });
+
+/* ── 디자인 품질 회귀 방지 ── */
+
+test('badge logos are capped in width and never distorted', () => {
+  const withLogo = normalizeStyle({ colors: ['#0A3D91'], logo: 'logo.svg' });
+  for (const s of [spec, hspec]) {
+    const html = renderBadge(ctx, withLogo, s);
+    assert.match(html, /\.brand\{height:[\d.]+mm;width:auto;max-width:[\d.]+mm;object-fit:contain/, JSON.stringify(s.variant));
+  }
+});
+
+test('a long event name shrinks the top line instead of squeezing the name', () => {
+  // 이름이 주인공이다 — 행사명이 길다고 가운데 이름 영역을 잠식하면 안 된다.
+  const longCtx = createContext({ name: '2026 ONSITE MBM 서울 구조엔지니어링 및 디지털 트윈 기술 혁신 컨퍼런스 with MIDAS IT', date: 'd', venue: 'v', audience: 'a', cta: 'c' });
+  const evt = h => Number(h.match(/\.evt\{[^}]*font-size:([\d.]+)mm/)[1]);
+  assert.ok(evt(renderBadge(longCtx, style, spec)) < evt(renderBadge(ctx, style, spec)));
+});
+
+test('the horizontal card keeps the name on one line so the meta never hits the band', () => {
+  // 소속줄 위치는 "이름 한 줄" 전제로 역산돼 있다 — 두 줄이 되면 그래픽 밴드를 침범한다.
+  const long = renderBadge(ctx, style, { ...hspec, roster: [{ name: '알렉산더 콘스탄티노폴리스', org: 'MIDAS IT', role: '책임' }] });
+  const short = renderBadge(ctx, style, { ...hspec, roster: [{ name: '홍길동', org: 'MIDAS IT', role: '책임' }] });
+  const fs = h => Number(h.match(/\.pname\{font-size:([\d.]+)mm/)[1]);
+  assert.ok(fs(long) < fs(short), `${fs(long)} < ${fs(short)}`);
+});
+
+test('one roster prints at one size — the longest name sets it for everybody', () => {
+  const html = renderBadge(ctx, style, { ...hspec, roster: [{ name: '홍길동' }, { name: '알렉산더 콘스탄티노폴리스' }] });
+  assert.equal((html.match(/\.pname\{font-size:/g) ?? []).length, 1, '한 벌은 같은 크기로 인쇄된다');
+});

@@ -238,3 +238,61 @@ test('wayfinding can drop the arrow and show info only', () => {
   assert.match(html, /2026-10-15/, '대신 일정을 알린다');
   assert.doesNotMatch(html, /[↑↓←→]/);
 });
+
+/* ── 디자인 품질 회귀 방지 ── */
+
+const LONG_NAME = '2026 ONSITE MBM 서울 구조엔지니어링 및 디지털 트윈 기술 혁신 컨퍼런스 with MIDAS IT';
+const longCtx = createContext({ name: LONG_NAME, date: '2026-10-15', venue: '코엑스 그랜드볼룸', audience: 'a', cta: '사전등록' });
+const logoStyle = normalizeStyle({ colors: ['#0A3D91'], logo: 'logo.svg' });
+const titleMm = h => Number(h.match(/\.title\{font-size:([\d.]+)mm/)[1]);
+
+test('a long event name shrinks the title so the sheet never overflows', () => {
+  // 예전에는 크기가 짧은 변의 12.5% 고정이라 긴 행사명이 재단면 밖으로 흘렀고,
+  // 하단 로고가 날짜·장소 줄 위에 겹쳐 찍혔다.
+  const short = renderPrint(ctx, style, SPECS['poster-a2']);
+  const long = renderPrint(longCtx, style, SPECS['poster-a2']);
+  assert.ok(titleMm(long) < titleMm(short), `${titleMm(long)} < ${titleMm(short)}`);
+  assert.ok(titleMm(long) >= 420 * 0.045, '읽을 수 없을 만큼 줄이지는 않는다');
+});
+
+test('the foot band is reserved only when there is a logo to put there', () => {
+  const pads = h => h.match(/padding:([\d.]+)mm ([\d.]+)mm ([\d.]+)mm/).slice(1).map(Number);
+  const [, , withoutLogo] = pads(renderPrint(ctx, style, SPECS['xbanner-600x1800']));
+  const [, , withLogo] = pads(renderPrint(ctx, logoStyle, SPECS['xbanner-600x1800']));
+  const logoH = Number(renderPrint(ctx, logoStyle, SPECS['xbanner-600x1800']).match(/\.brand\{height:([\d.]+)mm/)[1]);
+  assert.ok(withLogo - withoutLogo >= logoH, '로고 높이만큼은 더 비운다');
+});
+
+test('landscape reserves the top band for its top-right lockup, and mirrors it below', () => {
+  // 가로물은 로고가 상단 우측이다. 위만 비우면 본문이 아래로 쏠려 중앙이 어긋난다.
+  const [top, side, bottom] = renderPrint(ctx, logoStyle, SPECS['hyunsumak-4000x900'])
+    .match(/padding:([\d.]+)mm ([\d.]+)mm ([\d.]+)mm/).slice(1).map(Number);
+  assert.ok(top > side, '상단은 로고 자리만큼 더 비운다');
+  assert.equal(top, bottom, '같은 값을 아래에도 줘 본문이 광학적 중앙에 남는다');
+});
+
+test('the logo box is capped in width so a wide lockup cannot cross the sheet', () => {
+  const html = renderPrint(ctx, logoStyle, SPECS['poster-a2']);
+  assert.match(html, /\.brand\{height:[\d.]+mm;width:auto;max-width:[\d.]+mm;object-fit:contain/);
+});
+
+test('main stacks eyebrow → title → meta instead of one title and one line', () => {
+  // 시안 문법 ③. 문구를 지어내지 않고 이미 가진 일자·장소를 두 층으로 나눈 것이다.
+  const html = renderPrint(ctx, style, SPECS['poster-a2']);
+  assert.ok(html.indexOf('class="eyebrow"') < html.indexOf('class="title"'), '일자가 제목 위');
+  assert.match(html, /class="eyebrow">2026-10-15</);
+  assert.match(html, /class="sub"[^>]*>코엑스</);
+});
+
+test('a sheet with no key visual gets a graphic layer, one with a key visual does not', () => {
+  // 시안 ②가 비워 둔 "그래픽 여백"이 지금까지 통째로 빈 색면이었다.
+  assert.match(renderPrint(ctx, style, SPECS['poster-a2']), /class="field"/);
+  const kv = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png' });
+  assert.doesNotMatch(renderPrint(ctx, kv, SPECS['poster-a2']), /class="field"/, '사진이 곧 그래픽이다');
+});
+
+test('the graphic layer sits under the type, never over it', () => {
+  const html = renderPrint(ctx, style, SPECS['poster-a2']);
+  assert.match(html, /\.sheet > \.scrim,\.sheet > \.field\{position:absolute\}/);
+  assert.ok(html.indexOf('class="field"') < html.indexOf('class="title"'), 'DOM 순서상 아래');
+});

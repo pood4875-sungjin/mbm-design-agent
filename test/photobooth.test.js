@@ -109,8 +109,52 @@ test('campaign pipeline generates a photobooth artifact', () => {
   registerAll();
   const c = createCampaign({ id: 't', context: ctx, style, channels: ['photobooth'] });
   generateArtifacts(c);
-  assert.equal(c.artifacts.length, 1);
-  assert.equal(c.artifacts[0].channel, 'photobooth');
-  assert.match(c.artifacts[0].html, /2026/);
-  assert.match(c.artifacts[0].html, /ONSITE MBM 서울/);
+  // 규격은 SPECS에 계속 추가된다(포토월 등) — "몇 장"이 아니라 "채널이 맞고 내용이 들어갔는가"를 본다.
+  assert.ok(c.artifacts.length >= 1);
+  for (const a of c.artifacts) {
+    assert.equal(a.channel, 'photobooth');
+    assert.match(a.html, /2026/);
+    // 로크업은 지면 비율에 따라 줄 수가 달라진다(포토부스 2:1 ↔ 포토월 1.2:1) —
+    // 줄바꿈을 걷어내고 행사명이 온전히 들어갔는지만 본다.
+    assert.match(a.html.replace(/<br>/g, ' '), /ONSITE MBM 서울/, a.specId);
+  }
+});
+
+/* ── 디자인 품질 회귀 방지 ── */
+
+const longCtx = createContext({
+  name: '2026 ONSITE MBM 서울 구조엔지니어링 및 디지털 트윈 기술 혁신 컨퍼런스 with MIDAS IT',
+  date: '10.15 WED - 10.17 FRI', venue: '코엑스', audience: 'a', cta: 'c',
+});
+const lockFs = h => Number(h.match(/\.title\{font-size:([\d.]+)mm/)[1]);
+const lockLines = h => (h.match(/<div class="title">([\s\S]*?)<\/div>/)[1].split('<br>').length);
+
+test('a long event name stays inside the upper band instead of running onto the shapes', () => {
+  // 이 매체의 핵심 규칙: 가운데 아래는 도형만(사람이 그 앞에 선다).
+  // 예전에는 CSS가 로크업을 예닐곱 줄로 접어 검은 글자가 남색 도형 위로 내려앉았다.
+  for (let v = 0; v < 4; v++) {
+    const long = renderPhotobooth(longCtx, style, { ...spec, variant: v });
+    const used = lockFs(long) * lockLines(long) * 1.04;
+    assert.ok(used <= spec.hmm * 0.45, `variant ${v}: 로크업 ${used.toFixed(0)}mm ≤ ${spec.hmm * 0.45}mm`);
+  }
+});
+
+test('when the figma type size cannot fit a long name, the size gives way', () => {
+  // TYPE1은 시안 크기가 짧은 변의 15.7%다 — 긴 행사명은 그 크기로는 어떻게 나눠도 띠를 넘는다.
+  const s = { ...spec, variant: 0 };
+  assert.ok(lockFs(renderPhotobooth(longCtx, style, s)) < lockFs(renderPhotobooth(ctx, style, s)));
+});
+
+test('a short wordmark keeps the figma composition untouched', () => {
+  // 짧은 워드마크에서는 시안 줄 수·크기가 그대로여야 한다 — 맞춤은 넘칠 때만 개입한다.
+  const wordmark = createContext({ name: '2024 MIDAS WEEK', date: 'd', venue: 'v', audience: 'a', cta: 'c' });
+  const html = renderPhotobooth(wordmark, style, spec);
+  assert.equal(lockFs(html), Number((spec.hmm * 0.157).toFixed(2)), 'TYPE1 시안 크기 그대로');
+  assert.equal(lockLines(html), 2, 'TYPE1 시안 줄 수 그대로');
+});
+
+test('the backdrop logo is capped in width so it cannot cross into the lockup', () => {
+  const withLogo = normalizeStyle({ colors: ['#0A3D91'], logo: 'logo.svg' });
+  const html = renderPhotobooth(ctx, withLogo, spec);
+  assert.match(html, /\.brand\{height:[\d.]+mm;width:auto;max-width:[\d.]+mm;object-fit:contain/);
 });

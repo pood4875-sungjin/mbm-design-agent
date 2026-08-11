@@ -5,10 +5,10 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
-import { FONTS, FONT_IDS } from '../core/fonts.js';
-import { extractPalette, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
-import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor } from '../core/contract.js';
-import { registerAll, generateArtifacts, logEvent } from '../core/generate.js';
+import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
+import { extractPalette, rolesFromKeyVisual, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
+import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
+import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
@@ -26,7 +26,7 @@ const CHANNEL_LABEL = {
   poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰', photobooth: '포토부스',
 };
 const CHANNEL_DESC = {
-  banner: 'Google Ads 5규격', edm: '이메일 HTML', landing: '등록 폼 포함', gwthumb: '374×271 · PNG',
+  banner: 'Google Ads 실적 상위 5규격', edm: '이메일 HTML', landing: '등록 폼 포함', gwthumb: '374×271 · PNG',
   poster: 'A2 · 인쇄 PDF', xbanner: '600×1800 · PDF', hyunsumak: '인쇄 PDF', badge: '110×140 · 명단 일괄',
   photobooth: '4000×2000 · 백드롭 PDF',
 };
@@ -76,10 +76,98 @@ function openHtml(html) {
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
+/* ═══ 생성 래퍼 — 제외 목록 · 커스텀 폰트 ═══
+   generate.js는 "채널 → 그 채널의 모든 규격"으로 전개한다. 그래서 규격 하나만 켜거나 끄는 일을
+   표현할 자리가 계약에 없다. 캠페인이 실제로 만드는 목록은 = 전개 결과 − campaign.excluded(키 배열)로 본다.
+   왜 뺄셈인가: 더하기(포함 목록)로 두면 채널을 새로 켤 때마다 목록을 다시 채워야 하고,
+   generate.js가 나중에 규격을 추가해도 캠페인이 그걸 받지 못한다. */
+function excludedOf(c = state.campaign) { return new Set(c?.excluded ?? []); }
+function setExcluded(set, c = state.campaign) { c.excluded = [...set]; }
+
+function regen(c = state.campaign) {
+  generateArtifacts(c);
+  const ex = excludedOf(c);
+  if (ex.size) c.artifacts = c.artifacts.filter(a => !ex.has(a.key ?? a.specId));
+  const face = customFontCss(c.style?.fonts?.heading);
+  if (face) for (const a of c.artifacts) a.html = embedFont(a.html, face);
+  return c;
+}
+
+// 커스텀 폰트 @font-face 주입. 배너·eDM 렌더러는 fontLink를 부르지 않으므로(외부 CSS 정책)
+// 그쪽에는 여기서 넣어 준다. 이미 들어 있으면 건드리지 않는다 — 폰트 바이트를 두 번 실을 이유가 없다.
+function embedFont(html, face) {
+  if (!html || html.includes(CUSTOM_MARK)) return html;
+  const style = `<style>${face}</style>`;
+  const i = html.indexOf('</head>');
+  // 완전한 문서면 head 안에, 조각(배너)이면 맨 앞에. doctype 앞에 붙이면 쿼크 모드로 떨어진다.
+  return i < 0 ? style + html : html.slice(0, i) + style + html.slice(i);
+}
+
+/* ═══ 폰트 파일 업로드 ═══
+   카탈로그 4종은 CDN 웹폰트다. 행사 전용 서체는 거기 없으므로 파일을 직접 받아 끼운다.
+   용량 정책 — 폰트는 산출물 HTML 한 장마다 통째로 복사된다(자기완결 대가):
+     · ~1MB 초과   경고만. 한글 woff2가 보통 이 언저리라 막으면 쓸 수 있는 폰트가 없어진다.
+     · 8MB 초과    거절. 서브셋 없는 ttf/otf는 20~30장이면 브라우저가 버티지 못한다.
+   저장은 캠페인과 분리한다 — 캠페인 스냅샷에 폰트 바이트가 섞이면 localStorage가 한 번에 터진다. */
+const FONT_FORMAT = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' };
+const FONT_WARN = 1_000_000, FONT_MAX = 8_000_000, FONT_STORE_MAX = 2_400_000;
+const FONTS_LS = 'mbm-custom-fonts';
+
+function readCustomFont(file) {
+  return new Promise((res, rej) => {
+    const ext = (file.name.split('.').pop() ?? '').toLowerCase();
+    const format = FONT_FORMAT[ext];
+    if (!format) return rej(new Error('.woff2 · .woff · .ttf · .otf 만 받습니다'));
+    if (file.size > FONT_MAX) return rej(new Error(`${(file.size / 1e6).toFixed(1)}MB — 8MB를 넘습니다. woff2로 서브셋해 올려 주세요`));
+    const r = new FileReader();
+    r.onerror = () => rej(new Error('파일을 읽지 못했습니다'));
+    r.onload = () => {
+      // 파일명에서 확장자를 떼고 id로 쓴다. 같은 폰트를 두 번 올려도 카탈로그가 늘지 않는다.
+      const id = 'custom-' + file.name.replace(/\.[^.]+$/, '').replace(/[^\w가-힣-]+/g, '-').slice(0, 40);
+      const rec = { id, label: `${file.name.replace(/\.[^.]+$/, '')} (첨부)`, dataUrl: r.result, format, bytes: file.size };
+      registerCustomFont(rec);
+      res(rec);
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+function rememberCustomFont(rec) {
+  if (rec.dataUrl.length > FONT_STORE_MAX) return false;   // 캠페인 저장 공간을 폰트가 잡아먹지 않게
+  try {
+    const list = JSON.parse(localStorage.getItem(FONTS_LS) || '[]').filter(f => f.id !== rec.id);
+    list.push(rec);
+    localStorage.setItem(FONTS_LS, JSON.stringify(list));
+    return true;
+  } catch { return false; }
+}
+function restoreCustomFonts() {
+  try { for (const f of JSON.parse(localStorage.getItem(FONTS_LS) || '[]')) registerCustomFont(f); } catch {}
+}
+
+// 업로드 공통 흐름 — 성공하면 등록된 id를 넘긴다. 경고·안내는 여기서 한 번만 낸다.
+function pickFontFile(input, onDone) {
+  const f = input.files[0];
+  if (!f) return;
+  readCustomFont(f).then(rec => {
+    const kept = rememberCustomFont(rec);
+    onDone(rec.id);
+    if (rec.bytes > FONT_WARN) toast(`${rec.label} 적용 — ${(rec.bytes / 1e6).toFixed(1)}MB라 산출물 파일이 그만큼 무거워집니다`);
+    else toast(`${rec.label} 적용됨`);
+    if (!kept) toast('폰트가 커서 브라우저에 보관하지 못했습니다 — 캠페인을 다시 열면 다시 첨부해 주세요');
+    log(`폰트 첨부: ${rec.label} (${(rec.bytes / 1e3).toFixed(0)}KB)`);
+  }).catch(e => toast(e.message)).finally(() => { input.value = ''; });
+}
+
+function fontOptions(selected) {
+  return fontIds().map(id => `<option value="${id}" ${id === selected ? 'selected' : ''}>${FONTS[id].label}</option>`).join('');
+}
+
 /* ═══ modal ═══ */
-function modal({ title, desc, body, actions }) {
+function modal({ title, desc, body, actions, wide = false }) {
   $('modalTitle').textContent = title;
   $('modalDesc').textContent = desc ?? '';
+  $('modal').classList.toggle('wide', wide);   // 규격 목록은 420px 안에서 두 열이 나오지 않는다
   $('modalBody').innerHTML = body;
   const btns = $('modalBtns'); btns.innerHTML = '';
   for (const a of actions) {
@@ -445,7 +533,7 @@ function slotStyle() {
       <div class="f" style="flex:1;min-width:210px">
         <label>모드</label>
         <div class="vseg" id="modeSeg"><button data-m="light" class="${it.mode === 'light' ? 'on' : ''}">라이트</button><button data-m="dark" class="${it.mode === 'dark' ? 'on' : ''}">다크</button></div>
-        <label style="margin-top:10px">컬러 세트 <span id="kvHint" style="color:var(--gen1)"></span></label>
+        <label style="margin-top:10px">브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="palette">
           <span class="sw"><input type="color" class="swatch" id="c1" value="${it.colors[0]}"><small>주색</small></span>
           <span class="sw"><input type="color" class="swatch" id="c2" value="${it.colors[1]}"><small>보조</small></span>
@@ -454,13 +542,18 @@ function slotStyle() {
         <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
         <div id="dpiBox" style="margin-top:8px"></div>
         <label style="margin-top:10px">폰트</label>
-        <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('')}</select>
+        <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${fontOptions(it.font)}</select>
+        <button class="btn" id="fontUp" style="width:100%;margin-top:6px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
+        <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
-  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); }; });
+  $('fontUp').onclick = () => $('fontFile').click();
+  $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
+  // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
+  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; });
   $('modeSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
     it.mode = b.dataset.m; applyDerived(); slotStyle();
   });
@@ -472,10 +565,10 @@ function slotStyle() {
     try {
       const { suggests, readability, meta } = await analyzeKeyVisual(d);
       it.suggests = suggests; it.kvReadability = readability; it.kvMeta = meta;
-      if (suggests[0]) it.colors = [suggests[0], suggests[1] ?? it.colors[1], suggests[2] ?? it.colors[2]];
+      it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       announceDpi();
-      bub('agent', `키비주얼에서 대표 컬러 ${suggests.slice(0, 2).join(', ')}를 뽑았어요. 글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.`);
+      bub('agent', `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.\n글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.`);
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), d => { it.logo = d; });
@@ -538,21 +631,33 @@ async function doUpscale(a) {
   }
 }
 
+// 색 세 자리를 다시 배치한다.
+// 키비주얼이 있으면 세 자리 모두 그 이미지에서 뽑은 색으로 채운다 —
+// 한 색만 쓰고 나머지를 색상환에서 돌려 만들면 보조·포인트가 키비주얼에 없던 색이 되어 겉돈다.
 function applyDerived() {
   const it = state.intake;
+  if (it.colorsManual) return;                       // 손으로 고른 색이 있으면 건드리지 않는다
+  if (it.suggests?.length) {
+    const roles = rolesFromKeyVisual(it.suggests, it.mode);
+    if (roles) { it.colors = roles; return; }
+  }
   const auto = buildPalette({ primary: it.colors[0], mode: it.mode });
-  if (!it.suggests[1]) it.colors[1] = auto.secondary;
-  if (!it.suggests[2]) it.colors[2] = auto.accent;
+  it.colors[1] = auto.secondary;
+  it.colors[2] = auto.accent;
 }
 
 function renderSuggests() {
   const it = state.intake;
   const box = $('suggests');
   if (!box) return;
-  if ($('kvHint')) $('kvHint').textContent = it.suggests.length ? '키비주얼에서 추출' : '';
+  if ($('kvHint')) $('kvHint').textContent = it.suggests.length ? '· 키비주얼에서 추출해 배치' : '';
   box.innerHTML = it.suggests.map(c => `<button class="sugg" data-c="${c}"><i style="background:${c}"></i>${c}</button>`).join('');
+  // 후보를 누르면 그 색이 주색으로 올라오고 나머지 후보로 보조·포인트가 다시 배치된다.
+  // (주색만 바꾸고 나머지를 그대로 두면 세 색이 서로 맞지 않는 조합이 남는다)
   box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
-    it.colors[0] = b.dataset.c; applyDerived(); slotStyle();
+    it.suggests = [b.dataset.c, ...it.suggests.filter(c => c !== b.dataset.c)];
+    it.colorsManual = false;
+    applyDerived(); slotStyle();
   });
 }
 
@@ -575,8 +680,9 @@ $('cvFileIn').onchange = () => {
     bub('user', `키비주얼 첨부: ${f.name}`);
     analyzeKeyVisual(r.result).then(({ suggests, readability, meta }) => {
       state.intake.suggests = suggests; state.intake.kvReadability = readability; state.intake.kvMeta = meta;
-      if (suggests[0]) { state.intake.colors[0] = suggests[0]; applyDerived(); }
-      bub('agent', `대표 컬러 ${suggests.join(', ')}를 감지했어요.`);
+      state.intake.colorsManual = false;
+      applyDerived();
+      bub('agent', `대표 컬러 ${suggests.join(', ')}를 감지해 주색·보조·포인트에 배치했어요.`);
       if (state.intake.phase === 'style') slotStyle();
     }).catch(() => {});
   };
@@ -637,15 +743,23 @@ function buildAndGenerate() {
   });
   const signage = {};
   for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
-  state.campaign = { id: slug(ctx.core.name), context: ctx, style, channels: it.channels, signage, roster: it.roster ?? [], artifacts: [], log: [] };
+  state.campaign = {
+    id: slug(ctx.core.name), context: ctx, style, channels: it.channels, signage,
+    roster: it.roster ?? [], artifacts: [], log: [],
+    // 첫 생성은 권장 규격만. 나머지(Google Ads 선택 규격·포토월 등)는 켜 두면 20장이 깔린다 —
+    // 아트보드의 "+ 산출물 추가"에서 필요할 때 꺼내 쓴다.
+    excluded: optionalSpecIds(it.channels),
+  };
   logEvent(state.campaign, 'campaign_created', {});
   registerAll();
-  generateArtifacts(state.campaign);
+  regen();
   for (const a of state.campaign.artifacts) {
-    const sz = it.sizes[a.channel];
+    // 인테이크에서 고른 규격은 채널 단위다. 한 채널에 성격이 다른 규격이 섞여 있으면
+    // (포토부스 2:1 ↔ 포토월) 자기 프리셋을 가진 쪽은 채널 값을 물려받지 않는다.
+    const sz = it.sizes[a.specId] ?? (SIZE_PRESETS[a.specId] ? null : it.sizes[a.channel]);
     if (sz?.wmm && sz?.hmm) a.size = { wmm: sz.wmm, hmm: sz.hmm };
   }
-  generateArtifacts(state.campaign);
+  regen();
   saveCampaignToStore();   // 생성 즉시 남긴다 — 여기서 이탈해도 잃지 않는다
   enterWork({ staged: true });
 }
@@ -737,13 +851,23 @@ function layoutArtboard(opts = {}) {
   state.boardH = y;
 }
 const PURPOSE_SHORT = { main: '', way: '방향', agenda: '프로그램', reception: '등록데스크' };
+// 규격 이름 — 배너가 5종에서 14종으로 늘었고 포토부스·포토월이 채널을 공유한다.
+// 채널 이름만 쓰면 아트보드에 같은 라벨이 여러 장 깔려 무엇을 고쳤는지 알 수 없다.
+function specSize(spec, size = null) {
+  if (size?.wmm) return `${size.wmm}×${size.hmm}mm`;
+  if (spec.unit === 'mm') return `${spec.wmm}×${spec.hmm}mm`;
+  return spec.w && spec.h ? `${spec.w}×${spec.h}` : '';
+}
 function artLabel(a) {
   const spec = SPECS[a.specId];
-  const sz = a.size ? `${a.size.wmm}×${a.size.hmm}` : (spec.unit === 'mm' ? `${spec.wmm}×${spec.hmm}` : '');
+  if (!spec) return a.specId;
+  const sz = specSize(spec, a.size);
   const pur = a.purpose && a.purpose !== 'main'
     ? ` · ${PURPOSE_SHORT[a.purpose]}${a.arrow ? ' ' + (ARROWS[a.arrow] ?? '') : ''}` : '';
-  return `${CHANNEL_LABEL[a.channel] ?? a.specId}${pur}${sz ? ` · ${sz}mm` : ''}`;
+  return `${spec.title ?? CHANNEL_LABEL[a.channel] ?? a.specId}${pur}${sz ? ` · ${sz}` : ''}`;
 }
+// 규격 프리셋은 채널 단위가 기본이지만, 자기 프리셋을 가진 규격은 그쪽이 우선한다
+function presetsFor(a) { return SIZE_PRESETS[a.specId] ?? SIZE_PRESETS[a.channel] ?? []; }
 function badgeText(s) { return { draft: 'DRAFT', approved: '승인됨', needsReview: '확인 필요' }[s] ?? s; }
 
 function refreshFrames(only = null) {
@@ -853,7 +977,7 @@ function applySnapshot(entry) {
   const c = cloneCampaign(entry.campaign);
   c.log = state.campaign.log;    // 로그는 현재 것을 그대로 이어 쓴다
   state.campaign = c;
-  generateArtifacts(c);          // html은 파생물 — 여기서 다시 만들어진다
+  regen(c);          // html은 파생물 — 여기서 다시 만들어진다
   layoutArtboard();              // 규격·명단이 바뀌었으면 프레임 크기·개수 자체가 달라진다
   const alive = c.artifacts.some(a => (a.key ?? a.specId) === entry.selected);
   select(alive ? entry.selected : null);
@@ -955,7 +1079,7 @@ function renderInspector() {
         <button data-m="light" class="${c.style.mode !== 'dark' ? 'on' : ''}">라이트</button>
         <button data-m="dark" class="${c.style.mode === 'dark' ? 'on' : ''}">다크</button>
       </div>
-      <label>컬러 세트</label>
+      <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
       <div style="display:flex;gap:10px">
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor2" value="${c.style.palette.secondary}"><small style="font-size:10px;color:var(--sub)">보조</small></span>
@@ -965,9 +1089,15 @@ function renderInspector() {
       <div id="iDpi" style="font-size:11px;line-height:1.5;margin-bottom:6px"></div>
       <div class="kvthumb" id="iKv" style="width:100%;height:76px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
-      ${c.style.keyVisual ? '<button class="btn" id="iKvClear" style="width:100%;margin-top:6px">키비주얼 제거</button>' : ''}
+      ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
+        <button class="btn" id="iKvClear" style="flex:1">제거</button></div>` : ''}
       <label>폰트</label>
-      <select id="iFont">${FONT_IDS.map(id => `<option value="${id}">${FONTS[id].label}</option>`).join('')}</select>
+      <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
+      <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
+      <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
+      <h3 style="margin-top:18px">산출물 <span class="mode">${c.artifacts.length}종</span></h3>
+      <button class="btn pri" id="iAdd" style="width:100%">＋ 산출물 추가</button>
       <div id="inspNote"></div>`;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
@@ -996,7 +1126,7 @@ function renderInspector() {
         ...patch,
       });
       logEvent(c, 'style_changed', {});
-      generateArtifacts(c);
+      regen(c);
       autosave();
       refreshFrames();
       $('inspNote').textContent = '스타일 전체 반영됨';
@@ -1041,7 +1171,9 @@ function renderInspector() {
         }
       }
     }
-    // 키비주얼 교체 — 새 이미지의 대표색·가독성을 다시 재고 반영
+    // 키비주얼 교체 — 새 이미지의 대표색·가독성을 다시 재고 반영.
+    // 색까지 함께 바꾸는 이유: 이미지를 갈아 끼웠는데 팔레트가 전 이미지 색으로 남아 있으면
+    // 산출물이 키비주얼과 따로 논다(사용자 지적). 손으로 고친 색은 교체할 때만 덮는다.
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
     kvIn.onchange = () => {
@@ -1050,16 +1182,36 @@ function renderInspector() {
       r.onload = async () => {
         let readability = null, suggests = [], meta = null;
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(r.result)); } catch {}
-        restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta }, '키비주얼 교체');
+        const roles = rolesFromKeyVisual(suggests, c.style.mode);
+        restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
-        toast(suggests.length ? `키비주얼 교체 — 대표색 ${suggests[0]} 감지` : '키비주얼 교체');
+        toast(roles ? `키비주얼 교체 — 색 ${roles.join(', ')} 배치` : '키비주얼 교체');
       };
       r.readAsDataURL(f);
     };
+    // 색을 손으로 만지다 길을 잃었을 때 되돌아올 지점 — 지금 키비주얼에서 세 자리를 다시 뽑는다
+    insp.querySelector('#iKvColors')?.addEventListener('click', async () => {
+      try {
+        const { suggests } = await analyzeKeyVisual(c.style.keyVisual);
+        const roles = rolesFromKeyVisual(suggests, c.style.mode);
+        if (!roles) { toast('이미지에서 쓸 만한 색을 찾지 못했어요'); return; }
+        restyle({ colors: roles }, '키비주얼 색 재추출');
+        renderInspector();
+        toast(`주색 ${roles[0]} · 보조 ${roles[1]} · 포인트 ${roles[2]}`);
+      } catch { toast('색 추출 실패'); }
+    });
     insp.querySelector('#iKvClear')?.addEventListener('click', () => {
       restyle({ keyVisual: null, kvReadability: null, kvMeta: null }, '키비주얼 제거');
       renderInspector();
     });
+    // 폰트 파일 첨부 — 카탈로그에 끼운 뒤 그 폰트로 전체 재생성
+    const fontIn = insp.querySelector('#iFontFile');
+    insp.querySelector('#iFontUp').onclick = () => fontIn.click();
+    fontIn.onchange = () => pickFontFile(fontIn, id => {
+      restyle({ fonts: { heading: id, body: id } }, '폰트 첨부');
+      renderInspector();
+    });
+    insp.querySelector('#iAdd').onclick = () => addArtifactModal();
     return;
   }
 
@@ -1067,7 +1219,7 @@ function renderInspector() {
   const nVar = VARIANTS[a.channel] ?? 1;
   const spec = effSpec(a);
   const isPrint = spec.unit === 'mm';
-  const presets = SIZE_PRESETS[a.channel] ?? [];
+  const presets = presetsFor(a);
   insp.innerHTML = `
     <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
     <div class="hint">이 산출물에서만 다르게 표기할 값. 비우면 공통값. 개별 값은 일괄 반영에서 보존됩니다.</div>
@@ -1101,6 +1253,7 @@ function renderInspector() {
       <button class="btn pri" id="iExp">내보내기</button>
       <button class="btn" id="iDesel">해제</button>
     </div>
+    <button class="btn danger" id="iDel" style="width:100%;margin-top:6px">이 산출물 빼기</button>
     <div id="inspNote"></div>`;
   insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
     const f = i.dataset.f, v = i.value.trim();
@@ -1110,7 +1263,7 @@ function renderInspector() {
     a.overrides.core = o;
     a.status = 'draft';
     logEvent(c, 'manual_edit', { specId: a.specId });
-    generateArtifacts(c);
+    regen(c);
     autosave();
     refreshFrames(a.specId);
     $('inspNote').textContent = '이 산출물만 반영됨';
@@ -1122,7 +1275,7 @@ function renderInspector() {
     a.variant = Number(b.dataset.v);
     a.status = 'draft';
     logEvent(c, 'variation_cycled', { specId: a.specId, variant: a.variant });
-    generateArtifacts(c);
+    regen(c);
     autosave();
     refreshFrames(a.specId);
     renderInspector();
@@ -1132,7 +1285,7 @@ function renderInspector() {
     pushHistory(`${artLabel(a)} 규격 ${w}×${h}mm`);
     a.size = { wmm: w, hmm: h };
     logEvent(c, 'size_changed', { key: a.key, wmm: w, hmm: h });
-    generateArtifacts(c);
+    regen(c);
     autosave();
     layoutArtboard();
     select(a.key ?? a.specId);
@@ -1157,7 +1310,7 @@ function renderInspector() {
       c.roster = list;
       logEvent(c, 'roster_loaded', { count: list.length });
       autosave();
-      generateArtifacts(c);
+      regen(c);
       refreshFrames();
       renderInspector();
       toast(`${list.length}명 적용 — 명찰이 ${list.length}장으로 생성됐어요`);
@@ -1175,6 +1328,128 @@ function renderInspector() {
   insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
   insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
   insp.querySelector('#iDesel').onclick = () => select(null);
+  insp.querySelector('#iDel').onclick = () => removeArtifact(a);
+}
+
+/* ═══ 산출물 추가 · 제거 ═══
+   인테이크에서 고른 채널이 끝이면, 아트보드에 들어온 뒤 "배너 하나 더" 같은 요구를 처리할 방법이 없다.
+   여기서는 규격 단위로 켜고 끈다 — 채널은 규격을 담는 통이지 사용자가 세는 단위가 아니다. */
+function removeArtifact(a) {
+  const c = state.campaign;
+  const key = a.key ?? a.specId;
+  pushHistory(`${artLabel(a)} 제거`);
+  const ex = excludedOf(c); ex.add(key); setExcluded(ex, c);
+  regen(c);
+  // 채널에 남은 산출물이 없으면 채널 자체를 뺀다 — 캠페인이 "무엇을 만드는가"의 목록이기 때문
+  if (!c.artifacts.some(x => x.channel === a.channel)) c.channels = c.channels.filter(ch => ch !== a.channel);
+  logEvent(c, 'artifact_removed', { key });
+  autosave();
+  layoutArtboard();
+  select(null);
+  log(`산출물 제거: ${artLabel(a)}`);
+  toast(`${artLabel(a)} 제거 — 되돌리기(${KEYS.undo})로 복구`);
+}
+
+// 지금 이 채널이 만들고 있는 용도 조합. signage를 처음 건드릴 때 여기서 시작해야
+// 이미 있던 메인 한 장이 조용히 사라지지 않는다(generate.js는 signage 목록이 있으면 그것만 만든다).
+function currentSignage(ch) {
+  const list = state.campaign.artifacts.filter(a => a.channel === ch)
+    .map(a => ({ purpose: a.purpose ?? 'main', arrow: a.arrow ?? null }));
+  return list.length ? list : [{ purpose: 'main', arrow: null }];
+}
+
+function addArtifacts(picks) {
+  const c = state.campaign;
+  const ex = excludedOf(c);
+  const fresh = new Set(picks.map(p => SPECS[p.specId]?.channel).filter(ch => ch && !c.channels.includes(ch)));
+  for (const ch of fresh) {
+    c.channels.push(ch);
+    // 채널을 켜면 그 채널의 규격이 통째로 딸려 온다(generate.js는 채널→전규격 전개).
+    // 일단 전부 막고 아래에서 고른 것만 연다 — 배너 한 장 켜자고 14장이 깔리면 못 쓴다.
+    for (const id of specIdsOf([ch])) ex.add(id);
+  }
+  for (const pick of picks) {
+    const spec = SPECS[pick.specId];
+    if (!spec) continue;
+    const ch = spec.channel;
+    if (pick.purpose && pick.purpose !== 'main') {
+      // 새로 켠 채널은 빈 목록에서 시작한다 — 고르지도 않은 메인 한 장이 딸려 오면 안 된다
+      const set = c.signage[ch] ?? (c.signage[ch] = fresh.has(ch) ? [] : currentSignage(ch));
+      if (!set.some(x => x.purpose === pick.purpose && (x.arrow ?? null) === (pick.arrow ?? null))) {
+        set.push({ purpose: pick.purpose, arrow: pick.arrow ?? null });
+      }
+    }
+    ex.delete(artifactKey(pick.specId, pick.purpose ?? 'main', pick.arrow ?? null));
+  }
+  setExcluded(ex, c);
+  regen(c);
+  logEvent(c, 'artifact_added', { count: picks.length });
+  autosave();
+  layoutArtboard();
+  select(null);
+  fitZoom();
+}
+
+// 고를 수 있는 것 = 모든 규격 × (사이니지면 용도). 이미 있는 것은 체크·잠금으로 보여 준다 —
+// 목록에서 빼 버리면 "왜 없지?" 하고 다시 찾게 된다.
+function addArtifactModal() {
+  const c = state.campaign;
+  const have = new Set(c.artifacts.map(a => a.key ?? a.specId));
+  const group = (title, channels) => {
+    const rows = channels.flatMap(ch => Object.entries(SPECS).filter(([, s]) => s.channel === ch).map(([id, s]) => {
+      const on = have.has(id);
+      const size = specSize(s);
+      const name = s.title ?? CHANNEL_LABEL[ch] ?? id;
+      return `<label class="pickrow ${on ? 'had' : ''}">
+        <input type="checkbox" value="${id}" ${on ? 'checked disabled' : ''}>
+        <b>${name}${size ? ` · ${size}` : ''}</b>
+        <span>${s.label ?? ''}</span>
+        ${s.recommended ? '<i class="tag">권장</i>' : ''}${s.device === 'mobile' ? '<i class="tag mob">모바일</i>' : ''}
+        ${on ? '<i class="tag had">있음</i>' : ''}
+      </label>`;
+    }));
+    return `<h5>${title}</h5><div class="pickgrid">${rows.join('')}</div>`;
+  };
+  // 오프라인은 같은 규격이라도 용도가 다르면 다른 장이다 — 용도·화살표를 함께 고르게 한다
+  const purposeRows = OFFLINE.filter(ch => purposesFor(ch).length).map(ch => `
+    <label class="pickrow">
+      <input type="checkbox" data-sign="${ch}">
+      <b>${CHANNEL_LABEL[ch]}</b>
+      <select data-purpose="${ch}">${purposesFor(ch).map(p => `<option value="${p.id}">${p.label}</option>`).join('')}</select>
+      <select data-arrow="${ch}">${Object.entries(ARROWS).map(([k, g]) => `<option value="${k}">${g || '화살표 없음'}</option>`).join('')}</select>
+    </label>`).join('');
+
+  modal({
+    title: '산출물 추가',
+    desc: '규격을 골라 이 캠페인에 더합니다. 권장 = Google이 실적 상위로 안내하는 규격.',
+    wide: true,
+    body: `${group('온라인', ONLINE)}${group('오프라인', OFFLINE)}
+      <h5>오프라인 · 용도별 추가</h5>
+      <div class="pickgrid">${purposeRows}</div>
+      <div class="pickNote">방향 안내는 고른 화살표마다 한 장씩 만들어집니다.</div>`,
+    actions: [
+      { label: '닫기' },
+      { label: '추가', pri: true, fn: () => {
+        const box = $('modalBody');
+        const picks = [...box.querySelectorAll('.pickgrid input[type=checkbox]:checked:not(:disabled)')].map(i => {
+          if (i.dataset.sign) {
+            const ch = i.dataset.sign;
+            const purpose = box.querySelector(`select[data-purpose="${ch}"]`).value;
+            const arrow = box.querySelector(`select[data-arrow="${ch}"]`).value;
+            const specId = Object.keys(SPECS).find(id => SPECS[id].channel === ch);
+            const needsArrow = PURPOSES.find(p => p.id === purpose)?.needsArrow;
+            return { specId, purpose, arrow: needsArrow ? arrow : null };
+          }
+          return { specId: i.value, purpose: 'main', arrow: null };
+        }).filter(p => p.specId);
+        if (!picks.length) { toast('추가할 규격을 고르세요'); return false; }
+        pushHistory(`산출물 ${picks.length}종 추가`);
+        addArtifacts(picks);
+        log(`산출물 추가: ${picks.map(p => SPECS[p.specId].title ?? p.specId).join(', ')}`);
+        toast(`${picks.length}종 추가됨`);
+      } },
+    ],
+  });
 }
 
 /* ═══ 내보내기 ═══ */
@@ -1300,7 +1575,7 @@ async function onCommand(text) {
   if (/다른\s*시안|시안\s*바꿔/.test(text)) {
     pushHistory('전체 시안 변경');
     for (const a of c.artifacts) if ((VARIANTS[a.channel] ?? 1) > 1) a.variant = ((a.variant ?? 0) + 1) % VARIANTS[a.channel];
-    generateArtifacts(c);
+    regen(c);
     refreshFrames();
     log('전체 시안 사이클');
     toast('전 산출물 레이아웃 시안 변경');
@@ -1348,7 +1623,7 @@ function saveCampaignToStore() {
     id: c.id, savedAt: Date.now(),
     status: done ? 'approved' : 'draft',
     context: c.context, style: c.style, channels: c.channels,
-    signage: c.signage ?? {}, roster: c.roster ?? [],
+    signage: c.signage ?? {}, roster: c.roster ?? [], excluded: c.excluded ?? [],
     conversation: (state.intake?.history ?? []).slice(-40),
     artifacts: c.artifacts.map(a => ({
       key: a.key ?? a.specId, specId: a.specId, channel: a.channel,
@@ -1369,15 +1644,15 @@ const LOG_LABEL = {
   campaign_created: '캠페인 생성', artifact_generated: '산출물 생성', manual_edit: '개별 편집',
   propagation_run: '일괄 반영', style_changed: '스타일 변경', size_changed: '규격 변경',
   variation_cycled: '시안 변경', roster_loaded: '명단 적용', artifact_approved: '전체 승인',
-  campaign_reopened: '다시 열기',
+  campaign_reopened: '다시 열기', artifact_added: '산출물 추가', artifact_removed: '산출물 제거',
 };
 
 function openStored(saved) {
-  state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [] };
+  state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [], excluded: saved.excluded ?? [] };
   // 저장된 대화도 되살린다 — 무엇을 어떻게 정했는지가 이력의 핵심이다
   state.intake = { ...(state.intake ?? {}), history: saved.conversation ?? [] };
   registerAll();
-  generateArtifacts(state.campaign);
+  regen(state.campaign);
   for (const a of state.campaign.artifacts) {
     const s = (saved.artifacts ?? []).find(x => (x.key ?? x.specId) === (a.key ?? a.specId));
     if (!s) continue;
@@ -1386,7 +1661,7 @@ function openStored(saved) {
     if (s.overrides) a.overrides = s.overrides;
     if (s.variant != null) a.variant = s.variant;
   }
-  generateArtifacts(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
+  regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
   logEvent(state.campaign, 'campaign_reopened', {});
   enterWork();
   log(`저장된 캠페인 재현: ${saved.context.core.name}`);
@@ -1426,6 +1701,7 @@ async function runKeyTest() {
 }
 
 /* ═══ boot ═══ */
+restoreCustomFonts();   // 지난 세션에 첨부한 폰트를 카탈로그에 되돌려 놓아야 저장된 캠페인이 같은 글자로 열린다
 $('homeBtn').onclick = () => show('home');
 $('logHead').onclick = () => $('logCard').classList.toggle('open');
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다

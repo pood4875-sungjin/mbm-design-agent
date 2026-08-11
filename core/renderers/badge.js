@@ -17,7 +17,7 @@
 // 두 시안 모두 색은 캠페인 팔레트를 따른다(템플릿의 마젠타, 시안의 남색·연두는 고정색이 아니다).
 // 명단이 없으면 견본 1장(플레이스홀더)을 낸다. 있으면 사람 수만큼 페이지를 이어 붙인다.
 
-import { esc } from './banner.js';
+import { esc, fitFontSize, WRAP } from './banner.js';
 import { fontStack, fontLink } from '../fonts.js';
 import { shiftHue } from '../palette.js';
 
@@ -34,9 +34,12 @@ export function renderBadge(ctx, style, spec) {
   const pxH = (H * 3.7795).toFixed(0);
 
   const landscape = spec.variant === 1 || spec.wmm > spec.hmm;
+  // 명찰 한 벌은 같은 크기로 인쇄돼야 한다 — 이름 크기는 사람마다가 아니라
+  // 명단에서 가장 긴 이름 하나로 정해 전 장에 같게 적용한다.
+  const longest = people.reduce((a, b) => (String(b.name ?? '').length > String(a).length ? String(b.name) : a), '');
   const L = landscape
-    ? horizontalLayout(ctx, style, spec, { mm })
-    : verticalLayout(ctx, style, spec, { mm });
+    ? horizontalLayout(ctx, style, spec, { mm, longest })
+    : verticalLayout(ctx, style, spec, { mm, longest });
 
   const page = (person, i) => `<div class="badge"${i ? ' style="page-break-before:always"' : ''}>
 ${L.body(person, i)}
@@ -86,7 +89,7 @@ ${people.map(page).join('\n')}
 
 /* ── variant 0 · 세로형 (엔솔 템플릿 762:4075) ────────────────────────────── */
 
-function verticalLayout(ctx, style, spec, { mm }) {
+function verticalLayout(ctx, style, spec, { mm, longest }) {
   const p = style.palette;
   const { name: evt, date, venue } = ctx.core;
 
@@ -105,18 +108,23 @@ function verticalLayout(ctx, style, spec, { mm }) {
       `transform:translate(-50%,-50%) rotate(${rot.toFixed(2)}deg);background:${col}"></div>`;
   }).join('');
 
+  // 행사명은 명찰의 조연이다. 길어지면 두 줄 안에서 줄여 중앙 이름 영역을 잠식하지 않게 한다.
+  const evtFs = fitFontSize(evt, spec.wmm - Number(mm(0.14)), Number(mm(0.115)), Number(mm(0.045)), Number(mm(0.026)), 1.15);
+  // 이름은 멀리서 읽히는 게 목적이라 크게 두되, 긴 이름이 카드 폭을 넘지는 않게 한 줄에 맞춘다.
+  const nameFs = fitFontSize(longest, spec.wmm - Number(mm(0.14)), Number(mm(0.13)), Number(mm(0.12)), Number(mm(0.055)), 1.11);
   return {
     label: '세로형',
     css: `.badge{background:${card};color:#FFFFFF;display:flex;flex-direction:column;align-items:center;
   padding:${mm(0.075)}mm ${mm(0.07)}mm ${mm(0.06)}mm}
 .art{position:absolute;left:50%;top:50%;width:${spec.wmm}mm;height:${spec.wmm}mm;transform:translate(-50%,-50%)}
-.evt{position:relative;font-size:${mm(0.045)}mm;font-weight:600;letter-spacing:-0.01em;text-align:center;line-height:1.1;word-break:keep-all}
-.mid{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${mm(0.012)}mm;text-align:center;width:100%}
-.pname{font-size:${mm(0.12)}mm;font-weight:600;letter-spacing:-0.01em;line-height:1.11;word-break:keep-all}
+.evt{position:relative;flex:none;font-size:${evtFs.toFixed(2)}mm;font-weight:600;letter-spacing:-0.01em;text-align:center;line-height:1.15;${WRAP}}
+.mid{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${mm(0.012)}mm;text-align:center;width:100%;min-height:0}
+.pname{font-size:${nameFs.toFixed(2)}mm;font-weight:600;letter-spacing:-0.01em;line-height:1.11;${WRAP}}
 .porg{font-size:${mm(0.037)}mm;font-weight:600;letter-spacing:-0.01em;line-height:1.11;opacity:.95}
 .prole{font-size:${mm(0.032)}mm;opacity:.72;margin-top:${mm(0.008)}mm}
-.foot{position:relative;height:${mm(0.05)}mm;display:flex;align-items:center;justify-content:center}
-.brand{height:${mm(0.038)}mm;width:auto;filter:brightness(0) invert(1)}
+/* 로고 자리는 높이가 고정된 flex 아이템이다 — 이름이 길어져도 로고 위로 올라오지 못한다. */
+.foot{position:relative;flex:none;height:${mm(0.05)}mm;display:flex;align-items:center;justify-content:center}
+.brand{height:${mm(0.038)}mm;width:auto;max-width:${(spec.wmm * 0.62).toFixed(2)}mm;object-fit:contain;filter:brightness(0) invert(1)}
 .meta{font-size:${mm(0.028)}mm;opacity:.6}`,
     body: person => `  <div class="art">${vortex}</div>
   <div class="evt">${esc(evt)}</div>
@@ -149,12 +157,16 @@ const HZ = {
 // 그 차이(라인박스 윗선 ~ 한글 잉크 윗선)는 글자 크기에 비례하므로 em 상수 하나로 보정한다.
 const LEAD = 0.062;
 
-function horizontalLayout(ctx, style, spec, { mm }) {
+function horizontalLayout(ctx, style, spec, { mm, longest }) {
   const p = style.palette;
   const { name: evt } = ctx.core;
   const ink = p.onPrimary;             // 순흑/순백 중 지면 대비가 큰 쪽 (palette.onColor)
   const bandH = spec.hmm * HZ.bandH;
-  const nameFs = Number(mm(HZ.nameSize));
+  // 아래 metaGap 계산은 이름이 "한 줄"이라는 전제 위에 서 있다 — 이름이 두 줄로 넘어가면
+  // 소속줄이 밀려 그래픽 밴드를 침범한다. 그래서 크기를 키우는 대신 한 줄에 맞춰 줄인다.
+  const headW = spec.wmm + spec.bleed * 2 - Number(mm(0.05)) * 2;
+  const nameMax = Number(mm(HZ.nameSize));
+  const nameFs = fitFontSize(longest, headW, nameMax * 1.02, nameMax, nameMax * 0.42, 1);
   const metaFs = Number(mm(HZ.metaSize));
   // 이름 라인박스 바로 아래에서 소속줄 잉크가 metaTop에 앉도록 역산한 간격
   const metaGap = spec.hmm * (HZ.metaTop - HZ.nameTop) - nameFs + LEAD * (nameFs - metaFs);
@@ -164,7 +176,7 @@ function horizontalLayout(ctx, style, spec, { mm }) {
     // 지면은 주색. 시안은 남색·연두 2벌이었는데, 그건 캠페인 주색/보조색 자리다 — 고정하지 않는다.
     css: `.badge{background:${p.primary};color:${ink}}
 .head{position:absolute;left:0;right:0;top:${(spec.bleed + spec.hmm * HZ.nameTop - nameFs * LEAD).toFixed(2)}mm;text-align:center;padding:0 ${mm(0.05)}mm}
-.pname{font-size:${nameFs.toFixed(2)}mm;font-weight:700;letter-spacing:-0.035em;line-height:1;word-break:keep-all}
+.pname{font-size:${nameFs.toFixed(2)}mm;font-weight:700;letter-spacing:-0.035em;line-height:1;${WRAP}}
 .pmeta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 ${mm(0.035)}mm;
   margin-top:${metaGap.toFixed(2)}mm;
   font-size:${metaFs.toFixed(2)}mm;font-weight:700;letter-spacing:-0.01em;line-height:1;word-break:keep-all}
@@ -175,7 +187,8 @@ function horizontalLayout(ctx, style, spec, { mm }) {
 .mark{position:absolute;left:0;right:0;bottom:${(spec.bleed + spec.hmm * HZ.markBottom).toFixed(2)}mm;
   display:flex;align-items:flex-end;justify-content:center}
 .markText{font-size:${mm(HZ.markSize)}mm;font-weight:700;letter-spacing:-0.01em;line-height:1;word-break:keep-all}
-.brand{height:${mm(0.05)}mm;width:auto;${ink === '#FFFFFF' ? 'filter:brightness(0) invert(1)' : 'filter:brightness(0)'}}`,
+/* 폭을 물리지 않으면 초가로 로크업이 카드 밖으로 나간다. contain이라 비율은 왜곡되지 않는다. */
+.brand{height:${mm(0.05)}mm;width:auto;max-width:${(spec.wmm * 0.55).toFixed(2)}mm;object-fit:contain;${ink === '#FFFFFF' ? 'filter:brightness(0) invert(1)' : 'filter:brightness(0)'}}`,
     body: (person, i) => {
       // 시안은 소속과 직급을 세로로 쌓지 않고 얇은 세로줄로 이어 한 줄에 붙인다.
       // 둘 중 하나만 있으면 구분선도 빼야 줄이 어색해지지 않는다.

@@ -23,7 +23,7 @@ test('propagate updates context and re-renders all artifacts', () => {
   const { impacted, conflicts } = propagate(c, { venue: '킨텍스' });
   assert.equal(c.context.version, 2);
   assert.equal(c.context.core.venue, '킨텍스');
-  assert.equal(impacted.length, 6);
+  assert.equal(impacted.length, 15);
   assert.deepEqual(conflicts, []);
   for (const a of c.artifacts) {
     assert.match(a.html, /킨텍스/);
@@ -49,5 +49,5 @@ test('propagate flags same-field conflicts and skips those artifacts', () => {
   assert.deepEqual(conflicts, [{ specId: 'landing', field: 'venue' }]);
   assert.equal(landing.status, 'needsReview');
   assert.equal(landing.html, before, '충돌 산출물은 자동 갱신하지 않음');
-  assert.equal(impacted.length, 5);
+  assert.equal(impacted.length, 14);
 });

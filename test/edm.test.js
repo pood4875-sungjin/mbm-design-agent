@@ -43,7 +43,33 @@ test('renderEdm puts the title over the key visual, not beside it', () => {
 
 test('renderEdm body has a styled info block', () => {
   const html = renderEdm(ctx, style, spec);
-  assert.match(html, /background:#f6f7f8/, '본문 정보 블록');
+  assert.match(html, new RegExp(`background:${style.palette.surface}`), '본문 정보 블록은 팔레트 면색');
   assert.match(html, /INVITATION/);
   assert.match(html, /건설 엔지니어|건설 구조 엔지니어/);
+});
+
+test('renderEdm takes every colour from the palette', () => {
+  // 예전에는 #f6f7f8 · #888888 · #eeeeee 같은 회색이 박혀 있었다.
+  // 다크 팔레트로 바꾸면 흰 지면 가정이 깨져 글자가 사라진다.
+  const dark = normalizeStyle({ colors: ['#0A3D91'], mode: 'dark' });
+  const html = renderEdm(ctx, dark, spec);
+  const allowed = new Set([
+    ...Object.values(dark.palette).filter(v => /^#/.test(v)).map(v => v.toUpperCase()),
+  ]);
+  for (const m of html.matchAll(/#[0-9A-Fa-f]{6}/g)) {
+    const hex = m[0].toUpperCase();
+    // 팔레트 색이거나, 팔레트 색에서 파생된 그라데이션 색(주색과 같은 색상값)만 허용
+    if (allowed.has(hex)) continue;
+    assert.ok(!/^#(F6F7F8|888888|EEEEEE|999999)$/.test(hex), `회색 하드코딩 금지: ${hex}`);
+  }
+  assert.match(html, new RegExp(dark.palette.bg, 'i'), '지면색도 팔레트에서 온다');
+  assert.doesNotMatch(html, /#f6f7f8|#888888|#eeeeee|#999999/i);
+});
+
+test('renderEdm caps the logo box so an extra-wide lockup cannot break the 600px table', () => {
+  const withLogo = normalizeStyle({ colors: ['#0A3D91'], logo: 'logo.svg' });
+  const html = renderEdm(ctx, withLogo, spec);
+  const tag = html.match(/<img[^>]*logo\.svg[^>]*>/)[0];
+  assert.match(tag, /height:26px/, '높이로 크기를 잡고');
+  assert.match(tag, /max-width:\d+px/, '폭을 물린다');
 });
