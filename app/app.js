@@ -674,6 +674,8 @@ function enterWork(opts = {}) {
   $('campPill').textContent = state.campaign.context.core.name;
   $('logBody').innerHTML = ''; $('logCount').textContent = '';
   state.selected = null;
+  resetHistory();       // 캠페인이 바뀌면 이전 캠페인의 되돌리기 이력은 의미가 없다
+  toggleHelp(false);
   layoutArtboard({ blank: !!opts.staged });
   renderInspector();
   fitZoom();
@@ -802,6 +804,136 @@ $('zFit').onclick = fitZoom;
   }, { passive: false });
 }
 
+/* ═══ 되돌리기 · 다시하기 ═══
+   왜 역연산이 아니라 스냅샷인가: 되돌릴 편집이 제각각(전파·개별 override·스타일·규격·시안·명단)이라
+   종류마다 반대 동작을 따로 짜면 편집이 하나 늘 때마다 반드시 빠뜨린다. 캠페인 상태를 통째로 되감는 쪽이 안전하다.
+   무엇을 빼고 저장하나:
+   · artifacts[].html — 렌더 결과(파생물). 스냅샷 하나가 수 MB가 되므로 빼고, 복원 후 generateArtifacts로 다시 만든다.
+   · keyVisual·logo(data URL) — 문자열은 불변이라 복제하지 않고 참조만 옮겨도 안전하다. 30장을 복제하면 메모리가 터진다.
+   · campaign.log — 감사 기록이라 되돌리지 않는다. "했다가 되돌렸다"는 사실도 이력이다. */
+const HIST_MAX = 30;
+const hist = { undo: [], redo: [] };
+
+function cloneCampaign(c) {
+  const { style, artifacts, log, ...rest } = c;
+  const { keyVisual = null, logo = null, ...styleRest } = style;
+  const out = structuredClone({
+    ...rest,
+    style: styleRest,
+    artifacts: artifacts.map(({ html, ...a }) => a),
+  });
+  out.style.keyVisual = keyVisual;
+  out.style.logo = logo;
+  return out;
+}
+// 지금 상태를 한 장 뜬다. selected까지 담는 이유: 되돌린 뒤 인스펙터가 엉뚱한 산출물을 보고 있으면 혼란스럽다
+function takeSnapshot(label) {
+  return { label, campaign: cloneCampaign(state.campaign), selected: state.selected };
+}
+// 편집 "직전"에 부른다 — 되돌리기가 돌아갈 지점이 곧 이 시점이다.
+// coalesce: 연속 조작(타이핑·컬러피커 드래그)은 한 걸음으로 묶는다.
+// 그렇지 않으면 색 하나 고르는 동안 스택 30칸이 미세 단계로 차 버리고, 되돌리기를 열 번 눌러야 원래 색으로 간다.
+let lastPush = { label: null, at: 0 };
+function pushHistory(label, coalesce = false) {
+  if (!state.campaign) return;
+  const now = Date.now();
+  if (coalesce && hist.undo.length && lastPush.label === label && now - lastPush.at < 1200) { lastPush.at = now; return; }
+  lastPush = { label, at: now };
+  hist.undo.push(takeSnapshot(label));
+  if (hist.undo.length > HIST_MAX) hist.undo.shift();
+  hist.redo.length = 0;   // 새 편집이 들어오면 다시하기 갈래는 버린다 — 갈라진 미래는 되살릴 수 없다
+  renderHistBtns();
+}
+function resetHistory() { hist.undo.length = 0; hist.redo.length = 0; lastPush = { label: null, at: 0 }; renderHistBtns(); }
+
+function applySnapshot(entry) {
+  lastPush = { label: null, at: 0 };   // 되돌린 직후의 편집은 되돌리기 전 걸음과 묶으면 안 된다
+  // 같은 스냅샷이 여러 번 되살아날 수 있다(되돌리기↔다시하기 왕복) — 매번 새로 복제해야
+  // generateArtifacts가 html·log를 얹으면서 원본을 오염시키지 않는다
+  const c = cloneCampaign(entry.campaign);
+  c.log = state.campaign.log;    // 로그는 현재 것을 그대로 이어 쓴다
+  state.campaign = c;
+  generateArtifacts(c);          // html은 파생물 — 여기서 다시 만들어진다
+  layoutArtboard();              // 규격·명단이 바뀌었으면 프레임 크기·개수 자체가 달라진다
+  const alive = c.artifacts.some(a => (a.key ?? a.specId) === entry.selected);
+  select(alive ? entry.selected : null);
+  autosave();
+}
+
+function undo() {
+  if (!hist.undo.length) return;
+  const entry = hist.undo.pop();
+  hist.redo.push(takeSnapshot(entry.label));   // 되돌리기 직전 상태 = 다시하기의 목적지
+  applySnapshot(entry);
+  renderHistBtns();
+  log(`되돌리기: ${entry.label}`);
+  toast(`되돌림 — ${entry.label}`);
+}
+function redo() {
+  if (!hist.redo.length) return;
+  const entry = hist.redo.pop();
+  hist.undo.push(takeSnapshot(entry.label));
+  applySnapshot(entry);
+  renderHistBtns();
+  log(`다시하기: ${entry.label}`);
+  toast(`다시 적용 — ${entry.label}`);
+}
+
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const KEYS = { undo: IS_MAC ? '⌘Z' : 'Ctrl+Z', redo: IS_MAC ? '⇧⌘Z' : 'Ctrl+Shift+Z' };
+
+// 무엇이 되돌려질지 버튼에 미리 적어 둔다 — "눌러 봐야 아는" 되돌리기는 무섭다
+function renderHistBtns() {
+  const u = $('hUndo'), r = $('hRedo');
+  if (!u || !r) return;
+  u.disabled = !hist.undo.length;
+  r.disabled = !hist.redo.length;
+  u.title = hist.undo.length ? `되돌리기 — ${hist.undo.at(-1).label} (${KEYS.undo})` : `되돌릴 작업 없음 (${KEYS.undo})`;
+  r.title = hist.redo.length ? `다시하기 — ${hist.redo.at(-1).label} (${KEYS.redo})` : `다시할 작업 없음 (${KEYS.redo})`;
+}
+$('hUndo').onclick = undo;
+$('hRedo').onclick = redo;
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') toggleHelp(false);
+  if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return;
+  if (!state.campaign || $('work').style.display === 'none') return;
+  // 명단 textarea만 브라우저 기본 실행취소에 맡긴다 — "적용" 전까지는 아직 상태가 아니라 작성 중인 글이라,
+  // 여기서 앱 되돌리기가 돌면 쓰던 명단이 통째로 날아간다.
+  // 반대로 인스펙터의 단문 입력(장소·CTA 등)은 값이 곧바로 state로 흘러가므로 앱 되돌리기가 곧 필드 되돌리기다 —
+  // 같은 ⌘Z가 포커스 위치에 따라 다르게 동작하면 그게 더 혼란스럽다.
+  if (e.target instanceof HTMLTextAreaElement) return;
+  e.preventDefault();
+  if (e.shiftKey) redo(); else undo();
+});
+
+/* ═══ 도움말 팝오버 ═══ */
+function toggleHelp(open) {
+  const p = $('helpPop');
+  const on = open ?? !p.classList.contains('open');
+  p.classList.toggle('open', on);
+  $('helpBtn').setAttribute('aria-expanded', String(on));
+}
+$('helpPop').innerHTML = `
+  <h4>단축키 · 조작법</h4>
+  <dl>
+    <dt><kbd>${KEYS.undo}</kbd></dt><dd>되돌리기</dd>
+    <dt><kbd>${KEYS.redo}</kbd></dt><dd>다시하기</dd>
+    <dt><kbd>휠</kbd></dt><dd>확대 · 축소 (5~800%)</dd>
+    <dt><kbd>드래그</kbd></dt><dd>화면 이동</dd>
+    <dt><kbd>⤢</kbd></dt><dd>전체 보기로 맞춤</dd>
+    <dt><kbd>클릭</kbd></dt><dd>산출물 = 개별 편집<br>빈 곳 = 전체 일괄</dd>
+  </dl>
+  <div class="hnote">아래 입력창에 "장소 킨텍스로 변경"처럼 적으면 전 산출물에 한 번에 반영됩니다.</div>`;
+$('helpBtn').onclick = e => { e.stopPropagation(); toggleHelp(); };
+// 팝오버는 가볍게 — 바깥을 건드리면 닫힌다(모달처럼 확인 버튼을 요구하지 않는다)
+document.addEventListener('pointerdown', e => {
+  if (!$('helpPop').classList.contains('open')) return;
+  // closest? — 이벤트 타깃이 항상 Element라는 보장은 없다(문서·텍스트 노드로 오는 경우)
+  if (e.target.closest?.('#helpPop') || e.target.closest?.('#helpBtn')) return;
+  toggleHelp(false);
+});
+
 /* ═══ 선택 · 인스펙터 ═══ */
 function select(specId) {
   state.selected = specId;
@@ -841,6 +973,7 @@ function renderInspector() {
     insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
       const f = i.dataset.f, v = i.value.trim();
       if (v === (c.context.core[f] ?? '')) return;
+      pushHistory(`${FIELD_LABEL[f]} 일괄 변경`);
       const { impacted, conflicts } = propagate(c, { [f]: v });
       refreshFrames();
       $('inspNote').textContent = conflicts.length
@@ -849,7 +982,8 @@ function renderInspector() {
       log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
       autosave();
     }, 450));
-    const restyle = (patch = {}) => {
+    const restyle = (patch = {}, label = '스타일 변경', coalesce = false) => {
+      pushHistory(label, coalesce);
       c.style = normalizeStyle({
         keyVisual: c.style.keyVisual,
         kvReadability: c.style.kvReadability,
@@ -868,14 +1002,15 @@ function renderInspector() {
       $('inspNote').textContent = '스타일 전체 반영됨';
       log('스타일 변경 → 전체 재생성');
     };
-    const styleChange = debounce(() => restyle(), 350);
+    // 컬러피커는 드래그하는 내내 값이 흐른다 — 한 번의 색 고르기가 되돌리기 한 걸음이 되도록 묶는다
+    const styleChange = debounce(() => restyle({}, '스타일 변경', true), 350);
     insp.querySelector('#iColor1').oninput = styleChange;
     insp.querySelector('#iColor2').oninput = styleChange;
     insp.querySelector('#iColor3').oninput = styleChange;
     insp.querySelector('#iFont').onchange = styleChange;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     insp.querySelectorAll('#iMode button').forEach(b => b.onclick = () => {
-      restyle({ mode: b.dataset.m });
+      restyle({ mode: b.dataset.m }, b.dataset.m === 'dark' ? '다크 모드 전환' : '라이트 모드 전환');
       renderInspector();
     });
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
@@ -894,7 +1029,7 @@ function renderInspector() {
             b.disabled = true; b.textContent = '확대 중…';
             try {
               const r = await upscale(c.style.keyVisual, as.targetW, as.targetH);
-              restyle({ keyVisual: r.dataUrl, kvMeta: { ...c.style.kvMeta, px: [r.w, r.h] } });
+              restyle({ keyVisual: r.dataUrl, kvMeta: { ...c.style.kvMeta, px: [r.w, r.h] } }, '키비주얼 확대');
               renderInspector();
               toast(r.capped
                 ? `${r.w}×${r.h}px까지만 확대 — 목표는 캔버스 한계를 넘습니다`
@@ -915,14 +1050,14 @@ function renderInspector() {
       r.onload = async () => {
         let readability = null, suggests = [], meta = null;
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(r.result)); } catch {}
-        restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta });
+        restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta }, '키비주얼 교체');
         renderInspector();
         toast(suggests.length ? `키비주얼 교체 — 대표색 ${suggests[0]} 감지` : '키비주얼 교체');
       };
       r.readAsDataURL(f);
     };
     insp.querySelector('#iKvClear')?.addEventListener('click', () => {
-      restyle({ keyVisual: null, kvReadability: null, kvMeta: null });
+      restyle({ keyVisual: null, kvReadability: null, kvMeta: null }, '키비주얼 제거');
       renderInspector();
     });
     return;
@@ -971,6 +1106,7 @@ function renderInspector() {
     const f = i.dataset.f, v = i.value.trim();
     const o = { ...(a.overrides.core ?? {}) };
     if (v && v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
+    pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 개별 편집`, true);
     a.overrides.core = o;
     a.status = 'draft';
     logEvent(c, 'manual_edit', { specId: a.specId });
@@ -981,6 +1117,8 @@ function renderInspector() {
     log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
   }, 450));
   insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
+    if ((a.variant ?? 0) === Number(b.dataset.v)) return;   // 같은 시안 다시 누르면 되돌릴 것도 없다
+    pushHistory(`${artLabel(a)} 시안 ${Number(b.dataset.v) + 1}`);
     a.variant = Number(b.dataset.v);
     a.status = 'draft';
     logEvent(c, 'variation_cycled', { specId: a.specId, variant: a.variant });
@@ -991,6 +1129,7 @@ function renderInspector() {
     log(`${a.specId} 시안 ${a.variant + 1}`);
   });
   const applySize = (w, h) => {
+    pushHistory(`${artLabel(a)} 규격 ${w}×${h}mm`);
     a.size = { wmm: w, hmm: h };
     logEvent(c, 'size_changed', { key: a.key, wmm: w, hmm: h });
     generateArtifacts(c);
@@ -1014,6 +1153,7 @@ function renderInspector() {
     const apply = text => {
       const list = parseRoster(text);
       if (!list.length) { toast('명단을 읽지 못했어요 — 이름 한 줄씩 또는 이름/소속/직급 열'); return; }
+      pushHistory(`명단 ${list.length}명 적용`);
       c.roster = list;
       logEvent(c, 'roster_loaded', { count: list.length });
       autosave();
@@ -1158,6 +1298,7 @@ function parseCommandRegex(text) {
 async function onCommand(text) {
   const c = state.campaign;
   if (/다른\s*시안|시안\s*바꿔/.test(text)) {
+    pushHistory('전체 시안 변경');
     for (const a of c.artifacts) if ((VARIANTS[a.channel] ?? 1) > 1) a.variant = ((a.variant ?? 0) + 1) % VARIANTS[a.channel];
     generateArtifacts(c);
     refreshFrames();
@@ -1172,6 +1313,7 @@ async function onCommand(text) {
     if (patch && !Object.keys(patch).length) patch = null;
   }
   if (!patch) { toast('이해 못함 — 예: "장소 킨텍스로 변경" · "다른 시안"'); return; }
+  pushHistory(`지시: ${Object.entries(patch).map(([f, v]) => `${FIELD_LABEL[f] ?? f}→${v}`).join(', ')}`);
   const { impacted, conflicts } = propagate(c, patch);
   refreshFrames();
   renderInspector();
@@ -1286,5 +1428,6 @@ async function runKeyTest() {
 /* ═══ boot ═══ */
 $('homeBtn').onclick = () => show('home');
 $('logHead').onclick = () => $('logCard').classList.toggle('open');
+renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다
 initHome();
 show('home');

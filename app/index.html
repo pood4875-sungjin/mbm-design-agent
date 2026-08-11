@@ -11,6 +11,9 @@
     --ink:#1f1f1f; --sub:#6f6f6f; --line:#e6e6e4; --panel:#ffffff; --soft:#f1f3f4;
     --accent:#111111; --accent-soft:#f1f1f0; --accent-line:#d8d8d6;
     --grad:#111111;
+    /* 플로팅 컨트롤(되돌리기·줌·도움말) 전용 — 캔버스 위에 떠 있지만 주인공이 아니다.
+       .inputCard와 같은 연회색 계열을 써서 "도구 표면"이라는 인상을 앱 전체에서 하나로 맞춘다 */
+    --ctl:#eef0f1; --ctl-ink:#5f6368; --ctl-off:#b6bbbf;
     /* 생성(AI) 전용 — 포인트 컬러가 아니라 "만들어지는 중" 신호로만 쓴다 */
     --gen1:#6d5cf5; --gen2:#3b82f6; --gen3:#a78bfa;
     --gen:linear-gradient(100deg,var(--gen1),var(--gen2),var(--gen3));
@@ -197,10 +200,29 @@
   }
   .fbody .hit{position:absolute;inset:0;cursor:pointer}
 
-  #zoomCtl{position:absolute;right:16px;bottom:20px;display:flex;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow);padding:4px;z-index:11}
-  #zoomCtl button{border:0;background:none;width:32px;height:32px;font-size:15px;border-radius:99px}
-  #zoomCtl button:hover{background:var(--soft)}
-  #zoomPct{display:flex;align-items:center;font-size:12px;color:var(--sub);padding:0 6px;min-width:44px;justify-content:center}
+  /* ─ 우측 하단 플로팅 컨트롤 ─
+     왜 그룹을 쪼개나: 되돌리기·줌·도움말은 성격이 다른 기능이다. 한 알약에 다 넣으면
+     경계가 사라져 오조작이 늘고, 간격으로 끊어 주면 "무엇을 누르는지"가 눈으로 먼저 읽힌다.
+     그림자·테두리를 뺀 이유: 캔버스(아트보드)가 주인공이고 이건 도구 표면이라 납작해야 한다. */
+  #boardCtl{position:absolute;right:16px;bottom:20px;display:flex;gap:8px;z-index:11}
+  .ctlGrp{display:flex;align-items:center;gap:2px;background:var(--ctl);border-radius:99px;padding:3px}
+  .ctlGrp button{border:0;background:none;width:32px;height:32px;font-size:15px;line-height:1;border-radius:99px;color:var(--ctl-ink);display:inline-flex;align-items:center;justify-content:center}
+  .ctlGrp button:hover{background:rgba(0,0,0,.06)}
+  /* 되돌릴 게 없다는 사실은 눌러 보기 전에 알려야 한다 — 더 흐리게, 호버 반응도 끈다 */
+  .ctlGrp button:disabled{color:var(--ctl-off);cursor:default}
+  .ctlGrp button:disabled:hover{background:none}
+  /* tabular-nums: 100%→203%처럼 자릿수가 바뀔 때 좌우 버튼이 흔들리지 않게 */
+  #zoomPct{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ctl-ink);padding:0 6px;min-width:46px;font-variant-numeric:tabular-nums}
+  /* 좁은 화면에선 하단 중앙 지시바(#cmdBar)와 부딪힌다 — 오른쪽 정렬을 유지한 채 위로 쌓아 피한다 */
+  @media (max-width:1180px){ #boardCtl{flex-wrap:wrap-reverse;justify-content:flex-end;width:164px} }
+
+  /* 도움말 팝오버 — 모달이 아니다. 화면을 덮지 않고 작업 맥락을 유지한 채 잠깐 확인만 한다 */
+  #helpPop{position:absolute;right:16px;bottom:64px;width:280px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;z-index:12;display:none}
+  #helpPop.open{display:block}
+  #helpPop h4{font-size:11.5px;color:var(--sub);font-weight:700;letter-spacing:.04em;margin-bottom:10px}
+  #helpPop dl{display:grid;grid-template-columns:auto 1fr;gap:7px 10px;font-size:12px;color:var(--sub);line-height:1.5;align-items:center}
+  #helpPop kbd{font-family:inherit;font-size:11px;font-weight:700;color:var(--ink);background:var(--ctl);border-radius:6px;padding:3px 7px;white-space:nowrap}
+  #helpPop .hnote{font-size:11.5px;color:var(--sub);line-height:1.55;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 
   #inspector{position:absolute;right:16px;top:8px;width:280px;max-height:calc(100% - 120px);background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow-y:auto;padding:18px;z-index:10}
   #inspector h3{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.05em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
@@ -291,9 +313,18 @@
 <div id="work">
   <div id="viewport"><div id="artboard"></div></div>
   <aside id="inspector"></aside>
-  <div id="zoomCtl">
-    <button id="zOut">−</button><div id="zoomPct">100%</div><button id="zIn">＋</button><button id="zFit" title="전체 보기">⤢</button>
+  <div id="boardCtl">
+    <div class="ctlGrp">
+      <button id="hUndo" aria-label="되돌리기" disabled>↺</button><button id="hRedo" aria-label="다시하기" disabled>↻</button>
+    </div>
+    <div class="ctlGrp" id="zoomCtl">
+      <button id="zOut" aria-label="축소">−</button><div id="zoomPct">100%</div><button id="zIn" aria-label="확대">＋</button><button id="zFit" title="전체 보기">⤢</button>
+    </div>
+    <div class="ctlGrp">
+      <button id="helpBtn" title="단축키 · 조작법" aria-expanded="false">?</button>
+    </div>
   </div>
+  <div id="helpPop" role="dialog" aria-label="단축키 · 조작법"></div>
   <div id="logCard"><div class="lhead" id="logHead">에이전트 로그 <span class="spacer"></span><span id="logCount"></span></div><div id="logBody"></div></div>
   <div id="cmdBar">
     <input id="cmdIn" placeholder="무엇을 변경할까요? — 예: 장소 킨텍스로 변경">
