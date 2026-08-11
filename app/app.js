@@ -192,8 +192,11 @@ function renderSidebar(query = '') {
     const d = document.createElement('div');
     d.className = 'citem';
     const initial = (c.context.core.name ?? 'MB').replace(/[^A-Za-z가-힣0-9]/g, '').slice(0, 2) || 'MB';
+    const edits = (c.log ?? []).filter(e => e.type === 'manual_edit' || e.type === 'propagation_run').length;
     d.innerHTML = `<div class="thumb" style="background:${c.style.palette.primary}">${initial}</div>
-      <div class="m"><b>${c.context.core.name ?? c.id}</b><span>${c.context.core.date ?? ''} · ${c.channels.length}채널 · ${c.artifacts?.length ?? 0}종</span></div>`;
+      <div class="m"><b>${c.context.core.name ?? c.id}</b>
+        <span>${c.context.core.date ?? ''} · ${c.artifacts?.length ?? 0}종${edits ? ` · 수정 ${edits}회` : ''}</span></div>
+      <span class="badge ${c.status === 'approved' ? 'approved' : 'draft'}">${c.status === 'approved' ? '승인' : '작업 중'}</span>`;
     d.onclick = () => openStored(c);
     box.appendChild(d);
   }
@@ -205,10 +208,44 @@ const CH_LIST = [...ONLINE, ...OFFLINE];
 function bub(role, text) {
   const d = document.createElement('div');
   d.className = 'bub ' + role;
-  d.textContent = text;
+  if (role === 'think') {
+    // 생각 중 버블만 구조를 갖는다 — 문구(시머)와 경과 초를 따로 갱신해야 하기 때문
+    d.append(el('span', 'tlabel', text), el('span', 'tsec', ''));
+  } else {
+    d.textContent = text;
+  }
   $('thread').appendChild(d);
   $('thread').scrollTop = 1e9;
   return d;
+}
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  n.className = cls;
+  n.textContent = text;
+  return n;
+}
+
+// 왜: AI 응답이 수 초 걸린다. 정적 "생각하는 중…"은 멈춘 화면으로 읽혀 사용자가 답답해한다.
+// 초를 세어 보여주면 "돌고 있다"는 증거가 되고, 오래 걸릴 땐 문구로 안심시킨다.
+const THINK_SAY = [
+  [0, '생각하는 중…'],
+  [10, '조금 더 걸리고 있어요…'],   // 10초 = 사용자가 "실패했나?" 의심하기 시작하는 지점
+  [25, '아직 기다리는 중이에요…'],  // 과장 없이, 살아 있다는 사실만 반복해 알린다
+];
+function thinkBubble() {
+  const d = bub('think', THINK_SAY[0][1]);
+  const label = d.querySelector('.tlabel'), sec = d.querySelector('.tsec');
+  const t0 = Date.now();
+  // 250ms 간격 — 1초 간격이면 초 경계가 최대 1초 늦게 넘어가 "끊긴 것처럼" 보인다
+  const timer = setInterval(() => {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    // 3초 미만에서 숫자를 띄우면 오히려 기다림을 의식하게 만든다 — 늦어질 때만 노출
+    sec.textContent = s >= 3 ? `${s}초` : '';
+    const say = THINK_SAY.filter(([at]) => s >= at).pop()[1];
+    if (label.textContent !== say) label.textContent = say;
+  }, 250);
+  // 제거와 타이머 정리는 항상 한 쌍 — 따로 부르면 인터벌이 남아 샌다
+  return { el: d, stop() { clearInterval(timer); d.remove(); } };
 }
 function slot(html) {
   $('slot').innerHTML = html;
@@ -226,7 +263,7 @@ async function startIntake(text) {
   state.intake = {
     fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
     mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
-    kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'brief', styleDone: false, history: [],
+    kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'brief', styleDone: false, signageDone: false, history: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -242,7 +279,8 @@ async function startIntake(text) {
 function agentState() {
   const it = state.intake;
   return {
-    phase: it.phase, fields: it.fields, channels: it.channels, kv: it.kv, styleDone: it.styleDone,
+    phase: it.phase, fields: it.fields, channels: it.channels, kv: it.kv,
+    styleDone: it.styleDone, signageDone: it.signageDone, signage: it.signage, roster: it.roster,
     style: { mode: it.mode, colors: it.colors, font: it.font },
   };
 }
@@ -250,7 +288,7 @@ function agentState() {
 async function turn(userText) {
   const it = state.intake;
   it.history.push({ role: 'user', text: userText });
-  const think = LLM.hasKey() ? bub('think', '생각하는 중…') : null;
+  const think = LLM.hasKey() ? thinkBubble() : null;
   let res;
   try {
     res = await agentTurn({ state: agentState(), history: it.history, userText });
@@ -258,8 +296,10 @@ async function turn(userText) {
     // AI가 실패해도 대화는 멈추면 안 된다 — 규칙 진행자가 같은 계약으로 이어받는다
     res = scriptedTurn({ state: agentState(), userText });
     res.say = `AI 호출에 실패해 규칙 진행으로 이어갑니다.\n(${e.message})\n\n${res.say}`;
+  } finally {
+    // finally인 이유: 폴백까지 실패해 예외가 튀어도 인터벌은 반드시 멈춰야 한다
+    think?.stop();
   }
-  think?.remove();
   applyPatch(res.patch);
   it.phase = res.phase;
   renderSteps();
@@ -284,6 +324,9 @@ function applyPatch(patch = {}) {
 // 단계에 맞는 보조 입력만 노출한다 — 대화가 주, 위젯은 거들 뿐
 function renderSlot() {
   const it = state.intake;
+  // 오프라인 세트는 단계와 무관하게 먼저 정한다 — 대화로 캐묻는 것보다 카드가 빠르고,
+  // 진행자가 brief를 건너뛰고 info/style로 바로 가는 경우에도 놓치지 않는다.
+  if (!it.signageDone && it.channels.some(c => OFFLINE_CH.includes(c))) return slotSignage();
   if (it.phase === 'brief') return slotChannels();
   if (it.phase === 'info') return slotFields();
   if (it.phase === 'style') return slotStyle();
@@ -303,6 +346,73 @@ function slotChannels() {
   $('chOk').onclick = () => {
     if (!it.channels.length) { toast('하나 이상 선택하세요'); return; }
     const said = it.channels.map(c => CHANNEL_LABEL[c]).join(', ');
+    bub('user', said); clearSlot();
+    // 오프라인이 섞였으면 세트 구성을 먼저 정한다 — 대화로 캐묻는 것보다 카드가 빠르다
+    if (it.channels.some(c => OFFLINE_CH.includes(c)) && !it.signageDone) {
+      bub('agent', '오프라인은 현장에서 여러 장이 세트로 나갑니다. 용도와 규격을 아래에서 정해 주세요 — 방향 안내는 고른 화살표마다 한 장씩 만들어집니다.');
+      slotSignage();
+      return;
+    }
+    turn(said);
+  };
+}
+
+function slotSignage() {
+  const it = state.intake;
+  const chans = it.channels.filter(c => OFFLINE_CH.includes(c));
+  const groups = chans.map(ch => {
+    const ps = purposesFor(ch);
+    const cur = it.signage[ch] ?? (it.signage[ch] = [{ purpose: 'main' }]);
+    const presets = SIZE_PRESETS[ch] ?? [];
+    const sz = it.sizes[ch];
+    return `<div class="sgroup" data-ch="${ch}">
+      <div class="sh">${CHANNEL_LABEL[ch]}
+        <select data-size="${ch}">${presets.map((pr, i) =>
+          `<option value="${i}" ${sz ? (sz.wmm === pr.wmm && sz.hmm === pr.hmm ? 'selected' : '') : (i === 0 ? 'selected' : '')}>${pr.label}mm</option>`).join('')}</select>
+      </div>
+      ${ps.length ? ps.map(p => {
+        const sel = cur.filter(x => x.purpose === p.id);
+        const on = sel.length > 0;
+        return `<div class="prow" data-p="${p.id}">
+          <input type="checkbox" ${on ? 'checked' : ''}>
+          <span>${p.label}</span>
+          ${p.needsArrow ? `<span class="arrows">${Object.entries(ARROWS).map(([k, g]) =>
+            `<button data-arrow="${k}" title="${k === 'none' ? '화살표 없이 정보만' : '방향 ' + g}" class="${sel.some(x => x.arrow === k) ? 'on' : ''}" ${on ? '' : 'disabled'}>${g || '—'}</button>`).join('')}</span>` : ''}
+        </div>`;
+      }).join('') : '<div class="prow"><span style="color:var(--sub);font-size:12px">규격만 정하면 됩니다</span></div>'}
+    </div>`;
+  }).join('');
+  slot(`<div class="card2"><h4>오프라인 세트 구성</h4>${groups}
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="sgOk">이 구성으로 진행</button></div></div>`);
+
+  const box = $('slot');
+  box.querySelectorAll('.prow input').forEach(cb => cb.onchange = () => {
+    const ch = cb.closest('.sgroup').dataset.ch, pid = cb.closest('.prow').dataset.p;
+    const list = it.signage[ch] ?? [];
+    if (cb.checked) list.push({ purpose: pid, arrow: PURPOSES.find(p => p.id === pid)?.needsArrow ? 'right' : null });
+    else it.signage[ch] = list.filter(x => x.purpose !== pid);
+    slotSignage();
+  });
+  box.querySelectorAll('.arrows button').forEach(b => b.onclick = () => {
+    const ch = b.closest('.sgroup').dataset.ch, pid = b.closest('.prow').dataset.p, ar = b.dataset.arrow;
+    const list = it.signage[ch];
+    const has = list.some(x => x.purpose === pid && x.arrow === ar);
+    if (has) it.signage[ch] = list.filter(x => !(x.purpose === pid && x.arrow === ar));
+    else list.push({ purpose: pid, arrow: ar });
+    if (!it.signage[ch].some(x => x.purpose === pid)) it.signage[ch].push({ purpose: pid, arrow: 'right' });
+    slotSignage();
+  });
+  box.querySelectorAll('select[data-size]').forEach(sel => sel.onchange = () => {
+    const ch = sel.dataset.size, pr = SIZE_PRESETS[ch][+sel.value];
+    it.sizes[ch] = { wmm: pr.wmm, hmm: pr.hmm };
+  });
+  $('sgOk').onclick = () => {
+    it.signageDone = true;
+    const said = chans.map(ch => {
+      const n = (it.signage[ch] ?? []).length || 1;
+      const sz = it.sizes[ch];
+      return `${CHANNEL_LABEL[ch]} ${n}종${sz ? ` ${sz.wmm}×${sz.hmm}` : ''}`;
+    }).join(', ');
     bub('user', said); clearSlot(); turn(said);
   };
 }
@@ -536,6 +646,7 @@ function buildAndGenerate() {
     if (sz?.wmm && sz?.hmm) a.size = { wmm: sz.wmm, hmm: sz.hmm };
   }
   generateArtifacts(state.campaign);
+  saveCampaignToStore();   // 생성 즉시 남긴다 — 여기서 이탈해도 잃지 않는다
   enterWork({ staged: true });
 }
 
@@ -736,6 +847,7 @@ function renderInspector() {
         ? `${impacted.length}종 반영 · ${conflicts.length}건은 개별 편집값 유지(확인 필요)`
         : `${impacted.length}종 즉시 반영됨`;
       log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+      autosave();
     }, 450));
     const restyle = (patch = {}) => {
       c.style = normalizeStyle({
@@ -751,6 +863,7 @@ function renderInspector() {
       });
       logEvent(c, 'style_changed', {});
       generateArtifacts(c);
+      autosave();
       refreshFrames();
       $('inspNote').textContent = '스타일 전체 반영됨';
       log('스타일 변경 → 전체 재생성');
@@ -862,6 +975,7 @@ function renderInspector() {
     a.status = 'draft';
     logEvent(c, 'manual_edit', { specId: a.specId });
     generateArtifacts(c);
+    autosave();
     refreshFrames(a.specId);
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
@@ -871,6 +985,7 @@ function renderInspector() {
     a.status = 'draft';
     logEvent(c, 'variation_cycled', { specId: a.specId, variant: a.variant });
     generateArtifacts(c);
+    autosave();
     refreshFrames(a.specId);
     renderInspector();
     log(`${a.specId} 시안 ${a.variant + 1}`);
@@ -879,6 +994,7 @@ function renderInspector() {
     a.size = { wmm: w, hmm: h };
     logEvent(c, 'size_changed', { key: a.key, wmm: w, hmm: h });
     generateArtifacts(c);
+    autosave();
     layoutArtboard();
     select(a.key ?? a.specId);
     log(`${artLabel(a)} 규격 변경`);
@@ -900,6 +1016,7 @@ function renderInspector() {
       if (!list.length) { toast('명단을 읽지 못했어요 — 이름 한 줄씩 또는 이름/소속/직급 열'); return; }
       c.roster = list;
       logEvent(c, 'roster_loaded', { count: list.length });
+      autosave();
       generateArtifacts(c);
       refreshFrames();
       renderInspector();
@@ -1060,6 +1177,7 @@ async function onCommand(text) {
   renderInspector();
   log(`지시: ${Object.entries(patch).map(([f, v]) => `${FIELD_LABEL[f]}→${v}`).join(', ')} (${impacted.length}종${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
   toast(`${impacted.length}종 일괄 반영${conflicts.length ? ` · ${conflicts.length}건 확인 필요` : ''}`);
+  autosave();
 }
 $('cmdGo').onclick = () => { const t = $('cmdIn').value.trim(); if (t) { $('cmdIn').value = ''; onCommand(t); } };
 $('cmdIn').onkeydown = e => { if (e.key === 'Enter') $('cmdGo').click(); };
@@ -1077,12 +1195,24 @@ function approveAll() {
 }
 $('approveAll').onclick = approveAll;
 
+// 자동 저장 — 승인해야만 남으면 작업 중 이탈한 것이 전부 사라진다.
+// 캠페인이 만들어진 순간부터, 바뀔 때마다 스냅샷을 갱신한다.
+const autosave = debounce(() => { if (state.campaign) saveCampaignToStore(); }, 600);
+
 function saveCampaignToStore() {
   const c = state.campaign;
+  const done = c.artifacts.length && c.artifacts.every(a => a.status === 'approved');
   const snapshot = {
     id: c.id, savedAt: Date.now(),
+    status: done ? 'approved' : 'draft',
     context: c.context, style: c.style, channels: c.channels,
-    artifacts: c.artifacts.map(a => ({ specId: a.specId, channel: a.channel, overrides: a.overrides, variant: a.variant ?? 0, status: a.status })),
+    signage: c.signage ?? {}, roster: c.roster ?? [],
+    conversation: (state.intake?.history ?? []).slice(-40),
+    artifacts: c.artifacts.map(a => ({
+      key: a.key ?? a.specId, specId: a.specId, channel: a.channel,
+      purpose: a.purpose, arrow: a.arrow, overrides: a.overrides,
+      variant: a.variant ?? 0, size: a.size ?? null, status: a.status,
+    })),
     log: c.log,
   };
   const list = loadStore().filter(x => x.id !== c.id);
@@ -1093,17 +1223,32 @@ function saveCampaignToStore() {
   }
 }
 
+const LOG_LABEL = {
+  campaign_created: '캠페인 생성', artifact_generated: '산출물 생성', manual_edit: '개별 편집',
+  propagation_run: '일괄 반영', style_changed: '스타일 변경', size_changed: '규격 변경',
+  variation_cycled: '시안 변경', roster_loaded: '명단 적용', artifact_approved: '전체 승인',
+  campaign_reopened: '다시 열기',
+};
+
 function openStored(saved) {
-  state.campaign = { ...saved, log: saved.log ?? [] };
+  state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [] };
+  // 저장된 대화도 되살린다 — 무엇을 어떻게 정했는지가 이력의 핵심이다
+  state.intake = { ...(state.intake ?? {}), history: saved.conversation ?? [] };
   registerAll();
   generateArtifacts(state.campaign);
   for (const a of state.campaign.artifacts) {
-    const s = (saved.artifacts ?? []).find(x => x.specId === a.specId);
-    if (s?.status) a.status = s.status;
+    const s = (saved.artifacts ?? []).find(x => (x.key ?? x.specId) === (a.key ?? a.specId));
+    if (!s) continue;
+    if (s.status) a.status = s.status;
+    if (s.size) a.size = s.size;
+    if (s.overrides) a.overrides = s.overrides;
+    if (s.variant != null) a.variant = s.variant;
   }
+  generateArtifacts(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
   logEvent(state.campaign, 'campaign_reopened', {});
   enterWork();
   log(`저장된 캠페인 재현: ${saved.context.core.name}`);
+  for (const e of (saved.log ?? []).slice(-8).reverse()) log(`· ${LOG_LABEL[e.type] ?? e.type}`);
 }
 
 /* ═══ AI 키 ═══ */

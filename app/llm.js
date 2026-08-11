@@ -6,24 +6,41 @@ const KEY_LS = 'mbm-ai-key';
 // 로컬 배포용 자동 주입 — app/config.local.js 가 있으면 그 키를 쓴다(gitignore됨).
 // 공유되는 페이지에는 키를 넣지 말 것: 클라이언트 코드의 키는 누구나 볼 수 있다.
 const EMBEDDED = (typeof window !== 'undefined' && window.MBM_API_KEY) || '';
-const MODEL = 'claude-sonnet-5';
+const MODEL_LS = 'mbm-ai-model';
+// 이 작업은 짧은 JSON 추출이라 속도가 품질보다 중요하다 — 기본을 가장 빠른 모델로 둔다.
+export const MODELS = [
+  { id: 'claude-haiku-4-5-20251001', name: 'Haiku 4.5 · 빠름(기본)' },
+  { id: 'claude-sonnet-5', name: 'Sonnet 5 · 정확' },
+];
+const DEFAULT_MODEL = MODELS[0].id;
 
 export function getKey() { try { return (localStorage.getItem(KEY_LS) || EMBEDDED || '').trim(); } catch { return (EMBEDDED || '').trim(); } }
 export function setKey(v) { v = (v || '').trim(); try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch {} }
 export function hasKey() { return !!getKey(); }
 export function maskKey() { const k = getKey(); return k ? (k.length <= 12 ? '••••' : k.slice(0, 7) + '…' + k.slice(-4)) : ''; }
 
-async function messages(system, user, maxTokens = 800) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': getKey(),
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }),
-  });
+async function messages(system, user, maxTokens = 800, timeoutMs = 25000) {
+  // 응답이 안 오면 무한정 기다리지 않는다 — 호출자가 규칙 진행으로 넘어갈 수 있게 끊는다
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      signal: ac.signal,
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': getKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({ model: currentModel(), max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }),
+    });
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? `응답이 ${Math.round(timeoutMs / 1000)}초를 넘겨 중단했습니다` : e.message);
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) {
     // 서버가 알려주는 진짜 이유를 그대로 전달한다 — "HTTP 401"만으로는 원인을 못 찾는다
     let detail = '';
@@ -76,4 +93,5 @@ export async function testKey() {
   const t = await messages('Reply with OK only.', 'ping', 16);
   return t.trim().slice(0, 40) || '(빈 응답)';
 }
-export function currentModel() { return MODEL; }
+export function currentModel() { try { return localStorage.getItem(MODEL_LS) || DEFAULT_MODEL; } catch { return DEFAULT_MODEL; } }
+export function setModel(v) { try { v ? localStorage.setItem(MODEL_LS, v) : localStorage.removeItem(MODEL_LS); } catch {} }

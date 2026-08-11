@@ -42,16 +42,23 @@ export function renderBanner(ctx, style, spec) {
     }
     if (v === 2) band = `<div data-band style="position:absolute;left:0;right:0;bottom:0;height:36%;background:${p.secondary}"></div>`;
   }
+  const fgIsDark = fg !== '#FFFFFF';
   const border = v === 1 ? `;border:1px solid ${p.surface}` : '';
+  // 로고는 절대배치하면 긴 제목과 겹친다 — 흐름 안에 두고 여백으로 자리를 확보한다.
+  const logoFilter = (v === 1 || fgIsDark) ? '' : 'filter:brightness(0) invert(1)';
   const logo = style.logo
-    ? `<img src="${esc(style.logo)}" alt="" style="position:absolute;${compact ? 'right:12px;top:50%;transform:translateY(-50%)' : 'right:14px;top:14px'};height:${compact ? 18 : 22}px;width:auto;opacity:.95;${v === 1 || p.onPrimary !== '#FFFFFF' ? '' : 'filter:brightness(0) invert(1)'}">`
+    ? `<img src="${esc(style.logo)}" alt="" style="position:relative;display:block;height:${compact ? 16 : 20}px;width:auto;max-width:${compact ? 90 : 120}px;object-fit:contain;opacity:.95;${logoFilter};${compact ? '' : `margin-bottom:${spec.h > 400 ? 14 : 10}px`}">`
     : '';
   return `<div style="position:relative;width:${spec.w}px;height:${spec.h}px;${bg}${border};overflow:hidden;font-family:${fontStack(style.fonts.heading)};color:${fg};display:flex;flex-direction:${compact ? 'row' : 'column'};align-items:${compact ? 'center' : 'flex-start'};justify-content:space-between;padding:${compact ? '0 16px' : '18px'};box-sizing:border-box">
-  ${band}${logo}
-  <div style="position:relative">
+  ${band}
+  <div style="position:relative;min-width:0">
+    ${compact ? '' : logo}
     <div style="font-size:${compact ? 15 : 18}px;font-weight:700;line-height:1.3;color:${fg}">${esc(name)}</div>
     <div style="font-size:11px;color:${subFg};margin-top:4px">${esc(date)} · ${esc(venue)}</div>
   </div>
-  <div style="position:relative;background:${ctaBg};color:${ctaFg};font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;white-space:nowrap">${esc(cta)}</div>
+  <div style="position:relative;display:flex;align-items:center;gap:10px;flex:none">
+    ${compact ? logo : ''}
+    <span style="background:${ctaBg};color:${ctaFg};font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;white-space:nowrap">${esc(cta)}</span>
+  </div>
 </div>`;
 }

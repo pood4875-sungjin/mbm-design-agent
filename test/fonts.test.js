@@ -91,3 +91,12 @@ test('contained key visual paints above its color field, not under it', () => {
   assert.ok(layers.indexOf('kv.png') < layers.indexOf('linear-gradient'),
     'CSS는 먼저 쓴 배경 레이어를 위에 칠한다 — 이미지가 앞에 와야 보인다');
 });
+
+test('banner logo sits in the flow so it cannot collide with the title', () => {
+  const s = normalizeStyle({ colors: ['#0A3D91'], logo: 'data:image/png;base64,AAA' });
+  const html = renderBanner(ctx, s, SPECS['banner-300x250']);
+  const logoTag = html.match(/<img[^>]+base64,AAA[^>]*>/)[0];
+  assert.doesNotMatch(logoTag, /position:absolute/, '절대배치는 긴 제목과 겹친다');
+  assert.match(logoTag, /object-fit:contain/, '가로세로비가 다른 로고도 찌그러지지 않게');
+  assert.match(logoTag, /max-width/, '폭을 제한해 제목 자리를 침범하지 않게');
+});

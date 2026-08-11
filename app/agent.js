@@ -12,8 +12,8 @@ import { FONT_IDS } from '../core/fonts.js';
 export const PHASES = ['brief', 'info', 'style', 'draft'];
 export const PHASE_LABEL = { brief: '기획 해석', info: '정보 확인', style: '스타일', draft: '초안 생성' };
 
-const CHANNELS = ['edm', 'landing', 'banner', 'poster', 'xbanner', 'hyunsumak'];
-const CH_KO = { edm: 'eDM', landing: '랜딩페이지', banner: '홍보 배너', poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막' };
+const CHANNELS = ['edm', 'landing', 'banner', 'gwthumb', 'poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
+const CH_KO = { edm: 'eDM', landing: '랜딩페이지', banner: '홍보 배너', gwthumb: '그룹웨어 썸네일', poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰', photobooth: '포토부스' };
 const FIELD_KO = { name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA' };
 
 const SYSTEM = `너는 MBM 캠페인 디자인 에이전트다. 디자이너와 대화하며 캠페인 제작에 필요한 것을 모은다.
@@ -39,6 +39,8 @@ const SYSTEM = `너는 MBM 캠페인 디자인 에이전트다. 디자이너와 
 
 규칙:
 - 텍스트에 없는 값은 절대 지어내지 않는다. 모르면 patch에서 생략하고 say에서 묻는다.
+- **[현재 상태]에 이미 있는 것은 절대 다시 묻지 않는다.** "확정됨"·"등록됨"으로 표시된 항목을 되묻는 것은 금지다.
+  오프라인 세트·명단·스타일은 화면의 카드에서 사용자가 직접 정한다 — 대화로 캐묻지 말고 다음 단계로 넘어간다.
 - 한 번에 2~3가지만 묻는다. 목록을 길게 나열하지 않는다.
 - 사용자가 "알아서 해"라고 하면 합리적 기본값을 patch에 넣고 무엇을 정했는지 say에 알린다.
 - 필수 정보(${CORE_FIELDS.join(', ')})와 채널이 다 모이고 스타일 방향이 정해지면 phase="draft", ready=true.
@@ -53,8 +55,19 @@ function stateBrief(state) {
     known.length ? `아는 정보: ${known.join(', ')}` : '아는 정보: 없음',
     missing.length ? `빈 정보: ${missing.join(', ')}` : '빈 정보: 없음',
     `선택 채널: ${(state.channels ?? []).map(c => CH_KO[c]).join(', ') || '미정'}`,
-    `스타일: 모드=${state.style?.mode ?? '미정'} 컬러=${(state.style?.colors ?? []).join(',') || '미정'} 폰트=${state.style?.font ?? '미정'} 키비주얼=${state.kv ? '있음' : '없음'}`,
+    `스타일: ${state.styleDone ? '확정됨' : '미확정'} — 모드=${state.style?.mode ?? '미정'} 컬러=${(state.style?.colors ?? []).join(',') || '미정'} 폰트=${state.style?.font ?? '미정'} 키비주얼=${state.kv ? '있음' : '없음'}`,
+    `오프라인 세트: ${state.signageDone ? describeSignage(state.signage) : '미정'}`,
+    `명단: ${state.roster?.length ? state.roster.length + '명 등록됨' : '없음'}`,
   ].join('\n');
+}
+
+function describeSignage(signage = {}) {
+  const parts = [];
+  for (const [ch, list] of Object.entries(signage)) {
+    if (!list?.length) continue;
+    parts.push(`${CH_KO[ch] ?? ch} ${list.map(s => s.purpose + (s.arrow && s.arrow !== 'none' ? `(${s.arrow})` : '')).join('+')}`);
+  }
+  return parts.join(', ') || '기본 1종씩';
 }
 
 export async function agentTurn({ state, history, userText }) {
@@ -99,9 +112,14 @@ export function scriptedTurn({ state, userText }) {
     const parts = t.split(/[,·/]| 그리고 /).map(s => s.trim()).filter(Boolean);
     missing.slice(0, parts.length).forEach((k, i) => { patch.fields[k] = parts[i]; f[k] = parts[i]; });
   }
+  // 채널 키워드 — CHANNELS에 채널을 추가하면 여기도 함께 늘려야 한다(없으면 조용히 무시된다)
+  const KW = {
+    edm: /eDM|이디엠|메일/i, landing: /랜딩/, banner: /(?<![Xx스])배너/, gwthumb: /그룹웨어|썸네일/,
+    poster: /포스터/, xbanner: /X\s?배너|엑스배너/i, hyunsumak: /현수막/,
+    badge: /명찰|네임\s?태그|name\s?tag/i, photobooth: /포토\s?부스|포토\s?존|포토월/,
+  };
   for (const c of CHANNELS) {
-    const kw = { edm: /eDM|메일/i, landing: /랜딩/, banner: /(?<![Xx스])배너/, poster: /포스터/, xbanner: /X\s?배너|엑스배너/i, hyunsumak: /현수막/ }[c];
-    if (kw.test(t)) patch.channels.push(c);
+    if (KW[c]?.test(t)) patch.channels.push(c);
   }
   if (/다크|어둡/.test(t)) patch.style.mode = 'dark';
   if (/라이트|밝/.test(t)) patch.style.mode = 'light';
