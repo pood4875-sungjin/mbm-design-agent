@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>규격 적합 검사 — Campaign Agent</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --sub:#666; --line:#e5e5e5; --bg:#fff; --soft:#f7f7f6;
+    --accent:#2456d6; --accent-soft:#edf2fd;
+    --good:#1d7a4f; --good-soft:#e9f5ee; --good-line:#c2e2cf;
+    --warn:#b07d10; --warn-soft:#fbf3df; --warn-line:#ecd79a;
+    --bad:#b3261e; --bad-soft:#fbe9e7; --bad-line:#efc3bf;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --ink:#ececec; --sub:#9a9a9a; --line:#2e2e2e; --bg:#161616; --soft:#1f1f1f; --accent:#7ea2f0; --accent-soft:#1c2942;
+      --good:#7ecfa2; --good-soft:#17281d; --good-line:#2c5138; --warn:#d9a441; --warn-soft:#2c2412; --warn-line:#5a4a1c;
+      --bad:#f08c86; --bad-soft:#301a18; --bad-line:#5a2b28; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;font-size:14px;line-height:1.5;font-feature-settings:"tnum"}
+  .wrap{max-width:1280px;margin:0 auto;padding:40px 24px 96px}
+  .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--sub);font-weight:600;text-transform:uppercase}
+  h1{font-size:30px;line-height:1.25;font-weight:700;margin:8px 0}
+  .src{color:var(--sub);font-size:13px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:20px 0 12px}
+  .tile{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
+  .tile b{display:block;font-size:24px;font-weight:700;line-height:1.1} .tile span{font-size:12px;color:var(--sub)}
+  .tile.ok b{color:var(--good)} .tile.warn b{color:var(--warn)} .tile.bad b{color:var(--bad)}
+  .ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);z-index:2}
+  .chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .ctl .sp{flex:1}
+  .prog{font-size:12px;color:var(--sub)}
+  .sample{border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:16px 0;background:var(--soft);display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 24px;font-size:13px}
+  .sample b{color:var(--sub);font-weight:600;margin-right:6px}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin-top:16px}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:1100px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  th{background:var(--soft);font-weight:600;font-size:12px;color:var(--sub);white-space:nowrap;position:sticky;top:53px}
+  tr:last-child td{border-bottom:0}
+  td.num{white-space:nowrap}
+  tr.hidden{display:none}
+  .st{font-size:11px;border-radius:999px;padding:2px 8px;white-space:nowrap;border:1px solid}
+  .st.pass{background:var(--good-soft);color:var(--good);border-color:var(--good-line)}
+  .st.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+  .st.block{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+  .st.rv{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+  tr.block td:first-child{box-shadow:inset 3px 0 0 var(--bad)} tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  .issues{margin:0;padding-left:16px} .issues li{margin:1px 0} .issues .b{color:var(--bad)} .issues .w{color:var(--warn)}
+  .thumb{display:block;max-width:260px;max-height:96px;width:auto;height:auto;border:1px solid var(--line);background:
+    repeating-conic-gradient(#8882 0 25%,transparent 0 50%) 0 0/12px 12px;cursor:zoom-in}
+  .note{color:var(--sub);font-size:12px}
+  .empty{border:1px dashed var(--line);border-radius:12px;padding:40px;text-align:center;color:var(--sub);margin-top:24px}
+  .empty.hidden{display:none}
+  dialog{border:0;border-radius:12px;padding:12px;max-width:96vw;background:var(--bg);color:var(--ink)}
+  dialog img{max-width:92vw;max-height:80vh;background:repeating-conic-gradient(#8882 0 25%,transparent 0 50%) 0 0/16px 16px}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Campaign Agent · AD 트랙</div>
+    <h1>규격 적합 검사</h1>
+    <p class="src">샘플 채용 캠페인 하나를 <b>모든 매체 규격</b>에 넣어 실제로 그리고(PNG/JPG로 뽑아서), 매체 규칙 검사기로 판정한다.
+      판정 근거는 <a href="media-rules.html">매체 규격 레퍼런스</a>의 값 그대로. 미리보기는 제출될 파일 그 자체다.</p>
+    <div class="tiles" id="tiles"></div>
+    <div class="sample" id="sample"></div>
+  </header>
+
+  <div class="ctl" id="ctl">
+    <button class="chip" data-f="" aria-pressed="true">전체</button>
+    <button class="chip" data-f="block">차단만</button>
+    <button class="chip" data-f="warn">경고 이상</button>
+    <button class="chip" data-f="pass">통과만</button>
+    <span class="sp"></span>
+    <span class="prog" id="prog">준비 중…</span>
+  </div>
+
+  <div class="tblwrap"><table>
+    <thead><tr><th>매체 · 규격</th><th>규격</th><th>제출 파일 실측</th><th>판정</th><th>이슈</th><th>미리보기 (제출 파일)</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <div class="empty hidden" id="empty">조건에 맞는 규격이 없어요.</div>
+  <dialog id="dlg"><img id="dlgImg" alt=""></dialog>
+</div>
+
+<script type="module">
+  import { adSpecEntries } from '../core/adspecs.js';
+  import { createContext } from '../core/context.js';
+  import { normalizeStyle } from '../core/style.js';
+  import { renderFit } from '../app/adfit.js';
+
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // ── 샘플 캠페인: 실제 요청과 비슷한 길이의 문구로 — 짧은 문구로는 글자수 규칙이 검증되지 않는다
+  const ctx = createContext({
+    client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도',
+    deadline: '2026-10-31', applyUrl: 'https://recruit.example.com/hanjin', qualification: '경력 3년 이상 · AWS/K8s 운영 경험',
+    notice: '본 채용은 채용절차의 공정화에 관한 법률을 준수합니다',
+  }, 'recruit');
+  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' } });
+  document.getElementById('sample').innerHTML = Object.entries(ctx.core).filter(([, v]) => v).map(([k, v]) => `<div><b>${esc(k)}</b>${esc(v)}</div>`).join('');
+
+  const entries = Object.values(adSpecEntries());
+  const rows = document.getElementById('rows');
+  const prog = document.getElementById('prog');
+  const counts = { pass: 0, warn: 0, block: 0, total: entries.length, done: 0 };
+  const results = [];
+
+  function tiles() {
+    document.getElementById('tiles').innerHTML = [
+      ['규격', counts.total, ''], ['통과', counts.pass, 'ok'], ['경고', counts.warn, 'warn'], ['차단', counts.block, 'bad'],
+    ].map(([l, n, c]) => `<div class="tile ${c}"><b>${n}</b><span>${l}</span></div>`).join('');
+  }
+  tiles();
+
+  const rulesLine = s => [
+    `${s.w}×${s.h}${s.submitW !== s.w ? ` → 제출 ${s.submitW}×${s.submitH}` : ''}`,
+    s.format.join('/').toUpperCase(), s.maxKB != null ? `≤${s.maxKB}KB` : null,
+    s.rules.textLimits?.length ? `글자수 ${s.rules.textLimits.length - s.outsideTexts.length}항목` : null,
+    s.outsideTexts.length ? `이미지 밖 텍스트 ${s.outsideTexts.length}건 별도 전달` : null,
+    s.mediumRules.textColors?.main ? `글자색 ${s.mediumRules.textColors.main}` : null,
+  ].filter(Boolean).join(' · ');
+
+  for (const spec of entries) {
+    prog.textContent = `${counts.done + 1} / ${counts.total} — ${spec.title}`;
+    let m, r, attempts = [];
+    try {
+      const fit = await renderFit(ctx, style, spec);
+      m = fit.measure; r = fit.lint; attempts = fit.attempts;
+    } catch (e) { r = { level: 'block', issues: [{ level: 'block', code: 'error', msg: e.message }] }; }
+    counts[r.level]++; counts.done++;
+    results.push({ spec, r, m });
+    const url = m?.blob ? URL.createObjectURL(m.blob) : null;
+    const tr = document.createElement('tr');
+    tr.className = r.level; tr.dataset.level = r.level;
+    tr.innerHTML = `
+      <td><b>${esc(spec.mediumName)}</b><br>${esc(spec.rules.name)} ${spec.confidence !== '확정' ? '<span class="st rv">확인 필요</span>' : ''}</td>
+      <td class="note">${esc(rulesLine(spec))}</td>
+      <td class="num">${m ? `${m.w}×${m.h}<br>${(m.bytes / 1024).toFixed(0)}KB ${esc(m.format.toUpperCase())}${m.transparent ? '<br>투명' : ''}` : '—'}${attempts.length > 1 ? `<br><span class="note">${attempts.length}회 시도: ${esc(attempts.map(a => a.label).join(' → '))}</span>` : ''}</td>
+      <td><span class="st ${r.level}">${{ pass: '통과', warn: '경고', block: '차단' }[r.level]}</span></td>
+      <td>${r.issues.length ? `<ul class="issues">${r.issues.map(i => `<li class="${i.level === 'block' ? 'b' : 'w'}">${esc(i.msg)}</li>`).join('')}</ul>` : '<span class="note">이슈 없음</span>'}</td>
+      <td>${url ? `<img class="thumb" src="${url}" alt="" data-full="${url}">` : ''}</td>`;
+    rows.appendChild(tr);
+    tiles();
+    await new Promise(r => setTimeout(r, 0));
+  }
+  prog.textContent = `완료 — ${counts.total}규격 · 통과 ${counts.pass} · 경고 ${counts.warn} · 차단 ${counts.block}`;
+  window.__results = results.map(x => ({ id: x.spec.id, level: x.r.level, codes: x.r.issues.map(i => i.code), bytes: x.m?.bytes ?? null, w: x.m?.w, h: x.m?.h }));
+
+  // ── 필터
+  const ctl = document.getElementById('ctl');
+  ctl.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    ctl.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    const f = b.dataset.f; let shown = 0;
+    rows.querySelectorAll('tr').forEach(tr => {
+      const ok = !f || tr.dataset.level === f || (f === 'warn' && tr.dataset.level === 'block');
+      tr.classList.toggle('hidden', !ok); if (ok) shown++;
+    });
+    document.getElementById('empty').classList.toggle('hidden', shown > 0);
+  });
+  // ── 미리보기 확대
+  const dlg = document.getElementById('dlg'), dlgImg = document.getElementById('dlgImg');
+  rows.addEventListener('click', e => { const im = e.target.closest('.thumb'); if (!im) return; dlgImg.src = im.dataset.full; dlg.showModal(); });
+  dlg.addEventListener('click', () => dlg.close());
+</script>
+</body>
+</html>

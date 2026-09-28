@@ -10,6 +10,8 @@ import { renderLanding } from './renderers/landing.js';
 import { renderPrint } from './renderers/print.js';
 import { renderBadge } from './renderers/badge.js';
 import { renderPhotobooth } from './renderers/photobooth.js';
+import { renderAd } from './renderers/ad.js';
+import { registerAdSpecs } from './adspecs.js';
 
 export function registerAll() {
   _clearRenderers();
@@ -22,6 +24,8 @@ export function registerAll() {
   registerRenderer('hyunsumak', renderPrint);
   registerRenderer('badge', renderBadge);
   registerRenderer('photobooth', renderPhotobooth);
+  registerRenderer('ad', renderAd);     // 매체 광고 소재 — 매체가 달라도 렌더러는 하나, 규칙만 다르다
+  registerAdSpecs();                     // core/media 의 규격을 SPECS에 올린다
 }
 
 export function channelSpecIds(channels) {

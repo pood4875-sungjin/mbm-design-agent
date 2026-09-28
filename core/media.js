@@ -1889,7 +1889,8 @@ export const MEDIA = [
       "safeArea의 로고·이미지·문구 영역 좌표는 매체 템플릿(SVG/피그마 벡터)에서 잰 값이지 문서에 적힌 수치가 아님 (measuredFromTemplate, 확인필요)",
       "PC채용공고배너 예시 프레임은 프리미엄/스탠다드 두 칸에 같은 사례가 복제돼 있음 — examples는 프레임명의 패키지 기준으로 분류",
       "PDF 파일명은 23.08인데 표지는 'Updated: 2023.03' — 최신본 여부 확인 필요"
-    ]
+    ],
+    "textCounting": "half-latin"
   },
   {
     "id": "jobda",
@@ -3799,7 +3800,8 @@ export const MEDIA = [
       "PC PDF는 글자수 카운팅 규칙(띄어쓰기·부호 1자, 따옴표 불가)을 광고주명 항목에만 적음 — 메인카피·설명문구에도 적용되는지 확인(모바일 PDF는 메인·서브·광고주명 모두 적용)",
       "M통합 네이티브(모바일) 썸네일 Safe Area 수치는 PDF에 없음 — PC 기준 20px를 같이 쓸지 확인",
       "모바일DA 최소 용량 50KB는 PDF에만 있고 보드 메모는 250KB만 적음 — 충돌은 아니며 minKB로 반영함"
-    ]
+    ],
+    "textCounting": "all-1"
   },
   {
     "id": "instagram",
