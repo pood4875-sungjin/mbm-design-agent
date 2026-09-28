@@ -43,6 +43,7 @@ export function normalizeStyle(input = {}) {
       body: FONTS[input.fonts?.body] ? input.fonts.body : 'Pretendard',
     },
     logo: input.logo ?? null,
+    logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 반전한다(컬러 로고는 뭉개진다)
     mood: input.mood ?? [],
     presetId: input.presetId ?? null,
     // 인쇄 사양 — 근사 CMYK(사양서·미리보기 표기용)

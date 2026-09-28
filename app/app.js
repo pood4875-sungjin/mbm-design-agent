@@ -586,6 +586,8 @@ function slotStyle() {
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo" id="logoThumb" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(선택)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
+      <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
+        <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
         <label>모드</label>
         <div class="vseg" id="modeSeg"><button data-m="light" class="${it.mode === 'light' ? 'on' : ''}">라이트</button><button data-m="dark" class="${it.mode === 'dark' ? 'on' : ''}">다크</button></div>
@@ -628,6 +630,7 @@ function slotStyle() {
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), d => { it.logo = d; });
+  bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; });
   $('stOk').onclick = () => {
     it.styleDone = true;
     const said = `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
@@ -804,6 +807,7 @@ function buildAndGenerate() {
     kvReadability: it.kvReadability,
     kvMeta: it.kvMeta,
     logo: it.logo,
+    logoLight: it.logoLight ?? null,
     mode: it.mode,
     colors: it.colors,
     fonts: { heading: it.font, body: it.font },
@@ -1211,6 +1215,13 @@ function renderInspector() {
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
         <button class="btn" id="iKvClear" style="flex:1">제거</button></div>` : ''}
+      <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>
+      <div style="display:flex;gap:6px">
+        <div class="kvthumb logo" id="iLogo" style="flex:1;height:44px;${c.style.logo ? `background-image:url(${c.style.logo})` : ''}">${c.style.logo ? '' : '원색 로고'}</div>
+        <div class="kvthumb logo dark" id="iLogoLight" style="flex:1;height:44px;${c.style.logoLight ? `background-image:url(${c.style.logoLight})` : ''}">${c.style.logoLight ? '' : '흰색 로고'}</div>
+      </div>
+      <input type="file" id="iLogoFile" accept="image/*" style="display:none">
+      <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
@@ -1238,6 +1249,7 @@ function renderInspector() {
         kvReadability: c.style.kvReadability,
         kvMeta: c.style.kvMeta,
         logo: c.style.logo,
+        logoLight: c.style.logoLight ?? null,
         mode: c.style.mode,
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
@@ -1323,6 +1335,17 @@ function renderInspector() {
       restyle({ keyVisual: null, kvReadability: null, kvMeta: null }, '키비주얼 제거');
       renderInspector();
     });
+    // 로고 두 벌 — 원색은 밝은 지면·투명 지면에, 흰색은 브랜드색 지면에 (자소설 한독·도레이는 흰색 로고)
+    for (const [thumbId, fileId, key, label] of [['iLogo', 'iLogoFile', 'logo', '로고 교체'], ['iLogoLight', 'iLogoLightFile', 'logoLight', '흰색 로고 교체']]) {
+      const inEl = insp.querySelector(`#${fileId}`);
+      insp.querySelector(`#${thumbId}`).onclick = () => inEl.click();
+      inEl.onchange = () => {
+        const f = inEl.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = () => { restyle({ [key]: r.result }, label); renderInspector(); toast(label); };
+        r.readAsDataURL(f);
+      };
+    }
     // 폰트 파일 첨부 — 카탈로그에 끼운 뒤 그 폰트로 전체 재생성
     const fontIn = insp.querySelector('#iFontFile');
     insp.querySelector('#iFontUp').onclick = () => fontIn.click();

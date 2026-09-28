@@ -123,7 +123,8 @@ test('the date is rendered as a pill where the medium\'s examples decorate it (G
 test('a light-field medium (자소설 9/13 밝은 단색) paints a light background and dark copy', () => {
   assert.ok((DESIGN.jasoseol?.bgLight?.value ?? 0) >= 0.6, '프로필 전제');
   const html = renderAd(ctx, style, specs['jasoseol-pc-premium-popup-pc']);
-  assert.match(html.split('>')[0], /background:#FFFFFF;/i);
+  // 순백이 아니라 브랜드색 파스텔 틴트(현대케피코 라벤더 블루) — 위가 조금 진하고 아래가 옅다
+  assert.match(html.split('>')[0], /background:linear-gradient\(180deg,#[C-F][0-9A-F]{5} 0%,#[D-F][0-9A-F]{5} 100%\)/i);
   assert.match(html, /data-field="main"[^>]*color:#000000/);
 });
 
@@ -156,4 +157,46 @@ test('template measurements taken on a 2x frame are scaled to the 1x canvas (자
   assert.match(html, /data-field="main"[^>]*font-size:20px/);
   // 환산할 것이 없는 규격은 1
   assert.equal(templateScale(specs['kakao-bizboard-mo'].rules, 1029), 1);
+});
+
+/* ── 자소설 실제 소재의 위계: 로고 칸 → 서브(시즌) → 메인 → 상세("라벨 : 값") → 이미지 띠 ── */
+test('자소설 jobpost renders sub above main, detail lines below, in the template text column', () => {
+  const html = renderAd(ctx, style, specs['jasoseol-pc-standard-jobpost-pc']);
+  const iSub = html.indexOf('data-field="sub"'), iMain = html.indexOf('data-field="main"'), iDet = html.indexOf('data-field="detail"');
+  assert.ok(iSub > 0 && iMain > 0 && iDet > 0, '세 슬롯이 모두 있어야 한다');
+  assert.ok(iSub < iMain && iMain < iDet, '서브 → 메인 → 상세 순');
+  assert.match(html, /data-field="detail"[^>]*>.*모집직무/s);
+  assert.match(html, /data-field="main"[^>]*font-size:24px/, '템플릿 폰트 크기 그대로');
+  assert.match(html.split('>')[0], /padding:\d+px \d+px \d+px 1[56]px/, '문구 칸 x=15.5');
+});
+
+test('a logo goes into the template logo slot exactly (130×30 at 15,23) and is dropped where the medium forbids one', () => {
+  const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' };
+  const html = renderAd(ctx, withLogo, specs['jasoseol-pc-standard-jobpost-pc']);
+  assert.match(html, /data-logo-slot="1"[^>]*left:1[56]px;top:23px;width:130px;height:30px/);
+  // 로고 칸 아래에서 글자가 시작한다 (템플릿: 로고 23~53 → 서브 82)
+  assert.match(html.split('>')[0], /padding:(7[5-9]|8[0-9])px/);
+  // M스탠다드 메인배너·PC달력배너는 로고 삽입 불가
+  assert.doesNotMatch(renderAd(ctx, withLogo, specs['jasoseol-m-standard-main-mo']), /data-logo/);
+  assert.doesNotMatch(renderAd(ctx, withLogo, specs['jasoseol-pc-calendar-pc']), /data-logo/);
+});
+
+test('on a dark field the white logo variant is used as-is; without one the colour logo is inverted', () => {
+  const dark = specs['google-gdn-580x400'];   // 단색 브랜드 지면 → 흰 글자
+  const both = { ...style, logo: 'data:image/png;base64,AAAA', logoLight: 'data:image/png;base64,BBBB' };
+  const html = renderAd(ctx, both, dark);
+  assert.match(html, /data-logo="1" src="data:image\/png;base64,BBBB"/);
+  assert.doesNotMatch(html, /invert\(1\)/);
+  const only = renderAd(ctx, { ...style, logo: 'data:image/png;base64,AAAA' }, dark);
+  assert.match(only, /src="data:image\/png;base64,AAAA"[^>]*invert\(1\)/);
+  // 밝은 지면(자소설)에서는 원색 로고 그대로
+  const light = renderAd(ctx, both, specs['jasoseol-pc-premium-popup-pc']);
+  assert.match(light, /src="data:image\/png;base64,AAAA"/);
+  assert.doesNotMatch(light, /invert\(1\)/);
+});
+
+test('with a key visual the template image area is filled full-bleed at the template rect', () => {
+  const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, edge: '#0B3C8C' } };
+  const html = renderAd(ctx, kv, specs['jasoseol-pc-standard-jobpost-pc']);
+  assert.match(html, /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px/);
 });

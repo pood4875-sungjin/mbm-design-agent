@@ -10,8 +10,8 @@ test('field names from every medium map to a small set of roles', () => {
   const cases = {
     '메인문구': 'main', '메인카피': 'main', '메인 타이틀': 'main', '대문구': 'main', '타이틀 첫째줄': 'main',
     '메인 문구(메인 카피)': 'main', '제목 (이미지 밖 텍스트 필드)': 'main', '이미지 내 텍스트 — 2줄형': 'main',
-    '서브문구': 'sub', '서브카피': 'sub', '상세문구': 'sub', '소문구': 'sub', '부가정보': 'sub', '본문': 'sub',
-    '설명 (이미지 밖 텍스트 필드)': 'sub', '상세 문구(부가 설명)': 'sub', '서브 타이틀': 'sub',
+    '서브문구': 'sub', '서브카피': 'sub', '소문구': 'sub', '서브 타이틀': 'sub',
+    '상세문구': 'detail', '부가정보': 'detail', '본문': 'detail', '설명 (이미지 밖 텍스트 필드)': 'detail', '상세 문구(부가 설명)': 'detail',
     '기타문구 첫째 줄': 'extra', '+기타 문구': 'extra', '추가 문구(선택)': 'extra', '태그문구 (하단 태그 줄)': 'extra', '해시태그 (대외활동·공모전)': 'extra',
     '고지문구': 'notice', '심의필/고지 문구': 'notice', '의료광고 심의필 번호(해당 시)': 'notice', '심의필': 'notice',
     '랜딩버튼': 'cta', 'CTA 버튼명': 'cta', '카피형 CTA': 'cta', '행동 유도 문구 (이미지 밖 텍스트 필드)': 'cta', '버튼 (이미지 밖 텍스트 필드)': 'cta',

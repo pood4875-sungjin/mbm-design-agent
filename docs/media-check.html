@@ -114,7 +114,16 @@
     return c.toDataURL('image/png');
   }
   const kv = sampleKeyVisual();
-  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' }, keyVisual: kv, kvMeta: { ar: 1.5, edge: '#0B3C8C' } });
+  // 샘플 로고 두 벌 — 원색(남색 워드마크)과 다크 지면용(흰색). 실제 캠페인에서는 고객사 파일이 들어온다.
+  function sampleLogo(color) {
+    const c = document.createElement('canvas'); c.width = 520; c.height = 120;
+    const g = c.getContext('2d');
+    g.fillStyle = color; g.beginPath(); g.arc(60, 60, 44, 0, Math.PI * 2); g.fill();
+    g.fillStyle = color === '#FFFFFF' ? '#0B3C8C' : '#FFFFFF'; g.font = 'bold 44px Pretendard, sans-serif'; g.textBaseline = 'middle'; g.fillText('H', 45, 62);
+    g.fillStyle = color; g.font = '800 58px Pretendard, sans-serif'; g.fillText('HANJIN', 124, 62);
+    return c.toDataURL('image/png');
+  }
+  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' }, keyVisual: kv, kvMeta: { ar: 1.5, edge: '#0B3C8C' }, logo: sampleLogo('#0B3C8C'), logoLight: sampleLogo('#FFFFFF') });
   document.getElementById('sample').innerHTML = Object.entries(ctx.core).filter(([, v]) => v).map(([k, v]) => `<div><b>${esc(k)}</b>${esc(v)}</div>`).join('');
 
   const entries = Object.values(adSpecEntries());

@@ -101,6 +101,8 @@ for (const f of files) {
     cta: majority(pick(e => e.cta)),
     whitespace: majority(pick(e => e.whitespace)),
     mainPx: layoutProfile(ex).mainPx,
+    // 서브 문구가 메인 위(아이브로)인가 아래(서브카피)인가 — 예시의 hierarchy 순서에서 읽는다
+    subAbove: share(pick(e => { const hh = e.text?.hierarchy; if (!Array.isArray(hh) || !hh.includes('sub') || !hh.includes('main')) return null; return hh.indexOf('sub') < hh.indexOf('main'); }), v => v === true),
     // 지면 형태별 프로필 — 렌더러는 자기 형태의 값을 먼저 보고, 없으면 매체 전체 값을 쓴다
     byShape: Object.fromEntries(['strip', 'wide', 'tall', 'box'].map(sh => [sh, layoutProfile(ex.filter(e => shapeOf(e) === sh))])),
     typical: d.patterns?.typical ?? '',

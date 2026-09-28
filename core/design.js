@@ -169,6 +169,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 66,
+    "subAbove": {
+      "n": 0,
+      "total": 5,
+      "value": 0
+    },
     "byShape": {
       "strip": {
         "examples": 0,
@@ -443,6 +448,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 32,
+    "subAbove": {
+      "n": 8,
+      "total": 8,
+      "value": 1
+    },
     "byShape": {
       "strip": {
         "examples": 4,
@@ -743,6 +753,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 42,
+    "subAbove": {
+      "n": 0,
+      "total": 0,
+      "value": null
+    },
     "byShape": {
       "strip": {
         "examples": 4,
@@ -1066,6 +1081,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 32,
+    "subAbove": {
+      "n": 8,
+      "total": 8,
+      "value": 1
+    },
     "byShape": {
       "strip": {
         "examples": 10,
@@ -1392,6 +1412,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 81,
+    "subAbove": {
+      "n": 0,
+      "total": 0,
+      "value": null
+    },
     "byShape": {
       "strip": {
         "examples": 0,
@@ -1689,6 +1714,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 32,
+    "subAbove": {
+      "n": 11,
+      "total": 11,
+      "value": 1
+    },
     "byShape": {
       "strip": {
         "examples": 1,
@@ -1997,6 +2027,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 28,
+    "subAbove": {
+      "n": 0,
+      "total": 0,
+      "value": null
+    },
     "byShape": {
       "strip": {
         "examples": 10,
@@ -2297,6 +2332,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 40,
+    "subAbove": {
+      "n": 0,
+      "total": 0,
+      "value": null
+    },
     "byShape": {
       "strip": {
         "examples": 6,
@@ -2609,6 +2649,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 21,
+    "subAbove": {
+      "n": 0,
+      "total": 9,
+      "value": 0
+    },
     "byShape": {
       "strip": {
         "examples": 11,
@@ -2907,6 +2952,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 49,
+    "subAbove": {
+      "n": 0,
+      "total": 1,
+      "value": null
+    },
     "byShape": {
       "strip": {
         "examples": 0,
@@ -3173,6 +3223,11 @@ export const DESIGN = {
       }
     },
     "mainPx": 41,
+    "subAbove": {
+      "n": 0,
+      "total": 0,
+      "value": null
+    },
     "byShape": {
       "strip": {
         "examples": 3,
