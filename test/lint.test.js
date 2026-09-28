@@ -62,14 +62,15 @@ test('text over the character or line limit blocks, using the medium counting ru
   assert.equal(lintArtifact({ spec, medium: { ...medium, textCounting: 'half-latin' }, measure: latin }).level, 'pass');
 });
 
-test('text colors are enforced only where the medium defines them', () => {
-  const kakao = { ...medium, textColors: { main: '#4C4C4C', sub: ['#555555', '#777777'] } };
+test('text colors are enforced only where the spec itself defines them (bizboards), not from medium-wide notes', () => {
+  const biz = { ...spec, textColors: { main: '#4C4C4C', sub: ['#555555', '#777777'] } };
   const wrong = { ...ok, texts: [{ ...ok.texts[0], color: '#777777' }] };
-  const r = lintArtifact({ spec, medium: kakao, measure: wrong });
+  const r = lintArtifact({ spec: biz, medium, measure: wrong });
   assert.ok(codes(r).includes('color'), '메인 글자색이 서브 색이면 반려된 실제 사례(안랩)');
-  assert.equal(lintArtifact({ spec, medium: kakao, measure: { ...ok, texts: [{ ...ok.texts[0], color: '#4c4c4c' }] } }).level, 'pass');
-  // 색 규정이 없는 매체는 어떤 색이든 통과
-  assert.equal(lintArtifact({ spec, medium, measure: wrong }).level, 'pass');
+  assert.equal(lintArtifact({ spec: biz, medium, measure: { ...ok, texts: [{ ...ok.texts[0], color: '#4c4c4c' }] } }).level, 'pass');
+  // 매체 단위 textColors("비즈보드 전용"·"흑/백 택1" 메모가 붙은 참고값)는 다른 규격에 강제되지 않는다
+  const noted = { ...medium, textColors: { main: '#4C4C4C', sub: ['#555555'], note: '비즈보드 전용' } };
+  assert.equal(lintArtifact({ spec, medium: noted, measure: wrong }).level, 'pass');
 });
 
 test('required font is a warning, not a block — the eye cannot tell at a glance but the file can be fixed', () => {

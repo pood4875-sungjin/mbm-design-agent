@@ -121,8 +121,8 @@ export function renderAd(ctx, style, spec) {
     }
   }
 
-  // ── 글자색: 매체가 정하면 그대로(카카오·NAP 비즈보드), 아니면 지면 위 순흑/순백.
-  const tc = mr.textColors ?? {};
+  // ── 글자색: 규격이 정하면 그대로(카카오·NAP 비즈보드 — 매체 단위 값은 참고 메모라 쓰지 않는다), 아니면 지면 위 순흑/순백.
+  const tc = rules.textColors ?? {};
   const onField = transparent ? '#000000' : (style.kvReadability?.banner?.text ?? p.onPrimary);
   const mainFg = tc.main ?? onField;
   const subFg = tc.sub?.[0] ?? (tc.main ? tc.main : (mainFg === '#FFFFFF' ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.62)'));
@@ -159,8 +159,12 @@ export function renderAd(ctx, style, spec) {
     const side = Math.min(innerW, innerH);
     const mark = style.logo
       ? `<img data-logo="1" src="${esc(style.logo)}" alt="" style="display:block;height:${Math.round(side * 0.6)}px;width:auto;max-width:${Math.round(innerW * 0.86)}px;object-fit:contain;${fgIsDark ? '' : 'filter:brightness(0) invert(1)'}"/>`
-      : (() => { const t = copy.advertiser || copy.main; const fs = Math.max(10, Math.floor(fitFontSize(t, Math.round(innerW * 0.8), Math.round(innerH * 0.6), Math.round(side * 0.22), 10, 1.25)));
-          return `<div data-field="advertiser" style="font-size:${fs}px;line-height:1.25;font-weight:800;letter-spacing:-0.02em;color:${mainFg};text-align:center;${WRAP}">${esc(t)}</div>`; })();
+      : (() => {
+          // 워드마크는 한 줄이다 — 낱말 중간에서 꺾이면 이름이 깨진다. 폭에 맞춰 크기를 줄이고 줄바꿈은 막는다.
+          const t = copy.advertiser || copy.main;
+          // 한 줄 고정이라 fitFontSize(여러 줄 허용)가 아니라 폭 ÷ 글자 폭으로 직접 잰다
+          const fs = Math.max(8, Math.floor(Math.min(side * 0.22, (innerW * 0.86) / Math.max(1, textWidth(t)))));
+          return `<div data-field="advertiser" style="font-size:${fs}px;line-height:1.25;font-weight:800;letter-spacing:-0.02em;color:${mainFg};text-align:center;white-space:nowrap">${esc(t)}</div>`; })();
     return `${open('align-items:center;justify-content:center')}${mark}</div>`;
   }
 
@@ -168,7 +172,7 @@ export function renderAd(ctx, style, spec) {
   const stated = statedFontSizes(rules);
   const th = rules.textHeightPx ?? null;
   const line = 1.22;
-  const titleMax = Math.min(64, Math.max(13, Math.round(S * 0.085)));
+  const titleMax = Math.min(96, Math.max(13, Math.round(S * 0.085)));
   const capMain = th?.max != null ? Math.min(titleMax, th.max) : titleMax;
   const floorMain = th?.min != null ? Math.max(11, th.min) : 11;
 

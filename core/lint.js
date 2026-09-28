@@ -72,8 +72,9 @@ export function lintArtifact({ spec, medium, measure }) {
     if (t.truncated) block('overflow', `${t.role} 문구가 지면에 다 들어가지 않아 잘림`, t.role);
   }
 
-  // ── 글자색 (매체가 정한 경우만 — NAP 비즈보드가 서브 색으로 나가 반려된 사례)
-  const tc = medium?.textColors;
+  // ── 글자색 — 규격 단위 값만 강제한다(카카오·NAP 비즈보드). 매체 단위 textColors는 "비즈보드 전용"·"흑/백 택1" 같은
+  //    메모가 붙은 참고값이라 모든 규격에 걸면 디스플레이 광고까지 잘못 막는다. (NAP 비즈보드가 서브 색으로 나가 반려된 사례)
+  const tc = spec.textColors;
   if (tc && (tc.main || tc.sub?.length)) {
     for (const t of measure.texts ?? []) {
       if (t.color == null) continue;
