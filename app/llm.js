@@ -14,7 +14,9 @@ export const MODELS = [
 ];
 const DEFAULT_MODEL = MODELS[0].id;
 
-export function getKey() { try { return (localStorage.getItem(KEY_LS) || EMBEDDED || '').trim(); } catch { return (EMBEDDED || '').trim(); } }
+// 자리표시('sk-ant-...')나 너무 짧은 값은 키가 아니다 — 있다고 믿고 호출하면 매 턴 401 뒤 폴백으로 느려진다
+const realKey = v => { v = (v || '').trim(); return /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(v) ? v : ''; };
+export function getKey() { try { return realKey(localStorage.getItem(KEY_LS)) || realKey(EMBEDDED); } catch { return realKey(EMBEDDED); } }
 export function setKey(v) { v = (v || '').trim(); try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch {} }
 export function hasKey() { return !!getKey(); }
 export function maskKey() { const k = getKey(); return k ? (k.length <= 12 ? '••••' : k.slice(0, 7) + '…' + k.slice(-4)) : ''; }

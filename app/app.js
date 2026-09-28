@@ -3,7 +3,10 @@
 // 편집: 우측 인스펙터 — 선택 없음 = 캠페인 전체(타이핑 즉시 전 산출물 일괄 반영),
 //        산출물 선택 = 그것만 즉시 반영(override, 일괄 반영에서 보존).
 
-import { createContext, updateContext, missingFields, CORE_FIELDS } from '../core/context.js';
+import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS } from '../core/context.js';
+import { MEDIA } from '../core/media.js';
+import { adSpecEntries } from '../core/adspecs.js';
+import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
 import { extractPalette, rolesFromKeyVisual, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
@@ -12,7 +15,10 @@ import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/g
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
-import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL } from './agent.js';
+import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor } from './agent.js';
+import { measureArtifact } from './measure.js';
+import { renderFit } from './adfit.js';
+import { buildZip } from './zip.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
 import { upscale } from './upscale.js';
@@ -20,10 +26,11 @@ import { upscale } from './upscale.js';
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
+  ...KINDS.recruit.labels,
 };
 const CHANNEL_LABEL = {
   banner: '홍보 배너', edm: 'eDM', landing: '랜딩페이지', gwthumb: '그룹웨어 썸네일',
-  poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰', photobooth: '포토부스',
+  poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰', photobooth: '포토부스', ad: '매체 광고',
 };
 const CHANNEL_DESC = {
   banner: 'Google Ads 실적 상위 5규격', edm: '이메일 HTML', landing: '등록 폼 포함', gwthumb: '374×271 · PNG',
@@ -32,18 +39,19 @@ const CHANNEL_DESC = {
 };
 const ONLINE = ['edm', 'landing', 'banner', 'gwthumb'];
 const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
-const VARIANTS = { banner: 3, gwthumb: 3, badge: 2, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
+const VARIANTS = { ad: 1, banner: 3, gwthumb: 3, badge: 2, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
 const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05, photobooth: 0.05 };
 const STORE_LS = 'mbm-campaigns';
 
 const SAMPLES = [
+  '한진정보통신 클라우드 플랫폼 엔지니어 채용 광고. 카카오 비즈보드, 자소설닷컴, 네이버에 나가요. 정규직, 서울 여의도, 10월 31일 마감.',
   '10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행. 대상은 건설 구조 엔지니어, 사전등록 받아야 함. eDM이랑 랜딩페이지, 배너, 포스터, X배너 필요해.',
   '내년 3월 킨텍스 MBM 신제품 발표회. 교량 설계 실무자 대상, 현장 데모 신청 유도. 랜딩이랑 현수막, 배너만.',
   '2026 ONSITE MBM 도쿄 — 6월 20일, 대상 일본 파트너사. eDM과 포스터.',
 ];
 
 const state = {
-  intake: { fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '', kvReadability: null, suggests: [], step: 0 },
+  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '', kvReadability: null, suggests: [], step: 0 },
   campaign: null,
   selected: null,          // specId | null
   zoom: 1, panX: 0, panY: 0,
@@ -214,7 +222,13 @@ function parseBriefRegex(text) {
   if (/X\s?배너|엑스배너/i.test(text)) channels.push('xbanner');
   if (/포스터/.test(text)) channels.push('poster');
   if (/현수막/.test(text)) channels.push('hyunsumak');
-  return { fields: out, channels: [...new Set(channels)] };
+  const kind = detectKind(text);
+  if (kind === 'recruit') {
+    const rf = {};
+    if (out.date) rf.deadline = out.date;
+    return { fields: rf, channels: [], kind, track: detectTrack(text), media: detectMedia(text) };
+  }
+  return { fields: out, channels: [...new Set(channels)], kind, track: detectTrack(text), media: detectMedia(text) };
 }
 
 /* ═══ home ═══ */
@@ -349,13 +363,14 @@ function renderSteps() {
 
 async function startIntake(text) {
   state.intake = {
-    fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
+    kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
     mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
     kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'brief', styleDone: false, signageDone: false, history: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
   state.intake.channels = seed.channels;
+  state.intake.kind = seed.kind; state.intake.track = seed.track; state.intake.media = seed.media ?? [];
   $('thread').innerHTML = '';
   clearSlot();
   show('intake');
@@ -367,7 +382,7 @@ async function startIntake(text) {
 function agentState() {
   const it = state.intake;
   return {
-    phase: it.phase, fields: it.fields, channels: it.channels, kv: it.kv,
+    phase: it.phase, kind: it.kind, track: it.track, media: it.media, fields: it.fields, channels: it.channels, kv: it.kv,
     styleDone: it.styleDone, signageDone: it.signageDone, signage: it.signage, roster: it.roster,
     style: { mode: it.mode, colors: it.colors, font: it.font },
   };
@@ -399,6 +414,9 @@ async function turn(userText) {
 
 function applyPatch(patch = {}) {
   const it = state.intake;
+  if (patch.kind && KINDS[patch.kind]) it.kind = patch.kind;
+  if (patch.track && TRACKS[patch.track]) it.track = patch.track;
+  if (patch.media?.length) it.media = [...new Set([...(it.media ?? []), ...patch.media])];
   Object.assign(it.fields, patch.fields ?? {});
   if (patch.channels?.length) it.channels = [...new Set([...it.channels, ...patch.channels])];
   if (patch.signage) for (const [ch, list] of Object.entries(patch.signage)) if (Array.isArray(list)) it.signage[ch] = list;
@@ -415,7 +433,7 @@ function renderSlot() {
   // 오프라인 세트는 단계와 무관하게 먼저 정한다 — 대화로 캐묻는 것보다 카드가 빠르고,
   // 진행자가 brief를 건너뛰고 info/style로 바로 가는 경우에도 놓치지 않는다.
   if (!it.signageDone && it.channels.some(c => OFFLINE_CH.includes(c))) return slotSignage();
-  if (it.phase === 'brief') return slotChannels();
+  if (it.phase === 'brief') return !it.track ? slotTrack() : (it.track === 'online' && it.kind === 'recruit' ? slotMedia() : slotChannels());
   if (it.phase === 'info') return slotFields();
   if (it.phase === 'style') return slotStyle();
   clearSlot();
@@ -442,6 +460,44 @@ function slotChannels() {
       return;
     }
     turn(said);
+  };
+}
+
+// 트랙 — 온라인 광고(매체 규격)냐 오프라인 인쇄물이냐. 규칙의 주인이 다르므로 제일 먼저 가른다.
+function slotTrack() {
+  const it = state.intake;
+  slot(`<div class="card2"><h4>어디에 나가나요</h4><div class="chgrid">
+    <label class="chcard"><input type="radio" name="trk" value="online"><span>온라인 광고<small>채용포털 · 디지털 · 커뮤니티 매체 규격</small></span></label>
+    <label class="chcard"><input type="radio" name="trk" value="offline"><span>오프라인 인쇄물<small>포스터 · X배너 · 현수막 · 명찰 · 포토부스</small></span></label>
+  </div></div>`);
+  $('slot').querySelectorAll('input').forEach(i => i.onchange = () => {
+    it.track = i.value;
+    const said = TRACKS[i.value];
+    bub('user', said); clearSlot(); turn(said);
+  });
+}
+
+// 매체 — 그룹별 칩. 규격 수와 확인 필요 수를 같이 보여 준다(고르기 전에 무게를 알아야 한다).
+function slotMedia() {
+  const it = state.intake;
+  const entries = Object.values(adSpecEntries());
+  const groups = ['채용포털', '디지털', '커뮤니티', '기타'];
+  slot(`<div class="card2"><h4>매체</h4>${groups.map(g => `
+    <div class="mgroup"><h5>${g}</h5><div class="chgrid">${MEDIA.filter(m => m.group === g).map(m => {
+      const n = entries.filter(e => e.medium === m.id).length;
+      const rv = entries.filter(e => e.medium === m.id && e.confidence !== '확정').length;
+      return `<label class="chcard ${it.media.includes(m.id) ? 'on' : ''}"><input type="checkbox" value="${m.id}" ${it.media.includes(m.id) ? 'checked' : ''}>
+        <span>${m.name}<small>규격 ${n}종${rv ? ` · 확인 필요 ${rv}` : ''}</small></span></label>`;
+    }).join('')}</div></div>`).join('')}
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="mdOk">이걸로 진행</button></div></div>`);
+  $('slot').querySelectorAll('input').forEach(i => i.onchange = () => {
+    i.closest('.chcard').classList.toggle('on', i.checked);
+    it.media = [...$('slot').querySelectorAll('input:checked')].map(x => x.value);
+  });
+  $('mdOk').onclick = () => {
+    if (!it.media.length) { toast('매체를 하나 이상 고르세요'); return; }
+    const said = it.media.map(id => MEDIA.find(m => m.id === id)?.name ?? id).join(', ');
+    bub('user', said); clearSlot(); turn(said);
   };
 }
 
@@ -507,7 +563,7 @@ function slotSignage() {
 
 function slotFields() {
   const it = state.intake;
-  const missing = CORE_FIELDS.filter(f => !it.fields[f]);
+  const missing = fieldsFor(it.kind).filter(f => !it.fields[f]);
   if (!missing.length) { clearSlot(); return; }
   slot(`<div class="card2"><h4>비어 있는 정보</h4><div class="fgrid">${missing.map(f =>
     `<div class="f"><label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}"></div>`).join('')}</div>
@@ -722,12 +778,24 @@ function specIdsFor(channels) {
 }
 
 /* ═══ 생성 → 아트보드 ═══ */
+// 캠페인 이름 — 행사는 행사명, 채용은 고객사+직무
+function campaignName(ctx) {
+  const c = ctx?.core ?? {};
+  return ctx?.kind === 'recruit' ? [c.client, c.role].filter(Boolean).join(' ') || '채용 캠페인' : (c.name || '캠페인');
+}
+// 고른 매체의 그릴 수 있는 규격 전부 — 매체를 고르면 그 매체 상품이 한 장씩 나온다
+function adSpecIdsFor(media) {
+  return Object.values(adSpecEntries()).filter(e => media.includes(e.medium)).map(e => e.id);
+}
+function campaignFields(c) {
+  return c.kind === 'recruit' ? KINDS.recruit.required : ['name', 'date', 'venue', 'cta'];
+}
 function slug(name) {
   return (name || 'campaign').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
 }
 function buildAndGenerate() {
   const it = state.intake;
-  let ctx = createContext(it.fields);
+  let ctx = createContext(it.fields, it.kind);
   const extraPatch = {};
   for (const ch of it.channels) for (const f of EXTRA_FIELDS[ch] ?? []) (extraPatch[ch] ??= {})[f] = it.extra[ch]?.[f] || '기본';
   ctx = updateContext(ctx, { channelFields: extraPatch });
@@ -744,7 +812,8 @@ function buildAndGenerate() {
   const signage = {};
   for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
   state.campaign = {
-    id: slug(ctx.core.name), context: ctx, style, channels: it.channels, signage,
+    id: slug(campaignName(ctx)), context: ctx, style, channels: it.channels, signage,
+    kind: it.kind, track: it.track, media: it.media ?? [], adSpecIds: adSpecIdsFor(it.media ?? []),
     roster: it.roster ?? [], artifacts: [], log: [],
     // 첫 생성은 권장 규격만. 나머지(Google Ads 선택 규격·포토월 등)는 켜 두면 20장이 깔린다 —
     // 아트보드의 "+ 산출물 추가"에서 필요할 때 꺼내 쓴다.
@@ -785,7 +854,7 @@ function revealStaged() {
 
 function enterWork(opts = {}) {
   show('work');
-  $('campPill').textContent = state.campaign.context.core.name;
+  $('campPill').textContent = campaignName(state.campaign.context);
   $('logBody').innerHTML = ''; $('logCount').textContent = '';
   state.selected = null;
   resetHistory();       // 캠페인이 바뀌면 이전 캠페인의 되돌리기 이력은 의미가 없다
@@ -794,6 +863,7 @@ function enterWork(opts = {}) {
   renderInspector();
   fitZoom();
   if (opts.staged) revealStaged();
+  scheduleLint();
 }
 
 /* ═══ 아트보드 ═══ */
@@ -807,7 +877,7 @@ function naturalSize(spec) {
     const k = 3.7795;
     return [(spec.wmm + spec.bleed * 2) * k, (spec.hmm + spec.bleed * 2) * k];
   }
-  if (spec.channel === 'banner') return [spec.w, spec.h];
+  if (spec.channel === 'banner' || spec.channel === 'ad') return [spec.w, spec.h];
   if (spec.channel === 'edm') return [600, 900];
   return [1000, 1400];
 }
@@ -816,22 +886,27 @@ function layoutArtboard(opts = {}) {
   const board = $('artboard');
   board.innerHTML = '';
   frames.clear();
-  const rows = [ONLINE.filter(c => state.campaign.channels.includes(c)), OFFLINE.filter(c => state.campaign.channels.includes(c))];
+  const c = state.campaign;
+  // 줄 구성: 매체 광고는 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄
+  const adRows = (c.media ?? []).map(m => c.artifacts.filter(a => a.channel === 'ad' && SPECS[a.specId]?.medium === m)).filter(r => r.length);
+  const rows = [...adRows, ONLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch)), OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch))];
   let y = 60;
-  for (const rowChannels of rows) {
-    if (!rowChannels.length) continue;
+  for (const rowArts of rows) {
+    if (!rowArts.length) continue;
     let x = 60, rowH = 0;
-    for (const ch of rowChannels) {
-      for (const a of state.campaign.artifacts.filter(a => a.channel === ch)) {
+    {
+      for (const a of rowArts) {
+        const ch = a.channel;
         const spec = effSpec(a);
         const [nw, nh] = naturalSize(spec);
-        const ds = DISPLAY_SCALE[ch] ?? 1;
+        // 매체 규격은 1029×258부터 1440×976까지 제각각 — 한 줄에 놓이도록 폭·높이 상한으로 맞춘다
+        const ds = ch === 'ad' ? Math.min(1, 460 / nw, 300 / nh) : (DISPLAY_SCALE[ch] ?? 1);
         const w = nw * ds, h = nh * ds;
         const frame = document.createElement('div');
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span></div>
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
@@ -840,7 +915,8 @@ function layoutArtboard(opts = {}) {
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = a.html;
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
-        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), label: frame.querySelector('.fname') });
+        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), label: frame.querySelector('.fname') });
+        lintBadge(a);
         x += w + 70;
         rowH = Math.max(rowH, h);
       }
@@ -879,8 +955,51 @@ function refreshFrames(only = null) {
     f.iframe.srcdoc = a.html;
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
+    if (a.channel === 'ad') a.lint = null;   // 다시 그렸으니 이전 판정은 무효 — 다시 잰다
+    lintBadge(a);
   }
+  scheduleLint();
 }
+
+/* ═══ 규격 검사 (매체 광고) ═══
+   그린 뒤 실제로 재서 판정한다(불변식 ⑥ — 위반은 조용히 넘기지 않는다). 측정은 래스터까지 하므로 비동기·순차. */
+function lintBadge(a) {
+  const f = frames.get(a.key ?? a.specId);
+  if (!f?.lint) return;
+  if (a.channel !== 'ad') { f.lint.style.display = 'none'; return; }
+  const L = a.lint;
+  f.lint.style.display = '';
+  if (!L) { f.lint.className = 'badge lint'; f.lint.textContent = '검사 중…'; return; }
+  f.lint.className = 'badge lint ' + L.level;
+  f.lint.textContent = L.level === 'pass' ? '규격 통과' : `${L.level === 'block' ? '차단' : '경고'} ${L.issues.length}`;
+}
+function lintHtml(a) {
+  const L = a.lint;
+  if (!L) return '<div style="font-size:11.5px;color:var(--sub)">규격 검사 중…</div>';
+  if (!L.issues.length) return '<div style="font-size:11.5px;color:var(--good);font-weight:600">규격 통과 — 치수·포맷·용량·글자수·색 모두 규정 안</div>';
+  return `<ul style="margin:4px 0 0;padding-left:16px;font-size:11.5px;line-height:1.5">${L.issues.map(i =>
+    `<li style="color:${i.level === 'block' ? 'var(--danger)' : 'var(--amber)'}">${i.msg}</li>`).join('')}</ul>`;
+}
+let lintRun = 0;
+async function lintAds() {
+  const c = state.campaign; if (!c) return;
+  const run = ++lintRun;
+  for (const a of c.artifacts.filter(a => a.channel === 'ad' && !a.lint)) {
+    if (run !== lintRun) return;    // 그 사이 다시 그려졌으면 이 판정은 버린다
+    const spec = SPECS[a.specId]; if (!spec?.rules) continue;
+    try {
+      const m = await measureArtifact(a.html, spec);
+      a.lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m });
+    } catch (e) {
+      a.lint = { level: 'warn', issues: [{ level: 'warn', code: 'measure', msg: `측정 실패: ${e.message}` }] };
+    }
+    lintBadge(a);
+    if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
+  }
+  const blocked = c.artifacts.filter(a => a.lint?.level === 'block').length;
+  if (blocked) log(`규격 검사: 차단 ${blocked}건 — 승인 전에 해결 필요`);
+}
+const scheduleLint = debounce(() => lintAds(), 400);
 
 /* zoom · pan */
 function applyTransform() {
@@ -1072,7 +1191,7 @@ function renderInspector() {
     insp.innerHTML = `
       <h3>CAMPAIGN <span class="mode">전체 일괄</span></h3>
       <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
-      ${['name', 'date', 'venue', 'cta'].map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
+      ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
       <h3 style="margin-top:18px">STYLE</h3>
       <label>모드</label>
       <div class="vseg" id="iMode">
@@ -1223,7 +1342,7 @@ function renderInspector() {
   insp.innerHTML = `
     <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
     <div class="hint">이 산출물에서만 다르게 표기할 값. 비우면 공통값. 개별 값은 일괄 반영에서 보존됩니다.</div>
-    ${['name', 'date', 'venue', 'cta'].map(f => `
+    ${campaignFields(c).map(f => `
       <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
       <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
     ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
@@ -1248,6 +1367,11 @@ function renderInspector() {
         용지 ${spec.wmm + spec.bleed * 2}×${spec.hmm + spec.bleed * 2}mm (블리드 ${spec.bleed}mm)<br>
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
       </div>` : ''}
+    ${a.channel === 'ad' ? `
+      <label>매체 규격</label>
+      <div style="font-size:11.5px;color:var(--sub);line-height:1.6">${adRulesText(spec)}</div>
+      <label>규격 검사</label>
+      <div id="inspLint">${lintHtml(a)}</div>` : ''}
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
       <button class="btn pri" id="iExp">내보내기</button>
@@ -1361,7 +1485,7 @@ function currentSignage(ch) {
 function addArtifacts(picks) {
   const c = state.campaign;
   const ex = excludedOf(c);
-  const fresh = new Set(picks.map(p => SPECS[p.specId]?.channel).filter(ch => ch && !c.channels.includes(ch)));
+  const fresh = new Set(picks.map(p => SPECS[p.specId]?.channel).filter(ch => ch && ch !== 'ad' && !c.channels.includes(ch)));
   for (const ch of fresh) {
     c.channels.push(ch);
     // 채널을 켜면 그 채널의 규격이 통째로 딸려 온다(generate.js는 채널→전규격 전개).
@@ -1372,6 +1496,13 @@ function addArtifacts(picks) {
     const spec = SPECS[pick.specId];
     if (!spec) continue;
     const ch = spec.channel;
+    if (ch === 'ad') {
+      // 매체 규격은 채널이 아니라 목록으로 산다 — 매체도 함께 켠다(아트보드 줄이 매체 단위다)
+      c.adSpecIds = [...new Set([...(c.adSpecIds ?? []), spec.id])];
+      if (!(c.media ?? []).includes(spec.medium)) c.media = [...(c.media ?? []), spec.medium];
+      ex.delete(spec.id);
+      continue;
+    }
     if (pick.purpose && pick.purpose !== 'main') {
       // 새로 켠 채널은 빈 목록에서 시작한다 — 고르지도 않은 메인 한 장이 딸려 오면 안 된다
       const set = c.signage[ch] ?? (c.signage[ch] = fresh.has(ch) ? [] : currentSignage(ch));
@@ -1392,6 +1523,23 @@ function addArtifacts(picks) {
 
 // 고를 수 있는 것 = 모든 규격 × (사이니지면 용도). 이미 있는 것은 체크·잠금으로 보여 준다 —
 // 목록에서 빼 버리면 "왜 없지?" 하고 다시 찾게 된다.
+// 매체 광고 — 매체별로 묶어 보여 준다. 확인 필요 규격은 표시하되 고를 수 있다(규격 자체는 자료에 있다).
+function adGroups(have) {
+  const entries = Object.values(adSpecEntries());
+  return MEDIA.map(m => {
+    const rows = entries.filter(e => e.medium === m.id).map(s => {
+      const on = have.has(s.id);
+      return `<label class="pickrow ${on ? 'had' : ''}">
+        <input type="checkbox" value="${s.id}" ${on ? 'checked disabled' : ''}>
+        <b>${s.rules.name} · ${s.submitW}×${s.submitH}</b>
+        <span>${s.format.join('/').toUpperCase()}${s.maxKB != null ? ` ≤${s.maxKB}KB` : ''}</span>
+        ${s.confidence !== '확정' ? '<i class="tag mob">확인 필요</i>' : ''}${on ? '<i class="tag had">있음</i>' : ''}
+      </label>`;
+    });
+    return rows.length ? `<h5>매체 · ${m.name}</h5><div class="pickgrid">${rows.join('')}</div>` : '';
+  }).join('');
+}
+
 function addArtifactModal() {
   const c = state.campaign;
   const have = new Set(c.artifacts.map(a => a.key ?? a.specId));
@@ -1423,7 +1571,7 @@ function addArtifactModal() {
     title: '산출물 추가',
     desc: '규격을 골라 이 캠페인에 더합니다. 권장 = Google이 실적 상위로 안내하는 규격.',
     wide: true,
-    body: `${group('온라인', ONLINE)}${group('오프라인', OFFLINE)}
+    body: `${adGroups(have)}${group('온라인', ONLINE)}${group('오프라인', OFFLINE)}
       <h5>오프라인 · 용도별 추가</h5>
       <div class="pickgrid">${purposeRows}</div>
       <div class="pickNote">방향 안내는 고른 화살표마다 한 장씩 만들어집니다.</div>`,
@@ -1453,9 +1601,80 @@ function addArtifactModal() {
 }
 
 /* ═══ 내보내기 ═══ */
+// 매체 소재 파일명 — 담당자가 매체사에 그대로 넘긴다: 고객사_직무_매체_치수_v회차.확장자
+function adFileName(a, fmt) {
+  const c = state.campaign, core = c.context.core, spec = SPECS[a.specId];
+  const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
+  const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
+  return `${[...who, clean(spec.mediumName), `${spec.submitW}x${spec.submitH}`, `v${c.context.version}`].filter(Boolean).join('_')}.${fmt}`;
+}
+function adRulesText(spec) {
+  const r = spec.rules ?? {};
+  return [
+    `제출 ${spec.submitW}×${spec.submitH}px${spec.exportScale > 1 ? ` (캔버스 ${spec.w}×${spec.h} ×${spec.exportScale})` : ''}`,
+    `${spec.format.map(f => f.toUpperCase()).join('/')}${spec.maxKB != null ? ` · ≤${spec.maxKB}KB` : ''}`,
+    r.textLimits?.length ? `글자수 ${r.textLimits.length}항목` : '글자수 규정 없음',
+    spec.confidence !== '확정' ? '⚠ 자료 확인 필요 규격' : null,
+  ].filter(Boolean).join('<br>');
+}
+async function exportAdFiles(ads) {
+  const c = state.campaign;
+  const out = [];
+  for (const a of ads) {
+    const spec = SPECS[a.specId];
+    const eff = { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } };
+    const fit = await renderFit(eff, c.style, spec);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
+    out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
+  }
+  return out;
+}
+async function doAdExport(a) {
+  toast('소재 생성 중…');
+  try {
+    const [{ fit, name }] = await exportAdFiles([a]);
+    if (fit.lint.level === 'block') { toast(`규격 차단 — ${fit.lint.issues[0]?.msg ?? ''}`); return; }
+    download(fit.measure.blob, name);
+    log(`내보내기: ${name}${fit.attempts.length > 1 ? ` (${fit.attempts.map(x => x.label).join('→')})` : ''}`);
+    closeModal();
+  } catch (e) { toast(`실패: ${e.message}`); }
+}
+async function exportAdZip() {
+  const c = state.campaign;
+  const ads = c.artifacts.filter(a => a.channel === 'ad');
+  toast(`매체 소재 ${ads.length}장 생성 중…`);
+  try {
+    const files = await exportAdFiles(ads);
+    const blocked = files.filter(f => f.fit.lint.level === 'block');
+    if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — ZIP에서 제외됨`); }
+    const entries = [];
+    for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
+      entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
+    }
+    if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
+    const zip = buildZip(entries);
+    download(new Blob([zip], { type: 'application/zip' }), `${c.id}_매체소재_v${c.context.version}.zip`);
+    log(`내보내기: 매체 소재 ZIP ${entries.length}장 (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})`);
+    closeModal();
+  } catch (e) { toast(`실패: ${e.message}`); }
+}
+function exportAdModal(a) {
+  const spec = SPECS[a.specId];
+  modal({
+    title: `${artLabel(a)} 내보내기`,
+    desc: '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
+    body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b></div>
+      <div style="margin-top:10px">${lintHtml(a)}</div>`,
+    actions: [
+      { label: '닫기' },
+      { label: '다운로드', pri: true, fn: () => { doAdExport(a); return false; } },
+    ],
+  });
+}
+
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
+  if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner') {
     modal({
       title: `${artLabel(a)} 내보내기`,
@@ -1533,18 +1752,21 @@ function exportAllModal() {
   const c = state.campaign;
   const banners = c.artifacts.filter(a => a.channel === 'banner');
   const htmls = c.artifacts.filter(a => ['edm', 'landing'].includes(a.channel));
-  const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner'].includes(a.channel));
+  const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner', 'ad'].includes(a.channel));
+  const ads = c.artifacts.filter(a => a.channel === 'ad');
   modal({
     title: '전체 내보내기',
-    desc: '온라인은 파일로 즉시, 인쇄물은 산출물별 PDF 저장으로 진행합니다.',
+    desc: '온라인은 파일로 즉시, 인쇄물은 산출물별 PDF 저장으로 진행합니다. 매체 소재는 매체별 폴더로 묶은 ZIP.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.8">
+      ${ads.length ? `· 매체 소재 ZIP — ${[...new Set(ads.map(a => SPECS[a.specId].mediumName))].join(', ')} (${ads.length}장${ads.some(a => a.lint?.level === 'block') ? `, 차단 ${ads.filter(a => a.lint?.level === 'block').length}건 제외` : ''})<br>` : ''}
       · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
-      { label: '배너 PNG 2x 일괄', pri: true, fn: () => { batchBanners(banners); return false; } },
+      ...(ads.length ? [{ label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(); return false; } }] : []),
+      { label: '배너 PNG 2x 일괄', pri: !ads.length, fn: () => { batchBanners(banners); return false; } },
     ],
   });
 }
@@ -1602,6 +1824,9 @@ $('cmdIn').onkeydown = e => { if (e.key === 'Enter') $('cmdGo').click(); };
 /* ═══ 승인 · 저장 · 재열기 ═══ */
 function approveAll() {
   const c = state.campaign;
+  const blocked = c.artifacts.filter(a => a.lint?.level === 'block');
+  if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 먼저 해결해야 승인할 수 있어요`); return; }
+  if (c.artifacts.some(a => a.channel === 'ad' && !a.lint)) { toast('규격 검사가 아직 끝나지 않았어요 — 잠시 후 다시'); return; }
   for (const a of c.artifacts) a.status = 'approved';
   logEvent(c, 'artifact_approved', { all: true });
   refreshFrames();
@@ -1623,6 +1848,7 @@ function saveCampaignToStore() {
     id: c.id, savedAt: Date.now(),
     status: done ? 'approved' : 'draft',
     context: c.context, style: c.style, channels: c.channels,
+    kind: c.kind ?? 'event', track: c.track ?? null, media: c.media ?? [], adSpecIds: c.adSpecIds ?? [],
     signage: c.signage ?? {}, roster: c.roster ?? [], excluded: c.excluded ?? [],
     conversation: (state.intake?.history ?? []).slice(-40),
     artifacts: c.artifacts.map(a => ({
@@ -1648,7 +1874,7 @@ const LOG_LABEL = {
 };
 
 function openStored(saved) {
-  state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [], excluded: saved.excluded ?? [] };
+  state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [], excluded: saved.excluded ?? [], media: saved.media ?? [], adSpecIds: saved.adSpecIds ?? [] };
   // 저장된 대화도 되살린다 — 무엇을 어떻게 정했는지가 이력의 핵심이다
   state.intake = { ...(state.intake ?? {}), history: saved.conversation ?? [] };
   registerAll();
@@ -1664,7 +1890,7 @@ function openStored(saved) {
   regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
   logEvent(state.campaign, 'campaign_reopened', {});
   enterWork();
-  log(`저장된 캠페인 재현: ${saved.context.core.name}`);
+  log(`저장된 캠페인 재현: ${campaignName(saved.context)}`);
   for (const e of (saved.log ?? []).slice(-8).reverse()) log(`· ${LOG_LABEL[e.type] ?? e.type}`);
 }
 

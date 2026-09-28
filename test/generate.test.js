@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { channelSpecIds, generateArtifacts, logEvent, registerAll } from '../core/generate.js';
+import { channelSpecIds, generateArtifacts, logEvent, registerAll, plannedItems } from '../core/generate.js';
 import { createCampaign } from '../core/campaign.js';
 import { createContext } from '../core/context.js';
 import { normalizeStyle } from '../core/style.js';
@@ -104,4 +104,13 @@ test('per-artifact size override reaches the renderer', () => {
   c.artifacts[0].size = { wmm: 594, hmm: 841 };
   generateArtifacts(c);
   assert.match(c.artifacts[0].html, /@page\{size:600mm 847mm/);
+});
+
+test('adSpecIds plan one artifact per media spec, and the ad channel never expands from channels', () => {
+  registerAll();
+  const c = { context: { core: {}, version: 1 }, style: { palette: {}, fonts: {} }, channels: ['banner'], adSpecIds: ['kakao-bizboard-mo', 'google-gdn-300x600'], artifacts: [], log: [] };
+  const items = plannedItems(c);
+  assert.deepEqual(items.filter(i => i.channel === 'ad').map(i => i.specId), ['kakao-bizboard-mo', 'google-gdn-300x600']);
+  const wrong = { ...c, adSpecIds: [], channels: ['ad'] };
+  assert.equal(plannedItems(wrong).length, 0, "'ad'를 채널로 켜도 77장이 깔리면 안 된다");
 });

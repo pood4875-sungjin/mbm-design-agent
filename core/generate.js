@@ -30,7 +30,8 @@ export function registerAll() {
 
 export function channelSpecIds(channels) {
   return Object.entries(SPECS)
-    .filter(([, spec]) => channels.includes(spec.channel))
+    // 'ad'는 채널이 아니라 매체 규격의 렌더러다 — 채널로 켜면 77장이 깔린다. 매체 규격은 adSpecIds로만 온다.
+    .filter(([, spec]) => spec.channel !== 'ad' && channels.includes(spec.channel))
     .map(([id]) => id);
 }
 
@@ -40,8 +41,12 @@ export function artifactKey(specId, purpose = 'main', arrow = null) {
 }
 
 // signage: { xbanner: [{purpose,arrow}], ... } — 미지정 채널은 main 1장
+// adSpecIds: 매체 광고 규격 id 목록 — 매체를 고르면 그 매체의 규격이 한 장씩. 용도 세트는 없다.
 export function plannedItems(campaign) {
   const items = [];
+  for (const specId of campaign.adSpecIds ?? []) {
+    if (SPECS[specId]?.channel === 'ad') items.push({ specId, channel: 'ad', purpose: 'main', arrow: null });
+  }
   for (const specId of channelSpecIds(campaign.channels)) {
     const spec = SPECS[specId];
     const set = campaign.signage?.[spec.channel];
