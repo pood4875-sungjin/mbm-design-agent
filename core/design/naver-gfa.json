@@ -1,0 +1,108 @@
+{
+  "medium": "naver-gfa",
+  "examples": [
+    {
+      "nodeId": "421:6995", "client": "한국콜마그룹", "spec": "모바일DA 1250×560 (A-2)",
+      "background": "gradient",
+      "bgColor": "≈#E8ECF8 (좌상단 ≈#EDFBE8 연녹 → 하단 ≈#CED3F4 연보라)",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.38 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.087, "subPresent": false, "datePresent": true, "hierarchy": ["main", "date"] },
+      "logo": { "present": true, "position": "top-right", "treatment": "original-color", "sizeRatio": 0.117 },
+      "badge": { "present": false, "text": null, "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#1C3C7C", "accent": "#1C68F8", "notes": "메인은 네이비 단색, 2행의 '콜마그룹'만 로고와 같은 브랜드 블루로 강조. 기간 줄 ≈#2C4884" },
+      "whitespace": "balanced",
+      "notes": "메인 텍스트 박스 x≈265 y≈70 (좌 240 텍스트 여백선 +25, 상단 50선 +20), 기간 1줄 '모집 기간 | 26. 09. 09(수) ~ 26. 09. 29(화)' y≈218–260. Kolmar 로고(146×50)는 x≈856–1002, y≈49 — 메인 1행 옆 카피 블록 우상단, 우측 끝이 텍스트 여백선(1010) 안. 오브젝트는 3D 아이소 공장·연구 라인+PRO 조형, x≈500–980·y≈245–520 우하단, 오브젝트 여백선(1025) 안. 숨김 레이어에 대체 카피(아웃라인 벡터) '미래의 콜마 PRO…' 존재."
+    },
+    {
+      "nodeId": "421:7058", "client": "대원제약", "spec": "모바일DA 1250×560",
+      "background": "gradient",
+      "bgColor": "#E4002C",
+      "object": { "type": "product", "side": "right", "widthRatio": 0.21 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.08, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date", "sub"] },
+      "logo": { "present": true, "position": "bottom-left", "treatment": "white", "sizeRatio": 0.197 },
+      "badge": { "present": true, "text": "~9/2(수) 17:30 서류접수 진행 중 / 모집직무 : ETC영업(의원/병원 영업)", "style": "pill" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": "#E84814", "notes": "브랜드 레드 단색 바탕 + 45° 회전 라운드 사각형 3개(오렌지 그라데이션)로 대각 띠. 타이포는 흰색만" },
+      "whitespace": "balanced",
+      "notes": "메인 텍스트 박스 x≈272 y=66 (좌 240선 +32, 상단 50선 +16), 2줄 각 ≈60px 행. 아웃라인 pill 2개(흰 2px 선, 투명 채움, 높이 55) y=201·268. 로고(흰색 가로형 246×27) x=272 y≈464–492로 카피 열 좌하단, 하단 35 여백선(525) 안. 제품(콜대원 3종) x≈727–992, 하단 y≈531로 하단 35px 여백선을 ≈6px 넘음. 템플릿(421:6935)과 같은 구조: 메인 2줄→서브 pill→좌하단 로고, 오브젝트는 우하단."
+    },
+    {
+      "nodeId": "421:7139", "client": "제일약품(프레임명 '제일제약')", "spec": "네이티브 PC 342×228",
+      "background": "solid",
+      "bgColor": "#0460AF",
+      "object": { "type": "illustration", "side": "center", "widthRatio": 0.73 },
+      "text": { "align": "center", "block": "center", "mainLines": 0, "mainWeight": null, "mainSizeRatio": 0, "subPresent": false, "datePresent": false, "hierarchy": [] },
+      "logo": { "present": false, "position": "none", "treatment": null, "sizeRatio": 0 },
+      "badge": { "present": false, "text": null, "style": "none" },
+      "cta": "none",
+      "colors": { "text": null, "accent": "#0460AF", "notes": "브랜드 블루 단색 배경, 일러스트는 흰색·청색 계열" },
+      "whitespace": "balanced",
+      "notes": "텍스트·로고 없이 키비주얼 한 장. 아이소 제약 공장/물류 일러스트(249×174)를 가운데 두고 좌우 ≈46px·상하 ≈27px 여백. 브랜드명은 일러스트 안 입체 레터 'JEIL'과 엠블럼으로만 보임."
+    },
+    {
+      "nodeId": "421:7158", "client": "SPC그룹", "spec": "네이티브 DA 342×228",
+      "background": "solid",
+      "bgColor": "#E9F2FF",
+      "object": { "type": "illustration", "side": "center", "widthRatio": 0.74 },
+      "text": { "align": "center", "block": "center", "mainLines": 0, "mainWeight": null, "mainSizeRatio": 0, "subPresent": false, "datePresent": false, "hierarchy": [] },
+      "logo": { "present": false, "position": "none", "treatment": null, "sizeRatio": 0 },
+      "badge": { "present": false, "text": null, "style": "none" },
+      "cta": "none",
+      "colors": { "text": null, "accent": "≈#1EA7E1", "notes": "아주 연한 하늘색 단색 배경. 일러스트 안 계열사 간판(SPC·파리바게뜨·BR 등)이 브랜드색을 담당" },
+      "whitespace": "balanced",
+      "notes": "텍스트 없는 아이소 일러스트(253×204)를 가운데 배치, 좌우 ≈44px·상하 ≈13px로 세로를 더 꽉 채움. 로고는 일러스트 속 간판으로만 노출."
+    },
+    {
+      "nodeId": "421:7141", "client": "제일약품", "spec": "프로필 이미지 300×300",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": { "type": "logo-only", "side": "center", "widthRatio": 0.9 },
+      "text": { "align": "center", "block": "center", "mainLines": 0, "mainWeight": null, "mainSizeRatio": 0, "subPresent": false, "datePresent": false, "hierarchy": [] },
+      "logo": { "present": true, "position": "center", "treatment": "original-color", "sizeRatio": 0.9 },
+      "badge": { "present": false, "text": null, "style": "none" },
+      "cta": "none",
+      "colors": { "text": "≈#0060B0", "accent": "≈#0060B0", "notes": "원색 로고(블루 엠블럼+블루 워드마크)" },
+      "whitespace": "balanced",
+      "notes": "가로형 로고(270×66)를 x=15–285, y≈117–183에 두어 상하·좌우 가운데 정렬. 좌우 패딩 15px(5%). 배경 장식 없음."
+    },
+    {
+      "nodeId": "421:7160", "client": "SPC그룹", "spec": "로고(네이티브 DA) 300×300",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": { "type": "logo-only", "side": "center", "widthRatio": 0.78 },
+      "text": { "align": "center", "block": "center", "mainLines": 0, "mainWeight": null, "mainSizeRatio": 0, "subPresent": false, "datePresent": false, "hierarchy": [] },
+      "logo": { "present": true, "position": "center", "treatment": "original-color", "sizeRatio": 0.78 },
+      "badge": { "present": false, "text": null, "style": "none" },
+      "cta": "none",
+      "colors": { "text": "≈#5A5A5A", "accent": "≈#1EA7E1", "notes": "원색 로고(하늘·노랑 심볼 + 회색 SPC)" },
+      "whitespace": "airy",
+      "notes": "가로형 로고(234×77)를 x=33–267, y≈111–189에 두어 상하·좌우 가운데 정렬. 좌우 패딩 33px(11%)로 제일약품보다 여유가 큼."
+    }
+  ],
+  "skipped": [
+    { "nodeId": "421:6935", "why": "템플릿(기업명_모바일DA)이라 예시에서 뺌. 레이아웃 참고: 메인 2줄(x=255, y=109·165, 각 ≈47–53h), 서브 pill(x=255, y=230, 415×47), 로고 박스 좌하단(x=256, y=471, 161×39), 오브젝트 박스 우하단(x=662–999, y=240–498). 여백 가이드: 상 50 · 하 35 · 좌우 텍스트 240 · 좌우 오브젝트 225." },
+    { "nodeId": "421:6986", "why": "뷰웍스 네이티브DA 로고 300×300: 자식 노드가 없고 렌더가 전부 #FFFFFF(로고가 안 들어 있음)" },
+    { "nodeId": "421:6988", "why": "뷰웍스 네이티브PC 로고 300×300: 자식 노드가 없고 렌더가 전부 #FFFFFF(로고가 안 들어 있음)" }
+  ],
+  "patterns": {
+    "background": { "gradient": 2, "solid": 4 },
+    "objectSide": { "right": 2, "center": 4 },
+    "textAlign": { "left": 2, "none": 4 },
+    "logoPosition": { "top-right": 1, "bottom-left": 1, "center": 2, "none": 2 },
+    "badge": { "present": 1, "absent": 5 },
+    "cta": { "button": 0, "text": 0, "none": 6 },
+    "typical": "모바일DA(1250×560)는 연한 그라데이션이나 브랜드 단색 배경에 왼쪽 정렬 메인 2줄과 기간을 두고, 오른쪽 아래에 오브젝트, 로고는 카피 블록 우상단이나 좌하단에 둔다. 네이티브(342×228)는 텍스트 없는 가운데 일러스트, 프로필(300×300)은 흰 배경 가운데 원색 가로형 로고다."
+  },
+  "rules": [
+    "모바일DA 카피는 좌 240 텍스트 여백선보다 15–34px 안쪽(x≈255–274)에서 시작하고, 상단 50선보다 16–59px 아래(y≈66–109)에서 시작한다 (2/2, 템플릿 포함 3/3)",
+    "모바일DA 메인 카피는 2줄 bold, 글자 높이는 캔버스 높이의 ≈8–9%(45–50px) (2/2)",
+    "메인 바로 아래에 기간 정보가 온다. 텍스트 1줄('모집 기간 | …')이거나 아웃라인 pill (2/2)",
+    "오브젝트는 오른쪽 아래, 폭 21–38%. 오른쪽 끝 x≤1002로 오브젝트 여백선(1025)과 텍스트 여백선(1010) 안에 든다. 아래쪽은 525선까지 내려오며 대원은 ≈6px 넘는다 (2/2)",
+    "로고는 카피 블록에 붙인다. 메인 1행 옆 우상단(콜마)이거나 카피 열 좌하단(대원, 템플릿과 같음) (2/2, 위치는 둘로 나뉨)",
+    "카피는 배경과 대비되는 한 가지 색(네이비나 흰색)으로 쓰고, 강조는 브랜드색 키워드 한 곳만 준다 (1/2, 대원은 흰색만)",
+    "네이티브 342×228은 텍스트와 로고 없이 브랜드 단색 배경에 가운데 일러스트(폭 ≈73–74%)만 둔다. 브랜드명은 일러스트 속 간판이나 입체 레터로 보인다 (2/2)",
+    "프로필·로고 300×300은 흰 배경에 원색 가로형 로고를 상하·좌우 가운데 둔다. 로고 폭 78–90%, 좌우 패딩 5–11%, 배경 장식 없음 (2/2)",
+    "CTA 버튼·텍스트가 없다 (6/6)"
+  ]
+}

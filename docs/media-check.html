@@ -63,7 +63,8 @@
   <header>
     <div class="eyebrow">Campaign Agent · AD 트랙</div>
     <h1>규격 적합 검사</h1>
-    <p class="src">샘플 채용 캠페인 하나를 <b>모든 매체 규격</b>에 넣어 실제로 그리고(PNG/JPG로 뽑아서), 매체 규칙 검사기로 판정한다.
+    <p class="src">샘플 채용 캠페인 하나(추상 키비주얼 포함)를 <b>모든 매체 규격</b>에 넣어 실제로 그리고(PNG/JPG로 뽑아서), 매체 규칙 검사기로 판정한다.
+      레이아웃은 <a href="design-guide.html">디자인 기준</a>(실제 소재 관찰)에서 온 매체별 프로필을 따른다.
       판정 근거는 <a href="media-rules.html">매체 규격 레퍼런스</a>의 값 그대로. 미리보기는 제출될 파일 그 자체다.</p>
     <div class="tiles" id="tiles"></div>
     <div class="sample" id="sample"></div>
@@ -100,7 +101,20 @@
     deadline: '2026-10-31', applyUrl: 'https://recruit.example.com/hanjin', qualification: '경력 3년 이상 · AWS/K8s 운영 경험',
     notice: '본 채용은 채용절차의 공정화에 관한 법률을 준수합니다',
   }, 'recruit');
-  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' } });
+  // 샘플 키비주얼 — 실제 소재의 오브젝트(누끼 일러스트·제품) 자리를 검증하려면 이미지가 하나 있어야 한다.
+  // 외부 파일 없이 캔버스로 그린 추상 오브젝트(원·막대). 배경은 지면색과 같은 계열이라 썸네일 상자 안에서 자연스럽다.
+  function sampleKeyVisual() {
+    const c = document.createElement('canvas'); c.width = 900; c.height = 600;
+    const g = c.getContext('2d');
+    const bg = g.createLinearGradient(0, 0, 900, 600); bg.addColorStop(0, '#1E88E5'); bg.addColorStop(1, '#0B3C8C');
+    g.fillStyle = bg; g.fillRect(0, 0, 900, 600);
+    g.fillStyle = 'rgba(255,255,255,.92)'; g.beginPath(); g.arc(620, 300, 150, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#FFB300'; g.fillRect(180, 330, 220, 150); g.fillRect(260, 220, 60, 110);
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(300, 160, 70, 0, Math.PI * 2); g.fill();
+    return c.toDataURL('image/png');
+  }
+  const kv = sampleKeyVisual();
+  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' }, keyVisual: kv, kvMeta: { ar: 1.5, edge: '#0B3C8C' } });
   document.getElementById('sample').innerHTML = Object.entries(ctx.core).filter(([, v]) => v).map(([k, v]) => `<div><b>${esc(k)}</b>${esc(v)}</div>`).join('');
 
   const entries = Object.values(adSpecEntries());

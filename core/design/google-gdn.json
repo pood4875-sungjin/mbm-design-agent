@@ -1,0 +1,1455 @@
+{
+  "medium": "google-gdn",
+  "examples": [
+    {
+      "nodeId": "414:1927",
+      "client": "일화",
+      "spec": "GDN 580×400",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "building",
+        "side": "right",
+        "widthRatio": 0.5,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.075,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "badge+date",
+          "badge+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.095
+      },
+      "badge": {
+        "present": true,
+        "text": "접수기간 · 모집부문",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#111111",
+        "accent": "#E60012",
+        "notes": "브랜드 레드를 메인 카피 전체·아이브로 키워드(건강·행복)·라벨 pill·인셋 테두리·상단 좌우 부채꼴 장식에 사용"
+      },
+      "whitespace": "balanced",
+      "notes": "흰 배경 + 레드 인셋 프레임. 사옥 사진이 오른쪽 절반을 차지하며 왼쪽·아래로 흰색에 페이드. 카피: 아이브로 1줄 / 메인 2줄(㈜일화 / 신입/경력 사원 모집) / 레드 pill 라벨 '접수기간'+날짜 / '모집부문'+목록 2줄."
+    },
+    {
+      "nodeId": "414:1963",
+      "client": "일화",
+      "spec": "GDN 970×250",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "building",
+        "side": "right",
+        "widthRatio": 0.3,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.12,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "badge+date | badge+list (한 줄)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.07
+      },
+      "badge": {
+        "present": true,
+        "text": "접수기간 · 모집부문",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#111111",
+        "accent": "#E60012",
+        "notes": "580과 동일 컬러 체계"
+      },
+      "whitespace": "balanced",
+      "notes": "580의 세로 스택 중 하단 2블록(접수기간/모집부문)을 한 행에 가로로 나열, 모집부문 목록은 쉼표로 1줄 압축. 사옥 사진은 오른쪽 30%로 축소 + 흐린 배경 건물로 중앙까지 페이드."
+    },
+    {
+      "nodeId": "414:1996",
+      "client": "일화",
+      "spec": "GDN 300×600",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "building",
+        "side": "right",
+        "widthRatio": 0.65,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.058,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2줄)",
+          "main",
+          "badge+date",
+          "badge+bullet list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.22
+      },
+      "badge": {
+        "present": true,
+        "text": "접수기간 · 모집부문",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#111111",
+        "accent": "#E60012",
+        "notes": "동일"
+      },
+      "whitespace": "tight",
+      "notes": "정렬은 왼쪽 유지. 아이브로 2줄, 메인 3줄(㈜일화 / 신입/경력 / 사원 모집)로 재개행. 모집부문 목록이 불릿 5행 세로 리스트로 전환. 사옥은 하단 우측 약 30% 높이, 목록 아래쪽과 겹침."
+    },
+    {
+      "nodeId": "414:1894",
+      "client": "일화",
+      "spec": "GDN 300×1050",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "building",
+        "side": "full-bleed",
+        "widthRatio": 1.0,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.036,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2줄)",
+          "main",
+          "badge+date",
+          "badge+bullet list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.22
+      },
+      "badge": {
+        "present": true,
+        "text": "접수기간 · 모집부문",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#111111",
+        "accent": "#E60012",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "300×600과 같은 스택에 행간·블록 간격만 확대. 카피가 상단 약 62%, 사옥 사진이 하단 약 38%를 전폭으로 차지. 메인 글자 절대 크기는 600과 거의 같음(≈38px)."
+    },
+    {
+      "nodeId": "414:2056",
+      "client": "비씨월드제약",
+      "spec": "GDN 580×400",
+      "background": "gradient",
+      "bgColor": "#4EB9DF→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.37,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.095,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date-pill"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.26
+      },
+      "badge": {
+        "present": true,
+        "text": "09.05(토) - 09.14(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#172A71",
+        "accent": "#172A71",
+        "notes": "네이비 1색이 메인 카피·날짜 pill·하단 띠에 쓰임. 하늘색 그라데이션은 배경만"
+      },
+      "whitespace": "balanced",
+      "notes": "위 하늘색→아래 흰색 세로 그라데이션 + 하단 네이비 띠(높이 7%). 아이브로 없이 메인 2줄 + 날짜 네이비 pill(흰 글자)만 있는 최소 정보형. 3D 아이소메트릭 캠퍼스 일러스트 'BCWORLD'가 우하단. 로고는 심볼+사명 2줄 락업."
+    },
+    {
+      "nodeId": "414:2066",
+      "client": "비씨월드제약",
+      "spec": "GDN 970×250",
+      "background": "gradient",
+      "bgColor": "#34AEDA→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.28,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.13,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date-pill"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.11
+      },
+      "badge": {
+        "present": true,
+        "text": "09.05(토) - 09.14(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#172A71",
+        "accent": "#172A71",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "580과 같은 구성을 가로로 늘림. 일러스트는 오른쪽 28%, 카피와의 사이 중앙 영역이 비어 있음. 하단 네이비 띠 높이 10%."
+    },
+    {
+      "nodeId": "414:2076",
+      "client": "비씨월드제약",
+      "spec": "GDN 300×600",
+      "background": "gradient",
+      "bgColor": "#4EB9DF→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "center",
+        "widthRatio": 0.9,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 4,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.047,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "logo",
+          "main",
+          "date-pill"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "original-color",
+        "sizeRatio": 0.47
+      },
+      "badge": {
+        "present": true,
+        "text": "09.05(토) - 09.14(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#172A71",
+        "accent": "#172A71",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "세로형에서 중앙 정렬로 전환. 로고가 상단 중앙으로 이동하고, 메인은 4줄(비씨월드제약 / 헬스케어 / 2026년 3차 / 정기 채용)로 재개행. 날짜 pill은 폭 약 85%로 확장. 일러스트는 중앙 하단(약 y330–520), 네이비 띠는 맨 아래 6%."
+    },
+    {
+      "nodeId": "414:2045",
+      "client": "비씨월드제약",
+      "spec": "GDN 930×180",
+      "background": "gradient",
+      "bgColor": "#50B9DF→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.19,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.167,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date-pill"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.07
+      },
+      "badge": {
+        "present": true,
+        "text": "09.05(토) - 09.14(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#172A71",
+        "accent": "#172A71",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "970 레이아웃을 세로로 압축. 메인 2줄 유지, 일러스트 19%로 축소, 로고는 초소형(폭 7%). 하단 네이비 띠 비중이 11%로 커짐."
+    },
+    {
+      "nodeId": "414:2100",
+      "client": "동부건설",
+      "spec": "GDN 580×400",
+      "background": "solid",
+      "bgColor": "#FFFFFF (card) on #002F66 frame",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.55,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.088,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(EN)",
+          "main",
+          "date-tag",
+          "label+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.32
+      },
+      "badge": {
+        "present": true,
+        "text": "3/30(월) ~ 4/12(일)",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002F66",
+        "accent": "#F76B1C",
+        "notes": "오렌지는 '2026년' 한 단어에만 사용, 나머지 네이비. 날짜 태그는 네이비 사각형 + 흰 글자 + 그림자"
+      },
+      "whitespace": "balanced",
+      "notes": "네이비 외곽 프레임 안에 둥근 흰 카드, 카드 우하단 모서리를 네이비 곡선이 파고들고 그 위에 3D 아이소메트릭 공사현장 일러스트. 영문 아이브로 1줄 / 메인 2줄(1줄 bold, 2줄 regular) / 날짜 태그 / '| 모집분야' 라벨 + 슬래시 구분 목록 2줄. 로고 2개(동부건설+센트레빌) 우상단."
+    },
+    {
+      "nodeId": "414:2117",
+      "client": "동부건설",
+      "spec": "GDN 970×250",
+      "background": "solid",
+      "bgColor": "#FFFFFF (card) on #002F66 frame",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.33,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.14,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(EN)",
+          "main",
+          "date-tag",
+          "(가운데 열) label+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.165
+      },
+      "badge": {
+        "present": true,
+        "text": "3/30(월) ~ 4/12(일)",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002F66",
+        "accent": "#F76B1C",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "3열 구성: 왼쪽 카피(아이브로+메인 2줄+날짜) | 가운데 모집분야 목록 열(x430–620) | 오른쪽 일러스트 33%. 580에서 아래에 쌓였던 목록이 가운데 빈 폭으로 이동."
+    },
+    {
+      "nodeId": "414:2134",
+      "client": "동부건설",
+      "spec": "GDN 300×600",
+      "background": "solid",
+      "bgColor": "#FFFFFF (card) on #002F66 frame",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 0.95,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.042,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "logo",
+          "sub(EN)",
+          "main",
+          "date-tag",
+          "label+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "original-color",
+        "sizeRatio": 0.68
+      },
+      "badge": {
+        "present": true,
+        "text": "3/30(월) ~ 4/12(일)",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002F66",
+        "accent": "#F76B1C",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "중앙 정렬로 전환, 로고 2개가 상단 중앙에 나란히. 메인은 2줄 유지(글자 절대 크기 축소 ≈25px). 일러스트가 하단 전폭(y365–570)으로 커지며 카드 밖으로 넘침."
+    },
+    {
+      "nodeId": "414:2087",
+      "client": "동부건설",
+      "spec": "GDN 300×1050",
+      "background": "solid",
+      "bgColor": "#FFFFFF (card) on #002F66 frame",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 0.95,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 4,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.038,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "logo",
+          "sub(EN 2줄)",
+          "main",
+          "date-tag",
+          "label+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "original-color",
+        "sizeRatio": 0.71
+      },
+      "badge": {
+        "present": true,
+        "text": "3/30(월) ~ 4/12(일)",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002F66",
+        "accent": "#F76B1C",
+        "notes": "동일"
+      },
+      "whitespace": "airy",
+      "notes": "메인을 한 단어씩 4줄(2026년 / 동부건설 / 신입사원 / 공개채용)로 재개행하고 글자 크기를 600보다 키움(≈40px). 아이브로 2줄. 일러스트는 y700–920, 그 아래 약 15%는 네이비 빈 영역."
+    },
+    {
+      "nodeId": "414:2153",
+      "client": "ABL생명",
+      "spec": "GDN 580×400",
+      "background": "solid",
+      "bgColor": "#0070E0",
+      "object": {
+        "type": "illustration",
+        "side": "center",
+        "widthRatio": 0.85,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.08,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "date-highlight",
+          "pill+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left + top-right",
+        "treatment": "white",
+        "sizeRatio": 0.29
+      },
+      "badge": {
+        "present": true,
+        "text": "6.24(수) - 7.5(일) · 모집분야",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#83C0FC",
+        "notes": "브랜드 블루 풀배경 + 흰 카피. 연하늘색은 아이브로 글자와 날짜 뒤 붓질 하이라이트에만"
+      },
+      "whitespace": "balanced",
+      "notes": "로열블루 배경 + 옅은 원형 패턴 + 하단 밝은 블루 호(지면). 그룹 로고(우리나라·우리금융그룹) 좌상단, ABL 우상단으로 분리. 마스코트 캐릭터 6종이 하단 띠 전체(y260–400)에 일렬로. 모집분야는 흰 pill 라벨 + 쉼표 목록 1줄."
+    },
+    {
+      "nodeId": "414:2190",
+      "client": "ABL생명",
+      "spec": "GDN 970×250",
+      "background": "solid",
+      "bgColor": "#0070E0",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.38,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.128,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main + date-highlight(1행 오른쪽)",
+          "pill+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.25
+      },
+      "badge": {
+        "present": true,
+        "text": "6.24(수) - 7.5(일) · 모집분야",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#83C0FC",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "580에서 좌·우로 나뉘었던 로고 3개가 우상단 한 줄로 모임. 날짜 하이라이트가 메인 1행 오른쪽 빈 공간으로 올라감. 캐릭터 줄은 하단 띠에서 오른쪽 38% 영역으로 이동."
+    },
+    {
+      "nodeId": "414:2208",
+      "client": "ABL생명",
+      "spec": "GDN 300×600",
+      "background": "solid",
+      "bgColor": "#0070E0",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 1.0,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 4,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.05,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "logo",
+          "sub",
+          "main",
+          "date-highlight",
+          "pill",
+          "list(세로)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "white",
+        "sizeRatio": 0.67
+      },
+      "badge": {
+        "present": true,
+        "text": "6.24(수) - 7.5(일) · 모집분야",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#83C0FC",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "중앙 정렬로 전환, 로고 3개는 상단 중앙 한 줄. 메인 4줄(2026 / 에이비엘생명 / 채용연계형 / 인턴 채용). 모집분야가 불릿 없는 세로 4행으로. 캐릭터는 하단 전폭(y460–600, 약 23%)."
+    },
+    {
+      "nodeId": "414:2171",
+      "client": "ABL생명",
+      "spec": "GDN 300×1050",
+      "background": "solid",
+      "bgColor": "#0070E0",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 0.95,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 4,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.032,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "logo",
+          "sub(2줄)",
+          "main",
+          "date-highlight",
+          "pill",
+          "list(세로)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "white",
+        "sizeRatio": 0.67
+      },
+      "badge": {
+        "present": true,
+        "text": "6.24(수) - 7.5(일) · 모집분야",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#83C0FC",
+        "notes": "동일"
+      },
+      "whitespace": "airy",
+      "notes": "600과 같은 스택, 아이브로 2줄·목록 행간 확대로 카피가 상단 약 70%를 차지. 캐릭터 y820–920, 그 아래 약 12%는 밝은 블루 지면만."
+    },
+    {
+      "nodeId": "6:490",
+      "client": "안랩",
+      "spec": "GDN 580×400",
+      "background": "gradient",
+      "bgColor": "#042BCE",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.48,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.1,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년 2월, regular)",
+          "main(AhnLab 워드마크+신입/경력 채용)",
+          "tag+date",
+          "tag+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.13
+      },
+      "badge": {
+        "present": true,
+        "text": "모집기간 · 모집부문",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#FFFFFF",
+        "notes": "딥블루 단일 배경 + 흰색 단색 타이포. 라벨 태그는 흰 사각형 + 블루 글자(반전)"
+      },
+      "whitespace": "balanced",
+      "notes": "숨김 이미지 레이어(원본 래스터)로 확인. 아이브로 '2026년 2월'이 메인과 비슷한 크기의 regular, 메인은 워드마크 'AhnLab'을 카피 안에 넣은 1줄. 흰 태그 라벨 + 값 2블록. 3D 아이소메트릭 흰/블루 테크 도시 일러스트가 우하단 약 절반."
+    },
+    {
+      "nodeId": "6:487",
+      "client": "안랩",
+      "spec": "GDN 970×250",
+      "background": "gradient",
+      "bgColor": "#042BCE",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.33,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.148,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "tag+date (1행)",
+          "tag+list (1행)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.072
+      },
+      "badge": {
+        "present": true,
+        "text": "모집기간 · 모집부문",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#FFFFFF",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "라벨 태그와 값이 같은 행으로 가로 배치(580에서는 라벨 아래 값), 모집부문 목록은 1줄로 압축. 일러스트는 오른쪽 33%, 아래로 잘림."
+    },
+    {
+      "nodeId": "6:488",
+      "client": "안랩",
+      "spec": "GDN 300×600",
+      "background": "gradient",
+      "bgColor": "#042BCE",
+      "object": {
+        "type": "illustration",
+        "side": "center",
+        "widthRatio": 0.9,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.05,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main(AhnLab / 신입/경력 채용)",
+          "tag+date",
+          "tag+list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "inline-with-copy",
+        "treatment": "white",
+        "sizeRatio": 0.6
+      },
+      "badge": {
+        "present": true,
+        "text": "모집기간 · 모집부문",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#FFFFFF",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "세로형에서도 왼쪽 정렬 유지. 모서리 로고를 없애고 'AhnLab' 워드마크를 메인 1행(대형)으로 올림 — 로고가 헤드라인이 됨. 일러스트 하단 약 32%(y410–600)."
+    },
+    {
+      "nodeId": "6:489",
+      "client": "안랩",
+      "spec": "GDN 300×1050",
+      "background": "gradient",
+      "bgColor": "#042BCE",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 1.0,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.033,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "tag+date",
+          "tag+bullet list"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "inline-with-copy",
+        "treatment": "white",
+        "sizeRatio": 0.6
+      },
+      "badge": {
+        "present": true,
+        "text": "모집기간 · 모집부문",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#FFFFFF",
+        "notes": "동일"
+      },
+      "whitespace": "airy",
+      "notes": "카피 블록이 y≈170에서 시작(상단 15% 비움)해 무게중심을 내림. 모집부문이 불릿 4행 세로 목록으로 전환. 일러스트 하단 30% 전폭."
+    },
+    {
+      "nodeId": "9:726",
+      "client": "한국앤컴퍼니",
+      "spec": "GDN 580×400",
+      "background": "gradient",
+      "bgColor": "#ED6C00 18%→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.6,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.08,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "date(plain)",
+          "list",
+          "cta-band"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left + top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.16
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "button",
+      "colors": {
+        "text": "#231815",
+        "accent": "#ED6C00",
+        "notes": "오렌지를 메인 강조어('신입')·목록 구분 점·하단 CTA 띠·배경 워시(18%)에 사용, 아이브로 #787878"
+      },
+      "whitespace": "balanced",
+      "notes": "숨김 그룹 안의 프레임이라 get_design_context 코드로 재구성·로컬 렌더 확인. CI(Hankook&Company) 좌상단 + BI(Hankook charge in motion) 우상단 이중 로고. 날짜는 pill 없이 텍스트. 하단 오렌지 띠(10%)에 '내게 딱 맞는 직무가 궁금하다면?' + 'Click!' 회색 pill 버튼. 아이소메트릭 서킷 일러스트가 우하단 60%."
+    },
+    {
+      "nodeId": "9:685",
+      "client": "한국앤컴퍼니",
+      "spec": "GDN 970×250",
+      "background": "gradient",
+      "bgColor": "#ED6C00 18%→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.35,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.12,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main(1줄)",
+          "date(plain)",
+          "list(1줄)",
+          "cta-band"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left + top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.1
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "button",
+      "colors": {
+        "text": "#231815",
+        "accent": "#ED6C00",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "숨김 프레임, 코드로 확인. 메인 '한국앤컴퍼니 신입 채용'을 1줄로 합침, 목록도 1줄. 일러스트 오른쪽 35%가 위아래로 넘침. CTA 띠 높이 14%."
+    },
+    {
+      "nodeId": "9:707",
+      "client": "한국앤컴퍼니",
+      "spec": "GDN 300×600",
+      "background": "gradient",
+      "bgColor": "#ED6C00 18%→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 1.1,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.054,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main",
+          "date(plain)",
+          "list",
+          "cta-band"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left + top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.27
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "button",
+      "colors": {
+        "text": "#231815",
+        "accent": "#ED6C00",
+        "notes": "동일"
+      },
+      "whitespace": "balanced",
+      "notes": "숨김 그룹, 코드 재구성·로컬 렌더 확인. 중앙 정렬로 전환하지만 로고 2개는 좌·우 모서리 유지(중앙으로 모으지 않은 유일한 사례). 메인 2줄 유지(43px 그대로). 일러스트가 하단 전폭 이상(y318–576)으로 넘치고, CTA 띠 7.5%."
+    },
+    {
+      "nodeId": "9:746",
+      "client": "한국앤컴퍼니",
+      "spec": "GDN 930×180",
+      "background": "gradient",
+      "bgColor": "#ED6C00 18%→#FFFFFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.27,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.133,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub",
+          "main(1줄)",
+          "date(plain)",
+          "list(1줄)",
+          "cta-band"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left + top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.094
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "button",
+      "colors": {
+        "text": "#231815",
+        "accent": "#ED6C00",
+        "notes": "동일"
+      },
+      "whitespace": "tight",
+      "notes": "숨김 프레임, 코드로 확인. 970 구성을 그대로 세로 압축: 5개 텍스트 행(아이브로·메인·날짜·목록·CTA)이 180px 안에 빽빽. CTA 띠 비중 17%로 최대."
+    },
+    {
+      "nodeId": "418:2461",
+      "client": "동서식품",
+      "spec": "GDN 580×400",
+      "background": "solid",
+      "bgColor": "#FFFCEB",
+      "object": {
+        "type": "people-photo",
+        "side": "right",
+        "widthRatio": 0.3,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.075,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년)",
+          "main",
+          "date-pill",
+          "label(형광펜)+list 3줄"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.28
+      },
+      "badge": {
+        "present": true,
+        "text": "9/28(월) - 10/12(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#1E1A0F",
+        "accent": "#FFC000",
+        "notes": "머스타드 옐로를 배경 원·'모집직무' 형광펜 밑줄·사원증 소품·하단 띠에, 날짜 pill은 블랙+흰 글자, 로고는 레드 원색"
+      },
+      "whitespace": "tight",
+      "notes": "크림 배경 + 연노랑 원. 모델 누끼(스틱 커피 든 여성) 오른쪽 30% + 노란 사원증 목걸이 일러스트 + 손글씨 말풍선 '동서식품의 새로운 인재를 찾습니다!' + 하트 낙서. 목록은 (경력)/(신입) 두 그룹, '|' 구분 3줄. 하단 옐로 띠 7%."
+    },
+    {
+      "nodeId": "418:2203",
+      "client": "동서식품",
+      "spec": "GDN 970×250",
+      "background": "solid",
+      "bgColor": "#FFFCEB",
+      "object": {
+        "type": "people-photo",
+        "side": "right",
+        "widthRatio": 0.33,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.128,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년)",
+          "main(1줄)",
+          "date-pill",
+          "label+list(라벨 오른쪽 2줄)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.134
+      },
+      "badge": {
+        "present": true,
+        "text": "9/28(월) - 10/12(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#1E1A0F",
+        "accent": "#FFC000",
+        "notes": "동일"
+      },
+      "whitespace": "tight",
+      "notes": "메인을 1줄(동서식품 대졸 신입/경력사원 채용)로 합침. '모집직무' 라벨 오른쪽에 목록 2줄을 나란히 배치(580은 라벨 아래). 사원증 소품 x580–700 + 모델 x740–900 = 오른쪽 약 33%."
+    },
+    {
+      "nodeId": "418:2331",
+      "client": "동서식품",
+      "spec": "GDN 300×600",
+      "background": "solid",
+      "bgColor": "#FFFCEB",
+      "object": {
+        "type": "people-photo",
+        "side": "right",
+        "widthRatio": 0.55,
+        "vpos": "bottom"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.047,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년)",
+          "main",
+          "date-pill",
+          "label+list 3줄"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.32
+      },
+      "badge": {
+        "present": true,
+        "text": "9/28(월) - 10/12(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#1E1A0F",
+        "accent": "#FFC000",
+        "notes": "동일"
+      },
+      "whitespace": "tight",
+      "notes": "세로형에서도 왼쪽 정렬·우상단 로고 유지. 메인 2줄(동서식품 대졸 / 신입/경력사원 채용), 날짜 pill 폭 약 85%. 모델 누끼 하단 우측(y345–570), 사원증 하단 좌측으로 좌우 분산."
+    },
+    {
+      "nodeId": "418:2595",
+      "client": "동서식품",
+      "spec": "GDN 930×180",
+      "background": "solid",
+      "bgColor": "#FFFCEB",
+      "object": {
+        "type": "people-photo",
+        "side": "right",
+        "widthRatio": 0.33,
+        "vpos": "full-height"
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.178,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년)",
+          "main(1줄)",
+          "date-pill",
+          "label+list 2줄"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.134
+      },
+      "badge": {
+        "present": true,
+        "text": "9/28(월) - 10/12(월)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#1E1A0F",
+        "accent": "#FFC000",
+        "notes": "동일"
+      },
+      "whitespace": "tight",
+      "notes": "970과 동일 구성을 세로로 압축, 정보 삭제 없음. 로고가 모델 오른쪽 끝(x790–915)으로 밀려 모델과 로고가 나란히. 하단 옐로 띠 6%."
+    }
+  ],
+  "skipped": [],
+  "sourceNotes": [
+    "414:xxxx·418:xxxx 20장은 get_screenshot(fileKey gD8RsVVg5iWAvQ0VbV2Wbz)으로 캡처.",
+    "안랩 6:490/6:487/6:488/6:489는 '_GDN (…)' 와이어프레임 템플릿 프레임(=좌측상단 정렬 버전 가이드) 안에 숨겨진(hidden) 이미지 레이어라 get_screenshot이 1×1로 나옴 → download_assets의 rawImages로 원본 래스터를 받아 판독.",
+    "한국앤컴퍼니 9:726/9:707은 숨긴 그룹 안에, 9:685/9:746은 프레임 자체가 hidden이라 get_screenshot이 1×1 → get_design_context 코드(정확한 좌표·폰트·색)로 판독하고, 580×400·300×600은 로컬 헤드리스 크롬 렌더로 모습 확인(shots/hk/*-render.png).",
+    "템플릿(예시 아님): 안랩 쪽 '_GDN (580*400)/(970*250)/(300*600)/(300*1050)' = 서브→메인→태그+상세 행, 로고 우상단, 이미지 영역 우측/하단 30~45%. 300×1050 템플릿은 서브가 y163에서 시작(상단 15% 비움)하고 이미지 영역은 하단 30%. 한국 쪽 '_GDN_970*250/930*180/580*400/300*600' = 로고 좌상+우상, 상세 칩 4개 한 행, 하단 전폭 띠, 이미지 영역 우측(300×600은 하단·중앙 정렬)."
+  ],
+  "patterns": {
+    "background": {
+      "solid": 16,
+      "gradient": 12
+    },
+    "objectSide": {
+      "right": 18,
+      "full-bleed": 7,
+      "center": 3
+    },
+    "objectVpos": {
+      "bottom": 21,
+      "full-height": 7
+    },
+    "objectType": {
+      "illustration": 20,
+      "building": 4,
+      "people-photo": 4
+    },
+    "textAlign": {
+      "left": 22,
+      "center": 6
+    },
+    "textAlignBySize": {
+      "580×400": {
+        "left": 7
+      },
+      "970×250": {
+        "left": 7
+      },
+      "930×180": {
+        "left": 3
+      },
+      "300×600": {
+        "center": 4,
+        "left": 3
+      },
+      "300×1050": {
+        "center": 2,
+        "left": 2
+      }
+    },
+    "mainLinesBySize": {
+      "580×400": {
+        "2": 6,
+        "1": 1
+      },
+      "970×250": {
+        "2": 4,
+        "1": 3
+      },
+      "930×180": {
+        "2": 1,
+        "1": 2
+      },
+      "300×600": {
+        "2": 4,
+        "3": 1,
+        "4": 2
+      },
+      "300×1050": {
+        "2": 1,
+        "3": 1,
+        "4": 2
+      }
+    },
+    "mainGlyphPx": "규격 무관 대략 24~40px 절대값 (580: 30~40 / 970: 30~37 / 930: 24~32 / 300×600: 25~35 / 300×1050: 32~40)",
+    "logoPosition": {
+      "top-right": 16,
+      "top-center": 5,
+      "top-left + top-right": 5,
+      "inline-with-copy": 2
+    },
+    "badge": {
+      "present": 24,
+      "absent": 4
+    },
+    "badgeStyle": {
+      "pill": 16,
+      "tag": 8,
+      "none": 4
+    },
+    "cta": {
+      "button": 4,
+      "text": 0,
+      "none": 24
+    },
+    "bottomBrandBand": {
+      "present": 12,
+      "absent": 16
+    },
+    "whitespace": {
+      "balanced": 19,
+      "tight": 6,
+      "airy": 3
+    },
+    "typical": "GDN 소재는 대체로 흰색/브랜드 단색 또는 그라데이션 배경 위에 왼쪽 정렬 카피 스택(아이브로 1줄 + 메인 2줄 + 날짜 pill/태그 + 모집분야 라벨·목록)을 두고, 가로형은 오른쪽 30~60%에, 세로형은 하단 25~40%에 3D 아이소메트릭 일러스트(또는 건물·인물 사진)를 배치하며 로고는 우상단 — 한 캠페인을 5개 비율로 재배치할 뿐 정보는 빼지 않는다.",
+    "bySize": {
+      "580×400": "카피 왼쪽 55~60% 열, 왼쪽 정렬 7/7. 스택=[아이브로]→메인 2줄→날짜→라벨+목록(≤2줄). 오브젝트 우측/우하단 0.3~0.6W(6/7, ABL만 하단 전폭 띠). 로고 우상단 5/7(단일 로고 폭 0.10~0.16W, 복수 락업 0.26~0.32W).",
+      "970×250": "오브젝트 오른쪽 28~38%(7/7), 위·아래로 잘려 넘침. 카피 왼쪽 약 60% 열. 메인 1~2줄(한 줄에 들어가면 1줄로 합침 3/7). 세로로 쌓던 보조정보를 가로로 풀어놓음: 라벨+값 한 행, 목록 쉼표 1줄, 또는 가운데 열로 이동(동부)·메인 옆으로 이동(ABL). 로고 우상단, 폭 0.07~0.17W로 축소.",
+      "930×180": "970과 같은 배치를 세로로 압축(3/3). 메인 1~2줄, 글자높이 0.13~0.18H. 오브젝트 오른쪽 0.19~0.35W. 로고 초소형 0.07~0.13W. 하단 브랜드 띠가 있으면 비중이 11~17%H로 커짐. 정보 삭제 없이 여백만 줄임(tight).",
+      "300×600": "세로 스택: 로고→[아이브로]→메인→날짜→목록→오브젝트. 오브젝트 하단 23~43%H(중앙값 약 33%), 0.9~1.1W 전폭 또는 사진이면 우하단 0.55~0.65W. 정렬 중앙 4/7·왼쪽 3/7. 메인 2~4줄로 재개행. 목록은 580의 2~3줄 유지(4/6) 또는 세로 행으로 전환(2/6: 일화 불릿 5행, ABL 4행). 날짜 박스 폭 0.8~0.9W.",
+      "300×1050": "항상 같은 고객사 300×600의 정렬·스택을 그대로 쓰고(4/4) 간격만 늘림. 카피가 상단 60~70%, 오브젝트 하단 20~38%, 그 아래 10~15%는 브랜드색 빈 지면이 남기도 함(동부·ABL). 메인은 더 잘게 개행(최대 4줄, 한 줄에 한 단어), 아이브로도 2줄로 개행(3/4). 목록 불릿화 2/4."
+    },
+    "adaptationByClient": {
+      "일화": "왼쪽 정렬·우상단 로고 고정. 580 사진 우측 50% → 970 우측 30% + 라벨 2개 한 행 → 300×600 메인 3줄·불릿 목록·사진 우하단 → 1050 사진 하단 38% 전폭.",
+      "비씨월드제약": "580/970/930 왼쪽 정렬·우상단 로고, 일러스트 0.37→0.28→0.19W로 축소. 300×600만 중앙 정렬 + 로고 상단 중앙 + 메인 4줄 + 일러스트 하단 중앙. 하단 네이비 띠는 모든 규격 유지.",
+      "동부건설": "가로형 왼쪽 정렬 + 우상단 로고 2개. 970은 3열(카피|목록|일러스트). 세로형은 중앙 정렬 + 로고 상단 중앙, 1050은 메인을 한 단어씩 4줄로 개행.",
+      "ABL생명": "580 로고 좌/우 분리 → 970 우상단 한 줄로 모음 → 세로형 상단 중앙. 캐릭터 580 하단 띠 → 970 오른쪽 38% → 세로형 하단 전폭. 세로형 중앙 정렬 + 메인 4줄.",
+      "안랩": "모든 규격 왼쪽 정렬. 가로형은 우상단 워드마크, 세로형은 모서리 로고를 없애고 워드마크를 메인 1행으로 올림. 970은 라벨+값을 한 행에. 1050은 상단 15% 비우고 목록 불릿화.",
+      "한국앤컴퍼니": "로고 2개 좌상/우상 모서리를 모든 규격에서 고정. 가로형 왼쪽 정렬, 300×600만 중앙. 970/930은 메인·목록을 1줄로 합침. 하단 오렌지 CTA 띠('Click!' 버튼)는 전 규격 유지.",
+      "동서식품": "모든 규격 왼쪽 정렬·우상단 레드 로고. 580 메인 2줄 → 970/930 1줄 → 300×600 2줄. 모집직무 목록: 580 라벨 아래 3줄 → 가로형 라벨 오른쪽 2줄. 모델은 가로형 우측, 세로형 우하단 + 사원증 좌하단."
+    }
+  },
+  "rules": [
+    "가로형(580×400·970×250·930×180)은 예외 없이 카피 왼쪽 정렬·왼쪽 블록(17/17). 세로형(300×600·300×1050)만 중앙 정렬로 바뀔 수 있다(중앙 6/11, 왼쪽 유지 5/11). 300×1050은 항상 같은 고객사 300×600과 같은 정렬(4/4).",
+    "580×400: 카피 왼쪽 55~60% 열에 [아이브로 1줄] + 메인 2줄(6/7) + 날짜 박스 + 라벨·목록 ≤2줄. 오브젝트는 우측/우하단 0.3~0.6W이고 오른쪽·아래 모서리로 넘치게 둠(6/7). 캐릭터 여러 개처럼 가로로 긴 오브젝트만 하단 전폭 띠로 배치(1/7).",
+    "970×250: 오브젝트를 오른쪽 28~38%W에 두고 위·아래로 넘치게 크롭(7/7). 카피는 왼쪽 약 60% 열에 메인 1~2줄(glyph 0.12~0.15H, 한 줄에 들어가면 1줄로 합침 3/7). 580에서 세로로 쌓던 날짜·모집분야는 가로로 풂 — 라벨+값 한 행, 목록 쉼표 1줄, 가운데 열로 이동, 또는 메인 옆 빈 칸으로 이동(목록이 있는 6/6). 930×180은 이 배치를 세로로 압축(3/3): 메인 1~2줄(0.13~0.18H), 오브젝트 0.19~0.35W, 로고 0.07~0.13W, 정보는 빼지 않고 여백만 줄임.",
+    "300×600: 로고→[아이브로]→메인→날짜→목록→오브젝트 순 세로 스택. 오브젝트는 하단 23~43%H(중앙값 약 33%)에 0.9~1.1W로 전폭 배치, 인물·건물 사진이면 우하단 0.55~0.65W(7/7). 메인은 2~4줄로 재개행. 목록은 580의 2~3줄 유지(4/6) 또는 세로 행으로 전환(2/6).",
+    "300×1050: 300×600 스택을 유지하고 간격만 늘림. 카피가 상단 60~70%, 오브젝트 하단 20~38%. 남는 높이는 행간·블록 간격, 상단 여백(안랩 15%), 하단 브랜드색 빈 지면(동부 15%, ABL 12%)으로 흡수(4/4). 메인은 한 단어씩 최대 4줄, 아이브로 2줄(3/4), 목록은 세로 행·불릿으로(3/4).",
+    "메인 카피 글자 높이는 규격과 상관없이 절대값 약 24~40px로 거의 같다(28/28). 비율(×H)로 키우지 말고 px를 고정한 뒤, 텍스트 열 폭 70~90%를 채우도록 줄바꿈으로 맞춘다. 그래서 mainSizeRatio는 930×180에서 0.13~0.18, 300×1050에서 0.03~0.04로 크게 벌어진다.",
+    "로고: 가로형은 우상단 13/17, 좌상+우상 분리 4/17(한국 이중 로고 3, ABL 580 그룹 로고 1). 세로형에서 중앙 정렬로 바꾸면 로고도 상단 중앙으로 모음(5/6, 한국만 모서리 유지). 왼쪽 정렬을 유지하면 우상단 유지(3/5) 또는 워드마크를 헤드라인 줄로 흡수(안랩 2/5). 로고 폭은 가로형 단일 로고 0.07~0.16W, 300폭에서 0.22~0.7W.",
+    "정보는 규격이 작아져도 줄이지 않는다. 날짜 28/28, 모집분야 목록은 목록이 있는 6개 고객사에서 24/24 전 규격에 남음. 대신 한 줄로 합치거나(970·930) 세로로 풀어(300폭) 다시 배치한다. 구글은 텍스트량 제한이 없어 정보 밀도가 높다.",
+    "오브젝트와 브랜드 장치는 전 규격에서 같은 에셋을 크롭·스케일만 바꿔 재사용(7/7). 하단 브랜드 띠가 있는 고객사는 모든 규격에서 띠 유지(12/12, 높이 6~17%H로 낮은 캔버스일수록 비중 증가). 테두리 프레임(일화 레드 인셋, 동부 네이비 프레임+흰 카드)도 전 규격 유지.",
+    "날짜는 장식해서 보여줌(24/28): 날짜 자체를 pill·태그·붓 하이라이트로 감싸거나(비씨·동부·ABL·동서 16/28), '접수기간/모집기간' 라벨 pill·태그를 앞에 붙임(일화·안랩 8/28). 평문 날짜는 한국앤컴퍼니 4/28뿐. 강조색은 한 가지만 쓰고(7/7) 브랜드색은 풀배경(ABL·안랩) 또는 강조어·박스·띠(5곳) 중 하나로 쓴다. 좌측 텍스트 여백은 가로형 약 28~38px, 300폭 약 20~30px. CTA 버튼은 드묾(4/28, 한국앤컴퍼니 'Click!' pill)."
+  ]
+}

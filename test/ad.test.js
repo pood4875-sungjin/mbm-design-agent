@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderAd, copyFor } from '../core/renderers/ad.js';
+import { renderAd, copyFor, templateScale } from '../core/renderers/ad.js';
 import { adSpecEntries } from '../core/adspecs.js';
 import { createContext } from '../core/context.js';
 import { normalizeStyle } from '../core/style.js';
@@ -107,4 +107,53 @@ test('"이미지 밖 텍스트 필드" rows are handed over, not drawn — a pro
   const html = renderAd(ctx, style, specs['everytime-daily-message-profile']);
   assert.doesNotMatch(html, /data-field="main"/);
   assert.equal(specs['everytime-daily-message-profile'].outsideTexts.length, 3);
+});
+
+/* ── 디자인 프로필(core/design.js)이 그림을 정한다 ── */
+import { DESIGN } from '../core/design.js';
+
+test('the date is rendered as a pill where the medium\'s examples decorate it (GDN 24/28)', () => {
+  const html = renderAd(ctx, style, specs['google-gdn-580x400']);
+  assert.match(html, /data-field="date"[^>]*border-radius:999px/);
+  // 카카오 비즈보드 예시(0/10 뱃지)는 알약 없이 평문
+  const biz = renderAd(ctx, style, specs['kakao-bizboard-mo']);
+  assert.doesNotMatch(biz, /data-field="date"[^>]*border-radius:999px/);
+});
+
+test('a light-field medium (자소설 9/13 밝은 단색) paints a light background and dark copy', () => {
+  assert.ok((DESIGN.jasoseol?.bgLight?.value ?? 0) >= 0.6, '프로필 전제');
+  const html = renderAd(ctx, style, specs['jasoseol-pc-premium-popup-pc']);
+  assert.match(html.split('>')[0], /background:#FFFFFF;/i);
+  assert.match(html, /data-field="main"[^>]*color:#000000/);
+});
+
+test('tall formats stack and center, wide formats keep copy left — and the logo follows', () => {
+  const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' };
+  const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
+  assert.match(tallHtml, /text-align:center/);
+  assert.match(tallHtml, /justify-content:center;height:\d+px/, '중앙 정렬이면 로고도 상단 중앙');
+  const wideHtml = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
+  assert.match(wideHtml, /text-align:left/);
+});
+
+test('with a key visual the object sits in a rounded box on the right (wide) or a bottom band (tall)', () => {
+  const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, edge: '#0B3C8C' } };
+  const wide = renderAd(ctx, kv, specs['naver-gfa-mobile-da-1250x560']);
+  assert.match(wide, /data-object="1"[^>]*border-radius:(1[0-9]|[1-9])px/);
+  const tallHtml = renderAd(ctx, kv, specs['google-gdn-300x1050']);
+  assert.match(tallHtml, /data-object="1"[^>]*border-radius:0px/);
+  // 키비주얼이 없으면 오브젝트 상자 자체가 없다 — 빈 상자를 그리지 않는다
+  assert.doesNotMatch(renderAd(ctx, style, specs['naver-gfa-mobile-da-1250x560']), /data-object/);
+});
+
+test('template measurements taken on a 2x frame are scaled to the 1x canvas (자소설 PC달력배너)', () => {
+  const spec = specs['jasoseol-pc-calendar-pc'];
+  assert.equal(spec.w, 164);
+  assert.equal(templateScale(spec.rules, spec.w), 0.5, '328×466 프레임 실측 → 164×233 캔버스');
+  const html = renderAd(ctx, style, spec);
+  // 문구 칸 x≈49(2배) → 25(1배), 폰트 40(2배) → 20(1배)
+  assert.match(html.split('>')[0], /padding:\d+px \d+px \d+px 2[45]px/);
+  assert.match(html, /data-field="main"[^>]*font-size:20px/);
+  // 환산할 것이 없는 규격은 1
+  assert.equal(templateScale(specs['kakao-bizboard-mo'].rules, 1029), 1);
 });

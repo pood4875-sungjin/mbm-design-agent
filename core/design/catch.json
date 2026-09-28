@@ -1,0 +1,148 @@
+{
+  "medium": "catch",
+  "examples": [
+    {
+      "nodeId": "423:8536", "client": "PTKOREA", "spec": "PC 중앙배너 1068×315 (하단 60px 비노출 오버레이 표시본)",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.3 },
+      "text": { "align": "left", "block": "left", "mainLines": 1, "mainWeight": "bold", "mainSizeRatio": 0.1, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#000000", "accent": null, "notes": "흰 배경 + 검정 텍스트(가이드: 배경에 따라 흰색/검정만). 브랜드색은 썸네일 일러스트(주황 사막·남색 하늘)에만" },
+      "whitespace": "airy",
+      "notes": "영문 슬로건 서브 'For Your Sustainable Growth'(작은 SemiBold) → 메인 'PTKOREA 2024 신입 공개채용'(Bold 1줄) → 날짜 '4월 1일(월) - 4월 14일(일)'(Regular). 텍스트는 x≈83, 세로 50~170(가시영역 255px 기준 위쪽 2/3). 썸네일 320×186 둥근 모서리(≈12px)가 이미지 영역 515×315(오른쪽) 가운데에 놓임. 하단 60px 회색 띠 '가려지는 영역(비노출 영역)'"
+    },
+    {
+      "nodeId": "423:8546", "client": "PTKOREA", "spec": "PC 중앙배너 1068×315 (비노출 오버레이 표시본)",
+      "background": "solid",
+      "bgColor": "#000000",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.3 },
+      "text": { "align": "left", "block": "left", "mainLines": 1, "mainWeight": "bold", "mainSizeRatio": 0.1, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "검정 배경 + 흰 텍스트(가이드 예시의 BG Hex #000000)" },
+      "whitespace": "airy",
+      "notes": "423:8536과 레이아웃·카피·썸네일 위치 동일, 배경색과 텍스트색만 반전. 변형 간 바뀌는 것은 배경 단색과 그에 따른 흑/백 텍스트뿐"
+    },
+    {
+      "nodeId": "423:8556", "client": "PTKOREA", "spec": "PC 중앙배너 1068×315 (오버레이 없는 최종본)",
+      "background": "solid",
+      "bgColor": "#000000",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.3 },
+      "text": { "align": "left", "block": "left", "mainLines": 1, "mainWeight": "bold", "mainSizeRatio": 0.1, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "검정 배경 + 흰 텍스트" },
+      "whitespace": "airy",
+      "notes": "비노출 띠·가이드 라벨을 뺀 납품 형태. 하단 60px이 비어 있어 콘텐츠가 위쪽 255px에 몰려 보임 — 앱에서 하단이 가려지는 것을 전제로 한 배치"
+    },
+    {
+      "nodeId": "423:8564", "client": "PTKOREA", "spec": "PC 중앙배너 1068×315 (비노출 오버레이 표시본)",
+      "background": "solid",
+      "bgColor": "#FF652B",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.3 },
+      "text": { "align": "left", "block": "left", "mainLines": 1, "mainWeight": "bold", "mainSizeRatio": 0.1, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "배경을 썸네일 일러스트의 주황(#FF652B)에서 뽑아 톤을 맞춤 — 이미지 색 추출 배경" },
+      "whitespace": "airy",
+      "notes": "그라데이션 없이 단색. 썸네일 주황 사막이 배경과 이어져 보여 경계가 약해짐. 레이아웃은 다른 PC 변형과 동일"
+    },
+    {
+      "nodeId": "423:8595", "client": "PTKOREA", "spec": "MO 중앙배너 622×380",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.42 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.11, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": true, "position": "bottom-right", "treatment": "original-color", "sizeRatio": 0.26 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#000000", "accent": null, "notes": "로고 원(160px)과 좌하단 알약(64×32)은 연보라 #E8D9FC 자리표시(앱 UI 페이지 표시·로고 영역)" },
+      "whitespace": "balanced",
+      "notes": "메인을 'PTKOREA / 2024 신입 공개채용' 2줄로 나눔. 썸네일 260×170(둥근 모서리)을 오른쪽 가운데(x 329~589)에 두고 메인 둘째 줄이 썸네일 왼쪽을 약 35px 덮음(텍스트가 이미지 위에 겹침). 우하단 160px 원이 캔버스 밖으로 일부 잘림 — 앱이 로고를 이 원에 얹음"
+    },
+    {
+      "nodeId": "423:8608", "client": "PTKOREA", "spec": "MO 중앙배너 622×380",
+      "background": "solid",
+      "bgColor": "#000000",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.42 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.11, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": true, "position": "bottom-right", "treatment": "original-color", "sizeRatio": 0.26 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "로고 원·알약 자리표시는 짙은 보라 #0F0024" },
+      "whitespace": "balanced",
+      "notes": "423:8595의 검정 배경 변형. 배치 동일"
+    },
+    {
+      "nodeId": "423:8644", "client": "PTKOREA", "spec": "MO 중앙배너 622×380",
+      "background": "solid",
+      "bgColor": "#FF652B",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.42 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.11, "subPresent": true, "datePresent": true, "hierarchy": ["sub", "main", "date"] },
+      "logo": { "present": true, "position": "bottom-right", "treatment": "original-color", "sizeRatio": 0.26 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "썸네일 주황에서 뽑은 배경. 로고 원·알약 자리표시는 #E85649" },
+      "whitespace": "balanced",
+      "notes": "423:8595의 주황 배경 변형. 배치 동일"
+    },
+    {
+      "nodeId": "423:8520", "client": "KOSA 한국소프트웨어산업협회(앱 캡처)", "spec": "MO 중앙배너 실노출 화면(2024.3.27 가이드 첨부 스크린샷)",
+      "background": "solid",
+      "bgColor": "#B6DCFF",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.3 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.094, "subPresent": true, "datePresent": false, "hierarchy": ["sub", "main", "keyword"] },
+      "logo": { "present": true, "position": "bottom-right", "treatment": "original-color", "sizeRatio": 0.26 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#222222 메인 / #6C8093≈ 서브(회청색)", "accent": null, "notes": "하늘색 파스텔 단색 + 어두운 텍스트. 로고는 흰 원 안에 원색 KOSA 로고" },
+      "whitespace": "balanced",
+      "notes": "스크린샷 프레임(가이드 성격)이지만 실제 고객 소재가 노출된 유일한 사례라 포함. 서브 '2024 한국소프트웨어산업협회'(회색 Regular) → 메인 2줄 '채용연계형 / Full Stack 개발 양성과정' → 해시태그 2줄 '#교육비 및 교재 전액 무료 / #매월 훈련수당 지급'. 오른쪽 위에 아이소메트릭 폰 일러스트(누끼), 우하단 흰 로고 원이 카드 밖으로 걸침, 좌하단 '1/4' 알약은 앱 페이지 표시. 카드는 둥근 모서리"
+    }
+  ],
+  "skipped": [],
+  "notes": {
+    "hierarchyOrder": "hierarchy 배열은 화면 위→아래 순서",
+    "variantsPTKOREA": "PTKOREA 7장(PC 4·MO 3)은 카피·썸네일·배치가 모두 같고 배경 단색만 흰색 #FFFFFF / 검정 #000000 / 주황 #FF652B로 바뀜(그라데이션 배경은 없음). 텍스트색은 배경에 따라 검정↔흰색. 이미지명 '3_그라데이션_수정'은 썸네일 일러스트 파일명일 뿐 배경 그라데이션이 아님. PC는 썸네일 320×186이 이미지 영역(515×315) 가운데, MO는 260×170이 오른쪽 가운데에서 텍스트와 겹침",
+    "guide2024_03_27": [
+      "중앙배너는 텍스트 영역(앱에서 웹폰트로 렌더) / 이미지 영역이 분리된 구조. 별도 전달물: 텍스트, 배경 Hex 코드, 텍스트 없는 이미지, 로고 이미지(MO)",
+      "PC BG Img 515×315 PNG, 배경 투명(누끼형 오브젝트), 텍스트 X — 오른쪽 이미지 영역 고정. 하단 60px은 가려지는 비노출 영역",
+      "MO BG Img 622×380 PNG(배경 컬러 포함, 누끼형 오브젝트, 텍스트 X), 로고 160×160 PNG — 우하단 원형 로고 영역에 들어감, 좌하단 64×32 알약은 앱 UI",
+      "텍스트 3단: 서브 타이틀 20자 미만 / 메인 타이틀 17자 미만(최대 17자) / 날짜 또는 키워드 30자 미만. PC 텍스트 가이드 박스 572×115",
+      "텍스트 색은 배경에 따라 흰색 또는 검정만. 캐치 PSD 가이드 양식으로 작업. '부분 이미지형' 권장, 문구는 언제든 수정 가능"
+    ],
+    "templates": [
+      "423:8682 캐치_PC_오브젝트형 1068×315: 흰 배경, 텍스트 가이드(서브 'CATCH LIVE CLASS' / 메인 '올 겨울 핫스타트업' / 키워드 '#무료특강 #쿠팡 #데이터분석'), 오른쪽 이미지 영역 x 553~1068(515px), 하단 60px 비노출",
+      "423:8695 캐치_MO_중앙배너 622×380: 서브 1줄 → 메인 2줄 → 날짜·키워드 2줄 박스, 좌하단 알약, 우하단 원 '가려지는 영역'",
+      "423:8586 PTKOREA 로고 160×160: 흰 배경 가운데 자간 넓은 검정 워드마크 'PTKOREA'(폭 약 75%) — 배너가 아닌 로고 납품물이라 예시에서 제외",
+      "구 규격(414:419 등): 메인 대형 배너 PC 1256×295 / MO 702×428, 텍스트 컬러 FREE, 서브 60자·타이틀 20자×2줄 — 2024.3.27 업데이트로 대체됨"
+    ]
+  },
+  "patterns": {
+    "background": { "solid": 8 },
+    "objectSide": { "right": 8 },
+    "textAlign": { "left": 8 },
+    "logoPosition": { "none": 4, "bottom-right": 4 },
+    "badge": { "present": 0, "absent": 8 },
+    "cta": { "button": 0, "text": 0, "none": 8 },
+    "typical": "캐치 중앙배너는 대체로 단색 배경(흰·검정·이미지에서 뽑은 색) 위에 왼쪽 정렬 3단 텍스트(서브 슬로건 → 굵은 메인 → 날짜·키워드), 오른쪽 이미지 영역에 둥근 모서리 썸네일, PC는 로고 없이 하단 60px 비움, MO는 메인 2줄 + 우하단 원형 로고"
+  },
+  "rules": [
+    "배경은 그라데이션 없이 단색 하나이고, 변형은 배경색만 바꿔 만든다(8/8 단색, PTKOREA 7장 동일 배치)",
+    "텍스트 색은 배경 명도에 따라 검정 또는 흰색 둘 중 하나만 쓴다(7/7 PTKOREA, 가이드 명시)",
+    "텍스트는 왼쪽 정렬 3단: 서브 20자 미만 → 메인 17자 미만 → 날짜/키워드 30자 미만(8/8 3단 구성)",
+    "PC 메인은 1줄(4/4), MO 메인은 2줄로 나눈다(4/4)",
+    "이미지는 오른쪽에 두며 PC는 515×315 영역 안 가운데에 둥근 썸네일(폭 약 30%), MO는 폭 약 42%(8/8 오른쪽)",
+    "PC는 하단 60px 비노출 영역에 아무것도 두지 않는다(4/4)",
+    "로고는 PC에는 넣지 않고(4/4), MO에서만 우하단 160px 원형 로고 영역에 둔다(4/4)",
+    "이미지 파일에는 텍스트를 넣지 않는다 — 텍스트는 앱이 웹폰트로 얹는다(가이드)",
+    "배지·CTA 버튼은 쓰지 않는다(8/8)",
+    "MO에서는 메인 텍스트가 썸네일 왼쪽 가장자리를 덮어도 허용된다(3/3 PTKOREA MO)"
+  ]
+}

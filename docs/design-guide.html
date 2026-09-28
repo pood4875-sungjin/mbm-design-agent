@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>매체 디자인 기준 — Campaign Agent</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --sub:#666; --line:#e5e5e5; --bg:#fff; --soft:#f7f7f6;
+    --accent:#2456d6; --accent-soft:#edf2fd;
+    --good:#1d7a4f; --good-soft:#e9f5ee; --good-line:#c2e2cf;
+    --warn:#b07d10; --warn-soft:#fbf3df; --warn-line:#ecd79a;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --ink:#ececec; --sub:#9a9a9a; --line:#2e2e2e; --bg:#161616; --soft:#1f1f1f; --accent:#7ea2f0; --accent-soft:#1c2942;
+      --good:#7ecfa2; --good-soft:#17281d; --good-line:#2c5138; --warn:#d9a441; --warn-soft:#2c2412; --warn-line:#5a4a1c; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;font-size:14px;line-height:1.55;font-feature-settings:"tnum"}
+  /* 스페이싱 8pt 그리드 · 타입 스케일 (design-system-examples.md 근거) */
+  .wrap{max-width:1100px;margin:0 auto;padding:40px 24px 96px}
+  .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--sub);font-weight:600;text-transform:uppercase}
+  h1{font-size:30px;line-height:1.25;font-weight:700;margin:8px 0 8px;letter-spacing:-.01em}
+  h2{font-size:13px;letter-spacing:.1em;color:var(--sub);font-weight:600;text-transform:uppercase;margin:40px 0 12px;display:flex;align-items:center;gap:8px}
+  h2::before{content:"";width:8px;height:8px;background:var(--accent);border-radius:2px}
+  .src{color:var(--sub);font-size:13px}
+  .src a{color:inherit}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:20px 0 8px}
+  .tile{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
+  .tile b{display:block;font-size:24px;font-weight:700;line-height:1.1} .tile span{font-size:12px;color:var(--sub)}
+  .principle{border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:10px;background:var(--bg)}
+  .principle b{display:block;font-size:15px;margin-bottom:4px}
+  .principle p{margin:0;color:var(--sub)}
+  .principle .ev{font-size:12px;color:var(--accent);margin-top:6px}
+  .medium{border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:14px}
+  .mhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin-bottom:8px}
+  .mhead h3{font-size:20px;margin:0;font-weight:700}
+  .tag{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--sub)}
+  .typical{font-size:14px;margin:6px 0 12px;padding:10px 14px;background:var(--soft);border-radius:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+  .kv{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .kv b{display:block;font-size:11px;color:var(--sub);font-weight:600;letter-spacing:.06em}
+  .kv span{font-size:14px} .kv small{color:var(--sub);font-size:11px;margin-left:4px}
+  .kv .none{color:var(--sub)}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin-bottom:12px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:600;font-size:11.5px;color:var(--sub);white-space:nowrap}
+  ul.rules{margin:0;padding-left:18px} ul.rules li{margin:3px 0}
+  .ev-count{color:var(--accent);font-size:12px}
+  .examples{font-size:12px;color:var(--sub);margin-top:8px}
+  .examples a{color:var(--accent);text-decoration:none;margin-right:6px}
+  details summary{cursor:pointer;color:var(--accent);font-size:13px;margin:6px 0 4px;list-style:none} details summary::before{content:'+ '} details[open] summary::before{content:'− '}
+  .foot{margin-top:48px;color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Campaign Agent · AD 트랙</div>
+    <h1>매체 디자인 기준</h1>
+    <p class="src">Figma <a href="https://www.figma.com/design/sZMBhkuLMEiyMLPPpGxvC1/" target="_blank" rel="noopener">컨시어지</a> 보드의 <b>실제 고객사 소재</b>를 한 장씩 보고 기록한 관찰에서 뽑았다.
+      값마다 "몇 장 중 몇 장"이 붙는다 — 취향이 아니라 이미 나간 소재의 다수 선택이 기준이다. 원본 관찰 기록 <code>core/design/*.json</code>, 프로필 <code>core/design.js</code>.
+      자동 생성 렌더러는 이 프로필을 그대로 읽는다.</p>
+    <div class="tiles" id="tiles"></div>
+  </header>
+
+  <h2>공통 원칙 — 12매체에 걸쳐 반복된 것</h2>
+  <div id="principles"></div>
+
+  <h2>매체별 프로필</h2>
+  <div id="main"></div>
+
+  <div class="foot">
+    프로필 값이 "—"이면 관찰이 2장 미만이거나 과반이 없어 기준을 두지 않은 것이다. 그때 렌더러는 지면 비율로 판단하는 기본 문법(가로형 왼쪽 정렬·오른쪽 오브젝트 / 세로형 스택·하단 오브젝트·중앙 정렬)을 쓴다.
+    관찰을 더하려면 <code>core/design/&lt;매체&gt;.json</code>의 examples에 추가하고 <code>node scripts/build-design.mjs</code>.
+  </div>
+</div>
+
+<script type="module">
+  import { DESIGN } from '../core/design.js';
+  import { MEDIA } from '../core/media.js';
+
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // 관찰 기록의 노드 id는 원본 보드(gD8R…) 기준이다 — 사본(sZMB…)은 id가 다를 수 있어 원본으로 건다
+  const FILE = 'gD8RsVVg5iWAvQ0VbV2Wbz';
+  const nameOf = id => MEDIA.find(m => m.id === id)?.name ?? id;
+  const groupOf = id => MEDIA.find(m => m.id === id)?.group ?? '';
+  const KO = {
+    background: { solid: '단색', gradient: '그라데이션', transparent: '투명', photo: '사진', illustration: '일러스트', pattern: '패턴' },
+    side: { right: '오른쪽', left: '왼쪽', bottom: '하단', center: '가운데', 'full-bleed': '전면', none: '없음' },
+    align: { left: '왼쪽', center: '가운데', right: '오른쪽' },
+    logo: { 'top-left': '좌상단', 'top-right': '우상단', 'top-center': '상단 중앙', 'bottom-left': '좌하단', 'bottom-right': '우하단', left: '왼쪽', right: '오른쪽', 'inline-with-copy': '카피 옆', none: '없음' },
+    treat: { 'original-color': '원색', white: '흰색', black: '검정' },
+    cta: { button: '버튼', text: '문구', none: '없음' },
+    shape: { strip: '띠형', wide: '가로형', tall: '세로형', box: '정방형' },
+  };
+  const m = (o, k) => o && o.value != null ? `<span>${esc(KO[k]?.[o.value] ?? o.value)}</span><small>${o.n}/${o.total}</small>` : '<span class="none">—</span>';
+  const pct = o => o && o.value != null ? `<span>${Math.round(o.value * 100)}%</span><small>${o.n}/${o.total}</small>` : '<span class="none">—</span>';
+  const num = (v, unit = '') => v != null ? `<span>${v}${unit}</span>` : '<span class="none">—</span>';
+
+  const ids = Object.keys(DESIGN);
+  const total = ids.reduce((n, id) => n + DESIGN[id].examples + DESIGN[id].mark.examples, 0);
+  document.getElementById('tiles').innerHTML = [['매체', ids.length], ['관찰한 소재', total], ['규칙', ids.reduce((n, id) => n + DESIGN[id].rules.length, 0)]]
+    .map(([l, n]) => `<div class="tile"><b>${n}</b><span>${l}</span></div>`).join('');
+
+  /* ── 공통 원칙: 프로필을 가로질러 세어서 만든다 — 손으로 쓴 문장이 아니라 데이터에서 나온 문장 ── */
+  const cnt = (fn) => ids.filter(id => fn(DESIGN[id])).length;
+  const withObj = ids.filter(id => DESIGN[id].objectSide.value);
+  const principles = [
+    { t: '카피는 왼쪽 정렬, 오브젝트는 오른쪽', p: '가로형 지면의 기본 문법. 카피 블록이 왼쪽 55~60%를 쓰고 오브젝트(누끼 일러스트·제품·인물)가 오른쪽 25~45%에 선다. 세로형(300×600·1080×1080)만 스택으로 바뀌고 오브젝트가 하단 1/3로 내려간다.',
+      ev: `왼쪽 정렬이 다수인 매체 ${cnt(d => d.textAlign.value === 'left')}/${ids.length} · 오른쪽 오브젝트 ${withObj.filter(id => DESIGN[id].objectSide.value === 'right').length}/${withObj.length} (자소설만 세로형 하단)` },
+    { t: '메인 카피는 절대 px, 두 줄', p: '지면이 커져도 글자를 비율로 키우지 않는다. 매체마다 관찰된 글자 높이 중앙값이 있고(구글 32px·잡다 28px·카카오 40px·네이버 49px), 줄 수는 2줄이 표준이다. 남는 공간은 여백·행간으로 흡수한다.',
+      ev: `메인 2줄이 중앙값인 매체 ${cnt(d => Math.round(d.mainLines) === 2)}/${ids.length} · 관찰 px: ${ids.filter(id => DESIGN[id].mainPx).map(id => `${nameOf(id)} ${DESIGN[id].mainPx}`).join(', ')}` },
+    { t: '정보는 빼지 않는다 — 날짜는 알약으로', p: '규격이 작아져도 기간·모집직무를 지우지 않고 한 줄로 합치거나 세로로 풀어 다시 놓는다. 날짜·라벨은 알약(pill)·태그로 감싸 카피와 구분한다. 매체가 금지하면(카카오·자소설·리멤버) 평문.',
+      ev: `알약·태그가 과반인 매체 ${cnt(d => (d.badgePresent.value ?? 0) >= 0.5)}/${cnt(d => d.badgePresent.value != null)} (구글 86%·NAP 84%·블라인드 100%·인스타 56%·네이버 50%)` },
+    { t: '배경은 브랜드색 단색 또는 그라데이션, 글자는 흑/백', p: '사진 전면 배경은 드물다. 브랜드 주색 단색(캐치·리멤버·NAP·구글)이나 옅은 그라데이션 위에 흰색 또는 검정 카피. 자소설은 흰·아이보리·파스텔 밝은 지면에 검정 카피가 다수. 투명 규격(카카오·에브리타임 비즈보드형)은 지면을 칠하지 않는다.',
+      ev: `단색 다수 ${cnt(d => d.background.value === 'solid')} · 투명 ${cnt(d => d.background.value === 'transparent')} · 그라데이션 ${cnt(d => d.background.value === 'gradient')} · 밝은 지면 과반 ${cnt(d => (d.bgLight.value ?? 0) >= 0.6)}` },
+    { t: '로고는 우상단, 지면에 따라 원색/흰색', p: '로고가 들어가는 매체는 우상단이 다수. 세로형에서 중앙 정렬로 바뀌면 로고도 상단 중앙으로. 투명·밝은 지면에서는 원색, 브랜드색 지면에서는 흰색 반전. 리멤버·카카오 비즈보드·캐치 PC는 로고를 넣지 않는다.',
+      ev: `우상단 다수 ${cnt(d => ['top-right', 'right'].includes(d.logoPosition.value))} · 원색 ${cnt(d => d.logoTreatment.value === 'original-color')} · 흰색 ${cnt(d => d.logoTreatment.value === 'white')} · 로고 없음 ${cnt(d => d.logoPresent.value != null && d.logoPresent.value < 0.5)}` },
+    { t: '버튼(CTA)은 없다', p: '온라인 광고 소재 안에 버튼을 그리지 않는다. 클릭은 매체 지면이 맡는다. 관찰한 매체 전부에서 CTA 버튼 0장 — 잡다 템플릿의 버튼은 숨김 잔재였다.',
+      ev: `CTA 버튼이 다수인 매체 ${cnt(d => d.cta.value === 'button')}/${ids.length}` },
+  ];
+  document.getElementById('principles').innerHTML = principles.map(x => `<div class="principle"><b>${esc(x.t)}</b><p>${esc(x.p)}</p><div class="ev">근거: ${esc(x.ev)}</div></div>`).join('');
+
+  /* ── 매체별 ── */
+  const order = ['채용포털', '디지털', '커뮤니티', '기타'];
+  const sorted = ids.sort((a, b) => order.indexOf(groupOf(a)) - order.indexOf(groupOf(b)) || nameOf(a).localeCompare(nameOf(b), 'ko'));
+  document.getElementById('main').innerHTML = sorted.map(id => {
+    const d = DESIGN[id];
+    const shapes = ['strip', 'wide', 'box', 'tall'].filter(sh => d.byShape[sh].examples > 0);
+    return `<article class="medium" id="d-${esc(id)}">
+      <div class="mhead"><h3>${esc(nameOf(id))}</h3><span class="tag">${esc(groupOf(id))}</span><span class="tag">소재 ${d.examples}장${d.mark.examples ? ` + 로고 ${d.mark.examples}` : ''}</span></div>
+      <div class="typical">${esc(d.typical)}</div>
+      <div class="grid">
+        <div class="kv"><b>배경</b>${m(d.background, 'background')}${d.bgLight.value != null ? `<small>밝은 지면 ${Math.round(d.bgLight.value * 100)}%</small>` : ''}</div>
+        <div class="kv"><b>오브젝트</b>${m(d.objectSide, 'side')}${d.objectWidthRatio ? `<small>폭 ${Math.round(d.objectWidthRatio * 100)}%</small>` : ''}</div>
+        <div class="kv"><b>정렬</b>${m(d.textAlign, 'align')}</div>
+        <div class="kv"><b>메인 카피</b>${num(d.mainLines, '줄')}${d.mainPx ? `<small>≈${d.mainPx}px</small>` : ''}</div>
+        <div class="kv"><b>로고</b>${m(d.logoPosition, 'logo')}${d.logoTreatment.value ? `<small>${KO.treat[d.logoTreatment.value] ?? d.logoTreatment.value}</small>` : ''}</div>
+        <div class="kv"><b>날짜 알약·태그</b>${pct(d.badgePresent)}</div>
+        <div class="kv"><b>CTA 버튼</b>${m(d.cta, 'cta')}</div>
+      </div>
+      ${shapes.length > 1 ? `<table><thead><tr><th>지면 형태</th><th>장</th><th>정렬</th><th>오브젝트</th><th>메인 줄</th><th>메인 px</th><th>로고</th></tr></thead><tbody>${shapes.map(sh => {
+        const s = d.byShape[sh];
+        return `<tr><td>${KO.shape[sh]}</td><td>${s.examples}</td><td>${m(s.textAlign, 'align')}</td><td>${m(s.objectSide, 'side')}${s.objectWidthRatio ? ` <small>${Math.round(s.objectWidthRatio * 100)}%</small>` : ''}</td><td>${num(s.mainLines)}</td><td>${num(s.mainPx)}</td><td>${m(s.logoPosition, 'logo')}</td></tr>`;
+      }).join('')}</tbody></table>` : ''}
+      <details ${d.rules.length <= 5 ? 'open' : ''}><summary>규칙 ${d.rules.length}</summary><ul class="rules">${d.rules.map(r => `<li>${esc(r).replace(/\((\d+\/\d+)\)/g, '<span class="ev-count">($1)</span>')}</li>`).join('')}</ul></details>
+      <div class="examples">관찰한 소재: ${d.nodeIds.map(n => `<a href="https://www.figma.com/design/${FILE}/?node-id=${encodeURIComponent(n.replace(':', '-'))}" target="_blank" rel="noopener">${esc(n)}</a>`).join('')}</div>
+    </article>`;
+  }).join('');
+</script>
+</body>
+</html>

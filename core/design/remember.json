@@ -1,0 +1,96 @@
+{
+  "medium": "remember",
+  "examples": [
+    {
+      "nodeId": "414:23", "client": "신한캐피탈", "spec": "공고 상세 사이드 배너 PC 530×200",
+      "background": "solid",
+      "bgColor": "#364B78",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.42 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "medium", "mainSizeRatio": 0.125, "subPresent": false, "datePresent": false, "hierarchy": ["main"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "네이비 단색 배경 + 흰 글씨. 브랜드 파랑 계열이지만 로고·브랜드 컬러 텍스트는 없음. 우측 캐릭터 뒤는 한 톤 밝은 #57698F 도시 실루엣이 배경색으로 페이드" },
+      "whitespace": "balanced",
+      "notes": "썸네일형(가이드상 사이드 배너는 썸네일형만 가능). 카피 2줄 '신한캐피탈 / 신입·경력 채용'(10자/8자 규격 안), 기간 없음. 오른쪽 42%에 브랜드 3D 캐릭터 군집, 캐릭터 영역 왼쪽 경계는 그라데이션으로 배경에 녹임"
+    },
+    {
+      "nodeId": "414:22", "client": "신한캐피탈", "spec": "공고 상세 사이드 배너 Mobile/APP 1125×276",
+      "background": "solid",
+      "bgColor": "#364B78",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.4 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "medium", "mainSizeRatio": 0.15, "subPresent": false, "datePresent": false, "hierarchy": ["main"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "PC와 동일 팔레트(#364B78 / 우측 #57698F 페이드)" },
+      "whitespace": "airy",
+      "notes": "PC 530×200과 같은 카피·캐릭터를 가로로 늘린 버전. 텍스트는 좌측 x≈4%에서 시작, 두 줄 사이 행간이 넓음(글자높이의 약 0.9배). 캐릭터는 x≈58%부터 우측 끝까지, 맨 오른쪽에 작은 펭귄 캐릭터 3개를 세로로 쌓음"
+    },
+    {
+      "nodeId": "414:24", "client": "리멤버(예시 시안)", "spec": "공고 상세 상단 배너 PC 2240×240",
+      "background": "solid",
+      "bgColor": "#19253C",
+      "object": { "type": "people-photo", "side": "right", "widthRatio": 0.43 },
+      "text": { "align": "left", "block": "left", "mainLines": 1, "mainWeight": "medium", "mainSizeRatio": 0.14, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "짙은 네이비 + 흰 글씨. 사진이 배경색 쪽으로 좌→우 그라데이션 페이드" },
+      "whitespace": "airy",
+      "notes": "프레임명 '예시_' — 리멤버 자사 가상 공고로 채운 완성 시안(실고객 아님). 메인 1줄 '2026년 하반기 리멤버 공개 채용' + 부가 1줄 '모집기간 : 09/16(수) ~ 09/23(수)'. 부가 문구 크기는 메인의 약 0.65배(Regular). 오른쪽 43%에 협업 사무실 인물 사진(썸네일형)"
+    },
+    {
+      "nodeId": "414:32", "client": "리멤버(예시 시안)", "spec": "공고 상세 상단 배너 Mobile/APP 1125×276",
+      "background": "solid",
+      "bgColor": "#19263C",
+      "object": { "type": "people-photo", "side": "right", "widthRatio": 0.4 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "medium", "mainSizeRatio": 0.15, "subPresent": false, "datePresent": false, "hierarchy": ["main"] },
+      "logo": { "present": false, "position": "none", "treatment": "original-color", "sizeRatio": 0 },
+      "badge": { "present": false, "text": "", "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": null, "notes": "PC 예시와 같은 네이비" },
+      "whitespace": "airy",
+      "notes": "프레임명 '예시_'(실고객 아님). MO는 부가 문구를 빼고 메인을 12자×2줄('2026년 하반기 / 리멤버 공개 채용')로 나눔 — 글자수 정리표의 MO 규격(메인1·메인2 각 12자)과 일치. 오른쪽 40%에 프레젠테이션 중인 인물 사진"
+    }
+  ],
+  "skipped": [],
+  "notes": {
+    "hierarchyOrder": "hierarchy 배열은 화면 위→아래 순서",
+    "templates": [
+      "408:48086 메인상단 PC 2240×360 / 408:48087 메인상단 MO 1005×360 / 408:48072 메인중간 PC 2240×240 / 408:48073 메인중간 MO 1005×360 / 408:48068 사이드 PC 530×200 / 408:48069 사이드 MO 1125×276 — 모두 배경 #465C84 단색 + 오른쪽 약 40~45% 인물 사진이 배경색으로 페이드되는 썸네일형, 좌측에 빨간 텍스트 가이드 박스(더미 '일이삼사…')",
+      "PC 상단·중간 템플릿은 메인 1줄 + 부가 1줄, MO·사이드 템플릿은 메인 2줄(부가 없음)",
+      "408:48073 구조: 텍스트 영역 505×120 @(54,98) 이름이 '크기, 위치, 색상 변경 금지' / 오브젝트형 이미지 가이드 346×304 @(605,28) / 썸네일형 이미지 430×360 우측 끝 + '그라데이션 배경' 790px 폭. 'HS화성 채용 공고 AI이미지 3'(295×228)은 숨김 레이어로 들어 있어 렌더에는 보이지 않음"
+    ],
+    "section408_48010": [
+      "리멤버01 섹션에 붙은 배너 그림은 실고객 배너가 아니라 가이드용 샘플(카피가 전부 더미 '일이삼사오육…')",
+      "이미지 종류 3가지(image 2): 썸네일형 = 네이비 배경 + 우측 인물 사진, 사진 왼쪽 가장자리를 배경색 그라데이션으로 덮음 / 오브젝트형 = 초록(#5BA88A≈) 단색 배경 + 우측 특정 영역에 누끼 자동차 오브젝트 / 풀이미지형 = 노트북 타이핑 사진이 전체를 채우고 좌측 어두운 부분에 흰 텍스트. 세 가지 모두 텍스트는 좌측 정렬, 세로 가운데, 메인 1줄 + 부가 1줄",
+      "Do/Don't(image 3·5): 이미지 영역에 'BEST' 같은 텍스트 꾸밈 요소 금지 / 썸네일형은 이미지가 영역을 꽉 채워야 함 / 풀이미지형은 텍스트가 사진 주요 부분(인물 얼굴)을 가리면 안 됨, 이미지가 배경 전체를 채워야 함 / 검정 배경 금지 → 네이비 권장 / 밝은 베이지 배경+흰 글씨처럼 안 보이는 조합 금지 → 초록 계열 / 원색·형광(마젠타) 금지 → 톤 다운된 핑크",
+      "배경규정(image 4): 사용 불가 배경색 #FFFFFF #000000 #FF5414(리멤버 브랜드 오렌지) #F7F7F0 #E8E7E0. 흰 글씨는 컬러피커의 중명도·중채도 영역(분홍 원), 검정 글씨는 고명도·저채도 영역(파랑 원) 권장. 흰색에 가까운 배경도 가능은 하나 지양",
+      "이미지 규정: 텍스트 없음, 복잡하지 않음, 고해상도, 긍정적, 이미지 안에 회사 로고 없음",
+      "제작 가이드 PC(image 7): 썸네일형 이미지 988×360 + 그라데이션 배경 필수 / 오브젝트형 이미지 844×284, 배경 2240×360 / 풀이미지형 2240×360, 가독성 위해 그라데이션 권장 / 텍스트 영역 996×95 공통, 텍스트 색은 지정된 검정 또는 흰색만",
+      "텍스트 가이드(Group 1): 메인 Pretendard SemiBold 12pt 24자 이내, 부가 Pretendard Regular 7pt 35자 이내, MO는 PC와 같은 문구. 폰트·크기·굵기·자간·장평·색상 변경 불가",
+      "글자수 정리표(19:151): PC 메인상단 24/35, 메인중간 24/30, 공고상단 24/30, MO 3종 12+12, 사이드 PC·MO 10+8(공백 포함)"
+    ]
+  },
+  "patterns": {
+    "background": { "solid": 4 },
+    "objectSide": { "right": 4 },
+    "textAlign": { "left": 4 },
+    "logoPosition": { "none": 4 },
+    "badge": { "present": 0, "absent": 4 },
+    "cta": { "button": 0, "text": 0, "none": 4 },
+    "typical": "리멤버 소재는 대체로 짙은 네이비 단색 배경 위에 왼쪽 정렬 흰색 카피(PC 상단은 메인 1줄+기간 1줄, MO·사이드는 메인 2줄), 오른쪽 40% 안팎에 배경색으로 페이드되는 인물 사진·캐릭터(썸네일형), 로고·배지·CTA 없음"
+  },
+  "rules": [
+    "텍스트는 흰색 단색이고 가이드상 검정·흰색 두 가지만 허용된다(4/4 흰색)",
+    "카피는 왼쪽 정렬, 왼쪽 블록, 세로 가운데에 둔다(4/4)",
+    "이미지는 오른쪽 40~43%를 차지하고 왼쪽 경계를 배경색 그라데이션으로 녹인다(4/4, 템플릿 6/6도 동일)",
+    "배너 안에 로고·배지·CTA 버튼을 넣지 않는다(4/4; 이미지 규정도 '회사 로고 없는 이미지')",
+    "MO·사이드 규격은 메인 2줄, 부가 문구 없음(3/3); PC 상단은 메인 1줄 + 부가(기간) 1줄(1/1)",
+    "배경은 흰색·검정·#FF5414·#F7F7F0·#E8E7E0을 쓰지 않고 어두운 네이비 계열을 쓴다(4/4 네이비 #19253C~#364B78)",
+    "메인 카피 글자 높이는 캔버스 높이의 약 0.13~0.15(4/4)",
+    "공고 상세 사이드 배너는 썸네일형만 허용되고, 이미지 안에는 텍스트·꾸밈 요소를 넣지 않는다(가이드)",
+    "글자수: PC 메인 24자·부가 30~35자, MO 12자×2줄, 사이드 10자+8자(공백 포함, 글자수 정리표)"
+  ]
+}

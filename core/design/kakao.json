@@ -1,0 +1,489 @@
+{
+  "medium": "kakao",
+  "examples": [
+    {
+      "nodeId": "421:5454",
+      "client": "HS화성",
+      "spec": "비즈보드 1029×258",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.33
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.155,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.11
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#4C4C4C",
+        "accent": null,
+        "notes": "메인 #4C4C4C Bold / 날짜 #777777 Regular. 브랜드 빨강은 우상단 로고에만"
+      },
+      "whitespace": "balanced",
+      "notes": "카피 1줄 'HS화성 신입·경력 공개채용' + 날짜 1줄 '4/3(금)~4/12(일)', 텍스트 x≈53. 오른쪽 33%에 아이소메트릭 건설현장 일러스트(누끼, 박스 없음) — 업종 연관 이미지. 소형 로고(HS HWASUNG)가 일러스트 위 우상단 모서리"
+    },
+    {
+      "nodeId": "421:5455",
+      "client": "비씨월드제약",
+      "spec": "비즈보드 1029×258",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "logo-only",
+        "side": "right",
+        "widthRatio": 0.24
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.155,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "right",
+        "treatment": "original-color",
+        "sizeRatio": 0.24
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#4C4C4C",
+        "accent": null,
+        "notes": "메인 #4C4C4C / 날짜 #777777. 브랜드 남색은 로고(bcwp 타원 엠블럼)에만"
+      },
+      "whitespace": "airy",
+      "notes": "'비씨월드그룹 정규직 채용' + '12/2(화)~12/11(목)'. 오른쪽 오브젝트 자리에 로고만 크게(폭 24%, 세로 가운데) — 이미지 대신 로고를 오브젝트로 쓴 유형"
+    },
+    {
+      "nodeId": "421:5456",
+      "client": "CMTX(씨엠티엑스)",
+      "spec": "비즈보드 1029×258 (로고 단독 버전)",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "logo-only",
+        "side": "right",
+        "widthRatio": 0.31
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.155,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "right",
+        "treatment": "original-color",
+        "sizeRatio": 0.31
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#4C4C4C",
+        "accent": null,
+        "notes": "메인 #4C4C4C / 날짜 #777777. 로고는 하늘→남색 원색 워드마크"
+      },
+      "whitespace": "airy",
+      "notes": "'씨엠티엑스 채용 진행중' + '10.25(토)~10.31(금)'. 프레임명 그대로 '로고 단독 버전' — 오른쪽에 가로형 워드마크만(높이는 캔버스의 약 27%로 낮음)"
+    },
+    {
+      "nodeId": "421:5457",
+      "client": "동서식품",
+      "spec": "비즈보드 1029×258",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "product",
+        "side": "right",
+        "widthRatio": 0.29
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.155,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.12
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#4C4C4C",
+        "accent": null,
+        "notes": "메인 #4C4C4C / 날짜 #777777. 브랜드 갈색은 로고·제품 사진에만"
+      },
+      "whitespace": "balanced",
+      "notes": "'동서식품 제조부문 신입 채용' + '1.20(월) ~ 2.3(월) 10:00'(마감 시각까지 표기). 오른쪽에 커피잔+맥심 스틱 제품 누끼 사진(상하 거의 꽉 참), 제품 위 좌상단에 소형 로고 '동서식품'"
+    },
+    {
+      "nodeId": "421:5461",
+      "client": "안랩",
+      "spec": "비즈보드 1029×258 (원본, 템플릿 프레임 안 숨김 레이어)",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.3
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.155,
+        "subPresent": true,
+        "datePresent": false,
+        "hierarchy": [
+          "logo",
+          "sub"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "inline-with-copy",
+        "treatment": "original-color",
+        "sizeRatio": 0.17
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#777777",
+        "accent": "#1F4889",
+        "notes": "첫 줄이 AhnLab 워드마크(브랜드 남색 #1F4889), 둘째 줄 #777777 Regular"
+      },
+      "whitespace": "balanced",
+      "notes": "숨김 레이어라 스크린샷이 1×1로 나와 download_assets 원본 이미지(투명 PNG, 알파 0 배경 확인)로 확인. 로고를 메인 문구 자리에 쓰고 서브 '2026년 6월 신입/경력 채용'. 오른쪽에 둥근 모서리 썸네일 박스 313×185 @(663,36) — 파란 아이소메트릭 도시 일러스트, 이미지 안에 'AhnLab' 글자 포함"
+    },
+    {
+      "nodeId": "421:5438",
+      "client": "안랩",
+      "spec": "비즈보드 1029×258 (반려대비 버전)",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.3
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.155,
+        "subPresent": true,
+        "datePresent": false,
+        "hierarchy": [
+          "logo",
+          "sub"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "inline-with-copy",
+        "treatment": "original-color",
+        "sizeRatio": 0.17
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#777777",
+        "accent": "#1F4889",
+        "notes": "원본과 동일"
+      },
+      "whitespace": "balanced",
+      "notes": "원본(421:5461)과 픽셀 비교 결과 다른 곳은 서브 문구 영역(x198~501, y146~182)뿐: '2026년 6월 신입/경력 채용' → '2026년 신입/경력 채용'으로 '6월'만 삭제. 로고·썸네일·위치 모두 동일. 특정 월 표기를 빼 기간 표기 불일치로 반려될 여지를 줄인 것으로 보임(추정)"
+    },
+    {
+      "nodeId": "421:5480",
+      "client": "LX인터내셔널",
+      "spec": "카카오 PC디스플레이 프로필 이미지 300×300",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "logo-only",
+        "side": "center",
+        "widthRatio": 0.79
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 0,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0,
+        "subPresent": false,
+        "datePresent": false,
+        "hierarchy": []
+      },
+      "logo": {
+        "present": true,
+        "position": "center",
+        "treatment": "original-color",
+        "sizeRatio": 0.79
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": null,
+        "accent": "#A0282B≈",
+        "notes": "흰 배경에 국문 CI 원색(빨간 심볼 + 회색 워드마크)"
+      },
+      "whitespace": "airy",
+      "notes": "텍스트 없음. 가로형 국문 CI를 정가운데(세로 132~167), 좌우 여백 약 10%."
+    },
+    {
+      "nodeId": "421:5484",
+      "client": "한국앤컴퍼니",
+      "spec": "카카오 PC디스플레이 프로필 이미지 300×300 (로고 2개 버전)",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "logo-only",
+        "side": "center",
+        "widthRatio": 0.78
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 0,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0,
+        "subPresent": false,
+        "datePresent": false,
+        "hierarchy": []
+      },
+      "logo": {
+        "present": true,
+        "position": "center",
+        "treatment": "original-color",
+        "sizeRatio": 0.67
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": null,
+        "accent": "#F26B1D≈",
+        "notes": "위 'Hankook & Company' 검정, 아래 Hankook 타이어 BI(주황 심볼+검정, 'charge in motion' 회청색)"
+      },
+      "whitespace": "balanced",
+      "notes": "텍스트 없음. 로고 2개를 세로로 쌓아 가운데 정렬(위 폭 67%, 아래 폭 78%)."
+    },
+    {
+      "nodeId": "421:5487",
+      "client": "LX인터내셔널",
+      "spec": "카카오 PC디스플레이 홍보 이미지 1200×600 (그라데이션)",
+      "background": "gradient",
+      "bgColor": "#9F2827 → #270A0A",
+      "object": {
+        "type": "logo-only",
+        "side": "center",
+        "widthRatio": 0.75
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 0,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0,
+        "subPresent": false,
+        "datePresent": false,
+        "hierarchy": []
+      },
+      "logo": {
+        "present": true,
+        "position": "center",
+        "treatment": "white",
+        "sizeRatio": 0.75
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": null,
+        "accent": "#9F2827",
+        "notes": "브랜드 빨강(왼쪽)에서 거의 검정(오른쪽)으로 가는 가로 선형 그라데이션 + 흰색 반전 로고"
+      },
+      "whitespace": "balanced",
+      "notes": "카피 없이 흰 로고만 정중앙(폭 75%). 레이어에 'reach your infinite' 텍스트 노드가 있으나 렌더에 보이지 않음."
+    },
+    {
+      "nodeId": "421:5491",
+      "client": "한국앤컴퍼니",
+      "spec": "카카오 PC디스플레이 홍보 이미지 1200×600 (텍스트)",
+      "background": "gradient",
+      "bgColor": "#C8DCF0 → #FFFCF5",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.27
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.105,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "logo",
+          "main",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left",
+        "treatment": "original-color",
+        "sizeRatio": 0.1
+      },
+      "badge": {
+        "present": false,
+        "text": "",
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#201715",
+        "accent": "#00ADB2",
+        "notes": "메인 거의 검정 #201715, 'Proactive Leaders'만 청록 #00ADB2 강조. 배경은 좌상단 연하늘 → 아래 크림색 부드러운 그라데이션"
+      },
+      "whitespace": "balanced",
+      "notes": "좌상단 'Hankook & Company' 로고(폭 10%) + 우상단 Hankook BI(폭 15%) 두 로고. 메인 2줄 '한국앤컴퍼니 / Proactive Leaders 공개 채용'(아주 굵게) + 날짜 '9/23(수) ~ 10/5(월)'(Bold, 메인보다 약간 작음). 오른쪽 아래 27%에 테크노플렉스·트랙·배터리 일러스트(누끼)"
+    }
+  ],
+  "skipped": [],
+  "notes": {
+    "hierarchyOrder": "hierarchy 배열은 화면 위→아래 순서",
+    "bizboardTransparency": "가이드: 1029×258 PNG 투명 배경, 72DPI 32bit. 보드 캡처에서는 HS화성·비씨월드·CMTX·동서식품·반려대비 안랩이 흰색으로 평탄화돼 보이지만 원본 안랩 이미지는 알파 0 배경 확인. 앱에서는 연회색 위에 얹힘",
+    "template421_5460": "_카카오MO 비즈보드 템플릿: 메인 텍스트 박스 491×59 @(46,68), 서브 박스 464×48 @(46,144), 오른쪽 썸네일 박스 313×185 @(663,36). 가이드 문구 '텍스트 컬러 메인 #4C4C4C / 서브 #555555, #777777', '우측 이미지가 광고소재랑 연관있어야 함', '글자수·투명 배경·텍스트와 이미지 간격·비트 수준 확인'",
+    "rejectionCases": "반려 사례 텍스트(446:51): 다스 — 워드마크형 카피로 로고를 메인 문구로 썼으나 그래픽 요소가 포함돼 반려 / 콜마그룹 — 소재 안 텍스트 기입으로 반려. 즉 로고를 메인 문구 자리에 쓰려면 순수 워드마크여야 함(안랩은 글자형 워드마크라 통과 사례)",
+    "specSplit": "비즈보드 6장(투명·좌측 텍스트·우측 오브젝트)과 PC 디스플레이 4장(프로필 300×300 로고 단독 2장, 홍보 1200×600 2장)은 레이아웃이 전혀 달라 렌더러 프로필을 따로 두는 것이 맞음"
+  },
+  "patterns": {
+    "background": {
+      "transparent": 6,
+      "solid": 2,
+      "gradient": 2
+    },
+    "objectSide": {
+      "right": 7,
+      "center": 3
+    },
+    "textAlign": {
+      "left": 7,
+      "center(텍스트 없음)": 3
+    },
+    "logoPosition": {
+      "top-right": 2,
+      "right(오브젝트 겸용)": 2,
+      "inline-with-copy": 2,
+      "center": 3,
+      "top-left": 1
+    },
+    "badge": {
+      "present": 0,
+      "absent": 10
+    },
+    "cta": {
+      "button": 0,
+      "text": 0,
+      "none": 10
+    },
+    "typical": "카카오 비즈보드는 대체로 투명 배경 위에 왼쪽 정렬 카피 1줄(#4C4C4C Bold) + 날짜 1줄(#777777 Regular), 오른쪽 약 30%에 업종 연관 누끼 오브젝트·로고·둥근 썸네일 박스 중 하나를 두고 소형 로고는 우상단; PC 디스플레이는 프로필 300×300이 흰 배경 로고 단독, 홍보 1200×600은 그라데이션 배경에 로고 단독 또는 좌측 카피+우하단 일러스트"
+  },
+  "rules": [
+    "비즈보드 배경은 투명 PNG이며 박스형 배경을 깔지 않는다(6/6)",
+    "비즈보드 메인 카피는 1줄, 기간/서브는 1줄 — 총 2줄을 넘기지 않는다(6/6)",
+    "비즈보드 텍스트 색은 메인 #4C4C4C, 서브·날짜 #777777로 고정한다(6/6; 로고를 메인으로 쓴 안랩 2장만 첫 줄이 브랜드 남색 워드마크)",
+    "비즈보드 텍스트는 x≈50px부터 왼쪽 정렬, 오브젝트는 오른쪽 x≈615~980 구간에 폭 24~33%로 둔다(6/6)",
+    "오른쪽 오브젝트는 누끼 일러스트(2)·제품(1)·로고 단독(2)·둥근 썸네일 박스(2, 313×185) 중 하나이며 채용 기업·업종과 관련 있어야 한다(가이드 문구, 6/6)",
+    "배지·CTA 문구·버튼은 쓰지 않는다(10/10)",
+    "날짜는 'M/D(요일)~M/D(요일)' 형식으로 서브 줄에 둔다(4/6; 안랩 2장은 날짜 대신 '2026년 신입/경력 채용')",
+    "로고를 메인 문구로 쓸 때는 그래픽 요소 없는 순수 워드마크만 쓴다(반려 사례 다스, 안랩 2/2 준수)",
+    "반려 대비 수정은 레이아웃을 건드리지 않고 문구만 최소로 고친다 — 안랩은 '6월' 두 글자만 삭제(1/1)",
+    "PC 디스플레이 프로필(300×300)은 흰 배경에 원색 로고만 가운데 둔다(2/2), 홍보 이미지(1200×600)는 브랜드색 그라데이션 배경을 쓴다(2/2)"
+  ]
+}

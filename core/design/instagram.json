@@ -1,0 +1,988 @@
+{
+  "medium": "instagram",
+  "examples": [
+    {
+      "nodeId": "421:3273",
+      "client": "비씨월드제약·비씨월드헬스케어",
+      "spec": "피드 1080×1080",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '기본형' 템플릿 421:3269 안의 숨김 원본 이미지 / 같은 소재 썸네일 421:3133은 '중앙정렬형 예시'",
+      "background": "gradient",
+      "bgColor": "≈#22A7D7(상단 스카이블루)→#FAF8FE(하단 흰 라벤더), 맨 아래 #213478 띠",
+      "object": {
+        "type": "illustration",
+        "side": "center",
+        "widthRatio": 0.55
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 3,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.072,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년 상반기)",
+          "main",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.25
+      },
+      "badge": {
+        "present": true,
+        "text": "03.06(금) - 03.15(일)",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#13276F",
+        "accent": "#213478",
+        "notes": "브랜드 네이비+스카이블루. 서브는 회청색 #4E5672, 날짜 pill은 네이비 바탕 흰 글자"
+      },
+      "whitespace": "balanced",
+      "notes": "상단 ~58%에 서브1+메인3줄+날짜 pill을 중앙정렬, 하단 ~35%에 아이소메트릭 3D 캠퍼스 일러스트(생성형 이미지 톤, 'BCWORLD' 입체 글자 포함), 맨 아래 ~4% 네이비 띠. 둥근 디스플레이 서체. hidden 레이어라 get_screenshot은 1×1 → get_design_context 이미지 URL로 원본 확보.",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:3292",
+      "client": "신한캐피탈",
+      "spec": "피드 1080×1080",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '기본형' 템플릿 421:3291 안의 숨김 원본 이미지 / 같은 소재 썸네일 421:3137은 '좌측정렬형 예시'",
+      "background": "solid",
+      "bgColor": "#0046FD (하단 스카이라인·날짜박스 #2B65FD)",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 0.95
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.089,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026년 상반기)",
+          "main",
+          "date",
+          "detail(신입/경력 직무)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.21
+      },
+      "badge": {
+        "present": true,
+        "text": "03.09(월) ~ 03.20(금) 17:00",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#2B65FD",
+        "notes": "브랜드 블루 단색 + 한 톤 밝은 블루(#2B65FD)로 날짜 박스·도시 실루엣"
+      },
+      "whitespace": "balanced",
+      "notes": "텍스트 블록 상단 ~55%(좌측 여백 ≈85px), 하단 ~40%에 3D 브랜드 캐릭터 7종이 가로 전폭으로 늘어서고 뒤에 서울 스카이라인 실루엣. 날짜는 사각 박스, 그 아래 '(신입) … / (경력) …' 직무 한 줄.",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:4519",
+      "client": "호반그룹",
+      "spec": "피드 1080×1080",
+      "boardGroup": "이미지/일러스트 수급 가능 — 템플릿 421:4553 활용 예시",
+      "background": "photo",
+      "bgColor": "≈#222222 (텍스처 다크 차콜) + 하단 사옥 실사",
+      "object": {
+        "type": "building",
+        "side": "full-bleed",
+        "widthRatio": 1.0
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.067,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "date(시작 — 선 — 종료)",
+          "info 2단(모집회사 / 지원자격)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.16
+      },
+      "badge": {
+        "present": true,
+        "text": "모집회사 / 지원자격",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#EE7500",
+        "notes": "메인 1줄의 기업명 '호반그룹'만 브랜드 오렌지, 사옥 사진 속 로고 조형물도 오렌지"
+      },
+      "whitespace": "tight",
+      "notes": "메인 2줄 + 날짜(시작—가로선—종료) + 회색 라벨 칩 2개 아래 불릿 정보 2단 칼럼. 사옥을 올려다본 흑백톤 사진이 하단 ~45%. 템플릿(4553)은 로고 좌하단(70,955)이지만 실제 소재는 숨김 대안 가이드대로 우상단. 여백 가이드 55/75px.",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:4589",
+      "client": "동우화인켐",
+      "spec": "피드 1080×1080",
+      "boardGroup": "이미지/일러스트 수급 가능 — 템플릿 421:4645 활용 예시",
+      "background": "photo",
+      "bgColor": "#000614 (블루 네트워크/플렉서스 추상 이미지 전면)",
+      "object": {
+        "type": "none",
+        "side": "none",
+        "widthRatio": 0
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.076,
+        "subPresent": true,
+        "datePresent": false,
+        "hierarchy": [
+          "main(영문 사명 로고타입 2줄)",
+          "sub(2022년 하반기)",
+          "detail(신입, 경력사원 공개 채용 공고)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-left",
+        "treatment": "white",
+        "sizeRatio": 0.3
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": null,
+        "notes": "브랜드색 미사용. 로고 심볼만 원색(스미토모 레드, 동우 레드/블루)"
+      },
+      "whitespace": "airy",
+      "notes": "날짜 없는 유형. 영문 사명을 굵은 기하학 산세리프 2줄로 크게, 그 아래 국문 서브·상세. 모회사+자사 로고 2개를 좌하단에 가로 나열. 템플릿 4645의 '하단 이미지 495px'을 추상 이미지 전면 배경으로 확장.",
+      "imageSupply": "이미지(추상 스톡) 있음"
+    },
+    {
+      "nodeId": "421:4667",
+      "client": "서울아산병원",
+      "spec": "피드 1080×1080",
+      "boardGroup": "이미지/일러스트 수급 가능 — 템플릿 421:5157 활용 예시 (같은 소재 썸네일 421:3134 = '중앙정렬형 예시')",
+      "background": "gradient",
+      "bgColor": "≈#5774CD→#4365CE (흰 +/× 의료 아이콘 산포)",
+      "object": {
+        "type": "illustration",
+        "side": "full-bleed",
+        "widthRatio": 1.0
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.08,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main",
+          "sub(직군 라벨 박스)",
+          "date"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "white",
+        "sizeRatio": 0.21
+      },
+      "badge": {
+        "present": true,
+        "text": "• UX디자이너/서비스디자이너 채용 •",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#4668CF",
+        "notes": "블루 단일 톤. 서브 라벨은 흰 박스+블루 글자로 반전"
+      },
+      "whitespace": "balanced",
+      "notes": "로고 상단 중앙 → 메인 2줄 → 흰 사각 라벨(서브) → 날짜(— 대시 연결) 순 중앙정렬, 하단 ~48%에 마스크 쓴 의료진 4인 플랫 벡터 일러스트가 가로 전폭. 배경에 +/× 아이콘을 흩뿌려 업종 암시.",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:3333",
+      "client": "주식회사 E1",
+      "spec": "스토리 1080×1920 (보드엔 598×1063)",
+      "boardGroup": "상단 '인스타그램 스토리1080*1920' 영역",
+      "background": "gradient",
+      "bgColor": "≈#FFFFFF + 파스텔 블러 블롭(피치·그린·블루)",
+      "object": {
+        "type": "none",
+        "side": "none",
+        "widthRatio": 0
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.05,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(주식회사 E1)",
+          "main(채용연계형 / 인턴 모집)",
+          "key-value(서류모집 / 모집분야)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.1
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "≈#1E2A5A",
+        "accent": "≈#2F5BFF",
+        "notes": "가이드 오버레이가 덮여 정확한 색 판독 불가 — 대략 남색 텍스트"
+      },
+      "whitespace": "airy",
+      "notes": "이미지에 스토리 UI 가이드가 구워져 있음: 상단 빨강 0–7.9%(≈152px@1920, 프로필·진행바 가림), 파랑 '이미지 가이드' 19.6–81%(≈376–1555px) 전폭 = 콘텐츠 안전영역, 하단 빨강 pill 81.8–88%(가로 26–74% 중앙, 링크 스티커/답장), 좌하단 작은 빨강. 텍스트·로고 모두 파랑 안에. 정보는 '라벨 | 값' 2열 표.",
+      "imageSupply": "이미지 없음(블러 블롭 배경)"
+    },
+    {
+      "nodeId": "421:3132",
+      "client": "한국무라타전자",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '중앙정렬형 예시'",
+      "background": "solid",
+      "bgColor": "#FFFFFF (상단 좌우 회색 분자 라인 장식) + 하단 #E60E33 띠",
+      "object": {
+        "type": "illustration",
+        "side": "center",
+        "widthRatio": 0.95
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.09,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main(1줄 사명 레드 / 2줄 직무 블랙)",
+          "date",
+          "모집분야 라벨+값"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-center",
+        "treatment": "original-color",
+        "sizeRatio": 0.18
+      },
+      "badge": {
+        "present": true,
+        "text": "모집분야",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#111111",
+        "accent": "#E60E33",
+        "notes": "사명 줄만 브랜드 레드, 일러스트 포인트도 레드"
+      },
+      "whitespace": "balanced",
+      "notes": "흑백 라인아트 일러스트(사무실·인물·6G)에 레드 포인트, 하단 ~40% 가로 전폭. 메인 2줄 굵기 대비(1줄 볼드 레드, 2줄 레귤러 블랙). 검정 라벨 칩 '모집분야'.",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:3138",
+      "client": "동부건설·센트레빌",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '좌측정렬형 예시'",
+      "background": "solid",
+      "bgColor": "#002F66 외곽 프레임 + 흰 라운드 카드 인셋",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.6
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.09,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(영문 슬로건)",
+          "main(2026년 동부건설 / 신입사원 공개채용)",
+          "date 박스",
+          "모집분야 라벨+목록"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.3
+      },
+      "badge": {
+        "present": true,
+        "text": "3/30(월) ~ 4/12(일)",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002F66",
+        "accent": "≈#F26B21",
+        "notes": "'2026년'만 오렌지, 나머지 브랜드 네이비"
+      },
+      "whitespace": "tight",
+      "notes": "네이비 테두리 안 흰 카드 구성. 아이소메트릭 3D 건설현장(크레인·중장비)이 카드 우하단을 채움. 로고 2개(동부건설+센트레빌) 우상단. 날짜는 네이비 사각 박스 흰 글자.",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:3139",
+      "client": "대원제약",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '좌측정렬형 예시'",
+      "background": "gradient",
+      "bgColor": "#E6002D (좌하단 오렌지 방사형 글로우)",
+      "object": {
+        "type": "product",
+        "side": "right",
+        "widthRatio": 0.45
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main(3줄)",
+          "sub(* DNA 채용이란? 주석)",
+          "아웃라인 pill 2개(모집직무 / 접수기간)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-left",
+        "treatment": "white",
+        "sizeRatio": 0.28
+      },
+      "badge": {
+        "present": true,
+        "text": "모집직무 : 영업/회계/… · ~9/29(월) 17:30 서류접수 진행 중",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#E6002D",
+        "notes": "브랜드 레드 단색 배경 + 흰 글자, pill은 흰 아웃라인"
+      },
+      "whitespace": "balanced",
+      "notes": "제품 패키지(콜대원 3종) 누끼를 우하단에 세움. 메인 3줄 모두 같은 굵기, 정보는 흰 테두리 pill 2개. 로고는 좌하단 흰색.",
+      "imageSupply": "이미지(제품) 있음"
+    },
+    {
+      "nodeId": "421:3144",
+      "client": "콜마그룹",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '날짜 혹 직무만 있는 경우 예시'",
+      "background": "gradient",
+      "bgColor": "≈#236FF7 (옅은 원형 빛 번짐)",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.4
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.08,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main(2026년 상반기 / 콜마그룹 대졸 신입 공채)",
+          "date(서류접수 + 2줄 일정, 좌하단)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.2
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": null,
+        "notes": "블루 그라데이션 + 흰 글자만"
+      },
+      "whitespace": "airy",
+      "notes": "상단 메인 2줄, 좌하단에 '서류접수' 일정 3줄을 큰 볼드로 따로 배치(위아래 분리형). 우측 중앙에 발광 3D 포털+작은 인물(슬로건 문구 포함).",
+      "imageSupply": "이미지/일러스트 있음"
+    },
+    {
+      "nodeId": "421:3145",
+      "client": "동우화인켐 (2025 상반기)",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '날짜 혹 직무만 있는 경우 예시'",
+      "background": "gradient",
+      "bgColor": "≈#1E263C→#3A4573 (다크 네이비)",
+      "object": {
+        "type": "illustration",
+        "side": "center",
+        "widthRatio": 0.6
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2025 상반기)",
+          "main(영문 사명 / 대졸 신입/경력 채용)",
+          "date(좌측 레드 세로바)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left",
+        "treatment": "original-color",
+        "sizeRatio": 0.2
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "≈#E60012",
+        "notes": "날짜 앞 레드 세로바만 포인트"
+      },
+      "whitespace": "airy",
+      "notes": "좌상단·우상단에 작은 로고 2개(동우 / 스미토모). 하단 중앙에 바이너리 레인이 내리는 디지털 도시 3D 스톡 이미지. 4589(2022)와 같은 고객사지만 레이아웃이 다른 별도 소재.",
+      "imageSupply": "이미지(스톡) 있음"
+    },
+    {
+      "nodeId": "421:3146",
+      "client": "코엑스",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '날짜 혹 직무만 있는 경우 예시'",
+      "background": "photo",
+      "bgColor": "#D32B7E 상단 단색 → 하단 전시장/오디토리움 실사로 전환",
+      "object": {
+        "type": "building",
+        "side": "full-bleed",
+        "widthRatio": 1.0
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2026)",
+          "main(코엑스 채용 / 신규행사 및 전시 기획 PM)",
+          "date(접수기간)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.13
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#D32B7E",
+        "notes": "브랜드 마젠타가 사진 위 컬러 오버레이로 이어짐"
+      },
+      "whitespace": "balanced",
+      "notes": "상단 ~40% 마젠타 단색에 텍스트, 하단 ~60% 컨벤션홀 실사가 마젠타 톤으로 자연스럽게 이어짐(사진+브랜드색 그라데이션 합성).",
+      "imageSupply": "이미지(실사) 있음"
+    },
+    {
+      "nodeId": "421:3265",
+      "client": "중앙대학교병원",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '실사 이미지형 예시'",
+      "background": "gradient",
+      "bgColor": "≈#D8F4FE→#FFFFFF 상단, 하단 건물 실사 + #23508B 블루 오버레이",
+      "object": {
+        "type": "building",
+        "side": "center",
+        "widthRatio": 0.65
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.08,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(— 2025 — 룰 라인)",
+          "main(중앙대학교의료원 레귤러 / 행정직(계약직) 모집 볼드)",
+          "date 박스"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-center",
+        "treatment": "white",
+        "sizeRatio": 0.35
+      },
+      "badge": {
+        "present": true,
+        "text": "5월 19일 (월) - 5월 25일 (일)",
+        "style": "tag"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#23508B",
+        "accent": "#23508B",
+        "notes": "병원 블루 단일 톤"
+      },
+      "whitespace": "balanced",
+      "notes": "상단 모서리 픽셀 사각 장식. 병원 건물 실사를 하단 ~50%에 두고 위쪽을 흰색으로 페이드. 로고는 하단 중앙 흰색.",
+      "imageSupply": "이미지(실사) 있음"
+    },
+    {
+      "nodeId": "421:3266",
+      "client": "조선내화·CR홀딩스",
+      "spec": "피드 1080×1080 (보드엔 232×232 썸네일 — 배경·오브젝트·색 위주 관찰)",
+      "boardGroup": "상단 '소재별 예시' 영역(수급 가능/어려운 구분 위쪽) — '실사 이미지형 예시'",
+      "background": "photo",
+      "bgColor": "#2B2B2A 카드 + #444444 외곽 프레임",
+      "object": {
+        "type": "building",
+        "side": "right",
+        "widthRatio": 0.6
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(2025년 하반기)",
+          "main",
+          "date(작게)",
+          "직무 목록(레드 세로바)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.25
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "≈#E60012",
+        "notes": "로고 'CR' 레드 + 직무 목록 앞 레드 세로바"
+      },
+      "whitespace": "balanced",
+      "notes": "야간 사옥 실사를 우하단 ~60%에 두고 좌측·위쪽은 어둡게 페이드. 회색 외곽 프레임 안에 다크 카드(동부건설과 같은 카드 인셋 구조). 직무는 좌하단 작은 글씨.",
+      "imageSupply": "이미지(실사) 있음"
+    },
+    {
+      "nodeId": "421:5335",
+      "client": "(주)바이오노트",
+      "spec": "피드 1080×1080 (지정 목록 외 — 수급 어려운 경우 이해용으로 추가 관찰)",
+      "boardGroup": "이미지/일러스트 수급 어려운 경우 — ❶ 텍스트 (템플릿 421:5174 적용)",
+      "background": "pattern",
+      "bgColor": "≈#F2F2F2 종이 텍스처 + 하단 사선 퍼플 폴리곤 블록 #4325BB",
+      "object": {
+        "type": "none",
+        "side": "none",
+        "widthRatio": 0
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.075,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main(1줄 사명 퍼플 볼드 / 2줄 2022 하반기 블랙 볼드 / 3줄 신입/경력 공개채용 레귤러)",
+          "date(좌하단 흰 밑줄)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "original-color",
+        "sizeRatio": 0.23
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "button",
+      "colors": {
+        "text": "#222222",
+        "accent": "#4325BB",
+        "notes": "사명만 브랜드 퍼플, 우하단 연두 원형 화살표 버튼"
+      },
+      "whitespace": "balanced",
+      "notes": "이미지 없이 타이포+지오메트릭 컬러 블록(사선으로 자른 퍼플 면)으로 화면 하단 절반을 채움. 메인 3줄 굵기 단계(볼드→볼드→레귤러). 날짜는 퍼플 면 위 흰 글씨+밑줄, 반대편에 원형 화살표 CTA.",
+      "imageSupply": "이미지 없음(타이포+컬러 블록)",
+      "extra": true
+    },
+    {
+      "nodeId": "421:5264",
+      "client": "텔레칩스",
+      "spec": "피드 1080×1080 (지정 목록 외 — 수급 어려운 경우 이해용으로 추가 관찰)",
+      "boardGroup": "이미지/일러스트 수급 어려운 경우 — ❷ 텍스트+추상적 이미지 (템플릿 421:5181 적용). 같은 카피로 배경만 바꾼 변형 421:5200·5222·5243",
+      "background": "photo",
+      "bgColor": "≈#000B2F~#0052AC (라이선스 추상 이미지: 다크 블루 광선 스트릭)",
+      "object": {
+        "type": "none",
+        "side": "none",
+        "widthRatio": 0
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(사명 컬러 + 2023년 상반기 채용)",
+          "main(슬로건형 카피 2줄)",
+          "date(시작 — 컬러 대시 — 종료)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-center",
+        "treatment": "white",
+        "sizeRatio": 0.2
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "≈#4FB3FF",
+        "notes": "사명·대시만 밝은 블루/민트 포인트"
+      },
+      "whitespace": "airy",
+      "notes": "전면 추상 이미지 위 중앙정렬 타이포만. 변형 4종: 다크 청록 파티클 웨이브(5200), 블랙+아이스블루 액체(5222), 밝은 블루 유리 곡면(5243, 텍스트 다크로 반전), 다크 블루 광선(5264). 배경 명도에 따라 텍스트 흰/검정 전환, 레이아웃 고정.",
+      "imageSupply": "이미지 없음(범용 추상 배경)",
+      "extra": true
+    },
+    {
+      "nodeId": "421:5304",
+      "client": "세방그룹",
+      "spec": "피드 1080×1080 (지정 목록 외 — 수급 어려운 경우 이해용으로 추가 관찰)",
+      "boardGroup": "이미지/일러스트 수급 어려운 경우 — ❸ 기업 분야 or 채용 직무별 이미지",
+      "background": "solid",
+      "bgColor": "≈#6C58D5 (미세 그레인)",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.3
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main(1줄 볼드 / 2–3줄 레귤러)",
+          "date(지원서 접수)",
+          "해시태그 pill"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-left",
+        "treatment": "white",
+        "sizeRatio": 0.2
+      },
+      "badge": {
+        "present": true,
+        "text": "# 물류, 제조, IT 6개 계열사 모집",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": null,
+        "notes": "퍼플 단색 + 흰 글자, pill은 흰 바탕 퍼플 글자"
+      },
+      "whitespace": "balanced",
+      "notes": "업종(물류)을 상징하는 3D 택배 박스를 우하단에. 실사·키비주얼 대신 업종 상징 3D 오브젝트로 대체하는 방식.",
+      "imageSupply": "이미지 없음 → 업종 상징 3D 오브젝트",
+      "extra": true
+    },
+    {
+      "nodeId": "421:5286",
+      "client": "에스디바이오센서",
+      "spec": "피드 1080×1080 (지정 목록 외 — 수급 어려운 경우 이해용으로 추가 관찰)",
+      "boardGroup": "이미지/일러스트 수급 어려운 경우 — ❸ 기업 분야 or 채용 직무별 이미지",
+      "background": "solid",
+      "bgColor": "≈#215DD6",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.4
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.07,
+        "subPresent": false,
+        "datePresent": true,
+        "hierarchy": [
+          "main(1줄 사명 볼드 / 2줄 레귤러)",
+          "date",
+          "혜택 pill 2개"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "bottom-left",
+        "treatment": "white",
+        "sizeRatio": 0.2
+      },
+      "badge": {
+        "present": true,
+        "text": "바이오업계 매출/영업이익 1위 · 대졸 초임 4,800만원",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": null,
+        "notes": "블루 단색 + 흰 글자, pill은 흰 바탕 블루 글자"
+      },
+      "whitespace": "balanced",
+      "notes": "업종(바이오)을 상징하는 3D 원자 모형을 우하단에. 세방그룹(5304)과 같은 템플릿 — 메인 2줄 굵기 대비 + 흰 pill + 좌하단 흰 로고.",
+      "imageSupply": "이미지 없음 → 업종 상징 3D 오브젝트",
+      "extra": true
+    }
+  ],
+  "skipped": [
+    {
+      "nodeId": "421:3294",
+      "why": "421:3273(비씨월드)과 픽셀 동일(md5 일치) — 중복이라 examples·패턴 집계에서 제외"
+    },
+    {
+      "nodeId": "421:3133",
+      "why": "421:3273 비씨월드와 같은 소재의 232 썸네일('중앙정렬형 예시') — 원본 쪽에 기록"
+    },
+    {
+      "nodeId": "421:3134",
+      "why": "421:4667 서울아산병원과 같은 소재의 232 썸네일('중앙정렬형 예시') — 원본 쪽에 기록"
+    },
+    {
+      "nodeId": "421:3137",
+      "why": "421:3292 신한캐피탈과 같은 소재의 232 썸네일('좌측정렬형 예시') — 원본 쪽에 기록"
+    }
+  ],
+  "templates": [
+    {
+      "nodeId": "421:4553",
+      "group": "수급 가능 — 템플릿(→ 호반 4519)",
+      "layout": "좌측정렬. 여백 70px(가이드 70/1010). 메인 698×200 @(70,88) 2줄 → 채용일자 647×37 @(70,307) → 정보 2단 @y411: '모집 회사 or 모집 분야' 칩 250×38+목록(480×124) / '지원자격' 칩 119×38+목록(420×124, x589). 하단 이미지/일러스트 1080×495 @y585. 기업 로고 215×55 좌하단 @(70,955) (숨김 대안 가이드: 우상단 @(795,100))."
+    },
+    {
+      "nodeId": "421:4645",
+      "group": "수급 가능 — 템플릿(→ 동우화인켐 4589)",
+      "layout": "좌측정렬. 메인 467×228 @(70,150) 2줄 → 서브 656×70 @(70,400) → 상세 470×50 @(70,492). 하단 이미지 1080×495 @y585, 로고 215×55 좌하단 @(70,955). 날짜 슬롯 없음."
+    },
+    {
+      "nodeId": "421:5157",
+      "group": "수급 가능 — 템플릿(→ 서울아산병원 4667)",
+      "layout": "중앙정렬. 로고 상단 중앙 → 메인 467×228 @(307,181) 2줄 → 서브 561×56 @(259.5,429)를 검정 라벨 박스로('ex. OO직군 채용') → 채용일자 612×35 @(234,505). 하단 이미지 1080×495."
+    },
+    {
+      "nodeId": "421:5174",
+      "group": "수급 어려운 경우 ❶ 텍스트",
+      "layout": "빈 흰 캔버스 + 70px 여백 가이드만. 텍스트만으로 구성하라는 슬롯(적용 예: 5335 바이오노트 = 타이포+사선 컬러 블록)."
+    },
+    {
+      "nodeId": "421:5181",
+      "group": "수급 어려운 경우 ❷ 텍스트+추상적 이미지",
+      "layout": "캔버스 전체가 '이미지 or 일러스트'(전면 배경). 중앙정렬: 상세(서브) 413×45 @(333.5,140) → 메인 800×220 @(140,270) 2줄 → 채용일자 405×40 @(337.5,543, 대시 연결) → 로고 하단 중앙. 라이선스 구매 추상 이미지 사용 명시(적용 예: 5200·5222·5243·5264 텔레칩스)."
+    },
+    {
+      "nodeId": "421:3269",
+      "group": "상단 '기본형'(메타데이터만) — 비씨월드 원본 트레이스",
+      "layout": "중앙정렬: 로고 279×62 우상단 @(758,39), 서브 pill 472×48 @(304,134), 메인 3줄 722×104 @y204/313/422, 날짜 pill 563×86 @(259,549), 이미지 영역 1080×416 @y664."
+    },
+    {
+      "nodeId": "421:3291",
+      "group": "상단 '기본형'(메타데이터만) — 신한캐피탈 원본 트레이스",
+      "layout": "좌측정렬: 서브 472×48 @(103,145), 메인 2줄 722×104 @(87,218/332), 날짜 박스 589×73 @(87,446), 상세 700×53 @(87,557), 로고 우상단 @(758,39), 이미지 영역 1080×412 @y668."
+    }
+  ],
+  "patterns": {
+    "background": {
+      "gradient": 7,
+      "solid": 5,
+      "photo": 5,
+      "pattern": 1
+    },
+    "objectSide": {
+      "center": 4,
+      "full-bleed": 4,
+      "none": 4,
+      "right": 6
+    },
+    "objectType": {
+      "illustration": 9,
+      "building": 4,
+      "none": 4,
+      "product": 1
+    },
+    "textAlign": {
+      "center": 5,
+      "left": 13
+    },
+    "mainLines": {
+      "3": 4,
+      "2": 14
+    },
+    "logoPosition": {
+      "top-right": 8,
+      "bottom-left": 4,
+      "top-center": 2,
+      "bottom-right": 1,
+      "top-left": 1,
+      "bottom-center": 2
+    },
+    "logoTreatment": {
+      "original-color": 7,
+      "white": 11
+    },
+    "badge": {
+      "present": 10,
+      "absent": 8
+    },
+    "cta": {
+      "button": 1,
+      "text": 0,
+      "none": 17
+    },
+    "datePresent": {
+      "yes": 17,
+      "no": 1
+    },
+    "mainSizeRatioRange": "0.067–0.09 (중앙값 ≈0.075, 피드 17장 기준 글자 실측 높이÷1080)",
+    "boardGroup": {
+      "상단 소재별 예시 영역(중앙정렬형·좌측정렬형·날짜/직무만·실사형·기본형·스토리)": 11,
+      "이미지/일러스트 수급 가능(템플릿 활용 예시)": 3,
+      "이미지/일러스트 수급 어려운 경우(추가 관찰)": 4
+    },
+    "noImageStrategies": {
+      "❶ 텍스트 (템플릿 421:5174)": "흰 캔버스+70px 여백만 주어짐. 예시 5335 바이오노트 = 타이포 3줄(굵기 단계) + 하단 절반을 사선으로 자른 브랜드 퍼플 컬러 블록 + 원형 화살표. → 타이포+지오메트릭 컬러 블록",
+      "❷ 텍스트+추상적 이미지 (템플릿 421:5181)": "라이선스 추상 이미지를 전면 배경으로, 중앙정렬 서브/메인2줄/날짜/하단중앙 로고 고정. 같은 카피로 배경만 4종 교체(5200·5222·5243·5264), 밝은 배경이면 텍스트 다크로 반전",
+      "❸ 기업 분야 or 채용 직무별 이미지": "브랜드 단색 배경 + 업종 상징 3D 오브젝트(물류=택배 박스 5304, 바이오=원자 모형 5286)를 우하단 30–40%, 좌측정렬 메인 2–3줄(1줄 볼드/나머지 레귤러) + 흰 pill + 좌하단 흰 로고"
+    },
+    "typical": "브랜드 컬러 단색·그라데이션(또는 어두운 사진) 배경 위에 상단 좌측정렬 메인 카피 2줄 + 시즌 서브 + 날짜를 두고, 하단 약 45%에 일러스트·3D·건물 사진 오브젝트(가운데 전폭 또는 우하단), 로고는 우상단(중앙정렬형이면 상단/하단 중앙) — 이미지가 없으면 타이포+컬러 블록, 전면 추상 이미지, 업종 상징 3D 오브젝트 중 하나로 대체"
+  },
+  "rules": [
+    "상단 텍스트 / 하단 비주얼 2단 구조: 오브젝트가 있는 소재는 모두 하단(가운데·전폭·우하단)에 오브젝트를 둔다 (14/14), 텍스트 블록은 상단에서 시작한다 (17/17 피드). 템플릿 기준 하단 이미지 영역은 1080×495(캔버스의 46%) (3/3 수급 가능 템플릿)",
+    "좌측정렬이 기본이다 (13/18), 중앙정렬은 5/18. 중앙정렬이면 로고도 중앙축(상단 중앙 또는 하단 중앙)에 둔다 (4/5)",
+    "메인 카피는 2줄 (14/18), 많아도 3줄 (4/18). 메인 글자 실측 높이는 캔버스의 6.7–9% (17/17 피드)",
+    "모집 기간(날짜)은 거의 항상 넣는다 (17/18 — 없는 건 동우화인켐 4589뿐). 사각 박스·pill로 감싸는 경우 5/17, 나머지는 텍스트+대시/선 연결",
+    "로고: 좌측정렬이면 우상단 (7/13) 또는 이미지 위 좌하단 흰색 (4/13). 전체로 흰색 처리 11/18, 원색 7/18. 로고 폭은 캔버스의 13–35% (피드 17장)",
+    "배경은 브랜드 컬러 단색·그라데이션이 다수 (12/18), 실사·추상 사진 5/18, 패턴 1/18. 텍스트는 흰색 12/18, 밝은 배경일 때만 브랜드 다크색 6/18",
+    "강조는 색 한 가지로: 메인 카피 안 사명/연도만 브랜드 액센트 색 (4/18: 호반·무라타·동부·바이오노트), 또는 줄 사이 굵기 대비 1줄 볼드/다음 줄 레귤러 (5/18)",
+    "CTA 버튼은 거의 쓰지 않는다 (17/18 none — 바이오노트의 원형 화살표 1건)",
+    "이미지·일러스트 수급이 어려우면 보드 가이드의 세 방식 중 하나로 대체: ❶ 타이포+지오메트릭 컬러 블록, ❷ 라이선스 추상 이미지 전면 + 중앙정렬, ❸ 업종 상징 3D 오브젝트 우하단 (관찰 4/4)",
+    "스토리(1080×1920)는 상단 ~20%와 하단 ~19%(링크 스티커 pill 포함)를 UI 가림 영역으로 비우고, 텍스트·로고는 19.6–81% 안전영역 안에 둔다 (1/1)"
+  ]
+}

@@ -1,0 +1,777 @@
+{
+  "medium": "everytime",
+  "examples": [
+    {
+      "nodeId": "421:7623",
+      "client": "DN솔루션즈",
+      "spec": "커뮤니티보드 1029×258 — V2",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.3
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.167,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main(사명)",
+          "sub(2026 하반기 신입사원 공개채용)",
+          "date(07.24(금) ~ 08.03(월) 14:00)"
+        ]
+      },
+      "logo": {
+        "present": false,
+        "position": "none",
+        "treatment": "original-color",
+        "sizeRatio": 0
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002D82",
+        "accent": "#1F529C",
+        "notes": "텍스트 2색(1줄 딥네이비 #002D82, 2·3줄 블루 #1F529C) — 3색 이내 규정 충족"
+      },
+      "whitespace": "airy",
+      "notes": "V1(7639)과 같은 카피·위치, 오브젝트만 '배경 포함 카드형'으로 교체: #0051A0 라운드 사각(307×170, x675–982) 안에 3D 키비주얼. 가이드는 '배경 포함 오브젝트는 좌우 그라데이션' 권장인데 이건 라운드 카드로 처리. 보드상 오른쪽 열(수정/대안 위치). 배경 도형 없음 — 보드엔 흰 프레임이지만 규정상 최종 PNG는 투명.",
+      "everytime": {
+        "format": "community-board",
+        "lineType": "3줄형",
+        "lineCount": 3,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [
+          43,
+          31,
+          25
+        ],
+        "specLineHeightsPx": [
+          45,
+          35,
+          25
+        ],
+        "objectWhat": "아이소메트릭 3D 공작기계·공장 키비주얼(브랜드 KV, 'DN SOLUTIONS' 로고 표기 포함) — 파란 라운드 카드 배경 포함"
+      }
+    },
+    {
+      "nodeId": "421:7639",
+      "client": "DN솔루션즈",
+      "spec": "커뮤니티보드 1029×258",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.24
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "black",
+        "mainSizeRatio": 0.167,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main(사명)",
+          "sub(2026 하반기 신입사원 공개채용)",
+          "date(07.24(금) ~ 08.03(월) 14:00)"
+        ]
+      },
+      "logo": {
+        "present": false,
+        "position": "none",
+        "treatment": "original-color",
+        "sizeRatio": 0
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#002D82",
+        "accent": "#1F529C",
+        "notes": "텍스트 2색 네이비/블루"
+      },
+      "whitespace": "airy",
+      "notes": "텍스트 x68–511, 1줄 볼드 사명·2줄 세미볼드·3줄 레귤러로 굵기 단계. 오브젝트는 누끼 3D 키비주얼(x725–976, 251px) — 규정(너비 220~320, 우측 40~360px 영역) 안. 별도 로고 없이 1줄 카피 사명+오브젝트 속 로고로 광고주 표기.",
+      "everytime": {
+        "format": "community-board",
+        "lineType": "3줄형",
+        "lineCount": 3,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [
+          43,
+          31,
+          25
+        ],
+        "specLineHeightsPx": [
+          45,
+          35,
+          25
+        ],
+        "objectWhat": "아이소메트릭 3D 공작기계·공장 키비주얼 누끼(배경 없음)"
+      }
+    },
+    {
+      "nodeId": "421:7653",
+      "client": "대원제약",
+      "spec": "커뮤니티보드 1029×258 — '반려' 표기",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "product",
+        "side": "right",
+        "widthRatio": 0.24
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.136,
+        "subPresent": true,
+        "datePresent": false,
+        "hierarchy": [
+          "main(대원제약 상반기 DNA 채용)",
+          "sub(영업/마케팅/품질/R&D 등 약 30개 직무 채용)",
+          "기타문구(서류 지원하기 >)"
+        ]
+      },
+      "logo": {
+        "present": false,
+        "position": "none",
+        "treatment": "original-color",
+        "sizeRatio": 0
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "text",
+      "colors": {
+        "text": "#000000",
+        "accent": "#C32F3F",
+        "notes": "1줄 '대원제약'만 브랜드 레드, 나머지 블랙, 기타문구 레드 — 2색"
+      },
+      "whitespace": "balanced",
+      "notes": "반려 사례: 글자 실측 높이 35/27px로 규정(45/35) 미달 → '텍스트 높이 반려'(446:57, 260819). 회색 #D9D9D9 박스(550×45/35/18)는 높이 가이드 표시용. 오브젝트 = 레드 원(#D90017, 218px)+작은 원 장식 위에 콜대원 패키지 3종 누끼.",
+      "everytime": {
+        "format": "community-board",
+        "lineType": "2줄형+기타문구",
+        "lineCount": 2,
+        "etcText": {
+          "present": true,
+          "text": "서류 지원하기 > (레드, 18px 박스)"
+        },
+        "measuredGlyphHeightsPx": [
+          35,
+          27,
+          18
+        ],
+        "specLineHeightsPx": [
+          45,
+          35,
+          18
+        ],
+        "objectWhat": "제품 패키지 누끼(콜대원 3종) + 레드 원형 배경 도형"
+      }
+    },
+    {
+      "nodeId": "421:7670",
+      "client": "대원제약",
+      "spec": "커뮤니티보드 1029×258 — '수정' 표기",
+      "background": "transparent",
+      "bgColor": null,
+      "object": {
+        "type": "product",
+        "side": "right",
+        "widthRatio": 0.24
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.163,
+        "subPresent": true,
+        "datePresent": false,
+        "hierarchy": [
+          "main(대원제약 상반기 DNA 채용)",
+          "sub(영업/마케팅/품질/R&D 등 약 30개 직무 채용)",
+          "기타문구(서류 지원하기 >)"
+        ]
+      },
+      "logo": {
+        "present": false,
+        "position": "none",
+        "treatment": "original-color",
+        "sizeRatio": 0
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "text",
+      "colors": {
+        "text": "#000000",
+        "accent": "#C32F3F",
+        "notes": "반려안과 동일 2색"
+      },
+      "whitespace": "balanced",
+      "notes": "반려안을 글자 크기만 키운 수정안: 실측 42/32px(가이드 박스 45/35를 거의 채움). 대신 2줄이 x657까지 늘어나 텍스트 영역 한계(40~650px)를 7px 넘김. 오브젝트·색·기타문구는 그대로.",
+      "everytime": {
+        "format": "community-board",
+        "lineType": "2줄형+기타문구",
+        "lineCount": 2,
+        "etcText": {
+          "present": true,
+          "text": "서류 지원하기 > (레드, 18px)"
+        },
+        "measuredGlyphHeightsPx": [
+          42,
+          32,
+          18
+        ],
+        "specLineHeightsPx": [
+          45,
+          35,
+          18
+        ],
+        "objectWhat": "제품 패키지 누끼(콜대원 3종) + 레드 원형 배경 도형"
+      }
+    },
+    {
+      "nodeId": "421:8104",
+      "client": "맥도날드",
+      "spec": "홈 배너 640×200",
+      "background": "solid",
+      "bgColor": "#0082C6 (좌측에 한 톤 밝은 물결 도형이 은은하게 있음)",
+      "object": {
+        "type": "illustration",
+        "side": "left",
+        "widthRatio": 0.33
+      },
+      "text": {
+        "align": "left",
+        "block": "right",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.135,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main(맥도날드 신입 매니저 채용 중)",
+          "date(서류접수 : 9/1(월)~14(일))",
+          "기타문구 pill(지금 지원하세요!)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-left",
+        "treatment": "original-color",
+        "sizeRatio": 0.03
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "button",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "#FBC000",
+        "notes": "'신입 매니저'와 기타문구 pill만 맥도날드 옐로 — 텍스트 2색+pill"
+      },
+      "whitespace": "balanced",
+      "notes": "오브젝트 왼쪽(x27–237, 210px — 규정 180~200px보다 약간 큼): 계단을 올라 골든 아치(브랜드 로고 형상)로 향하는 인물 플랫 일러스트. 오브젝트 좌상단에 20px 레드 M 로고. 텍스트 블록은 x261–600 오른쪽, 블록 안은 좌측정렬. 규정은 '전체 동일 단색 배경'인데 은은한 톤온톤 도형이 들어감.",
+      "everytime": {
+        "format": "home-banner",
+        "lineType": "2줄형+기타문구",
+        "lineCount": 2,
+        "etcText": {
+          "present": true,
+          "text": "지금 지원하세요! (옐로 pill, 16px)"
+        },
+        "measuredGlyphHeightsPx": [
+          27,
+          26,
+          17
+        ],
+        "specLineHeightsPx": [
+          35,
+          30,
+          10
+        ],
+        "objectWhat": "플랫 벡터 인물 일러스트 + 골든 아치(브랜드 심볼) 결합"
+      }
+    },
+    {
+      "nodeId": "421:8119",
+      "client": "케이뱅크",
+      "spec": "홈 배너 640×200 (확장형)",
+      "background": "solid",
+      "bgColor": "#1E4BFF",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.3
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 3,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.14,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "main(케이뱅크 채용연계형 인턴십)",
+          "date(모집기간: 10/27(월) 17시까지)",
+          "sub(#월 300만원 실습비 #정규직 전환기회)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "right",
+        "treatment": "white",
+        "sizeRatio": 0.11
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": null,
+        "notes": "브랜드 블루 단색 + 흰 글자 1색. 로고는 톤다운 #8FA5FF"
+      },
+      "whitespace": "balanced",
+      "notes": "텍스트 x23–398 3줄(1줄 볼드, 2·3줄 레귤러, 3줄은 해시태그 혜택). 오브젝트 그룹(x409–603, 194px): 3D 로켓 + 별 말풍선 3D 아이콘 + Kbank 워드마크(배경보다 약간 밝은 블루로 톤다운). 파일명 '확장형'.",
+      "everytime": {
+        "format": "home-banner",
+        "lineType": "3줄형",
+        "lineCount": 3,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [
+          28,
+          31,
+          23
+        ],
+        "specLineHeightsPx": [
+          30,
+          30,
+          25
+        ],
+        "objectWhat": "3D 아이콘(로켓·별 말풍선) + 로고 워드마크"
+      }
+    },
+    {
+      "nodeId": "421:7691",
+      "client": "코엑스",
+      "spec": "홈 카드(카드 이미지) 720×480",
+      "background": "gradient",
+      "bgColor": "#2F24BB→#8F4EE6 (바이올렛)",
+      "object": {
+        "type": "building",
+        "side": "right",
+        "widthRatio": 0.58
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 2,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.1,
+        "subPresent": true,
+        "datePresent": false,
+        "hierarchy": [
+          "sub(2026년도)",
+          "main(코엑스 / 신입사원 채용)",
+          "tag pill(모집분야)",
+          "detail(전시/컨벤션 | 베뉴마케팅 | DX)"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.085
+      },
+      "badge": {
+        "present": true,
+        "text": "모집분야",
+        "style": "pill"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": "≈#A98BF0",
+        "notes": "바이올렛 톤 한 가지, pill은 반투명 라벤더"
+      },
+      "whitespace": "balanced",
+      "notes": "텍스트 5줄(서브1+메인2+pill+상세1 — 규정 최대 5줄), 좌측 여백 50px. 우하단에 코엑스 건물 3D/라인 일러스트(라벤더 톤, x329–746 ≈417px)가 우측 가장자리까지. 날짜 없음. 템플릿 7605(서브→메인2→상세 pill→상세→우하단 오브젝트→우상단 로고)와 동일 구조.",
+      "everytime": {
+        "format": "home-card",
+        "lineType": "5줄(서브+메인2+pill+상세)",
+        "lineCount": 5,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [
+          28,
+          48,
+          48,
+          20,
+          23
+        ],
+        "specLineHeightsPx": "25~60 (자유, 최대 5줄)",
+        "objectWhat": "코엑스 건물 입면 3D/라인 일러스트"
+      }
+    },
+    {
+      "nodeId": "421:8061",
+      "client": "티머니·티머니모빌리티",
+      "spec": "홈 카드(카드 이미지) 720×480",
+      "background": "solid",
+      "bgColor": "#920783",
+      "object": {
+        "type": "illustration",
+        "side": "right",
+        "widthRatio": 0.31
+      },
+      "text": {
+        "align": "left",
+        "block": "left",
+        "mainLines": 1,
+        "mainWeight": "bold",
+        "mainSizeRatio": 0.0875,
+        "subPresent": true,
+        "datePresent": true,
+        "hierarchy": [
+          "sub(티머니 & 티머니모빌리티 — 브랜드 전용 서체)",
+          "main(2025년 신입사원 채용)",
+          "date(4/18(금)~4/27(일))"
+        ]
+      },
+      "logo": {
+        "present": true,
+        "position": "top-right",
+        "treatment": "white",
+        "sizeRatio": 0.18
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": "#FFFFFF",
+        "accent": null,
+        "notes": "브랜드 퍼플-마젠타 단색 + 흰 글자 1색"
+      },
+      "whitespace": "balanced",
+      "notes": "좌측 x86부터 3줄(서브=브랜드 로고타입 서체, 메인·날짜 볼드). 우하단에 3D 토끼 캐릭터(x446–672)와 교통카드·앱 아이콘 굿즈를 하단에 가로로 나열(x151부터).",
+      "everytime": {
+        "format": "home-card",
+        "lineType": "3줄",
+        "lineCount": 3,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [
+          36,
+          42,
+          30
+        ],
+        "specLineHeightsPx": "25~60 (자유, 최대 5줄)",
+        "objectWhat": "3D 브랜드 캐릭터(토끼) + 앱 아이콘·카드 굿즈"
+      }
+    },
+    {
+      "nodeId": "421:7689",
+      "client": "코엑스",
+      "spec": "홈 카드(프로필 이미지) 160×160",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "logo-only",
+        "side": "center",
+        "widthRatio": 0.7
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 0,
+        "mainWeight": "none",
+        "mainSizeRatio": 0,
+        "subPresent": false,
+        "datePresent": false,
+        "hierarchy": []
+      },
+      "logo": {
+        "present": true,
+        "position": "center",
+        "treatment": "original-color",
+        "sizeRatio": 0.7
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": null,
+        "accent": "≈#E5007E",
+        "notes": "로고 원색 마젠타"
+      },
+      "whitespace": "airy",
+      "notes": "흰 배경 + coex 워드마크 로고 단독 중앙. 규정 '검은색 계열 제외 배경색 포함 이미지만'.",
+      "everytime": {
+        "format": "home-card-profile",
+        "lineType": "텍스트 없음",
+        "lineCount": 0,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [],
+        "specLineHeightsPx": null,
+        "objectWhat": "로고 워드마크"
+      }
+    },
+    {
+      "nodeId": "421:8046",
+      "client": "티머니",
+      "spec": "홈 카드(프로필 이미지) 160×160",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": {
+        "type": "logo-only",
+        "side": "center",
+        "widthRatio": 0.88
+      },
+      "text": {
+        "align": "center",
+        "block": "center",
+        "mainLines": 0,
+        "mainWeight": "none",
+        "mainSizeRatio": 0,
+        "subPresent": false,
+        "datePresent": false,
+        "hierarchy": []
+      },
+      "logo": {
+        "present": true,
+        "position": "center",
+        "treatment": "original-color",
+        "sizeRatio": 0.88
+      },
+      "badge": {
+        "present": false,
+        "text": null,
+        "style": "none"
+      },
+      "cta": "none",
+      "colors": {
+        "text": null,
+        "accent": "≈#920783",
+        "notes": "T 심볼 퍼플/오렌지 + 회색 워드마크"
+      },
+      "whitespace": "airy",
+      "notes": "흰 배경 + T 심볼+Tmoney 워드마크 가로형 로고 중앙(141px, 좌우 ≈10px 여백).",
+      "everytime": {
+        "format": "home-card-profile",
+        "lineType": "텍스트 없음",
+        "lineCount": 0,
+        "etcText": {
+          "present": false,
+          "text": null
+        },
+        "measuredGlyphHeightsPx": [],
+        "specLineHeightsPx": null,
+        "objectWhat": "로고(심볼+워드마크)"
+      }
+    }
+  ],
+  "skipped": [],
+  "templates": [
+    {
+      "nodeId": "421:7572",
+      "name": "마이다스_에브리타임_커뮤니티보드",
+      "layout": "커뮤니티보드 템플릿(플레이스홀더). 텍스트 좌측 x58: 메인 박스 403×52 @y79 + 날짜 박스 282×45 @y141(2줄형), 오브젝트 박스 320×258 @x658–978(오른쪽, 우측 여백 51px). 배경 #F8F8F8."
+    },
+    {
+      "nodeId": "421:7587",
+      "name": "마이다스_에브리타임_커뮤니티보드(실제 규격 640×200 홈 배너)",
+      "layout": "홈 배너 템플릿: 메인 2줄 박스 349×42 @(26,42)/(26,88) + 기타문구 박스 344×14 @(31,140), 오브젝트 박스 220×223 @x400–620(오른쪽). 숨김 참고 이미지 '홈 배너 확장형 (오른쪽 오브젝트)' 포함."
+    },
+    {
+      "nodeId": "421:7605",
+      "name": "코엑스_에브리타임_홈 카드 (카드 이미지) — 플레이스홀더",
+      "layout": "홈 카드 템플릿: 서브 300×41 @(50,42) → 메인 2줄 491×56 @(50,98)/(50,166) → 상세 pill 118×39 @(50,253) → 상세 217×26 @(50,314); 오브젝트 401×258 우하단 @(329,228); 로고 우상단 @(637,30). 좌측 50px 여백."
+    }
+  ],
+  "patterns": {
+    "background": {
+      "transparent": 4,
+      "solid": 5,
+      "gradient": 1
+    },
+    "objectSide": {
+      "right": 7,
+      "left": 1,
+      "center": 2
+    },
+    "objectType": {
+      "illustration": 5,
+      "product": 2,
+      "building": 1,
+      "logo-only": 2
+    },
+    "textAlign": {
+      "left": 8
+    },
+    "logoPosition": {
+      "none": 4,
+      "top-left": 1,
+      "right": 1,
+      "top-right": 2,
+      "center": 2
+    },
+    "badge": {
+      "absent": 9,
+      "present": 1
+    },
+    "cta": {
+      "button": 1,
+      "text": 2,
+      "none": 7
+    },
+    "byFormat": {
+      "community-board": {
+        "n": 4,
+        "objectSide": {
+          "right": 4
+        },
+        "lineType": {
+          "3줄형": 2,
+          "2줄형+기타문구": 2
+        },
+        "etcText": {
+          "absent": 2,
+          "present": 2
+        },
+        "background": {
+          "transparent": 4
+        },
+        "objectType": {
+          "illustration": 2,
+          "product": 2
+        }
+      },
+      "home-banner": {
+        "n": 2,
+        "objectSide": {
+          "left": 1,
+          "right": 1
+        },
+        "lineType": {
+          "2줄형+기타문구": 1,
+          "3줄형": 1
+        },
+        "etcText": {
+          "present": 1,
+          "absent": 1
+        },
+        "background": {
+          "solid": 2
+        },
+        "objectType": {
+          "illustration": 2
+        }
+      },
+      "home-card": {
+        "n": 2,
+        "objectSide": {
+          "right": 2
+        },
+        "lineType": {
+          "5줄(서브+메인2+pill+상세)": 1,
+          "3줄": 1
+        },
+        "etcText": {
+          "absent": 2
+        },
+        "background": {
+          "gradient": 1,
+          "solid": 1
+        },
+        "objectType": {
+          "building": 1,
+          "illustration": 1
+        }
+      },
+      "home-card-profile": {
+        "n": 2,
+        "objectSide": {
+          "center": 2
+        },
+        "lineType": {
+          "텍스트 없음": 2
+        },
+        "etcText": {
+          "absent": 2
+        },
+        "background": {
+          "solid": 2
+        },
+        "objectType": {
+          "logo-only": 2
+        }
+      }
+    },
+    "typical": "커뮤니티보드는 투명 배경에 왼쪽 좌측정렬 텍스트 2~3줄(1줄=사명 포함 볼드 45px, 아래로 35/25px로 작아지고 가벼워짐) + 오른쪽 누끼 3D 일러스트·제품 오브젝트(너비 ≈250px, 로고 없이 카피로 광고주 표기)이고, 홈 배너·홈 카드는 브랜드 단색/그라데이션 배경 위 같은 좌-텍스트/우-오브젝트 구성에 로고를 별도로 둔다"
+  },
+  "rules": [
+    "텍스트는 오브젝트 반대편에 블록으로 두고 블록 안은 항상 좌측정렬 (8/8, 프로필 제외). 오브젝트는 오른쪽이 기본 (7/8), 왼쪽은 맥도날드 홈배너 1건",
+    "커뮤니티보드 텍스트 높이는 '글자 실측 높이'로 45/35/25px를 맞춘다: DN솔루션즈 43/31/25는 통과, 대원제약 35/27은 '텍스트 높이' 반려 → 42/32로 키워 수정 (반려 사례 1/1)",
+    "줄마다 한 단계씩 작고 가볍게: 1줄 볼드(사명·핵심 카피) → 2줄 세미볼드/레귤러 → 3줄 레귤러 (8/8)",
+    "커뮤니티보드는 배경 도형 없이 투명, 광고주 표기는 별도 로고 대신 카피 1줄의 사명(+오브젝트 속 로고)으로 (4/4)",
+    "홈 배너·홈 카드는 브랜드 컬러 전면 단색/그라데이션 배경 + 로고 별도 배치 (4/4: 홈카드는 우상단 2/2)",
+    "기타문구는 2줄형에만 붙는다 (2/2: 대원 '서류 지원하기 >', 맥도날드 '지금 지원하세요!' pill), 3줄형엔 없다 (3/3)",
+    "텍스트 색은 1~2색 + 브랜드 액센트 한 가지로 제한 (8/8, 규정 최대 3색)",
+    "오브젝트는 사진이 아닌 누끼형 3D/아이소메트릭 일러스트·제품·캐릭터 (8/8, 실사 0). 커뮤니티보드 오브젝트 폭 ≈250px(0.24) — 배경 포함형은 카드로 감싼 V2 1건",
+    "홈 카드는 좌상단 텍스트 블록(좌측 여백 50–86px) + 우하단 큰 오브젝트(폭 0.3–0.6) + 우상단 흰 로고 (2/2, 템플릿 7605와 동일)",
+    "홈 카드 프로필 160×160은 흰 배경 + 로고 단독 중앙 (2/2)"
+  ]
+}

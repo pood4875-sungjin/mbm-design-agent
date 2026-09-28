@@ -1,0 +1,112 @@
+{
+  "medium": "blind",
+  "examples": [
+    {
+      "nodeId": "421:8140", "client": "정식품", "spec": "채용채널&피드광고 1200×628",
+      "background": "solid",
+      "bgColor": "#109C38",
+      "object": { "type": "product", "side": "right", "widthRatio": 0.35 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.12, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date", "sub"] },
+      "logo": { "present": true, "position": "top-right", "treatment": "original-color", "sizeRatio": 0.125 },
+      "badge": { "present": true, "text": "4월 27일(토) - 5월 6일(월)", "style": "pill" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": "#109C38", "notes": "배경 전체가 브랜드 그린. 날짜 pill은 흰색 채움에 글자는 배경과 같은 그린" },
+      "whitespace": "balanced",
+      "notes": "가이드 '메인 문구' 블록을 그대로 씀: x=58 y=135, 676×190(86+18+86). 날짜 pill은 x=60 y=350, 593×74로 '상세 문구' 54h에 상하 10px 패딩, '모집분야' 상세 문구 1줄은 y=440 54h. 로고(150×67)는 x=1000–1150 y=50으로 로고영역(860–1160) 오른쪽에 붙고 10px 안쪽. 누끼 3개(두유병·검은콩·우유 저그)를 x=766–1189 y=140–557에 겹쳐 배치. 숨김 레이어에 구버전(현대스틸파이프·2023 날짜·'채용 공고 확인하기 ▶▶' CTA)이 남아 있음."
+    },
+    {
+      "nodeId": "421:8411", "client": "HS화성(프레임명은 '정식품-블라인드-채용채널&피드광고')", "spec": "채용채널&피드광고 1200×628",
+      "background": "pattern",
+      "bgColor": "#F8F8F8",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.41 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "black", "mainSizeRatio": 0.118, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date", "sub"] },
+      "logo": { "present": true, "position": "top-right", "treatment": "original-color", "sizeRatio": 0.204 },
+      "badge": { "present": true, "text": "4/3(금)~4/12(일) 23:59까지", "style": "pill" },
+      "cta": "none",
+      "colors": { "text": "#00183C", "accent": "#D4041C", "notes": "네이비 카피 + 브랜드명 'HS화성'만 브랜드 레드. pill은 네이비 채움에 흰 글자. 왼쪽 아래 네이비 삼각형 #283C5C, 오른쪽에 회색 웨이브 라인" },
+      "whitespace": "balanced",
+      "notes": "정식품 프레임을 복제해 내용만 바꿈. 그리드는 같음(메인 190 블록 x=58 y=132, pill y=347 h72, 상세 y=437 h54). 정식품과 다른 점: pill이 네이비 채움(정식품은 흰색), 로고가 가로형 245×39(x=894–1138, y=60), 일러스트(아이소 건설현장 AI 이미지)가 x=731–1218 y=255–631로 오른쪽·아래로 블리드, 왼쪽 아래에 네이비 삼각형 장식. '모집분야 :' 라벨은 bold, 값은 regular."
+    },
+    {
+      "nodeId": "421:8260", "client": "대원제약", "spec": "홈피드광고 1200×628",
+      "background": "gradient",
+      "bgColor": "#E4002C",
+      "object": { "type": "product", "side": "right", "widthRatio": 0.255 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.096, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date", "sub"] },
+      "logo": { "present": true, "position": "top-right", "treatment": "white", "sizeRatio": 0.197 },
+      "badge": { "present": true, "text": "~9/16(수) 17:30 서류접수 진행 중 / 모집직무 : 영업/마케팅/관리/생산/제조 등", "style": "pill" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": "#E4002C", "notes": "브랜드 레드 바탕 + 회전 라운드 사각형 3개(오렌지 그라데이션). 타이포와 로고 모두 흰색" },
+      "whitespace": "balanced",
+      "notes": "메인은 텍스트 박스 하나(x=62 y=104, 883×166)에 2줄. 190 가이드 블록은 쓰지 않음(숨김 가이드 사각형: y=132·237 각 89h, y=440 54h). 아웃라인 pill 2개(흰 선, 76h)는 x=50 y=359·451. 로고(237×26)는 x=889–1126 y=65. 제품(콜대원 3종)은 x=827–1134 y=306–565. GFA 모바일DA(421:7058)와 같은 에셋을 다시 배치함."
+    },
+    {
+      "nodeId": "421:8370", "client": "대원제약", "spec": "띠배너 1250×560",
+      "background": "gradient",
+      "bgColor": "#E4002C",
+      "object": { "type": "product", "side": "right", "widthRatio": 0.257 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "bold", "mainSizeRatio": 0.089, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date", "sub"] },
+      "logo": { "present": true, "position": "top-right", "treatment": "white", "sizeRatio": 0.173 },
+      "badge": { "present": true, "text": "~9/16(수) 17:30 서류접수 진행 중 / 모집직무 : 영업/마케팅/관리/생산/제조 등", "style": "pill" },
+      "cta": "none",
+      "colors": { "text": "#FFFFFF", "accent": "#E4002C", "notes": "홈피드와 같은 팔레트" },
+      "whitespace": "balanced",
+      "notes": "카피 시작 x=126(≈10%)으로 피드(x≈50–62)보다 안쪽. 메인 텍스트 박스 740×140(70/줄), 아웃라인 pill 57h 두 개가 y=333·410. 숨김 Guide: 여백 40(39.5–1159.5 × 40–510), 로고영역 300×60(859.5–1159.5, y40–100). 로고(216×24)는 x=909–1125 y=50으로 로고영역 오른쪽에 붙고 35px 안쪽. 제품은 x=789–1110 y=242–513으로 아래가 여백선 510과 거의 같음."
+    },
+    {
+      "nodeId": "421:8448", "client": "HS화성", "spec": "띠배너 1250×560",
+      "background": "pattern",
+      "bgColor": "#F8F8F8",
+      "object": { "type": "illustration", "side": "right", "widthRatio": 0.316 },
+      "text": { "align": "left", "block": "left", "mainLines": 2, "mainWeight": "black", "mainSizeRatio": 0.117, "subPresent": true, "datePresent": true, "hierarchy": ["main", "date", "sub"] },
+      "logo": { "present": true, "position": "top-right", "treatment": "original-color", "sizeRatio": 0.196 },
+      "badge": { "present": true, "text": "26.08.14(금) ~ 26.08.27(목)", "style": "pill" },
+      "cta": "none",
+      "colors": { "text": "#00183C", "accent": "#D4041C", "notes": "1행 'HS화성' 전체가 레드, 2행은 네이비. pill은 네이비 채움에 흰 글자. 오른쪽 회색 웨이브 라인만 있고 삼각형 없음" },
+      "whitespace": "balanced",
+      "notes": "'메인 문구' 프레임 x=70 y=135, 677×180(80+20+80): 피드 190 블록을 줄인 형태. pill 646×67은 x=70 y=331, 상세 '모집분야' 1줄은 x=91 y=414 54h. 로고(245×39)는 x=889–1133 y=54로 템플릿(421:8174) 로고 그룹 위치와 같음. 일러스트는 x=790–1185 y=172–477로 캔버스 안(피드판과 달리 블리드 없음)."
+    },
+    {
+      "nodeId": "421:8313", "client": "대원제약", "spec": "로고 96×96",
+      "background": "solid",
+      "bgColor": "#FFFFFF",
+      "object": { "type": "logo-only", "side": "center", "widthRatio": 0.875 },
+      "text": { "align": "center", "block": "center", "mainLines": 0, "mainWeight": null, "mainSizeRatio": 0, "subPresent": false, "datePresent": false, "hierarchy": [] },
+      "logo": { "present": true, "position": "center", "treatment": "original-color", "sizeRatio": 0.875 },
+      "badge": { "present": false, "text": null, "style": "none" },
+      "cta": "none",
+      "colors": { "text": "#E4002C", "accent": "#E4002C", "notes": "레드 'Daewon' 워드마크 + 회색 '대원제약' 2단" },
+      "whitespace": "balanced",
+      "notes": "로고가 x=6–90, y=30–66으로 가운데 옴. 가로 폭 88%로 꽉 차지만 네 모서리가 지름 96 원 안에 들어가 원형 크롭에도 잘리지 않음(가이드 421:8256 키라인 기준)."
+    }
+  ],
+  "skipped": [
+    { "nodeId": "421:8226", "why": "숨김(hidden) 빈 프레임(자식 없음, 1×1 렌더). 정식품 변형이 아님" },
+    { "nodeId": "421:8269", "why": "숨김 빈 프레임(자식 없음, 1×1 렌더). 421:8260 안 숨김 그룹 'Group 3471816'에 들어 있는 잔재" },
+    { "nodeId": "421:8174", "why": "템플릿. 프레임명은 (재)FITI시험연구원이지만 내용이 '메인문구를 입력하세요' 등 플레이스홀더라 예시에서 뺌. 레이아웃 참고(1250×560 띠배너): 메인 2줄 x=142 y=142(498×151, 줄당 61h 하이라이트), 서브 pill y=293 h53, 상세 y=357 h54, 이미지 영역 x=678–1153은 전체 높이, 로고 박스 x=869–1150 y=36–109. 숨김 Guide: '여백-라인' 40px(40.5–1160.5 × 40–510), '로고영역' 300×60 (860.5, 40)." },
+    { "nodeId": "421:8256", "why": "가이드. '피드광고_로고' 96×96에 blindHire 로고와 키라인(외곽 원·내부 원·사각·대각선)이 있음 → 원형으로 잘리는 로고 영역 템플릿" },
+    { "nodeId": "421:8483", "why": "HS화성 블라인드 로고 96×96: 자식 노드가 없고 렌더가 전부 #FFFFFF(로고가 안 들어 있음)" }
+  ],
+  "patterns": {
+    "background": { "solid": 2, "gradient": 2, "pattern": 2 },
+    "objectSide": { "right": 5, "center": 1 },
+    "textAlign": { "left": 5, "none": 1 },
+    "logoPosition": { "top-right": 5, "center": 1 },
+    "badge": { "present": 5, "absent": 1 },
+    "cta": { "button": 0, "text": 0, "none": 6 },
+    "typical": "블라인드 소재는 브랜드 단색·그라데이션이나 연회색 웨이브 패턴 배경에 왼쪽 정렬 메인 2줄(≈180–190px 블록), 기간 pill, 모집분야 1줄(54px)을 쌓고, 오른쪽 25–41%에 제품 누끼나 아이소 일러스트를 둔다. 로고는 우상단 300×60 로고영역에 오른쪽으로 붙인다."
+  },
+  "rules": [
+    "메인 카피는 항상 2줄이고 브랜드명·채용명으로 나눈다 (5/5). 피드 1200×628은 '메인 문구' 190px 블록(86+18+86)을 쓴다 (2/3, 대원은 166px 단일 박스). 띠배너 1250×560은 180px(80+20+80)이나 140px",
+    "메인 글자 높이는 캔버스 높이의 ≈9–12%(피드 60–75px, 띠배너 50–65px) (5/5)",
+    "메인 바로 아래에 기간 pill이 온다(흰색·네이비 채움 또는 흰 2px 아웃라인). 높이 57–76px, 안의 글자는 '상세 문구' 54px 라인 기준 (5/5)",
+    "모집분야·모집직무는 54px 1줄이다. 라벨 bold + 값 regular 텍스트이거나 두 번째 아웃라인 pill (5/5)",
+    "로고는 우상단 로고영역 300×60(가이드 x860–1160, y40–100) 안에 오른쪽으로 붙인다. 로고 오른쪽 끝 x≈1125–1150, 위쪽 y≈50–65 (5/5). 가로형 로고는 폭 17–20%, 세로로 두꺼운 로고(정식품)는 12.5%",
+    "카피 시작 x: 피드 1200×628은 ≈50–62px(≈5%), 띠배너 1250×560은 70–142px(대원 126, 템플릿 142, HS 70). 띠배너 쪽이 더 안쪽이거나 같다 (3/3 쌍)",
+    "오브젝트는 오른쪽, 폭 25–41% (5/5). 누끼 제품은 캔버스 안쪽(아래 끝 ≈여백선 510), 일러스트는 피드판에서만 오른쪽·아래 블리드 (1/2)",
+    "배경 전체를 브랜드 원색으로 채우고 타이포를 흰색으로 쓰거나(3/5), 연회색 배경에 네이비 카피 + 브랜드명만 브랜드색으로 강조한다(2/5)",
+    "같은 고객의 피드→띠배너 변환: 에셋·색·요소 순서는 그대로 두고 카피 시작 x를 옮기며 메인을 줄인다(대원 60→50px, HS 74→65px). pill 높이도 76→57(대원), 72→67(HS) (2/2)",
+    "CTA 버튼이 없다 (6/6). 템플릿 숨김 레이어의 '채용 공고 확인하기 ▶▶'는 쓰지 않는 구버전",
+    "로고 96×96: 흰 배경 가운데, 폭 ≈88%, 원형 크롭 안전영역 안 (1/1, 가이드 421:8256)"
+  ]
+}
