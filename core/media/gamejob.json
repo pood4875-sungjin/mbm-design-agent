@@ -1,0 +1,240 @@
+{
+  "id": "gamejob",
+  "name": "게임잡",
+  "group": "기타",
+  "tool": null,
+  "sources": [
+    "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) (14p)",
+    "psd:게임잡_PC커뮤니티Pick_1780x528.psd",
+    "psd:게임잡_MO커뮤니티Pick_640x240.psd"
+  ],
+  "common": [
+    {
+      "rule": "파일명 규정: 제작일_가로사이즈_세로사이즈_컬러값  ex) 20250116_752_110_3399ff",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "확장자: jpg, jpeg, gif, png",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "이미지 용량: 30KB 미만 (배너별 용량 상이함)",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "출처표기 영역: 배너 우측 상단에 출처・로고 표기 (8PX)",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "서체: 고딕 계열의 서체 사용",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "폰트 최소사이즈: PC 12px / Mobile 22px",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "폰트 행간: 한줄 100% / 두줄 이상 120%",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "가독성을 저해하지 않는 명도차",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "텍스트 컬러 최대 3개까지 가능",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "외곽이 깔끔한 고해상도 이미지・일러스트 / 해당 기업 로고를 이미지 요소로 활용 가능",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "모바일 배너 좌우 10px은 단색만 가능 (가변영역)",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4"
+    },
+    {
+      "rule": "문구: 특정 결과를 보장하는 문구·허위/과장 오인 문구·선정적 문구·불필요한 특수기호 금지. 보장 문구 사용 시 구체적인 자료 필요, 환불 및 정책 표기 필요",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.5"
+    },
+    {
+      "rule": "폰트: 고딕 계열, 폰트 스타일 2가지 권장(3가지 미만), 은은한 대비의 텍스트 배경·효과, 가시성 있는 컬러. 강한 텍스트 효과·너무 두꺼운 테두리 금지",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.6"
+    },
+    {
+      "rule": "이미지: 선명한 해상도, 깔끔한 누끼 이미지·일러스트, 로고를 이미지 요소로 활용, 도형을 프레임으로 활용. 저해상도·텍스트 과다 삽입·배경 전체 이미지·부정적 이미지 금지",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.7"
+    },
+    {
+      "rule": "컬러: 배경은 단색 사용 권장, 이미지 전체가 광고 영역과 구분되는 컬러로 채워져야 함. 패턴·이미지·보색·화이트 및 화이트에 가까운 명도가 높은 색·주조색·레드계열·강한 원색 및 형광색 지양",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.8"
+    },
+    {
+      "rule": "가이드를 준수하지 않은 배너에 대해서는 수정을 요청할 수 있습니다. 본 가이드는 임의로 수정할 수 없습니다.",
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4~8, p.14"
+    }
+  ],
+  "textColors": {
+    "main": null,
+    "sub": [],
+    "note": "지정색 없음. 텍스트 컬러 최대 3개, 배경색과 구분되는 가시성 있는 컬러",
+    "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4, p.6"
+  },
+  "fonts": {
+    "required": null,
+    "note": "고딕 계열의 서체 사용 (지정 폰트 없음, PSD 가이드 '자유롭게 선택'). PSD 가이드 표기 폰트: GmarketSansBold / Pretendard-Regular",
+    "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.4 / psd:게임잡_PC커뮤니티Pick_1780x528.psd / psd:게임잡_MO커뮤니티Pick_640x240.psd"
+  },
+  "specs": [
+    {
+      "id": "gamejob-community-pick-pc",
+      "name": "PC 커뮤니티 Pick",
+      "platform": "PC",
+      "w": 1780,
+      "h": 528,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 500,
+      "background": "배경은 단색 사용 권장 (공통 p.8). 공통 컬러 지양: 패턴·이미지·보색·화이트 및 흰색에 가까운 고명도색·주조색·레드계열·강한 원색·형광색",
+      "safeArea": {
+        "note": "배너 여백 좌우 80px / 상하 80px (p.10). 도식: 좌측 서브 텍스트 → 메인 텍스트 → 출처 표기 영역(좌하단), 우측 메인 이미지 영역 폭 800px. PSD 실측: 서브 x78 y95 823×40 / 메인 x78 y157 823×195 / 출처 x78 y409 244×40 / 이미지 x898 804×532.",
+        "top": 80,
+        "right": 80,
+        "bottom": 80,
+        "left": 80,
+        "imageArea": {
+          "w": 800,
+          "h": null,
+          "position": "우측",
+          "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.10 도식"
+        },
+        "sourceArea": {
+          "x": 78,
+          "y": 409,
+          "w": 244,
+          "h": 40,
+          "source": "psd:게임잡_PC커뮤니티Pick_1780x528.psd dim 레이어"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "서브 텍스트",
+          "maxChars": null,
+          "lines": null,
+          "original": "서브 텍스트 영역",
+          "note": "글자수 규정 없음. 폰트 최소 24px",
+          "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.10"
+        },
+        {
+          "field": "메인 텍스트",
+          "maxChars": null,
+          "lines": null,
+          "original": "메인 텍스트 : 자유롭게 선택",
+          "note": "도식·PSD 모두 2줄 예시. 폰트 최소 24px",
+          "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.10 / psd:게임잡_PC커뮤니티Pick_1780x528.psd"
+        }
+      ],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "해당 기업 로고를 이미지 요소로 활용 가능 (공통 p.4). PSD 예시에 게임 로고(logo_game 142×110, 우상단)"
+      },
+      "layoutNotes": [
+        "노출위치 PC > 커뮤니티 > 취업토크 리스트 / 취업토크 상세뷰",
+        "배너 공통 제작가이드 준수",
+        "폰트 최소 사이즈 24px",
+        "이미지 외곽에 테두리 삽입 불가",
+        "테두리 사용 불가 / 라운딩 불가",
+        "단가 2,200,000원/주 (PC·MO, p.13)"
+      ],
+      "examples": [],
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.10, p.13 / psd:게임잡_PC커뮤니티Pick_1780x528.psd",
+      "confidence": "확정",
+      "note": "PSD 예시는 게임잡×나 혼자만 레벨업 (매체 샘플, 고객사 사례 아님)"
+    },
+    {
+      "id": "gamejob-community-pick-mo",
+      "name": "MO 커뮤니티 Pick",
+      "platform": "MO",
+      "w": 640,
+      "h": 240,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 70,
+      "background": "흰 배경에서 가시성 있는 BG컬러 사용. 이미지 맨 끝 동일 BG컬러 사용 (좌우 16px 단색)",
+      "safeArea": {
+        "note": "배너 여백 좌우 16px. 좌우 여백 16px 내에는 패턴이나 이미지 짤림 금지(이미지 미노출 or 그라데이션으로 자연스럽게 이어져야 함) / 좌우 여백 16px 내에는 패턴이나 이미지 노출 금지, 이미지 맨 끝 동일 BG컬러 사용 (p.11, 16 '배경 주의 구간' 도식). PSD 가이드 '양 맨 끝은 단일 색상 적용 필요'. PSD 실측: 텍스트 x14 (서브 y43 323×32 / 메인 y82 323×99), 이미지 x335 291×244.",
+        "top": null,
+        "right": 16,
+        "bottom": null,
+        "left": 16,
+        "imageArea": {
+          "x": 335,
+          "y": 0,
+          "w": 291,
+          "h": 240,
+          "source": "psd:게임잡_MO커뮤니티Pick_640x240.psd dim 레이어",
+          "confidence": "확인필요"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "서브텍스트",
+          "maxChars": null,
+          "lines": null,
+          "original": "서브텍스트 : 자유롭게 선택",
+          "note": "폰트 최소 22px",
+          "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.11 / psd:게임잡_MO커뮤니티Pick_640x240.psd"
+        },
+        {
+          "field": "메인 텍스트",
+          "maxChars": null,
+          "lines": null,
+          "original": "메인 텍스트 : 자유롭게 선택",
+          "note": "폰트 최소 22px",
+          "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.11 / psd:게임잡_MO커뮤니티Pick_640x240.psd"
+        }
+      ],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "해당 기업 로고를 이미지 요소로 활용 가능 (공통 p.4)"
+      },
+      "layoutNotes": [
+        "노출위치 MO > 취업토크 > 상단 / MO > 취업토크 > 취업토크 상세 > 상단",
+        "파일명 뒤에 컬러값 표기 bn_cceeff.png",
+        "폰트 최소사이즈 22px",
+        "배너 라운딩 불가",
+        "배너 공통 제작가이드 준수"
+      ],
+      "examples": [],
+      "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.11, p.13 / psd:게임잡_MO커뮤니티Pick_640x240.psd",
+      "confidence": "확정",
+      "note": ""
+    }
+  ],
+  "rejections": [],
+  "conflicts": [],
+  "needsReview": [
+    "Figma 보드에 없음 — 담당자가 실제 운용하는 매체인지 확인",
+    "공통 '모바일 배너 좌우 10px 단색'(p.4) vs MO 커뮤니티 Pick '좌우 16px'(p.11) — 지면별 16px 적용",
+    "공통 '출처표기 우측 상단 8px'(p.4) vs PC 커뮤니티 Pick 도식은 출처 표기 영역 좌하단(p.10, PSD 동일)",
+    "공통 '30KB 미만'(p.4, '배너별 용량 상이함') vs 지면별 PC 500KB / MO 70KB — 지면별 값 적용",
+    "공통 폰트 최소 PC 12px vs PC 커뮤니티 Pick 24px — 지면별 값 적용",
+    "MO p.11 좌우 16px 규정이 두 문장(짤림 금지 vs 노출 금지·동일 BG컬러)으로 다름 — 빨간 강조 문장(노출 금지)이 최신으로 보임",
+    "PSD 예시 타이틀 폰트가 'SDHeirofLight'로 공통 '고딕 계열'과 다름(매체 샘플)",
+    "글자수 규정 없음"
+  ]
+}

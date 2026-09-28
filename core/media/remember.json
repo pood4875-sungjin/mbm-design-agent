@@ -1,0 +1,785 @@
+{
+  "id": "remember",
+  "name": "리멤버",
+  "group": "채용포털",
+  "tool": "포토샵",
+  "sources": [
+    "figma:리멤버01(소재 제작 규정)",
+    "figma:리멤버02(제작가이드&예시)",
+    "figma:리멤버 소재 반려 이슈 사례",
+    "figma:리멤버 섹션 메모 text 408:48014",
+    "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf (28p)",
+    "psd:리멤버_메인상단배너_PC.psd",
+    "psd:리멤버_메인상단배너_MobileAPP.psd",
+    "psd:리멤버_메인중간배너_PC.psd",
+    "psd:리멤버_메인중간배너_MobileAPP.psd",
+    "psd:리멤버_공고상세사이드배너_PC.psd",
+    "psd:리멤버_공고상세사이드배너_MobileAPP.psd",
+    "psd:한진정보통신_리멤버_메인중간배너_PC.psd",
+    "psd:한진정보통신_리멤버_메인중간배너_MobileAPP.psd"
+  ],
+  "common": [
+    {
+      "rule": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB",
+      "source": "figma:리멤버 섹션 메모 text 408:48014"
+    },
+    {
+      "rule": "*플랫폼 별: PC형, Mobile/APP형 2가지 제작",
+      "source": "figma:리멤버01(소재 제작 규정) text 408:48018"
+    },
+    {
+      "rule": "<공고상세사이드배너>를 제외하고는 보통 풀이미지형으로 이미지 외 빈 영역을 색상으로 채워 (그라데이션을 추가)사용.",
+      "source": "figma:리멤버01(소재 제작 규정) text 408:48017"
+    },
+    {
+      "rule": "썸네일형을 사용할 경우 색상 영역에 들어가는지 꼭 확인 후 제작",
+      "source": "figma:리멤버01(소재 제작 규정) text 408:48017"
+    },
+    {
+      "rule": "풀이미지형의 경우는 텍스트 없는 오브젝트로 가이드라인 내에 잘리지 않게 배치.",
+      "source": "figma:리멤버01(소재 제작 규정) text 408:48017"
+    },
+    {
+      "rule": "* 텍스트 규격 및 배경색 선정 -(#FFFFFF)가 아닌 경우 흰색에 가까운 배경색도 사용은 가능하나 눈에 띄어서 지양하는 편",
+      "source": "figma:리멤버01(소재 제작 규정) text 408:48064"
+    },
+    {
+      "rule": "파일명 규정: 회사명_배너명(메인상단배너/메인중간배너/광고상세상단배너/광고상세사이드배너)_플랫폼명(PC/MobileAPP)_제작일  ex) 드라마앤컴퍼니_메인상단배너_PC_20240613",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.4 (Figma 보드 파일 가이드 이미지와 동일)"
+    },
+    {
+      "rule": "확장자 PNG / 파일 크기 최대 600KB",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.4"
+    },
+    {
+      "rule": "광고 성격에 따라 PSD 샘플 내 레이어를 선택해서 제작",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.4"
+    },
+    {
+      "rule": "PSD 샘플 내 폰트 사용. 폰트 종류, 폰트 사이즈 변경 불가",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.4"
+    },
+    {
+      "rule": "배경색은 변경 가능. '배경 색상 권장 범위' 안에서 골라 사용하는 것을 권장",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.4"
+    },
+    {
+      "rule": "배너는 PSD 샘플을 사용해 제작해 주세요. 가이드와 다른 광고 소재는 노출할 수 없습니다.",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.11, p.16, p.21, p.26"
+    },
+    {
+      "rule": "이미지 규정: 텍스트가 없고 복잡하지 않은 이미지, 고해상도 이미지, 긍정적 이미지, 회사 로고가 없는 이미지",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.5"
+    },
+    {
+      "rule": "이미지 종류: 썸네일 형(부분 이미지 위에 그라데이션이 들어간 배경색을 덮는 형태), 오브젝트 형(배경 위 특정 영역 안에 오브젝트가 들어간 형태), 풀이미지 형(전체 영역을 이미지로 채운 형태) 중 하나. 단, 공고 상세 사이드 배너는 썸네일 형만 가능",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.5"
+    },
+    {
+      "rule": "나쁜 예: 텍스트 꾸밈 요소가 이미지 영역에 들어간 경우 / 썸네일 형 이미지를 꽉 채우지 않은 경우 / 풀이미지 형 텍스트가 이미지 주요 부분을 가리는 경우 / 풀이미지 형 이미지가 배경을 다 채우지 않은 경우",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.6"
+    },
+    {
+      "rule": "오브젝트 형: 오브젝트 이미지 배경은 투명, 오브젝트가 잘리지 않게, 배경색과 구분되는 오브젝트 색, 오브젝트 이미지 사이즈는 이미지 영역 사이즈의 40% 이상",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.7"
+    },
+    {
+      "rule": "배경 규정: 상품 이미지, 글자와 명확히 구분되는 색상 적용 / 리멤버 브랜드 색상과 유사한 색상은 배경색으로 사용 불가 / 원색, 형광색이 아닌 권장 범위 내 색상 사용",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8 (Figma 배경규정 이미지와 동일)"
+    },
+    {
+      "rule": "사용 불가 배경 색상(배너 글자 색, 리멤버 브랜드 컬러와 유사한 색상): #FFFFFF #000000 #FF5414 #F7F7F0 #E8E7E0",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8"
+    },
+    {
+      "rule": "배경 색상 권장 범위: 텍스트가 잘 보일 수 있도록 표시한 영역 안의 색상 사용 권장 — 흰 글씨 적용 시 분홍 영역, 검정 글씨 적용 시 파랑 영역 (포토샵 색상 피커 도식)",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8"
+    },
+    {
+      "rule": "텍스트 규정: 글자 색상 검정(#000000), 흰색(#FFFFFF) 두 타입. 파일 내에서 지정한 색상을 사용 / 스타일: 폰트 종류, 크기, 굵기, 자간, 장평, 색상 변경 불가 (psd 샘플 파일 참고)",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.14, p.19, p.24, p.28"
+    },
+    {
+      "rule": "Mobile/APP 메인 카피는 PC와 동일한 문구를 적용",
+      "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.14, p.19, p.24, p.28"
+    }
+  ],
+  "textColors": {
+    "main": "#000000",
+    "sub": [
+      "#FFFFFF"
+    ],
+    "note": "검정(#000000)·흰색(#FFFFFF) 두 타입 중 PSD 샘플 지정색만 사용(배경에 따라 택1). PSD 텍스트 레이어 fill도 흑/백 확인.",
+    "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.14/19/24/28 / psd 텍스트 레이어"
+  },
+  "fonts": {
+    "required": "Pretendard",
+    "note": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+    "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.4, 14, 19, 24, 28 / psd 텍스트 레이어(Pretendard-SemiBold, Pretendard-Regular)"
+  },
+  "backgroundColors": {
+    "banned": [
+      "#FFFFFF",
+      "#000000",
+      "#FF5414",
+      "#F7F7F0",
+      "#E8E7E0"
+    ],
+    "recommended": "흰 글씨 → 분홍 영역, 검정 글씨 → 파랑 영역 (HSB 피커 도식, 수치 범위 미기재)",
+    "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8"
+  },
+  "specs": [
+    {
+      "id": "remember-main-top-pc",
+      "name": "메인 상단 배너 (PC)",
+      "platform": "PC",
+      "w": 2240,
+      "h": 360,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "썸네일형 / 오브젝트형 / 풀이미지형 중 택1. 썸네일형: 이미지 988×360 위 그라데이션 배경 배치 필수. 오브젝트형: 배경 2240×360 + 오브젝트 이미지 영역 844×284. 풀이미지형: 이미지 2240×360, 텍스트가 눈에 띄도록 이미지 위 그라데이션 배경 배치 권장. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 996×95 (PDF p.12) — PSD '텍스트 영역 (크기, 위치, 색상 변경 금지)'. PSD 실측: 텍스트 가이드 레이어 x81 y109 998×97, 메인 카피 x82 y110, 부가 설명 x82 y179. 이미지 영역 PSD 실측: 썸네일 x1252 988×360 / 오브젝트 가이드 x1314 y36 848×288 / 풀이미지 0,0 2240×360.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": 81,
+          "y": 109,
+          "w": 998,
+          "h": 97,
+          "source": "psd:리멤버_메인상단배너_PC.psd (레이어 '텍스트 가이드')"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 988,
+            "h": 360
+          },
+          "오브젝트형": {
+            "w": 844,
+            "h": 284
+          },
+          "풀이미지형": {
+            "w": 2240,
+            "h": 360
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.12"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구(메인 카피)",
+          "maxChars": 24,
+          "lines": 1,
+          "original": "24자 이하 (공백포함)",
+          "note": "PDF p.14: '24자 이내 권장, 가이드 영역 내 문구 삽입' / Pretendard Semibold 12pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.14"
+        },
+        {
+          "field": "상세 문구(부가 설명)",
+          "maxChars": 35,
+          "lines": 1,
+          "original": "35자 이하 (공백포함)",
+          "note": "PDF p.14: '35자 이내 권장' / Pretendard Regular 7pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.14"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음. 이미지 규정 '회사 로고가 없는 이미지' (PDF p.5). PSD에도 로고 레이어 없음."
+      },
+      "layoutNotes": [
+        "텍스트 좌측 / 이미지 우측 (PSD 템플릿)",
+        "텍스트 색상은 지정된 검정 또는 지정된 흰색만 (PDF p.12)",
+        "PSD 텍스트 레이어 그룹 Black / White 중 선택"
+      ],
+      "examples": [
+        {
+          "client": "안랩",
+          "w": 2240,
+          "h": 360,
+          "source": "figma frame 410:19 '안랩_리멤버_메인상단배너_PC 1'"
+        }
+      ],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48086 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.11~14 / psd:리멤버_메인상단배너_PC.psd",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "remember-main-top-mo",
+      "name": "메인 상단 배너 (Mobile/APP)",
+      "platform": "MO",
+      "w": 1005,
+      "h": 360,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "썸네일형(이미지 430×360 + 그라데이션 배경 필수) / 오브젝트형(배경 1005×360 + 오브젝트 346×304) / 풀이미지형(1005×360, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 505×120 (PDF p.13). PSD 실측: 텍스트 가이드 영역 x52 y96 509×123, 메인 카피 x55 y98 504×120(2줄). 이미지 PSD 실측: 썸네일 x575 430×360 / 오브젝트 가이드 x603 y28 350×307.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": 52,
+          "y": 96,
+          "w": 509,
+          "h": 123,
+          "source": "psd:리멤버_메인상단배너_MobileAPP.psd"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 430,
+            "h": 360
+          },
+          "오브젝트형": {
+            "w": 346,
+            "h": 304
+          },
+          "풀이미지형": {
+            "w": 1005,
+            "h": 360
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.13"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구 1",
+          "maxChars": 12,
+          "lines": 1,
+          "original": "12자 이하 (공백포함)",
+          "note": "PDF p.14: MO 메인 카피 '24자 이내 권장', 'PC와 동일한 문구를 적용', Pretendard Semibold 12pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.14"
+        },
+        {
+          "field": "메인 문구 2",
+          "maxChars": 12,
+          "lines": 1,
+          "original": "12자 이하 (공백포함)",
+          "note": "두 줄 합계 24자 = PDF 24자와 일치",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독)"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5 '회사 로고가 없는 이미지')."
+      },
+      "layoutNotes": [
+        "부가 설명 없음 — 메인 카피 2줄만 (PSD·PDF p.14)",
+        "PC와 동일한 문구 적용 (PDF p.14)",
+        "텍스트 색상은 지정된 검정 또는 흰색만"
+      ],
+      "examples": [
+        {
+          "client": "안랩",
+          "w": 1005,
+          "h": 360,
+          "source": "figma frame 410:18 '안랩_리멤버_메인상단배너_MobileAPP 1'"
+        }
+      ],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48087 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.11,13,14 / psd:리멤버_메인상단배너_MobileAPP.psd",
+      "confidence": "확정",
+      "note": "platform은 Mobile·APP 공용 1종"
+    },
+    {
+      "id": "remember-main-mid-pc",
+      "name": "메인 중간 배너 (PC)",
+      "platform": "PC",
+      "w": 2240,
+      "h": 240,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "썸네일형(이미지 988×240 + 그라데이션 배경 필수) / 오브젝트형(배경 2240×240 + 오브젝트 880×192) / 풀이미지형(2240×240, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 996×96 (PDF p.17). Figma: 텍스트 가이드 996×96 (408:48133), 텍스트 영역(크기·위치·색상 변경 금지) 830×84 (408:48129). PSD 실측: 가이드 x54 y46 999×100, 메인 카피 x57 y54 830×38, 부가 설명 x58 y111 735×27. 이미지 PSD 실측: 썸네일 x1252 988×240 / 오브젝트 가이드 x1301 y23 883×194.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": 54,
+          "y": 46,
+          "w": 999,
+          "h": 100,
+          "source": "psd:리멤버_메인중간배너_PC.psd (레이어 '가이드')"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 988,
+            "h": 240
+          },
+          "오브젝트형": {
+            "w": 880,
+            "h": 192
+          },
+          "풀이미지형": {
+            "w": 2240,
+            "h": 240
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.17"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구(메인 카피)",
+          "maxChars": 24,
+          "lines": 1,
+          "original": "24자 이하 (공백포함)",
+          "note": "PDF p.19: '24자 이내 권장' / Pretendard Semibold 10pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.19"
+        },
+        {
+          "field": "상세 문구(부가 설명)",
+          "maxChars": 30,
+          "lines": 1,
+          "original": "30자 이하 (공백포함)",
+          "note": "PDF p.19: '30자 이내 권장' / Pretendard Regular 7pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.19"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5)."
+      },
+      "layoutNotes": [
+        "텍스트 좌측 / 이미지 우측",
+        "텍스트 색상은 지정된 검정 또는 흰색만 (PDF p.17)"
+      ],
+      "examples": [
+        {
+          "client": "삼진제약",
+          "w": 2240,
+          "h": 240,
+          "source": "figma frame 410:21 '삼진제약_리멤버_메인중간배너_PC 1'"
+        },
+        {
+          "client": "한진정보통신",
+          "w": 2240,
+          "h": 240,
+          "source": "psd:한진정보통신_리멤버_메인중간배너_PC.psd (썸네일형, 메인 카피 '한진정보통신 경력직 채용' / 부가 설명 '채용직무: SW개발, 보안')"
+        }
+      ],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48072 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.16~19 / psd:리멤버_메인중간배너_PC.psd",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "remember-main-mid-mo",
+      "name": "메인 중간 배너 (Mobile/APP)",
+      "platform": "MO",
+      "w": 1005,
+      "h": 360,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "썸네일형(430×360 + 그라데이션 필수) / 오브젝트형(배경 1005×360 + 오브젝트 346×304) / 풀이미지형(1005×360, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 505×120 (PDF p.18). Figma 텍스트 영역 505×120 (408:48145). PSD 실측: 텍스트 가이드 영역 x52 y96 509×123, 메인 카피 x55 y98 504×120(2줄). 이미지 PSD 실측: 썸네일 x575 430×360 / 오브젝트 가이드 x603 y28 350×307.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": 52,
+          "y": 96,
+          "w": 509,
+          "h": 123,
+          "source": "psd:리멤버_메인중간배너_MobileAPP.psd"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 430,
+            "h": 360
+          },
+          "오브젝트형": {
+            "w": 346,
+            "h": 304
+          },
+          "풀이미지형": {
+            "w": 1005,
+            "h": 360
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.18"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구 1",
+          "maxChars": 12,
+          "lines": 1,
+          "original": "12자 이하 (공백포함)",
+          "note": "PDF p.19: MO 메인 카피 '24자 이내 권장', 'PC와 동일한 문구를 적용', Pretendard Semibold 12pt. Figma 샘플 '일이삼사오육칠팔구십일이'(408:48148)",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.19"
+        },
+        {
+          "field": "메인 문구 2",
+          "maxChars": 12,
+          "lines": 1,
+          "original": "12자 이하 (공백포함)",
+          "note": "Figma 샘플 '삼사오육칠팔구십일이삼사'(408:48149)",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독)"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5)."
+      },
+      "layoutNotes": [
+        "부가 설명 없음 — 메인 카피 2줄",
+        "PC와 동일한 문구 적용 (PDF p.19)",
+        "Figma 가이드 프레임 안에 'HS화성 채용 공고 AI이미지 3'(295×228, 408:48078) 오브젝트 소스 흔적 — 배너 치수 아님"
+      ],
+      "examples": [
+        {
+          "client": "삼진제약",
+          "w": 1005,
+          "h": 360,
+          "source": "figma frame 410:20 '삼진제약_리멤버_메인중간배너_MobileAPP 1'"
+        },
+        {
+          "client": "한진정보통신",
+          "w": 1005,
+          "h": 360,
+          "source": "psd:한진정보통신_리멤버_메인중간배너_MobileAPP.psd (썸네일형. 텍스트 레이어는 샘플 문구 그대로)"
+        }
+      ],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48073 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.16,18,19 / psd:리멤버_메인중간배너_MobileAPP.psd",
+      "confidence": "확정",
+      "note": "platform은 Mobile·APP 공용 1종"
+    },
+    {
+      "id": "remember-job-top-pc",
+      "name": "공고 상세 상단 배너 (PC)",
+      "platform": "PC",
+      "w": 2240,
+      "h": 240,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "Figma 템플릿은 썸네일형만(이미지 영역 988×240, 410:3). PDF p.21 상품 개요 '이미지 형태: 썸네일 형'. 단 PDF p.22에는 오브젝트형(880×192)·풀이미지형(2240×240) 제작 가이드도 기재. 썸네일형은 이미지 위 그라데이션 배경 배치 필수. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 996×96 (PDF p.22). Figma 텍스트 가이드 996×96 (410:5). 이 배너의 PSD는 zip에 없음.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": null,
+          "y": null,
+          "w": 996,
+          "h": 96,
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.22 / figma:리멤버02(제작가이드&예시) 410:5"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 988,
+            "h": 240
+          },
+          "source": "figma:리멤버02(제작가이드&예시) 410:3 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.22"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구(메인 카피)",
+          "maxChars": 24,
+          "lines": 1,
+          "original": "24자 이하 (공백포함)",
+          "note": "PDF p.24: '24자 이내 권장' / Pretendard Semibold 10pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.24"
+        },
+        {
+          "field": "상세 문구(부가 설명)",
+          "maxChars": 30,
+          "lines": 1,
+          "original": "30자 이하 (공백포함)",
+          "note": "PDF p.24: '30자 이내 권장' / Pretendard Regular 7pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.24"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5)."
+      },
+      "layoutNotes": [
+        "Figma '예시_공고 상세 상단 배너_PC'(414:24)는 템플릿 예시(고객사 사례 아님)",
+        "텍스트 색상은 지정된 검정 또는 흰색만"
+      ],
+      "examples": [],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48070, 414:24 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.21~24",
+      "confidence": "확정",
+      "note": "PSD 템플릿 없음 — 제작 시 메인 중간 배너 PC PSD(동일 2240×240)를 쓰는지 확인 필요"
+    },
+    {
+      "id": "remember-job-top-mo",
+      "name": "공고 상세 상단 배너 (Mobile/APP)",
+      "platform": "MO",
+      "w": 1125,
+      "h": 276,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "Figma 템플릿: 이미지 영역 460×276 (410:11). PDF p.23: 썸네일형 460×276(그라데이션 필수) / 오브젝트형 412×252 / 풀이미지형 1125×276. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 513×124 (PDF p.23, Figma 텍스트 가이드 영역 410:13). PSD 없음.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": null,
+          "y": null,
+          "w": 513,
+          "h": 124,
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.23 / figma:리멤버02(제작가이드&예시) 410:13"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 460,
+            "h": 276
+          },
+          "오브젝트형": {
+            "w": 412,
+            "h": 252
+          },
+          "풀이미지형": {
+            "w": 1125,
+            "h": 276
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.23"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구 1",
+          "maxChars": 12,
+          "lines": 1,
+          "original": "12자 이하 (공백포함)",
+          "note": "PDF p.24: MO 메인 카피 '24자 이내 권장', PC와 동일한 문구, Pretendard Semibold 12pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.24"
+        },
+        {
+          "field": "메인 문구 2",
+          "maxChars": 12,
+          "lines": 1,
+          "original": "12자 이하 (공백포함)",
+          "note": "",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독)"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5)."
+      },
+      "layoutNotes": [
+        "부가 설명 없음 — 메인 카피 2줄",
+        "PC와 동일한 문구 적용 (PDF p.24)",
+        "Figma '예시_공고 상세 상단 배너_Mobile/APP'(414:32)는 템플릿 예시"
+      ],
+      "examples": [],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48071, 414:32 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.21,23,24",
+      "confidence": "확정",
+      "note": "PSD 템플릿 없음"
+    },
+    {
+      "id": "remember-job-side-pc",
+      "name": "공고 상세 사이드 배너 (PC)",
+      "platform": "PC",
+      "w": 530,
+      "h": 200,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "썸네일형만 가능 (PDF p.5, p.26). 이미지 영역 240×200 위 그라데이션 배경 배치 필수 (PDF p.27). 보드 메모: 공고상세사이드배너를 제외하고는 보통 풀이미지형 (figma 408:48017). 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 258×77 (PDF p.27). Figma 텍스트 영역(크기·위치·색상 변경 금지) 258×78 (408:48165), 텍스트 가이드 영역 258×77 (408:48170). PSD 실측: 가이드 x31 y61 260×79, 메인 카피 x32 y61 238×77(2줄). 이미지 PSD 실측 x290 y0 240×200.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": 31,
+          "y": 61,
+          "w": 260,
+          "h": 79,
+          "source": "psd:리멤버_공고상세사이드배너_PC.psd"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 240,
+            "h": 200
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.27"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구 1",
+          "maxChars": 10,
+          "lines": 1,
+          "original": "10자 이하 (공백포함)",
+          "note": "PDF p.28: 메인 카피 '18자 이내 권장' / Pretendard Semibold 7pt. Figma 샘플 '일이삼사오육칠팔구십'(408:48174)",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.28"
+        },
+        {
+          "field": "메인 문구 2",
+          "maxChars": 8,
+          "lines": 1,
+          "original": "8자 이하 (공백포함)",
+          "note": "두 줄 합계 18자 = PDF 18자와 일치. Figma 샘플 '일이삼사오육칠팔'(408:48175)",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독)"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5)."
+      },
+      "layoutNotes": [
+        "텍스트 색상 Black / White 두 버전 템플릿 (figma 408:48166/48168, PSD 그룹 Black/White)",
+        "텍스트 좌측 / 이미지 우측 240×200"
+      ],
+      "examples": [
+        {
+          "client": "신한캐피탈",
+          "w": 530,
+          "h": 200,
+          "source": "figma image 414:23 '신한캐피탈_리멤버_공고상세사이드배너_PC (1안) 1'"
+        }
+      ],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48068 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.26~28 / psd:리멤버_공고상세사이드배너_PC.psd",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "remember-job-side-mo",
+      "name": "공고 상세 사이드 배너 (Mobile/APP)",
+      "platform": "MO",
+      "w": 1125,
+      "h": 276,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 600,
+      "background": "썸네일형만 가능. 이미지 영역 460×276 위 그라데이션 배경 배치 필수 (PDF p.27). 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+      "safeArea": {
+        "note": "텍스트 영역 513×124 (PDF p.27). Figma 텍스트 영역(크기·위치·색상 변경 금지) 399×124 (408:48154), 텍스트 가이드 영역 513×124 (408:48157). PSD 실측: 가이드 x48 y74 517×128, 메인 카피 x49 y77 399×124(2줄). 이미지 PSD 실측 x665 y0 460×276.",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "textArea": {
+          "x": 48,
+          "y": 74,
+          "w": 517,
+          "h": 128,
+          "source": "psd:리멤버_공고상세사이드배너_MobileAPP.psd"
+        },
+        "imageAreas": {
+          "썸네일형": {
+            "w": 460,
+            "h": 276
+          },
+          "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.27"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구 1",
+          "maxChars": 10,
+          "lines": 1,
+          "original": "10자 이하 (공백포함)",
+          "note": "PDF p.28: MO 메인 카피 '18자 이내 권장', PC와 동일한 문구, Pretendard Semibold 12pt",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독) / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.28"
+        },
+        {
+          "field": "메인 문구 2",
+          "maxChars": 8,
+          "lines": 1,
+          "original": "8자 이하 (공백포함)",
+          "note": "",
+          "source": "figma:리멤버01 글자수 정리표 이미지(노드 19:151 784×661로 추정, 보드 캡처 remember01.png 확대 판독)"
+        }
+      ],
+      "logo": {
+        "count": 0,
+        "w": null,
+        "h": null,
+        "note": "로고 영역 없음 (PDF p.5)."
+      },
+      "layoutNotes": [
+        "PC와 동일한 문구 적용 (PDF p.28)",
+        "텍스트 Black / White 두 버전 (PSD 그룹)"
+      ],
+      "examples": [
+        {
+          "client": "신한캐피탈",
+          "w": 1125,
+          "h": 276,
+          "source": "figma image 414:22 '신한캐피탈_리멤버_공고상세사이드배너_MobileAPP 1'"
+        }
+      ],
+      "source": "figma:리멤버02(제작가이드&예시) frame 408:48069 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.26~28 / psd:리멤버_공고상세사이드배너_MobileAPP.psd",
+      "confidence": "확정",
+      "note": "zip에 '-복구됨' 사본 PSD도 있음(동일 1125×276)"
+    }
+  ],
+  "rejections": [
+    {
+      "date": "2026-08-13",
+      "client": "세아제강",
+      "reason": "리멤버 날짜 오타 이슈로 반려",
+      "ruleHint": "정보 정확성(날짜·요일) — 자동 검사 불가, 체크리스트: 공고 원문과 날짜 대조",
+      "source": "figma:리멤버 소재 반려 이슈 사례 text 445:45"
+    }
+  ],
+  "conflicts": [
+    {
+      "field": "backgroundColors.banned (흰색 근접색)",
+      "figma": "'(#FFFFFF)가 아닌 경우 흰색에 가까운 배경색도 사용은 가능하나 눈에 띄어서 지양하는 편' (408:48064)",
+      "pdf": "사용 불가 배경 색상에 #F7F7F0, #E8E7E0(흰색 근접색) 명시 (p.8)",
+      "note": "Figma는 '가능하나 지양', PDF는 해당 2색 '사용 불가'. 자동 검사는 PDF 5색 차단 + 기타 근접 흰색 경고로 처리 권장"
+    }
+  ],
+  "needsReview": [
+    "글자수 정리표는 Figma 보드에 이미지로만 있음(텍스트 노드 아님) — 보드 캡처 확대 판독값이며 노드 id(19:151)는 치수로 추정",
+    "글자수: Figma 정리표는 '이하(공백포함)', PDF는 '이내 권장' — 강제 한도인지 권장인지 매체 확인",
+    "공고 상세 상단 배너: PDF p.21 이미지 형태 '썸네일 형'만 표기, p.22~23엔 오브젝트·풀이미지 가이드도 있음. Figma 템플릿은 썸네일형만. 또한 이 배너의 PSD는 zip에 없음",
+    "리멤버 브랜드 컬러 유사색의 수치 범위 미기재(#FF5414만 명시) — 유사색 판정은 수동",
+    "폰트 크기는 PDF pt 표기만 있음(px 환산값 미기재) — PSD 샘플 텍스트 레이어를 그대로 쓰면 됨",
+    "한진정보통신 MobileAPP PSD의 텍스트 레이어가 샘플 문구 그대로 — 최종 제출 문구 확인 불가",
+    "zip의 '리멤버_메인중간배너_PCdsdds.psd', '공고상세사이드배너_MobileAPP-복구됨.psd'는 사본으로 보임(치수 동일) — 어느 쪽이 최신인지 불명"
+  ]
+}

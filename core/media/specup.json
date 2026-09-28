@@ -1,0 +1,403 @@
+{
+  "id": "specup",
+  "name": "스펙업",
+  "group": "기타",
+  "tool": null,
+  "sources": [
+    "pdf:[스펙업] 상품소개서_2601.pdf (42p)",
+    "png:카드뉴스, 글양식배너 규격.png (194×49 원본, pngs/guide3.png로 판독)"
+  ],
+  "common": [
+    {
+      "rule": "배너 파일 형식 : JPG/GIF/PNG",
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.17~22"
+    },
+    {
+      "rule": "인벤토리 운영: 최소 집행 기간은 1주이며, 1주 이상 집행 시 일 단위 추가 체결 가능. 배너 위치는 부킹 순으로 배치",
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.17~22"
+    },
+    {
+      "rule": "광고 집행 절차: 광고 계약 시 소재 제작 가이드 전달 → 광고 시작 1영업일 전까지 소재 전달받아 검수 완료",
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.34"
+    },
+    {
+      "rule": "게시글 전체공지: 모든 게시판 상단 고정, 관리자 ID 게시글, 주 단위 (규격 없음)",
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.27"
+    },
+    {
+      "rule": "인스타그램 주간 공고리스트: 소재 전달 시 자사 템플릿에 맞추어 제작 (직접 제작 아님)",
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.32"
+    }
+  ],
+  "textColors": null,
+  "fonts": null,
+  "specs": [
+    {
+      "id": "specup-maintop-pc",
+      "name": "메인탑 배너",
+      "platform": "PC",
+      "w": 812,
+      "h": 140,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "gif",
+        "png"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "PC 접속 시 메인 최상단 노출, 광고 구좌 1개, 250만원/주 (p.17)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.17",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "specup-right-big-pc",
+      "name": "우측 빅배너",
+      "platform": "PC",
+      "w": 400,
+      "h": 170,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "gif",
+        "png"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "PC 메인 상단 노출, 구좌 3개, 150만원/주 (p.18)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.18",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "specup-right-strip-pc",
+      "name": "우측 띠배너",
+      "platform": "PC",
+      "w": 400,
+      "h": 76,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "gif",
+        "png"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "PC 중단 노출, 구좌 2개 (p.19)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.19",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "specup-square-big-pc",
+      "name": "스퀘어 빅배너",
+      "platform": "PC",
+      "w": 400,
+      "h": 340,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "gif",
+        "png"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "PC 중단 노출, 단독 구좌 (p.20)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.20",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "specup-bootcamp-pc",
+      "name": "부트캠프(직무교육) 배너",
+      "platform": "PC",
+      "w": 264,
+      "h": 264,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "gif",
+        "png"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "PC 하단 노출, 구좌 6개. '배너 사이즈가 더 커졌습니다! 2배 커진 지면' (p.21)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.21",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "specup-activity-pc",
+      "name": "대외활동/공모전 배너",
+      "platform": "PC",
+      "w": 264,
+      "h": 264,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "gif",
+        "png"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "PC 하단 노출, 구좌 ∞ (p.22)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.22",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "specup-post-bottom",
+      "name": "글양식 배너 (게시글 하단)",
+      "platform": "공통",
+      "w": 1440,
+      "h": 240,
+      "exportScale": 1,
+      "format": null,
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "스펙업 게시글 하단 고정 노출, PC/MO 동시 노출 (p.25)",
+        "최대 6개 배너 광고 랜덤 노출 (p.25)",
+        "타겟 게시판군 택1: 채용(신입/인턴) / 대학생·취준생 / 부트캠프(직무교육) / 대외활동·공모전 (p.25~26)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.25, p.26 / png:카드뉴스, 글양식배너 규격.png (194×49 원본, pngs/guide3.png로 판독)",
+      "confidence": "확인필요",
+      "note": "파일 형식은 글양식 배너 페이지에 미기재(다른 배너는 JPG/GIF/PNG)"
+    },
+    {
+      "id": "specup-cardnews",
+      "name": "카드뉴스 이미지 (SNS)",
+      "platform": "APP",
+      "w": 1080,
+      "h": 1080,
+      "exportScale": 1,
+      "format": null,
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "스펙업 인스타그램 단독 업로드 소재: 카드뉴스 이미지 + 텍스트/해시태그 + 텍스트 및 연결 url (p.31)",
+        "옵션: 인스타그램 스토리(게시물 리그램 방식만) / 페이스북 업로드 (p.31)",
+        "이공계길잡이 인스타그램 단독 업로드도 소재 '카드뉴스 이미지' (p.33)"
+      ],
+      "examples": [],
+      "source": "png:카드뉴스, 글양식배너 규격.png (194×49 원본, pngs/guide3.png로 판독) / pdf:[스펙업] 상품소개서_2601.pdf p.31, p.33",
+      "confidence": "확인필요",
+      "note": "1080×1080은 규격 PNG에만 있음 — 상품소개서엔 치수 없음. 어떤 SNS 상품에 적용되는지는 PNG 파일명('카드뉴스, 글양식배너 규격')과 p.31 소재명으로 연결"
+    },
+    {
+      "id": "specup-list-top",
+      "name": "스펙업 공고 리스트 상단 배너",
+      "platform": "공통",
+      "w": null,
+      "h": null,
+      "exportScale": 1,
+      "format": null,
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료에 여백 규정 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [
+        {
+          "field": "해시태그 (대외활동·공모전)",
+          "maxCount": 3,
+          "maxChars": null,
+          "lines": null,
+          "original": "해시태그(최대 3개)",
+          "source": "pdf:[스펙업] 상품소개서_2601.pdf p.23"
+        },
+        {
+          "field": "모집직무 (인턴·신입)",
+          "maxCount": 3,
+          "maxChars": null,
+          "lines": null,
+          "original": "모집직무(최대 3개)",
+          "source": "pdf:[스펙업] 상품소개서_2601.pdf p.24"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "매주 월요일 고정 업로드, 최소 1주 (p.23)",
+        "소재 양식: 직무교육 = 업체명/공고명/마감일 + 비용/장소 + 이미지(정방형)/배너 url",
+        "대외활동·공모전 = 업체명/공고명/마감일 + 해시태그(최대 3개) + 이미지(정방형)/배너 url",
+        "인턴·신입 공고 = 업체명/공고명/마감일 + 모집직무(최대 3개) + 이미지(정방형)/배너 url (p.24)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.23, p.24",
+      "confidence": "확인필요",
+      "note": "이미지는 '정방형'만 명시, 픽셀 치수 없음"
+    },
+    {
+      "id": "specup-message-all",
+      "name": "전체쪽지 (텍스트)",
+      "platform": "공통",
+      "w": null,
+      "h": null,
+      "exportScale": 1,
+      "format": [
+        "text"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": null,
+      "textLimits": [
+        {
+          "field": "본문",
+          "maxChars": 800,
+          "lines": null,
+          "original": "800자 이내",
+          "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "이미지 불가, 800자 이내 텍스트 (p.29)",
+        "최근 3개월간 카페 방문 회원에게 순차 발송 (p.29)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.29",
+      "confidence": "확정",
+      "note": "이미지 소재 아님 — 텍스트 상품"
+    },
+    {
+      "id": "specup-kakao-dm",
+      "name": "카카오톡 DM (텍스트)",
+      "platform": "공통",
+      "w": null,
+      "h": null,
+      "exportScale": 1,
+      "format": [
+        "text"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": null,
+      "textLimits": [
+        {
+          "field": "본문",
+          "maxChars": 500,
+          "lines": null,
+          "original": "500자 이내",
+          "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "카카오톡 오픈채팅방(대학생활방/취업준비방/채용방) 발송 (p.28)",
+        "본문 앞 부분에 (광고) 문구 자동 삽입 (p.28)",
+        "최소 5천명 ~ 최대 1만 8천명 (p.28)"
+      ],
+      "examples": [],
+      "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.28",
+      "confidence": "확정",
+      "note": "이미지 소재 아님 — 텍스트 상품"
+    }
+  ],
+  "rejections": [],
+  "conflicts": [],
+  "needsReview": [
+    "Figma 보드에 없음 — 담당자가 실제 운용하는 매체인지 확인",
+    "자료가 상품소개서뿐 — 용량·폰트·색·여백·글자수 규정 없음. 상세 '소재 제작 가이드'는 계약 시 별도 전달(p.34)",
+    "글양식 배너 1440×240이 2배 제작 규격인지(실제 노출 720×120?) 자료에 없음",
+    "카드뉴스 1080×1080 적용 상품은 PNG 파일명 근거 연결 — 확인",
+    "공고 리스트 상단 배너 이미지 '정방형' 픽셀 치수 미기재",
+    "guide3.png(194×49 원본)는 저해상도지만 판독 가능: '카드뉴스 이미지 - 1080*1080 px', '글양식배너 1440*240'",
+    "글양식 배너 (게시글 하단): 자료에 포맷 없음 — 확정에서 확인필요로 내림"
+  ]
+}

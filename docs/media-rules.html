@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>매체 규격 레퍼런스 — Campaign Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  /* proposal.html과 같은 토큰 — 문서 둘이 한 벌로 보이게 */
+  :root{
+    --ink:#1a1a1a; --sub:#666; --line:#e5e5e5; --bg:#fff; --soft:#f7f7f6;
+    --accent:#2456d6; --accent-soft:#edf2fd; --accent-line:#c9d8f6;
+    --good:#1d7a4f; --good-soft:#e9f5ee; --good-line:#c2e2cf;
+    --warn:#b07d10; --warn-soft:#fbf3df; --warn-line:#ecd79a;
+    --bad:#b3261e; --bad-soft:#fbe9e7; --bad-line:#efc3bf;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --ink:#ececec; --sub:#9a9a9a; --line:#2e2e2e; --bg:#161616; --soft:#1f1f1f;
+      --accent:#7ea2f0; --accent-soft:#1c2942; --accent-line:#2d4570;
+      --good:#7ecfa2; --good-soft:#17281d; --good-line:#2c5138;
+      --warn:#d9a441; --warn-soft:#2c2412; --warn-line:#5a4a1c;
+      --bad:#f08c86; --bad-soft:#301a18; --bad-line:#5a2b28; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
+       font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+  /* 스페이싱은 8pt 그리드 (design-system-examples.md > 스페이싱 8pt 그리드 + 4pt 보조) */
+  .wrap{max-width:1240px;margin:0 auto;padding:40px 24px 96px}
+  header{margin-bottom:32px}
+  .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--sub);font-weight:600;text-transform:uppercase}
+  /* 타입 스케일 (design-system-examples.md > 타입 스케일 (모듈러)) */
+  h1{font-size:30px;line-height:1.25;font-weight:700;margin:8px 0 8px;letter-spacing:-.01em}
+  .src{color:var(--sub);font-size:13px}
+  .src a{color:inherit}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:24px 0 16px}
+  .tile{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft)}
+  .tile b{display:block;font-size:24px;font-weight:700;line-height:1.1}
+  .tile span{font-size:12px;color:var(--sub)}
+  .tile.warn{border-color:var(--warn-line);background:var(--warn-soft)} .tile.warn b{color:var(--warn)}
+  .tile.bad{border-color:var(--bad-line);background:var(--bad-soft)} .tile.bad b{color:var(--bad)}
+  .ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);z-index:2}
+  .chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .ctl input[type=search]{flex:1;min-width:200px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;background:var(--bg);color:var(--ink)}
+  .ctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub)}
+  .group{margin-top:40px}
+  .group > h2{font-size:13px;letter-spacing:.1em;color:var(--sub);font-weight:600;text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .group > h2::before{content:"";width:8px;height:8px;background:var(--accent);border-radius:2px}
+  .medium{border:1px solid var(--line);border-radius:12px;padding:20px 20px 16px;margin-bottom:16px;background:var(--bg)}
+  .medium.hidden{display:none}
+  .mhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin-bottom:12px}
+  .mhead h3{font-size:20px;margin:0;font-weight:700}
+  .tag{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--sub)}
+  .tag.tool{border-color:var(--accent-line);background:var(--accent-soft);color:var(--accent)}
+  .mhead .srcs{margin-left:auto;font-size:12px;color:var(--sub)}
+  .sect{margin-top:16px}
+  .sect > h4{font-size:12px;letter-spacing:.08em;color:var(--sub);text-transform:uppercase;margin:0 0 6px;font-weight:600}
+  ul.rules{margin:0;padding-left:18px} ul.rules li{margin:2px 0}
+  details summary{cursor:pointer;color:var(--accent);font-size:13px;margin:6px 0 4px;list-style:none} details summary::before{content:'+ '} details[open] summary::before{content:'− '}
+  .kv{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:4px}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:1040px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  th{background:var(--soft);font-weight:600;font-size:12px;color:var(--sub);white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  td.num{white-space:nowrap;font-variant-numeric:tabular-nums}
+  td .note{display:block;color:var(--sub);font-size:12px;margin-top:2px}
+  .st{font-size:11px;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .st.ok{background:var(--good-soft);color:var(--good);border:1px solid var(--good-line)}
+  .st.rv{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line)}
+  tr.rv td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  tr.spec.hidden{display:none}
+  .rej li, .conf li, .rv-list li{margin:3px 0}
+  .rej .auto{color:var(--good);font-size:12px} .rej .manual{color:var(--warn);font-size:12px}
+  .conf li{background:var(--bad-soft);border:1px solid var(--bad-line);border-radius:6px;padding:6px 10px;list-style:none}
+  .rv-list li{background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:6px;padding:6px 10px;list-style:none}
+  /* 빈 상태 — 필터 결과 0일 때 이유와 다음 행동을 같이 보여 준다 (ux-patterns.md > 빈 상태 설계) */
+  .empty{border:1px dashed var(--line);border-radius:12px;padding:40px;text-align:center;color:var(--sub);margin-top:24px}
+  .empty.hidden{display:none}
+  .foot{margin-top:48px;color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+  @media print{ .ctl{display:none} .medium{break-inside:avoid} table{min-width:0;font-size:11px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Campaign Agent · AD 트랙</div>
+    <h1>매체 규격 레퍼런스</h1>
+    <div class="src">
+      출처: <code>[SK추진실] 광고소재제작가이드_260918.zip</code> + Figma <a href="https://www.figma.com/design/sZMBhkuLMEiyMLPPpGxvC1/" target="_blank" rel="noopener">매체별 규격정리</a> 보드 ·
+      추출 2026-09-28 · 원본 데이터 <code>core/media/*.json</code>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <p class="src">
+      <b>읽는 법.</b> 값은 자료에 적힌 그대로다. 자료에 없으면 비워 두고 <span class="st rv">확인 필요</span>로 표시했다 —
+      추측값은 규칙이 되어 잘못된 소재를 통과시키므로 넣지 않았다. Figma 보드(담당자 실무 기준)와 PDF(매체 공식)가 다르면 <b>충돌</b>에 둘 다 적었다.
+    </p>
+  </header>
+
+  <div class="ctl" id="ctl">
+    <button class="chip" data-g="" aria-pressed="true">전체</button>
+    <input type="search" id="q" placeholder="매체·규격·문구 검색  (예: 1029, 비즈보드, 투명)">
+    <label><input type="checkbox" id="onlyRv"> 확인 필요만</label>
+  </div>
+
+  <main id="main"></main>
+  <div class="empty hidden" id="empty">조건에 맞는 규격이 없어요. 검색어를 줄이거나 필터를 풀어 보세요.</div>
+
+  <div class="foot">
+    이 페이지는 <code>core/media.js</code>를 그대로 그린다. 값을 고치려면 <code>core/media/&lt;매체&gt;.json</code>을 고치고
+    <code>node scripts/build-media.mjs</code>를 돌린다. 페이지를 직접 고치지 않는다.
+  </div>
+</div>
+
+<script type="module">
+  import { MEDIA, MEDIA_GROUPS, MEDIA_COUNTS } from '../core/media.js';
+
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const dash = v => (v == null || v === '' ? '<span style="color:var(--sub)">—</span>' : esc(v));
+  const px = (w, h, maxH) => (w && h) ? `${w}×${h}` : (w && maxH) ? `${w}×≤${maxH}` : (w ? `${w}×?` : (h ? `?×${h}` : null));
+
+  /* ── 요약 타일 ── */
+  const c = MEDIA_COUNTS;
+  document.getElementById('tiles').innerHTML = [
+    ['매체', c.media, ''], ['규격', c.specs, ''],
+    ['확인 필요', c.needsReview, c.needsReview ? 'warn' : ''],
+    ['자료 간 충돌', c.conflicts, c.conflicts ? 'bad' : ''],
+    ['반려 사례', c.rejections, ''],
+  ].map(([l, n, cls]) => `<div class="tile ${cls}"><b>${n}</b><span>${l}</span></div>`).join('');
+
+  /* ── 그룹 칩 ── */
+  const ctl = document.getElementById('ctl');
+  const groups = MEDIA_GROUPS.filter(g => MEDIA.some(m => m.group === g));
+  const q = document.getElementById('q');
+  groups.forEach(g => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.g = g; b.textContent = g; b.setAttribute('aria-pressed', 'false');
+    ctl.insertBefore(b, q);
+  });
+
+  /* ── 본문 ── */
+  function specRow(s) {
+    const canvas = s.format?.every(f => f === 'text') ? '텍스트' : px(s.w, s.h, s.maxH);
+    const scale = s.exportScale && s.exportScale !== 1 ? `×${s.exportScale}` : '';
+    const submit = canvas && s.exportScale && s.exportScale !== 1 ? `${s.w * s.exportScale}×${s.h * s.exportScale}` : canvas;
+    const limits = (s.textLimits ?? []).map(t => `${esc(t.field)} ${t.maxChars != null ? t.maxChars + '자' : ''}${t.lines ? ' · ' + t.lines + '줄' : ''}${t.note ? ` <span class="note">${esc(t.note)}</span>` : ''}`).join('<br>');
+    const logo = s.logo ? [s.logo.count != null ? `${s.logo.count}개` : null, px(s.logo.w, s.logo.h), s.logo.note].filter(Boolean).map(esc).join(' · ') : null;
+    const rv = s.confidence !== '확정';
+    const notes = [...(s.layoutNotes ?? []), s.note].filter(Boolean);
+    return `<tr class="spec ${rv ? 'rv' : ''}" data-text="${esc([s.name, s.platform, canvas, s.format?.join(' '), s.background, limits, notes.join(' ')].join(' ').toLowerCase())}">
+      <td><b>${esc(s.name)}</b>${s.deliverable === false ? ' <span class="tag">전달 자료만</span>' : ''}${notes.length ? `<span class="note">${notes.map(esc).join(' · ')}</span>` : ''}</td>
+      <td>${dash(s.platform)}</td>
+      <td class="num">${dash(canvas)}${scale ? ` <span class="note">${scale} 추출</span>` : ''}</td>
+      <td class="num">${dash(submit)}</td>
+      <td>${dash(s.format?.join(', ').toUpperCase())}</td>
+      <td class="num">${s.maxKB != null ? esc(s.maxKB) + 'KB' : dash(null)}</td>
+      <td>${dash(s.background)}</td>
+      <td>${s.safeArea?.note ? esc(s.safeArea.note) : dash(null)}</td>
+      <td>${limits || dash(null)}</td>
+      <td>${dash(logo)}</td>
+      <td><span class="st ${rv ? 'rv' : 'ok'}">${rv ? '확인 필요' : '확정'}</span>${s.source ? `<span class="note">${esc(s.source)}</span>` : ''}</td>
+    </tr>`;
+  }
+
+  function mediumCard(m) {
+    const colors = m.textColors && (m.textColors.main || m.textColors.sub?.length)
+      ? `<div class="kv">${m.textColors.main ? `<span><span class="sw" style="background:${esc(m.textColors.main)}"></span>메인 ${esc(m.textColors.main)}</span>` : ''}${(m.textColors.sub ?? []).map(x => `<span><span class="sw" style="background:${esc(x)}"></span>서브 ${esc(x)}</span>`).join('')}</div>` : '';
+    const fonts = m.fonts?.required ? `<div class="kv"><span>폰트: <b>${esc(m.fonts.required)}</b>${m.fonts.note ? ` — ${esc(m.fonts.note)}` : ''}</span></div>` : '';
+    return `<article class="medium" data-g="${esc(m.group)}" id="m-${esc(m.id)}">
+      <div class="mhead">
+        <h3>${esc(m.name)}</h3>
+        <span class="tag">${esc(m.group)}</span>
+        ${m.tool ? `<span class="tag tool">${esc(m.tool)} 제작</span>` : ''}
+        <span class="srcs">${(m.sources ?? []).map(esc).join(' · ')}</span>
+      </div>
+      ${m.common?.length ? `<div class="sect"><h4>공통 사항 ${m.common.length}</h4>${m.common.length > 6
+        ? `<ul class="rules">${m.common.slice(0, 4).map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul><details><summary>나머지 ${m.common.length - 4}개 더 보기</summary><ul class="rules">${m.common.slice(4).map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul></details>`
+        : `<ul class="rules">${m.common.map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul>`}</div>` : ''}
+      ${(colors || fonts) ? `<div class="sect"><h4>텍스트 · 폰트</h4>${colors}${fonts}</div>` : ''}
+      <div class="sect"><h4>규격 ${m.specs?.length ?? 0}</h4>
+        ${m.specs?.length ? `<div class="tblwrap"><table><thead><tr>
+          <th>규격</th><th>플랫폼</th><th>캔버스</th><th>제출</th><th>포맷</th><th>용량</th><th>배경</th><th>안전영역</th><th>글자수</th><th>로고</th><th>상태 · 출처</th>
+        </tr></thead><tbody>${m.specs.map(specRow).join('')}</tbody></table></div>` : '<p class="src">규격 정보 없음</p>'}
+      </div>
+      ${m.rejections?.length ? `<div class="sect"><h4>반려 사례 ${m.rejections.length}</h4><ul class="rej">${m.rejections.map(r => `<li>${esc(r.date ?? '')} ${esc(r.client ?? '')} — ${esc(r.reason)} <span class="${/체크리스트|불가|사람/.test(r.ruleHint ?? '') ? 'manual' : 'auto'}">${esc(r.ruleHint ?? '')}</span></li>`).join('')}</ul></div>` : ''}
+      ${m.conflicts?.length ? `<div class="sect"><h4>자료 간 충돌 ${m.conflicts.length}</h4><ul class="conf">${m.conflicts.map(x => `<li><b>${esc(x.field)}</b> — Figma: ${esc(x.figma)} / PDF: ${esc(x.pdf)}${x.note ? ` · ${esc(x.note)}` : ''}</li>`).join('')}</ul></div>` : ''}
+      ${m.needsReview?.length ? `<div class="sect"><h4>확인 필요 ${m.needsReview.length}</h4><ul class="rv-list">${m.needsReview.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+    </article>`;
+  }
+
+  document.getElementById('main').innerHTML = groups.map(g =>
+    `<section class="group" data-g="${esc(g)}"><h2>${esc(g)} · ${MEDIA.filter(m => m.group === g).length}</h2>${MEDIA.filter(m => m.group === g).map(mediumCard).join('')}</section>`
+  ).join('');
+
+  /* ── 필터 ── */
+  const state = { g: '', q: '', rv: false };
+  function apply() {
+    let shown = 0;
+    document.querySelectorAll('.medium').forEach(card => {
+      const gOk = !state.g || card.dataset.g === state.g;
+      let any = false;
+      card.querySelectorAll('tr.spec').forEach(tr => {
+        const ok = gOk && (!state.q || tr.dataset.text.includes(state.q)) && (!state.rv || tr.classList.contains('rv'));
+        tr.classList.toggle('hidden', !ok); any = any || ok;
+      });
+      // 규격이 하나도 없는 매체는 그룹·검색어만으로 판단한다
+      const noSpecs = !card.querySelector('tr.spec');
+      const cardOk = gOk && (noSpecs ? (!state.rv || card.querySelector('.rv-list')) && (!state.q || card.textContent.toLowerCase().includes(state.q)) : any);
+      card.classList.toggle('hidden', !cardOk); if (cardOk) shown++;
+    });
+    document.querySelectorAll('.group').forEach(s => s.style.display = s.querySelector('.medium:not(.hidden)') ? '' : 'none');
+    document.getElementById('empty').classList.toggle('hidden', shown > 0);
+  }
+  ctl.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    state.g = b.dataset.g;
+    ctl.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    apply();
+  });
+  q.addEventListener('input', () => { state.q = q.value.trim().toLowerCase(); apply(); });
+  document.getElementById('onlyRv').addEventListener('change', e => { state.rv = e.target.checked; apply(); });
+</script>
+</body>
+</html>

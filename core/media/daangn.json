@@ -1,0 +1,94 @@
+{
+  "id": "daangn",
+  "name": "당근",
+  "group": "커뮤니티",
+  "tool": null,
+  "sources": [
+    "figma:당근01(소재가이드)"
+  ],
+  "common": [],
+  "textColors": null,
+  "fonts": null,
+  "specs": [
+    {
+      "id": "daangn-native-feed-image",
+      "name": "네이티브 피드 광고 (이미지 유형)",
+      "platform": null,
+      "w": null,
+      "h": null,
+      "exportScale": 1,
+      "format": [],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "자료 없음"
+      },
+      "layoutNotes": [],
+      "examples": [],
+      "boardFrame": {
+        "w": 200,
+        "h": 200,
+        "source": "figma frame 20:357",
+        "note": "고객사명 없는 자리표시 프레임 — 제출 규격인지 불명"
+      },
+      "source": "figma:당근01(소재가이드) text 20:353, frame 20:357",
+      "confidence": "확인필요",
+      "note": "보드에 상품명과 캡처 이미지만 있음. 사이즈·용량·포맷 모두 원본 가이드 필요"
+    },
+    {
+      "id": "daangn-catalog-product",
+      "name": "카탈로그 상품 광고",
+      "platform": null,
+      "w": null,
+      "h": null,
+      "exportScale": 1,
+      "format": [],
+      "maxKB": null,
+      "background": null,
+      "safeArea": {
+        "note": "자료 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "자료 없음"
+      },
+      "layoutNotes": [],
+      "examples": [],
+      "boardFrame": {
+        "w": 200,
+        "h": 200,
+        "source": "figma frame 20:358",
+        "note": "고객사명 없는 자리표시 프레임 — 제출 규격인지 불명"
+      },
+      "source": "figma:당근01(소재가이드) text 20:354, frame 20:358",
+      "confidence": "확인필요",
+      "note": "보드에 상품명과 캡처 이미지만 있음. 사이즈·용량·포맷 모두 원본 가이드 필요"
+    }
+  ],
+  "rejections": [],
+  "conflicts": [],
+  "needsReview": [
+    "보드에 캡처 이미지만 있음 — 원본 가이드 필요",
+    "보드 프레임 2개(20:357, 20:358)가 모두 200×200 자리표시라 실제 제출 사이즈로 쓰지 않음",
+    "캡처 이미지 4장(20:355, 20:356, 20:359, 20:360)은 로컬 자료에 없어 판독 못 함",
+    "섹션 메모(※ …)·반려 사례·zip·PDF 없음. 제작 도구 표기도 없어 tool=null"
+  ]
+}

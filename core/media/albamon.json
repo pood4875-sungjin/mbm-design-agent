@@ -1,0 +1,726 @@
+{
+  "id": "albamon",
+  "name": "알바몬",
+  "group": "기타",
+  "tool": null,
+  "sources": [
+    "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) (31p)",
+    "png:각 배너 예시 이미지.png (pngs/guide4.png)",
+    "psd:guide_PC_메인빅배너.psd"
+  ],
+  "common": [
+    {
+      "rule": "파일명 규정: 제작일_가로사이즈_세로사이즈_컬러값  ex) 20230116_752_110_3399ff",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "확장자: jpg, jpeg, gif, png",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "이미지 용량: 30KB 미만 (배너별 용량 상이함)",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "출처표기 영역: 배너 우측 상단에 출처・로고 표기 (8PX)",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "서체: 고딕 계열의 서체 사용",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "폰트 최소사이즈: PC 12px / Mobile 22px",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "폰트 행간: 한줄 100% / 두줄 이상 120%",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "가독성을 저해하지 않는 명도차",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "텍스트 컬러 최대 2개까지 가능",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "외곽이 깔끔한 고해상도 이미지・일러스트 / 해당 기업 로고를 이미지 요소로 활용 가능",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "모바일 배너 좌우 10px은 단색만 가능 (가변영역)",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6"
+    },
+    {
+      "rule": "문구: 특정 결과를 보장하는 문구·허위/과장 오인 문구·선정적 문구·불필요한 특수기호 금지. 보장 문구 사용 시 구체적인 자료 필요, 환불 및 정책 표기 필요",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.7"
+    },
+    {
+      "rule": "폰트: 고딕 계열, 폰트 스타일 2가지 권장(3가지 미만), 은은한 대비의 텍스트 배경·효과, 가시성 있는 컬러. 강한 텍스트 효과·너무 두꺼운 테두리 금지",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.8"
+    },
+    {
+      "rule": "이미지: 선명한 해상도, 깔끔한 누끼 이미지·일러스트, 로고를 이미지 요소로 활용, 도형을 프레임으로 활용. 저해상도·텍스트 과다 삽입·배경 전체 이미지·부정적 이미지 금지",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.9"
+    },
+    {
+      "rule": "컬러: 배경은 단색 사용 권장, 이미지 전체가 광고 영역과 구분되는 컬러로 채워져야 함. 패턴·이미지·보색·화이트 및 화이트에 가까운 명도가 높은 색·주조색·레드계열·강한 원색 및 형광색 지양",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.10"
+    },
+    {
+      "rule": "가이드를 준수하지 않은 배너에 대해서는 수정을 요청할 수 있습니다.",
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6~10"
+    }
+  ],
+  "textColors": {
+    "main": null,
+    "sub": [],
+    "note": "공통: 텍스트 컬러 최대 2개. 지정색은 M 메인(메인 #4C4C4C, 서브·심의필 #6A6A6A), 앱 스플래시(#171717), 커튼 심의필(#787878), 메인 보드 서브(#000 60%)만",
+    "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6, 13, 14, 23, 28"
+  },
+  "fonts": {
+    "required": null,
+    "note": "공통: 고딕 계열. 지면별 지정: PC 메인 빅·커튼·보드 = Gmarket Sans(Bold/Medium), M 서브 = Gmarket Sans Bold, 앱 스플래시·M 메인 = Pretendard, 심의필 = Pretendard",
+    "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.6, 12~14, 23, 28, 29 / psd:guide_PC_메인빅배너.psd (GmarketSansTTFBold/Medium)"
+  },
+  "specs": [
+    {
+      "id": "albamon-pc-main-big",
+      "name": "PC 메인 빅 배너 (메인탑)",
+      "platform": "PC",
+      "w": 1504,
+      "h": 220,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 50,
+      "background": "배경과 구분이 되는 Background Color 사용. BI와 인접한 위치이므로 붉은계열 배경 컬러 지양",
+      "safeArea": {
+        "note": "배너 여백 좌우 80px / 상하 60px. 출처 표기 여백 16px (우측상단 지향). 서브·메인 간격 16px(도식). PSD 실측: 출처/로고 표기영역 x1342 y18 144×28 (우측·상단 약 18px).",
+        "top": 60,
+        "right": 80,
+        "bottom": 60,
+        "left": 80,
+        "sourceArea": {
+          "x": 1342,
+          "y": 18,
+          "w": 144,
+          "h": 28,
+          "source": "psd:guide_PC_메인빅배너.psd"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "서브카피",
+          "maxChars": null,
+          "lines": 1,
+          "original": "서브카피 1줄 권장",
+          "note": "Gmarket Sans / Medium / 36px / -2%",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.12"
+        },
+        {
+          "field": "메인카피",
+          "maxChars": null,
+          "lines": 1,
+          "original": "메인카피 1줄 권장",
+          "note": "Gmarket Sans / Bold / 52px / -4%",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.12"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "화면 내 752×110 사이즈로 노출 (2배 파일)",
+        "노출위치 PC > 메인 좌측 (PDF 화면 예시는 JOBKOREA)",
+        "이미지 외곽에 테두리 삽입 불가",
+        "폰트 최소사이즈 26px",
+        "최종파일 라운딩 없이 전달",
+        "PSD 1504×524 캔버스에 두 레이아웃: A(메인카피 위 y60 · 서브카피 아래 y122, '출처표기영역') / B(서브 위 · 메인 아래, '로고표기영역') — 각 1504×220 대지",
+        "guide4 예시 이미지의 '메인탑'(알바몬 PC 메인 상단) 지면으로 보임"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.12",
+      "confidence": "확정",
+      "note": "PSD 레이어 그룹명 pc_top_main_752x110x2_A/B"
+    },
+    {
+      "id": "albamon-pc-main-board",
+      "name": "PC 메인 보드 배너",
+      "platform": "PC",
+      "w": 520,
+      "h": 720,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "배경과 구분이 되는 Background Color 사용. 붉은계열 배경 지양(BI 인접)",
+      "safeArea": {
+        "note": "배너 여백 좌우 24px / 상하 44px",
+        "top": 44,
+        "right": 24,
+        "bottom": 44,
+        "left": 24
+      },
+      "textLimits": [
+        {
+          "field": "인트로 카피",
+          "maxChars": null,
+          "lines": 1,
+          "original": "인트로 카피 1줄",
+          "note": "Gmarket Sans / Medium / 14px",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.13"
+        },
+        {
+          "field": "메인카피",
+          "maxChars": null,
+          "lines": 2,
+          "original": "메인카피 2줄 준수",
+          "note": "Gmarket Sans / bold / 32px",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.13"
+        },
+        {
+          "field": "하단 서브카피",
+          "maxChars": null,
+          "lines": 2,
+          "original": "하단 서브카피 2줄",
+          "note": "Pretendard / Medium / 13px, #000 font opacity 60%",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.13"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 메인 우측, 화면 내 260×360 노출",
+        "이미지 외곽 테두리 삽입 불가",
+        "최종파일 라운딩 없이 전달",
+        "폰트 px·여백은 PDF 표기 그대로(1배 화면 기준인지 2배 파일 기준인지 미기재)"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.13",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-main-curtain",
+      "name": "PC 메인 커튼 배너",
+      "platform": "PC",
+      "w": 2160,
+      "h": 160,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "붉은계열 배경 컬러 지양, BG 블랙 컬러 사용 불가. 배경컬러코드 전달 필수",
+      "safeArea": {
+        "note": "배너 여백 좌우 20px / 상하 40px. 출처 표기 여백 8px(우측상단 지향). 심의필 여백 26px. 좌우 여백 20px 내에는 패턴이나 이미지 노출 금지",
+        "top": 40,
+        "right": 20,
+        "bottom": 40,
+        "left": 20
+      },
+      "textLimits": [
+        {
+          "field": "서브카피",
+          "maxChars": null,
+          "lines": 1,
+          "original": "서브카피 1줄 중앙정렬 권장",
+          "note": "Gmarket Sans / Medium / 40px / -2%",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.14"
+        },
+        {
+          "field": "메인카피",
+          "maxChars": null,
+          "lines": 1,
+          "original": "메인카피 1줄 중앙정렬 권장",
+          "note": "Gmarket Sans / Bold / 72px / -4%",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.14"
+        },
+        {
+          "field": "심의필",
+          "maxChars": null,
+          "lines": null,
+          "original": "",
+          "note": "Pretendard / Light / 20px / -1.5% / #787878",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.14"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 메인 최 상단, 화면 내 1080×80",
+        "이미지 외곽 테두리 삽입 불가"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.14",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-sky-recruit",
+      "name": "PC 채용 스카이 배너 (알서브스카이)",
+      "platform": "PC",
+      "w": 120,
+      "h": 600,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "#F2F4F7 배경에서 가시성 있는 BG컬러 사용",
+      "safeArea": {
+        "note": "도식상 여백 10px",
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      },
+      "textLimits": [
+        {
+          "field": "카피(가로정렬 시)",
+          "maxChars": 5,
+          "lines": null,
+          "original": "카피 가로정렬 시 한줄 5자 이내 권장",
+          "note": "가로·세로 정렬 모두 가능",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.15"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 채용정보 우측",
+        "폰트 최소 사이즈 12px",
+        "폰트 사이즈 최대 2가지 사용 준수",
+        "배너 라운딩 불가",
+        "guide4 '알서브스카이' 지면으로 보임"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.15",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-sky-job",
+      "name": "PC 공고 스카이 배너",
+      "platform": "PC",
+      "w": 560,
+      "h": 700,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "흰 배경에서 가시성 있는 BG컬러 사용",
+      "safeArea": {
+        "note": "배너 여백 좌우 24px / 상하 40px",
+        "top": 40,
+        "right": 24,
+        "bottom": 40,
+        "left": 24
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 채용공고 보기 페이지, 화면 내 280×350",
+        "폰트 최소 사이즈 12px",
+        "폰트 사이즈 최대 2가지 사용 준수",
+        "이미지 외곽에 테두리 삽입 불가",
+        "최종파일 라운딩 없이 전달"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.16",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-sub-bottom",
+      "name": "PC 채용 하단 배너",
+      "platform": "PC",
+      "w": 495,
+      "h": 110,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "흰 배경에서 가시성 있는 BG컬러 사용",
+      "safeArea": {
+        "note": "배너 여백 10px, 출처 표기 여백 8px 준수",
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 서브페이지 하단",
+        "폰트 최소 사이즈 12px",
+        "배너 라운딩 불가"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.17",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-sub-bottom-text",
+      "name": "PC 채용 하단 텍스트 배너",
+      "platform": "PC",
+      "w": null,
+      "h": null,
+      "exportScale": 1,
+      "format": [
+        "text"
+      ],
+      "maxKB": 30,
+      "background": null,
+      "safeArea": null,
+      "textLimits": [
+        {
+          "field": "텍스트",
+          "maxChars": 15,
+          "lines": 2,
+          "original": "텍스트 최대 2줄 준수 / 1줄당 15자 이하 준수",
+          "note": "강조해야하는 문구는 하단배치 지향",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.18"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 서브페이지 하단",
+        "유형: 텍스트 노출"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.18",
+      "confidence": "확정",
+      "note": "이미지 소재 아님 — 텍스트 상품 (파일크기 30KB 이내 표기는 원문 그대로)"
+    },
+    {
+      "id": "albamon-pc-login-right",
+      "name": "PC 로그인 우측 배너 (알로그인)",
+      "platform": "PC",
+      "w": 325,
+      "h": 310,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "흰색 배경에서 가시성 있는 BG컬러 사용",
+      "safeArea": {
+        "note": "배너 여백 10px, 출처 표기 여백 8px 준수",
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 로그인 우측",
+        "폰트 최소 사이즈 12px",
+        "배너 라운딩 불가",
+        "guide4 '알로그인' 지면으로 보임"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.19",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-search-right",
+      "name": "PC 검색 우측 배너",
+      "platform": "PC",
+      "w": 320,
+      "h": 155,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "#DFE6EE 배경에서 가시성 있는 BG컬러 사용. 가변영역 단일컬러 사용",
+      "safeArea": {
+        "note": "배너 좌우 10px 내 패턴 및 이미지 노출 금지. 도식에 내부 205×155 영역 표기(용도 설명 없음)",
+        "top": null,
+        "right": 10,
+        "bottom": null,
+        "left": 10
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 검색 우측",
+        "테두리 삽입 금지",
+        "폰트 최소 사이즈 12px",
+        "배너 라운딩 불가"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.20",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-pc-company-left",
+      "name": "PC 기업 좌측 배너",
+      "platform": "PC",
+      "w": 200,
+      "h": 275,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 30,
+      "background": "흰 배경에서 가시성 있는 BG컬러 사용",
+      "safeArea": {
+        "note": "배너 여백 10px 준수",
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      },
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 PC > 기업 좌측",
+        "폰트 최소 사이즈 12px",
+        "배너 라운딩 불가"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.21",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-m-splash",
+      "name": "M 앱 스플래시 배너",
+      "platform": "APP",
+      "w": 1440,
+      "h": 976,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 300,
+      "background": "투명 배경 사용 필수 (투명 png)",
+      "safeArea": {
+        "note": "좌우 최소 여백 144px. 광고 브랜드 로고&문구는 상단 25% 내 중앙배치. 화면 중앙 로고 영역은 알바몬 로고 이미지 고정. 로고/문구 영역 1440×240 내 중앙정렬. 문구·로고와 오브젝트 여백 88px. 오브젝트는 광고 영역 내 최소 width 880px",
+        "top": null,
+        "right": 144,
+        "bottom": null,
+        "left": 144,
+        "brandArea": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 240,
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.24"
+        }
+      },
+      "textLimits": [
+        {
+          "field": "대문구",
+          "maxChars": 16,
+          "lines": 1,
+          "original": "대문구 띄어쓰기 포함 최대16자",
+          "note": "Pretendard 88px / Bold / -0.5% / #171717",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.23~25"
+        },
+        {
+          "field": "소문구",
+          "maxChars": 18,
+          "lines": 1,
+          "original": "소문구 띄어쓰기포함 최대 18자",
+          "note": "Pretendard 64px / Regular / -0% / #171717",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.23~25"
+        }
+      ],
+      "logo": {
+        "count": 1,
+        "w": null,
+        "h": null,
+        "note": "로고 단독: 1440×240 영역 내 중앙정렬, 최소높이 120px (p.24). 문구+로고 조합: 로고높이 최대 72px, 문구와 로고 여백 88px, 문구 하단 배치 (p.25). 로고·엠블럼·이벤트 타이틀을 로고 소재로 활용 가능"
+      },
+      "layoutNotes": [
+        "케이스: ① 로고+오브젝트 ② 문구+오브젝트 ③ 문구(1줄/2줄)+로고+오브젝트 (p.24~25)",
+        "브랜드 식별에 방해되는 오브젝트 사용 금지",
+        "인물 또는 캐릭터가 포함된 경우 주요부위가 잘리지 않도록 유의",
+        "Bad: 오브젝트만 노출 / 좌우 여백 미고려 / 영역 미준수 / 오브젝트 880px 미만 (p.27)"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.23~27",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-m-main",
+      "name": "M 메인 배너",
+      "platform": "MO",
+      "w": 1029,
+      "h": 258,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "maxKB": 100,
+      "background": "텍스트+오브젝트만 있는 투명 png로 전달. 기본 BG컬러 #F2F2F2 준수, 컬러 필요 시 우선순위 기본(#F2F2F2) > 1단계 > 2단계. 1단계: #DEF5F3 #E3F5E6 #EDF4DD #FDF4E6 #FFEBEB #FCE8F2 #F3E7F8 #EBE7F8 #E2ECFF #DEF1FD / 2단계: #C9F6EF #C9F3CF #E1F5B7 #FFEBAF #FFDDDD #FFE2F4 #F8E4FF #E5DFFF #D5DDFF #C6E8FF",
+      "safeArea": {
+        "note": "좌우 여백 48px, 상단 24px(도식, LOGO영역 기준). 심의필 문구 좌측 48px·하단에서 16px. 오브젝트 영역 가로 320px, 로고 영역 내 로고 배치. 텍스트 최소길이 290px / 최대길이 585px",
+        "top": 24,
+        "right": 48,
+        "bottom": null,
+        "left": 48
+      },
+      "textLimits": [
+        {
+          "field": "메인 문구",
+          "maxChars": 13,
+          "lines": 1,
+          "original": "폰트 스타일 고정, 13자 제한 (도식)",
+          "note": "Pretendard / Bold / 52px / -0.5% / #4C4C4C",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.28 (도식 렌더 확인)"
+        },
+        {
+          "field": "서브 문구",
+          "maxChars": 17,
+          "lines": 1,
+          "original": "투명배경 필수, 17자 제한 (도식)",
+          "note": "Pretendard / Regular / 40px / -0.5% / #6A6A6A",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.28 (도식 렌더 확인)"
+        },
+        {
+          "field": "심의필 문구",
+          "maxChars": null,
+          "lines": 1,
+          "original": "",
+          "note": "Pretendard / Regular / 16px / -0.5% / #6A6A6A / 하단에서 16px",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.28"
+        }
+      ],
+      "logo": {
+        "count": 1,
+        "w": null,
+        "h": null,
+        "note": "우측 LOGO영역 내 로고 배치 (도식, 치수 미기재)"
+      },
+      "layoutNotes": [
+        "노출위치 M > 메인 상단",
+        "이미지 외곽 테두리 삽입 불가",
+        "패턴 사용금지"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.28",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-m-sub",
+      "name": "M 서브 배너 (모바일서브띠)",
+      "platform": "MO",
+      "w": 1029,
+      "h": 258,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "jpeg",
+        "gif",
+        "png"
+      ],
+      "maxKB": 100,
+      "background": "흰 배경에서 가시성 있는 BG컬러 사용. 좌우 여백 10px 내 동일한 BG컬러",
+      "safeArea": {
+        "note": "좌우 여백 10px 내에는 패턴이나 이미지 노출 금지(가변영역)",
+        "top": null,
+        "right": 10,
+        "bottom": null,
+        "left": 10
+      },
+      "textLimits": [
+        {
+          "field": "문구",
+          "maxChars": null,
+          "lines": null,
+          "original": "",
+          "note": "폰트 : Gmarket Sans / Bold / 최대 56px / -4% 권장",
+          "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.29"
+        }
+      ],
+      "logo": null,
+      "layoutNotes": [
+        "노출위치 M > 서브 페이지 하단",
+        "파일명 뒤에 컬러값 표기 bn_cceeff.png",
+        "배너 라운딩 불가",
+        "guide4 '모바일서브띠' 지면으로 보임"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.29",
+      "confidence": "확정",
+      "note": ""
+    },
+    {
+      "id": "albamon-email-target",
+      "name": "개인·기업 타겟메일",
+      "platform": "공통",
+      "w": 700,
+      "h": null,
+      "exportScale": 1,
+      "format": [
+        "html"
+      ],
+      "maxKB": null,
+      "background": null,
+      "safeArea": null,
+      "textLimits": [],
+      "logo": null,
+      "layoutNotes": [
+        "700 X 1500이내 사이즈에 맞춰 통이미지로 전달 — 의뢰사 서버 등록 후 URL로 전달, 유형 Html",
+        "메일 제목에 (광고) 표기 필수",
+        "잡코리아 AD 뉴스레터 폼에 얹혀서 발송",
+        "폰트 최소 사이즈 12px",
+        "캠페인에 따라 소재 사전검수 필요할 수 있음"
+      ],
+      "examples": [],
+      "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.31",
+      "confidence": "확정",
+      "note": "h는 최대 1500 (1500 이내)",
+      "maxH": 1500
+    }
+  ],
+  "rejections": [],
+  "conflicts": [],
+  "needsReview": [
+    "Figma 보드에 없음 — 담당자가 실제 운용하는 매체인지 확인",
+    "PDF는 '잡코리아·알바몬' 공용 가이드이고 PC 페이지 화면 예시는 JOBKOREA — 알바몬 지면에 전부 해당하는지 확인. guide4 예시 이미지 표기 지면은 메인탑·알로그인·모바일서브띠·알서브스카이 4곳(각각 메인 빅·로그인 우측·M 서브·채용 스카이로 매칭한 것은 위치·형태 근거 추정)",
+    "공통 '출처표기 8px' vs 메인 빅 배너 '출처 표기 여백 16px' — 지면별 값 우선으로 기록. PSD 실측은 약 18px",
+    "PSD guide_PC_메인빅배너 캔버스 1504×524 = A/B 두 레이아웃(각 1504×220)을 세로로 쌓은 것 — 제출은 1504×220",
+    "메인 보드 배너 등 폰트 px가 2배 파일 기준인지 화면(1배) 기준인지 미기재",
+    "M 메인 배너 글자수(13자/17자)는 PDF 도식 속 텍스트로만 있음 — 렌더 이미지로 필드 확인함"
+  ]
+}

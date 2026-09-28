@@ -1,0 +1,680 @@
+{
+  "id": "kakao",
+  "name": "카카오톡",
+  "group": "디지털",
+  "tool": "포토샵(비즈보드·CPT) + 피그마(디스플레이 PC)",
+  "toolSource": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx — 비즈보드 'PSD 템플릿으로 제작', 디스플레이(PC) '피그마에서 제작'",
+  "sources": [
+    "figma:카카오톡01(소재 제작 규정/제작가이드&예시) (section 417:1964)",
+    "figma:카카오 소재 반려 이슈 사례 (section 446:50)",
+    "figma:카카오톡 섹션 상단 메모 text 421:5472",
+    "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx — 담당자 인수인계 정리. 공식 가이드 링크: https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide , https://kakaobusiness.gitbook.io/main/ad/moment/performance/displayad/content-guide (원문 미열람)",
+    "pdf:카카오 규정 완화 가이드.pdf (Version 2025.06.02, 26p)",
+    "psd:카카오 비즈보드 (썸네일-박스형-오른쪽) 가이드 PSD 파일.psd",
+    "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01_banner_template_object.psd ~ 06_banner_template_masking_circle_type.psd",
+    "psd:카카오 cpt/01_banner_template_background.psd / 02_banner_template_object.psd / 03_banner_template_text.psd",
+    "ai:카카오톡 CPT 제작가이드.ai (아트보드 4개)",
+    "jpg:카카오 cpt/자산 1-100.jpg (pngs/guide6.png)"
+  ],
+  "common": [
+    {
+      "rule": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG",
+      "source": "figma:카카오톡 섹션 상단 메모 text 421:5472"
+    },
+    {
+      "rule": "위 소재 사이즈 및 규격 — 소재 사이즈 1029*258px / 파일 포맷 PNG 투명 배경 / 수평해상도&비트 수준 72DPI 32",
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5440·5443·5444·5446·5447·5449·5450"
+    },
+    {
+      "rule": "* 글자수 체크하기 투명 배경 체크하기 텍스트와 이미지 간격 확인하기 비트 수준 확인",
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5441"
+    },
+    {
+      "rule": "우측이미지가 광고소재랑 연관있어야 함!!",
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5452"
+    },
+    {
+      "rule": "텍스트 컬러 가이드 색상 규정 최종 제출 전에 한 번 더 확인하기 > 메인 #4C4C4C / 서브 #555555,#777777",
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5470"
+    },
+    {
+      "rule": "광고주체 표기: 카피나 오브젝트에 광고주체에 대한 표기 필수(ex '카카오게임'이 광고주인 경우, '카카오게임 10주년 기념 인형 기획전'처럼 메인 문구로 들어가야 함.)",
+      "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 비즈보드 2"
+    },
+    {
+      "rule": "텍스트와 이미지가 겹치지 않고 가독성이 확보되도록 구성. 카피와 오브젝트 간격 최소 33px 이상 확보",
+      "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 비즈보드 5 / pdf:카카오 규정 완화 가이드.pdf p.2"
+    },
+    {
+      "rule": "정해진 폰트 컬러 및 크기를 변경하거나 훼손 불가",
+      "source": "pdf:카카오 규정 완화 가이드.pdf p.2"
+    },
+    {
+      "rule": "본 제작 가이드는 기존 비즈보드 대비 완화된 버전으로서, 별도로 제공되는 PSD 템플릿을 통해 소재를 제작하는 경우에 한해 사용이 가능합니다. (배너제작툴로 소재 제작 시 사용 불가)",
+      "source": "pdf:카카오 규정 완화 가이드.pdf p.1"
+    },
+    {
+      "rule": "디스플레이 광고(PC): 1200x600px(2:1) 사이즈 사용 / 피그마에서 제작 / 프로필이미지(로고)도 함께 제출",
+      "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 디스플레이 1"
+    }
+  ],
+  "textColors": {
+    "main": "#4C4C4C",
+    "sub": [
+      "#555555",
+      "#777777"
+    ],
+    "extra": "#999999",
+    "ctaCopy": "#777777",
+    "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5470 (메인·서브) / pdf:카카오 규정 완화 가이드.pdf p.12 (부가정보), p.15 (카피형 CTA)",
+    "note": "비즈보드 전용. 디스플레이(PC)는 색 지정 없음('4가지 이상의 폰트 스타일과 컬러 사용 불가')."
+  },
+  "fonts": {
+    "required": "Pretendard",
+    "note": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음.",
+    "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 4 / pdf:카카오 규정 완화 가이드.pdf p.10, p.12, p.15"
+  },
+  "specs": [
+    {
+      "id": "kakao-bizboard-mo",
+      "name": "카카오 비즈보드 (MO)",
+      "platform": "MO",
+      "tool": "포토샵",
+      "w": 1029,
+      "h": 258,
+      "exportScale": 1,
+      "format": [
+        "png"
+      ],
+      "formatNote": "보드 'PNG 투명 배경'(421:5446) / docx 'PNG-24/32'. 섹션 메모 'JP(E)G, PNG'와 다름 — conflicts 참고",
+      "maxKB": 300,
+      "dpi": 72,
+      "bitDepth": 32,
+      "background": "투명 (보드 'PNG 투명 배경' 421:5446, docx '투명 PNG 배경 추출'). 예외: DN솔루션즈는 흰 배경도 함께 추출(docx).",
+      "safeArea": {
+        "note": "완화 가이드 p.4 '933x258 지정 영역 내 자유롭게 표현 가능' → 좌우 48px씩 비움((1029-933)/2). PSD 템플릿도 오브젝트·텍스트가 x=48~981 안에 있음. 카피 노출 영역 933×156(완화 가이드 p.10 그림). 익스팬더블 적용 시 우하단 겹침 영역 x833,y168,172×72(PSD 레이어 '익스팬더블 적용 시 겹치지는 영역') — 카피·CTA가 겹치면 안 됨(완화 가이드 p.26). 꺾쇠 사용 시 우측 190px 여백(PSD 숨김 레이어 '190px 여백 시 적용' x839~1029).",
+        "top": null,
+        "right": 48,
+        "bottom": null,
+        "left": 48,
+        "copyArea": {
+          "w": 933,
+          "h": 156,
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.10 (그림)"
+        },
+        "expandableOverlap": {
+          "x": 833,
+          "y": 168,
+          "w": 172,
+          "h": 72,
+          "source": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01~06 / psd:카카오 비즈보드 (썸네일-박스형-오른쪽) 가이드 PSD 파일.psd 레이어 '익스팬더블 적용 시 겹치지는 영역'"
+        },
+        "source": "pdf:카카오 규정 완화 가이드.pdf p.4, p.10, p.26 / psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01~06"
+      },
+      "textColors": {
+        "main": "#4C4C4C",
+        "sub": [
+          "#555555",
+          "#777777"
+        ],
+        "extra": "#999999",
+        "ctaCopy": "#777777",
+        "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5470 / pdf:카카오 규정 완화 가이드.pdf p.12, p.15"
+      },
+      "textLimits": [
+        {
+          "field": "메인카피",
+          "maxChars": 15,
+          "lines": 1,
+          "note": "docx: '메인은 최대 15자 이하 *공백포함', '47pt 기준 15글자, 50pt 기준 13글자 정도 사용 가능'. 완화 가이드 p.12: 최대 1줄, Pretendard Bold #4C4C4C 51~39pt. PSD 자리표시 글자 수: 오브젝트·썸네일형 13자 / 텍스트형 18자 / 블러·멀티·마스킹형 12자.",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 4 / pdf:카카오 규정 완화 가이드.pdf p.12",
+          "confidence": "확정"
+        },
+        {
+          "field": "서브카피",
+          "maxChars": 16,
+          "lines": 1,
+          "note": "docx 원문은 '상세는 16자 이하 *공백포함' — '상세'를 서브카피로 해석(확인필요). 완화 가이드 p.12: 최대 1줄, Pretendard Regular #555555/#777777 51~39pt. PSD 자리표시: 16자 / 텍스트형 21자 / 블러·멀티·마스킹형 14자.",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 4 / pdf:카카오 규정 완화 가이드.pdf p.12",
+          "confidence": "확인필요"
+        },
+        {
+          "field": "부가정보",
+          "maxChars": null,
+          "lines": 2,
+          "note": "Pretendard Regular #999999 18pt 고정, 최대 2줄 (p.12). PSD 자리표시 '부가정보 '+20자. 오브젝트 중앙 배열 시 예외 표기(심의필 등)는 2줄 불가·좌/우 정렬만 (p.13).",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.12, p.13",
+          "confidence": "확정"
+        },
+        {
+          "field": "카피 전체 줄 수",
+          "maxChars": null,
+          "lines": 3,
+          "note": "'최대 카피 줄 수는 3줄까지 허용 / 단, 부가정보 카피 사용 시 최대 4줄까지 허용'",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.10",
+          "confidence": "확정"
+        },
+        {
+          "field": "카피형 CTA",
+          "maxChars": null,
+          "lines": 1,
+          "note": "Pretendard Regular #777777 26pt 고정, 최대 1줄, 카피 최우측 꺾쇠(변형 금지), 메인/서브/혜택 카피 사이 위치 불가",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.15",
+          "confidence": "확정"
+        },
+        {
+          "field": "CTA 버튼명",
+          "maxChars": 4,
+          "lines": 1,
+          "note": "'CTA명은 4글자로 명확한 액션을 표현하는 단어만 사용 가능 ex) 구매하기, 다운로드, 바로가기'",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.7",
+          "confidence": "확정"
+        },
+        {
+          "field": "혜택 강조카피",
+          "maxChars": null,
+          "lines": 1,
+          "note": "기본 폰트 Pretendard Regular 45~31pt, #4C4C4C·#55555(원문 표기)·#777777 중 선택, 강조 요소 1개(어절 기준), 메인카피 대체 불가",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.17",
+          "confidence": "확정"
+        }
+      ],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "hRange": [
+          35,
+          45
+        ],
+        "note": "로고 자체는 필수 아님 — '광고주체 표기 필수'(카피나 오브젝트에 광고주 표기, docx 2·완화 가이드 p.2). 워드마크/로고로 메인카피 대체 시: 높이 45~35px, 한 줄, 카피와 혼합 불가, 텍스트형 로고만(docx 8 '*기존 사례- 다스'), 세로형·프로모션 로고·심볼 불가, 오브젝트/썸네일 없이 단독 사용 불가(p.22~23). 카피형 CTA 영역 로고: 주요 요소 높이 20px, 최대 38px(p.15). PSD 오브젝트형 가이드 레이어 '광고주체 142x48 (겹침 없이 사용)'(x48,y16).",
+        "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 2, 8 / pdf:카카오 규정 완화 가이드.pdf p.15, p.22, p.23 / psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01_banner_template_object.psd"
+      },
+      "layoutNotes": [
+        "보드: '* 글자수 체크하기 투명 배경 체크하기 텍스트와 이미지 간격 확인하기 비트 수준 확인' (421:5441)",
+        "보드: '우측이미지가 광고소재랑 연관있어야 함!!' (421:5452)",
+        "보드 템플릿 frame 421:5460: 텍스트 x46~51에서 시작(메인문구 박스 491×59 y68, 464×48 y144) / 우측 썸네일 박스 313×185 at x663,y36",
+        "docx: 기본 유형 오브젝트형 / 썸네일형 / 마스킹형 / 텍스트형 — 오브젝트형·썸네일형(313x185px 박스)을 가장 많이 사용, 한샘은 반원 도형 마스킹형",
+        "docx: 주로 좌측정렬 배치를 기본으로 사용",
+        "카피와 오브젝트 간격 최소 33px (docx 5 / 완화 가이드 p.2). PSD 템플릿 가이드는 '사이 여백 50px'",
+        "오브젝트: 933x258 영역 안, 최대 438x258(완화 가이드 p.4) — PSD 가이드는 'obj max 315px / obj min 219px'(conflicts 참고). 잘리거나 저해상도 불가, 오브젝트 단독 노출 불가(p.3)",
+        "썸네일: 최대 크기 안에서 구성, 상하 여백 없이 영역 전체를 채우기 불가 (p.6)",
+        "오브젝트 위·아래에 카피 배치 불가, 정렬은 좌·우·중앙 중 하나 (p.10)",
+        "기울기·왜곡·자간·장평 등 글꼴 스타일 변경 불가, 카피 타입 내 한 가지 스타일만 (p.10)",
+        "메인카피 외 강조 효과는 최대 1개 (카피형 CTA / 혜택 강조카피 / 배지 플래그형 중 택1) (p.2)",
+        "CTA 버튼: 4유형 택1, 버튼과 카피 사이 최소 36px, 버튼 형태·위치·크기·색 변경 불가 (p.7)",
+        "배지: 한 어절, 플랫, 1개만, 특수기호는 %, !, + 만 (p.19)",
+        "완화 가이드는 '별도로 제공되는 PSD 템플릿을 통해 소재를 제작하는 경우에 한해 사용 가능 (배너제작툴로 소재 제작 시 사용 불가)' (p.1, Version 2025.06.02)",
+        "PSD: '저장 시 눈을 꺼서 저장해주세요.' — 가이드 레이어(System Component 등) 끄고 저장",
+        "PSD 카피 레이어 크기: main copy 48pt(박스 높이 46) / sub copy 39pt(36) / extra copy 18pt(17) / app copy 24pt(24)",
+        "PSD 텍스트 레이아웃 9종: 01_기본형 / 02_부가정보형 / 03_채팅방 확인 / 04_한줄_기본형 / 05_한줄_부가정보형 / 06_한줄_채팅방 확인 / 07_앱다운로드/인랜딩_기본형 / 08_앱다운로드/인랜딩_한줄형 / 09_앱다운로드/인랜딩_부가정보형"
+      ],
+      "templateVariants": [
+        {
+          "name": "오브젝트형",
+          "file": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01_banner_template_object.psd",
+          "canvas": "1029×258",
+          "object": "obj max 315px(x48~363) / obj min 219px, Image_Max·Image_Min 2버전",
+          "textArea": "text min 290px, 오브젝트와 사이 여백 50px (max일 때 텍스트 x413~981)",
+          "placeholder": "메인 13자 / 서브 16자",
+          "extra": "광고주체 142x48 가이드(x48,y16)"
+        },
+        {
+          "name": "텍스트형",
+          "file": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/02_banner_template_text_type.psd",
+          "canvas": "1029×258",
+          "object": "없음",
+          "textArea": "text min 480px, x48~844",
+          "placeholder": "메인 18자 / 서브 21자"
+        },
+        {
+          "name": "블러형",
+          "file": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/03_banner_template_blur_type.psd",
+          "canvas": "1029×258",
+          "object": "blur_area, 가이드 레이어명 'obj max 315px'이나 영역 폭 360(x48~408)",
+          "textArea": "text min 290px, 사이 여백 50px (x458~981)",
+          "placeholder": "메인 12자 / 서브 14자"
+        },
+        {
+          "name": "썸네일형(좌측)",
+          "file": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/04_banner_template_thumbnail_type.psd",
+          "canvas": "1029×258",
+          "object": "thumbnail 315×186 at x48,y36",
+          "textArea": "text min 290px, 사이 여백 50px (x413~981)",
+          "placeholder": "메인 13자 / 서브 16자"
+        },
+        {
+          "name": "멀티형",
+          "file": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/05_banner_template_multi_type.psd",
+          "canvas": "1029×258",
+          "object": "multi_area(thumb_01·thumb_02), obj max 360px(x48~408)",
+          "textArea": "text min 290px, 사이 여백 50px (x458~981)",
+          "placeholder": "메인 12자 / 서브 14자"
+        },
+        {
+          "name": "마스킹 원형",
+          "file": "psd:카카오 비즈보드 왼쪽 정렬 PSD파일/06_banner_template_masking_circle_type.psd",
+          "canvas": "1029×258",
+          "object": "circle_top_guide / circle_bottom_guide, logo_area, 영역 폭 360(x48~408)",
+          "textArea": "text min 290px, 사이 여백 50px (x458~981)",
+          "placeholder": "메인 12자 / 서브 14자"
+        },
+        {
+          "name": "썸네일-박스형-오른쪽",
+          "file": "psd:카카오 비즈보드 (썸네일-박스형-오른쪽) 가이드 PSD 파일.psd",
+          "canvas": "1029×258",
+          "object": "thumbnail 315×186 at x666,y36 (예시 이미지 'DN오토모티브_팝업배너_시안1')",
+          "textArea": "좌측 텍스트",
+          "placeholder": "메인 13자 / 서브 16자",
+          "extra": "배지 레이어 badge_type1(두줄·한줄)·badge_type2, 색 7종(Red·Orange·Pink·Blue·Green·Purple·Black), '배너제작툴로 제작된 이미지(최종)' 숨김 레이어"
+        },
+        {
+          "name": "(Figma 보드 템플릿) 썸네일 박스형-오른쪽",
+          "file": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) frame 421:5460",
+          "canvas": "1029×258",
+          "object": "썸네일 박스 313×185 at x663,y36",
+          "textArea": "x46~51 시작, 메인문구 2줄 자리",
+          "placeholder": "'메인문구를 입력하세요.' ×2"
+        }
+      ],
+      "examples": [
+        {
+          "client": "안랩",
+          "w": 1029,
+          "h": 258,
+          "source": "figma image 421:5461 '안랩_카카오_비즈보드 1' (템플릿 안 숨김) / 421:5438 '안랩_카카오_비즈보드_반려대비 1'"
+        },
+        {
+          "client": "HS화성",
+          "w": 1029,
+          "h": 258,
+          "source": "figma image 421:5454 'HS화성_카카오 (비즈보드) 1'"
+        },
+        {
+          "client": "비씨월드제약",
+          "w": 1029,
+          "h": 258,
+          "source": "figma image 421:5455 '비씨월드제약_카카오_비즈보드 1'"
+        },
+        {
+          "client": "CMTX",
+          "w": 1029,
+          "h": 258,
+          "source": "figma image 421:5456 'CMTX_카카오 (비즈보드) _ 로고 단독 버전 1'"
+        },
+        {
+          "client": "동서식품",
+          "w": 1029,
+          "h": 258,
+          "source": "figma image 421:5457 '동서식품_카카오톡_MO_2 1'"
+        }
+      ],
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5440~5452·421:5470, frame 421:5460 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx / pdf:카카오 규정 완화 가이드.pdf / psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01~06 / psd:카카오 비즈보드 (썸네일-박스형-오른쪽) 가이드 PSD 파일.psd",
+      "confidence": "확정",
+      "note": "사이즈·포맷(투명 PNG)·용량 300KB·72DPI·32bit·텍스트 색은 보드·메모·docx 일치. 72DPI·32bit(알파 포함 PNG)는 파일 메타로 자동 검사 가능."
+    },
+    {
+      "id": "kakao-display-pc-promo",
+      "name": "카카오 디스플레이 광고 (PC) — 홍보이미지",
+      "platform": "PC",
+      "tool": "피그마",
+      "w": 1200,
+      "h": 600,
+      "exportScale": 1,
+      "minSize": "1200×600 이상, 2:1 비율",
+      "format": [
+        "jpg",
+        "png"
+      ],
+      "maxKB": 500,
+      "background": "'투명도 있는 이미지 사용 불가'(docx). 예시: 그라데이션 배경+CI(LX인터내셔널), 텍스트+오브젝트형(한국앤컴퍼니)",
+      "safeArea": {
+        "note": "'상단 및 좌/우 40px, 하단 90px 영역에는 텍스트, 로고 및 주요 오브젝트를 배치하지 않는 것을 권장(하단에는 복잡한 요소도 사용하지 않는 것을 추가 권장)' — 권장 사항",
+        "top": 40,
+        "right": 40,
+        "bottom": 90,
+        "left": 40,
+        "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx"
+      },
+      "textLimits": [
+        {
+          "field": "타이틀(광고 텍스트 필드)",
+          "maxChars": 25,
+          "lines": null,
+          "note": "'타이틀 최대 25자'",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+          "confidence": "확정"
+        },
+        {
+          "field": "홍보문구(광고 텍스트 필드)",
+          "maxChars": 45,
+          "lines": null,
+          "note": "'홍보문구 최대 45자'",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+          "confidence": "확정"
+        },
+        {
+          "field": "이미지 내 텍스트",
+          "maxChars": null,
+          "lines": 3,
+          "note": "'이미지 내 텍스트는 48px~164px' / 심의필·저작권 등 필수 문구는 24px 이상 권장 / '최대 3줄까지 구성하는 것을 권장' / '4가지 이상의 폰트 스타일과 컬러 사용 불가' / '분할 이미지 사용시 이미지 내 텍스트 미사용 권장'",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+          "confidence": "확정"
+        }
+      ],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "규정 없음. 예시 LX인터내셔널: CI 945×166 중앙 배치(421:5490). 한국앤컴퍼니: CI 2종(145×76, 191×44).",
+        "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시)"
+      },
+      "layoutNotes": [
+        "docx: '1200x600px(2:1) 사이즈 사용 / 피그마에서 제작 / 프로필이미지(로고)도 함께 제출'",
+        "보드 빈 프레임 '_카카오_PC디스플레이 (홍보이미지)' 1200×600 (421:5478)",
+        "한국앤컴퍼니 예시: 메인 '한국앤컴퍼니 Proactive Leaders 공개 채용' + 날짜 '9/23(수) ~ 10/5(월)' + CI 2종 + 우측 일러스트 오브젝트"
+      ],
+      "examples": [
+        {
+          "client": "LX인터내셔널",
+          "w": 1200,
+          "h": 600,
+          "source": "figma frame 421:5487 'LX인터내셔널_카카오_PC디스플레이 (홍보이미지)(그라데이션)'"
+        },
+        {
+          "client": "한국앤컴퍼니",
+          "w": 1200,
+          "h": 600,
+          "source": "figma frame 421:5491 '한국앤컴퍼니_카카오_PC디스플레이 (홍보이미지)(텍스트)'"
+        }
+      ],
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5476, frame 421:5478 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+      "confidence": "확정",
+      "note": "보드 프레임·섹션 메모(500KB, JP(E)G·PNG)·docx 일치. 1200×600 '이상' 허용이지만 보드 제작 치수는 1200×600."
+    },
+    {
+      "id": "kakao-display-pc-profile",
+      "name": "카카오 디스플레이 광고 (PC) — 프로필이미지",
+      "platform": "PC",
+      "tool": "피그마",
+      "w": 300,
+      "h": 300,
+      "exportScale": 1,
+      "minSize": "300×300 이상, 1:1 비율",
+      "format": [
+        "jpg",
+        "png"
+      ],
+      "maxKB": 500,
+      "background": "규정 없음",
+      "safeArea": {
+        "note": "'원형으로 크롭되어 모든 면에서 10px의 여백 제작을 권장'",
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10,
+        "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx"
+      },
+      "textLimits": [
+        {
+          "field": "이름(광고주/브랜드명)",
+          "maxChars": 20,
+          "lines": null,
+          "note": "'이름 최대 20자' / '로고와 이름(광고주/브랜드명) 연결성 필요(*캠페인, 이벤트명, 제품명 등으로 구성 불가)'",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+          "confidence": "확정"
+        }
+      ],
+      "logo": {
+        "count": 1,
+        "w": null,
+        "h": null,
+        "note": "'식별 가능한 대표 오브젝트 및 로고로 구성'. 예시 LX인터내셔널 CI 249×44(421:5481), 한국앤컴퍼니 로고 2개 버전(232×121 + 246×56).",
+        "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx / figma:카카오톡01(소재 제작 규정/제작가이드&예시)"
+      },
+      "layoutNotes": [
+        "보드 빈 프레임 '_카카오_PC디스플레이 (프로필이미지)' 300×300 (421:5477)"
+      ],
+      "examples": [
+        {
+          "client": "LX인터내셔널",
+          "w": 300,
+          "h": 300,
+          "source": "figma frame 421:5480 'LX인터내셔널_카카오_PC디스플레이 (프로필이미지)'"
+        },
+        {
+          "client": "한국앤컴퍼니",
+          "w": 300,
+          "h": 300,
+          "source": "figma frame 421:5484 '한국앤컴퍼니_카카오_PC디스플레이 (프로필이미지)_로고2개버전'"
+        }
+      ],
+      "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) frame 421:5477 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+      "confidence": "확정",
+      "note": "홍보이미지와 함께 제출."
+    },
+    {
+      "id": "kakao-cpt-background",
+      "name": "카카오톡 CPT — 배경 이미지",
+      "platform": "MO",
+      "tool": "포토샵",
+      "w": 1290,
+      "h": 258,
+      "exportScale": 1,
+      "format": null,
+      "maxKB": null,
+      "background": "배경 이미지 레이어('배경 이미지'). PSD 채널 3개(RGB, 알파 없음) — 불투명 배경으로 보임",
+      "safeArea": {
+        "note": "PSD 레이어 '실제노출영역 1029x258'(x131~1160) / '세이프존 937x222'(x177,y18) → 노출영역 기준 좌우 46px·상하 18px. '실 노출 시 라운드 참고' 레이어 있음. jpg 가이드 이미지도 '노출영역 : 1029x258', 'SAFE ZONE : 937 x 222' 표기.",
+        "top": 18,
+        "right": 46,
+        "bottom": 18,
+        "left": 46,
+        "reference": "실제노출영역(1029×258) 기준",
+        "source": "psd:카카오 cpt/01_banner_template_background.psd / jpg:카카오 cpt/자산 1-100.jpg (pngs/guide6.png)"
+      },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "규정 없음",
+        "source": null
+      },
+      "layoutNotes": [
+        "가이드 그룹 2종: 'Guide_오브젝트 분리형' / 'Guide_오브젝트 포함형'(오브젝트 포함형은 'OBJECT: 315x222' 영역 x799,y18 = 노출영역 기준 우측)"
+      ],
+      "examples": [
+        {
+          "client": "DN그룹",
+          "w": 1290,
+          "h": 258,
+          "source": "ai:카카오톡 CPT 제작가이드.ai 아트보드 4"
+        }
+      ],
+      "source": "psd:카카오 cpt/01_banner_template_background.psd / ai:카카오톡 CPT 제작가이드.ai / jpg:카카오 cpt/자산 1-100.jpg (pngs/guide6.png)",
+      "confidence": "확인필요",
+      "note": "보드·docx에 CPT 언급 없음 — 폴더(카카오 cpt)의 PSD 3종 + AI 제작가이드(아트보드 4개: 합성 1029×258 / 텍스트 1029×258 / 오브젝트 315×258 / 배경 1290×258, DN그룹 예시)만 있음. 포맷·용량·제출 방식 규정 없음."
+    },
+    {
+      "id": "kakao-cpt-object",
+      "name": "카카오톡 CPT — 오브젝트 이미지",
+      "platform": "MO",
+      "tool": "포토샵",
+      "w": 315,
+      "h": 258,
+      "exportScale": 1,
+      "format": null,
+      "maxKB": null,
+      "background": "투명 레이어(PSD 채널 4개 — 알파 포함)로 보임, 규정 문구 없음",
+      "safeArea": {
+        "note": "PSD 가이드 'obj max 315px' / 'obj min 219px'(x48~267)",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null
+      },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "규정 없음",
+        "source": null
+      },
+      "layoutNotes": [
+        "그룹 '01_Object'(Object 1장) / '02_Thumbnail'(thumbnail 315×186 at y36, 숨김)"
+      ],
+      "examples": [
+        {
+          "client": "DN그룹",
+          "w": 315,
+          "h": 258,
+          "source": "ai:카카오톡 CPT 제작가이드.ai 아트보드 3"
+        }
+      ],
+      "source": "psd:카카오 cpt/02_banner_template_object.psd / ai:카카오톡 CPT 제작가이드.ai",
+      "confidence": "확인필요",
+      "note": "보드·docx에 CPT 언급 없음 — 폴더(카카오 cpt)의 PSD 3종 + AI 제작가이드(아트보드 4개: 합성 1029×258 / 텍스트 1029×258 / 오브젝트 315×258 / 배경 1290×258, DN그룹 예시)만 있음. 포맷·용량·제출 방식 규정 없음."
+    },
+    {
+      "id": "kakao-cpt-text",
+      "name": "카카오톡 CPT — 텍스트 이미지",
+      "platform": "MO",
+      "tool": "포토샵",
+      "w": 1029,
+      "h": 258,
+      "exportScale": 1,
+      "format": null,
+      "maxKB": null,
+      "background": "투명 레이어(PSD 채널 4개)로 보임. 텍스트 색 버전 White / Black 두 벌",
+      "safeArea": {
+        "note": "텍스트 영역 x48 시작, 'text area_3 line' 576×152(y53) / 'text area_2 line' 576×118(y70), 'text min 290px'. 오브젝트 자리 'obj max 315px'(x666~981)와 텍스트 사이 '42px'",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": 48
+      },
+      "textLimits": [
+        {
+          "field": "메인카피",
+          "maxChars": null,
+          "lines": 1,
+          "note": "PSD 레이어 'main copy 48pt', 자리표시 13자('일이삼사오육칠팔구십일이삼')",
+          "source": "psd:카카오 cpt/03_banner_template_text.psd",
+          "confidence": "확인필요"
+        },
+        {
+          "field": "서브카피",
+          "maxChars": null,
+          "lines": 1,
+          "note": "'sub copy 39pt', 자리표시 16자",
+          "source": "psd:카카오 cpt/03_banner_template_text.psd",
+          "confidence": "확인필요"
+        },
+        {
+          "field": "부가정보",
+          "maxChars": null,
+          "lines": null,
+          "note": "'extra copy 18pt', 자리표시 '부가정보 '+20자, 예시 '준법감시인 심의필 제 2018-1234'",
+          "source": "psd:카카오 cpt/03_banner_template_text.psd",
+          "confidence": "확인필요"
+        },
+        {
+          "field": "앱 카피",
+          "maxChars": null,
+          "lines": 1,
+          "note": "'app copy 24pt', 예시 '채널 확인하기'·'채널 추가하기'",
+          "source": "psd:카카오 cpt/03_banner_template_text.psd",
+          "confidence": "확인필요"
+        }
+      ],
+      "logo": {
+        "count": null,
+        "w": 340,
+        "h": 40,
+        "note": "로고형 레이아웃에서 메인카피 자리에 'Logo_340x40' 가이드(x48,y64 또는 y83)",
+        "source": "psd:카카오 cpt/03_banner_template_text.psd"
+      },
+      "layoutNotes": [
+        "텍스트 레이아웃 9종: 01_기본형 / 02_부가정보형 / 03_채팅방 확인 / 04_한줄_기본형 / 05_한줄_부가정보형 / 06_한줄_채팅방 확인 / 07_앱다운로드/인랜딩_기본형 / 08_앱다운로드/인랜딩_한줄형 / 09_앱다운로드/인랜딩_부가정보형 (01·02·03은 로고 버전 포함)"
+      ],
+      "examples": [
+        {
+          "client": "DN그룹",
+          "w": 1029,
+          "h": 258,
+          "source": "ai:카카오톡 CPT 제작가이드.ai 아트보드 2 ('기술로 도약하는 DN그룹' / '대한민국 제조업의 미래')"
+        }
+      ],
+      "source": "psd:카카오 cpt/03_banner_template_text.psd / ai:카카오톡 CPT 제작가이드.ai",
+      "confidence": "확인필요",
+      "note": "보드·docx에 CPT 언급 없음 — 폴더(카카오 cpt)의 PSD 3종 + AI 제작가이드(아트보드 4개: 합성 1029×258 / 텍스트 1029×258 / 오브젝트 315×258 / 배경 1290×258, DN그룹 예시)만 있음. 포맷·용량·제출 방식 규정 없음."
+    }
+  ],
+  "rejections": [
+    {
+      "date": "2026-07-21",
+      "client": "다스",
+      "reason": "워드마크/로고형 카피로 다스 로고를 메인문구로 사용하였으나 그래픽 요소가 포함되어 있어 반려",
+      "ruleHint": "체크리스트(내용) — 자동 검사 불가. 워드마크/로고로 메인카피를 대체할 때는 그래픽·심볼 없는 텍스트형 로고만 사용(docx 8 '텍스트형 로고만 사용 가능 *기존 사례- 다스', 완화 가이드 p.23 '프로모션 로고, 심볼, 세로형 로고 등' 심사보류). 로고를 메인카피로 쓰는 경우 사람 확인 플래그.",
+      "source": "figma:카카오 소재 반려 이슈 사례 text 446:51"
+    },
+    {
+      "date": "2026-09-09",
+      "client": "콜마그룹",
+      "reason": "콜마그룹 소재에서 소재내 텍스트 기입으로 하기 소재 반려",
+      "ruleHint": "체크리스트(내용) — 자동 검사 불가. 보드 문구만으로는 어떤 상품(비즈보드/디스플레이) 소재인지, '하기 소재'가 무엇인지, 어느 규정 위반인지 불명. OCR로 이미지 속 텍스트 유무는 탐지할 수 있으나 반려 기준이 확정되지 않음.",
+      "source": "figma:카카오 소재 반려 이슈 사례 text 446:51"
+    }
+  ],
+  "conflicts": [
+    {
+      "field": "specs[kakao-bizboard-mo].format",
+      "figma": "섹션 메모 'JP(E)G, PNG'(421:5472) / 보드 본문 'PNG 투명 배경'(421:5446)",
+      "pdf": null,
+      "docx": "PNG-24/32",
+      "note": "투명 배경 필수이므로 png로 기록. 섹션 메모 JP(E)G는 디스플레이(PC)와 같이 쓴 표기로 보임."
+    },
+    {
+      "field": "specs[kakao-bizboard-mo] 오브젝트 최대 크기",
+      "figma": null,
+      "pdf": "933x258 지정 영역 안, 오브젝트 최대 438x258 (완화 가이드 p.4, p.6)",
+      "psd": "'obj max 315px' / 'obj min 219px' (오브젝트형·썸네일형), 블러·멀티·마스킹형 360px 폭",
+      "note": "완화 가이드는 PSD 템플릿 제작 시에만 적용된다고 명시하는데, 보유 PSD의 가이드 레이어는 315px — 어느 쪽이 최신 기준인지 PSD에 버전 표기가 없어 판단 불가. value 미기재."
+    },
+    {
+      "field": "specs[kakao-bizboard-mo] 카피 폰트 크기",
+      "figma": null,
+      "pdf": "메인·서브 51~39pt (p.12), docx 동일",
+      "psd": "레이어명 'main copy 48pt' / 'sub copy 39pt' (고정값처럼 표기)",
+      "note": "가이드는 범위, PSD는 기본값. 범위(51~39pt) 안이면 규정 충족."
+    },
+    {
+      "field": "specs[kakao-bizboard-mo] 썸네일 박스 크기",
+      "figma": "313×185 (rect 421:5463)",
+      "pdf": null,
+      "docx": "313x185px 박스",
+      "psd": "thumbnail 315×186 (04_thumbnail_type, 썸네일-박스형-오른쪽)",
+      "note": "보드·docx 값 313×185를 기준으로 기록."
+    },
+    {
+      "field": "specs[kakao-bizboard-mo] 메인카피 줄 수",
+      "figma": "보드 템플릿 text 421:5465·421:5466 두 줄 모두 '메인문구를 입력하세요.'",
+      "pdf": "메인카피 최대 1줄 사용 (p.12)",
+      "note": "보드 두 번째 줄이 서브카피 자리인지 자리표시 문구를 복사한 것인지 불명 — lines=1(가이드)로 기록."
+    }
+  ],
+  "needsReview": [
+    "공식 gitbook 가이드(비즈보드·디스플레이) 원문을 열람하지 않음 — docx 요약과 완화 가이드 pdf만 반영.",
+    "CPT 3종(배경 1290×258 / 오브젝트 315×258 / 텍스트 1029×258): 포맷·용량·제출 방식이 어느 자료에도 없음, 3개 파일로 나눠 제출하는지도 확인 필요.",
+    "서브카피 글자수: docx 원문 '상세는 16자 이하' — '상세'가 서브카피를 뜻하는지 확인.",
+    "오브젝트 최대 크기 438×258(완화 가이드) vs 315px(PSD) — 어느 기준을 검사에 쓸지 결정 필요.",
+    "콜마그룹 반려(2026-09-09): 대상 상품·위반 규정 불명 — 담당자에게 원본 확인.",
+    "'안랩_카카오_비즈보드_반려대비' 이미지(421:5438)가 일반본과 무엇이 다른지 텍스트로 확인 불가.",
+    "보드 이미지 노드 image 7080(775×405)·7081(946×373)·7082(661×384) 내용은 텍스트로 확인 불가.",
+    "DN솔루션즈 흰 배경 추가 추출(docx) 같은 고객사별 예외 목록이 더 있는지 확인.",
+    "디스플레이(PC) 홍보이미지·프로필은 '이상' 규격(1200×600 이상, 300×300 이상) — 보드 제작 치수로 고정해 기록함, 최대 치수 규정은 없음.",
+    "CPT 배경/오브젝트/텍스트 투명 여부는 PSD 채널 수(3 vs 4)로 추정한 관찰값 — 규정 문구 아님."
+  ]
+}
