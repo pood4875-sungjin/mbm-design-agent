@@ -150,6 +150,22 @@ export function rolesFromKeyVisual(colors = [], mode = 'light') {
 // (2) 배경이 복잡하면(편차 큼) 스크림(그라데이션 가림막)을 켠다.
 // 이미지 속 기존 글자·오브젝트를 지우는 건 여기서 못 한다(인페인팅 = 별도 AI 필요).
 // 대신 "겹쳐도 읽히게" 만드는 쪽으로 해결한다.
+// 로고와 키비주얼에서 뽑은 색을 세 자리에 배치한다 — 고객사는 매번 다르므로 색은 저장해 두지 않고 올린 자료에서 읽는다.
+//   로고만      → 로고 색으로 세 자리
+//   키비주얼만  → 키비주얼 색으로 세 자리
+//   둘 다       → 주색은 로고(브랜드 색이 지면 색이 된다), 보조·포인트는 키비주얼(분위기)
+//                 키비주얼이 사진이면 대표색이 살색·회색으로 나온다 — 그걸 지면에 깔면 브랜드가 사라진다.
+//   로고가 무채색(검정·흰색 로고)이면 뽑힌 색이 없으므로 키비주얼이 전부 맡는다.
+// lead='kv' 는 사용자가 키비주얼 색을 주색으로 고른 경우 — 그때는 키비주얼이 세 자리를 다 맡는다.
+export function rolesFromSources({ logo = [], kv = [], lead = 'logo' } = {}, mode = 'light') {
+  const ok = list => (list ?? []).filter(c => typeof c === 'string' && /^#[0-9A-Fa-f]{6}$/.test(c));
+  const L = ok(logo), K = ok(kv);
+  if (!L.length || (lead === 'kv' && K.length)) return rolesFromKeyVisual(K.length ? K : L, mode);
+  if (!K.length) return rolesFromKeyVisual(L, mode);
+  const primary = L[0];
+  return rolesFromKeyVisual([primary, ...K.filter(c => !tooClose(c, primary))], mode);
+}
+
 export function analyzeRegion(rgba, w, h, box) {
   const x0 = Math.max(0, Math.floor(box.x * w)), x1 = Math.min(w, Math.ceil((box.x + box.w) * w));
   const y0 = Math.max(0, Math.floor(box.y * h)), y1 = Math.min(h, Math.ceil((box.y + box.h) * h));

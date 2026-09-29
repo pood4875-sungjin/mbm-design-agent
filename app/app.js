@@ -9,7 +9,7 @@ import { adSpecEntries, adSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
-import { extractPalette, rolesFromKeyVisual, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
+import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -369,6 +369,8 @@ async function startIntake(text) {
     // briefDone: 빈칸 채우기 문장을 사용자가 확인했는가 · readFields: 브리프에서 읽어 채운 값(점선 밑줄로 구분)
     // specOff: 고른 매체의 소재 중 이번에 만들지 않기로 끈 것
     briefDone: false, readFields: new Set(), specOff: new Set(), pickerOpen: false, showOptional: false,
+    // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
+    logoSuggests: [], colorLead: null,
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -805,10 +807,23 @@ function slotStyle() {
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       announceDpi();
-      bub('agent', `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.\n글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.`);
+      bub('agent', (leadOf(it) === 'logo'
+        ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
+        : `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.`)
+        + '\n글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.');
     } catch { $('kvHint').textContent = ''; }
   });
-  bindUpload($('logoThumb'), $('logoFile'), d => { it.logo = d; });
+  bindUpload($('logoThumb'), $('logoFile'), async d => {
+    it.logo = d;
+    try { it.logoSuggests = await analyzeLogo(d); } catch { it.logoSuggests = []; }
+    it.colorsManual = false;   // 새 로고가 들어왔으면 색은 그 로고 기준으로 다시 잡는다
+    it.colorLead = null;
+    applyDerived(); slotStyle();
+    say(it.logoSuggests.length
+      ? `로고에서 ${it.logoSuggests[0]}를 뽑아 주색으로 잡았어요.${it.suggests.length ? ' 보조·포인트는 키비주얼 색을 그대로 씁니다.' : ''}`
+      : it.suggests.length ? '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 색은 키비주얼에서 가져왔습니다.'
+        : '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 키비주얼을 올리거나 컬러를 직접 골라 주세요.');
+  });
   bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; });
   $('stOk').onclick = () => {
     it.styleDone = true;
@@ -881,25 +896,39 @@ async function doUpscale(a) {
 function applyDerived() {
   const it = state.intake;
   if (it.colorsManual) return;                       // 손으로 고른 색이 있으면 건드리지 않는다
-  if (it.suggests?.length) {
-    const roles = rolesFromKeyVisual(it.suggests, it.mode);
-    if (roles) { it.colors = roles; return; }
-  }
+  const roles = rolesFromSources({ logo: it.logoSuggests, kv: it.suggests, lead: leadOf(it) }, it.mode);
+  if (roles) { it.colors = roles; return; }
   const auto = buildPalette({ primary: it.colors[0], mode: it.mode });
   it.colors[1] = auto.secondary;
   it.colors[2] = auto.accent;
+}
+
+// 주색을 맡는 자료 — 사용자가 고르지 않았으면 로고(색이 뽑혔을 때), 아니면 키비주얼
+function leadOf(it) {
+  if (it.colorLead === 'kv' && it.suggests?.length) return 'kv';
+  return it.logoSuggests?.length ? 'logo' : 'kv';
 }
 
 function renderSuggests() {
   const it = state.intake;
   const box = $('suggests');
   if (!box) return;
-  if ($('kvHint')) $('kvHint').textContent = it.suggests.length ? '· 키비주얼에서 추출해 배치' : '';
-  box.innerHTML = it.suggests.map(c => `<button class="sugg" data-c="${c}"><i style="background:${c}"></i>${c}</button>`).join('');
-  // 후보를 누르면 그 색이 주색으로 올라오고 나머지 후보로 보조·포인트가 다시 배치된다.
+  const L = it.logoSuggests ?? [], K = it.suggests ?? [];
+  const lead = leadOf(it);
+  if ($('kvHint')) {
+    $('kvHint').textContent = L.length && K.length ? (lead === 'logo' ? '· 주색은 로고, 나머지는 키비주얼에서' : '· 키비주얼에서 추출해 배치')
+      : L.length ? '· 로고에서 추출해 배치' : K.length ? '· 키비주얼에서 추출해 배치' : '';
+  }
+  const chips = (list, src, label) => list.length
+    ? `<span class="sgrp"><small>${label}</small>${list.map(c =>
+      `<button class="sugg" data-c="${c}" data-src="${src}" aria-label="${label} 색 ${c}을 주색으로"><i style="background:${c}"></i>${c}</button>`).join('')}</span>` : '';
+  box.innerHTML = chips(L, 'logo', '로고') + chips(K, 'kv', '키비주얼');
+  // 후보를 누르면 그 색이 주색으로 올라오고 나머지 자리가 다시 배치된다.
   // (주색만 바꾸고 나머지를 그대로 두면 세 색이 서로 맞지 않는 조합이 남는다)
   box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
-    it.suggests = [b.dataset.c, ...it.suggests.filter(c => c !== b.dataset.c)];
+    const c = b.dataset.c;
+    if (b.dataset.src === 'logo') { it.logoSuggests = [c, ...L.filter(x => x !== c)]; it.colorLead = 'logo'; }
+    else { it.suggests = [c, ...K.filter(x => x !== c)]; it.colorLead = 'kv'; }
     it.colorsManual = false;
     applyDerived(); slotStyle();
   });
@@ -926,7 +955,7 @@ $('cvFileIn').onchange = () => {
       state.intake.suggests = suggests; state.intake.kvReadability = readability; state.intake.kvMeta = meta;
       state.intake.colorsManual = false;
       applyDerived();
-      bub('agent', `대표 컬러 ${suggests.join(', ')}를 감지해 주색·보조·포인트에 배치했어요.`);
+      bub('agent', `색을 배치했어요 — 주색 ${state.intake.colors[0]} · 보조 ${state.intake.colors[1]} · 포인트 ${state.intake.colors[2]}.${leadOf(state.intake) === 'logo' ? ' 주색은 로고 색입니다.' : ''}`);
       if (state.intake.phase === 'style') slotStyle();
     }).catch(() => {});
   };
@@ -959,6 +988,25 @@ async function analyzeKeyVisual(dataUrl) {
   for (const [k, zone] of Object.entries(TEXT_ZONES)) readability[k] = analyzeRegion(data, W, H, zone);
   const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H), px: [img.width, img.height] };
   return { suggests: extractPalette(data, 3), readability, meta };
+}
+
+// 로고의 대표색 — 투명·흰 바탕·검정 글자는 extractPalette가 건너뛴다. 무채색 로고면 빈 배열.
+async function analyzeLogo(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const W = 240, H = Math.max(1, Math.round(W * (img.height || 1) / (img.width || 1)));
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0, W, H);
+  return extractPalette(g.getImageData(0, 0, W, H).data, 3);
+}
+// 작업 화면에서 자료를 갈아 끼울 때 — 지금 걸려 있는 로고·키비주얼에서 세 자리를 다시 읽는다
+async function rolesFromAssets({ logo, keyVisual, mode, kvColors = null }) {
+  let L = [], K = kvColors ?? [];
+  try { if (logo) L = await analyzeLogo(logo); } catch {}
+  try { if (!kvColors && keyVisual) K = (await analyzeKeyVisual(keyVisual)).suggests; } catch {}
+  return { roles: rolesFromSources({ logo: L, kv: K }, mode), fromLogo: L.length > 0, fromKv: K.length > 0 };
 }
 
 function specIdsFor(channels) {
@@ -1501,10 +1549,11 @@ function renderInspector() {
       r.onload = async () => {
         let readability = null, suggests = [], meta = null;
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(r.result)); } catch {}
-        const roles = rolesFromKeyVisual(suggests, c.style.mode);
+        // 로고가 있으면 주색은 로고가 맡고 키비주얼은 보조·포인트만 바꾼다 — 이미지를 갈았다고 브랜드 색이 바뀌면 안 된다
+        const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, mode: c.style.mode, kvColors: suggests });
         restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
-        toast(roles ? `키비주얼 교체 — 색 ${roles.join(', ')} 배치` : '키비주얼 교체');
+        toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
       };
       r.readAsDataURL(f);
     };
@@ -1530,7 +1579,14 @@ function renderInspector() {
       inEl.onchange = () => {
         const f = inEl.files[0]; if (!f) return;
         const r = new FileReader();
-        r.onload = () => { restyle({ [key]: r.result }, label); renderInspector(); toast(label); };
+        r.onload = async () => {
+          // 원색 로고를 갈면 색도 그 로고에서 다시 읽는다 — 고객사가 바뀐 것이다. 흰색 로고는 색이 없으니 그대로.
+          let roles = null;
+          if (key === 'logo') ({ roles } = await rolesFromAssets({ logo: r.result, keyVisual: c.style.keyVisual, mode: c.style.mode }));
+          restyle({ [key]: r.result, ...(roles ? { colors: roles } : {}) }, label);
+          renderInspector();
+          toast(roles ? `${label} — 주색 ${roles[0]}` : label);
+        };
         r.readAsDataURL(f);
       };
     }

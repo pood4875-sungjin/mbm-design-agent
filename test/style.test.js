@@ -112,3 +112,24 @@ test('analyzeRegion picks readable text color and flags busy backgrounds', async
   const busy = analyzeRegion(px(20, 20, (x, y) => ((x + y) % 2 ? [10, 10, 10] : [250, 250, 250])), 20, 20, box);
   assert.equal(busy.scrim, true, '명암 편차가 크면 가림막을 켠다');
 });
+
+test('logo leads the primary colour; the key visual fills the rest', async () => {
+  const { rolesFromSources } = await import('../core/palette.js');
+  const logo = ['#E4002B'], kv = ['#1B50C8', '#E67814', '#1EAA5A'];
+  const both = rolesFromSources({ logo, kv });
+  assert.equal(both[0], '#E4002B', '주색은 로고 — 브랜드 색이 지면 색이 된다');
+  assert.equal(both[1], '#1B50C8', '보조는 키비주얼에서');
+  assert.ok(kv.includes(both[2]), '포인트도 키비주얼에서');
+  assert.deepEqual(rolesFromSources({ logo: [], kv }), ['#1B50C8', '#E67814', '#1EAA5A'], '로고가 무채색이면 키비주얼이 전부 맡는다');
+  assert.equal(rolesFromSources({ logo, kv: [] })[0], '#E4002B', '로고만 있으면 로고 색으로 세 자리');
+  assert.equal(rolesFromSources({ logo, kv: [] }).length, 3);
+  assert.deepEqual(rolesFromSources({ logo, kv, lead: 'kv' }), ['#1B50C8', '#E67814', '#1EAA5A'], '키비주얼 색을 주색으로 고르면 키비주얼이 맡는다');
+  assert.equal(rolesFromSources({ logo: [], kv: [] }), null, '뽑은 색이 없으면 배치할 것도 없다');
+});
+
+test('a key visual colour that repeats the logo colour is not used twice', async () => {
+  const { rolesFromSources } = await import('../core/palette.js');
+  const r = rolesFromSources({ logo: ['#1B50C8'], kv: ['#1C52CA', '#E67814'] });
+  assert.equal(r[0], '#1B50C8');
+  assert.equal(r[1], '#E67814', '로고와 거의 같은 키비주얼 색은 건너뛴다');
+});
