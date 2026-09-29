@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { adSpecEntries, registerAdSpecs } from '../core/adspecs.js';
+import { adSpecGroups } from '../core/adspecs.js';
 import { SPECS } from '../core/contract.js';
 import { MEDIA, specOf } from '../core/media.js';
 
@@ -53,4 +54,19 @@ test('each entry carries what the renderer and linter need from the medium', () 
   assert.ok(Array.isArray(e.format) && e.format.includes('png'));
   assert.ok(e.rules, '규칙 원본(spec)을 참조로 들고 있어야 검사기가 쓴다');
   assert.equal(e.rules.id, 'kakao-bizboard-mo');
+});
+
+test('identical rules under two product names make one creative, not two', () => {
+  const j = adSpecGroups(['jasoseol']);
+  assert.equal(j.length, 7, '자소설 9규격 → 소재 7장 (채용공고배너 160×600 · 채팅목록 로고 300×180은 프리미엄·스탠다드 공용)');
+  const job = j.find(g => g.id === 'jasoseol-pc-premium-jobpost-pc');
+  assert.deepEqual(job.twins, ['jasoseol-pc-standard-jobpost-pc']);
+});
+
+test('same size with different rules stays separate', () => {
+  const n = adSpecGroups(['naver-gfa']).map(g => g.id);
+  assert.ok(n.includes('naver-gfa-native-pc-342x228') && n.includes('naver-gfa-native-mo-342x228'), '네이티브 PC·MO는 글자수·여백 규정이 다르다');
+  const all = adSpecGroups();
+  const ids = all.flatMap(g => [g.id, ...g.twins]);
+  assert.equal(new Set(ids).size, ids.length, '어떤 규격도 두 묶음에 들어가지 않는다');
 });

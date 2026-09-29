@@ -5,7 +5,7 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
-import { adSpecEntries } from '../core/adspecs.js';
+import { adSpecEntries, adSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
@@ -15,7 +15,8 @@ import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/g
 import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
-import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor } from './agent.js';
+import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
+  SENTENCES, SENTENCES_OPTIONAL, DATE_FIELDS, sentenceText, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
@@ -224,9 +225,8 @@ function parseBriefRegex(text) {
   if (/현수막/.test(text)) channels.push('hyunsumak');
   const kind = detectKind(text);
   if (kind === 'recruit') {
-    const rf = {};
-    if (out.date) rf.deadline = out.date;
-    return { fields: rf, channels: [], kind, track: detectTrack(text), media: detectMedia(text) };
+    // 브리프에 적힌 값은 읽어서 빈칸에 채워 보여 준다 — 말한 것을 다시 묻지 않는다. 적히지 않은 값은 비워 둔다.
+    return { fields: extractRecruit(text), channels: [], kind, track: detectTrack(text), media: detectMedia(text) };
   }
   return { fields: out, channels: [...new Set(channels)], kind, track: detectTrack(text), media: detectMedia(text) };
 }
@@ -366,9 +366,13 @@ async function startIntake(text) {
     kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
     mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
     kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'brief', styleDone: false, signageDone: false, history: [],
+    // briefDone: 빈칸 채우기 문장을 사용자가 확인했는가 · readFields: 브리프에서 읽어 채운 값(점선 밑줄로 구분)
+    // specOff: 고른 매체의 소재 중 이번에 만들지 않기로 끈 것
+    briefDone: false, readFields: new Set(), specOff: new Set(), pickerOpen: false, showOptional: false,
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
+  for (const k of Object.keys(seed.fields)) state.intake.readFields.add(k);
   state.intake.channels = seed.channels;
   state.intake.kind = seed.kind; state.intake.track = seed.track; state.intake.media = seed.media ?? [];
   $('thread').innerHTML = '';
@@ -383,7 +387,7 @@ function agentState() {
   const it = state.intake;
   return {
     phase: it.phase, kind: it.kind, track: it.track, media: it.media, fields: it.fields, channels: it.channels, kv: it.kv,
-    styleDone: it.styleDone, signageDone: it.signageDone, signage: it.signage, roster: it.roster,
+    briefDone: it.briefDone, styleDone: it.styleDone, signageDone: it.signageDone, signage: it.signage, roster: it.roster,
     style: { mode: it.mode, colors: it.colors, font: it.font },
   };
 }
@@ -404,12 +408,15 @@ async function turn(userText) {
     think?.stop();
   }
   applyPatch(res.patch);
-  it.phase = res.phase;
+  // 단계는 화면의 확인이 넘긴다 — 진행자가 앞서 나가도 문장을 확인하기 전에는 '내용 확인'에 머문다.
+  // 문장 확인 뒤 "알아서 해"처럼 진행자가 준비됐다고 하면 스타일은 기본값으로 확정한다.
+  if (res.ready && it.briefDone) it.styleDone = true;
+  it.phase = !it.briefDone ? 'brief' : !it.styleDone ? 'style' : 'draft';
   renderSteps();
   bub('agent', res.say);
   it.history.push({ role: 'agent', text: res.say });
-  if (res.ready) { buildAndGenerate(); return; }
-  renderSlot();
+  if (it.phase === 'draft') { buildAndGenerate(); return; }
+  renderSlot({ focus: true });
 }
 
 function applyPatch(patch = {}) {
@@ -418,7 +425,10 @@ function applyPatch(patch = {}) {
   if (patch.track && TRACKS[patch.track]) it.track = patch.track;
   if (patch.media?.length) it.media = [...new Set([...(it.media ?? []), ...patch.media])];
   Object.assign(it.fields, patch.fields ?? {});
+  for (const k of Object.keys(patch.fields ?? {})) it.readFields?.add(k);
   if (patch.channels?.length) it.channels = [...new Set([...it.channels, ...patch.channels])];
+  if (patch.drop?.media?.length) it.media = it.media.filter(id => !patch.drop.media.includes(id));
+  if (patch.drop?.channels?.length) it.channels = it.channels.filter(c => !patch.drop.channels.includes(c));
   if (patch.signage) for (const [ch, list] of Object.entries(patch.signage)) if (Array.isArray(list)) it.signage[ch] = list;
   const st = patch.style ?? {};
   if (st.mode) it.mode = st.mode;
@@ -427,78 +437,261 @@ function applyPatch(patch = {}) {
   if (typeof st.mood === 'string') it.mood = st.mood;
 }
 
-// 단계에 맞는 보조 입력만 노출한다 — 대화가 주, 위젯은 거들 뿐
-function renderSlot() {
+// 단계에 맞는 카드만 노출한다 — 내용 확인(빈칸 채우기 문장) → 오프라인 세트 → 스타일
+function renderSlot(opts = {}) {
   const it = state.intake;
-  // 오프라인 세트는 단계와 무관하게 먼저 정한다 — 대화로 캐묻는 것보다 카드가 빠르고,
-  // 진행자가 brief를 건너뛰고 info/style로 바로 가는 경우에도 놓치지 않는다.
+  if (!it.briefDone) return slotSentence(opts);
   if (!it.signageDone && it.channels.some(c => OFFLINE_CH.includes(c))) return slotSignage();
-  if (it.phase === 'brief') return !it.track ? slotTrack() : (it.track === 'online' && it.kind === 'recruit' ? slotMedia() : slotChannels());
-  if (it.phase === 'info') return slotFields();
-  if (it.phase === 'style') return slotStyle();
+  if (!it.styleDone) return slotStyle();
   clearSlot();
 }
 
-function slotChannels() {
+/* ── 빈칸 채우기 문장 ─────────────────────────────────────────────
+   대화의 첫 답은 질문 목록이 아니라 "이렇게 읽었어요"라는 문단이다.
+   읽은 값은 채워져 있고(점선 밑줄 = 브리프에서 읽음), 빈 곳만 눈에 띈다.
+   무엇을 몇 장 만드는지도 같은 문단에서 정한다 — 누르고 나서야 장수를 아는 일이 없게. */
+const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const mediumName = id => MEDIA.find(m => m.id === id)?.name ?? id;
+
+// 이번에 만들 소재 — 고른 매체의 소재 묶음에서 사용자가 끈 것만 뺀다
+function chosenAdGroups(it = state.intake) {
+  return adSpecGroups(it.media ?? []).filter(g => !it.specOff?.has(g.id));
+}
+// 문장의 "무엇을" 자리
+function targetOf(it) {
+  if (it.kind === 'recruit' && !it.track) return { kind: 'none', n: 0, names: [] };
+  if (it.kind === 'recruit' && it.track === 'online') return { kind: 'media', n: chosenAdGroups(it).length, names: it.media.map(mediumName) };
+  return { kind: 'channels', n: it.channels.length, names: it.channels.map(c => CHANNEL_LABEL[c]) };
+}
+function briefBlanks(it) {
+  const miss = fieldsFor(it.kind).filter(f => !it.fields[f]);
+  const target = targetOf(it);
+  return { miss, target, count: miss.length + (target.n ? 0 : 1) };
+}
+function whatText(it) {
+  const t = targetOf(it);
+  if (t.kind === 'media') return `${TRACKS.online}로 나가요. 매체는 ${t.names.join(' · ')}, 소재는 ${t.n}종이에요.`;
+  return `${it.kind === 'recruit' ? TRACKS.offline + '로 만들어요. ' : ''}만들 것은 ${t.names.join(' · ')}, 모두 ${t.n}가지예요.`;
+}
+
+// 빈칸 너비는 든 글자만큼 — 문장처럼 읽히려면 칸이 글자를 따라가야 한다
+function fitBlank(i) {
+  const g = fitBlank.g ??= document.createElement('canvas').getContext('2d');
+  const cs = getComputedStyle(i);
+  g.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const max = (i.closest('.sent')?.clientWidth ?? 600) - 48;
+  i.style.width = Math.ceil(Math.min(max, g.measureText(i.value || i.placeholder).width + 14)) + 'px';
+}
+
+function specRow(g, it, AD) {
+  const e = g.entry;
+  // "PC프리미엄패키지 - PC채용공고배너" → 상품 / 지면. 같은 파일을 쓰는 상품은 한 줄에 같이 적는다.
+  const split = n => { const i = n.indexOf(' - '); return i > 0 ? [n.slice(0, i), n.slice(i + 3)] : [null, n]; };
+  const names = [e.rules.name ?? e.title, ...g.twins.map(id => AD[id]?.rules?.name ?? id)];
+  const place = split(names[0])[1];
+  const prods = names.map(n => split(n)[0]).filter(Boolean);
+  const tag = prods.length ? `${prods.join(' · ')}${g.twins.length ? ' 공용' : ''}` : (g.twins.length ? `${g.twins.length + 1}곳 공용` : '');
+  return `<label class="prow2"><input type="checkbox" data-s="${g.id}" ${it.specOff.has(g.id) ? '' : 'checked'}>
+    <span class="pn" title="${escH(names.join(' / '))}">${escH(place)}</span>
+    <span class="pd">${e.w}×${e.h}</span>
+    <span class="pt">${escH(tag)}</span>
+    <span class="pw">${e.confidence !== '확정' ? '확인 필요' : ''}</span></label>`;
+}
+
+function pickerHtml(it) {
+  if (it.kind === 'recruit' && it.track === 'online') {
+    const all = adSpecGroups(), AD = adSpecEntries();
+    const chips = ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
+      const ms = MEDIA.filter(m => m.group === g);
+      if (!ms.length) return '';
+      return `<div class="pgrp"><h5>${g}</h5><div class="chips">${ms.map(m => {
+        const n = all.filter(x => x.medium === m.id).length, on = it.media.includes(m.id);
+        return n
+          ? `<button type="button" class="mchip ${on ? 'on' : ''}" data-m="${m.id}" aria-pressed="${on}">${escH(m.name)}<small>${n}</small></button>`
+          : `<button type="button" class="mchip" disabled title="그릴 수 있는 규격이 없어요 — 매체에 자료만 전달하는 상품입니다">${escH(m.name)}<small>0</small></button>`;
+      }).join('')}</div></div>`;
+    }).join('');
+    const lists = it.media.map(id => {
+      const gs = all.filter(x => x.medium === id);
+      if (!gs.length) return '';
+      return `<div class="plist" data-m="${id}">
+        <div class="phead"><b>${escH(mediumName(id))}</b><span data-n>${gs.length}종 중 ${gs.filter(g => !it.specOff.has(g.id)).length}종</span>
+          <button type="button" class="lnk" data-all="${id}">전체</button><button type="button" class="lnk" data-none="${id}">해제</button></div>
+        ${gs.map(g => specRow(g, it, AD)).join('')}</div>`;
+    }).join('');
+    return chips + lists;
+  }
+  const list = it.kind === 'recruit' ? OFFLINE : CH_LIST;
+  return `<div class="chgrid">${list.map(c =>
+    `<label class="chcard ${it.channels.includes(c) ? 'on' : ''}"><input type="checkbox" data-c="${c}" ${it.channels.includes(c) ? 'checked' : ''}>
+      <span>${CHANNEL_LABEL[c]}<small>${CHANNEL_DESC[c]}</small></span></label>`).join('')}</div>`;
+}
+
+function slotSentence(opts = {}) {
   const it = state.intake;
-  slot(`<div class="card2"><h4>만들 산출물</h4><div class="chgrid">${CH_LIST.map(c =>
-    `<label class="chcard ${it.channels.includes(c) ? 'on' : ''}"><input type="checkbox" value="${c}" ${it.channels.includes(c) ? 'checked' : ''}>
-      <span>${CHANNEL_LABEL[c]}<small>${CHANNEL_DESC[c]}</small></span></label>`).join('')}</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="chOk">이걸로 진행</button></div></div>`);
-  $('slot').querySelectorAll('input').forEach(i => i.onchange = () => {
-    i.closest('.chcard').classList.toggle('on', i.checked);
-    it.channels = [...$('slot').querySelectorAll('input:checked')].map(x => x.value);
+  const kind = it.kind;
+  const lab = f => KINDS[kind].labels[f] ?? f;
+  const blank = (f, optional) => {
+    const v = it.fields[f] ?? '';
+    const st = v ? (it.readFields.has(f) ? 'read' : 'ok') : (optional ? 'opt' : 'empty');
+    return `<input class="blank ${st}" data-f="${f}" value="${escH(v)}" placeholder="${escH(lab(f))}" aria-label="${escH(lab(f))}"${optional ? '' : ' aria-required="true"'}${st === 'read' ? ' title="브리프에서 읽은 값 — 눌러서 고칠 수 있어요"' : ''} autocomplete="off" spellcheck="false">`;
+  };
+  // 빈칸 바로 뒤의 조사·쉼표는 빈칸과 한 덩어리다 — 줄이 바뀌어도 "의"만 다음 줄에 떨어지지 않게 묶는다
+  const para = (parts, optional) => {
+    let html = '';
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (typeof p === 'string') { html += escH(p); continue; }
+      const next = typeof parts[i + 1] === 'string' ? parts[i + 1] : '';
+      const tail = next.match(/^\S+/)?.[0] ?? '';
+      html += `<span class="nb">${blank(p.f, optional)}${escH(tail)}</span>`;
+      if (tail) { html += escH(next.slice(tail.length)); i++; }
+    }
+    return `<p>${html}</p>`;
+  };
+
+  const tg = targetOf(it);
+  const online = tg.kind === 'media';
+  // 고를 것이 아직 없으면 목록을 펼쳐 둔다 — 빈칸이 막다른 길이 되지 않게
+  const open = tg.kind !== 'none' && (it.pickerOpen || !tg.names.length);
+  const pick = `<button type="button" class="blank pick ${tg.names.length ? 'ok' : 'empty'}" id="sPick" aria-expanded="${open}" aria-controls="sPicker">${tg.names.length ? escH(tg.names.join(' · ')) : (online ? '매체 고르기' : '만들 것 고르기')}</button>`;
+  const trk = kind === 'recruit'
+    ? `<select class="blank sel ${it.track ? 'ok' : 'empty'}" id="sTrack" aria-label="어디에 나가나요" aria-required="true">${it.track ? '' : '<option value="" selected disabled>어디에</option>'}${Object.entries(TRACKS).map(([k, v]) => `<option value="${k}" ${it.track === k ? 'selected' : ''}>${v}</option>`).join('')}</select>로 `
+    : '';
+  const what = tg.kind === 'none' ? `<p><span class="nb">${trk.trim()}</span> 나가요.</p>`
+    : online ? `<p><span class="nb">${trk.trim()}</span> 나가요. 매체는 ${pick}, 소재는 <b id="sCount">${tg.n}종</b>이에요.</p>`
+    : `<p>${trk ? `<span class="nb">${trk.trim()}</span> 만들어요. ` : ''}만들 것은 ${pick}, 모두 <b id="sCount">${tg.n}가지</b>예요.</p>`;
+  const optional = SENTENCES_OPTIONAL[kind] ?? [];
+  const keepScroll = $('slot').querySelector('.sent')?.scrollTop ?? 0;   // 다시 그려도 보던 자리 그대로
+
+  const box = slot(`<div class="card2 sent">
+    <div class="shead"><h4>읽은 내용</h4>
+      <div class="kseg" role="group" aria-label="캠페인 종류">${Object.entries(KINDS).map(([k, v]) =>
+        `<button type="button" data-k="${k}" class="${k === kind ? 'on' : ''}" aria-pressed="${k === kind}">${v.label}</button>`).join('')}</div></div>
+    ${SENTENCES[kind].map(p => para(p, false)).join('')}
+    ${it.showOptional ? optional.map(p => para(p, true)).join('') : ''}
+    ${what}
+    ${open ? `<div class="picker" id="sPicker">${pickerHtml(it)}</div>` : ''}
+    <div class="sfoot"><span class="smsg" id="sMsg" role="status"></span>
+      ${optional.length && !it.showOptional ? '<button type="button" class="btn" id="sMore">선택 항목 더하기</button>' : ''}
+      <button type="button" class="btn pri" id="sOk">이대로 진행</button></div></div>`);
+
+  const foot = () => {
+    const b = briefBlanks(it);
+    const bad = box.querySelector('.blank[aria-invalid="true"]');
+    $('sMsg').textContent = bad ? `${lab(bad.dataset.f)}: 날짜로 읽지 못했어요 — 예: 2026-10-31, 10월 31일`
+      : b.count ? `빈칸 ${b.count}곳 남았어요` : `다 채워졌어요 · ${b.target.kind === 'media' ? `소재 ${b.target.n}종` : `${b.target.n}가지`}`;
+    $('sMsg').className = `smsg ${bad ? 'bad' : b.count ? '' : 'good'}`;
+  };
+  const rerender = focusSel => { slotSentence(); if (focusSel) $('slot').querySelector(focusSel)?.focus(); };
+
+  const inputs = [...box.querySelectorAll('input.blank')];
+  inputs.forEach(i => {
+    fitBlank(i);
+    i.oninput = () => {
+      const f = i.dataset.f, v = i.value.trim();
+      if (v) it.fields[f] = v; else delete it.fields[f];
+      it.readFields.delete(f);           // 손댄 값은 더 이상 "읽은 값"이 아니다
+      i.removeAttribute('aria-invalid'); i.removeAttribute('title');
+      i.className = `blank ${v ? 'ok' : (i.hasAttribute('aria-required') ? 'empty' : 'opt')}`;
+      fitBlank(i); foot();
+    };
+    // 날짜는 칸을 떠날 때 읽는다 — 치는 도중에 빨갛게 하지 않는다
+    i.onblur = () => {
+      const f = i.dataset.f, v = i.value.trim();
+      if (!DATE_FIELDS.includes(f) || !v) return;
+      const iso = normDate(v);
+      if (iso) { i.value = iso; it.fields[f] = iso; fitBlank(i); }
+      else i.setAttribute('aria-invalid', 'true');
+      foot();
+    };
+    i.onkeydown = e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const rest = inputs.slice(inputs.indexOf(i) + 1).find(x => !x.value.trim() && x.hasAttribute('aria-required'));
+      (rest ?? $('sOk')).focus();
+    };
   });
-  $('chOk').onclick = () => {
-    if (!it.channels.length) { toast('하나 이상 선택하세요'); return; }
-    const said = it.channels.map(c => CHANNEL_LABEL[c]).join(', ');
-    bub('user', said); clearSlot();
-    // 오프라인이 섞였으면 세트 구성을 먼저 정한다 — 대화로 캐묻는 것보다 카드가 빠르다
-    if (it.channels.some(c => OFFLINE_CH.includes(c)) && !it.signageDone) {
-      bub('agent', '오프라인은 현장에서 여러 장이 세트로 나갑니다. 용도와 규격을 아래에서 정해 주세요 — 방향 안내는 고른 화살표마다 한 장씩 만들어집니다.');
-      slotSignage();
+
+  box.querySelectorAll('.kseg button').forEach(b => b.onclick = () => { it.kind = b.dataset.k; rerender(`.kseg [data-k="${it.kind}"]`); });
+  if ($('sTrack')) $('sTrack').onchange = () => { it.track = $('sTrack').value; it.pickerOpen = true; rerender('#sPick'); };
+  if ($('sPick')) $('sPick').onclick = () => { it.pickerOpen = !open; rerender('#sPick'); };
+  if ($('sMore')) $('sMore').onclick = () => { it.showOptional = true; rerender('input.blank.opt'); };
+
+  box.querySelector('.sent').scrollTop = keepScroll;
+  const picker = $('sPicker');
+  if (picker) {
+    picker.querySelectorAll('.mchip[data-m]').forEach(b => b.onclick = () => {
+      const id = b.dataset.m;
+      it.media = it.media.includes(id) ? it.media.filter(x => x !== id) : [...it.media, id];
+      it.pickerOpen = true;
+      rerender(`.mchip[data-m="${id}"]`);
+    });
+    picker.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
+      if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
+      // 목록은 다시 그리지 않는다 — 스크롤과 초점이 그대로여야 연달아 끌 수 있다
+      const list = cb.closest('.plist'), all = list.querySelectorAll('input[data-s]');
+      list.querySelector('[data-n]').textContent = `${all.length}종 중 ${[...all].filter(x => x.checked).length}종`;
+      $('sCount').textContent = `${targetOf(it).n}종`;
+      foot();
+    });
+    picker.querySelectorAll('[data-all],[data-none]').forEach(b => b.onclick = () => {
+      const id = b.dataset.all ?? b.dataset.none;
+      for (const g of adSpecGroups([id])) { if (b.dataset.all) it.specOff.delete(g.id); else it.specOff.add(g.id); }
+      it.pickerOpen = true;
+      rerender(`.plist[data-m="${id}"] [${b.dataset.all ? 'data-all' : 'data-none'}]`);
+    });
+    picker.querySelectorAll('input[data-c]').forEach(cb => cb.onchange = () => {
+      it.channels = [...picker.querySelectorAll('input[data-c]:checked')].map(x => x.dataset.c);
+      it.pickerOpen = true;
+      rerender(`input[data-c="${cb.dataset.c}"]`);
+    });
+  }
+
+  $('sOk').onclick = () => {
+    const b = briefBlanks(it);
+    const bad = box.querySelector('.blank[aria-invalid="true"]');
+    if (bad) { bad.focus(); return; }
+    if (b.miss.length) { box.querySelector(`input.blank[data-f="${b.miss[0]}"]`)?.focus(); toast(`${lab(b.miss[0])} 칸이 비어 있어요`); return; }
+    if (!b.target.n) {
+      if (b.target.kind === 'none') { $('sTrack').focus(); toast('어디에 나가는지 골라 주세요'); return; }
+      it.pickerOpen = true; rerender('#sPick');
+      toast(online ? '매체를 하나 이상 고르세요' : '만들 것을 하나 이상 고르세요');
       return;
     }
-    turn(said);
+    // 트랙이 정한 쪽만 남긴다 — 온라인 광고로 확정했는데 전에 고른 인쇄물이 같이 만들어지면 안 된다
+    if (kind === 'recruit') { if (it.track === 'online') it.channels = []; else it.media = []; }
+    it.briefDone = true;
+    const said = `${sentenceText(kind, it.fields)} ${whatText(it)}`;
+    bub('user', said); it.history.push({ role: 'user', text: said });
+    clearSlot();
+    afterBrief();
   };
+
+  foot();
+  if (opts.focus) (inputs.find(x => !x.value.trim() && x.hasAttribute('aria-required')) ?? $('sOk')).focus({ preventScroll: true });
 }
 
-// 트랙 — 온라인 광고(매체 규격)냐 오프라인 인쇄물이냐. 규칙의 주인이 다르므로 제일 먼저 가른다.
-function slotTrack() {
+// 문장 확인 뒤 — 진행자를 다시 부르지 않는다(기다릴 이유가 없다). 오프라인이 있으면 세트 구성, 아니면 스타일.
+function afterBrief() {
   const it = state.intake;
-  slot(`<div class="card2"><h4>어디에 나가나요</h4><div class="chgrid">
-    <label class="chcard"><input type="radio" name="trk" value="online"><span>온라인 광고<small>채용포털 · 디지털 · 커뮤니티 매체 규격</small></span></label>
-    <label class="chcard"><input type="radio" name="trk" value="offline"><span>오프라인 인쇄물<small>포스터 · X배너 · 현수막 · 명찰 · 포토부스</small></span></label>
-  </div></div>`);
-  $('slot').querySelectorAll('input').forEach(i => i.onchange = () => {
-    it.track = i.value;
-    const said = TRACKS[i.value];
-    bub('user', said); clearSlot(); turn(said);
-  });
+  if (it.channels.some(c => OFFLINE_CH.includes(c)) && !it.signageDone) {
+    say('오프라인은 현장에서 여러 장이 세트로 나갑니다. 용도와 규격을 아래에서 정해 주세요 — 방향 안내는 고른 화살표마다 한 장씩 만들어집니다.');
+    slotSignage();
+    return;
+  }
+  goStyle();
 }
-
-// 매체 — 그룹별 칩. 규격 수와 확인 필요 수를 같이 보여 준다(고르기 전에 무게를 알아야 한다).
-function slotMedia() {
+function say(text) {
+  bub('agent', text);
+  state.intake.history.push({ role: 'agent', text });
+}
+function goStyle() {
   const it = state.intake;
-  const entries = Object.values(adSpecEntries());
-  const groups = ['채용포털', '디지털', '커뮤니티', '기타'];
-  slot(`<div class="card2"><h4>매체</h4>${groups.map(g => `
-    <div class="mgroup"><h5>${g}</h5><div class="chgrid">${MEDIA.filter(m => m.group === g).map(m => {
-      const n = entries.filter(e => e.medium === m.id).length;
-      const rv = entries.filter(e => e.medium === m.id && e.confidence !== '확정').length;
-      return `<label class="chcard ${it.media.includes(m.id) ? 'on' : ''}"><input type="checkbox" value="${m.id}" ${it.media.includes(m.id) ? 'checked' : ''}>
-        <span>${m.name}<small>규격 ${n}종${rv ? ` · 확인 필요 ${rv}` : ''}</small></span></label>`;
-    }).join('')}</div></div>`).join('')}
-    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="mdOk">이걸로 진행</button></div></div>`);
-  $('slot').querySelectorAll('input').forEach(i => i.onchange = () => {
-    i.closest('.chcard').classList.toggle('on', i.checked);
-    it.media = [...$('slot').querySelectorAll('input:checked')].map(x => x.value);
-  });
-  $('mdOk').onclick = () => {
-    if (!it.media.length) { toast('매체를 하나 이상 고르세요'); return; }
-    const said = it.media.map(id => MEDIA.find(m => m.id === id)?.name ?? id).join(', ');
-    bub('user', said); clearSlot(); turn(said);
-  };
+  it.phase = 'style';
+  renderSteps();
+  say('이제 스타일이에요. 키비주얼과 로고가 있으면 올려 주세요 — 대표 컬러를 뽑아 드립니다. 없으면 컬러만 골라도 됩니다.');
+  slotStyle();
 }
 
 function slotSignage() {
@@ -557,24 +750,8 @@ function slotSignage() {
       const sz = it.sizes[ch];
       return `${CHANNEL_LABEL[ch]} ${n}종${sz ? ` ${sz.wmm}×${sz.hmm}` : ''}`;
     }).join(', ');
-    bub('user', said); clearSlot(); turn(said);
-  };
-}
-
-function slotFields() {
-  const it = state.intake;
-  const missing = fieldsFor(it.kind).filter(f => !it.fields[f]);
-  if (!missing.length) { clearSlot(); return; }
-  slot(`<div class="card2"><h4>비어 있는 정보</h4><div class="fgrid">${missing.map(f =>
-    `<div class="f"><label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}"></div>`).join('')}</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn pri" id="fOk">입력 완료</button></div></div>`);
-  $('fOk').onclick = () => {
-    const said = [];
-    $('slot').querySelectorAll('input').forEach(i => {
-      if (i.value.trim()) { it.fields[i.dataset.f] = i.value.trim(); said.push(`${FIELD_LABEL[i.dataset.f]} ${i.value.trim()}`); }
-    });
-    if (!said.length) { toast('한 가지는 채워 주세요'); return; }
-    bub('user', said.join(' · ')); clearSlot(); turn(said.join(', '));
+    bub('user', said); it.history.push({ role: 'user', text: said });
+    clearSlot(); goStyle();
   };
 }
 
@@ -634,7 +811,13 @@ function slotStyle() {
   $('stOk').onclick = () => {
     it.styleDone = true;
     const said = `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
-    bub('user', said); clearSlot(); turn(said);
+    bub('user', said); it.history.push({ role: 'user', text: said });
+    clearSlot();
+    it.phase = 'draft';
+    renderSteps();
+    const n = it.track === 'online' && it.kind === 'recruit' ? chosenAdGroups(it).length : 0;
+    say(n ? `준비가 끝났어요. 소재 ${n}종을 만들고, 만드는 대로 매체 규정에 맞는지 검사할게요.` : '준비가 끝났어요. 초안을 생성할게요.');
+    buildAndGenerate();
   };
 }
 
@@ -786,10 +969,6 @@ function campaignName(ctx) {
   const c = ctx?.core ?? {};
   return ctx?.kind === 'recruit' ? [c.client, c.role].filter(Boolean).join(' ') || '채용 캠페인' : (c.name || '캠페인');
 }
-// 고른 매체의 그릴 수 있는 규격 전부 — 매체를 고르면 그 매체 상품이 한 장씩 나온다
-function adSpecIdsFor(media) {
-  return Object.values(adSpecEntries()).filter(e => media.includes(e.medium)).map(e => e.id);
-}
 function campaignFields(c) {
   return c.kind === 'recruit' ? KINDS.recruit.required : ['name', 'date', 'venue', 'cta'];
 }
@@ -817,7 +996,8 @@ function buildAndGenerate() {
   for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
   state.campaign = {
     id: slug(campaignName(ctx)), context: ctx, style, channels: it.channels, signage,
-    kind: it.kind, track: it.track, media: it.media ?? [], adSpecIds: adSpecIdsFor(it.media ?? []),
+    // 문장에서 고른 소재만 — 같은 파일을 쓰는 상품은 한 장으로 묶여 있다(adSpecGroups)
+    kind: it.kind, track: it.track, media: it.media ?? [], adSpecIds: chosenAdGroups(it).map(g => g.id),
     roster: it.roster ?? [], artifacts: [], log: [],
     // 첫 생성은 권장 규격만. 나머지(Google Ads 선택 규격·포토월 등)는 켜 두면 20장이 깔린다 —
     // 아트보드의 "+ 산출물 추가"에서 필요할 때 꺼내 쓴다.
@@ -938,13 +1118,19 @@ function specSize(spec, size = null) {
   if (spec.unit === 'mm') return `${spec.wmm}×${spec.hmm}mm`;
   return spec.w && spec.h ? `${spec.w}×${spec.h}` : '';
 }
+// 같은 파일을 쓰는 다른 상품이 있으면 라벨에 밝힌다 — 한 장이 두 상품에 나간다는 걸 검수자가 알아야 한다
+function twinNote(specId) {
+  const twins = (twinNote.map ??= new Map(adSpecGroups().map(g => [g.id, g.twins]))).get(specId) ?? [];
+  const shared = twins.filter(id => !(state.campaign?.adSpecIds ?? []).includes(id));
+  return shared.length ? ` · 상품 ${shared.length + 1}곳 공용` : '';
+}
 function artLabel(a) {
   const spec = SPECS[a.specId];
   if (!spec) return a.specId;
   const sz = specSize(spec, a.size);
   const pur = a.purpose && a.purpose !== 'main'
     ? ` · ${PURPOSE_SHORT[a.purpose]}${a.arrow ? ' ' + (ARROWS[a.arrow] ?? '') : ''}` : '';
-  return `${spec.title ?? CHANNEL_LABEL[a.channel] ?? a.specId}${pur}${sz ? ` · ${sz}` : ''}`;
+  return `${spec.title ?? CHANNEL_LABEL[a.channel] ?? a.specId}${pur}${sz ? ` · ${sz}` : ''}${a.channel === 'ad' ? twinNote(a.specId) : ''}`;
 }
 // 규격 프리셋은 채널 단위가 기본이지만, 자기 프리셋을 가진 규격은 그쪽이 우선한다
 function presetsFor(a) { return SIZE_PRESETS[a.specId] ?? SIZE_PRESETS[a.channel] ?? []; }

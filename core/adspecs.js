@@ -38,3 +38,32 @@ export function adSpecEntries() {
 export function registerAdSpecs() {
   for (const [id, e] of Object.entries(adSpecEntries())) SPECS[id] = e;
 }
+
+// 같은 소재 묶기 — 상품(패키지)이 달라도 규정이 글자 하나 다르지 않으면 파일은 한 장이면 된다.
+// (자소설 프리미엄·스탠다드의 채용공고배너 160×600처럼.) 출처·메모·예시처럼 "어디서 읽었나"만 다른 값은 비교에서 뺀다.
+// 크기만 같고 규정이 다른 지면(네이버 네이티브 PC/MO 342×228)은 묶지 않는다 — 글자수·여백이 달라 다른 소재다.
+const NOT_RULES = new Set(['id', 'name', 'source', 'note', 'examples', 'textLimitsSource', 'layoutNotes', 'original']);
+function rulesOnly(v) {
+  if (Array.isArray(v)) {
+    const a = v.map(rulesOnly);
+    return a.every(x => typeof x === 'string') ? [...a].sort() : a;
+  }
+  if (v && typeof v === 'object') {
+    return Object.fromEntries(Object.keys(v).filter(k => !NOT_RULES.has(k)).sort().map(k => [k, rulesOnly(v[k])]));
+  }
+  return v;
+}
+export function adSpecSignature(entry) { return JSON.stringify([entry.medium, rulesOnly(entry.rules)]); }
+
+// 고른 매체에서 실제로 만들 소재 목록 — [{ id, medium, entry, twins:[같은 파일을 쓰는 다른 규격 id] }]
+export function adSpecGroups(media = null) {
+  const seen = new Map();
+  for (const e of Object.values(adSpecEntries())) {
+    if (media && !media.includes(e.medium)) continue;
+    const sig = adSpecSignature(e);
+    const g = seen.get(sig);
+    if (g) g.twins.push(e.id);
+    else seen.set(sig, { id: e.id, medium: e.medium, entry: e, twins: [] });
+  }
+  return [...seen.values()];
+}
