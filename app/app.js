@@ -538,14 +538,16 @@ function slotSentence(opts = {}) {
   };
   // 빈칸 바로 뒤의 조사·쉼표는 빈칸과 한 덩어리다 — 줄이 바뀌어도 "의"만 다음 줄에 떨어지지 않게 묶는다
   const para = (parts, optional) => {
+    // 고정 문구도 구절째로 움직인다("채용 광고예요."가 "채용"과 "광고예요."로 갈리지 않게)
+    const fixed = t => t.replace(/\S(?:.*\S)?/, m => `<span class="nb">${escH(m)}</span>`);
     let html = '';
     for (let i = 0; i < parts.length; i++) {
       const p = parts[i];
-      if (typeof p === 'string') { html += escH(p); continue; }
+      if (typeof p === 'string') { html += fixed(p); continue; }
       const next = typeof parts[i + 1] === 'string' ? parts[i + 1] : '';
       const tail = next.match(/^\S+/)?.[0] ?? '';
       html += `<span class="nb">${blank(p.f, optional)}${escH(tail)}</span>`;
-      if (tail) { html += escH(next.slice(tail.length)); i++; }
+      if (tail) { html += fixed(next.slice(tail.length)); i++; }
     }
     return `<p>${html}</p>`;
   };
