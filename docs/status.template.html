@@ -151,6 +151,12 @@
   .base{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   .base span{font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:5px 12px;color:var(--sub)}
   .base b{color:var(--ink);font-weight:700;margin-left:4px}
+  /* ─ 덧붙임 ─ 판의 내용이 아니라 만든 사람의 메모. 상자에 넣지 않고 글로만 둔다 */
+  .after{margin-top:64px;max-width:62ch}
+  .after p{font-size:15px;line-height:1.8;margin-top:10px}
+  .after ul{padding-left:18px;margin-top:10px;display:flex;flex-direction:column;gap:4px}
+  .after li{font-size:15px;line-height:1.7}
+  .after time{font-size:12.5px;color:var(--mute);display:block;margin-top:14px}
   footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);line-height:1.7}
   a{color:inherit}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -169,7 +175,7 @@
 <script>
 (() => {
   const D = JSON.parse(document.getElementById('data').textContent);
-  const S = D.status, L = D.live, B = S.brief;
+  const S = D.status, L = D.live, B = S.brief, A = S.afterword;
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const ICON = {
     done: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M4.6 8.3l2.2 2.2 4.6-4.8" fill="none" stroke="var(--bg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -297,6 +303,11 @@
     <div><h2>최근 한 일</h2>
       <ul class="list log">${S.log.map(l => `<li><span class="dt">${esc(l.date)}</span><div class="t">${esc(l.text)}</div></li>`).join('')}</ul></div>
   </div></section>
+
+  ${A ? `<section class="after" aria-labelledby="h-after"><h2 id="h-after">${esc(A.title)}</h2>
+    ${A.paras.map(t => `<p>${esc(t)}</p>`).join('')}
+    <ul>${A.points.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+    <p>${esc(A.close)}</p><time datetime="${esc(A.date)}">${esc(A.date)}</time></section>` : ''}
 
   <footer>
     목표·KPI·월별 계획의 출처: ${esc(S.task.docFile)} (작성 ${esc(S.task.docDate)}).
