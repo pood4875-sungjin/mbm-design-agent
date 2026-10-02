@@ -112,38 +112,12 @@
   }
   .card2{align-self:stretch;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
   .card2 h4{font-size:11.5px;color:var(--sub);font-weight:700;letter-spacing:.04em;margin-bottom:11px}
-  /* ─ 빈칸 채우기 문장 ─
-     첫 답을 폼이 아니라 문단으로 돌려준다. 밑줄 = 고칠 수 있는 자리.
-     실선 = 직접 쓴 값 · 점선 = 브리프에서 읽은 값 · 노란 칸 = 아직 빈 곳(색만으로 구분하지 않는다 — 빈 칸에는 항목 이름이 적혀 있다) */
-  .sent{padding:18px 20px 0}
   .shead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
   .shead h4{margin:0}
   .kseg{margin-left:auto;display:flex;gap:4px}
   .kseg button{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:4px 11px;font-size:11.5px;font-weight:600;color:var(--sub)}
   .kseg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .sent p{font-size:17px;line-height:2.3;color:var(--ink);word-break:keep-all}
-  .sent p b{font-weight:700;font-variant-numeric:tabular-nums}
-  .blank{font:inherit;font-weight:600;line-height:1.35;color:var(--ink);border:0;border-bottom:2px solid var(--ink);background:none;
-    padding:2px 5px;margin:0 2px;border-radius:5px 5px 0 0;min-width:52px;max-width:100%;outline:0;text-overflow:ellipsis;vertical-align:baseline}
-  .blank.read{border-bottom-style:dotted}
-  .blank.empty{background:var(--amber-soft);border-bottom-color:var(--amber)}
-  .blank.empty::placeholder{color:#7a5600;opacity:1;font-weight:500}
-  .blank.opt{border-bottom:2px dashed var(--accent-line);font-weight:500}
-  .blank.opt::placeholder{color:var(--sub);opacity:1}
-  .blank[aria-invalid=true]{border-bottom-color:var(--danger);background:#fdf3f4}
-  .blank:hover{background:var(--soft)} .blank.empty:hover{background:#fbe9c4}
-  .blank:focus-visible,.mchip:focus-visible,.kseg button:focus-visible,.lnk:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-  .sent .nb{white-space:nowrap}
-  button.blank,select.blank{cursor:pointer;text-align:left}
-  /* 매체 목록은 길어질 수 있다 — 칸 안에서 줄을 바꾼다(넘쳐서 가로 스크롤이 생기지 않게) */
-  button.blank.pick{white-space:normal;max-width:calc(100% - 12px);line-height:1.5}
-  input.blank{max-width:calc(100% - 28px)}
-  button.blank.empty{color:#7a5600;font-weight:500}
-  button.blank.pick::after{content:"▾";font-size:.7em;margin-left:6px;opacity:.55}
-  button.blank.pick[aria-expanded=true]::after{content:"▴"}
-  select.blank{appearance:auto;padding-right:2px}
-  /* 확인 버튼은 목록이 길어져도 늘 보인다 — 카드 바닥에 붙는다 */
-  .sfoot{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--panel);padding:12px 0 16px}
+  .mchip:focus-visible,.kseg button:focus-visible,.lnk:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
   .smsg{margin-right:auto;font-size:12.5px;color:#7a5600;font-weight:600}
   .smsg.good{color:var(--good)} .smsg.bad{color:var(--danger)}
   .picker{border-top:1px solid var(--line);margin-top:12px;padding-top:14px}
@@ -164,7 +138,6 @@
   .prow2 .pt:not(:empty){font-size:11px;color:var(--sub);background:var(--soft);border-radius:99px;padding:2px 8px;white-space:nowrap}
   .prow2 .pw:not(:empty){font-size:11px;color:#7a5600;background:var(--amber-soft);border-radius:99px;padding:2px 8px;white-space:nowrap}
   @media (max-width:560px){
-    .sent p{font-size:15.5px;line-height:2.2}
     .prow2{grid-template-columns:18px minmax(0,1fr) auto}
     .prow2 .pt,.prow2 .pw{grid-column:2 / -1;justify-self:start}
   }
@@ -409,7 +382,7 @@
   <section id="hero">
     <h1>어떤 캠페인을 시작할까요?</h1>
     <div class="inputCard">
-      <textarea id="briefText" placeholder="기획 내용을 자유롭게 적어주세요 — 고객사, 모집 직무, 나갈 매체, 마감일… 읽은 내용은 문장으로 돌려드려요."></textarea>
+      <textarea id="briefText" placeholder="기획 내용을 자유롭게 적어주세요. 고객사, 모집 직무, 나갈 매체, 마감일… 적은 내용으로 바로 만들어요."></textarea>
       <div class="bar">
         <button class="iconb" id="fileBtn" title="txt·md 첨부 (PPT·워드는 서버 연동 후)">＋</button>
         <input type="file" id="fileIn" accept=".txt,.md" style="display:none">

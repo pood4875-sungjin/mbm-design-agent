@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { scriptedTurn, detectKind, detectTrack, detectMedia, fieldsFor, extractRecruit, normDate, sentenceText, SENTENCES, PHASES } from '../app/agent.js';
+import { scriptedTurn, detectKind, detectTrack, detectMedia, fieldsFor, extractRecruit, normDate, PHASES, ESSENTIAL, ASK } from '../app/agent.js';
 
 // 규칙 진행자는 AI 없이도 같은 계약으로 대화를 끌고 간다.
-// 첫 답은 질문 목록이 아니라 빈칸 채우기 문장이다 — 읽은 값은 채우고, 없는 값은 비워 둔다.
+// 내용은 브리프에서 읽는다 — 확인 화면 없이, 꼭 필요한 값(회사·직무 / 행사명)이 없을 때만 묻는다.
 const NOW = new Date(2026, 8, 29);
 
 test('kind, track and media are detected from plain Korean', () => {
@@ -22,12 +22,10 @@ test('required fields follow the campaign kind', () => {
   assert.deepEqual(fieldsFor('event'), ['name', 'date', 'venue', 'audience', 'cta']);
 });
 
-test('the flow has four phases and the sentence covers every required field', () => {
-  assert.deepEqual(PHASES, ['target', 'brief', 'style', 'draft']);
-  for (const kind of ['recruit', 'event']) {
-    const blanks = SENTENCES[kind].flat().filter(p => typeof p !== 'string').map(p => p.f);
-    assert.deepEqual([...blanks].sort(), [...fieldsFor(kind)].sort(), `${kind}: 필수 항목은 빠짐없이 문장의 빈칸이다`);
-  }
+test('the flow has three phases and only asks for what the big text needs', () => {
+  assert.deepEqual(PHASES, ['target', 'style', 'draft']);
+  assert.deepEqual(ESSENTIAL, { recruit: ['client', 'role'], event: ['name'] });
+  for (const f of [...ESSENTIAL.recruit, ...ESSENTIAL.event]) assert.ok(ASK[f], `${f}: 없을 때 물을 말이 있다`);
 });
 
 test('what the brief already says is read, not asked again', () => {
@@ -56,32 +54,39 @@ test('dates are normalised, and unreadable dates are rejected rather than guesse
   assert.equal(normDate('내일', NOW), null);
 });
 
-test('the first reply is the fill-in sentence, counting what is still blank', () => {
-  const r = scriptedTurn({ state: { phase: 'brief', kind: null, fields: {}, channels: [], media: [], track: null }, userText: '백엔드 개발자 채용', now: NOW });
-  assert.equal(r.phase, 'brief');
-  assert.equal(r.patch.kind, 'recruit', '종류를 아직 모르면 문장에서 알아내 patch로 알린다');
+test('the brief is read while the user is still choosing what to make', () => {
+  const r = scriptedTurn({ state: { phase: 'target', kind: null, fields: {}, channels: [], media: [], track: null }, userText: '백엔드 개발자 채용', now: NOW });
+  assert.equal(r.phase, 'target');
+  assert.equal(r.patch.kind, 'recruit', '종류를 아직 모르면 브리프에서 알아내 patch로 알린다');
   assert.equal(r.patch.fields.role, '백엔드 개발자');
-  assert.match(r.say, /빈칸 6곳/, '필수 5곳(고객사·고용형태·근무지·마감·지원경로) + 어디에 나갈지 1곳');
-  const full = scriptedTurn({ state: { phase: 'brief', kind: null, fields: {}, channels: [], media: [], track: null }, userText: '한진정보통신 클라우드 엔지니어 채용. 카카오랑 리멤버. 정규직, 서울, 10월 31일 마감. 지원 https://x.y/a', now: NOW });
+  const full = scriptedTurn({ state: { phase: 'target', kind: null, fields: {}, channels: [], media: [], track: null }, userText: '한진정보통신 클라우드 엔지니어 채용. 카카오랑 리멤버. 정규직, 서울, 10월 31일 마감. 지원 https://x.y/a', now: NOW });
   assert.deepEqual([...full.patch.media].sort(), ['kakao', 'remember']);
   assert.equal(full.patch.track, 'online');
-  assert.doesNotMatch(full.say, /빈칸/, '다 읽혔으면 빈칸을 말하지 않는다');
-  assert.equal(full.ready, false, '다 읽혔어도 사용자가 문장을 확인하기 전에는 넘어가지 않는다');
+  assert.equal(full.ready, false, '다 읽혔어도 무엇을·어디에를 고르기 전에는 넘어가지 않는다');
 });
 
-test('values typed into blanks are not overwritten by later reading', () => {
-  const r = scriptedTurn({ state: { phase: 'brief', kind: 'recruit', fields: { client: '한진' }, channels: [], media: [], track: 'online' }, userText: '한진정보통신 백엔드 개발자 채용', now: NOW });
+test('values already set are not overwritten while the brief is being read', () => {
+  const r = scriptedTurn({ state: { phase: 'target', kind: 'recruit', fields: { client: '한진' }, channels: [], media: [], track: 'online' }, userText: '한진정보통신 백엔드 개발자 채용', now: NOW });
   assert.equal(r.patch.fields.client, undefined);
   assert.equal(r.patch.fields.role, '백엔드 개발자');
 });
 
 test('asking to drop a medium removes it instead of adding it', () => {
-  const r = scriptedTurn({ state: { phase: 'brief', kind: 'recruit', fields: {}, channels: [], media: ['kakao', 'jasoseol'], track: 'online' }, userText: '카카오는 빼고 리멤버 넣어줘', now: NOW });
+  const r = scriptedTurn({ state: { phase: 'target', kind: 'recruit', fields: {}, channels: [], media: ['kakao', 'jasoseol'], track: 'online' }, userText: '카카오는 빼고 리멤버 넣어줘', now: NOW });
   assert.deepEqual(r.patch.drop.media, ['kakao']);
   assert.deepEqual(r.patch.media, ['remember']);
 });
 
-test('after the sentence is confirmed the flow goes style, then draft', () => {
+test('once the content is set, a typed correction replaces the value and says what changed', () => {
+  const st = { phase: 'style', kind: 'recruit', fields: { client: '한진정보통신', role: '클라우드 엔지니어', deadline: '2026-10-31' }, channels: [], media: ['kakao'], track: 'online', briefDone: true, styleDone: false };
+  const r = scriptedTurn({ state: st, userText: '마감 11월 5일로 바꿔줘', now: NOW });
+  assert.equal(r.patch.fields.deadline, '2026-11-05');
+  assert.match(r.say, /바꿨어요/);
+  assert.match(r.say, /2026-11-05/);
+  assert.equal(r.phase, 'style');
+});
+
+test('after the content is set the flow goes style, then draft', () => {
   const st = { phase: 'style', kind: 'recruit', fields: {}, channels: [], media: ['kakao'], track: 'online', briefDone: true, styleDone: false };
   const r = scriptedTurn({ state: st, userText: '다크로', now: NOW });
   assert.equal(r.phase, 'style');
@@ -91,20 +96,14 @@ test('after the sentence is confirmed the flow goes style, then draft', () => {
 });
 
 test('event campaigns read channels from the brief', () => {
-  const r = scriptedTurn({ state: { phase: 'brief', kind: 'event', fields: {}, channels: [], media: [], track: null }, userText: '포스터랑 현수막', now: NOW });
+  const r = scriptedTurn({ state: { phase: 'target', kind: 'event', fields: {}, channels: [], media: [], track: null }, userText: '포스터랑 현수막', now: NOW });
   assert.equal(r.patch.track, 'offline');
   assert.ok(r.patch.channels.includes('poster'));
-  assert.equal(r.phase, 'brief');
-});
-
-test('the confirmed sentence reads as plain Korean', () => {
-  assert.equal(
-    sentenceText('recruit', { client: '한진정보통신', role: '클라우드 엔지니어', employType: '정규직', location: '서울', deadline: '2026-10-31', applyUrl: 'https://x.y' }),
-    '한진정보통신의 클라우드 엔지니어 정규직 채용 광고예요. 근무지는 서울, 마감은 2026-10-31, 지원 경로는 https://x.y.');
+  assert.equal(r.phase, 'target');
 });
 
 test('when nothing could be read the agent does not claim it read something', () => {
-  const r = scriptedTurn({ state: { phase: 'brief', kind: null, fields: {}, channels: [], media: [], track: null }, userText: '뭔가 만들어줘', now: NOW });
+  const r = scriptedTurn({ state: { phase: 'target', kind: null, fields: {}, channels: [], media: [], track: null }, userText: '뭔가 만들어줘', now: NOW });
   assert.doesNotMatch(r.say, /읽었어요/);
-  assert.match(r.say, /빈칸/);
+  assert.deepEqual(r.patch.fields, {});
 });

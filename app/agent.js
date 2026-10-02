@@ -1,10 +1,10 @@
 // 대화 에이전트 — 캠페인 준비를 한 번의 폼이 아니라 주고받는 대화로 진행한다.
 //
-// 3단계: brief(내용 확인 — 빈칸 채우기 문장) → style(키비주얼·컬러) → draft(생성)
-// 대화는 입구다. 첫 답은 질문 목록이 아니라 "이렇게 읽었어요"라는 문장이고(SENTENCES),
-// 읽은 값은 빈칸에 채워져 보인다. 사용자는 틀린 곳만 고치고 빈 곳만 채운다.
-// 같은 문장에서 세 가지가 정해진다: 종류(kind: 행사/채용) · 트랙(track) · 매체(media) 또는 채널(channels).
-// 단계를 넘기는 것은 화면의 확인 버튼이다 — 진행자는 해석과 말만 맡는다.
+// 단계: target(무엇을·어디에 — 화면의 카드에서 고른다) → style(키비주얼·컬러) → draft(생성)
+// 내용(회사·직무·마감…)은 브리프에서 읽는다. 따로 확인 화면을 두지 않는다 — 읽은 값은 한 줄로 알려 주고,
+// 고칠 게 있으면 말로 고친다("마감 11월 5일로"). 꼭 있어야 그릴 수 있는 값(ESSENTIAL)이 없을 때만 대화로 묻는다.
+// 같은 브리프에서 종류(kind: 행사/채용) · 트랙(track) · 매체(media) 또는 채널(channels)도 읽어 제안한다.
+// 단계를 넘기는 것은 화면의 카드다 — 진행자는 해석과 말만 맡는다.
 // 매 턴 LLM에 "지금까지 모은 상태 + 대화 기록 + 사용자 말"을 주고 아래 JSON을 받는다.
 //   { say, patch:{kind,track,media,fields,channels,signage,style}, phase, ready }
 // 키가 없으면 규칙 기반 진행자로 폴백해 같은 계약을 흉내 낸다 — 데모는 항상 돈다.
@@ -14,9 +14,11 @@ import { KINDS } from '../core/context.js';
 import { FONT_IDS } from '../core/fonts.js';
 import { MEDIA } from '../core/media.js';
 
-// 단계: target(무엇을·어디에 — 화면에서 고른다) → brief(내용 확인 — 빈칸 채우기 문장) → style → draft
-export const PHASES = ['target', 'brief', 'style', 'draft'];
-export const PHASE_LABEL = { target: '만들 것', brief: '내용 확인', style: '스타일', draft: '초안 생성' };
+export const PHASES = ['target', 'style', 'draft'];
+export const PHASE_LABEL = { target: '만들 것', style: '스타일', draft: '초안 생성' };
+// 이것 없이는 소재의 큰 글자를 쓸 수 없다 — 브리프에 없으면 이것만 대화로 묻는다. 나머지(마감·근무지…)는 없으면 그 줄을 빼고 그린다.
+export const ESSENTIAL = { recruit: ['client', 'role'], event: ['name'] };
+export const ASK = { client: '어느 회사 채용인가요?', role: '모집하는 직무는 무엇인가요?', name: '행사 이름이 무엇인가요?' };
 export const TRACKS = { online: '온라인 광고', offline: '오프라인 인쇄물' };
 
 // eDM·랜딩페이지는 만들지 않는다(2026-10-02 제외)
@@ -43,32 +45,7 @@ export function detectTrack(t) {
   return null;
 }
 
-/* ── 빈칸 채우기 문장 ──
-   조사가 받침에 따라 바뀌지 않는 자리에만 빈칸을 둔다(…의 · …에 · …에서 · 은/는 뒤) —
-   빈칸에 무엇이 들어와도 문장이 어색해지지 않는다.
-   길어질 수 있는 값(주소·매체 목록) 뒤에는 조사를 붙이지 않는다 — 줄이 바뀌면 조사만 다음 줄에 떨어진다. */
-export const SENTENCES = {
-  recruit: [
-    [{ f: 'client' }, '의 ', { f: 'role' }, ' ', { f: 'employType' }, ' 채용 광고예요.'],
-    ['근무지는 ', { f: 'location' }, ', 마감은 ', { f: 'deadline' }, ', 지원 경로는 ', { f: 'applyUrl' }, '.'],
-  ],
-  event: [
-    [{ f: 'name' }, ', ', { f: 'date' }, '에 ', { f: 'venue' }, '에서 열려요.'],
-    ['대상은 ', { f: 'audience' }, ', 참여 유도는 ', { f: 'cta' }, '.'],
-  ],
-};
-// 선택 항목 — 비어 있어도 묻지 않는다. 사용자가 펼쳤을 때만 보인다.
-export const SENTENCES_OPTIONAL = {
-  recruit: [['자격 요건은 ', { f: 'qualification' }, ', 전형 절차는 ', { f: 'process' }, ', 고지 문구는 ', { f: 'notice' }, '.']],
-  event: [],
-};
 export const DATE_FIELDS = ['deadline', 'date'];
-
-export function sentenceText(kind, fields = {}) {
-  return (SENTENCES[kind] ?? SENTENCES.event)
-    .map(parts => parts.map(p => typeof p === 'string' ? p : (fields[p.f] || `(${labelOf(kind, p.f)})`)).join(''))
-    .join(' ');
-}
 
 const pad2 = n => String(n).padStart(2, '0');
 // 날짜 읽기 — 2026-10-31 · 2026.10.31 · 2026년 10월 31일 · 10월 31일 · 10/31. 읽지 못하면 null(추측하지 않는다).
@@ -160,12 +137,12 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
 오프라인이면 채널(channels)을 고른다: ${CHANNELS.map(c => `${c}=${CH_KO[c]}`).join(', ')}.
 
 진행 단계(phase):
-1) brief  — 화면에 "빈칸 채우기 문장"이 뜬다. 네가 읽어낸 값은 빈칸에 채워져 보이고, 사용자는 틀린 곳만 고치고 빈 곳만 채운다.
-            필요한 값 — 행사: ${KINDS.event.required.map(f => KINDS.event.labels[f]).join(', ')} / 채용: ${KINDS.recruit.required.map(f => KINDS.recruit.labels[f]).join(', ')}
-            너는 사용자 말에서 읽히는 값을 patch에 빠짐없이 담는다. say에는 무엇을 읽었고 몇 곳이 비었는지만 말한다 — 빈칸을 하나씩 캐묻지 않는다.
+1) target — 무엇을(광고 소재 / 인쇄물)·어디에(매체 / 인쇄물 종류)를 화면의 카드에서 사용자가 고른다
 2) style  — 키비주얼·컬러·폰트·모드 같은 그래픽 방향. 화면의 카드에서 정한다
 3) draft  — 준비가 끝났다. 생성한다
-단계를 넘기는 것은 화면의 확인 버튼이다. [현재 상태]의 "문장 확인"이 끝나기 전에는 phase="brief"다.
+단계를 넘기는 것은 화면의 카드다.
+내용 값(fields)은 사용자 말에서 읽히는 것을 patch.fields에 빠짐없이 담는다. 빈 값을 캐묻지 않는다 — 꼭 필요한 값은 화면이 따로 묻는다.
+내용이 정해진 뒤에도 사용자가 "마감 11월 5일로"처럼 고치면 그 값을 patch.fields에 담고, say에는 무엇을 바꿨는지만 말한다.
 
 반드시 아래 JSON만 출력한다(설명·코드펜스 금지):
 {
@@ -180,7 +157,7 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
     "style": { "mode":"light|dark", "colors":["#RRGGBB",...], "font":"${FONT_IDS.join('|')}", "mood":"쉼표구분" },
     "drop": { "media": [사용자가 빼 달라고 한 매체], "channels": [빼 달라고 한 채널] }
   },
-  "phase": "brief|style|draft",
+  "phase": "target|style|draft",
   "ready": true/false
 }
 
@@ -191,7 +168,7 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
 - 고객사와 직무는 나눠서 담는다. 예: "한진정보통신 클라우드 엔지니어 채용" → client=한진정보통신, role=클라우드 엔지니어.
 - say는 1~2문장. 목록을 나열하지 않는다.
 - 사용자가 "알아서 해"라고 하면 합리적 기본값을 patch에 넣고 무엇을 정했는지 say에 알린다.
-- 문장 확인과 스타일이 모두 끝났거나, 문장 확인 뒤 사용자가 "알아서 해"라고 하면 phase="draft", ready=true.
+- 내용이 정해졌고 스타일도 끝났거나, 내용이 정해진 뒤 사용자가 "알아서 해"라고 하면 phase="draft", ready=true.
 - 스타일 단계에서는 키비주얼 업로드가 선택임을 알리고, 없으면 컬러만으로 진행할 수 있다고 말한다.`;
 
 function stateBrief(state) {
@@ -202,7 +179,7 @@ function stateBrief(state) {
   const missing = req.filter(k => !f[k]).map(k => labelOf(kind, k));
   return [
     `phase=${state.phase}`,
-    `문장 확인: ${state.briefDone ? '끝남' : '아직 — 화면에 빈칸 채우기 문장이 떠 있다'}`,
+    `내용: ${state.briefDone ? '정해짐 — 고치는 말이 오면 patch.fields에 담는다' : '아직 — 무엇을·어디에를 고르는 중'}`,
     `종류: ${KINDS[kind]?.label ?? kind} (확정됨)`,
     `트랙: ${state.track ? TRACKS[state.track] + ' (확정됨)' : '미정'}`,
     state.track === 'online' ? `매체: ${(state.media ?? []).map(id => MEDIA_KO[id]).join(', ') || '미정'}` : `선택 채널: ${(state.channels ?? []).map(c => CH_KO[c]).join(', ') || '미정'}`,
@@ -277,11 +254,10 @@ export function scriptedTurn({ state, userText, now }) {
   const kind = state.kind ?? detectKind(t);
   const f = { ...(state.fields ?? {}) };
   const patch = { kind: state.kind ? null : kind, track: null, media: [], fields: {}, channels: [], signage: null, style: {}, drop: { media: [], channels: [] } };
-  const req = fieldsFor(kind);
 
-  // 문장에 적힌 값만 읽는다. 이미 있는 값은 덮지 않는다 — 사용자가 빈칸에서 고친 값이 우선이다.
-  if (!state.briefDone && kind === 'recruit') {
-    for (const [k, v] of Object.entries(extractRecruit(t, now))) if (v && !f[k]) { patch.fields[k] = v; f[k] = v; }
+  // 말에 적힌 값만 읽는다. 처음(브리프)에는 이미 있는 값을 덮지 않고, 내용이 정해진 뒤에 오는 값은 고치는 말로 본다.
+  if (kind === 'recruit') {
+    for (const [k, v] of Object.entries(extractRecruit(t, now))) if (v && (state.briefDone ? f[k] !== v : !f[k])) { patch.fields[k] = v; f[k] = v; }
   }
 
   // 트랙·매체·채널 키워드
@@ -300,21 +276,14 @@ export function scriptedTurn({ state, userText, now }) {
   const hex = t.match(/#[0-9A-Fa-f]{6}/g);
   if (hex) patch.style.colors = hex.map(h => h.toUpperCase());
 
-  if (!state.briefDone) {
-    const media = [...new Set([...(state.media ?? []), ...patch.media])].filter(id => !patch.drop.media.includes(id));
-    const chans = [...new Set([...(state.channels ?? []), ...patch.channels])].filter(c => !patch.drop.channels.includes(c));
-    const online = kind === 'recruit' && track === 'online';
-    const noTarget = kind === 'recruit' && !track ? true : online ? !media.length : !chans.length;
-    const blanks = req.filter(k => !f[k]).length + (noTarget ? 1 : 0);
-    const known = Object.keys(KINDS[kind].labels).some(k => f[k]) || media.length || chans.length;
-    const say = !known ? '아래 문장의 빈칸을 채워 주세요. 말로 알려 주셔도 읽어서 채워 둘게요.'
-      : blanks ? `이렇게 읽었어요. 밑줄 친 곳은 눌러서 고칠 수 있어요 — 빈칸 ${blanks}곳만 채워 주세요.`
-      : '이렇게 읽었어요. 맞으면 그대로 진행하고, 다르면 밑줄 친 곳을 눌러 고쳐 주세요.';
-    return { say, patch, phase: 'brief', ready: false };
-  }
+  // 내용이 정해지기 전에는 화면이 "무엇을·어디에"를 묻는다 — 진행자의 말은 쓰이지 않는다
+  if (!state.briefDone) return { say: '무엇을 만들지 골라 주세요.', patch, phase: 'target', ready: false };
+  // 내용이 정해진 뒤 들어온 값은 고친 것이다 — 무엇을 바꿨는지만 말한다
+  const fixed = Object.keys(patch.fields).map(k => `${labelOf(kind, k)}: ${patch.fields[k]}`);
   if (!state.styleDone && !/알아서|바로 만들|그냥 진행/.test(t)) {
     return {
-      say: '이제 스타일이에요. 키비주얼이 있으면 올려 주세요 — 대표 컬러를 뽑아 드립니다. 없으면 컬러만 골라도 됩니다.',
+      say: fixed.length ? `바꿨어요. ${fixed.join(' · ')}. 스타일을 이어서 골라 주세요.`
+        : '이제 스타일이에요. 키비주얼이 있으면 올려 주세요. 대표 컬러를 뽑아 드립니다. 없으면 컬러만 골라도 됩니다.',
       patch, phase: 'style', ready: false,
     };
   }

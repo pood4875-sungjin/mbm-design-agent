@@ -17,7 +17,7 @@ import { propagate } from '../core/propagate.js';
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
-  SENTENCES, SENTENCES_OPTIONAL, DATE_FIELDS, sentenceText, normDate, extractRecruit } from './agent.js';
+  ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
@@ -369,9 +369,9 @@ async function startIntake(text) {
     kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'target', styleDone: false, signageDone: false, history: [],
     // 무엇을(track: online·offline·both) → 어디에(targetDone) 를 대화에서 고른다. suggestTrack = 브리프에서 읽은 제안(고르기 전까지 확정 아님)
     targetDone: false, suggestTrack: null,
-    // briefDone: 빈칸 채우기 문장을 사용자가 확인했는가 · readFields: 브리프에서 읽어 채운 값(점선 밑줄로 구분)
+    // briefDone: 내용(회사·직무…)이 정해졌는가 · asking: 꼭 필요한 값이 없어 대화로 묻는 중인 항목
     // specOff: 고른 매체의 소재 중 이번에 만들지 않기로 끈 것
-    briefDone: false, readFields: new Set(), specOff: new Set(), pickerOpen: false, showOptional: false,
+    briefDone: false, asking: null, specOff: new Set(), pickerOpen: false,
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
@@ -379,7 +379,6 @@ async function startIntake(text) {
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
-  for (const k of Object.keys(seed.fields)) state.intake.readFields.add(k);
   state.intake.channels = seed.channels;
   state.intake.kind = seed.kind; state.intake.suggestTrack = seed.track; state.intake.media = seed.media ?? [];
   $('thread').innerHTML = '';
@@ -402,6 +401,7 @@ function agentState() {
 async function turn(userText, { initial = false } = {}) {
   const it = state.intake;
   it.history.push({ role: 'user', text: userText });
+  if (it.asking) { answerAsk(userText); return; }
   const think = LLM.hasKey() ? thinkBubble() : null;
   let res;
   try {
@@ -417,10 +417,11 @@ async function turn(userText, { initial = false } = {}) {
   // 첫 브리프에서 읽은 트랙은 제안일 뿐이다 — "무엇을 만들까요"는 사용자가 고른다
   if (initial && res.patch?.track) { it.suggestTrack = res.patch.track; res.patch.track = null; }
   applyPatch(res.patch);
-  // 단계는 화면의 확인이 넘긴다 — 진행자가 앞서 나가도 고르기·문장 확인 전에는 그 단계에 머문다.
-  // 문장 확인 뒤 "알아서 해"처럼 진행자가 준비됐다고 하면 스타일은 기본값으로 확정한다.
+  // 단계는 화면의 카드가 넘긴다 — 진행자가 앞서 나가도 무엇을·어디에를 고르기 전에는 그 단계에 머문다.
+  // 내용이 정해진 뒤 "알아서 해"처럼 진행자가 준비됐다고 하면 스타일은 기본값으로 확정한다.
   if (res.ready && it.briefDone) it.styleDone = true;
   const st = stepOf(it);
+  if (st === 'ask') { afterWhere(); return; }
   it.phase = PHASE_OF[st];
   renderSteps();
   const msg = (st === 'type' || st === 'where') ? stepPrompt(it, st) : res.say;
@@ -430,7 +431,7 @@ async function turn(userText, { initial = false } = {}) {
   renderSlot({ focus: true });
 }
 
-/* ── 단계 ── 무엇을 → 어디에 → 내용 확인 → (행사 인쇄물 세트) → 스타일 → 생성 */
+/* ── 단계 ── 무엇을 → 어디에 → (꼭 필요한 값이 없으면 묻기) → (행사 인쇄물 세트) → 스타일 → 생성 */
 const TRACK_CHOICE = { online: '광고 소재', offline: '오프라인 인쇄물', both: '광고 소재와 인쇄물 둘 다' };
 const wantsAd = it => it.track === 'online' || it.track === 'both';
 const wantsPrint = it => it.track === 'offline' || it.track === 'both';
@@ -439,12 +440,12 @@ const needsSignage = it => it.kind !== 'recruit' && !it.signageDone && it.channe
 function stepOf(it) {
   if (!it.track) return 'type';
   if (!it.targetDone) return 'where';
-  if (!it.briefDone) return 'content';
+  if (!it.briefDone) return 'ask';
   if (needsSignage(it)) return 'signage';
   if (!it.styleDone) return 'style';
   return 'draft';
 }
-const PHASE_OF = { type: 'target', where: 'target', content: 'brief', signage: 'brief', style: 'style', draft: 'draft' };
+const PHASE_OF = { type: 'target', where: 'target', ask: 'target', signage: 'target', style: 'style', draft: 'draft' };
 // 받침이 있으면 앞의 조사, 없으면 뒤의 조사 — "자소설닷컴을", "리멤버를"
 const josa = (word, withB, without) => { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? withB : without; };
 function stepPrompt(it, st) {
@@ -473,7 +474,6 @@ function applyPatch(patch = {}) {
   if (patch.track && TRACKS[patch.track]) it.track = patch.track;
   if (patch.media?.length) it.media = [...new Set([...(it.media ?? []), ...patch.media])];
   Object.assign(it.fields, patch.fields ?? {});
-  for (const k of Object.keys(patch.fields ?? {})) it.readFields?.add(k);
   if (patch.channels?.length) it.channels = [...new Set([...it.channels, ...patch.channels])];
   if (patch.drop?.media?.length) it.media = it.media.filter(id => !patch.drop.media.includes(id));
   if (patch.drop?.channels?.length) it.channels = it.channels.filter(c => !patch.drop.channels.includes(c));
@@ -485,21 +485,17 @@ function applyPatch(patch = {}) {
   if (typeof st.mood === 'string') it.mood = st.mood;
 }
 
-// 단계에 맞는 카드만 노출한다 — 무엇을 → 어디에 → 내용 확인(빈칸 채우기 문장) → 행사 인쇄물 세트 → 스타일
+// 단계에 맞는 카드만 노출한다 — 무엇을 → 어디에 → 행사 인쇄물 세트 → 스타일. 묻는 중에는 카드 없이 입력창으로 답한다
 function renderSlot(opts = {}) {
   const st = stepOf(state.intake);
   if (st === 'type') return slotType();
   if (st === 'where') return slotWhere();
-  if (st === 'content') return slotSentence(opts);
+  if (st === 'ask') { clearSlot(); $('cvIn').focus(); return; }
   if (st === 'signage') return slotSignage();
   if (st === 'style') return slotStyle();
   clearSlot();
 }
 
-/* ── 빈칸 채우기 문장 ─────────────────────────────────────────────
-   대화의 첫 답은 질문 목록이 아니라 "이렇게 읽었어요"라는 문단이다.
-   읽은 값은 채워져 있고(점선 밑줄 = 브리프에서 읽음), 빈 곳만 눈에 띈다.
-   무엇을 몇 장 만드는지도 같은 문단에서 정한다 — 누르고 나서야 장수를 아는 일이 없게. */
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const mediumName = id => MEDIA.find(m => m.id === id)?.name ?? id;
 
@@ -507,20 +503,6 @@ const mediumName = id => MEDIA.find(m => m.id === id)?.name ?? id;
 function chosenAdGroups(it = state.intake) {
   return adSpecGroups(it.media ?? []).filter(g => !it.specOff?.has(g.id));
 }
-function briefBlanks(it) {
-  const miss = fieldsFor(it.kind).filter(f => !it.fields[f]);
-  return { miss, count: miss.length };
-}
-
-// 빈칸 너비는 든 글자만큼 — 문장처럼 읽히려면 칸이 글자를 따라가야 한다
-function fitBlank(i) {
-  const g = fitBlank.g ??= document.createElement('canvas').getContext('2d');
-  const cs = getComputedStyle(i);
-  g.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-  const max = (i.closest('.sent')?.clientWidth ?? 600) - 48;
-  i.style.width = Math.ceil(Math.min(max, g.measureText(i.value || i.placeholder).width + 14)) + 'px';
-}
-
 function specRow(g, it, AD) {
   const e = g.entry;
   // "PC프리미엄패키지 - PC채용공고배너" → 상품 / 지면. 같은 파일을 쓰는 상품은 한 줄에 같이 적는다.
@@ -652,125 +634,73 @@ function slotWhere() {
     it.targetDone = true;
     if (recruit) it.signageDone = true;   // 채용 인쇄물은 본 안내 한 장씩 — 행사용 세트(방향 안내·접수) 구성은 묻지 않는다
     clearSlot();
-    const miss = briefBlanks(it).count;
-    it.phase = 'brief'; renderSteps();
-    say(miss ? `이제 내용을 확인할게요. 브리프에서 읽은 값은 채워 뒀어요 — 빈칸 ${miss}곳만 채워 주세요.` : '이제 내용을 확인할게요. 브리프에서 읽은 값이 맞는지 봐 주세요 — 밑줄 친 곳은 눌러서 고칠 수 있어요.');
-    slotSentence({ focus: true });
+    afterWhere();
   };
   foot();
 }
 
-function slotSentence(opts = {}) {
+// 어디에까지 고르면 — 내용은 브리프에서 읽은 그대로 간다. 따로 확인 화면을 두지 않는다.
+// 큰 글자에 쓸 값(ESSENTIAL)이 없을 때만 한 가지씩 묻고, 나머지는 읽은 것을 한 줄로 알려 준다(고칠 건 말로).
+function afterWhere() {
   const it = state.intake;
-  const kind = it.kind;
-  const lab = f => KINDS[kind].labels[f] ?? f;
-  const blank = (f, optional) => {
-    const v = it.fields[f] ?? '';
-    const st = v ? (it.readFields.has(f) ? 'read' : 'ok') : (optional ? 'opt' : 'empty');
-    return `<input class="blank ${st}" data-f="${f}" value="${escH(v)}" placeholder="${escH(lab(f))}" aria-label="${escH(lab(f))}"${optional ? '' : ' aria-required="true"'}${st === 'read' ? ' title="브리프에서 읽은 값 — 눌러서 고칠 수 있어요"' : ''} autocomplete="off" spellcheck="false">`;
-  };
-  // 빈칸 바로 뒤의 조사·쉼표는 빈칸과 한 덩어리다 — 줄이 바뀌어도 "의"만 다음 줄에 떨어지지 않게 묶는다
-  const para = (parts, optional) => {
-    // 고정 문구도 구절째로 움직인다("채용 광고예요."가 "채용"과 "광고예요."로 갈리지 않게)
-    const fixed = t => t.replace(/\S(?:.*\S)?/, m => `<span class="nb">${escH(m)}</span>`);
-    let html = '';
-    for (let i = 0; i < parts.length; i++) {
-      const p = parts[i];
-      if (typeof p === 'string') { html += fixed(p); continue; }
-      const next = typeof parts[i + 1] === 'string' ? parts[i + 1] : '';
-      const tail = next.match(/^\S+/)?.[0] ?? '';
-      html += `<span class="nb">${blank(p.f, optional)}${escH(tail)}</span>`;
-      if (tail) { html += fixed(next.slice(tail.length)); i++; }
-    }
-    return `<p>${html}</p>`;
-  };
-
-  const optional = SENTENCES_OPTIONAL[kind] ?? [];
-  const keepScroll = $('slot').querySelector('.sent')?.scrollTop ?? 0;   // 다시 그려도 보던 자리 그대로
-
-  const box = slot(`<div class="card2 sent">
-    <div class="shead"><h4>읽은 내용</h4></div>
-    ${SENTENCES[kind].map(p => para(p, false)).join('')}
-    ${it.showOptional ? optional.map(p => para(p, true)).join('') : ''}
-    <div class="sfoot"><span class="smsg" id="sMsg" role="status"></span>
-      ${optional.length && !it.showOptional ? '<button type="button" class="btn" id="sMore">선택 항목 더하기</button>' : ''}
-      <button type="button" class="btn pri" id="sOk">이대로 진행</button></div></div>`);
-
-  const foot = () => {
-    const b = briefBlanks(it);
-    const bad = box.querySelector('.blank[aria-invalid="true"]');
-    $('sMsg').textContent = bad ? `${lab(bad.dataset.f)}: 날짜로 읽지 못했어요 — 예: 2026-10-31, 10월 31일`
-      : b.count ? `빈칸 ${b.count}곳 남았어요` : '다 채워졌어요';
-    $('sMsg').className = `smsg ${bad ? 'bad' : b.count ? '' : 'good'}`;
-  };
-  const rerender = focusSel => { slotSentence(); if (focusSel) $('slot').querySelector(focusSel)?.focus(); };
-
-  const inputs = [...box.querySelectorAll('input.blank')];
-  inputs.forEach(i => {
-    fitBlank(i);
-    i.oninput = () => {
-      const f = i.dataset.f, v = i.value.trim();
-      if (v) it.fields[f] = v; else delete it.fields[f];
-      it.readFields.delete(f);           // 손댄 값은 더 이상 "읽은 값"이 아니다
-      i.removeAttribute('aria-invalid'); i.removeAttribute('title');
-      i.className = `blank ${v ? 'ok' : (i.hasAttribute('aria-required') ? 'empty' : 'opt')}`;
-      fitBlank(i); foot();
-    };
-    // 날짜는 칸을 떠날 때 읽는다 — 치는 도중에 빨갛게 하지 않는다
-    i.onblur = () => {
-      const f = i.dataset.f, v = i.value.trim();
-      if (!DATE_FIELDS.includes(f) || !v) return;
-      const iso = normDate(v);
-      if (iso) { i.value = iso; it.fields[f] = iso; fitBlank(i); }
-      else i.setAttribute('aria-invalid', 'true');
-      foot();
-    };
-    i.onkeydown = e => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const rest = inputs.slice(inputs.indexOf(i) + 1).find(x => !x.value.trim() && x.hasAttribute('aria-required'));
-      (rest ?? $('sOk')).focus();
-    };
-  });
-
-  if ($('sMore')) $('sMore').onclick = () => { it.showOptional = true; rerender('input.blank.opt'); };
-
-  box.querySelector('.sent').scrollTop = keepScroll;
-  $('sOk').onclick = () => {
-    const b = briefBlanks(it);
-    const bad = box.querySelector('.blank[aria-invalid="true"]');
-    if (bad) { bad.focus(); return; }
-    if (b.miss.length) { box.querySelector(`input.blank[data-f="${b.miss[0]}"]`)?.focus(); toast(`${lab(b.miss[0])} 칸이 비어 있어요`); return; }
-    it.briefDone = true;
-    const said = sentenceText(kind, it.fields);
-    bub('user', said); it.history.push({ role: 'user', text: said });
-    clearSlot();
-    afterBrief();
-  };
-
-  foot();
-  if (opts.focus) (inputs.find(x => !x.value.trim() && x.hasAttribute('aria-required')) ?? $('sOk')).focus({ preventScroll: true });
+  const miss = (ESSENTIAL[it.kind] ?? []).filter(f => !it.fields[f]);
+  if (miss.length) {
+    it.asking = miss[0];
+    it.phase = 'target'; renderSteps();
+    say(ASK[miss[0]]);
+    clearSlot(); $('cvIn').focus();
+    return;
+  }
+  it.asking = null;
+  it.briefDone = true;
+  afterBrief(readSummary(it));
+}
+// 묻던 값의 답 — 말에서 읽히는 값이 있으면 그것을, 없으면 답 전체를 그 값으로 쓴다("한진정보통신이에요" → 한진정보통신)
+function answerAsk(text) {
+  const it = state.intake;
+  const got = it.kind === 'recruit' ? extractRecruit(text) : {};
+  for (const [k, v] of Object.entries(got)) if (v && !it.fields[k]) it.fields[k] = v;
+  if (!it.fields[it.asking]) {
+    const v = text.trim().replace(/[.!?。]+$/, '').replace(/\s*(이에요|예요|입니다|이요|요)$/, '').trim();
+    if (v) it.fields[it.asking] = v;
+  }
+  afterWhere();
+}
+// 읽은 내용 한 줄 — "한진정보통신 · 클라우드 엔지니어 · 정규직 · 서울 여의도 · 10.31(토) 마감"
+function readSummary(it) {
+  const f = it.fields;
+  const day = d => { const iso = normDate(d); if (!iso) return d; const t = new Date(iso + 'T00:00'); return `${t.getMonth() + 1}.${t.getDate()}(${'일월화수목금토'[t.getDay()]})`; };
+  const parts = it.kind === 'recruit'
+    ? [f.client, f.role, f.employType, f.location, f.deadline && `${day(f.deadline)} 마감`]
+    : [f.name, f.date && day(f.date), f.venue, f.audience];
+  const lacks = it.kind === 'recruit'
+    ? [!f.deadline && '마감일', !f.location && '근무지'].filter(Boolean)
+    : [!f.date && '일시', !f.venue && '장소'].filter(Boolean);
+  const note = lacks.length ? ` ${lacks.join('·')}${josa(lacks[lacks.length - 1], '은', '는')} 브리프에 없어서 뺐어요.` : '';
+  // 채용은 말로 고친 값을 규칙 진행자도 읽는다. 행사는 AI 키가 없으면 말로는 못 고치니 결과 화면의 일괄 편집을 알려 준다
+  const fix = it.kind === 'recruit' ? '고칠 게 있으면 아래 입력창에 말로 알려 주세요(예: 마감 11월 5일로).' : '고칠 게 있으면 초안이 나온 뒤 오른쪽 패널에서 바로 고칠 수 있어요.';
+  return `브리프에서 이렇게 읽었어요. ${parts.filter(Boolean).join(' · ')}.${note} ${fix}`;
 }
 
-// 문장 확인 뒤 — 진행자를 다시 부르지 않는다(기다릴 이유가 없다). 오프라인이 있으면 세트 구성, 아니면 스타일.
-function afterBrief() {
+// 내용이 정해진 뒤 — 진행자를 다시 부르지 않는다(기다릴 이유가 없다). 행사 인쇄물이 있으면 세트 구성, 아니면 스타일.
+function afterBrief(lead = '') {
   const it = state.intake;
   if (needsSignage(it)) {
-    say('오프라인은 현장에서 여러 장이 세트로 나갑니다. 용도와 규격을 아래에서 정해 주세요 — 방향 안내는 고른 화살표마다 한 장씩 만들어집니다.');
+    say(`${lead ? lead + '\n\n' : ''}오프라인은 현장에서 여러 장이 세트로 나갑니다. 용도와 규격을 아래에서 정해 주세요. 방향 안내는 고른 화살표마다 한 장씩 만들어집니다.`);
     slotSignage();
     return;
   }
-  goStyle();
+  goStyle(lead);
 }
 function say(text) {
   bub('agent', text);
   state.intake.history.push({ role: 'agent', text });
 }
-function goStyle() {
+function goStyle(lead = '') {
   const it = state.intake;
   it.phase = 'style';
   renderSteps();
-  say('이제 스타일이에요. 키비주얼과 로고가 있으면 올려 주세요 — 대표 컬러를 뽑아 드립니다. 없으면 컬러만 골라도 됩니다.');
+  say(`${lead ? lead + '\n\n' : ''}이제 스타일이에요. 키비주얼과 로고가 있으면 올려 주세요. 대표 컬러를 뽑아 드립니다. 없으면 컬러만 골라도 됩니다.`);
   slotStyle();
 }
 
