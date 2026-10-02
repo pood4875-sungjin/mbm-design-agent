@@ -104,7 +104,8 @@ test('the compact strip gives the logo, the type and the cta separate columns', 
 
 test('banner hierarchy has three levels, not just title and subtitle', () => {
   const html = renderBanner(ctx, style, spec);
-  assert.match(html, /letter-spacing:0\.18em/, '아이브로우(일자)');
+  assert.match(html, /font-weight:700;color:[^;]+;margin-bottom:\d+px">[^<]*10/, '아이브로우(일자)');
+  assert.doesNotMatch(html, /letter-spacing/, '자간을 벌리지 않는다');
   assert.match(html, /font-weight:800/, '행사명');
   assert.match(html, /코엑스/, '장소');
 });

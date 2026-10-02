@@ -9,7 +9,8 @@ import { adSpecEntries, adSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
-import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor } from '../core/palette.js';
+import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage } from '../core/palette.js';
+import { resolveField } from '../core/field.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -371,6 +372,8 @@ async function startIntake(text) {
     briefDone: false, readFields: new Set(), specOff: new Set(), pickerOpen: false, showOptional: false,
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
+    // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
+    bgMode: 'auto', bgColor: null,
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -759,8 +762,22 @@ function slotSignage() {
   };
 }
 
+// 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
+const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '키비주얼이 없어 브랜드 색', manual: '직접 고른 색' };
+function bgControlHtml(styleLike, id) {
+  const f = resolveField(styleLike, { facing: 'left' });
+  const mode = styleLike.background?.mode ?? 'auto';
+  return `<label>배경 <span style="color:var(--sub)">· ${FIELD_SRC[f.source] ?? ''}</span></label>
+    <div class="bgrow"><span class="bgprev" style="background:${f.css}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
+      <div class="vseg" id="${id}Seg">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
+    <div class="bgrow"><label class="bgpick"><input type="color" id="${id}Color" value="${f.stops[0]}">직접 고르기</label>
+      ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
+}
+const isAdTrack = x => x.kind === 'recruit' && x.track === 'online';
+
 function slotStyle() {
   const it = state.intake;
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2"><h4>그래픽 가이드</h4>
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(선택)'}</div>
@@ -770,8 +787,8 @@ function slotStyle() {
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
-        <label>모드</label>
-        <div class="vseg" id="modeSeg"><button data-m="light" class="${it.mode === 'light' ? 'on' : ''}">라이트</button><button data-m="dark" class="${it.mode === 'dark' ? 'on' : ''}">다크</button></div>
+        ${isAdTrack(it) ? bgControlHtml(adStyle, 'bg') : `<label>모드</label>
+        <div class="vseg" id="modeSeg"><button data-m="light" class="${it.mode === 'light' ? 'on' : ''}">라이트</button><button data-m="dark" class="${it.mode === 'dark' ? 'on' : ''}">다크</button></div>`}
         <label style="margin-top:10px">브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="palette">
           <span class="sw"><input type="color" class="swatch" id="c1" value="${it.colors[0]}"><small>주색</small></span>
@@ -793,9 +810,12 @@ function slotStyle() {
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
   ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; });
-  $('modeSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+  $('modeSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => {
     it.mode = b.dataset.m; applyDerived(); slotStyle();
   });
+  $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; slotStyle(); });
+  if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
+  if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
   renderSuggests();
   renderDpi();
   bindUpload($('kvThumb'), $('kvFile'), async d => {
@@ -810,7 +830,7 @@ function slotStyle() {
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
         : `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.`)
-        + '\n글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.');
+        + (isAdTrack(it) ? '\n배경은 키비주얼에서 읽은 색으로 깔고, 글자색은 그 배경에 맞춰 정했어요.' : '\n글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.'));
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), async d => {
@@ -827,7 +847,9 @@ function slotStyle() {
   bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; });
   $('stOk').onclick = () => {
     it.styleDone = true;
-    const said = `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
+    const said = isAdTrack(it)
+      ? `배경 ${FIELD_SRC[resolveField(adStyle, { facing: 'left' }).source]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`
+      : `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
     bub('user', said); it.history.push({ role: 'user', text: said });
     clearSlot();
     it.phase = 'draft';
@@ -986,8 +1008,10 @@ async function analyzeKeyVisual(dataUrl) {
   const { data } = g.getImageData(0, 0, W, H);
   const readability = {};
   for (const [k, zone] of Object.entries(TEXT_ZONES)) readability[k] = analyzeRegion(data, W, H, zone);
-  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H), px: [img.width, img.height] };
-  return { suggests: extractPalette(data, 3), readability, meta };
+  const suggests = extractPalette(data, 3);
+  // field·colors: 소재의 지면색을 이 이미지에서 읽기 위한 실측(core/field.js) — 가장자리 색과 대표색
+  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H), px: [img.width, img.height], field: fieldFromImage(data, W, H), colors: suggests };
+  return { suggests, readability, meta };
 }
 
 // 로고의 대표색 — 투명·흰 바탕·검정 글자는 extractPalette가 건너뛴다. 무채색 로고면 빈 배열.
@@ -1038,6 +1062,7 @@ function buildAndGenerate() {
     logo: it.logo,
     logoLight: it.logoLight ?? null,
     mode: it.mode,
+    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
     colors: it.colors,
     fonts: { heading: it.font, body: it.font },
     mood: it.mood.split(',').map(s => s.trim()).filter(Boolean),
@@ -1433,11 +1458,11 @@ function renderInspector() {
       <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
       ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
       <h3 style="margin-top:18px">STYLE</h3>
-      <label>모드</label>
+      ${isAdTrack(c) ? bgControlHtml(c.style, 'iBg') : `<label>모드</label>
       <div class="vseg" id="iMode">
         <button data-m="light" class="${c.style.mode !== 'dark' ? 'on' : ''}">라이트</button>
         <button data-m="dark" class="${c.style.mode === 'dark' ? 'on' : ''}">다크</button>
-      </div>
+      </div>`}
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
       <div style="display:flex;gap:10px">
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
@@ -1487,6 +1512,7 @@ function renderInspector() {
         logo: c.style.logo,
         logoLight: c.style.logoLight ?? null,
         mode: c.style.mode,
+        background: c.style.background,
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
         mood: c.style.mood,
@@ -1510,6 +1536,11 @@ function renderInspector() {
       restyle({ mode: b.dataset.m }, b.dataset.m === 'dark' ? '다크 모드 전환' : '라이트 모드 전환');
       renderInspector();
     });
+    const setBg = (patch, label) => { restyle({ background: { ...c.style.background, ...patch } }, label); renderInspector(); };
+    insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
+    const bgIn = insp.querySelector('#iBgColor');
+    if (bgIn) bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기');
+    insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
     const dpiBox = insp.querySelector('#iDpi');
     if (dpiBox && c.style.keyVisual && c.style.kvMeta?.px) {

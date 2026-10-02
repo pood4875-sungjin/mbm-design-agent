@@ -112,12 +112,12 @@ test('"이미지 밖 텍스트 필드" rows are handed over, not drawn — a pro
 /* ── 디자인 프로필(core/design.js)이 그림을 정한다 ── */
 import { DESIGN } from '../core/design.js';
 
-test('the date is rendered as a pill where the medium\'s examples decorate it (GDN 24/28)', () => {
-  const html = renderAd(ctx, style, specs['google-gdn-580x400']);
-  assert.match(html, /data-field="date"[^>]*border-radius:999px/);
-  // 카카오 비즈보드 예시(0/10 뱃지)는 알약 없이 평문
-  const biz = renderAd(ctx, style, specs['kakao-bizboard-mo']);
-  assert.doesNotMatch(biz, /data-field="date"[^>]*border-radius:999px/);
+test('the date is plain text — no outlined pill, no widened tracking', () => {
+  for (const id of ['google-gdn-580x400', 'kakao-bizboard-mo', 'nap-dsp-full-300x250']) {
+    const html = renderAd(ctx, style, specs[id]);
+    assert.doesNotMatch(html, /data-field="date"[^>]*border-radius/, `${id}: 날짜에 테두리 알약을 두르지 않는다`);
+    assert.doesNotMatch(html, /letter-spacing/, `${id}: 자간을 건드리지 않는다`);
+  }
 });
 
 test('a light-field medium (자소설 9/13 밝은 단색) paints a light background and dark copy', () => {
@@ -137,14 +137,34 @@ test('tall formats stack and center, wide formats keep copy left — and the log
   assert.match(wideHtml, /text-align:left/);
 });
 
-test('with a key visual the object sits in a rounded box on the right (wide) or a bottom band (tall)', () => {
+test('with a key visual the image bleeds to the edge instead of sitting in a rounded box', () => {
   const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, edge: '#0B3C8C' } };
   const wide = renderAd(ctx, kv, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(wide, /data-object="1"[^>]*border-radius:(1[0-9]|[1-9])px/);
+  assert.match(wide, /data-object="1" style="position:absolute;top:0;right:0px;[^"]*height:560px/, '오른쪽 끝·위아래 끝까지');
+  assert.doesNotMatch(wide, /data-object="1"[^>]*border-radius/);
+  assert.match(wide, /data-object="1"[^>]*mask-image:linear-gradient\(to right,transparent 0%/, '글자 쪽 변만 지면으로 녹인다');
   const tallHtml = renderAd(ctx, kv, specs['google-gdn-300x1050']);
-  assert.match(tallHtml, /data-object="1"[^>]*border-radius:0px/);
-  // 키비주얼이 없으면 오브젝트 상자 자체가 없다 — 빈 상자를 그리지 않는다
+  assert.match(tallHtml, /data-object="1" style="position:absolute;left:0;bottom:0;width:300px/);
+  // 키비주얼이 없으면 오브젝트 자체가 없다 — 빈 상자를 그리지 않는다
   assert.doesNotMatch(renderAd(ctx, style, specs['naver-gfa-mobile-da-1250x560']), /data-object/);
+});
+
+test('the field colour is read from the key visual, not chosen as light or dark', () => {
+  const edge = (from, to, rough = 0.004, opaque = 1) => ({ hex: from, from, to, rough, opaque });
+  const kvMeta = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#F2E9FF', '#D9C8FF'), top: edge('#F2E9FF', '#F2E9FF'), right: edge('#F2E9FF', '#D9C8FF'), bottom: edge('#D9C8FF', '#D9C8FF') } } };
+  const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta };
+  const wide = renderAd(ctx, kv, specs['naver-gfa-mobile-da-1250x560']).split('>')[0];
+  assert.match(wide, /background:linear-gradient\(180deg,#F2E9FF 0%,#D9C8FF 100%\)/, '이미지의 왼쪽 변에 그라데이션이 있으면 지면도 그 그라데이션');
+  assert.match(wide, /color:#000000/, '밝은 지면이면 글자는 검정 — 사람이 고르지 않는다');
+  assert.match(wide, /data-field-source="kv-edge"/);
+  // 변이 한 색이면 지면도 단색
+  const flatEdge = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#123A6B', '#123A6B') } } } };
+  assert.match(renderAd(ctx, flatEdge, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /background:#123A6B;.*color:#FFFFFF/);
+  // 가장자리가 복잡한 사진이면 대표색
+  const photo = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#777777', '#333333', 0.12) } } } };
+  assert.match(renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /background:#E67814;/);
+  // 단색만 허용하는 지면(에브리타임 홈배너)은 그라데이션을 접는다
+  assert.doesNotMatch(renderAd(ctx, kv, specs['everytime-home-banner']).split('>')[0], /linear-gradient/);
 });
 
 test('template measurements taken on a 2x frame are scaled to the 1x canvas (자소설 PC달력배너)', () => {
@@ -199,4 +219,29 @@ test('with a key visual the template image area is filled full-bleed at the temp
   const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, edge: '#0B3C8C' } };
   const html = renderAd(ctx, kv, specs['jasoseol-pc-standard-jobpost-pc']);
   assert.match(html, /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px/);
+});
+
+test('the sub line does not repeat what the headline already says', () => {
+  for (const id of ['naver-gfa-mobile-da-1250x560', 'google-gdn-580x400', 'kakao-display-pc-promo']) {
+    const html = renderAd(ctx, style, specs[id]);
+    const main = html.match(/data-field="main"[^>]*>([^<]*)</)[1];
+    const sub = html.match(/data-field="sub"[^>]*>([^<]*)</)?.[1] ?? '';
+    assert.ok(!sub || !sub.split(/\s+/).every(w => main.includes(w)), `${id}: "${sub}"가 "${main}" 안에 다 들어 있다`);
+  }
+});
+
+test('an image whose facing edge matches the field joins at that edge; a busy photo is centred and melted wider', () => {
+  const edge = (from, to, rough = 0.004) => ({ hex: from, from, to, rough, opaque: 1 });
+  const calm = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#123A6B', '#123A6B'), top: edge('#123A6B', '#123A6B'), right: edge('#123A6B', '#123A6B'), bottom: edge('#123A6B', '#123A6B') } } };
+  const busy = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#777777', '#333333', 0.12), top: edge('#777777', '#333333', 0.12), right: edge('#777777', '#333333', 0.12), bottom: edge('#777777', '#333333', 0.12) } } };
+  const kv = 'data:image/png;base64,iVBORw0KGgo=';
+  const a = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: calm }, specs['naver-gfa-mobile-da-1250x560']);
+  assert.match(a, /data-object="1"[^>]*left center\/cover[^>]*#000 10%/);
+  const b = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: busy }, specs['naver-gfa-mobile-da-1250x560']);
+  assert.match(b, /data-object="1"[^>]*center\/cover[^>]*#000 26%/);
+  // 배경을 딴 이미지는 자르지 않고, 녹이지도 않는다
+  const cut = { colors: ['#E67814'], field: { opaque: 0.1, edges: {} } };
+  const c = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: cut }, specs['naver-gfa-mobile-da-1250x560']);
+  assert.match(c, /data-object="1"[^>]*right center\/contain/);
+  assert.doesNotMatch(c, /data-object="1"[^>]*mask-image/);
 });

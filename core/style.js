@@ -43,6 +43,11 @@ export function normalizeStyle(input = {}) {
       body: FONTS[input.fonts?.body] ? input.fonts.body : 'Pretendard',
     },
     logo: input.logo ?? null,
+    // 지면(배경) — 기본은 키비주얼에서 읽는다(core/field.js). 사람이 고정할 수 있는 것은 단색/그라데이션과 색 하나뿐이다.
+    background: {
+      mode: ['solid', 'gradient'].includes(input.background?.mode) ? input.background.mode : 'auto',
+      color: HEX.test(input.background?.color ?? '') ? input.background.color.toUpperCase() : null,
+    },
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 반전한다(컬러 로고는 뭉개진다)
     mood: input.mood ?? [],
     presetId: input.presetId ?? null,

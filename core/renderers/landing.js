@@ -54,8 +54,8 @@ ${fontLink(style.fonts.body)}
   /* 아이브로우 → 대형 타이틀 → 메타 3단 위계.
      기존은 "제목 크게 + 부제 작게" 2단뿐이라 지면이 밋밋했다.
      (ui-trends.md > 큰 폰트 + 강한 위계 / design-system-examples.md > 타입 스케일 근거) */
-  .eyebrow{font-size:13px;font-weight:700;letter-spacing:.22em;color:${heroSub};margin-bottom:20px}
-  .hero h1{font-size:clamp(30px,5.2vw,52px);line-height:1.18;letter-spacing:-0.02em;font-weight:800;max-width:19ch;word-break:keep-all}
+  .eyebrow{font-size:13px;font-weight:700;color:${heroSub};margin-bottom:20px}
+  .hero h1{font-size:clamp(30px,5.2vw,52px);line-height:1.18;font-weight:800;max-width:19ch;word-break:keep-all}
   .accent{width:56px;height:4px;background:${accent};margin:28px 0 0;border-radius:2px}
   .hero p{margin-top:20px;font-size:17px;line-height:1.5;color:${heroSub}}
   .btn{display:inline-block;margin-top:40px;${heroBtn};font-weight:700;font-size:16px;padding:16px 40px;border-radius:8px;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease}
@@ -66,10 +66,10 @@ ${fontLink(style.fonts.body)}
      (industry-examples.md > 네이버 코퍼레이트: 단순하지만 또렷한 위계) */
   .card{position:relative;background:${p.surface};border:1px solid ${hair};border-radius:12px;padding:26px 24px 24px;overflow:hidden}
   .card:before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:${p.primary}}
-  .card b{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;color:${p.inkSub};margin-bottom:10px}
+  .card b{display:block;font-size:12px;font-weight:700;color:${p.inkSub};margin-bottom:10px}
   .card span{font-size:19px;font-weight:700;line-height:1.35;word-break:keep-all}
   .form{max-width:520px;margin:0 auto;padding:56px 24px 96px}
-  .form h2{font-size:26px;font-weight:800;letter-spacing:-0.01em;margin-bottom:8px;text-align:center}
+  .form h2{font-size:26px;font-weight:800;margin-bottom:8px;text-align:center}
   .form .lead{font-size:14px;color:${p.inkSub};text-align:center;margin-bottom:28px}
   .form input{width:100%;padding:15px 16px;border:1px solid ${field};border-radius:8px;background:${p.bg};color:${p.ink};font-size:15px;margin-bottom:12px;font-family:inherit}
   .form input:focus{outline:2px solid ${p.primary};outline-offset:1px;border-color:${p.primary}}

@@ -28,9 +28,9 @@ export function renderEdm(ctx, style, spec) {
 
   // 아이브로우 → 대형 타이틀 → 메타 3단 위계 + 액센트 룰.
   // (ui-trends.md > 큰 폰트 + 강한 위계 · industry-examples.md > 네이버: 또렷한 위계 근거)
-  const heroInner = `<div style="font-size:12px;font-weight:bold;letter-spacing:.2em;color:${heroSub}">INVITATION</div>
+  const heroInner = `<div style="font-size:12px;font-weight:bold;color:${heroSub}">INVITATION</div>
         <div style="height:14px;line-height:14px;font-size:0">&nbsp;</div>
-        <div style="font-size:29px;font-weight:bold;line-height:1.24;letter-spacing:-0.02em;color:${heroText}">${esc(name)}</div>
+        <div style="font-size:29px;font-weight:bold;line-height:1.24;color:${heroText}">${esc(name)}</div>
         <div style="height:18px;line-height:18px;font-size:0">&nbsp;</div>
         <div style="width:48px;height:3px;background:${p.accent};font-size:0;line-height:3px">&nbsp;</div>
         <div style="height:16px;line-height:16px;font-size:0">&nbsp;</div>
@@ -55,9 +55,9 @@ export function renderEdm(ctx, style, spec) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${p.surface};border-radius:8px">
       <tr><td style="padding:20px 22px">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;line-height:1.9;color:${p.ink}">
-          <tr><td width="52" style="color:${sub};font-size:12px;letter-spacing:.06em">일시</td><td style="font-size:15px"><b>${esc(date)}</b></td></tr>
-          <tr><td style="color:${sub};font-size:12px;letter-spacing:.06em">장소</td><td style="font-size:15px"><b>${esc(venue)}</b></td></tr>
-          <tr><td style="color:${sub};font-size:12px;letter-spacing:.06em">대상</td><td style="font-size:15px">${esc(audience)}</td></tr>
+          <tr><td width="52" style="color:${sub};font-size:12px;">일시</td><td style="font-size:15px"><b>${esc(date)}</b></td></tr>
+          <tr><td style="color:${sub};font-size:12px;">장소</td><td style="font-size:15px"><b>${esc(venue)}</b></td></tr>
+          <tr><td style="color:${sub};font-size:12px;">대상</td><td style="font-size:15px">${esc(audience)}</td></tr>
         </table>
       </td></tr>
     </table>

@@ -158,7 +158,7 @@ ${fontLink(style.fonts.heading)}
 .sheet > .scrim,.sheet > .field{position:absolute}
 .title{font-size:${titleMm.toFixed(1)}mm;font-weight:800;line-height:1.15;${WRAP}}
 .sub{font-size:${mm(0.045)}mm;opacity:.92;line-height:1.5;${WRAP}}
-.eyebrow{font-size:${mm(0.054)}mm;font-weight:700;letter-spacing:0.2em;opacity:.75}
+.eyebrow{font-size:${mm(0.054)}mm;font-weight:700;opacity:.75}
 .lockup{width:100%;margin-top:${anchor(spec, TOP.lockup, pad)}mm}
 .cta{margin-top:${gapAfter(spec, base, TOP.cta)}mm;padding-top:${mm(0.03)}mm;border-top:${mm(0.004)}mm solid ${fg}8c;${centered ? '' : `min-width:${mm(0.42)}mm;`}}
 .ctaText{font-size:${mm(0.055)}mm;font-weight:800}
@@ -172,9 +172,9 @@ ${fontLink(style.fonts.heading)}
 .arrow{font-size:${mm(0.42)}mm;line-height:.9;font-weight:400}
 .wayText{font-size:${mm(0.11)}mm;font-weight:800;line-height:1.2;${WRAP}}
 .big{font-size:${titleMm.toFixed(1)}mm;font-weight:800;line-height:1.1;${WRAP}}
-.agTitle{font-size:${mm(0.105)}mm;font-weight:800;line-height:1.15;letter-spacing:0.02em;width:100%;text-align:center;margin-top:${anchor(spec, TOP.heading, pad)}mm}
+.agTitle{font-size:${mm(0.105)}mm;font-weight:800;line-height:1.15;width:100%;text-align:center;margin-top:${anchor(spec, TOP.heading, pad)}mm}
 .rows{width:100%;text-align:left;margin-top:${gapAfter(spec, base, TOP.table)}mm}
-.rowHead{display:flex;font-size:${mm(0.026)}mm;font-weight:700;letter-spacing:0.08em;opacity:.7;padding-bottom:${mm(0.029)}mm}
+.rowHead{display:flex;font-size:${mm(0.026)}mm;font-weight:700;opacity:.7;padding-bottom:${mm(0.029)}mm}
 .row{display:flex;padding:${mm(0.029)}mm 0;border-top:${mm(0.003)}mm solid ${fg}59}
 .rowHead b,.row b{flex:0 0 26%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${mm(0.023)}mm;line-height:1.3}
 .rowHead b{font-size:inherit;letter-spacing:inherit}

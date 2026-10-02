@@ -91,6 +91,7 @@
   import { adSpecEntries } from '../core/adspecs.js';
   import { createContext } from '../core/context.js';
   import { normalizeStyle } from '../core/style.js';
+  import { edgeColor, fieldFromImage, extractPalette } from '../core/palette.js';
   import { renderFit } from '../app/adfit.js';
 
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -111,6 +112,11 @@
     g.fillStyle = 'rgba(255,255,255,.92)'; g.beginPath(); g.arc(620, 300, 150, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#FFB300'; g.fillRect(180, 330, 220, 150); g.fillRect(260, 220, 60, 110);
     g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(300, 160, 70, 0, Math.PI * 2); g.fill();
+    // 지면색은 이 이미지에서 읽는다 — 앱이 업로드 때 재는 것과 같은 실측을 여기서도 한다
+    const W = 240, H = 160, s = document.createElement('canvas'); s.width = W; s.height = H;
+    const sg = s.getContext('2d', { willReadFrequently: true }); sg.drawImage(c, 0, 0, W, H);
+    const px = sg.getImageData(0, 0, W, H).data;
+    sampleKeyVisual.meta = { ar: 1.5, edge: edgeColor(px, W, H), field: fieldFromImage(px, W, H), colors: extractPalette(px, 3) };
     return c.toDataURL('image/png');
   }
   const kv = sampleKeyVisual();
@@ -123,7 +129,7 @@
     g.fillStyle = color; g.font = '800 58px Pretendard, sans-serif'; g.fillText('HANJIN', 124, 62);
     return c.toDataURL('image/png');
   }
-  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' }, keyVisual: kv, kvMeta: { ar: 1.5, edge: '#0B3C8C' }, logo: sampleLogo('#0B3C8C'), logoLight: sampleLogo('#FFFFFF') });
+  const style = normalizeStyle({ colors: ['#0B3C8C', '#1E88E5', '#FFB300'], fonts: { heading: 'Pretendard', body: 'Pretendard' }, keyVisual: kv, kvMeta: sampleKeyVisual.meta, logo: sampleLogo('#0B3C8C'), logoLight: sampleLogo('#FFFFFF') });
   document.getElementById('sample').innerHTML = Object.entries(ctx.core).filter(([, v]) => v).map(([k, v]) => `<div><b>${esc(k)}</b>${esc(v)}</div>`).join('');
 
   const entries = Object.values(adSpecEntries());

@@ -158,7 +158,7 @@ export function renderBanner(ctx, style, spec) {
   const titleLines = Math.max(1, Math.floor(titleBudget / (titleFs * line)));
 
   const clamp = n => `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${n};overflow:hidden`;
-  const title = `<div style="font-size:${titleFs}px;font-weight:800;line-height:${line};letter-spacing:-0.015em;color:${fg};${WRAP};${clamp(titleLines)}">${esc(name)}</div>`;
+  const title = `<div style="font-size:${titleFs}px;font-weight:800;line-height:${line};color:${fg};${WRAP};${clamp(titleLines)}">${esc(name)}</div>`;
   // 스트립은 글자 칸이 좁다. 일자와 장소를 다 넣으면 장소가 말줄임돼 오히려 정보가 사라진다 —
   // 한 줄에 못 들어가면 일자만 온전히 보여 준다(잘린 장소보다 낫다).
   const metaText = strip && textWidth(`${date} · ${venue}`) * metaFs > textW ? date : `${date} · ${venue}`;
@@ -186,7 +186,7 @@ export function renderBanner(ctx, style, spec) {
 
   // 세로 스택 — [로고 슬롯] / [아이브로우 → 행사명 → 액센트 룰 → 장소] / [CTA] 세 층.
   // 본문 층은 overflow:hidden이다. 예산 계산이 어긋나도 아래 CTA를 덮는 일만은 없게 하는 마지막 방어선.
-  const eyebrow = `<div style="font-size:${eyebrowFs}px;font-weight:700;letter-spacing:0.18em;color:${subFg};margin-bottom:${Math.round(eyebrowFs * 0.7)}px">${esc(date)}</div>`;
+  const eyebrow = `<div style="font-size:${eyebrowFs}px;font-weight:700;color:${subFg};margin-bottom:${Math.round(eyebrowFs * 0.7)}px">${esc(date)}</div>`;
   // 액센트 룰 — 제목과 메타 사이의 한 칸. 색면 하나만으로 지면에 리듬이 생긴다.
   // (industry-examples.md > 토스 10가지 UX 법칙 ⑨ 폰 레스토프: 강조엔 진한·보색 근거)
   const rule = `<div style="width:${Math.round(spec.w * 0.16)}px;height:3px;background:${accent};margin-top:${Math.round(titleMax * 0.55)}px"></div>`;

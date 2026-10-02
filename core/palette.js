@@ -166,6 +166,59 @@ export function rolesFromSources({ logo = [], kv = [], lead = 'logo' } = {}, mod
   return rolesFromKeyVisual([primary, ...K.filter(c => !tooClose(c, primary))], mode);
 }
 
+// 두 색을 t만큼 섞는다 (t=1이면 b)
+export function mix(a, b, t) {
+  const x = hexToRgb(a), y = hexToRgb(b);
+  return rgbToHex(x.map((v, i) => v + (y[i] - v) * t));
+}
+// 두 색의 거리(0~1, RGB 공간) — 그라데이션이라 부를 만큼 다른가를 볼 때 쓴다
+export function colorDistance(a, b) {
+  const x = hexToRgb(a), y = hexToRgb(b);
+  return Math.sqrt(x.reduce((n, v, i) => n + (v - y[i]) ** 2, 0)) / 441.673;
+}
+
+// 키비주얼의 가장자리에서 지면색을 읽는다 — 지면이 이미지에서 그대로 이어지게 하려는 것이다.
+// 네 변마다: 평균색(hex), 변을 따라 앞 절반·뒤 절반의 색(from → to: 이미지에 그라데이션이 있으면 둘이 다르다),
+//           불투명한 픽셀 비율(opaque: 낮으면 배경을 딴 이미지), 거칠기(rough: 이웃 픽셀끼리 얼마나 다른가 — 높으면 사진처럼 복잡한 가장자리).
+// 왼쪽·오른쪽 변은 위→아래, 위·아래 변은 왼→오른쪽 순서다.
+export function fieldFromImage(rgba, w, h, band = 0.06) {
+  const bw = Math.max(2, Math.round(w * band)), bh = Math.max(2, Math.round(h * band));
+  const scan = (x0, y0, x1, y1, along) => {
+    const len = along === 'y' ? y1 - y0 : x1 - x0;
+    const half = [{ r: 0, g: 0, b: 0, n: 0 }, { r: 0, g: 0, b: 0, n: 0 }];
+    let total = 0, opaque = 0, rough = 0, pairs = 0;
+    for (let y = y0; y < y1; y++) {
+      for (let x = x0; x < x1; x++) {
+        total++;
+        const i = (y * w + x) * 4;
+        if (rgba[i + 3] < 200) continue;
+        opaque++;
+        const t = half[((along === 'y' ? y - y0 : x - x0) * 2 >= len) ? 1 : 0];
+        t.r += rgba[i]; t.g += rgba[i + 1]; t.b += rgba[i + 2]; t.n++;
+        // 변을 따라 다음 픽셀과의 차이 — 매끈한 그라데이션은 작고, 사진의 디테일은 크다
+        const nx = along === 'y' ? x : x + 1, ny = along === 'y' ? y + 1 : y;
+        if (nx < x1 && ny < y1) {
+          const j = (ny * w + nx) * 4;
+          if (rgba[j + 3] >= 200) { rough += (Math.abs(rgba[i] - rgba[j]) + Math.abs(rgba[i + 1] - rgba[j + 1]) + Math.abs(rgba[i + 2] - rgba[j + 2])) / 765; pairs++; }
+        }
+      }
+    }
+    const hex = t => t.n ? rgbToHex([t.r / t.n, t.g / t.n, t.b / t.n]) : null;
+    const all = { r: half[0].r + half[1].r, g: half[0].g + half[1].g, b: half[0].b + half[1].b, n: half[0].n + half[1].n };
+    return {
+      hex: hex(all), from: hex(half[0]) ?? hex(all), to: hex(half[1]) ?? hex(all),
+      opaque: total ? Math.round(opaque / total * 100) / 100 : 0,
+      rough: pairs ? Math.round(rough / pairs * 1000) / 1000 : 0,
+    };
+  };
+  const edges = {
+    top: scan(0, 0, w, bh, 'x'), bottom: scan(0, h - bh, w, h, 'x'),
+    left: scan(0, 0, bw, h, 'y'), right: scan(w - bw, 0, w, h, 'y'),
+  };
+  const list = Object.values(edges);
+  return { edges, opaque: Math.round(list.reduce((n, e) => n + e.opaque, 0) / list.length * 100) / 100 };
+}
+
 export function analyzeRegion(rgba, w, h, box) {
   const x0 = Math.max(0, Math.floor(box.x * w)), x1 = Math.min(w, Math.ceil((box.x + box.w) * w));
   const y0 = Math.max(0, Math.floor(box.y * h)), y1 = Math.min(h, Math.ceil((box.y + box.h) * h));

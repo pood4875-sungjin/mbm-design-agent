@@ -133,3 +133,34 @@ test('a key visual colour that repeats the logo colour is not used twice', async
   assert.equal(r[0], '#1B50C8');
   assert.equal(r[1], '#E67814', '로고와 거의 같은 키비주얼 색은 건너뛴다');
 });
+
+test('the field colour is read from the image edge: flat edge → one colour, graded edge → two, busy or cut-out edge → flagged', async () => {
+  const { fieldFromImage } = await import('../core/palette.js');
+  const W = 40, H = 30;
+  const img = fn => { const a = new Uint8ClampedArray(W * H * 4); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const [r, g, b, al = 255] = fn(x, y); a.set([r, g, b, al], (y * W + x) * 4); } return a; };
+  const flat = fieldFromImage(img(() => [18, 58, 107]), W, H);
+  assert.equal(flat.edges.left.from, '#123A6B'); assert.equal(flat.edges.left.to, '#123A6B');
+  assert.equal(flat.edges.left.opaque, 1); assert.ok(flat.edges.left.rough < 0.01);
+  const graded = fieldFromImage(img((x, y) => [30 + y * 6, 80, 200 - y * 4]), W, H);
+  assert.notEqual(graded.edges.left.from, graded.edges.left.to, '세로 그라데이션은 왼쪽 변의 위·아래 색이 다르다');
+  assert.equal(graded.edges.top.from, graded.edges.top.to, '같은 이미지의 위쪽 변은 한 색');
+  assert.ok(graded.edges.left.rough < 0.035, '매끈한 그라데이션은 거칠지 않다');
+  const noisy = fieldFromImage(img((x, y) => ((x * 7 + y * 13) % 2 ? [240, 240, 240] : [20, 20, 20])), W, H);
+  assert.ok(noisy.edges.left.rough > 0.035, '체크무늬 같은 복잡한 가장자리는 거칠다');
+  const cut = fieldFromImage(img((x, y) => (x > 12 && x < 28 && y > 8 && y < 22 ? [230, 120, 20, 255] : [0, 0, 0, 0])), W, H);
+  assert.ok(cut.opaque < 0.5, '배경을 딴 이미지는 가장자리가 투명하다');
+});
+
+test('the resolved field: manual colour wins, solid can be forced, text colour follows the field', async () => {
+  const { resolveField } = await import('../core/field.js');
+  const edge = (from, to, rough = 0.004) => ({ hex: from, from, to, rough, opaque: 1 });
+  const base = { palette: { primary: '#0B3C8C' }, keyVisual: 'x', kvMeta: { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#F2E9FF', '#D9C8FF') } } } };
+  const auto = resolveField(base);
+  assert.equal(auto.gradient, true); assert.equal(auto.text, '#000000'); assert.equal(auto.source, 'kv-edge');
+  assert.equal(resolveField({ ...base, background: { mode: 'solid' } }).gradient, false);
+  assert.deepEqual(resolveField({ ...base, background: { color: '#112233' } }).stops, ['#112233']);
+  assert.equal(resolveField({ ...base, background: { color: '#112233' } }).text, '#FFFFFF');
+  assert.equal(resolveField({ palette: { primary: '#0B3C8C' } }).source, 'brand', '키비주얼이 없으면 브랜드 색');
+  assert.equal(resolveField({ palette: { primary: '#0B3C8C' }, background: { mode: 'gradient' } }).gradient, true, '그라데이션을 고르면 같은 색에서 자연스럽게 만든다');
+  assert.equal(resolveField(base, { solidOnly: true }).gradient, false, '단색만 허용하는 지면');
+});

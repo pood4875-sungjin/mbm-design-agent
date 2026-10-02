@@ -155,7 +155,7 @@ ${fontLink(style.fonts.heading)}
 .lock{position:absolute;color:${ink};max-width:${L.box}%}
 .title{font-size:${titleMm.toFixed(2)}mm;font-weight:800;line-height:1.04;letter-spacing:-0.01em;${WRAP}}
 .sub{font-size:${mm(0.035)}mm;font-weight:600;opacity:.9;margin-top:${mm(0.03)}mm}
-.date{position:absolute;right:${pad}mm;top:${pad}mm;font-size:${mm(0.043)}mm;font-weight:700;letter-spacing:0.02em;color:${groundInk}}
+.date{position:absolute;right:${pad}mm;top:${pad}mm;font-size:${mm(0.043)}mm;font-weight:700;color:${groundInk}}
 .logo{position:absolute;line-height:0}
 /* 로고 폭을 물리지 않으면 초가로 로크업이 백드롭을 가로질러 로크업 글자와 겹친다.
    contain이라 정사각·가로긴 로고 모두 이 상자 안에서만 산다. */
