@@ -329,23 +329,14 @@
     "designExamples": 141
   },
   "afterword": {
-    "title": "대체되는 일, 남는 일",
+    "title": "만들면서 든 생각",
     "date": "2026-10-02",
     "blocks": [
       {
-        "p": "이 에이전트가 대신하는 일은 원래 디자이너의 일이었다. 규격에 맞춰 만들고, 고치고, 뽑아서 넘기는 일. 월 220개가 사람 손을 떠난다. 남의 이야기가 아니다. 세계경제포럼은 2025년 보고서에서 그래픽 디자이너를 2030년까지 가장 빨리 줄어드는 직업 11위에 올렸다. 2년 전 보고서에서는 완만하게 늘어나는 직업이었다. 같은 보고서에서 UI/UX 디자이너는 가장 빨리 늘어나는 직업 8위다. 같은 디자이너 안에서 줄어드는 쪽과 늘어나는 쪽이 갈리고 있다."
+        "p": "이 에이전트가 대신하는 일은 원래 디자이너의 일이었다. 규격에 맞춰 만들고, 고치고, 뽑아서 넘기는 일. 그게 자동으로 되면 디자이너도 같은 방식으로 대체된다."
       },
       {
-        "p": "빨라지는 것은 만드는 쪽이다. Figma가 2025년에 2,500명에게 물었더니 응답자의 78%가 AI로 일이 빨라졌다고 답했다. 결과물의 질이 좋아졌다고 답한 디자이너는 54%였다. 빨라진 만큼 좋아지지는 않았다는 뜻이고, 그 차이를 메우는 일이 사람에게 남는다."
-      },
-      {
-        "p": "남는 일이 무엇인지는 닐슨 노먼 그룹이 정리해 두었다. AI는 같은 입력에도 매번 다른 결과를 내기 때문에, 디자이너의 일은 정확한 모양을 지정하는 데서 '무엇이 좋은 것인지'를 정의하는 쪽으로 옮겨 간다고 한다. 그들은 그 능력을 크리틱이라 부른다. 같은 곳의 다른 글은 디자이너가 대화의 중심을 산출물에서 결과로 옮겨야 한다고 쓴다."
-      },
-      {
-        "p": "이 과제에서 이미 겪은 일이다. 에이전트가 만든 소재 77종이 매체 규정 검사를 전부 통과했는데, 실제 자소설 소재 옆에 놓으니 한참 모자랐다. 규정에 맞는지는 기계가 쟀고 좋은지는 사람이 봤다. 그다음에 한 일도 같았다. 실제 소재 141장을 놓고 무엇이 좋은 것인지를 기준으로 적어 준 것이다."
-      },
-      {
-        "p": "그래서 키워야 할 것은 만드는 손보다 보는 눈이라고 생각한다. 그 눈이 향할 곳은 네 군데다."
+        "p": "그러면 무엇을 키워야 하나. 만드는 손보다 보는 눈인 것 같다."
       },
       {
         "ul": [
@@ -356,51 +347,9 @@
         ]
       },
       {
-        "p": "마지막 질문이 가장 어렵고 가장 값지다. 맥킨지가 상장사 300곳을 5년간 추적했더니 디자인 지수 상위 25% 회사는 같은 업종 회사보다 매출 성장이 32%p, 주주수익 성장이 56%p 높았다. 그 회사들의 첫 번째 공통점은 디자인 성과를 매출과 비용만큼 엄격하게 잰다는 것이었다."
-      },
-      {
-        "p": "이 과제의 KPI도 그 연습이다. 다만 월 220건과 월 220만 원은 얼마나 덜 드는지를 잰다. 채용 광고가 해야 하는 일은 지원자를 데려오는 것이다. 다음에 물어야 할 것은 에이전트가 만든 소재가 지원을 더 끌어오는가일 것이다."
-      },
-      {
-        "p": "어제 신신역검 리뷰를 하면서도 같은 생각이 들었다."
+        "p": "이걸 바라보고 판단하는 안목. 어제 신신역검 리뷰를 하면서도 같은 생각이 들었다."
       }
     ],
-    "sources": [
-      {
-        "label": "세계경제포럼, Future of Jobs Report 2025",
-        "note": "고용주 1,000곳 이상 조사, 2025~2030년 전망",
-        "url": "https://reports.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf"
-      },
-      {
-        "label": "Design Week, Graphic design among most at-risk jobs from AI",
-        "note": "11위, 직전 보고서와의 비교",
-        "url": "https://www.designweek.co.uk/graphic-design-among-most-at-risk-jobs-from-ai-report/"
-      },
-      {
-        "label": "BEDA, Take-aways for Design from the WEF Future of Jobs 2025 Report",
-        "note": "UI/UX 디자이너 8위",
-        "url": "https://beda.org/news/take-aways-for-design-from-the-wef-future-of-jobs-2025-report/"
-      },
-      {
-        "label": "Figma, 2025 AI Report (2025-04-24)",
-        "note": "78%와 54%",
-        "url": "https://www.figma.com/blog/figma-2025-ai-report-perspectives/"
-      },
-      {
-        "label": "Nielsen Norman Group, The Core Skill of Design in the AI Era: Critique",
-        "note": "무엇이 좋은 것인지 정의하는 일",
-        "url": "https://www.nngroup.com/articles/ai-era-critique/"
-      },
-      {
-        "label": "Nielsen Norman Group, The Future-Proof Designer (2025-06-06)",
-        "note": "산출물에서 결과로",
-        "url": "https://www.nngroup.com/articles/future-proof-designer/"
-      },
-      {
-        "label": "McKinsey, The business value of design",
-        "note": "300개사 5년, 32%p와 56%p",
-        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-business-value-of-design"
-      }
-    ]
+    "sources": []
   }
 }
