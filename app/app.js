@@ -558,16 +558,21 @@ function specRow(g, it, AD) {
 function pickerHtml(it) {
   if (it.kind === 'recruit' && it.track === 'online') {
     const all = adSpecGroups(), AD = adSpecEntries();
-    const chips = ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
+    const cards = ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
       const ms = MEDIA.filter(m => m.group === g);
       if (!ms.length) return '';
-      return `<div class="pgrp"><h5>${g}</h5><div class="chips">${ms.map(m => {
-        const n = all.filter(x => x.medium === m.id).length, on = it.media.includes(m.id);
+      return `<div class="pgrp"><h5>${g}</h5><div class="mcards">${ms.map(m => {
+        const gs = all.filter(x => x.medium === m.id), n = gs.length, on = it.media.includes(m.id);
+        const k = on ? gs.filter(x => !it.specOff.has(x.id)).length : n;
         return n
-          ? `<button type="button" class="mchip ${on ? 'on' : ''}" data-m="${m.id}" aria-pressed="${on}">${escH(m.name)}<small>${n}</small></button>`
-          : `<button type="button" class="mchip" disabled title="그릴 수 있는 규격이 없어요 — 매체에 자료만 전달하는 상품입니다">${escH(m.name)}<small>0</small></button>`;
+          ? `<button type="button" class="mcard ${on ? 'on' : ''}" data-m="${m.id}" aria-pressed="${on}"><span class="mc-ck" aria-hidden="true"></span><b>${escH(m.name)}</b><small>소재 ${k}종</small></button>`
+          : `<button type="button" class="mcard" disabled title="그릴 수 있는 규격이 없어요 — 매체에 자료만 전달하는 상품입니다"><span class="mc-ck" aria-hidden="true"></span><b>${escH(m.name)}</b><small>자료만 전달</small></button>`;
       }).join('')}</div></div>`;
     }).join('');
+    const picked = it.media.filter(id => all.some(x => x.medium === id));
+    const specToggle = picked.length ? `<div class="pspec"><span>고른 매체의 소재가 전부 만들어져요.</span>
+      <button type="button" class="lnk" id="sSpecs" aria-expanded="${!!it.specOpen}">${it.specOpen ? '규격 목록 닫기' : '규격 하나씩 고르기'}</button></div>` : '';
+    if (!it.specOpen) return cards + specToggle;
     const lists = it.media.map(id => {
       const gs = all.filter(x => x.medium === id);
       if (!gs.length) return '';
@@ -576,7 +581,7 @@ function pickerHtml(it) {
           <button type="button" class="lnk" data-all="${id}">전체</button><button type="button" class="lnk" data-none="${id}">해제</button></div>
         ${gs.map(g => specRow(g, it, AD)).join('')}</div>`;
     }).join('');
-    return chips + lists;
+    return cards + specToggle + lists;
   }
   const list = it.kind === 'recruit' ? OFFLINE : CH_LIST;
   return `<div class="chgrid">${list.map(c =>
@@ -612,7 +617,7 @@ function slotSentence(opts = {}) {
   const tg = targetOf(it);
   const online = tg.kind === 'media';
   // 고를 것이 아직 없으면 목록을 펼쳐 둔다 — 빈칸이 막다른 길이 되지 않게
-  const open = tg.kind !== 'none' && (it.pickerOpen || !tg.names.length);
+  const open = tg.kind !== 'none';
   const pick = `<button type="button" class="blank pick ${tg.names.length ? 'ok' : 'empty'}" id="sPick" aria-expanded="${open}" aria-controls="sPicker">${tg.names.length ? escH(tg.names.join(' · ')) : (online ? '매체 고르기' : '만들 것 고르기')}</button>`;
   const trk = kind === 'recruit'
     ? `<select class="blank sel ${it.track ? 'ok' : 'empty'}" id="sTrack" aria-label="어디에 나가나요" aria-required="true">${it.track ? '' : '<option value="" selected disabled>어디에</option>'}${Object.entries(TRACKS).map(([k, v]) => `<option value="${k}" ${it.track === k ? 'selected' : ''}>${v}</option>`).join('')}</select>로 `
@@ -674,18 +679,18 @@ function slotSentence(opts = {}) {
 
   box.querySelectorAll('.kseg button').forEach(b => b.onclick = () => { it.kind = b.dataset.k; rerender(`.kseg [data-k="${it.kind}"]`); });
   if ($('sTrack')) $('sTrack').onchange = () => { it.track = $('sTrack').value; it.pickerOpen = true; rerender('#sPick'); };
-  if ($('sPick')) $('sPick').onclick = () => { it.pickerOpen = !open; rerender('#sPick'); };
+  if ($('sPick')) $('sPick').onclick = () => { const p = $('sPicker'); p?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); p?.querySelector('.mcard:not(:disabled),input')?.focus({ preventScroll: true }); };
   if ($('sMore')) $('sMore').onclick = () => { it.showOptional = true; rerender('input.blank.opt'); };
 
   box.querySelector('.sent').scrollTop = keepScroll;
   const picker = $('sPicker');
   if (picker) {
-    picker.querySelectorAll('.mchip[data-m]').forEach(b => b.onclick = () => {
+    picker.querySelectorAll('.mcard[data-m]').forEach(b => b.onclick = () => {
       const id = b.dataset.m;
       it.media = it.media.includes(id) ? it.media.filter(x => x !== id) : [...it.media, id];
-      it.pickerOpen = true;
-      rerender(`.mchip[data-m="${id}"]`);
+      rerender(`.mcard[data-m="${id}"]`);
     });
+    $('sSpecs')?.addEventListener('click', () => { it.specOpen = !it.specOpen; rerender('#sSpecs'); });
     picker.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
       if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
       // 목록은 다시 그리지 않는다 — 스크롤과 초점이 그대로여야 연달아 끌 수 있다
@@ -838,22 +843,19 @@ function plannedShapes(it) {
 async function renderRefPlan(it) {
   const box = $('refPlan'); if (!box) return;
   const refs = await loadRefs(), n = plannedShapes(it);
-  const rows = REF_ORDER.filter(sh => n[sh]).map(sh => {
+  const parts = REF_ORDER.filter(sh => n[sh]).map(sh => {
     const l = refsFor(refs, sh);
-    return `<div class="rplan"><div class="rp-h"><b>${SHAPE_LABEL[sh]}</b><span>${n[sh]}종</span></div>${l.length
-      ? `<div class="rrow">${l.slice(0, 3).map(r => refThumb(r, sh === 'wide' ? 40 : 84)).join('')}</div><small>${[...new Set(l.map(refName))].join(' · ')}의 레이아웃을 따릅니다</small>`
-      : `<small>이 형태의 레퍼런스가 아직 없어요 — 세로형 규칙을 줄여서 씁니다</small>`}</div>`;
+    return `<span><b>${SHAPE_LABEL[sh]} ${n[sh]}</b> ${l.length ? [...new Set(l.map(refName))].join('·') : '레퍼런스 없음'}</span>`;
   });
-  if (n.strip) rows.push(`<div class="rplan"><div class="rp-h"><b>${SHAPE_LABEL.strip}</b><span>${n.strip}종</span></div><small>높이 120px 미만 — 레퍼런스가 없어 한 줄 띠 문법을 씁니다</small></div>`);
-  box.innerHTML = rows.length ? `<label>따라 만들 레퍼런스 <button type="button" class="lnk" id="refAll">전체 보기</button></label><div class="rplans">${rows.join('')}</div>` : '';
-  box.querySelectorAll('.rthumb').forEach(b => b.onclick = () => openRefGallery(refs.user.find(r => r.node === b.dataset.ref)?.shape));
+  if (n.strip) parts.push(`<span><b>${SHAPE_LABEL.strip} ${n.strip}</b> 레퍼런스 없음</span>`);
+  box.innerHTML = parts.length ? `<div class="refline"><em>따라 만들 레퍼런스</em>${parts.join('')}<button type="button" class="lnk" id="refAll">보기</button></div>` : '';
   $('refAll')?.addEventListener('click', () => openRefGallery());
 }
 
 function slotStyle() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, background: { mode: it.bgMode, color: it.bgColor } };
-  slot(`<div class="card2"><h4>그래픽 가이드</h4>
+  slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(선택)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
@@ -873,12 +875,12 @@ function slotStyle() {
         <div id="dpiBox" style="margin-top:8px"></div>
         <label style="margin-top:10px">폰트</label>
         <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${fontOptions(it.font)}</select>
-        <button class="btn" id="fontUp" style="width:100%;margin-top:6px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
+        <button class="lnk" id="fontUp" style="margin-top:4px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
     <div id="refPlan" class="refPlan"></div>
-    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
+    <div class="sfoot2"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
   renderRefPlan(it);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };

@@ -115,7 +115,7 @@
   /* ─ 빈칸 채우기 문장 ─
      첫 답을 폼이 아니라 문단으로 돌려준다. 밑줄 = 고칠 수 있는 자리.
      실선 = 직접 쓴 값 · 점선 = 브리프에서 읽은 값 · 노란 칸 = 아직 빈 곳(색만으로 구분하지 않는다 — 빈 칸에는 항목 이름이 적혀 있다) */
-  .sent{padding:18px 20px 0;max-height:max(260px,calc(100vh - 250px));overflow-y:auto}
+  .sent{padding:18px 20px 0}
   .sent .shead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
   .sent .shead h4{margin:0}
   .sent .kseg{margin-left:auto;display:flex;gap:4px}
@@ -172,6 +172,27 @@
   .composer .crow{display:flex;align-items:center;gap:8px}
   .composer input#cvIn{flex:1;border:0;background:none;outline:0;font-size:15px}
   #slot:not(:empty){margin-bottom:12px}
+  /* 아래 카드가 화면보다 길어지면 대화가 눌려 사라진다 — 카드 안에서만 스크롤하고, 진행 버튼은 바닥에 붙인다 */
+  #slot > .card2{max-height:max(280px,calc(100vh - 380px));overflow-y:auto}
+  .scard{padding-bottom:0}
+  .sfoot2{position:sticky;bottom:0;background:var(--panel);display:flex;justify-content:flex-end;padding:12px 0 16px;margin-top:6px}
+  .scard .kvthumb{width:132px;height:84px;font-size:11.5px}
+  .scard .styleRow{gap:14px}
+  .refline{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;font-size:12px;color:var(--sub)}
+  .refline em{font-style:normal;font-weight:700;color:var(--ink)}
+  .refline b{color:var(--ink);font-weight:700}
+  /* 매체 고르기 — 누르면 그 매체 소재가 전부 들어간다 */
+  .mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin-bottom:12px}
+  .mcard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 12px 10px 36px;cursor:pointer;min-height:54px}
+  .mcard b{font-size:13.5px} .mcard small{font-size:11.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .mcard .mc-ck{position:absolute;left:12px;top:12px;width:16px;height:16px;border:1.5px solid var(--accent-line);border-radius:5px;background:var(--panel)}
+  .mcard.on{border-color:var(--ink);background:var(--soft)}
+  .mcard.on .mc-ck{background:var(--ink);border-color:var(--ink)}
+  .mcard.on .mc-ck::after{content:"";position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .mcard:hover:not(:disabled){border-color:var(--ink)}
+  .mcard:disabled{cursor:not-allowed;opacity:.5}
+  .mcard:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .pspec{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:12.5px;color:var(--sub);margin:-2px 0 10px}
   .sheet{width:min(860px,100%);margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:30px 34px}
   .sheet h2{font-size:19px;margin-bottom:4px}
   .steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
@@ -215,6 +236,8 @@
   .bgrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
   .bgprev{width:64px;height:36px;border-radius:9px;border:1px solid var(--line);flex:none}
   .bgrow .vseg{flex:1;min-width:180px}
+  .bgrow .vseg button{white-space:nowrap;padding:8px 10px}
+  .scard .bgprev{width:44px}
   .bgpick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);cursor:pointer}
   .bgpick input{width:24px;height:24px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
   /* ─ 학습한 레퍼런스 ─ 생성 규칙의 출처. 썸네일은 실제 비율 그대로(높이만 맞춘다) */
