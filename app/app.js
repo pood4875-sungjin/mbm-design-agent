@@ -11,6 +11,7 @@ import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
 import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage } from '../core/palette.js';
 import { resolveField } from '../core/field.js';
+import { LAYOUT_REFS, SHAPE_LABEL, shapeOf } from '../core/layouts.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -232,6 +233,56 @@ function parseBriefRegex(text) {
   return { fields: out, channels: [...new Set(channels)], kind, track: detectTrack(text), media: detectMedia(text) };
 }
 
+/* ═══ 학습한 레퍼런스 ═══
+   생성 규칙의 출처를 화면에 둔다 — 무엇을 보고 만들었는지 알아야 결과를 믿고 고칠 수 있다.
+   user  = 사용자가 "이렇게"라고 준 소재. 형태별 레이아웃·글자 크기·여백이 여기서 나왔다(core/layouts.js)
+   board = 피그마 보드에서 관찰한 매체별 실제 소재(core/design.js의 근거)
+   그림은 ref/learned/ (로컬 전용, git·공개 배포 제외 — 실제 고객사 소재). 없으면 이름만 보인다. */
+let refsP = null;
+function loadRefs() {
+  return refsP ??= fetch('../ref/learned/index.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => j ?? {
+    user: Object.entries(LAYOUT_REFS).flatMap(([shape, list]) => list.map(x => ({ ...x, shape, src: null, have: false }))), board: [],
+  });
+}
+const REF_ORDER = ['wide', 'tall', 'tower', 'square'];
+// 받침이 있으면 앞의 조사, 없으면 뒤의 조사 — "가로형은", "세로 띠는"
+const josa = (word, withB, without) => { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? withB : without; };
+const refName = r => r.client || (r.backgroundOnly ? '배경·사진' : '');
+function refThumb(r, h = 64) {
+  const label = `${refName(r)} ${r.w}×${r.h}`;
+  return r.have && r.src
+    ? `<button type="button" class="rthumb" data-ref="${r.node}" title="${label}" aria-label="${label}"><img src="../ref/learned/${r.src}" alt="" loading="lazy" style="height:${h}px"></button>`
+    : `<button type="button" class="rthumb none" data-ref="${r.node}" title="${label}" style="height:${h}px">${refName(r) || r.node}</button>`;
+}
+function refsFor(refs, shape) { return refs.user.filter(r => r.shape === shape && !r.backgroundOnly); }
+async function openRefGallery(focusShape = null) {
+  const refs = await loadRefs();
+  const byShape = REF_ORDER.map(sh => [sh, refs.user.filter(r => r.shape === sh)]).filter(([, l]) => l.length);
+  const media = [...new Set(refs.board.map(b => b.mediumName))];
+  modal({
+    title: '학습한 레퍼런스',
+    desc: '위쪽 소재의 여백·글자 크기·줄 간격·이미지 자리를 재서 형태별 생성 규칙으로 씁니다. 아래쪽은 매체별 경향을 본 실제 소재입니다.',
+    wide: true,
+    body: `<div class="rgal">${byShape.map(([sh, l]) => `<section class="rsec ${sh === focusShape ? 'focus' : ''}" data-shape="${sh}">
+        <h5>${SHAPE_LABEL[sh]} <small>${l.length}장 · 이 형태의 소재를 만들 때 따릅니다</small></h5>
+        <div class="rrow">${l.map(r => `<figure>${refThumb(r, sh === 'wide' ? 74 : 150)}<figcaption>${refName(r)}<span>${r.w}×${r.h}</span></figcaption></figure>`).join('')}</div></section>`).join('')}
+      ${refs.board.length ? `<section class="rsec"><h5>매체별 실제 소재 <small>${refs.board.length}장 · 그림 ${refs.board.filter(b => b.have).length}장</small></h5>
+        ${media.map(mn => { const l = refs.board.filter(b => b.mediumName === mn); return `<div class="rmed"><b>${mn}</b><div class="rrow">${l.map(r => `<figure>${refThumb(r, 56)}<figcaption>${r.client}<span>${r.spec.replace(/^\S+\s/, '')}</span></figcaption></figure>`).join('')}</div></div>`; }).join('')}</section>` : ''}
+      <p class="rnote">새 레퍼런스는 피그마 링크로 보내 주면 재서 규칙에 넣습니다. 앱 안에서 바로 학습하는 기능은 아직 없습니다.</p></div>`,
+    actions: [{ label: '닫기', pri: true }],
+  });
+  const f = $('modalBody').querySelector('.rsec.focus');
+  if (f) f.scrollIntoView({ block: 'start' });
+}
+async function renderRefSide() {
+  const box = $('refSide'); if (!box) return;
+  const refs = await loadRefs();
+  box.innerHTML = REF_ORDER.map(sh => { const l = refsFor(refs, sh); return l.length
+    ? `<button type="button" class="rside" data-shape="${sh}"><span class="rs-thumbs">${l.slice(0, 3).map(r => r.have ? `<img src="../ref/learned/${r.src}" alt="" loading="lazy">` : '').join('')}</span><b>${SHAPE_LABEL[sh]}</b><small>${[...new Set(l.map(refName))].join(' · ')}</small></button>` : ''; }).join('')
+    + (refs.board.length ? `<button type="button" class="rside" data-shape=""><span class="rs-thumbs"></span><b>매체별 실제 소재</b><small>${refs.board.length}장 관찰</small></button>` : '');
+  box.querySelectorAll('.rside').forEach(b => b.onclick = () => openRefGallery(b.dataset.shape || null));
+}
+
 /* ═══ home ═══ */
 function initHome() {
   const box = $('samples');
@@ -257,6 +308,7 @@ function initHome() {
   };
   $('searchIn').oninput = () => renderSidebar($('searchIn').value.trim());
   refreshAiChip();
+  renderRefSide();
 }
 function refreshAiChip() {
   $('aiChip').textContent = LLM.hasKey() ? `AI 해석 켜짐 · ${LLM.maskKey()}` : 'AI 해석 꺼짐 — 규칙 파서';
@@ -774,6 +826,30 @@ function bgControlHtml(styleLike, id) {
       ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
 }
 
+// 이번 캠페인에서 만들 소재들의 형태 — 형태마다 따를 레퍼런스가 다르다
+function plannedShapes(it) {
+  const sizes = it.kind === 'recruit' && it.track === 'online'
+    ? chosenAdGroups(it).map(g => [g.entry.w, g.entry.h])
+    : specIdsFor(it.channels).map(id => SPECS[id]).filter(sp => sp?.unit === 'px' && sp.w && sp.h).map(sp => [sp.w, sp.h]);
+  const n = {};
+  for (const [w, h] of sizes) { const sh = shapeOf(w, h); n[sh] = (n[sh] ?? 0) + 1; }
+  return n;
+}
+async function renderRefPlan(it) {
+  const box = $('refPlan'); if (!box) return;
+  const refs = await loadRefs(), n = plannedShapes(it);
+  const rows = REF_ORDER.filter(sh => n[sh]).map(sh => {
+    const l = refsFor(refs, sh);
+    return `<div class="rplan"><div class="rp-h"><b>${SHAPE_LABEL[sh]}</b><span>${n[sh]}종</span></div>${l.length
+      ? `<div class="rrow">${l.slice(0, 3).map(r => refThumb(r, sh === 'wide' ? 40 : 84)).join('')}</div><small>${[...new Set(l.map(refName))].join(' · ')}의 레이아웃을 따릅니다</small>`
+      : `<small>이 형태의 레퍼런스가 아직 없어요 — 세로형 규칙을 줄여서 씁니다</small>`}</div>`;
+  });
+  if (n.strip) rows.push(`<div class="rplan"><div class="rp-h"><b>${SHAPE_LABEL.strip}</b><span>${n.strip}종</span></div><small>높이 120px 미만 — 레퍼런스가 없어 한 줄 띠 문법을 씁니다</small></div>`);
+  box.innerHTML = rows.length ? `<label>따라 만들 레퍼런스 <button type="button" class="lnk" id="refAll">전체 보기</button></label><div class="rplans">${rows.join('')}</div>` : '';
+  box.querySelectorAll('.rthumb').forEach(b => b.onclick = () => openRefGallery(refs.user.find(r => r.node === b.dataset.ref)?.shape));
+  $('refAll')?.addEventListener('click', () => openRefGallery());
+}
+
 function slotStyle() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, background: { mode: it.bgMode, color: it.bgColor } };
@@ -801,7 +877,9 @@ function slotStyle() {
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
+    <div id="refPlan" class="refPlan"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
+  renderRefPlan(it);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
   $('fontUp').onclick = () => $('fontFile').click();
@@ -848,7 +926,11 @@ function slotStyle() {
     it.phase = 'draft';
     renderSteps();
     const n = it.track === 'online' && it.kind === 'recruit' ? chosenAdGroups(it).length : 0;
-    say(n ? `준비가 끝났어요. 소재 ${n}종을 만들고, 만드는 대로 매체 규정에 맞는지 검사할게요.` : '준비가 끝났어요. 초안을 생성할게요.');
+    const ns = plannedShapes(it);
+    const follow = REF_ORDER.filter(sh => ns[sh] && LAYOUT_REFS[sh]?.some(r => !r.backgroundOnly))
+      .map(sh => `${SHAPE_LABEL[sh]}${josa(SHAPE_LABEL[sh], '은', '는')} ${[...new Set(LAYOUT_REFS[sh].filter(r => !r.backgroundOnly).map(r => r.client))].join('·')}`).join(', ');
+    say((n ? `준비가 끝났어요. 소재 ${n}종을 만들고, 만드는 대로 매체 규정에 맞는지 검사할게요.` : '준비가 끝났어요. 초안을 생성할게요.')
+      + (follow ? `\n레이아웃과 글자 크기는 학습한 레퍼런스를 따릅니다 — ${follow}.` : ''));
     buildAndGenerate();
   };
 }
@@ -1650,6 +1732,9 @@ function renderInspector() {
         용지 ${spec.wmm + spec.bleed * 2}×${spec.hmm + spec.bleed * 2}mm (블리드 ${spec.bleed}mm)<br>
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
       </div>` : ''}
+    ${spec.unit === 'px' && spec.w && spec.h ? `
+      <label>참고 레퍼런스 <span style="opacity:.6">${SHAPE_LABEL[shapeOf(spec.w, spec.h)]}</span></label>
+      <div id="iRefs" class="rrow" data-shape="${shapeOf(spec.w, spec.h)}"></div>` : ''}
     ${a.channel === 'ad' ? `
       <label>매체 규격</label>
       <div style="font-size:11.5px;color:var(--sub);line-height:1.6">${adRulesText(spec)}</div>
@@ -1735,6 +1820,13 @@ function renderInspector() {
   insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
   insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
   insp.querySelector('#iDesel').onclick = () => select(null);
+  const iRefs = insp.querySelector('#iRefs');
+  if (iRefs) loadRefs().then(refs => {
+    const sh = iRefs.dataset.shape, l = refsFor(refs, sh);
+    iRefs.innerHTML = l.length ? l.slice(0, 3).map(r => refThumb(r, sh === 'wide' ? 34 : 96)).join('')
+      : `<span style="font-size:11.5px;color:var(--sub)">${sh === 'strip' ? '120px 미만 띠 — 레퍼런스 없음' : '이 형태의 레퍼런스가 아직 없어요'}</span>`;
+    iRefs.querySelectorAll('.rthumb').forEach(b => b.onclick = () => openRefGallery(sh));
+  });
   insp.querySelector('#iDel').onclick = () => removeArtifact(a);
 }
 

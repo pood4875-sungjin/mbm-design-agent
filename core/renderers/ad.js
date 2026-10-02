@@ -24,20 +24,24 @@ import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage } from '../adfields.js';
 import { designOf } from '../design.js';
 import { resolveField, kvLayer } from '../field.js';
+import { layoutFor } from '../layouts.js';
 
 const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
+// 레퍼런스는 날짜에 요일을 붙인다 — "3.13(금)", "~7/26(일)" (안랩·삼진제약·한미글로벌·세아제강). 날짜로 읽히지 않으면 붙이지 않는다.
+const dow = d => { const m = String(d ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return ''; const t = new Date(+m[1], +m[2] - 1, +m[3]); return isNaN(t) ? '' : '일월화수목금토'[t.getDay()]; };
+const md = d => { const s = mmdd(d).replace(/^0/, '').replace(/\.0/, '.'); const w = dow(d); return w ? `${s}(${w})` : s; };
 
 // 맥락 → 역할별 문구 사다리(긴 것 → 짧은 것) + 상세 정보 줄. 채용이 기본, 행사 맥락도 같은 슬롯으로 흘린다.
 export function copyLadder(ctx) {
   const c = ctx.core ?? {};
   const uniq = arr => [...new Set(arr.filter(s => s != null && String(s).trim() !== ''))];
   if (ctx.kind === 'recruit') {
-    const d = c.deadline ? mmdd(c.deadline) : '';
+    const d = c.deadline ? md(c.deadline) : '';
     const qual = c.qualification ? String(c.qualification) : '';
     return {
       main: uniq([c.headline, [c.client, c.role, '채용'].filter(Boolean).join(' '), c.role ? `${c.role} 채용` : null, c.role, c.client ? `${c.client} 채용` : null, '채용 공고']),
       sub: uniq([c.season ? `${c.season} ${c.client ?? ''}`.trim() : null, c.client ? `${c.client} 채용` : null, c.employType, '채용 공고']),
-      date: uniq(d ? [`~ ${d} 지원 마감`, `~ ${d} 마감`, `~${d}`] : []),
+      date: uniq(d ? [`접수기간 : ~${d}`, `~${d} 마감`, `~${d}`] : []),
       extra: uniq([qual, qual.split(/[·,/]/)[0]?.trim()]),
       advertiser: uniq([c.client]),
       cta: uniq([c.ctaText, '지원하기', '지원']),
@@ -46,7 +50,7 @@ export function copyLadder(ctx) {
       url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
       // 상세 정보 줄 — 우선순위 순. 자리(줄 수)가 모자라면 뒤에서부터 뺀다.
       details: [
-        d ? { label: '채용일정', value: `~${d}` } : null,
+        d ? { label: '접수기간', value: `~${d}` } : null,
         c.role ? { label: '모집직무', value: c.role } : null,
         c.location ? { label: '근무지', value: c.location } : null,
         c.employType ? { label: '고용형태', value: c.employType } : null,
@@ -110,6 +114,9 @@ export function renderAd(ctx, style, spec) {
   const slots = Object.keys(by).length ? by : { main: { lines: null, maxChars: null }, sub: { lines: null, maxChars: null }, date: { lines: 1, maxChars: null } };
   const logoOnly = /로고|프로필/.test(rules.name ?? '') && !inLimits.length;
   if (!logoOnly && !slots.main) slots.main = { lines: null, maxChars: null };
+  // 레퍼런스(core/layouts.js)가 형태별 문법을 정한다. 레퍼런스가 없는 120px 미만 띠만 예전 띠 문법을 쓴다.
+  const L = layoutFor(w, h);
+  const useRef = !logoOnly && L.shape !== 'strip';
 
   const tScale = templateScale(rules, w);
   const statedEarly = statedFontSizes(rules, tScale);
@@ -120,16 +127,25 @@ export function renderAd(ctx, style, spec) {
     let perLine = slot?.maxCharsPerLine ?? null;
     const fs = statedEarly[role] ?? fsHint;
     if (fs && widthPx) perLine = Math.min(perLine ?? Infinity, Math.max(1, Math.floor(widthPx / (fs * 0.98))));
-    const linesCap = slot?.lines ?? linesHint;
+    const linesCap = Math.min(slot?.lines ?? Infinity, linesHint ?? Infinity);
     const fits = c => (slot?.maxChars == null || countChars(c, counting) <= slot.maxChars)
-      && (linesCap == null || perLine == null || !Number.isFinite(perLine) || estimateLines(c, perLine, counting) <= linesCap);
+      && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || estimateLines(c, perLine, counting) <= linesCap);
     return cands.find(fits) ?? cands[cands.length - 1];
   };
+  const core = ctx.core ?? {};
+  if (useRef && L.subAbove && slots.sub && core.client && ctx.kind === 'recruit') {
+    ladder.sub = [core.client, ...(ladder.sub ?? []).filter(x => x !== core.client)];
+    const roleMain = [core.role ? `${core.role} 채용` : null, core.role, core.employType ? `${core.employType} 채용` : null].filter(Boolean);
+    if (roleMain.length) ladder.main = [...new Set([...roleMain, ...ladder.main])];
+  }
+  if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length) {
+    ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
+  }
   let copy = Object.fromEntries(Object.keys(ladder).filter(k => k !== 'details').map(r => [r, pickIn(r, null)]));
 
   /* ── 지면 성격 ── */
   const S = Math.sqrt(w * h);
-  const strip = !logoOnly && (h < 120 || w / h > 3.2);
+  const strip = !logoOnly && !useRef;
   const tall = h / w > 1.6;
   const shape = strip ? 'strip' : tall ? 'tall' : (w / h >= 1.6 ? 'wide' : 'box');
   const Ds = D?.byShape?.[shape];
@@ -160,6 +176,12 @@ export function renderAd(ctx, style, spec) {
   /* ── 안전영역 → 패딩 ── */
   const basePad = strip ? Math.min(16, Math.round(h * 0.15)) : (S >= 280 ? 24 : 16);
   const pad = safePad(rules, basePad);
+  if (useRef) {
+    const floor = k => pad.stated ? pad[k] : 0;
+    pad.left = Math.max(floor('left'), L.padX); pad.right = Math.max(floor('right'), L.padX);
+    pad.top = Math.max(floor('top'), L.vAlign === 'center' ? L.padY : L.top);
+    pad.bottom = Math.max(floor('bottom'), L.padBottom ?? L.padY);
+  }
   if (!pad.stated && tText) { pad.left = tText.x; pad.right = Math.max(0, w - tText.x - tText.w); }
   // 템플릿 이미지 영역: 하단 띠(전폭)면 글자는 그 위에서 끝나고, 우하단 상자면 그 윗선까지
   const imgBottomBand = tImage && tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1;
@@ -169,14 +191,25 @@ export function renderAd(ctx, style, spec) {
   if (imgLeftCol && !tText) pad.left = Math.max(pad.left, tImage.x + tImage.w + 16);
   // 템플릿 로고 칸이 상단에 있으면 글자는 그 아래에서 시작 (자소설: 로고 23~53 → 서브 82)
   if (allowLogo && tLogo && hasLogo && tLogo.y < h * 0.3) pad.top = Math.max(pad.top, tLogo.y + tLogo.h + Math.round(h * 0.045));
+  const sa = rules.safeArea ?? {};
+  const saN = k => (typeof sa[k] === 'number' ? sa[k] : 0);
+  const logoBox = (useRef && L.logo !== 'none' && allowLogo && hasLogo && !tLogo) ? (() => {
+    const top = Math.max(L.logoTop, saN('top'));
+    const left = L.logo === 'top-center' ? saN('left') : null;
+    const right = L.logo === 'top-center' ? saN('right') : Math.max(Math.round(L.padX * 0.8), saN('right'));
+    const maxW = L.logo === 'top-center' ? Math.round((w - saN('left') - saN('right')) * 0.62) : Math.round(w * 0.4);
+    return { top, left, right, h: L.logoH, maxW };
+  })() : null;
+  if (logoBox) pad.top = Math.max(pad.top, logoBox.top + logoBox.h + Math.round(L.logoH * 0.6));
   const innerW = w - pad.left - pad.right;
   const innerH = h - pad.top - pad.bottom;
 
   /* ── 정렬·오브젝트 자리 (템플릿 > 같은 형태의 관찰 > 매체 전체 > 지면 비율) ── */
-  const align = strip ? 'left' : (prof('textAlign') ?? (tall ? 'center' : 'left'));
+  const align = (strip || useRef) ? 'left' : (prof('textAlign') ?? (tall ? 'center' : 'left'));
   let objectSide = 'none';
   if (hasKv && !logoOnly) {
     if (tImage) objectSide = 'template';
+    else if (useRef) objectSide = L.object;
     else {
       objectSide = prof('objectSide') ?? (tall ? 'bottom' : 'right');
       if (objectSide === 'full-bleed' || objectSide === 'center') objectSide = tall ? 'bottom' : 'right';
@@ -220,8 +253,10 @@ export function renderAd(ctx, style, spec) {
   }
 
   const objRatio = profNum('objectWidthRatio');
-  const objW = objectSide === 'right' ? Math.round(innerW * Math.min(0.5, Math.max(0.24, objRatio ?? (strip ? 0.32 : 0.38)))) : 0;
-  const objH = objectSide === 'bottom' ? Math.round(innerH * 0.33) : 0;
+  const objW = objectSide !== 'right' ? 0
+    : useRef ? Math.max(0, L.objectW - pad.right)
+    : Math.round(innerW * Math.min(0.5, Math.max(0.24, objRatio ?? (strip ? 0.32 : 0.38))));
+  const objH = objectSide !== 'bottom' ? 0 : useRef ? Math.max(0, L.objectH - pad.bottom) : Math.round(innerH * 0.33);
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
   const stripCtaCol = (SHOW_CTA && strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
@@ -230,7 +265,7 @@ export function renderAd(ctx, style, spec) {
   const textH = objectSide === 'bottom' ? innerH - objH - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
 
   /* ── 슬롯 유무 ── 정보는 규격이 작아져도 빼지 않는다(구글 28/28). */
-  const subAbove = (D?.subAbove?.value ?? 0) >= 0.5;      // 자소설·캐치·GDN: 서브는 메인 위의 시즌 문구
+  const subAbove = useRef ? L.subAbove : (D?.subAbove?.value ?? 0) >= 0.5;      // 레퍼런스: 세로형은 서브(회사)가 메인 위
   const useDetail = !!slots.detail && (!strip || innerH >= 200) && (ladder.details?.length > 0);
   const want = {
     sub: !!slots.sub && !!copy.sub, date: !!slots.date && !!copy.date && !useDetail, extra: !!slots.extra && !!copy.extra,
@@ -238,19 +273,25 @@ export function renderAd(ctx, style, spec) {
     detail: useDetail,
     advertiser: !!slots.advertiser && !!copy.advertiser && !(logoSrc && allowLogo),
   };
+  // 가로형은 메인 + 정보 한 줄(안랩·삼진제약). 서브 칸이 있으면 서브가 그 줄이고(접수기간이 들어 있다), 없으면 날짜·상세가 그 줄이다.
+  if (useRef && L.shape === 'wide') {
+    if (want.sub && ctx.kind === 'recruit') { want.date = false; want.detail = false; }
+    else if (want.date || want.detail) want.sub = false;
+  }
 
   /* ── 타이포 ── 메인은 절대 px에 가깝다(프로필 관찰 px) */
   const stated = statedFontSizes(rules, tScale);
   const th = rules.textHeightPx ?? null;
   const line = 1.3;
+  const mainLine = useRef ? L.mainLine : line;
   const observedPx = profNum('mainPx');
-  let titleMax = Math.min(72, Math.max(22, observedPx ? Math.round(observedPx * 1.15) : Math.round(S * 0.085)));
+  let titleMax = useRef ? L.main : Math.min(72, Math.max(22, observedPx ? Math.round(observedPx * 1.15) : Math.round(S * 0.085)));
   if (strip) titleMax = Math.min(titleMax, Math.round(innerH * 0.5));
-  titleMax = Math.max(14, Math.min(titleMax, Math.floor(textW / 5)));
+  titleMax = Math.max(14, Math.min(titleMax, Math.floor(textW / (useRef ? 3 : 5))));
   const capMain = th?.max != null ? Math.min(titleMax, th.max) : titleMax;
   const floorMain = th?.min != null ? Math.max(11, th.min) : 11;
   const obsLines = profNum('mainLines');
-  const mainLinesCap = slots.main.lines ?? (obsLines ? Math.max(2, Math.round(obsLines) + (tall ? 2 : 1)) : null);
+  const mainLinesCap = slots.main.lines ?? (useRef ? L.mainLines : (obsLines ? Math.max(2, Math.round(obsLines) + (tall ? 2 : 1)) : null));
   const noticeLines = slots.notice?.lines ?? 2;
   copy.main = pickIn('main', textW, stated.main ?? capMain, mainLinesCap);
   for (const r of ['sub', 'date', 'extra', 'label']) copy[r] = pickIn(r, textW);
@@ -277,20 +318,30 @@ export function renderAd(ctx, style, spec) {
 
   const sizesAt = k => {
     const cap = Math.max(floorMain, Math.round(capMain * k));
-    const subFs = stated.sub ?? Math.max(9, Math.round(capMain * (subAbove ? 0.62 : 0.5) * k));
-    const smallFs = Math.max(8, Math.round(subFs * 0.88));
-    const dFs = detailFs ?? Math.max(8, Math.round(cap * 0.5 * k));
+    const subFs = stated.sub ?? Math.max(9, Math.round((useRef ? L.sub : capMain * (subAbove ? 0.62 : 0.5)) * k));
+    const smallFs = useRef && L.shape === 'wide' ? subFs : Math.max(8, Math.round(subFs * 0.88));
+    const dFs = detailFs ?? Math.max(8, Math.round((useRef ? L.detail : cap * 0.5) * k));
     const noticeFs = Math.max(8, Math.round(subFs * 0.7));
     const ctaFs = Math.max(10, Math.round(cap * 0.5));
+    if (th && useRef) {   // 매체 글자 높이 규정은 메인만이 아니라 모든 글자에 걸린다
+      const c = v => Math.min(th.max ?? v, Math.max(th.min ?? 0, v));
+      return { cap, subFs: c(subFs), smallFs: c(smallFs), dFs: c(dFs), noticeFs: c(noticeFs), ctaFs: c(ctaFs), logoH: strip ? Math.min(22, Math.round(innerH * 0.5)) : Math.round(Math.min(40, Math.max(14, S * 0.07)) * k) };
+    }
     const logoH = strip ? Math.min(22, Math.round(innerH * 0.5)) : Math.round(Math.min(40, Math.max(14, S * 0.07)) * k);
     return { cap, subFs, smallFs, dFs, noticeFs, ctaFs, logoH };
   };
-  const detailBlockH = z => detailLines.reduce((n, d) => n + d.rows, 0) * Math.round(z.dFs * 1.65) + (detailLines.length ? Math.round(z.cap * 0.9) : 0);
-  const flexLogo = allowLogo && logoSrc && !tLogo && !(strip && innerH < 70);   // 50px 띠에는 로고 자리가 없다
+  const dLine = useRef ? L.detailLine : 1.65;
+  const detailGap = z => useRef ? Math.round(z.cap * L.gapDetail) : Math.round(z.cap * 0.9);
+  const subGap = z => useRef ? Math.round(z.subFs * L.gapSub) : Math.round(z.subFs * (subAbove ? 0.55 : 0.5));
+  const detailBlockH = z => detailLines.reduce((n, d) => n + d.rows, 0) * Math.round(z.dFs * dLine) + (detailLines.length ? detailGap(z) : 0);
+  // 로고: 레퍼런스 세로형은 우상단, 세로 띠는 위 가운데에 따로 놓는다(글자 흐름 밖). 가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만.
+  const logoRequired = (rules.logo?.count ?? 0) >= 1;
+  const absLogo = useRef && allowLogo && logoSrc && !tLogo && L.logo !== 'none';
+  const flexLogo = allowLogo && logoSrc && !tLogo && (strip ? innerH >= 70 : useRef ? (L.logo === 'none' && logoRequired) : true);   // 50px 띠에는 로고 자리가 없다
   const blocksOf = z => (flexLogo && !strip ? z.logoH + Math.round(z.logoH * 0.7) : 0)
     + (want.advertiser ? Math.round(z.smallFs * 1.3) + 4 : 0)
-    + (want.sub ? Math.round(z.subFs * line) + Math.round(z.subFs * 0.5) : 0)
-    + ((want.date || want.label) ? Math.round(z.smallFs * line) + 8 : 0)
+    + (want.sub ? Math.round(z.subFs * (useRef ? L.subLine : line)) + subGap(z) : 0)
+    + ((want.date || want.label) ? Math.round(z.smallFs * line) + Math.max(8, Math.round(z.smallFs * 0.5)) : 0)   // metaRow의 margin-top과 같은 값
     + ((imgCorner && hasKv) ? 0 : detailBlockH(z))
     + (want.extra ? Math.round(z.smallFs * line) + 4 : 0)
     + (want.notice ? Math.round(z.noticeFs * line * noticeLines) + 6 : 0)
@@ -304,13 +355,26 @@ export function renderAd(ctx, style, spec) {
     titleBudget = textH - blocksOf(z);
   }
   titleBudget = Math.max(floorMain * line, titleBudget);
-  let mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, textW, titleBudget, z.cap, floorMain, line));
-  let mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * line))));
+  let mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, textW, titleBudget, z.cap, floorMain, mainLine));
+  let mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
   const rePick = pickIn('main', textW, mainFs, mainLines);
   if (rePick !== copy.main) {
     copy.main = rePick;
-    mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, textW, titleBudget, z.cap, floorMain, line));
-    mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * line))));
+    mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, textW, titleBudget, z.cap, floorMain, mainLine));
+    mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
+  }
+  // 메인 칸으로 셀 것은 이름이 메인·타이틀인 행뿐이다 — "혜택 강조카피"·"카피 전체 줄 수"는 메인 두 줄이 아니다(카카오 비즈보드)
+  const mainRows = inLimits.filter(t => roleOf(t.field) === 'main' && /메인|타이틀|제목|대문구/.test(String(t.field)) && !/전체/.test(String(t.field)));
+  const mainRowLines = mainRows.length ? mainRows.reduce((n, t) => n + (t.lines ?? 1), 0) : L.mainLines;
+  if (useRef && L.shape === 'wide' && L.mainLines >= 2 && mainRowLines >= 2 && ctx.kind === 'recruit' && core.client) {
+    const per = slots.main?.maxCharsPerLine ?? null, total = slots.main?.maxChars ?? null;
+    const pairs = [[core.client, core.role && `${core.role} 채용`], [core.client, core.role], [core.client, core.employType && `${core.employType} 채용`], [core.client, '채용']]
+      .filter(p => p[1]);
+    const fsFor = pr => Math.min(z.cap, Math.floor(textW / Math.max(...pr.map(t => textWidth(t) * 1.02))), Math.floor(titleBudget / (2 * mainLine)));
+    const ok = pr => pr.every(t => per == null || countChars(t, counting) <= per)
+      && (total == null || countChars(pr.join(''), counting) <= total) && fsFor(pr) >= Math.max(floorMain, Math.round(z.cap * 0.8));
+    const pr = pairs.find(ok);
+    if (pr) { copy.main = pr.join('\n'); mainFs = stated.main ?? fsFor(pr); mainLines = 2; }
   }
   const byWidth = (role, fs, width) => {
     const cands = ladder[role] ?? []; if (cands.length < 2) return;
@@ -323,7 +387,7 @@ export function renderAd(ctx, style, spec) {
   byWidth('sub', z.subFs, textW * 0.96);
   byWidth('extra', z.smallFs, textW * 0.96);
   // 서브가 메인에 이미 다 들어 있는 말이면(고객사명 + 채용) 되풀이하지 않는다 — 다른 말이 있으면 그것을, 없으면 비운다
-  const said = t => String(t).split(/\s+/).filter(Boolean).every(wd => copy.main.includes(wd));
+  const said = t => String(t).split(/\s+/).filter(Boolean).every(wd => copy.main.replace(/\n/g, ' ').includes(wd));
   if (copy.sub && said(copy.sub)) {
     copy.sub = (ladder.sub ?? []).find(c => !said(c) && (slots.sub?.maxChars == null || countChars(c, counting) <= slots.sub.maxChars) && textWidth(c) * z.subFs <= textW * 0.96) ?? '';
   }
@@ -332,16 +396,17 @@ export function renderAd(ctx, style, spec) {
 
   /* ── 조각 ── */
   const clamp = n => `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${n};overflow:hidden`;
-  const T = (role, text, fs, weight, color, extraCss = '', lines = 1) =>
-    `<div data-field="${role}" style="font-size:${fs}px;line-height:${line};font-weight:${weight};color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${esc(text)}</div>`;
+  const T = (role, text, fs, weight, color, extraCss = '', lines = 1, lh = line) =>
+    `<div data-field="${role}" style="font-size:${fs}px;line-height:${lh};font-weight:${weight};color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(esc).join('<br/>')}</div>`;
   // 날짜·라벨은 꾸미지 않은 한 줄 글자다 — 테두리 알약을 두르지 않는다
   const plain = (role, text, fs) =>
     `<span data-field="${role}" style="display:inline-block;font-size:${fs}px;line-height:${line};font-weight:700;color:${subFg};white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
   const ctaChip = () => `<span data-field="cta" style="display:inline-block;background:${mainFg};color:${fgIsDark ? '#FFFFFF' : p.primary};font-size:${z.ctaFs}px;line-height:${line};font-weight:700;padding:${Math.round(z.ctaFs * 0.6)}px ${Math.round(z.ctaFs * 1.1)}px;border-radius:6px;white-space:nowrap">${esc(copy.cta)}</span>`;
   // 상세 블록 — 한 요소로 묶어 검사기가 총 글자수·총 줄 수를 본다. 라벨은 굵게, 값은 가늘게(세아제강·한독).
+  const lw = useRef && !L.detailLabelBold ? 400 : 700;
   const detailBlock = () => detailLines.length
-    ? `<div data-field="detail" style="font-size:${z.dFs}px;line-height:1.65;color:${detailFg};text-align:${align};margin-top:${Math.round(z.cap * 0.9)}px;${WRAP}">${detailLines.map(d =>
-        d.inline ? `<div><b style="font-weight:700">${esc(d.label)}</b> : ${esc(d.value)}</div>` : `<div><b style="font-weight:700;display:block">${esc(d.label)}</b>${esc(d.value)}</div>`).join('')}</div>` : '';
+    ? `<div data-field="detail" style="font-size:${z.dFs}px;line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP}">${detailLines.map(d =>
+        d.inline ? `<div><b style="font-weight:${lw}">${esc(d.label)}</b> : ${esc(d.value)}</div>` : `<div><b style="font-weight:${lw};display:block">${esc(d.label)}</b>${esc(d.value)}</div>`).join('')}</div>` : '';
   const logoImg = (hPx, maxW) => (allowLogo && logoSrc)
     ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${hPx}px;width:auto;max-width:${maxW}px;object-fit:contain;${logoFilter}"/>`
     : '';
@@ -371,12 +436,16 @@ export function renderAd(ctx, style, spec) {
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"></div>`)
     : '';
 
+  const absLogoEl = (absLogo && logoBox)
+    ? `<div data-logo-slot="1" style="position:absolute;top:${logoBox.top}px;${logoBox.left != null ? `left:${logoBox.left}px;right:${logoBox.right}px;justify-content:center` : `right:${logoBox.right}px;justify-content:flex-end`};height:${logoBox.h}px;display:flex;align-items:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:100%;width:auto;max-width:${logoBox.maxW}px;object-fit:contain;${logoFilter}"/></div>`
+    : '';
+
   const metaRow = () => {
     const parts = [];
     if (want.date) parts.push(plain('date', copy.date, z.smallFs));
     if (want.label) parts.push(plain('label', copy.label, z.smallFs));
     if (!parts.length) return '';
-    return `<div style="display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:${align === 'center' ? 'center' : 'flex-start'};margin-top:${Math.round(z.smallFs * 0.5)}px">${parts.join('')}</div>`;
+    return `<div style="display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:${align === 'center' ? 'center' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
   };
 
   if (strip) {
@@ -406,9 +475,10 @@ ${tplLogo}${tplObject}
   const logoRow = lg ? `<div style="flex:none;display:flex;justify-content:${logoRowJustify};height:${z.logoH}px;${logoAtBottom ? 'margin-top:auto;padding-top:8px' : `margin-bottom:${Math.round(z.logoH * 0.7)}px`}">${lg}</div>` : '';
   if (lg && !logoAtBottom) parts.push(logoRow);
   else if (want.advertiser) parts.push(T('advertiser', copy.advertiser, z.smallFs, 700, subFg, `margin-bottom:${Math.round(z.smallFs * 0.5)}px`));
-  if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, 700, subFg, `margin-bottom:${Math.round(z.subFs * 0.55)}px`, Math.min(slots.sub.lines ?? 2, 2)));
-  parts.push(T('main', copy.main, mainFs, 700, mainFg, '', mainLines));
-  if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, 400, subFg, 'margin-top:6px', Math.min(slots.sub.lines ?? 2, 2)));
+  const subLh = useRef ? L.subLine : line;
+  if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, useRef ? L.subWeight : 700, subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
+  parts.push(T('main', copy.main, mainFs, 700, mainFg, useRef ? 'text-wrap:balance' : '', mainLines, mainLine));
+  if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, 400, subFg, `margin-top:${useRef ? subGap(z) : 6}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   parts.push(metaRow());
   tail.push(detailBlock());
   if (want.extra) tail.push(T('extra', copy.extra, z.smallFs, 400, subFg, 'margin-top:6px', Math.min(slots.extra.lines ?? 1, 2)));
@@ -421,7 +491,7 @@ ${tplLogo}${tplObject}
   // 우하단 이미지(자소설 팝업·M메인): 메인·서브는 일러스트 위를 전폭으로, 상세·부가는 일러스트 왼쪽 고정 폭 열에 (세아제강)
   const textCol = (imgCorner && hasKv)
     ? `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:${align === 'center' ? 'center' : 'stretch'}">${head.filter(Boolean).join('\n')}<div style="width:${detailW}px;max-width:100%">${tail.filter(Boolean).join('\n')}</div></div>`
-    : `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:${tall && objectSide === 'none' ? 'center' : 'flex-start'};align-items:${align === 'center' ? 'center' : 'stretch'}">${parts.filter(Boolean).join('\n')}</div>`;
+    : `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:${(useRef ? L.vAlign === 'center' : tall && objectSide === 'none') ? 'center' : 'flex-start'};align-items:${align === 'center' ? 'center' : 'stretch'}">${parts.filter(Boolean).join('\n')}</div>`;
 
   // 이미지는 글자보다 먼저 그린다(아래에 깔린다). 글자 열 옆·아래에는 같은 크기의 빈 자리만 남긴다.
   if (objectSide === 'bottom') {
@@ -429,11 +499,12 @@ ${tplLogo}${tplObject}
 ${bleedBottom(objH)}
 ${textCol}
 <div style="flex:none;height:${objH}px"></div>
+${absLogoEl}
 </div>`;
   }
   return `${open('flex-direction:row;gap:' + Math.round(innerW * 0.04) + 'px;align-items:stretch')}
 ${objectSide === 'right' ? bleedRight(objW) : ''}${tplObject}
 ${textCol}${objectSide === 'right' ? `<div style="flex:none;width:${objW}px"></div>` : ''}
-${tplLogo}
+${tplLogo}${absLogoEl}
 </div>`;
 }

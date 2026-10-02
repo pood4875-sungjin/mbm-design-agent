@@ -14,6 +14,7 @@
 import { fontStack } from '../fonts.js';
 import { shiftHue } from '../palette.js';
 import { resolveField, kvLayer } from '../field.js';
+import { layoutFor } from '../layouts.js';
 
 export function esc(s) {
   return String(s).replace(/[&<>"']/g, c => (
@@ -82,14 +83,18 @@ export function renderBanner(ctx, style, spec) {
   const strip = spec.h < 120;
   // 지면 크기를 한 값으로 묶는다 — 300×250과 160×600은 면적이 비슷하니 글자도 비슷해야 한다.
   const S = Math.sqrt(spec.w * spec.h);
+  // 형태별 레이아웃은 레퍼런스에서 잰 값(core/layouts.js) — 채용 광고와 같은 문법. 120px 미만 띠만 예전 띠 문법.
+  const L = layoutFor(spec.w, spec.h);
   // 8pt 그리드 (design-system-examples.md > 스페이싱 8pt 그리드 + 4pt 보조 근거)
-  const pad = strip ? 16 : (S >= 280 ? 24 : 16);
+  const pad = strip ? 16 : L.padX;
+  const padTop = strip ? 0 : (L.vAlign === 'center' ? L.padY : L.top);
+  const padBottom = strip ? 0 : (L.padBottom ?? L.padY);
 
-  // 키비주얼 자리 — 세로로 긴 지면은 아래, 나머지는 오른쪽. 글자는 그 자리를 비우고 놓는다.
+  // 키비주얼 자리 — 레퍼런스대로 가로형·넉넉한 정사각은 오른쪽, 세로형·세로 띠·좁은 정사각은 아래.
   const hasKv = !!style.keyVisual && v !== 1;
-  const side = !hasKv ? 'none' : (!strip && spec.h / spec.w >= 1.15) ? 'bottom' : 'right';
-  const objW = side === 'right' ? Math.round(spec.w * (strip ? 0.24 : 0.36)) : 0;
-  const objH = side === 'bottom' ? Math.round(spec.h * 0.32) : 0;
+  const side = !hasKv ? 'none' : strip ? 'right' : L.object;
+  const objW = side !== 'right' ? 0 : strip ? Math.round(spec.w * 0.24) : Math.max(0, L.objectW - pad);
+  const objH = side !== 'bottom' ? 0 : Math.max(0, L.objectH - padBottom);
 
   let bg, fg, subFg, ctaBg, ctaFg, band = '', object = '';
   if (v === 1) {
@@ -116,10 +121,13 @@ export function renderBanner(ctx, style, spec) {
   // ── 로고 슬롯 ──
   // 높이를 먼저 고정하고 폭을 max-width로 물린다. object-fit:contain이라
   // 정사각·가로긴·초가로 로고 전부 왜곡 없이 이 상자 안에서만 산다.
-  const logoH = strip ? Math.min(18, Math.round(spec.h * 0.22)) : Math.round(Math.min(26, Math.max(14, S * 0.075)));
-  const logoMaxW = Math.round(spec.w * (strip ? 0.20 : 0.42));
-  const logoImg = style.logo
-    ? `<img src="${esc(style.logo)}" alt="" style="display:block;height:${logoH}px;width:auto;max-width:${logoMaxW}px;object-fit:contain;object-position:left center;opacity:.95;${logoFilter}">`
+  const logoH = strip ? Math.min(18, Math.round(spec.h * 0.22)) : L.logoH;
+  const logoMaxW = Math.round(spec.w * (strip ? 0.20 : L.logo === 'top-center' ? 0.62 : 0.4));
+  const logoImg = style.logo && (strip || L.logo !== 'none')
+    ? `<img src="${esc(style.logo)}" alt="" style="display:block;height:${logoH}px;width:auto;max-width:${logoMaxW}px;object-fit:contain;object-position:${L.logo === 'top-center' ? 'center' : strip ? 'left' : 'right'} center;${logoFilter}">`
+    : '';
+  const logoAbs = !strip && logoImg
+    ? `<div style="position:absolute;top:${L.logoTop}px;${L.logo === 'top-center' ? 'left:0;right:0;justify-content:center' : `right:${Math.round(L.padX * 0.8)}px;justify-content:flex-end`};height:${logoH}px;display:flex;align-items:center">${logoImg}</div>`
     : '';
 
   /* ── 타이포 스케일 ──
@@ -128,11 +136,11 @@ export function renderBanner(ctx, style, spec) {
      제목 말고 나머지(아이브로우·룰·장소·CTA)는 "상한" 기준으로만 크기를 잡는다 —
      그래야 각 블록 높이를 먼저 알 수 있고, 제목 예산을 순환 없이 정확히 뺄 수 있다.
      (ui-trends.md > 큰 폰트 + 강한 위계 / design-system-examples.md > 타입 스케일 1.2~1.25 근거) */
-  const titleMax = Math.min(34, Math.max(13, Math.round(S * 0.085)));
-  const metaFs = Math.max(10, Math.round(titleMax * 0.55));
-  const eyebrowFs = Math.max(9, Math.round(titleMax * 0.42));
+  const titleMax = strip ? Math.min(34, Math.max(13, Math.round(S * 0.085))) : L.main;
+  const metaFs = strip ? Math.max(10, Math.round(titleMax * 0.55)) : L.detail;
+  const eyebrowFs = strip ? Math.max(9, Math.round(titleMax * 0.42)) : L.sub;
   const ctaFs = Math.max(11, Math.round(titleMax * 0.58));
-  const line = 1.25;
+  const line = strip ? 1.25 : L.mainLine;
 
   const textW = strip
     ? spec.w - pad * 2 - (style.logo ? logoMaxW + 14 : 0) - (SHOW_CTA ? ctaWidth(cta) + 14 : 0) - objW
@@ -144,12 +152,12 @@ export function renderBanner(ctx, style, spec) {
     titleBudget = spec.h - 12 - metaFs * 1.35 - 3;
   } else {
     // 세로 스택의 높이 예산: 지면 − 패딩 − 로고 슬롯 − 아이브로우 − 룰 − 장소 − CTA
-    const logoBlock = style.logo ? logoH + Math.round(logoH * 0.8) : 0;
-    const eyebrowBlock = Math.round(eyebrowFs * 1.3) + Math.round(eyebrowFs * 0.7);
+    // 세로 스택의 높이 예산: 지면 − 위아래 여백 − 이미지 − 일자 − 장소 (로고는 여백 위에 떠 있다)
+    const eyebrowBlock = Math.round(eyebrowFs * (L.subLine ?? 1.3)) + Math.round(eyebrowFs * (L.gapSub ?? 0.5));
     const ctaBlock = SHOW_CTA ? Math.round(ctaFs * 1.3) + Math.round(ctaFs * 0.62) * 2 + Math.round(pad * 0.6) : 0;
     metaLines = Math.max(1, Math.min(2, Math.ceil(textWidth(venue) / Math.max(1, textW / metaFs))));
-    const metaBlock = Math.round(metaFs * 1.35) * metaLines + Math.round(titleMax * 0.5);
-    titleBudget = spec.h - pad * 2 - objH - logoBlock - eyebrowBlock - metaBlock - ctaBlock;
+    const metaBlock = Math.round(metaFs * (L.detailLine ?? 1.35)) * metaLines + Math.round(titleMax * (L.gapDetail ?? 0.5));
+    titleBudget = spec.h - padTop - padBottom - objH - eyebrowBlock - metaBlock - ctaBlock;
   }
   titleBudget = Math.max(titleMax * line, titleBudget);
   // 내림으로 정수화한다 — 올림하면 방금 맞춰 놓은 예산을 한 픽셀 차이로 넘겨
@@ -160,7 +168,7 @@ export function renderBanner(ctx, style, spec) {
   const titleLines = Math.max(1, Math.floor(titleBudget / (titleFs * line)));
 
   const clamp = n => `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${n};overflow:hidden`;
-  const title = `<div data-field="title" style="font-size:${titleFs}px;font-weight:700;line-height:${line};color:${fg};${WRAP};${clamp(titleLines)}">${esc(name)}</div>`;
+  const title = `<div data-field="title" style="font-size:${titleFs}px;font-weight:700;line-height:${line};color:${fg};${WRAP};${clamp(titleLines)}${strip ? '' : ';text-wrap:balance'}">${esc(name)}</div>`;
   // 스트립은 글자 칸이 좁다. 일자와 장소를 다 넣으면 장소가 말줄임돼 오히려 정보가 사라진다 —
   // 한 줄에 못 들어가면 일자만 온전히 보여 준다(잘린 장소보다 낫다).
   const metaText = strip && textWidth(`${date} · ${venue}`) * metaFs > textW ? date : `${date} · ${venue}`;
@@ -184,14 +192,14 @@ export function renderBanner(ctx, style, spec) {
 
   // 세로 스택 — [로고 슬롯] / [일자 → 행사명 → 장소] / [CTA] 세 층. 키비주얼 자리는 패딩으로 비운다.
   // 본문 층은 overflow:hidden이다. 예산 계산이 어긋나도 아래 CTA를 덮는 일만은 없게 하는 마지막 방어선.
-  const eyebrow = `<div style="font-size:${eyebrowFs}px;font-weight:700;color:${subFg};margin-bottom:${Math.round(eyebrowFs * 0.7)}px">${esc(date)}</div>`;
-  return `<div style="${shell};flex-direction:column;align-items:stretch;justify-content:flex-start;padding:${pad}px ${pad + objW}px ${pad + objH}px ${pad}px">
+  const eyebrow = `<div style="font-size:${eyebrowFs}px;line-height:${L.subLine ?? 1.3};font-weight:${L.subWeight ?? 700};color:${subFg};margin-bottom:${Math.round(eyebrowFs * (L.gapSub ?? 0.5))}px">${esc(date)}</div>`;
+  return `<div style="${shell};flex-direction:column;align-items:stretch;justify-content:flex-start;padding:${padTop}px ${pad + objW}px ${padBottom + objH}px ${pad}px">
   ${object}${band}
-  ${logoImg ? `<div style="position:relative;flex:none;height:${logoH}px;margin-bottom:${Math.round(logoH * 0.8)}px">${logoImg}</div>` : ''}
-  <div style="position:relative;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column;justify-content:${spec.h / spec.w >= 1.8 ? 'center' : 'flex-start'}">
+  ${logoAbs}
+  <div style="position:relative;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column;justify-content:${L.vAlign === 'center' ? 'center' : 'flex-start'}">
     ${eyebrow}
     ${title}
-    <div style="font-size:${metaFs}px;line-height:1.35;color:${subFg};margin-top:${Math.round(titleMax * 0.5)}px;${clamp(metaLines)}">${esc(venue)}</div>
+    <div style="font-size:${metaFs}px;line-height:${L.detailLine ?? 1.35};color:${subFg};margin-top:${Math.round(titleMax * (L.gapDetail ?? 0.5))}px;${clamp(metaLines)}">${esc(venue)}</div>
   </div>
   ${ctaChip ? `<div style="position:relative;flex:none;margin-top:${Math.round(pad * 0.6)}px">${ctaChip}</div>` : ''}
 </div>`;

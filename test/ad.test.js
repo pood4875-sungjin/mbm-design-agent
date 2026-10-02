@@ -75,10 +75,12 @@ test('copy comes from the recruit context; an event context still renders throug
   assert.match(html, /MBM 2026/);
 });
 
-test('numeric safe area becomes padding so text starts inside it', () => {
-  // 에브리타임 홈배너: 상하좌우 20px
+test('numeric safe area is a floor for padding — the reference margin wins when it is larger', () => {
+  // 에브리타임 홈배너 640×200: 안전영역 상하좌우 20px. 가로형 레퍼런스 왼쪽 여백은 높이의 16.5%(33px)
   const html = renderAd(ctx, style, specs['everytime-home-banner']);
-  assert.match(html, /padding:20px 20px 20px 20px/);
+  const [t, r, b, l] = html.match(/padding:(\d+)px (\d+)px (\d+)px (\d+)px/).slice(1).map(Number);
+  assert.ok(t >= 20 && r >= 20 && b >= 20 && l >= 20, `안전영역 안에서 시작한다 (${t} ${r} ${b} ${l})`);
+  assert.equal(l, 33);
 });
 
 test('copy ladder picks the longest phrasing that fits the medium character limit', () => {
@@ -86,9 +88,10 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   const long = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit');
   const html = renderAd(long, style, specs['kakao-bizboard-mo']);
   assert.match(html, /data-field="main"[^>]*>클라우드 플랫폼 엔지니어</);
-  // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다
+  // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 세로형은 회사가 서브로 올라가 메인은 직무 채용(도레이·한독)
   const free = renderAd(long, style, specs['google-gdn-300x600']);
-  assert.match(free, /data-field="main"[^>]*>한진정보통신 클라우드 플랫폼 엔지니어 채용</);
+  assert.match(free, /data-field="main"[^>]*>클라우드 플랫폼 엔지니어 채용</);
+  assert.match(free, /data-field="sub"[^>]*>한진정보통신</);
 });
 
 test('logo-only specs (브랜드 로고 96×96, 프로필 300) carry no headline slot', () => {
@@ -97,9 +100,11 @@ test('logo-only specs (브랜드 로고 96×96, 프로필 300) carry no headline
   assert.match(html, /data-field="advertiser"[^>]*>한진정보통신</, '로고 파일이 없으면 광고주명이 워드마크 자리에 선다');
 });
 
-test('a strip lays out in a row, and a flat spec uses a solid background', () => {
-  const strip = renderAd(ctx, style, specs['albamon-pc-main-curtain']);
+test('a strip under 120px lays out in a row, and a flat spec uses a solid background', () => {
+  // 레퍼런스가 없는 120px 미만 띠만 가로 한 줄 문법. 2160×160 커튼 배너는 가로형 레퍼런스 문법(세로 가운데 쌓기)
+  const strip = renderAd(ctx, style, specs['nap-dsp-pc-970x90']);
   assert.match(strip, /flex-direction:row;align-items:center/);
+  assert.match(renderAd(ctx, style, specs['albamon-pc-main-curtain']), /justify-content:center/);
   const flat = renderAd(ctx, style, { ...specs['google-gdn-300x600'], flat: true });
   assert.match(flat.split('>')[0], /background:#0B3C8C;/i);
 });
@@ -129,13 +134,29 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
   assert.match(html, /data-field="main"[^>]*color:#000000/);
 });
 
-test('tall formats stack and center, wide formats keep copy left — and the logo follows', () => {
+test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
   const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' };
   const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
-  assert.match(tallHtml, /text-align:center/);
-  assert.match(tallHtml, /justify-content:center;height:\d+px/, '중앙 정렬이면 로고도 상단 중앙');
+  assert.doesNotMatch(tallHtml, /text-align:center/);
+  assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '세로형 로고는 우상단(한미글로벌·세아제강)');
+  // 세로형은 서브(회사)가 메인 위, 메인은 직무 채용(도레이·한독)
+  assert.match(tallHtml, /data-field="sub"[^>]*>한진정보통신</);
+  assert.match(tallHtml, /data-field="main"[^>]*>백엔드 개발자 채용</);
+  const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
+  assert.match(tower, /data-logo-slot="1" style="position:absolute;top:\d+px;left:\d+px;right:\d+px;justify-content:center/, '세로 띠 로고는 위 가운데');
   const wideHtml = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
   assert.match(wideHtml, /text-align:left/);
+  assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만');
+});
+
+test('wide formats follow the references: company and job on two lines where the medium gives two main rows', () => {
+  // 리멤버 메인 상단 MO: "메인 문구 1"·"메인 문구 2" 각 12자 — 안랩 "AhnLab / 신입/경력 채용"처럼 회사 / 채용 문구
+  const html = renderAd(ctx, style, specs['remember-main-top-mo']);
+  assert.match(html, /data-field="main"[^>]*>한진정보통신<br\/>[^<]+</);
+  // 카카오 비즈보드: 메인 1줄 15자 — 쪼개지 않는다. 둘째 줄(서브)은 접수기간
+  const biz = renderAd(ctx, style, specs['kakao-bizboard-mo']);
+  assert.doesNotMatch(biz, /data-field="main"[^>]*<br/);
+  assert.match(biz, /data-field="sub"[^>]*>접수기간 : ~10\.31\(토\)</);
 });
 
 test('with a key visual the image bleeds to the edge instead of sitting in a rounded box', () => {
@@ -245,4 +266,22 @@ test('an image whose facing edge matches the field joins at that edge; a busy ph
   const c = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: cut }, specs['naver-gfa-mobile-da-1250x560']);
   assert.match(c, /data-object="1"[^>]*right center\/contain/);
   assert.doesNotMatch(c, /data-object="1"[^>]*mask-image/);
+});
+
+test('a floating logo stays inside the medium safe area and the copy starts below it', () => {
+  // 네이버 네이티브 342×228: 안전영역 상하좌우 20px
+  const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' }, specs['naver-gfa-native-pc-342x228']);
+  const m = html.match(/data-logo-slot="1" style="position:absolute;top:(\d+)px;right:(\d+)px;[^"]*height:(\d+)px/);
+  assert.ok(m, '로고가 떠 있다');
+  const [top, right, lh] = m.slice(1).map(Number);
+  assert.ok(top >= 20 && right >= 20, `안전영역 안 (top ${top}, right ${right})`);
+  const padTop = Number(html.match(/padding:(\d+)px/)[1]);
+  assert.ok(padTop >= top + lh, '글자는 로고 아래에서 시작한다');
+});
+
+test('the text height rule caps every line, not only the headline (네이버 22~52px)', () => {
+  const html = renderAd(ctx, style, specs['naver-gfa-mobile-da-1250x560']);
+  for (const m of html.matchAll(/data-field="(\w+)" style="font-size:(\d+)px/g)) {
+    assert.ok(+m[2] >= 22 && +m[2] <= 52, `${m[1]} ${m[2]}px`);
+  }
 });
