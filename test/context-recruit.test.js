@@ -43,3 +43,29 @@ test('fieldsOf gives labels so the UI and the agent prompt share one vocabulary'
   assert.equal(f.find(x => x.id === 'client').required, true);
   assert.equal(f.find(x => x.id === 'notice').required, false);
 });
+
+test('a recruit campaign rendered as a banner or print piece fills the event slots from recruit fields, inventing nothing', async () => {
+  const { asEventContext } = await import('../core/context.js');
+  const ctx = createContext({ client: '한진정보통신', role: '클라우드 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit');
+  const e = asEventContext(ctx);
+  assert.equal(e.core.name, '한진정보통신 클라우드 엔지니어 채용');
+  assert.equal(e.core.date, '접수기간 ~10.31(토)');
+  assert.equal(e.core.venue, '근무지 서울 여의도');
+  assert.equal(e.core.audience, '정규직');
+  const ev = createContext({ name: 'MBM', date: '2026-10-15', venue: '코엑스' });
+  assert.equal(asEventContext(ev), ev, '행사 캠페인은 그대로');
+});
+
+test('offline pieces for a recruit campaign render the recruit copy, not "undefined"', async () => {
+  const { registerAll, generateArtifacts } = await import('../core/generate.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  registerAll();
+  const campaign = { context: createContext({ client: '한진정보통신', role: '클라우드 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit'),
+    style: normalizeStyle({ colors: ['#0A3D91'] }), channels: ['hyunsumak', 'xbanner'], signage: {}, artifacts: [], log: [], adSpecIds: [] };
+  generateArtifacts(campaign);
+  assert.ok(campaign.artifacts.length >= 2);
+  for (const a of campaign.artifacts) {
+    assert.doesNotMatch(a.html, /undefined/, `${a.specId}에 undefined`);
+    assert.match(a.html, /한진정보통신/);
+  }
+});

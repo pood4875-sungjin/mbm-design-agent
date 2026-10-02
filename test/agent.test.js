@@ -22,8 +22,8 @@ test('required fields follow the campaign kind', () => {
   assert.deepEqual(fieldsFor('event'), ['name', 'date', 'venue', 'audience', 'cta']);
 });
 
-test('the flow has three phases and the sentence covers every required field', () => {
-  assert.deepEqual(PHASES, ['brief', 'style', 'draft']);
+test('the flow has four phases and the sentence covers every required field', () => {
+  assert.deepEqual(PHASES, ['target', 'brief', 'style', 'draft']);
   for (const kind of ['recruit', 'event']) {
     const blanks = SENTENCES[kind].flat().filter(p => typeof p !== 'string').map(p => p.f);
     assert.deepEqual([...blanks].sort(), [...fieldsFor(kind)].sort(), `${kind}: 필수 항목은 빠짐없이 문장의 빈칸이다`);

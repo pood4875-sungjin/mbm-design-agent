@@ -75,3 +75,28 @@ function mergeChannelFields(base, patch = {}) {
   }
   return out;
 }
+
+// 채용 캠페인을 행사용 렌더러(배너·인쇄물)로 그릴 때 — 그 렌더러들이 읽는 칸(행사명·일시·장소·대상·CTA)에 채용 내용을 옮긴다.
+// 새로 지어내는 말은 없다: 고객사·직무·마감·근무지·고용 형태를 표기만 바꿔 넣는다. 매체 광고('ad')는 채용 칸을 그대로 읽는다.
+const DOW = '일월화수목금토';
+function deadlineText(d) {
+  const m = String(d ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return d ? String(d) : '';
+  const t = new Date(+m[1], +m[2] - 1, +m[3]);
+  return `접수기간 ~${+m[2]}.${+m[3]}(${DOW[t.getDay()]})`;
+}
+export function asEventContext(ctx) {
+  if (ctx?.kind !== 'recruit') return ctx;
+  const c = ctx.core ?? {};
+  return {
+    ...ctx,
+    core: {
+      ...c,
+      name: c.name ?? [c.client, c.role ? `${c.role} 채용` : '채용'].filter(Boolean).join(' '),
+      date: c.date ?? deadlineText(c.deadline),
+      venue: c.venue ?? (c.location ? `근무지 ${c.location}` : ''),
+      audience: c.audience ?? (c.employType ?? ''),
+      cta: c.cta ?? '지원하기',
+    },
+  };
+}

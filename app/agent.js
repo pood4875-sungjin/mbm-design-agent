@@ -14,8 +14,9 @@ import { KINDS } from '../core/context.js';
 import { FONT_IDS } from '../core/fonts.js';
 import { MEDIA } from '../core/media.js';
 
-export const PHASES = ['brief', 'style', 'draft'];
-export const PHASE_LABEL = { brief: '내용 확인', style: '스타일', draft: '초안 생성' };
+// 단계: target(무엇을·어디에 — 화면에서 고른다) → brief(내용 확인 — 빈칸 채우기 문장) → style → draft
+export const PHASES = ['target', 'brief', 'style', 'draft'];
+export const PHASE_LABEL = { target: '만들 것', brief: '내용 확인', style: '스타일', draft: '초안 생성' };
 export const TRACKS = { online: '온라인 광고', offline: '오프라인 인쇄물' };
 
 // eDM·랜딩페이지는 만들지 않는다(2026-10-02 제외)

@@ -11,7 +11,6 @@ import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
 import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage } from '../core/palette.js';
 import { resolveField } from '../core/field.js';
-import { LAYOUT_REFS, SHAPE_LABEL, shapeOf } from '../core/layouts.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -233,56 +232,6 @@ function parseBriefRegex(text) {
   return { fields: out, channels: [...new Set(channels)], kind, track: detectTrack(text), media: detectMedia(text) };
 }
 
-/* ═══ 학습한 레퍼런스 ═══
-   생성 규칙의 출처를 화면에 둔다 — 무엇을 보고 만들었는지 알아야 결과를 믿고 고칠 수 있다.
-   user  = 사용자가 "이렇게"라고 준 소재. 형태별 레이아웃·글자 크기·여백이 여기서 나왔다(core/layouts.js)
-   board = 피그마 보드에서 관찰한 매체별 실제 소재(core/design.js의 근거)
-   그림은 ref/learned/ (로컬 전용, git·공개 배포 제외 — 실제 고객사 소재). 없으면 이름만 보인다. */
-let refsP = null;
-function loadRefs() {
-  return refsP ??= fetch('../ref/learned/index.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => j ?? {
-    user: Object.entries(LAYOUT_REFS).flatMap(([shape, list]) => list.map(x => ({ ...x, shape, src: null, have: false }))), board: [],
-  });
-}
-const REF_ORDER = ['wide', 'tall', 'tower', 'square'];
-// 받침이 있으면 앞의 조사, 없으면 뒤의 조사 — "가로형은", "세로 띠는"
-const josa = (word, withB, without) => { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? withB : without; };
-const refName = r => r.client || (r.backgroundOnly ? '배경·사진' : '');
-function refThumb(r, h = 64) {
-  const label = `${refName(r)} ${r.w}×${r.h}`;
-  return r.have && r.src
-    ? `<button type="button" class="rthumb" data-ref="${r.node}" title="${label}" aria-label="${label}"><img src="../ref/learned/${r.src}" alt="" loading="lazy" style="height:${h}px"></button>`
-    : `<button type="button" class="rthumb none" data-ref="${r.node}" title="${label}" style="height:${h}px">${refName(r) || r.node}</button>`;
-}
-function refsFor(refs, shape) { return refs.user.filter(r => r.shape === shape && !r.backgroundOnly); }
-async function openRefGallery(focusShape = null) {
-  const refs = await loadRefs();
-  const byShape = REF_ORDER.map(sh => [sh, refs.user.filter(r => r.shape === sh)]).filter(([, l]) => l.length);
-  const media = [...new Set(refs.board.map(b => b.mediumName))];
-  modal({
-    title: '학습한 레퍼런스',
-    desc: '위쪽 소재의 여백·글자 크기·줄 간격·이미지 자리를 재서 형태별 생성 규칙으로 씁니다. 아래쪽은 매체별 경향을 본 실제 소재입니다.',
-    wide: true,
-    body: `<div class="rgal">${byShape.map(([sh, l]) => `<section class="rsec ${sh === focusShape ? 'focus' : ''}" data-shape="${sh}">
-        <h5>${SHAPE_LABEL[sh]} <small>${l.length}장 · 이 형태의 소재를 만들 때 따릅니다</small></h5>
-        <div class="rrow">${l.map(r => `<figure>${refThumb(r, sh === 'wide' ? 74 : 150)}<figcaption>${refName(r)}<span>${r.w}×${r.h}</span></figcaption></figure>`).join('')}</div></section>`).join('')}
-      ${refs.board.length ? `<section class="rsec"><h5>매체별 실제 소재 <small>${refs.board.length}장 · 그림 ${refs.board.filter(b => b.have).length}장</small></h5>
-        ${media.map(mn => { const l = refs.board.filter(b => b.mediumName === mn); return `<div class="rmed"><b>${mn}</b><div class="rrow">${l.map(r => `<figure>${refThumb(r, 56)}<figcaption>${r.client}<span>${r.spec.replace(/^\S+\s/, '')}</span></figcaption></figure>`).join('')}</div></div>`; }).join('')}</section>` : ''}
-      <p class="rnote">새 레퍼런스는 피그마 링크로 보내 주면 재서 규칙에 넣습니다. 앱 안에서 바로 학습하는 기능은 아직 없습니다.</p></div>`,
-    actions: [{ label: '닫기', pri: true }],
-  });
-  const f = $('modalBody').querySelector('.rsec.focus');
-  if (f) f.scrollIntoView({ block: 'start' });
-}
-async function renderRefSide() {
-  const box = $('refSide'); if (!box) return;
-  const refs = await loadRefs();
-  box.innerHTML = REF_ORDER.map(sh => { const l = refsFor(refs, sh); return l.length
-    ? `<button type="button" class="rside" data-shape="${sh}"><span class="rs-thumbs">${l.slice(0, 3).map(r => r.have ? `<img src="../ref/learned/${r.src}" alt="" loading="lazy">` : '').join('')}</span><b>${SHAPE_LABEL[sh]}</b><small>${[...new Set(l.map(refName))].join(' · ')}</small></button>` : ''; }).join('')
-    + (refs.board.length ? `<button type="button" class="rside" data-shape=""><span class="rs-thumbs"></span><b>매체별 실제 소재</b><small>${refs.board.length}장 관찰</small></button>` : '');
-  box.querySelectorAll('.rside').forEach(b => b.onclick = () => openRefGallery(b.dataset.shape || null));
-}
-
 /* ═══ home ═══ */
 function initHome() {
   const box = $('samples');
@@ -308,7 +257,6 @@ function initHome() {
   };
   $('searchIn').oninput = () => renderSidebar($('searchIn').value.trim());
   refreshAiChip();
-  renderRefSide();
 }
 function refreshAiChip() {
   $('aiChip').textContent = LLM.hasKey() ? `AI 해석 켜짐 · ${LLM.maskKey()}` : 'AI 해석 꺼짐 — 규칙 파서';
@@ -418,7 +366,9 @@ async function startIntake(text) {
   state.intake = {
     kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
     mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
-    kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'brief', styleDone: false, signageDone: false, history: [],
+    kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'target', styleDone: false, signageDone: false, history: [],
+    // 무엇을(track: online·offline·both) → 어디에(targetDone) 를 대화에서 고른다. suggestTrack = 브리프에서 읽은 제안(고르기 전까지 확정 아님)
+    targetDone: false, suggestTrack: null,
     // briefDone: 빈칸 채우기 문장을 사용자가 확인했는가 · readFields: 브리프에서 읽어 채운 값(점선 밑줄로 구분)
     // specOff: 고른 매체의 소재 중 이번에 만들지 않기로 끈 것
     briefDone: false, readFields: new Set(), specOff: new Set(), pickerOpen: false, showOptional: false,
@@ -431,25 +381,25 @@ async function startIntake(text) {
   Object.assign(state.intake.fields, seed.fields);
   for (const k of Object.keys(seed.fields)) state.intake.readFields.add(k);
   state.intake.channels = seed.channels;
-  state.intake.kind = seed.kind; state.intake.track = seed.track; state.intake.media = seed.media ?? [];
+  state.intake.kind = seed.kind; state.intake.suggestTrack = seed.track; state.intake.media = seed.media ?? [];
   $('thread').innerHTML = '';
   clearSlot();
   show('intake');
   renderSteps();
   bub('user', text);
-  await turn(text);
+  await turn(text, { initial: true });
 }
 
 function agentState() {
   const it = state.intake;
   return {
-    phase: it.phase, kind: it.kind, track: it.track, media: it.media, fields: it.fields, channels: it.channels, kv: it.kv,
+    phase: it.phase, kind: it.kind, track: it.track === 'both' ? 'online' : it.track, media: it.media, fields: it.fields, channels: it.channels, kv: it.kv,
     briefDone: it.briefDone, styleDone: it.styleDone, signageDone: it.signageDone, signage: it.signage, roster: it.roster,
     style: { mode: it.mode, colors: it.colors, font: it.font },
   };
 }
 
-async function turn(userText) {
+async function turn(userText, { initial = false } = {}) {
   const it = state.intake;
   it.history.push({ role: 'user', text: userText });
   const think = LLM.hasKey() ? thinkBubble() : null;
@@ -464,15 +414,56 @@ async function turn(userText) {
     // finally인 이유: 폴백까지 실패해 예외가 튀어도 인터벌은 반드시 멈춰야 한다
     think?.stop();
   }
+  // 첫 브리프에서 읽은 트랙은 제안일 뿐이다 — "무엇을 만들까요"는 사용자가 고른다
+  if (initial && res.patch?.track) { it.suggestTrack = res.patch.track; res.patch.track = null; }
   applyPatch(res.patch);
-  // 단계는 화면의 확인이 넘긴다 — 진행자가 앞서 나가도 문장을 확인하기 전에는 '내용 확인'에 머문다.
+  // 단계는 화면의 확인이 넘긴다 — 진행자가 앞서 나가도 고르기·문장 확인 전에는 그 단계에 머문다.
   // 문장 확인 뒤 "알아서 해"처럼 진행자가 준비됐다고 하면 스타일은 기본값으로 확정한다.
   if (res.ready && it.briefDone) it.styleDone = true;
-  it.phase = !it.briefDone ? 'brief' : !it.styleDone ? 'style' : 'draft';
+  const st = stepOf(it);
+  it.phase = PHASE_OF[st];
   renderSteps();
-  bub('agent', res.say);
-  it.history.push({ role: 'agent', text: res.say });
-  if (it.phase === 'draft') { buildAndGenerate(); return; }
+  const msg = (st === 'type' || st === 'where') ? stepPrompt(it, st) : res.say;
+  bub('agent', msg);
+  it.history.push({ role: 'agent', text: msg });
+  if (st === 'draft') { buildAndGenerate(); return; }
+  renderSlot({ focus: true });
+}
+
+/* ── 단계 ── 무엇을 → 어디에 → 내용 확인 → (행사 인쇄물 세트) → 스타일 → 생성 */
+const TRACK_CHOICE = { online: '광고 소재', offline: '오프라인 인쇄물', both: '광고 소재와 인쇄물 둘 다' };
+const wantsAd = it => it.track === 'online' || it.track === 'both';
+const wantsPrint = it => it.track === 'offline' || it.track === 'both';
+const PRINT_RECRUIT = ['hyunsumak', 'xbanner', 'poster'];   // 채용 캠페인의 인쇄물 — 명찰·포토부스는 행사용
+const needsSignage = it => it.kind !== 'recruit' && !it.signageDone && it.channels.some(c => OFFLINE_CH.includes(c));
+function stepOf(it) {
+  if (!it.track) return 'type';
+  if (!it.targetDone) return 'where';
+  if (!it.briefDone) return 'content';
+  if (needsSignage(it)) return 'signage';
+  if (!it.styleDone) return 'style';
+  return 'draft';
+}
+const PHASE_OF = { type: 'target', where: 'target', content: 'brief', signage: 'brief', style: 'style', draft: 'draft' };
+// 받침이 있으면 앞의 조사, 없으면 뒤의 조사 — "자소설닷컴을", "리멤버를"
+const josa = (word, withB, without) => { const c = String(word).trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? withB : without; };
+function stepPrompt(it, st) {
+  if (st === 'type') {
+    const hint = it.suggestTrack ? ` 브리프를 보면 ${TRACK_CHOICE[it.suggestTrack]}인 것 같아요.` : '';
+    return `무엇을 만들까요?${hint} 아래에서 골라 주세요.`;
+  }
+  const ask = [];
+  if (wantsAd(it)) ask.push(it.kind === 'recruit' ? '어느 매체에 홍보하나요? 매체를 고르면 그 매체의 소재가 전부 만들어져요.' : '온라인 배너는 무엇을 만들까요?');
+  if (wantsPrint(it)) ask.push('인쇄물은 무엇을 만들까요?');
+  const names = it.kind === 'recruit' && wantsAd(it) ? it.media.map(mediumName) : [];
+  const pre = names.length ? ` 브리프에 있던 ${names.join('·')}${josa(names[names.length - 1], '을', '를')} 골라 뒀어요.` : '';
+  return ask.join(' ') + pre;
+}
+function goStep(st) {
+  const it = state.intake;
+  it.phase = PHASE_OF[st];
+  renderSteps();
+  if (st === 'type' || st === 'where') say(stepPrompt(it, st));
   renderSlot({ focus: true });
 }
 
@@ -494,12 +485,14 @@ function applyPatch(patch = {}) {
   if (typeof st.mood === 'string') it.mood = st.mood;
 }
 
-// 단계에 맞는 카드만 노출한다 — 내용 확인(빈칸 채우기 문장) → 오프라인 세트 → 스타일
+// 단계에 맞는 카드만 노출한다 — 무엇을 → 어디에 → 내용 확인(빈칸 채우기 문장) → 행사 인쇄물 세트 → 스타일
 function renderSlot(opts = {}) {
-  const it = state.intake;
-  if (!it.briefDone) return slotSentence(opts);
-  if (!it.signageDone && it.channels.some(c => OFFLINE_CH.includes(c))) return slotSignage();
-  if (!it.styleDone) return slotStyle();
+  const st = stepOf(state.intake);
+  if (st === 'type') return slotType();
+  if (st === 'where') return slotWhere();
+  if (st === 'content') return slotSentence(opts);
+  if (st === 'signage') return slotSignage();
+  if (st === 'style') return slotStyle();
   clearSlot();
 }
 
@@ -514,21 +507,9 @@ const mediumName = id => MEDIA.find(m => m.id === id)?.name ?? id;
 function chosenAdGroups(it = state.intake) {
   return adSpecGroups(it.media ?? []).filter(g => !it.specOff?.has(g.id));
 }
-// 문장의 "무엇을" 자리
-function targetOf(it) {
-  if (it.kind === 'recruit' && !it.track) return { kind: 'none', n: 0, names: [] };
-  if (it.kind === 'recruit' && it.track === 'online') return { kind: 'media', n: chosenAdGroups(it).length, names: it.media.map(mediumName) };
-  return { kind: 'channels', n: it.channels.length, names: it.channels.map(c => CHANNEL_LABEL[c]) };
-}
 function briefBlanks(it) {
   const miss = fieldsFor(it.kind).filter(f => !it.fields[f]);
-  const target = targetOf(it);
-  return { miss, target, count: miss.length + (target.n ? 0 : 1) };
-}
-function whatText(it) {
-  const t = targetOf(it);
-  if (t.kind === 'media') return `${TRACKS.online}로 나가요. 매체는 ${t.names.join(' · ')}, 소재는 ${t.n}종이에요.`;
-  return `${it.kind === 'recruit' ? TRACKS.offline + '로 만들어요. ' : ''}만들 것은 ${t.names.join(' · ')}, 모두 ${t.n}가지예요.`;
+  return { miss, count: miss.length };
 }
 
 // 빈칸 너비는 든 글자만큼 — 문장처럼 읽히려면 칸이 글자를 따라가야 한다
@@ -555,8 +536,8 @@ function specRow(g, it, AD) {
     <span class="pw">${e.confidence !== '확정' ? '확인 필요' : ''}</span></label>`;
 }
 
-function pickerHtml(it) {
-  if (it.kind === 'recruit' && it.track === 'online') {
+function mediaPickerHtml(it) {
+  {
     const all = adSpecGroups(), AD = adSpecEntries();
     const cards = ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
       const ms = MEDIA.filter(m => m.group === g);
@@ -583,10 +564,100 @@ function pickerHtml(it) {
     }).join('');
     return cards + specToggle + lists;
   }
-  const list = it.kind === 'recruit' ? OFFLINE : CH_LIST;
-  return `<div class="chgrid">${list.map(c =>
-    `<label class="chcard ${it.channels.includes(c) ? 'on' : ''}"><input type="checkbox" data-c="${c}" ${it.channels.includes(c) ? 'checked' : ''}>
-      <span>${CHANNEL_LABEL[c]}<small>${CHANNEL_DESC[c]}</small></span></label>`).join('')}</div>`;
+}
+function channelCardsHtml(list, it) {
+  return `<div class="mcards">${list.map(c => { const on = it.channels.includes(c);
+    return `<button type="button" class="mcard ${on ? 'on' : ''}" data-c="${c}" aria-pressed="${on}"><span class="mc-ck" aria-hidden="true"></span><b>${CHANNEL_LABEL[c]}</b><small>${CHANNEL_DESC[c]}</small></button>`; }).join('')}</div>`;
+}
+
+/* ── 1단계: 무엇을 만들까요 ── 광고 소재 / 오프라인 인쇄물 / 둘 다. 캠페인 종류(채용·행사)도 여기서 바로잡는다 */
+function slotType() {
+  const it = state.intake;
+  const desc = it.kind === 'recruit'
+    ? { online: '채용포털·디지털·커뮤니티 매체에 나가는 광고', offline: '현수막 · X배너 · 포스터', both: '매체 광고 + 인쇄물' }
+    : { online: '홍보 배너 · 그룹웨어 썸네일', offline: '포스터 · X배너 · 현수막 · 명찰 · 포토부스', both: '온라인 배너 + 인쇄물' };
+  slot(`<div class="card2"><div class="shead"><h4>무엇을 만들까요</h4>
+      <div class="kseg" role="group" aria-label="캠페인 종류">${Object.entries(KINDS).map(([k, v]) =>
+        `<button type="button" data-k="${k}" class="${k === it.kind ? 'on' : ''}" aria-pressed="${k === it.kind}">${v.label}</button>`).join('')}</div></div>
+    <div class="tchoices">${Object.keys(TRACK_CHOICE).map(t =>
+      `<button type="button" class="tchoice ${it.suggestTrack === t ? 'sug' : ''}" data-t="${t}"><b>${TRACK_CHOICE[t]}</b><small>${desc[t]}</small>${it.suggestTrack === t ? '<em>브리프에서 읽음</em>' : ''}</button>`).join('')}</div></div>`);
+  $('slot').querySelectorAll('.kseg button').forEach(b => b.onclick = () => { it.kind = b.dataset.k; slotType(); $('slot').querySelector(`.kseg [data-k="${it.kind}"]`)?.focus(); });
+  $('slot').querySelectorAll('.tchoice').forEach(b => b.onclick = () => {
+    it.track = b.dataset.t;
+    bub('user', TRACK_CHOICE[it.track]); it.history.push({ role: 'user', text: TRACK_CHOICE[it.track] });
+    clearSlot();
+    goStep('where');
+  });
+}
+
+/* ── 2단계: 어디에 홍보하나요 ── 매체(광고) · 인쇄물. 고른 매체의 소재는 전부 만든다 */
+function slotWhere() {
+  const it = state.intake;
+  const ad = wantsAd(it), print = wantsPrint(it), recruit = it.kind === 'recruit';
+  const printList = recruit ? PRINT_RECRUIT : OFFLINE;
+  const keepScroll = $('slot').querySelector('.wcard')?.scrollTop ?? 0;
+  const secs = [];
+  if (ad) secs.push(recruit ? `<section class="wsec">${mediaPickerHtml(it)}</section>`
+    : `<section class="wsec"><h5>온라인</h5>${channelCardsHtml(ONLINE, it)}</section>`);
+  if (print) secs.push(`<section class="wsec"><h5>인쇄물</h5>${channelCardsHtml(printList, it)}</section>`);
+  const box = slot(`<div class="card2 wcard"><h4>${ad && recruit ? '어디에 홍보하나요' : '무엇을 만들까요'}</h4>${secs.join('')}
+    <div class="sfoot2"><span class="smsg" id="wMsg" role="status"></span><button type="button" class="btn" id="wBack">이전</button><button type="button" class="btn pri" id="wOk">다음</button></div></div>`);
+  box.querySelector('.wcard').scrollTop = keepScroll;
+  const count = () => {
+    const nAd = ad ? (recruit ? chosenAdGroups(it).length : it.channels.filter(c => ONLINE.includes(c)).length) : 0;
+    const nPr = print ? it.channels.filter(c => printList.includes(c)).length : 0;
+    return { nAd, nPr };
+  };
+  const foot = () => {
+    const { nAd, nPr } = count();
+    const parts = [ad && (recruit ? `소재 ${nAd}종` : `온라인 ${nAd}가지`), print && `인쇄물 ${nPr}가지`].filter(Boolean);
+    $('wMsg').textContent = parts.join(' · ');
+  };
+  const re = sel => { slotWhere(); if (sel) $('slot').querySelector(sel)?.focus({ preventScroll: true }); };
+  box.querySelectorAll('.mcard[data-m]').forEach(b => b.onclick = () => {
+    const id = b.dataset.m;
+    it.media = it.media.includes(id) ? it.media.filter(x => x !== id) : [...it.media, id];
+    re(`.mcard[data-m="${id}"]`);
+  });
+  box.querySelectorAll('.mcard[data-c]').forEach(b => b.onclick = () => {
+    const c = b.dataset.c;
+    it.channels = it.channels.includes(c) ? it.channels.filter(x => x !== c) : [...it.channels, c];
+    re(`.mcard[data-c="${c}"]`);
+  });
+  $('sSpecs')?.addEventListener('click', () => { it.specOpen = !it.specOpen; re('#sSpecs'); });
+  box.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
+    if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
+    const list = cb.closest('.plist'), all = list.querySelectorAll('input[data-s]');
+    list.querySelector('[data-n]').textContent = `${all.length}종 중 ${[...all].filter(x => x.checked).length}종`;
+    foot();
+  });
+  box.querySelectorAll('[data-all],[data-none]').forEach(b => b.onclick = () => {
+    const id = b.dataset.all ?? b.dataset.none;
+    for (const g of adSpecGroups([id])) { if (b.dataset.all) it.specOff.delete(g.id); else it.specOff.add(g.id); }
+    re(`.plist[data-m="${id}"] [${b.dataset.all ? 'data-all' : 'data-none'}]`);
+  });
+  $('wBack').onclick = () => { it.track = null; clearSlot(); it.phase = 'target'; renderSteps(); slotType(); };
+  $('wOk').onclick = () => {
+    const { nAd, nPr } = count();
+    if (ad && !nAd) { toast(recruit ? '매체를 하나 이상 고르세요' : '온라인 배너를 하나 이상 고르세요'); return; }
+    if (print && !nPr) { toast('인쇄물을 하나 이상 고르세요'); return; }
+    // 고른 쪽만 남긴다 — 광고 소재만 골랐는데 전에 읽은 인쇄물이 같이 만들어지면 안 된다
+    if (!ad) it.media = [];
+    it.channels = it.channels.filter(c => (ad && !recruit && ONLINE.includes(c)) || (print && printList.includes(c)));
+    const said = [
+      ad && (recruit ? `${it.media.map(mediumName).join(' · ')} (소재 ${nAd}종)` : it.channels.filter(c => ONLINE.includes(c)).map(c => CHANNEL_LABEL[c]).join(' · ')),
+      print && it.channels.filter(c => printList.includes(c)).map(c => CHANNEL_LABEL[c]).join(' · '),
+    ].filter(Boolean).join(' / ');
+    bub('user', said); it.history.push({ role: 'user', text: said });
+    it.targetDone = true;
+    if (recruit) it.signageDone = true;   // 채용 인쇄물은 본 안내 한 장씩 — 행사용 세트(방향 안내·접수) 구성은 묻지 않는다
+    clearSlot();
+    const miss = briefBlanks(it).count;
+    it.phase = 'brief'; renderSteps();
+    say(miss ? `이제 내용을 확인할게요. 브리프에서 읽은 값은 채워 뒀어요 — 빈칸 ${miss}곳만 채워 주세요.` : '이제 내용을 확인할게요. 브리프에서 읽은 값이 맞는지 봐 주세요 — 밑줄 친 곳은 눌러서 고칠 수 있어요.');
+    slotSentence({ focus: true });
+  };
+  foot();
 }
 
 function slotSentence(opts = {}) {
@@ -614,28 +685,13 @@ function slotSentence(opts = {}) {
     return `<p>${html}</p>`;
   };
 
-  const tg = targetOf(it);
-  const online = tg.kind === 'media';
-  // 고를 것이 아직 없으면 목록을 펼쳐 둔다 — 빈칸이 막다른 길이 되지 않게
-  const open = tg.kind !== 'none';
-  const pick = `<button type="button" class="blank pick ${tg.names.length ? 'ok' : 'empty'}" id="sPick" aria-expanded="${open}" aria-controls="sPicker">${tg.names.length ? escH(tg.names.join(' · ')) : (online ? '매체 고르기' : '만들 것 고르기')}</button>`;
-  const trk = kind === 'recruit'
-    ? `<select class="blank sel ${it.track ? 'ok' : 'empty'}" id="sTrack" aria-label="어디에 나가나요" aria-required="true">${it.track ? '' : '<option value="" selected disabled>어디에</option>'}${Object.entries(TRACKS).map(([k, v]) => `<option value="${k}" ${it.track === k ? 'selected' : ''}>${v}</option>`).join('')}</select>로 `
-    : '';
-  const what = tg.kind === 'none' ? `<p><span class="nb">${trk.trim()}</span> 나가요.</p>`
-    : online ? `<p><span class="nb">${trk.trim()}</span> 나가요. 매체는 ${pick}, 소재는 <b id="sCount">${tg.n}종</b>이에요.</p>`
-    : `<p>${trk ? `<span class="nb">${trk.trim()}</span> 만들어요. ` : ''}만들 것은 ${pick}, 모두 <b id="sCount">${tg.n}가지</b>예요.</p>`;
   const optional = SENTENCES_OPTIONAL[kind] ?? [];
   const keepScroll = $('slot').querySelector('.sent')?.scrollTop ?? 0;   // 다시 그려도 보던 자리 그대로
 
   const box = slot(`<div class="card2 sent">
-    <div class="shead"><h4>읽은 내용</h4>
-      <div class="kseg" role="group" aria-label="캠페인 종류">${Object.entries(KINDS).map(([k, v]) =>
-        `<button type="button" data-k="${k}" class="${k === kind ? 'on' : ''}" aria-pressed="${k === kind}">${v.label}</button>`).join('')}</div></div>
+    <div class="shead"><h4>읽은 내용</h4></div>
     ${SENTENCES[kind].map(p => para(p, false)).join('')}
     ${it.showOptional ? optional.map(p => para(p, true)).join('') : ''}
-    ${what}
-    ${open ? `<div class="picker" id="sPicker">${pickerHtml(it)}</div>` : ''}
     <div class="sfoot"><span class="smsg" id="sMsg" role="status"></span>
       ${optional.length && !it.showOptional ? '<button type="button" class="btn" id="sMore">선택 항목 더하기</button>' : ''}
       <button type="button" class="btn pri" id="sOk">이대로 진행</button></div></div>`);
@@ -644,7 +700,7 @@ function slotSentence(opts = {}) {
     const b = briefBlanks(it);
     const bad = box.querySelector('.blank[aria-invalid="true"]');
     $('sMsg').textContent = bad ? `${lab(bad.dataset.f)}: 날짜로 읽지 못했어요 — 예: 2026-10-31, 10월 31일`
-      : b.count ? `빈칸 ${b.count}곳 남았어요` : `다 채워졌어요 · ${b.target.kind === 'media' ? `소재 ${b.target.n}종` : `${b.target.n}가지`}`;
+      : b.count ? `빈칸 ${b.count}곳 남았어요` : '다 채워졌어요';
     $('sMsg').className = `smsg ${bad ? 'bad' : b.count ? '' : 'good'}`;
   };
   const rerender = focusSel => { slotSentence(); if (focusSel) $('slot').querySelector(focusSel)?.focus(); };
@@ -677,56 +733,16 @@ function slotSentence(opts = {}) {
     };
   });
 
-  box.querySelectorAll('.kseg button').forEach(b => b.onclick = () => { it.kind = b.dataset.k; rerender(`.kseg [data-k="${it.kind}"]`); });
-  if ($('sTrack')) $('sTrack').onchange = () => { it.track = $('sTrack').value; it.pickerOpen = true; rerender('#sPick'); };
-  if ($('sPick')) $('sPick').onclick = () => { const p = $('sPicker'); p?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); p?.querySelector('.mcard:not(:disabled),input')?.focus({ preventScroll: true }); };
   if ($('sMore')) $('sMore').onclick = () => { it.showOptional = true; rerender('input.blank.opt'); };
 
   box.querySelector('.sent').scrollTop = keepScroll;
-  const picker = $('sPicker');
-  if (picker) {
-    picker.querySelectorAll('.mcard[data-m]').forEach(b => b.onclick = () => {
-      const id = b.dataset.m;
-      it.media = it.media.includes(id) ? it.media.filter(x => x !== id) : [...it.media, id];
-      rerender(`.mcard[data-m="${id}"]`);
-    });
-    $('sSpecs')?.addEventListener('click', () => { it.specOpen = !it.specOpen; rerender('#sSpecs'); });
-    picker.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
-      if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
-      // 목록은 다시 그리지 않는다 — 스크롤과 초점이 그대로여야 연달아 끌 수 있다
-      const list = cb.closest('.plist'), all = list.querySelectorAll('input[data-s]');
-      list.querySelector('[data-n]').textContent = `${all.length}종 중 ${[...all].filter(x => x.checked).length}종`;
-      $('sCount').textContent = `${targetOf(it).n}종`;
-      foot();
-    });
-    picker.querySelectorAll('[data-all],[data-none]').forEach(b => b.onclick = () => {
-      const id = b.dataset.all ?? b.dataset.none;
-      for (const g of adSpecGroups([id])) { if (b.dataset.all) it.specOff.delete(g.id); else it.specOff.add(g.id); }
-      it.pickerOpen = true;
-      rerender(`.plist[data-m="${id}"] [${b.dataset.all ? 'data-all' : 'data-none'}]`);
-    });
-    picker.querySelectorAll('input[data-c]').forEach(cb => cb.onchange = () => {
-      it.channels = [...picker.querySelectorAll('input[data-c]:checked')].map(x => x.dataset.c);
-      it.pickerOpen = true;
-      rerender(`input[data-c="${cb.dataset.c}"]`);
-    });
-  }
-
   $('sOk').onclick = () => {
     const b = briefBlanks(it);
     const bad = box.querySelector('.blank[aria-invalid="true"]');
     if (bad) { bad.focus(); return; }
     if (b.miss.length) { box.querySelector(`input.blank[data-f="${b.miss[0]}"]`)?.focus(); toast(`${lab(b.miss[0])} 칸이 비어 있어요`); return; }
-    if (!b.target.n) {
-      if (b.target.kind === 'none') { $('sTrack').focus(); toast('어디에 나가는지 골라 주세요'); return; }
-      it.pickerOpen = true; rerender('#sPick');
-      toast(online ? '매체를 하나 이상 고르세요' : '만들 것을 하나 이상 고르세요');
-      return;
-    }
-    // 트랙이 정한 쪽만 남긴다 — 온라인 광고로 확정했는데 전에 고른 인쇄물이 같이 만들어지면 안 된다
-    if (kind === 'recruit') { if (it.track === 'online') it.channels = []; else it.media = []; }
     it.briefDone = true;
-    const said = `${sentenceText(kind, it.fields)} ${whatText(it)}`;
+    const said = sentenceText(kind, it.fields);
     bub('user', said); it.history.push({ role: 'user', text: said });
     clearSlot();
     afterBrief();
@@ -739,7 +755,7 @@ function slotSentence(opts = {}) {
 // 문장 확인 뒤 — 진행자를 다시 부르지 않는다(기다릴 이유가 없다). 오프라인이 있으면 세트 구성, 아니면 스타일.
 function afterBrief() {
   const it = state.intake;
-  if (it.channels.some(c => OFFLINE_CH.includes(c)) && !it.signageDone) {
+  if (needsSignage(it)) {
     say('오프라인은 현장에서 여러 장이 세트로 나갑니다. 용도와 규격을 아래에서 정해 주세요 — 방향 안내는 고른 화살표마다 한 장씩 만들어집니다.');
     slotSignage();
     return;
@@ -831,27 +847,6 @@ function bgControlHtml(styleLike, id) {
       ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
 }
 
-// 이번 캠페인에서 만들 소재들의 형태 — 형태마다 따를 레퍼런스가 다르다
-function plannedShapes(it) {
-  const sizes = it.kind === 'recruit' && it.track === 'online'
-    ? chosenAdGroups(it).map(g => [g.entry.w, g.entry.h])
-    : specIdsFor(it.channels).map(id => SPECS[id]).filter(sp => sp?.unit === 'px' && sp.w && sp.h).map(sp => [sp.w, sp.h]);
-  const n = {};
-  for (const [w, h] of sizes) { const sh = shapeOf(w, h); n[sh] = (n[sh] ?? 0) + 1; }
-  return n;
-}
-async function renderRefPlan(it) {
-  const box = $('refPlan'); if (!box) return;
-  const refs = await loadRefs(), n = plannedShapes(it);
-  const parts = REF_ORDER.filter(sh => n[sh]).map(sh => {
-    const l = refsFor(refs, sh);
-    return `<span><b>${SHAPE_LABEL[sh]} ${n[sh]}</b> ${l.length ? [...new Set(l.map(refName))].join('·') : '레퍼런스 없음'}</span>`;
-  });
-  if (n.strip) parts.push(`<span><b>${SHAPE_LABEL.strip} ${n.strip}</b> 레퍼런스 없음</span>`);
-  box.innerHTML = parts.length ? `<div class="refline"><em>따라 만들 레퍼런스</em>${parts.join('')}<button type="button" class="lnk" id="refAll">보기</button></div>` : '';
-  $('refAll')?.addEventListener('click', () => openRefGallery());
-}
-
 function slotStyle() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, background: { mode: it.bgMode, color: it.bgColor } };
@@ -879,9 +874,7 @@ function slotStyle() {
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
-    <div id="refPlan" class="refPlan"></div>
     <div class="sfoot2"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
-  renderRefPlan(it);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
   $('fontUp').onclick = () => $('fontFile').click();
@@ -927,12 +920,8 @@ function slotStyle() {
     clearSlot();
     it.phase = 'draft';
     renderSteps();
-    const n = it.track === 'online' && it.kind === 'recruit' ? chosenAdGroups(it).length : 0;
-    const ns = plannedShapes(it);
-    const follow = REF_ORDER.filter(sh => ns[sh] && LAYOUT_REFS[sh]?.some(r => !r.backgroundOnly))
-      .map(sh => `${SHAPE_LABEL[sh]}${josa(SHAPE_LABEL[sh], '은', '는')} ${[...new Set(LAYOUT_REFS[sh].filter(r => !r.backgroundOnly).map(r => r.client))].join('·')}`).join(', ');
-    say((n ? `준비가 끝났어요. 소재 ${n}종을 만들고, 만드는 대로 매체 규정에 맞는지 검사할게요.` : '준비가 끝났어요. 초안을 생성할게요.')
-      + (follow ? `\n레이아웃과 글자 크기는 학습한 레퍼런스를 따릅니다 — ${follow}.` : ''));
+    const n = it.kind === 'recruit' && wantsAd(it) ? chosenAdGroups(it).length : 0;
+    say(n ? `준비가 끝났어요. 소재 ${n}종을 만들고, 만드는 대로 매체 규정에 맞는지 검사할게요.` : '준비가 끝났어요. 초안을 생성할게요.');
     buildAndGenerate();
   };
 }
@@ -1734,9 +1723,6 @@ function renderInspector() {
         용지 ${spec.wmm + spec.bleed * 2}×${spec.hmm + spec.bleed * 2}mm (블리드 ${spec.bleed}mm)<br>
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
       </div>` : ''}
-    ${spec.unit === 'px' && spec.w && spec.h ? `
-      <label>참고 레퍼런스 <span style="opacity:.6">${SHAPE_LABEL[shapeOf(spec.w, spec.h)]}</span></label>
-      <div id="iRefs" class="rrow" data-shape="${shapeOf(spec.w, spec.h)}"></div>` : ''}
     ${a.channel === 'ad' ? `
       <label>매체 규격</label>
       <div style="font-size:11.5px;color:var(--sub);line-height:1.6">${adRulesText(spec)}</div>
@@ -1822,13 +1808,6 @@ function renderInspector() {
   insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
   insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
   insp.querySelector('#iDesel').onclick = () => select(null);
-  const iRefs = insp.querySelector('#iRefs');
-  if (iRefs) loadRefs().then(refs => {
-    const sh = iRefs.dataset.shape, l = refsFor(refs, sh);
-    iRefs.innerHTML = l.length ? l.slice(0, 3).map(r => refThumb(r, sh === 'wide' ? 34 : 96)).join('')
-      : `<span style="font-size:11.5px;color:var(--sub)">${sh === 'strip' ? '120px 미만 띠 — 레퍼런스 없음' : '이 형태의 레퍼런스가 아직 없어요'}</span>`;
-    iRefs.querySelectorAll('.rthumb').forEach(b => b.onclick = () => openRefGallery(sh));
-  });
   insp.querySelector('#iDel').onclick = () => removeArtifact(a);
 }
 

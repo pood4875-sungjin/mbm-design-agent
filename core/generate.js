@@ -3,6 +3,7 @@
 // 사이니지(X배너·현수막·포스터)는 용도(purpose)별로 여러 장이 세트로 나온다 —
 // artifact.key = specId 또는 specId--purpose(--arrow).
 
+import { asEventContext } from './context.js';
 import { SPECS, registerRenderer, renderArtifact, _clearRenderers, purposesFor } from './contract.js';
 import { renderBanner } from './renderers/banner.js';
 import { renderEdm } from './renderers/edm.js';
@@ -81,7 +82,8 @@ export function generateArtifacts(campaign) {
       ...campaign.context,
       core: { ...campaign.context.core, ...(artifact.overrides.core ?? {}) },
     };
-    artifact.html = renderArtifact(item.specId, effContext, campaign.style, {
+    // 채용 캠페인의 배너·인쇄물은 행사용 렌더러가 그린다 — 채용 내용을 그 렌더러가 읽는 칸으로 옮겨 준다
+    artifact.html = renderArtifact(item.specId, item.channel === 'ad' ? effContext : asEventContext(effContext), campaign.style, {
       variant: artifact.variant ?? 0,
       purpose: artifact.purpose,
       arrow: artifact.arrow,
