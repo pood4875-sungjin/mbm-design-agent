@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>과제 현황판 — Campaign Agent</title>
+<title>과제 현황판 · Campaign Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-  /* proposal.html · media-rules.html 과 같은 토큰 — 문서들이 한 벌로 보이게.
+  /* 문서 글꼴은 카카오 글씨 — 제목·큰 숫자는 큰글씨, 본문은 작은글씨. 굵기는 400·700 두 가지만 쓴다(그 사이 굵기가 없는 글꼴이다).
+     자간은 손대지 않는다 — 글꼴이 정한 간격 그대로. 영문 대문자 꼬리표도 쓰지 않는다.
+     proposal.html · media-rules.html 과 같은 색 토큰 — 문서들이 한 벌로 보이게.
      색은 역할 토큰으로만 쓴다(design-system-examples.md > 시맨틱 컬러 토큰) — 다크모드는 토큰 교체로 끝난다. */
   :root{
     --ink:#1a1a1a; --sub:#666; --mute:#8a8a86; --line:#e5e5e5; --bg:#fff; --soft:#f7f7f6;
@@ -25,21 +27,22 @@
       --idle:#3a3a38; }
   }
   *{box-sizing:border-box;margin:0}
-  body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
+  body{background:var(--bg);color:var(--ink);font-family:"Kakao Small Sans","카카오 작은글씨","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
        font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;word-break:keep-all}
   /* 스페이싱 8pt 그리드 (design-system-examples.md > 스페이싱 8pt 그리드 + 4pt 보조) */
   .wrap{max-width:1160px;margin:0 auto;padding:40px 24px 96px}
-  .eyebrow{font-size:12px;letter-spacing:.1em;color:var(--sub);font-weight:600}
-  h1{font-size:28px;line-height:1.3;font-weight:700;margin:8px 0 8px;letter-spacing:-.01em}
+  h1,h2,h3,.big,.mm,.v,.dday .num,.tile b{font-family:"Kakao Big Sans","카카오 큰글씨","Kakao Small Sans","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif}
+  .eyebrow{font-size:13px;color:var(--sub)}
+  h1{font-size:28px;line-height:1.3;font-weight:700;margin:8px 0 8px;}
   .goal{font-size:15px;color:var(--sub)}
   .meta{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px;font-size:12.5px;color:var(--sub)}
-  .meta b{color:var(--ink);font-weight:600}
+  .meta b{color:var(--ink);font-weight:700}
   section{margin-top:40px}
-  h2{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--sub);margin-bottom:12px;display:flex;align-items:baseline;gap:8px}
-  h2 small{font-weight:500;letter-spacing:0;font-size:12px;color:var(--mute)}
+  h2{font-size:19px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  h2 small{font-family:"Kakao Small Sans","카카오 작은글씨","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;font-weight:400;font-size:13px;color:var(--sub)}
 
   /* ─ 상태: 색만으로 구분하지 않는다 — 항상 아이콘 + 글자가 같이 간다 ─ */
-  .st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap;color:var(--sub)}
+  .st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap;color:var(--sub)}
   .st svg{width:14px;height:14px;flex:none}
   .st.done svg{color:var(--good)} .st.doing svg{color:var(--accent)} .st.waiting svg{color:var(--warn)} .st.todo svg{color:var(--mute)}
 
@@ -47,14 +50,14 @@
   .now{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;margin-top:32px}
   .card{border:1px solid var(--line);border-radius:14px;padding:20px 22px;background:var(--bg)}
   .now .stage{background:var(--soft)}
-  .now .lbl{font-size:12px;color:var(--sub);font-weight:600}
-  .now .big{font-size:26px;font-weight:700;line-height:1.3;margin:6px 0 4px;letter-spacing:-.01em}
-  .now .big span{color:var(--sub);font-weight:500}
+  .now .lbl{font-size:12px;color:var(--sub);font-weight:700}
+  .now .big{font-size:26px;font-weight:700;line-height:1.3;margin:6px 0 4px;}
+  .now .big span{color:var(--sub);font-weight:400}
   .now p{color:var(--sub);font-size:14px;margin-top:10px;max-width:60ch}
   .counts{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px}
   .dday{display:flex;flex-direction:column;justify-content:center}
-  .dday .num{font-size:52px;font-weight:700;line-height:1.05;letter-spacing:-.02em}
-  .dday .num small{font-size:18px;font-weight:600;color:var(--sub);margin-left:4px}
+  .dday .num{font-size:52px;font-weight:700;line-height:1.05;}
+  .dday .num small{font-size:18px;font-weight:700;color:var(--sub);margin-left:4px}
 
   /* ─ 마일스톤 ─ 월마다 한 칸. 막대는 항목 수만큼 칸으로 나눠 상태를 칠한다(칸 사이 2px 틈) */
   .months{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
@@ -64,14 +67,14 @@
   .mo .mm{font-size:20px;font-weight:700}
   .pill{font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;background:var(--accent-soft);color:var(--accent)}
   .pill.past{background:var(--soft);color:var(--sub)}
-  .mo h3{font-size:14px;font-weight:600;margin:4px 0 12px}
+  .mo h3{font-size:14px;font-weight:700;margin:4px 0 12px}
   .seg{display:flex;gap:2px;height:6px;margin-bottom:6px}
   .seg i{flex:1;border-radius:3px;background:var(--idle)}
   .seg i.done{background:var(--good)} .seg i.doing{background:var(--accent)} .seg i.waiting{background:var(--warn)}
   .mo .frac{font-size:12px;color:var(--sub);margin-bottom:10px}
   .mo ul{list-style:none;padding:0;display:flex;flex-direction:column}
   .mo li{padding:10px 0;border-top:1px solid var(--line)}
-  .mo li .t{font-size:13.5px;font-weight:600;line-height:1.45;margin-top:4px}
+  .mo li .t{font-size:13.5px;font-weight:700;line-height:1.45;margin-top:4px}
   .mo li .n{font-size:12.5px;color:var(--sub);margin-top:3px;line-height:1.5}
   .mo li .sr{display:flex;align-items:center;gap:8px}
   .mo li .d{color:var(--mute);font-size:12px;line-height:1}
@@ -81,8 +84,8 @@
   .kpi .id{font-size:12px;font-weight:700;color:var(--sub)}
   .kpi h3{font-size:16px;font-weight:700;margin:2px 0 14px}
   .kpi .row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:end}
-  .kpi .v{font-size:32px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
-  .kpi .c{font-size:12px;color:var(--sub);font-weight:600;margin-bottom:2px}
+  .kpi .v{font-size:32px;font-weight:700;line-height:1.1;}
+  .kpi .c{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:2px}
   .kpi .s{font-size:12.5px;color:var(--sub);margin-top:4px}
   .kpi .arrow{color:var(--mute);font-size:20px;padding-bottom:20px}
   .kpi .tgt{text-align:right}
@@ -104,11 +107,11 @@
   .fs{border:1px solid var(--line);border-radius:12px;padding:14px;counter-increment:f}
   .fs .h{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .fs .h b{font-size:14px}
-  .fs .h b::before{content:counter(f) ". ";color:var(--mute);font-weight:600}
+  .fs .h b::before{content:counter(f) ". ";color:var(--mute);font-weight:700}
   .fs .spec{font-size:12px;color:var(--mute);margin:4px 0 8px}
   .fs .b{font-size:13px;line-height:1.5}
   .fs .g{font-size:12.5px;color:var(--warn);margin-top:6px;line-height:1.5}
-  .fs .g::before{content:"남음 — ";font-weight:600}
+  .fs .g::before{content:"남음: ";font-weight:700}
 
   /* ─ 두 칸 목록 ─ */
   .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px 32px}
@@ -117,20 +120,20 @@
   .list li:last-child{border-bottom:1px solid var(--line)}
   .who{font-size:11px;font-weight:700;border-radius:6px;padding:3px 8px;background:var(--soft);color:var(--sub);white-space:nowrap;margin-top:1px}
   .who.me{background:var(--accent-soft);color:var(--accent)}
-  .list .t{font-size:13.5px;font-weight:600;line-height:1.5}
+  .list .t{font-size:13.5px;font-weight:700;line-height:1.5}
   .list .n{font-size:12.5px;color:var(--sub);grid-column:2}
   .num{font-variant-numeric:tabular-nums}
   ol.list{counter-reset:n}
   ol.list li{counter-increment:n}
   ol.list li::before{content:counter(n);font-size:12px;font-weight:700;color:var(--sub);width:22px;height:22px;border-radius:50%;background:var(--soft);display:grid;place-items:center}
-  .tag{font-size:11px;font-weight:600;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:1px 8px;margin-left:6px;white-space:nowrap}
+  .tag{font-size:11px;font-weight:700;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:1px 8px;margin-left:6px;white-space:nowrap}
   .log li{grid-template-columns:52px minmax(0,1fr)}
   .log .dt{font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums;padding-top:1px}
-  .log .t{font-weight:500}
+  .log .t{font-weight:400}
 
   .base{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
   .base span{font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:5px 12px;color:var(--sub)}
-  .base b{color:var(--ink);font-weight:600;margin-left:4px}
+  .base b{color:var(--ink);font-weight:700;margin-left:4px}
   footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);line-height:1.7}
   a{color:inherit}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -177,7 +180,7 @@
     return `<article class="mo ${isCur ? 'cur' : ''}" ${isCur ? 'aria-current="step"' : ''}>
       <div class="top"><span class="mm">${m.month}월</span>${isCur ? '<span class="pill">지금</span>' : past ? `<span class="pill past">${open ? `${open}건 넘어옴` : '끝'}</span>` : ''}</div>
       <h3>${esc(m.title)}</h3>
-      <div class="seg" role="img" aria-label="${m.items.length}개 중 완료 ${t.done ?? 0}개">${m.items.map(i => `<i class="${i.status}" title="${esc(LABEL[i.status])} — ${esc(i.text)}"></i>`).join('')}</div>
+      <div class="seg" role="img" aria-label="${m.items.length}개 중 완료 ${t.done ?? 0}개">${m.items.map(i => `<i class="${i.status}" title="${esc(LABEL[i.status])}: ${esc(i.text)}"></i>`).join('')}</div>
       <div class="frac num">${m.items.length}개 중 ${t.done ?? 0}개 완료</div>
       <ul>${m.items.map(i => `<li><div class="sr">${st(i.status)}${i.date ? `<span class="d num">${esc(i.date)}</span>` : ''}</div>
         <div class="t">${esc(i.text)}</div>${i.note ? `<div class="n">${esc(i.note)}</div>` : ''}</li>`).join('')}</ul>
@@ -203,7 +206,7 @@
     { v: L.specs, l: '매체 규격', e: `그릴 수 있는 것 ${L.renderable} · 소재 ${L.creatives}종` },
     { v: `${S.measured.lintPass}/${S.measured.lintTotal}`, l: '규격 검사 통과', e: `${S.measured.lintNote} · ${S.measured.lintDate}` },
     { v: S.measured.designExamples, l: '디자인 기준의 근거 소재', e: '실제 고객사 소재 관찰' },
-    { v: L.tests ?? '—', l: '자동 점검 통과', e: L.tests ? `코드가 약속대로 도는지 · 실패 ${L.testsFail}` : '이번엔 돌리지 않음' },
+    { v: L.tests ?? '-', l: '자동 점검 통과', e: L.tests ? `코드가 약속대로 도는지 · 실패 ${L.testsFail}` : '이번엔 돌리지 않음' },
     { v: L.needsReview, l: '확인이 필요한 규정', e: '자료에 없어 비워 둔 값', warn: true },
     { v: L.conflicts, l: '자료끼리 충돌', e: '어느 쪽이 맞는지 미정', warn: true },
   ].map(t => `<div class="tile ${t.warn ? 'warn' : ''}"><b>${esc(t.v)}</b><span>${esc(t.l)}</span>${t.e ? `<em>${esc(t.e)}</em>` : ''}</div>`).join('');
@@ -239,7 +242,7 @@
   <section aria-labelledby="h-ms"><h2 id="h-ms">마일스톤 <small>과제 문서의 월별 실행 계획 그대로</small></h2><div class="months">${months}</div></section>
 
   <section aria-labelledby="h-kpi"><h2 id="h-kpi">KPI <small>실제 처리한 건수로만 센다</small></h2><div class="kpis">${kpis}</div>
-    <div class="note">둘 다 아직 0이다 — 실제 요청을 처리한 적이 없기 때문이다. 아래 준비 지표는 KPI가 아니다.</div></section>
+    <div class="note">둘 다 아직 0이다. 실제 요청을 처리한 적이 없기 때문이다. 아래 준비 지표는 KPI가 아니다.</div></section>
 
   <section aria-labelledby="h-ready"><h2 id="h-ready">준비 지표 <small>KPI를 재기 전에 갖춰야 하는 것</small></h2><div class="tiles">${tiles}</div></section>
 
@@ -263,7 +266,7 @@
     목표·KPI·월별 계획의 출처: ${esc(S.task.docFile)} (작성 ${esc(S.task.docDate)}).
     진행 상태의 출처: 작업 기록과 저장소(커밋 ${L.commits}건, 마지막 ${esc(L.lastCommit)}).
     숫자 중 매체·규격·확인 필요·충돌·테스트는 이 판을 만든 시점(${esc(D.builtAt)})에 저장소에서 다시 센 값이다.<br>
-    갱신: <code>node scripts/build-status.mjs</code> — 진행 상태는 <code>docs/status.json</code> 한 곳에서 고친다.
+    갱신: <code>node scripts/build-status.mjs</code>. 진행 상태는 <code>docs/status.json</code> 한 곳에서 고친다.
   </footer>`;
 })();
 </script>

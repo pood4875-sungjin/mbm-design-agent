@@ -22,14 +22,14 @@
       --bad:#f08c86; --bad-soft:#301a18; --bad-line:#5a2b28; }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Kakao Small Sans","카카오 작은글씨","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;
        font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
   /* 스페이싱은 8pt 그리드 (design-system-examples.md > 스페이싱 8pt 그리드 + 4pt 보조) */
   .wrap{max-width:1240px;margin:0 auto;padding:40px 24px 96px}
   header{margin-bottom:32px}
-  .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--sub);font-weight:600;text-transform:uppercase}
+  .eyebrow{font-size:12px;color:var(--sub);font-weight:600;}
   /* 타입 스케일 (design-system-examples.md > 타입 스케일 (모듈러)) */
-  h1{font-size:30px;line-height:1.25;font-weight:700;margin:8px 0 8px;letter-spacing:-.01em}
+  h1{font-size:30px;line-height:1.25;font-weight:700;margin:8px 0 8px;}
   .src{color:var(--sub);font-size:13px}
   .src a{color:inherit}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:24px 0 16px}
@@ -44,7 +44,7 @@
   .ctl input[type=search]{flex:1;min-width:200px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;background:var(--bg);color:var(--ink)}
   .ctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub)}
   .group{margin-top:40px}
-  .group > h2{font-size:13px;letter-spacing:.1em;color:var(--sub);font-weight:600;text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .group > h2{font-size:13px;color:var(--sub);font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:8px}
   .group > h2::before{content:"";width:8px;height:8px;background:var(--accent);border-radius:2px}
   .medium{border:1px solid var(--line);border-radius:12px;padding:20px 20px 16px;margin-bottom:16px;background:var(--bg)}
   .medium.hidden{display:none}
@@ -54,7 +54,7 @@
   .tag.tool{border-color:var(--accent-line);background:var(--accent-soft);color:var(--accent)}
   .mhead .srcs{margin-left:auto;font-size:12px;color:var(--sub)}
   .sect{margin-top:16px}
-  .sect > h4{font-size:12px;letter-spacing:.08em;color:var(--sub);text-transform:uppercase;margin:0 0 6px;font-weight:600}
+  .sect > h4{font-size:12px;color:var(--sub);margin:0 0 6px;font-weight:600}
   ul.rules{margin:0;padding-left:18px} ul.rules li{margin:2px 0}
   details summary{cursor:pointer;color:var(--accent);font-size:13px;margin:6px 0 4px;list-style:none} details summary::before{content:'+ '} details[open] summary::before{content:'− '}
   .kv{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}
@@ -80,6 +80,7 @@
   .empty.hidden{display:none}
   .foot{margin-top:48px;color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
   @media print{ .ctl{display:none} .medium{break-inside:avoid} table{min-width:0;font-size:11px} }
+  h1,h2,h3{font-family:"Kakao Big Sans","카카오 큰글씨","Kakao Small Sans","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif}
 </style>
 </head>
 <body>
