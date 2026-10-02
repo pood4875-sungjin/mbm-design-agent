@@ -39,7 +39,9 @@ const CHANNEL_DESC = {
   poster: 'A2 · 인쇄 PDF', xbanner: '600×1800 · PDF', hyunsumak: '인쇄 PDF', badge: '110×140 · 명단 일괄',
   photobooth: '4000×2000 · 백드롭 PDF',
 };
-const ONLINE = ['edm', 'landing', 'banner', 'gwthumb'];
+// eDM·랜딩페이지는 만들지 않는다(2026-10-02 제외). 예전에 저장한 캠페인을 열 수 있게 렌더러와 LEGACY 목록만 남긴다.
+const ONLINE = ['banner', 'gwthumb'];
+const LEGACY = ['edm', 'landing'];
 const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
 const VARIANTS = { ad: 1, banner: 3, gwthumb: 3, badge: 2, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
 const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05, photobooth: 0.05 };
@@ -47,9 +49,9 @@ const STORE_LS = 'mbm-campaigns';
 
 const SAMPLES = [
   '한진정보통신 클라우드 플랫폼 엔지니어 채용 광고. 카카오 비즈보드, 자소설닷컴, 네이버에 나가요. 정규직, 서울 여의도, 10월 31일 마감.',
-  '10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행. 대상은 건설 구조 엔지니어, 사전등록 받아야 함. eDM이랑 랜딩페이지, 배너, 포스터, X배너 필요해.',
-  '내년 3월 킨텍스 MBM 신제품 발표회. 교량 설계 실무자 대상, 현장 데모 신청 유도. 랜딩이랑 현수막, 배너만.',
-  '2026 ONSITE MBM 도쿄 — 6월 20일, 대상 일본 파트너사. eDM과 포스터.',
+  '10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행. 대상은 건설 구조 엔지니어, 사전등록 받아야 함. 배너, 포스터, X배너 필요해.',
+  '내년 3월 킨텍스 MBM 신제품 발표회. 교량 설계 실무자 대상, 현장 데모 신청 유도. 현수막이랑 배너만.',
+  '2026 ONSITE MBM 도쿄, 6월 20일, 대상 일본 파트너사. 배너와 포스터.',
 ];
 
 const state = {
@@ -218,8 +220,6 @@ function parseBriefRegex(text) {
   if (/사전\s?등록/.test(text)) out.cta = '사전등록';
   else if (/신청/.test(text)) out.cta = '신청하기';
   const channels = [];
-  if (/eDM|이디엠|메일/i.test(text)) channels.push('edm');
-  if (/랜딩/.test(text)) channels.push('landing');
   if (/(?<![Xx스])배너/.test(text)) channels.push('banner');
   if (/X\s?배너|엑스배너/i.test(text)) channels.push('xbanner');
   if (/포스터/.test(text)) channels.push('poster');
@@ -773,7 +773,6 @@ function bgControlHtml(styleLike, id) {
     <div class="bgrow"><label class="bgpick"><input type="color" id="${id}Color" value="${f.stops[0]}">직접 고르기</label>
       ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
 }
-const isAdTrack = x => x.kind === 'recruit' && x.track === 'online';
 
 function slotStyle() {
   const it = state.intake;
@@ -787,8 +786,7 @@ function slotStyle() {
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
-        ${isAdTrack(it) ? bgControlHtml(adStyle, 'bg') : `<label>모드</label>
-        <div class="vseg" id="modeSeg"><button data-m="light" class="${it.mode === 'light' ? 'on' : ''}">라이트</button><button data-m="dark" class="${it.mode === 'dark' ? 'on' : ''}">다크</button></div>`}
+        ${bgControlHtml(adStyle, 'bg')}
         <label style="margin-top:10px">브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="palette">
           <span class="sw"><input type="color" class="swatch" id="c1" value="${it.colors[0]}"><small>주색</small></span>
@@ -810,9 +808,6 @@ function slotStyle() {
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
   ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; });
-  $('modeSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => {
-    it.mode = b.dataset.m; applyDerived(); slotStyle();
-  });
   $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; slotStyle(); });
   if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
@@ -830,7 +825,7 @@ function slotStyle() {
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
         : `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.`)
-        + (isAdTrack(it) ? '\n배경은 키비주얼에서 읽은 색으로 깔고, 글자색은 그 배경에 맞춰 정했어요.' : '\n글자가 묻히지 않게 색과 가림막도 자동으로 잡아 뒀습니다.'));
+        + '\n배경은 키비주얼에서 읽은 색으로 깔고, 글자색은 그 배경에 맞춰 정했어요. 배경색은 아래에서 바꿀 수 있어요.');
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), async d => {
@@ -847,9 +842,7 @@ function slotStyle() {
   bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; });
   $('stOk').onclick = () => {
     it.styleDone = true;
-    const said = isAdTrack(it)
-      ? `배경 ${FIELD_SRC[resolveField(adStyle, { facing: 'left' }).source]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`
-      : `${it.mode === 'dark' ? '다크' : '라이트'} · ${it.colors[0]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
+    const said = `배경 ${FIELD_SRC[resolveField(adStyle, { facing: 'left' }).source]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
     bub('user', said); it.history.push({ role: 'user', text: said });
     clearSlot();
     it.phase = 'draft';
@@ -1148,7 +1141,7 @@ function layoutArtboard(opts = {}) {
   const c = state.campaign;
   // 줄 구성: 매체 광고는 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄
   const adRows = (c.media ?? []).map(m => c.artifacts.filter(a => a.channel === 'ad' && SPECS[a.specId]?.medium === m)).filter(r => r.length);
-  const rows = [...adRows, ONLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch)), OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch))];
+  const rows = [...adRows, [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)), OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch))];
   let y = 60;
   for (const rowArts of rows) {
     if (!rowArts.length) continue;
@@ -1458,11 +1451,7 @@ function renderInspector() {
       <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
       ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
       <h3 style="margin-top:18px">STYLE</h3>
-      ${isAdTrack(c) ? bgControlHtml(c.style, 'iBg') : `<label>모드</label>
-      <div class="vseg" id="iMode">
-        <button data-m="light" class="${c.style.mode !== 'dark' ? 'on' : ''}">라이트</button>
-        <button data-m="dark" class="${c.style.mode === 'dark' ? 'on' : ''}">다크</button>
-      </div>`}
+      ${bgControlHtml(c.style, 'iBg')}
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
       <div style="display:flex;gap:10px">
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
@@ -1532,10 +1521,6 @@ function renderInspector() {
     insp.querySelector('#iColor3').oninput = styleChange;
     insp.querySelector('#iFont').onchange = styleChange;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
-    insp.querySelectorAll('#iMode button').forEach(b => b.onclick = () => {
-      restyle({ mode: b.dataset.m }, b.dataset.m === 'dark' ? '다크 모드 전환' : '라이트 모드 전환');
-      renderInspector();
-    });
     const setBg = (patch, label) => { restyle({ background: { ...c.style.background, ...patch } }, label); renderInspector(); };
     insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
     const bgIn = insp.querySelector('#iBgColor');

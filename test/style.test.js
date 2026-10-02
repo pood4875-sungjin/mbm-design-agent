@@ -164,3 +164,24 @@ test('the resolved field: manual colour wins, solid can be forced, text colour f
   assert.equal(resolveField({ palette: { primary: '#0B3C8C' }, background: { mode: 'gradient' } }).gradient, true, '그라데이션을 고르면 같은 색에서 자연스럽게 만든다');
   assert.equal(resolveField(base, { solidOnly: true }).gradient, false, '단색만 허용하는 지면');
 });
+
+test('the image is cropped around its subject, not around its centre', async () => {
+  const { fieldFromImage } = await import('../core/palette.js');
+  const { kvLayer, resolveField } = await import('../core/field.js');
+  const W = 60, H = 40;
+  const a = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const subject = x >= 42 && x < 54 && y >= 12 && y < 28;      // 오른쪽에 치우친 주인공
+    a.set(subject ? [40, 20, 200, 255] : [220, 214, 255, 255], (y * W + x) * 4);
+  }
+  const f = fieldFromImage(a, W, H);
+  assert.ok(f.focus.x > 0.7 && f.focus.x < 0.9, `주인공은 오른쪽에 있다 (x=${f.focus.x})`);
+  const style = { palette: { primary: '#0A3D91' }, keyVisual: 'kv.png', kvMeta: { ar: W / H, colors: ['#2814C8'], field: f } };
+  const html = kvLayer(style, resolveField(style), { side: 'right', w: 300, h: 250, size: 108, edgePad: 24 });
+  const px = Number(html.match(/(\d+)% \d+%\/cover/)[1]);
+  assert.ok(px > 60, `자리가 좁아도 주인공이 보이게 오른쪽으로 당긴다 (${px}%)`);
+  // 사진처럼 화면 대부분이 바탕과 다르면 주인공을 알 수 없다
+  const busy = new Uint8ClampedArray(W * H * 4);
+  for (let i = 0; i < W * H; i++) busy.set([(i * 37) % 255, (i * 91) % 255, (i * 53) % 255, 255], i * 4);
+  assert.equal(fieldFromImage(busy, W, H).focus, null);
+});

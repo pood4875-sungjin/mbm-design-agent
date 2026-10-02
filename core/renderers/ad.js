@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField } from '../field.js';
+import { resolveField, kvLayer } from '../field.js';
 
 const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
 
@@ -91,6 +91,9 @@ function safePad(rules, fallback) {
 }
 const val = (m, fallback = null) => (m && m.value != null ? m.value : fallback);
 const rect = (r, k) => r ? { x: Math.round(r.x * k), y: Math.round(r.y * k), w: Math.round(r.w * k), h: Math.round(r.h * k) } : null;
+
+// 버튼(CTA)은 그리지 않는다 — 2026-10-02 사용자 결정("버튼 빼줘 그냥, 우선"). 실제 소재 141장에도 버튼은 없었다. 되살릴 때는 이것만 켠다.
+const SHOW_CTA = false;
 
 export function renderAd(ctx, style, spec) {
   const rules = spec.rules ?? {};
@@ -221,7 +224,7 @@ export function renderAd(ctx, style, spec) {
   const objH = objectSide === 'bottom' ? Math.round(innerH * 0.33) : 0;
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
-  const stripCtaCol = (strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
+  const stripCtaCol = (SHOW_CTA && strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
   const textW = (objectSide === 'right' ? innerW - objW - Math.round(innerW * 0.04) : innerW) - stripLogoCol - stripCtaCol;
   const cornerTop = (tImage && !(tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1) && tImage.y > 0) ? tImage.y + Math.round(tImage.h * 0.22) : null;
   const textH = objectSide === 'bottom' ? innerH - objH - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
@@ -231,7 +234,7 @@ export function renderAd(ctx, style, spec) {
   const useDetail = !!slots.detail && (!strip || innerH >= 200) && (ladder.details?.length > 0);
   const want = {
     sub: !!slots.sub && !!copy.sub, date: !!slots.date && !!copy.date && !useDetail, extra: !!slots.extra && !!copy.extra,
-    label: !!slots.label && !!copy.label, cta: !!slots.cta && !!copy.cta, notice: !!slots.notice && !!copy.notice,
+    label: !!slots.label && !!copy.label, cta: SHOW_CTA && !!slots.cta && !!copy.cta, notice: !!slots.notice && !!copy.notice,
     detail: useDetail,
     advertiser: !!slots.advertiser && !!copy.advertiser && !(logoSrc && allowLogo),
   };
@@ -349,10 +352,8 @@ export function renderAd(ctx, style, spec) {
   const melt = dir => (transparent || cutout) ? '' : `-webkit-mask-image:linear-gradient(${dir},transparent 0%,#000 ${fadePct}%);mask-image:linear-gradient(${dir},transparent 0%,#000 ${fadePct}%);`;
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
   const kvFill = (pos, join) => `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`;
-  const bleedRight = bw => hasKv
-    ? `<div data-object="1" style="position:absolute;top:0;right:${edgeSolid ? pad.right : 0}px;width:${bw + (edgeSolid ? 0 : pad.right)}px;height:${h}px;${kvFill('right center', 'left center')}${melt('to right')}"></div>` : '';
-  const bleedBottom = bh => hasKv
-    ? `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${bh + pad.bottom}px;${kvFill('center bottom', 'center top')}${melt('to bottom')}"></div>` : '';
+  const bleedRight = bw => hasKv ? kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent }) : '';
+  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent }) : '';
 
   /* ── 로고 자리 ── 템플릿 칸이 있으면 그 칸에 정확히(contain, 가운데). 없으면 프로필 위치. */
   let logoPos = prof('logoPosition') ?? 'top-left';

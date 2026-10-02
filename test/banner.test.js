@@ -17,7 +17,7 @@ test('renderBanner emits fixed-size self-contained html', () => {
   assert.match(html, /width:300px/);
   assert.match(html, /height:250px/);
   assert.match(html, /2026 ONSITE MBM 서울/);
-  assert.match(html, /사전등록/);
+  assert.doesNotMatch(html, /사전등록/, '버튼은 그리지 않는다(2026-10-02)');
   assert.match(html, /#0A3D91/);
   assert.doesNotMatch(html, /http/, '외부 의존 금지 — 자기완결');
 });
@@ -48,7 +48,7 @@ test('renderBanner variant 2 adds bottom color band', () => {
 const wideLogo = normalizeStyle({ colors: ['#0A3D91'], logo: 'logo.svg' });
 const LONG = '2026 ONSITE MBM 서울 구조엔지니어링 및 디지털 트윈 기술 혁신 컨퍼런스 with MIDAS IT';
 const longCtx = createContext({ name: LONG, date: '2026-10-15', venue: '코엑스 그랜드볼룸', audience: 'a', cta: '사전등록' });
-const titleSize = h => Number(h.match(/font-size:(\d+)px;font-weight:800/)[1]);
+const titleSize = h => Number(h.match(/data-field="title" style="font-size:(\d+)px/)[1]);
 
 test('logo lives in the layout flow, never absolutely on top of the type', () => {
   // 절대배치로 얹으면 행사명이 길어질 때 글자를 덮는다 — 실제로 났던 버그다.
@@ -68,8 +68,10 @@ test('type scales with the surface instead of one fixed size', () => {
 });
 
 test('a long event name shrinks the title instead of spilling out', () => {
-  const short = renderBanner(ctx, wideLogo, spec);
-  const long = renderBanner(longCtx, wideLogo, spec);
+  // 버튼이 빠진 뒤로 300×250에는 긴 이름도 같은 크기로 들어간다 — 더 작은 지면에서 줄어드는지 본다
+  const small = { ...spec, w: 180, h: 150 };
+  const short = renderBanner(ctx, wideLogo, small);
+  const long = renderBanner(longCtx, wideLogo, small);
   assert.ok(titleSize(long) < titleSize(short), `${titleSize(long)} < ${titleSize(short)}`);
   assert.match(long, /-webkit-line-clamp:\d+/, '남는 줄은 말줄임 — 지면 밖으로 흘리지 않는다');
 });
@@ -80,16 +82,16 @@ test('titles can break long Korean compounds when a narrow format leaves no choi
   assert.match(sky, /word-break:keep-all;overflow-wrap:anywhere/);
 });
 
-test('a plain colour field gets a derived gradient, not one flat slab', () => {
+test('a plain colour field is flat — no glow, no decoration', () => {
   const html = renderBanner(ctx, style, spec);
-  assert.match(html, /radial-gradient/, '키비주얼이 없어도 지면에 결이 있다');
-  // 지면에 쓰인 색은 전부 팔레트이거나 주색에서 명도·채도만 옮긴 파생색이어야 한다.
-  // 색상(hue)까지 돌면 글자 대비 판정(순백/순흑)의 전제가 깨진다.
+  assert.match(html.split('>')[0], /background:#0A3D91;/, '키비주얼이 없으면 브랜드 색 그대로');
+  assert.doesNotMatch(html, /radial-gradient/, '빛 번짐을 넣지 않는다');
+  // 그라데이션을 고르면 같은 색상에서 명도만 옮긴 두 색 — 색상(hue)까지 돌면 글자 대비 판정의 전제가 깨진다
+  const grad = renderBanner(ctx, { ...style, background: { mode: 'gradient', color: null } }, spec);
   const hueOf = h => rgbToHsl(hexToRgb(h))[0];
-  const palette = new Set(Object.values(style.palette).filter(v => /^#[0-9A-Fa-f]{6}$/.test(v)).map(v => v.toUpperCase()));
-  for (const m of html.matchAll(/#[0-9A-Fa-f]{6}/g)) {
-    const hex = m[0].toUpperCase();
-    if (palette.has(hex)) continue;
+  const stops = [...grad.split('>')[0].matchAll(/#[0-9A-Fa-f]{6}/g)].map(m => m[0]);
+  assert.ok(stops.length >= 2);
+  for (const hex of stops.slice(0, 2)) {
     const d = Math.abs(hueOf(hex) - hueOf(style.palette.primary));
     assert.ok(Math.min(d, 1 - d) < 0.02, `주색 계열 밖의 색이 들어왔다: ${hex}`);
   }
@@ -106,7 +108,7 @@ test('banner hierarchy has three levels, not just title and subtitle', () => {
   const html = renderBanner(ctx, style, spec);
   assert.match(html, /font-weight:700;color:[^;]+;margin-bottom:\d+px">[^<]*10/, '아이브로우(일자)');
   assert.doesNotMatch(html, /letter-spacing/, '자간을 벌리지 않는다');
-  assert.match(html, /font-weight:800/, '행사명');
+  assert.match(html, /data-field="title"[^>]*font-weight:700/, '행사명');
   assert.match(html, /코엑스/, '장소');
 });
 

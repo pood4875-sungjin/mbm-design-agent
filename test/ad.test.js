@@ -56,12 +56,13 @@ test('the required font goes first in the stack when the medium names one', () =
   assert.match(html, /font-family:\s*'Pretendard'/);
 });
 
-test('only slots the medium has get rendered — no CTA chip unless the medium has a CTA field', () => {
+test('no button is drawn — not even where the medium has a CTA field', () => {
   // 구글 GDN은 글자 규정이 없다 → 기본 슬롯(메인·서브)만, CTA 없음
   const noCta = renderAd(ctx, style, specs['google-gdn-300x600']);
   assert.doesNotMatch(noCta, /data-field="cta"/);
   const withCta = renderAd(ctx, style, { ...specs['kakao-bizboard-mo'], rules: { ...specs['kakao-bizboard-mo'].rules, textLimits: [{ field: '메인문구', maxChars: 20, lines: 2 }, { field: '랜딩버튼', maxChars: 7, lines: 1 }] } });
-  assert.match(withCta, /data-field="cta"/);
+  // 버튼은 그리지 않기로 했다(2026-10-02). CTA 칸이 있는 규격도 마찬가지 — 실제 소재 141장에도 버튼은 없었다.
+  assert.doesNotMatch(withCta, /data-field="cta"/);
 });
 
 test('copy comes from the recruit context; an event context still renders through the same slots', () => {

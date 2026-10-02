@@ -216,7 +216,37 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
     left: scan(0, 0, bw, h, 'y'), right: scan(w - bw, 0, w, h, 'y'),
   };
   const list = Object.values(edges);
-  return { edges, opaque: Math.round(list.reduce((n, e) => n + e.opaque, 0) / list.length * 100) / 100 };
+  const opaque = Math.round(list.reduce((n, e) => n + e.opaque, 0) / list.length * 100) / 100;
+  return { edges, opaque, focus: focusOf(rgba, w, h, bw, opaque < 0.5) };
+}
+
+// 그림의 주인공이 어디 있는가 — 좁은 자리에 잘라 넣을 때 주인공이 잘려 나가지 않게 하려는 것이다.
+// 바탕은 "그 줄의 왼쪽 끝 색에서 오른쪽 끝 색으로 이어지는 색"으로 본다(가로·세로 그라데이션 바탕을 모두 견딘다).
+// 바탕과 충분히 다른 픽셀이 주인공이다. 배경을 딴 이미지는 불투명한 픽셀이 주인공이다.
+// 돌려주는 값은 주인공 상자의 중심(x, y: 0~1). 주인공이 화면 대부분이면(사진) 알 수 없으므로 null.
+function focusOf(rgba, w, h, bw, cutout) {
+  let n = 0, total = 0, x0 = w, x1 = 0, y0 = h, y1 = 0;
+  for (let y = 0; y < h; y += 2) {
+    const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
+    const L = cutout ? null : side(0), R = cutout ? null : side(w - bw);
+    for (let x = 0; x < w; x += 2) {
+      total++;
+      const i = (y * w + x) * 4;
+      let hit;
+      if (cutout) hit = rgba[i + 3] >= 200;
+      else {
+        const t = x / (w - 1);
+        const d = Math.abs(rgba[i] - (L[0] + (R[0] - L[0]) * t)) + Math.abs(rgba[i + 1] - (L[1] + (R[1] - L[1]) * t)) + Math.abs(rgba[i + 2] - (L[2] + (R[2] - L[2]) * t));
+        hit = d / 765 > 0.1;
+      }
+      if (!hit) continue;
+      n++;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+  }
+  if (!n || n / total > 0.6) return null;
+  const r2 = v => Math.round(v * 100) / 100;
+  return { x: r2((x0 + x1) / 2 / w), y: r2((y0 + y1) / 2 / h), w: r2((x1 - x0) / w), h: r2((y1 - y0) / h) };
 }
 
 export function analyzeRegion(rgba, w, h, box) {

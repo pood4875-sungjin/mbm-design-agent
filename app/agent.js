@@ -18,7 +18,8 @@ export const PHASES = ['brief', 'style', 'draft'];
 export const PHASE_LABEL = { brief: '내용 확인', style: '스타일', draft: '초안 생성' };
 export const TRACKS = { online: '온라인 광고', offline: '오프라인 인쇄물' };
 
-const CHANNELS = ['edm', 'landing', 'banner', 'gwthumb', 'poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
+// eDM·랜딩페이지는 만들지 않는다(2026-10-02 제외)
+const CHANNELS = ['banner', 'gwthumb', 'poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
 const CH_KO = { edm: 'eDM', landing: '랜딩페이지', banner: '홍보 배너', gwthumb: '그룹웨어 썸네일', poster: '포스터', xbanner: 'X배너', hyunsumak: '현수막', badge: '참석자 명찰', photobooth: '포토부스' };
 const MEDIA_IDS = MEDIA.map(m => m.id);
 const MEDIA_KO = Object.fromEntries(MEDIA.map(m => [m.id, m.name]));
@@ -263,7 +264,7 @@ function normalize(out, state) {
 
 /* ── 키가 없거나 AI 호출이 실패했을 때: 규칙 기반 진행자 (같은 계약) ── */
 const CH_KW = {
-  edm: /eDM|이디엠|메일/i, landing: /랜딩/, banner: /(?<![Xx스])배너/, gwthumb: /그룹웨어|썸네일/,
+  banner: /(?<![Xx스])배너/, gwthumb: /그룹웨어|썸네일/,
   poster: /포스터/, xbanner: /X\s?배너|엑스배너/i, hyunsumak: /현수막/,
   badge: /명찰|네임\s?태그|name\s?tag/i, photobooth: /포토\s?부스|포토\s?존|포토월/,
 };

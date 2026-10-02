@@ -30,10 +30,11 @@
 //   ④ 토픽·역할은 "헤어라인 아웃라인 칩"으로 표시한다(441:1613 Solution/Geotechnical/AI Onsite).
 //      채움 없음 · 모서리 각짐 — 버튼이 아니라 태그다. 인쇄물 버튼 금지 규칙과 충돌하지 않는다.
 
-import { esc, fitFontSize, fieldGradient, textWidth, WRAP } from './banner.js';
+import { esc, fitFontSize, textWidth, WRAP } from './banner.js';
 import { cmykText } from '../style.js';
 import { fontStack, fontLink } from '../fonts.js';
 import { fitKeyVisual } from '../palette.js';
+import { resolveField } from '../field.js';
 
 const ARROW_GLYPH = { up: '↑', down: '↓', left: '←', right: '→' };
 const PURPOSE_LABEL = { main: '', way: '', agenda: 'PROGRAM', reception: 'REGISTRATION' };
@@ -67,10 +68,10 @@ export function renderPrint(ctx, style, spec) {
   const mm = k => (base * k).toFixed(1);
   const useKv = !!style.keyVisual;   // 용도와 무관하게 배경으로 쓴다 — 안내형은 위에서 가림막으로 가독성을 지킨다
   const rd = useKv ? (style.kvReadability?.print ?? null) : null;
-  const fg = rd?.text ?? p.onPrimary;
-  // 키비주얼이 없을 때의 지면. 주색 파생 그라데이션이라 색 계열이 하나 —
-  // 순백/순흑 글자 판정이 흔들리지 않는다(단색일 때와 대비가 같다).
-  let bg = `background:${fieldGradient(p.primary)}`;
+  // 키비주얼이 없을 때의 지면 — 브랜드 색이거나 사람이 고른 색(core/field.js). 글자색은 그 지면이 정한다.
+  const field = resolveField(style);
+  const fg = useKv ? (rd?.text ?? p.onPrimary) : field.text;
+  let bg = `background:${field.css}`;
   if (useKv) {
     const fit = fitKeyVisual(spec.wmm / spec.hmm, style.kvMeta?.ar, style.kvMeta?.edge ?? p.primary);
     bg = fit.mode === 'contain'

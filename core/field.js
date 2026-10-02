@@ -59,3 +59,33 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // contrast: 지면에서 가장 불리한 곳의 글자 대비 — 4.5에 못 미치면 렌더러가 작은 글자를 흐리게 쓰지 않는다
   return { stops, angle, css, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(worst(text) * 100) / 100 };
 }
+
+// 키비주얼 층 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
+//   side 'right' | 'bottom' · size: 이미지가 차지하는 폭(오른쪽) 또는 높이(아래) · edgePad: 그쪽 지면 여백(이미지는 여백까지 덮는다)
+//   inset: 가장자리에서 띄울 폭(좌우 끝이 단색이어야 하는 지면) · melt:false 면 녹이지 않는다(투명 배경 규격)
+// 그 변이 이미 지면색과 같으면(field.seamless) 그 변을 기준으로 붙여 이음매에서 그림이 잘리지 않게 하고, 녹이는 폭을 줄인다.
+// 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
+export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true }) {
+  const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
+  const bw = side === 'right' ? size + edgePad - inset : w, bh = side === 'right' ? h : size + edgePad;
+  const [far, join] = side === 'right' ? ['right center', 'left center'] : ['center bottom', 'center top'];
+  // 잘라 채울 때 어디를 보여 줄 것인가 — 그림의 주인공(focus)이 자리 한가운데 오게 한다. 모르면 가운데.
+  // 이미지의 글자 쪽 변이 자리의 변에 그대로 닿으면(trueEdge) 지면과 색이 같아 이음매가 없다.
+  const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
+  let pos = field?.seamless ? join : 'center', trueEdge = !!field?.seamless;
+  if (!cutout && ar && focus) {
+    const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
+    const at = (box, img, f) => img > box + 0.5 ? Math.min(1, Math.max(0, (box / 2 - f * img) / (box - img))) : 0.5;
+    const px = at(bw, imgW, focus.x), py = at(bh, imgH, focus.y);
+    pos = `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
+    trueEdge = !!field?.seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (py === 0 || imgH <= bh + 0.5));
+  }
+  const pct = trueEdge ? 10 : 26;
+  const dir = side === 'right' ? 'to right' : 'to bottom';
+  const mask = (!melt || cutout) ? '' : `-webkit-mask-image:linear-gradient(${dir},transparent 0%,#000 ${pct}%);mask-image:linear-gradient(${dir},transparent 0%,#000 ${pct}%);`;
+  const fill = `background:url('${url}') ${cutout ? `${far}/contain` : `${pos}/cover`} no-repeat;`;
+  return side === 'right'
+    ? `<div data-object="1" style="position:absolute;top:0;right:${inset}px;width:${size + edgePad - inset}px;height:${h}px;${fill}${mask}"></div>`
+    : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
+}

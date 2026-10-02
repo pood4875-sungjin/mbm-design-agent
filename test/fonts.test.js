@@ -54,42 +54,38 @@ test('no logo means no img placeholder', () => {
   assert.doesNotMatch(renderPrint(ctx, s, SPECS['poster-a2']), /class="brand"/);
 });
 
-test('busy key visual gets a scrim and contrast-picked text color', () => {
+test('print keeps the veil over a busy key visual; the banner never puts copy on the image', () => {
   const kv = 'data:image/png;base64,AAA';
   const dark = normalizeStyle({ colors: ['#0A3D91'], keyVisual: kv,
     kvReadability: { banner: { text: '#FFFFFF', scrim: true }, print: { text: '#FFFFFF', scrim: true } } });
-  assert.match(renderBanner(ctx, dark, SPECS['banner-300x250']), /data-scrim="1"/);
   assert.match(renderPrint(ctx, dark, SPECS['poster-a2']), /class="scrim"[^>]*rgba\(0,0,0/, '어두운 글자면 검은 베일');
-
-  const bright = normalizeStyle({ colors: ['#0A3D91'], keyVisual: kv,
-    kvReadability: { banner: { text: '#000000', scrim: false } } });
-  const html = renderBanner(ctx, bright, SPECS['banner-300x250']);
-  assert.match(html, /color:#000000/, '밝은 키비주얼 위에는 검은 글자');
-  assert.doesNotMatch(html, /data-scrim="1"/, '깨끗한 배경이면 가림막 없음');
+  // 배너는 이미지를 글자 옆·아래에 따로 두므로 가림막이 필요 없다
+  const html = renderBanner(ctx, dark, SPECS['banner-300x250']);
+  assert.doesNotMatch(html, /data-scrim/);
+  assert.match(html, /data-object="1"/);
 });
 
-test('key visual is contained with a matching color field when ratios clash', async () => {
+test('fitKeyVisual still decides crop versus contain for print', async () => {
   const { fitKeyVisual } = await import('../core/palette.js');
   assert.equal(fitKeyVisual(1.2, 1.0, '#88CCFF').mode, 'cover', '비율이 비슷하면 크롭');
-  const wide = fitKeyVisual(728 / 90, 1.0, '#88CCFF');       // 리더보드에 정사각 일러스트
+  const wide = fitKeyVisual(728 / 90, 1.0, '#88CCFF');
   assert.equal(wide.mode, 'contain');
   assert.match(wide.bg, /#88CCFF/, '여백은 가장자리 색으로 잇는다');
-
-  const s = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png', kvMeta: { ar: 1, edge: '#88CCFF' } });
-  const html = renderBanner(ctx, s, SPECS['banner-728x90']);
-  assert.match(html, /background-size:contain,cover/);
-  assert.doesNotMatch(html, /center\/cover/, '넓은 배너는 크롭하지 않는다');
-
-  const square = renderBanner(ctx, s, SPECS['banner-300x250']);
-  assert.match(square, /center\/cover/, '비율이 맞으면 원래대로 꽉 채운다');
 });
 
-test('contained key visual paints above its color field, not under it', () => {
-  const s = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png', kvMeta: { ar: 1, edge: '#88CCFF' } });
-  const html = renderBanner(ctx, s, SPECS['banner-728x90']);
-  const layers = html.match(/background-image:([^;"]+)/)[1];
-  assert.ok(layers.indexOf('kv.png') < layers.indexOf('linear-gradient'),
-    'CSS는 먼저 쓴 배경 레이어를 위에 칠한다 — 이미지가 앞에 와야 보인다');
+test('the banner field comes from the key visual and the image sits beside the copy', () => {
+  const edge = (from, to) => ({ hex: from, from, to, rough: 0.004, opaque: 1 });
+  const s = normalizeStyle({ colors: ['#0A3D91'], keyVisual: 'kv.png',
+    kvMeta: { ar: 1.5, edge: '#88CCFF', colors: ['#5B2BD9'], field: { opaque: 1, edges: { left: edge('#E5CAFF', '#C7AEFF'), top: edge('#E5CAFF', '#E5CAFF') } } } });
+  const wide = renderBanner(ctx, s, SPECS['banner-728x90']);
+  assert.match(wide.split('>')[0], /background:linear-gradient\(180deg,#E5CAFF 0%,#C7AEFF 100%\)/, '가로형: 이미지 왼쪽 변의 색이 지면');
+  assert.match(wide, /data-object="1" style="position:absolute;top:0;right:0px/);
+  const tall = renderBanner(ctx, s, SPECS['banner-300x600']);
+  assert.match(tall.split('>')[0], /background:#E5CAFF/, '세로형: 이미지 위쪽 변의 색이 지면');
+  assert.match(tall, /data-object="1" style="position:absolute;left:0;bottom:0/);
+  // 사람이 배경색을 고르면 그 색이 이긴다
+  const manual = renderBanner(ctx, { ...s, background: { mode: 'auto', color: '#101820' } }, SPECS['banner-300x600']);
+  assert.match(manual.split('>')[0], /background:#101820;.*color:#FFFFFF/);
 });
 
 test('banner logo sits in the flow so it cannot collide with the title', () => {
