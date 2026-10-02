@@ -434,6 +434,15 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="config.local.js" onerror="void 0"></script>
-<script type="module" src="app.js"></script>
+<script>
+  // 내 컴퓨터에서 열 때는 모듈을 매번 새 주소(/v/<시각>/)로 부른다 — 브라우저가 쌓아 둔 옛 코드가 화면에 남지 않게.
+  // (scripts/serve.py 가 /v/<값>/ 을 벗겨 같은 파일을 내준다. 공개 주소는 그런 서버가 아니므로 원래 주소 그대로.)
+  (function () {
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? '../v/' + Date.now() + '/app/app.js' : 'app.js';
+    document.body.appendChild(s);
+  })();
+</script>
 </body>
 </html>
