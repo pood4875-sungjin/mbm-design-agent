@@ -14,11 +14,15 @@ export const KINDS = {
   },
   recruit: {
     label: '채용 홍보',
-    fields: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl', 'qualification', 'process', 'notice'],
+    // season·hiringType·startDate·headline·slogan: 보드 레퍼런스 13장의 헤드라인 문법에서 나온 선택 필드(2026-10-06).
+    // 레퍼런스는 "2024 상반기 / 한미글로벌 신입 채용 / 접수기간 | 5.3(금) - 5.21(화)" 꼴이다 — 직무명은 메인이 아니라 상세 줄에 간다.
+    fields: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl', 'qualification', 'process', 'notice',
+      'season', 'hiringType', 'startDate', 'headline', 'slogan'],
     required: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl'],
     labels: {
       client: '고객사', role: '모집 직무', employType: '고용 형태', location: '근무지', deadline: '지원 마감', applyUrl: '지원 경로',
       qualification: '자격 요건', process: '전형 절차', notice: '필수 고지 문구',
+      season: '시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '메인 문구', slogan: '슬로건',
     },
   },
 };

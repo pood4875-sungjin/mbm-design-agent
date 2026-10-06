@@ -36,10 +36,30 @@ test('what the brief already says is read, not asked again', () => {
   assert.equal(extractRecruit('지원은 https://x.y/apply/2026/10/31 에서', NOW).applyUrl, 'https://x.y/apply/2026/10/31');
 });
 
+test('season, hiring type and application period are read the way the board references phrase them', () => {
+  const r = extractRecruit('2024 상반기 한미글로벌 신입 채용. 접수기간 2024.5.3 ~ 2024.5.21, 모집부문 건설사업관리 PM', NOW);
+  assert.equal(r.season, '2024 상반기');
+  assert.equal(r.hiringType, '신입');
+  assert.equal(r.client, '한미글로벌', '시즌·채용구분을 뗀 뒤 회사를 읽는다');
+  assert.equal(r.startDate, '2024-05-03');
+  assert.equal(r.deadline, '2024-05-21');
+  assert.equal(r.role, '건설사업관리 PM', '"모집부문 …" 라벨 뒤가 직무다');
+  assert.equal(extractRecruit('세아제강 신입/경력사원 채용. 모집직무: 인사, 연구개발, 전기', NOW).role, '인사, 연구개발, 전기');
+  assert.equal(extractRecruit('한진정보통신 신입/경력사원 채용', NOW).hiringType, '신입/경력사원');
+  assert.equal(extractRecruit('한진정보통신 신입/경력사원 채용', NOW).role, undefined, '"신입/경력사원"은 직무가 아니다');
+  assert.equal(extractRecruit('도레이첨단소재 2025년 하반기 신입사원 공개채용', NOW).hiringType, '신입사원 공개채용');
+  assert.equal(extractRecruit('도레이첨단소재 2025년 하반기 신입사원 공개채용', NOW).season, '2025년 하반기');
+  assert.equal(extractRecruit('PTKOREA 2026 8기 신입공개채용', NOW).season, '2026 8기');
+  assert.equal(extractRecruit('한진정보통신 백엔드 개발자 채용', NOW).hiringType, undefined);
+});
+
 test('what the brief does not say stays blank — no guessing', () => {
   assert.deepEqual(extractRecruit('백엔드 개발자 채용', NOW), { role: '백엔드 개발자' }, '회사로 볼 근거가 없으면 고객사는 비운다');
   assert.equal(extractRecruit('AI 엔지니어 채용', NOW).client, undefined, '직무 약어를 회사로 읽지 않는다');
-  assert.deepEqual(extractRecruit('2026 하반기 신입 공채 채용, 9월 1일 시작 10월 5일 종료', NOW), {}, '날짜가 여럿이고 마감 표시가 없으면 고르지 않는다');
+  const many = extractRecruit('2026 하반기 신입 공채 채용, 9월 1일 시작 10월 5일 종료', NOW);
+  assert.equal(many.deadline, undefined, '날짜가 여럿이고 마감 표시도 기간 표시(~·부터)도 없으면 고르지 않는다');
+  assert.equal(many.client, undefined);
+  assert.deepEqual({ season: many.season, hiringType: many.hiringType }, { season: '2026 하반기', hiringType: '신입 공채' });
   assert.equal(extractRecruit('부산은행 채용', NOW).location, undefined, '사명 안의 지명은 근무지가 아니다');
   assert.equal(extractRecruit('서울 근무 개발자 채용', NOW).location, '서울');
   assert.equal(extractRecruit('주소는 https://x.y/2026/10/31', NOW).deadline, undefined, '주소 안의 숫자는 날짜가 아니다');

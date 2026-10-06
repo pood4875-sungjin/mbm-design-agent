@@ -31,17 +31,39 @@ const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
 const dow = d => { const m = String(d ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return ''; const t = new Date(+m[1], +m[2] - 1, +m[3]); return isNaN(t) ? '' : '일월화수목금토'[t.getDay()]; };
 const md = d => { const s = mmdd(d).replace(/^0/, '').replace(/\.0/, '.'); const w = dow(d); return w ? `${s}(${w})` : s; };
 
+// 채용 구분 → 메인에 붙는 말. "신입" → "신입 채용", "신입사원 공개채용"처럼 이미 채용·공채·모집이 들어 있으면 그대로.
+const hireOf = t => { const s = String(t ?? '').trim(); return !s ? '채용' : /채용|공채|모집/.test(s) ? s : `${s} 채용`; };
+// 시즌이 없으면 마감일에서 — 레퍼런스 13장 중 12장이 "2024 상반기"·"2026년" 같은 시즌을 서브나 메인에 둔다
+const seasonOf = d => { const m = String(d ?? '').match(/^(\d{4})-(\d{2})/); return m ? `${m[1]} ${+m[2] <= 6 ? '상반기' : '하반기'}` : null; };
+
 // 맥락 → 역할별 문구 사다리(긴 것 → 짧은 것) + 상세 정보 줄. 채용이 기본, 행사 맥락도 같은 슬롯으로 흘린다.
+// 채용 헤드라인 문법은 보드 레퍼런스(한미글로벌·세아제강·안랩·삼진제약·신한캐피탈)에서: 서브 = 시즌, 메인 = 회사 + 채용구분, 직무는 상세 줄.
+// 좁은 세로 띠(도레이·PT코리아)는 회사가 서브로 올라가고 메인은 채용구분만 — *Narrow 사다리를 렌더러가 형태를 보고 고른다.
 export function copyLadder(ctx) {
   const c = ctx.core ?? {};
   const uniq = arr => [...new Set(arr.filter(s => s != null && String(s).trim() !== ''))];
   if (ctx.kind === 'recruit') {
-    const d = c.deadline ? md(c.deadline) : '';
+    const d = c.deadline ? md(c.deadline) : '', s0 = c.startDate ? md(c.startDate) : '';
+    const period = d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '';
     const qual = c.qualification ? String(c.qualification) : '';
+    const season = c.season || seasonOf(c.deadline);
+    const hire = hireOf(c.hiringType || c.employType);   // 채용구분이 없으면 고용형태로("정규직 채용")
+    const named = hire !== '채용';
+    // 메인을 직접 적어 준 경우(한독 "전문의약품 의료기기 영업∙마케팅 공채 모집") 회사·구분은 서브로 간다
+    const subFull = [season, c.client, named ? hire : null].filter(Boolean).join(' ');
+    const clientHire = c.client ? `${c.client} ${hire}` : null;
+    // 세로 띠: 서브가 회사를 품으면 메인은 채용구분만(도레이·한독). 슬로건이 서브를 차지하면 회사·기수가 메인으로(PT코리아 "PTKOREA / 2026 8기 / 신입공개채용")
+    const narrowMain = c.slogan
+      ? [c.headline, [c.client, c.season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
+      : [c.headline, named ? hire : null, clientHire];
     return {
-      main: uniq([c.headline, [c.client, c.role, '채용'].filter(Boolean).join(' '), c.role ? `${c.role} 채용` : null, c.role, c.client ? `${c.client} 채용` : null, '채용 공고']),
-      sub: uniq([c.season ? `${c.season} ${c.client ?? ''}`.trim() : null, c.client ? `${c.client} 채용` : null, c.employType, '채용 공고']),
-      date: uniq(d ? [`접수기간 : ~${d}`, `~${d} 마감`, `~${d}`] : []),
+      main: uniq([c.headline, clientHire, named ? hire : null, c.role ? `${c.role} 채용` : null, c.client ? `${c.client} 채용` : null, '채용 공고']),
+      sub: uniq([c.headline ? subFull : null, c.slogan, season, c.client ? `${c.client} 채용` : null, c.employType, '채용 공고']),
+      // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
+      mainWide: uniq([c.headline, c.season ? [c.season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? `${c.client} 채용` : null, '채용 공고']),
+      mainNarrow: uniq([...narrowMain, c.role ? `${c.role} 채용` : null, '채용 공고']),
+      subNarrow: uniq([c.headline ? subFull : null, c.slogan, [season, c.client].filter(Boolean).join(' '), season, c.client]),
+      date: uniq(period ? [`접수기간 : ${period}`, period] : []),
       extra: uniq([qual, qual.split(/[·,/]/)[0]?.trim()]),
       advertiser: uniq([c.client]),
       cta: uniq([c.ctaText, '지원하기', '지원']),
@@ -50,7 +72,7 @@ export function copyLadder(ctx) {
       url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
       // 상세 정보 줄 — 우선순위 순. 자리(줄 수)가 모자라면 뒤에서부터 뺀다.
       details: [
-        d ? { label: '접수기간', value: `~${d}` } : null,
+        period ? { label: '접수기간', value: period } : null,
         c.role ? { label: '모집직무', value: c.role } : null,
         c.location ? { label: '근무지', value: c.location } : null,
         c.employType ? { label: '고용형태', value: c.employType } : null,
@@ -126,22 +148,25 @@ export function renderAd(ctx, style, spec) {
     const slot = slots[role];
     let perLine = slot?.maxCharsPerLine ?? null;
     const fs = statedEarly[role] ?? fsHint;
-    if (fs && widthPx) perLine = Math.min(perLine ?? Infinity, Math.max(1, Math.floor(widthPx / (fs * 0.98))));
+    // 매체가 줄당 글자수를 정해 두면(자소설 메인 6자) 그것을 믿는다 — 폭으로 어림한 값은 영문·기호가 섞이면 너무 보수적이다("PTKOREA"가 두 줄로 세어진다)
+    if (fs && widthPx && perLine == null) perLine = Math.max(1, Math.floor(widthPx / (fs * 0.98)));
     const linesCap = Math.min(slot?.lines ?? Infinity, linesHint ?? Infinity);
     const fits = c => (slot?.maxChars == null || countChars(c, counting) <= slot.maxChars)
       && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || estimateLines(c, perLine, counting) <= linesCap);
     return cands.find(fits) ?? cands[cands.length - 1];
   };
   const core = ctx.core ?? {};
-  if (useRef && L.subAbove && slots.sub && core.client && ctx.kind === 'recruit') {
-    ladder.sub = [core.client, ...(ladder.sub ?? []).filter(x => x !== core.client)];
-    const roleMain = [core.role ? `${core.role} 채용` : null, core.role, core.employType ? `${core.employType} 채용` : null].filter(Boolean);
-    if (roleMain.length) ladder.main = [...new Set([...roleMain, ...ladder.main])];
+  // 세로 띠(160×600)는 회사가 서브로 올라가고 메인은 채용구분만(도레이·한독) — 메인 폭이 6자라 회사+구분이 안 들어간다
+  if (useRef && L.shape === 'tower' && ctx.kind === 'recruit') {
+    ladder.sub = [...(ladder.subNarrow ?? []), ...(ladder.sub ?? [])];
+    ladder.main = [...(ladder.mainNarrow ?? []), ...(ladder.main ?? [])];
   }
+  // 가로형은 시즌이 메인 앞에 붙는다(삼진제약) — 서브 줄은 접수기간이 쓴다
+  if (useRef && L.shape === 'wide' && ctx.kind === 'recruit' && ladder.mainWide?.length) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];
   if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length) {
     ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
   }
-  let copy = Object.fromEntries(Object.keys(ladder).filter(k => k !== 'details').map(r => [r, pickIn(r, null)]));
+  let copy = Object.fromEntries(Object.keys(ladder).filter(k => !['details', 'mainNarrow', 'subNarrow', 'mainWide'].includes(k)).map(r => [r, pickIn(r, null)]));
 
   /* ── 지면 성격 ── */
   const S = Math.sqrt(w * h);
@@ -187,7 +212,20 @@ export function renderAd(ctx, style, spec) {
   const imgBottomBand = tImage && tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1;
   const imgCorner = tImage && !imgBottomBand && tImage.y > 0;
   const imgLeftCol = tImage && !imgBottomBand && tImage.x <= 1 && tImage.h >= h - 1;   // 자소설 PC메인: 왼쪽 이미지 열
-  if (tImage && imgBottomBand) pad.bottom = Math.max(pad.bottom, h - tImage.y + Math.round(h * 0.02));
+  // 하단 이미지 칸에 그림을 놓는 법 — 레퍼런스 5장(한미글로벌·세아제강·도레이·한독·PT코리아)에서:
+  //   칸보다 작은 그림(세아제강 373×274·PT코리아 154×154)은 키우지 않고 제 크기로 바닥 가운데에
+  //   칸보다 납작한 그림은 폭에 맞춰 바닥에 통째로(자르지 않는다)
+  //   칸보다 길쭉한 그림(한미글로벌 600×735·도레이 160×324)은 칸을 채우고 위가 잘린다 — 주인공은 아래쪽에 있다
+  // 그림 위가 비면 글자가 거기까지 내려간다(PT코리아 글자 y390 > 칸 y370).
+  const kvAR = hasKv ? style.kvMeta?.ar : null, kvPx = hasKv ? style.kvMeta?.px : null;
+  let bandMode = 'cover';
+  if (tImage && imgBottomBand && kvAR) {
+    if (kvPx && kvPx[0] <= tImage.w && kvPx[1] <= tImage.h) bandMode = 'native';
+    else if (kvAR >= tImage.w / tImage.h) bandMode = 'contain';
+  }
+  const bandObjH = !tImage ? 0 : bandMode === 'native' ? kvPx[1] : bandMode === 'contain' ? Math.round(tImage.w / kvAR) : tImage.h;
+  const bandObjTop = tImage ? tImage.y + tImage.h - bandObjH : 0;
+  if (tImage && imgBottomBand) pad.bottom = Math.max(pad.bottom, h - bandObjTop + Math.round(h * 0.02));
   if (imgLeftCol && !tText) pad.left = Math.max(pad.left, tImage.x + tImage.w + 16);
   // 템플릿 로고 칸이 상단에 있으면 글자는 그 아래에서 시작 (자소설: 로고 23~53 → 서브 82)
   if (allowLogo && tLogo && hasLogo && tLogo.y < h * 0.3) pad.top = Math.max(pad.top, tLogo.y + tLogo.h + Math.round(h * 0.045));
@@ -303,15 +341,19 @@ export function renderAd(ctx, style, spec) {
   const detailW = (imgCorner && hasKv) ? Math.max(60, tImage.x - pad.left - 10) : textW;   // 이미지 옆으로 흐르는 구간의 폭
   if (want.detail) {
     const fsForWidth = detailFs ?? Math.round(capMain * 0.5);
-    const perLine = Math.min(detailSlot.maxCharsPerLine ?? Infinity, Math.max(6, Math.floor(detailW / (fsForWidth * 0.98))));
+    // 매체가 줄당 글자수를 정해 두면 그것을 믿는다(자소설 상세 11자). 폭 어림(0.98em/자)은 숫자·괄호가 많은 날짜 줄을 두 줄로 센다
+    const perLine = detailSlot.maxCharsPerLine ?? Math.max(6, Math.floor(detailW / (fsForWidth * 0.98)));
     const cap = detailSlot.lines ?? 3;
     let used = 0;
+    const narrow = perLine <= 12;
     for (const d of ladder.details) {
       const inline = `${d.label} : ${d.value}`;
-      const inlineOk = countChars(inline, counting) <= perLine;
-      const needed = inlineOk ? 1 : 1 + estimateLines(d.value, perLine, counting);
+      // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
+      const inlineRows = estimateLines(inline, perLine, counting);
+      const useInline = inlineRows <= 1 || !narrow;
+      const needed = useInline ? inlineRows : 1 + estimateLines(d.value, perLine, counting);
       if (used + needed > cap) continue;
-      detailLines.push({ label: d.label, value: d.value, inline: inlineOk, rows: needed });
+      detailLines.push({ label: d.label, value: d.value, inline: useInline, rows: needed });
       used += needed;
     }
   }
@@ -368,13 +410,20 @@ export function renderAd(ctx, style, spec) {
   const mainRowLines = mainRows.length ? mainRows.reduce((n, t) => n + (t.lines ?? 1), 0) : L.mainLines;
   if (useRef && L.shape === 'wide' && L.mainLines >= 2 && mainRowLines >= 2 && ctx.kind === 'recruit' && core.client) {
     const per = slots.main?.maxCharsPerLine ?? null, total = slots.main?.maxChars ?? null;
-    const pairs = [[core.client, core.role && `${core.role} 채용`], [core.client, core.role], [core.client, core.employType && `${core.employType} 채용`], [core.client, '채용']]
-      .filter(p => p[1]);
+    // 안랩 "AhnLab / 신입/경력 채용" · 삼진제약 "2026년 / 삼진제약 부문별 채용" — 시즌을 적어 줬으면 시즌이 첫 줄
+    const hireTxt = hireOf(core.hiringType || core.employType);
+    const pairs = [core.season ? [core.season, `${core.client} ${hireTxt}`] : null, [core.client, hireTxt], [core.client, core.role && `${core.role} 채용`], [core.client, '채용']]
+      .filter(p => p && p[1]);
     const fsFor = pr => Math.min(z.cap, Math.floor(textW / Math.max(...pr.map(t => textWidth(t) * 1.02))), Math.floor(titleBudget / (2 * mainLine)));
     const ok = pr => pr.every(t => per == null || countChars(t, counting) <= per)
       && (total == null || countChars(pr.join(''), counting) <= total) && fsFor(pr) >= Math.max(floorMain, Math.round(z.cap * 0.8));
     const pr = pairs.find(ok);
     if (pr) { copy.main = pr.join('\n'); mainFs = stated.main ?? fsFor(pr); mainLines = 2; }
+  }
+  // 세로형 메인이 "회사 + 채용구분"으로 두 줄이 되면 회사 뒤에서 줄을 바꾼다(세아제강 "세아제강 / 신입/경력사원 채용") — 균형 줄바꿈이 "신입/"에서 끊는 것을 막는다
+  if (useRef && (L.shape === 'tall' || L.shape === 'square') && ctx.kind === 'recruit' && core.client && mainLines >= 2 && !copy.main.includes('\n')) {
+    const hireTxt = hireOf(core.hiringType || core.employType);
+    if (copy.main === `${core.client} ${hireTxt}` && textWidth(copy.main) * mainFs > textW) copy.main = `${core.client}\n${hireTxt}`;
   }
   const byWidth = (role, fs, width) => {
     const cands = ladder[role] ?? []; if (cands.length < 2) return;
@@ -384,20 +433,24 @@ export function renderAd(ctx, style, spec) {
   };
   byWidth('date', z.smallFs, (want.label ? textW * 0.5 : textW) * 0.9);
   byWidth('label', z.smallFs, textW * 0.45);
-  byWidth('sub', z.subFs, textW * 0.96);
+  // 세로 띠의 서브는 두 줄까지 쓴다(도레이 "2025년 하반기 / 도레이첨단소재") — 한 줄 폭으로 자르면 회사가 떨어져 나간다
+  const subRows = (useRef && L.shape === 'tower') ? 1.9 : 1;
+  byWidth('sub', z.subFs, textW * 0.96 * subRows);
   byWidth('extra', z.smallFs, textW * 0.96);
   // 서브가 메인에 이미 다 들어 있는 말이면(고객사명 + 채용) 되풀이하지 않는다 — 다른 말이 있으면 그것을, 없으면 비운다
   const said = t => String(t).split(/\s+/).filter(Boolean).every(wd => copy.main.replace(/\n/g, ' ').includes(wd));
   if (copy.sub && said(copy.sub)) {
-    copy.sub = (ladder.sub ?? []).find(c => !said(c) && (slots.sub?.maxChars == null || countChars(c, counting) <= slots.sub.maxChars) && textWidth(c) * z.subFs <= textW * 0.96) ?? '';
+    copy.sub = (ladder.sub ?? []).find(c => !said(c) && (slots.sub?.maxChars == null || countChars(c, counting) <= slots.sub.maxChars) && textWidth(c) * z.subFs <= textW * 0.96 * subRows) ?? '';
   }
   const showSub = want.sub && !!copy.sub;
   const noticeFs = want.notice ? Math.max(8, Math.floor(fitFontSize(copy.notice, textW * 0.92, z.noticeFs * line * noticeLines, Math.min(z.noticeFs, Math.floor(innerW / 14)), 8, line))) : 0;
 
   /* ── 조각 ── */
   const clamp = n => `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${n};overflow:hidden`;
+  // "신입/경력"·"영업∙마케팅"은 한 덩어리다 — 빗금·가운뎃점 뒤에서 줄이 바뀌지 않게 단어 결합자(U+2060)를 끼운다(레퍼런스는 그 자리에서 끊지 않는다)
+  const nb = t => String(t ?? '').replace(/([\/∙·])(?=\S)/g, '$1\u2060');
   const T = (role, text, fs, weight, color, extraCss = '', lines = 1, lh = line) =>
-    `<div data-field="${role}" style="font-size:${fs}px;line-height:${lh};font-weight:${weight};color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(esc).join('<br/>')}</div>`;
+    `<div data-field="${role}" style="font-size:${fs}px;line-height:${lh};font-weight:${weight};color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => esc(nb(t))).join('<br/>')}</div>`;
   // 날짜·라벨은 꾸미지 않은 한 줄 글자다 — 테두리 알약을 두르지 않는다
   const plain = (role, text, fs) =>
     `<span data-field="${role}" style="display:inline-block;font-size:${fs}px;line-height:${line};font-weight:700;color:${subFg};white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
@@ -406,7 +459,7 @@ export function renderAd(ctx, style, spec) {
   const lw = useRef && !L.detailLabelBold ? 400 : 700;
   const detailBlock = () => detailLines.length
     ? `<div data-field="detail" style="font-size:${z.dFs}px;line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP}">${detailLines.map(d =>
-        d.inline ? `<div><b style="font-weight:${lw}">${esc(d.label)}</b> : ${esc(d.value)}</div>` : `<div><b style="font-weight:${lw};display:block">${esc(d.label)}</b>${esc(d.value)}</div>`).join('')}</div>` : '';
+        d.inline ? `<div><b style="font-weight:${lw}">${esc(d.label)}</b> : ${esc(nb(d.value))}</div>` : `<div><b style="font-weight:${lw};display:block">${esc(d.label)}</b>${esc(nb(d.value))}</div>`).join('')}</div>` : '';
   const logoImg = (hPx, maxW) => (allowLogo && logoSrc)
     ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${hPx}px;width:auto;max-width:${maxW}px;object-fit:contain;${logoFilter}"/>`
     : '';
@@ -433,6 +486,11 @@ export function renderAd(ctx, style, spec) {
     ? (imgCorner
       // 우하단 상자는 일러스트를 담는 자리 — 잘라 채우지 않고 우하단에 맞춰 넣는다(위에 여백이 남아 메인이 그 위를 쓴다)
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') right bottom/contain no-repeat;overflow:hidden"></div>`
+      : imgBottomBand && bandMode !== 'cover'
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;overflow:hidden"></div>`
+      : imgBottomBand
+      // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : 'center bottom/cover'} no-repeat;${melt('to bottom')}overflow:hidden"></div>`
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"></div>`)
     : '';
 

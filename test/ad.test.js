@@ -67,7 +67,9 @@ test('no button is drawn — not even where the medium has a CTA field', () => {
 
 test('copy comes from the recruit context; an event context still renders through the same slots', () => {
   const c = copyFor(ctx);
-  assert.equal(c.main, '한진정보통신 백엔드 개발자 채용');
+  // 레퍼런스 문법(2026-10-06): 메인 = 회사 + 채용구분(없으면 고용형태) + 채용, 직무는 상세 줄로
+  assert.equal(c.main, '한진정보통신 정규직 채용');
+  assert.equal(c.sub, '2026 하반기', '시즌이 없으면 마감일에서 읽는다');
   assert.equal(c.advertiser, '한진정보통신');
   assert.match(c.date, /10\.31|10-31|10\/31/);
   const ev = createContext({ name: 'MBM 2026', date: '2026-11-05', venue: '코엑스', audience: '고객사', cta: '사전등록' });
@@ -84,14 +86,18 @@ test('numeric safe area is a floor for padding — the reference margin wins whe
 });
 
 test('copy ladder picks the longest phrasing that fits the medium character limit', () => {
-  // 카카오 비즈보드 메인카피 15자: "한진정보통신 클라우드 플랫폼 엔지니어 채용"(23)는 못 들어가고 "클라우드 플랫폼 엔지니어 채용"(16)도 넘쳐 "클라우드 플랫폼 엔지니어"(13)가 뽑힌다
-  const long = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit');
+  // 카카오 비즈보드 메인카피 15자: "한진정보통신 신입/경력사원 채용"(17)은 못 들어가고 "신입/경력사원 채용"(10)이 뽑힌다
+  const long = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', hiringType: '신입/경력사원', location: '서울', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit');
   const html = renderAd(long, style, specs['kakao-bizboard-mo']);
-  assert.match(html, /data-field="main"[^>]*>클라우드 플랫폼 엔지니어</);
-  // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 세로형은 회사가 서브로 올라가 메인은 직무 채용(도레이·한독)
+  // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자
+  assert.match(html, /data-field="main"[^>]*>신입\/\u2060?경력사원 채용</);
+  // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 세로형은 서브 = 시즌, 메인 = 회사 + 채용구분(한미글로벌·세아제강)
   const free = renderAd(long, style, specs['google-gdn-300x600']);
-  assert.match(free, /data-field="main"[^>]*>클라우드 플랫폼 엔지니어 채용</);
-  assert.match(free, /data-field="sub"[^>]*>한진정보통신</);
+  assert.match(free, /data-field="main"[^>]*>한진정보통신(<br\/>| )신입\/\u2060?경력사원 채용</);
+  assert.match(free, /data-field="sub"[^>]*>2026 하반기</);
+  // 직무는 상세 줄에 간다 — 상세 칸이 있는 매체(자소설 M팝업 상세문구 22자×3줄)에서
+  const popup = renderAd(long, style, specs['jasoseol-m-premium-popup-mo']);
+  assert.match(popup, /모집직무<\/b> : 클라우드 플랫폼 엔지니어/);
 });
 
 test('logo-only specs (브랜드 로고 96×96, 프로필 300) carry no headline slot', () => {
@@ -139,11 +145,13 @@ test('every shape is left-aligned like the references; the logo floats top-right
   const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
   assert.doesNotMatch(tallHtml, /text-align:center/);
   assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '세로형 로고는 우상단(한미글로벌·세아제강)');
-  // 세로형은 서브(회사)가 메인 위, 메인은 직무 채용(도레이·한독)
-  assert.match(tallHtml, /data-field="sub"[^>]*>한진정보통신</);
-  assert.match(tallHtml, /data-field="main"[^>]*>백엔드 개발자 채용</);
+  // 세로형은 서브(시즌)가 메인 위, 메인은 회사 + 채용구분(한미글로벌·세아제강)
+  assert.match(tallHtml, /data-field="sub"[^>]*>2026 하반기</);
+  assert.match(tallHtml, /data-field="main"[^>]*>한진정보통신(<br\/>| )정규직 채용</, '두 줄이 되면 회사 뒤에서 줄을 바꾼다(세아제강)');
   const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
   assert.match(tower, /data-logo-slot="1" style="position:absolute;top:\d+px;left:\d+px;right:\d+px;justify-content:center/, '세로 띠 로고는 위 가운데');
+  // 세로 띠는 회사가 서브로 올라간다(도레이 "2025년 하반기 도레이첨단소재 / 신입사원 공개채용")
+  assert.match(tower, /data-field="sub"[^>]*>2026 하반기 한진정보통신</);
   const wideHtml = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
   assert.match(wideHtml, /text-align:left/);
   assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만');

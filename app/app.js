@@ -664,6 +664,11 @@ function answerAsk(text) {
     const v = text.trim().replace(/[.!?。]+$/, '').replace(/\s*(이에요|예요|입니다|이요|요)$/, '').trim();
     if (v) it.fields[it.asking] = v;
   }
+  // 회사를 몰라서 직무에 회사까지 붙어 읽혔으면("한미글로벌 건설사업관리 PM") 회사를 떼어 낸다
+  if (it.asking === 'client' && it.fields.client && it.fields.role?.startsWith(it.fields.client)) {
+    it.fields.role = it.fields.role.slice(it.fields.client.length).trim() || undefined;
+    if (!it.fields.role) delete it.fields.role;
+  }
   afterWhere();
 }
 // 읽은 내용 한 줄 — "한진정보통신 · 클라우드 엔지니어 · 정규직 · 서울 여의도 · 10.31(토) 마감"
@@ -671,7 +676,7 @@ function readSummary(it) {
   const f = it.fields;
   const day = d => { const iso = normDate(d); if (!iso) return d; const t = new Date(iso + 'T00:00'); return `${t.getMonth() + 1}.${t.getDate()}(${'일월화수목금토'[t.getDay()]})`; };
   const parts = it.kind === 'recruit'
-    ? [f.client, f.role, f.employType, f.location, f.deadline && `${day(f.deadline)} 마감`]
+    ? [f.season, f.client, f.hiringType, f.role, f.employType, f.location, f.deadline && `${f.startDate ? day(f.startDate) + ' ~ ' : ''}${day(f.deadline)} 마감`]
     : [f.name, f.date && day(f.date), f.venue, f.audience];
   const lacks = it.kind === 'recruit'
     ? [!f.deadline && '마감일', !f.location && '근무지'].filter(Boolean)
