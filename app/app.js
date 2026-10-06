@@ -9,7 +9,7 @@ import { adSpecEntries, adSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
-import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage } from '../core/palette.js';
+import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage, colorDistance } from '../core/palette.js';
 import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
@@ -1101,9 +1101,14 @@ async function analyzeKeyVisual(dataUrl) {
   const { data } = g.getImageData(0, 0, W, H);
   const readability = {};
   for (const [k, zone] of Object.entries(TEXT_ZONES)) readability[k] = analyzeRegion(data, W, H, zone);
-  const suggests = extractPalette(data, 3);
+  // 브랜드 색 후보에서 그림의 바탕색(평평한 변·빈 자리 색)은 뺀다 — 크림 바탕 위 여우 캐릭터에서 크림이 주색이 되면 알약·메인이 바탕과 같은 색이 된다(10-06)
+  const field = fieldFromImage(data, W, H);
+  const bgHexes = [...Object.values(field.edges ?? {}).filter(e => e.flat && e.hex).map(e => e.hex), field.room?.hex].filter(Boolean);
+  const isBg = c => bgHexes.some(b => colorDistance(c, b) < 0.08);
+  const raw = extractPalette(data, 6);
+  const suggests = (raw.filter(c => !isBg(c)).length ? raw.filter(c => !isBg(c)) : raw).slice(0, 3);
   // field·colors: 소재의 지면색을 이 이미지에서 읽기 위한 실측(core/field.js) — 가장자리 색과 대표색
-  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H), px: [img.width, img.height], field: fieldFromImage(data, W, H), colors: suggests };
+  const meta = { ar: img.width / img.height, edge: edgeColor(data, W, H), px: [img.width, img.height], field, colors: suggests };
   return { suggests, readability, meta };
 }
 
