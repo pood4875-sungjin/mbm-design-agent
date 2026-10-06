@@ -26,7 +26,7 @@ import { designOf } from '../design.js';
 import { resolveField, kvLayer, kvPlacement, meltMask, meltMask2, subjectCrop, joinColour, joinField } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor } from '../canon.js';
-import { contrast, mix, hexToRgb, WHITE, BLACK } from '../palette.js';
+import { contrast, mix, hexToRgb, colorDistance, WHITE, BLACK } from '../palette.js';
 
 const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
 // 레퍼런스는 날짜에 요일을 붙인다 — "3.13(금)", "~7/26(일)" (안랩·삼진제약·한미글로벌·세아제강). 날짜로 읽히지 않으면 붙이지 않는다.
@@ -375,7 +375,12 @@ export function renderAd(ctx, style, spec) {
   const scrimDir = (L.shape === 'tall' || L.shape === 'tower') ? 'to bottom' : 'to right';
   const scrimEnd = scrimDir === 'to bottom' ? 78 : 70;
   // 모서리 상자의 그림이 지면과 같은 색으로 이어지지 않으면(하늘 그라데이션 vs 단색 지면) 글자 쪽 두 변을 녹인다 — 글자 칸도 그 녹인 구간(28%)까지 넓어진다
-  const meltCorner = !!(cornerRect && !isCutout && !transparent && (!(field?.seamless) || cornerCrop));
+  // 모서리 상자는 글자 쪽 두 변(위·왼쪽)이 모두 지면과 같은 색이어야 이음매가 없다 — facing 한 변만 보고 seamless로 두면 윗변이 상자 선으로 드러난다
+  // (10-06 사용자 "비주얼 바꾸니까 또 끊겨 보이네": 연파랑 바탕 + 흰 글로우 3D). 두 변이 평평하고(std) 변 안에서 색이 흐르지 않고 지면색과 같을 때만 녹이지 않는다
+  const cornerEdges = style.kvMeta?.field?.edges;
+  const edgeMatches = e => !!(e && e.flat && e.hex && field && colorDistance(e.hex, field.stops[0]) < 0.02 && (!e.from || !e.to || colorDistance(e.from, e.to) < 0.02));
+  const cornerSeamless = !!(field?.seamless && !field.gradient && edgeMatches(cornerEdges?.top) && edgeMatches(cornerEdges?.left));
+  const meltCorner = !!(cornerRect && !isCutout && !transparent && (!cornerSeamless || cornerCrop));
   // 지면 CSS는 그릴 때 읽는다 — 띠 높이가 정해진 뒤 이음매 줄 색으로 지면을 잇는다(joinField)
   const bgCss = () => photoFull
     ? `background:linear-gradient(${scrimDir},${rgba(scrimBase, 0.94)} 0%,${rgba(scrimBase, 0.82)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`
