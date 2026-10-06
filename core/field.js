@@ -61,7 +61,8 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const mode = solidOnly ? 'solid' : (opt.mode ?? 'auto');
   const far = stops.length > 1 && colorDistance(stops[0], stops[1]) >= GRADIENT_MIN;
   const mid = () => stops.length > 1 ? mix(stops[0], stops[1], 0.5) : stops[0];
-  if (mode === 'solid' || (mode === 'auto' && !far)) stops = [mid()];
+  // 그라데이션 변을 단색으로 접으면(우하단 상자·단색 전용 규격) 그림의 변과 지면이 더는 같은 색이 아니다 — 이음매를 녹여야 한다
+  if (mode === 'solid' || (mode === 'auto' && !far)) { if (far) seamless = false; stops = [mid()]; }
   else if (mode === 'gradient' && !far) { const b = mid(); stops = [shiftHue(b, 0, 0.05, 0), shiftHue(b, 0, -0.05, 0)]; angle = 180; }
 
   // 글자색 — 그라데이션의 두 끝 모두에서 읽혀야 한다. 큰 글자 기준 대비 3:1(WCAG)을 못 넘으면 그라데이션을 접는다.
@@ -74,6 +75,21 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const css = stops.length > 1 ? `linear-gradient(${angle}deg,${stops[0]} 0%,${stops[1]} 100%)` : stops[0];
   // contrast: 지면에서 가장 불리한 곳의 글자 대비 — 4.5에 못 미치면 렌더러가 작은 글자를 흐리게 쓰지 않는다
   return { stops, angle, css, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(worst(text) * 100) / 100 };
+}
+
+// 녹임 그라데이션 — 직선(0→100%)으로 짧게 자르면 "급하게 끊긴" 느낌이 난다(10-06 사용자). 리멤버 사진 예시처럼 길게(30% 안팎), 처음은 천천히 뒤는 빠르게(이징).
+export function meltGradient(dir, pct) {
+  const a = Math.round(pct * 0.45 * 10) / 10, b = Math.round(pct * 0.78 * 10) / 10;
+  return `linear-gradient(${dir},transparent 0%,rgba(0,0,0,.28) ${a}%,rgba(0,0,0,.78) ${b}%,#000 ${pct}%)`;
+}
+export function meltMask(dir, pct) {
+  const g = meltGradient(dir, pct);
+  return `-webkit-mask-image:${g};mask-image:${g};`;
+}
+// 두 변(왼쪽·위)을 함께 녹인다 — 우하단 모서리 상자
+export function meltMask2(pctX, pctY) {
+  const g = `${meltGradient('to right', pctX)},${meltGradient('to bottom', pctY)}`;
+  return `-webkit-mask-image:${g};-webkit-mask-composite:source-in;mask-image:${g};mask-composite:intersect;`;
 }
 
 // 키비주얼 층 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
@@ -99,9 +115,9 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   }
   // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션
   const joinFlat = style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
-  const pct = trueEdge ? 10 : joinFlat === false ? 32 : 26;
+  const pct = trueEdge ? 16 : joinFlat === false ? 38 : 30;
   const dir = side === 'right' ? 'to right' : 'to bottom';
-  const mask = (!melt || cutout) ? '' : `-webkit-mask-image:linear-gradient(${dir},transparent 0%,#000 ${pct}%);mask-image:linear-gradient(${dir},transparent 0%,#000 ${pct}%);`;
+  const mask = (!melt || cutout) ? '' : meltMask(dir, pct);
   const fill = `background:url('${url}') ${cutout ? `${far}/contain` : `${pos}/cover`} no-repeat;`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:0;right:${inset}px;width:${size + edgePad - inset}px;height:${h}px;${fill}${mask}"></div>`

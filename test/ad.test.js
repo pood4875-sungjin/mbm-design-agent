@@ -261,8 +261,14 @@ test('the template image area takes the picture by its size: tall pictures fill 
   const tall = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.5, px: [160, 324], edge: '#0B3C8C' } };
   assert.match(renderAd(ctx, tall, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px;[^"]*center bottom\/cover/);
   // 납작한 그림(ar 1.5) → 폭에 맞춰 바닥에 통째로(160×107), 위는 글자가 쓴다
+  // 납작한 그림을 폭에 맞추면 띠 아래 조각(107px)만 남아 비어 보인다(10-06 사용자 "그냥 뚝 끊긴 느낌") — 칸 높이의 60%를 못 채우면 잘라 채우고 윗변을 녹인다
   const flat = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, px: [600, 400], edge: '#0B3C8C' } };
-  assert.match(renderAd(ctx, flat, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:493px;width:160px;height:107px;[^"]*center bottom\/contain/);
+  const flatHtml = renderAd(ctx, flat, specs['jasoseol-pc-standard-jobpost-pc']);
+  assert.match(flatHtml, /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px;[^"]*center bottom\/cover/);
+  assert.match(flatHtml, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/);
+  // 칸 높이의 60% 이상을 채우는 그림은 그대로 폭에 맞춘다(세아제강 373×274는 600×330 칸에 거의 꽉 찬다)
+  const flatOk = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.9, px: [600, 667], edge: '#0B3C8C' } };
+  assert.match(renderAd(ctx, flatOk, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*top:422px;width:160px;height:178px;[^"]*center bottom\/contain/);
   // 칸보다 작은 그림(PT코리아 154×154) → 제 크기로 바닥에
   const small = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [154, 154], edge: '#0B3C8C' } };
   assert.match(renderAd(ctx, small, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*top:446px;width:160px;height:154px;[^"]*center bottom\/auto/);
@@ -290,9 +296,9 @@ test('an image whose facing edge matches the field joins at that edge; a busy ph
   const busy = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#777777', '#333333', 0.12), top: edge('#777777', '#333333', 0.12), right: edge('#777777', '#333333', 0.12), bottom: edge('#777777', '#333333', 0.12) } } };
   const kv = 'data:image/png;base64,iVBORw0KGgo=';
   const a = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: calm }, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(a, /data-object="1"[^>]*left center\/cover[^>]*#000 10%/);
+  assert.match(a, /data-object="1"[^>]*left center\/cover[^>]*#000 16%/);
   const b = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: busy }, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(b, /data-object="1"[^>]*center\/cover[^>]*#000 26%/);
+  assert.match(b, /data-object="1"[^>]*center\/cover[^>]*#000 30%/);   // 복잡한 변은 더 길게 녹인다(10-06: 10→16 · 26→30 · 사진 32→38, 이징)
   // 배경을 딴 이미지는 자르지 않고, 녹이지도 않는다
   const cut = { colors: ['#E67814'], field: { opaque: 0.1, edges: {} } };
   const c = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: cut }, specs['naver-gfa-mobile-da-1250x560']);
