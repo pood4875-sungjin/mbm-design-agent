@@ -25,6 +25,7 @@ import { limitsByRole, roleOf, countChars, estimateLines, inImage } from '../adf
 import { designOf } from '../design.js';
 import { resolveField, kvLayer, meltMask, meltMask2 } from '../field.js';
 import { layoutFor } from '../layouts.js';
+import { guideFor } from '../canon.js';
 import { contrast, mix, hexToRgb, WHITE, BLACK } from '../palette.js';
 
 const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
@@ -135,7 +136,8 @@ export function renderAd(ctx, style, spec) {
   const inLimits = (rules.textLimits ?? []).filter(inImage);
   const by = limitsByRole(inLimits);
   // 규정이 없는 매체(구글 GDN)는 보드의 디자인 가이드가 슬롯·칩·글자 px·오브젝트 폭·시안 2종을 정한다(core/media/google-gdn.json guide)
-  const guide = mr.guide ?? null;
+  // 매체 가이드(구글) 위에 배너 공통 조형 기준(core/canon.js)을 깐다 — 가이드가 정한 키가 이긴다
+  const guide = guideFor(mr);
   const slots = Object.keys(by).length ? by
     : guide?.slots ? Object.fromEntries(guide.slots.map(r => [r, { lines: r === 'date' ? 1 : null, maxChars: null }]))
     : { main: { lines: null, maxChars: null }, sub: { lines: null, maxChars: null }, date: { lines: 1, maxChars: null } };
@@ -180,8 +182,11 @@ export function renderAd(ctx, style, spec) {
     // 빗금·가운뎃점으로 이어진 긴 낱말("비씨월드제약/헬스케어" 11자)은 그 뒤에서 끊을 수 있다(예시 "비씨월드제약 / 헬스케어") — 8자 넘는 덩어리는 조각으로 센다
     const pieces = w => countChars(w, counting) > 8 ? w.split(/(?<=[\/∙·])/) : [w];
     const wordOk = c => perLine == null || !Number.isFinite(perLine) || !String(c).split(/\s+/).flatMap(pieces).some(w => countChars(w, counting) > perLine);
+    // 줄 수 추정: 매체가 줄당 글자수를 정했으면 글자수로, 아니면 글꼴 폭(textWidth)으로 — 글자수 0.9em 어림은 띄어쓰기·빗금까지 한 글자로 세어
+    // "㈜일화 신입/경력 사원 모집"(575px)을 582px 칸에서 두 줄로 보고 회사를 떨어뜨린다(카카오). fitFontSize와 같은 자로 재야 둘이 어긋나지 않는다
+    const linesOf = c => (slot?.maxCharsPerLine != null || !(fs && widthPx)) ? estimateLines(c, perLine, counting) : Math.max(1, Math.ceil(textWidth(c) * fs * 1.04 / widthPx));
     const fits = c => (slot?.maxChars == null || countChars(c, counting) <= slot.maxChars) && wordOk(c)
-      && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || estimateLines(c, perLine, counting) <= linesCap);
+      && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || linesOf(c) <= linesCap);
     if (only != null) return { text: only, fits: fits(only), last: false };   // 특정 문구 하나가 이 크기에 들어가는지만
     const hit = cands.find(fits);
     // last: 사다리 맨 끝("채용 공고")까지 내려갔다 — 들어가긴 하지만 정보가 없는 문구라, 글자를 줄여서라도 위 문구를 살릴 수 있는지 본다
@@ -196,8 +201,8 @@ export function renderAd(ctx, style, spec) {
   }
   // 가로형은 시즌이 메인 앞에 붙는다(삼진제약) — 서브 줄은 접수기간이 쓴다
   // 가이드가 상세 슬롯을 둔 매체(구글)는 접수기간이 상세 칩으로 가므로 서브는 시즌·슬로건 그대로(일화 970: 슬로건 → 메인 → 라벨 2개)
-  if (useRef && L.shape === 'wide' && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.slots) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];
-  if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.slots) {
+  if (useRef && L.shape === 'wide' && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];
+  if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.seasonInMain) {
     ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
   }
   let copy = Object.fromEntries(Object.keys(ladder).filter(k => !['details', 'mainNarrow', 'subNarrow', 'mainWide'].includes(k)).map(r => [r, pickIn(r, null)]));
@@ -384,14 +389,14 @@ export function renderAd(ctx, style, spec) {
     : oBox ? Math.max(0, Math.round(w - pad.right - innerW * 0.04 - (oBox.x - (oBox.gap ?? 33))))
     : useRef ? Math.max(0, refObjW - pad.right)
     : Math.round(innerW * Math.min(0.5, Math.max(0.24, objRatio ?? (strip ? 0.32 : 0.38))));
-  const objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
+  let objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
   const stripCtaCol = (SHOW_CTA && strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
   const textW = (objectSide === 'right' ? innerW - objW - Math.round(innerW * 0.04) : innerW) - stripLogoCol - stripCtaCol;
   // 예시는 글자가 그림 자리의 위쪽(녹인 구간)으로 겹친다 — 가이드가 정한 만큼(세로형 40%·세로 띠 20%·정사각 모서리 26%) 그림 자리를 글자에 내준다
   const overlap = guide?.objectOverlap?.[L.shape] ?? 0;
-  const objReserve = objectSide === 'bottom' ? Math.round(objH * (1 - overlap)) : objH;
+  let objReserve = objectSide === 'bottom' ? Math.round(objH * (1 - overlap)) : objH;
   const cornerTop = (tImage && !(tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1) && tImage.y > 0) ? tImage.y + Math.round(tImage.h * (gCorner ? Math.max(0.22, overlap) : 0.22)) : null;
   const textH = objectSide === 'bottom' ? innerH - objReserve - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
 
@@ -406,7 +411,7 @@ export function renderAd(ctx, style, spec) {
   };
   // 가로형은 메인 + 정보 한 줄(안랩·삼진제약). 서브 칸이 있으면 서브가 그 줄이고(접수기간이 들어 있다), 없으면 날짜·상세가 그 줄이다.
   // 가이드가 슬롯을 정한 매체(구글)는 가로형에도 서브 + 메인 + 상세 한 행을 다 둔다(일화 970: 접수기간·모집부문 라벨 2개 한 줄)
-  if (useRef && L.shape === 'wide' && !guide?.slots) {
+  if (useRef && L.shape === 'wide' && !guide?.seasonInMain) {
     if (want.sub && ctx.kind === 'recruit') { want.date = false; want.detail = false; }
     else if (want.date || want.detail) want.sub = false;
   }
@@ -458,11 +463,13 @@ export function renderAd(ctx, style, spec) {
   const detailFs = stated.detail ?? null;
   const detailLines = [];
   // 이미지 옆으로 흐르는 구간의 폭 — 가이드 모서리 상자(구글 580)는 상자 왼쪽 선보다 넓게(일화 목록 폭 78%): 그림의 녹인 구간 위로 글자가 가도 된다
+  // 오른쪽 그림이 지면으로 녹는 경우(누끼·상자 아님) 상세는 그 녹인 구간의 30%까지 흘러도 된다 — 레퍼런스(일화 970 칩이 사진 위까지)처럼. "모집직무 : 클라우드 플랫폼 / 엔지니어"가 칸 경계에서 접히지 않게
+  const rightMelt = objectSide === 'right' && hasKv && !isCutout && !transparent && !oBox && !logoAsObject;
   const detailW = (imgCorner && hasKv)
     ? (gCorner && guide?.detailColumn ? Math.round(textW * guide.detailColumn)
       // 자소설 모서리 상자: 그림이 실제로 그려지는 네모의 왼쪽 선까지 + 녹인 구간의 28% — "클라우드 플랫폼 / 엔지니어"처럼 상자 선에서 접히지 않게
       : Math.max(60, (cornerRect ? cornerRect.x + (meltCorner ? Math.round(cornerRect.w * 0.28) : 0) : tImage.x) - pad.left - 10))
-    : textW;
+    : rightMelt ? textW + Math.round(objW * 0.3) : textW;
   let detailFsFit = null;   // 가이드 매체에서 상세가 안 들어가 글자를 줄인 결과(없으면 null)
   if (want.detail) {
     // 메인·서브에 이미 들어 있는 말은 상세로 되풀이하지 않는다("신입/경력" 고용형태는 메인 "신입/경력사원 채용"에 있다 — 보드 예시에 고용형태 줄은 없다)
@@ -556,15 +563,30 @@ export function renderAd(ctx, style, spec) {
     mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
   }
   // 가이드 매체: 폭 기준으론 한 줄에 들어간다고 보고 줄 수를 1로 잡았다가 글자수 기준으론 안 들어가 회사가 떨어진 경우 — 두 줄로 줄여서 정보를 지킨다(일화 970 2줄 37px)
-  if (guide?.keepInfo && copy.main !== preferMain && (mainLinesCap ?? 2) >= 2 && stated.main == null) {
-    const fs2 = Math.min(mainCap, Math.floor(titleBudget / (2 * mainLine)));
-    if (fs2 >= Math.max(floorMain, Math.round(capMain * guide.keepInfo)) && pickInfo('main', textW, fs2, 2, preferMain).fits) { copy.main = preferMain; mainFs = fs2; mainLines = 2; }
+  if (guide?.keepInfo && copy.main !== preferMain && stated.main == null) {
+    const minFs = Math.max(floorMain, Math.round(capMain * guide.keepInfo));
+    // 지금 줄 수로 글자만 줄여 보고(카카오 1줄 46→44), 안 되면 두 줄로
+    const tryLines = [...new Set([mainLines, Math.min(2, mainLinesCap ?? 2)])].filter(n => n >= 1);
+    for (const ln of tryLines) {
+      let fs = Math.min(mainCap, Math.floor(titleBudget / (ln * mainLine)));
+      while (fs >= minFs && !pickInfo('main', textW, fs, ln, preferMain).fits) fs = Math.round(fs * 0.94);
+      if (fs >= minFs) { copy.main = preferMain; mainFs = fs; mainLines = ln; break; }
+    }
+  }
+  // 채움: 글자 블록 아래가 비면(남는 높이가 지면의 12% 넘음) 그림 자리가 자라서 메운다(최대 55%) — 보드 예시 141장에 비어 보이는 소재는 없다(균형 90·여유 31·빽빽 20)
+  if (guide?.fill && objectSide === 'bottom' && !tImage && hasKv && !logoAsObject) {
+    const used = blocksOf(z) + Math.round(mainLines * mainFs * mainLine);
+    const slack = textH - used;
+    if (slack > h * guide.fill.slack) {
+      const grow = Math.min(Math.round(slack * 0.7), Math.round(h * guide.fill.maxObject) - objH);
+      if (grow > 0) { objH += grow; objReserve = Math.round(objH * (1 - overlap)); }
+    }
   }
   // 메인 칸으로 셀 것은 이름이 메인·타이틀인 행뿐이다 — "혜택 강조카피"·"카피 전체 줄 수"는 메인 두 줄이 아니다(카카오 비즈보드)
   const mainRows = inLimits.filter(t => roleOf(t.field) === 'main' && /메인|타이틀|제목|대문구/.test(String(t.field)) && !/전체/.test(String(t.field)));
   const mainRowLines = mainRows.length ? mainRows.reduce((n, t) => n + (t.lines ?? 1), 0) : L.mainLines;
   // 가이드 매체(구글)는 keepInfo·twoLines가 줄 나눔을 맡는다 — 이 짝 규칙(리멤버 안랩·삼진)은 시즌을 떨어뜨린다
-  if (useRef && L.shape === 'wide' && L.mainLines >= 2 && mainRowLines >= 2 && ctx.kind === 'recruit' && core.client && !guide?.twoLines) {
+  if (useRef && L.shape === 'wide' && L.mainLines >= 2 && mainRowLines >= 2 && ctx.kind === 'recruit' && core.client && !guide?.seasonInMain) {
     const per = slots.main?.maxCharsPerLine ?? null, total = slots.main?.maxChars ?? null;
     // 안랩 "AhnLab / 신입/경력 채용" · 삼진제약 "2026년 / 삼진제약 부문별 채용" — 시즌을 적어 줬으면 시즌이 첫 줄
     const hireTxt = hireOf(core.hiringType || core.employType);
@@ -646,7 +668,7 @@ export function renderAd(ctx, style, spec) {
   // 가로형은 상세를 한 행에 가로로 푼다(일화 970: 접수기간·모집부문 라벨 2개 한 줄 / 중앙 템플릿 상세 4칸 한 행)
   const detailRow = useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
   const detailBlock = () => detailLines.length
-    ? `<div data-field="detail" style="font-size:${z.dFs}px;line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP}${detailRow ? `;display:flex;flex-wrap:wrap;gap:0 ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map(d =>
+    ? `<div data-field="detail" style="font-size:${z.dFs}px;line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP}${detailW > textW ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:0 ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map(d =>
         `<div>${label(d)}${esc(nb(d.value))}</div>`).join('')}</div>` : '';
   const logoImg = (hPx, maxW) => (allowLogo && logoSrc)
     ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${hPx}px;width:auto;max-width:${maxW}px;object-fit:contain;${logoFilter}"/>`
@@ -744,8 +766,8 @@ ${tplLogo}${tplObject}
   else if (want.advertiser) parts.push(T('advertiser', copy.advertiser, z.smallFs, 700, subFg, `margin-bottom:${Math.round(z.smallFs * 0.5)}px`));
   const subLh = useRef ? L.subLine : line;
   if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, useRef ? L.subWeight : 700, subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
-  parts.push(T('main', copy.main, mainFs, 700, mainFg, useRef ? 'text-wrap:balance' : '', mainLines, mainLine));
-  if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, 400, subFg, `margin-top:${useRef ? subGap(z) : 6}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
+  parts.push(T('main', copy.main, mainFs, guide?.weights?.main ?? 700, mainFg, useRef ? 'text-wrap:balance' : '', mainLines, mainLine));
+  if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, guide?.weights?.sub ?? 400, subFg, `margin-top:${useRef ? subGap(z) : 6}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   parts.push(metaRow());
   tail.push(detailBlock());
   if (want.extra) tail.push(T('extra', copy.extra, z.smallFs, 400, subFg, 'margin-top:6px', Math.min(slots.extra.lines ?? 1, 2)));
