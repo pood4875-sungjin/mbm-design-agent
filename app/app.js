@@ -12,6 +12,8 @@ import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '
 import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage, colorDistance } from '../core/palette.js';
 import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
+import { checkAdDoc } from '../core/adcheck.js';
+import { kvTypeOf, kvTypeSummary } from '../core/kvtypes.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -840,6 +842,8 @@ function objectSlotsText(it, field) {
 // 키비주얼을 올리면 어떻게 읽었는지, 어디에 어떻게 쓰이는지 한 번에 말한다 — 사용자가 결과를 보고 놀라지 않게(10-06)
 function kvDiagnosis(it, meta) {
   const f = meta?.field, kind = f?.kind;
+  const T = kvTypeOf(meta);
+  if (T) say(`유형: ${kvTypeSummary(meta)}${T.sub ? ` — ${T.sub.name}` : ''}. ${T.sub?.guide?.[0] ?? T.type.place[0]}`);
   const how = kind === 'texture' ? '그라데이션 질감으로 읽었어요 — 지면 전체에 깔고 글자만 올려요.'
     : kind === 'cutout' ? '배경 없는 누끼로 읽었어요 — 자리에 맞춰 넣고 지면은 브랜드색이에요.'
     : kind === 'photo' ? '사진으로 읽었어요 — 브랜드색 지면에 녹여 넣어요.'
@@ -1353,16 +1357,17 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span></div>
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
           </div>`;
         const iframe = frame.querySelector('iframe');
+        iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html);
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
-        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), label: frame.querySelector('.fname') });
+        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), label: frame.querySelector('.fname') });
         lintBadge(a);
         x += w + 70;
         rowH = Math.max(rowH, h);
@@ -1426,12 +1431,30 @@ function lintBadge(a) {
   f.lint.className = 'badge lint ' + L.level;
   f.lint.textContent = L.level === 'pass' ? '규격 통과' : `${L.level === 'block' ? '차단' : '경고'} ${L.issues.length}`;
 }
+// 디자인 검수 — 규격 검사(치수·용량·글자수)와 별개로, 그려진 프레임을 재서 디자이너 눈에 걸리는 것(글자-주인공 겹침·로고 가림·뚝 끊긴 변·빈 여백·글자 잘림)을 경고로
+function designCheck(a) {
+  if (a.channel !== 'ad' || !state.campaign) return;
+  const f = frames.get(a.key ?? a.specId); if (!f?.iframe?.contentDocument) return;
+  try { a.design = checkAdDoc(f.iframe.contentDocument, { kvMeta: state.campaign.style.kvMeta }); } catch (e) { a.design = null; }
+  designBadge(a);
+  if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
+}
+const designWarnings = a => (a.design?.warnings ?? []).filter(w => w.level !== 'info');
+function designBadge(a) {
+  const f = frames.get(a.key ?? a.specId); if (!f?.design) return;
+  const n = designWarnings(a).length;
+  f.design.style.display = n ? '' : 'none';
+  f.design.textContent = n ? `디자인 ${n}` : '';
+  f.design.title = designWarnings(a).map(w => w.msg).join('\n');
+}
 function lintHtml(a) {
   const L = a.lint;
-  if (!L) return '<div style="font-size:11.5px;color:var(--sub)">규격 검사 중…</div>';
-  if (!L.issues.length) return '<div style="font-size:11.5px;color:var(--good);font-weight:600">규격 통과 — 치수·포맷·용량·글자수·색 모두 규정 안</div>';
+  const D = designWarnings(a);
+  const dHtml = D.length ? `<ul style="margin:4px 0 0;padding-left:16px;font-size:11.5px;line-height:1.5">${D.map(w => `<li style="color:var(--amber)">디자인 · ${w.msg}</li>`).join('')}</ul>` : '';
+  if (!L) return '<div style="font-size:11.5px;color:var(--sub)">규격 검사 중…</div>' + dHtml;
+  if (!L.issues.length) return `<div style="font-size:11.5px;color:var(--good);font-weight:600">규격 통과 — 치수·포맷·용량·글자수·색 모두 규정 안</div>${dHtml || '<div style="font-size:11.5px;color:var(--good)">디자인 검수 통과 — 겹침·가림·끊김·빈 여백 없음</div>'}`;
   return `<ul style="margin:4px 0 0;padding-left:16px;font-size:11.5px;line-height:1.5">${L.issues.map(i =>
-    `<li style="color:${i.level === 'block' ? 'var(--danger)' : 'var(--amber)'}">${i.msg}</li>`).join('')}</ul>`;
+    `<li style="color:${i.level === 'block' ? 'var(--danger)' : 'var(--amber)'}">${i.msg}</li>`).join('')}</ul>${dHtml}`;
 }
 let lintRun = 0;
 async function lintAds() {

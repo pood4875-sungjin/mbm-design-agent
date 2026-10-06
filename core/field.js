@@ -18,7 +18,12 @@ const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션
 // lightPhoto: 사진도 밝은 지면에 녹이는 매체(구글 일화 사옥 → 흰 지면). 자소설은 밝은 매체여도 사진은 브랜드색 지면(한독 → 파랑)
 // 어두운 브랜드 지면 — 단색 대신 은은한 대각 그라데이션(왼쪽 위 살짝 밝고 따뜻하게 → 오른쪽 아래 짙게). 보드 1-884 코엑스 카드(보라 → 짙은 보라)·리멤버 예시의 문법.
 // 색 거리는 그라데이션 문턱(0.045)을 넘되 글자 대비는 두 끝 모두 지킨다. 단색 전용 규격·'단색' 선택이면 resolveField가 가운데 색으로 접는다
-function brandDeep(brand) { return [shiftHue(brand, 0, 0.06, 0), shiftHue(brand, 0, -0.08, 0)]; }   // 색상(hue)은 그대로 — 명도만. 색상까지 돌면 글자 대비 판정의 전제가 깨진다
+// 어두운 브랜드 지면 — 색상(hue)은 그대로, 명도만 내린다. 밝은 끝이 흰 글자 4.5:1을 넘을 때까지 어둡힌다: 주황·노랑·연두 브랜드(여우 #E0813A)는 그냥 두면 2.7:1이라 검정 글자로 떨어져 싸구려 티가 난다(케이스 장부 R3) — 코엑스 카드처럼 딥 컬러 + 흰 글자가 답
+export function brandDeep(brand) {
+  let d = -0.06;
+  while (d < 0.5 && contrast(shiftHue(brand, 0, -d, 0), WHITE) < 4.5) d += 0.02;
+  return [shiftHue(brand, 0, -d, 0), shiftHue(brand, 0, -(d + 0.14), 0)];
+}
 
 export function resolveField(style, { facing = 'left', solidOnly = false, light = false, lightPhoto = false } = {}) {
   const p = style.palette ?? {};
@@ -299,9 +304,9 @@ const arKvOf = style => style.kvMeta?.ar ?? null;
 //   inset: 가장자리에서 띄울 폭(좌우 끝이 단색이어야 하는 지면) · melt:false 면 녹이지 않는다(투명 배경 규격)
 // 그 변이 이미 지면색과 같으면(field.seamless) 그 변을 기준으로 붙여 이음매에서 그림이 잘리지 않게 하고, 녹이는 폭을 줄인다.
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
-export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true, top = 0 }) {
+export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true, top = 0, bleedMax = 1.3 }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const { cutout, bw, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset, top });
+  const { cutout, bw, bh, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset, top });
   const hh = side === 'right' ? h - top : h;
   // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션. 주인공으로 당긴 자리는 그림 한가운데가 변이다
   const joinFlat = crop ? false : style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
@@ -327,7 +332,9 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   // 보드 1-884 코엑스 카드가 건물을 오른쪽 아래로 크게 두고 가장자리에서 자른 문법. 그 이상 넘치면 그냥 맞춰 넣는다(캐릭터 떼가 반 잘리면 안 된다)
   const arKv = style.kvMeta?.ar;
   const bleed = cutout && side === 'right' && arKv && hh * arKv > bw && hh * arKv <= bw * 1.3;
-  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${hh}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${bleed ? '--kv-bleed:1;' : ''}`;
+  // 아래 띠의 가로 긴 누끼도 같은 문법 — 띠 높이에 맞추면 폭이 지면을 넘칠 때(130%까지) 가운데 두고 좌우를 지면 밖으로 자른다(세로 띠 300×1050 건물)
+  const bleedB = cutout && side === 'bottom' && arKv && bh * arKv > w && bh * arKv <= w * bleedMax + 1;
+  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${hh}px` : bleedB ? `center bottom/auto ${bh}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;

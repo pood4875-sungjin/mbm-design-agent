@@ -215,7 +215,7 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
       hex: hex(all), from: hex(half[0]) ?? hex(all), to: hex(half[1]) ?? hex(all),
       opaque: op,
       rough: pairs ? Math.round(rough / pairs * 1000) / 1000 : 0,
-      std, flat: op >= 0.9 && std < 15,   // 평평한 변 = 지면에 이음매 없이 붙일 수 있는 변
+      std, flat: op >= 0.9 && std < 15 && (pairs ? rough / pairs : 0) < 0.006,   // 평평한 변 = 색 편차 작고 결도 없다(사진의 변은 어둡게 찍혀 편차가 줄어도 결 ≥ .008 — 일화 사옥 어둡게)
     };
   };
   const edges = {
@@ -230,6 +230,11 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   //   illust  평평한 변이 하나라도 있다 — 바탕을 품은 일러스트·3D. 그 변의 색이 지면이 되어 이음매 없이 이어진다(72/136, 가장 흔함)
   const flatEdges = list.filter(e => e.flat).length;
   const cutout = opaque < 0.5;
+  // 그림 전체 밝기(0~1) — 사진·질감의 밝은/어두운 세분, 글자색·스크림 판단. 4px 표본, 불투명 픽셀만
+  let lsum = 0, lsq = 0, ln = 0;
+  for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) { const i = (y * w + x) * 4; if (rgba[i + 3] < 200) continue; const L = (0.2126 * rgba[i] + 0.7152 * rgba[i + 1] + 0.0722 * rgba[i + 2]) / 255; lsum += L; lsq += L * L; ln++; }
+  const lum = ln ? Math.round(lsum / ln * 100) / 100 : null;
+  const lumSpread = ln ? Math.round(Math.sqrt(Math.max(0, lsq / ln - (lsum / ln) ** 2)) * 100) / 100 : null;
   // 질감(texture): 날카로운 경계가 거의 없고(이웃 차 > 0.08인 쌍 0.3% 미만) 전체가 매끈한(평균 이웃 차 0.005 미만) 그림 — 블러 그라데이션.
   // 주인공도 바탕도 없다. 측정(10-06): 그라데이션 0.00% / 삼성 3D 4.3% / 일화 사진 7.8% / 비씨 일러스트 17.8%
   const tex = textureOf(rgba, w, h);
@@ -240,8 +245,15 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   // 바탕 기준색 — 평평한 변이 있으면 그 색. 주인공이 변까지 닿는 줄에서는 그 줄의 양끝 색이 주인공 색이라 바탕 추정이 틀어진다(초록 호가 오른쪽 변에 닿은 줄) — 그때는 이 색을 쓴다
   const refEdge = [edges.top, edges.left, edges.right, edges.bottom].find(e => e.flat && e.hex);
   const ref = refEdge ? hexToRgb(refEdge.hex) : null;
-  if (kind === 'texture') return { edges, opaque, flatEdges, kind, texture: tex, quadrants, focus: null, rows: bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: null };
-  return { edges, opaque, flatEdges, kind, texture: tex, quadrants, focus: focusOf(rgba, w, h, bw, cutout, ref), rows: cutout ? null : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? null : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
+  if (kind === 'texture') return { edges, opaque, flatEdges, kind, lum, lumSpread, texture: tex, quadrants, focus: null, rows: bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: null };
+  // 누끼의 열/행 프로필은 투명 비율(bg) — 자르기 선·창 변이 캐릭터 몸을 가르지 않고 캐릭터 사이 빈 열에서 끊게 한다(ABL 떼 300×1050)
+  const alphaProfile = (axis, n = 16) => Array.from({ length: n }, (_, k) => {
+    let tot = 0, clear = 0;
+    if (axis === 'cols') { const x0 = Math.floor(k * w / n), x1 = Math.max(x0 + 1, Math.floor((k + 1) * w / n)); for (let y = 0; y < h; y += 2) for (let x = x0; x < x1; x += 2) { tot++; if (rgba[(y * w + x) * 4 + 3] < 200) clear++; } }
+    else { const y0 = Math.floor(k * h / n), y1 = Math.max(y0 + 1, Math.floor((k + 1) * h / n)); for (let y = y0; y < y1; y += 2) for (let x = 0; x < w; x += 2) { tot++; if (rgba[(y * w + x) * 4 + 3] < 200) clear++; } }
+    return { hex: null, bg: tot ? Math.round(clear / tot * 100) / 100 : 1 };
+  });
+  return { edges, opaque, flatEdges, kind, lum, lumSpread, texture: tex, quadrants, focus: focusOf(rgba, w, h, bw, cutout, ref), rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
 }
 
 // 전체 거칠기 — 2px 격자에서 오른쪽·아래 이웃과의 색 차 평균(rough), 차가 0.08을 넘는 쌍의 비율(sharp), 전체 색 편차(spread). 질감 판정에 쓴다
@@ -406,7 +418,11 @@ function focusOf(rgba, w, h, bw, cutout, ref = null) {
   const X0 = pick.x0 * 2, X1 = Math.min(w - 1, pick.x1 * 2 + 1), Y0 = pick.y0 * 2, Y1 = Math.min(h - 1, pick.y1 * 2 + 1);
   // others: 주인공으로 고르지 않은 덩어리들의 상자(0~1) — 자리 창이 이들을 가르지 않게 피하는 데 쓴다(core/field.js kvPlacement)
   const others = pick === all ? [] : groups.filter(g => g !== big).map(g => ({ x0: r2(g.x0 * 2 / w), x1: r2(Math.min(w - 1, g.x1 * 2 + 1) / w), y0: r2(g.y0 * 2 / h), y1: r2(Math.min(h - 1, g.y1 * 2 + 1) / h) }));
-  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length, others };
+  // density: 주인공 상자 안에서 주인공 픽셀이 차지하는 비율 — 캐릭터·사물은 촘촘(≥0.5), 크레인·건물 장면은 성글다(<0.45). 유형 세분(core/kvtypes.js)에 쓴다
+  let inBox = 0;
+  for (let gy = pick.y0; gy <= pick.y1; gy++) for (let gx = pick.x0; gx <= pick.x1; gx++) if (hit[gy * gw + gx]) inBox++;
+  const density = r2(inBox / Math.max(1, boxArea(pick)));
+  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length, others, density };
 }
 
 export function analyzeRegion(rgba, w, h, box) {
