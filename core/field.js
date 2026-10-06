@@ -127,8 +127,10 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   // 단 자리가 주인공보다 30% 넘게 낮으면 위(머리·얼굴)를 지키고 아래(발)를 자른다 — 캐릭터 머리가 잘린 띠는 어색하다(여우 10-06). 머리 위 숨 4%
   const lossV = 1 - Math.min(1, bh / (fh * s));
   const ox = Math.round(focus.x + focus.w / 2 >= 0.97 ? bw - iw * s : Math.min(0, Math.max(bw - iw * s, bw / 2 - cx)));
-  const oy = Math.round(lossV > 0.3 ? Math.min(0, Math.max(bh - ih * s, -(y0 * ih * s) + bh * 0.04))
-    : focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
+  const oy0 = Math.round(focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
+  // 가운데 맞춤이 머리 위(주인공 상자 윗변+숨)를 자리 폭의 2% 넘게 자르면 머리를 지킨다 — 귀가 잘린 채 윗변에서 녹는 여우(10-06 "뚝 끊은 면")
+  const headCut = oy0 + y0 * ih * s < -bh * 0.02;
+  const oy = (lossV > 0.3 || headCut) ? Math.round(Math.min(0, Math.max(bh - ih * s, -(y0 * ih * s) + bh * 0.04))) : oy0;
   return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, ox, oy, iw, ih, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
     top: Math.round(-oy / (ih * s) * 1000) / 1000, left: Math.round(-ox / (iw * s) * 1000) / 1000 };   // 자리의 윗변·왼변이 그림의 어느 높이·폭에 걸리는가(0~1)
 }
@@ -217,7 +219,9 @@ export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fal
   const px = at(bw, imgW, focus.x);
   let py = at(bh, imgH, focus.y), oyPx = null;
   const lossV = imgH > bh + 0.5 ? 1 - Math.min(1, bh / (focus.h * imgH)) : 0;
-  if (lossV > 0.3) oyPx = Math.round(Math.min(0, Math.max(bh - imgH, -(focus.y - focus.h / 2) * imgH + bh * 0.04)));   // 머리 위 숨 4%
+  // 가운데 맞춤이 주인공 윗변(머리)을 자리 높이의 2% 넘게 자르면 머리를 지키고 아래를 자른다 — 숨은 머리 위 4%
+  const headCut = imgH > bh + 0.5 && (-(py * (imgH - bh)) + (focus.y - focus.h / 2) * imgH) < -bh * 0.02;
+  if (lossV > 0.3 || headCut) oyPx = Math.round(Math.min(0, Math.max(bh - imgH, -(focus.y - focus.h / 2) * imgH + bh * 0.04)));   // 머리 위 숨 4%
   const pos = oyPx != null ? `${Math.round(px * 100)}% ${oyPx}px` : `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
   const trueEdge = seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (oyPx == null && (py === 0 || imgH <= bh + 0.5)));
   const joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? (oyPx != null ? -oyPx / imgH : py * (imgH - bh) / imgH) : 0);
@@ -269,13 +273,26 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
     if (rows?.length) {
       const bgTop = c => rows[Math.min(rows.length - 1, Math.max(0, Math.floor(c.top * rows.length)))]?.bg ?? 1;
       let c = crop, k = 1;
-      while (bgTop(c) < 0.85 && k > 0.55) { k *= 0.92; const c2 = subjectCrop(style, bw, bh, { sMul: k }); if (!c2) break; c = c2; }
-      if (c !== crop && bgTop(c) >= 0.85) placed = { ...c, eased: true };
+      // 바탕 95% — 85%면 귀 끝을 가르는 줄도 통과해 귀가 녹아 보인다(여우 300×600)
+      while (bgTop(c) < 0.95 && k > 0.55) { k *= 0.92; const c2 = subjectCrop(style, bw, bh, { sMul: k }); if (!c2) break; c = c2; }
+      if (c !== crop && bgTop(c) >= 0.95) placed = { ...c, eased: true };
     }
   }
   if (placed) { trueEdge = false; joinFrac = side === 'right' ? placed.left : placed.top; }
   return { cutout, bw, bh, far, pos, trueEdge, crop: placed, joinFrac: Math.round(joinFrac * 1000) / 1000 };
 }
+
+// 통째로 덮은(cover) 그림의 윗변이 그림의 어느 높이에 걸리는가(0 = 그림 윗변 그대로) — pos 'X% Y%' 또는 'X% Npx'
+export function coverTopFrac(pos, bw, bh, ar) {
+  if (!ar || !(bw > 0 && bh > 0)) return 0;
+  const imgH = bw / bh > ar ? bw / ar : bh;
+  if (imgH <= bh + 0.5) return 0;
+  const m = String(pos).trim().split(/\s+/);
+  const y = m[1] ?? '50%';
+  const oy = y.endsWith('px') ? Number.parseFloat(y) : -(Number.parseFloat(y) / 100) * (imgH - bh);
+  return Math.max(0, Math.min(1, -oy / imgH));
+}
+const arKvOf = style => style.kvMeta?.ar ?? null;
 
 // 키비주얼 층 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
 //   side 'right' | 'bottom' · size: 이미지가 차지하는 폭(오른쪽) 또는 높이(아래) · edgePad: 그쪽 지면 여백(이미지는 여백까지 덮는다)
@@ -294,10 +311,18 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   const jr = prof?.length ? prof[Math.min(prof.length - 1, Math.max(0, Math.round(joinFrac * (prof.length - 1))))] : null;
   // 지면이 이음매 색으로 이어진 그라데이션(joinField)이면 자리 쪽 끝 색과 비교한다
   const near = field?.stops?.length ? field.stops[field.stops.length - 1] : null;
-  const quiet = !!(jr?.hex && jr.bg >= 0.85 && near && colorDistance(jr.hex, near) < 0.035);
-  const pct = quiet ? 10 : trueEdge ? 16 : joinFlat === false ? 38 : 30;
+  // 이음매 줄이 바탕 95% 이상이고 지면색과 같으면 10%, 85~95%(귀·팔 끝만 걸림)면 20% — 85%를 '조용하다'고 보고 10%만 녹이면 뚝 끊기고, 30%로 길게 녹이면 팔이 뿌옇다
+  const same = !!(jr?.hex && near && colorDistance(jr.hex, near) < 0.035);
+  const quiet = same && jr.bg >= 0.95, calm = same && jr.bg >= 0.85;
+  const pct = quiet ? 10 : calm ? 20 : trueEdge ? 16 : joinFlat === false ? 38 : 30;
   const dir = side === 'right' ? 'to right' : 'to bottom';
-  const mask = (!melt || cutout) ? '' : meltMask(dir, pct);
+  // 오른쪽 열이 로고 띠 아래(top>0)에서 시작하면 열의 윗변은 지면 한가운데의 직선이다 — 그 줄이 그림의 바탕이 아니면(여우 귀가 잘림) 윗변도 녹인다(10-06 사용자 "뚝 끊은 면… 그라로 넣던지").
+  // 윗줄이 바탕이고 지면색과 같으면 녹일 게 없다. 녹임은 짧게(22%) — 머리 위를 길게 녹이면 뿌옇다
+  const topFrac = side === 'right' && top > 0 && !cutout ? (crop ? crop.top : coverTopFrac(pos, bw, hh, arKvOf(style))) : null;
+  const rows = style.kvMeta?.field?.rows;
+  const tr = (topFrac != null && rows?.length) ? rows[Math.min(rows.length - 1, Math.max(0, Math.round(topFrac * (rows.length - 1))))] : null;
+  const topQuiet = topFrac == null ? true : tr ? (tr.bg >= 0.95 && (!near || colorDistance(tr.hex, near) < 0.035)) : false;
+  const mask = (!melt || cutout) ? '' : topQuiet ? meltMask(dir, pct) : meltMask2(pct, 22);
   // 누끼를 오른쪽 열에 맞춰 넣을 때 폭이 모자라 작아지면(건물·3D처럼 가로가 긴 누끼) 높이에 맞추고 오른쪽·아래로 붙인다 — 폭이 열의 130%까지 넘치는 건 지면 밖으로 잘린다.
   // 보드 1-884 코엑스 카드가 건물을 오른쪽 아래로 크게 두고 가장자리에서 자른 문법. 그 이상 넘치면 그냥 맞춰 넣는다(캐릭터 떼가 반 잘리면 안 된다)
   const arKv = style.kvMeta?.ar;
