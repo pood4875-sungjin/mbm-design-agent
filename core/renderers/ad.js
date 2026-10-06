@@ -151,7 +151,9 @@ export function renderAd(ctx, style, spec) {
     // 매체가 줄당 글자수를 정해 두면(자소설 메인 6자) 그것을 믿는다 — 폭으로 어림한 값은 영문·기호가 섞이면 너무 보수적이다("PTKOREA"가 두 줄로 세어진다)
     if (fs && widthPx && perLine == null) perLine = Math.max(1, Math.floor(widthPx / (fs * 0.98)));
     const linesCap = Math.min(slot?.lines ?? Infinity, linesHint ?? Infinity);
-    const fits = c => (slot?.maxChars == null || countChars(c, counting) <= slot.maxChars)
+    // 한 낱말이 한 줄보다 길면 낱말 중간에서 끊긴다("도레이첨단소재" 7자 > 달력배너 행당 6자) — 그 문구는 안 맞는 것으로 본다
+    const wordOk = c => perLine == null || !Number.isFinite(perLine) || !String(c).split(/\s+/).some(w => countChars(w, counting) > perLine);
+    const fits = c => (slot?.maxChars == null || countChars(c, counting) <= slot.maxChars) && wordOk(c)
       && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || estimateLines(c, perLine, counting) <= linesCap);
     return cands.find(fits) ?? cands[cands.length - 1];
   };
@@ -341,8 +343,9 @@ export function renderAd(ctx, style, spec) {
   const detailW = (imgCorner && hasKv) ? Math.max(60, tImage.x - pad.left - 10) : textW;   // 이미지 옆으로 흐르는 구간의 폭
   if (want.detail) {
     const fsForWidth = detailFs ?? Math.round(capMain * 0.5);
-    // 매체가 줄당 글자수를 정해 두면 그것을 믿는다(자소설 상세 11자). 폭 어림(0.98em/자)은 숫자·괄호가 많은 날짜 줄을 두 줄로 센다
-    const perLine = detailSlot.maxCharsPerLine ?? Math.max(6, Math.floor(detailW / (fsForWidth * 0.98)));
+    // 매체의 줄당 글자수(자소설 상세 11자)와 실제 칸 폭 중 작은 쪽. 폭 어림은 0.9em/자 — 숫자·괄호가 섞인 줄을 0.98로 세면 한 줄짜리 날짜가 두 줄로 세어지고,
+    // 매체 값만 믿으면 이미지 옆 좁은 열(PC팝업 550×400)에서 실제로는 더 많이 접혀 상세 3줄 규정을 넘긴다
+    const perLine = Math.min(detailSlot.maxCharsPerLine ?? Infinity, Math.max(6, Math.floor(detailW / (fsForWidth * 0.9))));
     const cap = detailSlot.lines ?? 3;
     let used = 0;
     const narrow = perLine <= 12;

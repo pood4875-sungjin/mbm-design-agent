@@ -124,11 +124,14 @@ export function extractRecruit(text, now = new Date()) {
   if (iso0 && iso) out.startDate = iso0;
 
   // 고객사·직무 — "…채용/모집" 앞 구절에서 읽는다
-  const clause = t.split(/[.\n!?]/).find(c => /채용|모집|구인/.test(c));
+  // "…공채"도 채용 구절이다("2026 ㈜한독 신입/경력 공채")
+  const clause = t.split(/[.\n!?]/).find(c => /채용|모집|구인|공채/.test(c));
   if (clause) {
     // 시즌·채용구분은 회사·직무가 아니다 — 떼고 읽는다("2024 상반기 한미글로벌 신입 채용" → 한미글로벌)
-    const head = clause.slice(0, clause.search(/채용|모집|구인/)).replace(SEASON, ' ').replace(HIRING, ' ');
+    const head = clause.slice(0, clause.search(/채용|모집|구인|공채/)).replace(SEASON, ' ').replace(HIRING, ' ');
     let toks = head.trim().split(/\s+/).filter(Boolean);
+    // 연도만 앞에 선 경우("2026년 삼진제약 부문별 채용", "2026 ㈜한독 …") — 그 연도가 시즌이다. 날짜 안의 연도와 헷갈리지 않게 구절 맨 앞만 본다
+    if (!out.season && toks[0] && /^(19|20)\d{2}년?$/.test(toks[0])) { out.season = toks[0]; toks = toks.slice(1); }
     let client = null;
     if (toks[0] === '주식회사' && toks[1]) { client = `${toks[0]} ${toks[1]}`; toks = toks.slice(2); }
     else if (toks[0] && /(의|에서)$/.test(toks[0]) && toks[0].replace(/(의|에서)$/, '').length >= 2 && toks.length > 1) {
