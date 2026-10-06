@@ -43,9 +43,20 @@
   .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .ctl input[type=search]{flex:1;min-width:200px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;background:var(--bg);color:var(--ink)}
   .ctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub)}
+  /* 보드 구조 = 왼쪽 목차(그룹 → 매체 · 검수 n/n) + 본문. 좁은 화면에서는 목차를 접고 위의 그룹 칩만 쓴다 */
+  .layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;align-items:start}
+  .toc{position:sticky;top:72px;font-size:13px;max-height:calc(100vh - 96px);overflow:auto;padding-bottom:16px}
+  .toc h5{font-size:13px;margin:20px 0 6px;font-weight:700}
+  .toc h5:first-child{margin-top:8px}
+  .toc a{display:flex;justify-content:space-between;gap:8px;color:var(--ink);text-decoration:none;padding:4px 8px;border-radius:6px}
+  .toc a:hover{background:var(--soft)}
+  .toc a span{color:var(--sub);font-variant-numeric:tabular-nums}
+  .toc a.done span{color:var(--good)}
+  @media (max-width:1100px){ .layout{grid-template-columns:minmax(0,1fr)} .toc{display:none} }
   .group{margin-top:40px}
-  .group > h2{font-size:13px;color:var(--sub);font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:8px}
-  .group > h2::before{content:"";width:8px;height:8px;background:var(--accent);border-radius:2px}
+  .group > h2{font-size:22px;font-weight:700;margin:0 0 4px}
+  .group > h2 small{font-size:14px;color:var(--sub);font-weight:400;margin-left:8px}
+  .group > p{margin:0 0 16px;color:var(--sub);font-size:13px}
   .medium{border:1px solid var(--line);border-radius:12px;padding:20px 20px 16px;margin-bottom:16px;background:var(--bg)}
   .medium.hidden{display:none}
   .mhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin-bottom:12px}
@@ -53,6 +64,22 @@
   .tag{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--sub)}
   .tag.tool{border-color:var(--accent-line);background:var(--accent-soft);color:var(--accent)}
   .mhead .srcs{margin-left:auto;font-size:12px;color:var(--sub)}
+  .prog{margin-left:auto;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .prog.done{color:var(--good)}
+  .memo{margin:4px 0 0;font-size:13px;color:var(--sub)}
+  /* 보드의 프레임 한 장 = 블록 하나. 머리줄에 프레임 이름 · Figma 링크 · 검수 상태 */
+  .frame{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+  .fhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+  .fhead h4{font-size:15px;margin:0;font-weight:700}
+  .fhead .ft{font-size:12px;color:var(--sub)}
+  .fhead a{font-size:12px;color:var(--accent)}
+  .fhead .rvw{margin-left:auto}
+  .rvw{font-size:11px;border-radius:999px;padding:2px 8px;white-space:nowrap;border:1px solid var(--line);color:var(--sub)}
+  .rvw.done{background:var(--good-soft);color:var(--good);border-color:var(--good-line)}
+  .frame.none .fhead h4,.frame.same .fhead h4{color:var(--sub);font-weight:400}
+  .fnote{font-size:12px;color:var(--sub);margin:6px 0 0}
+  .frame .sect{margin-top:10px}
+  .frame.off details > summary{color:var(--ink);font-size:15px;font-weight:700}
   .sect{margin-top:16px}
   .sect > h4{font-size:12px;color:var(--sub);margin:0 0 6px;font-weight:600}
   ul.rules{margin:0;padding-left:18px} ul.rules li{margin:2px 0}
@@ -89,13 +116,14 @@
     <div class="eyebrow">Campaign Agent · AD 트랙</div>
     <h1>매체 규격 레퍼런스</h1>
     <div class="src">
-      출처: <code>[SK추진실] 광고소재제작가이드_260918.zip</code> + Figma <a href="https://www.figma.com/design/sZMBhkuLMEiyMLPPpGxvC1/" target="_blank" rel="noopener">매체별 규격정리</a> 보드 ·
-      추출 2026-09-28 · 원본 데이터 <code>core/media/*.json</code>
+      출처: Figma <a href="https://www.figma.com/design/sZMBhkuLMEiyMLPPpGxvC1/" target="_blank" rel="noopener">매체별 규격정리</a> 보드 + <code>[SK추진실] 광고소재제작가이드_260918.zip</code> ·
+      추출 2026-09-28 · 원본 데이터 <code>core/media/*.json</code> · 보드 구조 <code>core/media-board.json</code>
     </div>
     <div class="tiles" id="tiles"></div>
     <p class="src">
-      <b>읽는 법.</b> 값은 자료에 적힌 그대로다. 자료에 없으면 비워 두고 <span class="st rv">확인 필요</span>로 표시했다 —
-      추측값은 규칙이 되어 잘못된 소재를 통과시키므로 넣지 않았다. Figma 보드(담당자 실무 기준)와 PDF(매체 공식)가 다르면 <b>충돌</b>에 둘 다 적었다.
+      <b>읽는 법.</b> 보드와 같은 구조다. 그룹 3개(채용포털 · 디지털 · 커뮤니티) 아래 매체가 있고, 매체마다 보드의 프레임 3장(01 소재 제작 규정 · 02 제작가이드&amp;예시 · 반려 이슈 사례)으로 나눴다.
+      프레임마다 거기서 읽은 규칙과 규격을 모았고, 보드에 없고 가이드 zip(PDF·PSD)에만 있는 내용은 <b>보드 밖 자료</b>에 따로 뒀다.
+      값은 자료에 적힌 그대로다. 자료에 없으면 비워 두고 <span class="st rv">확인 필요</span>로 표시했다(추측값은 넣지 않았다). 보드와 PDF가 다르면 <b>충돌</b>에 둘 다 적었다.
     </p>
   </header>
 
@@ -105,17 +133,22 @@
     <label><input type="checkbox" id="onlyRv"> 확인 필요만</label>
   </div>
 
-  <main id="main"></main>
-  <div class="empty hidden" id="empty">조건에 맞는 규격이 없어요. 검색어를 줄이거나 필터를 풀어 보세요.</div>
+  <div class="layout">
+    <nav class="toc" id="toc" aria-label="보드 목차"></nav>
+    <div>
+      <main id="main"></main>
+      <div class="empty hidden" id="empty">조건에 맞는 규격이 없어요. 검색어를 줄이거나 필터를 풀어 보세요.</div>
+    </div>
+  </div>
 
   <div class="foot">
-    이 페이지는 <code>core/media.js</code>를 그대로 그린다. 값을 고치려면 <code>core/media/&lt;매체&gt;.json</code>을 고치고
+    이 페이지는 <code>core/media.js</code>를 그대로 그린다. 값을 고치려면 <code>core/media/&lt;매체&gt;.json</code>을, 보드 구조·검수 기록은 <code>core/media-board.json</code>을 고치고
     <code>node scripts/build-media.mjs</code>를 돌린다. 페이지를 직접 고치지 않는다.
   </div>
 </div>
 
 <script type="module">
-  import { MEDIA, MEDIA_GROUPS, MEDIA_COUNTS } from '../core/media.js';
+  import { MEDIA, MEDIA_BOARD, MEDIA_COUNTS } from '../core/media.js';
 
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dash = v => (v == null || v === '' ? '<span style="color:var(--sub)">—</span>' : esc(v));
@@ -124,7 +157,7 @@
   /* ── 요약 타일 ── */
   const c = MEDIA_COUNTS;
   document.getElementById('tiles').innerHTML = [
-    ['매체', c.media, ''], ['규격', c.specs, ''],
+    ['매체', c.media, ''], ['보드 프레임 검수', `${c.framesDone}/${c.frames}`, ''], ['규격', c.specs, ''],
     ['확인 필요', c.needsReview, c.needsReview ? 'warn' : ''],
     ['자료 간 충돌', c.conflicts, c.conflicts ? 'bad' : ''],
     ['반려 사례', c.rejections, ''],
@@ -132,11 +165,15 @@
 
   /* ── 그룹 칩 ── */
   const ctl = document.getElementById('ctl');
-  const groups = MEDIA_GROUPS.filter(g => MEDIA.some(m => m.group === g));
+  // 보드 그룹 순서 그대로 + 보드 밖. 칩 이름에 보드 번호를 붙인다(01 채용포털)
+  const OFF = '기타';
+  const groups = [...MEDIA_BOARD.groups.map(g => ({ key: g.name, label: `${g.no} ${g.name}`, ids: g.media.map(b => b.id) })),
+    { key: OFF, label: '보드 밖', ids: MEDIA_BOARD.offBoard.media, note: MEDIA_BOARD.offBoard.note }];
+  const boardOf = id => MEDIA_BOARD.groups.flatMap(g => g.media).find(b => b.id === id);
   const q = document.getElementById('q');
   groups.forEach(g => {
     const b = document.createElement('button');
-    b.className = 'chip'; b.dataset.g = g; b.textContent = g; b.setAttribute('aria-pressed', 'false');
+    b.className = 'chip'; b.dataset.g = g.key; b.textContent = g.label; b.setAttribute('aria-pressed', 'false');
     ctl.insertBefore(b, q);
   });
 
@@ -164,35 +201,82 @@
     </tr>`;
   }
 
+  const ruleList = (rules, open = false) => rules.length > 6 && !open
+    ? `<ul class="rules">${rules.slice(0, 4).map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul><details><summary>나머지 ${rules.length - 4}개 더 보기</summary><ul class="rules">${rules.slice(4).map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul></details>`
+    : `<ul class="rules">${rules.map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul>`;
+  const specTable = specs => `<div class="tblwrap"><table><thead><tr>
+      <th>규격</th><th>플랫폼</th><th>캔버스</th><th>제출</th><th>포맷</th><th>용량</th><th>배경</th><th>안전영역</th><th>글자수</th><th>로고</th><th>상태 · 출처</th>
+    </tr></thead><tbody>${specs.map(specRow).join('')}</tbody></table></div>`;
+  const rejList = rej => `<ul class="rej">${rej.map(r => `<li>${esc(r.date ?? '')} ${esc(r.client ?? '')}: ${esc(r.reason)} <span class="${/체크리스트|불가|사람/.test(r.ruleHint ?? '') ? 'manual' : 'auto'}">${esc(r.ruleHint ?? '')}</span></li>`).join('')}</ul>`;
+  const figmaUrl = node => `https://www.figma.com/design/${MEDIA_BOARD.figma.file}/?node-id=${String(node).replace(':', '-')}`;
+  const shortDate = d => { const m = String(d ?? '').match(/^\d{4}-(\d{2})-(\d{2})$/); return m ? `${+m[1]}.${+m[2]}` : (d ?? ''); };
+  const reviewChip = rv => rv?.status === 'done'
+    ? `<span class="rvw done">검수 완료${rv.date ? ' · ' + esc(shortDate(rv.date)) : ''}</span>`
+    : '<span class="rvw">검수 전</span>';
+  // 매체의 검수 진행 — 보드에 실제로 있는 프레임만 센다(01에 합쳐진 02는 빼고)
+  const progressOf = b => { const fs = b ? Object.values(b.frames).filter(f => f && !f.same) : []; return { done: fs.filter(f => f.review?.status === 'done').length, all: fs.length }; };
+
+  // 보드 프레임 한 장 — 그 프레임에서 읽은 규칙 · 규격 · 반려 사례
+  function frameBlock(m, b, key) {
+    const label = MEDIA_BOARD.frames[key];
+    const f = b.frames[key];
+    if (f == null) return `<div class="frame none"><div class="fhead"><h4>${esc(label)}</h4><span class="ft">보드에 이 프레임이 없어요</span></div></div>`;
+    if (f.same) return `<div class="frame same"><div class="fhead"><h4>${esc(label)}</h4><span class="ft">${esc(MEDIA_BOARD.frames[f.same])} 프레임에 같이 있어요</span></div></div>`;
+    const rules = (m.common ?? []).filter(r => r.frame === key || (key === 'rules' && b.frames.guide?.same && r.frame === 'guide'));
+    const specs = (m.specs ?? []).filter(s => s.frame === key || (key === 'rules' && b.frames.guide?.same && s.frame === 'guide'));
+    const rej = key === 'rejects' ? (m.rejections ?? []).filter(r => r.frame === 'rejects') : [];
+    const link = f.node ? `<a href="${figmaUrl(f.node)}" target="_blank" rel="noopener">Figma에서 열기 (${esc(f.node)})</a>` : '<span class="ft">노드 미정</span>';
+    const body = [
+      rej.length ? `<div class="sect"><h4>반려 사례 ${rej.length}</h4>${rejList(rej)}</div>` : '',
+      rules.length ? `<div class="sect"><h4>${key === 'rejects' ? '사례에서 나온 규칙' : '규칙'} ${rules.length}</h4>${ruleList(rules)}</div>` : '',
+      specs.length ? `<div class="sect"><h4>규격 ${specs.length}</h4>${specTable(specs)}</div>` : '',
+    ].join('') || '<p class="fnote">이 프레임에서 읽은 내용이 아직 없어요.</p>';
+    return `<div class="frame" data-frame="${key}"><div class="fhead"><h4>${esc(label)}</h4><span class="ft">${esc(f.title)}</span>${link}${reviewChip(f.review)}</div>
+      ${f.review?.note ? `<p class="fnote">검수 메모: ${esc(f.review.note)}</p>` : ''}${body}</div>`;
+  }
+
   function mediumCard(m) {
+    const b = boardOf(m.id);
     const colors = m.textColors && (m.textColors.main || m.textColors.sub?.length)
       ? `<div class="kv">${m.textColors.main ? `<span><span class="sw" style="background:${esc(m.textColors.main)}"></span>메인 ${esc(m.textColors.main)}</span>` : ''}${(m.textColors.sub ?? []).map(x => `<span><span class="sw" style="background:${esc(x)}"></span>서브 ${esc(x)}</span>`).join('')}</div>` : '';
-    const fonts = m.fonts?.required ? `<div class="kv"><span>폰트: <b>${esc(m.fonts.required)}</b>${m.fonts.note ? ` — ${esc(m.fonts.note)}` : ''}</span></div>` : '';
+    const fonts = m.fonts?.required ? `<div class="kv"><span>폰트: <b>${esc(m.fonts.required)}</b>${m.fonts.note ? ` (${esc(m.fonts.note)})` : ''}</span></div>` : '';
+    const memo = (m.common ?? []).filter(r => r.frame === 'memo');
+    const off = { rules: (m.common ?? []).filter(r => r.frame === 'off'), specs: (m.specs ?? []).filter(s => s.frame === 'off'), rej: (m.rejections ?? []).filter(r => r.frame === 'off') };
+    const offN = off.rules.length + off.specs.length + off.rej.length;
+    const offBody = [
+      off.rules.length ? `<div class="sect"><h4>규칙 ${off.rules.length}</h4>${ruleList(off.rules, true)}</div>` : '',
+      off.specs.length ? `<div class="sect"><h4>규격 ${off.specs.length}</h4>${specTable(off.specs)}</div>` : '',
+      off.rej.length ? `<div class="sect"><h4>반려 사례 ${off.rej.length}</h4>${rejList(off.rej)}</div>` : '',
+    ].join('');
+    // 보드 밖 매체는 가이드 zip 자료가 전부라 펼쳐 둔다. 보드 매체는 접어 둔다(프레임 대조가 먼저)
+    const offBlock = !offN ? '' : b
+      ? `<div class="frame off"><details><summary>보드 밖 자료 (PDF · PSD 등) ${offN}</summary>${offBody}</details></div>`
+      : `<div class="frame off"><div class="fhead"><h4>가이드 zip 자료</h4><span class="ft">보드에 없는 매체</span></div>${offBody}</div>`;
+    const p = progressOf(b);
     return `<article class="medium" data-g="${esc(m.group)}" id="m-${esc(m.id)}">
       <div class="mhead">
         <h3>${esc(m.name)}</h3>
-        <span class="tag">${esc(m.group)}</span>
         ${m.tool ? `<span class="tag tool">${esc(m.tool)} 제작</span>` : ''}
-        <span class="srcs">${(m.sources ?? []).map(esc).join(' · ')}</span>
+        ${b ? `<span class="prog ${p.done === p.all ? 'done' : ''}">검수 ${p.done}/${p.all}</span>` : ''}
       </div>
-      ${m.common?.length ? `<div class="sect"><h4>공통 사항 ${m.common.length}</h4>${m.common.length > 6
-        ? `<ul class="rules">${m.common.slice(0, 4).map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul><details><summary>나머지 ${m.common.length - 4}개 더 보기</summary><ul class="rules">${m.common.slice(4).map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul></details>`
-        : `<ul class="rules">${m.common.map(r => `<li>${esc(r.rule)}</li>`).join('')}</ul>`}</div>` : ''}
+      ${memo.length ? memo.map(r => `<p class="memo">섹션 메모: ${esc(r.rule)}</p>`).join('') : ''}
       ${(colors || fonts) ? `<div class="sect"><h4>텍스트 · 폰트</h4>${colors}${fonts}</div>` : ''}
-      <div class="sect"><h4>규격 ${m.specs?.length ?? 0}</h4>
-        ${m.specs?.length ? `<div class="tblwrap"><table><thead><tr>
-          <th>규격</th><th>플랫폼</th><th>캔버스</th><th>제출</th><th>포맷</th><th>용량</th><th>배경</th><th>안전영역</th><th>글자수</th><th>로고</th><th>상태 · 출처</th>
-        </tr></thead><tbody>${m.specs.map(specRow).join('')}</tbody></table></div>` : '<p class="src">규격 정보 없음</p>'}
-      </div>
-      ${m.rejections?.length ? `<div class="sect"><h4>반려 사례 ${m.rejections.length}</h4><ul class="rej">${m.rejections.map(r => `<li>${esc(r.date ?? '')} ${esc(r.client ?? '')} — ${esc(r.reason)} <span class="${/체크리스트|불가|사람/.test(r.ruleHint ?? '') ? 'manual' : 'auto'}">${esc(r.ruleHint ?? '')}</span></li>`).join('')}</ul></div>` : ''}
-      ${m.conflicts?.length ? `<div class="sect"><h4>자료 간 충돌 ${m.conflicts.length}</h4><ul class="conf">${m.conflicts.map(x => `<li><b>${esc(x.field)}</b> — Figma: ${esc(x.figma)} / PDF: ${esc(x.pdf)}${x.note ? ` · ${esc(x.note)}` : ''}</li>`).join('')}</ul></div>` : ''}
+      ${b ? Object.keys(MEDIA_BOARD.frames).map(k => frameBlock(m, b, k)).join('') : ''}
+      ${offBlock}
+      ${m.conflicts?.length ? `<div class="sect"><h4>자료 간 충돌 ${m.conflicts.length}</h4><ul class="conf">${m.conflicts.map(x => `<li><b>${esc(x.field)}</b>: Figma ${esc(x.figma)} / PDF ${esc(x.pdf)}${x.note ? ` · ${esc(x.note)}` : ''}</li>`).join('')}</ul></div>` : ''}
       ${m.needsReview?.length ? `<div class="sect"><h4>확인 필요 ${m.needsReview.length}</h4><ul class="rv-list">${m.needsReview.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
     </article>`;
   }
 
+  const mediumById = id => MEDIA.find(m => m.id === id);
   document.getElementById('main').innerHTML = groups.map(g =>
-    `<section class="group" data-g="${esc(g)}"><h2>${esc(g)} · ${MEDIA.filter(m => m.group === g).length}</h2>${MEDIA.filter(m => m.group === g).map(mediumCard).join('')}</section>`
+    `<section class="group" data-g="${esc(g.key)}" id="g-${esc(g.key)}"><h2>${esc(g.label)}<small>매체 ${g.ids.length}</small></h2>${g.note ? `<p>${esc(g.note)}</p>` : ''}${g.ids.map(mediumById).filter(Boolean).map(mediumCard).join('')}</section>`
   ).join('');
+  document.getElementById('toc').innerHTML = groups.map(g => `<h5>${esc(g.label)}</h5>${g.ids.map(id => {
+    const m = mediumById(id); if (!m) return '';
+    const p = progressOf(boardOf(id));
+    return `<a href="#m-${esc(id)}" class="${p.all && p.done === p.all ? 'done' : ''}">${esc(m.name)}${p.all ? `<span aria-label="검수 ${p.done}/${p.all}">${p.done}/${p.all}</span>` : ''}</a>`;
+  }).join('')}`).join('');
 
   /* ── 필터 ── */
   const state = { g: '', q: '', rv: false };

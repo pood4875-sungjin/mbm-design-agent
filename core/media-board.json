@@ -1,0 +1,74 @@
+{
+  "_about": "Figma 「컨시어지」 매체별 규격정리 보드의 구조 그대로. 그룹 3개 → 매체 → 프레임 3칸(01 소재 제작 규정 · 02 제작가이드&예시 · 반려 이슈 사례). 보드에 그 프레임이 없으면 null, 01 한 장에 02까지 같이 있으면 {\"same\":\"rules\"}. review = 사용자와 프레임 단위로 대조한 기록(todo 검수 전 · done 검수 완료). 매체 순서도 보드 순서다.",
+  "figma": { "file": "sZMBhkuLMEiyMLPPpGxvC1", "name": "컨시어지 · 매체별 규격정리" },
+  "frames": { "rules": "01 소재 제작 규정", "guide": "02 제작가이드&예시", "rejects": "반려 이슈 사례" },
+  "groups": [
+    {
+      "no": "01", "name": "채용포털",
+      "media": [
+        { "id": "jasoseol", "frames": {
+          "rules":   { "title": "자소설닷컴01(소재 제작 규정)", "node": "408:44009", "review": { "status": "todo" } },
+          "guide":   { "title": "자소설닷컴02(제작가이드&예시)", "node": "408:43481", "review": { "status": "todo" } },
+          "rejects": { "title": "자소설닷컴 소재 반려 이슈 사례", "node": "443:45", "review": { "status": "todo" } } } },
+        { "id": "remember", "frames": {
+          "rules":   { "title": "리멤버01(소재 제작 규정)", "node": null, "review": { "status": "todo" } },
+          "guide":   { "title": "리멤버02(제작가이드&예시)", "node": null, "review": { "status": "todo" } },
+          "rejects": { "title": "리멤버 소재 반려 이슈 사례", "node": null, "review": { "status": "todo" } } } },
+        { "id": "jobda", "frames": {
+          "rules":   { "title": "잡다01(소재 제작 규정)", "node": null, "review": { "status": "todo" } },
+          "guide":   { "title": "잡다02(제작가이드&예시)", "node": null, "review": { "status": "todo" } },
+          "rejects": null } },
+        { "id": "catch", "frames": {
+          "rules":   { "title": "캐치01(소재 제작 규정)", "node": null, "review": { "status": "todo" } },
+          "guide":   null,
+          "rejects": null } }
+      ]
+    },
+    {
+      "no": "02", "name": "디지털",
+      "media": [
+        { "id": "google-gdn", "frames": {
+          "rules":   { "title": "구글GDN01(소재 제작 규정)", "node": "414:1806", "review": { "status": "todo" } },
+          "guide":   { "title": "구글GDN02(제작가이드&예시)", "node": "414:1664", "review": { "status": "todo" } },
+          "rejects": { "title": "구글GDN 소재 반려 이슈 사례", "node": "445:46", "review": { "status": "todo" } } } },
+        { "id": "nap-dsp", "frames": {
+          "rules":   { "title": "NAPDSP01(소재 제작 규정/제작가이드&예시)", "node": "417:680", "review": { "status": "todo" } },
+          "guide":   { "same": "rules" },
+          "rejects": { "title": "NAPDSP 소재 반려 이슈 사례", "node": "445:48", "review": { "status": "todo" } } } },
+        { "id": "instagram", "frames": {
+          "rules":   { "title": "인스타그램01(소재 제작 규정/제작가이드&예시)", "node": null, "review": { "status": "todo" } },
+          "guide":   { "same": "rules" },
+          "rejects": null } },
+        { "id": "kakao", "frames": {
+          "rules":   { "title": "카카오톡01(소재 제작 규정/제작가이드&예시)", "node": "417:1964", "review": { "status": "todo" } },
+          "guide":   { "same": "rules" },
+          "rejects": { "title": "카카오 소재 반려 이슈 사례", "node": "446:50", "review": { "status": "todo" } } } },
+        { "id": "naver-gfa", "frames": {
+          "rules":   { "title": "네이버GFA01(소재 제작 규정/제작가이드&예시)", "node": null, "review": { "status": "todo" } },
+          "guide":   { "same": "rules" },
+          "rejects": { "title": "네이버GFA 소재 반려 이슈 사례", "node": null, "review": { "status": "todo" } } } }
+      ]
+    },
+    {
+      "no": "03", "name": "커뮤니티",
+      "media": [
+        { "id": "everytime", "frames": {
+          "rules":   { "title": "에브리타임01(소재 제작 규정/제작가이드&예시)", "node": null, "review": { "status": "todo" } },
+          "guide":   { "same": "rules" },
+          "rejects": { "title": "에브리타임 소재 반려 이슈 사례", "node": null, "review": { "status": "todo" } } } },
+        { "id": "blind", "frames": {
+          "rules":   { "title": "블라인드01(소재 제작 규정)", "node": null, "review": { "status": "todo" } },
+          "guide":   null,
+          "rejects": { "title": "블라인드 소재 반려 이슈 사례", "node": null, "review": { "status": "todo" } } } },
+        { "id": "daangn", "frames": {
+          "rules":   { "title": "당근01(소재가이드)", "node": null, "review": { "status": "todo" } },
+          "guide":   null,
+          "rejects": null } }
+      ]
+    }
+  ],
+  "offBoard": {
+    "note": "보드에 없는 매체 — 가이드 zip(PDF)에만 있다",
+    "media": ["specup", "albamon", "gamejob"]
+  }
+}
