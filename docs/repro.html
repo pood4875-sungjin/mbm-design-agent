@@ -179,6 +179,7 @@
     for (const it of data.items) {
       try {
         const r = await renderItem(it);
+        (window.__repro ??= {})[it.node] = { client: it.client, ref: it.ref, name: r.spec.name, w: r.spec.w, h: r.spec.h, html: r.html };   // 시트 내보내기용
         const html = itemHtml(it, r);
         out.push(html);
         stats.items++;
