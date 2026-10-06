@@ -187,6 +187,7 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
     const len = along === 'y' ? y1 - y0 : x1 - x0;
     const half = [{ r: 0, g: 0, b: 0, n: 0 }, { r: 0, g: 0, b: 0, n: 0 }];
     let total = 0, opaque = 0, rough = 0, pairs = 0;
+    const sq = { r: 0, g: 0, b: 0 };   // 색 편차용 제곱합 — 변 전체가 한 색(또는 매끈한 그라데이션)인지 본다
     for (let y = y0; y < y1; y++) {
       for (let x = x0; x < x1; x++) {
         total++;
@@ -195,6 +196,7 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
         opaque++;
         const t = half[((along === 'y' ? y - y0 : x - x0) * 2 >= len) ? 1 : 0];
         t.r += rgba[i]; t.g += rgba[i + 1]; t.b += rgba[i + 2]; t.n++;
+        sq.r += rgba[i] * rgba[i]; sq.g += rgba[i + 1] * rgba[i + 1]; sq.b += rgba[i + 2] * rgba[i + 2];
         // 변을 따라 다음 픽셀과의 차이 — 매끈한 그라데이션은 작고, 사진의 디테일은 크다
         const nx = along === 'y' ? x : x + 1, ny = along === 'y' ? y + 1 : y;
         if (nx < x1 && ny < y1) {
@@ -205,10 +207,15 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
     }
     const hex = t => t.n ? rgbToHex([t.r / t.n, t.g / t.n, t.b / t.n]) : null;
     const all = { r: half[0].r + half[1].r, g: half[0].g + half[1].g, b: half[0].b + half[1].b, n: half[0].n + half[1].n };
+    // 변의 색 편차(0~128): 바탕이 한 색이면 0에 가깝고, 사진의 변은 25를 넘는다(보드 레퍼런스 측정: 한독 사옥 사진 25~39 · 일러스트 0~14)
+    const sd = c => all.n ? Math.sqrt(Math.max(0, sq[c] / all.n - (all[c] / all.n) ** 2)) : 0;
+    const std = all.n ? Math.round((sd('r') + sd('g') + sd('b')) / 3) : 0;
+    const op = total ? Math.round(opaque / total * 100) / 100 : 0;
     return {
       hex: hex(all), from: hex(half[0]) ?? hex(all), to: hex(half[1]) ?? hex(all),
-      opaque: total ? Math.round(opaque / total * 100) / 100 : 0,
+      opaque: op,
       rough: pairs ? Math.round(rough / pairs * 1000) / 1000 : 0,
+      std, flat: op >= 0.9 && std < 15,   // 평평한 변 = 지면에 이음매 없이 붙일 수 있는 변
     };
   };
   const edges = {
@@ -217,7 +224,13 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   };
   const list = Object.values(edges);
   const opaque = Math.round(list.reduce((n, e) => n + e.opaque, 0) / list.length * 100) / 100;
-  return { edges, opaque, focus: focusOf(rgba, w, h, bw, opaque < 0.5) };
+  // 그림의 종류 — 보드 예시 136장을 나눈 세 갈래(ref/learned/board/kv-typology.json):
+  //   cutout  배경을 딴 그림(투명 PNG) — 칸에 맞춰 놓고 녹이지 않는다
+  //   photo   네 변 어디에도 평평한 바탕이 없다 — 사진. 지면은 브랜드색, 지면과 만나는 변을 그라데이션으로 녹인다(한독·리멤버 예시)
+  //   illust  평평한 변이 하나라도 있다 — 바탕을 품은 일러스트·3D. 그 변의 색이 지면이 되어 이음매 없이 이어진다(72/136, 가장 흔함)
+  const flatEdges = list.filter(e => e.flat).length;
+  const kind = opaque < 0.5 ? 'cutout' : flatEdges === 0 ? 'photo' : 'illust';
+  return { edges, opaque, flatEdges, kind, focus: focusOf(rgba, w, h, bw, opaque < 0.5) };
 }
 
 // 그림의 주인공이 어디 있는가 — 좁은 자리에 잘라 넣을 때 주인공이 잘려 나가지 않게 하려는 것이다.

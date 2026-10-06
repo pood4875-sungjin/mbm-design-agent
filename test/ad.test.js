@@ -141,7 +141,8 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
 });
 
 test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
-  const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' };
+  // 그림이 있을 때 로고는 작게 위에 뜬다. (그림이 없으면 로고가 오브젝트 자리로 간다 — 아래 별도 테스트)
+  const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } };
   const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
   assert.doesNotMatch(tallHtml, /text-align:center/);
   assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '세로형 로고는 우상단(한미글로벌·세아제강)');
@@ -245,10 +246,21 @@ test('on a dark field the white logo variant is used as-is; without one the colo
   assert.doesNotMatch(light, /invert\(1\)/);
 });
 
-test('with a key visual the template image area is filled full-bleed at the template rect', () => {
-  const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, edge: '#0B3C8C' } };
-  const html = renderAd(ctx, kv, specs['jasoseol-pc-standard-jobpost-pc']);
-  assert.match(html, /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px/);
+test('the template image area takes the picture by its size: tall pictures fill the rect, flat ones sit on the floor at full width', () => {
+  // 길쭉한 그림(도레이 160×324) → 칸을 채우고 위가 잘린다
+  const tall = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.5, px: [160, 324], edge: '#0B3C8C' } };
+  assert.match(renderAd(ctx, tall, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px;[^"]*center bottom\/cover/);
+  // 납작한 그림(ar 1.5) → 폭에 맞춰 바닥에 통째로(160×107), 위는 글자가 쓴다
+  const flat = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, px: [600, 400], edge: '#0B3C8C' } };
+  assert.match(renderAd(ctx, flat, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:493px;width:160px;height:107px;[^"]*center bottom\/contain/);
+  // 칸보다 작은 그림(PT코리아 154×154) → 제 크기로 바닥에
+  const small = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [154, 154], edge: '#0B3C8C' } };
+  assert.match(renderAd(ctx, small, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*top:446px;width:160px;height:154px;[^"]*center bottom\/auto/);
+  // 사진(평평한 변 없음)이면 윗변을 지면으로 녹인다(한독)
+  const photo = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.81, px: [160, 198], field: { kind: 'photo', opaque: 1, flatEdges: 0, edges: { top: { flat: false, opaque: 1, std: 30 } } } } };
+  const ph = renderAd(ctx, photo, specs['jasoseol-pc-standard-jobpost-pc']);
+  assert.match(ph, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/);
+  assert.match(ph, /data-field-source="brand-photo"/, '사진이면 지면은 브랜드색');
 });
 
 test('the sub line does not repeat what the headline already says', () => {
@@ -276,9 +288,19 @@ test('an image whose facing edge matches the field joins at that edge; a busy ph
   assert.doesNotMatch(c, /data-object="1"[^>]*mask-image/);
 });
 
-test('a floating logo stays inside the medium safe area and the copy starts below it', () => {
-  // 네이버 네이티브 342×228: 안전영역 상하좌우 20px
+test('without a key visual the logo becomes the object (셀트리온·LX·CMTX — 보드 14/136), and only once', () => {
   const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' }, specs['naver-gfa-native-pc-342x228']);
+  assert.match(html, /data-object="logo"/, '로고가 오브젝트 자리에 선다');
+  assert.equal((html.match(/data-logo="1"/g) ?? []).length, 1, '로고는 한 번만');
+  assert.doesNotMatch(html, /data-logo-slot/, '작은 상단 로고는 생략');
+  // 자소설처럼 매체가 로고 칸을 정해 둔 템플릿에서는 로고를 그 칸에 두고 이미지 칸은 비운다
+  const tpl = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' }, specs['jasoseol-pc-standard-jobpost-pc']);
+  assert.match(tpl, /data-logo-slot="1"/); assert.doesNotMatch(tpl, /data-object="logo"/);
+});
+
+test('a floating logo stays inside the medium safe area and the copy starts below it', () => {
+  // 네이버 네이티브 342×228: 안전영역 상하좌우 20px. 그림이 있어야 로고가 위에 뜬다
+  const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } }, specs['naver-gfa-native-pc-342x228']);
   const m = html.match(/data-logo-slot="1" style="position:absolute;top:(\d+)px;right:(\d+)px;[^"]*height:(\d+)px/);
   assert.ok(m, '로고가 떠 있다');
   const [top, right, lh] = m.slice(1).map(Number);

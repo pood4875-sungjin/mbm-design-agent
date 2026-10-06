@@ -23,9 +23,13 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   let stops = null, angle = 180, source = null, seamless = false;
 
   if (opt.color) { stops = [opt.color]; source = 'manual'; }
+  else if (f?.kind === 'photo') {
+    // 사진의 변은 바탕이 아니다(하늘·벽의 한 조각) — 지면은 브랜드색, 사진은 그 위로 녹아든다(한독 사옥 → 파랑 지면)
+    stops = [p.primary ?? '#2456D6']; source = 'brand-photo';
+  }
   else if (f) {
     const e = f.edges?.[facing];
-    if (e?.hex && e.opaque >= 0.9 && e.rough <= ROUGH_MAX) {
+    if (e?.hex && e.opaque >= 0.9 && (e.flat ?? e.rough <= ROUGH_MAX)) {
       stops = [e.from, e.to];
       angle = (facing === 'left' || facing === 'right') ? 180 : 90;
       source = 'kv-edge'; seamless = true;
@@ -81,7 +85,9 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
     pos = `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
     trueEdge = !!field?.seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (py === 0 || imgH <= bh + 0.5));
   }
-  const pct = trueEdge ? 10 : 26;
+  // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션
+  const joinFlat = style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
+  const pct = trueEdge ? 10 : joinFlat === false ? 32 : 26;
   const dir = side === 'right' ? 'to right' : 'to bottom';
   const mask = (!melt || cutout) ? '' : `-webkit-mask-image:linear-gradient(${dir},transparent 0%,#000 ${pct}%);mask-image:linear-gradient(${dir},transparent 0%,#000 ${pct}%);`;
   const fill = `background:url('${url}') ${cutout ? `${far}/contain` : `${pos}/cover`} no-repeat;`;
