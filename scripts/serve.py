@@ -25,6 +25,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             del self.headers['If-Modified-Since']
         super().do_GET()
 
+    def do_POST(self):
+        # 개발용 저장 — /__save/<파일명> 본문을 ref/learned/_dump/<파일명> 에 쓴다(검사 결과를 파일로 모을 때).
+        # 로컬 전용. 파일명은 글자·숫자·._- 만, 폴더는 고정.
+        m = re.fullmatch(r'/__save/([A-Za-z0-9._-]{1,120})', self.path)
+        if not m:
+            self.send_error(404); return
+        n = int(self.headers.get('Content-Length') or 0)
+        body = self.rfile.read(n)
+        d = os.path.join(ROOT, 'ref', 'learned', '_dump')
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, m.group(1)), 'wb') as f:
+            f.write(body)
+        self.send_response(204); self.end_headers()
+
     def translate_path(self, path):
         # /v/<아무 값>/app/app.js → /app/app.js
         # 앱은 열릴 때마다 새 값으로 모듈을 부른다(app/index.html). 주소가 매번 달라 브라우저가 쌓아 둔 옛 사본이 쓰일 수 없다.

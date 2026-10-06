@@ -50,6 +50,13 @@ test('season, hiring type and application period are read the way the board refe
   assert.equal(extractRecruit('도레이첨단소재 2025년 하반기 신입사원 공개채용', NOW).hiringType, '신입사원 공개채용');
   assert.equal(extractRecruit('도레이첨단소재 2025년 하반기 신입사원 공개채용', NOW).season, '2025년 하반기');
   assert.equal(extractRecruit('PTKOREA 2026 8기 신입공개채용', NOW).season, '2026 8기');
+  const yr = extractRecruit('2026년 삼진제약 부문별 채용 광고. 2026.7.26 마감', NOW);
+  assert.equal(yr.season, '2026년', '구절 맨 앞의 연도는 시즌이다(삼진제약 "2026년 삼진제약 부문별 채용")');
+  assert.equal(yr.client, '삼진제약');
+  assert.equal(yr.hiringType, '부문별 채용');
+  assert.equal(yr.deadline, '2026-07-26');
+  const gc = extractRecruit('2026 ㈜한독 신입/경력 공채 광고. 2026.9.27 마감', NOW);
+  assert.deepEqual({ season: gc.season, client: gc.client, hiringType: gc.hiringType }, { season: '2026', client: '㈜한독', hiringType: '신입/경력 공채' }, '"공채"로 끝나는 구절도 채용 구절이다');
   assert.equal(extractRecruit('한진정보통신 백엔드 개발자 채용', NOW).hiringType, undefined);
 });
 
