@@ -279,3 +279,30 @@ test('a blurred gradient is a texture: no subject, no room — the renderer lays
   for (let y = 40; y < 80; y++) for (let x = 60; x < 110; x++) a.set([40, 60, 200, 255], (y * W + x) * 4);
   assert.notEqual(fieldFromImage(a, W, H).kind, 'texture');
 });
+
+test('an object cut-out is used only where the spec needs one; elsewhere the key visual stays the background', async () => {
+  const { registerAll } = await import('../core/generate.js');
+  const { renderArtifact } = await import('../core/contract.js');
+  const { createContext } = await import('../core/context.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const { objectNeedOf, needsCutout } = await import('../core/adfields.js');
+  registerAll();
+  const texture = { kind: 'texture', opaque: 1, flatEdges: 2, edges: {}, focus: null, room: null, rows: null, cols: null, quadrants: { tl: '#90AEFE', tr: '#B2BDFE', bl: '#BECCFE', br: '#96D3FE' } };
+  const cutout = { kind: 'cutout', opaque: 0.3, flatEdges: 0, edges: {}, focus: { x: 0.5, y: 0.6, w: 0.8, h: 0.8 }, room: null, rows: null, cols: null };
+  const ctx = createContext({ client: '한진정보통신', role: '클라우드 엔지니어', employType: '정규직', deadline: '2026-10-31' }, 'recruit');
+  const base = { colors: ['#1428A0'], keyVisual: 'kv.png', kvMeta: { ar: 0.56, px: [1051, 1869], field: texture, colors: ['#A6C3FE'] }, logo: 'logo.png' };
+  // 투명 PNG 필수 자리(알바몬 스플래시): 질감 그림은 빠지고 글자만 — 누끼를 올리면 그 자리에 누끼
+  assert.equal(needsCutout({ background: '투명 배경 사용 필수 (투명 png)' }), true);
+  assert.equal(objectNeedOf({ background: '투명 배경 사용 필수' }, texture), 'cutout');
+  assert.equal(objectNeedOf({ background: '투명 배경 사용 필수' }, cutout), null, '키비주얼이 이미 누끼면 따로 필요 없다');
+  assert.equal(objectNeedOf({ background: '흰색', objectBox: { thumbnail: {} } }, texture), 'boxed');
+  const without = renderArtifact('albamon-m-splash', ctx, normalizeStyle(base), {});
+  assert.ok(!/data-object="1"/.test(without), '누끼 없이는 그림이 빠진다(로고가 오브젝트 노릇을 할 뿐)');
+  const withObj = renderArtifact('albamon-m-splash', ctx, normalizeStyle({ ...base, object: 'obj.png', objectMeta: { ar: 1, px: [800, 800], field: cutout, colors: ['#1428A0'] } }), {});
+  assert.match(withObj, /data-visual="object"/);
+  assert.match(withObj, /data-object="1"/, '누끼가 그 자리에 들어간다');
+  // 일반 매체(인스타 피드)는 누끼가 있어도 키비주얼이 배경 — 질감은 통째로
+  const feed = renderArtifact('instagram-feed-1080', ctx, normalizeStyle({ ...base, object: 'obj.png', objectMeta: { ar: 1, px: [800, 800], field: cutout } }), {});
+  assert.ok(!/data-visual="object"/.test(feed));
+  assert.match(feed, /data-field-source="kv-texture"/);
+});

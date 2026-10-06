@@ -91,3 +91,16 @@ export function estimateLines(text, perLine, mode = 'all-1') {
   }
   return lines;
 }
+
+// 이 규격에 지금 그림 대신 따로 올린 오브젝트 누끼가 필요한가 — 'cutout': 투명 PNG 필수 자리(알바몬 스플래시·M메인·에브리타임 보드·NAP 비즈보드·캐치 센터)에
+// 배경을 품은 그림이 왔다 / 'boxed': 매체 오브젝트 상자(카카오 썸네일)에 그라데이션 질감이 왔다 / null: 지금 그림으로 된다.
+// 사용자(10-06): "배경이 되는 그림은 배경으로 두고, 오브젝트가 진짜 필요한 자리에는 이미지를 따로 첨부"
+export function needsCutout(rules) {
+  const bg = String(rules?.background ?? '');
+  return /투명/.test(bg) && !/투명.{0,12}?(불가|금지)/.test(bg);
+}
+export function objectNeedOf(rules, field = null) {
+  if (needsCutout(rules)) return (field?.opaque ?? 1) >= 0.5 ? 'cutout' : null;
+  if (rules?.objectBox && field?.kind === 'texture') return 'boxed';
+  return null;
+}
