@@ -378,7 +378,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, kvUse: 'auto',
+    bgMode: 'auto', bgColor: null, kvUse: 'auto', logoTone: null, logoLightManual: false,
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -774,7 +774,7 @@ function slotSignage() {
 }
 
 // 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
-const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', manual: '직접 고른 색' };
+const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', manual: '직접 고른 색' };
 function bgControlHtml(styleLike, id) {
   const f = resolveField(styleLike, { facing: 'left' });
   const mode = styleLike.background?.mode ?? 'auto';
@@ -800,7 +800,7 @@ function bgControlHtml(styleLike, id) {
 
 function slotStyle() {
   const it = state.intake;
-  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', background: { mode: it.bgMode, color: it.bgColor } };
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
@@ -858,6 +858,11 @@ function slotStyle() {
   bindUpload($('logoThumb'), $('logoFile'), async d => {
     it.logo = d;
     try { it.logoSuggests = await analyzeLogo(d); } catch { it.logoSuggests = []; }
+    // 흰색 로고만 올렸으면 그게 다크용 로고이기도 하다 — 지면은 어두운 브랜드색으로 간다
+    try { it.logoTone = await logoToneOf(d); } catch { it.logoTone = 'dark'; }
+    if (it.logoLightManual) it.logoTone = it.logoTone === 'light' ? 'light' : 'both';
+    else if (it.logoTone === 'light') it.logoLight = d;
+    else it.logoLight = null;
     it.colorsManual = false;   // 새 로고가 들어왔으면 색은 그 로고 기준으로 다시 잡는다
     it.colorLead = null;
     applyDerived(); slotStyle();
@@ -865,8 +870,9 @@ function slotStyle() {
       ? `로고에서 ${it.logoSuggests[0]}를 뽑아 주색으로 잡았어요.${it.suggests.length ? ' 보조·포인트는 키비주얼 색을 그대로 씁니다.' : ''}`
       : it.suggests.length ? '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 색은 키비주얼에서 가져왔습니다.'
         : '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 키비주얼을 올리거나 컬러를 직접 골라 주세요.');
+    if (it.logoTone === 'light' && !it.logoLightManual) say('흰색 로고네요 — 지면을 어두운 브랜드색으로 갑니다. 원색 로고도 올리면 밝은 지면도 쓸 수 있어요.');
   });
-  bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; });
+  bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
   $('stOk').onclick = () => {
     // 키비주얼·로고는 필수(10-06 사용자 결정) — 그림 없는 소재는 예시에 없다. 되묻지 않고 막는다
     if (!it.kv || !it.logo) { say(!it.kv && !it.logo ? '키비주얼과 로고를 올려 주세요. 둘 다 있어야 소재를 만들 수 있어요.' : !it.kv ? '키비주얼을 올려 주세요.' : '로고를 올려 주세요.'); return; }
@@ -1037,6 +1043,22 @@ async function analyzeKeyVisual(dataUrl) {
 }
 
 // 로고의 대표색 — 투명·흰 바탕·검정 글자는 extractPalette가 건너뛴다. 무채색 로고면 빈 배열.
+// 로고 밝기 — 불투명 픽셀의 평균 밝기가 높고 채도가 낮으면 흰색 로고. 흰색 로고만 있으면 지면이 어두워야 로고가 보인다(로고가 지면을 정한다)
+async function logoToneOf(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const W = 160, H = Math.max(1, Math.round(W * (img.height || 1) / (img.width || 1)));
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, W, H);
+  const d = g.getImageData(0, 0, W, H).data; let n = 0, lum = 0, sat = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < 128) continue;
+    const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255;
+    lum += 0.2126 * r + 0.7152 * gg + 0.0722 * b; sat += Math.max(r, gg, b) - Math.min(r, gg, b); n++;
+  }
+  if (!n) return 'dark';
+  return (lum / n > 0.8 && sat / n < 0.25) ? 'light' : 'dark';
+}
 async function analyzeLogo(dataUrl) {
   const img = new Image();
   await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
@@ -1083,6 +1105,7 @@ function buildAndGenerate() {
     kvMeta: it.kvMeta,
     logo: it.logo,
     logoLight: it.logoLight ?? null,
+    logoTone: it.logoTone ?? null,
     mode: it.mode,
     background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
     kvUse: it.kvUse ?? 'auto',
@@ -1537,6 +1560,7 @@ function renderInspector() {
         kvMeta: c.style.kvMeta,
         logo: c.style.logo,
         logoLight: c.style.logoLight ?? null,
+        logoTone: c.style.logoTone ?? null,
         mode: c.style.mode,
         background: c.style.background,
         kvUse: c.style.kvUse,
@@ -1637,9 +1661,14 @@ function renderInspector() {
         const r = new FileReader();
         r.onload = async () => {
           // 원색 로고를 갈면 색도 그 로고에서 다시 읽는다 — 고객사가 바뀐 것이다. 흰색 로고는 색이 없으니 그대로.
-          let roles = null;
-          if (key === 'logo') ({ roles } = await rolesFromAssets({ logo: r.result, keyVisual: c.style.keyVisual, mode: c.style.mode }));
-          restyle({ [key]: r.result, ...(roles ? { colors: roles } : {}) }, label);
+          let roles = null, tonePatch = {};
+          if (key === 'logo') {
+            ({ roles } = await rolesFromAssets({ logo: r.result, keyVisual: c.style.keyVisual, mode: c.style.mode }));
+            const tone = await logoToneOf(r.result).catch(() => 'dark');
+            // 흰색 로고만이면 지면이 어두워진다(brand-dark-logo). 원색이면 흰색 로고가 있을 때 both
+            tonePatch = tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: r.result }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' };
+          } else tonePatch = { logoTone: c.style.logoTone === 'light' ? 'light' : 'both' };
+          restyle({ [key]: r.result, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
           renderInspector();
           toast(roles ? `${label} — 주색 ${roles[0]}` : label);
         };

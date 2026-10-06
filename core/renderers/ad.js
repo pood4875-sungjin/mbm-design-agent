@@ -363,7 +363,12 @@ export function renderAd(ctx, style, spec) {
   const detailFg = tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.66)' : 'rgba(255,255,255,.82)'));
   // 어두운 지면에는 흰색 로고. 없으면 원색 로고를 반전한다(워드마크는 괜찮고 컬러 로고는 뭉개진다 — 흰색 로고를 받는 게 맞다)
   const logoSrc = (!fgIsDark && style.logoLight) ? style.logoLight : style.logo;
-  const logoFilter = (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)' : '';
+  // 어두운 지면에 원색 로고만 있으면 반전(컬러 로고가 뭉개진다) 대신 흰 판 위에 올린다 — 동부건설 300×600 예시가 네이비 위 흰 카드에 로고를 둔 것처럼
+  // 로고는 지면에 맞춰 단색으로 변환한다(10-06 사용자 결정): 어두운 지면에 원색 로고만 있으면 흰색으로, 밝은 지면(그림이 정한 흰 바탕)에 흰색 로고만 있으면 검정으로.
+  // brightness(0)는 모든 불투명 픽셀을 검정으로, invert(1)는 그걸 흰색으로 — 투명 배경 로고라면 실루엣이 그대로 살아 디자이너가 쓰는 단색 변환과 같다
+  const logoFilter = (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)'
+    : (fgIsDark && style.logoTone === 'light') ? 'filter:brightness(0)'
+    : '';
 
   const shell = `position:relative;width:${w}px;height:${h}px;${bg}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
   const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}" data-kv-use="${photoFull ? 'full' : hasKv ? 'part' : 'none'}"${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shell};${extra}">`;

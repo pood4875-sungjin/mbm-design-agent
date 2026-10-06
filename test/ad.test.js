@@ -248,8 +248,20 @@ test('on a dark field the white logo variant is used as-is; without one the colo
   const html = renderAd(ctx, both, dark);
   assert.match(html, /data-logo="1" src="data:image\/png;base64,BBBB"/);
   assert.doesNotMatch(html, /invert\(1\)/);
+  // 원색 로고만 있으면 흰색 단색으로 변환한다(brightness(0) invert(1): 불투명 픽셀 전부 흰색, 실루엣 유지)
   const only = renderAd(ctx, { ...style, logo: 'data:image/png;base64,AAAA' }, dark);
-  assert.match(only, /src="data:image\/png;base64,AAAA"[^>]*invert\(1\)/);
+  assert.match(only, /src="data:image\/png;base64,AAAA"[^>]*brightness\(0\) invert\(1\)/);
+  // 흰색 로고만 올렸으면 로고가 지면을 정한다 — 밝은 매체(자소설)여도 어두운 브랜드색 지면 + 흰 글자
+  const whiteOnly = renderAd(ctx, { ...style, logo: 'data:image/png;base64,WWWW', logoLight: 'data:image/png;base64,WWWW', logoTone: 'light' }, specs['jasoseol-pc-premium-popup-pc']);
+  assert.match(whiteOnly, /data-field-source="brand-dark-logo"/);
+  assert.match(whiteOnly, /data-field="main"[^>]*color:#FFFFFF/);
+  assert.doesNotMatch(whiteOnly, /brightness\(0\)/, '어두운 지면의 흰색 로고는 변환 없이 그대로');
+  // 그림이 배경을 품고 있으면(흰 바탕 일러스트) 그림이 로고보다 먼저다 — 지면은 그림 가장자리 색, 흰색 로고는 브랜드색 판 위에
+  const edgeW = (from, to) => ({ hex: from, from, to, rough: 0.004, opaque: 1, flat: true });
+  const whiteBg = { ar: 1.4, px: [700, 500], colors: ['#3366CC'], field: { opaque: 1, kind: 'illust', flatEdges: 4, edges: { left: edgeW('#FFFFFF', '#FFFFFF'), top: edgeW('#FFFFFF', '#FFFFFF'), right: edgeW('#FFFFFF', '#FFFFFF'), bottom: edgeW('#FFFFFF', '#FFFFFF') } } };
+  const clash = renderAd(ctx, { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: whiteBg, logo: 'data:image/png;base64,WWWW', logoLight: 'data:image/png;base64,WWWW', logoTone: 'light' }, specs['jasoseol-pc-premium-popup-pc']);
+  assert.match(clash, /data-field-source="kv-edge"/, '그림 가장자리 색이 지면');
+  assert.match(clash, /data-logo="1" src="data:image\/png;base64,WWWW"[^>]*filter:brightness\(0\)(?! invert)/, '밝은 지면의 흰색 로고는 검정 단색으로 변환');
   // 밝은 지면(자소설)에서는 원색 로고 그대로
   const light = renderAd(ctx, both, specs['jasoseol-pc-premium-popup-pc']);
   assert.match(light, /src="data:image\/png;base64,AAAA"/);
