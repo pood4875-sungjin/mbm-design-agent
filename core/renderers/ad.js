@@ -822,12 +822,27 @@ export function renderAd(ctx, style, spec) {
   // 상세 블록 — 한 요소로 묶어 검사기가 총 글자수·총 줄 수를 본다. 라벨은 굵게, 값은 가늘게(세아제강·한독).
   const lw = useRef && !L.detailLabelBold ? 400 : 700;
   // 라벨 칩(구글 템플릿 '문구입력', 예시 24/28: 일화 레드 pill·비씨월드 네이비 pill·ABL 흰 pill) — 밝은 지면엔 브랜드색 칩에 흰 글자, 어두운 지면엔 흰 칩에 지면색 글자
-  const chip = guide?.detailLabels === 'chip' || stackTags;
-  const chipBg = fgIsDark ? (p.primary ?? '#000000') : '#FFFFFF';
-  // 어두운 지면 위 흰 알약은 살짝 비친다(88%) — 코엑스 카드의 라벤더빛 알약. 밝은 지면의 브랜드색 알약은 그대로(구글 예시 일화 레드·비씨 네이비)
-  const chipBgCss = fgIsDark ? chipBg : 'rgba(255,255,255,.88)';
-  const chipFg0 = fgIsDark ? '#FFFFFF' : (field?.stops?.[0] ?? p.primary ?? '#000000');
-  const chipFg = contrast(chipBg, chipFg0) >= 3 ? chipFg0 : (contrast(chipBg, WHITE) >= contrast(chipBg, BLACK) ? WHITE : BLACK);
+  const chipTone = style.chipTone ?? 'tint';
+  const chip = (guide?.detailLabels === 'chip' || stackTags) && chipTone !== 'plain';   // 'plain'은 알약 없이 굵은 라벨만
+  // 알약 톤(style.chipTone, 캠페인 일괄·산출물 개별 모두 가능)
+  //   tint(기본): 밝은 지면엔 검정 7% — 지면이 한 톤 짙어진 알약(노랑 지면이면 '진한 노랑') + 지면 위에서 4.5:1이 되게 어둡힌 브랜드색 글자.
+  //               어두운 지면엔 흰 20% + 흰 글자(보드 1-884 코엑스 카드 '모집분야'). 10-06 사용자 "찐한 노랑 말고… 블랙 오퍼시티 7%"
+  //   brand: 밝은 지면 브랜드색 채움 + 흰 글자(구글 예시 일화 레드·비씨 네이비), 어두운 지면 흰 88% 알약 + 지면색 글자
+  const chipStyleOf = () => {
+    if (chipTone === 'brand') {
+      const bg = fgIsDark ? (p.primary ?? '#000000') : '#FFFFFF';
+      const fg0 = fgIsDark ? '#FFFFFF' : (field?.stops?.[0] ?? p.primary ?? '#000000');
+      const fg = contrast(bg, fg0) >= 3 ? fg0 : (contrast(bg, WHITE) >= contrast(bg, BLACK) ? WHITE : BLACK);
+      return { bg: fgIsDark ? bg : 'rgba(255,255,255,.88)', fg };
+    }
+    if (!fgIsDark) return { bg: 'rgba(255,255,255,.2)', fg: '#FFFFFF' };
+    const stops = field?.stops?.length ? field.stops : ['#FFFFFF'];
+    const worst = c => Math.min(...stops.map(st => contrast(mix(st, '#000000', 0.07), c)));
+    let fg = p.primary ?? '#000000', k = 0;
+    while (worst(fg) < 4.5 && k < 8) { fg = mix(fg, '#000000', 0.15); k++; }   // 브랜드색을 15%씩 어둡혀 4.5:1까지
+    return { bg: 'rgba(0,0,0,.07)', fg: worst(fg) >= 4.5 ? fg : mainFg };
+  };
+  const { bg: chipBgCss, fg: chipFg } = chipStyleOf();
   const chipCss = `display:inline-block;font-weight:700;font-size:${Math.max(8, Math.round(z.dFs * 0.86))}px;line-height:1.5;padding:0 ${Math.round(z.dFs * 0.55)}px;border-radius:999px;background:${chipBgCss};color:${chipFg};vertical-align:baseline;white-space:nowrap`;
   const label = d => chip
     ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * (stackTags ? 0.5 : 0.25)) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`

@@ -331,3 +331,26 @@ test('오른쪽 열이 로고 띠 아래에서 시작하고 윗줄이 그림 바
   assert.ok(!/mask-composite/.test(calm));                 // 윗줄이 바탕이면 윗변은 그대로
   assert.match(calm, /mask-image:linear-gradient\(to right/);
 });
+
+// 10-06 "라벨 배경 찐한 노랑 말고 진한 노랑/블랙 7%" — 알약 톤: 기본 틴트, 브랜드 채움, 글자만. 산출물별 덮어쓰기는 generate.js가 overrides.style로 얹는다
+test('상세 라벨 알약은 기본이 틴트(밝은 지면 검정 7%·어두운 지면 흰 20%)이고 brand·plain으로 바꿀 수 있다', async () => {
+  const { registerAll } = await import('../core/generate.js');
+  const { renderArtifact } = await import('../core/contract.js');
+  const { createContext: createContextChip } = await import('../core/context.js');
+  registerAll();
+  const E = { hex: '#FFF7D3', flat: true, std: 0 };
+  const rows = Array.from({ length: 16 }, () => ({ hex: '#FFF7D3', bg: 1 }));
+  const kvMeta = { ar: 0.953, px: [936, 982], edge: '#FFF7D3', field: { opaque: 1, kind: 'illust', flatEdges: 4, rows, cols: rows, focus: { x: 0.52, y: 0.55, w: 0.86, h: 0.74 }, edges: { top: E, left: E, bottom: E, right: E } } };
+  const ctx = createContextChip({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
+  const base = { colors: ['#EA8F3D'], keyVisual: 'fox.png', kvMeta, logo: 'logo.png' };
+  const tint = renderArtifact('google-gdn-580x400', ctx, normalizeStyle(base), {});
+  assert.match(tint, /data-chip="1"[^>]*background:rgba\(0,0,0,\.07\)/);                 // 밝은 지면: 검정 7%
+  assert.doesNotMatch(tint, /data-chip="1"[^>]*background:#EA8F3D/);
+  const brand = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, chipTone: 'brand' }), {});
+  assert.match(brand, /data-chip="1"[^>]*background:#EA8F3D/);                             // 브랜드 채움
+  const plain = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, chipTone: 'plain' }), {});
+  assert.doesNotMatch(plain, /data-chip="1"/);                                               // 알약 없음
+  // 어두운 지면(브랜드 그라데이션): 흰 20% 알약
+  const dark = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ colors: ['#5B3FD6'], logo: 'logo.png', logoTone: 'light', logoLight: 'logo_w.png' }), {});
+  assert.match(dark, /data-chip="1"[^>]*background:rgba\(255,255,255,\.2\)/);
+});
