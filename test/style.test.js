@@ -177,11 +177,58 @@ test('the image is cropped around its subject, not around its centre', async () 
   const f = fieldFromImage(a, W, H);
   assert.ok(f.focus.x > 0.7 && f.focus.x < 0.9, `주인공은 오른쪽에 있다 (x=${f.focus.x})`);
   const style = { palette: { primary: '#0A3D91' }, keyVisual: 'kv.png', kvMeta: { ar: W / H, colors: ['#2814C8'], field: f } };
+  // 주인공이 그림의 일부(폭 20%·높이 40%)면 자리를 주인공으로 채운다 — 배율을 올리고(통째로 덮는 배율의 1.25배 이상) 주인공 가운데가 자리 가운데에 오게 왼쪽으로 당긴다
   const html = kvLayer(style, resolveField(style), { side: 'right', w: 300, h: 250, size: 108, edgePad: 24 });
-  const px = Number(html.match(/(\d+)% \d+%\/cover/)[1]);
-  assert.ok(px > 60, `자리가 좁아도 주인공이 보이게 오른쪽으로 당긴다 (${px}%)`);
+  const gain = Number(html.match(/--kv-gain:([\d.]+)/)?.[1]);
+  assert.ok(gain >= 1.25, `주인공으로 채운다 (배율 이득 ${gain})`);
+  const ox = Number(html.match(/\) (-?\d+)px -?\d+px\/\d+px auto/)?.[1]);
+  assert.ok(ox < -300, `오른쪽의 주인공이 자리 가운데 오도록 그림을 왼쪽으로 당긴다 (${ox}px)`);
+  assert.match(html, /mask-image:linear-gradient\(to right/, '자리의 글자 쪽 변은 그림 한가운데라 지면으로 녹인다');
+  // 주인공이 이미 그림을 거의 다 쓰면(보드 예시의 3D·일러스트) 통째로 — 주인공이 보이게 위치만 당긴다
+  const big = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) big.set((x >= 10 && x < 56 && y >= 5 && y < 35) ? [40, 20, 200, 255] : [220, 214, 255, 255], (y * W + x) * 4);
+  const styleBig = { ...style, kvMeta: { ...style.kvMeta, field: fieldFromImage(big, W, H) } };
+  const htmlBig = kvLayer(styleBig, resolveField(styleBig), { side: 'right', w: 300, h: 250, size: 108, edgePad: 24 });
+  const px = Number(htmlBig.match(/(\d+)% \d+%\/cover/)?.[1]);
+  assert.ok(px > 50, `자리가 좁아도 주인공이 보이게 오른쪽으로 당긴다 (${px}%)`);
   // 사진처럼 화면 대부분이 바탕과 다르면 주인공을 알 수 없다
   const busy = new Uint8ClampedArray(W * H * 4);
   for (let i = 0; i < W * H; i++) busy.set([(i * 37) % 255, (i * 91) % 255, (i * 53) % 255, 255], i * 4);
   assert.equal(fieldFromImage(busy, W, H).focus, null);
+});
+
+test('a wide-background illustration: the biggest object is the subject, the slot is filled with it, and the field follows the row colour at the join', async () => {
+  const { fieldFromImage } = await import('../core/palette.js');
+  const { kvLayer, kvPlacement, resolveField, joinColour, joinField, subjectCrop } = await import('../core/field.js');
+  const W = 120, H = 80;
+  const a = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const glow = y >= 44 && x >= 30 && x < 90;                       // 아래 가운데 흰 글로우 — 바탕의 일부다
+    const big = x >= 4 && x < 46 && y >= 50 && y < 80;                // 왼쪽 아래 큰 파란 오브젝트(바닥에 닿음)
+    const small = x >= 100 && x < 116 && y >= 62 && y < 80;           // 오른쪽 아래 작은 초록 오브젝트 — 멀리 떨어져 있다
+    a.set(big ? [40, 110, 235, 255] : small ? [60, 190, 80, 255] : glow ? [252, 253, 255, 255] : [218, 231, 250, 255], (y * W + x) * 4);
+  }
+  const f = fieldFromImage(a, W, H);
+  assert.equal(f.kind, 'illust');
+  assert.equal(f.focus.parts, 2, '두 오브젝트는 서로 멀어 덩어리가 둘이다');
+  assert.ok(f.focus.x < 0.4 && f.focus.w < 0.5, `주인공은 큰 쪽(왼쪽 파랑)이다 (x=${f.focus.x}, w=${f.focus.w})`);
+  assert.equal(f.rows.length, 16);
+  assert.ok(/^#F[A-F]F[A-F]F[A-F]$/i.test(f.rows[12].hex), `글로우 줄의 바탕색은 글로우(흰색)다 — 주인공으로 치지 않는다 (${f.rows[12].hex})`);
+  const style = { palette: { primary: '#1428A0' }, keyVisual: 'kv.png', kvMeta: { ar: W / H, px: [1200, 800], colors: ['#2814C8'], field: f } };
+  const field0 = resolveField(style, { facing: 'top', light: true });
+  assert.equal(field0.source, 'kv-edge', '윗변이 평평한 연파랑 — 지면은 그 색');
+  // 아래 띠(400×140)를 주인공으로 채운다 — 배율을 올리고 바닥에 맞춘다
+  const crop = subjectCrop(style, 400, 140);
+  assert.ok(crop && crop.gain >= 1.25, `주인공으로 채운다 (${crop?.gain})`);
+  const oy = Number(crop.pos.match(/^-?\d+px (-?\d+)px$/)[1]);
+  assert.equal(oy, 140 - Math.round(800 * crop.scale), '바닥에 선 주인공은 띠 바닥에 맞춘다');
+  // 띠의 윗변은 그림 한가운데 — 그 줄의 바탕색(글로우 쪽으로 밝아진 색)으로 지면을 잇는다
+  const P = kvPlacement(style, field0, { side: 'bottom', w: 400, h: 340, size: 124, edgePad: 16 });
+  assert.ok(P.joinFrac > 0.3, `이음매는 그림 한가운데 (${P.joinFrac})`);
+  const jc = joinColour(style, P.joinFrac);
+  assert.ok(jc, '이음매 줄의 바탕색이 있다');
+  const field = joinField(field0, jc, 'bottom');
+  assert.equal(field.joined, true);
+  assert.match(field.css, /^linear-gradient\(180deg,#DAE7FA 0%,#/, '위는 그림의 윗변 색, 아래는 이음매 줄 색');
+  assert.match(kvLayer(style, field, { side: 'bottom', w: 400, h: 340, size: 124, edgePad: 16 }), /--kv-gain:/, '그릴 때도 같은 배치');
 });

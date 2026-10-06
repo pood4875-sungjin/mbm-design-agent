@@ -98,6 +98,79 @@ export function meltMask2(pctX, pctY) {
   return `-webkit-mask-image:${g};-webkit-mask-composite:source-in;mask-image:${g};mask-composite:intersect;`;
 }
 
+// 주인공으로 채우기 — 오브젝트 자리는 그림 전체가 아니라 그림의 주인공(focus 상자)으로 채운다.
+// 바탕이 넓은 3D·일러스트(주인공이 그림의 절반)를 통째로 자리에 맞추면 자리에는 바탕만 크게 보이고 주인공은 작다(10-06 사용자: "꽉 안 채워져서 나오고… 비주얼 옆에 화이트").
+// 보드 예시는 주인공이 자리를 거의 다 쓴다(한미글로벌 3D·세아제강 일러스트·동부 3D). 그래서 주인공 상자(+숨 쉴 여백 8%)가 자리를 덮도록 배율을 올리고, 주인공 가운데가 자리 가운데에 오게 한다.
+//   · 통째로 덮는 배율(s0)과 비슷하면(1.25배 미만) 그대로 둔다 — 레퍼런스처럼 주인공이 이미 큰 그림은 건드리지 않는다
+//   · 원본 픽셀보다 25% 넘게 키우지 않는다(흐려진다). 단 자리는 덮어야 하니 s0 아래로는 안 내려간다
+//   · 사진(주인공을 못 찾음)·누끼(배경 없음)는 해당 없다
+export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGain = 1.25 } = {}) {
+  const f = style.kvMeta?.field, focus = f?.focus, ar = style.kvMeta?.ar;
+  if (!focus || !ar || (f?.opaque ?? 1) < 0.5 || !(bw > 0 && bh > 0)) return null;
+  const px = style.kvMeta?.px;
+  const iw = px?.[0] ?? Math.round(ar * 1000), ih = px?.[1] ?? 1000;
+  const s0 = Math.max(bw / iw, bh / ih);
+  const x0 = Math.max(0, focus.x - focus.w / 2 - focus.w * margin), x1 = Math.min(1, focus.x + focus.w / 2 + focus.w * margin);
+  const y0 = Math.max(0, focus.y - focus.h / 2 - focus.h * margin), y1 = Math.min(1, focus.y + focus.h / 2 + focus.h * margin);
+  const fw = Math.max(1, (x1 - x0) * iw), fh = Math.max(1, (y1 - y0) * ih);
+  let s = Math.max(bw / fw, bh / fh);
+  if (px) s = Math.min(s, Math.max(s0, maxUp));
+  if (s / s0 < minGain) return null;
+  const cx = (x0 + x1) / 2 * iw * s, cy = (y0 + y1) / 2 * ih * s;
+  // 주인공이 그림의 변에 닿아 있으면(바닥에 선 오브젝트·오른쪽에 붙은 오브젝트) 그 변을 자리의 변에 맞춘다 — 가운데 맞춤은 발을 자른다
+  const ox = Math.round(focus.x + focus.w / 2 >= 0.97 ? bw - iw * s : Math.min(0, Math.max(bw - iw * s, bw / 2 - cx)));
+  const oy = Math.round(focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
+  return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
+    top: Math.round(-oy / (ih * s) * 1000) / 1000, left: Math.round(-ox / (iw * s) * 1000) / 1000 };   // 자리의 윗변·왼변이 그림의 어느 높이·폭에 걸리는가(0~1)
+}
+// 이음매 줄의 바탕색 — 자리의 글자 쪽 변이 그림의 어느 높이(rows, 아래 띠) 또는 폭(cols, 오른쪽 열)에 걸리는가(frac 0~1) → 그 줄의 바탕색.
+// 바탕이 거의 없는 줄(주인공이 가득 찬 줄)이면 null — 그때는 지면을 바꾸지 않고 녹임에 맡긴다
+export function joinColour(style, frac, axis = 'rows') {
+  const prof = style.kvMeta?.field?.[axis];
+  if (!prof?.length) return null;
+  // 주인공이 반 넘게 찬 줄의 "바탕색"은 주인공 가장자리 픽셀이 섞여 탁하다 — 글자 쪽으로 한두 줄 물러나 바탕이 반 이상인 줄을 쓴다
+  const at = Math.min(prof.length - 1, Math.max(0, Math.round(frac * (prof.length - 1))));
+  for (let i = at; i >= Math.max(0, at - 2); i--) { const r = prof[i]; if (r?.hex && r.bg >= 0.5) return r.hex; }
+  return null;
+}
+// 지면을 이음매 줄의 바탕색으로 이어 준다 — 글자 쪽 끝은 그림의 변 색(원래 지면), 자리 쪽 끝은 걸린 줄의 바탕색(세로 그라데이션 · 오른쪽 열은 가로).
+// 그림의 바탕이 흰 글로우에서 연파랑으로 흐르면 지면도 그렇게 흐른다 — "비주얼 옆에 화이트"가 지면과 한 몸이 된다(10-06). 글자는 두 색 모두에서 4.5:1이어야 한다
+export function joinField(field, jc, side = 'bottom') {
+  if (!field || !jc || field.gradient || field.source !== 'kv-edge') return field;
+  if (colorDistance(jc, field.stops[0]) < 0.02 || contrast(jc, field.text) < 4.5) return field;
+  const angle = side === 'right' ? 90 : 180;
+  return { ...field, stops: [field.stops[0], jc], angle, css: `linear-gradient(${angle}deg,${field.stops[0]} 0%,${jc} 100%)`, gradient: true, seamless: false, joined: true,
+    contrast: Math.round(Math.min(contrast(field.stops[0], field.text), contrast(jc, field.text)) * 100) / 100 };
+}
+
+// 자리 안에서 그림을 어떻게 놓는가 — 통째로(cover)·주인공으로 당겨서(crop)·누끼는 맞춰서(contain).
+// 렌더러가 지면색을 정할 때(joinFrac → joinColour)와 그릴 때(kvLayer) 같은 답을 받는다.
+//   joinFrac: 자리의 글자 쪽 변이 그림의 어느 높이(아래 띠)·폭(오른쪽 열)에 걸리는가. 0 = 그림의 변 그대로(지면과 같은 색)
+export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset = 0 }) {
+  const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
+  const bw = side === 'right' ? size + edgePad - inset : w, bh = side === 'right' ? h : size + edgePad;
+  const [far, join] = side === 'right' ? ['right center', 'left center'] : ['center bottom', 'center top'];
+  // 잘라 채울 때 어디를 보여 줄 것인가 — 그림의 주인공(focus)이 자리 한가운데 오게 한다. 모르면 가운데.
+  // 이미지의 글자 쪽 변이 자리의 변에 그대로 닿으면(trueEdge) 지면과 색이 같아 이음매가 없다.
+  const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
+  let pos = field?.seamless ? join : 'center', trueEdge = !!field?.seamless, joinFrac = 0;
+  if (!cutout && ar) {
+    const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
+    const at = (box, img, f) => img > box + 0.5 ? Math.min(1, Math.max(0, (box / 2 - f * img) / (box - img))) : 0.5;
+    const px = focus ? at(bw, imgW, focus.x) : (field?.seamless && side === 'right' ? 0 : 0.5);
+    const py = focus ? at(bh, imgH, focus.y) : (field?.seamless && side !== 'right' ? 0 : 0.5);
+    if (focus) {
+      pos = `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
+      trueEdge = !!field?.seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (py === 0 || imgH <= bh + 0.5));
+    }
+    joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? py * (imgH - bh) / imgH : 0);
+  }
+  // 주인공이 그림의 일부면 주인공으로 자리를 채운다 — 그러면 자리의 글자 쪽 변은 그림 한가운데라 지면과 같은 색이 아니다(녹인다)
+  const crop = cutout ? null : subjectCrop(style, bw, bh);
+  if (crop) { trueEdge = false; joinFrac = side === 'right' ? crop.left : crop.top; }
+  return { cutout, bw, bh, far, pos, trueEdge, crop, joinFrac: Math.round(joinFrac * 1000) / 1000 };
+}
+
 // 키비주얼 층 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
 //   side 'right' | 'bottom' · size: 이미지가 차지하는 폭(오른쪽) 또는 높이(아래) · edgePad: 그쪽 지면 여백(이미지는 여백까지 덮는다)
 //   inset: 가장자리에서 띄울 폭(좌우 끝이 단색이어야 하는 지면) · melt:false 면 녹이지 않는다(투명 배경 규격)
@@ -105,26 +178,13 @@ export function meltMask2(pctX, pctY) {
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
 export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
-  const bw = side === 'right' ? size + edgePad - inset : w, bh = side === 'right' ? h : size + edgePad;
-  const [far, join] = side === 'right' ? ['right center', 'left center'] : ['center bottom', 'center top'];
-  // 잘라 채울 때 어디를 보여 줄 것인가 — 그림의 주인공(focus)이 자리 한가운데 오게 한다. 모르면 가운데.
-  // 이미지의 글자 쪽 변이 자리의 변에 그대로 닿으면(trueEdge) 지면과 색이 같아 이음매가 없다.
-  const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
-  let pos = field?.seamless ? join : 'center', trueEdge = !!field?.seamless;
-  if (!cutout && ar && focus) {
-    const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
-    const at = (box, img, f) => img > box + 0.5 ? Math.min(1, Math.max(0, (box / 2 - f * img) / (box - img))) : 0.5;
-    const px = at(bw, imgW, focus.x), py = at(bh, imgH, focus.y);
-    pos = `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
-    trueEdge = !!field?.seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (py === 0 || imgH <= bh + 0.5));
-  }
-  // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션
-  const joinFlat = style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
+  const { cutout, far, pos, trueEdge, crop } = kvPlacement(style, field, { side, w, h, size, edgePad, inset });
+  // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션. 주인공으로 당긴 자리는 그림 한가운데가 변이다
+  const joinFlat = crop ? false : style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
   const pct = trueEdge ? 16 : joinFlat === false ? 38 : 30;
   const dir = side === 'right' ? 'to right' : 'to bottom';
   const mask = (!melt || cutout) ? '' : meltMask(dir, pct);
-  const fill = `background:url('${url}') ${cutout ? `${far}/contain` : `${pos}/cover`} no-repeat;`;
+  const fill = `background:url('${url}') ${cutout ? `${far}/contain` : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:0;right:${inset}px;width:${size + edgePad - inset}px;height:${h}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
