@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, kvLayer, meltMask, meltMask2 } from '../field.js';
+import { resolveField, kvLayer, kvPlacement, meltMask, meltMask2, subjectCrop, joinColour, joinField } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor } from '../canon.js';
 import { contrast, mix, hexToRgb, WHITE, BLACK } from '../palette.js';
@@ -286,7 +286,10 @@ export function renderAd(ctx, style, spec) {
   // 단, 그림이 칸 높이의 60%도 못 채우면(가로형 샘플 600×400 → 160×600 띠에 폭 맞춤 = 107px 조각) 레퍼런스처럼 보이지 않는다 — 비어 보인다.
   // 그때는 잘라서 칸을 채우고 윗변을 녹인다(누끼는 cover 가지에서도 contain으로 그린다)
   let bandMode = 'cover';
-  if (tImage && imgBottomBand && kvAR) {
+  // 주인공이 그림의 일부(바탕 넓은 3D·일러스트)면 칸을 주인공으로 채운다 — 제 크기·폭 맞춤으로 통째로 놓으면 바탕만 보인다(core/field.js subjectCrop)
+  const bandCrop = (tImage && imgBottomBand && hasKv && !isCutout && !transparent) ? subjectCrop(style, tImage.w, tImage.h) : null;
+  const cornerCrop = (cornerRect && !isCutout && !transparent) ? subjectCrop(style, tImage.w, tImage.h) : null;
+  if (tImage && imgBottomBand && kvAR && !bandCrop) {
     const minH = tImage.h * 0.6;
     if (kvPx && kvPx[0] <= tImage.w && kvPx[1] <= tImage.h && kvPx[1] >= minH) bandMode = 'native';
     else if (kvAR >= tImage.w / tImage.h && tImage.w / kvAR >= minH) bandMode = 'contain';
@@ -335,9 +338,11 @@ export function renderAd(ctx, style, spec) {
   // 우하단에 맞춰 넣는 이미지(자소설 팝업)는 지면 전체 높이에 걸치지 않는다 — 세로 그라데이션을 맞출 수 없으니 단색
   // 사진 전체형: 스크림 색은 브랜드색 — 흰 글자가 안 읽히는 밝은 브랜드색이면 어둡게 섞는다
   const scrimBase = (() => { const b = style.background?.color ?? p.primary ?? '#2456D6'; return contrast(b, WHITE) >= 3 ? b : mix(b, BLACK, 0.55); })();
-  const field = transparent ? null
+  let field = transparent ? null
     : photoFull ? { stops: [scrimBase], angle: 0, css: scrimBase, text: WHITE, source: 'photo-full', seamless: false, gradient: false, contrast: Math.round(contrast(scrimBase, WHITE) * 100) / 100 }
     : resolveField(style, { facing, solidOnly: solidOnly || (objectSide === 'template' && imgCorner), light: lightProfile, lightPhoto: !!guide?.lightField });
+  // 템플릿 하단 띠를 주인공으로 당겨 채웠으면 띠의 윗변은 그림 한가운데 — 그 줄의 바탕색으로 지면을 잇는다
+  if (field && bandCrop) field = joinField(field, joinColour(style, bandCrop.top), 'bottom');
   // 스크림은 글자 쪽에서 시작해 글자 칸 폭의 60~70%에서 사라진다(보드 사진 전체형 9장) — 세로형은 위에서 아래로, 가로형은 왼쪽에서 오른쪽으로
   const rgba = (hex, a) => { const [r, g, b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
   const kvFocus = style.kvMeta?.field?.focus;
@@ -345,8 +350,9 @@ export function renderAd(ctx, style, spec) {
   const scrimDir = (L.shape === 'tall' || L.shape === 'tower') ? 'to bottom' : 'to right';
   const scrimEnd = scrimDir === 'to bottom' ? 78 : 70;
   // 모서리 상자의 그림이 지면과 같은 색으로 이어지지 않으면(하늘 그라데이션 vs 단색 지면) 글자 쪽 두 변을 녹인다 — 글자 칸도 그 녹인 구간(28%)까지 넓어진다
-  const meltCorner = !!(cornerRect && !isCutout && !transparent && !(field?.seamless));
-  const bg = photoFull
+  const meltCorner = !!(cornerRect && !isCutout && !transparent && (!(field?.seamless) || cornerCrop));
+  // 지면 CSS는 그릴 때 읽는다 — 띠 높이가 정해진 뒤 이음매 줄 색으로 지면을 잇는다(joinField)
+  const bgCss = () => photoFull
     ? `background:linear-gradient(${scrimDir},${rgba(scrimBase, 0.94)} 0%,${rgba(scrimBase, 0.82)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`
     : field ? `background:${field.css};` : '';
 
@@ -370,8 +376,8 @@ export function renderAd(ctx, style, spec) {
     : (fgIsDark && style.logoTone === 'light') ? 'filter:brightness(0)'
     : '';
 
-  const shell = `position:relative;width:${w}px;height:${h}px;${bg}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}" data-kv-use="${photoFull ? 'full' : hasKv ? 'part' : 'none'}"${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shell};${extra}">`;
+  const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''} data-kv-use="${photoFull ? 'full' : hasKv ? 'part' : 'none'}"${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -582,10 +588,23 @@ export function renderAd(ctx, style, spec) {
   if (guide?.fill && objectSide === 'bottom' && !tImage && hasKv && !logoAsObject) {
     const used = blocksOf(z) + Math.round(mainLines * mainFs * mainLine);
     const slack = textH - used;
-    if (slack > h * guide.fill.slack) {
-      const grow = Math.min(Math.round(slack * 0.7), Math.round(h * guide.fill.maxObject) - objH);
-      if (grow > 0) { objH += grow; objReserve = Math.round(objH * (1 - overlap)); }
+    let grow = slack > h * guide.fill.slack ? Math.round(slack * 0.7) : 0;
+    // 주인공이 폭에 맞춰도 띠보다 키가 크면(두 모서리에 선 3D: 폭 기준 148px, 띠 122px) 남는 높이 안에서 띠를 주인공 키까지 키운다 — 잘린 주인공은 비어 보인다
+    const fo = style.kvMeta?.field?.focus, ar = style.kvMeta?.ar;
+    if (!isCutout && fo && ar) {
+      const subjH = Math.round(w / ar * Math.min(1, fo.h * 1.16));
+      const need = subjH - (objH + pad.bottom);
+      if (need > 0) grow = Math.max(grow, Math.min(need, Math.max(0, slack - Math.round(h * 0.04))));
     }
+    grow = Math.min(grow, Math.round(h * guide.fill.maxObject) - objH);
+    if (grow > 0) { objH += grow; objReserve = Math.round(objH * (1 - overlap)); }
+  }
+  // 자리의 글자 쪽 변이 그림 한가운데 걸리면(주인공으로 당겼거나 그림이 자리보다 길어서) 그 줄의 바탕색으로 지면을 잇는다 — 흰 글로우 바탕이 연파랑 지면 위에 네모로 뜨지 않게
+  if (field && hasKv && !isCutout && !photoFull && !tImage && !oBox && (objectSide === 'bottom' || objectSide === 'right')) {
+    const P = objectSide === 'bottom'
+      ? kvPlacement(style, field, { side: 'bottom', w, h, size: objH, edgePad: pad.bottom })
+      : kvPlacement(style, field, { side: 'right', w, h, size: objW, edgePad: pad.right, inset: edgeSolid ? pad.right : 0 });
+    if (P.joinFrac > 0.03) field = joinField(field, joinColour(style, P.joinFrac, objectSide === 'bottom' ? 'rows' : 'cols'), objectSide);
   }
   // 메인 칸으로 셀 것은 이름이 메인·타이틀인 행뿐이다 — "혜택 강조카피"·"카피 전체 줄 수"는 메인 두 줄이 아니다(카카오 비즈보드)
   const mainRows = inLimits.filter(t => roleOf(t.field) === 'main' && /메인|타이틀|제목|대문구/.test(String(t.field)) && !/전체/.test(String(t.field)));
@@ -685,11 +704,13 @@ export function renderAd(ctx, style, spec) {
   const fadePct = field?.seamless ? 18 : 32;
   const melt = dir => (transparent || cutout) ? '' : meltMask(dir, fadePct);
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
-  const kvFill = (pos, join) => `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`;
+  const kvFill = (pos, join) => { const c = (cutout || !tImage) ? null : subjectCrop(style, tImage.w, tImage.h);
+    return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
   // 로고가 오브젝트일 때 — 칸 가운데에 크게(칸 폭의 2/3, 높이의 절반 안). 셀트리온·LX 예시처럼 로고 하나가 그림 노릇을 한다
   const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
   // 매체 오브젝트 상자(카카오 썸네일형): 둥근 상자 안에 그림을 채운다(누끼는 맞춰 넣기). 상하 여백이 남는다 — 가이드 Good Case
-  const boxLayer = b => `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`;
+  const boxLayer = b => { const c = isCutout ? null : subjectCrop(style, b.w, b.h);
+    return `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : c ? `${c.pos}/${c.size}` : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`; };
   const bleedRight = bw => hasKv ? (oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
   const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent })
@@ -716,15 +737,16 @@ export function renderAd(ctx, style, spec) {
           // 그림이 실제로 차지하는 네모(cornerRect, 우하단 맞춤·자르지 않음)에 그린다 — 녹임 마스크가 상자 변이 아니라 그림의 변에서 시작한다.
           // 지면이 그림 가장자리 색과 같지 않으면 글자 쪽 두 변(왼쪽·위)을 녹인다 — "뚝 끊긴" 직선 이음매가 사라진다. 누끼는 그대로. 사진(구글 580)은 상자를 채우고 녹인다
           const photoCover = gCorner && kvKindPhoto && !cutout;
-          const rect = photoCover ? tImage : (cornerRect ?? tImage);
-          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${photoCover ? `${kvPos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(34, 34) : ''}overflow:hidden"></div>`;
+          // 주인공이 그림의 일부면 상자를 주인공으로 채운다(cornerCrop) — 통째로 맞춰 넣으면 상자에 바탕만 보인다
+          const rect = (photoCover || cornerCrop) ? tImage : (cornerRect ?? tImage);
+          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(34, 34) : ''}overflow:hidden"></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : 'center bottom/cover'} no-repeat;${melt('to bottom')}overflow:hidden"></div>`
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : 'center bottom/cover'} no-repeat;${melt('to bottom')}overflow:hidden"></div>`
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"></div>`)
     : '';
 

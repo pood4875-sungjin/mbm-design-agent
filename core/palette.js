@@ -230,36 +230,102 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   //   illust  평평한 변이 하나라도 있다 — 바탕을 품은 일러스트·3D. 그 변의 색이 지면이 되어 이음매 없이 이어진다(72/136, 가장 흔함)
   const flatEdges = list.filter(e => e.flat).length;
   const kind = opaque < 0.5 ? 'cutout' : flatEdges === 0 ? 'photo' : 'illust';
-  return { edges, opaque, flatEdges, kind, focus: focusOf(rgba, w, h, bw, opaque < 0.5) };
+  const cutout = opaque < 0.5;
+  // rows·cols: 그림을 16칸으로 자른 띠마다의 "바탕" 색(주인공이 아닌 픽셀의 평균). 오브젝트 자리를 주인공으로 당겨 채우면 자리의 글자 쪽 변이
+  // 그림 한가운데 걸린다 — 그 줄의 바탕색을 지면이 이어받아야 이음매가 안 보인다(core/field.js joinColour). 누끼는 바탕이 없다(null)
+  return { edges, opaque, flatEdges, kind, focus: focusOf(rgba, w, h, bw, cutout), rows: cutout ? null : bgProfile(rgba, w, h, bw, 'rows'), cols: cutout ? null : bgProfile(rgba, w, h, bw, 'cols') };
+}
+
+// 바탕 프로필 — 띠(가로 16칸 rows / 세로 16칸 cols)마다 바탕 픽셀(주인공이 아닌 픽셀)의 대표색(채널별 중앙값)과 비율.
+// 평균이 아니라 중앙값이다 — 주인공 가장자리의 섞인 픽셀(부채 살·글자 획 둘레)이 바탕색을 탁하게 끌고 가지 않도록
+function bgProfile(rgba, w, h, bw, axis, n = 16) {
+  const acc = Array.from({ length: n }, () => ({ hist: [new Uint32Array(256), new Uint32Array(256), new Uint32Array(256)], k: 0, t: 0 }));
+  for (let y = 0; y < h; y += 2) {
+    const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
+    const L = side(0), R = side(w - bw);
+    for (let x = 0; x < w; x += 2) {
+      const i = (y * w + x) * 4, t = x / (w - 1);
+      const a = acc[Math.min(n - 1, Math.floor((axis === 'rows' ? y / h : x / w) * n))];
+      a.t++;
+      if (rgba[i + 3] < 200) continue;
+      if (subjectPx(rgba, i, L, R, t)) continue;
+      a.hist[0][rgba[i]]++; a.hist[1][rgba[i + 1]]++; a.hist[2][rgba[i + 2]]++; a.k++;
+    }
+  }
+  const median = (hist, k) => { let c = 0; for (let v = 0; v < 256; v++) { c += hist[v]; if (c * 2 >= k) return v; } return 255; };
+  return acc.map(a => ({ hex: a.k ? rgbToHex([median(a.hist[0], a.k), median(a.hist[1], a.k), median(a.hist[2], a.k)]) : null, bg: a.t ? Math.round(a.k / a.t * 100) / 100 : 0 }));
 }
 
 // 그림의 주인공이 어디 있는가 — 좁은 자리에 잘라 넣을 때 주인공이 잘려 나가지 않게 하려는 것이다.
 // 바탕은 "그 줄의 왼쪽 끝 색에서 오른쪽 끝 색으로 이어지는 색"으로 본다(가로·세로 그라데이션 바탕을 모두 견딘다).
 // 바탕과 충분히 다른 픽셀이 주인공이다. 배경을 딴 이미지는 불투명한 픽셀이 주인공이다.
 // 돌려주는 값은 주인공 상자의 중심(x, y: 0~1). 주인공이 화면 대부분이면(사진) 알 수 없으므로 null.
+// 주인공 픽셀인가 — 그 줄의 양끝 색을 이은 바탕색과 충분히 다르고(0.15), 밝은 바탕 위에서 "더 밝고 채도 없는" 픽셀(흰 글로우·하이라이트)은 아니다.
+// 흰 글로우는 바탕의 일부다 — 주인공으로 치면 두 모서리의 오브젝트가 글로우로 이어져 한 덩어리가 되고, 자리를 당겨 채워도 글로우만 커진다(10-06)
+const SUBJECT_D = 0.15;
+export function subjectPx(rgba, i, L, R, t) {
+  const br = L[0] + (R[0] - L[0]) * t, bg = L[1] + (R[1] - L[1]) * t, bb = L[2] + (R[2] - L[2]) * t;
+  const r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+  if ((Math.abs(r - br) + Math.abs(g - bg) + Math.abs(b - bb)) / 765 <= SUBJECT_D) return false;
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255, blum = (0.2126 * br + 0.7152 * bg + 0.0722 * bb) / 255;
+  const sat = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+  return !(blum > 0.7 && lum > blum && sat < 0.12);
+}
 function focusOf(rgba, w, h, bw, cutout) {
-  let n = 0, total = 0, x0 = w, x1 = 0, y0 = h, y1 = 0;
-  for (let y = 0; y < h; y += 2) {
+  // 2px 격자로 "주인공 픽셀"을 표시한다
+  const gw = Math.ceil(w / 2), gh = Math.ceil(h / 2);
+  const hit = new Uint8Array(gw * gh);
+  let n = 0;
+  for (let gy = 0; gy < gh; gy++) {
+    const y = gy * 2;
     const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
     const L = cutout ? null : side(0), R = cutout ? null : side(w - bw);
-    for (let x = 0; x < w; x += 2) {
-      total++;
-      const i = (y * w + x) * 4;
-      let hit;
-      if (cutout) hit = rgba[i + 3] >= 200;
-      else {
-        const t = x / (w - 1);
-        const d = Math.abs(rgba[i] - (L[0] + (R[0] - L[0]) * t)) + Math.abs(rgba[i + 1] - (L[1] + (R[1] - L[1]) * t)) + Math.abs(rgba[i + 2] - (L[2] + (R[2] - L[2]) * t));
-        hit = d / 765 > 0.1;
-      }
-      if (!hit) continue;
-      n++;
-      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    for (let gx = 0; gx < gw; gx++) {
+      const x = gx * 2, i = (y * w + x) * 4;
+      let on;
+      if (cutout) on = rgba[i + 3] >= 200;
+      else on = subjectPx(rgba, i, L, R, x / (w - 1));
+      if (on) { hit[gy * gw + gx] = 1; n++; }
     }
   }
+  const total = gw * gh;
   if (!n || n / total > 0.6) return null;
+  // 덩어리로 나눈다 — 먼저 한 칸(2px) 부풀려 가는 틈(부채 살·글자 획)을 메운 뒤 8방향 연결로 묶는다.
+  // 주인공이 여럿이고 서로 멀면(두 모서리의 3D 오브젝트) 가장 큰 덩어리가 주인공이다. 전부 묶은 상자가 큰 덩어리 상자의 1.5배 안이면 한 주인공(캐릭터 떼·도시 일러스트)
+  const fat = new Uint8Array(gw * gh);
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+    if (!hit[gy * gw + gx]) continue;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = gx + dx, ny = gy + dy; if (nx >= 0 && ny >= 0 && nx < gw && ny < gh) fat[ny * gw + nx] = 1; }
+  }
+  const label = new Int32Array(gw * gh).fill(-1);
+  const comps = [];
+  const stack = [];
+  for (let s0 = 0; s0 < gw * gh; s0++) {
+    if (!fat[s0] || label[s0] >= 0) continue;
+    const id = comps.length; const c = { area: 0, x0: gw, x1: 0, y0: gh, y1: 0 };
+    stack.push(s0); label[s0] = id;
+    while (stack.length) {
+      const k = stack.pop(); const gx = k % gw, gy = (k - gx) / gw;
+      if (hit[k]) { c.area++; if (gx < c.x0) c.x0 = gx; if (gx > c.x1) c.x1 = gx; if (gy < c.y0) c.y0 = gy; if (gy > c.y1) c.y1 = gy; }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = gx + dx, ny = gy + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue;
+        const m = ny * gw + nx; if (fat[m] && label[m] < 0) { label[m] = id; stack.push(m); }
+      }
+    }
+    if (c.area) comps.push(c);
+  }
+  // 티끌(격자의 0.5% 미만)은 주인공이 아니다
+  let groups = comps.filter(c => c.area >= total * 0.005);
+  if (!groups.length) groups = comps;
+  const big = groups.reduce((m, c) => (c.area > m.area ? c : m), groups[0]);
+  const all = groups.reduce((u, c) => ({ x0: Math.min(u.x0, c.x0), x1: Math.max(u.x1, c.x1), y0: Math.min(u.y0, c.y0), y1: Math.max(u.y1, c.y1) }), { x0: gw, x1: 0, y0: gh, y1: 0 });
+  const boxArea = c => (c.x1 - c.x0 + 1) * (c.y1 - c.y0 + 1);
+  const pick = boxArea(all) <= boxArea(big) * 1.5 ? all : big;
+  if (globalThis.__focusDebug) globalThis.__focusDebug({ gw, gh, comps, groups, big, all, pick });   // 측정 디버그 훅(Node 전용)
   const r2 = v => Math.round(v * 100) / 100;
-  return { x: r2((x0 + x1) / 2 / w), y: r2((y0 + y1) / 2 / h), w: r2((x1 - x0) / w), h: r2((y1 - y0) / h) };
+  // 격자 좌표 → 0~1 (셀 하나가 2px)
+  const X0 = pick.x0 * 2, X1 = Math.min(w - 1, pick.x1 * 2 + 1), Y0 = pick.y0 * 2, Y1 = Math.min(h - 1, pick.y1 * 2 + 1);
+  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length };
 }
 
 export function analyzeRegion(rgba, w, h, box) {
