@@ -229,14 +229,46 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   //   photo   네 변 어디에도 평평한 바탕이 없다 — 사진. 지면은 브랜드색, 지면과 만나는 변을 그라데이션으로 녹인다(한독·리멤버 예시)
   //   illust  평평한 변이 하나라도 있다 — 바탕을 품은 일러스트·3D. 그 변의 색이 지면이 되어 이음매 없이 이어진다(72/136, 가장 흔함)
   const flatEdges = list.filter(e => e.flat).length;
-  const kind = opaque < 0.5 ? 'cutout' : flatEdges === 0 ? 'photo' : 'illust';
   const cutout = opaque < 0.5;
+  // 질감(texture): 날카로운 경계가 거의 없고(이웃 차 > 0.08인 쌍 0.3% 미만) 전체가 매끈한(평균 이웃 차 0.005 미만) 그림 — 블러 그라데이션.
+  // 주인공도 바탕도 없다. 측정(10-06): 그라데이션 0.00% / 삼성 3D 4.3% / 일화 사진 7.8% / 비씨 일러스트 17.8%
+  const tex = textureOf(rgba, w, h);
+  const kind = cutout ? 'cutout' : (tex.sharp < 0.003 && tex.rough < 0.005 && tex.spread >= 6) ? 'texture' : flatEdges === 0 ? 'photo' : 'illust';
+  const quadrants = quadrantsOf(rgba, w, h);
   // rows·cols: 그림을 16칸으로 자른 띠마다의 "바탕" 색(주인공이 아닌 픽셀의 평균). 오브젝트 자리를 주인공으로 당겨 채우면 자리의 글자 쪽 변이
   // 그림 한가운데 걸린다 — 그 줄의 바탕색을 지면이 이어받아야 이음매가 안 보인다(core/field.js joinColour). 누끼는 바탕이 없다(null)
   // 바탕 기준색 — 평평한 변이 있으면 그 색. 주인공이 변까지 닿는 줄에서는 그 줄의 양끝 색이 주인공 색이라 바탕 추정이 틀어진다(초록 호가 오른쪽 변에 닿은 줄) — 그때는 이 색을 쓴다
   const refEdge = [edges.top, edges.left, edges.right, edges.bottom].find(e => e.flat && e.hex);
   const ref = refEdge ? hexToRgb(refEdge.hex) : null;
-  return { edges, opaque, flatEdges, kind, focus: focusOf(rgba, w, h, bw, cutout, ref), rows: cutout ? null : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? null : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
+  if (kind === 'texture') return { edges, opaque, flatEdges, kind, texture: tex, quadrants, focus: null, rows: bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: null };
+  return { edges, opaque, flatEdges, kind, texture: tex, quadrants, focus: focusOf(rgba, w, h, bw, cutout, ref), rows: cutout ? null : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? null : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
+}
+
+// 전체 거칠기 — 2px 격자에서 오른쪽·아래 이웃과의 색 차 평균(rough), 차가 0.08을 넘는 쌍의 비율(sharp), 전체 색 편차(spread). 질감 판정에 쓴다
+function textureOf(rgba, w, h) {
+  let rough = 0, sharp = 0, n = 0, sr = 0, sg = 0, sb = 0, qr = 0, qg = 0, qb = 0, c = 0;
+  // 이웃은 표본 간격과 같은 2px 건너 — 1px 이웃으로 재면 짝수 좌표에 선 경계(합성 그림)가 표본 사이로 빠진다
+  for (let y = 0; y < h - 2; y += 2) for (let x = 0; x < w - 2; x += 2) {
+    const i = (y * w + x) * 4; if (rgba[i + 3] < 200) continue;
+    const j = i + 8, k = ((y + 2) * w + x) * 4;
+    if (rgba[j + 3] >= 200 && rgba[k + 3] >= 200) {
+      const d = (Math.abs(rgba[i] - rgba[j]) + Math.abs(rgba[i + 1] - rgba[j + 1]) + Math.abs(rgba[i + 2] - rgba[j + 2]) + Math.abs(rgba[i] - rgba[k]) + Math.abs(rgba[i + 1] - rgba[k + 1]) + Math.abs(rgba[i + 2] - rgba[k + 2])) / 1530;
+      rough += d; if (d > 0.08) sharp++; n++;
+    }
+    sr += rgba[i]; sg += rgba[i + 1]; sb += rgba[i + 2]; qr += rgba[i] ** 2; qg += rgba[i + 1] ** 2; qb += rgba[i + 2] ** 2; c++;
+  }
+  const sd = (s1, q) => c ? Math.sqrt(Math.max(0, q / c - (s1 / c) ** 2)) : 0;
+  return { rough: n ? Math.round(rough / n * 10000) / 10000 : 0, sharp: n ? Math.round(sharp / n * 10000) / 10000 : 0, spread: Math.round((sd(sr, qr) + sd(sg, qg) + sd(sb, qb)) / 3) };
+}
+// 네 사분면의 평균색 — 질감 그림 위에 글자를 둘 때 그 자리의 밝기를 읽는다
+function quadrantsOf(rgba, w, h) {
+  const acc = { tl: [0, 0, 0, 0], tr: [0, 0, 0, 0], bl: [0, 0, 0, 0], br: [0, 0, 0, 0] };
+  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
+    const i = (y * w + x) * 4; if (rgba[i + 3] < 200) continue;
+    const a = acc[(y < h / 2 ? 't' : 'b') + (x < w / 2 ? 'l' : 'r')];
+    a[0] += rgba[i]; a[1] += rgba[i + 1]; a[2] += rgba[i + 2]; a[3]++;
+  }
+  return Object.fromEntries(Object.entries(acc).map(([k, a]) => [k, a[3] ? rgbToHex([a[0] / a[3], a[1] / a[3], a[2] / a[3]]) : null]));
 }
 
 // 바탕 프로필 — 띠(가로 16칸 rows / 세로 16칸 cols)마다 바탕 픽셀(주인공이 아닌 픽셀)의 대표색(채널별 중앙값)과 비율.

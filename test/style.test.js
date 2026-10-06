@@ -265,3 +265,17 @@ test('a background-type illustration: the empty corner is the text room, the pic
   assert.equal(fp.kind, 'photo');
   assert.equal(kvFull({ ...style, kvMeta: { ...style.kvMeta, field: fp } }, 580, 400), null);
 });
+
+test('a blurred gradient is a texture: no subject, no room — the renderer lays it under everything', async () => {
+  const { fieldFromImage } = await import('../core/palette.js');
+  const W = 120, H = 90;
+  const a = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) a.set([140 + Math.round(60 * x / W), 170 + Math.round(40 * y / H), 250, 255], (y * W + x) * 4);
+  const f = fieldFromImage(a, W, H);
+  assert.equal(f.kind, 'texture', `부드러운 그라데이션은 질감 (sharp ${f.texture.sharp}, rough ${f.texture.rough})`);
+  assert.equal(f.focus, null); assert.equal(f.room, null);
+  assert.ok(f.quadrants.tl && f.quadrants.br, '사분면 색이 있다');
+  // 같은 그라데이션에 네모 하나만 얹어도 질감이 아니다(날카로운 경계)
+  for (let y = 40; y < 80; y++) for (let x = 60; x < 110; x++) a.set([40, 60, 200, 255], (y * W + x) * 4);
+  assert.notEqual(fieldFromImage(a, W, H).kind, 'texture');
+});

@@ -509,6 +509,10 @@ function renderSlot(opts = {}) {
 
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const mediumName = id => MEDIA.find(m => m.id === id)?.name ?? id;
+// 이 종류의 캠페인에 내는 매체(core/media/*.json campaigns) — 행사에는 채용포털·취준생 커뮤니티가 안 보인다
+const mediaForKind = kind => MEDIA.filter(m => (m.campaigns ?? ['recruit', 'event']).includes(kind ?? 'event'));
+// 그릴 규격이 있는 매체 id — "전체 선택"이 고르는 범위
+const pickableMedia = kind => { const all = adSpecGroups(); return mediaForKind(kind).filter(m => all.some(x => x.medium === m.id)).map(m => m.id); };
 
 // 이번에 만들 소재 — 고른 매체의 소재 묶음에서 사용자가 끈 것만 뺀다
 function chosenAdGroups(it = state.intake) {
@@ -533,9 +537,14 @@ function mediaPickerHtml(it) {
   {
     const all = adSpecGroups(), AD = adSpecEntries();
     // 행사 캠페인에는 행사 홍보에 쓰는 매체(디지털·직장인/지역 커뮤니티)만 — 채용포털·취준생 커뮤니티는 숨긴다(core/media/*.json campaigns)
-    const forKind = m => (m.campaigns ?? ['recruit', 'event']).includes(it.kind ?? 'event');
-    const cards = ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
-      const ms = MEDIA.filter(m => m.group === g && forKind(m));
+    const kindMedia = mediaForKind(it.kind);
+    // 전체 선택 — 그릴 규격이 있는 매체를 한 번에(10-06 사용자 "소재 전체 선택도 있었으면"). 다 골라져 있으면 전체 해제
+    const pickable = pickableMedia(it.kind);
+    const allOn = pickable.length > 0 && pickable.every(id => it.media.includes(id));
+    const pickAll = `<div class="pspec"><span>매체 ${pickable.length}곳 · 소재 ${all.filter(x => pickable.includes(x.medium)).length}종</span>
+      <button type="button" class="lnk" id="mAll" aria-pressed="${allOn}">${allOn ? '전체 해제' : '전체 선택'}</button></div>`;
+    const cards = pickAll + ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
+      const ms = kindMedia.filter(m => m.group === g);
       if (!ms.length) return '';
       return `<div class="pgrp"><h5>${g}</h5><div class="mcards">${ms.map(m => {
         const gs = all.filter(x => x.medium === m.id), n = gs.length, on = it.media.includes(m.id);
@@ -621,6 +630,12 @@ function slotWhere() {
     re(`.mcard[data-c="${c}"]`);
   });
   $('sSpecs')?.addEventListener('click', () => { it.specOpen = !it.specOpen; re('#sSpecs'); });
+  $('mAll')?.addEventListener('click', () => {
+    const ids = pickableMedia(it.kind);
+    const allOn = ids.length > 0 && ids.every(id => it.media.includes(id));
+    it.media = allOn ? it.media.filter(id => !ids.includes(id)) : [...new Set([...it.media, ...ids])];
+    re('#mAll');
+  });
   box.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
     if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
     const list = cb.closest('.plist'), all = list.querySelectorAll('input[data-s]');
@@ -785,7 +800,7 @@ function slotSignage() {
 }
 
 // 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
-const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', 'kv-full': '배경형 — 그림을 통째로 깔고 빈 자리에 글자', manual: '직접 고른 색' };
+const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', 'kv-full': '배경형 — 그림을 통째로 깔고 빈 자리에 글자', 'kv-texture': '질감 — 그라데이션을 통째로 깔고 글자만', manual: '직접 고른 색' };
 function bgControlHtml(styleLike, id) {
   const f = resolveField(styleLike, { facing: 'left' });
   const mode = styleLike.background?.mode ?? 'auto';
