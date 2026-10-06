@@ -75,9 +75,12 @@ const PLACE_TAIL = /(구|동|로|길|읍|면|리|역|단지|밸리|타워|센터
 const NOT_PLACE = /^(근무|소재|본사|지사|지역|전역|전체|채용|모집|마감|광고|및|또는|등)$/;
 // 회사로 읽는 근거 — 법인 표기, 흔한 사명 끝말, 영문 대문자+한글(SK하이닉스). 근거가 없으면 고객사는 비워 둔다.
 const CORP_MARK = /\(주\)|㈜|^주식회사$/;
-const CORP_TAIL = /(통신|전자|그룹|건설|은행|증권|보험|화학|제약|자동차|중공업|물산|산업|에너지|바이오|테크|소프트|시스템즈?|네트웍스|랩스?|컴퍼니|코리아|홀딩스|엔지니어링|해운|항공|물류|카드|캐피탈|생명|화재|텔레콤|모빌리티|게임즈|엔터테인먼트|공사|공단|재단|병원|대학교)$/;
+const CORP_TAIL = /(글로벌|제강|제철|첨단소재|소재|캐피탈|카드|생명|화재|통신|전자|그룹|건설|은행|증권|보험|화학|제약|자동차|중공업|물산|산업|에너지|바이오|테크|소프트|시스템즈?|네트웍스|랩스?|컴퍼니|코리아|홀딩스|엔지니어링|해운|항공|물류|카드|캐피탈|생명|화재|텔레콤|모빌리티|게임즈|엔터테인먼트|공사|공단|재단|병원|대학교)$/;
 const JOB = /(엔지니어|개발자?|디자이너|기획자?|마케터|마케팅|영업|연구원|매니저|운영|회계|인사|설계|생산|품질|분석가?|사이언티스트|간호사|상담사?|컨설턴트|에디터|담당자?|사원|PD|PM|PO|QA|직)$/;
 const NOT_ROLE = /^(\d{4}년?|상반기|하반기|공채|공개|수시|신입|경력|신입·경력|신입\/경력|대규모|광고|소재|배너|홍보)$/;
+// 채용 구분·시즌 — 보드 레퍼런스 헤드라인 문법(2026-10-06): "2024 상반기 / 한미글로벌 신입 채용", "세아제강 신입/경력사원 채용", "PTKOREA 2026 8기 신입공개채용"
+const HIRING = /(신입\s?[\/·∙]\s?경력\s?(?:사원|공채)?|(?:신입|경력)(?:사원)?\s?(?:공개\s?채용|공채)|신입(?:사원)?|경력(?:사원)?|공개\s?채용|공채|부문별\s?채용|수시\s?채용)/;
+const SEASON = /((?:19|20)\d{2}\s?년?\s?(?:상반기|하반기|\d{1,2}기))/;
 
 function looksCompany(tok) {
   if (!tok || JOB.test(tok)) return false;
@@ -95,6 +98,10 @@ export function extractRecruit(text, now = new Date()) {
 
   const emp = t.match(EMPLOY);
   if (emp) out.employType = emp[1].replace(/\s/g, ' ');
+  const hir = t.match(HIRING);
+  if (hir) out.hiringType = hir[1].replace(/\s+/g, ' ').replace(/\s?([\/·∙])\s?/g, '$1').trim();
+  const sea = t.match(SEASON);
+  if (sea) out.season = sea[1].replace(/\s+/g, ' ').replace(/(\d{4})\s?년/, '$1년').trim();
 
   const loc = t.match(REGION_RE);
   if (loc) {
@@ -108,14 +115,19 @@ export function extractRecruit(text, now = new Date()) {
   const DATE = /(\d{4}\s?[-./년]\s?\d{1,2}\s?[-./월]\s?\d{1,2}\s?일?|\d{1,2}\s?월\s?\d{1,2}\s?일|\d{1,2}\/\d{1,2}(?=\s?(?:까지|마감)))/g;
   const dates = [...t.matchAll(DATE)].map(m => ({ s: m[0], at: m.index, end: m.index + m[0].length }));
   const marked = dates.find(d => /^\s{0,2}(까지|마감)/.test(t.slice(d.end, d.end + 6)) || /(마감|까지)[은는이가:]?\s{0,2}~?\s?$/.test(t.slice(Math.max(0, d.at - 8), d.at)));
-  const pick = marked ?? (dates.length === 1 ? dates[0] : null);
+  // 기간 — "5.3 ~ 5.21", "5월 3일부터 5월 21일까지": 앞 날짜가 접수 시작, 뒤 날짜가 마감
+  const range = dates.slice(0, -1).map((d, i) => [d, dates[i + 1]]).find(([a, b]) => /^\s*(~|-|–|—|부터|에서)\s*$/.test(t.slice(a.end, b.at)));
+  const pick = marked ?? (range ? range[1] : dates.length === 1 ? dates[0] : null);
   const iso = pick && normDate(pick.s, now);
   if (iso) out.deadline = iso;
+  const iso0 = range && normDate(range[0].s, now);
+  if (iso0 && iso) out.startDate = iso0;
 
   // 고객사·직무 — "…채용/모집" 앞 구절에서 읽는다
   const clause = t.split(/[.\n!?]/).find(c => /채용|모집|구인/.test(c));
   if (clause) {
-    const head = clause.slice(0, clause.search(/채용|모집|구인/));
+    // 시즌·채용구분은 회사·직무가 아니다 — 떼고 읽는다("2024 상반기 한미글로벌 신입 채용" → 한미글로벌)
+    const head = clause.slice(0, clause.search(/채용|모집|구인/)).replace(SEASON, ' ').replace(HIRING, ' ');
     let toks = head.trim().split(/\s+/).filter(Boolean);
     let client = null;
     if (toks[0] === '주식회사' && toks[1]) { client = `${toks[0]} ${toks[1]}`; toks = toks.slice(2); }
@@ -125,6 +137,11 @@ export function extractRecruit(text, now = new Date()) {
     if (client) out.client = client;
     const rest = toks.filter(w => !NOT_ROLE.test(w) && !EMPLOY.test(w) && !REGION_ONE.test(w));
     if (rest.length && rest.some(w => JOB.test(w))) out.role = rest.join(' ');
+  }
+  // "모집부문 건설사업관리 PM"·"모집직무: 인사, 연구개발" — 라벨 뒤의 구절이 직무다(레퍼런스 상세 줄의 라벨 그대로)
+  if (!out.role) {
+    const lab = t.match(/(?:모집\s?(?:부문|직무|분야)|대상\s?직무|채용\s?직무)\s*[:：]?\s*([^,.\n]+(?:,\s*[^,.\n]+)*)/);
+    if (lab) out.role = lab[1].replace(/\s*(?:입니다|이에요|예요)$/, '').trim();
   }
   return out;
 }
