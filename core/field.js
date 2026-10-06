@@ -23,7 +23,26 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const dominant = style.keyVisual ? style.kvMeta?.colors?.[0] ?? null : null;
   let stops = null, angle = 180, source = null, seamless = false;
 
+  // 지면을 정하는 순서: ① 직접 고른 색 → ② 배경을 품은 일러스트의 가장자리 색(이음매가 없어야 하니 로고보다 우선) → ③ 흰색 로고만 있으면 어두운 브랜드색 → ④ 사진·누끼는 브랜드색(밝은 매체면 틴트)
+  const flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX));
+  const e = f?.edges?.[facing];
+  const hasBg = !!(f && f.kind !== 'photo' && f.opaque >= 0.5);
+  // 글자 쪽 변은 그림이 걸쳐 있지만 다른 변이 평평하면(한미글로벌 3D: 위는 흰 바탕, 왼쪽은 글자가 가로지름) 그 바탕색이 지면이다.
+  // 대표색을 쓰면 그림의 흰 바탕이 상자처럼 드러나고, 오브젝트가 오른쪽인 규격과 아래인 규격의 지면색이 달라진다(구글 GDN 5규격은 지면색이 같다 28/28)
+  const other = (hasBg && !flatEdge(e)) ? ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge) : null;
+
   if (opt.color) { stops = [opt.color]; source = 'manual'; }
+  else if (hasBg && flatEdge(e)) {
+    stops = [e.from, e.to];
+    angle = (facing === 'left' || facing === 'right') ? 180 : 90;
+    source = 'kv-edge'; seamless = true;
+  }
+  else if (hasBg && other) { stops = [other.hex]; source = 'kv-edge'; }
+  else if (style.logoTone === 'light') {
+    // 흰색 로고만 있다 — 그림이 지면을 정하지 않는 경우(사진·누끼·그림 없음) 로고가 지면을 정한다: 어두운 브랜드색. 브랜드색이 밝으면 검정을 섞는다
+    const brand = p.primary ?? '#2456D6';
+    stops = [contrast(brand, WHITE) >= 3 ? brand : mix(brand, BLACK, 0.5)]; source = 'brand-dark-logo';
+  }
   else if (f?.kind === 'photo' || (f && f.opaque < 0.5)) {
     // 사진의 변은 바탕이 아니고(하늘·벽의 한 조각), 배경을 딴 그림엔 바탕이 없다 — 둘 다 지면은 브랜드색.
     // 어두운 지면 매체: 브랜드색 단색(한독 사옥 → 파랑, ABL 캐릭터 → 파랑). 밝은 지면 매체(구글·자소설): 브랜드색 틴트 → 흰색 그라데이션
@@ -33,23 +52,10 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     if (tint) { stops = [mix(brand, WHITE, 0.78), WHITE]; angle = 180; source = 'brand-tint'; }
     else { stops = [brand]; source = f.kind === 'photo' ? 'brand-photo' : 'brand'; }
   }
-  else if (f) {
-    const e = f.edges?.[facing];
-    const flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX));
-    // 글자 쪽 변은 그림이 걸쳐 있지만 다른 변이 평평하면(한미글로벌 3D: 위는 흰 바탕, 왼쪽은 글자가 가로지름) 그 바탕색이 지면이다.
-    // 대표색을 쓰면 그림의 흰 바탕이 상자처럼 드러나고, 오브젝트가 오른쪽인 규격과 아래인 규격의 지면색이 달라진다(구글 GDN 5규격은 지면색이 같다 28/28)
-    const other = flatEdge(e) ? null : ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge);
-    if (flatEdge(e)) {
-      stops = [e.from, e.to];
-      angle = (facing === 'left' || facing === 'right') ? 180 : 90;
-      source = 'kv-edge'; seamless = true;
-    } else if (other) {
-      stops = [other.hex]; source = 'kv-edge';
-    } else if (dominant) {
-      // 배경을 딴 이미지 + 밝은 지면을 쓰는 매체(자소설)면 대표색의 옅은 틴트, 아니면 대표색 그대로
-      stops = (f.opaque < 0.5 && light) ? [mix(dominant, WHITE, 0.80), mix(dominant, WHITE, 0.90)] : [dominant];
-      source = 'kv-colour';
-    }
+  else if (f && dominant) {
+    // 배경을 딴 이미지 + 밝은 지면을 쓰는 매체(자소설)면 대표색의 옅은 틴트, 아니면 대표색 그대로
+    stops = (f.opaque < 0.5 && light) ? [mix(dominant, WHITE, 0.80), mix(dominant, WHITE, 0.90)] : [dominant];
+    source = 'kv-colour';
   }
   if (!stops && style.keyVisual && style.kvMeta?.edge) { stops = [style.kvMeta.edge]; source = 'kv-edge'; }   // 예전에 저장된 캠페인
   if (!stops) {

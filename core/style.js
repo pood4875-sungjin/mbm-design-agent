@@ -50,7 +50,9 @@ export function normalizeStyle(input = {}) {
       mode: ['solid', 'gradient'].includes(input.background?.mode) ? input.background.mode : 'auto',
       color: HEX.test(input.background?.color ?? '') ? input.background.color.toUpperCase() : null,
     },
-    logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 반전한다(컬러 로고는 뭉개진다)
+    logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
+    // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다
+    logoTone: ['light', 'dark', 'both'].includes(input.logoTone) ? input.logoTone : null,
     mood: input.mood ?? [],
     presetId: input.presetId ?? null,
     // 인쇄 사양 — 근사 CMYK(사양서·미리보기 표기용)
