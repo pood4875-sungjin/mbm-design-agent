@@ -120,16 +120,19 @@ document.documentElement.dataset.done = '1';
     try { checks = m ? JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')) : {}; } catch (e) { console.warn(id, 'checks 파싱 실패'); }
     writeFileSync(path.join(OUT, `${id}.checks.json`), JSON.stringify(checks, null, 1));
     if (flag('--shots')) { try { execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=12000', '--window-size=2200,6000', `--screenshot=${path.join(OUT, id + '.png')}`, pathToFileURL(sheetPath).href], { stdio: 'ignore' }); } catch {} }
-    const flagged = Object.entries(checks).filter(([, r]) => r?.warnings?.length);
-    results[id] = { specs: specIds.length, flagged: flagged.length, byCode: flagged.flatMap(([, r]) => r.warnings.map(w => w.code)).reduce((a, k) => (a[k] = (a[k] ?? 0) + 1, a), {}), list: flagged.map(([sid, r]) => `${sid}: ${r.warnings.map(w => w.msg).join(' · ')}`) };
-    console.log(`${id.padEnd(14)} ${c.summary}\n   검수 경고 ${flagged.length}/${specIds.length}  ${JSON.stringify(results[id].byCode)}`);
+    // 경고(warn)만 센다 — 템플릿 고정 칸의 빈 여백(info)은 따로(그림 탓이 아니다)
+    const real = Object.entries(checks).filter(([, r]) => r?.warnings?.some(w => w.level !== 'info'));
+    const info = Object.entries(checks).filter(([, r]) => r?.warnings?.length && !r.warnings.some(w => w.level !== 'info')).length;
+    const flagged = real;
+    results[id] = { specs: specIds.length, flagged: flagged.length, info, byCode: flagged.flatMap(([, r]) => r.warnings.filter(w => w.level !== 'info').map(w => w.code)).reduce((a, k) => (a[k] = (a[k] ?? 0) + 1, a), {}), list: flagged.map(([sid, r]) => `${sid}: ${r.warnings.filter(w => w.level !== 'info').map(w => w.msg).join(' · ')}`) };
+    console.log(`${id.padEnd(14)} ${c.summary}\n   검수 경고 ${flagged.length}/${specIds.length} (참고 ${info})  ${JSON.stringify(results[id].byCode)}`);
     for (const line of results[id].list) console.log('   - ' + line);
   }
   save(l);
   // 라운드 기록 — 규칙을 바꿀 때마다 run --round "무엇을 바꿨나" 로 남긴다. 케이스별 경고 수의 추이가 곧 규칙 조정의 데이터
   const roundsPath = path.join(CASES, 'rounds.json');
   const rounds = existsSync(roundsPath) ? JSON.parse(readFileSync(roundsPath, 'utf8')) : [];
-  rounds.push({ n: rounds.length + 1, at: new Date().toISOString().slice(0, 16).replace('T', ' '), note: opt('--round') ?? '', cases: Object.fromEntries(Object.entries(results).map(([k, r]) => [k, { flagged: r.flagged, byCode: r.byCode }])), total: Object.values(results).reduce((a, r) => a + r.flagged, 0) });
+  rounds.push({ n: rounds.length + 1, at: new Date().toISOString().slice(0, 16).replace('T', ' '), note: opt('--round') ?? '', cases: Object.fromEntries(Object.entries(results).map(([k, r]) => [k, { flagged: r.flagged, info: r.info, byCode: r.byCode }])), total: Object.values(results).reduce((a, r) => a + r.flagged, 0) });
   writeFileSync(roundsPath, JSON.stringify(rounds, null, 1));
   console.log(`라운드 ${rounds.length}: 경고 합계 ${rounds[rounds.length - 1].total}${opt('--round') ? ' — ' + opt('--round') : ''}`);
   // 색인 페이지

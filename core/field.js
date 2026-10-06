@@ -304,7 +304,7 @@ const arKvOf = style => style.kvMeta?.ar ?? null;
 //   inset: 가장자리에서 띄울 폭(좌우 끝이 단색이어야 하는 지면) · melt:false 면 녹이지 않는다(투명 배경 규격)
 // 그 변이 이미 지면색과 같으면(field.seamless) 그 변을 기준으로 붙여 이음매에서 그림이 잘리지 않게 하고, 녹이는 폭을 줄인다.
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
-export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true, top = 0, bleedMax = 1.3 }) {
+export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true, top = 0, bleedMax = 1.3, cutLeft = null }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const { cutout, bw, bh, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset, top });
   const hh = side === 'right' ? h - top : h;
@@ -334,7 +334,9 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   const bleed = cutout && side === 'right' && arKv && hh * arKv > bw && hh * arKv <= bw * 1.3;
   // 아래 띠의 가로 긴 누끼도 같은 문법 — 띠 높이에 맞추면 폭이 지면을 넘칠 때(130%까지) 가운데 두고 좌우를 지면 밖으로 자른다(세로 띠 300×1050 건물)
   const bleedB = cutout && side === 'bottom' && arKv && bh * arKv > w && bh * arKv <= w * bleedMax + 1;
-  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${hh}px` : bleedB ? `center bottom/auto ${bh}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
+  // 틈 창(cutLeft)이 있으면 가운데가 아니라 창의 왼쪽 끝부터 — 자르기 선이 캐릭터 사이 틈에 떨어진다
+  const bPos = cutLeft != null ? `${-Math.round(cutLeft * bh * arKv)}px bottom` : 'center bottom';
+  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${hh}px` : bleedB ? `${bPos}/auto ${bh}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;

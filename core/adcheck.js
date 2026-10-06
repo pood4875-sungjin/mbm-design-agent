@@ -99,13 +99,17 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
 
   // 4. 빈 여백 — 아무것도 없는 가로 띠
   const bands = [...texts.map(t => t.r), ...subjects.map(o => (cutoutKv && o.s.w > 0) ? o.s : o.r), ...(logoR ? [logoR] : [])].map(r => [Math.max(0, r.y), Math.min(frame.h, r.y + r.h)]).sort((a, b) => a[0] - b[0]);
-  let cursor = 0, gap = 0;
-  for (const [y0, y1] of bands) { if (y0 > cursor) gap = Math.max(gap, y0 - cursor); cursor = Math.max(cursor, y1); }
-  gap = Math.max(gap, frame.h - cursor);
-  metrics.emptyBand = Math.round(gap / frame.h * 100);
+  // 가운데 구멍(내용 사이의 빈 띠)과 가장자리 여백(위·아래)을 구분한다 — 가로로 긴 그림을 세로 가운데에 두면 위아래가 비는 건 구성이지 구멍이 아니다(ABL 떼 1200×600). 가장자리는 36%, 가운데는 28%
+  let cursor = 0, gapMid = 0, gapTop = 0;
+  for (const [y0, y1] of bands) { if (y0 > cursor) { if (cursor === 0) gapTop = Math.max(gapTop, y0); else gapMid = Math.max(gapMid, y0 - cursor); } cursor = Math.max(cursor, y1); }
+  const gapBottom = Math.max(0, frame.h - cursor);
+  const edgeGap = Math.max(gapTop, gapBottom);
+  const gap = Math.max(gapMid, edgeGap > frame.h * 0.36 ? edgeGap : 0);
+  metrics.emptyBand = Math.round(Math.max(gapMid, edgeGap) / frame.h * 100); metrics.emptyMid = Math.round(gapMid / frame.h * 100);
   const bgKv = kvUse === 'bg' || kvUse === 'full';   // 그림이 지면 전체(질감·배경형·사진 전체) — 빈 띠가 그림이다
   const logoOnly = root.hasAttribute('data-logo-only');   // 프로필·로고 규격은 로고 하나가 가운데 — 빈 띠가 정상
-  if (frame.h >= 150 && !bgKv && !logoOnly && texts.length && gap / frame.h > 0.28) push('empty-band', `아무것도 없는 띠가 지면 높이의 ${Math.round(gap / frame.h * 100)}%`, kvUse === 'none' ? 'info' : 'warn');
+  const templated = root.hasAttribute('data-template');   // 매체 템플릿이 글자 칸·그림 칸을 고정한 규격(자소설 달력·채용공고배너) — 빈 띠는 틀의 문제라 참고로만
+  if (frame.h >= 150 && !bgKv && !logoOnly && texts.length && gap / frame.h > 0.28) push('empty-band', `아무것도 없는 띠가 지면 높이의 ${Math.round(gap / frame.h * 100)}%`, (kvUse === 'none' || templated) ? 'info' : 'warn');
 
   // 5. 글자 잘림
   for (const t of texts) {

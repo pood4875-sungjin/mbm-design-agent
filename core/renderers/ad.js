@@ -151,6 +151,18 @@ const rect = (r, k) => r ? { x: Math.round(r.x * k), y: Math.round(r.y * k), w: 
 // 버튼(CTA)은 그리지 않는다 — 2026-10-02 사용자 결정("버튼 빼줘 그냥, 우선"). 실제 소재 141장에도 버튼은 없었다. 되살릴 때는 이것만 켠다.
 const SHOW_CTA = false;
 
+
+// 누끼 떼의 '틈 창' — 열 투명 프로필(cols, 투명 비율)에서 캐릭터 사이 틈(≥75%) 두 곳을 골라 그 사이만 보여 준다(배율 k = 1/창 폭). 자르기 선이 얼굴·몸통을 가르지 않는다(ABL 떼).
+// kTarget에 가장 가까운 창을 고른다. 틈이 없으면(건물 장면) null → 가운데 맞춤 배율 규칙으로
+function cutWindow(cols, kTarget, kMax = 2.4) {
+  if (!cols?.length) return null;
+  const n = cols.length, gaps = [];
+  for (let i = 0; i < n; i++) if ((cols[i]?.bg ?? 0) >= 0.75) gaps.push((i + 0.5) / n);
+  if (gaps.length < 2) return null;
+  let best = null;
+  for (const a of gaps) for (const b of gaps) { const wf = b - a; if (wf <= 0) continue; const k = 1 / wf; if (k < 1.15 || k > kMax) continue; const d = Math.abs(k - kTarget); if (!best || d < best.d) best = { k: Math.round(k * 100) / 100, left: Math.round(a * 1000) / 1000, d }; }
+  return best;
+}
 export function renderAd(ctx, style, spec) {
   const rules = spec.rules ?? {};
   // 오브젝트 누끼 — 투명 PNG 필수 자리와 그라데이션을 넣을 수 없는 상자 자리는 배경 노릇을 하는 키비주얼 대신 따로 올린 누끼를 쓴다(core/adfields.js objectNeedOf).
@@ -303,7 +315,14 @@ export function renderAd(ctx, style, spec) {
   // 가이드 없는 정사각형 지면에 누끼: 오른쪽 열 대신 우하단 모서리 상자(폭 58%·높이 55%) — 글자는 전폭으로 크게, 상세는 상자 옆 열에.
   // 보드 1-884 코엑스 에브리타임 홈 카드: 건물 누끼가 오른쪽 아래를 차지하고 '모집분야' 알약·값이 그 옆에 선다. 오른쪽 열로 두면 글자 칸이 반으로 줄어 메인이 작아진다
   const cutCorner = !!(hasKv && !logoOnly && !photoFull && !roomFull && !textureFull && !tImage && !transparent && !rules.objectBox && !guide?.objectRatio && L.shape === 'square' && (style.kvMeta?.field?.opaque ?? 1) < 0.5);
-  if (cutCorner) tImage = { x: w - Math.round(w * 0.58), y: h - Math.round(h * 0.55), w: Math.round(w * 0.58), h: Math.round(h * 0.55) };
+  // 가로로 긴 누끼(캐릭터 떼·건물, 비율 > 1.3)는 모서리 상자(폭 58%)에 넣으면 키가 작아 위가 빈다(에브리타임 288 ABL 떼: 빈 띠 54~65%) — 폭 전체 아래 띠(폭 130%까지 넘쳐도 되는 높이, 30~55%)
+  const cutAr = style.kvMeta?.ar ?? 1;
+  // 띠 높이 = 폭을 넘쳐도 되는 최대 배율(자르기 선이 투명 60% 이상인 열에 떨어지는 1.3~2.2)까지 — 떼가 작게 한 줄로 서는 것보다 두세 명이 크게
+  const cutWin = (cutCorner && cutAr > 1.3) ? cutWindow(style.kvMeta?.field?.cols, Math.min(2.4, (h * 0.55) * cutAr / w)) : null;   // 띠 55% 높이를 채우는 배율에 가장 가까운 틈 창
+  const cutKmax = cutWin ? cutWin.k : (() => { const cols = style.kvMeta?.field?.cols; const at = t => cols?.[Math.min(cols.length - 1, Math.max(0, Math.round(t * (cols.length - 1))))]?.bg ?? 1; let k = 1; for (const kk of [1.3, 1.5, 1.8, 2.2]) { const f = (1 - 1 / kk) / 2; if (!cols?.length || (at(f) >= 0.75 && at(1 - f) >= 0.75)) k = kk; } return k; })();
+  let cutBand = false;   // 정사각 규격의 가로 긴 누끼 띠 — 띠 높이에 맞추고 좌우를 지면 밖으로(틈 창 또는 허용 배율)
+  if (cutCorner && cutAr > 1.3) { const bandH = Math.min(Math.round(h * 0.55), Math.max(Math.round(h * 0.3), Math.round(w * cutKmax / cutAr))); tImage = { x: 0, y: h - bandH, w, h: bandH }; cutBand = bandH * cutAr > w + 1; }
+  else if (cutCorner) tImage = { x: w - Math.round(w * 0.58), y: h - Math.round(h * 0.55), w: Math.round(w * 0.58), h: Math.round(h * 0.55) };
   const kvKindPhoto = style.kvMeta?.field?.kind === 'photo';
   // 그림이 없고 로고만 있으면 로고가 오브젝트 자리를 차지한다(보드 예시 14/136: 셀트리온·LX·CMTX·제일약품·SPC…) — 작은 상단 로고는 그때 생략
   // 매체가 로고 칸을 따로 정해 둔 템플릿(자소설)에서는 로고를 그 칸에 두고 이미지 칸은 비운다 — 로고가 두 번 나오면 안 된다
@@ -347,7 +366,7 @@ export function renderAd(ctx, style, spec) {
   // 주인공이 그림의 일부(바탕 넓은 3D·일러스트)면 칸을 주인공으로 채운다 — 제 크기·폭 맞춤으로 통째로 놓으면 바탕만 보인다(core/field.js subjectCrop)
   const bandCrop = (tImage && imgBottomBand && hasKv && !isCutout && !transparent) ? subjectCrop(style, tImage.w, tImage.h) : null;
   const cornerCrop = (cornerRect && !isCutout && !transparent) ? subjectCrop(style, tImage.w, tImage.h) : null;
-  if (tImage && imgBottomBand && kvAR && !bandCrop) {
+  if (tImage && imgBottomBand && kvAR && !bandCrop && !cutBand) {
     const minH = tImage.h * 0.6;
     if (kvPx && kvPx[0] <= tImage.w && kvPx[1] <= tImage.h && kvPx[1] >= minH) bandMode = 'native';
     else if (kvAR >= tImage.w / tImage.h && tImage.w / kvAR >= minH) bandMode = 'contain';
@@ -457,7 +476,7 @@ export function renderAd(ctx, style, spec) {
     : '';
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -474,12 +493,19 @@ export function renderAd(ctx, style, spec) {
   const gObj = guide?.objectRatio?.[L.shape] ?? null;
   const gObjH = kvWideBand ? guide.objectRatio.squareBand : gObj;
   const refObjW = gObj != null ? Math.round(w * gObj) : L.objectW, refObjH = gObjH != null ? Math.round(h * gObjH) : L.objectH;
-  const objW = objectSide !== 'right' ? 0
+  let objW = objectSide !== 'right' ? 0
     : logoAsObject ? Math.round(innerW * 0.34)
     // 매체가 정한 상자: 글자 칸은 상자 왼쪽 선에서 간격(카카오 33px)만큼 떨어져 끝난다
     : oBox ? Math.max(0, Math.round(w - pad.right - innerW * 0.04 - (oBox.x - (oBox.gap ?? 33))))
     : useRef ? Math.max(0, refObjW - pad.right)
     : Math.round(innerW * Math.min(0.5, Math.max(0.24, objRatio ?? (strip ? 0.32 : 0.38))));
+  // 가로로 긴 누끼(캐릭터 떼·건물)는 오른쪽 열에 맞춰 넣으면 키가 열의 절반도 안 돼 위아래가 빈다(ABL 떼 1005×360: 빈 띠 30%) — 열을 넓혀 키를 열 높이의 70%까지, 글자 칸은 안쪽 폭의 42%는 남긴다
+  if (objectSide === 'right' && isCutout && !oBox && !logoAsObject && !strip && style.kvMeta?.ar > 1.3) {
+    const arW = style.kvMeta.ar, colH = innerH;
+    const want = Math.round(colH * 0.7 * arW) - pad.right;
+    const maxW = Math.round(innerW * 0.58);
+    if (want > objW) objW = Math.min(maxW, want);
+  }
   let objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
@@ -494,7 +520,10 @@ export function renderAd(ctx, style, spec) {
   const overlap0 = guide?.objectOverlap?.[L.shape] ?? 0;
   const zoneFrac = (() => { if (!P0 || !overlap0) return 0; const ar0 = style.kvMeta?.ar ?? 1; const drawnH = P0.crop ? P0.crop.ih * P0.crop.scale : Math.max(w / ar0, objH + pad.bottom); return (overlap0 * objH) / Math.max(1, drawnH); })();
   const joinCuts = !!(P0 && rowsP?.length && rowsBetween(P0, P0.joinFrac, P0.joinFrac + zoneFrac) < 0.95);
-  const overlap = (joinCuts || isCutout) ? 0 : overlap0;   // 누끼는 녹인 바탕 구간이 없다 — 겹치면 바로 캐릭터 머리 위 글자(여우 누끼 300×600)
+  // 누끼는 녹인 바탕 구간이 없다 — 겹칠 수 있는 건 띠 안에서 누끼 위로 비는 부분뿐(가로 긴 떼는 띠 아래쪽에 낮게 선다: ABL 300×600 메인이 잘리지 않게). 캐릭터 하나가 띠를 다 채우면 0(여우 누끼 머리 위 글자 금지)
+  // 사진은 '바탕'이 없다(어두운 사진은 줄 전체가 가장자리 색과 비슷해 조용하다고 오인 — 일화 어둡게 400×340 상세가 건물 위로 31%) → 0
+  const cutFree = (isCutout && style.kvMeta?.ar && objectSide === 'bottom') ? Math.max(0, 1 - Math.min(objH + pad.bottom, w / style.kvMeta.ar) / Math.max(1, objH + pad.bottom)) : 0;
+  const overlap = (joinCuts || kvKind === 'photo') ? 0 : isCutout ? Math.min(overlap0, Math.round(cutFree * 100) / 100) : overlap0;
   let objReserve = objectSide === 'bottom' ? Math.round(objH * (1 - overlap)) : objH;
   const cornerTop = (tImage && !(tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1) && tImage.y > 0) ? tImage.y + Math.round(tImage.h * (gCorner ? Math.max(0.22, overlap) : 0.22)) : null;
   const textH = objectSide === 'bottom' ? innerH - objReserve - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
@@ -718,6 +747,7 @@ export function renderAd(ctx, style, spec) {
   let distribute = false;   // 세로 규격: 상세 블록을 글자 영역 바닥(그림 바로 위)으로 내린다
   let splitGap = false;     // 그래도 빈 높이가 지면의 35%를 넘으면 메인 위에도 공간을 나눠 한 덩어리 빈 띠를 둘로(세로 띠 + 가로 긴 누끼 떼)
   let cutBleed = 1.3;       // 아래 띠 누끼가 지면 폭을 넘쳐도 되는 배율(가로 긴 장면 누끼)
+  let cutLeft = null;       // 틈 창의 왼쪽 끝(그림 폭 비율) — 있으면 가운데가 아니라 이 위치부터 보여 준다
   if (guide?.fill && objectSide === 'bottom' && !tImage && hasKv && !logoAsObject) {
     const used = blocksOf(z) + Math.round(mainLines * mainFs * mainLine);
     const slack = textH - used;
@@ -737,15 +767,22 @@ export function renderAd(ctx, style, spec) {
     if ((L.shape === 'tall' || L.shape === 'tower') && slack - Math.max(0, grow) > h * 0.06) distribute = true;
     if (distribute && slack - Math.max(0, grow) > h * 0.35) splitGap = true;
     // 가로로 긴 누끼(건물)는 세로 띠를 못 채운다 — 폭 130%까지 키워(좌우가 지면 밖으로) 닿는 높이만 그림에 주고 나머지는 글자 영역으로, 상세는 그림 바로 위로(케이스 장부 동부 300×1050: 빈 띠 49%)
-    if (isCutout && ar && (L.shape === 'tall' || L.shape === 'tower')) {
-      // 폭 배율 후보 1.0 → 1.3 → 1.5 → 1.8. 좌우 자르기 선이 캐릭터 몸을 가르면 안 되므로(ABL 떼) 그 선의 열이 투명 85% 이상인 배율만 허용(장면 누끼는 cols가 없거나 성글어 대개 통과).
-      // 허용된 것 중 글자 영역의 빈 띠가 지면의 28% 아래로 떨어지는 가장 작은 값, 없으면 허용된 최대값
+    if (isCutout && ar && (L.shape === 'tall' || L.shape === 'tower' || L.shape === 'square')) {
+      // 폭 배율 후보 1.0 → 1.3 → 1.5 → 1.8 → 2.2. 좌우 자르기 선이 캐릭터 얼굴·몸통을 가르면 안 되므로(ABL 떼) 그 선의 열이 투명 75% 이상(캐릭터 사이 틈)인 배율만 허용 —
+      // 장면 누끼(건물)는 cols가 성글어 대개 통과. 허용된 것 중 글자 영역의 빈 띠가 지면의 28% 아래로 떨어지는 가장 작은 값, 없으면 허용된 최대값. 정사각 규격(에브리타임 288·인스타 1080)도 같은 문법
       const colsC = style.kvMeta?.field?.cols;
-      const cutOk = kk => { if (kk <= 1.001) return true; if (!colsC?.length) return true; const f = (1 - 1 / kk) / 2; const at = t => colsC[Math.min(colsC.length - 1, Math.max(0, Math.round(t * (colsC.length - 1))))]?.bg ?? 1; return at(f) >= 0.85 && at(1 - f) >= 0.85; };
-      const allowed = [1, 1.3, 1.5, 1.8].filter(cutOk);
-      let k = allowed[0], fitH = Math.round(w * k / ar) - pad.bottom;
-      for (const kk of allowed) { const fh = Math.round(w * kk / ar) - pad.bottom; k = kk; fitH = fh; if ((innerH - fh - 12) - used <= h * 0.28) break; }
-      if (fitH < objH) { objH = Math.max(Math.round(h * 0.1), fitH); objReserve = Math.round(objH * (1 - overlap)); distribute = true; cutBleed = k; }
+      const cutOk = kk => { if (kk <= 1.001) return true; if (!colsC?.length) return true; const f = (1 - 1 / kk) / 2; const at = t => colsC[Math.min(colsC.length - 1, Math.max(0, Math.round(t * (colsC.length - 1))))]?.bg ?? 1; return at(f) >= 0.75 && at(1 - f) >= 0.75; };   // 75%: 캐릭터 사이 틈(ABL 79~87%)은 통과, 몸통 가장자리(59~61%)는 막는다
+      // 띠가 28% 아래로 떨어지려면 배율이 얼마나 필요한가 → 틈 창(cutWindow)이 있으면 그 창, 없으면 가운데 맞춤 배율 목록
+      const kNeed = (() => { for (const kk of [1, 1.3, 1.5, 1.8, 2.2]) if ((innerH - (Math.round(w * kk / ar) - pad.bottom) - 12) - used <= h * 0.28) return kk; return 2.2; })();
+      const win = kNeed > 1.05 ? cutWindow(colsC, kNeed) : null;
+      let k, fitH;
+      if (win) { k = win.k; fitH = Math.round(w * k / ar) - pad.bottom; cutLeft = win.left; }
+      else {
+        const allowed = [1, 1.3, 1.5, 1.8, 2.2].filter(cutOk);
+        k = allowed[0]; fitH = Math.round(w * k / ar) - pad.bottom;
+        for (const kk of allowed) { const fh = Math.round(w * kk / ar) - pad.bottom; k = kk; fitH = fh; if ((innerH - fh - 12) - used <= h * 0.28) break; }
+      }
+      if (fitH < objH) { objH = Math.max(Math.round(h * 0.1), fitH); objReserve = objH; distribute = true; cutBleed = k; }   // 띠 = 누끼 키 → 겹칠 빈 부분이 없다
       if (distribute && (innerH - objReserve - 12) - used > h * 0.35) splitGap = true;
     }
   }
@@ -894,7 +931,7 @@ export function renderAd(ctx, style, spec) {
   const objTop = (absLogo && logoBox && logoPlace === 'top-right' && kvKind !== 'photo') ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5) : 0;
   const bleedRight = bw => hasKv ? (oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent, top: objTop }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
-  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent, bleedMax: cutBleed })
+  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent, bleedMax: cutBleed, cutLeft })
     : logoAsObject ? logoZone(pad.left, h - bh - pad.bottom, w - pad.left - pad.right, bh) : '';
 
   /* ── 로고 자리 ── 템플릿 칸이 있으면 그 칸에 정확히(contain, 가운데). 없으면 프로필 위치. */
@@ -927,7 +964,7 @@ export function renderAd(ctx, style, spec) {
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"></div>`)
     : '';
 
