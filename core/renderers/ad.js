@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, kvLayer, kvPlacement, kvFull, meltMask, meltMask2, subjectCrop, joinColour, joinField } from '../field.js';
+import { resolveField, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, subjectCrop, joinColour, joinField } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, WHITE, BLACK } from '../palette.js';
@@ -481,7 +481,11 @@ export function renderAd(ctx, style, spec) {
   const stripCtaCol = (SHOW_CTA && strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
   const textW = (objectSide === 'right' ? innerW - objW - Math.round(innerW * 0.04) : innerW) - stripLogoCol - stripCtaCol;
   // 예시는 글자가 그림 자리의 위쪽(녹인 구간)으로 겹친다 — 가이드가 정한 만큼(세로형 40%·세로 띠 20%·정사각 모서리 26%) 그림 자리를 글자에 내준다
-  const overlap = guide?.objectOverlap?.[L.shape] ?? 0;
+  // 띠 윗줄이 바탕이 아니라 주인공(머리)이면 글자를 그림 위로 겹치지 않는다 — 겹침 규칙은 녹인 바탕 위를 전제한다(여우 560×700: '정규직 채용'이 귀 위로)
+  const P0 = (objectSide === 'bottom' && hasKv && !isCutout && !photoFull && !tImage && field) ? kvPlacement(style, field, { side: 'bottom', w, h, size: objH, edgePad: pad.bottom }) : null;
+  const rowsP = style.kvMeta?.field?.rows;
+  const joinCuts = !!(P0 && rowsP?.length && (rowsP[Math.min(rowsP.length - 1, Math.max(0, Math.round(P0.joinFrac * (rowsP.length - 1))))]?.bg ?? 1) < 0.85);
+  const overlap = joinCuts ? 0 : (guide?.objectOverlap?.[L.shape] ?? 0);
   let objReserve = objectSide === 'bottom' ? Math.round(objH * (1 - overlap)) : objH;
   const cornerTop = (tImage && !(tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1) && tImage.y > 0) ? tImage.y + Math.round(tImage.h * (gCorner ? Math.max(0.22, overlap) : 0.22)) : null;
   const textH = objectSide === 'bottom' ? innerH - objReserve - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
@@ -870,7 +874,7 @@ export function renderAd(ctx, style, spec) {
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : 'center bottom/cover'} no-repeat;${melt('to bottom')}overflow:hidden"></div>`
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"></div>`)
     : '';
 
