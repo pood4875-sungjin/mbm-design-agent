@@ -48,23 +48,26 @@ export function copyLadder(ctx) {
     const d = c.deadline ? md(c.deadline) : '', s0 = c.startDate ? md(c.startDate) : '';
     const period = d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '';
     const qual = c.qualification ? String(c.qualification) : '';
-    const season = c.season || seasonOf(c.deadline);
+    const season = c.season || seasonOf(c.deadline);   // 적지 않았으면 마감일에서 유추(10월 마감 → 2026 하반기) — 정보가 없다고 비워 두지 않는다(10-06 사용자 "정보 없는 건 임의로 넣어야지")
+    // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
+    const slogan0 = c.slogan || (c.client ? `${c.client}에서 함께할 인재를 찾습니다` : null);   // 좁은 띠(narrowMain 분기)와 구글 아이브로가 쓴다
+    const slogan = c.slogan ?? null;
     const hire = hireOf(c.hiringType || c.employType);   // 채용구분이 없으면 고용형태로("정규직 채용")
     const named = hire !== '채용';
     // 메인을 직접 적어 준 경우(한독 "전문의약품 의료기기 영업∙마케팅 공채 모집") 회사·구분은 서브로 간다
     const subFull = [season, c.client, named ? hire : null].filter(Boolean).join(' ');
     const clientHire = c.client ? `${c.client} ${hire}` : null;
     // 세로 띠: 서브가 회사를 품으면 메인은 채용구분만(도레이·한독). 슬로건이 서브를 차지하면 회사·기수가 메인으로(PT코리아 "PTKOREA / 2026 8기 / 신입공개채용")
-    const narrowMain = c.slogan
+    const narrowMain = slogan0
       ? [c.headline, [c.client, c.season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
       : [c.headline, named ? hire : null, clientHire];
     return {
       main: uniq([c.headline, clientHire, named ? hire : null, c.role ? `${c.role} 채용` : null, c.client ? `${c.client} 채용` : null, '채용 공고']),
-      sub: uniq([c.headline ? subFull : null, c.slogan, season, c.client ? `${c.client} 채용` : null, c.employType, '채용 공고']),
+      sub: uniq([c.headline ? subFull : null, slogan, season, slogan0, c.client ? `${c.client} 채용` : null, c.employType, '채용 공고']),
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
-      mainWide: uniq([c.headline, c.season ? [c.season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? `${c.client} 채용` : null, '채용 공고']),
+      mainWide: uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? `${c.client} 채용` : null, '채용 공고']),
       mainNarrow: uniq([...narrowMain, c.role ? `${c.role} 채용` : null, '채용 공고']),
-      subNarrow: uniq([c.headline ? subFull : null, c.slogan, [season, c.client].filter(Boolean).join(' '), season, c.client]),
+      subNarrow: uniq([c.headline ? subFull : null, slogan, [season, c.client].filter(Boolean).join(' '), season, c.client, slogan0]),
       date: uniq(period ? [`접수기간 : ${period}`, period] : []),
       extra: uniq([qual, qual.split(/[·,/]/)[0]?.trim()]),
       advertiser: uniq([c.client]),
@@ -193,13 +196,14 @@ export function renderAd(ctx, style, spec) {
     const c0 = ctx.core ?? {};
     const hire0 = hireOf(c0.hiringType || c0.employType);
     // 시즌 자리는 둘 다 예시에 있다 — 앞("2026년 동부건설 …" 동부·ABL) 또는 회사 뒤("비씨월드제약/헬스케어 2026년 3차 정기 채용"). 앞이 안 들어가면 뒤
-    const sc = c0.season && c0.client ? `${c0.season} ${c0.client} ${hire0}` : null;
-    const sc2 = c0.season && c0.client ? `${c0.client} ${c0.season} ${hire0}` : null;
+    const season0 = c0.season || seasonOf(c0.deadline);   // 적지 않은 시즌은 마감일에서 유추
+    const sc = season0 && c0.client ? `${season0} ${c0.client} ${hire0}` : null;
+    const sc2 = season0 && c0.client ? `${c0.client} ${season0} ${hire0}` : null;
     const first = [c0.headline, sc, sc2].filter(Boolean);
     ladder.main = [...new Set([...first, ...(ladder.main ?? [])])];
     // 세로 띠도 회사가 메인에 남는다(일화 300×1050 "㈜일화 / 신입/경력 / 사원 모집") — 서브가 슬로건뿐이라 회사를 서브로 올릴 수 없다
     ladder.mainNarrow = ladder.main;
-    const subOnly = [c0.headline ? [c0.season, c0.client, hire0 !== '채용' ? hire0 : null].filter(Boolean).join(' ') : null, c0.slogan].filter(Boolean);
+    const subOnly = [c0.headline ? [season0, c0.client, hire0 !== '채용' ? hire0 : null].filter(Boolean).join(' ') : null, c0.slogan || (c0.client ? `${c0.client}에서 함께할 인재를 찾습니다` : null)].filter(Boolean);
     ladder.sub = subOnly; ladder.subNarrow = subOnly;
   }
 
@@ -685,6 +689,8 @@ export function renderAd(ctx, style, spec) {
   }
   let mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, textW, titleBudget, Math.min(z.cap, mainCap), floorMain, mainLine));
   let mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
+  // 가로형에서 글자 블록이 글자 칸 높이의 72%에 못 미치면 세로 가운데 — 위에 붙여 두면 아래가 비어 보인다(970 여우: 메인 1줄 + 칩 1행)
+  if (useRef && L.shape === 'wide' && !vCenter && (blocksOf(z) + Math.round(mainLines * mainFs * mainLine)) < innerH * 0.72) vCenter = true;
   const rePick = pickIn('main', textW, mainFs, mainLines);
   if (rePick !== copy.main) {
     copy.main = rePick;
@@ -708,7 +714,8 @@ export function renderAd(ctx, style, spec) {
   if (guide?.fill && objectSide === 'bottom' && !tImage && hasKv && !logoAsObject) {
     const used = blocksOf(z) + Math.round(mainLines * mainFs * mainLine);
     const slack = textH - used;
-    let grow = slack > h * guide.fill.slack ? Math.round(slack * 0.7) : 0;
+    // 세로형·세로 띠는 남는 높이의 90%를 그림에(가로형은 70%) — 글자가 얇은 세로 띠에서 가운데가 비지 않게(300×1050 여우)
+    let grow = slack > h * guide.fill.slack ? Math.round(slack * ((L.shape === 'tall' || L.shape === 'tower') ? 0.9 : 0.7)) : 0;
     // 주인공이 폭에 맞춰도 띠보다 키가 크면(두 모서리에 선 3D: 폭 기준 148px, 띠 122px) 남는 높이 안에서 띠를 주인공 키까지 키운다 — 잘린 주인공은 비어 보인다
     const fo = style.kvMeta?.field?.focus, ar = style.kvMeta?.ar;
     if (!isCutout && fo && ar) {
@@ -848,7 +855,9 @@ export function renderAd(ctx, style, spec) {
   // 매체 오브젝트 상자(카카오 썸네일형): 둥근 상자 안에 그림을 채운다(누끼는 맞춰 넣기). 상하 여백이 남는다 — 가이드 Good Case
   const boxLayer = b => { const c = isCutout ? null : subjectCrop(style, b.w, b.h);
     return `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : c ? `${c.pos}/${c.size}` : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`; };
-  const bleedRight = bw => hasKv ? (oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent }))
+  // 오른쪽 열 오브젝트가 로고 자리(우상단)까지 올라오면 로고를 가린다(970 여우) — 누끼·일러스트는 로고 띠 아래부터. 사진은 하늘 위에 로고가 얹혀도 된다(일화 970)
+  const objTop = (absLogo && logoBox && logoPlace === 'top-right' && kvKind !== 'photo') ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5) : 0;
+  const bleedRight = bw => hasKv ? (oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent, top: objTop }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
   const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent })
     : logoAsObject ? logoZone(pad.left, h - bh - pad.bottom, w - pad.left - pad.right, bh) : '';

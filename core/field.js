@@ -227,9 +227,9 @@ export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fal
 // 자리 안에서 그림을 어떻게 놓는가 — 통째로(cover)·주인공으로 당겨서(crop)·누끼는 맞춰서(contain).
 // 렌더러가 지면색을 정할 때(joinFrac → joinColour)와 그릴 때(kvLayer) 같은 답을 받는다.
 //   joinFrac: 자리의 글자 쪽 변이 그림의 어느 높이(아래 띠)·폭(오른쪽 열)에 걸리는가. 0 = 그림의 변 그대로(지면과 같은 색)
-export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset = 0 }) {
+export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset = 0, top = 0 }) {
   const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
-  const bw = side === 'right' ? size + edgePad - inset : w, bh = side === 'right' ? h : size + edgePad;
+  const bw = side === 'right' ? size + edgePad - inset : w, bh = side === 'right' ? h - top : size + edgePad;   // top: 오른쪽 열이 로고 띠 아래부터 시작할 때
   const [far, join] = side === 'right' ? ['right center', 'left center'] : ['center bottom', 'center top'];
   // 잘라 채울 때 어디를 보여 줄 것인가 — 그림의 주인공(focus)이 자리 한가운데 오게 한다. 모르면 가운데.
   // 이미지의 글자 쪽 변이 자리의 변에 그대로 닿으면(trueEdge) 지면과 색이 같아 이음매가 없다.
@@ -282,9 +282,10 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
 //   inset: 가장자리에서 띄울 폭(좌우 끝이 단색이어야 하는 지면) · melt:false 면 녹이지 않는다(투명 배경 규격)
 // 그 변이 이미 지면색과 같으면(field.seamless) 그 변을 기준으로 붙여 이음매에서 그림이 잘리지 않게 하고, 녹이는 폭을 줄인다.
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
-export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true }) {
+export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true, top = 0 }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const { cutout, bw, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset });
+  const { cutout, bw, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset, top });
+  const hh = side === 'right' ? h - top : h;
   // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션. 주인공으로 당긴 자리는 그림 한가운데가 변이다
   const joinFlat = crop ? false : style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
   // 이음매 줄이 바탕(≥85%)이고 그 색이 지면과 거의 같으면 넓게 녹일 이유가 없다(10%) — 넓은 녹임은 그림을 뿌옇게 만들어 AI 티가 난다
@@ -300,9 +301,9 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   // 누끼를 오른쪽 열에 맞춰 넣을 때 폭이 모자라 작아지면(건물·3D처럼 가로가 긴 누끼) 높이에 맞추고 오른쪽·아래로 붙인다 — 폭이 열의 130%까지 넘치는 건 지면 밖으로 잘린다.
   // 보드 1-884 코엑스 카드가 건물을 오른쪽 아래로 크게 두고 가장자리에서 자른 문법. 그 이상 넘치면 그냥 맞춰 넣는다(캐릭터 떼가 반 잘리면 안 된다)
   const arKv = style.kvMeta?.ar;
-  const bleed = cutout && side === 'right' && arKv && h * arKv > bw && h * arKv <= bw * 1.3;
-  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${h}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${bleed ? '--kv-bleed:1;' : ''}`;
+  const bleed = cutout && side === 'right' && arKv && hh * arKv > bw && hh * arKv <= bw * 1.3;
+  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${hh}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${bleed ? '--kv-bleed:1;' : ''}`;
   return side === 'right'
-    ? `<div data-object="1" style="position:absolute;top:0;right:${inset}px;width:${size + edgePad - inset}px;height:${h}px;${fill}${mask}"></div>`
+    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
 }
