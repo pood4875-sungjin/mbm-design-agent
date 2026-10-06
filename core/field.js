@@ -29,10 +29,16 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   }
   else if (f) {
     const e = f.edges?.[facing];
-    if (e?.hex && e.opaque >= 0.9 && (e.flat ?? e.rough <= ROUGH_MAX)) {
+    const flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX));
+    // 글자 쪽 변은 그림이 걸쳐 있지만 다른 변이 평평하면(한미글로벌 3D: 위는 흰 바탕, 왼쪽은 글자가 가로지름) 그 바탕색이 지면이다.
+    // 대표색을 쓰면 그림의 흰 바탕이 상자처럼 드러나고, 오브젝트가 오른쪽인 규격과 아래인 규격의 지면색이 달라진다(구글 GDN 5규격은 지면색이 같다 28/28)
+    const other = flatEdge(e) ? null : ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge);
+    if (flatEdge(e)) {
       stops = [e.from, e.to];
       angle = (facing === 'left' || facing === 'right') ? 180 : 90;
       source = 'kv-edge'; seamless = true;
+    } else if (other) {
+      stops = [other.hex]; source = 'kv-edge';
     } else if (dominant) {
       // 배경을 딴 이미지 + 밝은 지면을 쓰는 매체(자소설)면 대표색의 옅은 틴트, 아니면 대표색 그대로
       stops = (f.opaque < 0.5 && light) ? [mix(dominant, WHITE, 0.80), mix(dominant, WHITE, 0.90)] : [dominant];

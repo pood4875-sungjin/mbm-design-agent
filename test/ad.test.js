@@ -153,9 +153,12 @@ test('every shape is left-aligned like the references; the logo floats top-right
   assert.match(tower, /data-logo-slot="1" style="position:absolute;top:\d+px;left:\d+px;right:\d+px;justify-content:center/, '세로 띠 로고는 위 가운데');
   // 세로 띠는 회사가 서브로 올라간다(도레이 "2025년 하반기 도레이첨단소재 / 신입사원 공개채용")
   assert.match(tower, /data-field="sub"[^>]*>2026 하반기 한진정보통신</);
-  const wideHtml = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
+  const wideHtml = renderAd(ctx, withLogo, specs['remember-main-top-pc']);
   assert.match(wideHtml, /text-align:left/);
-  assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만');
+  assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스(리멤버)에는 로고가 없다 — 매체가 요구할 때만');
+  // 구글 GDN은 규정이 없는 대신 보드 가이드가 로고 자리를 정한다 — 가로형에도 우상단(970 예시 7/7, 템플릿 로고 상자 118×31)
+  const gdnWide = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
+  assert.match(gdnWide, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '구글 가로형 로고 우상단');
 });
 
 test('wide formats follow the references: company and job on two lines where the medium gives two main rows', () => {
@@ -191,9 +194,15 @@ test('the field colour is read from the key visual, not chosen as light or dark'
   // 변이 한 색이면 지면도 단색
   const flatEdge = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#123A6B', '#123A6B') } } } };
   assert.match(renderAd(ctx, flatEdge, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /background:#123A6B;.*color:#FFFFFF/);
-  // 가장자리가 복잡한 사진이면 대표색
-  const photo = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#777777', '#333333', 0.12) } } } };
-  assert.match(renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /background:#E67814;/);
+  // 글자 쪽 변에만 그림이 걸쳐 있고 다른 변이 평평하면(한미글로벌 3D) 그 바탕색 — 대표색을 쓰면 그림의 바탕이 상자로 드러나고 규격마다 지면색이 달라진다
+  const busyLeft = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#777777', '#333333', 0.12) } } } };
+  const busyHtml = renderAd(ctx, busyLeft, specs['naver-gfa-mobile-da-1250x560']).split('>')[0];
+  assert.match(busyHtml, /background:#F2E9FF;/);
+  assert.match(busyHtml, /data-field-source="kv-edge"/);
+  // 네 변이 모두 복잡한 사진(한독 사옥)은 브랜드색 지면 — 사진의 변은 바탕이 아니다
+  const rough = (a, b) => edge(a, b, 0.12);
+  const photo = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, kind: 'photo', flatEdges: 0, edges: { left: rough('#777777', '#333333'), top: rough('#8899AA', '#445566'), right: rough('#777777', '#333333'), bottom: rough('#555555', '#222222') } } } };
+  assert.match(renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /data-field-source="brand-photo"/);
   // 단색만 허용하는 지면(에브리타임 홈배너)은 그라데이션을 접는다
   assert.doesNotMatch(renderAd(ctx, kv, specs['everytime-home-banner']).split('>')[0], /linear-gradient/);
 });
