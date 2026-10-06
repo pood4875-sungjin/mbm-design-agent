@@ -639,7 +639,15 @@ export function renderAd(ctx, style, spec) {
   const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : 0);
   // 한 행 흐름(구글 970 칩 2개가 한 줄)이면 줄 사이 숨은 높이에 안 들어간다 — 더하면 메인 예산이 줄어 두 줄 시즌이 떨어진다(동부 970 회귀)
   const rowFlowNow = () => useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
-  const detailBlockH = z => detailRows(z) * Math.round(z.dFs * dLine) + (rowFlowNow() ? 0 : Math.max(0, detailLines.length - 1) * chipRowGap(z)) + (detailLines.length ? detailGap(z) : 0);
+  const detailBlockH = z => {
+    const lineH = Math.round(z.dFs * dLine);
+    // 태그 쌓기: 항목마다 알약 한 줄(알약 글자 .86 × 줄높이 1.5 + 아래 숨 .5) + 값 줄 — 글줄 수로만 세면 15%쯤 모자라 글자가 눌려 잘린다(인스타 스토리 1080×1920 여우)
+    if (stackTags) {
+      const chipH = Math.round(z.dFs * 0.86 * 1.5) + Math.round(z.dFs * 0.5);
+      return detailLines.reduce((n, d) => n + chipH + Math.max(1, d.rows - 1) * lineH, 0) + Math.max(0, detailLines.length - 1) * chipRowGap(z) + (detailLines.length ? detailGap(z) : 0);
+    }
+    return detailRows(z) * lineH + (rowFlowNow() ? 0 : Math.max(0, detailLines.length - 1) * chipRowGap(z)) + (detailLines.length ? detailGap(z) : 0);
+  };
   // 로고: 레퍼런스 세로형은 우상단, 세로 띠는 위 가운데에 따로 놓는다(글자 흐름 밖). 가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만.
   const logoRequired = (rules.logo?.count ?? 0) >= 1;
   const absLogo = useRef && allowLogo && logoSrc && !tLogo && logoPlace !== 'none' && !logoAsObject;
@@ -654,7 +662,8 @@ export function renderAd(ctx, style, spec) {
     + (want.cta && !strip ? Math.round(z.ctaFs * 1.3) + Math.round(z.ctaFs * 0.6) * 2 + 8 : 0);
 
   let z = sizesAt(1);
-  let titleBudget = textH - blocksOf(z);
+  const slackPx = Math.round(h * 0.01);   // 추정과 실제 렌더의 어긋남 여유(1%h) — 예산을 꽉 채우면 몇 px 넘쳐 잘린다
+  let titleBudget = textH - blocksOf(z) - slackPx;
   if (titleBudget < z.cap * line) {
     const k = Math.max(0.35, (textH - z.cap * line) / Math.max(1, blocksOf(z)));
     z = sizesAt(k);
@@ -797,7 +806,7 @@ export function renderAd(ctx, style, spec) {
   // 단, 8자 넘는 덩어리("비씨월드제약/헬스케어")는 빗금 뒤에서 끊어도 된다 — 예시도 거기서 줄을 바꾼다
   const nb = t => String(t ?? '').replace(/\S+/g, w => [...w].length > 8 ? w : w.replace(/([\/∙·])(?=\S)/g, '$1\u2060'));
   const T = (role, text, fs, weight, color, extraCss = '', lines = 1, lh = line) =>
-    `<div data-field="${role}" style="font-size:${fs}px;line-height:${lh};font-weight:${weight};color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => esc(nb(t))).join('<br/>')}</div>`;
+    `<div data-field="${role}" style="flex:none;font-size:${fs}px;line-height:${lh};font-weight:${weight};color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => esc(nb(t))).join('<br/>')}</div>`;   // flex:none — 세로 예산이 몇 px 모자라도 글줄이 눌려 잘리지 않는다(인스타 스토리 '잘림' 차단)
   // 날짜·라벨은 꾸미지 않은 한 줄 글자다 — 테두리 알약을 두르지 않는다
   const plain = (role, text, fs) =>
     `<span data-field="${role}" style="display:inline-block;font-size:${fs}px;line-height:${line};font-weight:700;color:${subFg};white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
