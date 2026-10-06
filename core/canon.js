@@ -25,7 +25,7 @@ export const CANON = {
   // 글자가 그림 자리 위쪽으로 겹쳐도 되는 비율(그림의 녹인 구간)
   objectOverlap: { tall: 0.3, tower: 0.15, square: 0.2 },
   // 채움: 글자 블록 아래 남는 높이가 지면의 12%를 넘으면 그림 자리가 자라서 메운다(최대 55%) — 비어 보이는 예시는 없다
-  fill: { slack: 0.12, maxObject: 0.55 },
+  fill: { slack: 0.12, maxObject: 0.55, maxObjectTall: 0.64 },
   // 굵기 위계: 메인 700(예시 bold 110/141) · 서브 500 · 라벨 700 · 값 400
   weights: { main: 700, sub: 500, label: 700, value: 400 },
 };
