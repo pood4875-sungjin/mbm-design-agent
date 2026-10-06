@@ -316,7 +316,8 @@
   .kvthumb.logo.dark{background-color:#2a2a2a;color:#ddd}
   .mgroup h5{font-size:11px;color:var(--sub);font-weight:600;margin:10px 0 6px}
   .fbody{position:relative;background:#fff;box-shadow:0 0 0 1px rgba(16,24,40,.06), 0 2px 10px rgba(16,24,40,.08);border-radius:6px;overflow:hidden}
-  .frame.sel .fbody{outline:3px solid var(--accent);outline-offset:3px}
+  /* 선택 테두리는 소재에 딱 붙인다 — 3px 띄우면 소재 둘레에 여백이 있는 것처럼 보인다(10-06) */
+  .frame.sel .fbody{outline:2.5px solid var(--accent);outline-offset:-1px}
   .fbody iframe{border:0;transform-origin:0 0;pointer-events:none;background:#fff;display:block}
   .frame.gen .fbody{background:linear-gradient(105deg,#f5f5fb 28%,var(--gen-soft) 46%,#eef3ff 58%,#f5f5fb 72%);background-size:300% 100%;animation:shim 1.4s linear infinite;box-shadow:0 0 0 1.5px rgba(109,92,245,.35), 0 0 26px rgba(109,92,245,.22)}
   .frame.gen .fbody::after{content:"";position:absolute;inset:-2px;border-radius:8px;padding:2px;background:var(--gen);background-size:220% 100%;animation:flow 2.2s linear infinite;

@@ -118,6 +118,13 @@ function embedFont(html, face) {
   // 완전한 문서면 head 안에, 조각(배너)이면 맨 앞에. doctype 앞에 붙이면 쿼크 모드로 떨어진다.
   return i < 0 ? style + html : html.slice(0, i) + style + html.slice(i);
 }
+// 보드 미리보기 문서 — 렌더러가 주는 조각(<div data-ad …>)을 그대로 srcdoc에 넣으면 브라우저 기본 body 여백 8px 때문에
+// 소재가 (8,8)에서 시작해 위·왼쪽은 흰 띠, 오른쪽·아래는 8px 잘렸다(10-06 사용자: "왜 자꾸 여백 있어 보이냐"). 내보내기(raster.js)는
+// foreignObject에 0,0으로 그리므로 미리보기만 달랐다. 완전한 문서(eDM·랜딩)는 그대로 둔다.
+function previewDoc(html) {
+  if (!html || /^\s*(<!doctype|<html)/i.test(html)) return html;
+  return `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style></head><body>${html}</body></html>`;
+}
 
 /* ═══ 폰트 파일 업로드 ═══
    카탈로그 4종은 CDN 웹폰트다. 행사 전용 서체는 거기 없으므로 파일을 직접 받아 끼운다.
@@ -1154,7 +1161,7 @@ function revealStaged() {
     f.frame.classList.add('done');
     setTimeout(() => f.frame.classList.remove('done'), 600);
     f.iframe.style.visibility = 'visible';
-    f.iframe.srcdoc = a.html;
+    f.iframe.srcdoc = previewDoc(a.html);
     f.label.textContent = artLabel(a);
     log(`생성: ${id}`);
     if (i === ids.length - 1) toast(`${ids.length}종 생성 완료`);
@@ -1222,7 +1229,7 @@ function layoutArtboard(opts = {}) {
             <div class="hit"></div>
           </div>`;
         const iframe = frame.querySelector('iframe');
-        if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = a.html;
+        if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html);
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), label: frame.querySelector('.fname') });
@@ -1268,7 +1275,7 @@ function refreshFrames(only = null) {
     if (only && k !== only) continue;
     const f = frames.get(k);
     if (!f) continue;
-    f.iframe.srcdoc = a.html;
+    f.iframe.srcdoc = previewDoc(a.html);
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
     if (a.channel === 'ad') a.lint = null;   // 다시 그렸으니 이전 판정은 무효 — 다시 잰다
