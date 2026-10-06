@@ -803,9 +803,9 @@ function slotStyle() {
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     <div class="styleRow">
-      <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(선택)'}</div>
+      <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
-      <div><div class="kvthumb logo" id="logoThumb" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(선택)'}</div>
+      <div><div class="kvthumb logo" id="logoThumb" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
@@ -825,7 +825,7 @@ function slotStyle() {
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
-    <div class="sfoot2"><button class="btn pri" id="stOk">이 스타일로 진행</button></div></div>`);
+    <div class="sfoot2"><span class="smsg" id="stMsg" role="status">${(it.kv && it.logo) ? '' : '키비주얼과 로고를 올려야 진행할 수 있어요 — 보드 예시 소재는 전부 둘 다 들어 있어요'}</span><button class="btn pri" id="stOk" ${(it.kv && it.logo) ? '' : 'disabled aria-disabled="true"'}>이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
   $('fontUp').onclick = () => $('fontFile').click();
@@ -868,6 +868,8 @@ function slotStyle() {
   });
   bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; });
   $('stOk').onclick = () => {
+    // 키비주얼·로고는 필수(10-06 사용자 결정) — 그림 없는 소재는 예시에 없다. 되묻지 않고 막는다
+    if (!it.kv || !it.logo) { say(!it.kv && !it.logo ? '키비주얼과 로고를 올려 주세요. 둘 다 있어야 소재를 만들 수 있어요.' : !it.kv ? '키비주얼을 올려 주세요.' : '로고를 올려 주세요.'); return; }
     it.styleDone = true;
     const said = `배경 ${FIELD_SRC[resolveField(adStyle, { facing: 'left' }).source]} · ${FONTS[it.font].label}${it.kv ? ' · 키비주얼 첨부' : ''}`;
     bub('user', said); it.history.push({ role: 'user', text: said });

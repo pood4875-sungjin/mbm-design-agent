@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, kvLayer } from '../field.js';
+import { resolveField, kvLayer, meltMask, meltMask2 } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { contrast, mix, hexToRgb, WHITE, BLACK } from '../palette.js';
 
@@ -269,10 +269,22 @@ export function renderAd(ctx, style, spec) {
   //   칸보다 길쭉한 그림(한미글로벌 600×735·도레이 160×324)은 칸을 채우고 위가 잘린다 — 주인공은 아래쪽에 있다
   // 그림 위가 비면 글자가 거기까지 내려간다(PT코리아 글자 y390 > 칸 y370).
   const kvAR = hasKv ? style.kvMeta?.ar : null, kvPx = hasKv ? style.kvMeta?.px : null;
+  // 우하단 모서리 상자(자소설 팝업·M메인, 구글 580)에서 그림이 실제로 차지하는 네모 — 우하단 맞춤, 자르지 않음. 상세 칸 폭과 녹임 마스크가 상자가 아니라 이 네모를 기준으로 한다
+  const isCutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
+  // 매체가 오브젝트 상자를 정한 규격(카카오 비즈보드: 썸네일 313×185 둥근 상자 / 누끼 315×222) — 배경 있는 그림이 상하 여백 없이 영역을 채우면 심사보류
+  const oBox = (!tImage && hasKv && !photoFull && rules.objectBox) ? ((isCutout ? rules.objectBox.cutout : rules.objectBox.thumbnail) ?? null) : null;
+  const cornerRect = (tImage && imgCorner && hasKv) ? (() => {
+    const ar = kvAR || (tImage.w / tImage.h); const fillW = ar >= tImage.w / tImage.h;
+    const dw = fillW ? tImage.w : Math.round(tImage.h * ar), dh = fillW ? Math.round(tImage.w / ar) : tImage.h;
+    return { x: tImage.x + tImage.w - dw, y: tImage.y + tImage.h - dh, w: dw, h: dh };
+  })() : null;
+  // 단, 그림이 칸 높이의 60%도 못 채우면(가로형 샘플 600×400 → 160×600 띠에 폭 맞춤 = 107px 조각) 레퍼런스처럼 보이지 않는다 — 비어 보인다.
+  // 그때는 잘라서 칸을 채우고 윗변을 녹인다(누끼는 cover 가지에서도 contain으로 그린다)
   let bandMode = 'cover';
   if (tImage && imgBottomBand && kvAR) {
-    if (kvPx && kvPx[0] <= tImage.w && kvPx[1] <= tImage.h) bandMode = 'native';
-    else if (kvAR >= tImage.w / tImage.h) bandMode = 'contain';
+    const minH = tImage.h * 0.6;
+    if (kvPx && kvPx[0] <= tImage.w && kvPx[1] <= tImage.h && kvPx[1] >= minH) bandMode = 'native';
+    else if (kvAR >= tImage.w / tImage.h && tImage.w / kvAR >= minH) bandMode = 'contain';
   }
   const bandObjH = !tImage ? 0 : bandMode === 'native' ? kvPx[1] : bandMode === 'contain' ? Math.round(tImage.w / kvAR) : tImage.h;
   const bandObjTop = tImage ? tImage.y + tImage.h - bandObjH : 0;
@@ -327,6 +339,8 @@ export function renderAd(ctx, style, spec) {
   const kvPos = kvFocus ? `${Math.round(kvFocus.x * 100)}% ${Math.round(kvFocus.y * 100)}%` : 'center';
   const scrimDir = (L.shape === 'tall' || L.shape === 'tower') ? 'to bottom' : 'to right';
   const scrimEnd = scrimDir === 'to bottom' ? 78 : 70;
+  // 모서리 상자의 그림이 지면과 같은 색으로 이어지지 않으면(하늘 그라데이션 vs 단색 지면) 글자 쪽 두 변을 녹인다 — 글자 칸도 그 녹인 구간(28%)까지 넓어진다
+  const meltCorner = !!(cornerRect && !isCutout && !transparent && !(field?.seamless));
   const bg = photoFull
     ? `background:linear-gradient(${scrimDir},${rgba(scrimBase, 0.94)} 0%,${rgba(scrimBase, 0.82)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`
     : field ? `background:${field.css};` : '';
@@ -366,6 +380,8 @@ export function renderAd(ctx, style, spec) {
   const refObjW = gObj != null ? Math.round(w * gObj) : L.objectW, refObjH = gObjH != null ? Math.round(h * gObjH) : L.objectH;
   const objW = objectSide !== 'right' ? 0
     : logoAsObject ? Math.round(innerW * 0.34)
+    // 매체가 정한 상자: 글자 칸은 상자 왼쪽 선에서 간격(카카오 33px)만큼 떨어져 끝난다
+    : oBox ? Math.max(0, Math.round(w - pad.right - innerW * 0.04 - (oBox.x - (oBox.gap ?? 33))))
     : useRef ? Math.max(0, refObjW - pad.right)
     : Math.round(innerW * Math.min(0.5, Math.max(0.24, objRatio ?? (strip ? 0.32 : 0.38))));
   const objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
@@ -442,7 +458,11 @@ export function renderAd(ctx, style, spec) {
   const detailFs = stated.detail ?? null;
   const detailLines = [];
   // 이미지 옆으로 흐르는 구간의 폭 — 가이드 모서리 상자(구글 580)는 상자 왼쪽 선보다 넓게(일화 목록 폭 78%): 그림의 녹인 구간 위로 글자가 가도 된다
-  const detailW = (imgCorner && hasKv) ? (gCorner && guide?.detailColumn ? Math.round(textW * guide.detailColumn) : Math.max(60, tImage.x - pad.left - 10)) : textW;
+  const detailW = (imgCorner && hasKv)
+    ? (gCorner && guide?.detailColumn ? Math.round(textW * guide.detailColumn)
+      // 자소설 모서리 상자: 그림이 실제로 그려지는 네모의 왼쪽 선까지 + 녹인 구간의 28% — "클라우드 플랫폼 / 엔지니어"처럼 상자 선에서 접히지 않게
+      : Math.max(60, (cornerRect ? cornerRect.x + (meltCorner ? Math.round(cornerRect.w * 0.28) : 0) : tImage.x) - pad.left - 10))
+    : textW;
   let detailFsFit = null;   // 가이드 매체에서 상세가 안 들어가 글자를 줄인 결과(없으면 null)
   if (want.detail) {
     // 메인·서브에 이미 들어 있는 말은 상세로 되풀이하지 않는다("신입/경력" 고용형태는 메인 "신입/경력사원 채용"에 있다 — 보드 예시에 고용형태 줄은 없다)
@@ -634,13 +654,16 @@ export function renderAd(ctx, style, spec) {
   // 오브젝트 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
   // 이미지의 그 변이 이미 지면색과 같으면(field.seamless) 녹이는 폭을 줄인다. 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
   const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
-  const fadePct = field?.seamless ? 10 : 26;
-  const melt = dir => (transparent || cutout) ? '' : `-webkit-mask-image:linear-gradient(${dir},transparent 0%,#000 ${fadePct}%);mask-image:linear-gradient(${dir},transparent 0%,#000 ${fadePct}%);`;
+  // 녹이는 폭: 지면과 같은 색으로 이어지면 18%, 아니면 32% — 짧고 직선적인 10%는 "급하게 끊긴" 느낌(10-06 사용자, 자소설 PC메인 왼쪽 열)
+  const fadePct = field?.seamless ? 18 : 32;
+  const melt = dir => (transparent || cutout) ? '' : meltMask(dir, fadePct);
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
   const kvFill = (pos, join) => `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`;
   // 로고가 오브젝트일 때 — 칸 가운데에 크게(칸 폭의 2/3, 높이의 절반 안). 셀트리온·LX 예시처럼 로고 하나가 그림 노릇을 한다
   const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
-  const bleedRight = bw => hasKv ? kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent })
+  // 매체 오브젝트 상자(카카오 썸네일형): 둥근 상자 안에 그림을 채운다(누끼는 맞춰 넣기). 상하 여백이 남는다 — 가이드 Good Case
+  const boxLayer = b => `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`;
+  const bleedRight = bw => hasKv ? (oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
   const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent })
     : logoAsObject ? logoZone(pad.left, h - bh - pad.bottom, w - pad.left - pad.right, bh) : '';
@@ -655,13 +678,20 @@ export function renderAd(ctx, style, spec) {
     ? `<div data-logo-slot="1" style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${tpl?.logoHorizontal && !tpl?.logo ? 'flex-end' : 'center'}"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`
     : '';
   // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
-  const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && style.kvMeta?.field?.edges?.top?.flat === false);
+  // 하단 칸의 윗변도 지면과 같은 색이 아니면(사진, 또는 그라데이션 변을 단색으로 접은 지면) 녹인다 — 상자째 붙인 직선 이음매를 없앤다
+  const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && !transparent && (style.kvMeta?.field?.edges?.top?.flat === false || !field?.seamless));
   const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : (hasKv && tImage)
     ? (imgCorner
       // 우하단 상자는 일러스트를 담는 자리 — 잘라 채우지 않고 우하단에 맞춰 넣는다(위에 여백이 남아 메인이 그 위를 쓴다).
       // 사진이면(일화 사옥) 상자를 채우고 글자 쪽 두 변(왼쪽·위)을 지면으로 녹인다 — 사진 네모가 지면 위에 떠 보이지 않게
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${(gCorner && kvKindPhoto && !cutout) ? `${kvPos}/cover` : 'right bottom/contain'} no-repeat;${(gCorner && kvKindPhoto && !cutout && !transparent) ? '-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 32%),linear-gradient(to bottom,transparent 0%,#000 32%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0%,#000 32%),linear-gradient(to bottom,transparent 0%,#000 32%);mask-composite:intersect;' : ''}overflow:hidden"></div>`
+      ? (() => {
+          // 그림이 실제로 차지하는 네모(cornerRect, 우하단 맞춤·자르지 않음)에 그린다 — 녹임 마스크가 상자 변이 아니라 그림의 변에서 시작한다.
+          // 지면이 그림 가장자리 색과 같지 않으면 글자 쪽 두 변(왼쪽·위)을 녹인다 — "뚝 끊긴" 직선 이음매가 사라진다. 누끼는 그대로. 사진(구글 580)은 상자를 채우고 녹인다
+          const photoCover = gCorner && kvKindPhoto && !cutout;
+          const rect = photoCover ? tImage : (cornerRect ?? tImage);
+          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${photoCover ? `${kvPos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(34, 34) : ''}overflow:hidden"></div>`;
+        })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"></div>`
