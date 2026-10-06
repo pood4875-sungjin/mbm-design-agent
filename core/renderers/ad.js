@@ -82,10 +82,35 @@ export function copyLadder(ctx) {
       ].filter(Boolean),
     };
   }
+  // 행사(세미나) — 아이브로 = 슬로건·주최, 메인 = 적어 준 헤드라인 또는 "연도 행사명", 상세 = 일시·장소·대상·사전등록 마감·주최 (2026-10-06 행사 트랙 통합)
+  const day = s => { const m = String(s ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return String(s ?? ''); const t = new Date(+m[1], +m[2] - 1, +m[3]); return `${+m[2]}.${+m[3]}(${'일월화수목금토'[t.getDay()]})`; };
+  const d = c.date ? day(c.date) : '', dl = c.deadline ? day(c.deadline) : '';
+  const year = String(c.date ?? '').match(/^(\d{4})/)?.[1] ?? '';
+  const nameYear = c.name && year && !String(c.name).includes(year) ? `${year} ${c.name}` : c.name;
+  // 좁은 칸(카카오 비즈보드 메인 글자수)에서는 행사명에서 연도·장소 꼬리를 떼고, 그래도 안 들어가면 슬로건이 메인이 된다 — "행사 안내"는 맨 끝
+  const nameShort = c.name ? String(c.name).replace(/(^|\s)(19|20)\d{2}(년)?(?=\s|$)/g, ' ').replace(/\s+/g, ' ').trim() : null;
+  const nameCore = nameShort && nameShort.split(' ').length > 2 ? nameShort.split(' ').slice(0, -1).join(' ') : null;
+  const mainLadder = uniq([c.headline, nameYear, c.name, nameShort, nameCore, c.slogan, '행사 안내']);
   return {
-    main: uniq([c.name]), sub: uniq([c.audience]), date: uniq([c.date]), extra: uniq([c.audience]),
-    advertiser: [], cta: uniq([c.cta]), notice: [], label: [], url: [],
-    details: [c.date ? { label: '일시', value: c.date } : null, c.venue ? { label: '장소', value: c.venue } : null, c.audience ? { label: '대상', value: c.audience } : null].filter(Boolean),
+    main: mainLadder,
+    sub: uniq([c.slogan, c.host, c.audience ? `${c.audience} 대상` : null, d]),
+    mainWide: mainLadder,
+    mainNarrow: uniq([c.headline, c.name, nameShort, nameCore, c.slogan, '행사 안내']),
+    subNarrow: uniq([c.slogan, c.host, year]),
+    date: uniq([d ? `일시 : ${d}` : null, d, dl ? `사전등록 ~${dl}` : null]),
+    extra: uniq([c.audience, c.venue]),
+    advertiser: uniq([c.host]),
+    cta: uniq([c.cta, '사전등록']),
+    notice: [],
+    label: uniq([c.audience ? `대상 : ${c.audience}` : null, c.venue]),
+    url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
+    details: [
+      d ? { label: '일시', value: d } : null,
+      c.venue ? { label: '장소', value: c.venue } : null,
+      c.audience ? { label: '대상', value: c.audience } : null,
+      dl ? { label: '사전등록', value: `~${dl}` } : null,
+      c.host ? { label: '주최', value: c.host } : null,
+    ].filter(Boolean),
   };
 }
 export function copyFor(ctx) {

@@ -40,10 +40,11 @@ const CHANNEL_DESC = {
   photobooth: '4000×2000 · 백드롭 PDF',
 };
 // eDM·랜딩페이지는 만들지 않는다(2026-10-02 제외). 예전에 저장한 캠페인을 열 수 있게 렌더러와 LEGACY 목록만 남긴다.
-const ONLINE = ['banner', 'gwthumb'];
-const LEGACY = ['edm', 'landing'];
+// 온라인 = 매체 광고(media → adSpecIds) + 사내 그룹웨어 썸네일. 옛 '홍보 배너'(banner) 채널은 새 캠페인에서 쓰지 않는다(2026-10-06 행사 트랙 통합 — 행사도 구글·카카오·네이버 매체 규격으로)
+const ONLINE = ['gwthumb'];
+const LEGACY = ['edm', 'landing', 'banner'];   // 저장된 옛 캠페인에만 있는 채널 — 보드에는 그린다
 const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
-const VARIANTS = { ad: 1, banner: 3, gwthumb: 3, badge: 2, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
+const VARIANTS = { ad: 1, banner: 3, gwthumb: 1, badge: 2, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
 // 규정 없는 매체의 가이드 시안(구글 GDN: 보드 템플릿 '좌측상단 정렬'·'좌측중앙 정렬') — 매체 데이터가 정하고, 담당자가 고른다
 const guideVariants = a => (a.channel === 'ad' ? SPECS[a.specId]?.mediumRules?.guide?.variants ?? null : null);
 const variantCount = a => guideVariants(a)?.length ?? VARIANTS[a.channel] ?? 1;
@@ -457,9 +458,9 @@ function stepPrompt(it, st) {
     return `무엇을 만들까요?${hint} 아래에서 골라 주세요.`;
   }
   const ask = [];
-  if (wantsAd(it)) ask.push(it.kind === 'recruit' ? '어느 매체에 홍보하나요? 매체를 고르면 그 매체의 소재가 전부 만들어져요.' : '온라인 배너는 무엇을 만들까요?');
+  if (wantsAd(it)) ask.push(it.kind === 'recruit' ? '어느 매체에 홍보하나요? 매체를 고르면 그 매체의 소재가 전부 만들어져요.' : '어느 매체에 홍보하나요? 매체를 고르면 그 매체의 소재가 전부 만들어지고, 사내 그룹웨어 썸네일도 같이 고를 수 있어요.');
   if (wantsPrint(it)) ask.push('인쇄물은 무엇을 만들까요?');
-  const names = it.kind === 'recruit' && wantsAd(it) ? it.media.map(mediumName) : [];
+  const names = wantsAd(it) ? it.media.map(mediumName) : [];
   const pre = names.length ? ` 브리프에 있던 ${names.join('·')}${josa(names[names.length - 1], '을', '를')} 골라 뒀어요.` : '';
   return ask.join(' ') + pre;
 }
@@ -524,8 +525,10 @@ function specRow(g, it, AD) {
 function mediaPickerHtml(it) {
   {
     const all = adSpecGroups(), AD = adSpecEntries();
+    // 행사 캠페인에는 행사 홍보에 쓰는 매체(디지털·직장인/지역 커뮤니티)만 — 채용포털·취준생 커뮤니티는 숨긴다(core/media/*.json campaigns)
+    const forKind = m => (m.campaigns ?? ['recruit', 'event']).includes(it.kind ?? 'event');
     const cards = ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
-      const ms = MEDIA.filter(m => m.group === g);
+      const ms = MEDIA.filter(m => m.group === g && forKind(m));
       if (!ms.length) return '';
       return `<div class="pgrp"><h5>${g}</h5><div class="mcards">${ms.map(m => {
         const gs = all.filter(x => x.medium === m.id), n = gs.length, on = it.media.includes(m.id);
@@ -560,7 +563,7 @@ function slotType() {
   const it = state.intake;
   const desc = it.kind === 'recruit'
     ? { online: '채용포털·디지털·커뮤니티 매체에 나가는 광고', offline: '현수막 · X배너 · 포스터', both: '매체 광고 + 인쇄물' }
-    : { online: '홍보 배너 · 그룹웨어 썸네일', offline: '포스터 · X배너 · 현수막 · 명찰 · 포토부스', both: '온라인 배너 + 인쇄물' };
+    : { online: '구글·카카오·네이버 등 매체 광고 + 그룹웨어 썸네일', offline: '포스터 · X배너 · 현수막 · 명찰 · 포토부스', both: '매체 광고 + 인쇄물' };
   slot(`<div class="card2"><div class="shead"><h4>무엇을 만들까요</h4>
       <div class="kseg" role="group" aria-label="캠페인 종류">${Object.entries(KINDS).map(([k, v]) =>
         `<button type="button" data-k="${k}" class="${k === it.kind ? 'on' : ''}" aria-pressed="${k === it.kind}">${v.label}</button>`).join('')}</div></div>
@@ -582,20 +585,21 @@ function slotWhere() {
   const printList = recruit ? PRINT_RECRUIT : OFFLINE;
   const keepScroll = $('slot').querySelector('.wcard')?.scrollTop ?? 0;
   const secs = [];
-  if (ad) secs.push(recruit ? `<section class="wsec">${mediaPickerHtml(it)}</section>`
-    : `<section class="wsec"><h5>온라인</h5>${channelCardsHtml(ONLINE, it)}</section>`);
+  // 매체 광고는 종류 가리지 않고 매체 고르기(행사는 디지털·커뮤니티 매체만 보인다) · 행사는 사내 그룹웨어 썸네일도 같이 고른다
+  if (ad) secs.push(`<section class="wsec">${mediaPickerHtml(it)}</section>`);
+  if (ad && !recruit) secs.push(`<section class="wsec"><h5>사내</h5>${channelCardsHtml(ONLINE, it)}</section>`);
   if (print) secs.push(`<section class="wsec"><h5>인쇄물</h5>${channelCardsHtml(printList, it)}</section>`);
-  const box = slot(`<div class="card2 wcard"><h4>${ad && recruit ? '어디에 홍보하나요' : '무엇을 만들까요'}</h4>${secs.join('')}
+  const box = slot(`<div class="card2 wcard"><h4>${ad ? '어디에 홍보하나요' : '무엇을 만들까요'}</h4>${secs.join('')}
     <div class="sfoot2"><span class="smsg" id="wMsg" role="status"></span><button type="button" class="btn" id="wBack">이전</button><button type="button" class="btn pri" id="wOk">다음</button></div></div>`);
   box.querySelector('.wcard').scrollTop = keepScroll;
   const count = () => {
-    const nAd = ad ? (recruit ? chosenAdGroups(it).length : it.channels.filter(c => ONLINE.includes(c)).length) : 0;
+    const nAd = ad ? chosenAdGroups(it).length + (recruit ? 0 : it.channels.filter(c => ONLINE.includes(c)).length) : 0;
     const nPr = print ? it.channels.filter(c => printList.includes(c)).length : 0;
     return { nAd, nPr };
   };
   const foot = () => {
     const { nAd, nPr } = count();
-    const parts = [ad && (recruit ? `소재 ${nAd}종` : `온라인 ${nAd}가지`), print && `인쇄물 ${nPr}가지`].filter(Boolean);
+    const parts = [ad && `소재 ${nAd}종`, print && `인쇄물 ${nPr}가지`].filter(Boolean);
     $('wMsg').textContent = parts.join(' · ');
   };
   const re = sel => { slotWhere(); if (sel) $('slot').querySelector(sel)?.focus({ preventScroll: true }); };
@@ -624,13 +628,13 @@ function slotWhere() {
   $('wBack').onclick = () => { it.track = null; clearSlot(); it.phase = 'target'; renderSteps(); slotType(); };
   $('wOk').onclick = () => {
     const { nAd, nPr } = count();
-    if (ad && !nAd) { toast(recruit ? '매체를 하나 이상 고르세요' : '온라인 배너를 하나 이상 고르세요'); return; }
+    if (ad && !nAd) { toast(recruit ? '매체를 하나 이상 고르세요' : '매체나 그룹웨어 썸네일을 하나 이상 고르세요'); return; }
     if (print && !nPr) { toast('인쇄물을 하나 이상 고르세요'); return; }
     // 고른 쪽만 남긴다 — 광고 소재만 골랐는데 전에 읽은 인쇄물이 같이 만들어지면 안 된다
     if (!ad) it.media = [];
     it.channels = it.channels.filter(c => (ad && !recruit && ONLINE.includes(c)) || (print && printList.includes(c)));
     const said = [
-      ad && (recruit ? `${it.media.map(mediumName).join(' · ')} (소재 ${nAd}종)` : it.channels.filter(c => ONLINE.includes(c)).map(c => CHANNEL_LABEL[c]).join(' · ')),
+      ad && [...it.media.map(mediumName), ...(recruit ? [] : it.channels.filter(c => ONLINE.includes(c)).map(c => CHANNEL_LABEL[c]))].join(' · ') + ` (소재 ${nAd}종)`,
       print && it.channels.filter(c => printList.includes(c)).map(c => CHANNEL_LABEL[c]).join(' · '),
     ].filter(Boolean).join(' / ');
     bub('user', said); it.history.push({ role: 'user', text: said });
@@ -882,7 +886,7 @@ function slotStyle() {
     clearSlot();
     it.phase = 'draft';
     renderSteps();
-    const n = it.kind === 'recruit' && wantsAd(it) ? chosenAdGroups(it).length : 0;
+    const n = wantsAd(it) ? chosenAdGroups(it).length + it.channels.filter(c => ONLINE.includes(c)).length : 0;
     say(n ? `준비가 끝났어요. 소재 ${n}종을 만들고, 만드는 대로 매체 규정에 맞는지 검사할게요.` : '준비가 끝났어요. 초안을 생성할게요.');
     buildAndGenerate();
   };
@@ -1182,7 +1186,7 @@ function naturalSize(spec) {
     const k = 3.7795;
     return [(spec.wmm + spec.bleed * 2) * k, (spec.hmm + spec.bleed * 2) * k];
   }
-  if (spec.channel === 'banner' || spec.channel === 'ad') return [spec.w, spec.h];
+  if (spec.channel === 'banner' || spec.channel === 'ad' || spec.channel === 'gwthumb') return [spec.w, spec.h];
   if (spec.channel === 'edm') return [600, 900];
   return [1000, 1400];
 }
@@ -2035,7 +2039,7 @@ function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
   if (spec.channel === 'ad') return exportAdModal(a);
-  if (spec.channel === 'banner') {
+  if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({
       title: `${artLabel(a)} 내보내기`,
       desc: '온라인 배너 — 이미지 파일로 내보냅니다. 배수를 고르면 고해상도로 뽑힙니다.',
@@ -2110,9 +2114,9 @@ async function doBannerExport(a) {
 
 function exportAllModal() {
   const c = state.campaign;
-  const banners = c.artifacts.filter(a => a.channel === 'banner');
+  const banners = c.artifacts.filter(a => a.channel === 'banner' || a.channel === 'gwthumb');
   const htmls = c.artifacts.filter(a => ['edm', 'landing'].includes(a.channel));
-  const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner', 'ad'].includes(a.channel));
+  const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner', 'gwthumb', 'ad'].includes(a.channel));
   const ads = c.artifacts.filter(a => a.channel === 'ad');
   modal({
     title: '전체 내보내기',

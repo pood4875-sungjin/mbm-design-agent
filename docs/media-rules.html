@@ -287,6 +287,7 @@
       <div class="mhead">
         <h3>${esc(m.name)}</h3>
         ${m.tool ? `<span class="tag tool">${esc(m.tool)} 제작</span>` : ''}
+        <span class="tag" title="이 매체에 내는 캠페인 종류 — 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 행사(세미나) 홍보에도">${(m.campaigns ?? []).includes('event') ? '채용 · 행사' : '채용 전용'}</span>
         ${b ? `<span class="prog ${p.done === p.all ? 'done' : ''}">검수 ${p.done}/${p.all}</span>` : ''}
       </div>
       ${memo.length ? memo.map(r => `<p class="memo">섹션 메모: ${esc(r.rule)}</p>`).join('') : ''}

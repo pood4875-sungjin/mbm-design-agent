@@ -8,7 +8,9 @@ import { createContext, missingFields, updateContext, CORE_FIELDS, KINDS, fields
 test('default context is still an event with the original core fields', () => {
   const ctx = createContext({ name: 'MBM' });
   assert.equal(ctx.kind, 'event');
-  assert.deepEqual(Object.keys(ctx.core), CORE_FIELDS);
+  // 행사도 매체 광고로 그리면서 선택 필드(메인 문구·슬로건·주최·사전등록 마감·등록 링크)가 붙었다 — 필수는 그대로 다섯
+  assert.deepEqual(Object.keys(ctx.core), [...CORE_FIELDS, 'headline', 'slogan', 'host', 'deadline', 'applyUrl']);
+  assert.deepEqual(KINDS.event.required, CORE_FIELDS);
   assert.equal(ctx.core.name, 'MBM');
 });
 

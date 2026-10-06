@@ -2,6 +2,10 @@
   "id": "gamejob",
   "name": "게임잡",
   "group": "기타",
+  "campaigns": [
+    "recruit"
+  ],
+  "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
   "tool": null,
   "sources": [
     "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) (14p)",

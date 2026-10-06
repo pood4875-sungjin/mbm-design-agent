@@ -2,6 +2,11 @@
   "id": "naver-gfa",
   "name": "네이버 GFA",
   "group": "디지털",
+  "campaigns": [
+    "recruit",
+    "event"
+  ],
+  "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
   "tool": "피그마",
   "sources": [
     "figma:네이버GFA01(소재 제작 규정/제작가이드&예시)",

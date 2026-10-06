@@ -8,9 +8,11 @@ export const CORE_FIELDS = ['name', 'date', 'venue', 'audience', 'cta'];
 export const KINDS = {
   event: {
     label: '행사',
-    fields: CORE_FIELDS,
+    // headline·slogan·host·deadline·applyUrl: 행사도 매체 광고 렌더러(ad.js)로 그리면서 생긴 선택 필드(2026-10-06 행사 트랙 통합).
+    // 세미나 배너 문법 = 아이브로(슬로건·주최) / 메인(행사명 또는 적어 준 헤드라인) / 상세(일시·장소·대상·사전등록 마감)
+    fields: [...CORE_FIELDS, 'headline', 'slogan', 'host', 'deadline', 'applyUrl'],
     required: CORE_FIELDS,
-    labels: { name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA' },
+    labels: { name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA', headline: '메인 문구', slogan: '슬로건', host: '주최', deadline: '사전등록 마감', applyUrl: '등록 링크' },
   },
   recruit: {
     label: '채용 홍보',
