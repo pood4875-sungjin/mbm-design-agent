@@ -149,6 +149,7 @@
 
 <script type="module">
   import { MEDIA, MEDIA_BOARD, MEDIA_COUNTS } from '../core/media.js';
+  import { CANON } from '../core/canon.js';
 
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dash = v => (v == null || v === '' ? '<span style="color:var(--sub)">—</span>' : esc(v));
@@ -298,7 +299,23 @@
   }
 
   const mediumById = id => MEDIA.find(m => m.id === id);
-  document.getElementById('main').innerHTML = groups.map(g =>
+  // 배너 공통 조형 기준 — 매체 가이드가 없는 매체에 적용(core/canon.js). 매체 규정·템플릿·가이드가 같은 키를 정하면 그쪽이 이긴다
+  const SHAPE_N = { square: '정사각', wide: '가로형', tall: '세로형', tower: '세로 띠' };
+  const canonRows = [
+    ['문구 슬롯(글자수 표 없는 매체)', CANON.slots.join(' · ')],
+    ['상세 줄 수 상한', Object.entries(CANON.detailRows).map(([k, v]) => `${SHAPE_N[k]} ${v}`).join(' · ')],
+    ['두 줄 우선', CANON.twoLines ? '한 줄에 넣느라 글자가 작아지면 회사 뒤에서 두 줄로(580·970 예시 10/10)' : '-'],
+    ['정보 우선', `사다리 위쪽 문구가 글자 ${Math.round(CANON.keepInfo * 100)}%까지 줄여서 들어가면 그쪽(비씨월드 2줄 40px) — 폭은 글꼴 폭으로 잰다`],
+    ['메인 글자색', '밝은 지면 = 브랜드색(4.5:1 넘을 때) · 어두운 지면 = 흰색'],
+    ['굵기 위계', `메인 ${CANON.weights.main} · 서브 ${CANON.weights.sub} · 라벨 ${CANON.weights.label} · 값 ${CANON.weights.value} (예시 bold 110 / black 20 / 141)`],
+    ['그림과 겹침', Object.entries(CANON.objectOverlap).map(([k, v]) => `${SHAPE_N[k]} ${Math.round(v * 100)}%`).join(' · ') + ' — 글자가 그림 자리 위쪽(녹인 구간)으로'],
+    ['채움', `글자 아래 남는 높이가 지면의 ${Math.round(CANON.fill.slack * 100)}%를 넘으면 그림 자리가 자라 메운다(최대 ${Math.round(CANON.fill.maxObject * 100)}%) — 예시 141장 중 비어 보이는 것 없음(균형 90·여유 31·빽빽 20)`],
+    ['그림 넣기', '칸 높이의 60%를 못 채우는 납작한 그림은 잘라 채우고 윗변을 녹인다 · 누끼는 자르지 않는다 · 지면이 그림 가장자리 색과 다르면 글자 쪽 변을 길게(16~38%) 이징으로 녹인다'],
+    ['지면', '사진·누끼: 브랜드색(어두운 매체) 또는 브랜드 틴트→흰색(밝은 매체) · 배경 있는 일러스트: 가장자리 색 그대로(이음매 없음) · 그림 대표색은 쓰지 않는다'],
+  ];
+  const canonCard = `<section class="group" id="g-canon"><h2>배너 공통 조형 기준<small>매체 가이드가 없는 매체에</small></h2><p>${esc(CANON.note)}</p>
+    <div class="tblwrap"><table><thead><tr><th>항목</th><th>규칙</th></tr></thead><tbody>${canonRows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div></section>`;
+  document.getElementById('main').innerHTML = canonCard + groups.map(g =>
     `<section class="group" data-g="${esc(g.key)}" id="g-${esc(g.key)}"><h2>${esc(g.label)}<small>매체 ${g.ids.length}</small></h2>${g.note ? `<p>${esc(g.note)}</p>` : ''}${g.ids.map(mediumById).filter(Boolean).map(mediumCard).join('')}</section>`
   ).join('');
   document.getElementById('toc').innerHTML = groups.map(g => `<h5>${esc(g.label)}</h5>${g.ids.map(id => {

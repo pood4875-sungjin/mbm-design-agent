@@ -138,7 +138,7 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
   const html = renderAd(ctx, style, specs['jasoseol-pc-premium-popup-pc']);
   // 순백이 아니라 브랜드색 파스텔 틴트(현대케피코 라벤더 블루) — 위가 조금 진하고 아래가 옅다
   assert.match(html.split('>')[0], /background:linear-gradient\(180deg,#[C-F][0-9A-F]{5} 0%,#[D-F][0-9A-F]{5} 100%\)/i);
-  assert.match(html, /data-field="main"[^>]*color:#000000/);
+  assert.match(html, /data-field="main"[^>]*color:#0B3C8C/, '밝은 지면의 메인은 브랜드색(공통 조형 기준 textColour brand — 한미 블루·일화 레드)');
 });
 
 test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
@@ -190,7 +190,7 @@ test('the field colour is read from the key visual, not chosen as light or dark'
   const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta };
   const wide = renderAd(ctx, kv, specs['naver-gfa-mobile-da-1250x560']).split('>')[0];
   assert.match(wide, /background:linear-gradient\(180deg,#F2E9FF 0%,#D9C8FF 100%\)/, '이미지의 왼쪽 변에 그라데이션이 있으면 지면도 그 그라데이션');
-  assert.match(wide, /color:#000000/, '밝은 지면이면 글자는 검정 — 사람이 고르지 않는다');
+  assert.match(wide, /color:#0B3C8C/, '밝은 지면이면 메인은 브랜드색, 보조 글자는 검정 계열 — 사람이 고르지 않는다');
   assert.match(wide, /data-field-source="kv-edge"/);
   // 변이 한 색이면 지면도 단색
   const flatEdge = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#123A6B', '#123A6B') } } } };
