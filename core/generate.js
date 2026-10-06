@@ -16,8 +16,12 @@ import { registerAdSpecs } from './adspecs.js';
 
 export function registerAll() {
   _clearRenderers();
-  registerRenderer('banner', renderBanner);
-  registerRenderer('gwthumb', renderBanner);   // 썸네일도 같은 계약 — 규격만 다르다
+  registerRenderer('banner', renderBanner);    // 옛 행사 배너 — 저장된 캠페인을 다시 열 때만. 새 캠페인은 매체 규격(ad)으로 만든다(2026-10-06 행사 트랙 통합)
+  // 그룹웨어 썸네일(374×271)도 매체 광고 렌더러로 그린다 — 매체 규정은 없고 배너 공통 조형 기준(canon)만 받는다
+  registerRenderer('gwthumb', (ctx, style, spec, opts) => renderAd(ctx, style, {
+    ...spec, id: spec.id ?? 'gwthumb-374x271', medium: 'groupware', mediumName: '그룹웨어', group: '사내', title: '그룹웨어 · 홍보 썸네일',
+    rules: { id: 'gwthumb-374x271', name: '홍보 썸네일', w: spec.w, h: spec.h, format: ['png'] }, mediumRules: {}, format: ['png'],
+  }, opts));
   registerRenderer('edm', renderEdm);
   registerRenderer('landing', renderLanding);
   registerRenderer('poster', renderPrint);
@@ -82,8 +86,9 @@ export function generateArtifacts(campaign) {
       ...campaign.context,
       core: { ...campaign.context.core, ...(artifact.overrides.core ?? {}) },
     };
-    // 채용 캠페인의 배너·인쇄물은 행사용 렌더러가 그린다 — 채용 내용을 그 렌더러가 읽는 칸으로 옮겨 준다
-    artifact.html = renderArtifact(item.specId, item.channel === 'ad' ? effContext : asEventContext(effContext), campaign.style, {
+    // 인쇄물·옛 배너는 행사용 렌더러가 그린다 — 채용 내용을 그 렌더러가 읽는 칸으로 옮겨 준다. 매체 광고·그룹웨어 썸네일(ad.js)은 종류별 사다리를 직접 읽는다
+    const adLike = item.channel === 'ad' || item.channel === 'gwthumb';
+    artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), campaign.style, {
       variant: artifact.variant ?? 0,
       purpose: artifact.purpose,
       arrow: artifact.arrow,

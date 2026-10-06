@@ -8,6 +8,10 @@ export const MEDIA = [
     "id": "jasoseol",
     "name": "자소설닷컴",
     "group": "채용포털",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:자소설닷컴01(소재 제작 규정) (section 408:44009)",
@@ -1145,6 +1149,10 @@ export const MEDIA = [
     "id": "remember",
     "name": "리멤버",
     "group": "채용포털",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "포토샵",
     "sources": [
       "figma:리멤버01(소재 제작 규정)",
@@ -1960,6 +1968,10 @@ export const MEDIA = [
     "id": "jobda",
     "name": "잡다",
     "group": "채용포털",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:잡다01(소재 제작 규정)",
@@ -2335,6 +2347,10 @@ export const MEDIA = [
     "id": "catch",
     "name": "캐치",
     "group": "채용포털",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": null,
     "sources": [
       "figma:캐치01(소재 제작 규정)",
@@ -2902,6 +2918,11 @@ export const MEDIA = [
     "id": "google-gdn",
     "name": "구글 GDN",
     "group": "디지털",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:구글GDN01(소재 제작 규정) (section 414:1806)",
@@ -3529,6 +3550,11 @@ export const MEDIA = [
     "id": "nap-dsp",
     "name": "NAP DSP (나스미디어)",
     "group": "디지털",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마(띠배너·전면배너·PC배너) + 포토샵(비즈보드)",
     "sources": [
       "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) (section 417:680)",
@@ -4188,6 +4214,11 @@ export const MEDIA = [
     "id": "instagram",
     "name": "인스타그램",
     "group": "디지털",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:인스타그램01(소재_제작_규정_제작가이드&예시)",
@@ -4419,6 +4450,11 @@ export const MEDIA = [
     "id": "kakao",
     "name": "카카오톡",
     "group": "디지털",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "포토샵(비즈보드·CPT) + 피그마(디스플레이 PC)",
     "toolSource": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx — 비즈보드 'PSD 템플릿으로 제작', 디스플레이(PC) '피그마에서 제작'",
     "sources": [
@@ -5137,6 +5173,11 @@ export const MEDIA = [
     "id": "naver-gfa",
     "name": "네이버 GFA",
     "group": "디지털",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:네이버GFA01(소재 제작 규정/제작가이드&예시)",
@@ -5666,6 +5707,10 @@ export const MEDIA = [
     "id": "everytime",
     "name": "에브리타임",
     "group": "커뮤니티",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:에브리타임01(소재 제작 규정/제작가이드&예시)",
@@ -6479,6 +6524,11 @@ export const MEDIA = [
     "id": "blind",
     "name": "블라인드",
     "group": "커뮤니티",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": "피그마",
     "sources": [
       "figma:블라인드01(소재 제작 규정)",
@@ -6806,6 +6856,11 @@ export const MEDIA = [
     "id": "daangn",
     "name": "당근",
     "group": "커뮤니티",
+    "campaigns": [
+      "recruit",
+      "event"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": null,
     "sources": [
       "figma:당근01(소재가이드)"
@@ -6902,6 +6957,10 @@ export const MEDIA = [
     "id": "specup",
     "name": "스펙업",
     "group": "기타",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": null,
     "sources": [
       "pdf:[스펙업] 상품소개서_2601.pdf (42p)",
@@ -7321,6 +7380,10 @@ export const MEDIA = [
     "id": "albamon",
     "name": "알바몬",
     "group": "기타",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": null,
     "sources": [
       "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) (31p)",
@@ -8077,6 +8140,10 @@ export const MEDIA = [
     "id": "gamejob",
     "name": "게임잡",
     "group": "기타",
+    "campaigns": [
+      "recruit"
+    ],
+    "campaignsNote": "이 매체에 내는 캠페인 종류 — recruit 채용 홍보 · event 행사(세미나) 홍보. 채용포털·취준생 커뮤니티는 채용만, 디지털 매체·직장인/지역 커뮤니티는 둘 다(2026-10-06 행사 트랙 통합)",
     "tool": null,
     "sources": [
       "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) (14p)",

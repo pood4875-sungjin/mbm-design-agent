@@ -171,7 +171,7 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
     "kind": "event|recruit",
     "track": "online|offline",
     "media": [${MEDIA_IDS.map(id => `"${id}"`).join(',')}] 중 확정된 것,
-    "fields": { 행사: name,date(YYYY-MM-DD),venue,audience,cta / 채용: client,role,employType,location,deadline(YYYY-MM-DD),applyUrl,qualification,process,notice },
+    "fields": { 행사: name,date(YYYY-MM-DD),venue,audience,cta,headline,slogan,host,deadline(사전등록 마감 YYYY-MM-DD),applyUrl / 채용: client,role,employType,location,deadline(YYYY-MM-DD),applyUrl,qualification,process,notice },
     "channels": [${CHANNELS.map(c => `"${c}"`).join(',')}] 중 확정된 것(오프라인),
     "signage": { "xbanner":[{"purpose":"main|way|agenda|reception","arrow":"up|down|left|right|null"}] },
     "style": { "mode":"light|dark", "colors":["#RRGGBB",...], "font":"${FONT_IDS.join('|')}", "mood":"쉼표구분" },
