@@ -69,7 +69,7 @@ test('copy comes from the recruit context; an event context still renders throug
   const c = copyFor(ctx);
   // 레퍼런스 문법(2026-10-06): 메인 = 회사 + 채용구분(없으면 고용형태) + 채용, 직무는 상세 줄로
   assert.equal(c.main, '한진정보통신 정규직 채용');
-  assert.equal(c.sub, '2026 하반기', '시즌이 없으면 마감일에서 읽는다');
+  assert.equal(c.sub, '2026 하반기', '시즌이 없으면 마감일에서 읽는다 — 적어 준 슬로건이 없으면 시즌이 먼저, 회사명을 넣은 기본 아이브로는 그 다음');
   assert.equal(c.advertiser, '한진정보통신');
   assert.match(c.date, /10\.31|10-31|10\/31/);
   const ev = createContext({ name: 'MBM 2026', date: '2026-11-05', venue: '코엑스', audience: '고객사', cta: '사전등록' });
@@ -91,11 +91,11 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   const html = renderAd(long, style, specs['kakao-bizboard-mo']);
   // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자
   assert.match(html, /data-field="main"[^>]*>신입\/\u2060?경력사원 채용</);
-  // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 세로형은 서브 = 시즌, 메인 = 회사 + 채용구분(한미글로벌·세아제강)
+  // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 구글은 시즌이 메인 첫머리 — 적지 않았으면 마감일에서 유추한 시즌(10-06 "정보 없는 건 임의로 넣어야지")
   const free = renderAd(long, style, specs['google-gdn-300x600']);
-  assert.match(free, /data-field="main"[^>]*>한진정보통신(<br\/>| )신입\/\u2060?경력사원 채용</);
-  // 구글 가이드: 아이브로는 슬로건만 — 시즌을 안 적어 줬고 슬로건도 없으면 서브가 없다(비씨월드)
-  assert.doesNotMatch(free, /data-field="sub"/);
+  assert.match(free, /data-field="main"[^>]*>2026 하반기(<br\/>| )한진정보통신(<br\/>| )신입\/\u2060?경력사원 채용</);
+  // 구글 가이드: 아이브로는 슬로건 — 안 적어 줬으면 회사명을 넣은 기본 아이브로(세로형이 얇아 비어 보이지 않게)
+  assert.match(free, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
   // 직무는 상세 줄에 간다 — 상세 칸이 있는 매체(자소설 M팝업 상세문구 22자×3줄)에서
   const popup = renderAd(long, style, specs['jasoseol-m-premium-popup-mo']);
   assert.match(popup, /모집직무<\/b> : 클라우드 플랫폼 엔지니어/);
@@ -147,13 +147,13 @@ test('every shape is left-aligned like the references; the logo floats top-right
   const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
   assert.doesNotMatch(tallHtml, /text-align:center/);
   assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '세로형 로고는 우상단(한미글로벌·세아제강)');
-  // 메인은 회사 + 채용구분(한미글로벌·세아제강). 구글 가이드는 아이브로가 슬로건뿐이라 시즌 서브가 없다
-  assert.doesNotMatch(tallHtml, /data-field="sub"/);
-  assert.match(tallHtml, /data-field="main"[^>]*>한진정보통신(<br\/>| )정규직 채용</, '두 줄이 되면 회사 뒤에서 줄을 바꾼다(세아제강)');
+  // 메인은 시즌 + 회사 + 채용구분(시즌은 마감일에서 유추). 아이브로는 기본 문구
+  assert.match(tallHtml, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
+  assert.match(tallHtml, /data-field="main"[^>]*>2026 하반기(<br\/>| )한진정보통신(<br\/>| )정규직 채용</, '시즌 뒤·회사 뒤에서 줄을 바꾼다');
   const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
   assert.match(tower, /data-logo-slot="1" style="position:absolute;top:\d+px;left:\d+px;right:\d+px;justify-content:center/, '세로 띠 로고는 위 가운데');
   // 세로 띠도 구글은 회사가 메인에 남는다(일화 "㈜일화 / 신입/경력 / 사원 모집")
-  assert.match(tower, /data-field="main"[^>]*>한진정보통신/);
+  assert.match(tower, /data-field="main"[^>]*>(2026 하반기(<br\/>| ))?한진정보통신/);
   const wideHtml = renderAd(ctx, withLogo, specs['remember-main-top-pc']);
   assert.match(wideHtml, /text-align:left/);
   assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스(리멤버)에는 로고가 없다 — 매체가 요구할 때만');

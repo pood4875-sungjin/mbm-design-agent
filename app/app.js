@@ -909,6 +909,10 @@ function slotStyle() {
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), async d => {
+    // 흰 배경 위 로고면 누끼를 따서 쓴다 — 배경 네모가 소재에 뜨지 않게. 밝기(logoTone) 판정도 따낸 뒤에 해야 맞다
+    let knocked = null;
+    try { knocked = await knockoutLogo(d); } catch { knocked = null; }
+    if (knocked) d = knocked.dataUrl;
     it.logo = d;
     try { it.logoSuggests = await analyzeLogo(d); } catch { it.logoSuggests = []; }
     // 흰색 로고만 올렸으면 그게 다크용 로고이기도 하다 — 지면은 어두운 브랜드색으로 간다
@@ -924,6 +928,7 @@ function slotStyle() {
       : it.suggests.length ? '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 색은 키비주얼에서 가져왔습니다.'
         : '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 키비주얼을 올리거나 컬러를 직접 골라 주세요.');
     if (it.logoTone === 'light' && !it.logoLightManual) say('흰색 로고네요 — 지면을 어두운 브랜드색으로 갑니다. 원색 로고도 올리면 밝은 지면도 쓸 수 있어요.');
+    if (knocked) say(`로고 배경(${knocked.removed}%)을 지워 투명 누끼로 바꿨어요 — 지면 위에 네모 없이 올라갑니다.`);
   });
   bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
   // 오브젝트 누끼 — 누끼가 필요한 자리에만 쓴다. 배경이 있는 그림이면 그 자리에 못 쓰니 바로 알려 준다
@@ -1114,6 +1119,39 @@ async function analyzeKeyVisual(dataUrl) {
 
 // 로고의 대표색 — 투명·흰 바탕·검정 글자는 extractPalette가 건너뛴다. 무채색 로고면 빈 배열.
 // 로고 밝기 — 불투명 픽셀의 평균 밝기가 높고 채도가 낮으면 흰색 로고. 흰색 로고만 있으면 지면이 어두워야 로고가 보인다(로고가 지면을 정한다)
+// 로고 누끼 — 흰(단색) 배경 위에 박힌 로고 PNG/JPG를 투명 배경으로 바꾼다(10-06 사용자 "로고 누끼도 따 주나?").
+// 네 모서리 색이 서로 같고 불투명하면 그 색을 배경으로 보고, 가장자리에서 이어진 배경 픽셀만 지운다(안쪽에 갇힌 흰 글자·여백은 남는다).
+// 배경과의 거리 0~60은 투명, 60~110은 부드럽게 — 안티에일리어싱 가장자리가 톱니가 되지 않게. 배경이 없으면(지운 픽셀 2% 미만) 원본 그대로
+async function knockoutLogo(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const W = img.width, H = img.height; if (!W || !H || W * H > 4_000_000) return null;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+  const id = g.getImageData(0, 0, W, H), d = id.data;
+  const px = (x, y) => { const i = (y * W + x) * 4; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; };
+  const inset = Math.max(1, Math.round(Math.min(W, H) * 0.02));
+  const corners = [px(inset, inset), px(W - 1 - inset, inset), px(inset, H - 1 - inset), px(W - 1 - inset, H - 1 - inset)];
+  if (corners.some(c => c[3] < 250)) return null;   // 이미 투명 배경
+  const dist = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
+  if (corners.some(c => dist(c, corners[0]) > 30)) return null;   // 모서리 색이 제각각 — 단색 배경이 아니다
+  const bg = corners.reduce((a, c) => [a[0] + c[0] / 4, a[1] + c[1] / 4, a[2] + c[2] / 4], [0, 0, 0]);
+  const seen = new Uint8Array(W * H); const stack = [];
+  const push = (x, y) => { const k = y * W + x; if (!seen[k]) { seen[k] = 1; stack.push(k); } };
+  for (let x = 0; x < W; x++) { push(x, 0); push(x, H - 1); } for (let y = 0; y < H; y++) { push(0, y); push(W - 1, y); }
+  let removed = 0;
+  while (stack.length) {
+    const k = stack.pop(); const x = k % W, y = (k - x) / W; const i = k * 4;
+    const dd = Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]);
+    if (dd >= 110) continue;                        // 로고 픽셀 — 여기서 멈춘다
+    d[i + 3] = dd < 60 ? 0 : Math.round(255 * (dd - 60) / 50);   // 바깥은 투명, 경계는 부드럽게
+    removed++;
+    if (x > 0) push(x - 1, y); if (x < W - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < H - 1) push(x, y + 1);
+  }
+  if (removed < W * H * 0.02) return null;
+  g.putImageData(id, 0, 0);
+  return { dataUrl: cv.toDataURL('image/png'), removed: Math.round(removed / (W * H) * 100) };
+}
 async function logoToneOf(dataUrl) {
   const img = new Image();
   await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
@@ -1736,13 +1774,15 @@ function renderInspector() {
         r.onload = async () => {
           // 원색 로고를 갈면 색도 그 로고에서 다시 읽는다 — 고객사가 바뀐 것이다. 흰색 로고는 색이 없으니 그대로.
           let roles = null, tonePatch = {};
+          let src = r.result;
           if (key === 'logo') {
-            ({ roles } = await rolesFromAssets({ logo: r.result, keyVisual: c.style.keyVisual, mode: c.style.mode }));
-            const tone = await logoToneOf(r.result).catch(() => 'dark');
+            try { const k = await knockoutLogo(src); if (k) { src = k.dataUrl; toast(`로고 배경 ${k.removed}% 지움 — 투명 누끼`); } } catch {}
+            ({ roles } = await rolesFromAssets({ logo: src, keyVisual: c.style.keyVisual, mode: c.style.mode }));
+            const tone = await logoToneOf(src).catch(() => 'dark');
             // 흰색 로고만이면 지면이 어두워진다(brand-dark-logo). 원색이면 흰색 로고가 있을 때 both
-            tonePatch = tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: r.result }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' };
+            tonePatch = tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: src }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' };
           } else tonePatch = { logoTone: c.style.logoTone === 'light' ? 'light' : 'both' };
-          restyle({ [key]: r.result, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
+          restyle({ [key]: src, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
           renderInspector();
           toast(roles ? `${label} — 주색 ${roles[0]}` : label);
         };
