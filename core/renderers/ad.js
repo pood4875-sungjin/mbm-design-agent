@@ -21,7 +21,7 @@
 
 import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
-import { limitsByRole, roleOf, countChars, estimateLines, inImage } from '../adfields.js';
+import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
 import { resolveField, kvLayer, kvPlacement, kvFull, meltMask, meltMask2, subjectCrop, joinColour, joinField } from '../field.js';
 import { layoutFor } from '../layouts.js';
@@ -150,6 +150,10 @@ const SHOW_CTA = false;
 
 export function renderAd(ctx, style, spec) {
   const rules = spec.rules ?? {};
+  // 오브젝트 누끼 — 투명 PNG 필수 자리와 그라데이션을 넣을 수 없는 상자 자리는 배경 노릇을 하는 키비주얼 대신 따로 올린 누끼를 쓴다(core/adfields.js objectNeedOf).
+  // 없으면 그 자리는 글자만(hasKv 게이트). 누끼가 아닌 그림을 올렸어도 같은 게이트에 걸려 글자만 — 앱이 올릴 때 알려 준다
+  const objectNeed = objectNeedOf(rules, style.kvMeta?.field ?? null);
+  if (objectNeed && style.object) style = { ...style, keyVisual: style.object, kvMeta: style.objectMeta ?? null, kvUse: 'auto', visual: 'object' };
   const mr = spec.mediumRules ?? {};
   const D = designOf(spec.medium) ?? null;
   const p = style.palette;
@@ -168,6 +172,14 @@ export function renderAd(ctx, style, spec) {
     : { main: { lines: null, maxChars: null }, sub: { lines: null, maxChars: null }, date: { lines: 1, maxChars: null } };
   const logoOnly = /로고|프로필/.test(rules.name ?? '') && !inLimits.length;
   if (!logoOnly && !slots.main) slots.main = { lines: null, maxChars: null };
+  // 한 덩어리 글자 규정(에브리타임 홈 카드 '이미지 내 텍스트(메인/서브 구분 없음) 최대 5줄'): 역할을 안 나누면 메인만 5줄로 읽어 서브·상세가 사라진다.
+  // 보드 1-884 코엑스 예시는 아이브로 1 + 메인 2 + 알약 1 + 값 1 = 5줄 — 총 줄 수를 서브 1 · 상세 2 · 메인 나머지로 나눈다
+  const combined = inLimits.find(t => /구분\s?없음|전체/.test(String(t.field ?? '')) && (t.lines ?? 0) >= 4);
+  if (combined && !logoOnly && !by.detail) {
+    const total = combined.lines;
+    slots.sub = { lines: 1, maxChars: combined.maxChars ?? null }; slots.detail = { lines: 2, maxChars: null }; slots.main = { lines: Math.max(1, total - 3), maxChars: combined.maxChars ?? null };
+    delete slots.date;   // 날짜는 상세 줄로 간다
+  }
   // 레퍼런스(core/layouts.js)가 형태별 문법을 정한다. 레퍼런스가 없는 120px 미만 띠만 예전 띠 문법을 쓴다.
   const L = layoutFor(w, h);
   const useRef = !logoOnly && L.shape !== 'strip';
@@ -284,6 +296,10 @@ export function renderAd(ctx, style, spec) {
     const cw = Math.round(w * guide.objectRatio.square), ch = Math.round(h * (guide.objectRatio.squareH ?? 0.6));
     tImage = { x: w - cw, y: h - ch, w: cw, h: ch };
   }
+  // 가이드 없는 정사각형 지면에 누끼: 오른쪽 열 대신 우하단 모서리 상자(폭 58%·높이 55%) — 글자는 전폭으로 크게, 상세는 상자 옆 열에.
+  // 보드 1-884 코엑스 에브리타임 홈 카드: 건물 누끼가 오른쪽 아래를 차지하고 '모집분야' 알약·값이 그 옆에 선다. 오른쪽 열로 두면 글자 칸이 반으로 줄어 메인이 작아진다
+  const cutCorner = !!(hasKv && !logoOnly && !photoFull && !roomFull && !textureFull && !tImage && !transparent && !rules.objectBox && !guide?.objectRatio && L.shape === 'square' && (style.kvMeta?.field?.opaque ?? 1) < 0.5);
+  if (cutCorner) tImage = { x: w - Math.round(w * 0.58), y: h - Math.round(h * 0.55), w: Math.round(w * 0.58), h: Math.round(h * 0.55) };
   const kvKindPhoto = style.kvMeta?.field?.kind === 'photo';
   // 그림이 없고 로고만 있으면 로고가 오브젝트 자리를 차지한다(보드 예시 14/136: 셀트리온·LX·CMTX·제일약품·SPC…) — 작은 상단 로고는 그때 생략
   // 매체가 로고 칸을 따로 정해 둔 템플릿(자소설)에서는 로고를 그 칸에 두고 이미지 칸은 비운다 — 로고가 두 번 나오면 안 된다
@@ -436,7 +452,7 @@ export function renderAd(ctx, style, spec) {
     : '';
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -494,6 +510,8 @@ export function renderAd(ctx, style, spec) {
   const observedPx = profNum('mainPx');
   const scaleBase = L.shape === 'wide' ? Math.sqrt(w * h) : L.shape === 'square' ? Math.min(w, h) : w;   // 가로형 √(w·h) · 정사각 짧은 변 · 세로형 폭
   let titleMax = useRef ? (guide?.mainScale?.[L.shape] ? Math.round(scaleBase * guide.mainScale[L.shape]) : L.main) : Math.min(72, Math.max(22, observedPx ? Math.round(observedPx * 1.15) : Math.round(S * 0.085)));
+  const thMax = th?.max ?? ((combined?.lineHeightsPx && !Array.isArray(combined.lineHeightsPx)) ? combined.lineHeightsPx.max : null);   // 결합 규정의 글자 높이 띠(에브리타임 25~60)도 같은 뜻
+  if (useRef && thMax && !guide?.mainScale) titleMax = Math.max(titleMax, Math.min(thMax, Math.round(S * 0.11)));   // 매체가 밝힌 글자 높이 상한(에브리타임 60px)은 디자이너가 그만큼 쓴다는 뜻(보드 1-884 메인 57px)
   if (strip) titleMax = Math.min(titleMax, Math.round(innerH * 0.5));
   // 가이드의 메인 글자 px 띠(구글 24~40: 규격이 작아져도 글자를 비례로 줄이지 않는다 — '글자 크고 굵게')
   if (guide?.mainPx?.max) titleMax = Math.min(titleMax, guide.mainPx.max);
@@ -538,14 +556,23 @@ export function renderAd(ctx, style, spec) {
   const detailW = (imgCorner && hasKv)
     ? (gCorner && guide?.detailColumn ? Math.round(textW * guide.detailColumn)
       // 자소설 모서리 상자: 그림이 실제로 그려지는 네모의 왼쪽 선까지 + 녹인 구간의 28% — "클라우드 플랫폼 / 엔지니어"처럼 상자 선에서 접히지 않게
-      : Math.max(60, (cornerRect ? cornerRect.x + (meltCorner ? Math.round(cornerRect.w * 0.28) : 0) : tImage.x) - pad.left - 10))
+      : Math.max(60, (cornerRect ? cornerRect.x + ((meltCorner || isCutout) ? Math.round(cornerRect.w * 0.28) : 0) : tImage.x) - pad.left - 10))   // 누끼 상자의 왼쪽 위는 비어 있다 — 값 줄이 그 위로 28%까지 흘러도 된다(코엑스 '전시/컨벤션ㅣ베뉴마케팅ㅣDX'가 건물 위로)
     : rightMelt ? textW + Math.round(objW * 0.3) : textW;
   let detailFsFit = null;   // 가이드 매체에서 상세가 안 들어가 글자를 줄인 결과(없으면 null)
+  // 태그 쌓기 — 가이드가 칩 문법을 정하지 않은 매체에서 지면이 넉넉하고(S≥420) 상세가 둘 이하면 '알약 라벨 한 줄 + 값 한 줄'(보드 1-884 코엑스 에브리타임 홈 카드).
+  // 값이 목록이면 ' ㅣ '로 잇는다("전시/컨벤션 ㅣ 베뉴마케팅 ㅣ DX"). 띠·가로 한 행 흐름·템플릿 칸은 제외
+  let stackTags = false;
   if (want.detail) {
     // 메인·서브에 이미 들어 있는 말은 상세로 되풀이하지 않는다("신입/경력" 고용형태는 메인 "신입/경력사원 채용"에 있다 — 보드 예시에 고용형태 줄은 없다)
     const saidIn = v => [copy.main, copy.sub].some(t => String(t ?? '').replace(/\n/g, ' ').includes(String(v)));
     const cands0 = ladder.details.filter(d => !saidIn(d.value));
-    const cap = detailSlot.lines ?? guide?.detailRows?.[L.shape] ?? 3;   // 구글 템플릿 상세 줄 수: 580 3(+1) · 970 2(+1) · 300×600 5 · 300×1050 7
+    stackTags = !guide?.detailLabels && !strip && !(tImage && !cutCorner) && !(useRef && (L.shape === 'wide' || gv?.detailFlow === 'row')) && S >= 420 && cands0.length > 0 && cands0.length <= 3;   // 자소설 템플릿 칸은 제외, 누끼 모서리 상자(합성)는 포함
+    const cap = detailSlot.lines ?? guide?.detailRows?.[L.shape] ?? 3;
+    // 쌓으면 한도를 넘는데 하나는 들어가면 하나만 쌓는다(코엑스 홈 카드: 상세 2줄에 '모집분야' 하나) — 그때 직무가 먼저. 하나도 못 쌓으면 인라인
+    if (stackTags && cands0.length * 2 > cap) {
+      if (cap >= 2) { const role = cands0.filter(d => d.label === '모집직무'); cands0.splice(0, cands0.length, ...role, ...cands0.filter(d => d.label !== '모집직무')); }
+      else stackTags = false;
+    }   // 알약 줄 + 값 줄이 상세 줄 한도를 넘으면 인라인으로(에브리타임 홈 카드 상세 2줄 → 상세 1개만 쌓을 수 있다)   // 구글 템플릿 상세 줄 수: 580 3(+1) · 970 2(+1) · 300×600 5 · 300×1050 7
     const fit = fs => {
       // 매체의 줄당 글자수(자소설 상세 11자)와 실제 칸 폭 중 작은 쪽. 폭 어림은 0.9em/자 — 숫자·괄호가 섞인 줄을 0.98로 세면 한 줄짜리 날짜가 두 줄로 세어지고,
       // 매체 값만 믿으면 이미지 옆 좁은 열(PC팝업 550×400)에서 실제로는 더 많이 접혀 상세 3줄 규정을 넘긴다
@@ -556,8 +583,10 @@ export function renderAd(ctx, style, spec) {
         const inline = `${d.label} : ${d.value}`;
         // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
         const inlineRows = estimateLines(inline, perLine, counting);
-        const useInline = inlineRows <= 1 || !narrow;
-        const needed = useInline ? inlineRows : 1 + estimateLines(d.value, perLine, counting);
+        const useInline = stackTags ? false : (inlineRows <= 1 || !narrow);
+        const valTxt = stackTags ? String(d.value).split(/\s*[,·]\s*/).filter(Boolean).join('ㅣ') : d.value;
+        const valRows = (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
+        const needed = useInline ? inlineRows : 1 + valRows;
         if (used + needed > cap) { skipped++; continue; }
         lines.push({ label: d.label, value: d.value, inline: useInline, rows: needed });
         used += needed;
@@ -604,7 +633,9 @@ export function renderAd(ctx, style, spec) {
   };
   // 칩 줄 사이 숨 — 칩(알약) 높이가 글줄 높이와 거의 같아 줄 간격 1.45로는 알약끼리 붙는다(10-06 사용자 "태그들이 너무 붙어 있어"). 예시(일화 580·비씨 300×600)는 칩 줄 사이가 글자 높이의 절반쯤
   const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : 0);
-  const detailBlockH = z => detailRows(z) * Math.round(z.dFs * dLine) + Math.max(0, detailLines.length - 1) * chipRowGap(z) + (detailLines.length ? detailGap(z) : 0);
+  // 한 행 흐름(구글 970 칩 2개가 한 줄)이면 줄 사이 숨은 높이에 안 들어간다 — 더하면 메인 예산이 줄어 두 줄 시즌이 떨어진다(동부 970 회귀)
+  const rowFlowNow = () => useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
+  const detailBlockH = z => detailRows(z) * Math.round(z.dFs * dLine) + (rowFlowNow() ? 0 : Math.max(0, detailLines.length - 1) * chipRowGap(z)) + (detailLines.length ? detailGap(z) : 0);
   // 로고: 레퍼런스 세로형은 우상단, 세로 띠는 위 가운데에 따로 놓는다(글자 흐름 밖). 가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만.
   const logoRequired = (rules.logo?.count ?? 0) >= 1;
   const absLogo = useRef && allowLogo && logoSrc && !tLogo && logoPlace !== 'none' && !logoAsObject;
@@ -628,8 +659,9 @@ export function renderAd(ctx, style, spec) {
   titleBudget = Math.max(floorMain * line, titleBudget);
   // 위계: 메인은 상세의 1.8배·서브의 1.6배는 돼야 한다(레퍼런스 메인 44 / 상세 13~16 / 서브 ≤20). 상세·서브가 세로 예산을 먹어 메인이 작아지면(1080 메인 45·상세 41 — 납작한 템플릿 티)
   // 상세·서브를 먼저 줄이고 메인을 다시 잰다. 매체가 글자 크기·높이를 정한 경우(stated·textHeightPx)는 건드리지 않는다
-  if (stated.main == null && !detailFs && !stated.sub && !th) {
-    const dMin = guide?.detailPx?.min ?? 11, sMin = 11, target = Math.min(z.cap, mainCap);
+  // 가이드가 상세·서브 px를 정한 매체(구글)는 위계도 가이드가 책임진다 — 여기서 상세를 줄이면 970 메인이 커져 시즌이 떨어진다(동부 회귀)
+  if (stated.main == null && !detailFs && !stated.sub && !th && !guide?.detailPx) {
+    const dMin = 11, sMin = 11, target = Math.min(z.cap, mainCap);
     for (let i = 0; i < 2; i++) {
       const probe = Math.floor(fitFontSize(copy.main, textW, titleBudget, target, floorMain, mainLine));
       if (probe >= z.dFs * 1.8 && probe >= z.subFs * 1.6) break;
@@ -707,7 +739,9 @@ export function renderAd(ctx, style, spec) {
     if (copy.main === `${core.client} ${hireTxt}` && textWidth(copy.main) * mainFs > textW) copy.main = `${core.client}\n${hireTxt}`;
   }
   // 가이드 매체(구글): 한 줄에 넣느라 글자가 작아졌으면(일화 580 35px) 예시처럼 회사 뒤에서 두 줄로 나눠 크게 쓴다(10/10 두 줄)
-  if (guide?.twoLines && !copy.main.includes('\n') && (mainLinesCap ?? 2) >= 2 && stated.main == null && mainFs < capMain) {
+  // 모서리 상자 레이아웃(구글 580·누끼 정사각)에선 한 줄이 글자 칸의 70%를 넘으면 두 줄로 — 코엑스 카드 '코엑스 / 신입사원 채용'처럼 덩어리가 크고 오브젝트와 겹치지 않는다
+  const longLine = (gCorner || cutCorner) && textWidth(copy.main) * mainFs > textW * 0.7;
+  if (guide?.twoLines && !copy.main.includes('\n') && (mainLinesCap ?? 2) >= 2 && stated.main == null && (mainFs < capMain || longLine)) {
     const txt = copy.main; let at = -1;
     if (core.client && txt.includes(core.client)) at = txt.indexOf(core.client) + core.client.length;
     // 회사 뒤에서 못 나누면 가운데 띄어쓰기에서 — 단 짧은 문구(9자 이하 "정규직 채용")는 나누지 않는다. "정규직 / 채용" 두 줄은 덩어리가 아니라 부자연스러운 줄바꿈이다
@@ -767,19 +801,23 @@ export function renderAd(ctx, style, spec) {
   // 상세 블록 — 한 요소로 묶어 검사기가 총 글자수·총 줄 수를 본다. 라벨은 굵게, 값은 가늘게(세아제강·한독).
   const lw = useRef && !L.detailLabelBold ? 400 : 700;
   // 라벨 칩(구글 템플릿 '문구입력', 예시 24/28: 일화 레드 pill·비씨월드 네이비 pill·ABL 흰 pill) — 밝은 지면엔 브랜드색 칩에 흰 글자, 어두운 지면엔 흰 칩에 지면색 글자
-  const chip = guide?.detailLabels === 'chip';
+  const chip = guide?.detailLabels === 'chip' || stackTags;
   const chipBg = fgIsDark ? (p.primary ?? '#000000') : '#FFFFFF';
+  // 어두운 지면 위 흰 알약은 살짝 비친다(88%) — 코엑스 카드의 라벤더빛 알약. 밝은 지면의 브랜드색 알약은 그대로(구글 예시 일화 레드·비씨 네이비)
+  const chipBgCss = fgIsDark ? chipBg : 'rgba(255,255,255,.88)';
   const chipFg0 = fgIsDark ? '#FFFFFF' : (field?.stops?.[0] ?? p.primary ?? '#000000');
   const chipFg = contrast(chipBg, chipFg0) >= 3 ? chipFg0 : (contrast(chipBg, WHITE) >= contrast(chipBg, BLACK) ? WHITE : BLACK);
-  const chipCss = `display:inline-block;font-weight:700;font-size:${Math.max(8, Math.round(z.dFs * 0.86))}px;line-height:1.5;padding:0 ${Math.round(z.dFs * 0.55)}px;border-radius:999px;background:${chipBg};color:${chipFg};vertical-align:baseline;white-space:nowrap`;
+  const chipCss = `display:inline-block;font-weight:700;font-size:${Math.max(8, Math.round(z.dFs * 0.86))}px;line-height:1.5;padding:0 ${Math.round(z.dFs * 0.55)}px;border-radius:999px;background:${chipBgCss};color:${chipFg};vertical-align:baseline;white-space:nowrap`;
   const label = d => chip
-    ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * 0.25) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`
+    ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * (stackTags ? 0.5 : 0.25)) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`
     : d.inline ? `<b style="font-weight:${lw}">${esc(d.label)}</b> : ` : `<b style="font-weight:${lw};display:block">${esc(d.label)}</b>`;
   // 가로형은 상세를 한 행에 가로로 푼다(일화 970: 접수기간·모집부문 라벨 2개 한 줄 / 중앙 템플릿 상세 4칸 한 행)
   const detailRow = useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
+  // 쌓기 값: 항목은 ㅣ로 잇고(참고 예시처럼 띄어쓰기 없이) 줄은 ㅣ 뒤에서만 끊는다 — 항목 안의 '/'(전시/컨벤션)에서 끊기면 "전시/ / 컨벤션"이 된다
+  const fmtVal = v => stackTags ? String(v).split(/\s*[,·]\s*/).filter(Boolean).map(it => it.replace(/\//g, '\u2060/\u2060')).join('ㅣ\u200B') : String(v);
   const detailBlock = () => detailLines.length
     ? `<div data-field="detail" style="font-size:${z.dFs}px;line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP}${detailW > textW ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:${chipRowGap(z)}px ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map((d, i) =>
-        `<div${!detailRow && i > 0 && chipRowGap(z) ? ` style="margin-top:${chipRowGap(z)}px"` : ''}>${label(d)}${esc(nb(d.value))}</div>`).join('')}</div>` : '';
+        `<div${!detailRow && i > 0 && chipRowGap(z) ? ` style="margin-top:${chipRowGap(z)}px"` : ''}>${label(d)}${esc(nb(fmtVal(d.value)))}</div>`).join('')}</div>` : '';
   const logoImg = (hPx, maxW) => (allowLogo && logoSrc)
     ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${hPx}px;width:auto;max-width:${maxW}px;object-fit:contain;${logoFilter}"/>`
     : '';

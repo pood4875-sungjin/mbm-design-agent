@@ -16,6 +16,10 @@ const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션
 
 // facing: 이미지가 글자 쪽으로 맞닿는 변 — 이미지가 오른쪽에 있으면 'left', 아래에 있으면 'top', 왼쪽에 있으면 'right'
 // lightPhoto: 사진도 밝은 지면에 녹이는 매체(구글 일화 사옥 → 흰 지면). 자소설은 밝은 매체여도 사진은 브랜드색 지면(한독 → 파랑)
+// 어두운 브랜드 지면 — 단색 대신 은은한 대각 그라데이션(왼쪽 위 살짝 밝고 따뜻하게 → 오른쪽 아래 짙게). 보드 1-884 코엑스 카드(보라 → 짙은 보라)·리멤버 예시의 문법.
+// 색 거리는 그라데이션 문턱(0.045)을 넘되 글자 대비는 두 끝 모두 지킨다. 단색 전용 규격·'단색' 선택이면 resolveField가 가운데 색으로 접는다
+function brandDeep(brand) { return [shiftHue(brand, 0, 0.06, 0), shiftHue(brand, 0, -0.08, 0)]; }   // 색상(hue)은 그대로 — 명도만. 색상까지 돌면 글자 대비 판정의 전제가 깨진다
+
 export function resolveField(style, { facing = 'left', solidOnly = false, light = false, lightPhoto = false } = {}) {
   const p = style.palette ?? {};
   const opt = style.background ?? {};
@@ -50,7 +54,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     const brand = p.primary ?? '#2456D6';
     const tint = f.kind === 'photo' ? lightPhoto : light;
     if (tint) { stops = [mix(brand, WHITE, 0.78), WHITE]; angle = 180; source = 'brand-tint'; }
-    else { stops = [brand]; source = f.kind === 'photo' ? 'brand-photo' : 'brand'; }
+    else { stops = brandDeep(brand); angle = 135; source = f.kind === 'photo' ? 'brand-photo' : 'brand'; }
   }
   else if (f && dominant) {
     // 배경을 딴 이미지 + 밝은 지면을 쓰는 매체(자소설)면 대표색의 옅은 틴트, 아니면 대표색 그대로
@@ -60,7 +64,8 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   if (!stops && style.keyVisual && style.kvMeta?.edge) { stops = [style.kvMeta.edge]; source = 'kv-edge'; }   // 예전에 저장된 캠페인
   if (!stops) {
     const brand = p.primary ?? '#2456D6';
-    stops = light ? [mix(brand, WHITE, 0.80), mix(brand, WHITE, 0.90)] : [brand];
+    stops = light ? [mix(brand, WHITE, 0.80), mix(brand, WHITE, 0.90)] : brandDeep(brand);
+    if (!light) angle = 135;
     source = 'brand';
   }
 
@@ -259,7 +264,7 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
 export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const { cutout, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset });
+  const { cutout, bw, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset });
   // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션. 주인공으로 당긴 자리는 그림 한가운데가 변이다
   const joinFlat = crop ? false : style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
   // 이음매 줄이 바탕(≥85%)이고 그 색이 지면과 거의 같으면 넓게 녹일 이유가 없다(10%) — 넓은 녹임은 그림을 뿌옇게 만들어 AI 티가 난다
@@ -272,7 +277,11 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   const pct = quiet ? 10 : trueEdge ? 16 : joinFlat === false ? 38 : 30;
   const dir = side === 'right' ? 'to right' : 'to bottom';
   const mask = (!melt || cutout) ? '' : meltMask(dir, pct);
-  const fill = `background:url('${url}') ${cutout ? `${far}/contain` : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}`;
+  // 누끼를 오른쪽 열에 맞춰 넣을 때 폭이 모자라 작아지면(건물·3D처럼 가로가 긴 누끼) 높이에 맞추고 오른쪽·아래로 붙인다 — 폭이 열의 130%까지 넘치는 건 지면 밖으로 잘린다.
+  // 보드 1-884 코엑스 카드가 건물을 오른쪽 아래로 크게 두고 가장자리에서 자른 문법. 그 이상 넘치면 그냥 맞춰 넣는다(캐릭터 떼가 반 잘리면 안 된다)
+  const arKv = style.kvMeta?.ar;
+  const bleed = cutout && side === 'right' && arKv && h * arKv > bw && h * arKv <= bw * 1.3;
+  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${h}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${bleed ? '--kv-bleed:1;' : ''}`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:0;right:${inset}px;width:${size + edgePad - inset}px;height:${h}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;

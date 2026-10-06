@@ -18,7 +18,10 @@ test('renderBanner emits fixed-size self-contained html', () => {
   assert.match(html, /height:250px/);
   assert.match(html, /2026 ONSITE MBM 서울/);
   assert.doesNotMatch(html, /사전등록/, '버튼은 그리지 않는다(2026-10-02)');
-  assert.match(html, /#0A3D91/);
+  // 브랜드 지면은 같은 색상에서 명도만 옮긴 은은한 대각 그라데이션(10-06 코엑스 카드 문법) — 두 끝 모두 브랜드 색상(hue)
+  const stops0 = [...html.split('>')[0].matchAll(/#[0-9A-Fa-f]{6}/g)].map(m => m[0]);
+  assert.ok(stops0.length >= 2 && /linear-gradient\(135deg/.test(html.split('>')[0]), '브랜드 지면 = 135° 그라데이션');
+  for (const hex of stops0.slice(0, 2)) assert.ok(Math.abs(rgbToHsl(hexToRgb(hex))[0] - rgbToHsl(hexToRgb('#0A3D91'))[0]) < 0.02, `브랜드 색상 유지 ${hex}`);
   assert.doesNotMatch(html, /http/, '외부 의존 금지 — 자기완결');
 });
 
@@ -83,9 +86,9 @@ test('titles can break long Korean compounds when a narrow format leaves no choi
   assert.match(sky, /word-break:keep-all;overflow-wrap:anywhere/);
 });
 
-test('a plain colour field is flat — no glow, no decoration', () => {
+test('a plain colour field has no glow, no decoration — only a same-hue lightness gradient', () => {
   const html = renderBanner(ctx, style, spec);
-  assert.match(html.split('>')[0], /background:#0A3D91;/, '키비주얼이 없으면 브랜드 색 그대로');
+  assert.match(html.split('>')[0], /background:linear-gradient\(135deg,#[0-9A-Fa-f]{6} 0%,#[0-9A-Fa-f]{6} 100%\);/, '키비주얼이 없으면 브랜드 색 명도 그라데이션');
   assert.doesNotMatch(html, /radial-gradient/, '빛 번짐을 넣지 않는다');
   // 그라데이션을 고르면 같은 색상에서 명도만 옮긴 두 색 — 색상(hue)까지 돌면 글자 대비 판정의 전제가 깨진다
   const grad = renderBanner(ctx, { ...style, background: { mode: 'gradient', color: null } }, spec);

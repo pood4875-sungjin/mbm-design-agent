@@ -10,6 +10,7 @@ import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
 import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage } from '../core/palette.js';
+import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
@@ -386,7 +387,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, kvUse: 'auto', logoTone: null, logoLightManual: false,
+    bgMode: 'auto', bgColor: null, kvUse: 'auto', logoTone: null, logoLightManual: false, object: null, objectMeta: null,
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -549,8 +550,10 @@ function mediaPickerHtml(it) {
       return `<div class="pgrp"><h5>${g}</h5><div class="mcards">${ms.map(m => {
         const gs = all.filter(x => x.medium === m.id), n = gs.length, on = it.media.includes(m.id);
         const k = on ? gs.filter(x => !it.specOff.has(x.id)).length : n;
+        // 투명 PNG 필수 자리 수 — 배경 있는 키비주얼로는 글자만 나가는 자리라 고르기 전에 보여 준다(오브젝트 누끼를 올리면 거기에 쓴다)
+        const nCut = gs.filter(x => needsCutout(AD[x.id]?.rules)).length;
         return n
-          ? `<button type="button" class="mcard ${on ? 'on' : ''}" data-m="${m.id}" aria-pressed="${on}"><span class="mc-ck" aria-hidden="true"></span><b>${escH(m.name)}</b><small>소재 ${k}종</small></button>`
+          ? `<button type="button" class="mcard ${on ? 'on' : ''}" data-m="${m.id}" aria-pressed="${on}" title="${nCut ? `누끼(투명 PNG)가 필요한 자리 ${nCut}곳` : ''}"><span class="mc-ck" aria-hidden="true"></span><b>${escH(m.name)}</b><small>소재 ${k}종${nCut ? ` · 누끼 ${nCut}` : ''}</small></button>`
           : `<button type="button" class="mcard" disabled title="그릴 수 있는 규격이 없어요 — 매체에 자료만 전달하는 상품입니다"><span class="mc-ck" aria-hidden="true"></span><b>${escH(m.name)}</b><small>자료만 전달</small></button>`;
       }).join('')}</div></div>`;
     }).join('');
@@ -824,6 +827,27 @@ function bgControlHtml(styleLike, id) {
       ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
 }
 
+// 고른 소재 중 지금 키비주얼로는 그림이 빠지고 오브젝트 누끼가 필요한 자리 — "알바몬·에브리타임 3곳"
+function objectSlots(it, field = it.kvMeta?.field ?? null) {
+  return chosenAdGroups(it).filter(g => objectNeedOf(g.entry.rules, field));
+}
+function objectSlotsText(it, field) {
+  const need = objectSlots(it, field);
+  if (!need.length) return '';
+  return `${[...new Set(need.map(g => g.entry.mediumName))].join('·')} ${need.length}곳`;
+}
+// 키비주얼을 올리면 어떻게 읽었는지, 어디에 어떻게 쓰이는지 한 번에 말한다 — 사용자가 결과를 보고 놀라지 않게(10-06)
+function kvDiagnosis(it, meta) {
+  const f = meta?.field, kind = f?.kind;
+  const how = kind === 'texture' ? '그라데이션 질감으로 읽었어요 — 지면 전체에 깔고 글자만 올려요.'
+    : kind === 'cutout' ? '배경 없는 누끼로 읽었어요 — 자리에 맞춰 넣고 지면은 브랜드색이에요.'
+    : kind === 'photo' ? '사진으로 읽었어요 — 브랜드색 지면에 녹여 넣어요.'
+    : f?.room ? '배경을 품은 그림이에요 — 비율이 비슷한 규격엔 통째로 깔고 빈 자리에 글자, 띠에는 주인공만 당겨 넣어요.'
+    : '배경을 품은 그림이에요 — 주인공을 당겨 자리를 채우고 가장자리 색을 지면으로 써요.';
+  const slots = objectSlotsText(it, f);
+  const tail = slots && !it.object ? ` ${slots}은 배경 없는 오브젝트가 필요한 자리라 지금 그림으론 글자만 나가요 — 옆의 '오브젝트 누끼'를 올리면 거기에만 씁니다.` : '';
+  say(how + tail);
+}
 function slotStyle() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, background: { mode: it.bgMode, color: it.bgColor } };
@@ -835,6 +859,8 @@ function slotStyle() {
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
+      <div><div class="kvthumb logo" id="objThumb" title="배경 없는 오브젝트(투명 PNG). 알바몬 스플래시·에브리타임 보드·NAP 비즈보드·캐치 센터처럼 누끼가 필요한 자리에만 씁니다 — 키비주얼은 배경으로 그대로" style="${it.object ? `background-image:url(${it.object})` : ''}">${it.object ? '' : '오브젝트 누끼<br>(선택)'}</div>
+        <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
         ${bgControlHtml(adStyle, 'bg')}
         <label style="margin-top:10px">브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
@@ -874,6 +900,7 @@ function slotStyle() {
       it.kvUse = 'auto';         // 새 그림이면 쓰임도 처음부터 — 사진이 아니면 '전체' 선택지가 사라진다
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
+      kvDiagnosis(it, meta);
       announceDpi();
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
@@ -899,6 +926,18 @@ function slotStyle() {
     if (it.logoTone === 'light' && !it.logoLightManual) say('흰색 로고네요 — 지면을 어두운 브랜드색으로 갑니다. 원색 로고도 올리면 밝은 지면도 쓸 수 있어요.');
   });
   bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
+  // 오브젝트 누끼 — 누끼가 필요한 자리에만 쓴다. 배경이 있는 그림이면 그 자리에 못 쓰니 바로 알려 준다
+  bindUpload($('objThumb'), $('objFile'), async d => {
+    it.object = d;
+    try {
+      const { meta } = await analyzeKeyVisual(d);
+      it.objectMeta = meta;
+      say((meta.field?.opaque ?? 1) >= 0.5
+        ? '배경이 있는 그림이에요 — 누끼(투명 PNG)여야 투명 자리에 쓸 수 있어요. 이대로면 그 자리는 글자만 나가요.'
+        : `오브젝트 누끼 올렸어요 — ${objectSlotsText(it) || '누끼가 필요한 자리'}에만 쓰고, 다른 매체는 키비주얼을 배경으로 그대로 써요.`);
+    } catch { it.objectMeta = null; }
+    slotStyle();
+  });
   $('stOk').onclick = () => {
     // 키비주얼·로고는 필수(10-06 사용자 결정) — 그림 없는 소재는 예시에 없다. 되묻지 않고 막는다
     if (!it.kv || !it.logo) { say(!it.kv && !it.logo ? '키비주얼과 로고를 올려 주세요. 둘 다 있어야 소재를 만들 수 있어요.' : !it.kv ? '키비주얼을 올려 주세요.' : '로고를 올려 주세요.'); return; }
@@ -1132,6 +1171,8 @@ function buildAndGenerate() {
     logo: it.logo,
     logoLight: it.logoLight ?? null,
     logoTone: it.logoTone ?? null,
+    object: it.object ?? null,
+    objectMeta: it.objectMeta ?? null,
     mode: it.mode,
     background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
     kvUse: it.kvUse ?? 'auto',
@@ -1587,6 +1628,8 @@ function renderInspector() {
         logo: c.style.logo,
         logoLight: c.style.logoLight ?? null,
         logoTone: c.style.logoTone ?? null,
+        object: c.style.object ?? null,
+        objectMeta: c.style.objectMeta ?? null,
         mode: c.style.mode,
         background: c.style.background,
         kvUse: c.style.kvUse,
