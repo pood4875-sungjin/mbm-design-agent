@@ -148,8 +148,9 @@ export function renderAd(ctx, style, spec) {
     const slot = slots[role];
     let perLine = slot?.maxCharsPerLine ?? null;
     const fs = statedEarly[role] ?? fsHint;
-    // 매체가 줄당 글자수를 정해 두면(자소설 메인 6자) 그것을 믿는다 — 폭으로 어림한 값은 영문·기호가 섞이면 너무 보수적이다("PTKOREA"가 두 줄로 세어진다)
-    if (fs && widthPx && perLine == null) perLine = Math.max(1, Math.floor(widthPx / (fs * 0.98)));
+    // 줄당 글자수 = 매체 값(자소설 메인 6자)과 실제 폭 어림 중 작은 쪽. 폭 어림은 0.9em/자 — 0.98로 재면 "영업∙마케팅"(5.5자)이 두 줄로 세어지고,
+    // 매체 값만 믿으면 넓은 글자 칸을 전제한 값(캐치 17자)이 좁은 지면(515×315)에서 넘친다
+    if (fs && widthPx) perLine = Math.min(perLine ?? Infinity, Math.max(1, Math.floor(widthPx / (fs * 0.9))));
     const linesCap = Math.min(slot?.lines ?? Infinity, linesHint ?? Infinity);
     // 한 낱말이 한 줄보다 길면 낱말 중간에서 끊긴다("도레이첨단소재" 7자 > 달력배너 행당 6자) — 그 문구는 안 맞는 것으로 본다
     const wordOk = c => perLine == null || !Number.isFinite(perLine) || !String(c).split(/\s+/).some(w => countChars(w, counting) > perLine);
@@ -199,6 +200,9 @@ export function renderAd(ctx, style, spec) {
   const allowLogo = !(rules.logo && rules.logo.count === 0);   // M스탠다드·PC달력배너: 로고 삽입 불가
   const hasKv = !!style.keyVisual && !spec.flat;
   const hasLogo = !!(style.logo || style.logoLight);
+  // 그림이 없고 로고만 있으면 로고가 오브젝트 자리를 차지한다(보드 예시 14/136: 셀트리온·LX·CMTX·제일약품·SPC…) — 작은 상단 로고는 그때 생략
+  // 매체가 로고 칸을 따로 정해 둔 템플릿(자소설)에서는 로고를 그 칸에 두고 이미지 칸은 비운다 — 로고가 두 번 나오면 안 된다
+  const logoAsObject = !hasKv && !logoOnly && allowLogo && hasLogo && !tLogo && (!!tImage || (useRef && L.object !== 'none') || (!useRef && !strip));
 
   /* ── 안전영역 → 패딩 ── */
   const basePad = strip ? Math.min(16, Math.round(h * 0.15)) : (S >= 280 ? 24 : 16);
@@ -233,7 +237,7 @@ export function renderAd(ctx, style, spec) {
   if (allowLogo && tLogo && hasLogo && tLogo.y < h * 0.3) pad.top = Math.max(pad.top, tLogo.y + tLogo.h + Math.round(h * 0.045));
   const sa = rules.safeArea ?? {};
   const saN = k => (typeof sa[k] === 'number' ? sa[k] : 0);
-  const logoBox = (useRef && L.logo !== 'none' && allowLogo && hasLogo && !tLogo) ? (() => {
+  const logoBox = (useRef && L.logo !== 'none' && allowLogo && hasLogo && !tLogo && !logoAsObject) ? (() => {
     const top = Math.max(L.logoTop, saN('top'));
     const left = L.logo === 'top-center' ? saN('left') : null;
     const right = L.logo === 'top-center' ? saN('right') : Math.max(Math.round(L.padX * 0.8), saN('right'));
@@ -247,7 +251,7 @@ export function renderAd(ctx, style, spec) {
   /* ── 정렬·오브젝트 자리 (템플릿 > 같은 형태의 관찰 > 매체 전체 > 지면 비율) ── */
   const align = (strip || useRef) ? 'left' : (prof('textAlign') ?? (tall ? 'center' : 'left'));
   let objectSide = 'none';
-  if (hasKv && !logoOnly) {
+  if ((hasKv || logoAsObject) && !logoOnly) {
     if (tImage) objectSide = 'template';
     else if (useRef) objectSide = L.object;
     else {
@@ -294,9 +298,10 @@ export function renderAd(ctx, style, spec) {
 
   const objRatio = profNum('objectWidthRatio');
   const objW = objectSide !== 'right' ? 0
+    : logoAsObject ? Math.round(innerW * 0.34)
     : useRef ? Math.max(0, L.objectW - pad.right)
     : Math.round(innerW * Math.min(0.5, Math.max(0.24, objRatio ?? (strip ? 0.32 : 0.38))));
-  const objH = objectSide !== 'bottom' ? 0 : useRef ? Math.max(0, L.objectH - pad.bottom) : Math.round(innerH * 0.33);
+  const objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, L.objectH - pad.bottom) : Math.round(innerH * 0.33);
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
   const stripCtaCol = (SHOW_CTA && strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
@@ -381,8 +386,8 @@ export function renderAd(ctx, style, spec) {
   const detailBlockH = z => detailLines.reduce((n, d) => n + d.rows, 0) * Math.round(z.dFs * dLine) + (detailLines.length ? detailGap(z) : 0);
   // 로고: 레퍼런스 세로형은 우상단, 세로 띠는 위 가운데에 따로 놓는다(글자 흐름 밖). 가로형 레퍼런스에는 로고가 없다 — 매체가 요구할 때만.
   const logoRequired = (rules.logo?.count ?? 0) >= 1;
-  const absLogo = useRef && allowLogo && logoSrc && !tLogo && L.logo !== 'none';
-  const flexLogo = allowLogo && logoSrc && !tLogo && (strip ? innerH >= 70 : useRef ? (L.logo === 'none' && logoRequired) : true);   // 50px 띠에는 로고 자리가 없다
+  const absLogo = useRef && allowLogo && logoSrc && !tLogo && L.logo !== 'none' && !logoAsObject;
+  const flexLogo = allowLogo && logoSrc && !tLogo && !logoAsObject && (strip ? innerH >= 70 : useRef ? (L.logo === 'none' && logoRequired) : true);   // 50px 띠에는 로고 자리가 없다
   const blocksOf = z => (flexLogo && !strip ? z.logoH + Math.round(z.logoH * 0.7) : 0)
     + (want.advertiser ? Math.round(z.smallFs * 1.3) + 4 : 0)
     + (want.sub ? Math.round(z.subFs * (useRef ? L.subLine : line)) + subGap(z) : 0)
@@ -473,8 +478,12 @@ export function renderAd(ctx, style, spec) {
   const melt = dir => (transparent || cutout) ? '' : `-webkit-mask-image:linear-gradient(${dir},transparent 0%,#000 ${fadePct}%);mask-image:linear-gradient(${dir},transparent 0%,#000 ${fadePct}%);`;
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
   const kvFill = (pos, join) => `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`;
-  const bleedRight = bw => hasKv ? kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent }) : '';
-  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent }) : '';
+  // 로고가 오브젝트일 때 — 칸 가운데에 크게(칸 폭의 2/3, 높이의 절반 안). 셀트리온·LX 예시처럼 로고 하나가 그림 노릇을 한다
+  const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
+  const bleedRight = bw => hasKv ? kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent })
+    : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
+  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent })
+    : logoAsObject ? logoZone(pad.left, h - bh - pad.bottom, w - pad.left - pad.right, bh) : '';
 
   /* ── 로고 자리 ── 템플릿 칸이 있으면 그 칸에 정확히(contain, 가운데). 없으면 프로필 위치. */
   let logoPos = prof('logoPosition') ?? 'top-left';
@@ -482,15 +491,19 @@ export function renderAd(ctx, style, spec) {
   if (align === 'center' && logoPos.startsWith('top')) logoPos = 'top-center';
   const logoRowJustify = logoPos.endsWith('right') ? 'flex-end' : logoPos.endsWith('center') ? 'center' : 'flex-start';
   const logoAtBottom = logoPos.startsWith('bottom');
-  const tplLogo = (allowLogo && logoSrc && tLogo)
+  const tplLogo = (allowLogo && logoSrc && tLogo && !logoAsObject)
     ? `<div data-logo-slot="1" style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${tpl?.logoHorizontal && !tpl?.logo ? 'flex-end' : 'center'}"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`
     : '';
-  const tplObject = (hasKv && tImage)
+  // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
+  const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && style.kvMeta?.field?.edges?.top?.flat === false);
+  const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
+    : (hasKv && tImage)
     ? (imgCorner
       // 우하단 상자는 일러스트를 담는 자리 — 잘라 채우지 않고 우하단에 맞춰 넣는다(위에 여백이 남아 메인이 그 위를 쓴다)
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') right bottom/contain no-repeat;overflow:hidden"></div>`
       : imgBottomBand && bandMode !== 'cover'
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;overflow:hidden"></div>`
+      // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? 'center bottom/contain' : 'center bottom/cover'} no-repeat;${melt('to bottom')}overflow:hidden"></div>`
