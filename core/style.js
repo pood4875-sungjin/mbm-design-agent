@@ -31,6 +31,8 @@ export function normalizeStyle(input = {}) {
     keyVisual: input.keyVisual ?? null,
     kvReadability: input.kvReadability ?? null,
     kvMeta: input.kvMeta ?? null,                 // {ar, edge} — 비율 대응·여백 색   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
+    // 사진 쓰임 — auto: 한쪽 칸에 넣고 지면으로 녹인다(한독) · full: 지면 전체에 깔고 글자 쪽에 스크림(코엑스·원광대병원·호반). 담당자가 고른다 — 자동으로 켜면 다른 유형과 충돌한다
+    kvUse: ['full', 'part'].includes(input.kvUse) ? input.kvUse : 'auto',
     mode,
     palette: buildPalette({
       primary: colors[0] ?? '#2456D6',

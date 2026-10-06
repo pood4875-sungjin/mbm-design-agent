@@ -226,7 +226,27 @@
     const specs = (m.specs ?? []).filter(s => s.frame === key || (key === 'rules' && b.frames.guide?.same && s.frame === 'guide'));
     const rej = key === 'rejects' ? (m.rejections ?? []).filter(r => r.frame === 'rejects') : [];
     const link = f.node ? `<a href="${figmaUrl(f.node)}" target="_blank" rel="noopener">Figma에서 열기 (${esc(f.node)})</a>` : '<span class="ft">노드 미정</span>';
+    // 규정이 없는 매체(구글 GDN)의 02 프레임: 템플릿 2세트 + 예시 관찰에서 규칙으로 옮긴 디자인 가이드 — 항목마다 출처를 적어 둔다
+    const SHAPE = { square: '정사각(580×400)', wide: '가로형', tall: '세로형', tower: '세로 띠' };
+    const g = key === 'guide' && m.guide ? m.guide : null;
+    const guideRows = g ? [
+      ['문구 슬롯', (g.slots ?? []).join(' · '), g.slotsSource],
+      ['상세 라벨', g.detailLabels === 'chip' ? '칩(알약)으로' : g.detailLabels, g.detailLabelsSource],
+      ['상세 줄 수', g.detailRows && Object.entries(g.detailRows).map(([k, v]) => `${SHAPE[k] ?? k} ${v}`).join(' · '), g.detailRowsSource],
+      ['메인 글자', g.mainPx && `${g.mainPx.min}~${g.mainPx.max}px`, g.mainPxSource],
+      ['상세 글자', g.detailPx && `${g.detailPx.min}~${g.detailPx.max}px`, g.detailPxSource],
+      ['서브 글자', g.subPx && `≤${g.subPx.max}px`, g.subPxSource],
+      ['오브젝트 자리', g.objectRatio && Object.entries(g.objectRatio).filter(([k]) => k !== 'squareH').map(([k, v]) => `${SHAPE[k] ?? k} ${Math.round(v * 100)}%`).join(' · '), g.objectRatioSource],
+      ['로고', g.logo && `높이 = 짧은 변의 ${Math.round(g.logo.hRatio * 100)}% · 폭 ≤ ${Math.round(g.logo.maxWRatio * 100)}%`, g.logoSource],
+      ['시안', g.variants && g.variants.map(v => v.name).join(' / '), g.variantsSource],
+      ['일관성', g.consistency, null],
+    ].filter(r => r[1]) : [];
+    const guideBlock = g ? `<div class="sect"><h4>디자인 가이드 → 렌더 규칙 ${guideRows.length}</h4>
+      ${g.note ? `<p class="fnote">${esc(g.note)}</p>` : ''}
+      <div class="tblwrap"><table><thead><tr><th>항목</th><th>규칙</th><th>근거</th></tr></thead><tbody>${guideRows.map(([k, v, s]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td><td><span class="note">${esc(s ?? '')}</span></td></tr>`).join('')}</tbody></table></div>
+      ${g.source ? `<p class="fnote">출처: ${esc(g.source)}</p>` : ''}</div>` : '';
     const body = [
+      guideBlock,
       rej.length ? `<div class="sect"><h4>반려 사례 ${rej.length}</h4>${rejList(rej)}</div>` : '',
       rules.length ? `<div class="sect"><h4>${key === 'rejects' ? '사례에서 나온 규칙' : '규칙'} ${rules.length}</h4>${ruleList(rules)}</div>` : '',
       specs.length ? `<div class="sect"><h4>규격 ${specs.length}</h4>${specTable(specs)}</div>` : '',

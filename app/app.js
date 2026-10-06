@@ -44,6 +44,9 @@ const ONLINE = ['banner', 'gwthumb'];
 const LEGACY = ['edm', 'landing'];
 const OFFLINE = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
 const VARIANTS = { ad: 1, banner: 3, gwthumb: 3, badge: 2, landing: 2, poster: 2, xbanner: 2, hyunsumak: 2, edm: 1, photobooth: 4 };
+// 규정 없는 매체의 가이드 시안(구글 GDN: 보드 템플릿 '좌측상단 정렬'·'좌측중앙 정렬') — 매체 데이터가 정하고, 담당자가 고른다
+const guideVariants = a => (a.channel === 'ad' ? SPECS[a.specId]?.mediumRules?.guide?.variants ?? null : null);
+const variantCount = a => guideVariants(a)?.length ?? VARIANTS[a.channel] ?? 1;
 const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05, photobooth: 0.05 };
 const STORE_LS = 'mbm-campaigns';
 
@@ -375,7 +378,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null,
+    bgMode: 'auto', bgColor: null, kvUse: 'auto',
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -771,20 +774,33 @@ function slotSignage() {
 }
 
 // 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
-const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '키비주얼이 없어 브랜드 색', manual: '직접 고른 색' };
+const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '키비주얼이 없어 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', manual: '직접 고른 색' };
 function bgControlHtml(styleLike, id) {
   const f = resolveField(styleLike, { facing: 'left' });
   const mode = styleLike.background?.mode ?? 'auto';
-  return `<label>배경 <span style="color:var(--sub)">· ${FIELD_SRC[f.source] ?? ''}</span></label>
-    <div class="bgrow"><span class="bgprev" style="background:${f.css}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
+  // 사진 키비주얼이면 쓰임을 고른다(보드 예시: 한쪽+녹임 6장 · 전체+스크림 9장) — 자동으로 정하면 다른 유형과 충돌해서 담당자 선택
+  const kind = styleLike.keyVisual ? styleLike.kvMeta?.field?.kind ?? null : null;
+  const use = styleLike.kvUse ?? 'auto';
+  const full = kind === 'photo' && use === 'full';
+  // 사진의 지면색은 로고 색을 따라간다 — 한독처럼 맞는 파랑이 나오지 않을 수 있어 로고색·사진 대표색·흰색을 한 번 눌러 바꾼다
+  // 전체형의 스크림은 어두워야 흰 글자가 읽힌다 — 흰색 후보는 한쪽형(일화: 흰 지면에 사옥 사진)에서만
+  const cands = kind === 'photo' ? [...new Set([styleLike.palette?.primary, ...(styleLike.kvMeta?.colors ?? []).slice(0, 3), ...(full ? [] : ['#FFFFFF'])].filter(Boolean).map(c => c.toUpperCase()))] : [];
+  const candLabel = (c, i) => i === 0 ? '로고색' : c === '#FFFFFF' ? '흰색' : '사진색';
+  const prev = full ? (styleLike.background?.color ?? styleLike.palette?.primary ?? f.css) : f.css;
+  return `<label>배경 <span style="color:var(--sub)">· ${full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source] ?? ''}</span></label>
+    ${kind === 'photo' ? `<div class="bgrow"><span style="font-size:12px;color:var(--sub);white-space:nowrap">사진 쓰임</span>
+      <div class="vseg" id="${id}Use">${[['auto', '한쪽에 넣고 녹임'], ['full', '전체에 깔고 스크림']].map(([k, v]) => `<button data-u="${k}" class="${use === k ? 'on' : ''}" aria-pressed="${use === k}">${v}</button>`).join('')}</div></div>` : ''}
+    <div class="bgrow"><span class="bgprev" style="background:${prev}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
       <div class="vseg" id="${id}Seg">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
+    ${cands.length ? `<div class="bgrow" style="flex-wrap:wrap;gap:6px"><span style="font-size:12px;color:var(--sub);white-space:nowrap">${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
+      `<button class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
     <div class="bgrow"><label class="bgpick"><input type="color" id="${id}Color" value="${f.stops[0]}">직접 고르기</label>
       ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
 }
 
 function slotStyle() {
   const it = state.intake;
-  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, background: { mode: it.bgMode, color: it.bgColor } };
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(선택)'}</div>
@@ -819,6 +835,8 @@ function slotStyle() {
   $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; slotStyle(); });
   if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
+  $('bgUse')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.kvUse = b.dataset.u; slotStyle(); });
+  document.querySelectorAll('#slot [data-fc]').forEach(b => b.onclick = () => { it.bgColor = b.dataset.fc; slotStyle(); });
   renderSuggests();
   renderDpi();
   bindUpload($('kvThumb'), $('kvFile'), async d => {
@@ -827,6 +845,7 @@ function slotStyle() {
     try {
       const { suggests, readability, meta } = await analyzeKeyVisual(d);
       it.suggests = suggests; it.kvReadability = readability; it.kvMeta = meta;
+      it.kvUse = 'auto';         // 새 그림이면 쓰임도 처음부터 — 사진이 아니면 '전체' 선택지가 사라진다
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       announceDpi();
@@ -1064,6 +1083,7 @@ function buildAndGenerate() {
     logoLight: it.logoLight ?? null,
     mode: it.mode,
     background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
+    kvUse: it.kvUse ?? 'auto',
     colors: it.colors,
     fonts: { heading: it.font, body: it.font },
     mood: it.mood.split(',').map(s => s.trim()).filter(Boolean),
@@ -1510,6 +1530,7 @@ function renderInspector() {
         logoLight: c.style.logoLight ?? null,
         mode: c.style.mode,
         background: c.style.background,
+        kvUse: c.style.kvUse,
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
         mood: c.style.mood,
@@ -1534,6 +1555,8 @@ function renderInspector() {
     const bgIn = insp.querySelector('#iBgColor');
     if (bgIn) bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기');
     insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
+    insp.querySelectorAll('#iBgUse button').forEach(b => b.onclick = () => { restyle({ kvUse: b.dataset.u }, b.dataset.u === 'full' ? '사진 전체 + 스크림' : '사진 한쪽 + 녹임'); renderInspector(); });
+    insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
     const dpiBox = insp.querySelector('#iDpi');
     if (dpiBox && c.style.keyVisual && c.style.kvMeta?.px) {
@@ -1626,7 +1649,8 @@ function renderInspector() {
   }
 
   const a = c.artifacts.find(x => (x.key ?? x.specId) === state.selected);
-  const nVar = VARIANTS[a.channel] ?? 1;
+  const gVars = guideVariants(a);
+  const nVar = variantCount(a);
   const spec = effSpec(a);
   const isPrint = spec.unit === 'mm';
   const presets = presetsFor(a);
@@ -1637,7 +1661,7 @@ function renderInspector() {
       <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
       <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
     ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
-      `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${i + 1}</button>`).join('')}</div>` : ''}
+      `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
     ${a.channel === 'badge' ? `
       <label>참석자 명단 <span style="opacity:.6">${(c.roster ?? []).length}명</span></label>
       <textarea id="iRoster" placeholder="엑셀에서 복사해 붙여넣기\n이름\t소속\t직급" style="width:100%;min-height:76px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
@@ -2087,7 +2111,7 @@ async function onCommand(text) {
   const c = state.campaign;
   if (/다른\s*시안|시안\s*바꿔/.test(text)) {
     pushHistory('전체 시안 변경');
-    for (const a of c.artifacts) if ((VARIANTS[a.channel] ?? 1) > 1) a.variant = ((a.variant ?? 0) + 1) % VARIANTS[a.channel];
+    for (const a of c.artifacts) if (variantCount(a) > 1) a.variant = ((a.variant ?? 0) + 1) % variantCount(a);
     regen(c);
     refreshFrames();
     log('전체 시안 사이클');
