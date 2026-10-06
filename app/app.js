@@ -774,7 +774,7 @@ function slotSignage() {
 }
 
 // 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
-const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '키비주얼이 없어 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', manual: '직접 고른 색' };
+const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', manual: '직접 고른 색' };
 function bgControlHtml(styleLike, id) {
   const f = resolveField(styleLike, { facing: 'left' });
   const mode = styleLike.background?.mode ?? 'auto';
@@ -1170,7 +1170,8 @@ function layoutArtboard(opts = {}) {
   // 줄 구성: 매체 광고는 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄
   const adRows = (c.media ?? []).map(m => c.artifacts.filter(a => a.channel === 'ad' && SPECS[a.specId]?.medium === m)).filter(r => r.length);
   const rows = [...adRows, [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)), OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch))];
-  let y = 60;
+  // 첫 줄 y: 라벨이 프레임 위에 붙는다(이름 2줄 + 뱃지 줄 ≈ 56px). 60이면 첫 줄 라벨이 보드 위로 잘린다
+  let y = 72;
   for (const rowArts of rows) {
     if (!rowArts.length) continue;
     let x = 60, rowH = 0;
@@ -1475,10 +1476,13 @@ function renderInspector() {
   const c = state.campaign;
   if (!state.selected) {
     insp.innerHTML = `
-      <h3>CAMPAIGN <span class="mode">전체 일괄</span></h3>
+      <section class="isec">
+      <h3>캠페인 <span class="mode">전체 일괄</span></h3>
       <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
       ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
-      <h3 style="margin-top:18px">STYLE</h3>
+      </section>
+      <section class="isec">
+      <h3>스타일</h3>
       ${bgControlHtml(c.style, 'iBg')}
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
       <div style="display:flex;gap:10px">
@@ -1504,8 +1508,11 @@ function renderInspector() {
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
-      <h3 style="margin-top:18px">산출물 <span class="mode">${c.artifacts.length}종</span></h3>
-      <button class="btn pri" id="iAdd" style="width:100%">＋ 산출물 추가</button>
+      </section>
+      <section class="isec">
+      <h3>산출물 <span class="mode">${c.artifacts.length}종</span></h3>
+      <button class="btn pri" id="iAdd" style="width:100%;margin-top:6px">＋ 산출물 추가</button>
+      </section>
       <div id="inspNote"></div>`;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
@@ -1654,12 +1661,16 @@ function renderInspector() {
   const spec = effSpec(a);
   const isPrint = spec.unit === 'mm';
   const presets = presetsFor(a);
+  // 섹션마다 .isec(흰 카드)로 묶는다 — 인스펙터는 유리 판이라 안쪽을 카드로 쌓아야 층이 읽힌다
   insp.innerHTML = `
+    <section class="isec">
     <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
     <div class="hint">이 산출물에서만 다르게 표기할 값. 비우면 공통값. 개별 값은 일괄 반영에서 보존됩니다.</div>
     ${campaignFields(c).map(f => `
       <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
       <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
+    </section>
+    ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '<section class="isec">' : ''}
     ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
       `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
     ${a.channel === 'badge' ? `
@@ -1687,12 +1698,15 @@ function renderInspector() {
       <div style="font-size:11.5px;color:var(--sub);line-height:1.6">${adRulesText(spec)}</div>
       <label>규격 검사</label>
       <div id="inspLint">${lintHtml(a)}</div>` : ''}
+    ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
+    <section class="isec">
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
       <button class="btn pri" id="iExp">내보내기</button>
       <button class="btn" id="iDesel">해제</button>
     </div>
     <button class="btn danger" id="iDel" style="width:100%;margin-top:6px">이 산출물 빼기</button>
+    </section>
     <div id="inspNote"></div>`;
   insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
     const f = i.dataset.f, v = i.value.trim();
