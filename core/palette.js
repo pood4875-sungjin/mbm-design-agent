@@ -233,16 +233,19 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   const cutout = opaque < 0.5;
   // rows·cols: 그림을 16칸으로 자른 띠마다의 "바탕" 색(주인공이 아닌 픽셀의 평균). 오브젝트 자리를 주인공으로 당겨 채우면 자리의 글자 쪽 변이
   // 그림 한가운데 걸린다 — 그 줄의 바탕색을 지면이 이어받아야 이음매가 안 보인다(core/field.js joinColour). 누끼는 바탕이 없다(null)
-  return { edges, opaque, flatEdges, kind, focus: focusOf(rgba, w, h, bw, cutout), rows: cutout ? null : bgProfile(rgba, w, h, bw, 'rows'), cols: cutout ? null : bgProfile(rgba, w, h, bw, 'cols') };
+  // 바탕 기준색 — 평평한 변이 있으면 그 색. 주인공이 변까지 닿는 줄에서는 그 줄의 양끝 색이 주인공 색이라 바탕 추정이 틀어진다(초록 호가 오른쪽 변에 닿은 줄) — 그때는 이 색을 쓴다
+  const refEdge = [edges.top, edges.left, edges.right, edges.bottom].find(e => e.flat && e.hex);
+  const ref = refEdge ? hexToRgb(refEdge.hex) : null;
+  return { edges, opaque, flatEdges, kind, focus: focusOf(rgba, w, h, bw, cutout, ref), rows: cutout ? null : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? null : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
 }
 
 // 바탕 프로필 — 띠(가로 16칸 rows / 세로 16칸 cols)마다 바탕 픽셀(주인공이 아닌 픽셀)의 대표색(채널별 중앙값)과 비율.
 // 평균이 아니라 중앙값이다 — 주인공 가장자리의 섞인 픽셀(부채 살·글자 획 둘레)이 바탕색을 탁하게 끌고 가지 않도록
-function bgProfile(rgba, w, h, bw, axis, n = 16) {
+function bgProfile(rgba, w, h, bw, axis, n = 16, ref = null) {
   const acc = Array.from({ length: n }, () => ({ hist: [new Uint32Array(256), new Uint32Array(256), new Uint32Array(256)], k: 0, t: 0 }));
   for (let y = 0; y < h; y += 2) {
     const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
-    const L = side(0), R = side(w - bw);
+    const L = edgeOrRef(side(0), ref), R = edgeOrRef(side(w - bw), ref);
     for (let x = 0; x < w; x += 2) {
       const i = (y * w + x) * 4, t = x / (w - 1);
       const a = acc[Math.min(n - 1, Math.floor((axis === 'rows' ? y / h : x / w) * n))];
@@ -256,6 +259,45 @@ function bgProfile(rgba, w, h, bw, axis, n = 16) {
   return acc.map(a => ({ hex: a.k ? rgbToHex([median(a.hist[0], a.k), median(a.hist[1], a.k), median(a.hist[2], a.k)]) : null, bg: a.t ? Math.round(a.k / a.t * 100) / 100 : 0 }));
 }
 
+// 빈 자리(room) — 그림을 8×8 격자로 나눠 바탕 비율 ≥ 0.9 인 칸만으로 네 모서리 중 하나에 붙여 만들 수 있는 가장 큰 직사각형.
+// 글자가 들어갈 자리다. 배경형 그림(삼성 3D 호: 호가 오른쪽·아래를 감싸고 왼쪽 위가 빔 · 삼정KPMG·GC녹십자 예시)은 자리에 잘라 붙이는 게 아니라
+// 그림을 지면 전체에 깔고 이 자리에 글자를 둔다(core/field.js kvFull). 64칸 중 6칸(≈10%)은 돼야 자리라 부른다
+function roomOf(rgba, w, h, bw, n = 8, ref = null) {
+  const cells = Array.from({ length: n * n }, () => ({ k: 0, t: 0, r: 0, g: 0, b: 0 }));
+  for (let y = 0; y < h; y += 2) {
+    const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
+    const L = edgeOrRef(side(0), ref), R = edgeOrRef(side(w - bw), ref), gy = Math.min(n - 1, Math.floor(y / h * n));
+    for (let x = 0; x < w; x += 2) {
+      const i = (y * w + x) * 4, c = cells[gy * n + Math.min(n - 1, Math.floor(x / w * n))];
+      c.t++;
+      if (rgba[i + 3] < 200 || subjectPx(rgba, i, L, R, x / (w - 1))) continue;
+      c.k++; c.r += rgba[i]; c.g += rgba[i + 1]; c.b += rgba[i + 2];
+    }
+  }
+  const bg = (gx, gy) => { const c = cells[gy * n + gx]; return c.t ? c.k / c.t : 0; };
+  const corners = [['tl', 0, 0, 1, 1], ['tr', n - 1, 0, -1, 1], ['bl', 0, n - 1, 1, -1], ['br', n - 1, n - 1, -1, -1]];
+  let best = null;
+  for (const [name, sx, sy, dx, dy] of corners) {
+    for (let cw = 1; cw <= n; cw++) for (let ch = 1; ch <= n; ch++) {
+      let ok = true;
+      for (let i = 0; i < cw && ok; i++) for (let j = 0; j < ch && ok; j++) if (bg(sx + i * dx, sy + j * dy) < 0.9) ok = false;
+      if (!ok) continue;
+      const area = cw * ch;
+      if (!best || area > best.area) best = { name, cw, ch, area, sx, sy, dx, dy };
+    }
+  }
+  if (!best || best.area < 6) return null;
+  let r = 0, g = 0, b = 0, k = 0;
+  for (let i = 0; i < best.cw; i++) for (let j = 0; j < best.ch; j++) { const c = cells[(best.sy + j * best.dy) * n + (best.sx + i * best.dx)]; r += c.r; g += c.g; b += c.b; k += c.k; }
+  const hex = k ? rgbToHex([r / k, g / k, b / k]) : null;
+  const lum = k ? Math.round(((0.2126 * r + 0.7152 * g + 0.0722 * b) / k / 255) * 100) / 100 : null;
+  const x0 = best.dx > 0 ? 0 : (n - best.cw) / n, x1 = best.dx > 0 ? best.cw / n : 1;
+  const y0 = best.dy > 0 ? 0 : (n - best.ch) / n, y1 = best.dy > 0 ? best.ch / n : 1;
+  // 모서리 칸의 바탕 비율 — 로고를 둘 수 있는 모서리인지 렌더러가 본다
+  const cornersBg = { tl: bg(0, 0), tr: bg(n - 1, 0), bl: bg(0, n - 1), br: bg(n - 1, n - 1) };
+  return { corner: best.name, x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, hex, lum, cornersBg };
+}
+
 // 그림의 주인공이 어디 있는가 — 좁은 자리에 잘라 넣을 때 주인공이 잘려 나가지 않게 하려는 것이다.
 // 바탕은 "그 줄의 왼쪽 끝 색에서 오른쪽 끝 색으로 이어지는 색"으로 본다(가로·세로 그라데이션 바탕을 모두 견딘다).
 // 바탕과 충분히 다른 픽셀이 주인공이다. 배경을 딴 이미지는 불투명한 픽셀이 주인공이다.
@@ -263,6 +305,11 @@ function bgProfile(rgba, w, h, bw, axis, n = 16) {
 // 주인공 픽셀인가 — 그 줄의 양끝 색을 이은 바탕색과 충분히 다르고(0.15), 밝은 바탕 위에서 "더 밝고 채도 없는" 픽셀(흰 글로우·하이라이트)은 아니다.
 // 흰 글로우는 바탕의 일부다 — 주인공으로 치면 두 모서리의 오브젝트가 글로우로 이어져 한 덩어리가 되고, 자리를 당겨 채워도 글로우만 커진다(10-06)
 const SUBJECT_D = 0.15;
+// 줄의 끝 색이 바탕 기준색(ref)과 0.15 넘게 다르면 주인공이 변에 닿은 것 — 그 줄의 바탕은 기준색으로 본다
+function edgeOrRef(c, ref) {
+  if (!ref) return c;
+  return (Math.abs(c[0] - ref[0]) + Math.abs(c[1] - ref[1]) + Math.abs(c[2] - ref[2])) / 765 > 0.15 ? ref : c;
+}
 export function subjectPx(rgba, i, L, R, t) {
   const br = L[0] + (R[0] - L[0]) * t, bg = L[1] + (R[1] - L[1]) * t, bb = L[2] + (R[2] - L[2]) * t;
   const r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
@@ -271,7 +318,7 @@ export function subjectPx(rgba, i, L, R, t) {
   const sat = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
   return !(blum > 0.7 && lum > blum && sat < 0.12);
 }
-function focusOf(rgba, w, h, bw, cutout) {
+function focusOf(rgba, w, h, bw, cutout, ref = null) {
   // 2px 격자로 "주인공 픽셀"을 표시한다
   const gw = Math.ceil(w / 2), gh = Math.ceil(h / 2);
   const hit = new Uint8Array(gw * gh);
@@ -279,7 +326,7 @@ function focusOf(rgba, w, h, bw, cutout) {
   for (let gy = 0; gy < gh; gy++) {
     const y = gy * 2;
     const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
-    const L = cutout ? null : side(0), R = cutout ? null : side(w - bw);
+    const L = cutout ? null : edgeOrRef(side(0), ref), R = cutout ? null : edgeOrRef(side(w - bw), ref);
     for (let gx = 0; gx < gw; gx++) {
       const x = gx * 2, i = (y * w + x) * 4;
       let on;
@@ -325,7 +372,9 @@ function focusOf(rgba, w, h, bw, cutout) {
   const r2 = v => Math.round(v * 100) / 100;
   // 격자 좌표 → 0~1 (셀 하나가 2px)
   const X0 = pick.x0 * 2, X1 = Math.min(w - 1, pick.x1 * 2 + 1), Y0 = pick.y0 * 2, Y1 = Math.min(h - 1, pick.y1 * 2 + 1);
-  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length };
+  // others: 주인공으로 고르지 않은 덩어리들의 상자(0~1) — 자리 창이 이들을 가르지 않게 피하는 데 쓴다(core/field.js kvPlacement)
+  const others = pick === all ? [] : groups.filter(g => g !== big).map(g => ({ x0: r2(g.x0 * 2 / w), x1: r2(Math.min(w - 1, g.x1 * 2 + 1) / w), y0: r2(g.y0 * 2 / h), y1: r2(Math.min(h - 1, g.y1 * 2 + 1) / h) }));
+  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length, others };
 }
 
 export function analyzeRegion(rgba, w, h, box) {

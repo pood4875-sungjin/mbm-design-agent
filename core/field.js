@@ -104,7 +104,7 @@ export function meltMask2(pctX, pctY) {
 //   · 통째로 덮는 배율(s0)과 비슷하면(1.25배 미만) 그대로 둔다 — 레퍼런스처럼 주인공이 이미 큰 그림은 건드리지 않는다
 //   · 원본 픽셀보다 25% 넘게 키우지 않는다(흐려진다). 단 자리는 덮어야 하니 s0 아래로는 안 내려간다
 //   · 사진(주인공을 못 찾음)·누끼(배경 없음)는 해당 없다
-export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGain = 1.25 } = {}) {
+export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGain = 1.25, sMul = 1 } = {}) {
   const f = style.kvMeta?.field, focus = f?.focus, ar = style.kvMeta?.ar;
   if (!focus || !ar || (f?.opaque ?? 1) < 0.5 || !(bw > 0 && bh > 0)) return null;
   const px = style.kvMeta?.px;
@@ -115,14 +115,63 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   const fw = Math.max(1, (x1 - x0) * iw), fh = Math.max(1, (y1 - y0) * ih);
   let s = Math.max(bw / fw, bh / fh);
   if (px) s = Math.min(s, Math.max(s0, maxUp));
+  if (sMul !== 1) s = Math.max(s0, s * sMul);   // 배율을 낮춰 자리에 바탕 여유를 둔다(띠 윗줄을 바탕에서 끊기 위해) — 통째 배율 아래로는 안 간다
   if (s / s0 < minGain) return null;
   const cx = (x0 + x1) / 2 * iw * s, cy = (y0 + y1) / 2 * ih * s;
   // 주인공이 그림의 변에 닿아 있으면(바닥에 선 오브젝트·오른쪽에 붙은 오브젝트) 그 변을 자리의 변에 맞춘다 — 가운데 맞춤은 발을 자른다
   const ox = Math.round(focus.x + focus.w / 2 >= 0.97 ? bw - iw * s : Math.min(0, Math.max(bw - iw * s, bw / 2 - cx)));
   const oy = Math.round(focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
-  return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
+  return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, ox, oy, iw, ih, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
     top: Math.round(-oy / (ih * s) * 1000) / 1000, left: Math.round(-ox / (iw * s) * 1000) / 1000 };   // 자리의 윗변·왼변이 그림의 어느 높이·폭에 걸리는가(0~1)
 }
+// 배경형 그림 — 그림을 지면 전체에 깔고(cover) 비어 있는 자리(room, palette.js roomOf)에 글자를 둔다.
+// 레퍼런스(삼정KPMG 보라 배경·GC녹십자·마이다스·삼성 3D 호)는 그림이 곧 지면이다 — 잘라서 한쪽에 붙이고 녹이면(뿌연 번짐) AI 티가 난다(10-06 사용자).
+// 캔버스 비율이 그림과 비슷할 때만(0.6~1.7배) — 띠·세로 긴 규격은 자르면 조각이 된다. 글자 자리는 폭 42%·높이 38%, 그리고 절대 240×120px은 돼야 한다(작은 규격은 글자가 안 들어간다).
+// 자르는 쪽은 주인공이 가장 많이 보이는 쪽. 글자 자리가 캔버스 높이의 절반에 못 미치면, 그림의 윗변이 평평한 바탕일 때 그림을 아래로 밀어(최대 24%h) 자리를 키운다 —
+// 비는 위쪽은 자리의 바탕색으로 채운다(윗변 색과 같아 이음매가 없다). 주인공 아래가 조금 잘리는 쪽을 택하는 것이 글자를 작게 구기는 것보다 낫다.
+// 글자 자리는 위쪽 모서리(tl·tr)만 — 아래 모서리 자리는 글자 흐름이 위에서 시작하는 지금 레이아웃과 맞지 않는다
+export function kvFull(style, w, h, { minW = 0.42, minH = 0.38, wantH = null, arMin = 0.6, arMax = 1.7, minPxW = 240, minPxH = 120 } = {}) {
+  const f = style.kvMeta?.field, room = f?.room, ar = style.kvMeta?.ar;
+  // 글자 자리로 바라는 높이 — 정사각에 가까우면 62%(로고·아이브로·메인 두 줄·상세 세 줄), 가로형은 58%. 그 아래면 그림을 밀어서라도 키운다
+  if (wantH == null) wantH = (w / h) < 1.6 ? 0.62 : 0.58;
+  if (!room || !ar || (f?.opaque ?? 1) < 0.5 || !(w > 0 && h > 0)) return null;
+  // 바탕을 품은 일러스트·3D만 — 사진(평평한 변 없음)은 하늘이 비어 보여도 배경형이 아니다(일화 사옥 사진 → 레퍼런스는 틴트 지면 + 모서리 사진)
+  if (f.kind !== 'illust') return null;
+  if (room.corner !== 'tl' && room.corner !== 'tr') return null;
+  const ratio = (w / h) / ar;
+  if (ratio < arMin || ratio > arMax) return null;
+  const px = style.kvMeta?.px;
+  const iw = px?.[0] ?? Math.round(ar * 1000), ih = px?.[1] ?? 1000;
+  const s = Math.max(w / iw, h / ih), dw = iw * s, dh = ih * s;
+  const focus = f.focus;
+  const top = f.edges?.top;
+  const topFlat = !!(top?.flat && top.hex && room.hex && colorDistance(top.hex, room.hex) < 0.035);
+  const oxs = dw > w + 0.5 ? [w - dw, (w - dw) / 2, 0] : [0];
+  const oys = dh > h + 0.5 ? [h - dh, (h - dh) / 2, 0] : [0];
+  if (topFlat) for (const k of [0.08, 0.16, 0.24]) oys.push(Math.round(h * k));   // 아래로 밀기 — 위는 바탕색으로 채운다
+  const cands = [];
+  for (const ox of oxs) for (const oy of oys) {
+    const rx0 = Math.max(0, ox + room.x0 * dw), rx1 = Math.min(w, ox + room.x1 * dw);
+    const ry0 = 0, ry1 = Math.min(h, oy + room.y1 * dh);   // 아래로 민 만큼 위쪽 채움도 글자 자리다
+    const rw = rx1 - rx0, rh = ry1 - ry0;
+    if (rw < w * minW || rh < h * minH || rw < minPxW || rh < minPxH) continue;
+    let vis = 1;
+    if (focus) {
+      const fx0 = ox + (focus.x - focus.w / 2) * dw, fx1 = ox + (focus.x + focus.w / 2) * dw;
+      const fy0 = oy + (focus.y - focus.h / 2) * dh, fy1 = oy + (focus.y + focus.h / 2) * dh;
+      const vw = Math.max(0, Math.min(w, fx1) - Math.max(0, fx0)), vh = Math.max(0, Math.min(h, fy1) - Math.max(0, fy0));
+      vis = Math.round((vw * vh) / Math.max(1, (fx1 - fx0) * (fy1 - fy0)) * 100) / 100;
+    }
+    cands.push({ ox: Math.round(ox), oy: Math.round(oy), room: { x: Math.round(rx0), y: ry0, w: Math.round(rw), h: Math.round(rh) }, vis, shifted: oy > 0 });
+  }
+  if (!cands.length) return null;
+  // 점수: 글자 자리 높이(절반까지만 쳐 준다) + 주인공 보임. 밀지 않아도 되면 밀지 않는다
+  const score = c => Math.min(c.room.h / h, wantH) * 2 + c.vis - (c.shifted ? 0.05 : 0);
+  cands.sort((a, b) => score(b) - score(a));
+  const c = cands[0];
+  return { ...c, corner: room.corner, hex: room.hex, lum: room.lum, cornersBg: room.cornersBg, size: `${Math.round(dw)}px auto`, pos: `${c.ox}px ${c.oy}px`, scale: Math.round(s * 1000) / 1000 };
+}
+
 // 이음매 줄의 바탕색 — 자리의 글자 쪽 변이 그림의 어느 높이(rows, 아래 띠) 또는 폭(cols, 오른쪽 열)에 걸리는가(frac 0~1) → 그 줄의 바탕색.
 // 바탕이 거의 없는 줄(주인공이 가득 찬 줄)이면 null — 그때는 지면을 바꾸지 않고 녹임에 맡긴다
 export function joinColour(style, frac, axis = 'rows') {
@@ -167,8 +216,40 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
   }
   // 주인공이 그림의 일부면 주인공으로 자리를 채운다 — 그러면 자리의 글자 쪽 변은 그림 한가운데라 지면과 같은 색이 아니다(녹인다)
   const crop = cutout ? null : subjectCrop(style, bw, bh);
-  if (crop) { trueEdge = false; joinFrac = side === 'right' ? crop.left : crop.top; }
-  return { cutout, bw, bh, far, pos, trueEdge, crop, joinFrac: Math.round(joinFrac * 1000) / 1000 };
+  if (crop && side === 'right') {
+    // 창 왼변이 주인공이 아닌 다른 덩어리(왼쪽의 파란 호)를 가르면 그 조각이 녹아 뿌옇게 번진다 — 창 왼변을 그 덩어리의 오른쪽 끝 너머로 옮긴다(주인공이 조금 잘리는 쪽을 택한다)
+    const others = (style.kvMeta?.field?.focus?.others ?? []).filter(o => o.x1 < (style.kvMeta.field.focus.x + style.kvMeta.field.focus.w / 2));
+    const minOx = bw - crop.iw * crop.scale;
+    for (const o of others) {
+      const left = -crop.ox / (crop.iw * crop.scale);
+      if (left < o.x1 && left > o.x0 - 0.02) {
+        const ox = Math.max(minOx, Math.round(-(o.x1 + 0.01) * crop.iw * crop.scale));
+        if (ox < crop.ox) { crop.ox = ox; crop.pos = `${ox}px ${crop.oy}px`; crop.left = Math.round(-ox / (crop.iw * crop.scale) * 1000) / 1000; crop.nudged = 'blob'; }
+      }
+    }
+    // 창의 왼변이 다른 오브젝트(두 번째 덩어리)를 자르면 그 조각이 녹아 뿌옇게 번진다 — 창을 주인공 쪽으로 밀어(창 폭의 4%씩, 최대 6번) 바탕 열(바탕 ≥ 85%)에서 끊는다
+    const cols = style.kvMeta?.field?.cols;
+    if (cols?.length) {
+      const bgAt = ox => cols[Math.min(cols.length - 1, Math.max(0, Math.floor(-ox / (crop.iw * crop.scale) * cols.length)))]?.bg ?? 1;
+      const minOx = bw - crop.iw * crop.scale;
+      let ox = crop.ox, tries = 0;
+      while (tries < 6 && bgAt(ox) < 0.85 && ox > minOx + 0.5) { ox = Math.max(minOx, ox - Math.round(bw * 0.04)); tries++; }
+      if (ox !== crop.ox && bgAt(ox) >= 0.85) { crop.ox = ox; crop.pos = `${ox}px ${crop.oy}px`; crop.left = Math.round(-ox / (crop.iw * crop.scale) * 1000) / 1000; crop.nudged = true; }
+    }
+  }
+  let placed = crop;
+  if (crop && side === 'bottom') {
+    // 띠 윗줄이 주인공을 가르면(바탕 < 85%) 그 줄이 녹아 뿌옇게 번진다 — 윗줄이 바탕이 될 때까지 배율을 8%씩 낮춘다(통째 배율의 1.25배는 지킨다). 못 찾으면 원래 창
+    const rows = style.kvMeta?.field?.rows;
+    if (rows?.length) {
+      const bgTop = c => rows[Math.min(rows.length - 1, Math.max(0, Math.floor(c.top * rows.length)))]?.bg ?? 1;
+      let c = crop, k = 1;
+      while (bgTop(c) < 0.85 && k > 0.55) { k *= 0.92; const c2 = subjectCrop(style, bw, bh, { sMul: k }); if (!c2) break; c = c2; }
+      if (c !== crop && bgTop(c) >= 0.85) placed = { ...c, eased: true };
+    }
+  }
+  if (placed) { trueEdge = false; joinFrac = side === 'right' ? placed.left : placed.top; }
+  return { cutout, bw, bh, far, pos, trueEdge, crop: placed, joinFrac: Math.round(joinFrac * 1000) / 1000 };
 }
 
 // 키비주얼 층 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
@@ -178,10 +259,17 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
 export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const { cutout, far, pos, trueEdge, crop } = kvPlacement(style, field, { side, w, h, size, edgePad, inset });
+  const { cutout, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset });
   // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션. 주인공으로 당긴 자리는 그림 한가운데가 변이다
   const joinFlat = crop ? false : style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
-  const pct = trueEdge ? 16 : joinFlat === false ? 38 : 30;
+  // 이음매 줄이 바탕(≥85%)이고 그 색이 지면과 거의 같으면 넓게 녹일 이유가 없다(10%) — 넓은 녹임은 그림을 뿌옇게 만들어 AI 티가 난다
+  const axis = side === 'right' ? 'cols' : 'rows';
+  const prof = style.kvMeta?.field?.[axis];
+  const jr = prof?.length ? prof[Math.min(prof.length - 1, Math.max(0, Math.round(joinFrac * (prof.length - 1))))] : null;
+  // 지면이 이음매 색으로 이어진 그라데이션(joinField)이면 자리 쪽 끝 색과 비교한다
+  const near = field?.stops?.length ? field.stops[field.stops.length - 1] : null;
+  const quiet = !!(jr?.hex && jr.bg >= 0.85 && near && colorDistance(jr.hex, near) < 0.035);
+  const pct = quiet ? 10 : trueEdge ? 16 : joinFlat === false ? 38 : 30;
   const dir = side === 'right' ? 'to right' : 'to bottom';
   const mask = (!melt || cutout) ? '' : meltMask(dir, pct);
   const fill = `background:url('${url}') ${cutout ? `${far}/contain` : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}`;

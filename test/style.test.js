@@ -222,13 +222,46 @@ test('a wide-background illustration: the biggest object is the subject, the slo
   assert.ok(crop && crop.gain >= 1.25, `주인공으로 채운다 (${crop?.gain})`);
   const oy = Number(crop.pos.match(/^-?\d+px (-?\d+)px$/)[1]);
   assert.equal(oy, 140 - Math.round(800 * crop.scale), '바닥에 선 주인공은 띠 바닥에 맞춘다');
-  // 띠의 윗변은 그림 한가운데 — 그 줄의 바탕색(글로우 쪽으로 밝아진 색)으로 지면을 잇는다
+  // 띠의 윗변이 주인공을 가르면 뿌옇게 번진다 — 윗줄이 바탕이 될 때까지 배율을 낮춘다(eased). 그 줄의 바탕색이 지면과 다르면 지면을 그 색으로 잇고, 같으면 그대로 둔다
   const P = kvPlacement(style, field0, { side: 'bottom', w: 400, h: 340, size: 124, edgePad: 16 });
   assert.ok(P.joinFrac > 0.3, `이음매는 그림 한가운데 (${P.joinFrac})`);
+  assert.equal(P.crop.eased, true, '윗줄이 바탕이 되도록 배율을 낮췄다');
+  assert.ok(f.rows[Math.floor(P.joinFrac * 16)].bg >= 0.85, '띠 윗줄은 바탕이다 — 녹여도 주인공이 번지지 않는다');
   const jc = joinColour(style, P.joinFrac);
   assert.ok(jc, '이음매 줄의 바탕색이 있다');
   const field = joinField(field0, jc, 'bottom');
-  assert.equal(field.joined, true);
-  assert.match(field.css, /^linear-gradient\(180deg,#DAE7FA 0%,#/, '위는 그림의 윗변 색, 아래는 이음매 줄 색');
+  const { colorDistance } = await import('../core/palette.js');
+  if (colorDistance(jc, field0.stops[0]) >= 0.02) assert.match(field.css, /^linear-gradient\(180deg,#DAE7FA 0%,#/, '위는 그림의 윗변 색, 아래는 이음매 줄 색');
+  else assert.equal(field.css, field0.css, '이음매 줄 색이 지면과 같으면 지면을 바꾸지 않는다');
+  // 글로우 줄(그림 높이 75~80%)에 이음매가 걸리면 지면은 글로우 색으로 이어진다
+  const glowRow = 0.78;
+  const jg = joinColour(style, glowRow);
+  assert.ok(jg && colorDistance(jg, field0.stops[0]) >= 0.02, `글로우 줄의 바탕색은 지면과 다르다 (${jg})`);
+  assert.match(joinField(field0, jg, 'bottom').css, /^linear-gradient\(180deg,#DAE7FA 0%,#/, '지면이 글로우 색으로 흐른다');
   assert.match(kvLayer(style, field, { side: 'bottom', w: 400, h: 340, size: 124, edgePad: 16 }), /--kv-gain:/, '그릴 때도 같은 배치');
+});
+
+test('a background-type illustration: the empty corner is the text room, the picture becomes the whole field (illustrations only, not photos)', async () => {
+  const { fieldFromImage } = await import('../core/palette.js');
+  const { kvFull } = await import('../core/field.js');
+  const W = 120, H = 90;
+  const mk = (bgOf, subject) => { const a = new Uint8ClampedArray(W * H * 4); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) a.set(subject(x, y) ? [60, 190, 80, 255] : bgOf(x, y), (y * W + x) * 4); return a; };
+  // 연파랑 평평한 바탕 + 오른쪽·아래를 감싸는 초록 호(삼성 3D 호 꼴) — 왼쪽 위가 빈다
+  const arc = (x, y) => (x > 60 && y > 12) || (y > 54 && x > 10);   // 오른쪽 열 + 아래 띠(ㄴ자로 감싼다) — 왼쪽 위가 빈다
+  const f = fieldFromImage(mk(() => [218, 231, 250, 255], arc), W, H);
+  assert.equal(f.kind, 'illust');
+  assert.ok(f.room && f.room.corner === 'tl', `빈 자리는 왼쪽 위 (${JSON.stringify(f.room)})`);
+  assert.ok(f.room.w >= 0.35 && f.room.h >= 0.35, `자리는 폭·높이 35% 이상 (${f.room.w}×${f.room.h})`);
+  const style = { palette: { primary: '#1428A0' }, keyVisual: 'kv.png', kvMeta: { ar: W / H, px: [1200, 900], colors: ['#3CBE50'], field: f } };
+  const full = kvFull(style, 580, 400);
+  assert.ok(full, '비율이 비슷한 580×400은 배경형');
+  assert.ok(full.room.w >= 580 * 0.42 && full.room.h >= 400 * 0.38, `글자 자리 ${full.room.w}×${full.room.h}`);
+  assert.equal(kvFull(style, 2240, 360), null, '띠는 배경형이 아니다(비율 차이)');
+  assert.equal(kvFull(style, 300, 1050), null, '세로 띠도 아니다');
+  assert.equal(kvFull(style, 200, 140), null, '작은 규격은 글자 자리가 모자라 배경형이 아니다');
+  // 사진(평평한 변 없음)은 하늘이 비어도 배경형이 아니다
+  const noise = (x, y) => [170 + ((x * 31 + y * 17) % 80), 170 + ((x * 13 + y * 29) % 80), 230, 255];
+  const fp = fieldFromImage(mk(noise, arc), W, H);
+  assert.equal(fp.kind, 'photo');
+  assert.equal(kvFull({ ...style, kvMeta: { ...style.kvMeta, field: fp } }, 580, 400), null);
 });
