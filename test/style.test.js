@@ -354,3 +354,20 @@ test('상세 라벨 알약은 기본이 틴트(밝은 지면 검정 7%·어두�
   const dark = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ colors: ['#5B3FD6'], logo: 'logo.png', logoTone: 'light', logoLight: 'logo_w.png' }), {});
   assert.match(dark, /data-chip="1"[^>]*background:rgba\(255,255,255,\.2\)/);
 });
+
+// 키비주얼 유형 분기(core/kvtypes.js) — 측정값 → 유형 + 깃발
+test('kvTypeOf: 누끼·질감·사진·배경 있는 일러스트(캐릭터·배경형) 네 갈래와 깃발', async () => {
+  const { kvTypeOf, kvTypeSummary, KV_TYPES } = await import('../core/kvtypes.js');
+  const E = { hex: '#FFF7D3', from: '#FFF7D3', to: '#FFF7D3', flat: true, std: 0 };
+  assert.equal(KV_TYPES.length, 4);
+  assert.equal(kvTypeOf(null), null);
+  assert.equal(kvTypeOf({ ar: 1.4, field: { opaque: 0.2, kind: 'cutout', focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.8 } } }).id, 'cutout');
+  assert.equal(kvTypeOf({ ar: 0.7, field: { opaque: 1, kind: 'texture', flatEdges: 2 } }).id, 'texture');
+  assert.equal(kvTypeOf({ ar: 1.5, field: { opaque: 1, kind: 'photo', flatEdges: 0, focus: { x: 0.5, y: 0.5, w: 0.5, h: 0.9 } } }).id, 'photo');
+  const fox = kvTypeOf({ ar: 0.953, edge: '#FEF5D1', field: { opaque: 1, kind: 'illust', flatEdges: 3, focus: { x: 0.52, y: 0.55, w: 0.86, h: 0.74, parts: 1, others: [] }, edges: { top: E, bottom: E, left: E, right: E }, room: { corner: 'tl', w: 1, h: 0.125 } } });
+  assert.equal(fox.id, 'illust'); assert.equal(fox.flags.character, true); assert.equal(fox.flags.room, false);   // 빈 자리 12.5% < 38%
+  const geo = kvTypeOf({ ar: 1.5, edge: '#DCE6F6', field: { opaque: 1, kind: 'illust', flatEdges: 4, focus: { x: 0.82, y: 0.74, w: 0.36, h: 0.51, parts: 2, others: [{ x0: 0.02, x1: 0.43 }] }, edges: { top: E, bottom: E, left: E, right: E }, room: { corner: 'tl', w: 0.6, h: 0.5 } } });
+  assert.equal(geo.flags.room, true); assert.equal(geo.flags.subject, true); assert.equal(geo.flags.group, true); assert.equal(geo.flags.character, false);
+  assert.match(kvTypeSummary({ ar: 1.5, field: { opaque: 1, kind: 'photo', flatEdges: 0 } }), /사진/);
+  assert.equal(kvTypeOf({ ar: 1.5, field: { opaque: 1, kind: 'photo', flatEdges: 0, lum: 0.3, focus: { x: 0.5, y: 0.5, w: 0.5, h: 0.5 } } }).subs.map(x => x.id).join(','), 'photo-dark,photo-roomy');   // 어두운 + 여백
+});

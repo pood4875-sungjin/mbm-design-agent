@@ -173,7 +173,7 @@ export function renderAd(ctx, style, spec) {
   const slots = Object.keys(by).length ? by
     : guide?.slots ? Object.fromEntries(guide.slots.map(r => [r, { lines: r === 'date' ? 1 : null, maxChars: null }]))
     : { main: { lines: null, maxChars: null }, sub: { lines: null, maxChars: null }, date: { lines: 1, maxChars: null } };
-  const logoOnly = /로고|프로필/.test(rules.name ?? '') && !inLimits.length;
+  const logoOnly = /로고|프로필/.test(rules.name ?? spec.name ?? '') && !inLimits.filter(t => /메인|서브|상세|제목|헤드|문구|카피/.test(String(t.field ?? ''))).length;   // 프로필·로고 이미지(160×160·300×300)는 로고만 — 광고주명 같은 밖 글자 한도가 있어도
   if (!logoOnly && !slots.main) slots.main = { lines: null, maxChars: null };
   // 한 덩어리 글자 규정(에브리타임 홈 카드 '이미지 내 텍스트(메인/서브 구분 없음) 최대 5줄'): 역할을 안 나누면 메인만 5줄로 읽어 서브·상세가 사라진다.
   // 보드 1-884 코엑스 예시는 아이브로 1 + 메인 2 + 알약 1 + 값 1 = 5줄 — 총 줄 수를 서브 1 · 상세 2 · 메인 나머지로 나눈다
@@ -457,7 +457,7 @@ export function renderAd(ctx, style, spec) {
     : '';
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -489,8 +489,12 @@ export function renderAd(ctx, style, spec) {
   // 띠 윗줄이 바탕이 아니라 주인공(머리)이면 글자를 그림 위로 겹치지 않는다 — 겹침 규칙은 녹인 바탕 위를 전제한다(여우 560×700: '정규직 채용'이 귀 위로)
   const P0 = (objectSide === 'bottom' && hasKv && !isCutout && !photoFull && !tImage && field) ? kvPlacement(style, field, { side: 'bottom', w, h, size: objH, edgePad: pad.bottom }) : null;
   const rowsP = style.kvMeta?.field?.rows;
-  const joinCuts = !!(P0 && rowsP?.length && (rowsP[Math.min(rowsP.length - 1, Math.max(0, Math.round(P0.joinFrac * (rowsP.length - 1))))]?.bg ?? 1) < 0.85);
-  const overlap = joinCuts ? 0 : (guide?.objectOverlap?.[L.shape] ?? 0);
+  // 겹침 구간(띠 윗변부터 overlap×objH)의 줄이 하나라도 바탕 95% 아래면 겹치지 않는다 — 윗줄만 보면 비스듬히 올라오는 주인공(기하 3D 부채꼴 300×600: 상세가 부채 위로 51%)을 놓친다
+  const rowsBetween = (p0, frac0, frac1) => { if (!rowsP?.length) return 1; const n = rowsP.length; let m = 1; for (let i = Math.max(0, Math.floor(frac0 * (n - 1))); i <= Math.min(n - 1, Math.ceil(frac1 * (n - 1))); i++) m = Math.min(m, rowsP[i]?.bg ?? 1); return m; };
+  const overlap0 = guide?.objectOverlap?.[L.shape] ?? 0;
+  const zoneFrac = (() => { if (!P0 || !overlap0) return 0; const ar0 = style.kvMeta?.ar ?? 1; const drawnH = P0.crop ? P0.crop.ih * P0.crop.scale : Math.max(w / ar0, objH + pad.bottom); return (overlap0 * objH) / Math.max(1, drawnH); })();
+  const joinCuts = !!(P0 && rowsP?.length && rowsBetween(P0, P0.joinFrac, P0.joinFrac + zoneFrac) < 0.95);
+  const overlap = (joinCuts || isCutout) ? 0 : overlap0;   // 누끼는 녹인 바탕 구간이 없다 — 겹치면 바로 캐릭터 머리 위 글자(여우 누끼 300×600)
   let objReserve = objectSide === 'bottom' ? Math.round(objH * (1 - overlap)) : objH;
   const cornerTop = (tImage && !(tImage.y + tImage.h >= h - 1 && tImage.w >= w - 1) && tImage.y > 0) ? tImage.y + Math.round(tImage.h * (gCorner ? Math.max(0.22, overlap) : 0.22)) : null;
   const textH = objectSide === 'bottom' ? innerH - objReserve - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
@@ -712,6 +716,8 @@ export function renderAd(ctx, style, spec) {
   }
   // 채움: 글자 블록 아래가 비면(남는 높이가 지면의 12% 넘음) 그림 자리가 자라서 메운다(최대 55%) — 보드 예시 141장에 비어 보이는 소재는 없다(균형 90·여유 31·빽빽 20)
   let distribute = false;   // 세로 규격: 상세 블록을 글자 영역 바닥(그림 바로 위)으로 내린다
+  let splitGap = false;     // 그래도 빈 높이가 지면의 35%를 넘으면 메인 위에도 공간을 나눠 한 덩어리 빈 띠를 둘로(세로 띠 + 가로 긴 누끼 떼)
+  let cutBleed = 1.3;       // 아래 띠 누끼가 지면 폭을 넘쳐도 되는 배율(가로 긴 장면 누끼)
   if (guide?.fill && objectSide === 'bottom' && !tImage && hasKv && !logoAsObject) {
     const used = blocksOf(z) + Math.round(mainLines * mainFs * mainLine);
     const slack = textH - used;
@@ -729,6 +735,19 @@ export function renderAd(ctx, style, spec) {
     if (grow > 0) { objH += grow; objReserve = Math.round(objH * (1 - overlap)); }
     // 세로형·세로 띠에서 그림을 다 키워도 글자 블록 아래가 남으면(6%h 넘게) 상세를 그림 바로 위로 내린다 — 레퍼런스(동부 300×1050 모집분야가 그림 위에 붙음). 가운데가 비어 보이지 않게
     if ((L.shape === 'tall' || L.shape === 'tower') && slack - Math.max(0, grow) > h * 0.06) distribute = true;
+    if (distribute && slack - Math.max(0, grow) > h * 0.35) splitGap = true;
+    // 가로로 긴 누끼(건물)는 세로 띠를 못 채운다 — 폭 130%까지 키워(좌우가 지면 밖으로) 닿는 높이만 그림에 주고 나머지는 글자 영역으로, 상세는 그림 바로 위로(케이스 장부 동부 300×1050: 빈 띠 49%)
+    if (isCutout && ar && (L.shape === 'tall' || L.shape === 'tower')) {
+      // 폭 배율 후보 1.0 → 1.3 → 1.5 → 1.8. 좌우 자르기 선이 캐릭터 몸을 가르면 안 되므로(ABL 떼) 그 선의 열이 투명 85% 이상인 배율만 허용(장면 누끼는 cols가 없거나 성글어 대개 통과).
+      // 허용된 것 중 글자 영역의 빈 띠가 지면의 28% 아래로 떨어지는 가장 작은 값, 없으면 허용된 최대값
+      const colsC = style.kvMeta?.field?.cols;
+      const cutOk = kk => { if (kk <= 1.001) return true; if (!colsC?.length) return true; const f = (1 - 1 / kk) / 2; const at = t => colsC[Math.min(colsC.length - 1, Math.max(0, Math.round(t * (colsC.length - 1))))]?.bg ?? 1; return at(f) >= 0.85 && at(1 - f) >= 0.85; };
+      const allowed = [1, 1.3, 1.5, 1.8].filter(cutOk);
+      let k = allowed[0], fitH = Math.round(w * k / ar) - pad.bottom;
+      for (const kk of allowed) { const fh = Math.round(w * kk / ar) - pad.bottom; k = kk; fitH = fh; if ((innerH - fh - 12) - used <= h * 0.28) break; }
+      if (fitH < objH) { objH = Math.max(Math.round(h * 0.1), fitH); objReserve = Math.round(objH * (1 - overlap)); distribute = true; cutBleed = k; }
+      if (distribute && (innerH - objReserve - 12) - used > h * 0.35) splitGap = true;
+    }
   }
   // 자리의 글자 쪽 변이 그림 한가운데 걸리면(주인공으로 당겼거나 그림이 자리보다 길어서) 그 줄의 바탕색으로 지면을 잇는다 — 흰 글로우 바탕이 연파랑 지면 위에 네모로 뜨지 않게
   if (field && hasKv && !isCutout && !photoFull && !tImage && !oBox && (objectSide === 'bottom' || objectSide === 'right')) {
@@ -875,7 +894,7 @@ export function renderAd(ctx, style, spec) {
   const objTop = (absLogo && logoBox && logoPlace === 'top-right' && kvKind !== 'photo') ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5) : 0;
   const bleedRight = bw => hasKv ? (oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent, top: objTop }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
-  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent })
+  const bleedBottom = bh => hasKv ? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent, bleedMax: cutBleed })
     : logoAsObject ? logoZone(pad.left, h - bh - pad.bottom, w - pad.left - pad.right, bh) : '';
 
   /* ── 로고 자리 ── 템플릿 칸이 있으면 그 칸에 정확히(contain, 가운데). 없으면 프로필 위치. */
@@ -963,7 +982,11 @@ ${tplLogo}${tplObject}
   if (want.cta) tail.push(`<div style="flex:none;margin-top:${Math.round(z.ctaFs * 0.6)}px;text-align:${align}">${ctaChip()}</div>`);
   if (want.notice) tail.push(T('notice', copy.notice, noticeFs, 400, subFg, `${logoAtBottom ? '' : 'margin-top:auto;'}padding-top:6px;opacity:.9`, noticeLines));
   if (lg && logoAtBottom) tail.push(logoRow);
-  if (!(imgCorner && hasKv)) { if (distribute) parts.push('<div style="flex:1 1 auto;min-height:0"></div>'); parts.push(...tail); }
+  if (!(imgCorner && hasKv)) {
+    if (distribute && splitGap) { const at = (lg && !logoAtBottom) ? 1 : 0; parts.splice(at, 0, '<div style="flex:.8 1 auto;min-height:0"></div>'); }
+    if (distribute) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
+    parts.push(...tail);
+  }
 
   // 우하단 이미지 상자 옆으로 글자가 흐르게: 텍스트 열을 블록으로 두고 이미지 자리에 float 스페이서를 세운다(세아제강 팝업 — 메인은 전폭, 상세는 이미지 왼쪽).
   // 우하단 이미지(자소설 팝업·M메인): 메인·서브는 일러스트 위를 전폭으로, 상세·부가는 일러스트 왼쪽 고정 폭 열에 (세아제강)
