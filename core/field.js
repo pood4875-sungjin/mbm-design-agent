@@ -123,9 +123,12 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   if (sMul !== 1) s = Math.max(s0, s * sMul);   // 배율을 낮춰 자리에 바탕 여유를 둔다(띠 윗줄을 바탕에서 끊기 위해) — 통째 배율 아래로는 안 간다
   if (s / s0 < minGain) return null;
   const cx = (x0 + x1) / 2 * iw * s, cy = (y0 + y1) / 2 * ih * s;
-  // 주인공이 그림의 변에 닿아 있으면(바닥에 선 오브젝트·오른쪽에 붙은 오브젝트) 그 변을 자리의 변에 맞춘다 — 가운데 맞춤은 발을 자른다
+  // 주인공이 그림의 변에 닿아 있으면(바닥에 선 오브젝트·오른쪽에 붙은 오브젝트) 그 변을 자리의 변에 맞춘다 — 가운데 맞춤은 발을 자른다.
+  // 단 자리가 주인공보다 30% 넘게 낮으면 위(머리·얼굴)를 지키고 아래(발)를 자른다 — 캐릭터 머리가 잘린 띠는 어색하다(여우 10-06). 머리 위 숨 4%
+  const lossV = 1 - Math.min(1, bh / (fh * s));
   const ox = Math.round(focus.x + focus.w / 2 >= 0.97 ? bw - iw * s : Math.min(0, Math.max(bw - iw * s, bw / 2 - cx)));
-  const oy = Math.round(focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
+  const oy = Math.round(lossV > 0.3 ? Math.min(0, Math.max(bh - ih * s, -(y0 * ih * s) + bh * 0.04))
+    : focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
   return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, ox, oy, iw, ih, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
     top: Math.round(-oy / (ih * s) * 1000) / 1000, left: Math.round(-ox / (iw * s) * 1000) / 1000 };   // 자리의 윗변·왼변이 그림의 어느 높이·폭에 걸리는가(0~1)
 }
@@ -167,6 +170,7 @@ export function kvFull(style, w, h, { minW = 0.42, minH = 0.38, wantH = null, ar
       const vw = Math.max(0, Math.min(w, fx1) - Math.max(0, fx0)), vh = Math.max(0, Math.min(h, fy1) - Math.max(0, fy0));
       vis = Math.round((vw * vh) / Math.max(1, (fx1 - fx0) * (fy1 - fy0)) * 100) / 100;
     }
+    if (vis < 0.6) continue;   // 주인공이 반 넘게 잘리면 배경형이 아니다(여우 캐릭터 머리만 남는 580·720) — 자리 배치로 돌아간다
     cands.push({ ox: Math.round(ox), oy: Math.round(oy), room: { x: Math.round(rx0), y: ry0, w: Math.round(rw), h: Math.round(rh) }, vis, shifted: oy > 0 });
   }
   if (!cands.length) return null;
@@ -197,6 +201,29 @@ export function joinField(field, jc, side = 'bottom') {
     contrast: Math.round(Math.min(contrast(field.stops[0], field.text), contrast(jc, field.text)) * 100) / 100 };
 }
 
+// 통째로 덮을 때(cover)의 위치 — 주인공이 자리 한가운데 오게 하되, 자리가 주인공보다 30% 넘게 낮으면 위(머리)를 지키고 아래를 자른다.
+// 돌려주는 값: pos(CSS background-position), joinFrac(자리 윗변이 그림의 어느 높이에 걸리는가)
+export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fallback = 'center' } = {}) {
+  const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
+  const join = side === 'right' ? 'left center' : 'center top';
+  if (!ar) return { pos: seamless ? join : fallback, joinFrac: 0, trueEdge: seamless };
+  const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
+  const at = (box, img, f) => img > box + 0.5 ? Math.min(1, Math.max(0, (box / 2 - f * img) / (box - img))) : 0.5;
+  if (!focus) {
+    // 주인공을 모르면 기본 위치(템플릿 띠는 바닥 맞춤 — 길쭉한 그림의 주인공은 아래쪽, 그 밖엔 가운데)
+    const px = seamless && side === 'right' ? 0 : 0.5, py = seamless && side !== 'right' ? 0 : (fallback === 'center bottom' ? 1 : 0.5);
+    return { pos: seamless ? join : fallback, joinFrac: side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? py * (imgH - bh) / imgH : 0), trueEdge: seamless };
+  }
+  const px = at(bw, imgW, focus.x);
+  let py = at(bh, imgH, focus.y), oyPx = null;
+  const lossV = imgH > bh + 0.5 ? 1 - Math.min(1, bh / (focus.h * imgH)) : 0;
+  if (lossV > 0.3) oyPx = Math.round(Math.min(0, Math.max(bh - imgH, -(focus.y - focus.h / 2) * imgH + bh * 0.04)));   // 머리 위 숨 4%
+  const pos = oyPx != null ? `${Math.round(px * 100)}% ${oyPx}px` : `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
+  const trueEdge = seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (oyPx == null && (py === 0 || imgH <= bh + 0.5)));
+  const joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? (oyPx != null ? -oyPx / imgH : py * (imgH - bh) / imgH) : 0);
+  return { pos, joinFrac, trueEdge };
+}
+
 // 자리 안에서 그림을 어떻게 놓는가 — 통째로(cover)·주인공으로 당겨서(crop)·누끼는 맞춰서(contain).
 // 렌더러가 지면색을 정할 때(joinFrac → joinColour)와 그릴 때(kvLayer) 같은 답을 받는다.
 //   joinFrac: 자리의 글자 쪽 변이 그림의 어느 높이(아래 띠)·폭(오른쪽 열)에 걸리는가. 0 = 그림의 변 그대로(지면과 같은 색)
@@ -209,15 +236,8 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
   const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
   let pos = field?.seamless ? join : 'center', trueEdge = !!field?.seamless, joinFrac = 0;
   if (!cutout && ar) {
-    const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
-    const at = (box, img, f) => img > box + 0.5 ? Math.min(1, Math.max(0, (box / 2 - f * img) / (box - img))) : 0.5;
-    const px = focus ? at(bw, imgW, focus.x) : (field?.seamless && side === 'right' ? 0 : 0.5);
-    const py = focus ? at(bh, imgH, focus.y) : (field?.seamless && side !== 'right' ? 0 : 0.5);
-    if (focus) {
-      pos = `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
-      trueEdge = !!field?.seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (py === 0 || imgH <= bh + 0.5));
-    }
-    joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? py * (imgH - bh) / imgH : 0);
+    const c = coverPos(style, bw, bh, { seamless: !!field?.seamless, side });
+    pos = c.pos; trueEdge = c.trueEdge; joinFrac = c.joinFrac;
   }
   // 주인공이 그림의 일부면 주인공으로 자리를 채운다 — 그러면 자리의 글자 쪽 변은 그림 한가운데라 지면과 같은 색이 아니다(녹인다)
   const crop = cutout ? null : subjectCrop(style, bw, bh);

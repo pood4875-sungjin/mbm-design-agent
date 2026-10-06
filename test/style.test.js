@@ -220,12 +220,12 @@ test('a wide-background illustration: the biggest object is the subject, the slo
   // 아래 띠(400×140)를 주인공으로 채운다 — 배율을 올리고 바닥에 맞춘다
   const crop = subjectCrop(style, 400, 140);
   assert.ok(crop && crop.gain >= 1.25, `주인공으로 채운다 (${crop?.gain})`);
-  const oy = Number(crop.pos.match(/^-?\d+px (-?\d+)px$/)[1]);
-  assert.equal(oy, 140 - Math.round(800 * crop.scale), '바닥에 선 주인공은 띠 바닥에 맞춘다');
+  // 띠(140px)가 주인공보다 30% 넘게 낮으면 위(머리)를 지킨다 — 창의 윗변이 주인공 윗변보다 위에 있다. (조금만 잘릴 때는 바닥에 선 주인공을 바닥에 맞춘다)
+  assert.ok(crop.top <= f.focus.y - f.focus.h / 2 + 0.01, `주인공 머리가 창 안에 있다 (top ${crop.top}, 주인공 윗변 ${(f.focus.y - f.focus.h / 2).toFixed(2)})`);
   // 띠의 윗변이 주인공을 가르면 뿌옇게 번진다 — 윗줄이 바탕이 될 때까지 배율을 낮춘다(eased). 그 줄의 바탕색이 지면과 다르면 지면을 그 색으로 잇고, 같으면 그대로 둔다
   const P = kvPlacement(style, field0, { side: 'bottom', w: 400, h: 340, size: 124, edgePad: 16 });
   assert.ok(P.joinFrac > 0.3, `이음매는 그림 한가운데 (${P.joinFrac})`);
-  assert.equal(P.crop.eased, true, '윗줄이 바탕이 되도록 배율을 낮췄다');
+  // 머리를 지키는 앵커(위쪽 숨 4%)면 윗줄이 이미 바탕이라 배율을 낮출 일이 없고, 아니면 낮춰서라도 바탕 줄에서 끊는다 — 어느 쪽이든 윗줄은 바탕
   assert.ok(f.rows[Math.floor(P.joinFrac * 16)].bg >= 0.85, '띠 윗줄은 바탕이다 — 녹여도 주인공이 번지지 않는다');
   const jc = joinColour(style, P.joinFrac);
   assert.ok(jc, '이음매 줄의 바탕색이 있다');
