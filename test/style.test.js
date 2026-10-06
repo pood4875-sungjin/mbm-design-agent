@@ -306,3 +306,28 @@ test('an object cut-out is used only where the spec needs one; elsewhere the key
   assert.ok(!/data-visual="object"/.test(feed));
   assert.match(feed, /data-field-source="kv-texture"/);
 });
+
+// 10-06 "로고가 너무 작은데… 뚝 끊은 면" — 머리를 지키는 덮기와 로고 띠 아래 오른쪽 열의 윗변 녹임
+import { coverPos as coverPosHead, kvLayer as kvLayerHead, resolveField as resolveFieldHead } from '../core/field.js';
+test('가운데 맞춤이 캐릭터 머리를 자르면 머리를 지키고 아래를 자른다(여우 970 오른쪽 열)', () => {
+  // 여우: 주인공 상자 y .55 h .74 → 머리 위가 그림의 18%. 375×206 자리에 cover(그림 높이 393)면 가운데 맞춤은 머리를 41px 자른다
+  const style = normalizeStyle({ colors: ['#E0813A'], keyVisual: 'fox.png', kvMeta: { ar: 0.953, px: [936, 982], field: { opaque: 1, kind: 'illust', focus: { x: 0.52, y: 0.55, w: 0.86, h: 0.74 }, edges: { top: { hex: '#FFF7D3', flat: true }, left: { hex: '#FFF7D3', flat: true }, bottom: { hex: '#FFF7D3', flat: true }, right: { hex: '#FFF7D3', flat: false } } } } });
+  const c = coverPosHead(style, 375, 206, { side: 'right' });
+  const oy = Number.parseFloat(c.pos.split(/\s+/)[1]);
+  assert.match(c.pos, /px$/);                              // 머리 기준(px) 배치
+  assert.ok(-oy <= 0.18 * 393 + 1, `머리 위가 보여야 한다 oy=${oy}`);
+  assert.ok(-oy >= 0.18 * 393 - 206 * 0.05, '머리 위 숨은 4% 안팎');
+});
+test('오른쪽 열이 로고 띠 아래에서 시작하고 윗줄이 그림 바탕이 아니면 윗변도 녹인다', () => {
+  const rowsCut = Array.from({ length: 16 }, () => ({ hex: '#FFF7D3', bg: 0.3 }));   // 주인공이 그림 윗변까지 닿아 있어 머리를 지켜도 윗줄이 바탕이 아니다
+  const E = { hex: '#FFF7D3', flat: true, std: 0 };
+  const mk = rows => normalizeStyle({ colors: ['#E0813A'], keyVisual: 'fox.png', kvMeta: { ar: 0.953, px: [936, 982], edge: '#FFF7D3', field: { opaque: 1, kind: 'illust', flatEdges: 4, rows, cols: rowsCut, focus: { x: 0.5, y: 0.5, w: 0.98, h: 0.98 }, edges: { top: E, left: E, bottom: E, right: E } } } });
+  const s1 = mk(rowsCut); const f1 = resolveFieldHead(s1, { w: 970, h: 250 });
+  const cut = kvLayerHead(s1, f1, { side: 'right', w: 970, h: 250, size: 330, edgePad: 45, top: 44 });
+  assert.match(cut, /mask-composite/);                     // 왼변 + 윗변 두 방향
+  const rowsBg = Array.from({ length: 16 }, () => ({ hex: '#FFF7D3', bg: 1 }));
+  const s2 = mk(rowsBg); const f2 = resolveFieldHead(s2, { w: 970, h: 250 });
+  const calm = kvLayerHead(s2, f2, { side: 'right', w: 970, h: 250, size: 330, edgePad: 45, top: 44 });
+  assert.ok(!/mask-composite/.test(calm));                 // 윗줄이 바탕이면 윗변은 그대로
+  assert.match(calm, /mask-image:linear-gradient\(to right/);
+});

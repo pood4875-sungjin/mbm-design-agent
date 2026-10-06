@@ -910,10 +910,10 @@ function slotStyle() {
   });
   bindUpload($('logoThumb'), $('logoFile'), async d => {
     // 흰 배경 위 로고면 누끼를 따서 쓴다 — 배경 네모가 소재에 뜨지 않게. 밝기(logoTone) 판정도 따낸 뒤에 해야 맞다
-    let knocked = null;
-    try { knocked = await knockoutLogo(d); } catch { knocked = null; }
-    if (knocked) d = knocked.dataUrl;
+    const prepped = await prepLogo(d);
+    d = prepped.dataUrl;
     it.logo = d;
+    it.logoNote = prepped.note || null;
     try { it.logoSuggests = await analyzeLogo(d); } catch { it.logoSuggests = []; }
     // 흰색 로고만 올렸으면 그게 다크용 로고이기도 하다 — 지면은 어두운 브랜드색으로 간다
     try { it.logoTone = await logoToneOf(d); } catch { it.logoTone = 'dark'; }
@@ -928,9 +928,9 @@ function slotStyle() {
       : it.suggests.length ? '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 색은 키비주얼에서 가져왔습니다.'
         : '로고가 검정·흰색 계열이라 뽑을 색이 없어요 — 키비주얼을 올리거나 컬러를 직접 골라 주세요.');
     if (it.logoTone === 'light' && !it.logoLightManual) say('흰색 로고네요 — 지면을 어두운 브랜드색으로 갑니다. 원색 로고도 올리면 밝은 지면도 쓸 수 있어요.');
-    if (knocked) say(`로고 배경(${knocked.removed}%)을 지워 투명 누끼로 바꿨어요 — 지면 위에 네모 없이 올라갑니다.`);
+    if (it.logoNote) say(`로고를 손질했어요 — ${it.logoNote}. 투명 여백을 잘라내야 칸 높이만큼 크게 보입니다.`);
   });
-  bindUpload($('logoLightThumb'), $('logoLightFile'), d => { it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
+  bindUpload($('logoLightThumb'), $('logoLightFile'), async d => { d = (await prepLogo(d)).dataUrl; it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
   // 오브젝트 누끼 — 누끼가 필요한 자리에만 쓴다. 배경이 있는 그림이면 그 자리에 못 쓰니 바로 알려 준다
   bindUpload($('objThumb'), $('objFile'), async d => {
     it.object = d;
@@ -1151,6 +1151,36 @@ async function knockoutLogo(dataUrl) {
   if (removed < W * H * 0.02) return null;
   g.putImageData(id, 0, 0);
   return { dataUrl: cv.toDataURL('image/png'), removed: Math.round(removed / (W * H) * 100) };
+}
+// 로고 여백 트림 — 투명 여백이 큰 로고 PNG는 칸 높이에 맞춰도 글자가 작다(10-06 사용자 "로고가 너무 작은데": 276×91 중 글자 높이 21px = 23%).
+// 불투명 픽셀(α>10)의 상자를 찾아 그 상자(+긴 변의 3% 숨)로 잘라낸다. 불투명 그림(배경 있는 로고)이거나 잘라낼 게 8% 미만이면 원본 그대로.
+async function trimLogo(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const W = img.width, H = img.height; if (!W || !H || W * H > 4_000_000) return null;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+  const d = g.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = -1, y1 = -1, opaque = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (d[(y * W + x) * 4 + 3] <= 10) continue;
+    opaque++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  if (x1 < 0 || opaque > W * H * 0.97) return null;
+  const pad = Math.max(1, Math.round(Math.max(x1 - x0, y1 - y0) * 0.03));
+  x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
+  const tw = x1 - x0 + 1, th = y1 - y0 + 1;
+  if (tw * th > W * H * 0.92) return null;
+  const out = document.createElement('canvas'); out.width = tw; out.height = th;
+  out.getContext('2d').drawImage(cv, x0, y0, tw, th, 0, 0, tw, th);
+  return { dataUrl: out.toDataURL('image/png'), from: [W, H], to: [tw, th] };
+}
+// 로고 손질 한 번에 — 누끼(단색 배경 제거) → 여백 트림. 돌려주는 note는 사용자에게 알릴 한 줄
+async function prepLogo(dataUrl) {
+  let src = dataUrl; const notes = [];
+  try { const k = await knockoutLogo(src); if (k) { src = k.dataUrl; notes.push(`배경 ${k.removed}% 지움(투명 누끼)`); } } catch {}
+  try { const t = await trimLogo(src); if (t) { src = t.dataUrl; notes.push(`여백 트림 ${t.from[0]}×${t.from[1]}→${t.to[0]}×${t.to[1]}`); } } catch {}
+  return { dataUrl: src, note: notes.join(' · '), changed: src !== dataUrl };
 }
 async function logoToneOf(dataUrl) {
   const img = new Image();
@@ -1775,8 +1805,8 @@ function renderInspector() {
           // 원색 로고를 갈면 색도 그 로고에서 다시 읽는다 — 고객사가 바뀐 것이다. 흰색 로고는 색이 없으니 그대로.
           let roles = null, tonePatch = {};
           let src = r.result;
+          { const p = await prepLogo(src); if (p.changed) { src = p.dataUrl; toast(`로고 손질 — ${p.note}`); } }
           if (key === 'logo') {
-            try { const k = await knockoutLogo(src); if (k) { src = k.dataUrl; toast(`로고 배경 ${k.removed}% 지움 — 투명 누끼`); } } catch {}
             ({ roles } = await rolesFromAssets({ logo: src, keyVisual: c.style.keyVisual, mode: c.style.mode }));
             const tone = await logoToneOf(src).catch(() => 'dark');
             // 흰색 로고만이면 지면이 어두워진다(brand-dark-logo). 원색이면 흰색 로고가 있을 때 both
@@ -2347,6 +2377,19 @@ const LOG_LABEL = {
   campaign_reopened: '다시 열기', artifact_added: '산출물 추가', artifact_removed: '산출물 제거',
 };
 
+// 저장된 캠페인의 로고를 한 번 손질한다(누끼·여백 트림) — 트림 기능 전에 올린 로고가 작게 보이는 것을 고친다. 바뀐 게 없으면 표시만 남긴다
+async function migrateLogos(c) {
+  if (!c?.style || c.style.logoPrepped) return;
+  let changed = false;
+  for (const key of ['logo', 'logoLight']) {
+    if (!c.style[key]) continue;
+    try { const p = await prepLogo(c.style[key]); if (p.changed) { c.style[key] = p.dataUrl; changed = true; } } catch {}
+  }
+  c.style.logoPrepped = true;
+  if (state.campaign !== c) return;
+  if (changed) { regen(c); layoutArtboard(); log('로고 손질 — 투명 여백을 잘라 크게 보이게'); }
+  autosave();
+}
 function openStored(saved) {
   state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [], excluded: saved.excluded ?? [], media: saved.media ?? [], adSpecIds: saved.adSpecIds ?? [] };
   // 저장된 대화도 되살린다 — 무엇을 어떻게 정했는지가 이력의 핵심이다
@@ -2362,6 +2405,7 @@ function openStored(saved) {
     if (s.variant != null) a.variant = s.variant;
   }
   regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
+  migrateLogos(state.campaign);
   logEvent(state.campaign, 'campaign_reopened', {});
   enterWork();
   log(`저장된 캠페인 재현: ${campaignName(saved.context)}`);
