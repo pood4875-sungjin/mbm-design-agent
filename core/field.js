@@ -15,7 +15,8 @@ const ROUGH_MAX = 0.035;   // 이보다 거칠면 "바탕"이 아니라 사진�
 const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션이라 부른다
 
 // facing: 이미지가 글자 쪽으로 맞닿는 변 — 이미지가 오른쪽에 있으면 'left', 아래에 있으면 'top', 왼쪽에 있으면 'right'
-export function resolveField(style, { facing = 'left', solidOnly = false, light = false } = {}) {
+// lightPhoto: 사진도 밝은 지면에 녹이는 매체(구글 일화 사옥 → 흰 지면). 자소설은 밝은 매체여도 사진은 브랜드색 지면(한독 → 파랑)
+export function resolveField(style, { facing = 'left', solidOnly = false, light = false, lightPhoto = false } = {}) {
   const p = style.palette ?? {};
   const opt = style.background ?? {};
   const f = style.keyVisual ? style.kvMeta?.field ?? null : null;
@@ -23,9 +24,14 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   let stops = null, angle = 180, source = null, seamless = false;
 
   if (opt.color) { stops = [opt.color]; source = 'manual'; }
-  else if (f?.kind === 'photo') {
-    // 사진의 변은 바탕이 아니다(하늘·벽의 한 조각) — 지면은 브랜드색, 사진은 그 위로 녹아든다(한독 사옥 → 파랑 지면)
-    stops = [p.primary ?? '#2456D6']; source = 'brand-photo';
+  else if (f?.kind === 'photo' || (f && f.opaque < 0.5)) {
+    // 사진의 변은 바탕이 아니고(하늘·벽의 한 조각), 배경을 딴 그림엔 바탕이 없다 — 둘 다 지면은 브랜드색.
+    // 어두운 지면 매체: 브랜드색 단색(한독 사옥 → 파랑, ABL 캐릭터 → 파랑). 밝은 지면 매체(구글·자소설): 브랜드색 틴트 → 흰색 그라데이션
+    // (비씨월드 하늘색→흰색, 한국앤컴퍼니 오렌지 18%→흰색, PT코리아 라벤더). 그림의 대표색을 쓰면 탁해진다(ABL 캐릭터 → 보라회색)
+    const brand = p.primary ?? '#2456D6';
+    const tint = f.kind === 'photo' ? lightPhoto : light;
+    if (tint) { stops = [mix(brand, WHITE, 0.78), WHITE]; angle = 180; source = 'brand-tint'; }
+    else { stops = [brand]; source = f.kind === 'photo' ? 'brand-photo' : 'brand'; }
   }
   else if (f) {
     const e = f.edges?.[facing];

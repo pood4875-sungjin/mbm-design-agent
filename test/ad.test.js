@@ -94,7 +94,8 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 세로형은 서브 = 시즌, 메인 = 회사 + 채용구분(한미글로벌·세아제강)
   const free = renderAd(long, style, specs['google-gdn-300x600']);
   assert.match(free, /data-field="main"[^>]*>한진정보통신(<br\/>| )신입\/\u2060?경력사원 채용</);
-  assert.match(free, /data-field="sub"[^>]*>2026 하반기</);
+  // 구글 가이드: 아이브로는 슬로건만 — 시즌을 안 적어 줬고 슬로건도 없으면 서브가 없다(비씨월드)
+  assert.doesNotMatch(free, /data-field="sub"/);
   // 직무는 상세 줄에 간다 — 상세 칸이 있는 매체(자소설 M팝업 상세문구 22자×3줄)에서
   const popup = renderAd(long, style, specs['jasoseol-m-premium-popup-mo']);
   assert.match(popup, /모집직무<\/b> : 클라우드 플랫폼 엔지니어/);
@@ -112,7 +113,7 @@ test('a strip under 120px lays out in a row, and a flat spec uses a solid backgr
   assert.match(strip, /flex-direction:row;align-items:center/);
   assert.match(renderAd(ctx, style, specs['albamon-pc-main-curtain']), /justify-content:center/);
   const flat = renderAd(ctx, style, { ...specs['google-gdn-300x600'], flat: true });
-  assert.match(flat.split('>')[0], /background:#0B3C8C;/i);
+  assert.match(flat.split('>')[0], /background:#[0-9A-F]{6};/i, '단색 — 구글은 밝은 브랜드 틴트, 그라데이션 없이');
 });
 
 test('"이미지 밖 텍스트 필드" rows are handed over, not drawn — a profile image with only such rows is logo-only', () => {
@@ -146,13 +147,13 @@ test('every shape is left-aligned like the references; the logo floats top-right
   const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
   assert.doesNotMatch(tallHtml, /text-align:center/);
   assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '세로형 로고는 우상단(한미글로벌·세아제강)');
-  // 세로형은 서브(시즌)가 메인 위, 메인은 회사 + 채용구분(한미글로벌·세아제강)
-  assert.match(tallHtml, /data-field="sub"[^>]*>2026 하반기</);
+  // 메인은 회사 + 채용구분(한미글로벌·세아제강). 구글 가이드는 아이브로가 슬로건뿐이라 시즌 서브가 없다
+  assert.doesNotMatch(tallHtml, /data-field="sub"/);
   assert.match(tallHtml, /data-field="main"[^>]*>한진정보통신(<br\/>| )정규직 채용</, '두 줄이 되면 회사 뒤에서 줄을 바꾼다(세아제강)');
   const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
   assert.match(tower, /data-logo-slot="1" style="position:absolute;top:\d+px;left:\d+px;right:\d+px;justify-content:center/, '세로 띠 로고는 위 가운데');
-  // 세로 띠는 회사가 서브로 올라간다(도레이 "2025년 하반기 도레이첨단소재 / 신입사원 공개채용")
-  assert.match(tower, /data-field="sub"[^>]*>2026 하반기 한진정보통신</);
+  // 세로 띠도 구글은 회사가 메인에 남는다(일화 "㈜일화 / 신입/경력 / 사원 모집")
+  assert.match(tower, /data-field="main"[^>]*>한진정보통신/);
   const wideHtml = renderAd(ctx, withLogo, specs['remember-main-top-pc']);
   assert.match(wideHtml, /text-align:left/);
   assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스(리멤버)에는 로고가 없다 — 매체가 요구할 때만');
@@ -242,7 +243,7 @@ test('a logo goes into the template logo slot exactly (130×30 at 15,23) and is 
 });
 
 test('on a dark field the white logo variant is used as-is; without one the colour logo is inverted', () => {
-  const dark = specs['google-gdn-580x400'];   // 단색 브랜드 지면 → 흰 글자
+  const dark = specs['nap-dsp-full-300x250'];   // 어두운 프로필 매체(NAP 0.56) → 브랜드 단색 지면 → 흰 글자. 구글은 이제 밝은 틴트 지면이라 제외
   const both = { ...style, logo: 'data:image/png;base64,AAAA', logoLight: 'data:image/png;base64,BBBB' };
   const html = renderAd(ctx, both, dark);
   assert.match(html, /data-logo="1" src="data:image\/png;base64,BBBB"/);
@@ -269,7 +270,9 @@ test('the template image area takes the picture by its size: tall pictures fill 
   const photo = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.81, px: [160, 198], field: { kind: 'photo', opaque: 1, flatEdges: 0, edges: { top: { flat: false, opaque: 1, std: 30 } } } } };
   const ph = renderAd(ctx, photo, specs['jasoseol-pc-standard-jobpost-pc']);
   assert.match(ph, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/);
-  assert.match(ph, /data-field-source="brand-photo"/, '사진이면 지면은 브랜드색');
+  assert.match(ph, /data-field-source="brand-photo"/, '사진이면 지면은 브랜드색(한독 → 파랑)');
+  // 구글은 사진도 밝은 지면(일화 사옥 → 흰색에 가까운 브랜드 틴트)에 녹인다
+  assert.match(renderAd(ctx, photo, specs['google-gdn-580x400']), /data-field-source="brand-tint"/);
 });
 
 test('the sub line does not repeat what the headline already says', () => {
