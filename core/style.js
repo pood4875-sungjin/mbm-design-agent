@@ -53,6 +53,8 @@ export function normalizeStyle(input = {}) {
       mode: ['solid', 'gradient'].includes(input.background?.mode) ? input.background.mode : 'auto',
       color: HEX.test(input.background?.color ?? '') ? input.background.color.toUpperCase() : null,
     },
+    // 상세 라벨 알약 톤 — 'tint'(기본: 밝은 지면 검정 7%·어두운 지면 흰 20%, 코엑스 카드 '모집분야') · 'brand'(브랜드색 채움, 구글 예시 일화·비씨) · 'plain'(알약 없이 굵은 글자). 10-06 사용자 "찐한 노랑 말고 진한 노랑/블랙 7%"
+    chipTone: ['tint', 'brand', 'plain'].includes(input.chipTone) ? input.chipTone : 'tint',
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
     // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다
     logoTone: ['light', 'dark', 'both'].includes(input.logoTone) ? input.logoTone : null,

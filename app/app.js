@@ -26,6 +26,7 @@ import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
 import { upscale } from './upscale.js';
 
+const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };   // 상세 라벨 알약 톤(style.chipTone)
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
@@ -1649,6 +1650,8 @@ function renderInspector() {
       <section class="isec">
       <h3>스타일</h3>
       ${bgControlHtml(c.style, 'iBg')}
+      <label>상세 라벨 알약 <span style="opacity:.6">· 접수기간·모집직무 같은 라벨</span></label>
+      <div class="vseg" id="iChipSeg">${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-ct="${k}" class="${(c.style.chipTone ?? 'tint') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
       <div style="display:flex;gap:10px">
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
@@ -1706,6 +1709,7 @@ function renderInspector() {
         mode: c.style.mode,
         background: c.style.background,
         kvUse: c.style.kvUse,
+        chipTone: c.style.chipTone,
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
         mood: c.style.mood,
@@ -1731,6 +1735,8 @@ function renderInspector() {
     if (bgIn) bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기');
     insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
     insp.querySelectorAll('#iBgUse button').forEach(b => b.onclick = () => { restyle({ kvUse: b.dataset.u }, b.dataset.u === 'full' ? '사진 전체 + 스크림' : '사진 한쪽 + 녹임'); renderInspector(); });
+    // 라벨 알약 톤 — 일괄. 산출물에 개별 값이 있으면 그 산출물은 그대로(overrides.style)
+    insp.querySelectorAll('#iChipSeg button').forEach(b => b.onclick = () => { if ((c.style.chipTone ?? 'tint') === b.dataset.ct) return; restyle({ chipTone: b.dataset.ct }, `라벨 알약 ${CHIP_LABEL[b.dataset.ct]}`); renderInspector(); });
     insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
     const dpiBox = insp.querySelector('#iDpi');
@@ -1869,6 +1875,8 @@ function renderInspector() {
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
       </div>` : ''}
     ${a.channel === 'ad' ? `
+      <label>상세 라벨 알약 <span style="opacity:.6">공통: ${CHIP_LABEL[c.style.chipTone ?? 'tint']}</span></label>
+      <div class="vseg" id="iChipOv"><button data-cto="" class="${!a.overrides.style?.chipTone ? 'on' : ''}">공통 따름</button>${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-cto="${k}" class="${a.overrides.style?.chipTone === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       <label>매체 규격</label>
       <div style="font-size:11.5px;color:var(--sub);line-height:1.6">${adRulesText(spec)}</div>
       <label>규격 검사</label>
@@ -1897,6 +1905,23 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
   }, 450));
+  // 라벨 알약 톤 — 이 산출물만(overrides.style). 비우면 공통값을 따른다. 일괄 변경이 와도 개별 값은 남는다
+  insp.querySelectorAll('#iChipOv button').forEach(b => b.onclick = () => {
+    const v = b.dataset.cto || null;
+    if ((a.overrides.style?.chipTone ?? null) === v) return;
+    pushHistory(`${artLabel(a)} 라벨 알약 개별 편집`);
+    const st = { ...(a.overrides.style ?? {}) };
+    if (v) st.chipTone = v; else delete st.chipTone;
+    a.overrides.style = st;
+    a.status = 'draft';
+    logEvent(c, 'manual_edit', { specId: a.specId, style: 'chipTone' });
+    regen(c);
+    autosave();
+    refreshFrames(a.specId);
+    renderInspector();
+    $('inspNote').textContent = '이 산출물만 반영됨';
+    log(`${a.specId} 라벨 알약 ${v ? CHIP_LABEL[v] : '공통 따름'}`);
+  });
   insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
     if ((a.variant ?? 0) === Number(b.dataset.v)) return;   // 같은 시안 다시 누르면 되돌릴 것도 없다
     pushHistory(`${artLabel(a)} 시안 ${Number(b.dataset.v) + 1}`);
