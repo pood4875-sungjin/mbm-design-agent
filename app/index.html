@@ -66,10 +66,15 @@
   button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   .inputCard textarea:focus-visible,#sidebar .search input:focus-visible,#cmdBar input:focus-visible,.composer input#cvIn:focus-visible{outline:none}
 
-  /* ═══ GNB — 얇은 상단 바. 판 위가 아니라 바탕 위에 놓인다 ═══ */
-  header{position:fixed;inset:0 0 auto 0;height:52px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:20}
-  .logo{display:flex;align-items:center;gap:9px;height:34px;font-weight:700;font-size:16px;letter-spacing:-.01em;cursor:pointer;padding:0 14px 0 6px;border-radius:var(--r-pill);margin-right:4px;border:1px solid var(--glass-line);background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-shadow)}
-  .logo:hover{background:var(--panel)}
+  /* ═══ GNB — 화면 폭을 다 쓰는 반투명 유리 바(10-06 사용자: "오퍼 주고 글래스모피즘으로 full 너비로 딱"). 바탕의 점무늬·보드가 비쳐 보인다 ═══ */
+  header{position:fixed;inset:0 0 auto 0;height:52px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:20;
+    background:var(--glass);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-bottom:1px solid var(--glass-line);box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px -12px rgba(16,24,40,.12)}
+  /* 바 안의 버튼은 유리 위에 또 유리를 올리지 않는다 — 판 색 알약 */
+  header .hbtn{background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-color:var(--line)}
+  header .hbtn:hover{background:var(--soft)}
+  header .hbtn.pri{background:var(--grad);border-color:transparent;box-shadow:none}
+  .logo{display:flex;align-items:center;gap:9px;height:34px;font-weight:700;font-size:16px;letter-spacing:-.01em;cursor:pointer;padding:0 10px 0 4px;border-radius:var(--r-sm);margin-right:6px}
+  .logo:hover{background:rgba(0,0,0,.04)}
   .logo i{width:24px;height:24px;border-radius:7px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;color:var(--on-ink);font-style:normal;font-size:12px;font-weight:800}
   .beta{font-size:10.5px;font-weight:700;border:1.5px solid var(--ink);border-radius:var(--r-pill);padding:2px 8px}
   .spacer{flex:1}
