@@ -316,7 +316,8 @@ export function renderAd(ctx, style, spec) {
     const floor = k => pad.stated ? pad[k] : 0;
     const gPadX = guide?.padX?.[L.shape] ?? L.padX;   // 구글 예시 왼쪽 여백: 580 44 · 970 45 · 300×600 32 · 300×1050 36
     pad.left = Math.max(floor('left'), gPadX); pad.right = Math.max(floor('right'), gPadX);
-    pad.top = Math.max(floor('top'), vCenter ? L.padY : L.top);
+    // 레이아웃의 top(세로형 17.8%·세로 띠 13.2%)은 로고 줄을 위해 비운 값 — 로고가 없거나 매체가 로고를 금하면(자소설 달력배너 164×233) 옆 여백만큼만
+    pad.top = Math.max(floor('top'), (vCenter || !(allowLogo && hasLogo) && !tLogo) ? L.padY : L.top);
     pad.bottom = Math.max(floor('bottom'), guide?.padBottom?.[L.shape] ?? L.padBottom ?? L.padY);
   }
   if (!pad.stated && tText) { pad.left = tText.x; pad.right = Math.max(0, w - tText.x - tText.w); }
