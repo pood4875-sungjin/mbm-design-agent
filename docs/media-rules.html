@@ -239,6 +239,15 @@
       ['오브젝트 자리', g.objectRatio && Object.entries(g.objectRatio).filter(([k]) => k !== 'squareH').map(([k, v]) => `${SHAPE[k] ?? k} ${Math.round(v * 100)}%`).join(' · '), g.objectRatioSource],
       ['로고', g.logo && `높이 = 짧은 변의 ${Math.round(g.logo.hRatio * 100)}% · 폭 ≤ ${Math.round(g.logo.maxWRatio * 100)}%`, g.logoSource],
       ['시안', g.variants && g.variants.map(v => v.name).join(' / '), g.variantsSource],
+      ['지면', g.lightField === 'brand-tint' ? '밝게 — 흰색 또는 브랜드색 틴트 → 흰색 그라데이션(사진·누끼 포함)' : g.lightField, g.lightFieldSource],
+      ['메인 색', g.textColour === 'brand' ? '밝은 지면에서 브랜드색(4.5:1 넘을 때), 어두운 지면은 흰색' : g.textColour, g.textColourSource],
+      ['메인 줄 수', g.mainLines && Object.entries(g.mainLines).map(([k, v]) => `${SHAPE[k] ?? k} ${v}`).join(' · '), g.mainLinesSource],
+      ['메인 크기 비례', g.mainScale && Object.entries(g.mainScale).map(([k, v]) => `${SHAPE[k] ?? k} ${Math.round(v * 100)}%`).join(' · '), g.mainScaleSource],
+      ['두 줄 우선', g.twoLines ? '한 줄에 넣느라 작아지면 회사 뒤에서 두 줄로' : null, g.twoLinesSource],
+      ['정보 우선', g.keepInfo ? `사다리 위쪽 문구가 글자 ${Math.round(g.keepInfo * 100)}%까지 줄여서 들어가면 그쪽` : null, g.keepInfoSource],
+      ['시즌 자리', g.seasonInMain ? '메인 첫머리(또는 회사 뒤), 아이브로는 슬로건만' : null, g.seasonInMainSource],
+      ['왼쪽 여백', g.padX && Object.entries(g.padX).map(([k, v]) => `${SHAPE[k] ?? k} ${v}px`).join(' · '), g.padXSource],
+      ['그림과 겹침', g.objectOverlap && Object.entries(g.objectOverlap).map(([k, v]) => `${SHAPE[k] ?? k} ${Math.round(v * 100)}%`).join(' · '), g.objectOverlapSource],
       ['일관성', g.consistency, null],
     ].filter(r => r[1]) : [];
     const guideBlock = g ? `<div class="sect"><h4>디자인 가이드 → 렌더 규칙 ${guideRows.length}</h4>
