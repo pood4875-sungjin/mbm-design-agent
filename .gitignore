@@ -3,3 +3,7 @@ node_modules/
 .DS_Store
 app/config.local.js
 ref/
+
+# 보드 재현·유형 분류 페이지는 로컬 전용(배포 안 함)
+docs/repro.html
+docs/kv-types.html
