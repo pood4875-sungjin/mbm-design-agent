@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "handover-bak",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/kimsungjin/design-generator-handover.bak-20261002 && exec python3 serve.py 4790"],
+      "port": 4790
+    },
+    {
+      "name": "handover-latest",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/kimsungjin/design-generator-handover && exec python3 serve.py 4791"],
+      "port": 4791
+    }
+  ]
+}

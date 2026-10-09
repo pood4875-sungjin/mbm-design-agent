@@ -235,17 +235,34 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) { const i = (y * w + x) * 4; if (rgba[i + 3] < 200) continue; const L = (0.2126 * rgba[i] + 0.7152 * rgba[i + 1] + 0.0722 * rgba[i + 2]) / 255; lsum += L; lsq += L * L; ln++; }
   const lum = ln ? Math.round(lsum / ln * 100) / 100 : null;
   const lumSpread = ln ? Math.round(Math.sqrt(Math.max(0, lsq / ln - (lsum / ln) ** 2)) * 100) / 100 : null;
+  // 채도(sat, 0~1: 불투명 픽셀의 (max−min)/max 평균)와 반투명 비율(semi: 보이는 픽셀(α>10) 중 10<α<230의 비율) — 반사·유리·크롬 누끼(cutout-glass) 판정.
+  // 유리 행성(Figma 9월 공채 KV): 무채·중간 밝기 + 반투명 가장자리 15% → 밝은 틴트 지면 위에선 회색으로 탁해진다(디자이너 13/13 어두운 지면)
+  let ssum = 0, sn = 0, vis = 0, semi = 0;
+  for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) {
+    const i = (y * w + x) * 4, a = rgba[i + 3];
+    if (a > 10) { vis++; if (a < 230) semi++; }
+    if (a < 200) continue;
+    const mx = Math.max(rgba[i], rgba[i + 1], rgba[i + 2]), mn = Math.min(rgba[i], rgba[i + 1], rgba[i + 2]);
+    ssum += mx ? (mx - mn) / mx : 0; sn++;
+  }
+  const sat = sn ? Math.round(ssum / sn * 100) / 100 : null;
+  const semiRatio = vis ? Math.round(semi / vis * 1000) / 1000 : 0;
   // 질감(texture): 날카로운 경계가 거의 없고(이웃 차 > 0.08인 쌍 0.3% 미만) 전체가 매끈한(평균 이웃 차 0.005 미만) 그림 — 블러 그라데이션.
   // 주인공도 바탕도 없다. 측정(10-06): 그라데이션 0.00% / 삼성 3D 4.3% / 일화 사진 7.8% / 비씨 일러스트 17.8%
   const tex = textureOf(rgba, w, h);
-  const kind = cutout ? 'cutout' : (tex.sharp < 0.003 && tex.rough < 0.005 && tex.spread >= 6) ? 'texture' : flatEdges === 0 ? 'photo' : 'illust';
+  // 10-09 figma-dg: 문턱 0.003 → 0.005 — 흐릿한 3D가 깔린 바탕(에이치닷 보라 3D, sharp 0.41%·네 변 평평)은 디자이너 9/9가 배경으로 깔았다. 삼성 3D 4.3%와는 멀다
+  // 단색조 추상 렌더(마이다스 파란 유리 면: 평평한 변 0 · 색 퍼짐 28 · 채도 0.81)도 질감 — 사진처럼 한쪽에 녹이면 뜻 없는 조각이다(디자이너 히어로 20여 종이 전면 배경). 사진은 퍼짐 33 이상(일화 어둡게 33)
+  // 10-09 데스크탑: 색 퍼짐이 25 이하인 그림(파스텔 블롭·민트 알약 패턴, 퍼짐 21·24)은 채도와 상관없이 질감 — 핀터레스트 JPG의 압축 노이즈가 거칠기(rough)를 문턱 위로 올려 사진으로 갔다.
+  //   사진은 퍼짐 33 이상(일화 어둡게 33 · 실사 41~80)이라 겹치지 않는다
+  const abstract = flatEdges === 0 && (tex.spread <= 25 || (tex.spread <= 30 && (sat ?? 0) >= 0.6));
+  let kind = cutout ? 'cutout' : ((tex.sharp < 0.005 && tex.rough < 0.005 && tex.spread >= 6) || abstract) ? 'texture' : flatEdges === 0 ? 'photo' : 'illust';
   const quadrants = quadrantsOf(rgba, w, h);
   // rows·cols: 그림을 16칸으로 자른 띠마다의 "바탕" 색(주인공이 아닌 픽셀의 평균). 오브젝트 자리를 주인공으로 당겨 채우면 자리의 글자 쪽 변이
   // 그림 한가운데 걸린다 — 그 줄의 바탕색을 지면이 이어받아야 이음매가 안 보인다(core/field.js joinColour). 누끼는 바탕이 없다(null)
   // 바탕 기준색 — 평평한 변이 있으면 그 색. 주인공이 변까지 닿는 줄에서는 그 줄의 양끝 색이 주인공 색이라 바탕 추정이 틀어진다(초록 호가 오른쪽 변에 닿은 줄) — 그때는 이 색을 쓴다
   const refEdge = [edges.top, edges.left, edges.right, edges.bottom].find(e => e.flat && e.hex);
   const ref = refEdge ? hexToRgb(refEdge.hex) : null;
-  if (kind === 'texture') return { edges, opaque, flatEdges, kind, lum, lumSpread, texture: tex, quadrants, focus: null, rows: bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: null };
+  if (kind === 'texture') return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus: null, rows: bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: null };
   // 누끼의 열/행 프로필은 투명 비율(bg) — 자르기 선·창 변이 캐릭터 몸을 가르지 않고 캐릭터 사이 빈 열에서 끊게 한다(ABL 떼 300×1050)
   const alphaProfile = (axis, n = 16) => Array.from({ length: n }, (_, k) => {
     let tot = 0, clear = 0;
@@ -253,7 +270,19 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
     else { const y0 = Math.floor(k * h / n), y1 = Math.max(y0 + 1, Math.floor((k + 1) * h / n)); for (let y = y0; y < y1; y += 2) for (let x = 0; x < w; x += 2) { tot++; if (rgba[(y * w + x) * 4 + 3] < 200) clear++; } }
     return { hex: null, bg: tot ? Math.round(clear / tot * 100) / 100 : 1 };
   });
-  return { edges, opaque, flatEdges, kind, lum, lumSpread, texture: tex, quadrants, focus: focusOf(rgba, w, h, bw, cutout, ref), rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
+  // 대각 그라데이션 바탕(10-09 figma-dg 오렌지 카드 3D: 노랑 → 주황, 평평한 변 3개가 모두 그라데이션) — 변 기준색 하나로 가르면 주황 모서리가 주인공이 된다(주인공 5%, 우하단 구석).
+  // 평평한 변이 셋 이상이고 그중 둘 이상이 그라데이션이며 네 모서리가 고르면(편차 < 12) 모서리 색 보간을 바탕으로 쓴다
+  const cornerPatch = (x0, y0) => { const n = Math.max(2, bw); let r = 0, g = 0, b = 0, q = 0, c = 0; for (let y = y0; y < y0 + n; y++) for (let x = x0; x < x0 + n; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; q += (rgba[i] + rgba[i + 1] + rgba[i + 2]) ** 2 / 9; c++; } const m = [r / c, g / c, b / c]; const lm = (m[0] + m[1] + m[2]) / 3; return { c: m, sd: Math.sqrt(Math.max(0, q / c - lm * lm)) }; };
+  const gradFlat = list.filter(e => e.flat && e.from && e.to && colorDistance(e.from, e.to) > 0.035).length;
+  let corners = null;
+  if (!cutout && flatEdges >= 3 && gradFlat >= 2) {
+    const n = Math.max(2, bw), P = { tl: cornerPatch(0, 0), tr: cornerPatch(w - n, 0), bl: cornerPatch(0, h - n), br: cornerPatch(w - n, h - n) };
+    if (Object.values(P).every(p => p.sd < 12)) corners = Object.fromEntries(Object.entries(P).map(([k, p]) => [k, p.c]));
+  }
+  const focus = focusOf(rgba, w, h, bw, cutout, ref, corners);
+  // 평평한 변이 하나뿐인데 바탕을 못 가르면(주인공 픽셀 > 60% → focus null) 그 변은 바탕이 아니라 사진의 흐린 천장·벽이다 — 사진(10-09 figma-dg AI 간호사: 일러스트로 보고 윗변에 붙여 얼굴이 잘렸다)
+  if (kind === 'illust' && flatEdges === 1 && !focus) kind = 'photo';
+  return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus, rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
 }
 
 // 전체 거칠기 — 2px 격자에서 오른쪽·아래 이웃과의 색 차 평균(rough), 차가 0.08을 넘는 쌍의 비율(sharp), 전체 색 편차(spread). 질감 판정에 쓴다
@@ -362,7 +391,7 @@ export function subjectPx(rgba, i, L, R, t) {
   const sat = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
   return !(blum > 0.7 && lum > blum && sat < 0.12);
 }
-function focusOf(rgba, w, h, bw, cutout, ref = null) {
+function focusOf(rgba, w, h, bw, cutout, ref = null, corners = null) {
   // 2px 격자로 "주인공 픽셀"을 표시한다
   const gw = Math.ceil(w / 2), gh = Math.ceil(h / 2);
   const hit = new Uint8Array(gw * gh);
@@ -370,7 +399,9 @@ function focusOf(rgba, w, h, bw, cutout, ref = null) {
   for (let gy = 0; gy < gh; gy++) {
     const y = gy * 2;
     const side = from => { let r = 0, g = 0, b = 0; for (let x = from; x < from + bw; x++) { const i = (y * w + x) * 4; r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; } return [r / bw, g / bw, b / bw]; };
-    const L = cutout ? null : edgeOrRef(side(0), ref), R = cutout ? null : edgeOrRef(side(w - bw), ref);
+    // corners: 대각 그라데이션 바탕(네 모서리 색이 다르다) — 줄마다 왼쪽·오른쪽 바탕색을 모서리 색의 세로 보간으로(변 색이 기준색과 멀다고 주인공으로 치지 않는다)
+    const lerp3 = (a, c, t) => [a[0] + (c[0] - a[0]) * t, a[1] + (c[1] - a[1]) * t, a[2] + (c[2] - a[2]) * t];
+    const L = cutout ? null : corners ? lerp3(corners.tl, corners.bl, y / Math.max(1, h - 1)) : edgeOrRef(side(0), ref), R = cutout ? null : corners ? lerp3(corners.tr, corners.br, y / Math.max(1, h - 1)) : edgeOrRef(side(w - bw), ref);
     for (let gx = 0; gx < gw; gx++) {
       const x = gx * 2, i = (y * w + x) * 4;
       let on;
@@ -380,7 +411,8 @@ function focusOf(rgba, w, h, bw, cutout, ref = null) {
     }
   }
   const total = gw * gh;
-  if (!n || n / total > 0.6) return null;
+  // 바탕 있는 그림에서 60% 넘게 '주인공'이면 바탕을 못 가른 것 — 주인공 없음. 누끼는 투명 여백을 트림하면 당연히 60%를 넘는다(10-08 여우 트림 후 focus null)
+  if (!n || (!cutout && n / total > 0.6)) return null;
   // 덩어리로 나눈다 — 먼저 한 칸(2px) 부풀려 가는 틈(부채 살·글자 획)을 메운 뒤 8방향 연결로 묶는다.
   // 주인공이 여럿이고 서로 멀면(두 모서리의 3D 오브젝트) 가장 큰 덩어리가 주인공이다. 전부 묶은 상자가 큰 덩어리 상자의 1.5배 안이면 한 주인공(캐릭터 떼·도시 일러스트)
   const fat = new Uint8Array(gw * gh);

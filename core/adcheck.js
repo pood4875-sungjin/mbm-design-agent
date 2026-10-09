@@ -6,6 +6,7 @@
 //   빈 여백: 글자도 그림도 로고도 없는 가로 띠가 지면 높이의 28%를 넘으면 경고(300×1050 아래 여백)
 //   글자 잘림: 글자 요소가 스크롤되거나 지면 밖으로 나가면 경고
 //   알약 넘침: 라벨 알약이 지면 오른쪽 밖으로
+//   해상도(참고): 키비주얼을 원본의 2배 넘게 키우거나 로고를 원본보다 크게 그리면 info(그림 탓 — 경고 수에 안 셈)
 
 const inter = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); return Math.max(0, x1 - x0) * Math.max(0, y1 - y0); };
 const area = r => Math.max(1, r.w * r.h);
@@ -114,12 +115,26 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
   // 5. 글자 잘림
   for (const t of texts) {
     const el = t.el;
-    const clipped = (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflow !== 'visible') || t.r.y + t.r.h > frame.h + 1 || t.r.x + t.r.w > frame.w + 1;
+    // 줄 수 상한(line-clamp)에 걸려 「…」로 잘린 글자도 잘림이다(10-09 데스크탑: 긴 회사명 메인 「정규직…」을 못 봤다) — 세로로 넘친 높이가 반 줄 넘으면
+    const cs = getComputedStyle(el); const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.3 || 16;
+    const clipped = (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== 'visible') || (cs.overflow !== 'visible' && el.scrollHeight > el.clientHeight + lh * 0.5) || t.r.y + t.r.h > frame.h + 1 || t.r.x + t.r.w > frame.w + 1;
     if (clipped) { push('text-clipped', `${t.role} 글자가 잘리거나 지면 밖`); break; }
   }
 
   // 6. 알약 넘침
   for (const ch of root.querySelectorAll('[data-chip]')) { const r = R(ch); if (r.x + r.w > frame.w - 2) { push('chip-overflow', '라벨 알약이 오른쪽 밖으로'); break; } }
+
+  // 7. 해상도(참고, 10-09 데스크탑: 236~600px 핀터레스트 그림) — 그림을 원본의 2배 넘게 키워 그리면 흐리다. 로고는 원본보다 크게 그리면(파비콘 16~48px) 뭉갠다.
+  //    규칙 탓이 아니라 그림 탓이라 경고(warn) 대신 참고(info) — 디자이너에게 원본을 다시 받으라는 신호
+  const kpx = kvMeta?.px;
+  if (kpx?.[0] > 0) {
+    let up = 0;
+    for (const o of objs) { const img = drawnImage(o.el, o.r, ar ?? (kpx[0] / kpx[1])); up = Math.max(up, img.w / kpx[0]); }
+    if (kvUse === 'bg' || kvUse === 'full') up = Math.max(up, Math.max(frame.w / kpx[0], frame.h / kpx[1]));
+    metrics.kvUpscale = Math.round(up * 10) / 10;
+    if (up > 2) push('low-res', `키비주얼을 원본(${kpx[0]}×${kpx[1]})의 ${metrics.kvUpscale}배로 키움 — 흐림`, 'info');
+  }
+  if (logoEl?.naturalHeight > 0 && logoR?.h > logoEl.naturalHeight * 1.05) push('low-res-logo', `로고를 원본 높이(${logoEl.naturalHeight}px)보다 크게 그림(${Math.round(logoR.h)}px)`, 'info');
 
   const out = { warnings, metrics, counts: { texts: texts.length, objects: objs.length, logo: !!logoR } };
   if (debug) out.rects = { frame, texts: texts.map(t => ({ role: t.role, ink: t.r, box: t.box })), objects: subjects.map(o => ({ box: o.r, subject: o.s, cut: o.cut, img: (focus && ar) ? drawnImage(o.el, o.r, ar) : null })), logo: logoR, focus, ar, kvUse };

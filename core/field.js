@@ -10,6 +10,7 @@
 // 사람이 덮어쓸 수 있는 것은 둘뿐이다: 색을 직접 고르기(background.color), 단색/그라데이션 고정(background.mode).
 
 import { mix, colorDistance, contrast, shiftHue, BLACK, WHITE } from './palette.js';
+import { kvTypeOf } from './kvtypes.js';
 
 const ROUGH_MAX = 0.035;   // 이보다 거칠면 "바탕"이 아니라 사진의 디테일이다
 const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션이라 부른다
@@ -331,7 +332,9 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   // 누끼를 오른쪽 열에 맞춰 넣을 때 폭이 모자라 작아지면(건물·3D처럼 가로가 긴 누끼) 높이에 맞추고 오른쪽·아래로 붙인다 — 폭이 열의 130%까지 넘치는 건 지면 밖으로 잘린다.
   // 보드 1-884 코엑스 카드가 건물을 오른쪽 아래로 크게 두고 가장자리에서 자른 문법. 그 이상 넘치면 그냥 맞춰 넣는다(캐릭터 떼가 반 잘리면 안 된다)
   const arKv = style.kvMeta?.ar;
-  const bleed = cutout && side === 'right' && arKv && hh * arKv > bw && hh * arKv <= bw * 1.3;
+  // 캐릭터는 넘치지 않는다 — 열의 왼변은 지면 안쪽이라 몸통이 세로로 뚝 잘린다(10-08 트림한 여우 1.10: 네이버 1250·블라인드·잡다 '뚝 끊김')
+  const charKv = (() => { const t = kvTypeOf(style.kvMeta); return !!(t?.flags.character && !t.flags.group); })();
+  const bleed = cutout && !charKv && side === 'right' && arKv && hh * arKv > bw && hh * arKv <= bw * 1.3;
   // 아래 띠의 가로 긴 누끼도 같은 문법 — 띠 높이에 맞추면 폭이 지면을 넘칠 때(130%까지) 가운데 두고 좌우를 지면 밖으로 자른다(세로 띠 300×1050 건물)
   const bleedB = cutout && side === 'bottom' && arKv && bh * arKv > w && bh * arKv <= w * bleedMax + 1;
   // 틈 창(cutLeft)이 있으면 가운데가 아니라 창의 왼쪽 끝부터 — 자르기 선이 캐릭터 사이 틈에 떨어진다
@@ -340,4 +343,78 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
+}
+
+// 단일 사물 누끼의 블리드 배치(CANON objectBleed) — 크게, 우하단으로. 10-08 Figma 9월 공채 디자이너 13장: KV 면적 가로형 19~31%·정사각 25%·세로형 22~27%, 보임 63~86%(R·B로 잘림).
+//   x0·y0: 보이는 그림이 넘으면 안 되는 왼쪽·위 경계(글자 칸·로고 띠·가이드 그림 상자) · 오른쪽·아래 변으로만 잘린다(maxCut까지, 보임 ≥ 1−maxCut)
+//   핵심부(주인공 상자 가운데 core 몫)는 캔버스 안 · 목표 면적(targetArea[shape])에 가장 가까운 배치, 못 닿으면 가장 큰 배치(맞춰 넣기보다 작아지지 않는다)
+// 면적은 열·행 투명 프로필(cols·rows, 투명 비율)로 어림한다 — 보이는 몫 = 왼쪽 (1−cutX)의 불투명 질량 × 위쪽 (1−cutY)의 불투명 질량(두 축 독립 가정)
+export function objectBleedPlace(style, { w, h, x0 = 0, y0 = 0, shape = 'wide', bleed = null, sym = false } = {}) {
+  const f = style.kvMeta?.field, ar = style.kvMeta?.ar, fo = f?.focus;
+  if (!f || !ar || !fo || !(w > 0 && h > 0)) return null;
+  const B = bleed ?? { maxCut: 0.3, core: 0.6, targetArea: { wide: [0.2, 0.3], square: [0.22, 0.27], tall: [0.22, 0.27], tower: [0.22, 0.27] } };
+  const [lo, hi] = B.targetArea?.[shape] ?? B.targetArea?.wide ?? [0.2, 0.3];
+  const mid = (lo + hi) / 2;
+  const prof = p => (p?.length ? p.map(c => 1 - (c?.bg ?? 1)) : null);
+  const cx = prof(f.cols), cy = prof(f.rows);
+  const cum = arr => { if (!arr) return t => t; const tot = arr.reduce((a, b) => a + b, 0) || 1; return t => { const k = t * arr.length; let s = 0; for (let i = 0; i < arr.length; i++) s += arr[i] * Math.max(0, Math.min(1, k - i)); return s / tot; }; };
+  const Mx = cum(cx), My = cum(cy);
+  const cov = cx ? cx.reduce((a, b) => a + b, 0) / cx.length : (fo.density ?? 0.5) * fo.w * fo.h;   // 그림 전체에서 불투명 몫
+  const half = (B.core ?? 0.6) / 2;
+  // 좁은 세로 띠(폭 ≤ 320, 글자가 그림 위): 왼쪽·오른쪽 양쪽 + 아래로 흘린다(Figma 9월 공채 GDN 300×600·300×1050 디자이너 LRB 블리드, 면적 24~27%).
+  // 오른쪽·아래로만 흘리면 왼쪽 변에 붙은 채 폭에 막혀 면적 12%에 그친다. 그림은 주인공 가운데를 지면 가운데에 맞추고(지면 밖으로 넘치는 만큼만 좌우로 잘린다), 핵심부는 캔버스 안
+  if (sym) {
+    const coreL = Math.max(0, fo.x - fo.w * half), coreR = Math.min(1, fo.x + fo.w * half);
+    const maxCy = Math.min(B.maxCut, Math.max(0, 1 - (fo.y + fo.h * half)));
+    let best = null, biggest = null;
+    for (let i = 0; i <= 40; i++) {
+      const dw = w * (0.6 + i * 0.05);                      // 지면 폭의 0.6~2.6배
+      const dh = dw / ar;
+      const cutY = Math.max(0, 1 - (h - y0) / dh);          // 경계(y0) 위로 못 올라간다 — 넘치는 만큼 아래로 잘린다
+      if (cutY > maxCy + 1e-6) continue;
+      const left = dw <= w ? (w - dw) / 2 : Math.min(0, Math.max(w - dw, w / 2 - fo.x * dw));
+      const cutL = Math.max(0, -left / dw), cutR = Math.max(0, (left + dw - w) / dw);
+      if (cutL > coreL + 1e-6 || 1 - cutR < coreR - 1e-6) continue;
+      const vis = (Mx(1 - cutR) - Mx(cutL)) * My(1 - cutY);
+      if (vis < 1 - B.maxCut - 1e-6) continue;
+      const area = cov * dw * dh * vis / (w * h);
+      const c = { cutX: cutL + cutR, cutY, vis, dw, dh, area, left };
+      if (!biggest || area > biggest.area) biggest = c;
+      if (area >= lo) { const score = Math.abs(Math.min(area, hi) - mid) + (area > hi ? (area - hi) * 2 : 0) + (cutL + cutR + cutY) * 0.05; if (!best || score < best.score) best = { ...c, score }; }
+    }
+    const c = best ?? biggest; if (!c) return null;
+    const dw = Math.round(c.dw), dh = Math.round(c.dh);
+    return { left: Math.round(c.left), top: Math.round(h - dh * (1 - c.cutY)), dw, dh, cutX: Math.round(c.cutX * 100) / 100, cutY: Math.round(c.cutY * 100) / 100, vis: Math.round(c.vis * 100) / 100, area: Math.round(c.area * 1000) / 1000, reached: !!best, sym: true };
+  }
+  const maxCx =Math.min(B.maxCut, Math.max(0, 1 - (fo.x + fo.w * half))), maxCy = Math.min(B.maxCut, Math.max(0, 1 - (fo.y + fo.h * half)));
+  let best = null, biggest = null;
+  const steps = 12;
+  for (let i = 0; i <= steps; i++) for (let j = 0; j <= steps; j++) {
+    const cutX = maxCx * i / steps, cutY = maxCy * j / steps;
+    const vis = Mx(1 - cutX) * My(1 - cutY);
+    if (vis < 1 - B.maxCut - 1e-6) continue;
+    // 경계 안에 들어가는 가장 큰 그림 — 폭·높이 중 빠듯한 쪽
+    const dw = Math.min((w - x0) / (1 - cutX), ((h - y0) / (1 - cutY)) * ar);
+    if (!(dw > 8)) continue;
+    const dh = dw / ar;
+    const areaF = cov * dw * dh * vis / (w * h);
+    const c = { cutX, cutY, vis, dw, dh, area: areaF };
+    if (!biggest || areaF > biggest.area) biggest = c;
+    // 목표 띠 안이면 덜 자른 것 우선, 띠 위면 목표 상한에 맞춰 줄인다
+    if (areaF >= lo) {
+      const k = areaF > hi ? Math.sqrt(hi / areaF) : 1;
+      const cc = k < 1 ? { ...c, dw: dw * k, dh: dh * k, area: areaF * k * k } : c;
+      const score = Math.abs(cc.area - mid) + (cutX + cutY) * 0.05;
+      if (!best || score < best.score) best = { ...cc, score };
+    }
+  }
+  const c = best ?? biggest; if (!c) return null;
+  const dw = Math.round(c.dw), dh = Math.round(c.dh);
+  const left = Math.round(w - dw * (1 - c.cutX)), top = Math.round(h - dh * (1 - c.cutY));
+  return { left, top, dw, dh, cutX: Math.round(c.cutX * 100) / 100, cutY: Math.round(c.cutY * 100) / 100, vis: Math.round(c.vis * 100) / 100, area: Math.round(c.area * 1000) / 1000, reached: !!best };
+}
+// 블리드 배치를 그린다 — 보이는 네모(left·top → 캔버스 오른쪽·아래 끝)에 그림을 제 크기(dw)로, 왼쪽 위에 붙여서. 넘치는 오른쪽·아래는 지면 밖
+export function bleedLayer(style, P, w, h) {
+  const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return `<div data-object="1" data-bleed="1" style="position:absolute;left:${P.left}px;top:${P.top}px;width:${w - P.left}px;height:${h - P.top}px;background:url('${url}') 0px 0px/${P.dw}px auto no-repeat;--kv-bleed:1"></div>`;
 }

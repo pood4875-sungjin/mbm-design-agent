@@ -26,6 +26,7 @@ import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
+import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
 
 const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };   // 상세 라벨 알약 톤(style.chipTone)
@@ -855,7 +856,7 @@ function kvDiagnosis(it, meta) {
 }
 function slotStyle() {
   const it = state.intake;
-  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, background: { mode: it.bgMode, color: it.bgColor } };
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
@@ -897,6 +898,7 @@ function slotStyle() {
   renderSuggests();
   renderDpi();
   bindUpload($('kvThumb'), $('kvFile'), async d => {
+    d = await prepKv(d);
     it.kv = d;
     $('kvHint').textContent = '분석 중…';
     try {
@@ -922,6 +924,7 @@ function slotStyle() {
     try { it.logoSuggests = await analyzeLogo(d); } catch { it.logoSuggests = []; }
     // 흰색 로고만 올렸으면 그게 다크용 로고이기도 하다 — 지면은 어두운 브랜드색으로 간다
     try { it.logoTone = await logoToneOf(d); } catch { it.logoTone = 'dark'; }
+    try { it.logoMeta = await logoMetaOfUrl(d); } catch { it.logoMeta = null; }   // 세로 로고 크기·타일 로고 반전 여부(core/logo.js logoMeta → 렌더러)
     if (it.logoLightManual) it.logoTone = it.logoTone === 'light' ? 'light' : 'both';
     else if (it.logoTone === 'light') it.logoLight = d;
     else it.logoLight = null;
@@ -938,6 +941,7 @@ function slotStyle() {
   bindUpload($('logoLightThumb'), $('logoLightFile'), async d => { d = (await prepLogo(d)).dataUrl; it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
   // 오브젝트 누끼 — 누끼가 필요한 자리에만 쓴다. 배경이 있는 그림이면 그 자리에 못 쓰니 바로 알려 준다
   bindUpload($('objThumb'), $('objFile'), async d => {
+    d = await prepKv(d);
     it.object = d;
     try {
       const { meta } = await analyzeKeyVisual(d);
@@ -1073,10 +1077,11 @@ $('cvFile').onclick = () => $('cvFileIn').click();
 $('cvFileIn').onchange = () => {
   const f = $('cvFileIn').files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => {
-    state.intake.kv = r.result;
+  r.onload = async () => {
+    const kv = await prepKv(r.result);
+    state.intake.kv = kv;
     bub('user', `키비주얼 첨부: ${f.name}`);
-    analyzeKeyVisual(r.result).then(({ suggests, readability, meta }) => {
+    analyzeKeyVisual(kv).then(({ suggests, readability, meta }) => {
       state.intake.suggests = suggests; state.intake.kvReadability = readability; state.intake.kvMeta = meta;
       state.intake.colorsManual = false;
       applyDerived();
@@ -1133,29 +1138,11 @@ async function knockoutLogo(dataUrl) {
   const W = img.width, H = img.height; if (!W || !H || W * H > 4_000_000) return null;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
-  const id = g.getImageData(0, 0, W, H), d = id.data;
-  const px = (x, y) => { const i = (y * W + x) * 4; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; };
-  const inset = Math.max(1, Math.round(Math.min(W, H) * 0.02));
-  const corners = [px(inset, inset), px(W - 1 - inset, inset), px(inset, H - 1 - inset), px(W - 1 - inset, H - 1 - inset)];
-  if (corners.some(c => c[3] < 250)) return null;   // 이미 투명 배경
-  const dist = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
-  if (corners.some(c => dist(c, corners[0]) > 30)) return null;   // 모서리 색이 제각각 — 단색 배경이 아니다
-  const bg = corners.reduce((a, c) => [a[0] + c[0] / 4, a[1] + c[1] / 4, a[2] + c[2] / 4], [0, 0, 0]);
-  const seen = new Uint8Array(W * H); const stack = [];
-  const push = (x, y) => { const k = y * W + x; if (!seen[k]) { seen[k] = 1; stack.push(k); } };
-  for (let x = 0; x < W; x++) { push(x, 0); push(x, H - 1); } for (let y = 0; y < H; y++) { push(0, y); push(W - 1, y); }
-  let removed = 0;
-  while (stack.length) {
-    const k = stack.pop(); const x = k % W, y = (k - x) / W; const i = k * 4;
-    const dd = Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]);
-    if (dd >= 110) continue;                        // 로고 픽셀 — 여기서 멈춘다
-    d[i + 3] = dd < 60 ? 0 : Math.round(255 * (dd - 60) / 50);   // 바깥은 투명, 경계는 부드럽게
-    removed++;
-    if (x > 0) push(x - 1, y); if (x < W - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < H - 1) push(x, y + 1);
-  }
-  if (removed < W * H * 0.02) return null;
+  const id = g.getImageData(0, 0, W, H);
+  const k = knockoutLogoRGBA(id.data, W, H);   // 규칙은 core/logo.js 한 곳(케이스 장부와 같은 규칙)
+  if (!k) return null;
   g.putImageData(id, 0, 0);
-  return { dataUrl: cv.toDataURL('image/png'), removed: Math.round(removed / (W * H) * 100) };
+  return { dataUrl: cv.toDataURL('image/png'), removed: k.removed };
 }
 // 로고 여백 트림 — 투명 여백이 큰 로고 PNG는 칸 높이에 맞춰도 글자가 작다(10-06 사용자 "로고가 너무 작은데": 276×91 중 글자 높이 21px = 23%).
 // 불투명 픽셀(α>10)의 상자를 찾아 그 상자(+긴 변의 3% 숨)로 잘라낸다. 불투명 그림(배경 있는 로고)이거나 잘라낼 게 8% 미만이면 원본 그대로.
@@ -1165,20 +1152,17 @@ async function trimLogo(dataUrl) {
   const W = img.width, H = img.height; if (!W || !H || W * H > 4_000_000) return null;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
-  const d = g.getImageData(0, 0, W, H).data;
-  let x0 = W, y0 = H, x1 = -1, y1 = -1, opaque = 0;
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    if (d[(y * W + x) * 4 + 3] <= 10) continue;
-    opaque++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
-  }
-  if (x1 < 0 || opaque > W * H * 0.97) return null;
-  const pad = Math.max(1, Math.round(Math.max(x1 - x0, y1 - y0) * 0.03));
-  x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
-  const tw = x1 - x0 + 1, th = y1 - y0 + 1;
-  if (tw * th > W * H * 0.92) return null;
-  const out = document.createElement('canvas'); out.width = tw; out.height = th;
-  out.getContext('2d').drawImage(cv, x0, y0, tw, th, 0, 0, tw, th);
-  return { dataUrl: out.toDataURL('image/png'), from: [W, H], to: [tw, th] };
+  const t = trimBox(g.getImageData(0, 0, W, H).data, W, H);   // core/logo.js
+  if (!t) return null;
+  const out = document.createElement('canvas'); out.width = t.w; out.height = t.h;
+  out.getContext('2d').drawImage(cv, t.x, t.y, t.w, t.h, 0, 0, t.w, t.h);
+  return { dataUrl: out.toDataURL('image/png'), from: [W, H], to: [t.w, t.h] };
+}
+// 키비주얼 누끼도 같은 트림 — 투명 여백이 큰 누끼 PNG(여우 위아래·좌우 12%)는 자리에 맞춰 넣어도 실제 캐릭터가 작게 떠서 띠가 빈다(10-08 케이스 장부 NAP 320×480 빈 띠 30%).
+// 배경 있는 그림·사진은 불투명 97% 넘어서 trimLogo가 그대로 돌려준다
+async function prepKv(dataUrl) {
+  try { const t = await trimLogo(dataUrl); if (t) return t.dataUrl; } catch {}
+  return dataUrl;
 }
 // 로고 손질 한 번에 — 누끼(단색 배경 제거) → 여백 트림. 돌려주는 note는 사용자에게 알릴 한 줄
 async function prepLogo(dataUrl) {
@@ -1193,14 +1177,16 @@ async function logoToneOf(dataUrl) {
   const W = 160, H = Math.max(1, Math.round(W * (img.height || 1) / (img.width || 1)));
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, W, H);
-  const d = g.getImageData(0, 0, W, H).data; let n = 0, lum = 0, sat = 0;
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] < 128) continue;
-    const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255;
-    lum += 0.2126 * r + 0.7152 * gg + 0.0722 * b; sat += Math.max(r, gg, b) - Math.min(r, gg, b); n++;
-  }
-  if (!n) return 'dark';
-  return (lum / n > 0.8 && sat / n < 0.25) ? 'light' : 'dark';
+  return logoToneOfRGBA(g.getImageData(0, 0, W, H).data, W, H);   // core/logo.js
+}
+async function logoMetaOfUrl(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const W = img.width, H = img.height; if (!W || !H) return null;
+  const s = Math.min(1, 400 / Math.max(W, H)), w = Math.max(1, Math.round(W * s)), h = Math.max(1, Math.round(H * s));
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h);
+  return { ...logoMetaRGBA(g.getImageData(0, 0, w, h).data, w, h), px: [W, H] };   // px는 원본 크기
 }
 async function analyzeLogo(dataUrl) {
   const img = new Image();
@@ -1249,6 +1235,7 @@ function buildAndGenerate() {
     logo: it.logo,
     logoLight: it.logoLight ?? null,
     logoTone: it.logoTone ?? null,
+    logoMeta: it.logoMeta ?? null,
     object: it.object ?? null,
     objectMeta: it.objectMeta ?? null,
     mode: it.mode,
@@ -1799,10 +1786,11 @@ function renderInspector() {
       const r = new FileReader();
       r.onload = async () => {
         let readability = null, suggests = [], meta = null;
-        try { ({ readability, suggests, meta } = await analyzeKeyVisual(r.result)); } catch {}
+        const kv = await prepKv(r.result);
+        try { ({ readability, suggests, meta } = await analyzeKeyVisual(kv)); } catch {}
         // 로고가 있으면 주색은 로고가 맡고 키비주얼은 보조·포인트만 바꾼다 — 이미지를 갈았다고 브랜드 색이 바뀌면 안 된다
         const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, mode: c.style.mode, kvColors: suggests });
-        restyle({ keyVisual: r.result, kvReadability: readability, kvMeta: meta, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
+        restyle({ keyVisual: kv, kvReadability: readability, kvMeta: meta, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
         toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
       };

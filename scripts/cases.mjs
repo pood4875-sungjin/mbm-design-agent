@@ -5,8 +5,13 @@
 //   node scripts/cases.mjs add <그림> --id <id> [--logo <파일>] [--note "..."] [--primary #HEX] [--fields '{"client":…}']
 //   node scripts/cases.mjs run [id …] [--shots]        전 케이스(또는 지정) 재렌더 + 검수 → ref/learned/cases/_out/index.html
 //   node scripts/cases.mjs verdict <id> <specId|*> ok|issue "메모"     사람 판정 기록(데이터)
+//   node scripts/cases.mjs sheet [--specs a,b]                사람 판정 시트(대표 규격 × 전 케이스) → _out/verdict.html
+//   node scripts/cases.mjs verdict-import <json>              판정 시트에서 내려받은 판정 일괄 기록
+//   node scripts/cases.mjs trim | remeasure [id …]            누끼 여백 트림(한 번) · 측정값 다시 재기
 //   node scripts/cases.mjs list
-import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync } from 'node:fs';
+//   node scripts/cases.mjs intake [폴더] [--round "..."]   폴더(기본 ref/learned/cases/_inbox)의 그림을 한 번에 add + run --shots + 보고서(_out/intake-날짜.md)
+//                                                        <이름>.logo.png 는 같은 이름 그림의 로고로 붙는다. 처리한 파일은 _inbox/done/ 으로 옮긴다
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
@@ -21,6 +26,7 @@ mkdirSync(OUT, { recursive: true });
 const core = async f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
 const { fieldFromImage, extractPalette, edgeColor } = await core('palette.js');
 const { kvTypeOf, kvTypeSummary } = await core('kvtypes.js');
+const { prepLogoRGBA, logoMeta } = await core('logo.js');
 
 const ledger = () => existsSync(LEDGER) ? JSON.parse(readFileSync(LEDGER, 'utf8')) : { cases: [] };
 const save = l => writeFileSync(LEDGER, JSON.stringify(l, null, 2));
@@ -31,6 +37,24 @@ const flag = k => argv.includes(k);
 const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1].startsWith('--')));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const DEFAULT_FIELDS = { client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', applyUrl: 'https://hanjin.example' };
+
+// 로고 손질 — 앱(prepLogo: 단색 바탕 지우기 → 여백 트림)과 같은 규칙(core/logo.js). 손질했으면 dst에 PNG로 쓰고 note, 로고 실측(톤 포함)을 돌려준다
+function rgbaOf(file, long = 480) { const j = JSON.parse(execFileSync('python3', [path.join(ROOT, 'scripts/case-rgba.py'), file, String(long)], { maxBuffer: 256 * 1024 * 1024 }).toString()); return { ...j, rgba: new Uint8ClampedArray(Buffer.from(j.rgba, 'base64')) }; }
+function prepLogoFile(src, dst) {
+  const j = rgbaOf(src, 0);
+  const r = prepLogoRGBA(j.rgba, j.w, j.h);
+  if (r.changed) execFileSync('python3', ['-c', `import sys; from PIL import Image; Image.frombytes('RGBA', (${r.w}, ${r.h}), sys.stdin.buffer.read()).save(${JSON.stringify(dst)})`], { input: Buffer.from(r.rgba.buffer, r.rgba.byteOffset, r.rgba.byteLength) });
+  return { changed: r.changed, note: r.note, meta: r.meta };
+}
+function logoMetaOf(file) { const j = rgbaOf(file, 0); return logoMeta(j.rgba, j.w, j.h); }
+
+// 렌더 스타일 — 앱과 같게: 로고 톤은 로고 실측(흰색 로고면 logoLight도 그 로고 — app.js 로고 올리기). 예전엔 톤을 'dark'로 박아 흰색 로고가 밝은 지면에서 사라졌다
+function styleInput(c, dir, meta) {
+  const logo = c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null;
+  if (c.logo && !c.logoMeta) c.logoMeta = logoMetaOf(path.join(dir, c.logo));
+  const tone = c.logoMeta?.tone ?? 'dark';
+  return { colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, logo, logoLight: tone === 'light' ? logo : null, logoTone: tone, logoMeta: c.logoMeta ?? null };
+}
 
 function measure(file) {
   const j = JSON.parse(execFileSync('python3', [path.join(ROOT, 'scripts/case-rgba.py'), file], { maxBuffer: 64 * 1024 * 1024 }).toString());
@@ -43,15 +67,49 @@ if (cmd === 'add') {
   const id = opt('--id') ?? path.basename(src).replace(/\.[^.]+$/, '').replace(/[^\w가-힣-]+/g, '-');
   const dir = path.join(CASES, id); mkdirSync(dir, { recursive: true });
   const kv = 'kv' + path.extname(src).toLowerCase(); copyFileSync(src, path.join(dir, kv));
-  let logo = null; if (opt('--logo')) { logo = 'logo' + path.extname(opt('--logo')).toLowerCase(); copyFileSync(opt('--logo'), path.join(dir, logo)); }
+  // 누끼 투명 여백 트림 — 앱(prepKv)과 같은 규칙. 원본은 kv-orig로 남긴다
+  { const t = execFileSync('python3', [path.join(ROOT, 'scripts/case-trim.py'), path.join(dir, kv), path.join(dir, 'kv-trim.png')]).toString().trim();
+    if (t !== 'keep') { copyFileSync(path.join(dir, kv), path.join(dir, 'kv-orig' + path.extname(kv))); copyFileSync(path.join(dir, 'kv-trim.png'), path.join(dir, kv)); console.log('여백 트림', t); } }
+  let logo = null, logoMetaV = null;
+  if (opt('--logo')) {
+    const ext = path.extname(opt('--logo')).toLowerCase(); logo = 'logo' + ext; copyFileSync(opt('--logo'), path.join(dir, logo));
+    // 앱과 같은 손질(바탕 지우기·트림) — 원본은 logo-orig로 남긴다
+    const p = prepLogoFile(path.join(dir, logo), path.join(dir, 'logo-prep.png'));
+    if (p.changed) { copyFileSync(path.join(dir, logo), path.join(dir, 'logo-orig' + ext)); logo = 'logo.png'; copyFileSync(path.join(dir, 'logo-prep.png'), path.join(dir, logo)); console.log('로고 손질', p.note); }
+    logoMetaV = p.meta;
+  }
   const meta = measure(path.join(dir, kv));
   writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1));
   const l = ledger();
-  const entry = { id, kv, logo, note: opt('--note') ?? '', primary: opt('--primary') ?? null, fields: opt('--fields') ? JSON.parse(opt('--fields')) : null, addedAt: new Date().toISOString().slice(0, 10), type: kvTypeOf(meta)?.id ?? null, summary: kvTypeSummary(meta), verdicts: [] };
+  const entry = { id, kv, logo, note: opt('--note') ?? '', primary: opt('--primary') ?? null, logoMeta: logoMetaV, fields: opt('--fields') ? JSON.parse(opt('--fields')) : null, addedAt: new Date().toISOString().slice(0, 10), type: kvTypeOf(meta)?.id ?? null, summary: kvTypeSummary(meta), verdicts: [] };
   l.cases = l.cases.filter(c => c.id !== id).concat(entry); save(l);
   console.log(`+ ${id}: ${entry.summary}`);
 }
 
+// 기존 케이스 누끼 여백 트림(한 번) — node scripts/cases.mjs trim [id …]
+if (cmd === 'trim') {
+  const l = ledger();
+  for (const c of l.cases.filter(c => !positional.length || positional.includes(c.id))) {
+    const dir = path.join(CASES, c.id);
+    if (existsSync(path.join(dir, 'kv-orig' + path.extname(c.kv)))) { console.log(c.id, '이미 트림'); continue; }
+    const t = execFileSync('python3', [path.join(ROOT, 'scripts/case-trim.py'), path.join(dir, c.kv), path.join(dir, 'kv-trim.png')]).toString().trim();
+    if (t === 'keep') { console.log(c.id, 'keep'); continue; }
+    copyFileSync(path.join(dir, c.kv), path.join(dir, 'kv-orig' + path.extname(c.kv)));
+    execFileSync('python3', ['-c', `from PIL import Image; Image.open(${JSON.stringify(path.join(dir, 'kv-trim.png'))}).save(${JSON.stringify(path.join(dir, c.kv))})`]);
+    writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(measure(path.join(dir, c.kv)), null, 1));
+    console.log(c.id, t);
+  }
+}
+// 측정값 다시 재기(측정 규칙을 바꿨을 때) — node scripts/cases.mjs remeasure [id …]
+if (cmd === 'remeasure') {
+  const l = ledger();
+  for (const c of l.cases.filter(c => !positional.length || positional.includes(c.id))) {
+    const dir = path.join(CASES, c.id); const meta = measure(path.join(dir, c.kv));
+    writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1)); c.type = kvTypeOf(meta)?.id ?? null; c.summary = kvTypeSummary(meta);
+    console.log(c.id.padEnd(14), c.summary);
+  }
+  save(l);
+}
 if (cmd === 'list') {
   for (const c of ledger().cases) console.log(`${c.id.padEnd(16)} ${c.summary}  ${c.note ? '— ' + c.note : ''}  판정 ${c.verdicts.length}`);
 }
@@ -61,6 +119,116 @@ if (cmd === 'verdict') {
   const l = ledger(); const c = l.cases.find(x => x.id === id); if (!c) throw new Error('없는 케이스 ' + id);
   c.verdicts.push({ specId, result, note: rest.join(' '), at: new Date().toISOString().slice(0, 10) });
   save(l); console.log(`기록: ${id} ${specId} ${result} ${rest.join(' ')}`);
+}
+
+// 사람 판정 일괄 기록 — 판정 시트(sheet)에서 내려받은 JSON [{id, specId, result, note}]
+if (cmd === 'verdict-import') {
+  const rows = JSON.parse(readFileSync(positional[0], 'utf8')); const l = ledger(); let n = 0;
+  for (const r of rows) { const c = l.cases.find(x => x.id === r.id); if (!c || !['ok', 'issue'].includes(r.result)) continue; c.verdicts.push({ specId: r.specId, result: r.result, note: r.note ?? '', at: new Date().toISOString().slice(0, 10) }); n++; }
+  save(l); console.log(`판정 ${n}건 기록`);
+}
+
+// 사람 판정 시트 — 대표 규격(가로형·가로 열·세로형·정사각) × 전 케이스를 한 장에. 칸마다 OK/문제 + 메모 → JSON 내려받기 → verdict-import
+//   node scripts/cases.mjs sheet [--specs a,b,c]   → ref/learned/cases/_out/verdict.html
+// 자동 검수(core/adcheck.js)는 4종만 본다 — 여기서 사람이 본 '문제'가 다음 검수 규칙의 근거가 된다
+if (cmd === 'sheet') {
+  const { renderArtifact } = await core('contract.js');
+  const { registerAll } = await core('generate.js');
+  const { createContext } = await core('context.js');
+  const { normalizeStyle } = await core('style.js');
+  const { specOf } = await core('media.js');
+  registerAll();
+  const l = ledger();
+  const specs = (opt('--specs') ?? 'google-gdn-580x400,remember-main-top-mo,google-gdn-300x600,instagram-feed-1080').split(',');
+  const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
+  const doc = inner => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0}</style></head><body>${inner}</body></html>`;
+  const BOX = 260;   // 칸 하나의 긴 변(px)
+  const checksOf = id => { const p = path.join(OUT, id + '.checks.json'); return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : {}; };
+  const rows = l.cases.map(c => {
+    const dir = path.join(CASES, c.id), meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8'));
+    const style = normalizeStyle(styleInput(c, dir, meta));
+    const ctx = createContext(c.fields ?? DEFAULT_FIELDS, 'recruit');
+    const ch = checksOf(c.id);
+    const last = Object.fromEntries((c.verdicts ?? []).map(v => [v.specId, v]));
+    const cells = specs.map(sid => {
+      const sp = specOf(sid); const sc = Math.min(1, BOX / Math.max(sp.w, sp.h));
+      let html; try { html = renderArtifact(sid, ctx, style, {}); } catch (e) { html = `<div style="color:red">${esc(e.message)}</div>`; }
+      const warns = (ch[sid]?.warnings ?? []).filter(w => w.level !== 'info').map(w => w.msg);
+      const prev = last[sid];
+      return `<td><div class="box" style="width:${Math.round(sp.w * sc)}px;height:${Math.round(sp.h * sc)}px"><iframe loading="lazy" style="width:${sp.w}px;height:${sp.h}px;transform:scale(${sc})" srcdoc="${esc(doc(html))}"></iframe></div>
+<div class="auto">${warns.length ? '자동: ' + esc(warns.join(' · ')) : '자동 검수 통과'}</div>${prev ? `<div class="prev">지난 판정 ${prev.at}: ${prev.result === 'ok' ? 'OK' : '문제'} ${esc(prev.note)}</div>` : ''}
+<div class="v" data-id="${c.id}" data-spec="${sid}"><button data-r="ok">OK</button><button data-r="issue">문제</button><input placeholder="무엇이 어색한가 (예: 여우 귀가 잘림)"></div></td>`;
+    }).join('');
+    return `<tr><th><b>${esc(c.id)}</b><small>${esc(c.summary)}</small><small class="n">${esc(c.note)}</small></th>${cells}</tr>`;
+  }).join('');
+  const page = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판정 시트</title><link rel="stylesheet" href="${FONT}"><style>
+:root{--bg:#f4f4f2;--card:#fff;--ink:#1a1a1a;--sub:#666;--line:#dcdcd8;--ok:#1f7a4d;--bad:#b3261e;--focus:#2b59c3}
+@media (prefers-color-scheme:dark){:root{--bg:#161616;--card:#202020;--ink:#eee;--sub:#aaa;--line:#3a3a3a;--ok:#5bc48c;--bad:#ff8a80;--focus:#8fb0ff}}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 Pretendard,system-ui,sans-serif}
+header{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+h1{font-size:16px;margin:0}header p{margin:0;color:var(--sub);flex:1 1 320px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.wrap{overflow-x:auto;padding:0 16px 40px}table{border-collapse:separate;border-spacing:0 12px}
+th{text-align:left;vertical-align:top;width:180px;padding-right:12px;position:sticky;left:0;background:var(--bg)}th small{display:block;color:var(--sub);font-weight:400}th .n{margin-top:4px}
+thead th{position:static;font-weight:600}
+td{vertical-align:top;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:8px;min-width:270px}
+.box{position:relative;overflow:hidden;outline:1px solid var(--line)}.box iframe{border:0;position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+.auto{color:var(--sub);font-size:12px;margin-top:6px;max-width:270px}.prev{font-size:12px;color:var(--sub)}
+.v{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.v input{flex:1 1 140px;min-width:0;font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+.v button[aria-pressed=true][data-r=ok]{background:var(--ok);color:#fff;border-color:var(--ok)}.v button[aria-pressed=true][data-r=issue]{background:var(--bad);color:#fff;border-color:var(--bad)}
+#count{font-weight:600}
+</style></head><body>
+<header><h1>판정 시트</h1><p>대표 규격 ${specs.length}개 × 케이스 ${l.cases.length}개. 칸마다 OK·문제를 누르고, 문제면 무엇이 어색한지 한 줄. 끝나면 [판정 내려받기] → <code>node scripts/cases.mjs verdict-import &lt;파일&gt;</code></p>
+<span id="count">0건</span><button id="dl">판정 내려받기</button></header>
+<div class="wrap"><table><thead><tr><th></th>${specs.map(sid => { const sp = specOf(sid); return `<th>${esc(sid)}<small>${sp.w}×${sp.h}</small></th>`; }).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+<script>
+const KEY='verdict-sheet'; let st={}; try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch{}; document.getElementById('count').textContent=Object.values(st).filter(v=>v.result).length+'건'};
+document.querySelectorAll('.v').forEach(v=>{const k=v.dataset.id+'|'+v.dataset.spec, inp=v.querySelector('input');
+  const paint=()=>v.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(st[k]?.result===b.dataset.r)));
+  if(st[k]) inp.value=st[k].note||''; paint();
+  v.querySelectorAll('button').forEach(b=>b.onclick=()=>{st[k]={...(st[k]||{}),result:st[k]?.result===b.dataset.r?null:b.dataset.r,note:inp.value};paint();save()});
+  inp.oninput=()=>{st[k]={...(st[k]||{}),note:inp.value};save()};});
+save();
+document.getElementById('dl').onclick=()=>{const rows=Object.entries(st).filter(([,v])=>v.result).map(([k,v])=>{const[id,specId]=k.split('|');return{id,specId,result:v.result,note:v.note||''}});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(rows,null,1)],{type:'application/json'}));a.download='verdicts-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+</script></body></html>`;
+  writeFileSync(path.join(OUT, 'verdict.html'), page);
+  console.log('판정 시트 →', path.join(OUT, 'verdict.html'));
+}
+
+// 일괄 접수 — 키비주얼 여러 장을 폴더에 두면 add → 해당 케이스만 run --shots → 케이스별 경고 요약 보고서
+if (cmd === 'intake') {
+  const inbox = path.resolve(positional[0] ?? path.join(CASES, '_inbox')); mkdirSync(inbox, { recursive: true });
+  const IMG = /\.(png|jpe?g|webp)$/i;
+  const files = readdirSync(inbox).filter(f => IMG.test(f) && !/\.logo\./i.test(f));
+  if (!files.length) { console.log('접수할 그림 없음 →', inbox); process.exit(0); }
+  const ids = [];
+  for (const f of files) {
+    const base = f.replace(/\.[^.]+$/, ''); const id = base.replace(/[^\w가-힣-]+/g, '-');
+    const logo = readdirSync(inbox).find(x => x.toLowerCase().startsWith(base.toLowerCase() + '.logo.'));
+    const args = [path.join(ROOT, 'scripts/cases.mjs'), 'add', path.join(inbox, f), '--id', id, '--note', `intake ${new Date().toISOString().slice(0, 10)} · ${f}`];
+    if (logo) args.push('--logo', path.join(inbox, logo));
+    console.log(execFileSync(process.execPath, args).toString().trim()); ids.push(id);
+    const done = path.join(inbox, 'done'); mkdirSync(done, { recursive: true });
+    renameSync(path.join(inbox, f), path.join(done, f)); if (logo) renameSync(path.join(inbox, logo), path.join(done, logo));
+  }
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts/cases.mjs'), 'run', ...ids, '--shots', '--round', opt('--round') ?? `intake ${ids.length}건: ${ids.join(', ')}`], { stdio: 'inherit' });
+  const l = ledger(); const day = new Date().toISOString().slice(0, 10);
+  const md = [`# 키비주얼 자동 검수 — ${day} (${ids.length}건)`, ''];
+  let tot = 0;
+  for (const id of ids) {
+    const c = l.cases.find(x => x.id === id); const checks = JSON.parse(readFileSync(path.join(OUT, `${id}.checks.json`), 'utf8'));
+    const bad = Object.entries(checks).filter(([, r]) => r?.warnings?.some(w => w.level !== 'info')); tot += bad.length;
+    const errs = Object.entries(checks).filter(([, r]) => r?.error);
+    md.push(`## ${id} — 경고 ${bad.length}/${Object.keys(checks).length}`, `- 유형: ${c.summary}`, `- 시트: _out/${id}.html · 스크린샷: _out/${id}.png`);
+    if (errs.length) md.push(`- 검수 실패 ${errs.length}: ${errs.map(([s]) => s).join(', ')}`);
+    for (const [sid, r] of bad) md.push(`  - ${sid}: ${r.warnings.filter(w => w.level !== 'info').map(w => `[${w.code}] ${w.msg}`).join(' · ')}`);
+    md.push('');
+  }
+  md.splice(1, 0, `경고 합계 ${tot} · 케이스 장부 _out/index.html`);
+  const rp = path.join(OUT, `intake-${day}.md`); writeFileSync(rp, md.join('\n')); console.log('보고서 →', rp);
 }
 
 if (cmd === 'run') {
@@ -82,7 +250,7 @@ if (cmd === 'run') {
     const dir = path.join(CASES, id);
     const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8'));
     c.type = kvTypeOf(meta)?.id ?? null; c.summary = kvTypeSummary(meta);
-    const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, logo: c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, logoTone: 'dark' });
+    const style = normalizeStyle(styleInput(c, dir, meta));
     const ctx = createContext(c.fields ?? DEFAULT_FIELDS, 'recruit');
     const sc = 0.5;
     const cells = specIds.map(sid => {
@@ -102,7 +270,17 @@ h1{font-size:18px;margin:0 0 4px}.sub{font-size:12px;color:#666;margin-bottom:14
 <script type="module">
 import { checkAdDoc } from '${pathToFileURL(path.join(ROOT, 'core/adcheck.js')).href}';
 const kvMeta = ${JSON.stringify(meta)};
-await new Promise(r => setTimeout(r, 1500));
+// 고정 대기(1.5초)는 전체 실행 부하에서 그림·폰트가 다 뜨기 전에 재서 결과가 흔들렸다(10-08: 동서 모델 혼자 0건 · 전체 5건).
+// 프레임마다 문서 로드 + 폰트 준비 + 배경 그림 디코드까지 기다린 뒤 잰다(상한 20초)
+const settle = async f => {
+  const d = f.contentDocument; if (!d) return;
+  if (d.readyState !== 'complete') await new Promise(r => f.addEventListener('load', r, { once: true }));
+  await d.fonts?.ready;
+  const urls = [...d.querySelectorAll('*')].map(e => getComputedStyle(e).backgroundImage).flatMap(b => [...b.matchAll(/url\("?([^")]+)"?\)/g)].map(m => m[1]));
+  await Promise.all([...new Set(urls)].map(u => new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = u; })));
+};
+await Promise.race([Promise.all([...document.querySelectorAll('iframe[data-spec]')].map(settle)), new Promise(r => setTimeout(r, 20000))]);
+await new Promise(r => setTimeout(r, 300));
 const out = {};
 for (const f of document.querySelectorAll('iframe[data-spec]')) {
   try { const r = checkAdDoc(f.contentDocument, { kvMeta }); out[f.dataset.spec] = r; const w = document.getElementById('w-' + f.dataset.spec); if (r?.warnings.length) { w.textContent = r.warnings.map(x => x.msg).join(' · '); f.closest('.cell').classList.add('bad'); } }
@@ -113,7 +291,7 @@ document.documentElement.dataset.done = '1';
 </script></body></html>`;
     const sheetPath = path.join(OUT, `${id}.html`); writeFileSync(sheetPath, sheet);
     let dom = '';
-    try { dom = execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=12000', '--window-size=2200,1200', '--dump-dom', pathToFileURL(sheetPath).href], { maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); }
+    try { dom = execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=30000', '--window-size=2200,1200', '--dump-dom', pathToFileURL(sheetPath).href], { maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); }
     catch (e) { console.warn(id, 'chrome 실패', e.message.slice(0, 120)); }
     const m = dom.match(/<pre id="checks">([\s\S]*?)<\/pre>/);
     let checks = {};

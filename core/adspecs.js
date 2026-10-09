@@ -26,7 +26,7 @@ export function adSpecEntries() {
         format: fmts.filter(f => f !== 'text'), maxKB: s.maxKB ?? null,
         confidence: s.confidence,
         // 이미지 밖 텍스트 — 소재에 그리지 않고 매체 시스템에 따로 넘기는 글자 (검수 체크리스트·전달 세트에 쓴다)
-        outsideTexts: (s.textLimits ?? []).filter(t => /이미지 밖/.test(String(t.field ?? ''))).map(t => ({ field: t.field, maxChars: t.maxChars ?? null, lines: t.lines ?? null })),
+        outsideTexts: (s.textLimits ?? []).filter(t => t.inImage === false || /이미지 밖/.test(String(t.field ?? ''))).map(t => ({ field: t.field, maxChars: t.maxChars ?? null, lines: t.lines ?? null })),
         rules: s,            // 검사기가 쓰는 규칙 원본 (참조)
         mediumRules: m,      // 글자색·글꼴·글자수 계산법 등 매체 공통 규칙
       };

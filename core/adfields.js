@@ -21,7 +21,8 @@ const RULES = [
 ];
 
 // "이미지 밖 텍스트 필드"는 매체 시스템이 이미지 옆에 따로 보여 주는 글자다 — 소재 안에 그리지도, 소재 검사에 쓰지도 않는다.
-export const inImage = t => !/이미지 밖/.test(String(t?.field ?? ''));
+// inImage:false — 매체가 이미지가 아니라 텍스트로 따로 받는 문구(자소설 M채팅목록배너 로고 규격의 메인·상세 문구: '이미지가 아니라 텍스트로 전달'). 로고 전용 판정에서도 빠진다
+export const inImage = t => t?.inImage !== false && !/이미지 밖/.test(String(t?.field ?? ''));
 
 export function roleOf(field) {
   const f = String(field ?? '');

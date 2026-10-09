@@ -1,0 +1,123 @@
+// Figma 9월 공채 타이포 비교(ref/learned/cases/_out/figma-sep-typo.md)에서 채택한 규칙 A1~A7·B1 + 10-08 밤 충돌 조정(B2~B4)
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { renderAd } from '../core/renderers/ad.js';
+import { adSpecEntries } from '../core/adspecs.js';
+import { createContext } from '../core/context.js';
+import { normalizeStyle } from '../core/style.js';
+import { layoutFor } from '../core/layouts.js';
+import { CANON } from '../core/canon.js';
+
+const col = arr => arr.map(bg => ({ bg }));
+const RING = { ar: 1.71, px: [1710, 1000], field: { kind: 'cutout', opaque: 0.04, lum: 0.48, sat: 0.3, semi: 0.157, focus: { x: 0.5, y: 0.49, w: 0.94, h: 0.86, parts: 1, others: [], density: 0.57 }, cols: col([1, 0.6, 0.4, 0.3, 0.3, 0.4, 0.5, 1]), rows: col([1, 0.6, 0.4, 0.3, 0.3, 0.4, 0.5, 1]) } };
+const specs = adSpecEntries();
+const fields = { client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기', slogan: '자소서 없는 간편지원', role: '자유직무, 경영·제품·사업 분야', employType: '신입·경력', startDate: '2025-09-22', deadline: '2025-10-12' };
+const ctx = createContext(fields, 'recruit');
+const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+const style = normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark' });
+const plain = normalizeStyle({ colors: ['#00146E'] });
+const tagOf = (html, role) => html.match(new RegExp(`<div data-field="${role}" style="([^"]*)"`))?.[1] ?? null;
+const textOf = (html, role) => html.match(new RegExp(`<div data-field="${role}"[^>]*>([\\s\\S]*?)</div>`))?.[1] ?? null;
+// 상세 블록은 안에 줄마다 div가 있다 — 블록 시작부터 끝까지(다음 형제 전까지) 통째로
+const detailOf = html => { const i = html.indexOf('<div data-field="detail"'); return i < 0 ? '' : html.slice(i, html.indexOf('</div></div>', i) + 12); };
+const num = (css, k) => Number(css?.match(new RegExp(`${k}:(-?[\\d.]+)`))?.[1]);
+
+test('A1 가로형 줄 간격: 메인 1.25 · 서브·상세 1.3 (디자이너 가로형 4/4가 1.2~1.25)', () => {
+  for (const [w, h] of [[1200, 600], [2240, 360], [1029, 258]]) {
+    const L = layoutFor(w, h);
+    assert.equal(L.mainLine, 1.25); assert.equal(L.subLine, 1.3); assert.equal(L.detailLine, 1.3);
+  }
+  const css = tagOf(renderAd(ctx, style, specs['kakao-display-pc-promo']), 'main');
+  assert.equal(num(css, 'line-height'), 1.25);
+});
+
+test('A2 세로형·정사각 메인 줄 간격 1.28 — 구글 가이드 1.22·세로 띠 1.4는 그대로', () => {
+  assert.equal(layoutFor(600, 880).mainLine, 1.28);
+  assert.equal(layoutFor(1080, 1080).mainLine, 1.28);
+  assert.equal(layoutFor(160, 600).mainLine, 1.4);
+  assert.equal(num(tagOf(renderAd(ctx, style, specs['google-gdn-300x600']), 'main'), 'line-height'), 1.22);
+  assert.equal(num(tagOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo']), 'main'), 'line-height'), 1.28);
+});
+
+test('A3 메인 자간 −2.5%(28px 이상) — 자소설·에브리타임(템플릿 실측 0%)과 작은 메인은 0', () => {
+  assert.deepEqual(CANON.tracking, { main: -0.025, mainMinPx: 28 });
+  let on = 0, off = 0;
+  for (const [id, sp] of Object.entries(specs)) {
+    const html = renderAd(ctx, style, sp); const css = tagOf(html, 'main'); if (!css) continue;
+    const fs = num(css, 'font-size'), ls = css.match(/letter-spacing:([^;]+)/)?.[1] ?? null;
+    if (['jasoseol', 'everytime'].includes(sp.medium) || fs < 28) { assert.equal(ls, null, `${id}: ${fs}px 메인 자간 없음`); off++; }
+    else { assert.equal(ls, '-0.025em', `${id}: ${fs}px 메인 자간 −2.5%`); on++; }
+    // 메인 밖 글자는 자간을 건드리지 않는다
+    for (const role of ['sub', 'date', 'detail']) assert.doesNotMatch(tagOf(html, role) ?? '', /letter-spacing/, `${id} ${role}`);
+  }
+  assert.ok(on > 10 && off > 10, `켜짐 ${on} · 꺼짐 ${off}`);
+});
+
+test('A4 상세 블록은 text-wrap:pretty, 끝 어절 2자 이하(「분야」)는 앞 어절에 붙는다 — 가운뎃점 묶음도 끊기지 않는다', () => {
+  const html = renderAd(ctx, style, specs['jasoseol-pc-standard-jobpost-pc']);
+  assert.match(tagOf(html, 'detail'), /text-wrap:pretty/);
+  const det = detailOf(html);
+  assert.match(det, /사업 분야/, '「사업 분야」 붙임');
+  assert.match(det, /경영⁠·⁠제품⁠·⁠사업/, '가운뎃점 양쪽 결합');
+  // 메인은 붙이지 않는다(균형 줄바꿈·줄 수 어림이 맡는다)
+  assert.doesNotMatch(textOf(renderAd(createContext({ ...fields, hiringType: '정규직 채용' }, 'recruit'), plain, specs['google-gdn-300x600']), 'main') ?? '', / /);
+});
+
+test('A5 쌓기 값은 쉼표로만 나눈다 — 「경영·제품·사업 분야」는 한 항목', () => {
+  const ctx2 = createContext({ ...fields, startDate: null, deadline: null }, 'recruit');   // 날짜가 없으면 정사각 쌓기 첫 항목이 모집직무
+  const html = renderAd(ctx2, plain, specs['instagram-feed-1080']);
+  const det = detailOf(html);
+  assert.match(det, /data-chip="1"/, '쌓기(알약 + 값)');
+  assert.match(det, /자유직무ㅣ​경영⁠·⁠제품/);
+  assert.doesNotMatch(det, /경영ㅣ|제품ㅣ/);
+});
+
+test('A7 혼자 선 날짜 줄은 라벨 없이(디자이너 12/12) — 상세 목록 안에서는 「접수기간」 라벨 유지', () => {
+  for (const id of ['blind-post-banner', 'kakao-display-pc-promo', 'jasoseol-pc-standard-main-pc']) {
+    const html = renderAd(ctx, style, specs[id]);
+    assert.doesNotMatch(html, /data-field="(date|sub)"[^>]*>접수기간/, id);
+    assert.match(html, /data-field="(date|sub)"[^>]*>9\.22\(월\) - 10\.12\(일\)</, id);
+  }
+  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo'])), /접수기간<\/b> : 9\.22/);
+});
+
+test('B1 메인 두 톤 강조는 스타일이 강조색을 줬고 지면 대비 4.5:1일 때만 — 기본 꺼짐, 자소설 꺼짐, 색을 짐작하지 않는다', () => {
+  const acc = normalizeStyle({ colors: ['#00146E'], accent: '#00ffe2', keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark' });
+  assert.equal(acc.accent, '#00FFE2');
+  assert.equal(style.accent, null, '입력이 없으면 강조색 없음(palette.accent 자동 생성색을 쓰지 않는다)');
+  const on = renderAd(ctx, acc, specs['blind-post-banner']);
+  assert.match(on, /data-field="main"[^>]*>[^]*?<span data-accent="1" style="color:#00FFE2">대규모 공개채용<\/span>/);
+  assert.doesNotMatch(renderAd(ctx, style, specs['blind-post-banner']), /data-accent/);
+  assert.doesNotMatch(renderAd(ctx, acc, specs['jasoseol-m-premium-popup-mo']), /data-accent/, '자소설 단색');
+  // 밝은 지면에서 대비가 모자라는 강조색은 켜지 않는다
+  const pale = normalizeStyle({ colors: ['#00146E'], accent: '#C5ECFF' });
+  assert.doesNotMatch(renderAd(ctx, pale, specs['google-gdn-580x400']), /data-accent/);
+});
+
+test('B2 좁은 세로 띠(폭 ≤ 320)의 단일 사물은 좌우 양쪽 + 아래로 흘린다', () => {
+  assert.equal(CANON.objectBleed.narrow.maxW, 320);
+  for (const id of ['google-gdn-300x1050', 'google-gdn-300x600']) {
+    const m = renderAd(ctx, style, specs[id]).match(/data-bleed="1" style="position:absolute;left:(-?\d+)px;top:(\d+)px;width:(\d+)px[^"]*\/(\d+)px auto/);
+    assert.ok(m, id);
+    const [left, , , dw] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4])];
+    assert.ok(left < 0 && left + dw > specs[id].w, `${id}: 왼쪽(${left})·오른쪽(${left + dw}) 모두 지면 밖`);
+  }
+});
+
+test('B3 카카오 3줄 = 메인 1(회사 + 채용구분) + 슬로건 1 + 날짜 1 — 서브가 회사·시즌으로 밀려나지 않는다', () => {
+  const html = renderAd(ctx, style, specs['kakao-display-pc-promo']);
+  assert.match(textOf(html, 'main'), /^마이다스 대규모 공개채용$/);
+  assert.equal(textOf(html, 'sub'), '자소서 없는 간편지원');
+  assert.match(html, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</);
+  assert.match(tagOf(html, 'main'), /-webkit-line-clamp:1;.*width:\d+px;max-width:none/, '메인 한 줄이 그림 열 위까지');
+  // 카카오 「이미지 내 텍스트 48~164px」 — 보조 줄도 48px 이상
+  for (const role of ['main', 'sub']) assert.ok(num(tagOf(html, role), 'font-size') >= 48, role);
+});
+
+test('B4 블리드 그림 옆 좁은 상세 열(인스타 1080)에서 날짜가 두 줄로 접히지 않게 상세를 줄인다', () => {
+  const html = renderAd(ctx, style, specs['instagram-feed-1080']);
+  const css = tagOf(html, 'detail');
+  assert.match(detailOf(html), /9\.22\(월\) - 10\.12\(일\)/, '날짜가 상세에 있다(필수)');
+  const fs = num(css, 'font-size');
+  assert.ok(fs >= 28 && fs < 51, `상세 ${fs}px — 1080 하한 28 · 예전 51`);
+});

@@ -706,13 +706,15 @@ export const MEDIA = [
             "field": "메인문구",
             "maxChars": 16,
             "lines": 1,
-            "note": "공백 포함 최대 16자 (PDF). 이미지가 아니라 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)"
+            "note": "공백 포함 최대 16자 (PDF). 이미지가 아니라 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)",
+            "inImage": false
           },
           {
             "field": "상세문구",
             "maxChars": 18,
             "lines": 1,
-            "note": "공백 포함 최대 18자 (PDF). 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)"
+            "note": "공백 포함 최대 18자 (PDF). 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)",
+            "inImage": false
           }
         ],
         "textLimitsSource": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.10 (보드에는 이 배너 글자수 표 없음)",
@@ -873,13 +875,15 @@ export const MEDIA = [
             "field": "메인문구",
             "maxChars": 16,
             "lines": 1,
-            "note": "공백 포함 최대 16자 (PDF). 이미지가 아니라 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)"
+            "note": "공백 포함 최대 16자 (PDF). 이미지가 아니라 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)",
+            "inImage": false
           },
           {
             "field": "상세문구",
             "maxChars": 18,
             "lines": 1,
-            "note": "공백 포함 최대 18자 (PDF). 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)"
+            "note": "공백 포함 최대 18자 (PDF). 텍스트로 전달. 행당 공백(띄어쓰기) 포함. 특수문자·영문은 2글자 = 1글자, 띄어쓰기 1글자 (figma 섹션 메모 420:2776)",
+            "inImage": false
           }
         ],
         "textLimitsSource": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.12 (보드에는 이 배너 글자수 표 없음)",
@@ -1143,7 +1147,20 @@ export const MEDIA = [
       "PC채용공고배너 예시 프레임은 프리미엄/스탠다드 두 칸에 같은 사례가 복제돼 있음 — examples는 프레임명의 패키지 기준으로 분류",
       "PDF 파일명은 23.08인데 표지는 'Updated: 2023.03' — 최신본 여부 확인 필요"
     ],
-    "textCounting": "half-latin"
+    "textCounting": "half-latin",
+    "guide": {
+      "note": "자소설 템플릿 실측 매체 — 메인 자간 0%(Figma 9월 공채 자소설 M팝업·PC메인·채용공고 모두 0%), 메인 단색(두 톤 강조 없음 3/3). canon.js 위에 이 키만 덮는다",
+      "source": "figma:Nssa9IZMvkQJF0bcXHKXzA 1151:5422/5560/5526 (ref/learned/cases/_out/figma-sep-typo.md)",
+      "tracking": {
+        "main": 0
+      },
+      "mainAccent": false,
+      "weights": {
+        "note": "자소설 템플릿 실측 굵기 — 메인 위 서브 「굵게」 700(M팝업 30px·채용공고 시즌 16px), 상세 값 Regular 400(채용공고 13px 흰 글자 포함). CANON 아이브로 600·작은 글자 500 하한보다 이 값이 이긴다",
+        "eyebrow": 700,
+        "detailValue": 400
+      }
+    }
   },
   {
     "id": "remember",
@@ -4841,6 +4858,11 @@ export const MEDIA = [
             "field": "이미지 내 텍스트",
             "maxChars": null,
             "lines": 3,
+            "fontSizeRange": {
+              "min": 48,
+              "max": 164
+            },
+            "fontSizeRangeSource": "note '이미지 내 텍스트는 48px~164px'를 구조화(10-08 밤) — Figma 9월 공채 디자이너 카카오 메인 77·슬로건 52·날짜 48",
             "note": "'이미지 내 텍스트는 48px~164px' / 심의필·저작권 등 필수 문구는 24px 이상 권장 / '최대 3줄까지 구성하는 것을 권장' / '4가지 이상의 폰트 스타일과 컬러 사용 불가' / '분할 이미지 사용시 이미지 내 텍스트 미사용 권장'",
             "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
             "confidence": "확정"
@@ -5918,6 +5940,18 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7197 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.16~19 / psd:에브리타임/01_커뮤니티보드/*.psd (1029×258)",
         "confidence": "확정",
         "note": "보드 텍스트·26년7월 PDF·25년1월 PDF·PSD 모두 일치. 보드 템플릿 프레임 421:7572(마이다스_에브리타임_커뮤니티보드)는 자리표시 문구라 예시에서 제외",
+        "objectBox": {
+          "side": "right",
+          "wMin": 220,
+          "wMax": 320,
+          "zone": [
+            40,
+            360
+          ],
+          "gap": 19,
+          "note": "layoutNotes 문장을 구조화(10-08): 오브젝트 너비 220~320px, 우측 배치 시 오른쪽 기준 40~360px 영역 안에만·영역 중앙 권장. 텍스트 영역과 사이 19px(보드 도식·PSD). 누끼만 이 상자에 — 배경 포함 오브젝트(좌우 그라데이션)는 상자 없이 예전대로",
+          "source": "layoutNotes[1]·safeArea.note (PDF 26년7월·PSD)"
+        },
         "frame": "rules"
       },
       {
@@ -6518,7 +6552,14 @@ export const MEDIA = [
       "커뮤니티 보드 투명 PNG가 노출되는 배경 #F3F3F3 / #DCDCDC가 라이트/다크 모드별인지 명시 없음",
       "홈 카드 프로필(160×160)·데일리 메시지(120×120) 용량 제한 자료 없음",
       "26년7월 PDF의 스플래시·하단팝업·홈 아이콘·검색 동영상은 보드 범위 밖이라 specs에서 제외함"
-    ]
+    ],
+    "guide": {
+      "note": "에브리타임 커뮤니티보드 실측 — 메인 자간 0%(Figma 9월 공채 1151:4743 ExtraBold 45 자간 0). canon.js 위에 이 키만 덮는다",
+      "source": "figma:Nssa9IZMvkQJF0bcXHKXzA 1151:4743 (ref/learned/cases/_out/figma-sep-typo.md)",
+      "tracking": {
+        "main": 0
+      }
+    }
   },
   {
     "id": "blind",
@@ -7693,9 +7734,9 @@ export const MEDIA = [
           {
             "field": "카피(가로정렬 시)",
             "maxChars": 5,
-            "lines": null,
+            "lines": 3,
             "original": "카피 가로정렬 시 한줄 5자 이내 권장",
-            "note": "가로·세로 정렬 모두 가능",
+            "note": "가로·세로 정렬 모두 가능. 줄당 5자 — 줄 수는 규정에 없어 120×600 세로 띠 관례로 3줄(해석, 2026-10-08: 1줄로 읽으면 '채용 공고'만 남아 띠의 44%가 빈다)",
             "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.15"
           }
         ],

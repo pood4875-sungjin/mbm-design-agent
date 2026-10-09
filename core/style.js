@@ -55,9 +55,14 @@ export function normalizeStyle(input = {}) {
     },
     // 상세 라벨 알약 톤 — 'tint'(기본: 밝은 지면 검정 7%·어두운 지면 흰 20%, 코엑스 카드 '모집분야') · 'brand'(브랜드색 채움, 구글 예시 일화·비씨) · 'plain'(알약 없이 굵은 글자). 10-06 사용자 "찐한 노랑 말고 진한 노랑/블랙 7%"
     chipTone: ['tint', 'brand', 'plain'].includes(input.chipTone) ? input.chipTone : 'tint',
+    // 메인 두 톤 강조색(선택, 기본 없음) — 사람이 브랜드 보조색을 적어 줄 때만(Figma 9월 공채 #00FFE2·#0026B3). 짐작하지 않는다: palette.accent(자동 생성)와 다르다.
+    // 렌더러는 지면 대비 4.5:1 이상일 때만 메인 속 채용구분에 쓴다(core/canon.js mainAccent)
+    accent: HEX.test(input.accent ?? '') ? input.accent.toUpperCase() : null,
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
     // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다
     logoTone: ['light', 'dark', 'both'].includes(input.logoTone) ? input.logoTone : null,
+    // 로고 실측(core/logo.js logoMeta) — px(원본 크기)·solid(트림 상자 안 불투명 몫: 타일 로고 ≥ 0.85)·lum·sat. 렌더러가 세로 로고 크기·타일 로고 반전 여부를 정한다
+    logoMeta: input.logoMeta && Array.isArray(input.logoMeta.px) ? { px: input.logoMeta.px, solid: input.logoMeta.solid ?? null, lum: input.logoMeta.lum ?? null, sat: input.logoMeta.sat ?? null } : null,
     mood: input.mood ?? [],
     presetId: input.presetId ?? null,
     // 인쇄 사양 — 근사 CMYK(사양서·미리보기 표기용)

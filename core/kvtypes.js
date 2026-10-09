@@ -37,7 +37,7 @@ export const KV_TYPES = [
       '한쪽(오른쪽 열·아래 띠)에 덮고(cover) 글자 쪽 변을 30~38% 길게 녹인다(리멤버 사진 예시) — 짧게 자르면 "급하게 끊긴" 느낌',
       '주인공(사람·건물)이 그림의 일부면 주인공으로 당겨 채운다, 머리를 자르면 머리 기준',
       '사진 전체형(kvUse full): 지면 전체 + 글자 뒤 스크림 — 사람이 고를 때만',
-      '로고는 사진(하늘) 위에 얹혀도 된다(일화 970) — 누끼·일러스트와 다른 점',
+      '사진이 오른쪽 열인 가로형·오른쪽 열 규격은 로고를 글자 쪽 지면(좌상단)에 — 사진 위 로고는 지면 기준 색(흰 반전)이라 밝은 벽·하늘에서 사라진다(10-09 데스크탑 사진 10건). 세로형·정사각 아래 띠는 로고가 지면 위라 그대로',
     ],
     field: '브랜드색 지면(어두운 매체) 또는 브랜드 틴트→흰색(밝은 매체). 사진 가장자리 색은 지면이 아니다(배경형 아님 — 일화 사옥 하늘)',
     text: '글자는 녹인 쪽에. 사진 위 글자는 스크림 없이는 금지',
@@ -64,14 +64,20 @@ export const KV_TYPES = [
 // 숫자는 케이스 장부(scripts/cases.mjs) 16건에서 귀납. 깃발만으로 못 가르는 것(아이소메트릭 vs 일반 일러스트)은 주인공 상자 비율·밀도로 근사한다.
 export const KV_SUBTYPES = {
   cutout: [
+    { id: 'cutout-frame', name: '장식 프레임 누끼(가운데가 빈 유리 슬랩)', when: f => f.frame, why: '가로로 길고(≥ 1.6) 좌우 변에 불투명이 붙고 가운데 열이 비어 있다',
+      guide: ['주인공이 아니라 바탕 장식 — 지면 전체에 깔고(사진 전체형처럼) 글자는 그 위에', '오른쪽 끝을 기준으로 크게(지면 폭의 1.7배) 잘라 바깥 슬랩이 지면 오른쪽을 채우게 한다 — 세로형은 아래에', '지면은 어두운 브랜드색(디자이너 9/9), 글자 쪽에서 시작하는 브랜드색 스크림', '맞춰 넣기 금지 — 작게 들어가면 장난감처럼 보인다'] },
+    // 10-08 Figma 9월 공채(유리 행성) 한 건에서 — 사용자 결정: 케이스 하나여도 채택, 예외가 나오면 조정
+    { id: 'cutout-glass', name: '반사·유리·크롬 누끼', when: f => f.glass, why: '무채(채도 < 0.35)·중간 밝기(lum 0.35~0.6) + 반투명 가장자리(보이는 픽셀의 10% 이상이 10<α<230)',
+      guide: ['지면은 어두운 브랜드색 — 매체의 밝은 지면(구글 lightField·자소설 bgLight)보다 먼저(디자이너 13/13 다크). 밝은 틴트 위에선 회색으로 탁해진다', '매체가 금지한 색·규정(자소설 형광·분할 배경 불가, 리멤버 #000000)은 그대로 지킨다', '반사광이 브랜드색이 아니다 — KV 대표색을 지면색으로 쓰지 않는다'] },
     { id: 'cutout-character', name: '캐릭터·인물 누끼', when: f => f.character, why: '주인공이 세로로 서 있다(상자 높이 ≥ 55%, 그림 비율 ≤ 1.05)',
       guide: ['열에 세운다 — 발은 지면 바닥에, 머리는 자르지 않는다(머리 위 숨 4%)', '가로형에선 오른쪽 열 폭의 60~70%를 캐릭터에, 세로형에선 아래 띠 높이의 45~55%', '글자는 캐릭터 몸 위로 올리지 않는다 — 어깨선 위 여백만 허용', '지면은 브랜드색(어두운 매체)·브랜드 틴트(밝은 매체), 발밑에 옅은 그림자 없음(누끼 그대로)'] },
-    { id: 'cutout-scene', name: '장면·건물 누끼(아이소메트릭)', when: f => f.wide && (f.density ?? 1) < 0.6, why: '가로로 넓고(비율 > 1.3) 상자 안이 성글다(밀도 < 0.6: 크레인·나무 사이가 비어 있다)',
-      guide: ['오른쪽 아래에 크게 두고 지면 밖으로 잘라도 된다 — 폭 130%까지(코엑스 카드 건물 문법)', '오른쪽 열에선 열을 넓혀 키를 열 높이의 70%까지(글자 칸 42%는 남긴다) — 맞춰 넣으면 위아래가 빈다', '세로 띠·정사각 띠에선 자르기 선이 캐릭터 사이 틈(열 투명 ≥75%)에 떨어지는 "틈 창"만 보여 준다(배율 1.15~2.4) — 틈이 없으면 가운데 맞춤 1.3~1.8배. 상세는 그림 바로 위에', '글자는 띠 안에서 누끼 위로 비는 부분까지만 겹친다(떼는 낮게 서니 허용, 캐릭터 하나면 0)', '밝은 사물이 많으면 지면은 어두운 브랜드색이 낫다(대비)'] },
-    { id: 'cutout-group', name: '여러 오브젝트·캐릭터 떼', when: f => f.group, why: '덩어리가 둘 이상(parts > 1)',
+    { id: 'cutout-group', name: '여러 오브젝트·캐릭터 떼', when: f => f.group, why: '덩어리가 둘 이상(parts > 1) — 맞닿은 떼는 열 투명 프로필의 봉우리 둘 이상(틈 열 ≥ 75%)',
       guide: ['얼굴·몸통을 가르지 않는다 — 자르기 선은 캐릭터 사이 틈(열 투명 ≥75%)에서만("틈 창"), 틈이 없으면 통째로 맞춰 넣기', '오른쪽 열은 넓혀 키 70%까지, 세로 띠·정사각은 틈 창으로 두세 명을 크게', '정사각 규격은 모서리 상자 대신 폭 전체 아래 띠(30~55%)'] },
-    { id: 'cutout-object', name: '단일 사물 누끼', when: () => true, why: '그 밖의 누끼 — 사물 하나',
-      guide: ['자리에 맞춰(contain) 오른쪽 열·우하단 모서리 상자 58%×55%', '상자 왼쪽 위는 비어 있어 값 줄이 28%까지 흘러도 된다', '사물이 작아 보이면 지면색 블록 없이 그대로 — 그림자·받침 추가 금지(AI 티)'] },
+    // 덩어리가 여럿일 때만 장면 — 덩어리 하나에 속이 빈 것(고리·링·프레임: 유리 행성 density 0.57)은 성글어도 단일 사물(10-08 Figma 9월 공채)
+    { id: 'cutout-scene', name: '장면·건물 누끼(아이소메트릭)', when: f => f.wide && (f.density ?? 1) < 0.6 && f.multi, why: '가로로 넓고(비율 > 1.3) 상자 안이 성글고(밀도 < 0.6) 덩어리가 여럿(parts > 1 또는 열 봉우리 ≥ 2)',
+      guide: ['오른쪽 아래에 크게 두고 지면 밖으로 잘라도 된다 — 폭 130%까지(코엑스 카드 건물 문법)', '오른쪽 열에선 열을 넓혀 키를 열 높이의 70%까지(글자 칸 42%는 남긴다) — 맞춰 넣으면 위아래가 빈다', '세로 띠·정사각 띠에선 자르기 선이 캐릭터 사이 틈(열 투명 ≥75%)에 떨어지는 "틈 창"만 보여 준다(배율 1.15~2.4) — 틈이 없으면 가운데 맞춤 1.3~1.8배. 상세는 그림 바로 위에', '글자는 띠 안에서 누끼 위로 비는 부분까지만 겹친다(떼는 낮게 서니 허용, 캐릭터 하나면 0)', '밝은 사물이 많으면 지면은 어두운 브랜드색이 낫다(대비)'] },
+    { id: 'cutout-object', name: '단일 사물 누끼', when: () => true, also: f => f.single, why: '덩어리 하나(parts 1·열 봉우리 < 2)이고 캐릭터가 아닌 누끼 — 속이 빈 고리·링 포함',
+      guide: ['크게, 우하단으로 블리드(CANON objectBleed): 오브젝트의 70% 이상은 보이고 오른쪽·아래 변으로만 30%까지 잘린다. 핵심부(주인공 상자 가운데 60%)는 캔버스 안', '목표 면적: 가로형 캔버스의 20~30%, 정사각·세로형 22~27% — 글자 칸은 안쪽 폭 42% 이상', '상자 왼쪽 위는 비어 있어 값 줄이 28%까지 흘러도 된다', '사물이 작아 보이면 지면색 블록 없이 그대로 — 그림자·받침 추가 금지(AI 티)'] },
   ],
   illust: [
     { id: 'illust-character', name: '바탕 있는 캐릭터', when: f => f.character, why: '세로로 선 주인공(캐릭터·인물)이 바탕 위에 있다',
@@ -86,6 +92,8 @@ export const KV_SUBTYPES = {
       guide: ['통째로 한쪽에 덮고(cover) 글자 쪽 변만 30% 녹인다 — 주인공을 당기면 장면이 깨진다', '가로형은 오른쪽 열 45~55%, 세로형은 아래 띠 55~64%', '세로 띠에선 머리·윗부분을 지키는 위치(cover 위치)'] },
   ],
   photo: [
+    { id: 'photo-crowd', name: '현장·군중 사진(주인공 없음)', when: f => f.crowd, why: '어둡고(lum < 0.4) 주인공 상자를 못 가른다(≥ 85%) — 세미나홀·청중·도시 빌딩숲',
+      guide: ['지면 전체에 깔고(사진 전체형) 글자 쪽에서 시작하는 브랜드색 스크림 위에 흰 글자(디자이너 10/10)', '한쪽 열에 잘라 녹이지 않는다 — 머리·사람이 조각나 보인다', '로고는 스크림 쪽(글자 쪽)'] },
     { id: 'photo-portrait', name: '인물 사진', when: f => f.character, why: '세로로 선 주인공(인물)',
       guide: ['얼굴 쪽에 글자 금지, 머리를 자르지 않는다', '어깨 아래로 지면에 녹인다(아래 띠 30%)', '지면은 브랜드 딥 컬러 + 흰 글자'] },
     { id: 'photo-dark', name: '어두운 사진', when: f => (f.lum ?? 0.5) < 0.4, why: '평균 밝기 < 0.4',
@@ -112,6 +120,20 @@ const dist = (a, b) => {
   return Math.sqrt(((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) / 3) / 255;
 };
 
+// 열 투명 프로필(cols)의 봉우리 수 — 틈 열(투명 ≥ 75%)로 갈린 불투명 덩어리(최소 투명 < 60%)가 몇 개인가.
+// 캐릭터끼리 맞닿아 연결 성분(parts)이 하나로 잡히는 떼(ABL)를 가른다. 가장자리 빈 열은 세지 않는다.
+export function colHumps(cols) {
+  if (!cols?.length) return 0;
+  let humps = 0, inRun = false, solid = false;
+  for (const c of cols) {
+    const bg = c?.bg ?? 1;
+    if (bg >= 0.75) { if (inRun && solid) humps++; inRun = false; solid = false; }
+    else { inRun = true; if (bg < 0.6) solid = true; }
+  }
+  if (inRun && solid) humps++;
+  return humps;
+}
+
 // 측정값 → 유형 + 깃발. kvMeta가 없으면 null(그림 없음).
 export function kvTypeOf(kvMeta) {
   const f = kvMeta?.field; if (!f) return null;
@@ -124,8 +146,15 @@ export function kvTypeOf(kvMeta) {
   const flags = {
     room: !!(kind === 'illust' && room && (room.corner === 'tl' || room.corner === 'tr') && room.w >= 0.42 && room.h >= 0.38),   // 배경형 후보(캔버스 비율은 규격마다 따로 본다)
     subject: subjectArea != null && subjectArea < 0.6,                 // 주인공이 그림의 일부 → 당겨 채움 대상
-    character: !!(focus && ar < 1.05 && focus.h >= 0.55 && kind !== 'photo'),   // 세로로 선 주인공(캐릭터·인물) → 머리 보존이 중요
-    group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0)),   // 덩어리 여럿(캐릭터 떼·호 + 글로우) → 창이 덩어리를 가르면 안 됨
+    // 세로로 선 주인공(캐릭터·인물) → 머리 보존이 중요. 누끼는 그림 전체 비율이 아니라 주인공 상자 비율로 본다 — 여백을 트림하면 그림 비율이 바뀐다(여우 0.95 → 1.10)
+    // 바탕 있는 그림은 주인공 상자가 바탕 일부를 품을 수 있어(삼성 3D 호) 예전대로 그림 비율로
+    // 누끼는 상자 밀도도 본다(10-09 figma-dg): 사람·캐릭터 0.59~0.72(연사 둘·동서 모델·여우) — 별표 3D 0.48(팔이 뻗은 사물)·폴더·책 0.79~0.92(네모난 사물)는 캐릭터가 아니다
+    character: !!(focus && focus.h >= 0.55 && kind !== 'photo' && (kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 : ar < 1.05)),
+    group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
+    // 장면 판정용 「덩어리 여럿」 — 연결 성분이 둘 이상이거나 열 봉우리 둘 이상(덩어리 하나에 속이 빈 고리는 아니다)
+    multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),
+    // 반사·유리·크롬 누끼 — 무채·중간 밝기 + 반투명 가장자리 ≥ 10%. 어두운 브랜드 지면이 매체의 밝은 지면보다 먼저(ad.js lightProfile)
+    glass: !!(kind === 'cutout' && f.lum != null && f.lum >= 0.35 && f.lum <= 0.6 && (f.sat ?? 1) < 0.35 && (f.semi ?? 0) >= 0.10),
     gradEdge: ['top', 'bottom', 'left', 'right'].some(k => edges[k]?.flat && dist(edges[k].from, edges[k].to) > 0.035),   // 평평하지만 그라데이션인 변 → 지면 잇기
     wide: ar > 1.3, tall: ar < 0.8,
     // 어두움: 바탕 있는 그림은 가장자리 색, 누끼·사진·질감은 그림 전체 밝기(lum)
@@ -134,11 +163,27 @@ export function kvTypeOf(kvMeta) {
     density: focus?.density ?? null,
     lum: f.lum ?? null,
   };
+  // 장식 프레임 누끼(10-09 figma-dg 마이다스 유리 슬랩 2종): 가로로 길고(≥ 1.6) 왼쪽·오른쪽 변에 불투명이 붙어 있고(변 불투명 ≥ 0.3) 가운데 열이 비어 있다(가운데 1/8 투명 ≥ 0.6, 바깥 1/4은 ≤ 0.5).
+  // 주인공이 아니라 바탕 위에 얹는 장식 — 디자이너 9/9가 어두운 브랜드 지면 위에 한쪽(오른쪽)을 크게 잘라 깔고 글자는 빈 쪽에. 캐릭터·떼로 보면 작게 맞춰 넣어 장식이 장난감처럼 된다
+  flags.frame = (() => {
+    if (kind !== 'cutout' || ar < 1.6) return false;
+    const cols = f.cols, n = cols?.length ?? 0; if (n < 16) return false;
+    const mean = (a, b) => { let s = 0; for (let i = a; i < b; i++) s += cols[i]?.bg ?? 1; return s / Math.max(1, b - a); };
+    const q = Math.floor(n / 4), m0 = Math.floor(n * 7 / 16), m1 = Math.ceil(n * 9 / 16);
+    return (edges.left?.opaque ?? 0) >= 0.3 && (edges.right?.opaque ?? 0) >= 0.3 && mean(m0, m1) >= 0.6 && mean(1, q) <= 0.5 && mean(n - q, n - 1) <= 0.5;
+  })();
+  if (flags.frame) { flags.character = false; flags.group = false; flags.multi = false; }
+  // 현장·군중 사진(10-09 figma-dg 에이치닷 세미나·청중): 어둡고(lum < 0.4) 주인공을 못 가른다(주인공 상자 ≥ 85% 또는 없음) — 디자이너 10/10이 지면 전체에 깔고 브랜드색을 덮었다(사진 전체형).
+  // 한쪽 열에 잘라 녹이면 사람 머리가 조각나고, 로고가 사진 위에 얹힌다
+  flags.crowd = kind === 'photo' && f.lum != null && f.lum < 0.4 && (!focus || subjectArea >= 0.85);
+  // 단일 사물 누끼 — 캐릭터도 떼도 아닌 덩어리 하나. 크게·우하단 블리드(CANON objectBleed)의 대상
+  flags.single = kind === 'cutout' && !!focus && !flags.character && !flags.group && !flags.frame;
   const ctx = { ...flags, subjectArea, ar };
   // 서브타입은 겹칠 수 있다(어두운 + 여백 있는 사진) — 맞는 것을 다 모으고 첫 번째가 대표. 마지막 항목(그 밖의)은 아무것도 안 맞을 때만
   const list = KV_SUBTYPES[type.id] ?? [];
   let subs = list.slice(0, -1).filter(st => { try { return st.when(ctx); } catch { return false; } });
-  if (!subs.length && list.length) subs = [list[list.length - 1]];
+  const last = list[list.length - 1];
+  if (last && (!subs.length || (last.also && (() => { try { return last.also(ctx); } catch { return false; } })()))) subs = [...subs, last];   // also: 다른 서브타입과 함께여도 붙는다(유리 + 단일 사물)
   const pick = st => ({ id: st.id, name: st.name, why: st.why, guide: st.guide });
   return { id: type.id, name: type.name, type, flags, subjectArea, ar: Math.round(ar * 100) / 100, sub: subs.length ? pick(subs[0]) : null, subs: subs.map(pick) };
 }
@@ -153,6 +198,8 @@ export function kvTypeSummary(kvMeta) {
   if (F.group) tags.push('덩어리 여럿');
   if (F.gradEdge) tags.push('가장자리 그라데이션');
   if (F.dark) tags.push('어두운 바탕');
+  if (F.glass || F.frame) tags.push('어두운 지면 우선');
+  if (F.crowd || F.frame) tags.push('전면 배경');
   tags.push(F.wide ? '가로형' : F.tall ? '세로형' : '정사각형');
   return `${t.subs?.length ? t.subs.map(x => x.name).join('+') : t.name} · ${tags.join(' · ')}`;
 }

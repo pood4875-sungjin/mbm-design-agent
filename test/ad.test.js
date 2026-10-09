@@ -129,7 +129,8 @@ test('the date is plain text — no outlined pill, no widened tracking', () => {
   for (const id of ['google-gdn-580x400', 'kakao-bizboard-mo', 'nap-dsp-full-300x250']) {
     const html = renderAd(ctx, style, specs[id]);
     assert.doesNotMatch(html, /data-field="date"[^>]*border-radius/, `${id}: 날짜에 테두리 알약을 두르지 않는다`);
-    assert.doesNotMatch(html, /letter-spacing/, `${id}: 자간을 건드리지 않는다`);
+    // 자간은 메인(28px 이상)만 좁힌다(CANON tracking −2.5% — Figma 9월 공채 typo A3). 날짜·서브·상세는 건드리지 않는다
+    assert.doesNotMatch(html.replace(/<div data-field="main"[^>]*>/g, ''), /letter-spacing/, `${id}: 메인 밖 글자의 자간을 건드리지 않는다`);
   }
 });
 
@@ -166,10 +167,10 @@ test('wide formats follow the references: company and job on two lines where the
   // 리멤버 메인 상단 MO: "메인 문구 1"·"메인 문구 2" 각 12자 — 안랩 "AhnLab / 신입/경력 채용"처럼 회사 / 채용 문구
   const html = renderAd(ctx, style, specs['remember-main-top-mo']);
   assert.match(html, /data-field="main"[^>]*>한진정보통신<br\/>[^<]+</);
-  // 카카오 비즈보드: 메인 1줄 15자 — 쪼개지 않는다. 둘째 줄(서브)은 접수기간
+  // 카카오 비즈보드: 메인 1줄 15자 — 쪼개지 않는다. 둘째 줄(서브)은 접수기간 — 혼자 선 날짜 줄은 라벨 없이(Figma 9월 공채 12/12, typo A7)
   const biz = renderAd(ctx, style, specs['kakao-bizboard-mo']);
   assert.doesNotMatch(biz, /data-field="main"[^>]*<br/);
-  assert.match(biz, /data-field="sub"[^>]*>접수기간 : ~10\.31\(토\)</);
+  assert.match(biz, /data-field="sub"[^>]*>~10\.31\(토\)</);
 });
 
 test('with a key visual the image bleeds to the edge instead of sitting in a rounded box', () => {
