@@ -447,6 +447,8 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   const tr = (topFrac != null && rows?.length) ? rows[Math.min(rows.length - 1, Math.max(0, Math.round(topFrac * (rows.length - 1))))] : null;
   const topQuiet = topFrac == null ? true : tr ? (tr.bg >= 0.95 && (!near || colorDistance(tr.hex, near) < 0.035)) : false;
   const mask = (!melt || cutout) ? '' : topQuiet ? meltMask(dir, pct) : meltMask2(pct, 22);
+  // 가이드 대조표(scripts/guide-trace.mjs)가 읽는 녹임 추적 — 마스크와 같은 값. pct0: 색 거리 보정 전 기본값, seam: 이음매 그림 색, far: 지면 먼 끝 색
+  const meltData = mask ? ` data-melt="${pct}" data-melt-dir="${dir}"${topQuiet ? '' : ' data-melt-top="22"'} data-melt-base="${pct0}" data-melt-seam="${seamHex ?? ''}" data-melt-far="${farStop ?? ''}"` : '';
   // 누끼를 오른쪽 열에 맞춰 넣을 때 폭이 모자라 작아지면(건물·3D처럼 가로가 긴 누끼) 높이에 맞추고 오른쪽·아래로 붙인다 — 폭이 열의 130%까지 넘치는 건 지면 밖으로 잘린다.
   // 보드 1-884 코엑스 카드가 건물을 오른쪽 아래로 크게 두고 가장자리에서 자른 문법. 그 이상 넘치면 그냥 맞춰 넣는다(캐릭터 떼가 반 잘리면 안 된다)
   const arKv = style.kvMeta?.ar;
@@ -471,11 +473,11 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
     const lHex = style.kvMeta?.field?.edges?.left?.hex ?? null;
     const lFar = (lHex && field?.stops?.length) ? field.stops.reduce((m, x) => colorDistance(lHex, x) > colorDistance(lHex, m) ? x : m) : near;
     const pw = crop.portrait.w, mk = melt ? (pw < w - 1 ? meltMask2(meltLength(lHex, lFar, 30), 22) : meltMask('to bottom', 22)) : '';
-    return `<div data-object="1" style="position:absolute;right:0;bottom:0;width:${pw}px;height:${size + edgePad}px;${fill}${mk}--kv-portrait:1"></div>`;
+    return `<div data-object="1" style="position:absolute;right:0;bottom:0;width:${pw}px;height:${size + edgePad}px;${fill}${mk}--kv-portrait:1"${mk ? ` data-melt="${pw < w - 1 ? meltLength(lHex, lFar, 30) : 22}" data-melt-dir="${pw < w - 1 ? 'to right' : 'to bottom'}" data-melt-top="22"` : ''}></div>`;
   }
   return side === 'right'
-    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}${cutMask}"></div>`
-    : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
+    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}${cutMask}"${meltData}${cutMask ? ` data-cut-melt="${Math.round(Math.min(30, Math.max(16, bleedCut * 100 + 8)))}" data-bleed-cut="${Math.round(bleedCut * 100) / 100}"` : ''}></div>`
+    : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"${meltData}></div>`;
 }
 
 // 누끼를 원본 픽셀의 몇 배까지 키울 수 있나(CANON maxUpscale.cutout, 10-12 desk-37-cut 163px) — 그려도 되는 최대 폭(px). 누끼가 아니거나 크기를 모르면 Infinity

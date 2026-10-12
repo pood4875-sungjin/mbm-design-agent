@@ -420,7 +420,38 @@
       ],
       "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5476, frame 421:5478 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
       "confidence": "확정",
-      "note": "보드 프레임·섹션 메모(500KB, JP(E)G·PNG)·docx 일치. 1200×600 '이상' 허용이지만 보드 제작 치수는 1200×600."
+      "note": "보드 프레임·섹션 메모(500KB, JP(E)G·PNG)·docx 일치. 1200×600 '이상' 허용이지만 보드 제작 치수는 1200×600.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 1,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 72,
+              "weight": 800
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 52,
+              "weight": 700
+            }
+          },
+          "lineBudget": 3,
+          "kvArea": 0,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.058,
+          "padTopr": 0.217,
+          "mainPxR": 0.0849,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:5487 LX인터내셔널 / 421:5491 한국앤컴퍼니",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "kakao-display-pc-profile",

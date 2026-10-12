@@ -536,7 +536,38 @@
       "examples": [],
       "source": "figma:리멤버02(제작가이드&예시) frame 408:48070, 414:24 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.21~24",
       "confidence": "확정",
-      "note": "PSD 템플릿 없음 — 제작 시 메인 중간 배너 PC PSD(동일 2240×240)를 쓰는지 확인 필요"
+      "note": "PSD 템플릿 없음 — 제작 시 메인 중간 배너 PC PSD(동일 2240×240)를 쓰는지 확인 필요",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 1,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 41,
+              "weight": 600
+            },
+            "detail": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 30,
+              "weight": 400
+            }
+          },
+          "lineBudget": 2,
+          "kvArea": 0.441,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.025,
+          "padTopr": 0.204,
+          "mainPxR": 0.0559,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:24 리멤버",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "remember-job-top-mo",
@@ -611,7 +642,32 @@
       "examples": [],
       "source": "figma:리멤버02(제작가이드&예시) frame 408:48071, 414:32 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.21,23,24",
       "confidence": "확정",
-      "note": "PSD 템플릿 없음"
+      "note": "PSD 템플릿 없음",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 1,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 48,
+              "weight": 600
+            }
+          },
+          "lineBudget": 2,
+          "kvArea": 0.409,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.043,
+          "padTopr": 0.254,
+          "mainPxR": 0.0861,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:32 리멤버",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "remember-job-side-pc",

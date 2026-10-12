@@ -457,7 +457,44 @@
       ],
       "source": "figma:캐치01(소재 제작 규정) text 423:8575·8580·8584, frame 423:8626·8695 / psd:M_상품_중앙배너_BG.psd",
       "confidence": "확인필요",
-      "note": "'배경 투명'과 '배경 컬러 포함'이 한 노드에 같이 있음. PDF 오브젝트형 MO(702×428)와 불일치"
+      "note": "'배경 투명'과 '배경 컬러 포함'이 한 노드에 같이 있음. PDF 오브젝트형 MO(702×428)와 불일치",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 1,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 40,
+              "weight": 700
+            },
+            "sub": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 25,
+              "weight": 700
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 25,
+              "weight": 400
+            }
+          },
+          "lineBudget": 4,
+          "kvArea": 0.396,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.066,
+          "padTopr": 0.118,
+          "mainPxR": 0.0823,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 423:8595 PTKOREA",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "catch-center-logo-mo",

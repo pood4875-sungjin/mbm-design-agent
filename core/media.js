@@ -243,6 +243,43 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) frames 408:34293·408:34356 / text 408:37724 'PC팝업배너 550*400px' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5 / ai:Ai파일/PC프리미엄패키지.ai MediaBox 550×400",
         "confidence": "확정",
         "note": "캔버스 550×400(보드·PDF '작업 이미지 (550*400)'·AI MediaBox 일치) → 피그마에서 2배 추출, 제출 파일은 1100×800 (550×400×2). 용량(KB) 제한 수치는 자료에 없음.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 35,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 4,
+                "px": 17,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1,
+                "px": 22,
+                "weight": 700
+              }
+            },
+            "lineBudget": 7,
+            "kvArea": 0.207,
+            "kvBg": 0,
+            "logoShare": 1,
+            "padXr": 0.055,
+            "padTopr": 0.188,
+            "mainPxR": 0.0746,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:38102 세아제강",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -353,6 +390,55 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.6·p.8 / ai:Ai파일/PC프리미엄패키지.ai MediaBox 160×600",
         "confidence": "확정",
         "note": "캔버스 160×600(보드 프레임·PDF '작업 이미지 (160*600)'·AI MediaBox 160×600 일치) → 피그마에서 2배 추출, 제출 파일은 320×1200 (160×600×2). PC프리미엄/PC스탠다드 패키지의 채용공고배너는 규격·글자수·폰트 사이즈가 동일.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 6,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 3,
+                "px": 24,
+                "weight": 700
+              },
+              "date": {
+                "share": 0.83,
+                "lines": 1,
+                "px": 13,
+                "weight": 400
+              },
+              "label": {
+                "share": 1,
+                "lines": 2,
+                "px": 13,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 3,
+                "px": 13,
+                "weight": 400
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1.5,
+                "px": 16,
+                "weight": 700
+              }
+            },
+            "lineBudget": 10,
+            "kvArea": 0.272,
+            "kvBg": 0,
+            "logoShare": 0.33,
+            "padXr": 0.094,
+            "padTopr": 0.137,
+            "mainPxR": 0.15,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:37952 현대케피코 / 408:38167 세아제강 / 408:38305 현대모비스 / 408:38424 PTKOREA / 408:38560 한독 / 408:38710 도레이첨단소재",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -458,6 +544,43 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) frame 408:35380 / text 408:37729 'PC메인배너 1200*280px' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.7 / ai:Ai파일/PC스탠다드패키지.ai MediaBox 1200×280",
         "confidence": "확정",
         "note": "캔버스 1200×280(보드·PDF '작업 이미지 (1200*280)'·AI MediaBox 일치, SVG viewBox 1200×281은 선 두께 여유) → 피그마에서 2배 추출, 제출 파일은 2400×560 (1200×280×2).",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 32,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 2,
+                "px": 18,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1,
+                "px": 22,
+                "weight": 500
+              }
+            },
+            "lineBudget": 5,
+            "kvArea": 0.292,
+            "kvBg": 0,
+            "logoShare": 1,
+            "padXr": 0.325,
+            "padTopr": 0.15,
+            "mainPxR": 0.0552,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:37780 현대케피코",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -568,6 +691,55 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.6·p.8 / ai:Ai파일/PC스탠다드패키지.ai MediaBox 160×600",
         "confidence": "확정",
         "note": "캔버스 160×600(보드 프레임·PDF '작업 이미지 (160*600)'·AI MediaBox 160×600 일치) → 피그마에서 2배 추출, 제출 파일은 320×1200 (160×600×2). PC프리미엄/PC스탠다드 패키지의 채용공고배너는 규격·글자수·폰트 사이즈가 동일.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 6,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 3,
+                "px": 24,
+                "weight": 700
+              },
+              "date": {
+                "share": 0.83,
+                "lines": 1,
+                "px": 13,
+                "weight": 400
+              },
+              "detail": {
+                "share": 1,
+                "lines": 3,
+                "px": 13,
+                "weight": 400
+              },
+              "label": {
+                "share": 1,
+                "lines": 2,
+                "px": 13,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1.5,
+                "px": 16,
+                "weight": 700
+              }
+            },
+            "lineBudget": 10,
+            "kvArea": 0.272,
+            "kvBg": 0,
+            "logoShare": 0.33,
+            "padXr": 0.094,
+            "padTopr": 0.137,
+            "mainPxR": 0.15,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:37952 현대케피코 / 408:38167 세아제강 / 408:38305 현대모비스 / 408:38424 PTKOREA / 408:38560 한독 / 408:38710 도레이첨단소재",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -678,6 +850,43 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) frames 408:36665·408:36782·408:36895 / text 408:37725 'M팝업배너 600*880px' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.9 / ai:Ai파일/M프리미엄패키지.ai MediaBox 600×880",
         "confidence": "확정",
         "note": "캔버스 600×880(보드·PDF '작업 이미지 (600*880)'·AI MediaBox·반려 사례 '기존 규격(600*880)' 일치. SVG viewBox 1301×880은 600×880 변형 2개를 나란히 둔 것) → 피그마에서 2배 추출, 제출 파일은 1200×1760 (600×880×2).",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1.5,
+                "px": 50,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 3,
+                "px": 26,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1,
+                "px": 30,
+                "weight": 700
+              }
+            },
+            "lineBudget": 5.5,
+            "kvArea": 0.514,
+            "kvBg": 0,
+            "logoShare": 0.5,
+            "padXr": 0.07,
+            "padTopr": 0.182,
+            "mainPxR": 0.0833,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:37986 세아제강 / 418:1992 한미글로벌",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -847,6 +1056,43 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) frame 408:37159 / text 408:37732 'M메인배너 750*500px' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.11 / ai:Ai파일/자소설닷컴-M스탠다드패키지(메인2줄).ai MediaBox 750×500 / svg:피그마파일/M스탠다드패키지(23.10).svg",
         "confidence": "확정",
         "note": "캔버스 750×500(보드·PDF '작업 이미지 (750*500)'·AI MediaBox 일치, SVG viewBox 750×501은 선 여유) → 피그마에서 2배 추출, 제출 파일은 1500×1000 (750×500×2).",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 40,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1,
+                "px": 28,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 2,
+                "px": 24,
+                "weight": 700
+              }
+            },
+            "lineBudget": 5,
+            "kvArea": 0.373,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.056,
+            "padTopr": 0.334,
+            "mainPxR": 0.0653,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:38216 FITI시험연구원",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -1042,8 +1288,9 @@ export const MEDIA = [
           "메인문구": 40,
           "상세문구": 32,
           "unit": "px (피그마 템플릿 328×466 = 2배 프레임 기준)",
-          "note": "보드 박스엔 '상세문구 32'라고 적혀 있으나 달력배너 템플릿에는 메인 문구와 마감일 줄만 있음 — 32는 마감일 줄로 보임(확인필요)",
-          "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37765·408:37766"
+          "note": "보드 박스엔 '상세문구 32'라고 적혀 있으나 달력배너 템플릿에는 메인 문구와 마감일 줄만 있음 — 32는 마감일 줄로 보임(확인필요) / 10-12 매체별 규격정리 샘플 3/3(현대케피코·키엔스·자소설 예시) 마감일 줄 Regular 32px(2배 프레임) = 규격 16px — '상세문구 32'가 곧 마감일 줄",
+          "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37765·408:37766",
+          "마감일": 32
         },
         "logo": {
           "count": 0,
@@ -1082,6 +1329,37 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) frames 408:37244·408:37280·408:37314 / text 408:37733 'PC상 사이즈 164*233 > 전달 시 2배 추출로 328*466 사이즈로 최종 전달' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.14",
         "confidence": "확정",
         "note": "게재(PC상) 크기 164×233, 제출 파일은 328×466 (164×233×2) — 보드에 명시. 주의: 피그마 템플릿·제작 예시 프레임은 이미 328×466(2배)으로 그려져 있어, 그 프레임에서 작업하면 1배로 추출해야 328×466이 됨(프레임을 다시 2배 추출하면 656×932로 잘못 나감). 폰트 사이즈 40/32도 328×466 프레임 기준.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 3,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 3,
+                "px": 20,
+                "weight": 700
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 16,
+                "weight": 400
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.285,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.159,
+            "padTopr": 0.084,
+            "mainPxR": 0.122,
+            "frameScale": 0.5,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 408:37971 현대케피코 / 408:38739 키엔스코리아 / 418:2021 자소설닷컴",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       }
     ],
@@ -1726,6 +2004,37 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48070, 414:24 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.21~24",
         "confidence": "확정",
         "note": "PSD 템플릿 없음 — 제작 시 메인 중간 배너 PC PSD(동일 2240×240)를 쓰는지 확인 필요",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1,
+                "px": 41,
+                "weight": 600
+              },
+              "detail": {
+                "share": 1,
+                "lines": 1,
+                "px": 30,
+                "weight": 400
+              }
+            },
+            "lineBudget": 2,
+            "kvArea": 0.441,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.025,
+            "padTopr": 0.204,
+            "mainPxR": 0.0559,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:24 리멤버",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -1802,6 +2111,31 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48071, 414:32 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.21,23,24",
         "confidence": "확정",
         "note": "PSD 템플릿 없음",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 48,
+                "weight": 600
+              }
+            },
+            "lineBudget": 2,
+            "kvArea": 0.409,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.043,
+            "padTopr": 0.254,
+            "mainPxR": 0.0861,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:32 리멤버",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -2201,6 +2535,61 @@ export const MEDIA = [
         "source": "figma:잡다01(소재 제작 규정) text 414:245·252 / figma:잡다02(제작가이드&예시) frame 414:261·414:287 / figma 섹션 메모 text 414:240",
         "confidence": "확정",
         "note": "제출 파일은 792×240×2 = 1584×480 (PNG 2배 추출). 용량 제한 없음.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 5,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 28,
+                "weight": 700
+              },
+              "label": {
+                "share": 1,
+                "lines": 1,
+                "px": 16,
+                "weight": 600
+              },
+              "date": {
+                "share": 0.8,
+                "lines": 1,
+                "px": 16,
+                "weight": 600
+              },
+              "detail": {
+                "share": 0.2,
+                "lines": 6,
+                "px": 12,
+                "weight": 600
+              },
+              "sub": {
+                "share": 0.2,
+                "lines": 1,
+                "px": 16,
+                "weight": 600
+              },
+              "hashtag": {
+                "share": 0.2,
+                "lines": 3,
+                "px": 12,
+                "weight": 600
+              }
+            },
+            "lineBudget": 5,
+            "kvArea": 0.486,
+            "kvBg": 2,
+            "logoShare": 0,
+            "padXr": 0.063,
+            "padTopr": 0.175,
+            "mainPxR": 0.0642,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:475 코엑스 / 414:539 비씨월드제약 / 414:575 삼정KPMG / 414:680 셀트리온 / 414:739 에스이에이",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -2334,6 +2723,43 @@ export const MEDIA = [
         "source": "figma:잡다01(소재 제작 규정) text 414:245·252 / figma:잡다02(제작가이드&예시) frame 414:306 / figma 섹션 메모 text 414:240",
         "confidence": "확정",
         "note": "제출 파일은 343×160×2 = 686×320 (PNG 2배 추출). 용량 제한 없음.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 5,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 20,
+                "weight": 700
+              },
+              "date": {
+                "share": 0.8,
+                "lines": 1,
+                "px": 14,
+                "weight": 600
+              },
+              "detail": {
+                "share": 0.2,
+                "lines": 5,
+                "px": 14,
+                "weight": 600
+              }
+            },
+            "lineBudget": 3,
+            "kvArea": 0.461,
+            "kvBg": 2,
+            "logoShare": 0,
+            "padXr": 0.058,
+            "padTopr": 0.237,
+            "mainPxR": 0.0854,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:486 코엑스 / 414:550 비씨월드제약 / 414:590 삼정KPMG / 414:699 셀트리온 / 414:720 에스이에이",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       }
     ],
@@ -2358,7 +2784,12 @@ export const MEDIA = [
       "폰트·텍스트 컬러·여백 규정 없음 (보드·가이드 PNG 모두)",
       "특수문자·영문 글자수 계산 규칙 없음",
       "반려 사례 섹션 없음"
-    ]
+    ],
+    "guide": {
+      "note": "잡다 샘플 실측(10-12 매체별 규격정리 PC 5·MO 5) — 라벨 칩+날짜 줄이 메인 위(PC 5/5: y42 → 메인 y74), 메인 28px Bold 2줄·날짜 16px SemiBold·태그 12px. canon.js 위에 이 키만 덮는다. 글자 크기는 spec.sampleText 에서 온다",
+      "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 414:475/539/575/680/739 (ref/learned/cases/_out/figma-spec-compare.md)",
+      "dateAbove": true
+    }
   },
   {
     "id": "catch",
@@ -2835,6 +3266,43 @@ export const MEDIA = [
         "source": "figma:캐치01(소재 제작 규정) text 423:8575·8580·8584, frame 423:8626·8695 / psd:M_상품_중앙배너_BG.psd",
         "confidence": "확인필요",
         "note": "'배경 투명'과 '배경 컬러 포함'이 한 노드에 같이 있음. PDF 오브젝트형 MO(702×428)와 불일치",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 40,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1,
+                "px": 25,
+                "weight": 700
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 25,
+                "weight": 400
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.396,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.066,
+            "padTopr": 0.118,
+            "mainPxR": 0.0823,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 423:8595 PTKOREA",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -3103,6 +3571,55 @@ export const MEDIA = [
         "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
         "confidence": "확정",
         "note": "고정 4사이즈 중 (1). 제출 파일 = 580×400 그대로(배율 언급 없음).",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 5,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 43,
+                "weight": 700
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 22,
+                "weight": 700
+              },
+              "label": {
+                "share": 0.6,
+                "lines": 1,
+                "px": 19,
+                "weight": 600
+              },
+              "detail": {
+                "share": 0.8,
+                "lines": 2.5,
+                "px": 18.5,
+                "weight": 650
+              },
+              "sub": {
+                "share": 0.8,
+                "lines": 1,
+                "px": 20,
+                "weight": 500
+              }
+            },
+            "lineBudget": 7,
+            "kvArea": 0.216,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.06,
+            "padTopr": 0.147,
+            "mainPxR": 0.0893,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1927 ㈜일화 / 414:2056 비씨월드제약 / 414:2100 동부건설 / 414:2153 ABL생명 / 418:2461 동서식품",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -3186,6 +3703,55 @@ export const MEDIA = [
         "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
         "confidence": "확정",
         "note": "고정 4사이즈 중 (2).",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 5,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 44,
+                "weight": 700
+              },
+              "sub": {
+                "share": 0.8,
+                "lines": 1,
+                "px": 22,
+                "weight": 500
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 22,
+                "weight": 700
+              },
+              "label": {
+                "share": 0.6,
+                "lines": 1,
+                "px": 19,
+                "weight": 600
+              },
+              "detail": {
+                "share": 0.8,
+                "lines": 1.5,
+                "px": 19.5,
+                "weight": 650
+              }
+            },
+            "lineBudget": 6,
+            "kvArea": 0.235,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.046,
+            "padTopr": 0.148,
+            "mainPxR": 0.0894,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1963 ㈜일화 / 414:2066 비씨월드제약 / 414:2117 동부건설 / 414:2190 ABL생명 / 418:2203 동서식품",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -3268,6 +3834,55 @@ export const MEDIA = [
         "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
         "confidence": "확정",
         "note": "고정 4사이즈 중 (3).",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 5,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 4,
+                "px": 32,
+                "weight": 700
+              },
+              "sub": {
+                "share": 0.6,
+                "lines": 1,
+                "px": 17,
+                "weight": 400
+              },
+              "label": {
+                "share": 0.6,
+                "lines": 1,
+                "px": 17,
+                "weight": 600
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 20,
+                "weight": 700
+              },
+              "detail": {
+                "share": 0.8,
+                "lines": 4,
+                "px": 16.5,
+                "weight": 600
+              }
+            },
+            "lineBudget": 11,
+            "kvArea": 0.308,
+            "kvBg": 1,
+            "logoShare": 0.2,
+            "padXr": 0.08,
+            "padTopr": 0.112,
+            "mainPxR": 0.1067,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1996 ㈜일화 / 414:2076 비씨월드제약 / 414:2134 동부건설 / 414:2208 ABL생명 / 418:2331 동서식품",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -3332,6 +3947,55 @@ export const MEDIA = [
         "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
         "confidence": "확정",
         "note": "고정 4사이즈 중 (4). 비씨월드제약·한국앤컴퍼니·동서식품 예시 세트에는 300×1050 프레임이 없고 930×180이 있음 → gdn-930x180 참고.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 3,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 4,
+                "px": 46,
+                "weight": 800
+              },
+              "sub": {
+                "share": 1,
+                "lines": 2,
+                "px": 22,
+                "weight": 600
+              },
+              "label": {
+                "share": 0.67,
+                "lines": 1.5,
+                "px": 18.5,
+                "weight": 650
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 26,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 4,
+                "px": 24,
+                "weight": 700
+              }
+            },
+            "lineBudget": 12,
+            "kvArea": 0.262,
+            "kvBg": 1,
+            "logoShare": 0,
+            "padXr": 0.113,
+            "padTopr": 0.108,
+            "mainPxR": 0.1533,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1894 ㈜일화 / 414:2087 동부건설 / 414:2171 ABL생명",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "guide"
       },
       {
@@ -3390,6 +4054,55 @@ export const MEDIA = [
         "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) frame 9:868 / 414:2045 / 9:746 / 418:2595 / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
         "confidence": "확인필요",
         "note": "보드 고정 4사이즈 목록(414:1867)에 없음. 보드 공통사항 4 '제작이 정말 어려운 경우 상의 후에 다른 사이즈로도 제작이 가능함'(414:2043) + 매체 허용 목록(png)에 있음. 예시 3개 고객사는 300×1050 대신 930×180을 제작했음(프레임 관찰) — 대체 규격으로 써도 되는지 담당자 확인 필요.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1.5,
+                "px": 33.5,
+                "weight": 550
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 19,
+                "weight": 550
+              },
+              "sub": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 23,
+                "weight": 400
+              },
+              "detail": {
+                "share": 0.5,
+                "lines": 2,
+                "px": 15.5,
+                "weight": 400
+              },
+              "label": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 16,
+                "weight": 400
+              }
+            },
+            "lineBudget": 4.5,
+            "kvArea": 0.185,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.026,
+            "padTopr": 0.061,
+            "mainPxR": 0.0819,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:2045 비씨월드제약 / 418:2595 동서식품",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "guide"
       }
     ],
@@ -3462,9 +4175,9 @@ export const MEDIA = [
       "detailRowsSource": "템플릿 상세 줄 수(라벨 칩 줄 포함): 580×400 상세 3줄 + 여유 1(일화는 접수기간 1 + 모집부문 2) · 970×250 2줄(+여유 1) · 300×600 라벨 2 + 상세 3 = 5줄 · 300×1050 라벨 2 + 상세 5 = 7줄. 안 들어가면 글자를 detailPx.min까지 줄이고, 그래도 안 들어가는 줄만 뺀다",
       "mainPx": {
         "min": 24,
-        "max": 44
+        "max": 48
       },
-      "mainPxSource": "예시 글자 상자 높이에서 역산: 580×400 메인 2줄 86~106px → 36~44px(일화·동부·비씨·동서), 970×250 2줄 86~94 → 36~40, 300×600 3줄 ≈30~34, 300×1050 4줄 ≈36~40, 930×180 ≈24~32 — 규격이 작아져도 글자를 비례로 줄이지 않는다",
+      "mainPxSource": "예시 글자 상자 높이에서 역산: 580×400 메인 2줄 86~106px → 36~44px(일화·동부·비씨·동서), 970×250 2줄 86~94 → 36~40, 300×600 3줄 ≈30~34, 300×1050 4줄 ≈36~40, 930×180 ≈24~32 — 규격이 작아져도 글자를 비례로 줄이지 않는다 / 10-12 매체별 규격정리 fontSize 실측: 580 일화 38·비씨 43·동부 48·ABL 37·동서 44, 970 44·39·48·44·38, 300×600 43·33·32·32·32, 300×1050 46·50·42, 930 36·31 → 상한 44 → 48",
       "objectRatio": {
         "square": 0.54,
         "squareH": 0.65,
@@ -3502,11 +4215,11 @@ export const MEDIA = [
         "min": 13,
         "max": 15
       },
-      "detailPxSource": "예시 상세 글자 절대 px: 일화 580 ≈14 · 970 ≈15 · 300×1050 ≈16 · 동부 580 13~14 · ABL 17 → 13~15, 메인(24~44)과 달리 작게",
+      "detailPxSource": "예시 상세 글자 절대 px: 일화 580 ≈14 · 970 ≈15 · 300×1050 ≈16 · 동부 580 13~14 · ABL 17 → 13~15, 메인(24~44)과 달리 작게 / 10-12 매체별 규격정리 fontSize 실측은 18~24(580 18·19·20·18, 970 18~21, 300×600 16~19, 300×1050 20~24)이지만 19 로 올리자 580×400 상세가 주인공과 17% 겹치고 300×1050 글자가 잘려(라운드 44 중간, 46케이스) 13~15 유지 — 되돌림",
       "subPx": {
         "max": 20
       },
-      "subPxSource": "예시 서브(슬로건·시즌) 글자 상자 높이: 일화 970 18 · 580 23 · 동부 580 19 · ABL 580 24 → 20 안팎",
+      "subPxSource": "예시 서브(슬로건·시즌) 글자 상자 높이: 일화 970 18 · 580 23 · 동부 580 19 · ABL 580 24 → 20 안팎 / 10-12 실측 16~30 이나 같은 이유로 20 유지",
       "mainScale": {
         "square": 0.11,
         "wide": 0.09,
@@ -3719,6 +4432,49 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 100:4, text 418:2740·421:2779 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.5",
         "confidence": "확정",
         "note": "제출 파일은 640×100 (320×50×2). 사이즈·포맷·용량은 보드와 pdf 일치. 글자수만 확인필요.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 4,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1,
+                "px": 16,
+                "weight": 700
+              },
+              "date": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 10,
+                "weight": 400
+              },
+              "label": {
+                "share": 0.25,
+                "lines": 1,
+                "px": 7,
+                "weight": 800
+              },
+              "sub": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 9.5,
+                "weight": 350
+              }
+            },
+            "lineBudget": 2.5,
+            "kvArea": 0.229,
+            "kvBg": 1,
+            "logoShare": 0.5,
+            "padXr": 0.036,
+            "padTopr": 0.22,
+            "mainPxR": 0.1265,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2786 안랩 / 421:2834 GC녹십자 / 421:2944 HS화성 / 421:3038 마이다스",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -3796,6 +4552,55 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 100:16, text 418:2740·421:2780 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.5",
         "confidence": "확정",
         "note": "제출 파일 320×100.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 4,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 19,
+                "weight": 700
+              },
+              "label": {
+                "share": 0.25,
+                "lines": 1,
+                "px": 10,
+                "weight": 800
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 11.5,
+                "weight": 450
+              },
+              "sub": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 10.8,
+                "weight": 350
+              },
+              "hashtag": {
+                "share": 0.25,
+                "lines": 3,
+                "px": 9,
+                "weight": 700
+              }
+            },
+            "lineBudget": 3.5,
+            "kvArea": 0.299,
+            "kvBg": 1,
+            "logoShare": 0.25,
+            "padXr": 0.045,
+            "padTopr": 0.175,
+            "mainPxR": 0.1062,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2795 안랩 / 421:2861 GC녹십자 / 421:2965 HS화성 / 421:3044 마이다스",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -3890,6 +4695,61 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 102:45, text 418:2740·421:2782 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.6",
         "confidence": "확정",
         "note": "사이즈·포맷·용량 확정. 글자수는 자리표시에서 읽은 값이라 확인필요.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 4,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 25.5,
+                "weight": 700
+              },
+              "label": {
+                "share": 0.25,
+                "lines": 2,
+                "px": 12,
+                "weight": 800
+              },
+              "date": {
+                "share": 0.75,
+                "lines": 1,
+                "px": 14,
+                "weight": 500
+              },
+              "detail": {
+                "share": 0.75,
+                "lines": 2,
+                "px": 14,
+                "weight": 600
+              },
+              "sub": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 16.2,
+                "weight": 350
+              },
+              "hashtag": {
+                "share": 0.25,
+                "lines": 3,
+                "px": 11,
+                "weight": 700
+              }
+            },
+            "lineBudget": 6.5,
+            "kvArea": 0.37,
+            "kvBg": 1,
+            "logoShare": 0.25,
+            "padXr": 0.067,
+            "padTopr": 0.166,
+            "mainPxR": 0.0931,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2804 안랩 / 421:2886 GC녹십자 / 421:2988 HS화성 / 421:3062 마이다스",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -3993,6 +4853,61 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 102:115, text 418:2740·421:2783 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.6",
         "confidence": "확정",
         "note": "제출 파일은 640×960 (320×480×2). pdf 표기 '640*960(320*480)'과 일치.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 4,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2.5,
+                "px": 37.5,
+                "weight": 700
+              },
+              "label": {
+                "share": 0.25,
+                "lines": 2,
+                "px": 15,
+                "weight": 800
+              },
+              "date": {
+                "share": 0.75,
+                "lines": 1,
+                "px": 20,
+                "weight": 500
+              },
+              "detail": {
+                "share": 0.75,
+                "lines": 2,
+                "px": 20,
+                "weight": 600
+              },
+              "sub": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 23,
+                "weight": 350
+              },
+              "hashtag": {
+                "share": 0.25,
+                "lines": 3,
+                "px": 18,
+                "weight": 700
+              }
+            },
+            "lineBudget": 7.5,
+            "kvArea": 0.445,
+            "kvBg": 1,
+            "logoShare": 0.25,
+            "padXr": 0.095,
+            "padTopr": 0.12,
+            "mainPxR": 0.1172,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2818 안랩 / 421:2912 GC녹십자 / 421:3014 HS화성 / 421:3088 마이다스",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -4398,6 +5313,55 @@ export const MEDIA = [
         "source": "figma:인스타그램01(소재_제작_규정_제작가이드&예시)",
         "confidence": "확정",
         "note": "수치 규정은 사이즈(1080×1080)·포맷(JPG, PNG)·파일명뿐. 용량·글자수·폰트·색상 규정 없음. exportScale은 보드에 배율 언급이 없고 제작 프레임 1080×1080 = 제출 사이즈이므로 1.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 9,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 90,
+                "weight": 800
+              },
+              "date": {
+                "share": 0.78,
+                "lines": 1,
+                "px": 43,
+                "weight": 600
+              },
+              "detail": {
+                "share": 0.44,
+                "lines": 2,
+                "px": 31.5,
+                "weight": 700
+              },
+              "sub": {
+                "share": 0.22,
+                "lines": 1,
+                "px": 40,
+                "weight": 450
+              },
+              "hashtag": {
+                "share": 0.33,
+                "lines": 1,
+                "px": 33,
+                "weight": 700
+              }
+            },
+            "lineBudget": 5,
+            "kvArea": 0.301,
+            "kvBg": 8,
+            "logoShare": 0,
+            "padXr": 0.074,
+            "padTopr": 0.13,
+            "mainPxR": 0.0833,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:4519 호반그룹 / 421:4589 동우화인켐 / 421:4667 서울아산병원 / 421:5200 텔레칩스 / 421:5286 에스디바이오센서 / 421:5304 세방그룹 / 421:5335 바이오노트 / 421:5357 제이에스디원 / 421:5394 트리플래닛",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -4461,7 +5425,26 @@ export const MEDIA = [
       "피드 여백 측정값(좌우 55·상하 75px)은 '여백 - 라인' 가이드 사각형 970×930에서 계산한 값이며 보드 문구는 '필수X 권장O' — 검사 규칙으로 쓸지 권장 안내로만 쓸지 결정 필요.",
       "로고 크기 — 템플릿 프레임 215×55 / 제작 프레임 225×45로 두 값이 공존, 규정 아님.",
       "글자수·줄수·폰트·텍스트 색상 규정 전무 — 자동 검사 항목 없음(사이즈·포맷·파일명만 검사 가능)."
-    ]
+    ],
+    "guide": {
+      "note": "인스타 피드 샘플 실측(10-12 매체별 규격정리 9장) — 메인 중앙값 90px(1080의 0.083) 2줄·ExtraBold, 날짜 43px(7/9), 상세 31.5px(4/9), 아이브로 40px(2/9). KV 는 8/9 가 전면 배경(질감·사진 위 글자). canon.js 위에 이 키만 덮는다",
+      "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 421:4519/4589/4667/5200/5286/5304/5335/5357/5394 (ref/learned/cases/_out/figma-spec-compare.md)",
+      "mainScale": {
+        "square": 0.083
+      },
+      "mainScaleSource": "메인 fontSize 중앙값 90 ÷ 1080 (호반 84·동우 72·아산 100·텔레칩스 90·SD 105·세방 105·바이오노트 105·JSD 90·트리플래닛 88)",
+      "weights": {
+        "main": 800,
+        "note": "메인 ExtraBold 5/9(호반·코엑스·SD·세방·바이오노트), Bold 3/9 — 중앙값 800"
+      },
+      "detailLabels": "inline",
+      "detailLabelsSource": "샘플 9장에 알약 칩 없음 — 날짜는 혼자 한 줄(7/9), 상세는 「라벨 / 값」 인라인(호반 모집회사·지원자격, JSD 해시태그)",
+      "detailPx": {
+        "min": 26,
+        "max": 34
+      },
+      "detailPxSource": "샘플 상세 fontSize: 호반 24·SD 32·세방 32·JSD 33·트리플래닛 33 → 중앙값 31.5"
+    }
   },
   {
     "id": "kakao",
@@ -4897,6 +5880,37 @@ export const MEDIA = [
         "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5476, frame 421:5478 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
         "confidence": "확정",
         "note": "보드 프레임·섹션 메모(500KB, JP(E)G·PNG)·docx 일치. 1200×600 '이상' 허용이지만 보드 제작 치수는 1200×600.",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 72,
+                "weight": 800
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 52,
+                "weight": 700
+              }
+            },
+            "lineBudget": 3,
+            "kvArea": 0,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.058,
+            "padTopr": 0.217,
+            "mainPxR": 0.0849,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:5487 LX인터내셔널 / 421:5491 한국앤컴퍼니",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -5380,6 +6394,55 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6929/6932, frame 421:6935 / pdf:모바일DA 이미지 - 성과형(1250-560).pdf p.4~9 / psd:N_Mobile_Image_1250X560 (1).psd",
         "confidence": "확정",
         "note": "치수·용량·포맷은 보드·PDF·PSD 일치(확정). 최소 용량 50KB는 PDF에만 있음(보드는 250KB만 명시). 여백 수치만 보드 텍스트 메모와 충돌 → safeArea.confidence 확인필요",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 3,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 54,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 1,
+                "px": 27,
+                "weight": 500
+              },
+              "date": {
+                "share": 0.67,
+                "lines": 1,
+                "px": 27.5,
+                "weight": 650
+              },
+              "sub": {
+                "share": 0.33,
+                "lines": 1,
+                "px": 32,
+                "weight": 500
+              },
+              "label": {
+                "share": 0.33,
+                "lines": 1,
+                "px": 21,
+                "weight": 500
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.134,
+            "kvBg": 1,
+            "logoShare": 0,
+            "padXr": 0.212,
+            "padTopr": 0.118,
+            "mainPxR": 0.0645,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:6995 한국콜마그룹 / 421:7058 대원제약 / 421:7102 세아제강",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확정(샘플 3+)"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -5952,6 +7015,49 @@ export const MEDIA = [
           "note": "layoutNotes 문장을 구조화(10-08): 오브젝트 너비 220~320px, 우측 배치 시 오른쪽 기준 40~360px 영역 안에만·영역 중앙 권장. 텍스트 영역과 사이 19px(보드 도식·PSD). 누끼만 이 상자에 — 배경 포함 오브젝트(좌우 그라데이션)는 상자 없이 예전대로",
           "source": "layoutNotes[1]·safeArea.note (PDF 26년7월·PSD)"
         },
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1,
+                "px": 42.5,
+                "weight": 750
+              },
+              "detail": {
+                "share": 1,
+                "lines": 1,
+                "px": 32,
+                "weight": 550
+              },
+              "date": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 25,
+                "weight": 600
+              },
+              "cta": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 20,
+                "weight": 700
+              }
+            },
+            "lineBudget": 3,
+            "kvArea": 0.182,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.057,
+            "padTopr": 0.268,
+            "mainPxR": 0.0825,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:7623 두산건설 / 421:7653 대원제약",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -6124,6 +7230,49 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7200 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.26~30 / psd:에브리타임/02_홈배너/*.psd (640×170, 구버전)",
         "confidence": "확인필요",
         "note": "사이즈·텍스트 높이는 보드와 26년7월 PDF가 일치(640×200). PSD 12종은 25년1월 기준 640×170이라 그대로 쓰면 안 됨. 오브젝트 최대 너비 200/220px 불일치",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1,
+                "px": 30,
+                "weight": 700
+              },
+              "cta": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 10,
+                "weight": 700
+              },
+              "detail": {
+                "share": 1,
+                "lines": 1,
+                "px": 27.5,
+                "weight": 500
+              },
+              "hashtag": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 25,
+                "weight": 500
+              }
+            },
+            "lineBudget": 3,
+            "kvArea": 0.299,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.219,
+            "padTopr": 0.207,
+            "mainPxR": 0.0839,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:8104 맥도날드 / 421:8119 케이뱅크",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -6268,6 +7417,55 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7201 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.32~35 / psd:에브리타임/03_홈카드/홈 카드_카드이미지.psd (720×480)",
         "confidence": "확정",
         "note": "반려 사례(2026-08-28 세보엠이씨/에스비테크) 대상. 텍스트 여백·기타 문구 범위 불일치는 conflicts 참고",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 1.5,
+                "px": 49.5,
+                "weight": 800
+              },
+              "sub": {
+                "share": 1,
+                "lines": 1,
+                "px": 32,
+                "weight": 750
+              },
+              "detail": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 23,
+                "weight": 700
+              },
+              "label": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 22,
+                "weight": 800
+              },
+              "date": {
+                "share": 0.5,
+                "lines": 1,
+                "px": 36,
+                "weight": 800
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.037,
+            "kvBg": 0,
+            "logoShare": 0.5,
+            "padXr": 0.094,
+            "padTopr": 0.14,
+            "mainPxR": 0.0842,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:7691 코엑스 / 421:8061 티머니",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -6770,6 +7968,43 @@ export const MEDIA = [
         "source": "figma:블라인드01(소재 제작 규정) text 421:8134, 421:8136, frame 421:8166 / pdf:블라인드 2025 가이드.pdf p.9~10 / psd:블라인드_채용채널&피드광고_[Guide] 02.In-Feed Image Ad.psd (1200×628 아트보드)",
         "confidence": "확정",
         "note": "반려 사례(2026-07-31 니프코코리아 홈피드광고 291KB)의 100KB 기준이 이 규격",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 76.5,
+                "weight": 750
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 45.5,
+                "weight": 600
+              },
+              "detail": {
+                "share": 1,
+                "lines": 1,
+                "px": 42.5,
+                "weight": 700
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.292,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.05,
+            "padTopr": 0.189,
+            "mainPxR": 0.0881,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:8260 대원제약 / 421:8411 정식품",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       },
       {
@@ -6846,6 +8081,43 @@ export const MEDIA = [
         "source": "figma:블라인드01(소재 제작 규정) text 421:8135, 421:8137, frame 421:8165 / pdf:블라인드 2025 가이드.pdf p.11~12 / psd:블라인드_게시글배너,댓글배너_[Guide] 03.Channel Target Banner.psd",
         "confidence": "확인필요",
         "note": "보드가 '띠 배너'라 부르는 소재가 PDF의 '띠배너(1080×220)'와 다름. 텍스트 제한 여부도 보드 vs PSD 불일치",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 2,
+            "roles": {
+              "main": {
+                "share": 1,
+                "lines": 2,
+                "px": 66,
+                "weight": 750
+              },
+              "date": {
+                "share": 1,
+                "lines": 1,
+                "px": 37.5,
+                "weight": 600
+              },
+              "detail": {
+                "share": 1,
+                "lines": 1,
+                "px": 33,
+                "weight": 700
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.288,
+            "kvBg": 0,
+            "logoShare": 0,
+            "padXr": 0.079,
+            "padTopr": 0.206,
+            "mainPxR": 0.0789,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:8370 대원제약 / 421:8448 HS화성",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
         "frame": "rules"
       }
     ],

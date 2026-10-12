@@ -65,7 +65,8 @@ test('A4 상세 블록은 text-wrap:pretty, 끝 어절 2자 이하(「분야」)
 
 test('A5 쌓기 값은 쉼표로만 나눈다 — 「경영·제품·사업 분야」는 한 항목', () => {
   const ctx2 = createContext({ ...fields, startDate: null, deadline: null }, 'recruit');   // 날짜가 없으면 정사각 쌓기 첫 항목이 모집직무
-  const html = renderAd(ctx2, plain, specs['instagram-feed-1080']);
+  // 10-12 매체별 규격정리: 인스타 피드는 샘플 9장에 알약 칩이 없어(guide.detailLabels inline) 쌓지 않는다 — 쌓기 문법은 에브리타임 홈 카드(보드 1-884 코엑스)로 본다
+  const html = renderAd(ctx2, plain, specs['everytime-home-card-image']);
   const det = detailOf(html);
   assert.match(det, /data-chip="1"/, '쌓기(알약 + 값)');
   assert.match(det, /자유직무ㅣ​경영⁠·⁠제품/);
@@ -73,11 +74,13 @@ test('A5 쌓기 값은 쉼표로만 나눈다 — 「경영·제품·사업 분�
 });
 
 test('A7 혼자 선 날짜 줄은 라벨 없이(디자이너 12/12) — 상세 목록 안에서는 「접수기간」 라벨 유지', () => {
-  for (const id of ['blind-post-banner', 'kakao-display-pc-promo', 'jasoseol-pc-standard-main-pc']) {
+  for (const id of ['blind-post-banner', 'kakao-display-pc-promo']) {
     const html = renderAd(ctx, style, specs[id]);
     assert.doesNotMatch(html, /data-field="(date|sub)"[^>]*>접수기간/, id);
     assert.match(html, /data-field="(date|sub)"[^>]*>9\.22\(월\) - 10\.12\(일\)</, id);
   }
+  // 10-12 매체별 규격정리: 자소설 PC메인배너(1200×280)는 템플릿 구조(서브 = 시즌·슬로건, 상세 = 채용일정·모집직무 — 현대케피코 408:37780)라 날짜가 상세 목록 안에 라벨과 함께 선다
+  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-pc-standard-main-pc'])), /접수기간<\/b> : 9\.22/);
   assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo'])), /접수기간<\/b> : 9\.22/);
 });
 
@@ -117,7 +120,8 @@ test('B3 카카오 3줄 = 메인 1(회사 + 채용구분) + 슬로건 1 + 날짜
 test('B4 블리드 그림 옆 좁은 상세 열(인스타 1080)에서 날짜가 두 줄로 접히지 않게 상세를 줄인다', () => {
   const html = renderAd(ctx, style, specs['instagram-feed-1080']);
   const css = tagOf(html, 'detail');
-  assert.match(detailOf(html), /9\.22\(월\) - 10\.12\(일\)/, '날짜가 상세에 있다(필수)');
+  // 10-12 매체별 규격정리: 인스타 샘플 7/9 가 날짜를 혼자 한 줄(43px)에 둔다 — 날짜는 data-field="date" 줄, 상세(모집직무)는 26~34px 인라인
+  assert.match(html, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수)');
   const fs = num(css, 'font-size');
-  assert.ok(fs >= 28 && fs < 51, `상세 ${fs}px — 1080 하한 28 · 예전 51`);
+  assert.ok(fs >= 26 && fs <= 34, `상세 ${fs}px — 샘플 중앙값 31.5(26~34)`);
 });

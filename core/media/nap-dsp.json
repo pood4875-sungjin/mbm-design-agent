@@ -144,7 +144,50 @@
       ],
       "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 100:4, text 418:2740·421:2779 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.5",
       "confidence": "확정",
-      "note": "제출 파일은 640×100 (320×50×2). 사이즈·포맷·용량은 보드와 pdf 일치. 글자수만 확인필요."
+      "note": "제출 파일은 640×100 (320×50×2). 사이즈·포맷·용량은 보드와 pdf 일치. 글자수만 확인필요.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 4,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 16.0,
+              "weight": 700
+            },
+            "date": {
+              "share": 0.5,
+              "lines": 1.0,
+              "px": 10.0,
+              "weight": 400
+            },
+            "label": {
+              "share": 0.25,
+              "lines": 1,
+              "px": 7,
+              "weight": 800
+            },
+            "sub": {
+              "share": 0.5,
+              "lines": 1.0,
+              "px": 9.5,
+              "weight": 350
+            }
+          },
+          "lineBudget": 2.5,
+          "kvArea": 0.229,
+          "kvBg": 1,
+          "logoShare": 0.5,
+          "padXr": 0.036,
+          "padTopr": 0.22,
+          "mainPxR": 0.1265,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2786 안랩 / 421:2834 GC녹십자 / 421:2944 HS화성 / 421:3038 마이다스",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     },
     {
       "id": "nap-dsp-band-320x100",
@@ -220,7 +263,56 @@
       ],
       "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 100:16, text 418:2740·421:2780 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.5",
       "confidence": "확정",
-      "note": "제출 파일 320×100."
+      "note": "제출 파일 320×100.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 4,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2.0,
+              "px": 19.0,
+              "weight": 700
+            },
+            "label": {
+              "share": 0.25,
+              "lines": 1,
+              "px": 10,
+              "weight": 800
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 11.5,
+              "weight": 450
+            },
+            "sub": {
+              "share": 0.5,
+              "lines": 1.0,
+              "px": 10.8,
+              "weight": 350
+            },
+            "hashtag": {
+              "share": 0.25,
+              "lines": 3,
+              "px": 9,
+              "weight": 700
+            }
+          },
+          "lineBudget": 3.5,
+          "kvArea": 0.299,
+          "kvBg": 1,
+          "logoShare": 0.25,
+          "padXr": 0.045,
+          "padTopr": 0.175,
+          "mainPxR": 0.1062,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2795 안랩 / 421:2861 GC녹십자 / 421:2965 HS화성 / 421:3044 마이다스",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     },
     {
       "id": "nap-dsp-full-300x250",
@@ -313,7 +405,62 @@
       ],
       "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 102:45, text 418:2740·421:2782 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.6",
       "confidence": "확정",
-      "note": "사이즈·포맷·용량 확정. 글자수는 자리표시에서 읽은 값이라 확인필요."
+      "note": "사이즈·포맷·용량 확정. 글자수는 자리표시에서 읽은 값이라 확인필요.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 4,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2.0,
+              "px": 25.5,
+              "weight": 700
+            },
+            "label": {
+              "share": 0.25,
+              "lines": 2,
+              "px": 12,
+              "weight": 800
+            },
+            "date": {
+              "share": 0.75,
+              "lines": 1,
+              "px": 14,
+              "weight": 500
+            },
+            "detail": {
+              "share": 0.75,
+              "lines": 2,
+              "px": 14,
+              "weight": 600
+            },
+            "sub": {
+              "share": 0.5,
+              "lines": 1.0,
+              "px": 16.2,
+              "weight": 350
+            },
+            "hashtag": {
+              "share": 0.25,
+              "lines": 3,
+              "px": 11,
+              "weight": 700
+            }
+          },
+          "lineBudget": 6.5,
+          "kvArea": 0.37,
+          "kvBg": 1,
+          "logoShare": 0.25,
+          "padXr": 0.067,
+          "padTopr": 0.166,
+          "mainPxR": 0.0931,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2804 안랩 / 421:2886 GC녹십자 / 421:2988 HS화성 / 421:3062 마이다스",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     },
     {
       "id": "nap-dsp-full-320x480",
@@ -415,7 +562,62 @@
       ],
       "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 102:115, text 418:2740·421:2783 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.6",
       "confidence": "확정",
-      "note": "제출 파일은 640×960 (320×480×2). pdf 표기 '640*960(320*480)'과 일치."
+      "note": "제출 파일은 640×960 (320×480×2). pdf 표기 '640*960(320*480)'과 일치.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 4,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2.5,
+              "px": 37.5,
+              "weight": 700
+            },
+            "label": {
+              "share": 0.25,
+              "lines": 2,
+              "px": 15,
+              "weight": 800
+            },
+            "date": {
+              "share": 0.75,
+              "lines": 1,
+              "px": 20,
+              "weight": 500
+            },
+            "detail": {
+              "share": 0.75,
+              "lines": 2,
+              "px": 20,
+              "weight": 600
+            },
+            "sub": {
+              "share": 0.5,
+              "lines": 1.0,
+              "px": 23.0,
+              "weight": 350
+            },
+            "hashtag": {
+              "share": 0.25,
+              "lines": 3,
+              "px": 18,
+              "weight": 700
+            }
+          },
+          "lineBudget": 7.5,
+          "kvArea": 0.445,
+          "kvBg": 1,
+          "logoShare": 0.25,
+          "padXr": 0.095,
+          "padTopr": 0.12,
+          "mainPxR": 0.1172,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:2818 안랩 / 421:2912 GC녹십자 / 421:3014 HS화성 / 421:3088 마이다스",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     },
     {
       "id": "nap-dsp-bizboard-1029x258",

@@ -18,6 +18,7 @@ description: 디자인 규칙(core/ 의 kvtypes·canon·layouts·ad.js·field.js
 cd ~/mbm-design-agent
 B=<scratchpad>/base-$(date +%m%d-%H%M); mkdir -p $B
 cp ref/learned/cases/_out/*.checks.json ref/learned/cases/rounds.json ref/learned/cases/cases.json $B/
+cp ref/learned/cases/_out/trace/summary.json $B/trace-summary.json 2>/dev/null   # 가이드 대조표 기준선(✗ 목록)
 node scripts/round-diff.mjs --list 5          # 마지막 정식 라운드 번호 = 비교 기준
 npm test 2>&1 | tail -5                       # 시작 시 통과 수
 git diff --stat | tail -1
@@ -28,6 +29,7 @@ git diff --stat | tail -1
 - 값은 데이터 자리에 둔다: 공통 수치 → `core/canon.js`, 형태별 → `core/layouts.js`, 유형 판정 → `core/kvtypes.js`(측정은 `core/palette.js`), 배치 → `core/renderers/ad.js`, 지면 → `core/field.js`, 매체 규정 → `core/media/<매체>.json` 후 **`node scripts/build-media.mjs`**(core/media.js 재생성).
 - 주석에 근거를 남긴다: `// 10-09 <묶음>: 디자이너 n/N … (_out/<보고서>.md §x)`.
 - 측정 규칙(kvtypes/palette)을 바꿨으면 장부의 유형을 다시 잰다: `node scripts/cases.mjs remeasure`.
+- **규칙을 넣거나 바꾸면 `ref/learned/rules.json` 에 한 줄 추가·수정하고 `node scripts/rules-ledger.mjs --md` 로 검사한다**(형식·id 중복·코드 위치 파일 존재 + `history/규칙장부.md` 표 재생성). 되돌린 규칙은 지우지 말고 `status: "reverted"`, 근거 케이스가 하나면 `"single-evidence"`.
 
 ## 3. 라운드 돌리기 (전 케이스)
 ```bash
@@ -48,6 +50,7 @@ node scripts/round-diff.mjs --from <기준> --checks $B                     # �
   - 안 풀리면 **그 규칙만 되돌리고** 「되돌림: 무엇을·왜(어느 케이스 어느 규격이 어떻게 깨졌나)」를 기록.
 - 경고 수가 같아도 내용이 바뀌었을 수 있다(`~`). 참고(info) 등급 변화는 따로 적는다(합계에 안 들어감).
 - 개선만 보지 말고 **기존 케이스의 회귀 0** 을 확인한다(예: 「기존 17 = 10, 라운드 25 와 규격·문장까지 같음」).
+- **가이드 대조표**(10-12): 마지막 정식 라운드는 `run --round "…" --trace` 로(또는 `node scripts/guide-trace.mjs`) 돌려 `_out/trace/index.html` 을 열고 「✗ 규칙별 모음」을 보고서 §5 에 옮긴다. 바꾼 규칙의 ✗ 가 줄었는지(기준 라운드의 `_out/trace/summary.json` 을 백업해 두고 견준다), 다른 규칙에 새 ✗ 가 생기지 않았는지 본다. ✗ 가 「가이드 문장이 코드보다 느슨」한 것이면 rules.json 문장을 고친다(코드가 아니라). 판정 논리만 고쳤으면 `--reeval`.
 
 ## 5. 테스트
 - 새 규칙마다 테스트를 더한다: `test/<묶음>.test.js`(예: `test/figma-dg.test.js`, `test/figma-sep-typo.test.js`). 형식은 `node:test` + `assert/strict`, 실측 meta 를 축약해 넣고 `renderAd`/`kvTypeOf` 결과를 단언.
@@ -73,7 +76,7 @@ node scripts/kv-guide.mjs "$HOME/Downloads/키비주얼 디자인 가이드_$(da
 ## 2. 테스트 (새 파일·건수, 고친 기존 테스트)
 ## 3. 라운드 (케이스 | r기준 | r최종 | 바뀐 것)  ← round-diff --md 를 붙인다. 중간 라운드는 한 줄
 ## 4. (비교 대상이 있으면) 디자이너와 전/후
-## 5. 충돌 — 해결 / 미해결 / 되돌림
+## 5. 충돌 — 해결 / 미해결 / 되돌림 · 가이드 대조표 ✗(규칙별, 전/후)
 ## 6. 사용자 확인이 필요한 것 (근거 1건뿐인 수치, 레퍼런스와 충돌하는 값)
 ## 7. 산출물 (코드·테스트·rounds 번호·가이드 폴더·비교 이미지)
 ```

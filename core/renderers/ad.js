@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer } from '../field.js';
+import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, WHITE, BLACK } from '../palette.js';
@@ -70,12 +70,13 @@ export function copyLadder(ctx) {
       mainNarrow: uniq([...narrowMain, c.role ? `${c.role} 채용` : null, '채용 공고']),
       subNarrow: uniq([c.headline ? subFull : null, slogan, [season, c.client].filter(Boolean).join(' '), season, c.client, slogan0]),
       // 날짜가 혼자 한 줄에 설 때(서브·날짜 줄)는 라벨을 붙이지 않는다 — Figma 9월 공채 디자이너 12/12 무라벨(10-08 typo A7). 상세 목록 안에서는 「접수기간」 라벨 유지(details)
-      date: uniq(period ? [period] : []),
+      date: uniq(period ? [period, d ? `~${d}` : null] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
       extra: uniq([qual, qual.split(/[·,/]/)[0]?.trim()]),
       advertiser: uniq([c.client]),
       cta: uniq([c.ctaText, '지원하기', '지원']),
       notice: uniq([c.notice]),
-      label: uniq([c.role ? `모집직무 : ${c.role}` : null, c.employType]),
+      // 라벨 칩은 날짜 앞의 「접수기간」이 먼저(잡다 PC 5/5 「모집기간」 칩 + 날짜, NAP 320×480 「모집기간」 칩 — 10-12 매체별 규격정리). 날짜가 없으면 직무·고용형태
+      label: uniq([period ? '접수기간' : null, c.role ? `모집직무 : ${c.role}` : null, c.employType]),
       url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
       // 상세 정보 줄 — 우선순위 순. 자리(줄 수)가 모자라면 뒤에서부터 뺀다.
       details: [
@@ -175,6 +176,9 @@ export function renderAd(ctx, style, spec) {
   const D = designOf(spec.medium) ?? null;
   const p = style.palette;
   const { w, h } = spec;
+  // 가이드 대조표용 추적(10-12 scripts/guide-trace.mjs): 이 렌더가 내린 결정을 루트 data-trace(JSON)에 적는다 — 그림엔 영향 없음. rules = 걸린 CANON·유형 규칙 이름
+  const TR = { v: 1, rules: [] };
+  const fired = n => { if (!TR.rules.includes(n)) TR.rules.push(n); };
   const ladder = copyLadder(ctx);
   const counting = mr.textCounting ?? 'all-1';
 
@@ -202,17 +206,50 @@ export function renderAd(ctx, style, spec) {
   const guide0 = guideFor(mr);
   let reqDate = false;
   if (!logoOnly && ctx.kind === 'recruit' && (guide0.required?.recruit ?? []).includes('date') && ladder.date?.length && !slots.date && !slots.detail) {
-    const whole = inLimits.filter(t => /^이미지 내 텍스트$/.test(String(t.field ?? '').trim()));
-    if (whole.length && Object.keys(by).every(r => r === 'main' || r === 'notice')) {
+    // 네이버 모바일 DA '광고 문구(메인문구+서브문구) 4줄'도 같은 한 덩어리 규정(roleOf 는 sub 로 읽는다) — 10-12 매체별 규격정리
+    const WHOLE_RE = /^이미지 내 텍스트$|메인문구\s*\+\s*서브문구|^광고 문구/;
+    const whole = inLimits.filter(t => WHOLE_RE.test(String(t.field ?? '').trim()));
+    const wholeSub = whole.length > 0 && by.sub && inLimits.filter(t => roleOf(t.field) === 'sub').every(t => WHOLE_RE.test(String(t.field ?? '').trim()));
+    if (whole.length && Object.keys(by).every(r => r === 'main' || r === 'notice' || (r === 'sub' && wholeSub))) {
+      if (wholeSub) delete slots.sub;   // 「메인문구+서브문구」 한 덩어리 — 서브 칸이 아니라 전체 줄 수
       const total = whole.reduce((n, t) => n + (t.lines ?? 0), 0) || null;
       const slogan = !!(ctx.core?.slogan);
       slots.date = { lines: 1, maxChars: null };
-      if (slogan && (total == null || total >= 3)) slots.sub = { lines: 1, maxChars: null };
-      if (total != null) slots.main = { ...slots.main, lines: Math.max(1, total - 1 - (slots.sub ? 1 : 0)) };
+      // 4줄이면 디자이너는 메인 2 + 날짜 1 + 모집직무 1(블라인드 대원제약·HS화성 2/2, 네이버 3/3 — 10-12 매체별 규격정리). 슬로건은 그 다음(5줄부터)
+      const hasDetail = (ladder.details ?? []).some(d => d.label !== '접수기간');
+      if (hasDetail && (total == null || total >= 4)) slots.detail = { lines: Math.max(1, (total ?? 4) - 3), maxChars: null };
+      if (slogan && (total == null || total >= (slots.detail ? 5 : 3))) slots.sub = { lines: 1, maxChars: null };
+      if (total != null) slots.main = { ...slots.main, lines: Math.max(1, total - 1 - (slots.sub ? 1 : 0) - (slots.detail?.lines ?? 0)) };
       reqDate = true;
     }
     // 「기타 문구」 칸이 모집 일정을 허용하면(에브리타임 '모집 일정·앱설치…만') 그 칸에 날짜
     else if (slots.extra && inLimits.some(t => roleOf(t.field) === 'extra' && /모집 일정|일정/.test(String(t.note ?? '')))) ladder.extra = [...ladder.date.map(d => d.replace(/^접수기간 : /, '')), ...(ladder.extra ?? [])];
+  }
+  // 샘플 실측(매체 JSON spec.sampleText — 디자이너 샘플이 보여 주는 역할·줄·px): 규정 표에 없는 역할을 더한다(NAP 띠배너 날짜 2/4·전면 상세 3/4, 잡다 PC 라벨).
+  //   같은 역할을 규정이 정했으면 규정이 이긴다. 역할이 있는 프레임이 절반 이상일 때만. 글자 크기는 statedFontSizes 뒤에서 같은 우선순위로 쓴다 (10-12 매체별 규격정리 86프레임·29규격)
+  const sampleRoles = rules.sampleText?.measuredFromSamples?.roles ?? null;
+  // 실제 정보가 비어 있으면(마감일·직무 없음) 자리는 두고 「샘플 문구」를 넣어 샘플 밀도를 맞춘다 — 지어낸 사실이 아니라 자리표시(data-sample="1", 앱이 배지로 알려 디자이너가 승인 전에 바꾼다)
+  const SAMPLE_COPY = { date: '0/00(월) ~ 0/00(일)', detail: { label: '모집직무', value: '모집 직무를 입력하세요' } };
+  const sampleText = new Set();
+  // 매체가 총 줄 수를 정한 규격(combined·reqDate — 에브리타임 홈 카드 5줄·블라인드 4줄)은 그 예산이 규칙이라 더하지 않는다. 라벨 칩은 매체 규정으로만(샘플의 라벨 줄은 상세 블록 안의 라벨 줄이다).
+  // 아이브로(sub)는 과반(> 0.5)일 때만, 얇은 띠(strip)엔 넣지 않는다 — NAP 320×100 아이브로 2/4 가 띠를 넘쳐 잘렸다
+  // 매체 가이드가 슬롯을 정한 매체(구글 — 날짜는 상세 칩 안)도 더하지 않는다. 얇은 띠(h < 120)는 과반(> 0.5)일 때만 — NAP 320×50 날짜 2/4 를 넣으면 메인이 11px 로 내려앉는다
+  if (sampleRoles && !logoOnly && ctx.kind === 'recruit' && !combined && !reqDate && !mr.guide?.slots) {
+    for (const r of ['sub', 'date', 'detail']) {
+      const sr = sampleRoles[r];
+      if (slots[r] || !sr || sr.share < 0.5) continue;
+      if (r === 'date' && slots.extra && (ladder.extra ?? []).some(x => (ladder.date ?? []).includes(x))) continue;   // 날짜가 이미 「기타 문구」 칸(에브리타임 커뮤니티보드 모집 일정)에 갔으면 또 세우지 않는다 — 10-13 전수 검사: 두 줄이 되며 메인이 안전영역 위로 1px 밀렸다(17케이스)
+      if ((r === 'sub' || h < 120) && sr.share <= 0.5) continue;
+      if (r === 'sub' && h < 120) continue;
+      const has = ladder[r]?.length || (r === 'detail' && ladder.details?.length);
+      if (!has) {
+        if (r === 'date') { ladder.date = [SAMPLE_COPY.date]; sampleText.add(SAMPLE_COPY.date); }
+        else if (r === 'detail') { ladder.details = [...(ladder.details ?? []), { ...SAMPLE_COPY.detail }]; sampleText.add(SAMPLE_COPY.detail.value); }
+        else continue;
+      }
+      // 상세는 라벨 줄 몫을 하나 더 둔다(NAP 320×480 안랩: 「모집부문」 칩 줄 + 값 2줄 — 값 줄 수만 세면 긴 직무 목록이 통째로 빠진다)
+      slots[r] = { lines: Math.max(1, Math.round(sr.lines)) + (r === 'detail' && sampleRoles.label ? 1 : 0), maxChars: null, sample: true };
+    }
   }
   // 레퍼런스(core/layouts.js)가 형태별 문법을 정한다. 레퍼런스가 없는 120px 미만 띠만 예전 띠 문법을 쓴다.
   const L = layoutFor(w, h);
@@ -257,8 +294,9 @@ export function renderAd(ctx, style, spec) {
     const linesCap = Math.min(slot?.lines ?? Infinity, linesHint ?? Infinity);
     // 한 낱말이 한 줄보다 길면 낱말 중간에서 끊긴다("도레이첨단소재" 7자 > 달력배너 행당 6자) — 그 문구는 안 맞는 것으로 본다
     // 빗금·가운뎃점으로 이어진 긴 낱말("비씨월드제약/헬스케어" 11자)은 그 뒤에서 끊을 수 있다(예시 "비씨월드제약 / 헬스케어") — 8자 넘는 덩어리는 조각으로 센다
-    const pieces = w => countChars(w, counting) > 8 ? w.split(/(?<=[\/∙·])/) : [w];
-    const wordOk = c => perLine == null || !Number.isFinite(perLine) || !String(c).split(/\s+/).flatMap(pieces).some(w => countChars(w, counting) > perLine);
+    const pieces = w => (countChars(w, counting) > 8 || (perLine != null && Number.isFinite(perLine) && countChars(w, counting) > perLine)) ? w.split(/(?<=[\/∙·])/) : [w];
+    // 글자수로는 들어가도 폭으로 안 들어가는 낱말(「GC녹십자그룹」 — half-latin 셈 6자지만 라틴 2자가 1.24em)은 글꼴 폭(0.9em/자 어림과 같은 자)으로 한 번 더 거른다 — 10-13 전수 검사 desk-36 자소설 160×600 메인 잘림
+    const wordOk = c => perLine == null || !Number.isFinite(perLine) || !String(c).split(/\s+/).flatMap(pieces).some(w => countChars(w, counting) > perLine || (fs && widthPx && textWidth(w) * fs * 0.9 > widthPx));
     // 줄 수 추정: 매체가 줄당 글자수를 정했으면 글자수로, 아니면 글꼴 폭(textWidth)으로 — 글자수 0.9em 어림은 띄어쓰기·빗금까지 한 글자로 세어
     // "㈜일화 신입/경력 사원 모집"(575px)을 582px 칸에서 두 줄로 보고 회사를 떨어뜨린다(카카오). fitFontSize와 같은 자로 재야 둘이 어긋나지 않는다
     const linesOf = c => (slot?.maxCharsPerLine != null || !(fs && widthPx)) ? estimateLines(c, perLine, counting) : Math.max(1, Math.ceil(textWidth(c) * fs * 1.04 / widthPx));
@@ -278,8 +316,10 @@ export function renderAd(ctx, style, spec) {
   }
   // 가로형은 시즌이 메인 앞에 붙는다(삼진제약) — 서브 줄은 접수기간이 쓴다
   // 가이드가 상세 슬롯을 둔 매체(구글)는 접수기간이 상세 칩으로 가므로 서브는 시즌·슬로건 그대로(일화 970: 슬로건 → 메인 → 라벨 2개)
-  if (useRef && L.shape === 'wide' && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];
-  if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.seasonInMain && !reqDate) {   // reqDate: 날짜 줄이 따로 있다 — 서브는 슬로건
+  // 규정이 서브·상세 칸을 둘 다 정한 매체(자소설 PC메인배너 1200×280)는 가로형이어도 템플릿 구조 그대로 — 서브 = 시즌, 메인 = 회사 + 채용구분, 상세 = 채용일정·모집직무(현대케피코 샘플 408:37780, 10-12 매체별 규격정리)
+  const tplCopy = !!(by.sub && by.detail && rules.fontSizes && ctx.kind === 'recruit');   // 글자 크기까지 템플릿이 정한 매체(자소설)만 — 카카오 비즈보드(메인·서브·부가정보)는 예전 문법
+  if (useRef && L.shape === 'wide' && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain && !tplCopy) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];
+  if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.seasonInMain && !reqDate && !tplCopy) {   // reqDate: 날짜 줄이 따로 있다 — 서브는 슬로건
     ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
   }
   let copy = Object.fromEntries(Object.keys(ladder).filter(k => !['details', 'mainNarrow', 'subNarrow', 'mainWide'].includes(k)).map(r => [r, pickIn(r, null)]));
@@ -346,6 +386,9 @@ export function renderAd(ctx, style, spec) {
   // 단일 사물 누끼(kvtypes flags.single — 캐릭터·떼 아님): 크게, 우하단으로 블리드(CANON objectBleed — 70% 이상 보임, 오른쪽·아래로만 30%까지 잘림, 목표 면적).
   // 형태 문법·가이드가 정한 그림 자리(오른쪽 열·모서리 상자·아래 띠)의 왼쪽·위 경계는 지키고, 그 안에서 맞춰 넣기 대신 키워서 오른쪽·아래 변 밖으로 흘린다. 템플릿 칸(자소설)은 템플릿대로
   const singleObj = !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);
+  { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
+    TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
+    if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv) fired('glassDark'); }
   let bleedP = null;
   const bleedAt = (x0, y0, sym = false) => objectBleedPlace(style, { w, h, x0, y0, shape: L.shape, bleed: sym ? { ...guide.objectBleed, ...guide.objectBleed.narrow, ...(guide.objectBleed.tower && w <= guide.objectBleed.tower.maxW ? guide.objectBleed.tower : {}) } : guide.objectBleed, sym });
   if (gCorner) {
@@ -562,9 +605,14 @@ export function renderAd(ctx, style, spec) {
   // 단색으로 바꿀 때만 글자 속까지 지운 사본(style.logoMono, core/logo.js prepLogoRGBA mono) — 속이 메워져 「●」가 되지 않게.
   // 원색 그대로면 속의 흰색을 남긴 로고(색 엠블럼 안 흰 글자가 지면색으로 비치지 않게) — 10-12 결정 12
   const logoSrc = (logoFilter && style.logoMono && logoSrc0 === style.logo) ? style.logoMono : logoSrc0;
+  TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined } : null;
+  TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv };
+  TR.scrim = photoFull ? { kind: 'photo-full', base: scrimBase, a: [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
+  TR.logo = { place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo };
+  if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} data-trace="${esc(JSON.stringify(TR))}" style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -642,10 +690,10 @@ export function renderAd(ctx, style, spec) {
   const textH = objectSide === 'bottom' ? innerH - objReserve - 12 : (cornerTop != null && hasKv ? Math.max(40, cornerTop - pad.top) : innerH);
 
   /* ── 슬롯 유무 ── 정보는 규격이 작아져도 빼지 않는다(구글 28/28). */
-  const subAbove = guide?.subAbove ? true : useRef ? L.subAbove : (D?.subAbove?.value ?? 0) >= 0.5;      // 레퍼런스: 세로형은 서브(회사)가 메인 위 · 구글: 슬로건 아이브로는 가로형에서도 위(12/12)
+  const subAbove = guide?.subAbove ? true : tplCopy ? true : useRef ? L.subAbove : (D?.subAbove?.value ?? 0) >= 0.5;   // 템플릿 구조 매체(자소설)는 가로형에서도 서브(시즌)가 메인 위 — PC메인배너 샘플 서브 y42 → 메인 y81      // 레퍼런스: 세로형은 서브(회사)가 메인 위 · 구글: 슬로건 아이브로는 가로형에서도 위(12/12)
   const useDetail = !!slots.detail && (!strip || innerH >= 200) && (ladder.details?.length > 0);
   const want = {
-    sub: !!slots.sub && !!copy.sub, date: !!slots.date && !!copy.date && !useDetail, extra: !!slots.extra && !!copy.extra,
+    sub: !!slots.sub && !!copy.sub, date: !!slots.date && !!copy.date && (!useDetail || reqDate || !!slots.date?.sample), extra: !!slots.extra && !!copy.extra,   // reqDate: 날짜 줄이 따로 선다(블라인드 4줄 = 메인 2 + 날짜 + 모집직무)
     label: !!slots.label && !!copy.label, cta: SHOW_CTA && !!slots.cta && !!copy.cta, notice: !!slots.notice && !!copy.notice,
     detail: useDetail,
     advertiser: !!slots.advertiser && !!copy.advertiser && !(logoSrc && allowLogo),
@@ -653,13 +701,27 @@ export function renderAd(ctx, style, spec) {
   // 가로형은 메인 + 정보 한 줄(안랩·삼진제약). 서브 칸이 있으면 서브가 그 줄이고(접수기간이 들어 있다), 없으면 날짜·상세가 그 줄이다.
   // 가이드가 슬롯을 정한 매체(구글)는 가로형에도 서브 + 메인 + 상세 한 행을 다 둔다(일화 970: 접수기간·모집부문 라벨 2개 한 줄)
   if (useRef && L.shape === 'wide' && !guide?.seasonInMain) {
-    if (reqDate) want.detail = false;   // 메인 + 슬로건 + 날짜(카카오 3줄)
+    if (tplCopy) want.date = false;     // 템플릿 구조: 서브(시즌) + 메인 + 상세(날짜는 상세 줄 안에)
+    else if (reqDate) { if (!slots.detail) want.detail = false; }   // 메인 + 슬로건 + 날짜(카카오 3줄) · 4줄이면 모집직무 한 줄 더(블라인드)
     else if (want.sub && ctx.kind === 'recruit') { want.date = false; want.detail = false; }
     else if (want.date || want.detail) want.sub = false;
   }
 
   /* ── 타이포 ── 메인은 절대 px에 가깝다(프로필 관찰 px) */
   const stated = statedFontSizes(rules, tScale);
+  let sampleMainPx = null;   // 메인은 고정값이 아니라 「원하는 크기」(titleMax) — 안 들어가면 줄인다(카카오 홍보이미지 1줄 「마이다스 대규모 공개채용」이 72px 고정이면 회사가 떨어진다)
+  const sampleSoft = new Set();   // 샘플에서 온 서브·상세 크기 — 매체 규정(fontSizes)과 달리 메인을 살리려 줄일 수 있다(NAP 320×480 행성 누끼: 글자 자리 194px 에 샘플 크기 그대로면 메인이 「채용 공고」로 떨어진다)
+  if (sampleRoles && !logoOnly) {
+    for (const [r, sr] of Object.entries(sampleRoles)) {
+      if (!['main', 'sub', 'date', 'detail', 'label'].includes(r) || stated[r] != null || !sr?.px || sr.share < 0.5) continue;
+      if (r === 'main') { if (!(guide?.mainPx || guide?.mainScale) && sr.share >= 1 && !rules.fontSizes) sampleMainPx = Math.round(sr.px * tScale); continue; }
+      let px = Math.round(sr.px * tScale);
+      // 가이드가 상세·서브 글자 띠를 정한 매체(구글)는 그 띠 안으로 — 샘플 24px 상세가 300×1050 글자 예산을 넘겨 잘렸다
+      if (r === 'detail' && guide?.detailPx) px = Math.max(guide.detailPx.min ?? px, Math.min(guide.detailPx.max ?? px, px));
+      if (r === 'sub' && guide?.subPx?.max) px = Math.min(guide.subPx.max, px);
+      stated[r] = px; sampleSoft.add(r);
+    }
+  }
   const th = rules.textHeightPx ?? null;
   const line = 1.3;
   const mainLine = useRef ? (guide?.mainLineHeight ?? L.mainLine) : line;
@@ -671,6 +733,7 @@ export function renderAd(ctx, style, spec) {
   if (strip) titleMax = Math.min(titleMax, Math.round(innerH * 0.5));
   // 가이드의 메인 글자 px 띠(구글 24~40: 규격이 작아져도 글자를 비례로 줄이지 않는다 — '글자 크고 굵게')
   if (guide?.mainPx?.max) titleMax = Math.min(titleMax, guide.mainPx.max);
+  if (sampleMainPx) titleMax = sampleMainPx;   // 디자이너 샘플의 메인 크기(규격마다 중앙값 — 잡다 28·NAP 320×480 38·블라인드 66→띠 56) — 10-12 매체별 규격정리
   titleMax = Math.max(14, Math.min(titleMax, Math.floor(textW / (useRef ? 3 : 5))));
   // 매체가 밝힌 글자 크기 띠(블라인드 게시글 textLimits fontSizeRange 32~56 — 이미지 안 글자 전부): 메인 상한·하한, 보조 글자도 그 띠 안으로(sizesAt)
   if (fsRange?.max != null) titleMax = Math.min(titleMax, fsRange.max);
@@ -707,6 +770,9 @@ export function renderAd(ctx, style, spec) {
   }
   const preferMain = copy.main;   // 세로 예산 때문에 한 줄로 몰리면서 이 문구가 떨어지면(일화 970 "㈜일화 …" → "신입/경력 …") 두 줄로 줄여서라도 되살린다
   for (const r of ['sub', 'date', 'extra', 'label']) copy[r] = pickIn(r, textW);
+  // 라벨 칩은 사다리가 짧아(고용형태 하나) 한도를 넘으면 그대로 그려졌다(잡다 PC 라벨 4자에 "신입·경력" 5자 — 10-12 매체 규정 전수 검사, sep-open-recruit).
+  //   정보 줄이 아니라 장식 칩이므로 한도 안에 드는 문구가 없으면 비운다 — 지어내지 않는다
+  if (copy.label && slots.label?.maxChars != null && countChars(copy.label, counting) > slots.label.maxChars) copy.label = '';
 
   // 상세 줄 — "라벨 : 값". 줄당 글자수가 좁으면(자소설 세로형 11자) 라벨 줄 + 값 줄로 쌓는다.
   const detailSlot = slots.detail ?? null;
@@ -728,7 +794,7 @@ export function renderAd(ctx, style, spec) {
   if (want.detail) {
     // 메인·서브에 이미 들어 있는 말은 상세로 되풀이하지 않는다("신입/경력" 고용형태는 메인 "신입/경력사원 채용"에 있다 — 보드 예시에 고용형태 줄은 없다)
     const saidIn = v => [copy.main, copy.sub].some(t => String(t ?? '').replace(/\n/g, ' ').includes(String(v)));
-    const cands0 = ladder.details.filter(d => !saidIn(d.value));
+    const cands0 = ladder.details.filter(d => !saidIn(d.value) && !(want.date && d.label === '접수기간') && !(want.date && sampleText.has(d.value) && d.label === '접수기간'));   // 날짜 줄이 따로 서면(블라인드 4줄) 상세엔 모집직무만
     stackTags = !guide?.detailLabels && !strip && !(tImage && !cutCorner) && !(useRef && (L.shape === 'wide' || gv?.detailFlow === 'row')) && S >= 420 && cands0.length > 0 && cands0.length <= 3;   // 자소설 템플릿 칸은 제외, 누끼 모서리 상자(합성)는 포함
     const cap = detailSlot.lines ?? guide?.detailRows?.[L.shape] ?? 3;
     // 쌓으면 한도를 넘는데 하나는 들어가면 하나만 쌓는다(코엑스 홈 카드: 상세 2줄에 '모집분야' 하나) — 그때 직무가 먼저. 하나도 못 쌓으면 인라인
@@ -778,7 +844,7 @@ export function renderAd(ctx, style, spec) {
     const cap = Math.max(floorMain, Math.round(capMain * k));
     // 가이드가 서브·상세 글자 상한을 정하면(구글 서브 ≤20 · 상세 13~16) 레퍼런스 비례값(리멤버 가로형 상세 = 메인의 62%)보다 우선 — 메인만 크고 나머지는 작게
     const subFs = Math.min(guide?.subPx ? Math.min(guide.subPx.max, Math.max(12, Math.round(w * 0.055))) : Infinity, stated.sub ?? Math.max(9, Math.round((useRef ? L.sub * kRange : capMain * (subAbove ? 0.62 : 0.5)) * k)));
-    const smallFs = useRef && L.shape === 'wide' ? subFs : Math.max(8, Math.round(subFs * 0.88));
+    const smallFs = stated.date ?? (useRef && L.shape === 'wide' ? subFs : Math.max(8, Math.round(subFs * 0.88)));   // 매체가 날짜 줄 크기를 밝혔으면(자소설 달력 마감일 32/2배 → 16) 그대로 — 예전엔 9px 로 떨어졌다
     const dFs = detailFs ?? Math.min(guide?.detailPx?.max ?? Infinity, Math.max(8, Math.round((detailFsFit ?? (useRef ? L.detail * kRange : cap * 0.5)) * k)));
     const noticeFs = Math.max(8, Math.round(subFs * 0.7));
     const ctaFs = Math.max(10, Math.round(cap * 0.5));
@@ -841,7 +907,7 @@ export function renderAd(ctx, style, spec) {
   // 위계: 메인은 상세의 1.8배·서브의 1.6배는 돼야 한다(레퍼런스 메인 44 / 상세 13~16 / 서브 ≤20). 상세·서브가 세로 예산을 먹어 메인이 작아지면(1080 메인 45·상세 41 — 납작한 템플릿 티)
   // 상세·서브를 먼저 줄이고 메인을 다시 잰다. 매체가 글자 크기·높이를 정한 경우(stated·textHeightPx)는 건드리지 않는다
   // 가이드가 상세·서브 px를 정한 매체(구글)는 위계도 가이드가 책임진다 — 여기서 상세를 줄이면 970 메인이 커져 시즌이 떨어진다(동부 회귀)
-  if (stated.main == null && !detailFs && !stated.sub && !th && !fsRange && !guide?.detailPx) {
+  if (stated.main == null && (!detailFs || sampleSoft.has('detail')) && (!stated.sub || sampleSoft.has('sub')) && !th && !fsRange && !guide?.detailPx) {
     const dMin = 11, sMin = 11, target = Math.min(z.cap, mainCap);
     for (let i = 0; i < 2; i++) {
       const probe = Math.floor(fitFontSize(copy.main, mainW, titleBudget, target, floorMain, mainLine));
@@ -887,7 +953,8 @@ export function renderAd(ctx, style, spec) {
     // 바닥은 지금 실제로 쓸 수 있는 메인 상한(mainCap — 좁은 글자 자리에서 줄어든 값) 기준. 레이아웃 상한(capMain) 기준이면 배경형 1080(자리 폭 430)에서 65px가 필요한 회사명을 71px 바닥이 막는다
     const minFs = Math.max(floorMain, Math.round(Math.min(capMain, mainCap) * guide.keepInfo));
     // 지금 줄 수로 글자만 줄여 보고(카카오 1줄 46→44), 안 되면 두 줄로
-    const tryLines = [...new Set([mainLines, Math.min(2, mainLinesCap ?? 2)])].filter(n => n >= 1);
+    // 세로형·세로 띠는 3·4줄까지 — 샘플 크기(NAP 320×480 38px)를 목표로 잡자 「마이다스 대규모 공개채용」(줄당 6자)이 2줄엔 못 들어가 「채용 공고」로 떨어졌다(10-12 매체별 규격정리)
+    const tryLines = [...new Set([mainLines, 2, 3, 4].filter(n => n >= 1 && n <= (mainLinesCap ?? 2)))];
     for (const ln of tryLines) {
       let fs = Math.min(mainCap, Math.floor(titleBudget / (ln * mainLine)));
       while (fs >= minFs && !pickInfo('main', mainW, fs, ln, preferMain).fits) fs = Math.round(fs * 0.94);
@@ -917,7 +984,8 @@ export function renderAd(ctx, style, spec) {
     const soloChar = isCutout && (() => { const t = kvTypeOf(style.kvMeta); return !!(t?.flags.character && !t.flags.group); })();
     const maxObjEff = soloChar && (L.shape === 'tall' || L.shape === 'tower') ? Math.max(maxObj, 0.72) : maxObj;   // 캐릭터 하나는 세로형에서 72%까지 — 글자 블록 사이가 비는 것보다 캐릭터가 큰 쪽(NAP 320×480 여우 빈 띠 30%)
     grow = Math.min(grow, Math.round(h * maxObjEff) - objH);
-    if (grow > 0) { objH += grow; objReserve = Math.round(objH * (1 - overlap)); }
+    if (grow > 0) { objH += grow; objReserve = Math.round(objH * (1 - overlap)); fired('fill'); }
+    TR.fill = { slack: Math.round(slack), grow, maxObj: maxObjEff, used };
     // 세로형·세로 띠에서 그림을 다 키워도 글자 블록 아래가 남으면(6%h 넘게) 상세를 그림 바로 위로 내린다 — 레퍼런스(동부 300×1050 모집분야가 그림 위에 붙음). 가운데가 비어 보이지 않게
     if ((L.shape === 'tall' || L.shape === 'tower') && slack - Math.max(0, grow) > h * 0.06) distribute = true;
     if (distribute && slack - Math.max(0, grow) > h * 0.35) splitGap = true;
@@ -1045,13 +1113,15 @@ export function renderAd(ctx, style, spec) {
     }
   }
   if (globalThis.__adDebug) globalThis.__adDebug({ spec: spec.id, shape: L.shape, textW, textH, titleBudget, capMain, mainCap, mainFs, mainLines, mainLinesCap, preferMain, main: copy.main, sub: copy.sub, pad: { ...pad }, detailW, details: detailLines.map(d => `${d.label}:${d.rows}`), dFs: z.dFs, subFs: z.subFs, objW, objH, objectSide, tImage });
-  const byWidth = (role, fs, width) => {
+  TR.place = { shape: L.shape, objectSide, mode: photoFull ? 'full' : frameFull ? 'bg-frame' : textureFull ? 'bg-texture' : roomFull ? 'bg-room' : !hasKv ? 'none' : bleedP ? (bleedP.sym ? 'bleed-sym' : 'bleed') : oBox ? 'box' : (tImage && imgCorner) ? (cutCorner ? 'corner-contain' : cornerFill ? 'corner-cover' : 'corner') : (tImage && imgBottomBand) ? `template-band-${bandMode}` : tImage ? 'template' : objectSide === 'right' ? 'column' : objectSide === 'bottom' ? 'band' : 'none',
+    tImage, bleed: bleedP, objW, objH, objReserve, overlap, cutBand, cutBleed, cutLeft, cutWin, distribute, splitGap, pad: { ...pad }, innerW, innerH, textW, mainW, textH, detailW, vCenter, mainSpan, cornerFill, meltCorner, bandMode, edgeSolid, kvCapW: Number.isFinite(cutoutCapW(style)) ? cutoutCapW(style) : null };
+  if (bleedP) fired(bleedP.sym ? 'objectBleed.narrow' : 'objectBleed'); if (overlap > 0) fired('objectOverlap'); if (distribute) fired('fill.distribute'); if (cutWin || cutLeft != null) fired('cutWindow'); if (TR.place.kvCapW && bleedP && bleedP.dw >= TR.place.kvCapW - 1) fired('maxUpscale');
+  const byWidth = (role, fs, width, measure = textWidth) => {
     const cands = ladder[role] ?? []; if (cands.length < 2) return;
     const slot = slots[role]; if (slot?.lines != null && slot.lines > 1) return;
     const charsOk = c => slot?.maxChars == null || countChars(c, counting) <= slot.maxChars;
-    copy[role] = cands.find(c => charsOk(c) && textWidth(c) * fs <= width) ?? cands.find(charsOk) ?? cands[cands.length - 1];
+    copy[role] = cands.find(c => charsOk(c) && measure(c) * fs <= width) ?? cands.find(charsOk) ?? (role === 'label' ? '' : cands[cands.length - 1]);   // 라벨 칩은 한도를 넘는 문구를 그리지 않는다(잡다 4자, 10-12 전수 검사)
   };
-  byWidth('date', z.smallFs, (want.label ? textW * 0.5 : textW) * 0.9);
   byWidth('label', z.smallFs, textW * 0.45);
   // 세로 띠의 서브는 두 줄까지 쓴다(도레이 "2025년 하반기 / 도레이첨단소재") — 한 줄 폭으로 자르면 회사가 떨어져 나간다
   const subRows = (useRef && L.shape === 'tower') ? 1.9 : 1;
@@ -1059,6 +1129,23 @@ export function renderAd(ctx, style, spec) {
   //   폭 = 주인공 상자 왼쪽 선까지(블리드 상자의 왼쪽 위는 비어 있다). 폭 어림(textWidth)이 실제보다 15~20% 넉넉하므로 여기선 0.96 여유를 두지 않는다
   const subW = (mainSpan && bleedP) ? Math.max(textW, Math.round((bleedP.left + Math.max(0, style.kvMeta.field.focus.x - style.kvMeta.field.focus.w / 2) * bleedP.dw - pad.left - Math.round(w * 0.01)) / 0.96)) : textW;
   byWidth('sub', z.subFs, subW * 0.96 * subRows);
+  // 날짜 줄은 전체 기간(시작 - 마감)이 샘플 문법이다(10-12 매체별 규격정리: 카카오 한국앤컴퍼니 52px 「9/23(수) ~ 10/5(월)」· NAP 320×480 HS화성 20px 「08.14(금) ~ 08.27(목)」· 블라인드 HS화성 45px · 9월 공채 카카오 48px).
+  //   폭은 날짜 전용 자(dateWidth)로 잰다 — textWidth 는 점·괄호·빗금을 0.5em 으로 세어 날짜 문구를 20% 넘게 어림한다(「9.22(월) - 10.12(일)」 10.5em → 실제 8.5em). mainSpan(카카오 3줄)이면 서브처럼 주인공 상자 왼쪽 선까지.
+  //   칸이 좁으면 ① 라벨 칩(접수기간)과 한 줄에 못 서면 칩 아래 줄로 내려가 전체 폭을 쓰고(NAP 안랩 2818: 「모집기간」 줄 위, 날짜 줄 아래 — metaRow 가 flex-wrap 으로 받는다),
+  //   ② 글자를 줄인다 — 하한은 매체 크기 띠(fsRange·textHeightPx)·샘플 크기의 70%·11px. 매체가 날짜 크기를 숫자로 정한 규격(자소설 달력 16)은 안 줄인다.
+  //   ③ 그래도 안 들어가면 byWidth 가 「~마감일」(NAP 320×50 GC녹십자 「~07.01(수)」·자소설 달력 「~02/01」)을 고른다. 9월 공채 규칙 9(날짜를 버리지 않는다)·B3(카카오 3줄)을 지키는 순서.
+  const dateWidth = t => [...String(t ?? '')].reduce((acc, ch) => acc + (/[.,:;'|!()\[\]{}\/\-~]/.test(ch) ? 0.3 : textWidth(ch)), 0);
+  let dateW = ((mainSpan && bleedP) ? subW : textW) * (want.label ? 0.5 : 1) * 0.9;
+  { const full = ladder.date?.[0], wide = ((mainSpan && bleedP) ? subW : textW) * 0.9;
+    if (full && want.date && (ladder.date?.length ?? 0) >= 2 && !(slots.date?.lines > 1) && dateWidth(full) * z.smallFs > dateW) {
+      if (want.label && dateWidth(full) * z.smallFs <= wide) { dateW = wide; fired('dateWrap'); }
+      else if (statedEarly.date == null || sampleSoft.has('date')) {
+        const floor = Math.max(11, fsRange?.min ?? 0, th?.min ?? 0, Math.round(z.smallFs * 0.7));
+        const need = Math.floor(wide / dateWidth(full));
+        if (need >= floor) { z = { ...z, smallFs: need }; dateW = wide; fired('dateShrink'); if (want.label) fired('dateWrap'); }
+      }
+    } }
+  byWidth('date', z.smallFs, dateW, dateWidth);
   byWidth('extra', z.smallFs, textW * 0.96);
   // 서브가 메인에 이미 다 들어 있는 말이면(고객사명 + 채용) 되풀이하지 않는다 — 다른 말이 있으면 그것을, 없으면 비운다
   // 시즌 낱말("2026"·"2026년 하반기")만 빼고 전부 메인에 있으면 되풀이다 — "2026 ㈜한독 신입/경력 공채" 서브 vs "㈜한독 신입/경력 공채" 메인(구글 970). 그러면 서브는 시즌만 남긴다(동서식품 "2026년" 아이브로)
@@ -1111,11 +1198,12 @@ export function renderAd(ctx, style, spec) {
   const trackMain = fs => { const tk = guide?.tracking ?? {}; const v = tk.main ?? 0; return v && fs >= (tk.mainMinPx ?? 28) ? `letter-spacing:${v}em;` : ''; };
   // 역할별 굵기(core/canon.js weights · 매체 guide.weights가 이김) — 메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400. 어두운 지면 14px 미만은 500 하한(weightOf)
   const fwOf = (role, fs = null) => weightOf(role, { medium: mr, fs, darkField: !fgIsDark });
+  const sampleAttr = t => (sampleText.size && [...sampleText].some(x => String(t ?? '').includes(x))) ? ' data-sample="1"' : '';
   const T = (role, text, fs, weight, color, extraCss = '', lines = 1, lh = line) =>
-    `<div data-field="${role}" style="flex:none;font-size:${fs}px;line-height:${lh};font-weight:${weight};${role === 'main' ? trackMain(fs) : ''}color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => role === 'main' ? accentMain(esc(nb(t, false))) : esc(nb(t))).join('<br/>')}</div>`;   // flex:none — 세로 예산이 몇 px 모자라도 글줄이 눌려 잘리지 않는다(인스타 스토리 '잘림' 차단)
+    `<div data-field="${role}"${sampleAttr(text)} style="flex:none;font-size:${fs}px;line-height:${lh};font-weight:${weight};${role === 'main' ? trackMain(fs) : ''}color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => role === 'main' ? accentMain(esc(nb(t, false))) : esc(nb(t))).join('<br/>')}</div>`;   // flex:none — 세로 예산이 몇 px 모자라도 글줄이 눌려 잘리지 않는다(인스타 스토리 '잘림' 차단)
   // 날짜·라벨은 꾸미지 않은 한 줄 글자다 — 테두리 알약을 두르지 않는다
   const plain = (role, text, fs) =>
-    `<span data-field="${role}" style="display:inline-block;font-size:${fs}px;line-height:${line};font-weight:${fwOf(role === 'date' ? 'date' : 'tag', fs)};color:${subFg};white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
+    `<span data-field="${role}"${sampleAttr(text)} style="display:inline-block;font-size:${fs}px;line-height:${line};font-weight:${fwOf(role === 'date' ? 'date' : 'tag', fs)};color:${subFg};white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
   const ctaChip = () => `<span data-field="cta" style="display:inline-block;background:${mainFg};color:${fgIsDark ? '#FFFFFF' : p.primary};font-size:${z.ctaFs}px;line-height:${line};font-weight:${fwOf('cta', z.ctaFs)};padding:${Math.round(z.ctaFs * 0.6)}px ${Math.round(z.ctaFs * 1.1)}px;border-radius:6px;white-space:nowrap">${esc(copy.cta)}</span>`;
   // 상세 블록 — 한 요소로 묶어 검사기가 총 글자수·총 줄 수를 본다. 라벨은 굵게, 값은 가늘게(세아제강·한독).
   const lw = fwOf('detailLabel', z.dFs);   // 라벨 700 + 값 400(자소설 3/3) — 예전엔 가로형 레퍼런스(detailLabelBold:false)에서 라벨도 400이라 강약이 없었다
@@ -1150,13 +1238,20 @@ export function renderAd(ctx, style, spec) {
   // 쌓기 값: 항목은 ㅣ로 잇고(참고 예시처럼 띄어쓰기 없이) 줄은 ㅣ 뒤에서만 끊는다 — 항목 안의 '/'(전시/컨벤션)에서 끊기면 "전시/ / 컨벤션"이 된다
   const fmtVal = v => stackTags ? String(v).split(/\s*,\s*/).filter(Boolean).map(it => it.replace(/\//g, '\u2060/\u2060')).join('ㅣ\u200B') : String(v);
   const detailBlock = () => detailLines.length
-    ? `<div data-field="detail" style="font-size:${z.dFs}px;font-weight:${fwOf('detailValue', z.dFs)};line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP};text-wrap:pretty${detailW > textW ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:${chipRowGap(z)}px ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map((d, i) =>
+    ? `<div data-field="detail"${detailLines.some(d => sampleText.has(d.value)) ? ' data-sample="1"' : ''} style="font-size:${z.dFs}px;font-weight:${fwOf('detailValue', z.dFs)};line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP};text-wrap:pretty${detailW > textW ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:${chipRowGap(z)}px ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map((d, i) =>
         `<div${!detailRow && i > 0 && chipRowGap(z) ? ` style="margin-top:${chipRowGap(z)}px"` : ''}>${label(d)}${esc(nb(fmtVal(d.value)))}</div>`).join('')}</div>` : '';
   // 로고 폭 상한(CANON logoCap): 메인 글자 크기 × 2.4, 그리고 캔버스 폭의 12%(폭 320 이하 세로 띠는 25%) — 높이 기준(logoH)만 두면 가로로 긴 워드마크(3.4:1)가 메인보다 커 보인다
   // (Figma 9월 공채: 디자이너 로고 폭 ÷ 메인 px 1.3~2.4, 우리 인스타 4.5·자소설 팝업 3.8). 템플릿 로고 칸 안에서도 이 폭을 넘지 않는다
   const LC = guide?.logoCap ?? null;
   const logoCapW = LC ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio)))) : Infinity;
   const capW = mw => Math.min(mw, logoCapW);
+  { const subRole = showSub ? (subAbove ? 'eyebrow' : ((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan')) : null;
+    const tk = guide?.tracking ?? {}; const trk = (tk.main ?? 0) && mainFs >= (tk.mainMinPx ?? 28) ? tk.main : 0;
+    TR.fonts = { main: { px: mainFs, weight: fwOf('main', mainFs), lh: mainLine, tracking: trk, lines: mainLines, cap: capMain, floor: floorMain, sqFloor }, sub: showSub ? { px: z.subFs, weight: fwOf(subRole, z.subFs), role: subRole, lh: useRef ? L.subLine : line } : null,
+      date: want.date ? { px: z.smallFs, weight: fwOf('date', z.smallFs) } : null, detail: detailLines.length ? { px: z.dFs, label: lw, value: fwOf('detailValue', z.dFs), lh: dLine, chip, chipPx: Math.max(8, Math.round(z.dFs * 0.86)), chipWeight: fwOf('chip', Math.max(8, Math.round(z.dFs * 0.86))), stack: stackTags } : null,
+      extra: want.extra ? { px: z.smallFs, weight: fwOf('extra', z.smallFs) } : null, notice: want.notice ? { px: noticeFs, weight: fwOf('notice', noticeFs) } : null, logoCapW: Number.isFinite(logoCapW) ? logoCapW : null, mediumWeights: mr.guide?.weights ?? null, stated: Object.keys(stated).length ? stated : null, fsRange, accent: accentPhrase };
+    TR.copy = { main: copy.main, sub: showSub ? copy.sub : null, date: want.date ? copy.date : null, details: detailLines.map(d => d.label) };
+    fired('weights'); if (trk) fired('tracking'); if (sqFloor && mainFs <= sqFloor + 1 && mainFs >= sqFloor) fired('mainFloor'); if (Number.isFinite(logoCapW)) fired('logoCap'); if (copy.main.includes('\n') && guide?.twoLines && stated.main == null) fired('twoLines'); if (guide?.keepInfo && mainFs < capMain) fired('keepInfo'); if (accentPhrase) fired('mainAccent'); }
   const logoImg = (hPx, maxW) => (allowLogo && logoSrc)
     ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${hPx}px;width:auto;max-width:${capW(maxW)}px;object-fit:contain;${logoFilter}"/>`
     : '';
@@ -1170,6 +1265,7 @@ export function renderAd(ctx, style, spec) {
   const farFrom = hx => (hx && field?.stops?.length) ? field.stops.reduce((m, x) => colorDistance(hx, x) > colorDistance(hx, m) ? x : m) : null;
   const fadeFor = dir => { const hx = edgeOf(dir === 'to left' ? 'right' : dir === 'to right' ? 'left' : 'top'); return meltLength(hx, farFrom(hx), fadePct); };
   const melt = dir => (transparent || cutout) ? '' : meltMask(dir, fadeFor(dir));
+  const meltAttr = dir => (transparent || cutout) ? '' : ` data-melt="${fadeFor(dir)}" data-melt-dir="${dir}"`;   // 가이드 대조표(guide-trace)가 읽는 녹임 길이 — 마스크와 같은 값
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
   const kvFill = (pos, join) => { const c = (cutout || !tImage) ? null : subjectCrop(style, tImage.w, tImage.h);
     return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
@@ -1209,15 +1305,16 @@ export function renderAd(ctx, style, spec) {
           const photoCover = gCorner && kvKindPhoto && !cutout;
           // 주인공이 그림의 일부면 상자를 주인공으로 채운다(cornerCrop) — 통째로 맞춰 넣으면 상자에 바탕만 보인다
           const rect = (photoCover || cornerCrop || cornerFill) ? tImage : (cornerRect ?? tImage);
-          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34)) : ''}overflow:hidden"></div>`;
+          const mL = meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), mT = meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34);
+          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(mL, mT) : ''}overflow:hidden"${meltCorner ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"></div>`
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"${bandMelt ? meltAttr('to bottom') : ''}></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
-      : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"></div>`)
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
+      : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"${meltAttr(imgLeftCol ? 'to left' : 'to bottom')}></div>`)
     : '';
 
   // 하단 띠(구글 '좌측중앙 정렬' 템플릿 42px: 비씨월드 네이비 띠) — 밝은 지면엔 브랜드색, 어두운 지면엔 흰색
@@ -1228,8 +1325,8 @@ export function renderAd(ctx, style, spec) {
 
   const metaRow = () => {
     const parts = [];
+    if (want.label && copy.label) parts.push(plain('label', copy.label, z.smallFs));   // 라벨 칩이 날짜 앞(「접수기간 9/4(금) ~ 9/13(일)」) — 샘플 잡다·NAP·구글 모두 라벨 → 값
     if (want.date) parts.push(plain('date', copy.date, z.smallFs));
-    if (want.label) parts.push(plain('label', copy.label, z.smallFs));
     if (!parts.length) return '';
     return `<div style="display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:${align === 'center' ? 'center' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
   };
@@ -1263,9 +1360,10 @@ ${tplLogo}${tplObject}
   else if (want.advertiser) parts.push(T('advertiser', copy.advertiser, z.smallFs, fwOf('eyebrow', z.smallFs), subFg, `margin-bottom:${Math.round(z.smallFs * 0.5)}px`));
   const subLh = useRef ? L.subLine : line;
   if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
+  if (guide?.dateAbove) parts.push(metaRow().replace(/margin-top:\d+px/, `margin-bottom:${Math.max(8, Math.round(z.smallFs * 0.5))}px`));   // 잡다: 라벨 칩 + 날짜가 메인 위(샘플 PC 5/5 · MO 4/5, 10-12 매체별 규격정리)
   parts.push(T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, (useRef ? 'text-wrap:balance' : '') + (mainW > textW ? `;width:${mainW}px;max-width:none` : ''), mainLines, mainLine));
   if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan', z.subFs), subFg, `margin-top:${useRef ? subGap(z) : 6}px${subW > textW ? `;width:${subW}px;max-width:none` : ''}`, Math.min(slots.sub.lines ?? 2, 2), subLh));
-  parts.push(metaRow());
+  if (!guide?.dateAbove) parts.push(metaRow());
   tail.push(detailBlock());
   if (want.extra) tail.push(T('extra', copy.extra, z.smallFs, fwOf('extra', z.smallFs), subFg, 'margin-top:6px', Math.min(slots.extra.lines ?? 1, 2)));
   if (want.cta) tail.push(`<div style="flex:none;margin-top:${Math.round(z.ctaFs * 0.6)}px;text-align:${align}">${ctaChip()}</div>`);

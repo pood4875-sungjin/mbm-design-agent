@@ -39,11 +39,20 @@ adcheck 는 6종만 본다: text-over-subject(글자-주인공 겹침) · logo-c
 ```bash
 node scripts/case-review.mjs <id> [id …]          # → ref/learned/cases/_out/review/<id>.png
 ```
+매체 규정 전수 검사: `node scripts/cases-lint.mjs [id …] [--spec id]` — 치수·글자수·줄 수·안전영역·글자 px·로고 규정(core/lint.js + scripts/lib/lint-extra.mjs)을 앱과 같은 측정으로 전 케이스 × 74규격에 돌린다 → `_out/lint/lint-report.md`·`summary.json`. 「통과」가 보장하지 않는 항목(규정 데이터 없는 규격)이 보고서 끝에 있다.
 - 대표 4규격(google-gdn-580x400 가로형 · remember-main-top-mo 가로 띠 · google-gdn-300x600 세로형 · instagram-feed-1080 정사각) + 경고 난 규격(최대 8)을 한 장에. 경고 문장이 칸 위에 빨갛게 붙는다. `Read` 로 본다.
 - 더 볼 규격: `--specs nap-dsp-band-320x50,albamon-pc-sky-recruit`.
 - 74규격 전체 시트는 `_out/<id>.png`(2200px 폭). 부분만 보려면 축소본을 먼저 보고 좌표를 정해 자른다:
   `python3 -c "from PIL import Image; Image.open('<png>').crop((x0,y0,x1,y1)).save('<scratchpad>/c.png')"`
 - 볼 것: 주인공(인물·캐릭터·제품) 얼굴/핵심부 잘림 · 글자 대비 · 위계(메인 카피가 가장 눈에 띄나) · KV 비중(너무 작거나 과함) · 로고 위치·크기 · 여백 쏠림 · 이음매.
+
+## 2b. 가이드 대조표 (가이드 값 vs 실측 — 10-12)
+```bash
+node scripts/guide-trace.mjs <id> [id …]          # → ref/learned/cases/_out/trace/<id>.html · index.html (intake/run 에 --trace 를 주면 자동)
+```
+- 케이스마다 대표 4규격 + 경고 규격을 다시 렌더해 규칙마다 「가이드 값 → 실제」를 ✓/✗/– 로 적는다(블리드 면적·잘린 변·녹임 길이·굵기·자간·대비·로고 크기·스크림 …). 판정은 DOM 실측 숫자에서만 나온다. – 는 해당 없음·측정 불가(사람 판정).
+- 보고서에 **✗ 항목을 규칙별로** 옮긴다(`trace/index.html` 「✗ 규칙별 모음」). ✗ 는 「가이드는 X 라는데 렌더는 Y」— 규칙 탓 후보가 된다. 열기: `python3 scripts/serve.py 4792` → http://localhost:4792/ref/learned/cases/_out/trace/index.html
+- 규칙 문장은 `ref/learned/rules.json`(규칙 장부)에서 읽는다(없으면 CANON 값). 판정 논리를 고쳤으면 렌더 없이 `--reeval` 로 다시 판정만.
 
 ## 3. 원인 가리기
 **먼저 유형 판정(summary)이 그림과 맞는지 본다.** 틀리면 이후 배치가 전부 따라 틀린다(Design-Generator 29건 중 11건이 유형 오판이었다). 틀리면 그것부터 보고.
@@ -63,8 +72,10 @@ N건 접수 · 자동 경고 합계 X · 눈 검수 추가 문제 Y · 유형 �
 | 규격 | 문제 | 출처(자동/눈) | 원인(규칙/그림/오탐) | 근거·짚은 코드 |
 ## 규칙 수정 후보 (우선순위 순)
 1. <무엇을> — 영향 케이스 a,b — core/파일:분기
+## 가이드 대조표 ✗ (규칙별)
+- <규칙 id> — 케이스@규격: 가이드 값 → 실제 … (렌더러 틈 / 가이드 문장이 느슨함 / 그림 탓)
 ## 산출물
-_out/intake-<날짜>.md · _out/index.html(장부) · _out/<id>.png · _out/review/<id>.png
+_out/intake-<날짜>.md · _out/index.html(장부) · _out/<id>.png · _out/review/<id>.png · _out/trace/<id>.html(대조표)
 ```
 - 추측으로 채우지 않는다. 못 본 것은 「못 봄」.
 - 라운드 번호와 경고 합계는 `node scripts/round-diff.mjs --list 3` 에서 옮긴다.

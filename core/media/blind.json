@@ -195,7 +195,44 @@
       ],
       "source": "figma:블라인드01(소재 제작 규정) text 421:8134, 421:8136, frame 421:8166 / pdf:블라인드 2025 가이드.pdf p.9~10 / psd:블라인드_채용채널&피드광고_[Guide] 02.In-Feed Image Ad.psd (1200×628 아트보드)",
       "confidence": "확정",
-      "note": "반려 사례(2026-07-31 니프코코리아 홈피드광고 291KB)의 100KB 기준이 이 규격"
+      "note": "반려 사례(2026-07-31 니프코코리아 홈피드광고 291KB)의 100KB 기준이 이 규격",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 2,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2.0,
+              "px": 76.5,
+              "weight": 750
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 45.5,
+              "weight": 600
+            },
+            "detail": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 42.5,
+              "weight": 700
+            }
+          },
+          "lineBudget": 4.0,
+          "kvArea": 0.292,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.05,
+          "padTopr": 0.189,
+          "mainPxR": 0.0881,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:8260 대원제약 / 421:8411 정식품",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "blind-post-banner",
@@ -270,7 +307,44 @@
       ],
       "source": "figma:블라인드01(소재 제작 규정) text 421:8135, 421:8137, frame 421:8165 / pdf:블라인드 2025 가이드.pdf p.11~12 / psd:블라인드_게시글배너,댓글배너_[Guide] 03.Channel Target Banner.psd",
       "confidence": "확인필요",
-      "note": "보드가 '띠 배너'라 부르는 소재가 PDF의 '띠배너(1080×220)'와 다름. 텍스트 제한 여부도 보드 vs PSD 불일치"
+      "note": "보드가 '띠 배너'라 부르는 소재가 PDF의 '띠배너(1080×220)'와 다름. 텍스트 제한 여부도 보드 vs PSD 불일치",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 2,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2.0,
+              "px": 66.0,
+              "weight": 750
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 37.5,
+              "weight": 600
+            },
+            "detail": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 33.0,
+              "weight": 700
+            }
+          },
+          "lineBudget": 4.0,
+          "kvArea": 0.288,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.079,
+          "padTopr": 0.206,
+          "mainPxR": 0.0789,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:8370 대원제약 / 421:8448 HS화성",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     }
   ],
   "rejections": [

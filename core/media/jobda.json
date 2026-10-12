@@ -207,7 +207,62 @@
       ],
       "source": "figma:잡다01(소재 제작 규정) text 414:245·252 / figma:잡다02(제작가이드&예시) frame 414:261·414:287 / figma 섹션 메모 text 414:240",
       "confidence": "확정",
-      "note": "제출 파일은 792×240×2 = 1584×480 (PNG 2배 추출). 용량 제한 없음."
+      "note": "제출 파일은 792×240×2 = 1584×480 (PNG 2배 추출). 용량 제한 없음.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 5,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 28,
+              "weight": 700
+            },
+            "label": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 16,
+              "weight": 600
+            },
+            "date": {
+              "share": 0.8,
+              "lines": 1.0,
+              "px": 16.0,
+              "weight": 600
+            },
+            "detail": {
+              "share": 0.2,
+              "lines": 6,
+              "px": 12,
+              "weight": 600
+            },
+            "sub": {
+              "share": 0.2,
+              "lines": 1,
+              "px": 16,
+              "weight": 600
+            },
+            "hashtag": {
+              "share": 0.2,
+              "lines": 3,
+              "px": 12,
+              "weight": 600
+            }
+          },
+          "lineBudget": 5,
+          "kvArea": 0.486,
+          "kvBg": 2,
+          "logoShare": 0.0,
+          "padXr": 0.063,
+          "padTopr": 0.175,
+          "mainPxR": 0.0642,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:475 코엑스 / 414:539 비씨월드제약 / 414:575 삼정KPMG / 414:680 셀트리온 / 414:739 에스이에이",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     },
     {
       "id": "jobda-main-mo",
@@ -339,7 +394,44 @@
       ],
       "source": "figma:잡다01(소재 제작 규정) text 414:245·252 / figma:잡다02(제작가이드&예시) frame 414:306 / figma 섹션 메모 text 414:240",
       "confidence": "확정",
-      "note": "제출 파일은 343×160×2 = 686×320 (PNG 2배 추출). 용량 제한 없음."
+      "note": "제출 파일은 343×160×2 = 686×320 (PNG 2배 추출). 용량 제한 없음.",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 5,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 20,
+              "weight": 700
+            },
+            "date": {
+              "share": 0.8,
+              "lines": 1.0,
+              "px": 14.0,
+              "weight": 600
+            },
+            "detail": {
+              "share": 0.2,
+              "lines": 5,
+              "px": 14,
+              "weight": 600
+            }
+          },
+          "lineBudget": 3,
+          "kvArea": 0.461,
+          "kvBg": 2,
+          "logoShare": 0.0,
+          "padXr": 0.058,
+          "padTopr": 0.237,
+          "mainPxR": 0.0854,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:486 코엑스 / 414:550 비씨월드제약 / 414:590 삼정KPMG / 414:699 셀트리온 / 414:720 에스이에이",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     }
   ],
   "rejections": [],
@@ -363,5 +455,10 @@
     "폰트·텍스트 컬러·여백 규정 없음 (보드·가이드 PNG 모두)",
     "특수문자·영문 글자수 계산 규칙 없음",
     "반려 사례 섹션 없음"
-  ]
+  ],
+  "guide": {
+    "note": "잡다 샘플 실측(10-12 매체별 규격정리 PC 5·MO 5) — 라벨 칩+날짜 줄이 메인 위(PC 5/5: y42 → 메인 y74), 메인 28px Bold 2줄·날짜 16px SemiBold·태그 12px. canon.js 위에 이 키만 덮는다. 글자 크기는 spec.sampleText 에서 온다",
+    "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 414:475/539/575/680/739 (ref/learned/cases/_out/figma-spec-compare.md)",
+    "dateAbove": true
+  }
 }

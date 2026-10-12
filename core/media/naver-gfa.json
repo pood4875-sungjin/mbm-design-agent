@@ -174,7 +174,56 @@
       ],
       "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6929/6932, frame 421:6935 / pdf:모바일DA 이미지 - 성과형(1250-560).pdf p.4~9 / psd:N_Mobile_Image_1250X560 (1).psd",
       "confidence": "확정",
-      "note": "치수·용량·포맷은 보드·PDF·PSD 일치(확정). 최소 용량 50KB는 PDF에만 있음(보드는 250KB만 명시). 여백 수치만 보드 텍스트 메모와 충돌 → safeArea.confidence 확인필요"
+      "note": "치수·용량·포맷은 보드·PDF·PSD 일치(확정). 최소 용량 50KB는 PDF에만 있음(보드는 250KB만 명시). 여백 수치만 보드 텍스트 메모와 충돌 → safeArea.confidence 확인필요",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 3,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 54,
+              "weight": 700
+            },
+            "detail": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 27,
+              "weight": 500
+            },
+            "date": {
+              "share": 0.67,
+              "lines": 1.0,
+              "px": 27.5,
+              "weight": 650
+            },
+            "sub": {
+              "share": 0.33,
+              "lines": 1,
+              "px": 32,
+              "weight": 500
+            },
+            "label": {
+              "share": 0.33,
+              "lines": 1,
+              "px": 21,
+              "weight": 500
+            }
+          },
+          "lineBudget": 4,
+          "kvArea": 0.134,
+          "kvBg": 1,
+          "logoShare": 0.0,
+          "padXr": 0.212,
+          "padTopr": 0.118,
+          "mainPxR": 0.0645,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:6995 한국콜마그룹 / 421:7058 대원제약 / 421:7102 세아제강",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
     },
     {
       "id": "naver-gfa-native-pc-342x228",

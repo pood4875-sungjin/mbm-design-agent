@@ -209,6 +209,49 @@
         "gap": 19,
         "note": "layoutNotes 문장을 구조화(10-08): 오브젝트 너비 220~320px, 우측 배치 시 오른쪽 기준 40~360px 영역 안에만·영역 중앙 권장. 텍스트 영역과 사이 19px(보드 도식·PSD). 누끼만 이 상자에 — 배경 포함 오브젝트(좌우 그라데이션)는 상자 없이 예전대로",
         "source": "layoutNotes[1]·safeArea.note (PDF 26년7월·PSD)"
+      },
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 2,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 42.5,
+              "weight": 750
+            },
+            "detail": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 32.0,
+              "weight": 550
+            },
+            "date": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 25,
+              "weight": 600
+            },
+            "cta": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 20,
+              "weight": 700
+            }
+          },
+          "lineBudget": 3.0,
+          "kvArea": 0.182,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.057,
+          "padTopr": 0.268,
+          "mainPxR": 0.0825,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:7623 두산건설 / 421:7653 대원제약",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
       }
     },
     {
@@ -379,7 +422,50 @@
       ],
       "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7200 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.26~30 / psd:에브리타임/02_홈배너/*.psd (640×170, 구버전)",
       "confidence": "확인필요",
-      "note": "사이즈·텍스트 높이는 보드와 26년7월 PDF가 일치(640×200). PSD 12종은 25년1월 기준 640×170이라 그대로 쓰면 안 됨. 오브젝트 최대 너비 200/220px 불일치"
+      "note": "사이즈·텍스트 높이는 보드와 26년7월 PDF가 일치(640×200). PSD 12종은 25년1월 기준 640×170이라 그대로 쓰면 안 됨. 오브젝트 최대 너비 200/220px 불일치",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 2,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 30.0,
+              "weight": 700
+            },
+            "cta": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 10,
+              "weight": 700
+            },
+            "detail": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 27.5,
+              "weight": 500
+            },
+            "hashtag": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 25,
+              "weight": 500
+            }
+          },
+          "lineBudget": 3.0,
+          "kvArea": 0.299,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.219,
+          "padTopr": 0.207,
+          "mainPxR": 0.0839,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:8104 맥도날드 / 421:8119 케이뱅크",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "everytime-home-card-profile",
@@ -521,7 +607,56 @@
       ],
       "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7201 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.32~35 / psd:에브리타임/03_홈카드/홈 카드_카드이미지.psd (720×480)",
       "confidence": "확정",
-      "note": "반려 사례(2026-08-28 세보엠이씨/에스비테크) 대상. 텍스트 여백·기타 문구 범위 불일치는 conflicts 참고"
+      "note": "반려 사례(2026-08-28 세보엠이씨/에스비테크) 대상. 텍스트 여백·기타 문구 범위 불일치는 conflicts 참고",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 2,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 1.5,
+              "px": 49.5,
+              "weight": 800
+            },
+            "sub": {
+              "share": 1.0,
+              "lines": 1.0,
+              "px": 32.0,
+              "weight": 750
+            },
+            "detail": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 23,
+              "weight": 700
+            },
+            "label": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 22,
+              "weight": 800
+            },
+            "date": {
+              "share": 0.5,
+              "lines": 1,
+              "px": 36,
+              "weight": 800
+            }
+          },
+          "lineBudget": 4.0,
+          "kvArea": 0.037,
+          "kvBg": 0,
+          "logoShare": 0.5,
+          "padXr": 0.094,
+          "padTopr": 0.14,
+          "mainPxR": 0.0842,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 421:7691 코엑스 / 421:8061 티머니",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확인필요"
+        }
+      }
     },
     {
       "id": "everytime-contest-card",
