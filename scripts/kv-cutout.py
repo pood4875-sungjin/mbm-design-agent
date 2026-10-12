@@ -11,6 +11,10 @@
     --fill              테두리에 닿지 않는 구멍을 모두 메운다(유리·로켓 창처럼 바탕색이 비치는 속)
     --erode <n>         가장자리를 n px 깎는다(바탕 테 남을 때, 기본 1)
     --preview <png>     남색·주황 두 바탕에 얹은 미리보기(눈 검수용)
+    --auto              따기 전에 「누끼가 맞는가」를 잰다(10-12 사용자: 명확할 때만 누끼, 배경 분위기는 살린다).
+                        바탕(테두리 띠)의 색감(chroma 평균) · 그라데이션 세기(2차 곡면 바탕의 색 폭) · 바탕 몫을 찍고,
+                        분위기 있는 바탕(chroma ≥ 0.12 또는 그라데이션 ≥ 0.15)이면 따지 않고 끝낸다(종료 코드 3, 「KEEP 원본」 + 사유).
+                        기준은 core/canon.js CANON.cutoutAuto 와 같다
 
 순서: 가장자리 띠로 바탕을 2차 곡면으로 맞춤(그라데이션 바탕도) → 색 거리로 초기 전경 → GrabCut 정교화
 → 작은 구멍 메우기 → 1px 깃털 → 가장자리 색 오염 제거(바탕 모델로 역합성, 인물 마스크 모드는 건너뜀).
@@ -27,6 +31,7 @@ ap.add_argument('--person', action='store_true'); ap.add_argument('--mask')
 ap.add_argument('--T', type=float); ap.add_argument('--rect'); ap.add_argument('--skipedge', default='')
 ap.add_argument('--largest', type=float); ap.add_argument('--fill', action='store_true')
 ap.add_argument('--erode', type=int, default=1); ap.add_argument('--preview')
+ap.add_argument('--auto', action='store_true')
 o = ap.parse_args()
 
 mask_path = o.mask
@@ -49,6 +54,21 @@ A = basis(X[border], Y[border]); model = np.zeros_like(img)
 for c in range(3):
     coef, *_ = np.linalg.lstsq(A, img[..., c][border], rcond=None); model[..., c] = basis(X, Y) @ coef
 dist = np.sqrt(((img - model) ** 2).sum(-1))
+if o.auto:
+    # CANON.cutoutAuto 와 같은 수치 — 바탕 색감(chroma = max−min, 0~1) · 그라데이션 세기(곡면 바탕의 가장 먼 두 색 거리, 0~1) · 바탕 몫
+    CH_MAX, GRAD_MAX = 0.12, 0.15
+    bp = img[border] / 255.0
+    chroma = float((bp.max(-1) - bp.min(-1)).mean())
+    mb = model[border] / 255.0
+    lo, hi = np.percentile(mb, 2, axis=0), np.percentile(mb, 98, axis=0)
+    grad = float(np.sqrt(((hi - lo) ** 2).sum()) / np.sqrt(3))
+    T0 = max(22.0, float(np.percentile(dist[border], 99)) * 1.6)
+    bgshare = float((dist <= T0).mean())
+    mood = chroma >= CH_MAX or grad >= GRAD_MAX
+    why = f"바탕 chroma {chroma:.2f}(기준 {CH_MAX}) · 그라데이션 {grad:.2f}(기준 {GRAD_MAX}) · 바탕 몫 {bgshare:.0%}"
+    if mood:
+        print(f"KEEP 원본 — 바탕에 분위기가 있다: {why}. 누끼 대신 원본을 주 KV 로 쓴다"); sys.exit(3)
+    print(f"CUT — 바탕이 무채·단순: {why}")
 T = o.T if o.T is not None else max(22.0, float(np.percentile(dist[border], 99)) * 1.6)
 if mask_path:
     pm = np.asarray(Image.open(mask_path).convert('L').resize((W, H))).astype(np.float32) / 255

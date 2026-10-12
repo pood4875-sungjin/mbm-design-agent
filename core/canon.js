@@ -56,6 +56,31 @@ export const CANON = {
   tracking: { main: -0.025, mainMinPx: 28 },
   // 메인 두 톤 강조(옵션, 기본 꺼짐): 스타일에 강조색(style.accent)을 적어 줬고 지면 대비 4.5:1 이상일 때만 메인 속 채용구분을 그 색으로(디자이너 23/28). 색을 짐작하지 않는다. 자소설은 guide에서 끈다
   mainAccent: true,
+  // ── 10-12 사용자 피드백 묶음(history/2026-10-12_흰글자_그라데이션_이음.md) ──
+  // 채도 높은 브랜드·그림 지면에는 흰 글자(10-12 desk-12 세방 초록 #2EBA56: 대비만 재면 검정 8:1 > 흰 2.5:1이라 검정이 이겼다 — 사용자 「흰색이 더 잘 보일 것 같아」).
+  //   지면 모든 색이 HSL 채도 ≥ minSat 이고 상대 휘도가 minLum~maxLum, HSL 명도 ≤ maxL(파스텔 제외 — desk-03-cut 라벤더는 검정 유지)이면, 같은 색상(hue)으로 명도만 내려(브랜드 딥과 같은 방식)
+  //   흰 큰 글자 minContrastLarge(3:1)에 닿는지 본다 — maxDL(HSL 명도 0.12) 안에서 못 닿으면(노랑 #F8C808: 0.14 필요) 검정 그대로. 탁해지지 않게 상한을 둔다.
+  //   닿으면 작은 글자 smallMin(4.5:1)까지 smallMaxDL 안에서 더 내린다. 그림 변에서 읽은 지면(kv-edge)이면 그림도 같은 비율로 어둡혀(brightness) 이음매를 지킨다
+  vividWhite: { minSat: 0.45, minLum: 0.1, maxLum: 0.42, maxL: 0.62, minContrastLarge: 3, smallMin: 4.5, maxDL: 0.12, smallMaxDL: 0.14, step: 0.01, dimKv: true, dimMin: 0.94 },
+  // 녹임(그림 → 지면) 길이와 곡선 — 그림 변 색과 지면색의 거리(colorDistance)에 비례해 min~max(그림 칸·띠 길이의 몫), fullAt 거리에서 max.
+  //   10-12 desk-15(한국산업단지공단 파랑→복숭아 그라데이션)·GC녹십자(밝은 3D × 네이비): 「뚝 끊기는 느낌」. 곡선은 smoothstep 여러 마디(직선 끝이 선으로 읽힌다)
+  //   bridgeFrom·bridgeMax: 브랜드 지면이 그림 변과 멀면(≥ bridgeFrom) 지면의 이음매 쪽 끝을 그림 변 색 쪽으로 최대 bridgeMax 만큼(흰 글자 4.5:1 안에서) 당긴다(GC녹십자 1080)
+  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6 },
+  // 질감 전체 깔기에서 글자 아래가 어지러우면(형태 가장자리가 뚜렷) 글자 쪽에서 지면 자기 색 스크림을 깐다 — 「아주 살짝」이 기본, 어지러울수록 진하게.
+  //   10-12 desk-23 제주항공(알약 가장자리 뚜렷 「비주얼이랑 텍스트 너무 겹쳐」) · desk-02 대한항공(「글씨 영역 쪽만 아주 살짝 오퍼」).
+  //   busy = max((texture.spread − spreadMin) / (spreadFull − spreadMin), texture.sharp / sharpFull) 를 0~1로 · busyMin 미만이면 스크림 없음(hdot-wave 0.01·hdot-purple3d 0.08은 그대로, desk-02 0.10부터)
+  //   불투명 = scrimMin + (scrimMax − scrimMin) × busy (글자 쪽 끝) → 0(글자 칸 폭의 reach 몫). 색은 지면 자기 색(밝은 질감은 흰 쪽, 어두운 질감은 검정 쪽으로 섞은 틴트) — 회색 아님
+  textureCalm: { busyMin: 0.09, spreadMin: 20, spreadFull: 30, sharpFull: 0.05, scrimMin: 0.35, scrimMax: 0.75, reach: 0.75, tintMix: 0.45 },
+  // 분위기 있는 KV 배경 > 브랜드 지면색(10-12 사용자 desk-03 딜로이트·desk-37 동부·desk-04 기아·desk-05 KB·desk-36 GC). 브랜드는 로고·알약·강조색으로 드러낸다. 매체 규정·색 금지는 여전히 이긴다.
+  //   darkPhotoLum: 어두운 사진(lum < 이 값)은 지면도 어둡게 — 사진 글자 쪽 변 색을 흰 글자 4.5:1까지 같은 색상으로 내린 것(밝은 지면 매체 선호도 양보, 「차라리 어두운 배경이 나음」)
+  //   minSat·minGrad: 글자 쪽 변이 채도 있는 그라데이션(평균 HSL 채도 ≥ minSat, 양 끝 거리 ≥ minGrad)이면 그 그라데이션을 지면으로 잇는다(기아 라벤더→파랑, GC 민트→파랑)
+  //   누끼는 원본 바탕 팔레트(kvMeta.bgPalette — 케이스 장부가 kv-orig 에서 잰다)가 있으면 그 색으로. 앱에서 누끼만 올리면(원본 없음) 지금처럼 브랜드 규칙
+  kvMood: { darkPhotoLum: 0.4, darkMin: 4.5, minSat: 0.5, minGrad: 0.15 },
+  // 누끼는 명확할 때만(10-12 사용자 「명확할 때만 누끼, 웬만하면 배경 분위기도 살려」 desk-37·desk-03) — 바탕 색감(chroma 평균) < chromaMax 이고
+  //   그라데이션 세기 < gradMax 이면(흰·연회색·무채 단색) 딴다. 넘으면 원본이 주 KV(scripts/kv-cutout.py --auto, cases.mjs bgpalette 가 같은 수치)
+  cutoutAuto: { chromaMax: 0.12, gradMax: 0.15 },
+  // 작은 누끼를 크게 키우지 않는다 — 원본 픽셀의 maxUpscale 배까지(10-12 desk-37-cut 163px이 1005×360에서 계단). 넘으면 작게 둔다(참고 경고 low-res)
+  maxUpscale: { cutout: 1.5 },
 };
 
 // 매체 가이드 위에 공통 기준을 깐다 — 가이드가 정한 키가 이긴다

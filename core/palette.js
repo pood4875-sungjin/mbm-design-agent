@@ -215,7 +215,9 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
       hex: hex(all), from: hex(half[0]) ?? hex(all), to: hex(half[1]) ?? hex(all),
       opaque: op,
       rough: pairs ? Math.round(rough / pairs * 1000) / 1000 : 0,
-      std, flat: op >= 0.9 && std < 15 && (pairs ? rough / pairs : 0) < 0.006,   // 평평한 변 = 색 편차 작고 결도 없다(사진의 변은 어둡게 찍혀 편차가 줄어도 결 ≥ .008 — 일화 사옥 어둡게)
+      // 10-12 desk-06 동원(별 점이 흩뿌려진 파랑 그라데이션 3D): 거의 한 색인 변(편차 ≤ 6)은 별·압축 티끌로 결이 0.012까지 올라도 평평한 바탕이다 — 사진의 변은 편차가 그보다 크다(데스크탑 사진 22건 중 0건)
+      std, flat: op >= 0.9 && std < 15 && (pairs ? rough / pairs : 0) < 0.006,
+      ...((op >= 0.9 && std <= 6 && (pairs ? rough / pairs : 0) < 0.012) ? { noisyFlat: true } : {}),   // 평평한 변 = 색 편차 작고 결도 없다(사진의 변은 어둡게 찍혀 편차가 줄어도 결 ≥ .008 — 일화 사옥 어둡게)
     };
   };
   const edges = {
@@ -228,7 +230,7 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   //   cutout  배경을 딴 그림(투명 PNG) — 칸에 맞춰 놓고 녹이지 않는다
   //   photo   네 변 어디에도 평평한 바탕이 없다 — 사진. 지면은 브랜드색, 지면과 만나는 변을 그라데이션으로 녹인다(한독·리멤버 예시)
   //   illust  평평한 변이 하나라도 있다 — 바탕을 품은 일러스트·3D. 그 변의 색이 지면이 되어 이음매 없이 이어진다(72/136, 가장 흔함)
-  const flatEdges = list.filter(e => e.flat).length;
+  let flatEdges = list.filter(e => e.flat).length;
   const cutout = opaque < 0.5;
   // 그림 전체 밝기(0~1) — 사진·질감의 밝은/어두운 세분, 글자색·스크림 판단. 4px 표본, 불투명 픽셀만
   let lsum = 0, lsq = 0, ln = 0;
@@ -254,6 +256,9 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   // 단색조 추상 렌더(마이다스 파란 유리 면: 평평한 변 0 · 색 퍼짐 28 · 채도 0.81)도 질감 — 사진처럼 한쪽에 녹이면 뜻 없는 조각이다(디자이너 히어로 20여 종이 전면 배경). 사진은 퍼짐 33 이상(일화 어둡게 33)
   // 10-09 데스크탑: 색 퍼짐이 25 이하인 그림(파스텔 블롭·민트 알약 패턴, 퍼짐 21·24)은 채도와 상관없이 질감 — 핀터레스트 JPG의 압축 노이즈가 거칠기(rough)를 문턱 위로 올려 사진으로 갔다.
   //   사진은 퍼짐 33 이상(일화 어둡게 33 · 실사 41~80)이라 겹치지 않는다
+  // 10-12 desk-06: 별·티끌만 있는 거의 한 색 변(noisyFlat)은 바탕이다 — 단, 색 퍼짐이 큰 그림(> 25: 질감·블롭이 아닌 것)에서만. 질감 판정을 흔들지 않는다
+  if (tex.spread > 25) { for (const e of list) if (e.noisyFlat && !e.flat) e.flat = true; flatEdges = list.filter(e => e.flat).length; }
+  for (const e of list) delete e.noisyFlat;
   const abstract = flatEdges === 0 && (tex.spread <= 25 || (tex.spread <= 30 && (sat ?? 0) >= 0.6));
   let kind = cutout ? 'cutout' : ((tex.sharp < 0.005 && tex.rough < 0.005 && tex.spread >= 6) || abstract) ? 'texture' : flatEdges === 0 ? 'photo' : 'illust';
   const quadrants = quadrantsOf(rgba, w, h);
@@ -279,7 +284,7 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
     const n = Math.max(2, bw), P = { tl: cornerPatch(0, 0), tr: cornerPatch(w - n, 0), bl: cornerPatch(0, h - n), br: cornerPatch(w - n, h - n) };
     if (Object.values(P).every(p => p.sd < 12)) corners = Object.fromEntries(Object.entries(P).map(([k, p]) => [k, p.c]));
   }
-  const focus = focusOf(rgba, w, h, bw, cutout, ref, corners);
+  const focus = focusOf(rgba, w, h, bw, cutout, ref, corners, kind === 'illust');   // 쌓인 덩어리 묶기는 바탕 있는 일러스트·3D만(사진 장면·누끼 떼는 그대로)
   // 평평한 변이 하나뿐인데 바탕을 못 가르면(주인공 픽셀 > 60% → focus null) 그 변은 바탕이 아니라 사진의 흐린 천장·벽이다 — 사진(10-09 figma-dg AI 간호사: 일러스트로 보고 윗변에 붙여 얼굴이 잘렸다)
   if (kind === 'illust' && flatEdges === 1 && !focus) kind = 'photo';
   return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus, rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
@@ -391,7 +396,7 @@ export function subjectPx(rgba, i, L, R, t) {
   const sat = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
   return !(blum > 0.7 && lum > blum && sat < 0.12);
 }
-function focusOf(rgba, w, h, bw, cutout, ref = null, corners = null) {
+function focusOf(rgba, w, h, bw, cutout, ref = null, corners = null, stackParts = false) {
   // 2px 격자로 "주인공 픽셀"을 표시한다
   const gw = Math.ceil(w / 2), gh = Math.ceil(h / 2);
   const hit = new Uint8Array(gw * gh);
@@ -443,18 +448,34 @@ function focusOf(rgba, w, h, bw, cutout, ref = null, corners = null) {
   const big = groups.reduce((m, c) => (c.area > m.area ? c : m), groups[0]);
   const all = groups.reduce((u, c) => ({ x0: Math.min(u.x0, c.x0), x1: Math.max(u.x1, c.x1), y0: Math.min(u.y0, c.y0), y1: Math.max(u.y1, c.y1) }), { x0: gw, x1: 0, y0: gh, y1: 0 });
   const boxArea = c => (c.x1 - c.x0 + 1) * (c.y1 - c.y0 + 1);
-  const pick = boxArea(all) <= boxArea(big) * 1.5 ? all : big;
+  let pick = boxArea(all) <= boxArea(big) * 1.5 ? all : big;
+  // 10-12 desk-06 동원(구 머리 + 반구 몸)·desk-07 코스맥스(흐린 흉상): 위아래로 쌓인 덩어리는 한 인물이다 — 가장 큰 덩어리(몸)만 고르면 머리가 잘린다.
+  //   가로로 겹치고(작은 쪽 폭의 50% 이상) 세로 틈이 지금 상자 높이의 50% 안이며 큰 덩어리 넓이의 10% 이상인 덩어리를 묶는다. 옆으로 나란히 선 떼(가로 틈)는 묶지 않는다
+  if (pick === big && stackParts) {
+    let u = { ...big }, grew = true;
+    while (grew) {
+      grew = false;
+      for (const g of groups) {
+        if (g.area < big.area * 0.1 || (g.x0 >= u.x0 && g.x1 <= u.x1 && g.y0 >= u.y0 && g.y1 <= u.y1)) continue;
+        const ov = Math.min(u.x1, g.x1) - Math.max(u.x0, g.x0) + 1, minW = Math.min(u.x1 - u.x0, g.x1 - g.x0) + 1;
+        const gap = Math.max(g.y0 - u.y1, u.y0 - g.y1), uh = u.y1 - u.y0 + 1;
+        if (ov >= minW * 0.5 && gap <= uh * 0.5) { u = { x0: Math.min(u.x0, g.x0), x1: Math.max(u.x1, g.x1), y0: Math.min(u.y0, g.y0), y1: Math.max(u.y1, g.y1), stacked: true }; grew = true; }
+      }
+    }
+    if (u.stacked && boxArea(u) <= gw * gh * 0.6) pick = u;   // 묶은 상자가 그림의 60%를 넘으면 한 인물이 아니라 장면이다(마이다스 유리 폴더) — 묶지 않는다
+  }
   if (globalThis.__focusDebug) globalThis.__focusDebug({ gw, gh, comps, groups, big, all, pick });   // 측정 디버그 훅(Node 전용)
   const r2 = v => Math.round(v * 100) / 100;
   // 격자 좌표 → 0~1 (셀 하나가 2px)
   const X0 = pick.x0 * 2, X1 = Math.min(w - 1, pick.x1 * 2 + 1), Y0 = pick.y0 * 2, Y1 = Math.min(h - 1, pick.y1 * 2 + 1);
   // others: 주인공으로 고르지 않은 덩어리들의 상자(0~1) — 자리 창이 이들을 가르지 않게 피하는 데 쓴다(core/field.js kvPlacement)
-  const others = pick === all ? [] : groups.filter(g => g !== big).map(g => ({ x0: r2(g.x0 * 2 / w), x1: r2(Math.min(w - 1, g.x1 * 2 + 1) / w), y0: r2(g.y0 * 2 / h), y1: r2(Math.min(h - 1, g.y1 * 2 + 1) / h) }));
+  const inPick = g => g.x0 >= pick.x0 && g.x1 <= pick.x1 && g.y0 >= pick.y0 && g.y1 <= pick.y1;
+  const others = pick === all ? [] : groups.filter(g => g !== big && !inPick(g)).map(g => ({ x0: r2(g.x0 * 2 / w), x1: r2(Math.min(w - 1, g.x1 * 2 + 1) / w), y0: r2(g.y0 * 2 / h), y1: r2(Math.min(h - 1, g.y1 * 2 + 1) / h) }));
   // density: 주인공 상자 안에서 주인공 픽셀이 차지하는 비율 — 캐릭터·사물은 촘촘(≥0.5), 크레인·건물 장면은 성글다(<0.45). 유형 세분(core/kvtypes.js)에 쓴다
   let inBox = 0;
   for (let gy = pick.y0; gy <= pick.y1; gy++) for (let gx = pick.x0; gx <= pick.x1; gx++) if (hit[gy * gw + gx]) inBox++;
   const density = r2(inBox / Math.max(1, boxArea(pick)));
-  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length, others, density };
+  return { x: r2((X0 + X1) / 2 / w), y: r2((Y0 + Y1) / 2 / h), w: r2((X1 - X0) / w), h: r2((Y1 - Y0) / h), parts: groups.length, others, density, ...(pick.stacked ? { stacked: true } : {}) };
 }
 
 export function analyzeRegion(rgba, w, h, box) {

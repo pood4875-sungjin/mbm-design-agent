@@ -9,7 +9,8 @@
 //
 // 사람이 덮어쓸 수 있는 것은 둘뿐이다: 색을 직접 고르기(background.color), 단색/그라데이션 고정(background.mode).
 
-import { mix, colorDistance, contrast, shiftHue, BLACK, WHITE } from './palette.js';
+import { mix, colorDistance, contrast, shiftHue, hexToRgb, rgbToHsl, BLACK, WHITE } from './palette.js';
+import { CANON } from './canon.js';
 import { kvTypeOf } from './kvtypes.js';
 
 const ROUGH_MAX = 0.035;   // 이보다 거칠면 "바탕"이 아니라 사진의 디테일이다
@@ -48,6 +49,8 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     source = 'kv-edge'; seamless = true;
   }
   else if (hasBg && other) { stops = [other.hex]; source = 'kv-edge'; }
+  // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변
+  else if (moodStops(style, e, f)) { const m = moodStops(style, e, f); stops = m.stops; source = m.source; angle = m.angle === 'edge' ? ((facing === 'left' || facing === 'right') ? 180 : 90) : m.angle; }
   else if (style.logoTone === 'light') {
     // 흰색 로고만 있다 — 그림이 지면을 정하지 않는 경우(사진·누끼·그림 없음) 로고가 지면을 정한다: 어두운 브랜드색. 브랜드색이 밝으면 검정을 섞는다
     const brand = p.primary ?? '#2456D6';
@@ -60,7 +63,17 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     const brand = p.primary ?? '#2456D6';
     const tint = f.kind === 'photo' ? lightPhoto : light;
     if (tint) { stops = [mix(brand, WHITE, 0.78), WHITE]; angle = 180; source = 'brand-tint'; }
-    else { stops = brandDeep(brand); angle = 135; source = f.kind === 'photo' ? 'brand-photo' : 'brand'; }
+    else {
+      stops = brandDeep(brand); angle = 135; source = f.kind === 'photo' ? 'brand-photo' : 'brand';
+      // 10-12 GC녹십자(밝은 사진 × 네이비 브랜드): 지면이 그림과 따로 정해져 이음매 쪽 색이 멀면(거리 ≥ bridgeFrom) 이음매 쪽 끝을 그림 변 색 쪽으로 당긴다 —
+      //   흰 글자 4.5:1을 지키는 데까지만. 글자 쪽 끝은 브랜드 딥 그대로
+      const eh = e?.hex, B = CANON.melt;
+      if (eh && B?.bridgeFrom && colorDistance(eh, stops[stops.length - 1]) >= B.bridgeFrom) {
+        let t = B.bridgeMax ?? 0.6, end = null;
+        while (t > 0.05) { const c = mix(stops[0], eh, t); if (contrast(c, WHITE) >= 4.5) { end = c; break; } t -= 0.05; }
+        if (end) { stops = [stops[0], end]; angle = (facing === 'left' || facing === 'right') ? (facing === 'left' ? 90 : 270) : 180; source += '-bridge'; }
+      }
+    }
   }
   else if (f && dominant) {
     // 배경을 딴 이미지 + 밝은 지면을 쓰는 매체(자소설)면 대표색의 옅은 틴트, 아니면 대표색 그대로
@@ -88,16 +101,82 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const pick = () => worst(WHITE) >= 3 ? WHITE : (worst(BLACK) >= worst(WHITE) ? BLACK : WHITE);
   let text = pick();
   if (stops.length > 1 && worst(text) < 3) { stops = [mid()]; text = pick(); }
+  // 채도 높은 지면엔 흰 글자(CANON vividWhite, 10-12 desk-12) — 같은 색상으로 명도만 조금 내려 흰 큰 글자 3:1, 되면 작은 글자 4.5:1까지
+  let dim = null;
+  const vv = vividWhite(stops, { manual: !!opt.color });
+  if (text === BLACK && vv) {
+    // 그림 변이 곧 지면(kv-edge) — 그림도 같은 비율로 어둡혀 이음매를 지킨다(CANON vividWhite.dimKv). 단 그림 속 흰 주인공이 회색으로 죽으면 안 된다:
+    //   어둡힘이 dimMin 보다 세면 그림은 dimMin 까지만, 남는 차이는 녹임이 잇는다(seamless 해제 → CANON melt 길이)
+    if ((seamless || source === 'kv-edge') && CANON.vividWhite.dimKv !== false && vv.dim) { dim = Math.max(vv.dim, CANON.vividWhite.dimMin ?? 0); if (dim > vv.dim + 0.005) seamless = false; if (dim >= 0.995) dim = null; }
+    stops = vv.stops; text = WHITE;
+  }
 
   const css = stops.length > 1 ? `linear-gradient(${angle}deg,${stops[0]} 0%,${stops[1]} 100%)` : stops[0];
   // contrast: 지면에서 가장 불리한 곳의 글자 대비 — 4.5에 못 미치면 렌더러가 작은 글자를 흐리게 쓰지 않는다
-  return { stops, angle, css, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(worst(text) * 100) / 100 };
+  return { stops, angle, css, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(worst(text) * 100) / 100, ...(vv && text === WHITE && vv.d > 0 ? { vivid: vv.d } : {}), ...(dim ? { dim } : {}) };
+}
+
+// 분위기 지면(CANON kvMood) — 그림 바탕의 색감이 브랜드 지면색보다 먼저다. 없으면 null
+export function moodStops(style, e, f, K = CANON.kvMood) {
+  if (!K || !f) return null;
+  const sat = h => rgbToHsl(hexToRgb(h))[1];
+  // ① 누끼 + 원본 바탕 팔레트(kv-orig 에서 잰 것, 또는 사용자가 준 것)
+  const bp = style.kvMeta?.bgPalette;
+  if (f.opaque < 0.5) return bp?.stops?.length ? { stops: bp.stops.slice(0, 2), angle: bp.angle ?? 180, source: 'kv-mood' } : null;   // 누끼는 원본 팔레트가 있을 때만
+  if (!e?.from || !e?.to) return null;
+  // ② 어두운 사진 → 사진 변 색을 같은 색상으로 흰 글자 4.5:1까지 내린 어두운 지면(군중 사진 전체 깔기는 따로)
+  if (f.kind === 'photo' && (f.lum ?? 1) < K.darkPhotoLum) {
+    const deep = c => { let d = 0; while (d < 0.5 && contrast(shiftHue(c, 0, -d, 0), WHITE) < K.darkMin) d += 0.02; return shiftHue(c, 0, -d, 0); };
+    return { stops: [deep(e.from), deep(e.to)], angle: 'edge', source: 'kv-mood-dark' };
+  }
+  // ③ 채도 있는 그라데이션 변(기아 라벤더→파랑 · GC 민트→파랑)
+  if ((sat(e.from) + sat(e.to)) / 2 >= K.minSat && colorDistance(e.from, e.to) >= K.minGrad) return { stops: [e.from, e.to], angle: 'edge', source: 'kv-mood' };
+  return null;
+}
+
+// 상대 휘도(WCAG)
+export function relLum(hex) {
+  const [r, g, b] = hexToRgb(hex).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+// 채도 높은 지면 → 흰 글자로 갈 수 있는가(CANON vividWhite). 된다면 어둡힌 지면색(stops)·명도 내림(d)·그림을 어둡힐 비율(dim)
+//   검정이 이긴 지면에서만 부른다. 노랑·밝은 주황·파스텔은 maxDL 안에서 흰 3:1에 못 닿아 null(검정 유지)
+export function vividWhite(stops, { manual = false, V = CANON.vividWhite } = {}) {
+  if (!V || manual || !stops?.length) return null;
+  const ok = stops.every(s => { const [, sat, l] = rgbToHsl(hexToRgb(s)); const L = relLum(s); return sat >= V.minSat && L >= V.minLum && L <= V.maxLum && l <= (V.maxL ?? 1); });
+  if (!ok) return null;
+  const dark = d => stops.map(s => shiftHue(s, 0, -d, 0));
+  const w = st => Math.min(...st.map(s => contrast(s, WHITE)));
+  const reach = (min, cap) => { for (let i = 0; i * V.step <= cap + 1e-9; i++) { const d = i * V.step; if (w(dark(d)) >= min) return d; } return null; };
+  const dL = reach(V.minContrastLarge, V.maxDL);
+  if (dL == null) return null;
+  const dS = reach(V.smallMin, V.smallMaxDL);
+  const d = Math.round((dS ?? V.maxDL) * 100) / 100;
+  const st = dark(d);
+  const l0 = rgbToHsl(hexToRgb(stops[0]))[2], l1 = rgbToHsl(hexToRgb(st[0]))[2];
+  return { stops: st, d, dim: d > 0 && l0 > 0 ? Math.round(l1 / l0 * 1000) / 1000 : null, large: dL, small: dS, contrast: Math.round(w(st) * 100) / 100 };
 }
 
 // 녹임 그라데이션 — 직선(0→100%)으로 짧게 자르면 "급하게 끊긴" 느낌이 난다(10-06 사용자). 리멤버 사진 예시처럼 길게(30% 안팎), 처음은 천천히 뒤는 빠르게(이징).
+// 10-12(CANON melt.ease): smoothstep 여러 마디 — 양 끝이 모두 부드러워야 녹임의 끝이 「선」으로 읽히지 않는다(desk-15·GC녹십자 「뚝 끊기는 느낌」)
 export function meltGradient(dir, pct) {
-  const a = Math.round(pct * 0.45 * 10) / 10, b = Math.round(pct * 0.78 * 10) / 10;
-  return `linear-gradient(${dir},transparent 0%,rgba(0,0,0,.28) ${a}%,rgba(0,0,0,.78) ${b}%,#000 ${pct}%)`;
+  const n = Math.max(3, CANON.melt?.stops ?? 7);
+  const st = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1), a = t * t * (3 - 2 * t);
+    const at = Math.round(pct * t * 10) / 10;
+    st.push(i === 0 ? `transparent 0%` : i === n - 1 ? `#000 ${at}%` : `rgba(0,0,0,${a.toFixed(2)}) ${at}%`);
+  }
+  return `linear-gradient(${dir},${st.join(',')})`;
+}
+// 녹임 길이(%, 그림 칸·띠 길이의 몫) — 그림 변 색과 지면색이 멀수록 길게(CANON melt: min~max, fullAt 거리에서 max).
+//   밝은 그림 × 어두운 네이비 지면(GC녹십자 1005×360)은 길게, 같은 색으로 이어지면 base(기존 짧은 값) 그대로
+export function meltLength(kvHex, fieldHex, base = 30) {
+  const M = CANON.melt; if (!M || !kvHex || !fieldHex) return base;
+  const d = colorDistance(kvHex, fieldHex);
+  if (d < 0.035) return base;
+  const k = Math.min(1, d / M.fullAt);
+  return Math.round(Math.max(base, (M.min + (M.max - M.min) * k) * 100));
 }
 export function meltMask(dir, pct) {
   const g = meltGradient(dir, pct);
@@ -211,8 +290,19 @@ export function joinField(field, jc, side = 'bottom') {
 
 // 통째로 덮을 때(cover)의 위치 — 주인공이 자리 한가운데 오게 하되, 자리가 주인공보다 30% 넘게 낮으면 위(머리)를 지키고 아래를 자른다.
 // 돌려주는 값: pos(CSS background-position), joinFrac(자리 윗변이 그림의 어느 높이에 걸리는가)
-export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fallback = 'center' } = {}) {
-  const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
+// 주인공 상자를 못 찾은 그림(focus null — 바탕이 그라데이션이라 덩어리를 못 가른 3D·일러스트)은 줄·열 프로필에서 바탕이 아닌(bg < 0.5) 줄·열을 묶어 어림한다.
+// 10-12 desk-15(한국산업단지공단 신호등, 세로 그림): focus 가 없어 아래 띠를 「위 맞춤」으로 덮었더니 1080에서 파란 하늘만 보였다(그림이 없는 듯)
+export function profileFocus(f) {
+  if (!f || f.focus || (f.opaque ?? 1) < 0.5) return f?.focus ?? null;
+  const span = prof => { if (!prof?.length) return null; const idx = prof.map((r, i) => (r && (r.bg ?? 1) < 0.5) ? i : -1).filter(i => i >= 0); if (!idx.length || idx.length === prof.length && false) return null; if (!idx.length) return null; const a = idx[0] / prof.length, b = (idx[idx.length - 1] + 1) / prof.length; return [a, b]; };
+  const ry = span(f.rows), rx = span(f.cols);
+  if (!ry && !rx) return null;
+  const [y0, y1] = ry ?? [0, 1], [x0, x1] = rx ?? [0, 1];
+  if ((y1 - y0) * (x1 - x0) > 0.95) return null;   // 그림 전체가 주인공이면 어림할 게 없다
+  return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, derived: true };
+}
+export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fallback = 'center', headroom = 0.04 } = {}) {
+  const ar = style.kvMeta?.ar, focus = profileFocus(style.kvMeta?.field);
   const join = side === 'right' ? 'left center' : 'center top';
   if (!ar) return { pos: seamless ? join : fallback, joinFrac: 0, trueEdge: seamless };
   const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
@@ -227,7 +317,7 @@ export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fal
   const lossV = imgH > bh + 0.5 ? 1 - Math.min(1, bh / (focus.h * imgH)) : 0;
   // 가운데 맞춤이 주인공 윗변(머리)을 자리 높이의 2% 넘게 자르면 머리를 지키고 아래를 자른다 — 숨은 머리 위 4%
   const headCut = imgH > bh + 0.5 && (-(py * (imgH - bh)) + (focus.y - focus.h / 2) * imgH) < -bh * 0.02;
-  if (lossV > 0.3 || headCut) oyPx = Math.round(Math.min(0, Math.max(bh - imgH, -(focus.y - focus.h / 2) * imgH + bh * 0.04)));   // 머리 위 숨 4%
+  if (lossV > 0.3 || headCut || headroom > 0.04) oyPx = Math.round(Math.min(0, Math.max(bh - imgH, -(focus.y - focus.h / 2) * imgH + bh * headroom)));   // 머리 위 숨 4%(모서리 상자 덮기는 위 글자에 닿지 않게 더)
   const pos = oyPx != null ? `${Math.round(px * 100)}% ${oyPx}px` : `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
   const trueEdge = seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (oyPx == null && (py === 0 || imgH <= bh + 0.5)));
   const joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? (oyPx != null ? -oyPx / imgH : py * (imgH - bh) / imgH) : 0);
@@ -320,7 +410,12 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   // 이음매 줄이 바탕 95% 이상이고 지면색과 같으면 10%, 85~95%(귀·팔 끝만 걸림)면 20% — 85%를 '조용하다'고 보고 10%만 녹이면 뚝 끊기고, 30%로 길게 녹이면 팔이 뿌옇다
   const same = !!(jr?.hex && near && colorDistance(jr.hex, near) < 0.035);
   const quiet = same && jr.bg >= 0.95, calm = same && jr.bg >= 0.85;
-  const pct = quiet ? 10 : calm ? 20 : trueEdge ? 16 : joinFlat === false ? 38 : 30;
+  const pct0 = quiet ? 10 : calm ? 20 : trueEdge ? 16 : joinFlat === false ? 38 : 30;
+  // 10-12 CANON melt: 이음매의 그림 색(걸린 줄 → 없으면 변 색)과 지면색이 멀면 길게. 그라데이션 바탕 그림(변 양 끝 색이 다름)은 줄 평균이 같아도 짧게 두지 않는다(midas-cards-orange 1005×360)
+  const seamHex = jr?.hex ?? style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.hex ?? null;
+  const gradSeam = (() => { const e = style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']; return !!(e?.from && e?.to && colorDistance(e.from, e.to) > 0.06); })();
+  const farStop = (seamHex && field?.stops?.length) ? field.stops.reduce((m, x) => colorDistance(seamHex, x) > colorDistance(seamHex, m) ? x : m) : near;
+  const pct = (pct0 <= 20 && !gradSeam) ? pct0 : meltLength(seamHex, farStop, pct0);
   const dir = side === 'right' ? 'to right' : 'to bottom';
   // 오른쪽 열이 로고 띠 아래(top>0)에서 시작하면 열의 윗변은 지면 한가운데의 직선이다 — 그 줄이 그림의 바탕이 아니면(여우 귀가 잘림) 윗변도 녹인다(10-06 사용자 "뚝 끊은 면… 그라로 넣던지").
   // 윗줄이 바탕이고 지면색과 같으면 녹일 게 없다. 녹임은 짧게(22%) — 머리 위를 길게 녹이면 뿌옇다
@@ -339,12 +434,20 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   const bleedB = cutout && side === 'bottom' && arKv && bh * arKv > w && bh * arKv <= w * bleedMax + 1;
   // 틈 창(cutLeft)이 있으면 가운데가 아니라 창의 왼쪽 끝부터 — 자르기 선이 캐릭터 사이 틈에 떨어진다
   const bPos = cutLeft != null ? `${-Math.round(cutLeft * bh * arKv)}px bottom` : 'center bottom';
-  const fill = `background:url('${url}') ${cutout ? (bleed ? `right bottom/auto ${hh}px` : bleedB ? `${bPos}/auto ${bh}px` : `${far}/contain`) : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
+  // 작은 누끼는 원본의 1.5배까지만(CANON maxUpscale) — 맞춰 넣은 크기가 넘으면 그 폭으로 작게 둔다
+  const capW = cutoutCapW(style), arC = arKv || 1;
+  const cutSize = bleed ? (hh * arC > capW ? `${capW}px auto` : `auto ${hh}px`) : bleedB ? (bh * arC > capW ? `${capW}px auto` : `auto ${bh}px`) : (Math.min(bw, bh * arC) > capW ? `${capW}px auto` : 'contain');
+  const fill = `background:url('${url}') ${cutout ? `${bleed ? 'right bottom' : bleedB ? bPos : far}/${cutSize}` : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${cutout && /px auto$/.test(cutSize) ? '--kv-capped:1;' : ''}${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
 }
 
+// 누끼를 원본 픽셀의 몇 배까지 키울 수 있나(CANON maxUpscale.cutout, 10-12 desk-37-cut 163px) — 그려도 되는 최대 폭(px). 누끼가 아니거나 크기를 모르면 Infinity
+export function cutoutCapW(style) {
+  const px = style.kvMeta?.px, k = CANON.maxUpscale?.cutout;
+  return ((style.kvMeta?.field?.opaque ?? 1) < 0.5 && px?.[0] > 0 && k) ? Math.round(px[0] * k) : Infinity;
+}
 // 단일 사물 누끼의 블리드 배치(CANON objectBleed) — 크게, 우하단으로. 10-08 Figma 9월 공채 디자이너 13장: KV 면적 가로형 19~31%·정사각 25%·세로형 22~27%, 보임 63~86%(R·B로 잘림).
 //   x0·y0: 보이는 그림이 넘으면 안 되는 왼쪽·위 경계(글자 칸·로고 띠·가이드 그림 상자) · 오른쪽·아래 변으로만 잘린다(maxCut까지, 보임 ≥ 1−maxCut)
 //   핵심부(주인공 상자 가운데 core 몫)는 캔버스 안 · 목표 면적(targetArea[shape])에 가장 가까운 배치, 못 닿으면 가장 큰 배치(맞춰 넣기보다 작아지지 않는다)
@@ -369,6 +472,7 @@ export function objectBleedPlace(style, { w, h, x0 = 0, y0 = 0, shape = 'wide', 
     let best = null, biggest = null;
     for (let i = 0; i <= 40; i++) {
       const dw = w * (0.6 + i * 0.05);                      // 지면 폭의 0.6~2.6배
+      if (dw > cutoutCapW(style) && i > 0) continue;        // 작은 누끼는 원본의 1.5배까지(CANON maxUpscale)
       const dh = dw / ar;
       const cutY = Math.max(0, 1 - (h - y0) / dh);          // 경계(y0) 위로 못 올라간다 — 넘치는 만큼 아래로 잘린다
       if (cutY > maxCy + 1e-6) continue;
@@ -394,7 +498,7 @@ export function objectBleedPlace(style, { w, h, x0 = 0, y0 = 0, shape = 'wide', 
     const vis = Mx(1 - cutX) * My(1 - cutY);
     if (vis < 1 - B.maxCut - 1e-6) continue;
     // 경계 안에 들어가는 가장 큰 그림 — 폭·높이 중 빠듯한 쪽
-    const dw = Math.min((w - x0) / (1 - cutX), ((h - y0) / (1 - cutY)) * ar);
+    const dw = Math.min((w - x0) / (1 - cutX), ((h - y0) / (1 - cutY)) * ar, cutoutCapW(style));   // 작은 누끼는 원본의 1.5배까지(CANON maxUpscale)
     if (!(dw > 8)) continue;
     const dh = dw / ar;
     const areaF = cov * dw * dh * vis / (w * h);
@@ -416,5 +520,6 @@ export function objectBleedPlace(style, { w, h, x0 = 0, y0 = 0, shape = 'wide', 
 // 블리드 배치를 그린다 — 보이는 네모(left·top → 캔버스 오른쪽·아래 끝)에 그림을 제 크기(dw)로, 왼쪽 위에 붙여서. 넘치는 오른쪽·아래는 지면 밖
 export function bleedLayer(style, P, w, h) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  return `<div data-object="1" data-bleed="1" style="position:absolute;left:${P.left}px;top:${P.top}px;width:${w - P.left}px;height:${h - P.top}px;background:url('${url}') 0px 0px/${P.dw}px auto no-repeat;--kv-bleed:1"></div>`;
+  const capped = P.dw >= cutoutCapW(style) - 1;
+  return `<div data-object="1" data-bleed="1" style="position:absolute;left:${P.left}px;top:${P.top}px;width:${w - P.left}px;height:${h - P.top}px;background:url('${url}') 0px 0px/${P.dw}px auto no-repeat;--kv-bleed:1${capped ? ';--kv-capped:1' : ''}"></div>`;
 }

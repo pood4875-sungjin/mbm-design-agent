@@ -311,7 +311,9 @@ test('an image whose facing edge matches the field joins at that edge; a busy ph
   const a = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: calm }, specs['naver-gfa-mobile-da-1250x560']);
   assert.match(a, /data-object="1"[^>]*left center\/cover[^>]*#000 16%/);
   const b = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: busy }, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(b, /data-object="1"[^>]*center\/cover[^>]*#000 30%/);   // 복잡한 변은 더 길게 녹인다(10-06: 10→16 · 26→30 · 사진 32→38, 이징)
+  // 복잡한 변은 더 길게 녹인다(10-06: 10→16 · 26→30 · 사진 32→38, 이징). 10-12 CANON melt: 회색 사진 변 × 주황 딥 지면은 색 거리가 멀어 30%보다 길게(최대 55%)
+  const bm = b.match(/data-object="1"[^>]*center\/cover[^>]*#000 ([\d.]+)%/);
+  assert.ok(bm && Number(bm[1]) >= 30 && Number(bm[1]) <= 55, bm?.[1]);
   // 배경을 딴 이미지는 자르지 않고, 녹이지도 않는다
   const cut = { colors: ['#E67814'], field: { opaque: 0.1, edges: {} } };
   const c = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: cut }, specs['naver-gfa-mobile-da-1250x560']);

@@ -26,6 +26,7 @@ mkdirSync(OUT, { recursive: true });
 const core = async f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
 const { fieldFromImage, extractPalette, edgeColor } = await core('palette.js');
 const { kvTypeOf, kvTypeSummary } = await core('kvtypes.js');
+const { CANON } = await core('canon.js');
 const { prepLogoRGBA, logoMeta } = await core('logo.js');
 
 const ledger = () => existsSync(LEDGER) ? JSON.parse(readFileSync(LEDGER, 'utf8')) : { cases: [] };
@@ -100,11 +101,40 @@ if (cmd === 'trim') {
     console.log(c.id, t);
   }
 }
+// 누끼 케이스(<원본id>-cut)의 원본 바탕 팔레트 — 원본 케이스 그림의 네 변 색으로 분위기(CANON.cutoutAuto)를 재고, 분위기가 있으면 meta.bgPalette 로 남긴다.
+//   렌더러(core/field.js moodStops)가 브랜드 틴트보다 먼저 이 색으로 지면을 깐다(10-12 desk-37-cut 주황 · desk-03-cut 라벤더). node scripts/cases.mjs bgpalette [id …]
+function bgPaletteOf(c) {
+  const pid = c.id.replace(/-cut$/, ''); if (pid === c.id) return null;
+  const pm = path.join(CASES, pid, 'meta.json'); if (!existsSync(pm)) return null;
+  const f = JSON.parse(readFileSync(pm, 'utf8')).field; if (!f?.edges) return null;
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+  const cols = Object.values(f.edges).flatMap(e => [e.from ?? e.hex, e.to ?? e.hex]).filter(Boolean);
+  const chroma = cols.reduce((n, h) => { const v = rgb(h); return n + Math.max(...v) - Math.min(...v); }, 0) / cols.length;
+  let grad = 0; for (const a of cols) for (const b of cols) { const x = rgb(a), y = rgb(b); grad = Math.max(grad, Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]) / Math.sqrt(3)); }
+  const A = CANON.cutoutAuto, mood = f.kind === 'photo' || chroma >= A.chromaMax || grad >= A.gradMax;
+  const why = `원본 ${pid} 바탕 chroma ${chroma.toFixed(2)} · 그라데이션 ${grad.toFixed(2)}${f.kind === 'photo' ? ' · 사진' : ''}`;
+  if (!mood) return { mood: false, why };
+  // 위 변 → 아래 변 색(세로 그라데이션) — 원본 바탕의 위아래 흐름을 지면에 옮긴다(동부 #D35501 → #FDB686)
+  return { mood: true, why, stops: [f.edges.top.hex, f.edges.bottom.hex], angle: 180, from: pid };
+}
+if (cmd === 'bgpalette') {
+  const l = ledger();
+  for (const c of l.cases.filter(c => c.id.endsWith('-cut') && (!positional.length || positional.includes(c.id)))) {
+    const b = bgPaletteOf(c); if (!b) continue;
+    const mp = path.join(CASES, c.id, 'meta.json'), meta = JSON.parse(readFileSync(mp, 'utf8'));
+    if (b.mood) { meta.bgPalette = { stops: b.stops, angle: b.angle, from: b.from }; if (!c.note.includes('원본 배경 분위기 있음')) c.note += ' · 원본 배경 분위기 있음 — 실사용은 원본'; }
+    else delete meta.bgPalette;
+    writeFileSync(mp, JSON.stringify(meta, null, 1));
+    console.log(c.id.padEnd(14), b.mood ? 'KEEP 원본(분위기)' : 'CUT 맞음      ', b.why, b.mood ? b.stops.join('→') : '');
+  }
+  save(l);
+}
 // 측정값 다시 재기(측정 규칙을 바꿨을 때) — node scripts/cases.mjs remeasure [id …]
 if (cmd === 'remeasure') {
   const l = ledger();
   for (const c of l.cases.filter(c => !positional.length || positional.includes(c.id))) {
     const dir = path.join(CASES, c.id); const meta = measure(path.join(dir, c.kv));
+    { const b = bgPaletteOf(c); if (b?.mood) meta.bgPalette = { stops: b.stops, angle: b.angle, from: b.from }; }   // 누끼의 원본 바탕 팔레트는 다시 재도 남긴다
     writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1)); c.type = kvTypeOf(meta)?.id ?? null; c.summary = kvTypeSummary(meta);
     if (c.logo && existsSync(path.join(dir, c.logo))) c.logoMeta = logoMetaOf(path.join(dir, c.logo));   // 로고 실측도 다시(10-12: 대표색 colors 추가)
     console.log(c.id.padEnd(14), c.summary);

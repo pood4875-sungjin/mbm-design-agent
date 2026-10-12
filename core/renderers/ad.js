@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer } from '../field.js';
+import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, WHITE, BLACK } from '../palette.js';
@@ -408,7 +408,10 @@ export function renderAd(ctx, style, spec) {
     return { x, y: top, w: bw, h: hh, gap: ob.gap ?? 19, zone: true };
   };
   const oBox = (!tImage && hasKv && !photoFull && rules.objectBox) ? (rules.objectBox.zone ? zoneBox(rules.objectBox) : ((isCutout ? rules.objectBox.cutout : rules.objectBox.thumbnail) ?? null)) : null;
-  const cornerRect = (tImage && imgCorner && hasKv && bleedP) ? { ...tImage } : (tImage && imgCorner && hasKv) ? (() => {
+  // 10-12 desk-15: 바탕 있는 세로 그림을 모서리 상자(구글 580 297×239)에 통째로 맞춰 넣으면 상자의 60%도 못 채워 신호등이 가는 띠가 된다(지면의 15%) —
+  //   그때는 상자를 덮고(cover, 주인공 위치) 글자 쪽 두 변을 녹인다(사진과 같은 문법). 누끼는 그대로 맞춰 넣는다
+  const cornerFill = !!(tImage && imgCorner && hasKv && !bleedP && !isCutout && !transparent && kvAR && (() => { const fw = kvAR >= tImage.w / tImage.h; const dw = fw ? tImage.w : tImage.h * kvAR, dh = fw ? tImage.w / kvAR : tImage.h; return dw * dh / (tImage.w * tImage.h) < 0.6; })());
+  const cornerRect = (tImage && imgCorner && hasKv && (bleedP || cornerFill)) ? { ...tImage } : (tImage && imgCorner && hasKv) ? (() => {
     const ar = kvAR || (tImage.w / tImage.h); const fillW = ar >= tImage.w / tImage.h;
     const dw = fillW ? tImage.w : Math.round(tImage.h * ar), dh = fillW ? Math.round(tImage.w / ar) : tImage.h;
     return { x: tImage.x + tImage.w - dw, y: tImage.y + tImage.h - dh, w: dw, h: dh };
@@ -508,13 +511,24 @@ export function renderAd(ctx, style, spec) {
   const edgeMatches = e => !!(e && e.flat && e.hex && field && colorDistance(e.hex, field.stops[0]) < 0.02 && (!e.from || !e.to || colorDistance(e.from, e.to) < 0.02));
   const cornerSeamless = !!(field?.seamless && !field.gradient && edgeMatches(cornerEdges?.top) && edgeMatches(cornerEdges?.left));
   const meltCorner = !!(cornerRect && !isCutout && !transparent && (!cornerSeamless || cornerCrop));
+  // 질감 진정(CANON textureCalm, 10-12 desk-23·desk-02): 글자 아래 질감이 어지러우면 글자 쪽에서 지면 자기 색 스크림 — 어지러울수록 진하게(기본은 아주 살짝)
+  const calm = (() => {
+    const C = CANON.textureCalm, t = style.kvMeta?.field?.texture;
+    if (!C || !textureFull || frameFull || !field || field.contrast < 4.5 || !t) return null;
+    const busy = Math.max(0, Math.min(1, Math.max(((t.spread ?? 0) - C.spreadMin) / (C.spreadFull - C.spreadMin), (t.sharp ?? 0) / C.sharpFull)));
+    if (busy < C.busyMin) return null;   // 거의 매끈한 질감(hdot-wave·hdot-purple3d)은 건드리지 않는다
+    const base = field.stops[0], dark = field.text === WHITE;
+    return { tint: mix(base, dark ? BLACK : WHITE, C.tintMix), a: Math.round((C.scrimMin + (C.scrimMax - C.scrimMin) * busy) * 100) / 100, reach: C.reach, busy: Math.round(busy * 100) / 100 };
+  })();
   // 지면 CSS는 그릴 때 읽는다 — 띠 높이가 정해진 뒤 이음매 줄 색으로 지면을 잇는다(joinField)
   const bgCss = () => photoFull
     ? `background:linear-gradient(${scrimDir},${rgba(scrimBase, 0.94)} 0%,${rgba(scrimBase, 0.82)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
     // 질감: 통째로 깐다(가운데 맞춤 cover). 글자 대비가 4.5:1에 못 미치면(10-09: 3:1 → 4.5:1 — 파란 유리 면 위 흰 상세 글자) 글자 쪽에서 시작하는 브랜드색 스크림(사진 전체형과 같은 문법)
     : frameFull ? (() => { const tallF = L.shape === 'tall' || L.shape === 'tower'; const dw = Math.round(Math.max(w * 1.7, tallF ? h * 0.45 * (style.kvMeta?.ar ?? 1.8) : 0)); return `background:linear-gradient(${scrimDir},${rgba(field.stops[0], 0.85)} 0%,${rgba(field.stops[0], 0.55)} ${Math.round(scrimEnd * 0.45)}%,${rgba(field.stops[0], 0)} ${Math.round(scrimEnd * 0.8)}%),url('${esc(style.keyVisual)}') ${tallF ? 'right bottom' : 'right center'}/${dw}px auto no-repeat,${field.css};`; })()
-    : textureFull ? `background:${field && field.contrast < 4.5 ? `linear-gradient(${scrimDir},${rgba(scrimBase, 0.9)} 0%,${rgba(scrimBase, 0.75)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : ''}url('${esc(style.keyVisual)}') center/cover no-repeat;`
-    : roomFull ? `background:url('${esc(style.keyVisual)}') ${roomFull.pos}/${roomFull.size} no-repeat ${roomFull.hex ?? 'transparent'};`
+    : textureFull ? `background:${field && field.contrast < 4.5 ? `linear-gradient(${scrimDir},${rgba(scrimBase, 0.9)} 0%,${rgba(scrimBase, 0.75)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : calm ? `linear-gradient(${scrimDir},${rgba(calm.tint, calm.a)} 0%,${rgba(calm.tint, Math.round(calm.a * 0.7 * 100) / 100)} ${Math.round(calm.reach * 45)}%,${rgba(calm.tint, 0)} ${Math.round(calm.reach * 100)}%),` : ''}url('${esc(style.keyVisual)}') center/cover no-repeat;`
+    // 10-12 midas-cards-orange 「위에 뚝 끊기는 느낌」: 그림을 아래로 민(oy>0) 위쪽을 자리 바탕 단색(room.hex)으로 채웠더니, 그림 윗변이 그라데이션(노랑→주황)이라 단색 띠 + 가로 직선이 생겼다.
+    //   위 띠는 그림의 맨 윗줄을 세로로 늘인 층으로 채운다 — 윗변 색이 가로로 흐르는 그대로 이어져 이음매가 없다(data-kv-fill="row")
+    : roomFull ? `background:url('${esc(style.keyVisual)}') ${roomFull.pos}/${roomFull.size} no-repeat${roomFull.oy > 0 && style.kvMeta?.px?.[1] ? `,url('${esc(style.keyVisual)}') ${roomFull.ox}px 0px/${Number.parseFloat(roomFull.size)}px ${Math.round(style.kvMeta.px[1] * roomFull.oy)}px no-repeat` : ''} ${roomFull.hex ?? 'transparent'};`
     : field ? `background:${field.css};` : '';
 
   /* ── 글자색 ── 규격이 정하면 그대로(비즈보드), 아니면 지면이 정한다(순흑/순백) */
@@ -547,7 +561,7 @@ export function renderAd(ctx, style, spec) {
     : '';
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}">`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -1145,7 +1159,11 @@ export function renderAd(ctx, style, spec) {
   const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
   // 녹이는 폭: 지면과 같은 색으로 이어지면 18%, 아니면 32% — 짧고 직선적인 10%는 "급하게 끊긴" 느낌(10-06 사용자, 자소설 PC메인 왼쪽 열)
   const fadePct = field?.seamless ? 18 : 32;
-  const melt = dir => (transparent || cutout) ? '' : meltMask(dir, fadePct);
+  // 10-12 CANON melt: 그림 변 색과 지면색(가장 먼 끝)이 멀수록 길게 — 밝은 그림 × 어두운 지면은 45~55%
+  const edgeOf = k => style.kvMeta?.field?.edges?.[k]?.hex ?? null;
+  const farFrom = hx => (hx && field?.stops?.length) ? field.stops.reduce((m, x) => colorDistance(hx, x) > colorDistance(hx, m) ? x : m) : null;
+  const fadeFor = dir => { const hx = edgeOf(dir === 'to left' ? 'right' : dir === 'to right' ? 'left' : 'top'); return meltLength(hx, farFrom(hx), fadePct); };
+  const melt = dir => (transparent || cutout) ? '' : meltMask(dir, fadeFor(dir));
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
   const kvFill = (pos, join) => { const c = (cutout || !tImage) ? null : subjectCrop(style, tImage.w, tImage.h);
     return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
@@ -1184,8 +1202,8 @@ export function renderAd(ctx, style, spec) {
           // 지면이 그림 가장자리 색과 같지 않으면 글자 쪽 두 변(왼쪽·위)을 녹인다 — "뚝 끊긴" 직선 이음매가 사라진다. 누끼는 그대로. 사진(구글 580)은 상자를 채우고 녹인다
           const photoCover = gCorner && kvKindPhoto && !cutout;
           // 주인공이 그림의 일부면 상자를 주인공으로 채운다(cornerCrop) — 통째로 맞춰 넣으면 상자에 바탕만 보인다
-          const rect = (photoCover || cornerCrop) ? tImage : (cornerRect ?? tImage);
-          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(34, 34) : ''}overflow:hidden"></div>`;
+          const rect = (photoCover || cornerCrop || cornerFill) ? tImage : (cornerRect ?? tImage);
+          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34)) : ''}overflow:hidden"></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
