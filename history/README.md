@@ -13,6 +13,7 @@
 | 2026-08-10 ~ 10-07 | [2026-08-10_시작부터_10-07까지.md](2026-08-10_시작부터_10-07까지.md) | 뼈대 → 매체 규칙 15개 채널 → 실제 키비주얼 검증 → 케이스 장부 13라운드 |
 | 2026-10-08 | [2026-10-08_자동검수_Figma비교_규칙화.md](2026-10-08_자동검수_Figma비교_규칙화.md) | 자동 검수 장치, Figma 2개 파일 비교, 규칙 20개 + 타이포, 46케이스 |
 | 2026-10-09 | [2026-10-09_타이포_굵기_위계.md](2026-10-09_타이포_굵기_위계.md) | 굵기 위계 표(메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400, 칩·CTA 600), 자소설 실측 우선, 테스트 6건 |
+| 2026-10-12 | [2026-10-12_데스크탑_키비주얼_로고_테스트.md](2026-10-12_데스크탑_키비주얼_로고_테스트.md) | 데스크탑 KV 37장(누끼 9)·로고 198개 → 데스크탑 44건 경고 191 → 24, 로고 규칙 4개(색 겹침 단색·글자 속 구멍·투명 PNG 오판·앱 실측 유지), 92케이스 r35 경고 56, 기존 46 회귀 0, 스킬 kv-cutout·logo-prep |
 
 ## 쌓는 규칙 (Claude용)
 - 작업을 마치면 다음 세 가지를 합니다.
@@ -38,6 +39,7 @@
 | [guide-export](../.claude/skills/guide-export/SKILL.md) | 키비주얼 디자인 가이드·광고소재 가이드를 ~/Downloads 새 날짜 폴더로 | 「가이드 최신판 뽑아줘」 |
 | [pages-deploy](../.claude/skills/pages-deploy/SKILL.md) | GitHub Pages 배포 폴더 동기화·커밋(push 는 사람이) | 「배포해줘」 |
 | [verdict-sheet](../.claude/skills/verdict-sheet/SKILL.md) | 사람 판정 시트 열기 → 판정 JSON 기록·요약 | 「판정 시트 열어줘」 |
+| [kv-cutout](../.claude/skills/kv-cutout/SKILL.md) | KV 누끼 따기(바탕 곡면 + GrabCut, 사람은 Apple Vision) → 두 바탕 미리보기 → `<id>-cut` 케이스 | 「이 KV 누끼 따서 얹어봐」 |
+| [logo-prep](../.claude/skills/logo-prep/SKILL.md) | 로고 svg·ico·gif·webp·jpg → 투명 PNG(+바탕·글자 속 지우기), 실패·작은 로고 보고, 접촉 시트 | 「로고 폴더 변환해줘」 |
 
-- 보조 스크립트: `scripts/figma/`(Figma 플러그인 코드·에셋 받기·staging·1x 렌더 실측·KV 면적·나란히 이미지), `scripts/case-review.mjs`(눈 검수 한 장), `scripts/round-diff.mjs`(라운드 비교), `scripts/gallery.mjs`(갤러리).
-- 보류: **kv-cutout**(누끼 따기 — GrabCut·Vision 인물 분리), **logo-prep**(svg/ico/gif → 투명 png) — 데스크탑 테스트가 끝난 뒤 그 에이전트 스크립트로 만들 예정.
+- 보조 스크립트: `scripts/figma/`(Figma 플러그인 코드·에셋 받기·staging·1x 렌더 실측·KV 면적·나란히 이미지), `scripts/case-review.mjs`(눈 검수 한 장), `scripts/round-diff.mjs`(라운드 비교), `scripts/gallery.mjs`(갤러리), `scripts/kv-cutout.py`·`scripts/kv-personseg.swift`(누끼), `scripts/logo-prep.py`(로고 변환), `node scripts/cases.mjs relogo`(로고 규칙을 바꿨을 때 장부 로고 다시 손질).

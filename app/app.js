@@ -1714,6 +1714,7 @@ function renderInspector() {
         logo: c.style.logo,
         logoLight: c.style.logoLight ?? null,
         logoTone: c.style.logoTone ?? null,
+        logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
         object: c.style.object ?? null,
         objectMeta: c.style.objectMeta ?? null,
         mode: c.style.mode,
@@ -1826,8 +1827,9 @@ function renderInspector() {
           if (key === 'logo') {
             ({ roles } = await rolesFromAssets({ logo: src, keyVisual: c.style.keyVisual, mode: c.style.mode }));
             const tone = await logoToneOf(src).catch(() => 'dark');
+            const logoMeta = await logoMetaOfUrl(src).catch(() => null);   // 10-12: 로고를 갈면 실측도 새로(전 로고의 세로·타일 판정이 남지 않게)
             // 흰색 로고만이면 지면이 어두워진다(brand-dark-logo). 원색이면 흰색 로고가 있을 때 both
-            tonePatch = tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: src }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' };
+            tonePatch = { logoMeta, ...(tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: src }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' }) };
           } else tonePatch = { logoTone: c.style.logoTone === 'light' ? 'light' : 'both' };
           restyle({ [key]: src, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
           renderInspector();

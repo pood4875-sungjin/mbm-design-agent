@@ -7,7 +7,7 @@
 //   node scripts/cases.mjs verdict <id> <specId|*> ok|issue "메모"     사람 판정 기록(데이터)
 //   node scripts/cases.mjs sheet [--specs a,b]                사람 판정 시트(대표 규격 × 전 케이스) → _out/verdict.html
 //   node scripts/cases.mjs verdict-import <json>              판정 시트에서 내려받은 판정 일괄 기록
-//   node scripts/cases.mjs trim | remeasure [id …]            누끼 여백 트림(한 번) · 측정값 다시 재기
+//   node scripts/cases.mjs trim | remeasure | relogo [id …]   누끼 여백 트림(한 번) · 측정값 다시 재기 · 로고 다시 손질(logo-orig 에서)
 //   node scripts/cases.mjs list
 //   node scripts/cases.mjs intake [폴더] [--round "..."]   폴더(기본 ref/learned/cases/_inbox)의 그림을 한 번에 add + run --shots + 보고서(_out/intake-날짜.md)
 //                                                        <이름>.logo.png 는 같은 이름 그림의 로고로 붙는다. 처리한 파일은 _inbox/done/ 으로 옮긴다
@@ -106,7 +106,24 @@ if (cmd === 'remeasure') {
   for (const c of l.cases.filter(c => !positional.length || positional.includes(c.id))) {
     const dir = path.join(CASES, c.id); const meta = measure(path.join(dir, c.kv));
     writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1)); c.type = kvTypeOf(meta)?.id ?? null; c.summary = kvTypeSummary(meta);
+    if (c.logo && existsSync(path.join(dir, c.logo))) c.logoMeta = logoMetaOf(path.join(dir, c.logo));   // 로고 실측도 다시(10-12: 대표색 colors 추가)
     console.log(c.id.padEnd(14), c.summary);
+  }
+  save(l);
+}
+// 로고 다시 손질(로고 규칙 core/logo.js 를 바꿨을 때) — 원본(logo-orig.*)에서 바탕 지우기·트림을 다시 하고 실측을 새로 — node scripts/cases.mjs relogo [id …]
+if (cmd === 'relogo') {
+  const l = ledger();
+  for (const c of l.cases.filter(c => c.logo && (!positional.length || positional.includes(c.id)))) {
+    const dir = path.join(CASES, c.id);
+    const orig = readdirSync(dir).find(f => f.startsWith('logo-orig')) ?? c.logo;
+    const p = prepLogoFile(path.join(dir, orig), path.join(dir, 'logo-prep.png'));
+    if (p.changed) {
+      if (orig === c.logo) copyFileSync(path.join(dir, c.logo), path.join(dir, 'logo-orig' + path.extname(c.logo)));   // 처음 손질되는 로고 — 원본을 남긴다
+      copyFileSync(path.join(dir, 'logo-prep.png'), path.join(dir, 'logo.png')); c.logo = 'logo.png';
+    } else c.logo = orig;   // 손질할 게 없으면 원본 그대로 쓴다(전에 잘못 손질된 logo.png 를 버린다)
+    c.logoMeta = logoMetaOf(path.join(dir, c.logo));
+    console.log(c.id.padEnd(14), p.changed ? p.note : '그대로');
   }
   save(l);
 }

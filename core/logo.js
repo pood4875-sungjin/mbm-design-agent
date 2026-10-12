@@ -6,15 +6,21 @@
 const LUM = (r, g, b) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 
 // 단색 바탕 지우기 — 네 모서리(짧은 변 2% 안쪽) 중 셋 이상이 같은 색(차 ≤ 30)·불투명이면(또는 테두리의 60%가 한 색이면) 그 색을 바탕으로 보고, 가장자리에서 이어진 바탕 픽셀만 지운다.
-// 안쪽에 갇힌 같은 색(글자 속 흰 구멍)은 남는다. 거리 0~60 투명, 60~110 부드럽게. 지운 몫이 2% 미만이면 null(바탕 없음).
+// 이어서 안쪽에 갇힌 바탕색 구멍(글자 속)도 지운다(10-12, opts.holes=false면 예전처럼 남김). 거리 0~60 투명, 60~110 부드럽게. 지운 몫이 2% 미만이면 null(바탕 없음).
 // 흰 바탕만이 아니다 — 남색 상자(기아)·주황 상자(제주항공)도 바탕으로 지운다: 상자째 올리면 지면 위에 색 네모가 뜬다.
-export function knockoutLogo(d, W, H) {
+export function knockoutLogo(d, W, H, opts = {}) {
   if (!W || !H) return null;
   const px = (x, y) => { const i = (y * W + x) * 4; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; };
   const dist = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
   const inset = Math.max(1, Math.round(Math.min(W, H) * 0.02));
   const corners = [px(inset, inset), px(W - 1 - inset, inset), px(inset, H - 1 - inset), px(W - 1 - inset, H - 1 - inset)];
   if (corners.filter(c => c[3] < 250).length >= 2) return null;   // 이미 투명 배경
+  // 테두리 한 바퀴의 10% 이상이 투명이어도 이미 투명 배경이다 — 글자가 꽉 차 세 모서리에 닿은 투명 PNG(10-12 desk-08 KMA 검정 글자)를
+  // 「검정 바탕」으로 보고 로고를 통째로 지웠다(앱에서 올려도 같다)
+  { let t = 0, n = 0; const st = Math.max(1, Math.floor((W + H) / 400));
+    for (let x = 0; x < W; x += st) { n += 2; t += (px(x, inset)[3] < 250) + (px(x, H - 1 - inset)[3] < 250); }
+    for (let y = 0; y < H; y += st) { n += 2; t += (px(inset, y)[3] < 250) + (px(W - 1 - inset, y)[3] < 250); }
+    if (t >= n * 0.1) return null; }
   // 바탕색 = 네 모서리 중 서로 같은(차 ≤ 30) 셋 이상의 평균. 10-09 데스크탑: 아모레퍼시픽 JPG는 글자가 아래 두 모서리에 닿아 네 모서리가 갈렸다 —
   // 셋이 안 되면 테두리 한 바퀴의 픽셀 60% 이상이 같은 색일 때 그 색(글자가 두 모서리를 덮어도 테두리 대부분은 바탕)
   let bgc = null;
@@ -29,17 +35,28 @@ export function knockoutLogo(d, W, H) {
   const seen = new Uint8Array(W * H); const stack = [];
   const push = (x, y) => { const k = y * W + x; if (!seen[k]) { seen[k] = 1; stack.push(k); } };
   for (let x = 0; x < W; x++) { push(x, 0); push(x, H - 1); } for (let y = 0; y < H; y++) { push(0, y); push(W - 1, y); }
-  let removed = 0;
-  while (stack.length) {
-    const k = stack.pop(); const x = k % W, y = (k - x) / W; const i = k * 4;
-    const dd = Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]);
-    if (dd >= 110) continue;                        // 로고 픽셀 — 여기서 멈춘다
-    d[i + 3] = dd < 60 ? 0 : Math.round(255 * (dd - 60) / 50);   // 바깥은 투명, 경계는 부드럽게
-    removed++;
-    if (x > 0) push(x - 1, y); if (x < W - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < H - 1) push(x, y + 1);
-  }
+  const ddOf = i => Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]);
+  const spread = () => {
+    let n = 0;
+    while (stack.length) {
+      const k = stack.pop(); const x = k % W, y = (k - x) / W; const i = k * 4;
+      const dd = ddOf(i);
+      if (dd >= 110) continue;                        // 로고 픽셀 — 여기서 멈춘다
+      d[i + 3] = dd < 60 ? 0 : Math.round(255 * (dd - 60) / 50);   // 바깥은 투명, 경계는 부드럽게
+      n++;
+      if (x > 0) push(x - 1, y); if (x < W - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < H - 1) push(x, y + 1);
+    }
+    return n;
+  };
+  const removed = spread();
   if (removed < W * H * 0.02) return null;
-  return { removed: Math.round(removed / (W * H) * 100), bg: '#' + bg.map(v => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase() };
+  if (removed > W * H * 0.98) return null;   // 다 지워졌다 — 바탕이 아니라 로고를 바탕으로 잘못 본 것(원본은 이미 바뀌었으니 부르는 쪽이 복사본을 넘긴다)
+  // 글자 속 구멍(O·A·P 속, 검정 상자 로고의 글자 속)도 지운다 — 남기면 단색 변환(어두운 지면 흰색 · 밝은 지면 검정 · 색 겹침 검정) 때 속이 메워져
+  // 글자가 덩어리가 된다(10-12 desk-10 아모레퍼시픽 「AM●RE」·P 속, desk-34 도루코). 투명 PNG 로고는 원래 속이 비어 있다 — 바탕을 지운 JPG/PNG도 같게.
+  // 바탕색과 아주 가까운(거리 < 40) 픽셀에서 다시 번진다(경계는 바깥과 같은 규칙으로 부드럽게). 10-09까지는 「안쪽 흰 구멍은 남긴다」였다
+  let holes = 0;
+  if (opts.holes !== false) for (let k = 0; k < W * H; k++) { if (seen[k] || ddOf(k * 4) >= 40) continue; seen[k] = 1; stack.push(k); holes += spread(); }
+  return { removed: Math.round(removed / (W * H) * 100), holes: Math.round(holes / (W * H) * 1000) / 10, bg: '#' + bg.map(v => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase() };
 }
 
 // 투명 여백 트림 상자 — 불투명(α>10) 상자 + 긴 변의 3% 숨. 불투명 97% 넘거나(바탕 있는 그림) 잘라낼 게 8% 미만이면 null
@@ -83,14 +100,31 @@ export function logoMeta(d, W, H) {
     lum += LUM(r, g, b); sat += (Math.max(r, g, b) - Math.min(r, g, b)) / 255; n++;
   }
   const tot = Math.ceil(W / step) * Math.ceil(H / step);
-  return { px: [W, H], lum: n ? Math.round(lum / n * 100) / 100 : null, sat: n ? Math.round(sat / n * 100) / 100 : null, solid: tot ? Math.round(vis / tot * 100) / 100 : null, tone: logoToneOf(d, W, H) };
+  return { px: [W, H], lum: n ? Math.round(lum / n * 100) / 100 : null, sat: n ? Math.round(sat / n * 100) / 100 : null, solid: tot ? Math.round(vis / tot * 100) / 100 : null, tone: logoToneOf(d, W, H), colors: logoColors(d, W, H) };
+}
+
+// 로고 대표색 — 불투명 픽셀(α≥128)을 채널당 8단계로 묶어 넓은 순 3색 + 면적 몫(share). 무채색(검정 글자·흰 글자)도 센다.
+// 렌더러가 「로고 색 = 지면 색」(주황 로고 × 주황 지면)을 알아채 단색으로 바꿀 때 쓴다(core/canon.js logoClash · 10-12 desk-37)
+export function logoColors(d, W, H, count = 3) {
+  const step = Math.max(1, Math.floor(Math.sqrt(W * H / 40000)));
+  const B = new Map(); let n = 0;
+  for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) {
+    const i = (y * W + x) * 4; if (d[i + 3] < 128) continue;
+    const k = (d[i] >> 5) * 64 + (d[i + 1] >> 5) * 8 + (d[i + 2] >> 5);
+    const b = B.get(k) ?? { n: 0, r: 0, g: 0, b: 0 }; b.n++; b.r += d[i]; b.g += d[i + 1]; b.b += d[i + 2]; B.set(k, b); n++;
+  }
+  if (!n) return [];
+  const hex = v => Math.round(v).toString(16).padStart(2, '0');
+  return [...B.values()].sort((a, b) => b.n - a.n).slice(0, count)
+    .map(b => ({ hex: ('#' + hex(b.r / b.n) + hex(b.g / b.n) + hex(b.b / b.n)).toUpperCase(), share: Math.round(b.n / n * 100) / 100 }));
 }
 
 // 한 번에 — 바탕 지우기 → 여백 트림. 새 RGBA와 크기, 사용자에게 알릴 한 줄을 돌려준다(원본 배열은 바뀔 수 있다)
 export function prepLogoRGBA(d, W, H) {
   const notes = [];
-  const k = knockoutLogo(d, W, H);
-  if (k) notes.push(`배경 ${k.removed}% 지움(투명 누끼)`);
+  const kd = new Uint8ClampedArray(d);   // 지우기는 복사본에서 — 실패(null)면 원본 그대로 트림한다
+  const k = knockoutLogo(kd, W, H); if (k) d = kd;
+  if (k) notes.push(`배경 ${k.removed}% 지움(투명 누끼)${k.holes ? ` · 글자 속 ${k.holes}%` : ''}`);
   const t = trimBox(d, W, H);
   let out = d, ow = W, oh = H;
   if (t) {

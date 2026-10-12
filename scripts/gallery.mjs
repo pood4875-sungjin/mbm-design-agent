@@ -52,7 +52,9 @@ const latestFlagged = id => { const p = path.join(OUT, id + '.checks.json'); if 
 const missing = [];
 const sectionHtml = s => {
   const dir = path.join(OUT, s.dir);
-  const man = s.manifest ? readJSON(path.resolve(OUT, s.manifest), []) : [];
+  // manifest 는 배열(figma-dg) 또는 { cases: [...] }(데스크탑 묶음 — 원본/누끼는 mode). kind 가 없으면 mode·company 로 캡션
+  const man0 = s.manifest ? readJSON(path.resolve(OUT, s.manifest), []) : [];
+  const man = (Array.isArray(man0) ? man0 : (man0.cases ?? [])).map(m => ({ ...m, kind: m.kind ?? [m.company, m.mode === 'cutout' ? '누끼' : m.mode === 'as-is' ? '원본' : m.mode].filter(Boolean).join(' · ') }));
   let files = s.files ?? (existsSync(dir) ? readdirSync(dir).filter(f => /\.(png|jpe?g|webp)$/i.test(f)).sort() : []);
   if (!s.files && man.length) { const order = man.map(m => m.id + '.png'); files = [...order.filter(f => files.includes(f)), ...files.filter(f => !order.includes(f))]; }
   for (const f of files) if (!existsSync(path.join(dir, f))) missing.push(path.join(s.dir, f));

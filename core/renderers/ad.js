@@ -25,7 +25,7 @@ import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf 
 import { designOf } from '../design.js';
 import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer } from '../field.js';
 import { layoutFor } from '../layouts.js';
-import { guideFor, weightOf } from '../canon.js';
+import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, WHITE, BLACK } from '../palette.js';
 import { kvTypeOf } from '../kvtypes.js';
 
@@ -536,9 +536,14 @@ export function renderAd(ctx, style, spec) {
   // 타일 로고(불투명이 트림 상자의 85% 이상 — 둥근 모서리 앱 아이콘처럼 바탕 지우기가 못 지우는 색 타일)는 단색으로 바꾸지 않는다: 반전하면 흰 네모가 된다(10-09 데스크탑 코스알엑스 보라 타일).
   // 타일 자체가 로고의 판이라 어느 지면에서도 원색 그대로 읽힌다
   const logoTile = (style.logoMeta?.solid ?? 0) >= 0.85;
+  // 로고 색 = 지면 색(CANON logoClash): 밝은 지면에 원색 그대로 둘 로고인데, 대표색 중 지면과 대비가 낮은 색이 로고 면적의 절반 이상이면 글자색(검정) 단색으로.
+  //   10-12 desk-37: 동부건설 주황 로고 × 주황 지면(카카오 1200×600 — 글자는 검정) → 로고가 지면에 녹아 사라졌다. 지면색은 글자가 앉는 첫 색(stops[0])과 끝 색 중 대비가 낮은 쪽
+  const clash = guide?.logoClash ?? CANON.logoClash;
+  const logoClash = !!(clash && fgIsDark && !logoTile && field?.stops?.length && style.logoMeta?.colors?.length && style.logoTone !== 'light'
+    && style.logoMeta.colors.filter(c => Math.min(...field.stops.map(st => contrast(c.hex, st))) < clash.minContrast).reduce((a, c) => a + c.share, 0) >= clash.share);
   const logoFilter = logoTile ? ''
     : (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)'
-    : (fgIsDark && style.logoTone === 'light') ? 'filter:brightness(0)'
+    : (fgIsDark && (style.logoTone === 'light' || logoClash)) ? 'filter:brightness(0)'
     : '';
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;

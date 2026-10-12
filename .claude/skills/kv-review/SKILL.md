@@ -19,7 +19,8 @@ git diff --stat core | tail -1                 # core 가 지금 바뀌는 중�
 
 ## 1. 접수 (자동)
 1. 그림을 `ref/learned/cases/_inbox/` 에 **복사**한다(원본은 그대로). 파일 이름 = 케이스 id.
-   - 로고가 있으면 `<같은이름>.logo.png` 로 같이 둔다(투명 PNG). 로고가 svg/ico/gif 면 아직 변환 스킬이 없다(보류) — 로고 없이 접수하고 보고서에 적는다.
+   - 로고가 있으면 `<같은이름>.logo.png` 로 같이 둔다. 로고가 svg/ico/gif/webp 면 먼저 `logo-prep` 스킬(`scripts/logo-prep.py`)로 PNG 로 바꾼다(바탕 지우기·트림은 접수 때 core/logo.js 가 한다).
+   - 배경 있는 그림을 누끼로도 보고 싶으면 `kv-cutout` 스킬로 따서 `<id>-cut` 으로 같이 넣는다.
    - id 가 장부에 이미 있으면(`cases.mjs list`) 뒤에 `-2` 를 붙인다. 영문 소문자·숫자·하이픈 권장.
    - 이미 Figma staging 폴더(manifest.json)로 받은 묶음이면 `figma-kv-extract` 스킬 4단계(add-from-manifest)로 넣는다 — primary·fields 가 따라간다.
 2. 한 번에 접수·렌더·검수·보고서:

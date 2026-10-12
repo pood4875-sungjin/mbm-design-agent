@@ -41,6 +41,10 @@ export const CANON = {
   objectBleed: { maxCut: 0.3, edges: ['right', 'bottom'], core: 0.6, targetArea: { wide: [0.2, 0.3], square: [0.22, 0.27], tall: [0.22, 0.27], tower: [0.22, 0.27] }, minTextCol: 0.42, narrow: { maxW: 320, edges: ['left', 'right', 'bottom'], maxCut: 0.35, core: 0.4 } },
   // 로고는 메인보다 작게 — 폭 ≤ 메인 글자 크기 × 2.4 (디자이너 1.3~2.4, 중앙 1.9), 그리고 ≤ 캔버스 폭 × 12%(세로 띠 160·300 폭은 25%)
   logoCap: { perMainPx: 2.4, wRatio: 0.12, wRatioTower: 0.25 },
+  // 로고 색 = 지면 색이면 단색으로(10-12 데스크탑 desk-37: 주황 로고(동부건설) × 주황 지면(브랜드색 #E86800) 카카오 1200×600 — 로고가 지면에 녹아 안 보였다).
+  //   로고 대표색(core/logo.js logoMeta.colors) 중 지면과 대비 < minContrast 인 색이 로고 불투명 면적의 share 이상이면, 원색 대신 글자색 단색(밝은 지면 검정)으로.
+  //   브랜드색이 곧 지면색이라 원색 로고가 지면과 같은 색인 경우가 흔하다 — 디자이너는 이때 로고를 단색(글자색)으로 쓴다(어두운 지면 흰 단색과 같은 관례, 10-06 사용자 결정)
+  logoClash: { minContrast: 1.6, share: 0.5 },
   // 가로형도 로고를 둔다(디자이너 6/6) — 기본 우상단 소형. 매체가 로고 0개(리멤버 count 0)면 생략
   wideLogo: 'top-right',
   // 채용 소재는 날짜를 버리지 않는다(디자이너 12/13, 인스타 보드 17/18) — 날짜 줄을 먼저 확보하고 메인을 줄인다
