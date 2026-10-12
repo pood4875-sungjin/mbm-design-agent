@@ -19,7 +19,7 @@ const dir = path.join(ROOT, 'ref/learned/cases', id); const meta = JSON.parse(re
 let logoFile = c.logo; if (legacy && c.logo) logoFile = readdirSync(dir).find(f => f.startsWith('logo-orig')) ?? c.logo;
 const logo = logoFile ? pathToFileURL(path.join(dir, logoFile)).href : null;
 const tone = legacy ? 'dark' : (c.logoMeta?.tone ?? 'dark');
-const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, logo, logoLight: (!legacy && tone === 'light') ? logo : null, logoTone: tone, logoMeta: legacy ? null : (c.logoMeta ?? null) });
+const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, kvTypeOverride: c.typeOverride ?? null, logo, logoMono: (!legacy && c.logoMono && existsSync(path.join(dir, c.logoMono))) ? pathToFileURL(path.join(dir, c.logoMono)).href : null, logoLight: (!legacy && tone === 'light') ? logo : null, logoTone: tone, logoMeta: legacy ? null : (c.logoMeta ?? null) });
 const ctx = createContext(c.fields ?? DEFAULT_FIELDS, 'recruit');
 mkdirSync(out, { recursive: true });
 const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';

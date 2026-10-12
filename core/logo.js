@@ -6,7 +6,8 @@
 const LUM = (r, g, b) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 
 // 단색 바탕 지우기 — 네 모서리(짧은 변 2% 안쪽) 중 셋 이상이 같은 색(차 ≤ 30)·불투명이면(또는 테두리의 60%가 한 색이면) 그 색을 바탕으로 보고, 가장자리에서 이어진 바탕 픽셀만 지운다.
-// 이어서 안쪽에 갇힌 바탕색 구멍(글자 속)도 지운다(10-12, opts.holes=false면 예전처럼 남김). 거리 0~60 투명, 60~110 부드럽게. 지운 몫이 2% 미만이면 null(바탕 없음).
+// 안쪽에 갇힌 바탕색 구멍(글자 속): opts.holes=true 면 지우고(단색 변환용), false 면 남기고, 기본은 바탕이 어두운 상자(검정·남색 — 상자 찌꺼기)일 때만 지운다.
+// 흰·밝은 바탕의 속(엠블럼 안 흰 원판·흰 글자)은 원색 그대로 쓸 때 남긴다(10-12 결정 12). 거리 0~60 투명, 60~110 부드럽게. 지운 몫이 2% 미만이면 null(바탕 없음).
 // 흰 바탕만이 아니다 — 남색 상자(기아)·주황 상자(제주항공)도 바탕으로 지운다: 상자째 올리면 지면 위에 색 네모가 뜬다.
 export function knockoutLogo(d, W, H, opts = {}) {
   if (!W || !H) return null;
@@ -54,8 +55,12 @@ export function knockoutLogo(d, W, H, opts = {}) {
   // 글자 속 구멍(O·A·P 속, 검정 상자 로고의 글자 속)도 지운다 — 남기면 단색 변환(어두운 지면 흰색 · 밝은 지면 검정 · 색 겹침 검정) 때 속이 메워져
   // 글자가 덩어리가 된다(10-12 desk-10 아모레퍼시픽 「AM●RE」·P 속, desk-34 도루코). 투명 PNG 로고는 원래 속이 비어 있다 — 바탕을 지운 JPG/PNG도 같게.
   // 바탕색과 아주 가까운(거리 < 40) 픽셀에서 다시 번진다(경계는 바깥과 같은 규칙으로 부드럽게). 10-09까지는 「안쪽 흰 구멍은 남긴다」였다
+  // 10-12 결정 12: 원색 로고를 그대로 보일 때는 속을 남긴다 — 색 엠블럼 안의 흰 글자가 투명해지면 밝은 지면에서 지면색이 비친다.
+  //   그래서 흰·밝은 바탕(밝기 ≥ 0.6)의 속은 기본으로 남기고, 단색(흰/검정) 변환에 쓰는 사본만 holes:true(prepLogoRGBA mono · 렌더러 style.logoMono).
+  //   어두운 상자(도루코 검정 상자 속 O)의 속은 상자 찌꺼기라 원색에서도 지운다 — 남기면 어두운 지면에 검은 점이 뜬다
   let holes = 0;
-  if (opts.holes !== false) for (let k = 0; k < W * H; k++) { if (seen[k] || ddOf(k * 4) >= 40) continue; seen[k] = 1; stack.push(k); holes += spread(); }
+  const holesOn = opts.holes === true || (opts.holes !== false && LUM(bg[0], bg[1], bg[2]) < 0.6);
+  if (holesOn) for (let k = 0; k < W * H; k++) { if (seen[k] || ddOf(k * 4) >= 40) continue; seen[k] = 1; stack.push(k); holes += spread(); }
   return { removed: Math.round(removed / (W * H) * 100), holes: Math.round(holes / (W * H) * 1000) / 10, bg: '#' + bg.map(v => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase() };
 }
 
@@ -120,17 +125,20 @@ export function logoColors(d, W, H, count = 3) {
 }
 
 // 한 번에 — 바탕 지우기 → 여백 트림. 새 RGBA와 크기, 사용자에게 알릴 한 줄을 돌려준다(원본 배열은 바뀔 수 있다)
+//   rgba: 원색 그대로 쓸 로고(글자 속 흰색은 남김) · mono: 단색 변환용 사본(글자 속까지 지움, 같은 트림) — 지울 속이 없으면 null(10-12 결정 12)
 export function prepLogoRGBA(d, W, H) {
   const notes = [];
   const kd = new Uint8ClampedArray(d);   // 지우기는 복사본에서 — 실패(null)면 원본 그대로 트림한다
+  const md = new Uint8ClampedArray(d);
   const k = knockoutLogo(kd, W, H); if (k) d = kd;
-  if (k) notes.push(`배경 ${k.removed}% 지움(투명 누끼)${k.holes ? ` · 글자 속 ${k.holes}%` : ''}`);
+  const km = k ? knockoutLogo(md, W, H, { holes: true }) : null;
+  const mono0 = km?.holes > (k?.holes ?? 0) ? md : null;   // 원색에 남긴 속이 있을 때만 사본
+  if (k) notes.push(`배경 ${k.removed}% 지움(투명 누끼)${mono0 ? ` · 단색용은 글자 속 ${km.holes}%도` : ''}`);
   const t = trimBox(d, W, H);
-  let out = d, ow = W, oh = H;
-  if (t) {
-    out = new Uint8ClampedArray(t.w * t.h * 4);
-    for (let y = 0; y < t.h; y++) out.set(d.subarray(((t.y + y) * W + t.x) * 4, ((t.y + y) * W + t.x + t.w) * 4), y * t.w * 4);
-    ow = t.w; oh = t.h; notes.push(`여백 트림 ${W}×${H}→${ow}×${oh}`);
-  }
-  return { rgba: out, w: ow, h: oh, changed: !!(k || t), note: notes.join(' · '), meta: logoMeta(out, ow, oh) };
+  const crop = a => { if (!t) return a; const o = new Uint8ClampedArray(t.w * t.h * 4); for (let y = 0; y < t.h; y++) o.set(a.subarray(((t.y + y) * W + t.x) * 4, ((t.y + y) * W + t.x + t.w) * 4), y * t.w * 4); return o; };
+  const out = crop(d), ow = t ? t.w : W, oh = t ? t.h : H;
+  if (t) notes.push(`여백 트림 ${W}×${H}→${ow}×${oh}`);
+  const mono = mono0 ? crop(mono0) : null;
+  // 실측(톤·대표색·채움)은 잉크만 — 남긴 흰 속을 세면 흰 원판 엠블럼(볼보)이 「흰색 로고」로 잡혀 지면이 어두워진다. 속을 지운 사본으로 잰다
+  return { rgba: out, mono, w: ow, h: oh, changed: !!(k || t), note: notes.join(' · '), meta: logoMeta(mono ?? out, ow, oh) };
 }

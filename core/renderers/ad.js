@@ -347,7 +347,7 @@ export function renderAd(ctx, style, spec) {
   // 형태 문법·가이드가 정한 그림 자리(오른쪽 열·모서리 상자·아래 띠)의 왼쪽·위 경계는 지키고, 그 안에서 맞춰 넣기 대신 키워서 오른쪽·아래 변 밖으로 흘린다. 템플릿 칸(자소설)은 템플릿대로
   const singleObj = !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);
   let bleedP = null;
-  const bleedAt = (x0, y0, sym = false) => objectBleedPlace(style, { w, h, x0, y0, shape: L.shape, bleed: sym ? { ...guide.objectBleed, ...guide.objectBleed.narrow } : guide.objectBleed, sym });
+  const bleedAt = (x0, y0, sym = false) => objectBleedPlace(style, { w, h, x0, y0, shape: L.shape, bleed: sym ? { ...guide.objectBleed, ...guide.objectBleed.narrow, ...(guide.objectBleed.tower && w <= guide.objectBleed.tower.maxW ? guide.objectBleed.tower : {}) } : guide.objectBleed, sym });
   if (gCorner) {
     const cw = Math.round(w * guide.objectRatio.square), ch = Math.round(h * (guide.objectRatio.squareH ?? 0.6));
     tImage = { x: w - cw, y: h - ch, w: cw, h: ch };
@@ -543,7 +543,7 @@ export function renderAd(ctx, style, spec) {
   const subFg = tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.86)'));
   const detailFg = tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.66)' : 'rgba(255,255,255,.82)'));
   // 어두운 지면에는 흰색 로고. 없으면 원색 로고를 반전한다(워드마크는 괜찮고 컬러 로고는 뭉개진다 — 흰색 로고를 받는 게 맞다)
-  const logoSrc = (!fgIsDark && style.logoLight) ? style.logoLight : style.logo;
+  const logoSrc0 = (!fgIsDark && style.logoLight) ? style.logoLight : style.logo;
   // 어두운 지면에 원색 로고만 있으면 반전(컬러 로고가 뭉개진다) 대신 흰 판 위에 올린다 — 동부건설 300×600 예시가 네이비 위 흰 카드에 로고를 둔 것처럼
   // 로고는 지면에 맞춰 단색으로 변환한다(10-06 사용자 결정): 어두운 지면에 원색 로고만 있으면 흰색으로, 밝은 지면(그림이 정한 흰 바탕)에 흰색 로고만 있으면 검정으로.
   // brightness(0)는 모든 불투명 픽셀을 검정으로, invert(1)는 그걸 흰색으로 — 투명 배경 로고라면 실루엣이 그대로 살아 디자이너가 쓰는 단색 변환과 같다
@@ -559,6 +559,9 @@ export function renderAd(ctx, style, spec) {
     : (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)'
     : (fgIsDark && (style.logoTone === 'light' || logoClash)) ? 'filter:brightness(0)'
     : '';
+  // 단색으로 바꿀 때만 글자 속까지 지운 사본(style.logoMono, core/logo.js prepLogoRGBA mono) — 속이 메워져 「●」가 되지 않게.
+  // 원색 그대로면 속의 흰색을 남긴 로고(색 엠블럼 안 흰 글자가 지면색으로 비치지 않게) — 10-12 결정 12
+  const logoSrc = (logoFilter && style.logoMono && logoSrc0 === style.logo) ? style.logoMono : logoSrc0;
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
   const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
@@ -1100,7 +1103,10 @@ export function renderAd(ctx, style, spec) {
   // 끝 어절이 2자 이하면(「분야」·「채용」) 앞 어절과 줄바꿈 없는 띄어쓰기(NBSP)로 붙인다 — 혼자 다음 줄로 떨어지는 고아 줄을 막는다(10-08 typo A4: GDN 300×1050·자소설 채용공고 「…사업 / 분야」).
   // 메인은 text-wrap:balance와 줄 수 어림(pickInfo)이 줄 나눔을 맡으므로 붙이지 않는다(orphan=false)
   const glue = t => t.replace(/ (\S{1,2})$/u, (m0, wd) => ([...wd].length <= 2 ? '\u00A0' + wd : m0));
-  const nb = (t, orphan = true) => { const s0 = String(t ?? '').replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, '$1\u2060')); return orphan && /\S \S/.test(s0) ? glue(s0) : s0; };
+  // 짧은 회사명(12자 이하, 띄어쓰기 있음 — 「MIDAS IT」)은 한 덩어리로 — 줄이 회사명 속에서 바뀌면(MIDAS / IT) 이름이 갈려 읽힌다(10-12 남은 문제: 유리 슬랩 580×400)
+  const clientKeep = (() => { const cl = String(core.client ?? '').trim(); return cl && /\s/.test(cl) && [...cl].length <= 12 ? cl : null; })();
+  const keepClient = t => clientKeep ? String(t ?? '').split(clientKeep).join(clientKeep.replace(/\s+/g, '\u00A0')) : String(t ?? '');
+  const nb = (t, orphan = true) => { const s0 = keepClient(t).replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, '$1\u2060')); return orphan && /\S \S/.test(s0) ? glue(s0) : s0; };
   // 메인 자간(CANON tracking): 메인 글자 28px 이상이면 −2.5%em. 매체 guide가 0으로 끄면(자소설·에브리타임 템플릿 실측 0%) 없음
   const trackMain = fs => { const tk = guide?.tracking ?? {}; const v = tk.main ?? 0; return v && fs >= (tk.mainMinPx ?? 28) ? `letter-spacing:${v}em;` : ''; };
   // 역할별 굵기(core/canon.js weights · 매체 guide.weights가 이김) — 메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400. 어두운 지면 14px 미만은 500 하한(weightOf)

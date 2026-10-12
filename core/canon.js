@@ -38,7 +38,9 @@ export const CANON = {
   //   maxCut: 잘려도 되는 몫(오브젝트의 30%까지 — 70% 이상 보임) · edges: 잘려도 되는 변(오른쪽·아래만) · core: 캔버스 안에 있어야 하는 주인공 상자 가운데 몫
   //   narrow: 폭 ≤ maxW인 세로형·세로 띠(글자가 그림 위)는 왼쪽·오른쪽 양쪽 + 아래로 흘린다 — 디자이너 GDN 300×600·300×1050 LRB 블리드(면적 24~27%). 오른쪽·아래만이면 300×1050이 12.5%에 그쳤다(10-08 밤 B2)
   //     좁은 띠에서 디자이너는 오브젝트의 66~69%만 보였고(가운데 1/3 폭) — 잘려도 되는 몫 35%, 캔버스 안에 둘 핵심부 = 주인공 상자 가운데 40%
-  objectBleed: { maxCut: 0.3, edges: ['right', 'bottom'], core: 0.6, targetArea: { wide: [0.2, 0.3], square: [0.22, 0.27], tall: [0.22, 0.27], tower: [0.22, 0.27] }, minTextCol: 0.42, narrow: { maxW: 320, edges: ['left', 'right', 'bottom'], maxCut: 0.35, core: 0.4 } },
+  objectBleed: { maxCut: 0.3, edges: ['right', 'bottom'], core: 0.6, targetArea: { wide: [0.2, 0.3], square: [0.22, 0.27], tall: [0.22, 0.27], tower: [0.22, 0.27] }, minTextCol: 0.42, narrow: { maxW: 320, edges: ['left', 'right', 'bottom'], maxCut: 0.35, core: 0.4 },
+    // 10-12 남은 문제: 아주 좁은 세로 띠(폭 ≤ 160 — 알바몬 120×600·자소설 160×600)는 폭 맞춤 그림이 지면의 15~20%라 글자 아래가 빈다(빈 띠 30~43%). 면적 목표를 올리고 좌우를 더 흘린다
+    tower: { maxW: 160, maxCut: 0.42, core: 0.4, targetArea: { tower: [0.28, 0.34], tall: [0.28, 0.34] } } },
   // 로고는 메인보다 작게 — 폭 ≤ 메인 글자 크기 × 2.4 (디자이너 1.3~2.4, 중앙 1.9), 그리고 ≤ 캔버스 폭 × 12%(세로 띠 160·300 폭은 25%)
   logoCap: { perMainPx: 2.4, wRatio: 0.12, wRatioTower: 0.25 },
   // 로고 색 = 지면 색이면 단색으로(10-12 데스크탑 desk-37: 주황 로고(동부건설) × 주황 지면(브랜드색 #E86800) 카카오 1200×600 — 로고가 지면에 녹아 안 보였다).

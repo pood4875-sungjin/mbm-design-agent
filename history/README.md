@@ -15,6 +15,7 @@
 | 2026-10-09 | [2026-10-09_타이포_굵기_위계.md](2026-10-09_타이포_굵기_위계.md) | 굵기 위계 표(메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400, 칩·CTA 600), 자소설 실측 우선, 테스트 6건 |
 | 2026-10-12 | [2026-10-12_데스크탑_키비주얼_로고_테스트.md](2026-10-12_데스크탑_키비주얼_로고_테스트.md) | 데스크탑 KV 37장(누끼 9)·로고 198개 → 데스크탑 44건 경고 191 → 24, 로고 규칙 4개(색 겹침 단색·글자 속 구멍·투명 PNG 오판·앱 실측 유지), 92케이스 r35 경고 56, 기존 46 회귀 0, 스킬 kv-cutout·logo-prep |
 | 2026-10-12 | [2026-10-12_흰글자_그라데이션_이음.md](2026-10-12_흰글자_그라데이션_이음.md) | 사용자 피드백 12건 → 규칙 7묶음(채도 지면 흰 글자·녹임 길이/곡선·배경형 위 띠 버그·분위기 KV 배경 > 브랜드 지면·질감 진정·누끼는 명확할 때만·쌓인 덩어리 한 주인공), r39 경고 56 → 50, 회귀 0, 테스트 320 |
+| 2026-10-12 | [2026-10-12_결정반영_남은문제.md](2026-10-12_결정반영_남은문제.md) | 결정 15건 반영(유형 직접 지정·에브리타임 메인 800·글자 속은 단색 때만, 나머지 유지·브랜드색 보류) + 남은 문제(인물 상자로 의사·간호사, MIDAS IT 줄바꿈, 가로 띠 녹임, 좁은 세로 띠, 쌓인 누끼) → r42 경고 50 → 32, 테스트 334 |
 
 ## 쌓는 규칙 (Claude용)
 - 작업을 마치면 다음 세 가지를 합니다.
@@ -43,4 +44,4 @@
 | [kv-cutout](../.claude/skills/kv-cutout/SKILL.md) | KV 누끼 따기(바탕 곡면 + GrabCut, 사람은 Apple Vision) → 두 바탕 미리보기 → `<id>-cut` 케이스 | 「이 KV 누끼 따서 얹어봐」 |
 | [logo-prep](../.claude/skills/logo-prep/SKILL.md) | 로고 svg·ico·gif·webp·jpg → 투명 PNG(+바탕·글자 속 지우기), 실패·작은 로고 보고, 접촉 시트 | 「로고 폴더 변환해줘」 |
 
-- 보조 스크립트: `scripts/figma/`(Figma 플러그인 코드·에셋 받기·staging·1x 렌더 실측·KV 면적·나란히 이미지), `scripts/case-review.mjs`(눈 검수 한 장), `scripts/round-diff.mjs`(라운드 비교), `scripts/gallery.mjs`(갤러리), `scripts/kv-cutout.py`·`scripts/kv-personseg.swift`(누끼), `scripts/logo-prep.py`(로고 변환), `node scripts/cases.mjs relogo`(로고 규칙을 바꿨을 때 장부 로고 다시 손질).
+- 보조 스크립트: `scripts/figma/`(Figma 플러그인 코드·에셋 받기·staging·1x 렌더 실측·KV 면적·나란히 이미지), `scripts/case-review.mjs`(눈 검수 한 장), `scripts/round-diff.mjs`(라운드 비교), `scripts/gallery.mjs`(갤러리), `scripts/kv-cutout.py`·`scripts/kv-personseg.swift`(누끼), `scripts/kv-person.swift`(인물 상자 — 주인공 상자만, 오려 내지 않음), `scripts/logo-prep.py`(로고 변환), `node scripts/cases.mjs relogo`(로고 규칙을 바꿨을 때 장부 로고 다시 손질), `node scripts/cases.mjs type <id> <유형|auto>`(유형 직접 지정).

@@ -39,7 +39,7 @@ for (const id of ids) {
   const c = L.cases.find(x => x.id === id); if (!c) { console.warn('없는 케이스', id); continue; }
   const dir = path.join(CASES, id);
   const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8'));
-  const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, logo: c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, logoTone: 'dark' });
+  const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, kvTypeOverride: c.typeOverride ?? null, logo: c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, logoTone: 'dark' });
   const ctx = createContext(c.fields ?? DEF, 'recruit');
   const chPath = path.join(CASES, '_out', id + '.checks.json');
   const ch = existsSync(chPath) ? JSON.parse(readFileSync(chPath, 'utf8')) : {};

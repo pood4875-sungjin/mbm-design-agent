@@ -9,6 +9,7 @@
 //   node scripts/cases.mjs verdict-import <json>              판정 시트에서 내려받은 판정 일괄 기록
 //   node scripts/cases.mjs trim | remeasure | relogo [id …]   누끼 여백 트림(한 번) · 측정값 다시 재기 · 로고 다시 손질(logo-orig 에서)
 //   node scripts/cases.mjs list
+//   node scripts/cases.mjs type <id> <유형|세분 유형|auto>   키비주얼 유형 직접 지정(장부 typeOverride) — 앱의 「키비주얼 유형」과 같은 값
 //   node scripts/cases.mjs intake [폴더] [--round "..."]   폴더(기본 ref/learned/cases/_inbox)의 그림을 한 번에 add + run --shots + 보고서(_out/intake-날짜.md)
 //                                                        <이름>.logo.png 는 같은 이름 그림의 로고로 붙는다. 처리한 파일은 _inbox/done/ 으로 옮긴다
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync, renameSync } from 'node:fs';
@@ -24,8 +25,10 @@ const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 mkdirSync(OUT, { recursive: true });
 
 const core = async f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
-const { fieldFromImage, extractPalette, edgeColor } = await core('palette.js');
-const { kvTypeOf, kvTypeSummary } = await core('kvtypes.js');
+const { fieldFromImage, extractPalette, edgeColor, personFocus } = await core('palette.js');
+const { kvTypeOf, kvTypeSummary, applyKvTypeOverride, isKvTypeOverride, kvTypeChoices } = await core('kvtypes.js');
+// 장부의 유형 직접 지정(typeOverride, 10-12 결정 5)을 입힌 측정값 — 유형·요약·검수가 렌더와 같은 답을 본다
+const metaOf = (c, meta) => applyKvTypeOverride(meta, c?.typeOverride ?? null);
 const { CANON } = await core('canon.js');
 const { prepLogoRGBA, logoMeta } = await core('logo.js');
 
@@ -44,23 +47,37 @@ function rgbaOf(file, long = 480) { const j = JSON.parse(execFileSync('python3',
 function prepLogoFile(src, dst) {
   const j = rgbaOf(src, 0);
   const r = prepLogoRGBA(j.rgba, j.w, j.h);
-  if (r.changed) execFileSync('python3', ['-c', `import sys; from PIL import Image; Image.frombytes('RGBA', (${r.w}, ${r.h}), sys.stdin.buffer.read()).save(${JSON.stringify(dst)})`], { input: Buffer.from(r.rgba.buffer, r.rgba.byteOffset, r.rgba.byteLength) });
-  return { changed: r.changed, note: r.note, meta: r.meta };
+  const write = (a, f) => execFileSync('python3', ['-c', `import sys; from PIL import Image; Image.frombytes('RGBA', (${r.w}, ${r.h}), sys.stdin.buffer.read()).save(${JSON.stringify(f)})`], { input: Buffer.from(a.buffer, a.byteOffset, a.byteLength) });
+  if (r.changed) write(r.rgba, dst);
+  // 단색 변환용 사본(글자 속까지 지움, 10-12 결정 12) — 원색 로고는 속의 흰색을 남기고, 렌더러가 흰/검정으로 바꿀 때만 이 사본을 쓴다
+  const mono = r.mono ? path.join(path.dirname(dst), 'logo-mono.png') : null;
+  if (mono) write(r.mono, mono);
+  return { changed: r.changed, note: r.note, meta: r.meta, mono: mono ? path.basename(mono) : null };
 }
 function logoMetaOf(file) { const j = rgbaOf(file, 0); return logoMeta(j.rgba, j.w, j.h); }
 
 // 렌더 스타일 — 앱과 같게: 로고 톤은 로고 실측(흰색 로고면 logoLight도 그 로고 — app.js 로고 올리기). 예전엔 톤을 'dark'로 박아 흰색 로고가 밝은 지면에서 사라졌다
 function styleInput(c, dir, meta) {
   const logo = c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null;
-  if (c.logo && !c.logoMeta) c.logoMeta = logoMetaOf(path.join(dir, c.logo));
+  if (c.logo && !c.logoMeta) c.logoMeta = logoMetaOf(path.join(dir, (c.logoMono && existsSync(path.join(dir, c.logoMono))) ? c.logoMono : c.logo));
   const tone = c.logoMeta?.tone ?? 'dark';
-  return { colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, logo, logoLight: tone === 'light' ? logo : null, logoTone: tone, logoMeta: c.logoMeta ?? null };
+  return { colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, kvTypeOverride: c.typeOverride ?? null, logo, logoMono: (c.logo && c.logoMono && existsSync(path.join(dir, c.logoMono))) ? pathToFileURL(path.join(dir, c.logoMono)).href : null, logoLight: tone === 'light' ? logo : null, logoTone: tone, logoMeta: c.logoMeta ?? null };
 }
 
+// 인물 상자(Apple Vision 인물 분리 + 얼굴) — 색으로 사람을 못 가른 사진의 주인공 상자(core/palette.js personFocus). macOS 가 아니거나 실패하면 null
+function personOf(file) {
+  try { return JSON.parse(execFileSync('swift', [path.join(ROOT, 'scripts/kv-person.swift'), file], { stdio: ['ignore', 'pipe', 'ignore'], timeout: 120000 }).toString()); }
+  catch { return null; }
+}
 function measure(file) {
   const j = JSON.parse(execFileSync('python3', [path.join(ROOT, 'scripts/case-rgba.py'), file], { maxBuffer: 64 * 1024 * 1024 }).toString());
   const rgba = new Uint8ClampedArray(Buffer.from(j.rgba, 'base64'));
-  return { ar: j.ar, px: j.px, edge: edgeColor(rgba, j.w, j.h), field: fieldFromImage(rgba, j.w, j.h), colors: extractPalette(rgba, 3) };
+  let field = fieldFromImage(rgba, j.w, j.h);
+  if (field.kind !== 'cutout' && field.kind !== 'texture') {
+    const p = personOf(file);
+    if (p?.person) { field = personFocus(field, p.person); if (field.focus?.source === 'person') field.person = { ...p.person, faces: p.faces ?? [] }; }
+  }
+  return { ar: j.ar, px: j.px, edge: edgeColor(rgba, j.w, j.h), field, colors: extractPalette(rgba, 3) };
 }
 
 if (cmd === 'add') {
@@ -71,18 +88,18 @@ if (cmd === 'add') {
   // 누끼 투명 여백 트림 — 앱(prepKv)과 같은 규칙. 원본은 kv-orig로 남긴다
   { const t = execFileSync('python3', [path.join(ROOT, 'scripts/case-trim.py'), path.join(dir, kv), path.join(dir, 'kv-trim.png')]).toString().trim();
     if (t !== 'keep') { copyFileSync(path.join(dir, kv), path.join(dir, 'kv-orig' + path.extname(kv))); copyFileSync(path.join(dir, 'kv-trim.png'), path.join(dir, kv)); console.log('여백 트림', t); } }
-  let logo = null, logoMetaV = null;
+  let logo = null, logoMetaV = null, logoMonoV = null;
   if (opt('--logo')) {
     const ext = path.extname(opt('--logo')).toLowerCase(); logo = 'logo' + ext; copyFileSync(opt('--logo'), path.join(dir, logo));
     // 앱과 같은 손질(바탕 지우기·트림) — 원본은 logo-orig로 남긴다
     const p = prepLogoFile(path.join(dir, logo), path.join(dir, 'logo-prep.png'));
     if (p.changed) { copyFileSync(path.join(dir, logo), path.join(dir, 'logo-orig' + ext)); logo = 'logo.png'; copyFileSync(path.join(dir, 'logo-prep.png'), path.join(dir, logo)); console.log('로고 손질', p.note); }
-    logoMetaV = p.meta;
+    logoMetaV = p.meta; logoMonoV = p.mono;
   }
   const meta = measure(path.join(dir, kv));
   writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1));
   const l = ledger();
-  const entry = { id, kv, logo, note: opt('--note') ?? '', primary: opt('--primary') ?? null, logoMeta: logoMetaV, fields: opt('--fields') ? JSON.parse(opt('--fields')) : null, addedAt: new Date().toISOString().slice(0, 10), type: kvTypeOf(meta)?.id ?? null, summary: kvTypeSummary(meta), verdicts: [] };
+  const entry = { id, kv, logo, note: opt('--note') ?? '', primary: opt('--primary') ?? null, logoMeta: logoMetaV, logoMono: logoMonoV, fields: opt('--fields') ? JSON.parse(opt('--fields')) : null, addedAt: new Date().toISOString().slice(0, 10), type: kvTypeOf(meta)?.id ?? null, summary: kvTypeSummary(meta), verdicts: [] };
   l.cases = l.cases.filter(c => c.id !== id).concat(entry); save(l);
   console.log(`+ ${id}: ${entry.summary}`);
 }
@@ -135,8 +152,8 @@ if (cmd === 'remeasure') {
   for (const c of l.cases.filter(c => !positional.length || positional.includes(c.id))) {
     const dir = path.join(CASES, c.id); const meta = measure(path.join(dir, c.kv));
     { const b = bgPaletteOf(c); if (b?.mood) meta.bgPalette = { stops: b.stops, angle: b.angle, from: b.from }; }   // 누끼의 원본 바탕 팔레트는 다시 재도 남긴다
-    writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1)); c.type = kvTypeOf(meta)?.id ?? null; c.summary = kvTypeSummary(meta);
-    if (c.logo && existsSync(path.join(dir, c.logo))) c.logoMeta = logoMetaOf(path.join(dir, c.logo));   // 로고 실측도 다시(10-12: 대표색 colors 추가)
+    writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 1)); c.type = kvTypeOf(metaOf(c, meta))?.id ?? null; c.summary = kvTypeSummary(metaOf(c, meta));
+    if (c.logo && existsSync(path.join(dir, c.logo))) c.logoMeta = logoMetaOf(path.join(dir, (c.logoMono && existsSync(path.join(dir, c.logoMono))) ? c.logoMono : c.logo));   // 로고 실측도 다시(10-12: 대표색 colors 추가)
     console.log(c.id.padEnd(14), c.summary);
   }
   save(l);
@@ -152,10 +169,22 @@ if (cmd === 'relogo') {
       if (orig === c.logo) copyFileSync(path.join(dir, c.logo), path.join(dir, 'logo-orig' + path.extname(c.logo)));   // 처음 손질되는 로고 — 원본을 남긴다
       copyFileSync(path.join(dir, 'logo-prep.png'), path.join(dir, 'logo.png')); c.logo = 'logo.png';
     } else c.logo = orig;   // 손질할 게 없으면 원본 그대로 쓴다(전에 잘못 손질된 logo.png 를 버린다)
-    c.logoMeta = logoMetaOf(path.join(dir, c.logo));
+    c.logoMono = p.mono ?? null;   // 단색 변환용 사본(글자 속까지 지움) — 없으면 원색 로고를 그대로 단색으로
+    c.logoMeta = logoMetaOf(path.join(dir, (c.logoMono && existsSync(path.join(dir, c.logoMono))) ? c.logoMono : c.logo));
     console.log(c.id.padEnd(14), p.changed ? p.note : '그대로');
   }
   save(l);
+}
+// 유형 직접 지정 — 측정으로 판정이 안 되는 그림을 사람이 고친다(앱의 「키비주얼 유형」 선택과 같은 값). auto 면 지정 해제
+//   node scripts/cases.mjs type <id> <유형|세분 유형|auto>      예) type hr-doctor photo-portrait
+if (cmd === 'type') {
+  const [id, v] = positional;
+  const l = ledger(); const c = l.cases.find(x => x.id === id); if (!c) throw new Error('없는 케이스 ' + id);
+  if (!v || (v !== 'auto' && !isKvTypeOverride(v))) { console.log('값:', ['auto', ...kvTypeChoices().flatMap(t => [t.id, ...t.subs.map(s => s.id)])].join(' ')); process.exit(v ? 1 : 0); }
+  if (v === 'auto') delete c.typeOverride; else c.typeOverride = v;
+  const meta = JSON.parse(readFileSync(path.join(CASES, id, 'meta.json'), 'utf8'));
+  c.type = kvTypeOf(metaOf(c, meta))?.id ?? null; c.summary = kvTypeSummary(metaOf(c, meta));
+  save(l); console.log(`${id}: ${v === 'auto' ? '자동' : '지정 ' + v} → ${c.summary}`);
 }
 if (cmd === 'list') {
   for (const c of ledger().cases) console.log(`${c.id.padEnd(16)} ${c.summary}  ${c.note ? '— ' + c.note : ''}  판정 ${c.verdicts.length}`);
@@ -296,7 +325,7 @@ if (cmd === 'run') {
     const c = l.cases.find(x => x.id === id); if (!c) { console.warn('없는 케이스', id); continue; }
     const dir = path.join(CASES, id);
     const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8'));
-    c.type = kvTypeOf(meta)?.id ?? null; c.summary = kvTypeSummary(meta);
+    c.type = kvTypeOf(metaOf(c, meta))?.id ?? null; c.summary = kvTypeSummary(metaOf(c, meta));
     const style = normalizeStyle(styleInput(c, dir, meta));
     const ctx = createContext(c.fields ?? DEFAULT_FIELDS, 'recruit');
     const sc = 0.5;
@@ -316,7 +345,7 @@ h1{font-size:18px;margin:0 0 4px}.sub{font-size:12px;color:#666;margin-bottom:14
 <pre id="checks"></pre>
 <script type="module">
 import { checkAdDoc } from '${pathToFileURL(path.join(ROOT, 'core/adcheck.js')).href}';
-const kvMeta = ${JSON.stringify(meta)};
+const kvMeta = ${JSON.stringify(style.kvMeta)};
 // 고정 대기(1.5초)는 전체 실행 부하에서 그림·폰트가 다 뜨기 전에 재서 결과가 흔들렸다(10-08: 동서 모델 혼자 0건 · 전체 5건).
 // 프레임마다 문서 로드 + 폰트 준비 + 배경 그림 디코드까지 기다린 뒤 잰다(상한 20초)
 const settle = async f => {

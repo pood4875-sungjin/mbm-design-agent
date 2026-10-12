@@ -124,7 +124,7 @@ export function renderBanner(ctx, style, spec) {
   const logoH = strip ? Math.min(18, Math.round(spec.h * 0.22)) : L.logoH;
   const logoMaxW = Math.round(spec.w * (strip ? 0.20 : L.logo === 'top-center' ? 0.62 : 0.4));
   const logoImg = style.logo && (strip || L.logo !== 'none')
-    ? `<img src="${esc(style.logo)}" alt="" style="display:block;height:${logoH}px;width:auto;max-width:${logoMaxW}px;object-fit:contain;object-position:${L.logo === 'top-center' ? 'center' : strip ? 'left' : 'right'} center;${logoFilter}">`
+    ? `<img src="${esc((logoFilter && style.logoMono) ? style.logoMono : style.logo)}" alt="" style="display:block;height:${logoH}px;width:auto;max-width:${logoMaxW}px;object-fit:contain;object-position:${L.logo === 'top-center' ? 'center' : strip ? 'left' : 'right'} center;${logoFilter}">`
     : '';
   const logoAbs = !strip && logoImg
     ? `<div style="position:absolute;top:${L.logoTop}px;${L.logo === 'top-center' ? 'left:0;right:0;justify-content:center' : `right:${Math.round(L.padX * 0.8)}px;justify-content:flex-end`};height:${logoH}px;display:flex;align-items:center">${logoImg}</div>`

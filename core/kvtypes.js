@@ -149,7 +149,8 @@ export function kvTypeOf(kvMeta) {
     // 세로로 선 주인공(캐릭터·인물) → 머리 보존이 중요. 누끼는 그림 전체 비율이 아니라 주인공 상자 비율로 본다 — 여백을 트림하면 그림 비율이 바뀐다(여우 0.95 → 1.10)
     // 바탕 있는 그림은 주인공 상자가 바탕 일부를 품을 수 있어(삼성 3D 호) 예전대로 그림 비율로
     // 누끼는 상자 밀도도 본다(10-09 figma-dg): 사람·캐릭터 0.59~0.72(연사 둘·동서 모델·여우) — 별표 3D 0.48(팔이 뻗은 사물)·폴더·책 0.79~0.92(네모난 사물)는 캐릭터가 아니다
-    character: !!(focus && focus.h >= 0.55 && kind !== 'photo' && (kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 : ar < 1.05)),
+    // 사진은 인물 상자(Apple Vision 인물 분리, palette.js personFocus)로 잡은 주인공일 때만 인물 — 색 덩어리는 사람인지 모른다(10-12 hr-doctor·AI 간호사)
+    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 : ar < 1.05)),
     group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
     // 장면 판정용 「덩어리 여럿」 — 연결 성분이 둘 이상이거나 열 봉우리 둘 이상(덩어리 하나에 속이 빈 고리는 아니다)
     multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),
@@ -173,19 +174,84 @@ export function kvTypeOf(kvMeta) {
     return (edges.left?.opaque ?? 0) >= 0.3 && (edges.right?.opaque ?? 0) >= 0.3 && mean(m0, m1) >= 0.6 && mean(1, q) <= 0.5 && mean(n - q, n - 1) <= 0.5;
   })();
   if (flags.frame) { flags.character = false; flags.group = false; flags.multi = false; }
+  // 위아래로 쌓인 누끼 덩어리(focus.stacked — 공 위 반구 아이콘 desk-20-cut)는 떼가 아니라 한 사물 — 단일 사물 블리드로 크게(10-12 남은 문제). 바탕 있는 그림은 예전대로
+  if (kind === 'cutout' && focus?.stacked && !(focus.others?.length) && colHumps(f.cols) < 2) { flags.group = false; flags.multi = false; flags.character = false; }   // 사람·캐릭터가 아니라 쌓인 사물 — 캐릭터 상자(64%×72%)가 아니라 단일 사물 블리드
   // 현장·군중 사진(10-09 figma-dg 에이치닷 세미나·청중): 어둡고(lum < 0.4) 주인공을 못 가른다(주인공 상자 ≥ 85% 또는 없음) — 디자이너 10/10이 지면 전체에 깔고 브랜드색을 덮었다(사진 전체형).
   // 한쪽 열에 잘라 녹이면 사람 머리가 조각나고, 로고가 사진 위에 얹힌다
   flags.crowd = kind === 'photo' && f.lum != null && f.lum < 0.4 && (!focus || subjectArea >= 0.85);
   // 단일 사물 누끼 — 캐릭터도 떼도 아닌 덩어리 하나. 크게·우하단 블리드(CANON objectBleed)의 대상
   flags.single = kind === 'cutout' && !!focus && !flags.character && !flags.group && !flags.frame;
+  // 사람이 유형을 직접 지정했으면(applyKvTypeOverride) 그 세분 유형이 걸리는 깃발을 켠다 — 렌더러 분기는 모두 이 깃발을 본다
+  const ov = kvMeta.typeOverride ? overrideOf(kvMeta.typeOverride) : null;
+  if (ov?.sub) Object.assign(flags, OVERRIDE_FLAGS[ov.sub.id] ?? {});
   const ctx = { ...flags, subjectArea, ar };
   // 서브타입은 겹칠 수 있다(어두운 + 여백 있는 사진) — 맞는 것을 다 모으고 첫 번째가 대표. 마지막 항목(그 밖의)은 아무것도 안 맞을 때만
   const list = KV_SUBTYPES[type.id] ?? [];
   let subs = list.slice(0, -1).filter(st => { try { return st.when(ctx); } catch { return false; } });
   const last = list[list.length - 1];
   if (last && (!subs.length || (last.also && (() => { try { return last.also(ctx); } catch { return false; } })()))) subs = [...subs, last];   // also: 다른 서브타입과 함께여도 붙는다(유리 + 단일 사물)
+  if (ov?.sub) subs = [ov.sub, ...subs.filter(st => st.id !== ov.sub.id && st !== last)];   // 지정한 세분 유형이 대표
   const pick = st => ({ id: st.id, name: st.name, why: st.why, guide: st.guide });
-  return { id: type.id, name: type.name, type, flags, subjectArea, ar: Math.round(ar * 100) / 100, sub: subs.length ? pick(subs[0]) : null, subs: subs.map(pick) };
+  return { id: type.id, name: type.name, type, flags, subjectArea, ar: Math.round(ar * 100) / 100, sub: subs.length ? pick(subs[0]) : null, subs: subs.map(pick), override: kvMeta.typeOverride ?? null };
+}
+
+// ── 유형 직접 지정(10-12 결정 5) ──────────────────────────────────────────────
+// 측정으로 판정이 안 되는 그림(흰 가운 × 흰 배경 의사 사진 등)은 디자이너가 유형·세분 유형을 고른다. 기본은 「자동」.
+//   style.kvTypeOverride(앱) · cases.json typeOverride(케이스 장부) → normalizeStyle 이 kvMeta 에 입혀(applyKvTypeOverride) 렌더러·검수가 모두 같은 답을 본다.
+//   값: 유형 id(cutout·texture·photo·illust — 세분은 자동) 또는 세분 유형 id(photo-portrait …). null·'auto' = 자동
+// 세분 유형을 고르면 그 세분이 걸리는 깃발을 켜고 맞서는 깃발은 끈다(렌더러 분기는 깃발을 본다). 누끼 문법(투명 픽셀 기준)은 그림에 투명이 있어야 다 걸린다
+const OVERRIDE_FLAGS = {
+  'cutout-frame': { frame: true, character: false, group: false, multi: false, single: false },
+  'cutout-glass': { glass: true },
+  'cutout-character': { character: true, group: false, multi: false, frame: false, single: false },
+  'cutout-group': { group: true, multi: true, character: false, frame: false, single: false },
+  'cutout-scene': { wide: true, multi: true, group: true, character: false, frame: false, single: false },
+  'cutout-object': { single: true, character: false, group: false, multi: false, frame: false },
+  'illust-character': { character: true, group: false },
+  'illust-grad-bg': { gradEdge: true },
+  'illust-room': { room: true },
+  'illust-object': { subject: true },
+  'illust-scene': { subject: false, room: false, character: false },
+  'photo-crowd': { crowd: true, character: false },
+  'photo-portrait': { character: true, crowd: false, group: false },
+  'photo-dark': { dark: true },
+  'photo-bright': { dark: false },
+  'photo-roomy': { roomAny: true },
+  'photo-busy': {},
+  'texture-dark': { dark: true },
+  'texture-light': { dark: false },
+};
+function overrideOf(id) {
+  if (!id || id === 'auto') return null;
+  const t = KV_TYPES.find(x => x.id === id);
+  if (t) return { type: t, sub: null };
+  for (const [tid, list] of Object.entries(KV_SUBTYPES)) { const st = list.find(x => x.id === id); if (st) return { type: KV_TYPES.find(x => x.id === tid), sub: st }; }
+  return null;
+}
+// 고를 수 있는 값 — 앱 선택 상자·cases.mjs type 명령이 쓴다. [{ id, name, subs: [{ id, name }] }]
+export function kvTypeChoices() {
+  return KV_TYPES.map(t => ({ id: t.id, name: t.name, subs: (KV_SUBTYPES[t.id] ?? []).map(st => ({ id: st.id, name: st.name })) }));
+}
+export function isKvTypeOverride(id) { return !!overrideOf(id); }
+// 지정을 벗긴 측정값(자동) — 입힌 적이 없으면 그대로
+export function baseKvMeta(kvMeta) {
+  if (!kvMeta?.typeOverride) return kvMeta ?? null;
+  const { typeOverride, ...rest } = kvMeta;
+  const f = rest.field?.auto ? (({ auto, ...g }) => ({ ...g, kind: auto.kind, focus: auto.focus }))(rest.field) : rest.field;
+  return { ...rest, field: f };
+}
+// 측정값에 유형 지정을 입힌다 — 지정이 없거나 모르는 값이면 자동(측정값 그대로). 여러 번 입혀도 같은 답(먼저 벗긴다)
+export function applyKvTypeOverride(kvMeta, id) {
+  const base = baseKvMeta(kvMeta);
+  const ov = overrideOf(id);
+  if (!base?.field || !ov) return base;
+  const f = base.field, kind = ov.type.id;
+  let focus = f.focus ?? null;
+  if (kind === 'texture') focus = null;   // 질감은 주인공이 없다
+  // 인물·캐릭터를 골랐는데 주인공 상자를 모르면(앱 — 인물 분리 없음) 위쪽 90%를 사람으로 본다: 머리는 위, 자를 땐 아래(발·몸)부터
+  if ((ov.sub?.id === 'photo-portrait' || ov.sub?.id === 'illust-character' || ov.sub?.id === 'cutout-character') && !focus) focus = { x: 0.5, y: 0.5, w: 0.7, h: 0.9, parts: 1, others: [], density: 0.65, source: 'override' };
+  if (ov.sub?.id === 'photo-portrait' && focus && focus.source !== 'person' && focus.source !== 'override') focus = { ...focus, parts: 1, others: [], source: 'override' };
+  return { ...base, typeOverride: id, field: { ...f, kind, focus, auto: { kind: f.kind, focus: f.focus ?? null } } };
 }
 
 // 사람이 읽는 한 줄 — 앱 진단·케이스 장부
@@ -201,5 +267,6 @@ export function kvTypeSummary(kvMeta) {
   if (F.glass || F.frame) tags.push('어두운 지면 우선');
   if (F.crowd || F.frame) tags.push('전면 배경');
   tags.push(F.wide ? '가로형' : F.tall ? '세로형' : '정사각형');
+  if (t.override) tags.push('유형 직접 지정');
   return `${t.subs?.length ? t.subs.map(x => x.name).join('+') : t.name} · ${tags.join(' · ')}`;
 }

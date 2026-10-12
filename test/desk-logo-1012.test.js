@@ -57,19 +57,20 @@ test('앱: 스타일을 바꿔도(restyle) 로고 실측이 남고, 로고를 �
   const src = readFileSync(new URL('../app/app.js', import.meta.url), 'utf8');
   const restyle = src.slice(src.indexOf('const restyle = '), src.indexOf('...patch,', src.indexOf('const restyle = ')));
   assert.match(restyle, /logoMeta: c\.style\.logoMeta/);
-  assert.match(src, /const logoMeta = await logoMetaOfUrl\(src\)/);
+  assert.match(src, /const logoMeta = await logoMetaOfUrl\(ink\)/);   // 10-12 결정 12: 잉크(글자 속을 지운 사본)로 잰다 — 이전 logoMetaOfUrl(src)
 });
 
-test('흰 바탕 로고의 글자 속 구멍(O 속)도 지운다 — 단색 변환 때 「●」로 메워지지 않게(아모레퍼시픽 AM●RE). holes:false 는 예전처럼 남긴다', () => {
+test('글자 속 구멍(O 속)은 단색 변환용(holes:true)에서만 지운다 — 기본은 속의 흰색을 남긴다(10-12 결정 12, 이전: 기본이 지움)', () => {
   const W = 120, H = 60;
   // 흰 바탕 + 검정 고리(가운데 흰 구멍)
   const ring = () => img(W, H, (x, y) => { const r = Math.hypot(x - 60, y - 30); return (r < 20 && r > 10) ? [0, 0, 0, 255] : [255, 255, 255, 255]; });
-  const a = ring(); const k = knockoutLogo(a, W, H);
+  const a = ring(); const k = knockoutLogo(a, W, H, { holes: true });
   assert.ok(k && k.holes > 0, JSON.stringify(k));
   assert.equal(a[(30 * W + 60) * 4 + 3], 0, '고리 속 가운데가 투명');
   assert.equal(a[(30 * W + 75) * 4 + 3], 255, '고리 자체는 그대로');
-  const b = ring(); knockoutLogo(b, W, H, { holes: false });
-  assert.equal(b[(30 * W + 60) * 4 + 3], 255, 'holes:false 면 속을 남긴다');
+  const b = ring(); const kb = knockoutLogo(b, W, H);
+  assert.equal(kb.holes, 0);
+  assert.equal(b[(30 * W + 60) * 4 + 3], 255, '기본은 속을 남긴다');
 });
 
 test('글자가 세 모서리에 닿은 투명 PNG 로고는 바탕이 없다 — 검정 글자를 바탕으로 보고 통째로 지우지 않는다(desk-08 KMA)', () => {

@@ -374,8 +374,31 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
       if (c !== crop && bgTop(c) >= 0.95) placed = { ...c, eased: true };
     }
   }
+  // 인물 사진(사람 상자 + 얼굴, palette.js personFocus) — 아래 띠가 폭 맞춤(cover)으로는 머리~턱을 못 담으면(AI 간호사 인스타 1080: 띠 393px, 머리~턱 497px → 코에서 잘림)
+  // 그림을 줄여 머리~턱이 띠 높이의 94%에 들게 하고 오른쪽에 붙인다 — 왼변·윗변을 녹인다(kvLayer). 머리는 절대 자르지 않는다(10-12 결정 반영·남은 문제)
+  if (!cutout && side === 'bottom' && !placed) { const pf = portraitFit(style, bw, bh); if (pf) placed = pf; }
   if (placed) { trueEdge = false; joinFrac = side === 'right' ? placed.left : placed.top; }
   return { cutout, bw, bh, far, pos, trueEdge, crop: placed, joinFrac: Math.round(joinFrac * 1000) / 1000 };
+}
+
+// 인물 사진을 아래 띠에 넣을 때 머리~턱(사람 상자 윗변 → 가장 큰 얼굴 아래 + 얼굴 높이 25%)이 폭 맞춤으로 안 들어가면 줄여서 오른쪽에 붙인다.
+//   반환: subjectCrop 과 같은 꼴 + portrait(그림이 실제로 차지하는 폭 dw) — 띠보다 좁으면 kvLayer 가 왼변도 녹인다. 들어가면 null(coverPos 가 머리 기준으로 놓는다)
+export function portraitFit(style, bw, bh) {
+  const f = style.kvMeta?.field, P = f?.person, ar = style.kvMeta?.ar;
+  if (!P?.faces?.length || f?.focus?.source !== 'person' || !ar || !(bw > 0 && bh > 0)) return null;
+  const face = P.faces.reduce((a, b) => ((b.x1 - b.x0) * (b.y1 - b.y0) > (a.x1 - a.x0) * (a.y1 - a.y0) ? b : a));
+  const px = style.kvMeta?.px, iw = px?.[0] ?? Math.round(ar * 1000), ih = px?.[1] ?? 1000;
+  const top = Math.max(0, P.y0 - 0.02), bot = Math.min(1, face.y1 + (face.y1 - face.y0) * 0.25);
+  const s0 = Math.max(bw / iw, bh / ih);
+  if ((bot - top) * ih * s0 <= bh * 0.94) return null;
+  const s = Math.max(bh / ih, (bh * 0.94) / ((bot - top) * ih));
+  const dw = Math.min(bw, Math.round(iw * s)), dh = ih * s;
+  // 얼굴 가운데가 그림 칸(dw) 가운데에 오게 — 칸보다 그림이 넓을 때만 옆으로 민다
+  const cx = (face.x0 + face.x1) / 2 * iw * s;
+  const ox = Math.round(Math.min(0, Math.max(dw - iw * s, dw / 2 - cx)));
+  const oy = Math.round(Math.min(0, Math.max(bh - dh, -(top * dh) + bh * 0.04)));
+  return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, ox, oy, iw, ih, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
+    top: Math.round(-oy / dh * 1000) / 1000, left: Math.round(-ox / (iw * s) * 1000) / 1000, portrait: { w: dw } };
 }
 
 // 통째로 덮은(cover) 그림의 윗변이 그림의 어느 높이에 걸리는가(0 = 그림 윗변 그대로) — pos 'X% Y%' 또는 'X% Npx'
@@ -437,9 +460,21 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   // 작은 누끼는 원본의 1.5배까지만(CANON maxUpscale) — 맞춰 넣은 크기가 넘으면 그 폭으로 작게 둔다
   const capW = cutoutCapW(style), arC = arKv || 1;
   const cutSize = bleed ? (hh * arC > capW ? `${capW}px auto` : `auto ${hh}px`) : bleedB ? (bh * arC > capW ? `${capW}px auto` : `auto ${bh}px`) : (Math.min(bw, bh * arC) > capW ? `${capW}px auto` : 'contain');
+  // 넘쳐 흘린 누끼(bleed)는 열의 왼변에서 잘린다 — 가로 띠(320×50·400×76·728×90)에선 그 변이 지면 한가운데의 직선이라 「뚝 끊김」(10-12 남은 문제, midas-stadium-wire·abl-group·desk-22-cut).
+  //   잘린 몫이 2%를 넘으면 왼변을 녹인다(잘린 몫 + 8%, 16~30%) — 사진·바탕 그림과 같은 녹임 문법
+  const bleedCut = bleed && arKv ? 1 - bw / Math.min(hh * arKv, capW) : 0;
+  const cutMask = (melt && bleedCut > 0.02) ? meltMask('to right', Math.round(Math.min(30, Math.max(16, bleedCut * 100 + 8)))) : '';
   const fill = `background:url('${url}') ${cutout ? `${bleed ? 'right bottom' : bleedB ? bPos : far}/${cutSize}` : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${cutout && /px auto$/.test(cutSize) ? '--kv-capped:1;' : ''}${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
+  // 인물 사진을 줄여 오른쪽에 붙였으면(portraitFit) 그림 칸만큼만 — 왼변(글자 쪽 지면)과 윗변을 녹인다. 윗변은 짧게(22%) — 머리 위를 길게 녹이면 뿌옇다
+  if (side === 'bottom' && crop?.portrait) {
+    // 왼변 녹임 길이는 그림 왼변 색과 지면색의 거리로(CANON melt — 사진 가장자리와 지면이 멀면 길게)
+    const lHex = style.kvMeta?.field?.edges?.left?.hex ?? null;
+    const lFar = (lHex && field?.stops?.length) ? field.stops.reduce((m, x) => colorDistance(lHex, x) > colorDistance(lHex, m) ? x : m) : near;
+    const pw = crop.portrait.w, mk = melt ? (pw < w - 1 ? meltMask2(meltLength(lHex, lFar, 30), 22) : meltMask('to bottom', 22)) : '';
+    return `<div data-object="1" style="position:absolute;right:0;bottom:0;width:${pw}px;height:${size + edgePad}px;${fill}${mk}--kv-portrait:1"></div>`;
+  }
   return side === 'right'
-    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}"></div>`
+    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}${cutMask}"></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"></div>`;
 }
 

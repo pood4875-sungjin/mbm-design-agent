@@ -6558,6 +6558,10 @@ export const MEDIA = [
       "source": "figma:Nssa9IZMvkQJF0bcXHKXzA 1151:4743 (ref/learned/cases/_out/figma-sep-typo.md)",
       "tracking": {
         "main": 0
+      },
+      "weights": {
+        "note": "10-12 결정 9: 에브리타임 메인 800(ExtraBold) — Figma 9월 공채 커뮤니티보드 1151:4743 ExtraBold 45 실측 1건. 근거 1건도 채택(규칙 채택 방식). CANON 메인 700 위에 이 키만 덮는다",
+        "main": 800
       }
     }
   },

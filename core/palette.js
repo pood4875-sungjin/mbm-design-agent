@@ -284,10 +284,32 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
     const n = Math.max(2, bw), P = { tl: cornerPatch(0, 0), tr: cornerPatch(w - n, 0), bl: cornerPatch(0, h - n), br: cornerPatch(w - n, h - n) };
     if (Object.values(P).every(p => p.sd < 12)) corners = Object.fromEntries(Object.entries(P).map(([k, p]) => [k, p.c]));
   }
-  const focus = focusOf(rgba, w, h, bw, cutout, ref, corners, kind === 'illust');   // 쌓인 덩어리 묶기는 바탕 있는 일러스트·3D만(사진 장면·누끼 떼는 그대로)
+  const focus = focusOf(rgba, w, h, bw, cutout, ref, corners, kind === 'illust' || cutout);   // 쌓인 덩어리 묶기 — 바탕 있는 일러스트·3D와 누끼(10-12 desk-20-cut 위 공 + 아래 반구). 사진 장면은 그대로, 옆으로 선 누끼 떼(ABL)는 묶이지 않는다
   // 평평한 변이 하나뿐인데 바탕을 못 가르면(주인공 픽셀 > 60% → focus null) 그 변은 바탕이 아니라 사진의 흐린 천장·벽이다 — 사진(10-09 figma-dg AI 간호사: 일러스트로 보고 윗변에 붙여 얼굴이 잘렸다)
   if (kind === 'illust' && flatEdges === 1 && !focus) kind = 'photo';
   return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus, rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
+}
+
+// 인물 상자로 주인공 잡기(10-12 결정 반영·남은 문제: hr-doctor 흰 가운 × 흰 흐린 배경, AI 간호사 얼굴이 코에서 잘림).
+// person: 사람 분리 마스크의 상자·면적(Apple Vision — scripts/kv-person.swift, 케이스 장부가 잰다. 브라우저 앱은 없음 → 유형 직접 지정으로).
+// 마스크는 주인공 상자(focus)를 잡는 데만 쓴다 — 오려 내지 않는다. 색으로 사람을 못 가른 그림에만:
+//   사람이 한 덩어리(상자 채움 ≥ 0.45)이고 크며(면적 ≥ 0.15) 그림 전체는 아니고(상자 < 90%),
+//   색 주인공이 없거나(focus null) 성글고(밀도 < 0.4) 사람 상자의 절반도 못 덮을 때(손 든 컨트롤러 desk-25 · 단체 사진 desk-27 은 그대로).
+// 바탕 있는 일러스트로 판정됐던 그림이면 사진이다(흐린 배경의 한 변이 평평해 일러스트로 갔다).
+export const PERSON_FOCUS = { fill: 0.45, area: 0.15, boxMax: 0.9, density: 0.4, cover: 0.5 };
+export function personFocus(field, person) {
+  if (!field || !person || field.kind === 'cutout' || field.kind === 'texture') return field;
+  const P = PERSON_FOCUS, bw = person.x1 - person.x0, bh = person.y1 - person.y0;
+  if (!(person.fill >= P.fill && person.area >= P.area && bw * bh < P.boxMax)) return field;
+  const f0 = field.focus;
+  if (f0) {
+    const ix = Math.max(0, Math.min(person.x1, f0.x + f0.w / 2) - Math.max(person.x0, f0.x - f0.w / 2));
+    const iy = Math.max(0, Math.min(person.y1, f0.y + f0.h / 2) - Math.max(person.y0, f0.y - f0.h / 2));
+    if (!((f0.density ?? 1) < P.density && ix * iy / (bw * bh) < P.cover)) return field;
+  }
+  const r = v => Math.round(v * 100) / 100;
+  return { ...field, kind: field.kind === 'illust' ? 'photo' : field.kind, kindFrom: field.kind === 'illust' ? 'illust' : undefined,
+    focus: { x: r((person.x0 + person.x1) / 2), y: r((person.y0 + person.y1) / 2), w: r(bw), h: r(bh), parts: 1, others: [], density: r(person.fill), source: 'person' } };
 }
 
 // 전체 거칠기 — 2px 격자에서 오른쪽·아래 이웃과의 색 차 평균(rough), 차가 0.08을 넘는 쌍의 비율(sharp), 전체 색 편차(spread). 질감 판정에 쓴다
@@ -462,7 +484,8 @@ function focusOf(rgba, w, h, bw, cutout, ref = null, corners = null, stackParts 
         if (ov >= minW * 0.5 && gap <= uh * 0.5) { u = { x0: Math.min(u.x0, g.x0), x1: Math.max(u.x1, g.x1), y0: Math.min(u.y0, g.y0), y1: Math.max(u.y1, g.y1), stacked: true }; grew = true; }
       }
     }
-    if (u.stacked && boxArea(u) <= gw * gh * 0.6) pick = u;   // 묶은 상자가 그림의 60%를 넘으면 한 인물이 아니라 장면이다(마이다스 유리 폴더) — 묶지 않는다
+    // 누끼는 투명 여백을 트림해 묶은 상자가 늘 그림 전체에 가깝다 — 60% 상한을 걸지 않는다(10-12 남은 문제 desk-20-cut: 위 공 + 아래 반구 「사용자 추가」 아이콘 하나)
+    if (u.stacked && (cutout || boxArea(u) <= gw * gh * 0.6)) pick = u;   // 묶은 상자가 그림의 60%를 넘으면 한 인물이 아니라 장면이다(마이다스 유리 폴더) — 묶지 않는다
   }
   if (globalThis.__focusDebug) globalThis.__focusDebug({ gw, gh, comps, groups, big, all, pick });   // 측정 디버그 훅(Node 전용)
   const r2 = v => Math.round(v * 100) / 100;

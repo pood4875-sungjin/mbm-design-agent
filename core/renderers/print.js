@@ -212,7 +212,7 @@ ${fontLink(style.fonts.heading)}
     ${useKv ? '' : '<div class="field"></div>'}
     ${scrim}
     ${body}
-    ${style.logo ? `<div class="foot"><img class="brand" src="${esc(style.logo)}" alt=""></div>` : ''}
+    ${style.logo ? `<div class="foot"><img class="brand" src="${esc((fg === '#FFFFFF' && style.logoMono) ? style.logoMono : style.logo)}" alt=""></div>` : ''}
     <div class="trim"></div>
   </div>
 </div>

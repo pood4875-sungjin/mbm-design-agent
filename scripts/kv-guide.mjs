@@ -11,7 +11,7 @@ const CASES = path.join(ROOT, 'ref/learned/cases'), OUTC = path.join(CASES, '_ou
 const DEST = process.argv[2]; if (!DEST) throw new Error('출력 폴더가 필요합니다');
 mkdirSync(path.join(DEST, '시트'), { recursive: true }); mkdirSync(path.join(DEST, '데이터'), { recursive: true }); mkdirSync(path.join(DEST, '렌더'), { recursive: true }); mkdirSync(path.join(DEST, '그림'), { recursive: true });
 const core = async f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
-const { KV_TYPES, KV_SUBTYPES, kvTypeOf, kvTypeSummary } = await core('kvtypes.js');
+const { KV_TYPES, KV_SUBTYPES, kvTypeOf, kvTypeSummary, applyKvTypeOverride } = await core('kvtypes.js');
 const { CANON } = await core('canon.js');
 const { layoutFor } = await core('layouts.js');
 const { renderArtifact } = await core('contract.js'); const { registerAll } = await core('generate.js'); const { createContext } = await core('context.js'); const { normalizeStyle } = await core('style.js'); const { specOf } = await core('media.js');
@@ -31,7 +31,7 @@ const shots = {};
 for (const c of L.cases) {
   const dir = path.join(CASES, c.id); const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8'));
   copyFileSync(path.join(dir, c.kv), path.join(DEST, '그림', `${c.id}${path.extname(c.kv)}`));
-  const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, logo: c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, logoTone: c.logoMeta?.tone ?? 'dark', logoLight: (c.logo && c.logoMeta?.tone === 'light') ? pathToFileURL(path.join(dir, c.logo)).href : null, logoMeta: c.logoMeta ?? null });   // 10-12: 장부·앱과 같게 로고 실측(톤·타일·세로·대표색)을 넘긴다 — 예전엔 톤을 'dark'로 박아 흰 로고가 밝은 지면에서 사라졌다
+  const style = normalizeStyle({ colors: [c.primary ?? meta.colors?.[0] ?? '#1428A0'], keyVisual: pathToFileURL(path.join(dir, c.kv)).href, kvMeta: meta, kvTypeOverride: c.typeOverride ?? null, logoMono: c.logoMono ? pathToFileURL(path.join(dir, c.logoMono)).href : null, logo: c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, logoTone: c.logoMeta?.tone ?? 'dark', logoLight: (c.logo && c.logoMeta?.tone === 'light') ? pathToFileURL(path.join(dir, c.logo)).href : null, logoMeta: c.logoMeta ?? null });   // 10-12: 장부·앱과 같게 로고 실측(톤·타일·세로·대표색)을 넘긴다 — 예전엔 톤을 'dark'로 박아 흰 로고가 밝은 지면에서 사라졌다
   const ctx = createContext(c.fields ?? DEFAULT_FIELDS, 'recruit');
   const sc = 0.5;
   const cells = REP.map(sid => { const sp = specOf(sid); const html = renderArtifact(sid, ctx, style, {}); return `<div style="flex:none"><div style="font:11px Pretendard;color:#777;margin-bottom:4px">${sid} ${sp.w}×${sp.h}</div><div style="position:relative;width:${sp.w * sc}px;height:${sp.h * sc}px;overflow:hidden;outline:1px solid #ddd;background:#fff"><iframe style="border:0;position:absolute;left:0;top:0;width:${sp.w}px;height:${sp.h}px;transform:scale(${sc});transform-origin:0 0" srcdoc="${esc(`<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0}</style></head><body>${html}</body></html>`)}"></iframe></div></div>`; });
@@ -74,7 +74,7 @@ img.shot{width:100%;border:1px solid var(--line);border-radius:10px;background:#
 
 // 3) 가이드 문서
 const typeCases = id => L.cases.filter(c => c.type === id);
-const subCases = sid => L.cases.filter(c => { const m = JSON.parse(readFileSync(path.join(CASES, c.id, 'meta.json'), 'utf8')); const t = kvTypeOf(m); return t?.subs?.some(x => x.id === sid); });
+const subCases = sid => L.cases.filter(c => { const m = JSON.parse(readFileSync(path.join(CASES, c.id, 'meta.json'), 'utf8')); const t = kvTypeOf(applyKvTypeOverride(m, c.typeOverride ?? null)); return t?.subs?.some(x => x.id === sid); });
 const DETECT = {
   '네 변을 잰다': '올라온 그림을 긴 변 480px로 줄이고 위·아래·왼쪽·오른쪽 가장자리 띠(6%)의 색 편차(std)와 결(rough)을 잰다. std < 15 이고 결 < 0.006 이면 평평한 변(바탕).',
   '투명도': '가장자리 띠의 불투명 비율 평균. 0.5 미만이면 배경 없는 PNG(누끼).',

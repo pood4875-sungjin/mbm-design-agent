@@ -134,7 +134,7 @@ export function renderPhotobooth(ctx, style, spec) {
   // 로고 자리는 시안에서 브랜드 워드마크였다. 로고가 없으면 비운다 —
   // 장소나 날짜로 대신 채우면 그게 브랜드인 것처럼 읽힌다.
   const brand = style.logo
-    ? `<div class="logo ${L.logo}"><img class="brand" src="${esc(style.logo)}" alt=""></div>`
+    ? `<div class="logo ${L.logo}"><img class="brand" src="${esc((logoInk === '#FFFFFF' && style.logoMono) ? style.logoMono : style.logo)}" alt=""></div>`
     : '';
 
   const pxW = (W * 3.7795).toFixed(0);

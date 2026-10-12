@@ -13,7 +13,7 @@ import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, bu
 import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
 import { checkAdDoc } from '../core/adcheck.js';
-import { kvTypeOf, kvTypeSummary } from '../core/kvtypes.js';
+import { kvTypeOf, kvTypeSummary, kvTypeChoices, baseKvMeta, applyKvTypeOverride } from '../core/kvtypes.js';
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -391,7 +391,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, kvUse: 'auto', logoTone: null, logoLightManual: false, object: null, objectMeta: null,
+    bgMode: 'auto', bgColor: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null,
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -806,6 +806,19 @@ function slotSignage() {
   };
 }
 
+// 키비주얼 유형 직접 지정(10-12 결정 5) — 측정으로 판정이 안 되는 그림(흰 가운 × 흰 배경 의사 사진)을 디자이너가 고친다. 기본 「자동」.
+// 네이티브 select(라벨 연결·키보드·포커스 링은 브라우저 기본 + 공통 :focus-visible). 값은 style.kvTypeOverride → normalizeStyle 이 kvMeta 에 입힌다
+function kvTypeControlHtml(meta, override, id) {
+  if (!meta?.field) return '';
+  const auto = kvTypeOf(baseKvMeta(meta));
+  const autoName = auto?.sub?.name ?? auto?.name ?? '';
+  const opt = (v, label) => `<option value="${v}"${(override ?? 'auto') === v ? ' selected' : ''}>${label}</option>`;
+  const groups = kvTypeChoices().map(t => `<optgroup label="${t.name}">${opt(t.id, `${t.name} — 세분 자동`)}${t.subs.map(st => opt(st.id, st.name)).join('')}</optgroup>`).join('');
+  return `<label for="${id}">키비주얼 유형 <span style="color:var(--sub);font-weight:400">· ${override ? '직접 지정' : `자동: ${autoName}`}</span></label>
+    <select id="${id}" aria-describedby="${id}Help" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:4px">${opt('auto', `자동 (지금: ${autoName})`)}${groups}</select>
+    <div id="${id}Help" style="font-size:11.5px;color:var(--sub);margin-bottom:10px">자동 판정이 틀렸을 때만 고르세요 — 놓는 법·지면·글자 규칙이 그 유형으로 바뀝니다.</div>`;
+}
+
 // 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
 const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', 'kv-full': '배경형 — 그림을 통째로 깔고 빈 자리에 글자', 'kv-texture': '질감 — 그라데이션을 통째로 깔고 글자만', manual: '직접 고른 색' };
 function bgControlHtml(styleLike, id) {
@@ -856,7 +869,7 @@ function kvDiagnosis(it, meta) {
 }
 function slotStyle() {
   const it = state.intake;
-  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: it.kvMeta, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
@@ -868,6 +881,7 @@ function slotStyle() {
       <div><div class="kvthumb logo" id="objThumb" title="배경 없는 오브젝트(투명 PNG). 알바몬 스플래시·에브리타임 보드·NAP 비즈보드·캐치 센터처럼 누끼가 필요한 자리에만 씁니다 — 키비주얼은 배경으로 그대로" style="${it.object ? `background-image:url(${it.object})` : ''}">${it.object ? '' : '오브젝트 누끼<br>(선택)'}</div>
         <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
+        ${it.kv ? kvTypeControlHtml(it.kvMeta, it.kvTypeOverride, 'kvTypeSel') : ''}
         ${bgControlHtml(adStyle, 'bg')}
         <label style="margin-top:10px">브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="palette">
@@ -894,6 +908,12 @@ function slotStyle() {
   if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
   $('bgUse')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.kvUse = b.dataset.u; slotStyle(); });
+  if ($('kvTypeSel')) $('kvTypeSel').onchange = () => {
+    const v = $('kvTypeSel').value; it.kvTypeOverride = v === 'auto' ? null : v;
+    slotStyle(); $('kvTypeSel')?.focus();   // 다시 그린 뒤에도 포커스를 선택 상자에 둔다(키보드 사용자)
+    const T = kvTypeOf(applyKvTypeOverride(it.kvMeta, it.kvTypeOverride));
+    say(it.kvTypeOverride ? `유형을 「${T?.sub?.name ?? T?.name}」로 지정했어요 — ${T?.sub?.guide?.[0] ?? T?.type.place[0]}` : `유형을 자동 판정(${T?.sub?.name ?? T?.name})으로 되돌렸어요.`);
+  };
   document.querySelectorAll('#slot [data-fc]').forEach(b => b.onclick = () => { it.bgColor = b.dataset.fc; slotStyle(); });
   renderSuggests();
   renderDpi();
@@ -904,7 +924,8 @@ function slotStyle() {
     try {
       const { suggests, readability, meta } = await analyzeKeyVisual(d);
       it.suggests = suggests; it.kvReadability = readability; it.kvMeta = meta;
-      it.kvUse = 'auto';         // 새 그림이면 쓰임도 처음부터 — 사진이 아니면 '전체' 선택지가 사라진다
+      it.kvUse = 'auto';         // 새 그림이면 쓰임도 처음부터
+      it.kvTypeOverride = null;  // 유형 지정도 새 그림이면 자동부터 — 사진이 아니면 '전체' 선택지가 사라진다
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       kvDiagnosis(it, meta);
@@ -920,11 +941,13 @@ function slotStyle() {
     const prepped = await prepLogo(d);
     d = prepped.dataUrl;
     it.logo = d;
+    it.logoMono = prepped.monoDataUrl ?? null;
     it.logoNote = prepped.note || null;
     try { it.logoSuggests = await analyzeLogo(d); } catch { it.logoSuggests = []; }
     // 흰색 로고만 올렸으면 그게 다크용 로고이기도 하다 — 지면은 어두운 브랜드색으로 간다
-    try { it.logoTone = await logoToneOf(d); } catch { it.logoTone = 'dark'; }
-    try { it.logoMeta = await logoMetaOfUrl(d); } catch { it.logoMeta = null; }   // 세로 로고 크기·타일 로고 반전 여부(core/logo.js logoMeta → 렌더러)
+    // 톤·실측은 잉크만(글자 속을 지운 사본이 있으면 그것으로) — 남긴 흰 속을 세면 흰 원판 엠블럼이 「흰색 로고」가 된다(10-12 결정 12)
+    try { it.logoTone = await logoToneOf(it.logoMono ?? d); } catch { it.logoTone = 'dark'; }
+    try { it.logoMeta = await logoMetaOfUrl(it.logoMono ?? d); } catch { it.logoMeta = null; }   // 세로 로고 크기·타일 로고 반전 여부(core/logo.js logoMeta → 렌더러)
     if (it.logoLightManual) it.logoTone = it.logoTone === 'light' ? 'light' : 'both';
     else if (it.logoTone === 'light') it.logoLight = d;
     else it.logoLight = null;
@@ -1139,10 +1162,16 @@ async function knockoutLogo(dataUrl) {
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
   const id = g.getImageData(0, 0, W, H);
-  const k = knockoutLogoRGBA(id.data, W, H);   // 규칙은 core/logo.js 한 곳(케이스 장부와 같은 규칙)
+  const idm = new ImageData(new Uint8ClampedArray(id.data), W, H);
+  const k = knockoutLogoRGBA(id.data, W, H);   // 규칙은 core/logo.js 한 곳(케이스 장부와 같은 규칙) — 원색 로고는 글자 속 흰색을 남긴다
   if (!k) return null;
+  // 단색(흰/검정) 변환용 사본은 글자 속까지 지운다 — 속이 메워져 「●」가 되지 않게(10-12 결정 12). 지울 속이 없으면 사본 없음
+  const km = knockoutLogoRGBA(idm.data, W, H, { holes: true });
   g.putImageData(id, 0, 0);
-  return { dataUrl: cv.toDataURL('image/png'), removed: k.removed };
+  const outUrl = cv.toDataURL('image/png');
+  let monoUrl = null;
+  if (km?.holes > 0) { g.putImageData(idm, 0, 0); monoUrl = cv.toDataURL('image/png'); }
+  return { dataUrl: outUrl, monoUrl, removed: k.removed };
 }
 // 로고 여백 트림 — 투명 여백이 큰 로고 PNG는 칸 높이에 맞춰도 글자가 작다(10-06 사용자 "로고가 너무 작은데": 276×91 중 글자 높이 21px = 23%).
 // 불투명 픽셀(α>10)의 상자를 찾아 그 상자(+긴 변의 3% 숨)로 잘라낸다. 불투명 그림(배경 있는 로고)이거나 잘라낼 게 8% 미만이면 원본 그대로.
@@ -1165,11 +1194,13 @@ async function prepKv(dataUrl) {
   return dataUrl;
 }
 // 로고 손질 한 번에 — 누끼(단색 배경 제거) → 여백 트림. 돌려주는 note는 사용자에게 알릴 한 줄
+//   monoDataUrl: 단색 변환용 사본(글자 속까지 지움, 같은 트림) — 렌더러가 흰/검정으로 바꿀 때만 쓴다(style.logoMono). 없으면 null
 async function prepLogo(dataUrl) {
-  let src = dataUrl; const notes = [];
-  try { const k = await knockoutLogo(src); if (k) { src = k.dataUrl; notes.push(`배경 ${k.removed}% 지움(투명 누끼)`); } } catch {}
+  let src = dataUrl, mono = null; const notes = [];
+  try { const k = await knockoutLogo(src); if (k) { src = k.dataUrl; mono = k.monoUrl; notes.push(`배경 ${k.removed}% 지움(투명 누끼)`); } } catch {}
   try { const t = await trimLogo(src); if (t) { src = t.dataUrl; notes.push(`여백 트림 ${t.from[0]}×${t.from[1]}→${t.to[0]}×${t.to[1]}`); } } catch {}
-  return { dataUrl: src, note: notes.join(' · '), changed: src !== dataUrl };
+  try { if (mono) { const t = await trimLogo(mono); if (t) mono = t.dataUrl; } } catch { mono = null; }
+  return { dataUrl: src, monoDataUrl: mono, note: notes.join(' · '), changed: src !== dataUrl };
 }
 async function logoToneOf(dataUrl) {
   const img = new Image();
@@ -1233,6 +1264,7 @@ function buildAndGenerate() {
     kvReadability: it.kvReadability,
     kvMeta: it.kvMeta,
     logo: it.logo,
+    logoMono: it.logoMono ?? null,
     logoLight: it.logoLight ?? null,
     logoTone: it.logoTone ?? null,
     logoMeta: it.logoMeta ?? null,
@@ -1241,6 +1273,7 @@ function buildAndGenerate() {
     mode: it.mode,
     background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
     kvUse: it.kvUse ?? 'auto',
+    kvTypeOverride: it.kvTypeOverride ?? null,
     colors: it.colors,
     fonts: { heading: it.font, body: it.font },
     mood: it.mood.split(',').map(s => s.trim()).filter(Boolean),
@@ -1659,6 +1692,7 @@ function renderInspector() {
       </section>
       <section class="isec">
       <h3>스타일</h3>
+      ${c.style.keyVisual ? kvTypeControlHtml(c.style.kvMeta, c.style.kvTypeOverride, 'iKvType') : ''}
       ${bgControlHtml(c.style, 'iBg')}
       <label>상세 라벨 알약 <span style="opacity:.6">· 접수기간·모집직무 같은 라벨</span></label>
       <div class="vseg" id="iChipSeg">${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-ct="${k}" class="${(c.style.chipTone ?? 'tint') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
@@ -1712,6 +1746,7 @@ function renderInspector() {
         kvReadability: c.style.kvReadability,
         kvMeta: c.style.kvMeta,
         logo: c.style.logo,
+        logoMono: c.style.logoMono ?? null,
         logoLight: c.style.logoLight ?? null,
         logoTone: c.style.logoTone ?? null,
         logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
@@ -1720,6 +1755,7 @@ function renderInspector() {
         mode: c.style.mode,
         background: c.style.background,
         kvUse: c.style.kvUse,
+        kvTypeOverride: c.style.kvTypeOverride ?? null,
         chipTone: c.style.chipTone,
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
@@ -1745,6 +1781,13 @@ function renderInspector() {
     const bgIn = insp.querySelector('#iBgColor');
     if (bgIn) bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기');
     insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
+    insp.querySelector('#iKvType')?.addEventListener('change', e => {
+      const v = e.target.value === 'auto' ? null : e.target.value;
+      restyle({ kvTypeOverride: v }, v ? '키비주얼 유형 지정' : '키비주얼 유형 자동');
+      renderInspector(); insp.querySelector('#iKvType')?.focus();
+      const T = kvTypeOf(c.style.kvMeta);
+      toast(v ? `유형 지정: ${T?.sub?.name ?? T?.name}` : `유형 자동: ${T?.sub?.name ?? T?.name}`);
+    });
     insp.querySelectorAll('#iBgUse button').forEach(b => b.onclick = () => { restyle({ kvUse: b.dataset.u }, b.dataset.u === 'full' ? '사진 전체 + 스크림' : '사진 한쪽 + 녹임'); renderInspector(); });
     // 라벨 알약 톤 — 일괄. 산출물에 개별 값이 있으면 그 산출물은 그대로(overrides.style)
     insp.querySelectorAll('#iChipSeg button').forEach(b => b.onclick = () => { if ((c.style.chipTone ?? 'tint') === b.dataset.ct) return; restyle({ chipTone: b.dataset.ct }, `라벨 알약 ${CHIP_LABEL[b.dataset.ct]}`); renderInspector(); });
@@ -1791,7 +1834,7 @@ function renderInspector() {
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(kv)); } catch {}
         // 로고가 있으면 주색은 로고가 맡고 키비주얼은 보조·포인트만 바꾼다 — 이미지를 갈았다고 브랜드 색이 바뀌면 안 된다
         const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, mode: c.style.mode, kvColors: suggests });
-        restyle({ keyVisual: kv, kvReadability: readability, kvMeta: meta, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
+        restyle({ keyVisual: kv, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
         toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
       };
@@ -1809,7 +1852,7 @@ function renderInspector() {
       } catch { toast('색 추출 실패'); }
     });
     insp.querySelector('#iKvClear')?.addEventListener('click', () => {
-      restyle({ keyVisual: null, kvReadability: null, kvMeta: null }, '키비주얼 제거');
+      restyle({ keyVisual: null, kvReadability: null, kvMeta: null, kvTypeOverride: null }, '키비주얼 제거');
       renderInspector();
     });
     // 로고 두 벌 — 원색은 밝은 지면·투명 지면에, 흰색은 브랜드색 지면에 (자소설 한독·도레이는 흰색 로고)
@@ -1823,15 +1866,17 @@ function renderInspector() {
           // 원색 로고를 갈면 색도 그 로고에서 다시 읽는다 — 고객사가 바뀐 것이다. 흰색 로고는 색이 없으니 그대로.
           let roles = null, tonePatch = {};
           let src = r.result;
-          { const p = await prepLogo(src); if (p.changed) { src = p.dataUrl; toast(`로고 손질 — ${p.note}`); } }
+          let monoPatch = {};
+          { const p = await prepLogo(src); if (p.changed) { src = p.dataUrl; toast(`로고 손질 — ${p.note}`); } if (key === 'logo') monoPatch = { logoMono: p.monoDataUrl ?? null }; }
           if (key === 'logo') {
             ({ roles } = await rolesFromAssets({ logo: src, keyVisual: c.style.keyVisual, mode: c.style.mode }));
-            const tone = await logoToneOf(src).catch(() => 'dark');
-            const logoMeta = await logoMetaOfUrl(src).catch(() => null);   // 10-12: 로고를 갈면 실측도 새로(전 로고의 세로·타일 판정이 남지 않게)
+            const ink = monoPatch.logoMono ?? src;   // 잉크만 잰다(글자 속을 지운 사본)
+            const tone = await logoToneOf(ink).catch(() => 'dark');
+            const logoMeta = await logoMetaOfUrl(ink).catch(() => null);   // 10-12: 로고를 갈면 실측도 새로(전 로고의 세로·타일 판정이 남지 않게)
             // 흰색 로고만이면 지면이 어두워진다(brand-dark-logo). 원색이면 흰색 로고가 있을 때 both
             tonePatch = { logoMeta, ...(tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: src }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' }) };
           } else tonePatch = { logoTone: c.style.logoTone === 'light' ? 'light' : 'both' };
-          restyle({ [key]: src, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
+          restyle({ [key]: src, ...monoPatch, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
           renderInspector();
           toast(roles ? `${label} — 주색 ${roles[0]}` : label);
         };
@@ -2421,7 +2466,7 @@ async function migrateLogos(c) {
   let changed = false;
   for (const key of ['logo', 'logoLight']) {
     if (!c.style[key]) continue;
-    try { const p = await prepLogo(c.style[key]); if (p.changed) { c.style[key] = p.dataUrl; changed = true; } } catch {}
+    try { const p = await prepLogo(c.style[key]); if (p.changed) { c.style[key] = p.dataUrl; changed = true; } if (key === 'logo' && p.monoDataUrl) c.style.logoMono = p.monoDataUrl; } catch {}
   }
   c.style.logoPrepped = true;
   if (state.campaign !== c) return;

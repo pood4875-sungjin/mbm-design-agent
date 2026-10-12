@@ -2,6 +2,7 @@
 
 import { FONTS } from './fonts.js';
 import { buildPalette, MODES } from './palette.js';
+import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
@@ -30,7 +31,9 @@ export function normalizeStyle(input = {}) {
   return {
     keyVisual: input.keyVisual ?? null,
     kvReadability: input.kvReadability ?? null,
-    kvMeta: input.kvMeta ?? null,                 // {ar, edge} — 비율 대응·여백 색   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
+    // 키비주얼 유형 직접 지정(10-12 결정 5) — null = 자동. 유형 id(photo …) 또는 세분 유형 id(photo-portrait …). 렌더러·검수는 지정을 입힌 kvMeta 를 본다
+    kvTypeOverride: isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null,
+    kvMeta: applyKvTypeOverride(input.kvMeta ?? null, isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null),                 // {ar, edge} — 비율 대응·여백 색   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
     // 사진 쓰임 — auto: 한쪽 칸에 넣고 지면으로 녹인다(한독) · full: 지면 전체에 깔고 글자 쪽에 스크림(코엑스·원광대병원·호반). 담당자가 고른다 — 자동으로 켜면 다른 유형과 충돌한다
     kvUse: ['full', 'part'].includes(input.kvUse) ? input.kvUse : 'auto',
     // 오브젝트 누끼(선택) — 투명 PNG 필수 자리·상자 자리에만 쓰는 두 번째 그림. 키비주얼은 배경 노릇을 그대로 한다(2026-10-06)
@@ -58,6 +61,7 @@ export function normalizeStyle(input = {}) {
     // 메인 두 톤 강조색(선택, 기본 없음) — 사람이 브랜드 보조색을 적어 줄 때만(Figma 9월 공채 #00FFE2·#0026B3). 짐작하지 않는다: palette.accent(자동 생성)와 다르다.
     // 렌더러는 지면 대비 4.5:1 이상일 때만 메인 속 채용구분에 쓴다(core/canon.js mainAccent)
     accent: HEX.test(input.accent ?? '') ? input.accent.toUpperCase() : null,
+    logoMono: input.logoMono ?? null,     // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
     // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다
     logoTone: ['light', 'dark', 'both'].includes(input.logoTone) ? input.logoTone : null,
