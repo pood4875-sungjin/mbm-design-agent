@@ -39,7 +39,7 @@
 | [history-log](../.claude/skills/history-log/SKILL.md) | 이 폴더를 쌓는 규칙대로 갱신(수치는 rounds.json 에서) | 「히스토리 남겨줘」 |
 | [results-gallery](../.claude/skills/results-gallery/SKILL.md) | 결과 이미지 갤러리(`_out/gallery.html`) 만들기·섹션 추가 | 「갤러리에 추가해줘」 |
 | [guide-export](../.claude/skills/guide-export/SKILL.md) | 키비주얼 디자인 가이드·광고소재 가이드를 ~/Downloads 새 날짜 폴더로 | 「가이드 최신판 뽑아줘」 |
-| [pages-deploy](../.claude/skills/pages-deploy/SKILL.md) | GitHub Pages 배포 폴더 동기화·커밋(push 는 사람이) | 「배포해줘」 |
+| [pages-deploy](../.claude/skills/pages-deploy/SKILL.md) | 공개 앱 반영 = 이 저장소 main push (Pages 원본이 main /). 옛 ~/mbm-agent-pages 폐기 | 「배포해줘」 |
 | [verdict-sheet](../.claude/skills/verdict-sheet/SKILL.md) | 사람 판정 시트 열기 → 판정 JSON 기록·요약 | 「판정 시트 열어줘」 |
 | [kv-cutout](../.claude/skills/kv-cutout/SKILL.md) | KV 누끼 따기(바탕 곡면 + GrabCut, 사람은 Apple Vision) → 두 바탕 미리보기 → `<id>-cut` 케이스 | 「이 KV 누끼 따서 얹어봐」 |
 | [logo-prep](../.claude/skills/logo-prep/SKILL.md) | 로고 svg·ico·gif·webp·jpg → 투명 PNG(+바탕·글자 속 지우기), 실패·작은 로고 보고, 접촉 시트 | 「로고 폴더 변환해줘」 |
