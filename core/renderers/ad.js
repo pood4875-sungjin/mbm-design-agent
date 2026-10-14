@@ -26,7 +26,8 @@ import { designOf } from '../design.js';
 import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
-import { contrast, mix, hexToRgb, colorDistance, WHITE, BLACK } from '../palette.js';
+import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
+import { editOf, transformCss, KV_SIZE_K, SCRIM_A, GRAD_ANGLE, placeAvail } from '../editlayout.js';
 import { kvTypeOf } from '../kvtypes.js';
 
 const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
@@ -178,6 +179,8 @@ export function renderAd(ctx, style, spec) {
   const { w, h } = spec;
   // 가이드 대조표용 추적(10-12 scripts/guide-trace.mjs): 이 렌더가 내린 결정을 루트 data-trace(JSON)에 적는다 — 그림엔 영향 없음. rules = 걸린 CANON·유형 규칙 이름
   const TR = { v: 1, rules: [] };
+  // 편집(10-14 core/editlayout.js) — 프리셋·직접 수정이 하나도 없으면 null 이고 아래 모든 분기가 꺼진다(기본 그림 바이트 동일)
+  const ED = editOf(style);
   const fired = n => { if (!TR.rules.includes(n)) TR.rules.push(n); };
   const ladder = copyLadder(ctx);
   const counting = mr.textCounting ?? 'all-1';
@@ -361,6 +364,12 @@ export function renderAd(ctx, style, spec) {
   // 질감 그림(블러 그라데이션, kind texture): 주인공도 바탕도 없다 — 지면 전체에 깔고 글자만 올린다. 자르면 뜻 없는 색 조각이 된다(10-06 사용자 "이런 그라데이션이라면?").
   // 템플릿 이미지 칸(자소설)도 무시하고 통째로 깐다 — 글자 칸은 템플릿대로. 투명 규격은 hasKv에서 이미 빠진다
   // 장식 프레임 누끼(kvtypes flags.frame — 가운데 빈 유리 슬랩): 질감처럼 지면 전체에 깐다. 단 그림이 아니라 어두운 브랜드 지면이 바탕이고, 오른쪽(세로형은 아래)을 크게 잘라 보인다(10-09 figma-dg)
+  // 편집 프리셋 「키비주얼 위치」(10-14): 사람이 고른 자리가 자동 배치 대신 — 매체 템플릿 칸·오브젝트 상자·투명 지면·로고 전용·얇은 띠는 고를 수 없다(매체 규정이 이긴다, 이유를 trace 에)
+  const EP = ED?.kvPlace ? (() => { const av = placeAvail(spec, ED.kvPlace, { gate: { logoOnly, hasKv, template: !!tImage, transparent }, objectBox: !!rules.objectBox, cutout: (style.kvMeta?.field?.opaque ?? 1) < 0.5 && !kvTypeOf(style.kvMeta)?.flags.frame }); return { want: ED.kvPlace, ok: !!(av.ok && useRef), why: av.why ?? (useRef ? null : '얇은 띠') }; })() : null;
+  const forcedSide = (EP?.ok && EP.want !== 'bg') ? EP.want : null;   // right · bottom · left
+  const mirrorX = forcedSide === 'left';                               // 왼쪽 = 오른쪽 열을 좌우로 뒤집어 그린다(그림 자체는 뒤집지 않는다)
+  if (forcedSide) style = { ...style, kvUse: 'part' };
+  else if (EP?.ok && EP.want === 'bg') { const t0 = kvTypeOf(style.kvMeta); const keep = kvKind === 'texture' || !!t0?.flags.frame || !!(t0?.flags.room && kvFull(style, w, h)); if (!keep) style = { ...style, kvUse: 'full' }; }
   const frameFull = hasKv && !!kvTypeOf(style.kvMeta)?.flags.frame && !logoOnly && !transparent && style.kvUse !== 'part';
   const textureFull = hasKv && (kvKind === 'texture' || frameFull) && !logoOnly && style.kvUse !== 'part';
   if (textureFull) { tImage = null; vCenter = true; }
@@ -380,17 +389,19 @@ export function renderAd(ctx, style, spec) {
   // 가이드 매체의 정사각형 지면(구글 580×400): 템플릿 '이미지 영역'은 오른쪽 열이 아니라 우하단 모서리 상자(297×239, y163~) —
   // 서브·메인은 그 위를 전폭으로 쓰고 상세만 상자 왼쪽 열에 선다(일화·비씨월드·동부). 오른쪽 열로 두면 글자 칸이 반으로 줄어 메인이 세 줄로 접힌다
   // 가로로 긴 누끼(ABL 캐릭터 AR 2.9)는 모서리 상자에 가두면 작아진다 — 하단 띠(전폭)로
-  const kvWideBand = !!(guide?.objectRatio?.squareBand && L.shape === 'square' && hasKv && !photoFull && !roomFull && !tImage && (style.kvMeta?.ar ?? 1) >= 1.8);
+  const kvWideBand = !forcedSide && !!(guide?.objectRatio?.squareBand && L.shape === 'square' && hasKv && !photoFull && !roomFull && !tImage && (style.kvMeta?.ar ?? 1) >= 1.8);
   // 질감·장식 프레임(textureFull)은 지면 전체가 그림이다 — 모서리 상자에 같은 그림을 또 넣지 않는다(10-09 데스크탑: GDN 580×400에서 질감이 바탕 + 우하단 상자로 두 번 그려져 상자가 「주인공」으로 잡혔다. 예전 질감 4건도 같았다)
-  const gCorner = !!(guide?.objectRatio?.square && L.shape === 'square' && hasKv && !photoFull && !roomFull && !textureFull && !tImage && !kvWideBand);
+  const gCorner = !forcedSide && !!(guide?.objectRatio?.square && L.shape === 'square' && hasKv && !photoFull && !roomFull && !textureFull && !tImage && !kvWideBand);
   // 단일 사물 누끼(kvtypes flags.single — 캐릭터·떼 아님): 크게, 우하단으로 블리드(CANON objectBleed — 70% 이상 보임, 오른쪽·아래로만 30%까지 잘림, 목표 면적).
   // 형태 문법·가이드가 정한 그림 자리(오른쪽 열·모서리 상자·아래 띠)의 왼쪽·위 경계는 지키고, 그 안에서 맞춰 넣기 대신 키워서 오른쪽·아래 변 밖으로 흘린다. 템플릿 칸(자소설)은 템플릿대로
-  const singleObj = !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);
+  const singleObj = !mirrorX && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);
   { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
     TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
     if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv) fired('glassDark'); }
   let bleedP = null;
-  const bleedAt = (x0, y0, sym = false) => objectBleedPlace(style, { w, h, x0, y0, shape: L.shape, bleed: sym ? { ...guide.objectBleed, ...guide.objectBleed.narrow, ...(guide.objectBleed.tower && w <= guide.objectBleed.tower.maxW ? guide.objectBleed.tower : {}) } : guide.objectBleed, sym });
+  // 편집 「키비주얼 크기」: 블리드는 목표 면적을 배율²로(잘림 상한 maxCut 은 그대로)
+  const bleedCfg = b => { const k = ED?.kvSize ? KV_SIZE_K[ED.kvSize] : 1; return k === 1 ? b : { ...b, targetArea: Object.fromEntries(Object.entries(b.targetArea ?? {}).map(([s0, v]) => [s0, [v[0] * k * k, v[1] * k * k]])) }; };
+  const bleedAt = (x0, y0, sym = false) => objectBleedPlace(style, { w, h, x0, y0, shape: L.shape, bleed: bleedCfg(sym ? { ...guide.objectBleed, ...guide.objectBleed.narrow, ...(guide.objectBleed.tower && w <= guide.objectBleed.tower.maxW ? guide.objectBleed.tower : {}) } : guide.objectBleed), sym });
   if (gCorner) {
     const cw = Math.round(w * guide.objectRatio.square), ch = Math.round(h * (guide.objectRatio.squareH ?? 0.6));
     tImage = { x: w - cw, y: h - ch, w: cw, h: ch };
@@ -398,7 +409,7 @@ export function renderAd(ctx, style, spec) {
   }
   // 가이드 없는 정사각형 지면에 누끼: 오른쪽 열 대신 우하단 모서리 상자(폭 58%·높이 55%) — 글자는 전폭으로 크게, 상세는 상자 옆 열에.
   // 보드 1-884 코엑스 에브리타임 홈 카드: 건물 누끼가 오른쪽 아래를 차지하고 '모집분야' 알약·값이 그 옆에 선다. 오른쪽 열로 두면 글자 칸이 반으로 줄어 메인이 작아진다
-  const cutCorner = !!(hasKv && !logoOnly && !photoFull && !roomFull && !textureFull && !tImage && !transparent && !rules.objectBox && !guide?.objectRatio && L.shape === 'square' && (style.kvMeta?.field?.opaque ?? 1) < 0.5);
+  const cutCorner = !forcedSide && !!(hasKv && !logoOnly && !photoFull && !roomFull && !textureFull && !tImage && !transparent && !rules.objectBox && !guide?.objectRatio && L.shape === 'square' && (style.kvMeta?.field?.opaque ?? 1) < 0.5);
   // 가로로 긴 누끼(캐릭터 떼·건물, 비율 > 1.3)는 모서리 상자(폭 58%)에 넣으면 키가 작아 위가 빈다(에브리타임 288 ABL 떼: 빈 띠 54~65%) — 폭 전체 아래 띠(폭 130%까지 넘쳐도 되는 높이, 30~55%)
   const cutAr = style.kvMeta?.ar ?? 1;
   // 띠 높이 = 폭을 넘쳐도 되는 최대 배율(자르기 선이 투명 60% 이상인 열에 떨어지는 1.3~2.2)까지 — 떼가 작게 한 줄로 서는 것보다 두세 명이 크게
@@ -410,6 +421,13 @@ export function renderAd(ctx, style, spec) {
   else if (cutCorner && cutAr > 1.3) { const bandH = Math.min(Math.round(h * 0.55), Math.max(Math.round(h * 0.3), Math.round(w * cutKmax / cutAr))); tImage = { x: 0, y: h - bandH, w, h: bandH }; cutBand = bandH * cutAr > w + 1; }
   // 캐릭터 하나(세로로 선 누끼)는 58%×55% 상자에선 키가 지면의 45% 남짓 — 위가 빈다(에브리타임 288 여우 빈 띠 37%, 캐치 700 30%). 키 72%까지, 폭 64%
   else if (cutCorner) { const solo = (() => { const t = kvTypeOf(style.kvMeta); return !!(t?.flags.character && !t.flags.group); })(); const bw = Math.round(w * (solo ? 0.64 : 0.58)), bh = Math.round(h * (solo ? 0.72 : 0.55)); tImage = { x: w - bw, y: h - bh, w: bw, h: bh }; }
+  // 편집 「키비주얼 크기」: 모서리 상자(구글 580·누끼 정사각)·아래 띠 상자를 배율만큼(지면의 75%까지), 우하단에 붙인 채
+  if (ED?.kvSize && tImage && (gCorner || cutCorner) && !bleedP && KV_SIZE_K[ED.kvSize] !== 1) {
+    const k = KV_SIZE_K[ED.kvSize];
+    const nh = Math.max(Math.round(h * 0.15), Math.min(Math.round(h * 0.75), Math.round(tImage.h * k)));
+    if (tImage.x <= 1) tImage = { x: 0, y: h - nh, w, h: nh };
+    else { const nw = Math.max(Math.round(w * 0.15), Math.min(Math.round(w * 0.75), Math.round(tImage.w * k))); tImage = { x: w - nw, y: h - nh, w: nw, h: nh }; }
+  }
   const kvKindPhoto = style.kvMeta?.field?.kind === 'photo';
   // 그림이 없고 로고만 있으면 로고가 오브젝트 자리를 차지한다(보드 예시 14/136: 셀트리온·LX·CMTX·제일약품·SPC…) — 작은 상단 로고는 그때 생략
   // 매체가 로고 칸을 따로 정해 둔 템플릿(자소설)에서는 로고를 그 칸에 두고 이미지 칸은 비운다 — 로고가 두 번 나오면 안 된다
@@ -513,6 +531,7 @@ export function renderAd(ctx, style, spec) {
   let objectSide = 'none';
   if ((hasKv || logoAsObject) && !logoOnly && !photoFull && !roomFull && !textureFull) {
     if (tImage) objectSide = 'template';
+    else if (forcedSide) objectSide = forcedSide === 'left' ? 'right' : forcedSide;
     else if (kvWideBand) objectSide = 'bottom';
     else if (useRef) objectSide = L.object;
     else {
@@ -525,11 +544,15 @@ export function renderAd(ctx, style, spec) {
   }
 
   /* ── 지면 ── 키비주얼에서 읽는다. 이미지가 글자 쪽으로 맞닿는 변(facing)의 색이 지면이 된다. */
-  const facing = objectSide === 'bottom' ? 'top'
+  const facing = mirrorX ? 'right' : objectSide === 'bottom' ? 'top'
     : objectSide === 'template' ? (imgBottomBand ? 'top' : imgLeftCol ? 'right' : 'left')
     : 'left';
   // 우하단에 맞춰 넣는 이미지(자소설 팝업)는 지면 전체 높이에 걸치지 않는다 — 세로 그라데이션을 맞출 수 없으니 단색
   // 사진 전체형: 스크림 색은 브랜드색 — 흰 글자가 안 읽히는 밝은 브랜드색이면 어둡게 섞는다
+  // 편집 「배경」: 브랜드색 · 키비주얼 배경 이어 칠하기(글자 쪽 변의 색) — 직접 고른 색과 같은 길(background.color)로. 그라데이션 방향은 단색/그라데이션 고정으로 바꿔 넣고 각도는 아래에서
+  if (ED?.bgFill === 'brand' && p.primary) style = { ...style, background: { ...(style.background ?? {}), color: String(p.primary).toUpperCase() } };
+  else if (ED?.bgFill === 'kv' && style.keyVisual) { const hx = style.kvMeta?.field?.edges?.[facing]?.hex ?? style.kvMeta?.colors?.[0] ?? null; if (hx) style = { ...style, background: { ...(style.background ?? {}), color: String(hx).toUpperCase() } }; }
+  if (ED?.bgGrad) style = { ...style, background: { ...(style.background ?? {}), mode: ED.bgGrad === 'none' ? 'solid' : 'gradient' } };
   const scrimBase = (() => { const b = style.background?.color ?? p.primary ?? '#2456D6'; return contrast(b, WHITE) >= 3 ? b : mix(b, BLACK, 0.55); })();
   let field = transparent ? null
     : photoFull ? { stops: [scrimBase], angle: 0, css: scrimBase, text: WHITE, source: 'photo-full', seamless: false, gradient: false, contrast: Math.round(contrast(scrimBase, WHITE) * 100) / 100 }
@@ -564,11 +587,14 @@ export function renderAd(ctx, style, spec) {
     return { tint: mix(base, dark ? BLACK : WHITE, C.tintMix), a: Math.round((C.scrimMin + (C.scrimMax - C.scrimMin) * busy) * 100) / 100, reach: C.reach, busy: Math.round(busy * 100) / 100 };
   })();
   // 지면 CSS는 그릴 때 읽는다 — 띠 높이가 정해진 뒤 이음매 줄 색으로 지면을 잇는다(joinField)
+  // 편집 「스크림 세기」(사진 전체형): 없음 = 스크림 층을 빼고, 약·중·강 = 불투명도 띠
+  const PH_A = { low: [0.5, 0.35], mid: [0.75, 0.55], high: [0.96, 0.88] };
+  const phA = ED?.scrim ? PH_A[ED.scrim] ?? null : [0.94, 0.82];
   const bgCss = () => photoFull
-    ? `background:linear-gradient(${scrimDir},${rgba(scrimBase, 0.94)} 0%,${rgba(scrimBase, 0.82)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
+    ? `background:${phA ? `linear-gradient(${scrimDir},${rgba(scrimBase, phA[0])} 0%,${rgba(scrimBase, phA[1])} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : ''}${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
     // 질감: 통째로 깐다(가운데 맞춤 cover). 글자 대비가 4.5:1에 못 미치면(10-09: 3:1 → 4.5:1 — 파란 유리 면 위 흰 상세 글자) 글자 쪽에서 시작하는 브랜드색 스크림(사진 전체형과 같은 문법)
     : frameFull ? (() => { const tallF = L.shape === 'tall' || L.shape === 'tower'; const dw = Math.round(Math.max(w * 1.7, tallF ? h * 0.45 * (style.kvMeta?.ar ?? 1.8) : 0)); return `background:linear-gradient(${scrimDir},${rgba(field.stops[0], 0.85)} 0%,${rgba(field.stops[0], 0.55)} ${Math.round(scrimEnd * 0.45)}%,${rgba(field.stops[0], 0)} ${Math.round(scrimEnd * 0.8)}%),url('${esc(style.keyVisual)}') ${tallF ? 'right bottom' : 'right center'}/${dw}px auto no-repeat,${field.css};`; })()
-    : textureFull ? `background:${field && field.contrast < 4.5 ? `linear-gradient(${scrimDir},${rgba(scrimBase, 0.9)} 0%,${rgba(scrimBase, 0.75)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : calm ? `linear-gradient(${scrimDir},${rgba(calm.tint, calm.a)} 0%,${rgba(calm.tint, Math.round(calm.a * 0.7 * 100) / 100)} ${Math.round(calm.reach * 45)}%,${rgba(calm.tint, 0)} ${Math.round(calm.reach * 100)}%),` : ''}url('${esc(style.keyVisual)}') center/cover no-repeat;`
+    : textureFull ? `background:${ED?.scrim ? '' : field && field.contrast < 4.5 ? `linear-gradient(${scrimDir},${rgba(scrimBase, 0.9)} 0%,${rgba(scrimBase, 0.75)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : calm ? `linear-gradient(${scrimDir},${rgba(calm.tint, calm.a)} 0%,${rgba(calm.tint, Math.round(calm.a * 0.7 * 100) / 100)} ${Math.round(calm.reach * 45)}%,${rgba(calm.tint, 0)} ${Math.round(calm.reach * 100)}%),` : ''}url('${esc(style.keyVisual)}') center/cover no-repeat;`
     // 10-12 midas-cards-orange 「위에 뚝 끊기는 느낌」: 그림을 아래로 민(oy>0) 위쪽을 자리 바탕 단색(room.hex)으로 채웠더니, 그림 윗변이 그라데이션(노랑→주황)이라 단색 띠 + 가로 직선이 생겼다.
     //   위 띠는 그림의 맨 윗줄을 세로로 늘인 층으로 채운다 — 윗변 색이 가로로 흐르는 그대로 이어져 이음매가 없다(data-kv-fill="row")
     : roomFull ? `background:url('${esc(style.keyVisual)}') ${roomFull.pos}/${roomFull.size} no-repeat${roomFull.oy > 0 && style.kvMeta?.px?.[1] ? `,url('${esc(style.keyVisual)}') ${roomFull.ox}px 0px/${Number.parseFloat(roomFull.size)}px ${Math.round(style.kvMeta.px[1] * roomFull.oy)}px no-repeat` : ''} ${roomFull.hex ?? 'transparent'};`
@@ -611,7 +637,7 @@ export function renderAd(ctx, style, spec) {
   TR.logo = { place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo };
   if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
 
-  const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
+  const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${mirrorX ? pad.left : pad.right}px ${pad.bottom}px ${mirrorX ? pad.right : pad.left}px`;
   const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} data-trace="${esc(JSON.stringify(TR))}" style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
 
   /* ── 로고 전용 규격 ── */
@@ -628,7 +654,7 @@ export function renderAd(ctx, style, spec) {
   // 가이드 템플릿의 '이미지 영역' 상자 비율(구글: 580×400 폭 51% · 970 44% · 300×600 높이 32% · 300×1050 30%)이 레퍼런스 값보다 우선
   const gObj = guide?.objectRatio?.[L.shape] ?? null;
   const gObjH = kvWideBand ? guide.objectRatio.squareBand : gObj;
-  const refObjW = gObj != null ? Math.round(w * gObj) : L.objectW, refObjH = gObjH != null ? Math.round(h * gObjH) : L.objectH;
+  const refObjW = gObj != null ? Math.round(w * gObj) : (L.objectW ?? Math.round(w * 0.42)), refObjH = gObjH != null ? Math.round(h * gObjH) : (L.objectH ?? Math.round(h * 0.4));   // ?? : 편집 프리셋이 형태 문법에 없는 자리(세로형 오른쪽 열)를 고를 때만 쓰인다
   let objW = objectSide !== 'right' ? 0
     : logoAsObject ? Math.round(innerW * 0.34)
     // 매체가 정한 상자: 글자 칸은 상자 왼쪽 선에서 간격(카카오 33px)만큼 떨어져 끝난다
@@ -661,6 +687,8 @@ export function renderAd(ctx, style, spec) {
       objW = Math.max(0, innerW - gapX - tw);
     }
   }
+  // 편집 「키비주얼 크기」(오른쪽 열): 열 폭 × 배율 — 글자 칸은 안쪽 폭의 42%(CANON objectBleed.minTextCol) 아래로 내려가지 않는다
+  if (ED?.kvSize && objectSide === 'right' && !oBox && !logoAsObject && !bleedP && !strip && KV_SIZE_K[ED.kvSize] !== 1) objW = Math.round(Math.max(innerW * 0.15, Math.min(innerW * (1 - (guide?.objectBleed?.minTextCol ?? 0.42)), objW * KV_SIZE_K[ED.kvSize])));
   let objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
@@ -1033,6 +1061,13 @@ export function renderAd(ctx, style, spec) {
       if (distribute && (innerH - objReserve - 12) - used > h * 0.35) splitGap = true;
     }
   }
+  // 편집 「키비주얼 크기」(아래 띠): 자동 크기(빈 곳 채우기까지 한 뒤) × 배율 — 그림 높이 상한(CANON fill.maxObject 55%·세로형 64%, 캐릭터 72%) 안. 블리드는 위 bleedCfg 가 맡는다
+  if (ED?.kvSize && objectSide === 'bottom' && !logoAsObject && !tImage && !bleedP && KV_SIZE_K[ED.kvSize] !== 1) {
+    const maxO = (L.shape === 'tall' || L.shape === 'tower') ? Math.max(guide?.fill?.maxObjectTall ?? guide?.fill?.maxObject ?? 0.64, isCutout ? 0.72 : 0) : (guide?.fill?.maxObject ?? 0.55);
+    const full = objReserve === objH;
+    objH = Math.round(Math.max(h * 0.12, Math.min(h * maxO, objH * KV_SIZE_K[ED.kvSize])));
+    objReserve = full ? objH : Math.round(objH * (1 - overlap));
+  }
   // 자리의 글자 쪽 변이 그림 한가운데 걸리면(주인공으로 당겼거나 그림이 자리보다 길어서) 그 줄의 바탕색으로 지면을 잇는다 — 흰 글로우 바탕이 연파랑 지면 위에 네모로 뜨지 않게
   if (field && hasKv && !isCutout && !photoFull && !tImage && !oBox && (objectSide === 'bottom' || objectSide === 'right')) {
     const P = objectSide === 'bottom'
@@ -1165,6 +1200,33 @@ export function renderAd(ctx, style, spec) {
   const showSub = want.sub && !!copy.sub;
   const noticeFs = want.notice ? Math.max(8, Math.floor(fitFontSize(copy.notice, textW * 0.92, z.noticeFs * line * noticeLines, Math.min(z.noticeFs, Math.floor(innerW / 14)), 8, line))) : 0;
 
+  // 편집 「그라데이션」 방향(세로·가로·대각) — 지면이 그라데이션이면 각도만 바꾼다(단색이면 resolveField 가 명도 ±5% 두 끝을 만들어 둔다)
+  if (ED?.bgGrad && GRAD_ANGLE[ED.bgGrad] && field?.gradient && !photoFull && !roomFull && !textureFull && field.stops.length > 1) { const ang = GRAD_ANGLE[ED.bgGrad]; field = { ...field, angle: ang, css: `linear-gradient(${ang}deg,${field.stops[0]} 0%,${field.stops[field.stops.length - 1]} 100%)` }; if (TR.field) TR.field = { ...TR.field, angle: ang, stops: field.stops }; }
+  // 편집 「스크림 세기」(사진 전체형 밖): 글자 쪽에서 시작해 사라지는 지면색 막 — 글자 아래 그림을 진정시킨다
+  const scrimEl = (ED?.scrim && ED.scrim !== 'none' && SCRIM_A[ED.scrim] && !photoFull && field && !transparent) ? (() => {
+    const a = SCRIM_A[ED.scrim], base = field.stops[0];
+    const dir = (roomFull || textureFull) ? scrimDir : objectSide === 'bottom' ? 'to bottom' : mirrorX ? 'to left' : 'to right';
+    return `<div data-scrim="${ED.scrim}" style="position:absolute;left:0;top:0;width:${w}px;height:${h}px;background:linear-gradient(${dir},${rgba(base, a)} 0%,${rgba(base, Math.round(a * 0.6 * 100) / 100)} 40%,${rgba(base, 0)} 80%);pointer-events:none"></div>`;
+  })() : '';
+  // 직접 수정(overrides.layout → style.manualLayout) — 자동 배치가 끝난 뒤 마지막 변형. 그림이 지면 전체(배경형·질감·사진 전체)면 키비주얼은 못 옮긴다
+  const MAN = ED?.manual ?? null;
+  const kvBg = photoFull || roomFull || textureFull;
+  const kvFixed = !!(TR.gate?.template || oBox);   // 매체 템플릿 그림 칸·오브젝트 상자는 매체 규정 — 직접 수정으로도 안 옮긴다
+  const manKv = MAN?.kv && !kvBg && !kvFixed ? MAN.kv : null;
+  const manLogo = MAN?.logo ?? null;
+  // 로고 직접 수정 — 캔버스 크기 투명 층으로 감싸 변형 원점을 캔버스 좌표로(로고 칸 자신의 원점이면 오른쪽 붙임 칸에서 어긋난다)
+  const logoWrap = html => (manLogo && html) ? `<div data-edit="logo" style="position:absolute;left:0;top:0;width:${w}px;height:${h}px;${transformCss(manLogo, w, h)}pointer-events:none">${html}</div>` : html;
+  const kvWrap = html => (manKv && html) ? `<div data-edit="kv" style="position:absolute;left:0;top:0;width:${w}px;height:${h}px;${transformCss(manKv, w, h)}pointer-events:none">${html}</div>` : html;
+  // 왼쪽(mirrorX): 오른쪽 열 그림 층을 좌우로 옮긴다 — 붙는 변(right→left)·녹임 방향(to right→to left)·누끼 붙이는 쪽 낱말만 바꾼다. 보이는 그림 창(크기·위치 %·px)은 그대로
+  const mirrorLayer = html => !mirrorX || !html ? html : html.replace(/(<div data-object="[^"]*"[^>]*?style=")([^"]*)"/, (m0, a0, st) => a0 + st.replace(/(^|;)right:/, '$1left:').replace(/to right/g, 'to left').replace(/(background:url\('[^']*'\)\s*)([^\/;]*)\//, (m1, b0, pos) => b0 + pos.replace(/\b(left|right)\b/g, x => (x === 'left' ? 'right' : 'left')) + '/') + '"').replace(/data-melt-dir="to right"/g, 'data-melt-dir="to left"');
+  const textOff = MAN?.text ? `left:${Math.round(MAN.text.dx * w * 10) / 10}px;top:${Math.round(MAN.text.dy * h * 10) / 10}px;` : '';
+  const anchorJ = ED?.textAnchor ? { top: 'flex-start', center: 'center', bottom: 'flex-end' }[ED.textAnchor] : null;
+  if (ED) {
+    const presets = Object.fromEntries(Object.entries(ED).filter(([k]) => k !== 'manual'));
+    TR.edit = { presets, place: EP, mirror: mirrorX || undefined, manual: MAN, ignored: [MAN?.kv && kvBg ? 'kv(그림이 지면 전체)' : null, MAN?.kv && kvFixed ? 'kv(매체 템플릿 칸·오브젝트 상자)' : null, MAN?.logo && tLogo ? 'logo(템플릿 로고 칸)' : null, (ED.bgFill && ED.bgFill !== 'custom' && (roomFull || textureFull)) ? 'bgFill(그림이 곧 지면)' : null, (ED.kvSize && (kvBg || oBox || (tImage && !gCorner && !cutCorner))) ? 'kvSize(매체 칸·지면 전체)' : null].filter(Boolean) };
+    if (MAN) fired('edit.manual'); if (Object.keys(presets).length) fired('edit.preset');
+  }
+
   /* ── 조각 ── */
   const clamp = n => `display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:${n};overflow:hidden`;
   // "신입/경력"·"영업∙마케팅"은 한 덩어리다 — 빗금·가운뎃점 뒤에서 줄이 바뀌지 않게 단어 결합자(U+2060)를 끼운다(레퍼런스는 그 자리에서 끊지 않는다)
@@ -1270,7 +1332,7 @@ export function renderAd(ctx, style, spec) {
   const kvFill = (pos, join) => { const c = (cutout || !tImage) ? null : subjectCrop(style, tImage.w, tImage.h);
     return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
   // 로고가 오브젝트일 때 — 칸 가운데에 크게(칸 폭의 2/3, 높이의 절반 안). 셀트리온·LX 예시처럼 로고 하나가 그림 노릇을 한다
-  const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
+  const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${mirrorX ? w - x - zw : x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
   // 매체 오브젝트 상자(카카오 썸네일형): 둥근 상자 안에 그림을 채운다(누끼는 맞춰 넣기). 상하 여백이 남는다 — 가이드 Good Case
   const boxLayer = b => { const c = isCutout ? null : subjectCrop(style, b.w, b.h);
     return `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : c ? `${c.pos}/${c.size}` : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`; };
@@ -1319,8 +1381,9 @@ export function renderAd(ctx, style, spec) {
 
   // 하단 띠(구글 '좌측중앙 정렬' 템플릿 42px: 비씨월드 네이비 띠) — 밝은 지면엔 브랜드색, 어두운 지면엔 흰색
   const bandEl = band ? `<div data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:${band}px;background:${fgIsDark ? (p.primary ?? '#000000') : '#FFFFFF'}"></div>` : '';
-  const absLogoEl = (absLogo && logoBox)
-    ? `<div data-logo-slot="1" style="position:absolute;top:${logoBox.top}px;${logoBox.left != null && logoBox.right != null ? `left:${logoBox.left}px;right:${logoBox.right}px;justify-content:center` : logoBox.left != null ? `left:${logoBox.left}px;justify-content:flex-start` : `right:${logoBox.right}px;justify-content:flex-end`};height:${logoBox.h}px;display:flex;align-items:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:100%;width:auto;max-width:${capW(logoBox.maxW)}px;object-fit:contain;${logoFilter}"/></div>`
+  const lb = (mirrorX && logoBox) ? { ...logoBox, left: logoBox.right, right: logoBox.left } : logoBox;   // 왼쪽 배치면 로고 자리도 좌우로
+  const absLogoEl = (absLogo && lb)
+    ? `<div data-logo-slot="1" style="position:absolute;top:${lb.top}px;${lb.left != null && lb.right != null ? `left:${lb.left}px;right:${lb.right}px;justify-content:center` : lb.left != null ? `left:${lb.left}px;justify-content:flex-start` : `right:${lb.right}px;justify-content:flex-end`};height:${lb.h}px;display:flex;align-items:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:100%;width:auto;max-width:${capW(logoBox.maxW)}px;object-fit:contain;${logoFilter}"/></div>`
     : '';
 
   const metaRow = () => {
@@ -1335,9 +1398,9 @@ export function renderAd(ctx, style, spec) {
     const meta = [showSub ? copy.sub : null, want.date ? copy.date : null].filter(Boolean).join('  ·  ');
     const lg = flexLogo ? logoImg(z.logoH, Math.round(innerW * 0.16)) : '';
     return `${open('flex-direction:row;align-items:center;gap:20px')}
-${objectSide === 'right' ? bleedRight(objW) : ''}
+${objectSide === 'right' ? kvWrap(bleedRight(objW)) : ''}${scrimEl}
 ${lg ? `<div style="position:relative;flex:none;display:flex;align-items:center">${lg}</div>` : ''}
-<div style="position:relative;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center">
+<div style="position:relative;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? 'center'}${textOff ? ';' + textOff.replace(/;$/, '') : ''}">
 ${(showSub && subAbove) ? T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${Math.round(z.subFs * 0.4)}px`) : ''}
 ${T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, '', mainLines)}
 ${(meta && !(showSub && subAbove)) ? T(showSub ? 'sub' : 'date', meta, z.subFs, fwOf('date', z.subFs), subFg, 'margin-top:3px') : (want.date && subAbove ? T('date', copy.date, z.smallFs, fwOf('date', z.smallFs), subFg, 'margin-top:3px') : '')}
@@ -1346,7 +1409,7 @@ ${want.notice ? T('notice', copy.notice, noticeFs, fwOf('notice', noticeFs), sub
 </div>
 ${objectSide === 'right' ? `<div style="flex:none;width:${objW}px"></div>` : ''}
 ${want.cta ? `<div style="position:relative;flex:none">${ctaChip()}</div>` : ''}
-${tplLogo}${tplObject}
+${tplLogo}${kvWrap(tplObject)}
 </div>`;
   }
 
@@ -1370,29 +1433,29 @@ ${tplLogo}${tplObject}
   if (want.notice) tail.push(T('notice', copy.notice, noticeFs, fwOf('notice', noticeFs), subFg, `${logoAtBottom ? '' : 'margin-top:auto;'}padding-top:6px;opacity:.9`, noticeLines));
   if (lg && logoAtBottom) tail.push(logoRow);
   if (!(imgCorner && hasKv)) {
-    if (distribute && (splitGap || towerCopyOnly)) { const at = (lg && !logoAtBottom) ? 1 : 0; parts.splice(at, 0, `<div style="flex:${towerCopyOnly ? 1 : 0.8} 1 auto;min-height:0"></div>`); }
-    if (distribute) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
+    if (distribute && !anchorJ && (splitGap || towerCopyOnly)) { const at = (lg && !logoAtBottom) ? 1 : 0; parts.splice(at, 0, `<div style="flex:${towerCopyOnly ? 1 : 0.8} 1 auto;min-height:0"></div>`); }
+    if (distribute && !anchorJ) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
     parts.push(...tail);
   }
 
   // 우하단 이미지 상자 옆으로 글자가 흐르게: 텍스트 열을 블록으로 두고 이미지 자리에 float 스페이서를 세운다(세아제강 팝업 — 메인은 전폭, 상세는 이미지 왼쪽).
   // 우하단 이미지(자소설 팝업·M메인): 메인·서브는 일러스트 위를 전폭으로, 상세·부가는 일러스트 왼쪽 고정 폭 열에 (세아제강)
   const textCol = (imgCorner && hasKv)
-    ? `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:${align === 'center' ? 'center' : 'stretch'}">${head.filter(Boolean).join('\n')}<div style="width:${detailW}px;max-width:100%">${tail.filter(Boolean).join('\n')}</div></div>`
-    : `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:${(useRef ? vCenter : tall && objectSide === 'none') ? 'center' : 'flex-start'};align-items:${align === 'center' ? 'center' : 'stretch'}">${parts.filter(Boolean).join('\n')}</div>`;
+    ? `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;${anchorJ ? `justify-content:${anchorJ};` : ''}${textOff}align-items:${align === 'center' ? 'center' : 'stretch'}">${head.filter(Boolean).join('\n')}<div style="width:${detailW}px;max-width:100%">${tail.filter(Boolean).join('\n')}</div></div>`
+    : `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? ((useRef ? vCenter : tall && objectSide === 'none') ? 'center' : 'flex-start')};${textOff}align-items:${align === 'center' ? 'center' : 'stretch'}">${parts.filter(Boolean).join('\n')}</div>`;
 
   // 이미지는 글자보다 먼저 그린다(아래에 깔린다). 글자 열 옆·아래에는 같은 크기의 빈 자리만 남긴다.
   if (objectSide === 'bottom') {
     return `${open('flex-direction:column;gap:12px')}
-${bleedBottom(objH)}
+${kvWrap(bleedBottom(objH))}${scrimEl}
 ${textCol}
 <div style="flex:none;height:${objReserve}px"></div>
-${bandEl}${absLogoEl}
+${bandEl}${logoWrap(absLogoEl)}
 </div>`;
   }
-  return `${open('flex-direction:row;gap:' + Math.round(innerW * 0.04) + 'px;align-items:stretch')}
-${objectSide === 'right' ? bleedRight(objW) : ''}${tplObject}
+  return `${open(`flex-direction:${mirrorX ? 'row-reverse' : 'row'};gap:` + Math.round(innerW * 0.04) + 'px;align-items:stretch')}
+${objectSide === 'right' ? kvWrap(mirrorLayer(bleedRight(objW))) : ''}${kvWrap(tplObject)}${scrimEl}
 ${textCol}${objectSide === 'right' ? `<div style="flex:none;width:${objW}px"></div>` : ''}
-${tplLogo}${bandEl}${absLogoEl}
+${tplLogo}${bandEl}${logoWrap(absLogoEl)}
 </div>`;
 }

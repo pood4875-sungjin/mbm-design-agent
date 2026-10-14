@@ -13,6 +13,26 @@
     "png:인스타스토리 상단부분 참고 이미지.png (436×374, pngs/guide5.png)",
     "png:인스타스토리 상단부분 참고 이미지 (2).png (226×400)"
   ],
+  "officialSources": [
+    {
+      "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-feed",
+      "covers": [
+        "instagram-feed-1080"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "Meta 광고 가이드 Instagram 피드 이미지. 권장 4:5 1440×1800, 최대 30MB, 최소 너비 500px, 허용 비율 400×500(4:5)~191×100(1.91:1) — 1:1 1080도 허용 범위. 기본 문구 125자·제목 40자. 갱신일 표기 없음."
+    },
+    {
+      "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-story",
+      "covers": [
+        "instagram-story-1080x1920"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "Meta 광고 가이드 Instagram 스토리 이미지. 9:16 권장 1440×2560, 최대 30MB. 상단 14%·하단 35%·좌우 6%에 텍스트·로고·주요 요소 두지 말 것(안전영역)."
+    }
+  ],
   "common": [
     {
       "rule": "소재 사이즈 1080*1080",

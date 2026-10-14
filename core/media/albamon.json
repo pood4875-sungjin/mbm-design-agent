@@ -12,6 +12,7 @@
     "png:각 배너 예시 이미지.png (pngs/guide4.png)",
     "psd:guide_PC_메인빅배너.psd"
   ],
+  "officialSources": [],
   "common": [
     {
       "rule": "파일명 규정: 제작일_가로사이즈_세로사이즈_컬러값  ex) 20230116_752_110_3399ff",

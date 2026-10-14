@@ -89,7 +89,9 @@ export function generateArtifacts(campaign) {
     // 인쇄물·옛 배너는 행사용 렌더러가 그린다 — 채용 내용을 그 렌더러가 읽는 칸으로 옮겨 준다. 매체 광고·그룹웨어 썸네일(ad.js)은 종류별 사다리를 직접 읽는다
     const adLike = item.channel === 'ad' || item.channel === 'gwthumb';
     // 산출물별 스타일 덮어쓰기(overrides.style: 라벨 알약 톤 등) — 캠페인 스타일 위에 얹는다. 개별 편집값은 일괄 변경에서도 남는다
-    const effStyle = artifact.overrides?.style && Object.keys(artifact.overrides.style).length ? { ...campaign.style, ...artifact.overrides.style } : campaign.style;
+    let effStyle = artifact.overrides?.style && Object.keys(artifact.overrides.style).length ? { ...campaign.style, ...artifact.overrides.style } : campaign.style;
+    // 직접 수정(10-14 편집 고도화) — 산출물 하나의 키비주얼·글자 덩어리·로고 이동·크기(캔버스 몫 단위). 렌더러가 자동 배치 뒤 마지막 변형으로 얹는다(core/editlayout.js)
+    if (artifact.overrides?.layout && Object.keys(artifact.overrides.layout).length) effStyle = { ...effStyle, manualLayout: artifact.overrides.layout };
     artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), effStyle, {
       variant: artifact.variant ?? 0,
       purpose: artifact.purpose,

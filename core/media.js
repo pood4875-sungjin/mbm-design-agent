@@ -22,6 +22,15 @@ export const MEDIA = [
       "svg:피그마파일/M스탠다드패키지(23.10).svg · M프리미엄패키지 (22.04).svg · PC_채용공고배너 (22.04).svg · PC스탠다드패키지_가로형(22.04).svg · PC스탠다드패키지_세로형(22.04).svg · PC프리미엄패키지_팝업배너 (22.04).svg",
       "ai:Ai파일/M프리미엄패키지.ai · PC스탠다드패키지.ai · PC프리미엄패키지.ai · 자소설닷컴-M스탠다드패키지(메인2줄).ai"
     ],
+    "officialSources": [
+      {
+        "url": "https://jasoseol.com/business/notices",
+        "covers": [],
+        "type": "공개 HTML (공지 목록)",
+        "checkedAt": "2026-10-14",
+        "note": "자소설닷컴 기업서비스 공지사항. 광고 상품·정책 변경 공지가 올라오는 곳(예: 2025-02-18 광고 집행 일자 정책). 규격 PDF(배너 제작신청서 작성 가이드)는 공개 링크 못 찾음 — 영업 경유."
+      }
+    ],
     "common": [
       {
         "rule": "폰트: Pretendard (변경 불가, 폰트 스타일도 변경 불가)",
@@ -1464,6 +1473,7 @@ export const MEDIA = [
       "psd:한진정보통신_리멤버_메인중간배너_PC.psd",
       "psd:한진정보통신_리멤버_메인중간배너_MobileAPP.psd"
     ],
+    "officialSources": [],
     "common": [
       {
         "rule": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB",
@@ -2330,6 +2340,7 @@ export const MEDIA = [
       "figma:잡다 섹션 메모 text 414:240",
       "png:잡다 메인배너_디자인 가이드.png (adguide/잡다, 1770×5770 / pngs/guide2.png, Figma 보드 이미지 414:454·414:455로도 삽입)"
     ],
+    "officialSources": [],
     "common": [
       {
         "rule": "※ 피그마 제작 > 파일 유형 및 용량: PNG 2배 추출 / 용량 따로 제한 없음",
@@ -2808,6 +2819,18 @@ export const MEDIA = [
       "psd:PC_상품_중앙배너_BG.psd",
       "psd:M_상품_중앙배너_BG.psd",
       "psd:M_상품_중앙배너_Logo.psd"
+    ],
+    "officialSources": [
+      {
+        "url": "https://apply.catch.co.kr/main/ProductInfo/RecruitBanner",
+        "covers": [
+          "catch-mainlarge-image-pc",
+          "catch-mainlarge-image-mo"
+        ],
+        "type": "공개 HTML (상품 안내만)",
+        "checkedAt": "2026-10-14",
+        "note": "캐치 채용배너 상품 안내(상품명·노출 위치·구좌·단가). 규격·글자수 없음 — 제작 가이드 PDF는 「상품소개서 받기」 폼/영업 경유. 중앙 배너(center-object/logo)는 이 페이지 상품명과 바로 매칭 안 됨."
+      }
     ],
     "common": [
       {
@@ -3415,6 +3438,21 @@ export const MEDIA = [
       "figma:구글GDN 소재 반려 이슈 사례 (section 445:46)",
       "figma:구글GDN 섹션 상단 메모 text 414:2038",
       "png:구글 가이드.png (adguide/구글, pngs/guide1.png)"
+    ],
+    "officialSources": [
+      {
+        "url": "https://support.google.com/google-ads/answer/1722096?hl=ko",
+        "covers": [
+          "google-gdn-580x400",
+          "google-gdn-970x250",
+          "google-gdn-300x600",
+          "google-gdn-300x1050",
+          "google-gdn-930x180"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "Google Ads 고객센터 「업로드된 디스플레이 광고 사양」. 5개 크기 모두 허용 목록에 있음, GIF/JPG/PNG, 이미지 최대 150KB. 갱신일 표기 없음."
+      }
     ],
     "common": [
       {
@@ -4292,6 +4330,38 @@ export const MEDIA = [
       "figma:NAPDSP 섹션 상단 메모 text 418:2738",
       "pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf (ⓒ Update 2026.03, 32p)"
     ],
+    "officialSources": [
+      {
+        "url": "https://library.nasmedia.co.kr/file/ec8487cca87c575f470bf92df6efb042",
+        "covers": [
+          "nap-dsp-band-320x50",
+          "nap-dsp-band-320x100",
+          "nap-dsp-full-300x250",
+          "nap-dsp-full-320x480",
+          "nap-dsp-bizboard-1029x258",
+          "nap-dsp-pc-970x90",
+          "nap-dsp-pc-728x90"
+        ],
+        "type": "공개 PDF",
+        "checkedAt": "2026-10-14",
+        "note": "나스미디어 자료실 「nap dsp 소재 제작 가이드_202610.pdf」(33쪽, 표지 Update 2026.10). 우리 원본은 _202603(32쪽) — 비즈보드 절이 바뀜(1029×258 → 960×300, PNG-32 삭제, 120×46 로고 문구 삭제 → 템플릿 지정 위치, 카피 240~526px·간격 32px). 같은 링크가 새 판으로 교체되는 방식."
+      },
+      {
+        "url": "https://napdsp-team.github.io/nap-dsp/",
+        "covers": [
+          "nap-dsp-band-320x50",
+          "nap-dsp-band-320x100",
+          "nap-dsp-full-300x250",
+          "nap-dsp-full-320x480",
+          "nap-dsp-bizboard-1029x258",
+          "nap-dsp-pc-970x90",
+          "nap-dsp-pc-728x90"
+        ],
+        "type": "공개 HTML (링크 허브)",
+        "checkedAt": "2026-10-14",
+        "note": "nap dsp 상품소개서 페이지(문의 nap_dsp@nasmedia.co.kr). 「nap dsp 소재 제작 가이드」 버튼이 위 library.nasmedia.co.kr 파일을 가리킴. github.io 호스팅이라 공식성은 링크 대상(nasmedia 도메인)으로 판단."
+      }
+    ],
     "common": [
       {
         "rule": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF",
@@ -5157,6 +5227,26 @@ export const MEDIA = [
       "png:인스타스토리 상단부분 참고 이미지.png (436×374, pngs/guide5.png)",
       "png:인스타스토리 상단부분 참고 이미지 (2).png (226×400)"
     ],
+    "officialSources": [
+      {
+        "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-feed",
+        "covers": [
+          "instagram-feed-1080"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "Meta 광고 가이드 Instagram 피드 이미지. 권장 4:5 1440×1800, 최대 30MB, 최소 너비 500px, 허용 비율 400×500(4:5)~191×100(1.91:1) — 1:1 1080도 허용 범위. 기본 문구 125자·제목 40자. 갱신일 표기 없음."
+      },
+      {
+        "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-story",
+        "covers": [
+          "instagram-story-1080x1920"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "Meta 광고 가이드 Instagram 스토리 이미지. 9:16 권장 1440×2560, 최대 30MB. 상단 14%·하단 35%·좌우 6%에 텍스트·로고·주요 요소 두지 말 것(안전영역)."
+      }
+    ],
     "common": [
       {
         "rule": "소재 사이즈 1080*1080",
@@ -5468,6 +5558,49 @@ export const MEDIA = [
       "psd:카카오 cpt/01_banner_template_background.psd / 02_banner_template_object.psd / 03_banner_template_text.psd",
       "ai:카카오톡 CPT 제작가이드.ai (아트보드 4개)",
       "jpg:카카오 cpt/자산 1-100.jpg (pngs/guide6.png)"
+    ],
+    "officialSources": [
+      {
+        "url": "https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide",
+        "covers": [
+          "kakao-bizboard-mo"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "카카오 비즈보드 제작 가이드. 1029×258 · PNG-24/32 · 300KB 이하, 카피는 글자수가 아니라 px(최소 290/480px, 최대 796px 권장), 우상단 66×174px AD·AI 마크 영역. 날짜 표기 없음. 본문 Markdown: 같은 URL + .md"
+      },
+      {
+        "url": "https://kakaobusiness.gitbook.io/main/ad/moment/performance/displayad/content-guide",
+        "covers": [
+          "kakao-display-pc-promo",
+          "kakao-display-pc-profile"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "카카오 디스플레이 광고 제작 가이드. 2:1 1200×600 이상 · 500KB · 2:1 상/좌/우 40px·하단 90px 세이프존 · 프로필 300×300 10px 여백 · 프로필 이름 20자/타이틀 25자/홍보문구 45자."
+      },
+      {
+        "url": "https://kakaobusiness.gitbook.io/main/ad/moment/guarantee/cpt/content-guide/custom",
+        "covers": [
+          "kakao-cpt-background",
+          "kakao-cpt-object",
+          "kakao-cpt-text"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "커스텀 비즈보드(CPT) 제작 가이드. 배경 1290×258 · 300KB · Safe Zone 937×222, 오브젝트 315×258 투명 PNG-24 · 면적 70% 이내, 텍스트 1029×258 투명 PNG-24 · 300KB · 텍스트 가로 290~576px · 오브젝트와 42px."
+      },
+      {
+        "url": "https://kakaobusiness.gitbook.io/main/ad/moment/guarantee/cpt/10-20",
+        "covers": [
+          "kakao-cpt-background",
+          "kakao-cpt-object",
+          "kakao-cpt-text"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "「제작 가이드 (10/20 이후 버전)」 — CPT 완화 가이드 새 판(고딕계열·브랜드 폰트 허용 등). 적용일 10/20 이후. 기존 판: /guarantee/cpt/content-guide"
+      }
     ],
     "common": [
       {
@@ -6224,6 +6357,21 @@ export const MEDIA = [
       "pdf:네이티브 모바일.pdf",
       "psd:N_Mobile_Image_1250X560 (1).psd"
     ],
+    "officialSources": [
+      {
+        "url": "https://ads.naver.com/help",
+        "covers": [
+          "naver-gfa-mobile-da-1250x560",
+          "naver-gfa-native-pc-342x228",
+          "naver-gfa-native-pc-profile-300",
+          "naver-gfa-native-mo-342x228",
+          "naver-gfa-native-mo-profile-300"
+        ],
+        "type": "공개 HTML (JS 렌더, 자동 수집 불가)",
+        "checkedAt": "2026-10-14",
+        "note": "네이버 광고주센터 도움말(성과형 디스플레이 소재 가이드가 있는 곳). 본문이 JS로 그려지고 WebFetch·브라우저 자동 접근이 막혀 소재 가이드 문서의 정확한 URL과 숫자는 확인 못 함. 대행사 글 기준 1250×560·250KB·여백 50/35/240은 우리 값과 같음(공식 원문 대조 아님)."
+      }
+    ],
     "common": [
       {
         "rule": "※ 피그마 제작 > 각 소재별 용량 확인 필수! / JPG, PNG / 배경색 기준 체크",
@@ -6809,6 +6957,15 @@ export const MEDIA = [
       "psd:에브리타임/04_공모전,대외활동,채용정보/공모전,대외활동,채용정보_카드이미지.psd",
       "psd:에브리타임/05_검색키워드/검색키워드_썸네일이미지.psd",
       "psd:에브리타임/06_데일리메시지/데일리메시지_프로필이미지.psd"
+    ],
+    "officialSources": [
+      {
+        "url": "https://www.vinuteam.com/business/ad",
+        "covers": [],
+        "type": "공개 HTML (상품 안내만)",
+        "checkedAt": "2026-10-14",
+        "note": "비누랩스 광고 비즈니스 페이지. 「에브리타임_광고상품소개서_202607.pdf」(12쪽, 2026-09-30까지 유효) 다운로드 링크가 있으나 소재 규격 없음. 기준본 「에브리타임 소재제작가이드_26년7월.pdf」(55쪽)는 공개 링크 못 찾음 — 영업 경유."
+      }
     ],
     "common": [
       {
@@ -7781,6 +7938,30 @@ export const MEDIA = [
       "psd:블라인드_채용채널&피드광고_[Guide] 02.In-Feed Image Ad.psd (캔버스 1500×628, 아트보드 96×96 + 1200×628)",
       "psd:블라인드_게시글배너,댓글배너_[Guide] 03.Channel Target Banner.psd (캔버스 3568×2864, 아트보드 1250×560 샘플 3개 + 2108×2864 가이드)"
     ],
+    "officialSources": [
+      {
+        "url": "https://www.teamblind.com/kr/ad-inquiry",
+        "covers": [
+          "blind-brand-logo",
+          "blind-feed-image",
+          "blind-post-banner"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "블라인드 광고(blindAD) 공식 소개 페이지. 상단 「제작가이드」 링크가 아래 Google Drive PDF를 가리킴. 페이지 자체에는 규격 숫자 없음."
+      },
+      {
+        "url": "https://drive.google.com/file/d/1WAYHjWBLFZXHvcOpVOso35ESJiEHaNEz/view",
+        "covers": [
+          "blind-brand-logo",
+          "blind-feed-image",
+          "blind-post-banner"
+        ],
+        "type": "공개 PDF",
+        "checkedAt": "2026-10-14",
+        "note": "파일명 「Blind KR) 광고가이드_2503.pdf」(공식 페이지 링크). 이미지 PDF라 숫자 자동 대조는 못 함 — 영업 자료 「블라인드 2025 가이드.pdf」와 같은 판으로 추정."
+      }
+    ],
     "common": [
       {
         "rule": "※ 피그마 제작 > 각 소재별 용량 확인 필수! / JPG, PNG / 배경색 기준 체크",
@@ -8182,6 +8363,18 @@ export const MEDIA = [
     "sources": [
       "figma:당근01(소재가이드)"
     ],
+    "officialSources": [
+      {
+        "url": "https://businessdaangn.gitbook.io/business.daangn/ads-pro/product/creative",
+        "covers": [
+          "daangn-native-feed-image",
+          "daangn-catalog-product"
+        ],
+        "type": "공개 HTML",
+        "checkedAt": "2026-10-14",
+        "note": "당근비즈니스 전문가모드 「제작 가이드」. 이미지 JPG/JPEG/PNG · 10MB 이하 · 최소 200×200 1:1, 광고 제목 최대 30자, 브랜드 이름 최대 20자, 심의필 58자, 카탈로그 광고 절 포함. 날짜 표기 없음. 본문 Markdown: 같은 URL + .md"
+      }
+    ],
     "common": [],
     "textColors": null,
     "fonts": null,
@@ -8283,6 +8476,7 @@ export const MEDIA = [
       "pdf:[스펙업] 상품소개서_2601.pdf (42p)",
       "png:카드뉴스, 글양식배너 규격.png (194×49 원본, pngs/guide3.png로 판독)"
     ],
+    "officialSources": [],
     "common": [
       {
         "rule": "배너 파일 형식 : JPG/GIF/PNG",
@@ -8707,6 +8901,7 @@ export const MEDIA = [
       "png:각 배너 예시 이미지.png (pngs/guide4.png)",
       "psd:guide_PC_메인빅배너.psd"
     ],
+    "officialSources": [],
     "common": [
       {
         "rule": "파일명 규정: 제작일_가로사이즈_세로사이즈_컬러값  ex) 20230116_752_110_3399ff",
@@ -9467,6 +9662,7 @@ export const MEDIA = [
       "psd:게임잡_PC커뮤니티Pick_1780x528.psd",
       "psd:게임잡_MO커뮤니티Pick_640x240.psd"
     ],
+    "officialSources": [],
     "common": [
       {
         "rule": "파일명 규정: 제작일_가로사이즈_세로사이즈_컬러값  ex) 20250116_752_110_3399ff",

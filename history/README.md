@@ -22,6 +22,9 @@
 | 2026-10-12 | [2026-10-12_가이드_대조표.md](2026-10-12_가이드_대조표.md) | **가이드 대조표** — 렌더러가 결정을 `data-trace` 로 남기고, 케이스·규격마다 규칙 44개의 「가이드 값 vs DOM 실측」을 ✓/✗/– 로(`scripts/guide-trace.mjs`·`guide-rules.mjs`, `cases.mjs run --trace`), 92케이스 규격 392 · 규칙 대조 7,080 · ✓ 6,969 · ✗ 111(53케이스) · – 3,306, 테스트 +17 |
 | 2026-10-12 → 13 | [2026-10-13_규격정리_샘플_전체대조.md](2026-10-13_규격정리_샘플_전체대조.md) | **「매체별 규격정리」 전체 대조** — Figma 116프레임·46규격 매칭(글자 실측 29) vs 우리 렌더 → 판정 맞음 18·차이 11·측정 안 함 17, 매체 JSON `sampleText`(템플릿 실측 층) + 규칙 11(샘플 역할·크기·4줄 나누기·날짜 전체 기간 유지·낱말 폭 검사), 실패 테스트 4건 원인(「~마감일」 후보) 해결, r43 32 → r47 34(개선 2·회귀 3 맞바꿈), 전수 검사 6,761/6,808, 대조표 ✗ 111 → 95, 테스트 372 |
 | 2026-10-14 | [2026-10-14_SVG_내보내기.md](2026-10-14_SVG_내보내기.md) | **SVG 내보내기(Figma 편집용)** — `core/svgexport.js`(글자=텍스트·KV/로고=이미지 레이어·그라데이션·녹임 마스크·SVG 로고 벡터), 앱 「SVG (Figma 편집용)」·「ZIP + SVG」, 충실도 검사 `scripts/svg-check.mjs` 6케이스×8규격 48/48, Figma 가져오기 확인(글자 TEXT ✓, 자간은 Figma 가 안 읽음), 그림 변화 없음, 테스트 386 |
+| 2026-10-14 | [2026-10-14_매체_가이드_출처.md](2026-10-14_매체_가이드_출처.md) | **매체 공식 가이드 출처** — 15개 매체 공식 링크 조사(숫자까지 자동 감시 가능 5 · 새 판 신호만 4 · 영업 경유 6), 매체 JSON 에 `officialSources` 키, [docs/media-sources.md](../docs/media-sources.md) · `ref/learned/media-watch.json`, NAP DSP 가이드 2026.10 새 판 발견(비즈보드 1029×258 → 960×300 등, 미반영), 규정 값 변경 없음, 테스트 395 |
+| 2026-10-14 | [2026-10-14_캠페인_목록_로고_폴더.md](2026-10-14_캠페인_목록_로고_폴더.md) | **내 캠페인 목록: 로고 썸네일 · 폴더** — 로고 있으면 96px 썸네일(흰 로고는 어두운 칸), 폴더 만들기·이름·삭제(캠페인은 「폴더 없음」으로)·순서·접기 기억, 끌어 놓기 + 「폴더로 이동」(키보드), 검색은 폴더를 가로질러 폴더 이름 표시, 위 막대 메뉴 폴더별 묶음, 새 키 `mbm-folders`(v1, 옛 데이터는 전부 폴더 없음), 폰 폭 홈 쌓기, `core/folders.js`, 그림 변화 없음, 테스트 395(+8) |
+| 2026-10-14 | [2026-10-14_편집_고도화_가이드_검수.md](2026-10-14_편집_고도화_가이드_검수.md) | **편집 고도화 · 앱 가이드 검수** — 프리셋 6종(키비주얼 위치·크기·글자 정렬·배경·그라데이션·스크림, 캠페인 일괄 + 산출물 「공통 따름」, 「자동: …」, 매체 규정 자리는 못 고름+이유) · 직접 수정(키비주얼·글자 덩어리·로고 끌기·모서리 크기·화살표, 안전영역 밖 빨간 테두리→놓으면 안쪽, 「같은 모양 규격에도」·「자동으로 되돌리기」, `overrides.layout`) · 가이드 검수(`core/guidecheck.js`·`guidemeasure.js`·생성 `rules-data.js`, 카드 「가이드 ✓·✗」, 규칙대로 고치기·넘기기·눈으로 확인, 승인 요약 — 막지 않음) · 내보내기에 개별 값 반영, r48 34(r47 34, 변화 0), 기본 렌더 바이트 동일 7,084장, 테스트 413 |
 
 ## 쌓는 규칙 (Claude용)
 - 작업을 마치면 다음 세 가지를 합니다.
@@ -29,7 +32,7 @@
   2. 위 표에 한 줄을 추가합니다.
   3. `00_브리핑.md`의 「지금 어디」「정해야 할 것」「테스트 누적」을 갱신합니다.
 - 한국어로, 쉽게 씁니다. 규칙을 바꿨으면 `파일:줄 · 이전 → 이후 · 근거 케이스`를 남깁니다.
-- **규칙을 넣거나 바꾸면 `ref/learned/rules.json` 에 한 줄 추가·수정하고 `node scripts/rules-ledger.mjs --md` 로 검사합니다**(규칙장부.md 표가 같이 갱신됩니다).
+- **규칙을 넣거나 바꾸면 `ref/learned/rules.json` 에 한 줄 추가·수정하고 `node scripts/rules-ledger.mjs --md` 로 검사합니다**(규칙장부.md 표가 같이 갱신됩니다) 앱 「가이드 검수」 문장을 맞추려면 `node scripts/build-rules.mjs` 로 `core/rules-data.js` 도 다시 만듭니다(10-14).
 - 테스트 수치는 `ref/learned/cases/rounds.json`(라운드 기록)에서 옮깁니다. 추측으로 채우지 않습니다.
 - 이미지는 `ref/learned/cases/_out/`에 있습니다. 이 폴더는 git에 올라가지 않는 로컬 전용입니다. 링크는 상대경로로 겁니다.
 - 사용자 결정이 나면 브리핑의 「정해야 할 것」에서 지우고, 날짜별 기록에 「결정: …」으로 남깁니다.
@@ -59,4 +62,4 @@
 | [kv-cutout](../.claude/skills/kv-cutout/SKILL.md) | KV 누끼 따기(바탕 곡면 + GrabCut, 사람은 Apple Vision) → 두 바탕 미리보기 → `<id>-cut` 케이스 | 「이 KV 누끼 따서 얹어봐」 |
 | [logo-prep](../.claude/skills/logo-prep/SKILL.md) | 로고 svg·ico·gif·webp·jpg → 투명 PNG(+바탕·글자 속 지우기), 실패·작은 로고 보고, 접촉 시트 | 「로고 폴더 변환해줘」 |
 
-- 보조 스크립트: `scripts/figma/`(Figma 플러그인 코드·에셋 받기·staging·1x 렌더 실측·KV 면적·나란히 이미지), `scripts/case-review.mjs`(눈 검수 한 장), `scripts/round-diff.mjs`(라운드 비교), `scripts/gallery.mjs`(갤러리), `scripts/kv-cutout.py`·`scripts/kv-personseg.swift`(누끼), `scripts/kv-person.swift`(인물 상자 — 주인공 상자만, 오려 내지 않음), `scripts/logo-prep.py`(로고 변환), `node scripts/cases.mjs relogo`(로고 규칙을 바꿨을 때 장부 로고 다시 손질), `node scripts/cases.mjs type <id> <유형|auto>`(유형 직접 지정), `scripts/rules-ledger.mjs`(규칙 장부 검사·표 재생성), `scripts/guide-trace.mjs`(가이드 대조표 — 규칙별 가이드 값 vs 실측, 규칙·판정은 `scripts/guide-rules.mjs`).
+- 보조 스크립트: `scripts/figma/`(Figma 플러그인 코드·에셋 받기·staging·1x 렌더 실측·KV 면적·나란히 이미지), `scripts/case-review.mjs`(눈 검수 한 장), `scripts/round-diff.mjs`(라운드 비교), `scripts/gallery.mjs`(갤러리), `scripts/kv-cutout.py`·`scripts/kv-personseg.swift`(누끼), `scripts/kv-person.swift`(인물 상자 — 주인공 상자만, 오려 내지 않음), `scripts/logo-prep.py`(로고 변환), `node scripts/cases.mjs relogo`(로고 규칙을 바꿨을 때 장부 로고 다시 손질), `node scripts/cases.mjs type <id> <유형|auto>`(유형 직접 지정), `scripts/rules-ledger.mjs`(규칙 장부 검사·표 재생성), `scripts/guide-trace.mjs`(가이드 대조표 — 규칙별 가이드 값 vs 실측, 판정은 `core/guidecheck.js`(= `scripts/guide-rules.mjs`)·실측은 `core/guidemeasure.js` — 앱 「가이드 검수」와 같은 코드), `scripts/build-rules.mjs`(rules.json → 앱용 생성 파일 `core/rules-data.js`, 장부를 고치면 다시 돌린다).

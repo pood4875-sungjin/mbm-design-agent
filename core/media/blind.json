@@ -16,6 +16,30 @@
     "psd:블라인드_채용채널&피드광고_[Guide] 02.In-Feed Image Ad.psd (캔버스 1500×628, 아트보드 96×96 + 1200×628)",
     "psd:블라인드_게시글배너,댓글배너_[Guide] 03.Channel Target Banner.psd (캔버스 3568×2864, 아트보드 1250×560 샘플 3개 + 2108×2864 가이드)"
   ],
+  "officialSources": [
+    {
+      "url": "https://www.teamblind.com/kr/ad-inquiry",
+      "covers": [
+        "blind-brand-logo",
+        "blind-feed-image",
+        "blind-post-banner"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "블라인드 광고(blindAD) 공식 소개 페이지. 상단 「제작가이드」 링크가 아래 Google Drive PDF를 가리킴. 페이지 자체에는 규격 숫자 없음."
+    },
+    {
+      "url": "https://drive.google.com/file/d/1WAYHjWBLFZXHvcOpVOso35ESJiEHaNEz/view",
+      "covers": [
+        "blind-brand-logo",
+        "blind-feed-image",
+        "blind-post-banner"
+      ],
+      "type": "공개 PDF",
+      "checkedAt": "2026-10-14",
+      "note": "파일명 「Blind KR) 광고가이드_2503.pdf」(공식 페이지 링크). 이미지 PDF라 숫자 자동 대조는 못 함 — 영업 자료 「블라인드 2025 가이드.pdf」와 같은 판으로 추정."
+    }
+  ],
   "common": [
     {
       "rule": "※ 피그마 제작 > 각 소재별 용량 확인 필수! / JPG, PNG / 배경색 기준 체크",

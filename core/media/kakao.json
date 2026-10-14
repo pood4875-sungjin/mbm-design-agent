@@ -21,6 +21,49 @@
     "ai:카카오톡 CPT 제작가이드.ai (아트보드 4개)",
     "jpg:카카오 cpt/자산 1-100.jpg (pngs/guide6.png)"
   ],
+  "officialSources": [
+    {
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide",
+      "covers": [
+        "kakao-bizboard-mo"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "카카오 비즈보드 제작 가이드. 1029×258 · PNG-24/32 · 300KB 이하, 카피는 글자수가 아니라 px(최소 290/480px, 최대 796px 권장), 우상단 66×174px AD·AI 마크 영역. 날짜 표기 없음. 본문 Markdown: 같은 URL + .md"
+    },
+    {
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/performance/displayad/content-guide",
+      "covers": [
+        "kakao-display-pc-promo",
+        "kakao-display-pc-profile"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "카카오 디스플레이 광고 제작 가이드. 2:1 1200×600 이상 · 500KB · 2:1 상/좌/우 40px·하단 90px 세이프존 · 프로필 300×300 10px 여백 · 프로필 이름 20자/타이틀 25자/홍보문구 45자."
+    },
+    {
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/guarantee/cpt/content-guide/custom",
+      "covers": [
+        "kakao-cpt-background",
+        "kakao-cpt-object",
+        "kakao-cpt-text"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "커스텀 비즈보드(CPT) 제작 가이드. 배경 1290×258 · 300KB · Safe Zone 937×222, 오브젝트 315×258 투명 PNG-24 · 면적 70% 이내, 텍스트 1029×258 투명 PNG-24 · 300KB · 텍스트 가로 290~576px · 오브젝트와 42px."
+    },
+    {
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/guarantee/cpt/10-20",
+      "covers": [
+        "kakao-cpt-background",
+        "kakao-cpt-object",
+        "kakao-cpt-text"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "「제작 가이드 (10/20 이후 버전)」 — CPT 완화 가이드 새 판(고딕계열·브랜드 폰트 허용 등). 적용일 10/20 이후. 기존 판: /guarantee/cpt/content-guide"
+    }
+  ],
   "common": [
     {
       "rule": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG",

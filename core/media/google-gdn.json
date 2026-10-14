@@ -15,6 +15,21 @@
     "figma:구글GDN 섹션 상단 메모 text 414:2038",
     "png:구글 가이드.png (adguide/구글, pngs/guide1.png)"
   ],
+  "officialSources": [
+    {
+      "url": "https://support.google.com/google-ads/answer/1722096?hl=ko",
+      "covers": [
+        "google-gdn-580x400",
+        "google-gdn-970x250",
+        "google-gdn-300x600",
+        "google-gdn-300x1050",
+        "google-gdn-930x180"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "Google Ads 고객센터 「업로드된 디스플레이 광고 사양」. 5개 크기 모두 허용 목록에 있음, GIF/JPG/PNG, 이미지 최대 150KB. 갱신일 표기 없음."
+    }
+  ],
   "common": [
     {
       "rule": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG",

@@ -16,6 +16,18 @@
     "psd:M_상품_중앙배너_BG.psd",
     "psd:M_상품_중앙배너_Logo.psd"
   ],
+  "officialSources": [
+    {
+      "url": "https://apply.catch.co.kr/main/ProductInfo/RecruitBanner",
+      "covers": [
+        "catch-mainlarge-image-pc",
+        "catch-mainlarge-image-mo"
+      ],
+      "type": "공개 HTML (상품 안내만)",
+      "checkedAt": "2026-10-14",
+      "note": "캐치 채용배너 상품 안내(상품명·노출 위치·구좌·단가). 규격·글자수 없음 — 제작 가이드 PDF는 「상품소개서 받기」 폼/영업 경유. 중앙 배너(center-object/logo)는 이 페이지 상품명과 바로 매칭 안 됨."
+    }
+  ],
   "common": [
     {
       "rule": "※ [포스터/사이니지] 공고 이미지 원본 파일 전달시 캐치에서 제작 가능.",

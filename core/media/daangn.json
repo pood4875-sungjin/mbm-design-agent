@@ -11,6 +11,18 @@
   "sources": [
     "figma:당근01(소재가이드)"
   ],
+  "officialSources": [
+    {
+      "url": "https://businessdaangn.gitbook.io/business.daangn/ads-pro/product/creative",
+      "covers": [
+        "daangn-native-feed-image",
+        "daangn-catalog-product"
+      ],
+      "type": "공개 HTML",
+      "checkedAt": "2026-10-14",
+      "note": "당근비즈니스 전문가모드 「제작 가이드」. 이미지 JPG/JPEG/PNG · 10MB 이하 · 최소 200×200 1:1, 광고 제목 최대 30자, 브랜드 이름 최대 20자, 심의필 58자, 카탈로그 광고 절 포함. 날짜 표기 없음. 본문 Markdown: 같은 URL + .md"
+    }
+  ],
   "common": [],
   "textColors": null,
   "fonts": null,

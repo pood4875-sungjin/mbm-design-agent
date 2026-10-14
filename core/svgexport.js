@@ -501,7 +501,10 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     const out = [];
     const radii = radiiOf(cs);
     const layers = cs.backgroundImage && cs.backgroundImage !== 'none' ? splitTopLevel(cs.backgroundImage) : [];
-    const sizes = splitTopLevel(cs.backgroundSize), poss = splitTopLevel(cs.backgroundPosition), reps = splitTopLevel(cs.backgroundRepeat);
+    // 조상에 배율 변형(편집 직접 수정의 키비주얼 크기)이 있으면 계산 스타일의 px(크기·위치)는 변형 전 값이다 — 상자 배율만큼 곱한다
+    const kS = (el.closest?.('[data-edit]') && el.offsetWidth > 0) ? b.w / el.offsetWidth : 1;
+    const scalePx = str => Math.abs(kS - 1) < 1e-3 ? str : String(str).replace(/(-?[\d.]+)px/g, (m0, n) => `${Math.round(parseFloat(n) * kS * 100) / 100}px`);
+    const sizes = splitTopLevel(scalePx(cs.backgroundSize)), poss = splitTopLevel(scalePx(cs.backgroundPosition)), reps = splitTopLevel(cs.backgroundRepeat);
     const bg = parseColor(cs.backgroundColor);
     if (bg && bg.a > 0) out.push({ kind: 'color', svg: roundRect(b.x, b.y, b.w, b.h, radii, paintAttrs(bg)) });
     const imgIdx = layers.map((l, i) => urlOf(l) ? i : -1).filter(i => i >= 0);
@@ -623,6 +626,8 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     if (name === '칩' || name === 'CTA') { const t = el.textContent.trim().slice(0, 12); if (t) name = `${name} ${t}`; }
     for (const k of UNSUPPORTED) {
       if (el.tagName === 'IMG' && k === 'filter') continue;
+      // 편집 직접 수정(10-14)의 이동·배율은 상자(getBoundingClientRect)에 이미 들어 있다 — 같은 비율 확대 + 이동(matrix(s,0,0,s,x,y))이면 옮긴 것으로 친다
+      if (k === 'transform' && /^matrix\(\s*([-\d.e]+),\s*0,\s*0,\s*\1,/.test(String(cs.transform)) && (el.hasAttribute('data-edit') || el.hasAttribute('data-logo-slot'))) continue;
       const v = cs[k]; if (v && v !== NO_EFFECT[k] && v !== 'auto') note(`${EFFECT_LABEL[k]} — SVG 로 옮기지 않음(${String(v).slice(0, 40)})`);
     }
     const parts = [];

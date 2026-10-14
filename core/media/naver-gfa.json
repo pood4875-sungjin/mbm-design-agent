@@ -17,6 +17,21 @@
     "pdf:네이티브 모바일.pdf",
     "psd:N_Mobile_Image_1250X560 (1).psd"
   ],
+  "officialSources": [
+    {
+      "url": "https://ads.naver.com/help",
+      "covers": [
+        "naver-gfa-mobile-da-1250x560",
+        "naver-gfa-native-pc-342x228",
+        "naver-gfa-native-pc-profile-300",
+        "naver-gfa-native-mo-342x228",
+        "naver-gfa-native-mo-profile-300"
+      ],
+      "type": "공개 HTML (JS 렌더, 자동 수집 불가)",
+      "checkedAt": "2026-10-14",
+      "note": "네이버 광고주센터 도움말(성과형 디스플레이 소재 가이드가 있는 곳). 본문이 JS로 그려지고 WebFetch·브라우저 자동 접근이 막혀 소재 가이드 문서의 정확한 URL과 숫자는 확인 못 함. 대행사 글 기준 1250×560·250KB·여백 50/35/240은 우리 값과 같음(공식 원문 대조 아님)."
+    }
+  ],
   "common": [
     {
       "rule": "※ 피그마 제작 > 각 소재별 용량 확인 필수! / JPG, PNG / 배경색 기준 체크",

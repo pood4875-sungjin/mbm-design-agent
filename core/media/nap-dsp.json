@@ -14,6 +14,38 @@
     "figma:NAPDSP 섹션 상단 메모 text 418:2738",
     "pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf (ⓒ Update 2026.03, 32p)"
   ],
+  "officialSources": [
+    {
+      "url": "https://library.nasmedia.co.kr/file/ec8487cca87c575f470bf92df6efb042",
+      "covers": [
+        "nap-dsp-band-320x50",
+        "nap-dsp-band-320x100",
+        "nap-dsp-full-300x250",
+        "nap-dsp-full-320x480",
+        "nap-dsp-bizboard-1029x258",
+        "nap-dsp-pc-970x90",
+        "nap-dsp-pc-728x90"
+      ],
+      "type": "공개 PDF",
+      "checkedAt": "2026-10-14",
+      "note": "나스미디어 자료실 「nap dsp 소재 제작 가이드_202610.pdf」(33쪽, 표지 Update 2026.10). 우리 원본은 _202603(32쪽) — 비즈보드 절이 바뀜(1029×258 → 960×300, PNG-32 삭제, 120×46 로고 문구 삭제 → 템플릿 지정 위치, 카피 240~526px·간격 32px). 같은 링크가 새 판으로 교체되는 방식."
+    },
+    {
+      "url": "https://napdsp-team.github.io/nap-dsp/",
+      "covers": [
+        "nap-dsp-band-320x50",
+        "nap-dsp-band-320x100",
+        "nap-dsp-full-300x250",
+        "nap-dsp-full-320x480",
+        "nap-dsp-bizboard-1029x258",
+        "nap-dsp-pc-970x90",
+        "nap-dsp-pc-728x90"
+      ],
+      "type": "공개 HTML (링크 허브)",
+      "checkedAt": "2026-10-14",
+      "note": "nap dsp 상품소개서 페이지(문의 nap_dsp@nasmedia.co.kr). 「nap dsp 소재 제작 가이드」 버튼이 위 library.nasmedia.co.kr 파일을 가리킴. github.io 호스팅이라 공식성은 링크 대상(nasmedia 도메인)으로 판단."
+    }
+  ],
   "common": [
     {
       "rule": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF",

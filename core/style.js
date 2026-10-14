@@ -3,6 +3,7 @@
 import { FONTS } from './fonts.js';
 import { buildPalette, MODES } from './palette.js';
 import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
+import { PRESETS, PRESET_KEYS } from './editlayout.js';
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
@@ -61,6 +62,8 @@ export function normalizeStyle(input = {}) {
     // 메인 두 톤 강조색(선택, 기본 없음) — 사람이 브랜드 보조색을 적어 줄 때만(Figma 9월 공채 #00FFE2·#0026B3). 짐작하지 않는다: palette.accent(자동 생성)와 다르다.
     // 렌더러는 지면 대비 4.5:1 이상일 때만 메인 속 채용구분에 쓴다(core/canon.js mainAccent)
     accent: HEX.test(input.accent ?? '') ? input.accent.toUpperCase() : null,
+    // 편집 프리셋(10-14, core/editlayout.js PRESETS) — 캠페인 일괄 값. 'auto'(기본)면 키를 두지 않는다(렌더 결과·저장 모양이 예전과 같게)
+    ...Object.fromEntries(PRESET_KEYS.filter(k => input[k] && input[k] !== 'auto' && PRESETS[k].choices[input[k]]).map(k => [k, input[k]])),
     logoMono: input.logoMono ?? null,     // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
     // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다

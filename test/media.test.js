@@ -70,3 +70,15 @@ test('text colors are hex so a checker can compare them', () => {
     for (const c of t.sub ?? []) assert.match(c, /^#[0-9A-Fa-f]{6}$/, `${m.id}: 서브 글자색 형식`);
   }
 });
+
+test('officialSources (매체 공식 가이드 링크) — 있으면 url·covers·type·checkedAt 를 갖고, covers 는 실제 규격 id', () => {
+  for (const m of media) {
+    assert.ok(Array.isArray(m.officialSources), `${m.file}: officialSources 배열 없음(못 찾았으면 빈 배열)`);
+    const ids = new Set(m.specs.map(s => s.id));
+    for (const o of m.officialSources) {
+      assert.match(o.url, /^https:\/\//, `${m.file}: officialSources url 이 https 가 아니다`);
+      assert.ok(o.type && /^\d{4}-\d{2}-\d{2}$/.test(o.checkedAt), `${m.file}: ${o.url} type/checkedAt 누락`);
+      for (const c of o.covers) assert.ok(ids.has(c), `${m.file}: covers 의 "${c}" 는 없는 규격`);
+    }
+  }
+});

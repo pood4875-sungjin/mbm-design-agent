@@ -30,6 +30,10 @@ import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
+import { createEditor } from './editor.js';
+import { PRESET_KEYS } from '../core/editlayout.js';
+import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolder, deleteFolder, reorderFolder, moveFolderBy, moveCampaign,
+  toggleFolder, folderOf, filterCampaigns, groupCampaigns, nameError, cleanName, displayName, logoSig, tileToneFor, containBox } from '../core/folders.js';
 
 const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };   // 상세 라벨 알약 톤(style.chipTone)
 const FIELD_LABEL = {
@@ -73,6 +77,12 @@ const state = {
 };
 const $ = id => document.getElementById(id);
 const frames = new Map();  // artifact.key → {frame, iframe, badge, label}
+// 편집 고도화·가이드 검수(10-14, app/editor.js) — 프리셋·직접 수정 손잡이·가이드 검수. 아래 함수들은 늦게 정의되는 것도 있어 화살표로 감싸 넘긴다
+const ED = createEditor({
+  state, SPECS, frames, logEvent,
+  pushHistory: (...x) => pushHistory(...x), regen: (...x) => regen(...x), refreshFrames: (...x) => refreshFrames(...x), autosave: () => autosave(),
+  renderInspector: () => renderInspector(), log: t => log(t), toast: t => toast(t), select: k => select(k), artLabel: a => artLabel(a), adEffCtx: a => adEffCtx(a),
+});
 
 /* ═══ helpers ═══ */
 function toast(t) {
@@ -293,7 +303,144 @@ function parseQuery(q) {
   if (kw) cond.q = kw;
   return cond;
 }
+/* ═══ 내 캠페인 — 폴더 · 로고 썸네일 (순수 연산은 core/folders.js) ═══
+   폴더는 'mbm-folders' 에 따로 둔다 — 캠페인 스냅샷은 저장할 때마다 새로 쓰여 폴더 정보를 거기 두면 사라진다.
+   폴더 저장소가 없는 옛 데이터는 migrateFolders 가 빈 폴더로 읽어, 모든 캠페인이 「폴더 없음」에 그대로 놓인다. */
+const side = { query: '', thumbJob: false };
+const IC = {
+  chev: '<svg class="ic cf-chev" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+  folder: '<svg class="ic cf-fic" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.2h7.5A2.5 2.5 0 0 1 21 9.7v7.8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg>',
+  more: '<svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></svg>',
+  move: '<svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.2h7.5A2.5 2.5 0 0 1 21 9.7v7.8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><path d="M9 13.5h6M12.5 11l2.5 2.5-2.5 2.5"/></svg>',
+  plus: '<svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg>',
+};
+function loadFolders(list = loadStore()) {
+  let raw = null; try { raw = JSON.parse(localStorage.getItem(FOLDERS_LS) || 'null'); } catch {}
+  return migrateFolders(raw, list.map(c => c.id));
+}
+function saveFolders(st) { try { localStorage.setItem(FOLDERS_LS, JSON.stringify(st)); return true; } catch { toast('저장 공간 부족 — 폴더 저장 실패'); return false; } }
+// 폴더 연산 한 번 = 저장 + 다시 그리기 + (선택) 알림 + 포커스 되돌리기(다시 그리면 눌렀던 버튼이 새 노드가 된다)
+function applyFolders(fn, { msg, focus } = {}) {
+  const st = fn(loadFolders());
+  if (!saveFolders(st)) return null;
+  renderSidebar(side.query);
+  if (msg) toast(msg);
+  if (focus) $('campList').querySelector(focus)?.focus();
+  return st;
+}
+const fsel = id => `.cf-fold[data-fid="${CSS.escape(id)}"] .cf-tog`;
+const csel = id => `.citem[data-id="${CSS.escape(id)}"] .copen`;
+
+// 로고 썸네일 — 96px PNG 를 한 번 만들어 캠페인 기록(logoThumb)에 둔다. 목록은 이 작은 그림만 읽는다
+function thumbHtml(c) {
+  const t = c.logoThumb, logo = c.style?.logo;
+  const who = c.context?.core?.client || displayName(c);
+  if (logo && t?.src && t.sig === logoSig(logo)) return `<div class="thumb ltile ${t.tile === 'dark' ? 'dark' : 'light'}"><img src="${t.src}" alt="${escH(who)} 로고" width="40" height="40"></div>`;
+  const initial = displayName(c).replace(/[^A-Za-z가-힣0-9]/g, '').slice(0, 2) || 'MB';
+  return `<div class="thumb" style="background:${escH(c.style?.palette?.primary ?? '#5f6368')}" aria-hidden="true">${escH(initial)}</div>`;
+}
+async function makeLogoThumb(c) {
+  const src = c.style?.logo; if (!src) return null;
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = src; });
+  const S = 96, b = containBox(img.naturalWidth || img.width, img.naturalHeight || img.height, S);
+  if (!b.w) return null;
+  const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(img, b.x, b.y, b.w, b.h);
+  // 톤: 로고 실측(logoMeta.tone) → 사용자가 고른 로고 톤 → 썸네일에서 직접 잰 값
+  const tone = c.style.logoMeta?.tone ?? (c.style.logoTone === 'light' ? 'light' : null) ?? logoToneOfRGBA(g.getImageData(0, 0, S, S).data, S, S);
+  return { sig: logoSig(src), src: cv.toDataURL('image/png'), tile: tileToneFor(tone) };
+}
+async function fillLogoThumbs(list) {
+  if (side.thumbJob) return;
+  const need = list.filter(c => c.style?.logo && c.logoThumb?.sig !== logoSig(c.style.logo));
+  if (!need.length) return;
+  side.thumbJob = true;
+  try {
+    for (const c of need) {
+      const t = await makeLogoThumb(c).catch(() => null); if (!t) continue;
+      const store = loadStore(), rec = store.find(x => x.id === c.id); if (!rec) continue;
+      rec.logoThumb = t;
+      try { saveStore(store); } catch { continue; }
+      for (const n of document.querySelectorAll(`.citem[data-id="${CSS.escape(c.id)}"] .thumb`)) n.outerHTML = thumbHtml(rec);
+    }
+  } finally { side.thumbJob = false; }
+}
+
+function campRow(c, st, { showFolder = false, draggable = true } = {}) {
+  const d = document.createElement('div');
+  d.className = 'citem'; d.dataset.id = c.id;
+  const name = displayName(c);
+  const edits = (c.log ?? []).filter(e => e.type === 'manual_edit' || e.type === 'propagation_run').length;
+  const fname = showFolder ? folderOf(st, c.id)?.name ?? NONE_LABEL : null;
+  d.innerHTML = `<button type="button" class="copen">${thumbHtml(c)}
+      <span class="m"><b>${escH(name)}</b>
+        <span>${fname ? `<em class="cf-info">${IC.folder}${escH(fname)}</em>` : ''}${escH(c.context?.core?.date ?? '')} · ${c.artifacts?.length ?? 0}종${edits ? ` · 수정 ${edits}회` : ''}</span></span></button>
+      <span class="badge ${c.status === 'approved' ? 'approved' : 'draft'}">${c.status === 'approved' ? '승인' : '작업 중'}</span>
+      <button type="button" class="cmove" aria-label="${escH(name)} — 폴더로 이동" title="폴더로 이동">${IC.move}</button>`;
+  d.querySelector('.copen').onclick = () => openStored(c);
+  d.querySelector('.cmove').onclick = e => openMoveModal(c, e.currentTarget);
+  if (draggable) {
+    d.draggable = true;
+    d.ondragstart = e => { e.dataTransfer.setData('text/x-mbm-campaign', c.id); e.dataTransfer.effectAllowed = 'move'; d.classList.add('dragging'); $('campList').classList.add('dragging'); };
+    d.ondragend = () => { d.classList.remove('dragging'); $('campList').classList.remove('dragging'); };
+  }
+  return d;
+}
+
+function folderSection(g, st, idx) {
+  const s = document.createElement('section');
+  s.className = 'cf-fold' + (g.folder ? '' : ' none'); s.dataset.fid = g.id;
+  const bodyId = `fb-${g.id}`;
+  s.innerHTML = `<div class="cf-head">
+      <button type="button" class="cf-tog" aria-expanded="${g.open}" aria-controls="${escH(bodyId)}"${g.folder ? ' title="Alt+↑/↓ 로 순서 바꾸기"' : ''}>${IC.chev}${IC.folder}<span class="cf-name">${escH(g.name)}</span><span class="cf-count"><span aria-hidden="true">${g.items.length}</span><span class="cf-sr">, 캠페인 ${g.items.length}개</span></span></button>
+      ${g.folder ? `<button type="button" class="cf-more" aria-label="${escH(g.name)} 폴더 관리" title="이름 바꾸기 · 순서 · 삭제">${IC.more}</button>` : ''}
+    </div>
+    <div class="cf-body" id="${escH(bodyId)}" role="group" aria-label="${escH(g.name)}"${g.open ? '' : ' hidden'}></div>`;
+  const body = s.querySelector('.cf-body');
+  for (const c of g.items) body.appendChild(campRow(c, st));
+  if (!g.items.length) body.innerHTML = `<p class="cf-empty">${g.folder ? '비어 있어요 — 캠페인을 여기로 끌어 놓거나 행의 폴더 버튼으로 옮기세요.' : '모든 캠페인이 폴더에 들어가 있어요.'}</p>`;
+  const tog = s.querySelector('.cf-tog');
+  tog.onclick = () => applyFolders(x => toggleFolder(x, g.id), { focus: fsel(g.id) });
+  tog.onkeydown = e => {
+    if (!g.folder || !e.altKey || !['ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    applyFolders(x => moveFolderBy(x, g.id, e.key === 'ArrowUp' ? -1 : 1), { focus: fsel(g.id) });
+  };
+  s.querySelector('.cf-more')?.addEventListener('click', () => openFolderModal(g.id));
+  if (g.folder) {
+    const head = s.querySelector('.cf-head');
+    head.draggable = true;
+    head.ondragstart = e => { e.dataTransfer.setData('text/x-mbm-folder', g.id); e.dataTransfer.effectAllowed = 'move'; s.classList.add('dragging'); };
+    head.ondragend = () => s.classList.remove('dragging');
+  }
+  // 놓기 — 캠페인은 이 폴더로, 폴더는 이 자리로(「폴더 없음」에 놓으면 맨 끝)
+  const accepts = e => [...e.dataTransfer.types].some(t => t === 'text/x-mbm-campaign' || t === 'text/x-mbm-folder');
+  s.ondragover = e => { if (!accepts(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; s.classList.add('drop'); };
+  s.ondragleave = e => { if (!s.contains(e.relatedTarget)) s.classList.remove('drop'); };
+  s.ondrop = e => {
+    s.classList.remove('drop');
+    const cid = e.dataTransfer.getData('text/x-mbm-campaign'), fid = e.dataTransfer.getData('text/x-mbm-folder');
+    if (!cid && !fid) return;
+    e.preventDefault();
+    if (cid) moveCampaignTo(cid, g.id);
+    else if (fid && fid !== g.id) applyFolders(x => reorderFolder(x, fid, g.folder ? idx : x.folders.length), { msg: '폴더 순서를 바꿨어요' });
+  };
+  return s;
+}
+
+function moveCampaignTo(cid, fid) {
+  const st = loadFolders();
+  if ((st.assign[cid] ?? NONE) === (fid ?? NONE)) return;
+  const c = loadStore().find(x => x.id === cid);
+  const to = fid === NONE ? NONE_LABEL : st.folders.find(f => f.id === fid)?.name;
+  applyFolders(x => moveCampaign(x, cid, fid), { msg: `${c ? displayName(c) : '캠페인'} → ${to ?? NONE_LABEL}`, focus: csel(cid) });
+}
+
 function renderSidebar(query = '') {
+  side.query = query;
   const cond = query ? parseQuery(query) : {};
   const chips = $('qchips'); chips.innerHTML = '';
   if (query) for (const [k, v] of Object.entries(cond)) {
@@ -301,26 +448,145 @@ function renderSidebar(query = '') {
     s.textContent = { year: `연도 ${v}`, channel: CHANNEL_LABEL[v] ?? v, q: `"${v}"` }[k];
     chips.appendChild(s);
   }
-  let list = loadStore();
-  if (cond.year) list = list.filter(c => (c.context.core.date ?? '').startsWith(cond.year));
-  if (cond.channel) list = list.filter(c => c.channels.includes(cond.channel));
-  if (cond.q) list = list.filter(c => (c.context.core.name ?? '').includes(cond.q));
-  list.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
+  const all = loadStore(), st = loadFolders(all);
   const box = $('campList'); box.innerHTML = '';
-  $('campEmpty').style.display = list.length ? 'none' : 'block';
-  if (query && !list.length) $('campEmpty').textContent = '조건에 맞는 캠페인이 없습니다 — 조건을 바꿔 다시 검색해 보세요.';
-  for (const c of list) {
-    const d = document.createElement('div');
-    d.className = 'citem';
-    const initial = (c.context.core.name ?? 'MB').replace(/[^A-Za-z가-힣0-9]/g, '').slice(0, 2) || 'MB';
-    const edits = (c.log ?? []).filter(e => e.type === 'manual_edit' || e.type === 'propagation_run').length;
-    d.innerHTML = `<div class="thumb" style="background:${c.style.palette.primary}">${initial}</div>
-      <div class="m"><b>${c.context.core.name ?? c.id}</b>
-        <span>${c.context.core.date ?? ''} · ${c.artifacts?.length ?? 0}종${edits ? ` · 수정 ${edits}회` : ''}</span></div>
-      <span class="badge ${c.status === 'approved' ? 'approved' : 'draft'}">${c.status === 'approved' ? '승인' : '작업 중'}</span>`;
-    d.onclick = () => openStored(c);
-    box.appendChild(d);
+  const empty = $('campEmpty');
+  if (query) {
+    // 검색은 폴더를 가로질러 — 결과마다 어느 폴더에 있는지 같이 보인다
+    const list = filterCampaigns(all, cond, st).sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
+    for (const c of list) box.appendChild(campRow(c, st, { showFolder: st.folders.length > 0, draggable: false }));
+    empty.style.display = list.length ? 'none' : 'block';
+    if (!list.length) empty.textContent = '조건에 맞는 캠페인이 없습니다 — 조건을 바꿔 다시 검색해 보세요.';
+  } else if (!st.folders.length) {
+    // 폴더를 아직 안 만들었으면 예전처럼 한 줄 목록 — 쓰지 않는 사람에게 묶음 머리를 보이지 않는다
+    for (const c of [...all].sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))) box.appendChild(campRow(c, st, { draggable: false }));
+    empty.style.display = all.length ? 'none' : 'block';
+    empty.innerHTML = '승인 완료한 캠페인이 여기에 쌓입니다.<br>과거 자산 재사용의 진입점입니다.';
+  } else {
+    groupCampaigns(all, st).forEach((g, i) => box.appendChild(folderSection(g, st, i)));
+    empty.style.display = 'none';
   }
+  fillLogoThumbs(all);
+}
+
+// 모달 공용 — 닫힐 때 포커스를 연 버튼(다시 그려졌으면 같은 자리의 새 버튼)으로 돌려준다
+function afterModalClose(fn) {
+  const ov = $('overlay');
+  const mo = new MutationObserver(() => { if (ov.style.display === 'none') { mo.disconnect(); fn(); } });
+  mo.observe(ov, { attributes: true, attributeFilter: ['style'] });
+}
+const focusLost = () => !document.activeElement || document.activeElement === document.body || $('overlay').contains(document.activeElement);
+function modalFocus(sel) { setTimeout(() => { const n = $('modalBody').querySelector(sel); n?.focus(); if (n?.tagName === 'INPUT' && !/radio|checkbox/.test(n.type)) n.select(); }, 0); }
+function enterSubmits(input) { input?.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('modalBtns').querySelector('.pri')?.click(); } }); }
+function showFieldError(box, msg, input) {
+  box.textContent = msg ?? '';
+  input?.setAttribute('aria-invalid', msg ? 'true' : 'false');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('overlay').style.display === 'flex') closeModal(); });
+
+function openNewFolderModal() {
+  modal({
+    title: '새 폴더',
+    desc: '캠페인을 고객사·연도·행사별로 묶어 두세요.',
+    body: `<label for="fNew">폴더 이름</label><input id="fNew" maxlength="40" placeholder="예: 2026 하반기 채용" aria-describedby="fNewErr"><div class="cf-err" id="fNewErr" role="alert"></div>`,
+    actions: [
+      { label: '취소' },
+      { label: '만들기', pri: true, fn: () => {
+        const box = $('modalBody'), input = box.querySelector('#fNew');
+        const err = nameError(loadFolders(), input.value);
+        if (err) { showFieldError(box.querySelector('#fNewErr'), err, input); input.focus(); return false; }
+        let id = null;
+        applyFolders(x => { const r = createFolder(x, input.value); id = r.id; return r.st; }, { msg: `「${cleanName(input.value)}」 폴더를 만들었어요` });
+        afterModalClose(() => $('campList').querySelector(fsel(id))?.focus());
+      } },
+    ],
+  });
+  const input = $('modalBody').querySelector('#fNew');
+  input.addEventListener('blur', () => { if (input.value.trim()) showFieldError($('modalBody').querySelector('#fNewErr'), nameError(loadFolders(), input.value), input); });
+  enterSubmits(input);
+  modalFocus('#fNew');
+  afterModalClose(() => { if (focusLost()) $('newFolderBtn')?.focus(); });
+}
+$('newFolderBtn').onclick = () => openNewFolderModal();
+
+function openMoveModal(c, opener) {
+  const st = loadFolders(), cur = st.assign[c.id] ?? NONE, name = displayName(c);
+  const opts = [...st.folders.map(f => [f.id, f.name]), [NONE, NONE_LABEL]];
+  modal({
+    title: '폴더로 이동',
+    desc: `「${name}」 — 옮길 폴더를 고르세요.`,
+    body: `<div class="cf-pick" role="radiogroup" aria-label="폴더">${opts.map(([id, n]) => `<label class="pickrow"><input type="radio" name="cf-pick" value="${escH(id)}"${id === cur ? ' checked' : ''}><b>${escH(n)}</b>${id === cur ? '<span>지금 여기</span>' : ''}</label>`).join('')}</div>
+      <label for="fpNew">또는 새 폴더를 만들어 옮기기</label><input id="fpNew" maxlength="40" placeholder="새 폴더 이름 (비워 두면 위에서 고른 폴더)" aria-describedby="fpErr"><div class="cf-err" id="fpErr" role="alert"></div>`,
+    actions: [
+      { label: '취소' },
+      { label: '이동', pri: true, fn: () => {
+        const box = $('modalBody'), input = box.querySelector('#fpNew');
+        let fid = box.querySelector('input[name="cf-pick"]:checked')?.value ?? NONE;
+        if (input.value.trim()) {
+          const err = nameError(loadFolders(), input.value);
+          if (err) { showFieldError(box.querySelector('#fpErr'), err, input); input.focus(); return false; }
+          let nid = null;
+          if (!applyFolders(x => { const r = createFolder(x, input.value); nid = r.id; return r.st; })) return false;
+          fid = nid;
+        }
+        moveCampaignTo(c.id, fid);
+        afterModalClose(() => $('campList').querySelector(csel(c.id))?.focus());
+      } },
+    ],
+  });
+  enterSubmits($('modalBody').querySelector('#fpNew'));
+  enterSubmits($('modalBody').querySelector('.cf-pick'));   // 라디오에서 Enter 로 바로 옮기기
+  modalFocus('input[name="cf-pick"]:checked');
+  afterModalClose(() => { if (focusLost()) ($('campList').querySelector(`.citem[data-id="${CSS.escape(c.id)}"] .cmove`) ?? opener)?.focus(); });
+}
+
+function openFolderModal(fid) {
+  const st = loadFolders(), f = st.folders.find(x => x.id === fid); if (!f) return;
+  const count = Object.values(st.assign).filter(v => v === fid).length;
+  const i = st.folders.indexOf(f);
+  modal({
+    title: '폴더 관리',
+    desc: `캠페인 ${count}개가 들어 있어요.`,
+    body: `<label for="fRen">폴더 이름</label><input id="fRen" maxlength="40" value="${escH(f.name)}" aria-describedby="fRenErr"><div class="cf-err" id="fRenErr" role="alert"></div>
+      <label>순서</label><div class="cf-order"><button type="button" class="btn" id="fUp"${i === 0 ? ' disabled' : ''}>위로</button><button type="button" class="btn" id="fDown"${i === st.folders.length - 1 ? ' disabled' : ''}>아래로</button><span>목록에서 Alt+↑/↓ · 머리를 끌어 놓아도 돼요</span></div>`,
+    actions: [
+      { label: '폴더 삭제', fn: () => { openDeleteModal(fid); return false; } },
+      { label: '취소' },
+      { label: '저장', pri: true, fn: () => {
+        const box = $('modalBody'), input = box.querySelector('#fRen');
+        const err = nameError(loadFolders(), input.value, fid);
+        if (err) { showFieldError(box.querySelector('#fRenErr'), err, input); input.focus(); return false; }
+        if (cleanName(input.value) !== f.name) applyFolders(x => renameFolder(x, fid, input.value), { msg: `폴더 이름 → 「${cleanName(input.value)}」` });
+      } },
+    ],
+  });
+  const box = $('modalBody');
+  const move = d => {
+    const s2 = applyFolders(x => moveFolderBy(x, fid, d)); if (!s2) return;
+    const j = s2.folders.findIndex(x => x.id === fid);
+    box.querySelector('#fUp').disabled = j === 0; box.querySelector('#fDown').disabled = j === s2.folders.length - 1;
+    toast(`순서 ${j + 1} / ${s2.folders.length}`);
+  };
+  box.querySelector('#fUp').onclick = () => move(-1);
+  box.querySelector('#fDown').onclick = () => move(1);
+  enterSubmits(box.querySelector('#fRen'));
+  modalFocus('#fRen');
+  afterModalClose(() => { if (focusLost()) ($('campList').querySelector(`.cf-fold[data-fid="${CSS.escape(fid)}"] .cf-more`) ?? $('newFolderBtn'))?.focus(); });
+}
+
+function openDeleteModal(fid) {
+  const st = loadFolders(), f = st.folders.find(x => x.id === fid); if (!f) return;
+  const count = Object.values(st.assign).filter(v => v === fid).length;
+  modal({
+    title: `「${f.name}」 폴더 삭제`,
+    desc: count ? `안의 캠페인 ${count}개는 「${NONE_LABEL}」으로 옮겨집니다. 캠페인은 지워지지 않아요.` : '빈 폴더입니다. 캠페인은 지워지지 않아요.',
+    body: '',
+    actions: [
+      { label: '취소', fn: () => { openFolderModal(fid); return false; } },
+      { label: '삭제', pri: true, fn: () => { applyFolders(x => deleteFolder(x, fid), { msg: `폴더 「${f.name}」 삭제 — 캠페인 ${count}개는 ${NONE_LABEL}` }); } },
+    ],
+  });
+  setTimeout(() => $('modalBtns').querySelector('.btn:not(.pri)')?.focus(), 0);   // 지우는 쪽이 기본 포커스가 되지 않게
 }
 
 /* ═══ intake — 대화 ═══ */
@@ -1379,7 +1645,7 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span></div>
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
@@ -1389,7 +1655,8 @@ function layoutArtboard(opts = {}) {
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html);
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
-        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), label: frame.querySelector('.fname') });
+        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), label: frame.querySelector('.fname') });
+        ED.guideBadge(a); ED.editedBadge(a);
         lintBadge(a);
         x += w + 70;
         rowH = Math.max(rowH, h);
@@ -1435,7 +1702,7 @@ function refreshFrames(only = null) {
     f.iframe.srcdoc = previewDoc(a.html);
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
-    if (a.channel === 'ad') a.lint = null;   // 다시 그렸으니 이전 판정은 무효 — 다시 잰다
+    if (a.channel === 'ad') { a.lint = null; a.guide = null; ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·가이드)은 무효 — 다시 잰다
     lintBadge(a);
   }
   scheduleLint();
@@ -1462,6 +1729,7 @@ function designCheck(a) {
   // 샘플 문구(data-sample — 마감일·직무가 비어 있어 샘플 밀도를 맞추려 넣은 자리표시) 배지: 승인 전에 디자이너가 실제 정보로 바꾼다(10-12 매체별 규격정리)
   try { const n = f.iframe.contentDocument.querySelectorAll('[data-sample]').length; if (f.sample) { f.sample.style.display = n ? '' : 'none'; f.sample.textContent = n ? `샘플 문구 ${n}` : ''; f.sample.title = n ? '비어 있는 정보 자리에 넣은 샘플 문구 — 승인 전에 실제 정보로 바꾸세요' : ''; } } catch {}
   if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
+  ED.afterRender(a);   // 같은 모양 옮기기 경계 맞춤 → 직접 수정 손잡이 → 가이드 검수(10-14)
 }
 const designWarnings = a => (a.design?.warnings ?? []).filter(w => w.level !== 'info');
 function designBadge(a) {
@@ -1682,6 +1950,9 @@ function select(specId) {
   state.selected = specId;
   for (const [id, f] of frames) f.frame.classList.toggle('sel', id === specId);
   renderInspector();
+  // 직접 수정 손잡이 — 매체 광고 하나를 골랐을 때만(10-14)
+  const sa = specId ? state.campaign?.artifacts.find(x => (x.key ?? x.specId) === specId) : null;
+  if (sa?.channel === 'ad') ED.showOverlay(sa); else { state.editFocus = null; ED.hideOverlay(); }
 }
 
 function renderInspector() {
@@ -1697,7 +1968,7 @@ function renderInspector() {
       <section class="isec">
       <h3>스타일</h3>
       ${c.style.keyVisual ? kvTypeControlHtml(c.style.kvMeta, c.style.kvTypeOverride, 'iKvType') : ''}
-      ${bgControlHtml(c.style, 'iBg')}
+      ${c.artifacts.some(x => x.channel === 'ad') ? '' : bgControlHtml(c.style, 'iBg')}
       <label>상세 라벨 알약 <span style="opacity:.6">· 접수기간·모집직무 같은 라벨</span></label>
       <div class="vseg" id="iChipSeg">${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-ct="${k}" class="${(c.style.chipTone ?? 'tint') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
@@ -1725,6 +1996,7 @@ function renderInspector() {
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </section>
+      ${ED.presetCampaignHtml()}
       <section class="isec">
       <h3>산출물 <span class="mode">${c.artifacts.length}종</span></h3>
       <button class="btn pri" id="iAdd" style="width:100%;margin-top:6px">＋ 산출물 추가</button>
@@ -1761,6 +2033,7 @@ function renderInspector() {
         kvUse: c.style.kvUse,
         kvTypeOverride: c.style.kvTypeOverride ?? null,
         chipTone: c.style.chipTone,
+        ...Object.fromEntries(PRESET_KEYS.map(k => [k, c.style[k]])),   // 편집 프리셋(10-14) — 색·글꼴만 바꿔도 풀리지 않게
         colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
         fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
         mood: c.style.mood,
@@ -1895,6 +2168,7 @@ function renderInspector() {
       renderInspector();
     });
     insp.querySelector('#iAdd').onclick = () => addArtifactModal();
+    ED.bindPresetCampaign(insp, restyle);
     return;
   }
 
@@ -1944,6 +2218,7 @@ function renderInspector() {
       <label>규격 검사</label>
       <div id="inspLint">${lintHtml(a)}</div>` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
+    ${a.channel === 'ad' ? ED.guideSectionHtml(a) + ED.editSectionHtml(a) + ED.presetArtifactHtml(a) : ''}
     <section class="isec">
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
@@ -1984,6 +2259,7 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 라벨 알약 ${v ? CHIP_LABEL[v] : '공통 따름'}`);
   });
+  if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); }
   insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
     if ((a.variant ?? 0) === Number(b.dataset.v)) return;   // 같은 시안 다시 누르면 되돌릴 것도 없다
     pushHistory(`${artLabel(a)} 시안 ${Number(b.dataset.v) + 1}`);
@@ -2209,13 +2485,15 @@ function adRulesText(spec) {
   ].filter(Boolean).join('<br>');
 }
 const adEffCtx = a => { const c = state.campaign; return { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } }; };
+// 내보낼 때도 보드와 같은 스타일 — 산출물 개별 값(overrides.style: 알약 톤·프리셋)과 직접 수정(overrides.layout)을 얹는다(10-14 generate.js 와 같은 합성)
+const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? { ...c.style, ...a.overrides.style } : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
 async function exportAdFiles(ads) {
   const c = state.campaign;
   const out = [];
   for (const a of ads) {
     const spec = SPECS[a.specId];
     const eff = adEffCtx(a);
-    const fit = await renderFit(eff, c.style, spec);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
+    const fit = await renderFit(eff, adEffStyle(a), spec);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
     out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
   }
   return out;
@@ -2235,7 +2513,7 @@ async function doAdExport(a) {
 const SVG_NOTE = 'SVG(Figma 편집용): 글자는 텍스트, 키비주얼·로고는 따로 레이어로 들어갑니다. Figma에서 Pretendard 폰트가 설치되어 있어야 글자가 그대로 보입니다.';
 async function adSvgOf(a, imgCache) {
   const spec = SPECS[a.specId];
-  const html = renderAd(adEffCtx(a), state.campaign.style, spec);
+  const html = renderAd(adEffCtx(a), adEffStyle(a), spec);
   const r = await htmlToSvg(html, spec, { imgCache, title: adFileName(a, 'svg').replace(/\.svg$/, '') });
   return { ...r, name: adFileName(a, 'svg') };
 }
@@ -2450,6 +2728,19 @@ function approveAll() {
   const blocked = c.artifacts.filter(a => a.lint?.level === 'block');
   if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 먼저 해결해야 승인할 수 있어요`); return; }
   if (c.artifacts.some(a => a.channel === 'ad' && !a.lint)) { toast('규격 검사가 아직 끝나지 않았어요 — 잠시 후 다시'); return; }
+  // 가이드 검수 요약(10-14) — ✗ 는 승인을 막지 않는다. 한 번 보여 주고 승인
+  const G = ED.approveSummary();
+  if (G.n && !approveAll.confirmed) {
+    modal({
+      title: '전체 승인 전 — 가이드 검수 요약',
+      desc: '가이드 ✗ 는 경고입니다. 승인은 매체 규정(규격 검사) 위반만 막습니다.',
+      body: `<div style="font-size:14px;font-weight:700;margin-bottom:8px">가이드 ✗ ${G.fail}건(넘김 ${G.skipped}건)${G.pending ? ` · 검수 중 ${G.pending}장` : ''}</div>
+        ${G.top.length ? `<ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.7">${G.top.map(([n, k]) => `<li>${n} — ${k}장</li>`).join('')}</ul>` : '<div style="font-size:12.5px;color:var(--good)">넘기지 않은 ✗ 없음</div>'}
+        <div style="font-size:12px;color:var(--sub);margin-top:10px;line-height:1.6">산출물을 눌러 인스펙터 「가이드 검수」에서 규칙대로 고치거나 이유를 남기고 넘길 수 있어요.</div>`,
+      actions: [{ label: '돌아가기' }, { label: `${c.artifacts.length}종 승인`, pri: true, fn: () => { approveAll.confirmed = true; approveAll(); approveAll.confirmed = false; } }],
+    });
+    return;
+  }
   for (const a of c.artifacts) a.status = 'approved';
   logEvent(c, 'artifact_approved', { all: true });
   refreshFrames();
@@ -2477,11 +2768,14 @@ function saveCampaignToStore() {
     artifacts: c.artifacts.map(a => ({
       key: a.key ?? a.specId, specId: a.specId, channel: a.channel,
       purpose: a.purpose, arrow: a.arrow, overrides: a.overrides,
+      guideSkips: a.guideSkips ?? null, guideHuman: a.guideHuman ?? null,   // 가이드 검수 넘김 이유·눈으로 확인(10-14)
       variant: a.variant ?? 0, size: a.size ?? null, status: a.status,
     })),
     log: c.log,
   };
-  const list = loadStore().filter(x => x.id !== c.id);
+  const all = loadStore(), prevThumb = all.find(x => x.id === c.id)?.logoThumb;
+  if (prevThumb && prevThumb.sig === logoSig(c.style?.logo)) snapshot.logoThumb = prevThumb;   // 목록 로고 썸네일(renderSidebar) — 로고가 그대로면 이어 쓴다
+  const list = all.filter(x => x.id !== c.id);
   list.push(snapshot);
   try { saveStore(list); } catch {
     snapshot.style = { ...snapshot.style, keyVisual: null };
@@ -2521,6 +2815,8 @@ function openStored(saved) {
     if (s.status) a.status = s.status;
     if (s.size) a.size = s.size;
     if (s.overrides) a.overrides = s.overrides;
+    if (s.guideSkips) a.guideSkips = s.guideSkips;
+    if (s.guideHuman) a.guideHuman = s.guideHuman;
     if (s.variant != null) a.variant = s.variant;
   }
   regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
