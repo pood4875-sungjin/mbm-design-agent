@@ -148,7 +148,7 @@ for sid, (x, y, w, h) in crops:
     const mr = sp.mediumRules ?? {}; const guide = guideFor(mr);
     const C = { spec: { id: sid, w: sp.w, h: sp.h, shape: shapeOf(sp.w, sp.h), medium: sp.medium }, guide, mr, rules: sp.rules ?? {}, trace: m.trace, m, meta, kt, logoMeta: c.logoMeta ?? null, primary: style.palette?.primary ?? null, kind: 'recruit', hasDate: !!(c.fields ?? DEFAULT_FIELDS).deadline };
     const rows = evaluate(C, RULESET);
-    result.specs[sid] = { w: sp.w, h: sp.h, shape: C.spec.shape, title: sp.title, rows, sum: summarize(rows), trace: m.trace, measure: { kvArea: m.kvArea, kvVis: m.kvVis, objects: m.objects, texts: m.texts, logo: m.logo, scrim: m.scrim, chips: m.chips, check: m.check }, ad: m.ad, img: existsSync(path.join(imgDir, `${sid}.png`)) ? `img/${c.id}/${sid}.png` : null };
+    result.specs[sid] = { w: sp.w, h: sp.h, shape: C.spec.shape, title: sp.title, rows, sum: summarize(rows), trace: m.trace, measure: { kvArea: m.kvArea, kvVis: m.kvVis, objects: m.objects, texts: m.texts, logo: m.logo, textCol: m.textCol, scrim: m.scrim, chips: m.chips, check: m.check }, ad: m.ad, img: existsSync(path.join(imgDir, `${sid}.png`)) ? `img/${c.id}/${sid}.png` : null };
   }
   writeFileSync(path.join(OUT, `${c.id}.json`), JSON.stringify(result, null, 1));
   writeFileSync(path.join(OUT, `${c.id}.html`), caseHtml(result));

@@ -183,9 +183,9 @@ test('autoLabel: 인스펙터 「자동: …」 문구', () => {
   assert.equal(autoLabel('scrim', { scrim: null }), '없음');
 });
 
-test('가이드 검수: core/guidecheck.js 와 scripts/guide-rules.mjs 는 같은 판정(같은 객체), 규칙 44 + 사람 8', () => {
+test('가이드 검수: core/guidecheck.js 와 scripts/guide-rules.mjs 는 같은 판정(같은 객체), 규칙 49(10-14 가이드 배치 place.* 5 더함) + 사람 8', () => {
   assert.equal(GR.RULES, GC.RULES); assert.equal(GR.evaluate, GC.evaluate); assert.equal(GR.HUMAN_RULES, GC.HUMAN_RULES);
-  assert.equal(GC.RULES.length, 44); assert.equal(GC.HUMAN_RULES.length, 8);
+  assert.equal(GC.RULES.length, 49); assert.equal(GC.HUMAN_RULES.length, 8);
 });
 
 test('가이드 검수: 생성 파일 rules-data.js 를 입힌 문장 = 디스크 rules.json 을 입힌 문장(앱과 guide-trace 가 같은 말)', () => {

@@ -1,7 +1,7 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: ref/learned/rules.json, 빌드: node scripts/build-rules.mjs
-// 장부 갱신 2026-10-13 · 가이드 검수 짝 52건
+// 장부 갱신 2026-10-14 · 가이드 검수 짝 57건
 export const RULES_DATA = {
- "updated": "2026-10-13",
+ "updated": "2026-10-14",
  "rules": [
   {
    "id": "cutout-contain",
@@ -365,6 +365,41 @@ export const RULES_DATA = {
    "rule": "라벨 알약이 지면 오른쪽 밖으로 나가면 경고.",
    "value": "오른쪽 넘침",
    "where": "core/adcheck.js:132",
+   "status": "active"
+  },
+  {
+   "id": "place-text-zone",
+   "rule": "글자 덩어리는 레이아웃이 글자에 비워 둔 칸 안에 둔다 — 키비주얼 반대쪽 열(가로형·정사각 오른쪽 열이면 왼쪽), 아래 띠면 띠 위(그림 녹인 구간 겹침 몫까지), 배경형이면 그림 빈 자리, 우하단 그림 상자면 주인공 위 전폭 + 주인공 왼쪽 열(ㄱ자). 프리셋(위치·정렬)이 바꾼 칸을 따른다.",
+   "value": "글자 요소마다 칸 안 · 허용 4%(최소 8px) · ㄱ자는 주인공 외곽 네모와 35% 이하 겹침 허용",
+   "where": "core/guidecheck.js:158",
+   "status": "active"
+  },
+  {
+   "id": "place-text-align",
+   "rule": "글자 덩어리의 시작선은 자동 배치의 여백 선 — 왼쪽 정렬은 왼쪽 여백, 가운데 정렬은 가운데 선, 아래 띠 규격은 위 여백까지.",
+   "value": "±6px 또는 1.5%(큰 쪽) · 잉크 곁 여백 ≤ 4px(92케이스 실측)",
+   "where": "core/guidecheck.js:170",
+   "status": "active"
+  },
+  {
+   "id": "place-manual-drift",
+   "rule": "직접 수정(끌어 옮기기·화살표)이 자동 배치에서 크게 벗어나면 가이드 배치 이탈로 알린다 — 칸 규칙이 느슨한 규격(ㄱ자·전폭 열)에서도 의미 있는 이동은 드러나게. 의도면 넘기기에 이유.",
+   "value": "글자·키비주얼·로고 각각 가로·세로 이동 ≤ 6%",
+   "where": "core/guidecheck.js:179",
+   "status": "active"
+  },
+  {
+   "id": "place-logo-slot",
+   "rule": "로고는 자동 배치가 정한 자리(기본 우상단, 사진 열·배경형 주인공 쪽이면 좌상단, 매체 로고 칸)에 — 다른 모서리로 옮기거나 멀리 떼지 않는다.",
+   "value": "모서리 3×3(가로 40/60%·세로 40/60%) 같음 + 자동 자리에서 4%(최소 8px) 안",
+   "where": "core/guidecheck.js:308",
+   "status": "active"
+  },
+  {
+   "id": "place-recommended-margin",
+   "rule": "매체가 안전영역을 숫자로 정하지 않은 규격은 글자·로고를 가장자리에서 짧은 변의 4% 이상 띄운다(권장 여백, 경고 수준).",
+   "value": "≥ 짧은 변 × 4%(편집기 safeRect 와 같은 값)",
+   "where": "core/guidecheck.js:316",
    "status": "active"
   }
  ]

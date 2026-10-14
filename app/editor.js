@@ -418,7 +418,7 @@ export function createEditor(E) {
     const failLi = r => {
       const t = editsTouching(r.id, eff, a.overrides?.layout);
       const keys = t.map(k => k.startsWith('layout.') ? `직접 수정(${PART_LABEL[k.slice(7)]})` : PRESETS[k]?.label ?? k);
-      return `<li class="gf" data-rid="${escH(r.id)}"><div class="gname">${escH(r.name)}</div>
+      return `<li class="gf" data-rid="${escH(r.id)}"><div class="gname">${escH(r.name)}${r.level === 'warn' ? ' <span class="gtag">권장</span>' : ''}</div>
         <div class="gline">가이드 ${escH(r.expect)} → 지금 <b>${escH(r.actual)}</b></div>${r.note ? `<div class="gnote">${escH(r.note)}</div>` : ''}
         <div class="grow"><button class="btn sm" data-gfix="${escH(r.id)}"${t.length ? '' : ' disabled aria-disabled="true"'} title="${t.length ? `이 산출물의 ${escH(keys.join('·'))} 편집을 지우고 다시 그립니다` : '이 산출물에 걸린 편집이 없어요 — 자동 렌더도 ✗(규칙 쪽 과제)'}">규칙대로 고치기</button><button class="btn sm" data-gskip="${escH(r.id)}" aria-expanded="false" aria-controls="gs-${escH(r.id)}">의도한 것, 넘기기</button></div>
         ${t.length ? `<div class="gnote">지울 편집: ${escH(keys.join(' · '))}</div>` : '<div class="gnote">걸린 편집 없음 — 자동 렌더의 ✗(규칙장부 과제)</div>'}

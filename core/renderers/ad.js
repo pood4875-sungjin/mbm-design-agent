@@ -634,7 +634,9 @@ export function renderAd(ctx, style, spec) {
   TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined } : null;
   TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv };
   TR.scrim = photoFull ? { kind: 'photo-full', base: scrimBase, a: [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
-  TR.logo = { place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo };
+  TR.logo = { place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
+    // 가이드 배치 규칙(10-14 place.logoSlot): 자동 로고 자리 — 모서리(왼쪽 배치면 좌우 뒤집음)·칸 종류(abs 모서리 칸 · flex 글자 열 안 · template 매체 로고 칸 · object 그림 자리)
+    corner: (mirrorX && /-(left|right)$/.test(logoPlace)) ? logoPlace.replace(/(left|right)$/, x => (x === 'left' ? 'right' : 'left')) : logoPlace, slot: logoAsObject ? 'object' : tLogo ? 'template' : logoBox ? 'abs' : 'flex', tplRect: tLogo ?? null };
   if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${mirrorX ? pad.left : pad.right}px ${pad.bottom}px ${mirrorX ? pad.right : pad.left}px`;
@@ -1221,6 +1223,18 @@ export function renderAd(ctx, style, spec) {
   const mirrorLayer = html => !mirrorX || !html ? html : html.replace(/(<div data-object="[^"]*"[^>]*?style=")([^"]*)"/, (m0, a0, st) => a0 + st.replace(/(^|;)right:/, '$1left:').replace(/to right/g, 'to left').replace(/(background:url\('[^']*'\)\s*)([^\/;]*)\//, (m1, b0, pos) => b0 + pos.replace(/\b(left|right)\b/g, x => (x === 'left' ? 'right' : 'left')) + '/') + '"').replace(/data-melt-dir="to right"/g, 'data-melt-dir="to left"');
   const textOff = MAN?.text ? `left:${Math.round(MAN.text.dx * w * 10) / 10}px;top:${Math.round(MAN.text.dy * h * 10) / 10}px;` : '';
   const anchorJ = ED?.textAnchor ? { top: 'flex-start', center: 'center', bottom: 'flex-end' }[ED.textAnchor] : null;
+  // 가이드 배치 규칙(10-14 place.*): 자동 배치가 글자에 비워 둔 칸·시작선·로고 자리를 추적에 남긴다 — 프리셋(위치·정렬)이 다 걸린 뒤, 직접 수정(manual) 전 값. 그림엔 영향 없음.
+  //   col = 글자 열(flex 자식) 네모(캔버스 px, 렌더러 어림 — 실측은 core/guidemeasure.js 가 [data-text-col] 에서 잰다) · cut = 우하단 그림 상자(그 안은 상세 열 detailW 만 글자 칸)
+  //   align = 가로 정렬(left·center) · v = 세로 정렬(top·center·bottom·distribute) · margin = 시작선(왼쪽·위 여백)
+  {
+    const gapX = Math.round(innerW * 0.04);
+    const colW = objectSide === 'right' ? innerW - objW - gapX : innerW;
+    const col = strip ? null : objectSide === 'bottom'
+      ? { x: pad.left, y: pad.top, w: innerW, h: Math.max(0, innerH - objReserve - 12) }
+      : { x: mirrorX ? w - pad.left - colW : pad.left, y: pad.top, w: colW, h: innerH };
+    const v = anchorJ ? ED.textAnchor : distribute ? 'distribute' : (useRef ? vCenter : tall && objectSide === 'none') ? 'center' : strip ? 'center' : 'top';
+    TR.place.zone = { col, cut: (imgCorner && hasKv && tImage) ? { ...tImage } : null, detailW: (imgCorner && hasKv) ? detailW : null, spanW: Math.max(textW, mainW ?? 0, subW ?? 0), room: roomFull?.room ? { ...roomFull.room } : null, objTop: objectSide === 'bottom' ? h - pad.bottom - objReserve : null, side: objectSide === 'right' ? (mirrorX ? 'left' : 'right') : objectSide, align, v, margin: { left: mirrorX ? w - pad.left - colW : pad.left, top: pad.top, right: pad.right, bottom: pad.bottom } };
+  }
   if (ED) {
     const presets = Object.fromEntries(Object.entries(ED).filter(([k]) => k !== 'manual'));
     TR.edit = { presets, place: EP, mirror: mirrorX || undefined, manual: MAN, ignored: [MAN?.kv && kvBg ? 'kv(그림이 지면 전체)' : null, MAN?.kv && kvFixed ? 'kv(매체 템플릿 칸·오브젝트 상자)' : null, MAN?.logo && tLogo ? 'logo(템플릿 로고 칸)' : null, (ED.bgFill && ED.bgFill !== 'custom' && (roomFull || textureFull)) ? 'bgFill(그림이 곧 지면)' : null, (ED.kvSize && (kvBg || oBox || (tImage && !gCorner && !cutCorner))) ? 'kvSize(매체 칸·지면 전체)' : null].filter(Boolean) };
@@ -1400,7 +1414,7 @@ export function renderAd(ctx, style, spec) {
     return `${open('flex-direction:row;align-items:center;gap:20px')}
 ${objectSide === 'right' ? kvWrap(bleedRight(objW)) : ''}${scrimEl}
 ${lg ? `<div style="position:relative;flex:none;display:flex;align-items:center">${lg}</div>` : ''}
-<div style="position:relative;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? 'center'}${textOff ? ';' + textOff.replace(/;$/, '') : ''}">
+<div data-text-col="1" style="position:relative;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? 'center'}${textOff ? ';' + textOff.replace(/;$/, '') : ''}">
 ${(showSub && subAbove) ? T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${Math.round(z.subFs * 0.4)}px`) : ''}
 ${T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, '', mainLines)}
 ${(meta && !(showSub && subAbove)) ? T(showSub ? 'sub' : 'date', meta, z.subFs, fwOf('date', z.subFs), subFg, 'margin-top:3px') : (want.date && subAbove ? T('date', copy.date, z.smallFs, fwOf('date', z.smallFs), subFg, 'margin-top:3px') : '')}
@@ -1441,8 +1455,8 @@ ${tplLogo}${kvWrap(tplObject)}
   // 우하단 이미지 상자 옆으로 글자가 흐르게: 텍스트 열을 블록으로 두고 이미지 자리에 float 스페이서를 세운다(세아제강 팝업 — 메인은 전폭, 상세는 이미지 왼쪽).
   // 우하단 이미지(자소설 팝업·M메인): 메인·서브는 일러스트 위를 전폭으로, 상세·부가는 일러스트 왼쪽 고정 폭 열에 (세아제강)
   const textCol = (imgCorner && hasKv)
-    ? `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;${anchorJ ? `justify-content:${anchorJ};` : ''}${textOff}align-items:${align === 'center' ? 'center' : 'stretch'}">${head.filter(Boolean).join('\n')}<div style="width:${detailW}px;max-width:100%">${tail.filter(Boolean).join('\n')}</div></div>`
-    : `<div style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? ((useRef ? vCenter : tall && objectSide === 'none') ? 'center' : 'flex-start')};${textOff}align-items:${align === 'center' ? 'center' : 'stretch'}">${parts.filter(Boolean).join('\n')}</div>`;
+    ? `<div data-text-col="1" style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;${anchorJ ? `justify-content:${anchorJ};` : ''}${textOff}align-items:${align === 'center' ? 'center' : 'stretch'}">${head.filter(Boolean).join('\n')}<div style="width:${detailW}px;max-width:100%">${tail.filter(Boolean).join('\n')}</div></div>`
+    : `<div data-text-col="1" style="position:relative;flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? ((useRef ? vCenter : tall && objectSide === 'none') ? 'center' : 'flex-start')};${textOff}align-items:${align === 'center' ? 'center' : 'stretch'}">${parts.filter(Boolean).join('\n')}</div>`;
 
   // 이미지는 글자보다 먼저 그린다(아래에 깔린다). 글자 열 옆·아래에는 같은 크기의 빈 자리만 남긴다.
   if (objectSide === 'bottom') {

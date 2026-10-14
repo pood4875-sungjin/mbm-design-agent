@@ -20,6 +20,7 @@ import { meltLength, vividWhite, moodStops } from './field.js';
 import { contrast, colorDistance, WHITE, BLACK } from './palette.js';
 import { KV_SUBTYPES } from './kvtypes.js';
 import { limitsByRole, inImage } from './adfields.js';
+import { invertBox, safeRect } from './editlayout.js';
 
 const pct = v => v == null ? '—' : `${Math.round(v * 100)}%`;
 const px = v => v == null ? '—' : `${Math.round(v * 10) / 10}px`;
@@ -37,6 +38,48 @@ const obj0 = C => (C.m?.objects ?? [])[0] ?? null;
 const warn = (C, code) => (C.m?.check?.warnings ?? []).find(w => w.code === code && w.level !== 'info') ?? null;
 const metric = (C, k) => C.m?.check?.metrics?.[k] ?? null;
 const guideLine = (C, subId, i) => { for (const list of Object.values(KV_SUBTYPES)) { const s = list.find(x => x.id === subId); if (s) return s.guide?.[i] ?? null; } return null; };
+
+// ── 가이드 배치 규칙(10-14 place.*) 도우미 ──
+// 사용자 보고(10-14): 「글자 덩어리를 다른 데로 이동시켜도 검수에서 그냥 통과된다」 — 빈 곳으로 옮기면 겹침(adcheck)·매체 규정(lint)·가이드 44개 어디에도 안 걸렸다.
+// 자동 배치가 글자에 비워 둔 칸(렌더러 trace.place.zone + 실측 [data-text-col])·시작선·로고 자리를 기준으로 직접 수정이 거기서 벗어났는지 본다.
+// 직접 수정 이동은 left/top(글자)·translate(로고·키비주얼)이라 실측 상자에서 그 값을 빼면 자동 상자가 된다 — 프리셋(위치·정렬)은 자동 쪽에 들어간다(오탐 없음).
+const manualOf = (C, part) => { const e = C.trace?.edit; const p = e?.manual?.[part]; if (!p) return null; if ((e.ignored ?? []).some(s => String(s).startsWith(part + '('))) return null; return p; };
+const textOffPx = C => { const p = manualOf(C, 'text'); return p ? { x: Math.round(p.dx * C.spec.w * 10) / 10, y: Math.round(p.dy * C.spec.h * 10) / 10 } : { x: 0, y: 0 }; };
+const shiftBox = (b, dx, dy) => b && { x: b.x + dx, y: b.y + dy, w: b.w, h: b.h };
+const unionBox = list => { const bs = list.filter(b => b && b.w > 0.5 && b.h > 0.5); if (!bs.length) return null; const x0 = Math.min(...bs.map(b => b.x)), y0 = Math.min(...bs.map(b => b.y)), x1 = Math.max(...bs.map(b => b.x + b.w)), y1 = Math.max(...bs.map(b => b.y + b.h)); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; };
+export const textBlockOf = C => unionBox(textsOf(C).map(t => t.ink));
+export const PLACE_TOL = { hull: 0.35, zone: 0.04, zonePx: 8, align: 0.015, alignPx: 6, drift: 0.06, margin: 0.04 };
+const tolOf = (C, k, kPx) => ({ x: Math.max(kPx, C.spec.w * k), y: Math.max(kPx, C.spec.h * k) });
+// 자동 글자 칸(직접 수정 전) — 네모 목록(글자 요소 하나하나가 그중 하나 안에 들면 칸 안)
+//   열·띠: 글자 열([data-text-col] 실측, 메인·서브가 열보다 넓게 쓰면 그 폭까지)
+//   아래 띠: 그림 윗부분(녹인 구간)으로 겹쳐도 되는 몫(trace.place.overlap — CANON objectOverlap)까지 아래로
+//   배경형(bg-room): 그림의 빈 자리(room)도 칸
+//   우하단 그림 상자(corner): 「주인공 위 전폭」 + 「주인공 왼쪽 열」의 ㄱ자 — 주인공 = KV 불투명 상자(실측, 직접 수정 이동은 되돌림), 없으면 상자
+const autoKvBox = C => { const o = (C.m?.objects ?? []).find(x => !x.root); if (!o) return null; const b = o.bbox ?? o.box; const p = manualOf(C, 'kv'); const a = p ? invertBox(b, p, C.spec.w, C.spec.h) : b; const x0 = Math.max(0, a.x), y0 = Math.max(0, a.y), x1 = Math.min(C.spec.w, a.x + a.w), y1 = Math.min(C.spec.h, a.y + a.h); return x1 > x0 && y1 > y0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null; };
+export function autoTextZone(C) {
+  const Z = C.trace?.place?.zone; const off = textOffPx(C);
+  const col = C.m?.textCol ? shiftBox(C.m.textCol, -off.x, -off.y) : Z?.col ?? null;
+  if (!col) return null;
+  const span = Math.max(col.w, Z?.spanW ?? 0);   // 메인·서브가 글자 열보다 넓게 쓰는 규격(카카오 3줄 mainSpan)
+  const P = C.trace?.place ?? {};
+  if (Z?.cut) {
+    const kb = autoKvBox(C); const cut = kb && kb.x < Z.cut.x + Z.cut.w && kb.y < Z.cut.y + Z.cut.h ? kb : Z.cut;
+    if (cut.y > col.y + 4) { const head = { x: col.x, y: col.y, w: span, h: cut.y - col.y }; const tail = { x: col.x, y: col.y, w: Math.max(Z.detailW ?? 0, Math.min(span, cut.x - col.x)), h: col.h }; return { rects: [head, tail], col, kind: 'corner', cut }; }
+  }
+  const main = { x: col.x, y: col.y, w: span, h: col.h };
+  if (Z?.side === 'bottom') { const kb = autoKvBox(C); const ov = P.overlap ?? 0; if (kb) { const bot = Math.max(col.y + col.h, kb.y + kb.h * ov); main.h = bot - col.y; } return { rects: [main], col, kind: 'bottom' }; }
+  if (Z?.room) return { rects: [main, Z.room], col, kind: 'room' };
+  return { rects: [main], col, kind: Z?.side ?? 'none' };
+}
+const overlapFrac = (a, b) => { if (!a || !b) return 0; const w = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)), h = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)); return (w * h) / Math.max(1, a.w * a.h); };
+const inRect = (b, r, t) => b.x >= r.x - t.x && b.y >= r.y - t.y && b.x + b.w <= r.x + r.w + t.x && b.y + b.h <= r.y + r.h + t.y;
+const range = (a, b, n) => `${Math.round(a / n * 100)}~${Math.round(b / n * 100)}%`;
+const SIDE_KO = { right: '왼쪽', left: '오른쪽', bottom: '위', template: '', none: '', corner: '' };
+const H_KO = { left: '왼쪽', center: '가운데', right: '오른쪽' }, V_KO = { top: '위', middle: '가운데', bottom: '아래' };
+export const cornerOf = (b, W, H) => { const cx = (b.x + b.w / 2) / W, cy = (b.y + b.h / 2) / H; return { h: cx < 0.4 ? 'left' : cx > 0.6 ? 'right' : 'center', v: cy < 0.4 ? 'top' : cy > 0.6 ? 'bottom' : 'middle' }; };
+const cornerKo = c => (c.h === 'center' && c.v === 'middle') ? '가운데' : `${H_KO[c.h]} ${V_KO[c.v]}`;
+const TRACE_CORNER = { 'top-right': { h: 'right', v: 'top' }, 'top-left': { h: 'left', v: 'top' }, 'top-center': { h: 'center', v: 'top' } };
+const sgn = v => `${v >= 0 ? '+' : '−'}${Math.round(Math.abs(v) * 1000) / 10}%`;
 
 // ── 규칙 목록 ────────────────────────────────────────────────────────────────
 // 각 규칙: { id, group, name, source, text(가이드 문장), when(C) → 해당 여부, eval(C) → { expect, actual, ok(true|false|null), note? } }
@@ -111,6 +154,35 @@ export const RULES = [
     text: '머리는 자르지 않는다(머리 위 숨 4%) — 자를 땐 발·몸 아래부터',
     when: C => !!(C.kt?.flags?.character && obj0(C)?.focusCut),
     eval: C => { const fc = obj0(C).focusCut; return { expect: '주인공 상자 윗변 잘림 ≤ 2%', actual: `윗변 ${pct(fc.top)} · 아랫변 ${pct(fc.bottom)}`, ok: fc.top <= 0.02 }; } },
+  // ── 가이드 배치(10-14 사용자 보고: 글자 덩어리를 빈 곳으로 옮겨도 통과) ──
+  { id: 'place.textZone', group: '배치', name: '글자 칸(자동 배치가 비워 둔 자리)', source: 'ad.js trace.place.zone / [data-text-col]',
+    text: '글자 덩어리는 레이아웃이 글자에 비워 둔 칸(키비주얼 반대쪽 열·띠) 안에 — 칸 밖으로 4%(최소 8px) 넘게 나가지 않는다',
+    when: C => textsOf(C).length > 0 && !C.m?.ad?.['data-logo-only'] && !!(C.m?.textCol || C.trace?.place?.zone?.col),
+    eval: C => { const Z = autoTextZone(C), t = tolOf(C, PLACE_TOL.zone, PLACE_TOL.zonePx), W = C.spec.w, H = C.spec.h; const blk = textBlockOf(C);
+      // ㄱ자(corner)의 주인공 상자는 불투명 픽셀의 외곽 네모라 왼쪽 위 모서리가 빈 경우가 많다 — 글자 요소가 그 네모와 35% 이하로만 겹치고 글자 열 안이면 칸 안(실제 주인공 겹침은 check.textOverSubject 가 본다)
+      const hullOk = x => Z.kind === 'corner' && inRect(x.ink, { ...Z.col, w: Math.max(Z.col.w, Z.rects[0].w) }, t) && overlapFrac(x.ink, Z.cut) <= PLACE_TOL.hull;
+      const out = textsOf(C).filter(x => x.ink?.w > 0.5 && !Z.rects.some(r => inRect(x.ink, r, t)) && !hullOk(x));
+      const u = unionBox(Z.rects); const side = Z.kind;
+      const exp = side === 'corner' ? `위 전폭(세로 ${range(Z.rects[0].y, Z.rects[0].y + Z.rects[0].h, H)}) + 그림 왼쪽 열(가로 ${range(Z.rects[1].x, Z.rects[1].x + Z.rects[1].w, W)})`
+        : side === 'bottom' ? `위 ${range(u.y, u.y + u.h, H)}` : (side === 'right' || side === 'left') ? `${SIDE_KO[side]} ${range(u.x, u.x + u.w, W)}(세로 ${range(u.y, u.y + u.h, H)})` : side === 'room' ? `글자 열 + 그림 빈 자리(가로 ${range(u.x, u.x + u.w, W)} · 세로 ${range(u.y, u.y + u.h, H)})` : `가로 ${range(u.x, u.x + u.w, W)} · 세로 ${range(u.y, u.y + u.h, H)}`;
+      const act = side === 'bottom' && blk.x >= u.x - t.x && blk.x + blk.w <= u.x + u.w + t.x ? `세로 ${range(blk.y, blk.y + blk.h, H)}` : `가로 ${range(blk.x, blk.x + blk.w, W)} · 세로 ${range(blk.y, blk.y + blk.h, H)}`;
+      return { expect: `글자 칸: ${exp}`, actual: act, ok: !out.length, note: out.length ? `칸 밖: ${[...new Set(out.map(x => x.role))].join('·')}${manualOf(C, 'text') ? ' — 직접 수정으로 옮김' : ' — 자동 배치(규칙 과제)'}` : '' }; } },
+  { id: 'place.textAlign', group: '배치', name: '글자 시작선(여백·정렬선)', source: 'ad.js trace.place.zone.margin / align',
+    text: '글자 덩어리의 시작선은 자동 배치의 여백 선과 같다 — 왼쪽 정렬은 왼쪽 여백, 가운데 정렬은 가운데 선, 아래 띠 규격은 위 여백까지(±6px 또는 1.5%)',
+    when: C => textsOf(C).length > 0 && !C.m?.ad?.['data-logo-only'] && !!C.trace?.place?.zone,
+    // 시작선 = 자동 글자 열의 시작(실측 [data-text-col] 에서 직접 수정 이동을 뺀 것 — 렌더러 여백 pad 와 같다). 글자 잉크의 왼쪽 곁 여백(≤ 4px, 92케이스 실측)은 허용 오차 안
+    eval: C => { const Z = C.trace.place.zone, off = textOffPx(C), blk = textBlockOf(C), t = tolOf(C, PLACE_TOL.align, PLACE_TOL.alignPx); const col = C.m?.textCol ? shiftBox(C.m.textCol, -off.x, -off.y) : Z.col ?? shiftBox(blk, -off.x, -off.y); const rows = [], acts = []; let ok = true;
+      if (Z.align === 'center') { const e = col.x + col.w / 2, a = blk.x + blk.w / 2; const g = Math.abs(a - e) <= t.x; ok = ok && g; rows.push(`가운데 정렬선 x ${Math.round(e)}px`); acts.push(`${Math.round(a)}px`); }
+      else { const g = Math.abs(blk.x - col.x) <= t.x; ok = ok && g; rows.push(`왼쪽 여백 ${Math.round(col.x)}px`); acts.push(`${Math.round(blk.x)}px`); }
+      if (Z.side === 'bottom' && Z.v === 'top') { const g = Math.abs(blk.y - col.y) <= t.y; ok = ok && g; rows.push(`위 여백 ${Math.round(col.y)}px`); acts.push(`${Math.round(blk.y)}px`); }
+      return { expect: rows.join(' · '), actual: acts.join(' · '), ok, note: ok ? '' : manualOf(C, 'text') ? '직접 수정으로 여백 선에서 벗어남' : '자동 배치의 글자가 여백 선에서 떨어짐(규칙 과제)' }; } },
+  { id: 'place.manualDrift', group: '배치', name: '직접 수정 이탈', source: 'core/editlayout.js overrides.layout',
+    text: '직접 수정(끌어 옮기기·화살표)은 자동 배치에서 가로·세로 각각 6% 안 — 넘으면 가이드 배치에서 벗어난 것(의도면 넘기기에 이유)',
+    when: C => !!C.trace?.edit?.manual,
+    eval: C => { const drawn = { text: textsOf(C).length > 0, kv: (C.m?.objects ?? []).some(o => !o.root), logo: !!C.m?.logo?.box }; const parts = ['text', 'kv', 'logo'].filter(k => drawn[k]).map(k => [k, manualOf(C, k)]).filter(([, p]) => p); const NM = { text: '글자', kv: '키비주얼', logo: '로고' }; const lim = PLACE_TOL.drift;
+      if (!parts.length) return { expect: `이동 ≤ ${pct(lim)}`, actual: '적용된 직접 수정 없음(매체 칸이 막았거나 그 덩어리가 없음)', ok: null };
+      const bad = parts.filter(([, p]) => Math.abs(p.dx) > lim + 1e-4 || Math.abs(p.dy) > lim + 1e-4);
+      return { expect: `이동 ≤ ${pct(lim)}(가로·세로 각각)`, actual: parts.map(([k, p]) => `${NM[k]} ${sgn(p.dx)} · ${sgn(p.dy)}${p.scale && p.scale !== 1 ? ` ×${p.scale}` : ''}`).join(' / '), ok: !bad.length, note: bad.length ? `가이드 배치에서 벗어남(직접 수정): ${bad.map(([k]) => NM[k]).join('·')}` : '' }; } },
   // ── 지면 ──
   { id: 'kvMood', group: '지면', name: '분위기 있는 KV 배경 > 브랜드 지면', source: 'canon.kvMood',
     text: '어두운 사진·채도 있는 그라데이션 변·누끼 원본 바탕은 그 색이 지면(kv-mood) — 브랜드는 로고·알약으로',
@@ -233,6 +305,21 @@ export const RULES = [
     text: '가이드 매체 로고 높이 ≈ 짧은 변의 7.5%(세로 로고는 면적 보정으로 최대 1.8배), 폭 ≤ 30%',
     when: C => !!C.guide.logo?.hRatio && !!C.m?.logo?.box && !C.trace?.logo?.asObject && !C.m?.ad?.['data-logo-only'],
     eval: C => { const g = C.guide.logo, b = C.m.logo.box, short = Math.min(C.spec.w, C.spec.h); const eh = short * g.hRatio; const k = C.m.logo.nat ? Math.max(1, Math.min(1.8, Math.sqrt(0.8 / Math.max(1e-3, C.m.logo.nat[0] / C.m.logo.nat[1])))) : 1; return { expect: `높이 ≈ ${Math.round(eh)}px(×${num(k)} 세로 보정) · 폭 ≤ ${pct(g.maxWRatio ?? 0.3)}`, actual: `높이 ${Math.round(b.h)}px · 폭 ${pct(b.w / C.spec.w)}`, ok: b.h <= eh * k + 1.5 && b.w <= C.spec.w * (g.maxWRatio ?? 0.3) + 1, note: '로고 폭 상한(logoCap)에 걸리면 높이가 더 작아질 수 있음' }; } },
+  { id: 'place.logoSlot', group: '로고', name: '로고 자리(모서리)', source: 'ad.js trace.logo.corner / slot',
+    text: '로고는 자동 배치가 정한 자리(기본 우상단, 사진 열·배경형 주인공 쪽이면 좌상단, 매체 로고 칸) — 다른 모서리로 가거나 4%(최소 8px) 넘게 떠나지 않는다',
+    when: C => !!C.m?.logo?.box && !!C.trace?.logo && !C.trace.logo.asObject && !C.m?.ad?.['data-logo-only'],
+    eval: C => { const W = C.spec.w, H = C.spec.h, b = C.m.logo.box, p = manualOf(C, 'logo'); const auto = p ? invertBox(b, p, W, H) : b; const t = tolOf(C, PLACE_TOL.zone, PLACE_TOL.zonePx);
+      const want = (C.trace.logo.slot === 'abs' && TRACE_CORNER[C.trace.logo.corner]) || cornerOf(auto, W, H); const now = cornerOf(b, W, H);
+      const dx = (b.x + b.w / 2) - (auto.x + auto.w / 2), dy = (b.y + b.h / 2) - (auto.y + auto.h / 2);
+      const same = want.h === now.h && want.v === now.v; const near = Math.abs(dx) <= t.x && Math.abs(dy) <= t.y;
+      return { expect: `로고 자리: ${cornerKo(want)}`, actual: `${cornerKo(now)}${(dx || dy) ? ` (자동에서 ${Math.round(dx)}·${Math.round(dy)}px)` : ''}`, ok: same && near, note: !same && !p ? '자동 배치의 로고가 정한 모서리와 다름(규칙 과제)' : (same && !near) ? '같은 모서리지만 자동 자리에서 멀어짐' : '' }; } },
+  { id: 'place.recommendedMargin', group: '배치', name: '권장 여백(매체 안전영역이 없는 규격)', source: 'core/editlayout.js safeRect — 짧은 변 × 4%', level: 'warn',
+    text: '매체가 안전영역을 숫자로 정하지 않은 규격은 글자·로고를 가장자리에서 짧은 변의 4% 이상 띄운다(권장 여백)',
+    when: C => !safeRect({ w: C.spec.w, h: C.spec.h, rules: C.rules }).stated && !C.m?.ad?.['data-logo-only'] && (textsOf(C).length > 0 || !!C.m?.logo?.box),
+    eval: C => { const W = C.spec.w, H = C.spec.h, fb = Math.round(Math.min(W, H) * PLACE_TOL.margin); const items = [['글자', textBlockOf(C)], ['로고', (C.trace?.logo?.asObject ? null : C.m?.logo?.box) ?? null]].filter(([, b]) => b);
+      const E = { left: '왼', top: '위', right: '오른', bottom: '아래' }; const bad = []; const acts = [];
+      for (const [k, b] of items) { const d = { left: b.x, top: b.y, right: W - (b.x + b.w), bottom: H - (b.y + b.h) }; const mn = Object.entries(d).reduce((a, x) => x[1] < a[1] ? x : a); acts.push(`${k} ${E[mn[0]]} ${Math.round(mn[1])}px`); for (const [e, v] of Object.entries(d)) if (v < fb - 1) bad.push(`${k} ${E[e]} ${Math.round(v)}px`); }
+      return { expect: `권장 여백 ≥ ${fb}px(짧은 변 4%)`, actual: acts.join(' · '), ok: !bad.length, note: bad.length ? `권장 여백보다 가까움: ${bad.join(', ')}` : '' }; } },
   // ── 검수(adcheck) ──
   { id: 'check.textOverSubject', group: '검수', name: '글자-주인공 겹침', source: 'core/adcheck.js',
     text: '글자 상자가 주인공 위로 15% 넘게 올라가지 않는다(캐릭터·인물은 0)',
@@ -282,6 +369,7 @@ export const RULES_JSON_MAP = {
   'mainFloor.square': ['main-floor-square'], 'guide.mainPx': ['google-main-px'], 'guide.detailPx': ['google-main-px'], 'guide.subPx': ['google-main-px'], 'main.lines': ['main-overflow'], 'contrast.main': ['text-black-or-white'], 'contrast.small': ['text-black-or-white'], 'hierarchy': ['layout-shape-sizes'],
   'logoCap': ['logo-cap'], 'logo.tone': ['logo-mono', 'logo-clash', 'logo-tile'], 'wideLogo': ['wide-logo'], 'guide.logo.h': ['logo-google'],
   'check.textOverSubject': ['check-text-over-subject'], 'check.emptyBand': ['check-empty-band'], 'check.logoCovered': ['check-logo-covered'], 'check.hardCut': ['check-hard-cut'], 'check.textClipped': ['check-text-clipped'], 'check.chipOverflow': ['check-pill-overflow'], 'maxUpscale': ['max-upscale'],
+  'place.textZone': ['place-text-zone'], 'place.textAlign': ['place-text-align'], 'place.logoSlot': ['place-logo-slot'], 'place.manualDrift': ['place-manual-drift'], 'place.recommendedMargin': ['place-recommended-margin'],
 };
 // rules.json(규칙 장부)이 있으면 짝지은 항목의 rule·value 로 가이드 문장을, where 로 출처를 덮는다. 모양이 달라도(배열·{rules:[]}·{id: text}) 깨지지 않게 느슨히 읽는다
 export function applyRulesJson(rules, json, map = RULES_JSON_MAP) {
@@ -304,7 +392,7 @@ export function evaluate(C, rules = RULES) {
     let on = false; try { on = !!r.when(C); } catch { on = false; }
     if (!on) continue;
     let res; try { res = r.eval(C); } catch (e) { res = { expect: '—', actual: '평가 실패: ' + (e?.message ?? e), ok: null }; }
-    rows.push({ id: r.id, group: r.group, name: r.name, source: r.source, text: r.text, fromRulesJson: !!r.fromRulesJson, ...res, verdict: res.ok === true ? '✓' : res.ok === false ? '✗' : '–' });
+    rows.push({ id: r.id, group: r.group, name: r.name, source: r.source, text: r.text, fromRulesJson: !!r.fromRulesJson, ...(r.level ? { level: r.level } : {}), ...res, verdict: res.ok === true ? '✓' : res.ok === false ? '✗' : '–' });
   }
   for (const h of HUMAN_RULES) rows.push({ ...h, expect: '—', actual: '측정 불가 — 사람 판정', ok: null, verdict: '–' });
   return rows;

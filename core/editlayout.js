@@ -239,6 +239,8 @@ export const RULE_EDIT_KEYS = {
   logoCap: [K.logo], 'logo.tone': [K.fill, K.logo], wideLogo: [K.logo, K.place], 'guide.logo.h': [K.logo],
   'check.textOverSubject': [...KV_ALL, K.text, K.anchor], 'check.emptyBand': [...KV_ALL, K.text, K.anchor], 'check.logoCovered': [...KV_ALL, K.logo],
   'check.hardCut': [...KV_ALL, K.fill], 'check.textClipped': [K.text, K.anchor, K.place, K.size], 'check.chipOverflow': [K.text, K.place, K.size], maxUpscale: [K.size, K.kv],
+  // 가이드 배치(10-14): 글자 칸·시작선·로고 자리·직접 수정 이탈·권장 여백 — 직접 수정을 지운다. 글자 정렬·키비주얼 위치·크기 프리셋이 글자를 칸 밖으로 밀었으면(우하단 그림 위로 내린 정렬, 580×400 「아래」 띠에서 넘친 상세) 그것도
+  'place.textZone': [K.text, K.anchor, K.place, K.size], 'place.textAlign': [K.text], 'place.logoSlot': [K.logo], 'place.manualDrift': [K.text, K.logo, K.kv], 'place.recommendedMargin': [K.text, K.logo, K.anchor],
 };
 // 이 산출물에서 그 규칙에 닿는 편집이 지금 걸려 있나 — effStyle(캠페인 + 개별을 합친 스타일), layout(overrides.layout)
 export function editsTouching(ruleId, effStyle, layout) {
