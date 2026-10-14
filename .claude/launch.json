@@ -4,14 +4,29 @@
     {
       "name": "handover-bak",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd /Users/kimsungjin/design-generator-handover.bak-20261002 && exec python3 serve.py 4790"],
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/kimsungjin/design-generator-handover.bak-20261002 && exec python3 serve.py 4790"
+      ],
       "port": 4790
     },
     {
       "name": "handover-latest",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd /Users/kimsungjin/design-generator-handover && exec python3 serve.py 4791"],
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/kimsungjin/design-generator-handover && exec python3 serve.py 4791"
+      ],
       "port": 4791
+    },
+    {
+      "name": "mbm-agent",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/kimsungjin/mbm-design-agent && exec python3 scripts/serve.py 4793"
+      ],
+      "port": 4793
     }
   ]
 }

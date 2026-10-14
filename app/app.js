@@ -24,6 +24,8 @@ import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detec
 import { measureArtifact } from './measure.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
+import { htmlToSvg } from '../core/svgexport.js';
+import { renderAd } from '../core/renderers/ad.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA } from '../core/logo.js';
@@ -2206,12 +2208,13 @@ function adRulesText(spec) {
     spec.confidence !== '확정' ? '⚠ 자료 확인 필요 규격' : null,
   ].filter(Boolean).join('<br>');
 }
+const adEffCtx = a => { const c = state.campaign; return { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } }; };
 async function exportAdFiles(ads) {
   const c = state.campaign;
   const out = [];
   for (const a of ads) {
     const spec = SPECS[a.specId];
-    const eff = { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } };
+    const eff = adEffCtx(a);
     const fit = await renderFit(eff, c.style, spec);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
     out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
   }
@@ -2227,10 +2230,28 @@ async function doAdExport(a) {
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
-async function exportAdZip() {
+// SVG(Figma 편집용) — 용량 맞춤(단색 배경·JPG) 전의 원래 디자인을 옮긴다. Figma 에서 고친 뒤 디자이너가 다시 뽑기 때문이다.
+// 글자는 살아 있는 텍스트(Pretendard), 그림·로고는 따로 레이어, 지면·그라데이션·녹임은 벡터(core/svgexport.js)
+const SVG_NOTE = 'SVG(Figma 편집용): 글자는 텍스트, 키비주얼·로고는 따로 레이어로 들어갑니다. Figma에서 Pretendard 폰트가 설치되어 있어야 글자가 그대로 보입니다.';
+async function adSvgOf(a, imgCache) {
+  const spec = SPECS[a.specId];
+  const html = renderAd(adEffCtx(a), state.campaign.style, spec);
+  const r = await htmlToSvg(html, spec, { imgCache, title: adFileName(a, 'svg').replace(/\.svg$/, '') });
+  return { ...r, name: adFileName(a, 'svg') };
+}
+async function doAdSvg(a) {
+  toast('SVG 만드는 중…');
+  try {
+    const r = await adSvgOf(a, new Map());
+    downloadText(r.svg, r.name, 'image/svg+xml');
+    log(`내보내기: ${r.name} (SVG · 글자 ${r.stats.texts} · 그림 ${r.stats.images}${r.fallbacks.length ? ` · 대체: ${r.fallbacks.join(' / ')}` : ''})`);
+    closeModal();
+  } catch (e) { toast(`실패: ${e.message}`); }
+}
+async function exportAdZip(withSvg = false) {
   const c = state.campaign;
   const ads = c.artifacts.filter(a => a.channel === 'ad');
-  toast(`매체 소재 ${ads.length}장 생성 중…`);
+  toast(`매체 소재 ${ads.length}장 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
   try {
     const files = await exportAdFiles(ads);
     const blocked = files.filter(f => f.fit.lint.level === 'block');
@@ -2240,9 +2261,19 @@ async function exportAdZip() {
       entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
+    const rasterN = entries.length, svgFallbacks = new Set();
+    if (withSvg) {
+      // 래스터와 같은 이름 규칙으로 svg/ 폴더에 — 차단된 소재는 래스터처럼 뺀다
+      const enc = new TextEncoder(), cache = new Map();
+      for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
+        const r = await adSvgOf(f.a, cache);
+        r.fallbacks.forEach(x => svgFallbacks.add(x));
+        entries.push({ name: `svg/${r.name}`, data: enc.encode(r.svg) });
+      }
+    }
     const zip = buildZip(entries);
-    download(new Blob([zip], { type: 'application/zip' }), `${c.id}_매체소재_v${c.context.version}.zip`);
-    log(`내보내기: 매체 소재 ZIP ${entries.length}장 (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})`);
+    download(new Blob([zip], { type: 'application/zip' }), `${c.id}_매체소재${withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
+    log(`내보내기: 매체 소재 ZIP ${rasterN}장${withSvg ? ` + SVG ${entries.length - rasterN}장` : ''} (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})${svgFallbacks.size ? ` · SVG 대체: ${[...svgFallbacks].join(' / ')}` : ''}`);
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
@@ -2252,9 +2283,11 @@ function exportAdModal(a) {
     title: `${artLabel(a)} 내보내기`,
     desc: '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b></div>
-      <div style="margin-top:10px">${lintHtml(a)}</div>`,
+      <div style="margin-top:10px">${lintHtml(a)}</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">${SVG_NOTE}</div>`,
     actions: [
       { label: '닫기' },
+      { label: 'SVG (Figma 편집용)', fn: () => { doAdSvg(a); return false; } },
       { label: '다운로드', pri: true, fn: () => { doAdExport(a); return false; } },
     ],
   });
@@ -2350,11 +2383,12 @@ function exportAllModal() {
       ${ads.length ? `· 매체 소재 ZIP — ${[...new Set(ads.map(a => SPECS[a.specId].mediumName))].join(', ')} (${ads.length}장${ads.some(a => a.lint?.level === 'block') ? `, 차단 ${ads.filter(a => a.lint?.level === 'block').length}건 제외` : ''})<br>` : ''}
       · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
-      · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>`,
+      · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
+      ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
-      ...(ads.length ? [{ label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(); return false; } }] : []),
+      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(); return false; } }] : []),
       { label: '배너 PNG 2x 일괄', pri: !ads.length, fn: () => { batchBanners(banners); return false; } },
     ],
   });
