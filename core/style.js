@@ -48,8 +48,8 @@ export function normalizeStyle(input = {}) {
       mode,
     }),
     fonts: {
-      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : 'Pretendard',
-      body: FONTS[input.fonts?.body] ? input.fonts.body : 'Pretendard',
+      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : 'Paperlogy',
+      body: FONTS[input.fonts?.body] ? input.fonts.body : 'Paperlogy',
     },
     logo: input.logo ?? null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다(core/field.js). 사람이 고정할 수 있는 것은 단색/그라데이션과 색 하나뿐이다.

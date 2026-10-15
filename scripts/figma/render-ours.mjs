@@ -18,6 +18,8 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+// 번들 폰트(app/fonts) 를 하네스 페이지에도 넣는다 — 기본 글꼴 Paperlogy(10-15 저녁)는 CDN 이 없어 파일로만 그려진다
+const BUNDLED_FACES = await (async () => { const F = await import(pathToFileURL(path.join(ROOT, 'core/fonts.js')).href); const pre = pathToFileURL(path.join(ROOT, 'app')).href + '/'; return F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pre)).join(''); })();
 const CASES = path.join(ROOT, 'ref/learned/cases');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
@@ -55,13 +57,13 @@ s=Image.new('RGBA',im.size,(255,0,255,255)); s.putalpha(a); s.save(sys.argv[2])`
 const MEASURE = `<script>addEventListener('load',async()=>{await document.fonts.ready;await new Promise(r=>setTimeout(r,800));
 const lines=e=>{const out=[];let cur=null,top=null;const w=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){for(let i=0;i<n.data.length;i++){const r=document.createRange();r.setStart(n,i);r.setEnd(n,i+1);const rc=r.getClientRects()[0];if(!rc||!rc.width){if(cur!==null)cur+=n.data[i];continue;}if(top===null||Math.abs(rc.top-top)>rc.height*0.5){if(cur!==null)out.push(cur);cur='';top=rc.top;}cur+=n.data[i];}}if(cur!==null)out.push(cur);return out.map(s=>s.replace(/\\u2060/g,'').trim());};
 const q=s=>[...document.querySelectorAll(s)];const R=v=>Math.round(v);
-const o={fontOK:{b700:document.fonts.check('700 20px Pretendard'),b800:document.fonts.check('800 20px Pretendard')}};
+const o={fontOK:{b700:(document.fonts.check('700 20px Pretendard') && document.fonts.check('700 20px Paperlogy')),b800:document.fonts.check('800 20px Pretendard')}};
 o.fields=q('[data-field]').map(e=>{const cs=getComputedStyle(e),r=e.getBoundingClientRect();return {role:e.dataset.field,x:R(r.x),y:R(r.y),w:R(r.width),h:R(r.height),fs:parseFloat(cs.fontSize),fw:cs.fontWeight,lh:cs.lineHeight,ls:cs.letterSpacing,ff:cs.fontFamily.split(',')[0],wb:cs.wordBreak,tw:cs.textWrap||cs.textWrapStyle||'',al:cs.textAlign,color:cs.color,bold:[...e.querySelectorAll('b')].map(b=>[b.textContent.slice(0,10),getComputedStyle(b).fontWeight]),lines:lines(e),text:e.innerText.replace(/\\n/g,'/').slice(0,80)}});
 o.logo=q('[data-logo]').map(e=>{const r=e.getBoundingClientRect();return [R(r.x),R(r.y),R(r.width),R(r.height)]});
 o.chips=q('[data-chip]').length;const ad=document.querySelector('[data-ad]');o.ad=ad?Object.fromEntries([...ad.attributes].filter(a=>a.name.startsWith('data-')).map(a=>[a.name,a.value])):null;o.bg=ad?getComputedStyle(ad).background.slice(0,200):null;
 const p=document.createElement('pre');p.id='m';p.style.display='none';p.textContent=JSON.stringify(o);document.body.appendChild(p);});</script>`;
 
-const page = (html, measure) => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0;background:#fff}</style></head><body>${html}${measure ? MEASURE : ''}</body></html>`;
+const page = (html, measure) => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>html,body{margin:0;background:#fff}</style></head><body>${html}${measure ? MEASURE : ''}</body></html>`;
 const chrome = (args, opts = {}) => execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--virtual-time-budget=8000', ...args], { maxBuffer: 64 << 20, stdio: ['ignore', opts.pipe ? 'pipe' : 'ignore', 'ignore'] });
 const unesc = s => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 

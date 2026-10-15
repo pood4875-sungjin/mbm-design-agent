@@ -20,6 +20,8 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+// 번들 폰트(app/fonts) 를 하네스 페이지에도 넣는다 — 기본 글꼴 Paperlogy(10-15 저녁)는 CDN 이 없어 파일로만 그려진다
+const BUNDLED_FACES = await (async () => { const F = await import(pathToFileURL(path.join(ROOT, 'core/fonts.js')).href); const pre = pathToFileURL(path.join(ROOT, 'app')).href + '/'; return F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pre)).join(''); })();
 const CASES = path.join(ROOT, 'ref/learned/cases');
 const OUT = path.join(CASES, '_out');
 const LEDGER = path.join(CASES, 'cases.json');
@@ -219,7 +221,7 @@ if (cmd === 'sheet') {
   const l = ledger();
   const specs = (opt('--specs') ?? 'google-gdn-580x400,remember-main-top-mo,google-gdn-300x600,instagram-feed-1080').split(',');
   const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
-  const doc = inner => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0}</style></head><body>${inner}</body></html>`;
+  const doc = inner => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>html,body{margin:0}</style></head><body>${inner}</body></html>`;
   const BOX = 260;   // 칸 하나의 긴 변(px)
   const checksOf = id => { const p = path.join(OUT, id + '.checks.json'); return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : {}; };
   const rows = l.cases.map(c => {
@@ -239,7 +241,7 @@ if (cmd === 'sheet') {
     }).join('');
     return `<tr><th><b>${esc(c.id)}</b><small>${esc(c.summary)}</small><small class="n">${esc(c.note)}</small></th>${cells}</tr>`;
   }).join('');
-  const page = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판정 시트</title><link rel="stylesheet" href="${FONT}"><style>
+  const page = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판정 시트</title><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>
 :root{--bg:#f4f4f2;--card:#fff;--ink:#1a1a1a;--sub:#666;--line:#dcdcd8;--ok:#1f7a4d;--bad:#b3261e;--focus:#2b59c3}
 @media (prefers-color-scheme:dark){:root{--bg:#161616;--card:#202020;--ink:#eee;--sub:#aaa;--line:#3a3a3a;--ok:#5bc48c;--bad:#ff8a80;--focus:#8fb0ff}}
 body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 Pretendard,system-ui,sans-serif}
@@ -322,7 +324,7 @@ if (cmd === 'run') {
   // 기본은 추출 규격(47 → 소재 묶음 45, core/media/_extract.json)만 — --all 이면 참고 규격까지 전부(r49 까지의 74규격 기준과 견줄 때)
   const specIds = (flag('--all') ? adSpecGroups() : extractSpecGroups()).map(g => g.id);
   const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
-  const doc = inner => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0;background:transparent}</style></head><body>${inner}</body></html>`;
+  const doc = inner => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>html,body{margin:0;background:transparent}</style></head><body>${inner}</body></html>`;
   const results = {};
   for (const id of ids) {
     const c = l.cases.find(x => x.id === id); if (!c) { console.warn('없는 케이스', id); continue; }

@@ -15,6 +15,8 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+// 번들 폰트(app/fonts) 를 하네스 페이지에도 넣는다 — 기본 글꼴 Paperlogy(10-15 저녁)는 CDN 이 없어 파일로만 그려진다
+const BUNDLED_FACES = await (async () => { const F = await import(pathToFileURL(path.join(ROOT, 'core/fonts.js')).href); const pre = pathToFileURL(path.join(ROOT, 'app')).href + '/'; return F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pre)).join(''); })();
 const CASES = path.join(ROOT, 'ref/learned/cases');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
@@ -79,11 +81,11 @@ try {
     errs.push({ text: d.text.slice(0, 24), dx: +(b.left - hr.left - d.x).toFixed(2), dr: +(b.right - hr.left - d.right).toFixed(2), dy: +(b.top - hr.top - d.y).toFixed(2) });
   });
   out.text = errs;
-  out.fontOK = document.fonts.check('700 20px Pretendard');
+  out.fontOK = (document.fonts.check('700 20px Pretendard') && document.fonts.check('700 20px Paperlogy'));
 } catch (e) { out.error = String(e && e.stack || e); }
 const p = document.createElement('pre'); p.id = 'out'; p.style.display = 'none'; p.textContent = JSON.stringify(out); document.body.appendChild(p);
 </script>`;
-const page = (inner, extra = '') => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0;background:#fff}</style></head><body>${inner}${extra}</body></html>`;
+const page = (inner, extra = '') => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>html,body{margin:0;background:#fff}</style></head><body>${inner}${extra}</body></html>`;
 
 const DIFF_PY = `import sys, json
 from PIL import Image, ImageChops

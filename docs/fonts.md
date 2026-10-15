@@ -7,7 +7,10 @@
 
 | 폰트 | 제작 | 라이선스 | 상업 광고 | 웹 임베딩·소재에 넣기 | 수정 | 굵기(배포) | 묶은 굵기 | 출처 | 확인일 |
 |---|---|---|---|---|---|---|---|---|---|
-| **Pretendard** (기본) | 길형진(orioncactus) | SIL OFL 1.1 (저장소 LICENSE, 폰트 name 13) | 가능 | 가능 | 가능 | 9단계(100~900) + 가변 | 400·500·600·700 | https://github.com/orioncactus/pretendard v1.3.9 | 10-14 |
+| **Paperlogy** (기본, 10-15~) | PT& (Lee Juim · Gmarket Sans·Montserrat 글리프 재설계) | SIL OFL 1.1 (폰트 name 13/14; zip 에 라이선스 파일 없음) | 가능 | 가능 | 가능 | 9단계(100~900) | 100~900 전부 | 사용자 제공 Paperlogy-1.000.zip | 10-15 |
+| **Freesentation** | PT& (Lee Juim · Roboto + Noto Sans CJK 글리프) | SIL OFL 1.1 (name 13/14) | 가능 | 가능 | 가능 | 9단계 | 100~900 전부 | 사용자 제공 Freesentation-2.001.zip | 10-15 |
+| **에이투지체 (A2Z)** | PT& (Lee Juim · Latin = Outfit) | SIL OFL 1.1 (name 13/14) · OTF(CFF) | 가능 | 가능 | 가능 | 9단계 | 100~900 전부 | 사용자 제공 에이투지체-otf-v1.001.zip | 10-15 |
+| **Pretendard** (10-14 까지 기본 · 자소설·카카오·리멤버 고정) | 길형진(orioncactus) | SIL OFL 1.1 (저장소 LICENSE, 폰트 name 13) | 가능 | 가능 | 가능 | 9단계(100~900) + 가변 | 400·500·600·700 | https://github.com/orioncactus/pretendard v1.3.9 | 10-14 |
 | **나눔스퀘어** | 네이버 | 나눔글꼴 라이선스 = SIL OFL 1.1 (네이버 고객센터 안내 전문) | 가능(글꼴 자체 유료 판매만 금지) | 가능(번들·재배포 가능) | 가능 | Light·Regular·Bold·ExtraBold | 300·400·700·800 | https://hangeul.naver.com/fonts → hangeul.pstatic.net …/nanum-square.zip | 10-14 |
 | **나눔스퀘어 네오** | 네이버(산돌 제작) | 나눔글꼴 라이선스 = SIL OFL 1.1 (예약 이름 목록에 NanumSquareNeo 명시) | 가능 | 가능 | 가능 | Light(350)·Regular·Bold·ExtraBold·Heavy + 가변 | 300(Light)·400·700·800·900 | …/nanum-square-neo.zip | 10-14 |
 | **나눔스퀘어 라운드** | 네이버 | 나눔글꼴 라이선스 = SIL OFL 1.1 (예약 이름 NanumSquareRound 명시) | 가능 | 가능 | 가능 | Light·Regular·Bold·ExtraBold | 300·400·700·800 | …/nanum-square-round.zip | 10-14 |
@@ -32,8 +35,8 @@
 | 캐치 PSD 의 Noto Sans CJK KR | 매체 규정이 아니라 샘플 폰트라 넣지 않음(OFL, 필요하면 추가 가능). |
 
 ## 쓰는 규칙 (규칙 장부 `font-medium-or-campaign`)
-1. **매체가 폰트를 지정하면 그 폰트** — 매체 JSON `fonts.required`. 지금은 자소설닷컴·카카오·리멤버가 Pretendard. 캠페인에서 무엇을 골라도 이 매체는 Pretendard 로 나간다(`core/renderers/ad.js` 가 `'Pretendard', <고른 스택>` 으로 강제, `core/lint.js` 가 실측 서체가 다르면 경고).
-2. **아니면 캠페인에서 고른 무료 폰트** — `style.fonts.heading`. 산출물 하나만 다르게 하려면 인스펙터의 산출물 「폰트」 칸(`overrides.style.fonts`). 고정 매체 산출물에는 선택 칸 대신 「이 매체는 Pretendard 고정」 문구만 뜬다.
+1. **매체가 폰트를 지정하면 그 폰트** — 매체 JSON `fonts.required`. 10-15 전수 조사: **required 가 있는 매체는 자소설닷컴·카카오(비즈보드)·리멤버 셋뿐**(전부 Pretendard). 네이버 GFA 는 권장(나눔고딕·고딕계열)만, NAP 비즈보드는 「템플릿 내 폰트만」(이름 미상), 알바몬·게임잡은 PSD 표기만 있고 규정 아님, 나머지(구글·인스타·블라인드·에브리타임·캐치·잡다·당근·스펙업)는 없음. 캠페인에서 무엇을 골라도 이 매체는 Pretendard 로 나간다(`core/renderers/ad.js` 가 `'Pretendard', <고른 스택>` 으로 강제, `core/lint.js` 가 실측 서체가 다르면 경고).
+2. **아니면 캠페인에서 고른 폰트, 고르지 않았으면 기본 Paperlogy**(10-15 사용자: 「폰트 규정 없는 건 Paperlogy 로 제작」 — `DEFAULT_FONT`·`normalizeStyle` 기본) — `style.fonts.heading`. 산출물 하나만 다르게 하려면 인스펙터의 산출물 「폰트」 칸(`overrides.style.fonts`). 고정 매체 산출물에는 선택 칸 대신 「이 매체는 Pretendard 고정」 문구만 뜬다.
 3. `fonts.allowed` 배열이 매체 JSON 에 생기면 그중 카탈로그에 있는 첫 폰트를 쓴다(아직 어느 매체에도 없음). `fonts.recommended`(네이버 GFA 「나눔고딕 혹은 고딕계열」)는 안내만 한다.
 4. 매체 JSON 의 값은 이번에 하나도 바꾸지 않았다(읽기만).
 

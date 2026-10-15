@@ -25,7 +25,7 @@ test('normalizeStyle applies defaults for omitted fields', () => {
   assert.equal(s.palette.primary, '#FF5500');
   assert.equal(s.palette.bg, '#FFFFFF');
   assert.ok(s.palette.secondary && s.palette.accent, '빈 자리는 파생색으로 채운다');
-  assert.equal(s.fonts.heading, 'Pretendard');
+  assert.equal(s.fonts.heading, 'Paperlogy');
 });
 
 test('normalizeStyle rejects invalid hex colors', () => {

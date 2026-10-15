@@ -16,9 +16,10 @@ const specs = adSpecEntries();
 const ctx = createContext({ client: '한진정보통신', role: '백엔드 개발자', employType: '정규직', location: '서울 강남', deadline: '2026-10-31', applyUrl: 'https://example.com/apply' }, 'recruit');
 const mediumOf = id => MEDIA.find(m => m.id === id);
 
-test('every catalog entry has family, weights, license and a local folder; Pretendard is the default', () => {
-  assert.equal(DEFAULT_FONT, 'Pretendard');
-  assert.equal(fontGroup('Pretendard'), 'default');
+test('every catalog entry has family, weights, license and a local folder; Paperlogy is the default (10-15: 규정 없는 매체 기본)', () => {
+  assert.equal(DEFAULT_FONT, 'Paperlogy');
+  assert.equal(fontGroup('Paperlogy'), 'default');
+  assert.equal(fontGroup('Pretendard'), 'free');
   for (const id of FONT_IDS) {
     const f = FONTS[id];
     assert.ok(f.family && f.stack.includes(f.family), `${id}: 스택 첫 자리에 family`);
@@ -28,7 +29,7 @@ test('every catalog entry has family, weights, license and a local folder; Prete
     assert.ok(isBundledFont(id), id);
     assert.match(fontInfoLine(id), /상업 광고 가능 · 임베딩 가능 · 굵기/);
   }
-  assert.deepEqual(FONT_IDS.filter(id => fontGroup(id) === 'free').slice(0, 4), ['NanumSquare', 'NanumSquareNeo', 'NanumSquareRound', 'KakaoBigSans'], '사용자가 고른 넷이 무료 폰트 맨 앞');
+  assert.deepEqual(FONT_IDS.filter(id => fontGroup(id) === 'free').slice(0, 7), ['Pretendard', 'Freesentation', 'A2Z', 'NanumSquare', 'NanumSquareNeo', 'NanumSquareRound', 'KakaoBigSans'], '사용자가 고른 넷이 무료 폰트 맨 앞');
 });
 
 test('bundled woff2 files and LICENSE.txt exist on disk, subset size stays small', () => {
@@ -46,7 +47,7 @@ test('bundled woff2 files and LICENSE.txt exist on disk, subset size stays small
     assert.ok(existsSync(lic), `${id}: LICENSE.txt`);
     assert.match(readFileSync(lic, 'utf8'), /SIL Open Font License, Version 1\.1/i, `${id}: OFL 전문`);
   }
-  assert.ok(total < 7_000_000, `전체 ${total}B — 7MB 넘으면 다시 줄인다`);
+  assert.ok(total < 14_000_000, `전체 ${total}B — 14MB 넘으면 다시 줄인다(10-15: 사용자 제공 Paperlogy·Freesentation·A2Z 9굵기씩 추가로 7MB → 14MB)`);
 });
 
 test('@font-face css: preview uses relative paths with the real family name; export uses data URLs', () => {

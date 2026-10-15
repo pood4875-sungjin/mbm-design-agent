@@ -70,7 +70,7 @@ const SAMPLES = [
 ];
 
 const state = {
-  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '', kvReadability: null, suggests: [], step: 0 },
+  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Paperlogy', mood: '', kvReadability: null, suggests: [], step: 0 },
   campaign: null,
   selected: null,          // specId | null
   zoom: 1, panX: 0, panY: 0,
@@ -709,7 +709,7 @@ function renderSteps() {
 async function startIntake(text) {
   state.intake = {
     kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
-    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Pretendard', mood: '',
+    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Paperlogy', mood: '',
     kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'target', styleDone: false, signageDone: false, history: [],
     // 무엇을(track: online·offline·both) → 어디에(targetDone) 를 대화에서 고른다. suggestTrack = 브리프에서 읽은 제안(고르기 전까지 확정 아님)
     targetDone: false, suggestTrack: null,

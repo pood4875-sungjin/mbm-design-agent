@@ -16,6 +16,8 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+// 번들 폰트(app/fonts) 를 하네스 페이지에도 넣는다 — 기본 글꼴 Paperlogy(10-15 저녁)는 CDN 이 없어 파일로만 그려진다
+const BUNDLED_FACES = await (async () => { const F = await import(pathToFileURL(path.join(ROOT, 'core/fonts.js')).href); const pre = pathToFileURL(path.join(ROOT, 'app')).href + '/'; return F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pre)).join(''); })();
 const CASES = path.join(ROOT, 'ref/learned/cases');
 const OUT = path.join(CASES, '_out/figma-frames');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -106,7 +108,7 @@ const settle = async () => {
 const out = { fontOK: false, items: {} };
 try {
   await settle();
-  out.fontOK = document.fonts.check('700 20px Pretendard');
+  out.fontOK = (document.fonts.check('700 20px Pretendard') && document.fonts.check('700 20px Paperlogy'));
   const cache = new Map();
   for (const root of document.querySelectorAll('[data-ad]')) {
     const sid = root.dataset.spec;
@@ -122,7 +124,7 @@ function convertBatch(cid, sids) {
   let y = 0; const cells = [];
   for (const sid of sids) { const sp = ENTRIES[sid]; cells.push(`<div style="position:absolute;left:0;top:${y}px;width:${sp.w}px;height:${sp.h}px">${render(sid, cid)}</div>`); y += sp.h + 20; }
   const maxW = Math.max(...sids.map(s => ENTRIES[s].w));
-  const doc = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0;background:#fff}body{position:relative;width:${maxW}px;height:${y}px}</style></head><body>${cells.join('')}${CONVERT}</body></html>`;
+  const doc = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>html,body{margin:0;background:#fff}body{position:relative;width:${maxW}px;height:${y}px}</style></head><body>${cells.join('')}${CONVERT}</body></html>`;
   const tmp = path.join(OUT, '_tmp'); mkdirSync(tmp, { recursive: true });
   const f = path.join(tmp, `${cid}.html`); writeFileSync(f, doc);
   let o = null;
@@ -211,7 +213,7 @@ function samplesFor(ids) {
       // 대조표 그림이 없는 케이스(새로 들어온 t1014 등)는 직접 찍는다
       for (const sid of missing) {
         const sp = ENTRIES[sid]; const f = path.join(OUT, '_tmp', `${cid}.${sid}.html`); mkdirSync(path.dirname(f), { recursive: true });
-        writeFileSync(f, `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0;background:#fff}</style></head><body>${render(sid, cid)}</body></html>`);
+        writeFileSync(f, `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>${BUNDLED_FACES}</style><style>html,body{margin:0;background:#fff}</style></head><body>${render(sid, cid)}</body></html>`);
         const dst = path.join(dir, `${sid}.png`);
         try { chrome(['--virtual-time-budget=15000', `--window-size=${sp.w},${sp.h}`, `--screenshot=${dst}`, pathToFileURL(f).href]); shots[sid] = dst; } catch (e) { console.warn(cid, sid, '스크린샷 실패'); }
       }

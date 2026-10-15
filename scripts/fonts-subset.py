@@ -65,6 +65,24 @@ MANIFEST = {
         'files': {300: '카카오작은글씨/TTF/KakaoSmallSans-Light.ttf', 400: '카카오작은글씨/TTF/KakaoSmallSans-Regular.ttf', 700: '카카오작은글씨/TTF/KakaoSmallSans-Bold.ttf'},
         'license': 'kakao',
     },
+    'paperlogy': {   # 사용자 제공 zip(10-15 저녁, ~/Downloads/Paperlogy-1.000.zip) — 폰트 규정 없는 매체의 기본 글꼴
+        'label': 'Paperlogy', 'family': 'Paperlogy',
+        'local_zip': os.path.expanduser('~/Downloads/Paperlogy-1.000.zip'),
+        'files': {100: 'Paperlogy-1Thin.ttf', 200: 'Paperlogy-2ExtraLight.ttf', 300: 'Paperlogy-3Light.ttf', 400: 'Paperlogy-4Regular.ttf', 500: 'Paperlogy-5Medium.ttf', 600: 'Paperlogy-6SemiBold.ttf', 700: 'Paperlogy-7Bold.ttf', 800: 'Paperlogy-8ExtraBold.ttf', 900: 'Paperlogy-9Black.ttf'},
+        'license': 'name13',   # zip 에 라이선스 파일 없음 — 폰트 name 테이블(ID 13/14)
+    },
+    'freesentation': {   # 사용자 제공 zip(10-15 저녁, ~/Downloads/Freesentation-2.001 (1).zip)
+        'label': 'Freesentation', 'family': 'Freesentation',
+        'local_zip': os.path.expanduser('~/Downloads/Freesentation-2.001 (1).zip'),
+        'files': {100: 'Freesentation-1Thin.ttf', 200: 'Freesentation-2ExtraLight.ttf', 300: 'Freesentation-3Light.ttf', 400: 'Freesentation-4Regular.ttf', 500: 'Freesentation-5Medium.ttf', 600: 'Freesentation-6SemiBold.ttf', 700: 'Freesentation-7Bold.ttf', 800: 'Freesentation-8ExtraBold.ttf', 900: 'Freesentation-9Black.ttf'},
+        'license': 'name13',
+    },
+    'a2z': {   # 사용자 제공 zip(10-15 저녁, ~/Downloads/에이투지체-otf-v1.001 (1).zip) — OTF(CFF)
+        'label': '에이투지체 (A2Z)', 'family': 'A2Z',
+        'local_zip': os.path.expanduser('~/Downloads/에이투지체-otf-v1.001 (1).zip'),
+        'files': {100: '에이투지체-1Thin.otf', 200: '에이투지체-2ExtraLight.otf', 300: '에이투지체-3Light.otf', 400: '에이투지체-4Regular.otf', 500: '에이투지체-5Medium.otf', 600: '에이투지체-6SemiBold.otf', 700: '에이투지체-7Bold.otf', 800: '에이투지체-8ExtraBold.otf', 900: '에이투지체-9Black.otf'},
+        'license': 'name13',
+    },
     'gmarket-sans': {
         'label': 'Gmarket Sans', 'family': 'Gmarket Sans',
         'zip': 'https://corp.gmarket.com/fonts/GmarketSansTTF.zip',
@@ -126,8 +144,10 @@ def fetch(url, dest):
 def name13(path):
     from fontTools.ttLib import TTFont
     n = TTFont(path)['name']
-    r = n.getName(13, 3, 1, 0x409) or n.getName(13, 1, 0, 0)
-    return str(r) if r else ''
+    g = lambda i: (n.getName(i, 3, 1, 0x409) or n.getName(i, 1, 0, 0))
+    r = g(13)
+    if r: return str(r) + (f"\n\n라이선스 URL(name ID 14): {g(14)}" if g(14) else '')
+    raise SystemExit(f'라이선스 본문(name ID 13)이 없다: {path} — 배포처 안내를 확인해 LICENSE.txt 를 손으로 넣을 것')
 
 
 def subset(src, dst, uni_file, weight):
@@ -154,6 +174,8 @@ def main():
         if 'zip' in m:
             z = fetch(m['zip'], srcdir / 'src.zip')
             with zipfile.ZipFile(z) as zf: zf.extractall(srcdir)
+        elif 'local_zip' in m:
+            with zipfile.ZipFile(m['local_zip']) as zf: zf.extractall(srcdir)
         sizes = {}
         for w, rel in m['files'].items():
             src = fetch(rel, srcdir / Path(rel).name) if rel.startswith('http') else srcdir / rel
@@ -162,13 +184,18 @@ def main():
         lic = m.get('license')
         if lic == 'naver': text = NAVER_NOTICE + ofl_body
         elif lic == 'kakao': text = KAKAO_NOTICE + ofl_body
-        elif lic == 'name13': text = name13(srcdir / list(m['files'].values())[0])
+        elif lic == 'name13':
+            text = name13(srcdir / list(m['files'].values())[0])
+            if 'Permission is hereby granted' not in text: text += '\n\n' + ofl_body   # 본문이 안내 문장뿐이면 OFL 1.1 전문을 붙인다(Paperlogy)
         elif 'license_in_zip' in m: text = (srcdir / m['license_in_zip']).read_text(encoding='utf-8')
         else: text = fetch(m['license_url'], srcdir / 'LICENSE').read_text(encoding='utf-8')
         (outdir / 'LICENSE.txt').write_text(text, encoding='utf-8')
         report['fonts'][fid] = {'label': m['label'], 'family': m['family'], 'weights': sizes, 'total': sum(v['bytes'] for v in sizes.values())}
         print(f"{fid:20s} {m['family']:18s} " + ' '.join(f"{w}:{v['bytes']//1024}KB" for w, v in sizes.items()) + f"  = {report['fonts'][fid]['total']//1024}KB")
-    (OUT / 'manifest.json').write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding='utf-8')
+    mp = OUT / 'manifest.json'
+    if only and mp.exists():   # 일부만 다시 만들 때 기존 항목 유지
+        prev = json.loads(mp.read_text(encoding='utf-8')); prev.setdefault('fonts', {}).update(report['fonts']); prev['unicodes'] = report['unicodes']; report = prev
+    mp.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding='utf-8')
     print('total', sum(f['total'] for f in report['fonts'].values()) // 1024, 'KB')
 
 

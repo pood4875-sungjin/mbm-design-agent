@@ -15,14 +15,39 @@
 const OFL = { name: 'SIL Open Font License 1.1', commercial: true, embed: true, modify: true };
 
 export const FONTS = {
+  // ── 기본 글꼴(10-15 저녁 사용자: 「폰트 규정 없는 건 Paperlogy 로 제작」) — 매체가 글꼴을 정한 곳(자소설·카카오·리멤버 = Pretendard)은 그대로 ──
+  Paperlogy: {
+    label: 'Paperlogy', group: 'default', maker: 'PT& (Lee Juim)',
+    family: 'Paperlogy',
+    stack: `'Paperlogy','Pretendard','Apple SD Gothic Neo',system-ui,sans-serif`,
+    dir: 'fonts/paperlogy', weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    license: { ...OFL, url: 'https://scripts.sil.org/OFL' },   // 폰트 name 테이블 ID 13/14 — 배포 zip 에 라이선스 파일 없음
+    source: '사용자 제공 Paperlogy-1.000.zip (2026-10-15) · redesigned by Lee Juim, glyphs from Gmarket Sans & Montserrat',
+  },
   Pretendard: {
-    label: 'Pretendard', group: 'default', maker: '길형진(orioncactus)',
+    label: 'Pretendard', group: 'free', maker: '길형진(orioncactus)',
     family: 'Pretendard',
     stack: `'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif`,
     css: 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css',
     dir: 'fonts/pretendard', weights: [400, 500, 600, 700],
     license: { ...OFL, url: 'https://github.com/orioncactus/pretendard/blob/main/LICENSE' },
     source: 'https://github.com/orioncactus/pretendard (v1.3.9)',
+  },
+  Freesentation: {   // 사용자 제공(10-15 저녁) — 무료 폰트 목록 맨 앞
+    label: 'Freesentation', group: 'free', maker: 'PT& (Lee Juim)',
+    family: 'Freesentation',
+    stack: `'Freesentation','Pretendard','Apple SD Gothic Neo',system-ui,sans-serif`,
+    dir: 'fonts/freesentation', weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    license: { ...OFL, url: 'https://scripts.sil.org/OFL' },   // 폰트 name 테이블 ID 13/14
+    source: '사용자 제공 Freesentation-2.001.zip (2026-10-15) · Roboto + Noto Sans CJK 글리프, Lee Juim/PT& 재설계',
+  },
+  A2Z: {   // 사용자 제공(10-15 저녁) 에이투지체
+    label: '에이투지체 (A2Z)', group: 'free', maker: 'PT& (Lee Juim)',
+    family: 'A2Z',
+    stack: `'A2Z','에이투지체','Pretendard','Apple SD Gothic Neo',system-ui,sans-serif`,
+    dir: 'fonts/a2z', weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    license: { ...OFL, url: 'https://scripts.sil.org/OFL' },   // 폰트 name 테이블 ID 13/14
+    source: '사용자 제공 에이투지체-otf-v1.001.zip (2026-10-15) · Latin glyphs from Outfit, Lee Juim/PT&',
   },
   // ── 무료 폰트(사용자 지정 순서: 나눔스퀘어 → 네오 → 라운드 → 카카오 큰글씨, 10-14) ──
   NanumSquare: {
@@ -100,7 +125,7 @@ export const FONTS = {
 // 목록이 필요하면 fontIds()를 쓴다(FONT_IDS는 모듈 로드 시점에 굳는 값이다).
 export const FONT_IDS = Object.keys(FONTS);
 export function fontIds() { return Object.keys(FONTS); }
-export const DEFAULT_FONT = 'Pretendard';
+export const DEFAULT_FONT = 'Paperlogy';   // 10-15 저녁: 규정 없는 매체 기본(이전 Pretendard)
 export function isBundledFont(id) { return !!FONTS[id]?.dir; }
 export function fontGroup(id) { return FONTS[id]?.custom ? 'custom' : (FONTS[id]?.group ?? 'free'); }
 
@@ -149,7 +174,7 @@ export function fontInfoLine(id) {
    required  : 그 폰트로 고정(자소설·카카오·리멤버 Pretendard). 카탈로그 id 로 바꿔 준다(이름이 다르면 그대로).
    allowed   : 배열이면 그중 카탈로그에 있는 첫 폰트(없으면 고른 폰트). 지금 매체 JSON 에는 없다 — 생기면 바로 읽힌다.
    recommended: 안내만. */
-const FAMILY_ALIAS = { pretendard: 'Pretendard', '나눔고딕': 'NanumGothic', nanumgothic: 'NanumGothic', '나눔스퀘어': 'NanumSquare', nanumsquare: 'NanumSquare',
+const FAMILY_ALIAS = { paperlogy: 'Paperlogy', '페이퍼로지': 'Paperlogy', freesentation: 'Freesentation', '프리젠테이션': 'Freesentation', a2z: 'A2Z', '에이투지체': 'A2Z', '에이투지': 'A2Z', pretendard: 'Pretendard', '나눔고딕': 'NanumGothic', nanumgothic: 'NanumGothic', '나눔스퀘어': 'NanumSquare', nanumsquare: 'NanumSquare',
   '나눔스퀘어 네오': 'NanumSquareNeo', 'nanumsquare neo': 'NanumSquareNeo', nanumsquareneo: 'NanumSquareNeo', '나눔스퀘어 라운드': 'NanumSquareRound', nanumsquareround: 'NanumSquareRound',
   'gmarket sans': 'GmarketSans', gmarketsans: 'GmarketSans', suit: 'SUIT', 'kakao big sans': 'KakaoBigSans', '카카오 큰글씨': 'KakaoBigSans', 'kakao small sans': 'KakaoSmallSans', '카카오 작은글씨': 'KakaoSmallSans' };
 export function fontIdOfName(name) {
