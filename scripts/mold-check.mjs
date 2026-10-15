@@ -76,7 +76,7 @@ for (const [id, v] of Object.entries(M.specs)) {
   // 로고
   if (mold.logo) {
     const L = v.logo?.[0]; const b = mold.logo;
-    if (!L) add('로고', `칸 ${b.w}×${b.h}@${b.x},${b.y}`, '없음', false);
+    if (!L) add('로고', `칸 ${b.w}×${b.h}@${b.x},${b.y}`, '없음', tr.logo?.has === false ? null : false, tr.logo?.has === false ? '케이스에 로고 없음(글감 없음)' : '');
     else {
       const [x, y, w, h] = L; const inside = x >= b.x - 1 && y >= b.y - 1 && x + w <= b.x + b.w + 1 && y + h <= b.y + b.h + 1;
       add('로고 칸 안', `${b.w}×${b.h}@${b.x},${b.y}`, `${w}×${h}@${x},${y}`, inside);
@@ -85,7 +85,7 @@ for (const [id, v] of Object.entries(M.specs)) {
       if (b.maxArea) add('로고 면적', `≤ ${b.maxArea.toLocaleString()}px²`, `${(w * h).toLocaleString()}px²`, w * h <= b.maxArea * 1.02, '칸 꽉 채우지 않음');
       add('로고 세로 가운데', r1(b.y + b.h / 2), r1(y + h / 2), near(y + h / 2, b.y + b.h / 2, 2));
     }
-  } else if (v.logo?.length) add('로고', '칸 없음', '있음', false); else add('로고', '칸 없음', '없음', true);
+  } else if (v.logo?.length) add('로고', '칸 없음', tr.logo?.asObject ? '그림 칸 안 오브젝트' : '있음', tr.logo?.asObject ? null : false, tr.logo?.asObject ? '키비주얼 대신 로고가 오브젝트(기존 가이드 logoAsObject) — 틀 로고 칸 없음' : ''); else add('로고', '칸 없음', '없음', true);
   // 그림 칸
   if (mold.image) {
     const t = tr.place?.tImage; const b = mold.image;
