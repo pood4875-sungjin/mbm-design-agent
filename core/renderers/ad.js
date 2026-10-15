@@ -428,7 +428,32 @@ function renderAdBase(ctx, style, spec) {
   /* ── 템플릿 실측 칸 (자소설) ── */
   const tpl = tpl0;
   const tLogo = rect(mold?.logo ?? tpl?.logo ?? tpl?.logoHorizontal ?? null, tScale);   // 틀의 로고 칸이 먼저(10-15)
-  let tImage = rect(mold?.image ?? tpl?.image ?? tpl?.imageMain ?? null, tScale);
+  // 틀 매체의 KV·배경은 이전 자유 배치(열·띠·블리드·cover+녹임)로, 글자·로고만 틀 — 자소설만 샘플 그림 칸 유지(사용자 결정 10-15 밤: 「KV·배경 추출은 이전 버전이 더 견고」). mold.kv 'slot' 으로 칸을 강제할 수 있다
+  const moldFreeKv = !!mold && mold.kv !== 'slot' && !/^jasoseol-/.test(String(spec.id ?? ''));
+  // 자유 배치의 그림 칸 = 틀 글자 상자(행마다 x·폭·y·줄 수 최대)를 피한, 오른쪽 아래에 붙는 가장 큰 빈 네모(오른쪽 열 · 아래 띠 · 모서리 상자 중 면적 최대).
+  //   그 칸에는 템플릿 칸 문법 그대로(사진·바탕 일러스트 cover + 글자 쪽 녹임, 누끼 contain·우하단 블리드, 아래 띠는 윗변 녹임) — 글자와 겹치지 않는다
+  const moldFreeRect = (() => {
+    if (!moldFreeKv) return null;
+    const k = tScale, MR0 = mold.rows ?? {}, gap = Math.round(Math.min(w, h) * 0.03);
+    const boxes = [];
+    for (const [role, r] of Object.entries(MR0)) {
+      if (!r || r.y == null) continue;
+      const lines = r.lines ?? (role === 'main' ? 2 : 1), pitch = r.chip ? (r.chip.h ?? r.pitch ?? r.px * 1.2) : (r.pitch ?? r.px * 1.2);
+      const y0 = r.afterMain != null && MR0.main ? MR0.main.y + ((MR0.main.lines ?? 2) - 1) * (MR0.main.pitch ?? MR0.main.px * 1.2) + r.afterMain : r.y;
+      const extra = r.labelRow ? 1 : 0;
+      boxes.push({ x: Math.round((r.x ?? mold.x ?? 0) * k), r: Math.round(((r.x ?? mold.x ?? 0) + (r.w ?? mold.w ?? (w / k - (mold.x ?? 0)))) * k), t: Math.round(y0 * k), b: Math.round((y0 + pitch * (lines + extra)) * k) });
+    }
+    if (!boxes.length) return null;
+    const xs = [0, ...boxes.map(b => b.r + gap)], ys = [0, ...boxes.map(b => b.b + gap)];
+    let best = null;
+    for (const x0 of xs) for (const y0 of ys) {
+      if (w - x0 < w * 0.2 || h - y0 < h * 0.2) continue;
+      if (boxes.some(b => b.r > x0 && b.b > y0)) continue;   // 글자 상자와 겹침
+      const area = (w - x0) * (h - y0); if (!best || area > best.area) best = { x: x0, y: y0, w: w - x0, h: h - y0, area };
+    }
+    return best ? { x: best.x, y: best.y, w: best.w, h: best.h } : null;
+  })();
+  let tImage = moldFreeKv ? moldFreeRect : rect(mold?.image ?? tpl?.image ?? tpl?.imageMain ?? null, tScale);
   const tText = mold?.x != null ? { x: Math.round(mold.x * tScale), w: Math.round((mold.w ?? (w - mold.x)) * tScale) } : tpl?.textColumn ? { x: Math.round(tpl.textColumn.x * tScale), w: Math.round(tpl.textColumn.w * tScale) } : null;
   const allowLogo = !(rules.logo && rules.logo.count === 0);   // M스탠다드·PC달력배너: 로고 삽입 불가
   // 투명 배경 필수 규격(알바몬 스플래시)에 바탕을 품은 그림을 넣으면 네모가 뜬다 — 누끼만 그린다. 바탕 있는 그림은 이 규격에선 생략(로고·글자만)
@@ -1482,7 +1507,7 @@ function renderAdBase(ctx, style, spec) {
   const LB = mold?.logo?.box ?? null;
   const boxCss = LB ? `background:${LB.bg ?? '#FFFFFF'};border-radius:${Math.round((LB.radius ?? 6) * tScale)}px;padding:${Math.round((LB.pad ?? 6) * tScale)}px;box-sizing:border-box;` : '';
   const tplLogo = (allowLogo && logoSrc && tLogo && !logoAsObject)
-    ? `<div data-logo-slot="1"${LB ? ' data-logo-box="1"' : ''} style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'};${boxCss}${mold ? 'z-index:2;' : ''}"><img data-logo="1" src="${esc(LB ? style.logo : logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${LB ? '' : logoFilter}"/></div>${(() => { const L2 = mold?.logo2 ? rect(mold.logo2, tScale) : null; if (!L2) return ''; fired('templateMold.logo2'); return `<div data-logo-slot="2" style="position:absolute;left:${L2.x}px;top:${L2.y}px;width:${L2.w}px;height:${L2.h}px;display:flex;align-items:center;justify-content:${mold.logo2.align === 'left' ? 'flex-start' : 'flex-end'}"><img data-logo="2" src="${esc(logoSrc)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`; })()}`
+    ? `<div data-logo-slot="1"${LB ? ' data-logo-box="1"' : ''} style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'};${boxCss}${mold ? 'z-index:2;' : ''}"><img data-logo="1" src="${esc(LB ? style.logo : logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${LB ? '' : logoFilter}"/></div>${(() => { const L2 = (mold?.logo2 && style.logo2) ? rect(mold.logo2, tScale) : null; if (!L2) return ''; /* 보조 로고 칸(ABL 샘플의 그룹 로고)은 보조 자산(style.logo2)이 있을 때만 — 같은 로고를 두 번 넣지 않는다(10-15 밤) */ fired('templateMold.logo2'); return `<div data-logo-slot="2" style="position:absolute;left:${L2.x}px;top:${L2.y}px;width:${L2.w}px;height:${L2.h}px;display:flex;align-items:center;justify-content:${mold.logo2.align === 'left' ? 'flex-start' : 'flex-end'}"><img data-logo="2" src="${esc(style.logo2)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`; })()}`
     : '';
   if (LB && tplLogo) fired('templateMold.logoBox');
   // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
@@ -1576,7 +1601,7 @@ ${tplLogo}${kvWrap(tplObject)}
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
     // 틀의 메인 줄 수 한도(에브리타임 커뮤니티보드·홈배너 1줄)를 넘기면 사다리에서 들어가는 첫 후보로 바꾼다 — 칸은 max-height 로 잘리므로 「2025 하반기 마이다스 대규모 공개채용」(600px·45px 두 줄)이 반 토막 나지 않게(10-15 검수 표 ✗ 메인 줄 수)
     const rowsOfMain = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * mainPx / Math.max(1, colW))), 0);
-    if (MR.main?.lines && rowsOfMain(copy.main) > MR.main.lines) { const alt = (ladder.main ?? []).find(c => rowsOfMain(c) <= MR.main.lines); if (alt) copy.main = alt; }
+    if (MR.main?.lines && rowsOfMain(copy.main) > MR.main.lines) { const alt = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])].find(c => rowsOfMain(c) <= MR.main.lines); if (alt) copy.main = alt; }   // 좁은 칸(구글 300×600 178px)은 좁은 사다리(「한샘 / 채용」)까지 — 반 토막 글자 대신(10-15 밤)
     // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
     const mainN = Math.max(1, Math.min(MR.main?.lines ?? 2, copy.main.split('\n').reduce((n, t) => n + Math.max(1, Math.ceil(textWidth(t) * mainPx / Math.max(1, colW))), 0)));
     const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
@@ -1672,14 +1697,16 @@ ${tplLogo}${kvWrap(tplObject)}
     const moldField = (fz && field) ? `<div data-mold-field="1" style="position:absolute;left:${fz.x}px;top:${fz.y}px;width:${fz.w}px;height:${fz.h}px;background:${field.css}"></div>` : '';
     // 그림: 칸(mold.image)의 위치·범위만 틀이 정하고, 처리는 기존 디자인 가이드 그대로(10-15 사용자 정정) — 모서리 상자(contain / 바탕 있는 그림은 cover + 글자 쪽 두 변 녹임),
     //   하단 띠(native/contain/cover + 윗변 녹임), 왼쪽 열(cover + 오른변 녹임). 사각형으로 뚝 잘라 넣지 않는다 — tplObject(위 템플릿 칸 문법)를 그대로 쓴다
-    const moldKv = tplObject;
+    // KV: 자유 배치면 일반 경로와 같은 그림(오른쪽 열 bleedRight · 아래 띠 bleedBottom · 가이드 모서리/누끼 상자는 tplObject), 자소설은 샘플 그림 칸(tplObject)
+    if (moldFreeKv) fired('templateMold.freeKv');
+    const moldKv = kvWrap(tplObject);
     TR.mode = 'templateMold';
     TR.place = { ...TR.place, mode: 'mold', tImage, imgCol: imgLeftCol ? 'left' : imgRightCol ? 'right' : imgBottomBand ? 'bottom' : imgCorner ? 'corner' : null, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: mold.align ?? 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
     TR.copy = { ...(TR.copy ?? {}), sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.map(d => d.label) : [] };
     TR.mold = { source: mold.source ?? null, rows: used, mainN, field: fz, logo: tLogo, image: tImage, labels: { period: labelOf('접수기간') }, color: moldFg };
     TR.fonts = { ...TR.fonts, main: used.main ? { ...(TR.fonts?.main ?? {}), px: used.main.px, weight: used.main.weight, lh: Math.round(used.main.pitch / used.main.px * 100) / 100, lines: mainN } : TR.fonts?.main, sub: used.sub ? { ...(TR.fonts?.sub ?? {}), px: used.sub.px, weight: used.sub.weight, lh: Math.round(used.sub.pitch / used.sub.px * 100) / 100 } : null, detail: used.detail ? { ...(TR.fonts?.detail ?? {}), px: used.detail.px, value: used.detail.weight, lh: Math.round(used.detail.pitch / used.detail.px * 100) / 100 } : null, logoCapW: null };
     return `${open('')}
-${moldField}${moldKv}${bandEl}
+${moldField}${moldKv}${scrimEl}${bandEl}
 ${textCol}
 ${tplLogo}
 </div>`;

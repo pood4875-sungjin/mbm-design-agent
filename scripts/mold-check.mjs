@@ -91,7 +91,8 @@ for (const [id, v] of Object.entries(M.specs)) {
   // 그림 칸
   if (mold.image) {
     const t = tr.place?.tImage; const b = mold.image;
-    add('그림 칸', `${b.w}×${b.h}@${b.x},${b.y}`, t ? `${t.w}×${t.h}@${t.x},${t.y}` : '없음', !!t && near(t.x, b.x) && near(t.y, b.y) && near(t.w, b.w) && near(t.h, b.h));
+    const slotMode = mold.kv === 'slot' || /^jasoseol-/.test(id);   // 10-15 밤: 그림 칸은 자소설만 샘플 칸, 나머지 틀 매체는 글자 상자를 피한 자유 배치(templateMold.freeKv)
+    add('그림 칸', slotMode ? `${b.w}×${b.h}@${b.x},${b.y}` : `자유(참고 ${b.w}×${b.h}@${b.x},${b.y})`, t ? `${t.w}×${t.h}@${t.x},${t.y}` : '없음', slotMode ? (!!t && near(t.x, b.x) && near(t.y, b.y) && near(t.w, b.w) && near(t.h, b.h)) : null, slotMode ? '' : 'KV·배경은 이전 가이드(글자 상자를 피한 칸)');
   }
   if (mold.field) { const f = tr.mold?.field; add('지면 처리 영역', `${mold.field.w}×${mold.field.h}@${mold.field.x},${mold.field.y}`, f ? `${f.w}×${f.h}@${f.x},${f.y}` : '없음', !!f && near(f.x, mold.field.x) && near(f.w, mold.field.w)); }
   add('모드', 'templateMold', tr.mode, tr.mode === 'templateMold');

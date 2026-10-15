@@ -98,7 +98,7 @@ test('프리셋은 자동 쪽이다 — 키비주얼 왼쪽·오른쪽, 글자 �
       const C = caseC(sid, { preset }); const R = rowsOf(C);
       for (const id of ['place.textZone', 'place.textAlign', 'place.logoSlot']) if (R[id]) assert.equal(R[id].ok, true, `${sid} ${JSON.stringify(preset)} ${id}: ${R[id].expect} → ${R[id].actual}`);
       assert.ok(!R['place.manualDrift']);
-      if (preset.kvPlace === 'left' && C.trace.edit?.place?.ok) { assert.equal(C.trace.place.zone.side, 'left'); assert.ok(C.trace.place.zone.col.x > C.spec.w * 0.3, `${sid} 글자 열이 오른쪽`); if (C.trace.logo.corner !== 'none') assert.match(C.trace.logo.corner, /left$/, '왼쪽 배치면 로고도 좌우 뒤집힘'); }
+      if (preset.kvPlace === 'left' && C.trace.edit?.place?.ok && C.trace.mode !== 'templateMold') { /* 틀 매체는 KV 자리를 글자 상자가 정한다(10-15 밤) */ assert.equal(C.trace.place.zone.side, 'left'); assert.ok(C.trace.place.zone.col.x > C.spec.w * 0.3, `${sid} 글자 열이 오른쪽`); if (C.trace.logo.corner !== 'none') assert.match(C.trace.logo.corner, /left$/, '왼쪽 배치면 로고도 좌우 뒤집힘'); }
     }
   }
 });

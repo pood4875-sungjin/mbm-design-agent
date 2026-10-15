@@ -181,7 +181,7 @@ test('with a key visual the image bleeds to the edge instead of sitting in a rou
   assert.doesNotMatch(wide, /data-object="1"[^>]*border-radius/);
   assert.match(wide, /data-object="1"[^>]*mask-image:linear-gradient\(to right,transparent 0%/, '글자 쪽 변만 지면으로 녹인다');
   const tallHtml = renderAd(ctx, kv, specs['google-gdn-300x1050']);   // 10-15 저녁: ABL 틀 그림 칸 (1,804) 299×110
-  assert.match(tallHtml, /data-object="1" style="position:absolute;left:1px;top:804px;width:299px;height:110px/);
+  assert.match(tallHtml, /data-object="1" style="position:absolute;left:0px;top:\d+px;width:300px;height:\d+px;[^"]*cover/, '10-15 밤: 틀 매체 KV 는 글자 상자를 피한 아래 띠(자유 배치) — 사진 cover');
   // 키비주얼이 없으면 오브젝트 자체가 없다 — 빈 상자를 그리지 않는다
   assert.doesNotMatch(renderAd(ctx, style, specs['kakao-display-pc-promo']), /data-object/);
 });
