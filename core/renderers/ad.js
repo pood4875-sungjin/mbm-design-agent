@@ -415,9 +415,10 @@ function renderAdBase(ctx, style, spec) {
   const edgeSolid = /좌우\s?(1px|16px|여백)|가변영역/.test(bgText);
   // 반사·유리 누끼(kvtypes flags.glass)는 매체의 밝은 지면보다 어두운 브랜드 지면이 먼저 — 밝은 틴트 위에선 회색으로 탁해진다(Figma 9월 공채 13/13 다크, 10-08 사용자 결정)
   const glassKv = !!(style.keyVisual && (kvTypeOf(style.kvMeta)?.flags.glass || kvTypeOf(style.kvMeta)?.flags.frame));   // 장식 프레임(유리 슬랩)도 어두운 지면(10-09 figma-dg 9/9)
-  // 10-15 템플릿 우선(사다리: 매체 규정 > 템플릿 실측 > 매체 가이드 > CANON): 템플릿 틀 매체(자소설)는 템플릿의 밝은 지면이 유리 누끼 어두운 지면 규칙보다 먼저 — 세아제강 PC팝업 28:124 밝은 #FFFFF7 + #555 글자.
-  //   가이드 수준 밝은 지면(구글 lightField)만 유리 누끼가 어두운 지면으로 뒤집는다(10-08 결정 유지)
-  const templateLight = !!mold && (mold.light ?? ((D?.bgLight?.value ?? 0) >= 0.6));
+  // 10-15 오후 사용자: 「키비주얼과 배경은 이전 가이드로」 — 틀(mold)은 글자·로고·그림 칸 위치만 고정하고 지면 밝기는 강제하지 않는다(배경색 자유: 채용공고 샘플 6개 중 어두운 3).
+  //   한때 틀 매체의 밝은 샘플 지면을 유리 누끼 어두운 지면 규칙보다 앞세웠더니(templateLight) 유리 행성이 밝은 틴트 위에서 회색으로 탁해지고 KV 와 안 어울렸다(보드 41:44 1차).
+  //   mold.light 를 데이터로 명시한 틀만 밝게 고정. 그 밖엔 CANON(유리·프레임 → 어두운 브랜드 지면, 나머지 → 매체 bgLight)
+  const templateLight = !!mold && mold.light === true;
   const lightProfile = templateLight || (!glassKv && (!!guide?.lightField || (D?.bgLight?.value ?? 0) >= 0.6));      // 자소설: 밝은 지면 위 검정 카피(9/13) · 구글: 가이드가 밝은 지면(흰색·브랜드 틴트 20/28)
 
   /* ── 글꼴 ── */
@@ -682,7 +683,9 @@ function renderAdBase(ctx, style, spec) {
 
   /* ── 글자색 ── 규격이 정하면 그대로(비즈보드), 아니면 지면이 정한다(순흑/순백) */
   const tc = rules.textColors ?? {};
-  const mainFg0 = tc.main ?? (field ? field.text : '#000000');
+  // 틀의 지면 처리가 영역이면(자소설 PC메인 왼쪽 350×280 만 브랜드 지면, 바탕 mold.bg 흰색) 글자·로고는 영역 밖 바탕(mold.bg) 위에 선다 — 글자색·로고 흰/검은 지면(field)이 아니라 바탕 밝기로(10-15 오후: 지면이 어두워져도 흰 바탕 위 글자가 희어지면 안 된다)
+  const moldOnBg = !!(mold?.field && mold.bg);
+  const mainFg0 = tc.main ?? (moldOnBg ? (contrast(mold.bg, '#000000') >= contrast(mold.bg, '#FFFFFF') ? '#000000' : '#FFFFFF') : field ? field.text : '#000000');
   const fgIsDark = mainFg0 !== '#FFFFFF';
   // 가이드 매체의 밝은 지면: 메인은 브랜드색(일화 레드·동부 네이비·비씨 네이비 3/3) — 지면 어디서나 4.5:1이 나올 때만. 어두운 지면은 흰색 그대로(ABL)
   const brandMain = !!(guide?.textColour === 'brand' && field && fgIsDark && !tc.main && p.primary && Math.min(...field.stops.map(s => contrast(s, p.primary))) >= 4.5);

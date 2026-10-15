@@ -35,14 +35,15 @@ test('틀 데이터 — 자소설 7규격(10규격 중 렌더 규격 전부)에 
   assert.equal(specOf('jasoseol-m-start-package-mo').renderable, false, 'M시작배너는 전달물만');
 });
 
-test('템플릿 우선 — 자소설 팝업에 유리 누끼: 템플릿 밝은 지면(glassDark 안 걸림), 글자색 #555555 · 구글 GDN 은 유리 → 어두운 지면 그대로', () => {
+test('틀 + 유리 누끼 — 자소설 팝업: 지면은 이전 가이드대로(유리 → 어두운 브랜드 지면, glassDark), 글자·로고 흰색(colorDark) · 틀은 칸 위치만 고정(objectBleed·logoCap 없음) · 구글 GDN 도 어두운 지면', () => {   // 10-15 오후 사용자 「키비주얼과 배경은 이전 가이드로」 — 틀의 밝은 샘플 지면 강제(templateLight) 폐지
   const html = renderAd(ctx, glass, specs['jasoseol-pc-premium-popup-pc']);
   const tr = traceOf(html);
   assert.equal(tr.mode, 'templateMold');
-  assert.ok(tr.rules.includes('templateMold') && !tr.rules.includes('glassDark') && !tr.rules.includes('objectBleed') && !tr.rules.includes('logoCap'), tr.rules.join(','));
-  assert.equal(tr.text.lightProfile, true); assert.equal(tr.field.text, '#000000', '밝은 지면');
-  assert.match(tagOf(html, 'main'), /color:#555555/);
-  assert.match(tagOf(html, 'sub'), /color:#555555/); assert.match(tagOf(html, 'detail'), /color:#555555/);
+  assert.ok(tr.rules.includes('templateMold') && tr.rules.includes('glassDark') && !tr.rules.includes('objectBleed') && !tr.rules.includes('logoCap'), tr.rules.join(','));
+  assert.equal(tr.text.lightProfile, false); assert.equal(tr.field.text, '#FFFFFF', '어두운 지면');
+  assert.match(tagOf(html, 'main'), /color:#FFFFFF/);
+  assert.match(tagOf(html, 'sub'), /color:#FFFFFF/); assert.match(tagOf(html, 'detail'), /color:#FFFFFF/);
+  assert.match(html, /<img data-logo="1"[^>]*brightness\(0\) invert\(1\)/, '어두운 지면 → 흰 로고');
   const g = traceOf(renderAd(ctx, glass, specs['google-gdn-580x400']));
   assert.ok(g.rules.includes('glassDark') && g.text.lightProfile === false, '구글(가이드 수준 밝은 지면)은 10-08 결정대로 유리 → 어두운 지면');
 });
