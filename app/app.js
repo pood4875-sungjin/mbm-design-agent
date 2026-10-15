@@ -1225,26 +1225,22 @@ function slotStyle() {
       <div><div class="kvthumb logo" id="objThumb" title="배경 없는 오브젝트(투명 PNG). 알바몬 스플래시·에브리타임 보드·NAP 비즈보드·캐치 센터처럼 누끼가 필요한 자리에만 씁니다 — 키비주얼은 배경으로 그대로" style="${it.object ? `background-image:url(${it.object})` : ''}">${it.object ? '' : '오브젝트 누끼<br>(선택)'}</div>
         <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
-        ${it.kv ? kvTypeControlHtml(it.kvMeta, it.kvTypeOverride, 'kvTypeSel') : ''}
-        ${bgControlHtml(adStyle, 'bg')}
-        <label style="margin-top:10px">브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
+        <label>브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="palette">
           <span class="sw"><input type="color" class="swatch" id="c1" value="${it.colors[0]}"><small>주색</small></span>
           <span class="sw"><input type="color" class="swatch" id="c2" value="${it.colors[1]}"><small>보조</small></span>
           <span class="sw"><input type="color" class="swatch" id="c3" value="${it.colors[2]}"><small>포인트</small></span>
         </div>
         <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
-        <div id="dpiBox" style="margin-top:8px"></div>
         <label style="margin-top:10px">폰트</label>
         <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${fontOptions(it.font)}</select>
         <button class="lnk" id="fontUp" style="margin-top:4px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
-        <div id="fontNote">${fontNoticeHtml(it.media, it.font)}</div>
       </div>
     </div>
-    <div class="sfoot2"><span class="smsg" id="stMsg" role="status">${(it.kv && it.logo) ? '' : '키비주얼과 로고를 올려야 진행할 수 있어요 — 보드 예시 소재는 전부 둘 다 들어 있어요'}</span><button class="btn pri" id="stOk" ${(it.kv && it.logo) ? '' : 'disabled aria-disabled="true"'}>이 스타일로 진행</button></div></div>`);
+    <div class="sfoot2"><span class="smsg" id="stMsg" role="status"></span><button class="btn pri" id="stOk" ${(it.kv && it.logo) ? '' : 'disabled aria-disabled="true"'}>이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
-  $('fontSel').onchange = () => { it.font = $('fontSel').value; $('fontNote').innerHTML = fontNoticeHtml(it.media, it.font); };
+  $('fontSel').onchange = () => { it.font = $('fontSel').value; };
   $('fontUp').onclick = () => $('fontFile').click();
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
@@ -1278,7 +1274,7 @@ function slotStyle() {
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
         : `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.`)
-        + '\n배경은 키비주얼에서 읽은 색으로 깔고, 글자색은 그 배경에 맞춰 정했어요. 배경색은 아래에서 바꿀 수 있어요.');
+        );
     } catch { $('kvHint').textContent = ''; }
   });
   bindUpload($('logoThumb'), $('logoFile'), async d => {
