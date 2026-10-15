@@ -127,7 +127,8 @@ test('M메인 750×500 틀 — 템플릿 1:8625·FITI 1:10459: 서브 28/700 (43
   assert.ok(R.detail.y >= 372.5 && R.detail.y <= 412.5 + 0.1, '메인 2줄 → 372.5/412.3(≈412.5) 줄, 아래부터: ' + R.detail.y);
   assert.match(html, /<b style="font-weight:700">접수기간 ㅣ<\/b> 9\.22/);
   assert.doesNotMatch(html, /data-logo/, '로고 없음(규정)');
-  assert.match(html, /data-object="1" style="position:absolute;left:376px;top:\d+px;width:374px;height:\d+px;[^"]*right bottom\/contain/, '주요 칸 안 누끼 contain');
+  // 10-15 밤: 모서리에 닿는 틀 그림 칸은 이전 가이드대로 단일 누끼를 우하단 블리드(templateMold.slotBleed) — 주요 칸 (376,160) 왼쪽·위 경계는 지키고 템플릿 「최대 칸」(338,0) 412×500 안에서 키운다
+  assert.match(html, /data-object="1"( data-bleed="1")? style="position:absolute;left:(37[6-9]|3[89]\d|[4-9]\d\d)px;top:(1[6-9]\d|[2-9]\d\d)px;width:\d+px;height:\d+px;[^"]*(right bottom\/contain|--kv-bleed:1)/, '주요 칸 안 누끼 contain 또는 우하단 블리드');
 });
 
 test('PC달력 164×233 틀(2배 328×466 실측 ×0.5) — 메인 20/700 x26 y19.5 간격 26.9 최대 4줄 · 마감일 16/400 = 마지막 메인 줄 + 29.65 「~10/12」 · 서브·상세·로고 없음 · 그림 칸 164×80@0,153', () => {
@@ -249,9 +250,9 @@ test('에브리타임 틀 — 커뮤니티보드 1:771(메인 45 y79 · 날짜 3
   assert.deepEqual([R3.sub.y, R3.sub.px, R3.main.y, R3.main.px, R3.main.pitch, R3.main.weight, R3.detail.y, R3.detail.px, R3.detail.pitch], [42, 31, 98, 52, 68, 800, 253, 23, 56]);
   assert.match(hc, /<b style="font-weight:800">모집직무<\/b><\/div><div>자유직무/);
   assert.match(hc, /data-logo-slot="1" style="position:absolute;left:530px;top:30px;width:160px;height:40px;[^"]*justify-content:flex-end/);
-  const ob = hc.match(/data-object="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);
+  const ob = hc.match(/data-object="1"(?: data-bleed="1")? style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);   // 10-15 밤: 모서리 칸 누끼는 블리드(data-bleed) 허용 — 칸의 왼쪽·위 경계만 지킨다
   assert.ok(ob && +ob[1] >= 329 && +ob[2] >= 228 && +ob[1] + +ob[3] <= 730 && +ob[2] + +ob[4] <= 486, '누끼는 오브젝트 칸(329,228 401×258) 안: ' + (ob && ob[0]));
-  assert.deepEqual(t3.place.tImage, { x: 329, y: 228, w: 401, h: 258 });
+  { const ti = t3.place.tImage; assert.ok(ti.x >= 329 && ti.y >= 228 && ti.x + ti.w <= 720 && ti.y + ti.h <= 486, `오브젝트 칸 (329,228) 401×258 안(블리드면 칸이 줄어든다, 10-15 밤): ${JSON.stringify(ti)}`); }
 });
 
 test('캐치 이미지형 틀 — PC 1:5765(서브 20 y56 · 타이틀 40 y93 1줄 · 기타문구 19 y164 간격 24.5 3줄 접수기간·모집직무 · 그림 칸 393×295@863,0) · MO 1:5782(서브 22 y87 · 타이틀 42 y129 간격 67 2줄 · 기타 24 y296 간격 44 · 그림 칸 전체) — 굵기·색은 틀 없음(FREE), 서브는 슬로건(가로형 날짜→서브 규칙 안 탐)', () => {

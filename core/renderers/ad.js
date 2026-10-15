@@ -469,7 +469,8 @@ function renderAdBase(ctx, style, spec) {
   const gCorner = !forcedSide && !!(guide?.objectRatio?.square && L.shape === 'square' && hasKv && !photoFull && !roomFull && !textureFull && !tImage && !kvWideBand);
   // 단일 사물 누끼(kvtypes flags.single — 캐릭터·떼 아님): 크게, 우하단으로 블리드(CANON objectBleed — 70% 이상 보임, 오른쪽·아래로만 30%까지 잘림, 목표 면적).
   // 형태 문법·가이드가 정한 그림 자리(오른쪽 열·모서리 상자·아래 띠)의 왼쪽·위 경계는 지키고, 그 안에서 맞춰 넣기 대신 키워서 오른쪽·아래 변 밖으로 흘린다. 템플릿 칸(자소설)은 템플릿대로
-  const singleObj = !mirrorX && !mold && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로)
+  const moldSlotEdge = !!(mold && tImage && tImage.x + tImage.w >= w - 2 && tImage.y + tImage.h >= h - 2 && tImage.y > 0 && !(tImage.w >= w - 1));   // 틀 그림 칸이 오른쪽·아래 모서리에 닿는 상자(NAP 300×250·블라인드 피드·네이버 DA) — 여백 있는 칸(자소설 팝업 8/30·구글 ABL)은 아님
+  const singleObj = !mirrorX && (!mold || moldSlotEdge) && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸: 여백 있는 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로) · 모서리에 닿는 칸은 이전 가이드대로 우하단 블리드(10-15 밤 「KV·배경은 이전 버전이 더 견고」)
   { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
     TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
     if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv && !templateLight) fired('glassDark'); if (mold) fired('templateMold'); }
@@ -482,6 +483,8 @@ function renderAdBase(ctx, style, spec) {
     tImage = { x: w - cw, y: h - ch, w: cw, h: ch };
     if (singleObj && (bleedP = bleedAt(w - cw, h - ch))) tImage = { x: bleedP.left, y: bleedP.top, w: w - bleedP.left, h: h - bleedP.top };
   }
+  // 틀 그림 칸(모서리에 닿는 상자)의 단일 누끼: 칸의 왼쪽·위 경계를 지키고 그 안에서 키워 우하단으로 흘린다 — 이전 가이드(objectBleed) 그대로(10-15 밤)
+  if (moldSlotEdge && singleObj && !bleedP && (bleedP = bleedAt(tImage.x, tImage.y))) { tImage = { x: bleedP.left, y: bleedP.top, w: w - bleedP.left, h: h - bleedP.top }; fired('templateMold.slotBleed'); }
   // 가이드 없는 정사각형 지면에 누끼: 오른쪽 열 대신 우하단 모서리 상자(폭 58%·높이 55%) — 글자는 전폭으로 크게, 상세는 상자 옆 열에.
   // 보드 1-884 코엑스 에브리타임 홈 카드: 건물 누끼가 오른쪽 아래를 차지하고 '모집분야' 알약·값이 그 옆에 선다. 오른쪽 열로 두면 글자 칸이 반으로 줄어 메인이 작아진다
   const cutCorner = !forcedSide && !!(hasKv && !logoOnly && !photoFull && !roomFull && !textureFull && !tImage && !transparent && !rules.objectBox && !guide?.objectRatio && L.shape === 'square' && (style.kvMeta?.field?.opaque ?? 1) < 0.5);
@@ -641,7 +644,7 @@ function renderAdBase(ctx, style, spec) {
     : textureFull ? (() => { const hx = style.kvMeta?.field?.quadrants?.tl ?? style.kvMeta?.colors?.[0] ?? '#808080'; const tx = contrast(hx, WHITE) >= 3 ? WHITE : contrast(hx, BLACK) >= 4.5 ? BLACK : WHITE; return { stops: [hx], angle: 0, css: hx, text: tx, source: 'kv-texture', seamless: true, gradient: false, contrast: Math.round(contrast(hx, tx) * 100) / 100 }; })()
     // 배경형: 지면색 = 글자 자리의 바탕색(그림 그대로), 글자는 그 밝기로 — 밝으면 검정(브랜드색이 4.5:1이면 brandMain이 이어받는다), 어두우면 흰색
     : roomFull ? (() => { const hx = roomFull.hex ?? '#FFFFFF', tx = (roomFull.lum ?? 1) >= 0.6 ? BLACK : WHITE; return { stops: [hx], angle: 0, css: hx, text: tx, source: 'kv-full', seamless: true, gradient: false, contrast: Math.round(contrast(hx, tx) * 100) / 100 }; })()
-    : resolveField(style, { facing, solidOnly: solidOnly || (objectSide === 'template' && imgCorner), light: lightProfile, lightPhoto: !!guide?.lightField });
+    : resolveField(style, { facing, solidOnly: solidOnly || (objectSide === 'template' && imgCorner && !mold), light: lightProfile, lightPhoto: !!guide?.lightField });
   // 틀 지면(10-15, 채용공고 샘플 6개 전수 실측): 배경색은 자유(브랜드색 — 도레이·모비스·한독 어두운 바탕). 밝으면 샘플 글자색, 어두우면 흰 글자·흰 로고 — 흰/검 전환은 CANON 그대로(moldFg·logoSrc0)
   // 템플릿 하단 띠를 주인공으로 당겨 채웠으면 띠의 윗변은 그림 한가운데 — 그 줄의 바탕색으로 지면을 잇는다
   if (field && bandCrop) field = joinField(field, joinColour(style, bandCrop.top), 'bottom');
@@ -1503,7 +1506,8 @@ function renderAdBase(ctx, style, spec) {
       ? (() => {
           // 그림이 실제로 차지하는 네모(cornerRect, 우하단 맞춤·자르지 않음)에 그린다 — 녹임 마스크가 상자 변이 아니라 그림의 변에서 시작한다.
           // 지면이 그림 가장자리 색과 같지 않으면 글자 쪽 두 변(왼쪽·위)을 녹인다 — "뚝 끊긴" 직선 이음매가 사라진다. 누끼는 그대로. 사진(구글 580)은 상자를 채우고 녹인다
-          const photoCover = gCorner && kvKindPhoto && !cutout;
+          const photoCover = (gCorner && kvKindPhoto && !cutout) || (!!mold && !cutout && !isCutout && !transparent && !cornerCrop && !cornerFill);   // 틀 모서리 칸(10-15 밤): 사진·바탕 있는 일러스트는 칸을 채우고 글자 쪽 두 변을 녹인다 — 작은 네모로 contain 하면 「뚝 끊긴」 상자(사용자 「이전 버전이 더 견고」)
+          if (!!mold && photoCover && !(gCorner && kvKindPhoto)) fired('templateMold.slotCover');
           // 주인공이 그림의 일부면 상자를 주인공으로 채운다(cornerCrop) — 통째로 맞춰 넣으면 상자에 바탕만 보인다
           const rect = (photoCover || cornerCrop || cornerFill) ? tImage : (cornerRect ?? tImage);
           const mL = meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), mT = meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34);
