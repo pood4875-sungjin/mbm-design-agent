@@ -2140,7 +2140,8 @@ export const MEDIA = [
                   "labelRow": false,
                   "items": [
                     "접수기간"
-                  ]
+                  ],
+                  "labelWeightNote": "라벨 Regular(400) — 리멤버 예시 1:6342 「모집기간 : 09/16(수) ~ 09/23(수)」 getStyledTextSegments 1구간 Regular 30(10-15 저녁 실측), PSD 부가 설명 Regular. 자소설(라벨 Bold)과 다르다"
                 }
               },
               "labels": {
@@ -2153,7 +2154,8 @@ export const MEDIA = [
                 "h": 360,
                 "note": "썸네일형 칸(이미지 988×360 + 왼쪽 그라데이션). 오브젝트형(844×284)·풀이미지형은 기존 가이드 선택지"
               },
-              "docSection": "①"
+              "docSection": "①",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -2267,7 +2269,8 @@ export const MEDIA = [
                 "h": 360,
                 "note": "썸네일형 칸. 오브젝트형 칸 (605,28) 346×304 은 이 안"
               },
-              "docSection": "②"
+              "docSection": "②",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -2382,7 +2385,8 @@ export const MEDIA = [
                   "labelRow": false,
                   "items": [
                     "접수기간"
-                  ]
+                  ],
+                  "labelWeightNote": "라벨 Regular(400) — 리멤버 예시 1:6342 「모집기간 : 09/16(수) ~ 09/23(수)」 getStyledTextSegments 1구간 Regular 30(10-15 저녁 실측), PSD 부가 설명 Regular. 자소설(라벨 Bold)과 다르다"
                 }
               },
               "labels": {
@@ -2395,7 +2399,8 @@ export const MEDIA = [
                 "h": 240,
                 "note": "썸네일형 칸"
               },
-              "docSection": "③"
+              "docSection": "③",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -2514,7 +2519,8 @@ export const MEDIA = [
                 "h": 360,
                 "note": "썸네일형 칸. 오브젝트형 칸 (604.7,28) 346×304 은 이 안"
               },
-              "docSection": "④"
+              "docSection": "④",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -2627,7 +2633,8 @@ export const MEDIA = [
                   "labelRow": false,
                   "items": [
                     "접수기간"
-                  ]
+                  ],
+                  "labelWeightNote": "라벨 Regular(400) — 리멤버 예시 1:6342 「모집기간 : 09/16(수) ~ 09/23(수)」 getStyledTextSegments 1구간 Regular 30(10-15 저녁 실측), PSD 부가 설명 Regular. 자소설(라벨 Bold)과 다르다"
                 }
               },
               "labels": {
@@ -2640,7 +2647,8 @@ export const MEDIA = [
                 "h": 240,
                 "note": "썸네일형 칸(템플릿은 썸네일형만)"
               },
-              "docSection": "⑤"
+              "docSection": "⑤",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -2777,7 +2785,8 @@ export const MEDIA = [
                 "h": 276,
                 "note": "썸네일형 칸"
               },
-              "docSection": "⑥"
+              "docSection": "⑥",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -2901,7 +2910,8 @@ export const MEDIA = [
                 "h": 200,
                 "note": "썸네일형 칸(규정 썸네일형만)"
               },
-              "docSection": "⑦"
+              "docSection": "⑦",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
@@ -3006,7 +3016,8 @@ export const MEDIA = [
                 "h": 276,
                 "note": "썸네일형 칸"
               },
-              "docSection": "⑧"
+              "docSection": "⑧",
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },
