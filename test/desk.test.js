@@ -54,7 +54,7 @@ test('타일 로고(불투명 ≥ 85%)는 어두운 지면에서 반전하지 �
 });
 
 test('세로로 긴 로고(폭÷높이 < 0.8)는 로고 칸 높이를 √(0.8÷비율)배(최대 1.8)로 키운다', () => {
-  const spec = specs['nap-dsp-full-320x480'];   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
+  const spec = specs['naver-gfa-mobile-da-1250x560'];   // 10-15 저녁: 구글·NAP 은 틀(templateMold) — 자유 배치 픽스처는 네이버 GFA 모바일 DA
   const hOf = html => { const m = html.match(/data-logo-slot="1" style="[^"]*height:(\d+)px/) ?? html.match(/<img data-logo="1"[^>]*height:(\d+)px/); return m ? +m[1] : null; };
   const wide = hOf(renderAd(ctx, styleOf(CUT, { logoMeta: { px: [600, 150], solid: 0.4 } }), spec));
   const tall = hOf(renderAd(ctx, styleOf(CUT, { logoMeta: { px: [36, 172], solid: 0.5 } }), spec));

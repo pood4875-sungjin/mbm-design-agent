@@ -53,16 +53,12 @@ test('자소설 PC달력배너: 마감일 줄 16px(2배 프레임 32, 샘플 3/3
 });
 
 test('NAP DSP 띠·전면 배너: 규정 표에 없는 날짜·상세 줄을 샘플 실측대로 더한다(320×50 날짜 2/4 · 320×100 날짜 4/4 · 300×250·320×480 날짜 3/4 + 모집직무 3/4)', () => {
-  for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250', 'nap-dsp-full-320x480']) {
-    const html = renderAd(ahnlab, style, specs[id]);
-    assert.ok(/9\.4\(금\) - 9\.13\(일\)/.test(html), `${id}: 날짜`);
-  }
-  for (const id of ['nap-dsp-full-300x250', 'nap-dsp-full-320x480']) {
-    const html = renderAd(ahnlab, style, specs[id]);
-    assert.match(html, /모집직무/, `${id}: 상세`);
-  }
-  // 메인 크기는 샘플 중앙값을 목표로(320×480 38px, 320×100 19px) — 안 들어가면 줄어든다
-  assert.ok(px(renderAd(ahnlab, style, specs['nap-dsp-full-320x480']), 'main') >= 30);
+  // 10-15 저녁: NAP 은 공식 템플릿 틀(mold) — 320×480 템플릿에만 라벨 줄 + 내용 줄(접수기간·모집직무)이 있고, 320×100(메인 2줄)·300×250(메인 + 서브)에는 날짜·상세 자리가 없다(샘플 3/4 에 있던 날짜는 「추가 문구(선택)」 자리 미확정 → 확인 필요)
+  const h480 = renderAd(ahnlab, style, specs['nap-dsp-full-320x480']);
+  assert.ok(/9\.4\(금\) - 9\.13\(일\)/.test(h480), '320×480: 접수기간 내용 줄');
+  assert.match(h480, /모집직무/, '320×480: 모집직무 라벨 줄');
+  for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250']) { const html = renderAd(ahnlab, style, specs[id]); assert.doesNotMatch(html, /data-field="date"|data-field="detail"/, `${id}: 템플릿에 날짜·상세 자리 없음`); }
+  assert.equal(px(h480, 'main'), 42, '320×480 메인 = 템플릿 42px');
 });
 
 test('블라인드 게시글 배너 4줄 = 메인 2 + 날짜 1 + 모집직무 1(대원제약·HS화성 2/2) — 날짜 줄은 라벨 없이, 상세에 접수기간을 되풀이하지 않는다', () => {
@@ -87,11 +83,11 @@ test('잡다 PC 메인 배너: 라벨 칩 + 날짜가 메인 위(5/5), 메인 28
 
 test('샘플 문구: 마감일·직무가 비어 있으면 자리를 두고 샘플 문구를 넣되 data-sample 로 표시한다 — 지어내지 않는다', () => {
   const bare = createContext({ client: '안랩', hiringType: '신입 채용' }, 'recruit');
-  const html = renderAd(bare, style, specs['nap-dsp-full-320x480']);
+  const html = renderAd(bare, style, specs['blind-post-banner']);   // 10-15 저녁: NAP 띠·전면·PC 는 공식 템플릿 틀(mold) — 자유 배치 픽스처는 다른 매체로(블라인드 게시글 배너: 날짜 줄 + 상세)
   assert.match(html, /data-field="date" data-sample="1"[^>]*>0\/00\(월\) ~ 0\/00\(일\)</);
   assert.match(html, /data-field="detail" data-sample="1"/);
   // 실제 정보가 있으면 샘플 표시가 없다
-  assert.doesNotMatch(renderAd(ahnlab, style, specs['nap-dsp-full-320x480']), /data-sample/);
+  assert.doesNotMatch(renderAd(ahnlab, style, specs['blind-post-banner']), /data-sample/);
 });
 
 test('인스타 피드 1080: 메인은 짧은 변의 8.3%(90px, 9/9 중앙값) 2줄 — 회사·채용구분을 「세방그룹 채용」으로 줄이지 않는다', () => {

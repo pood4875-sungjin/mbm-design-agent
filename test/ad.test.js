@@ -109,7 +109,7 @@ test('logo-only specs (브랜드 로고 96×96, 프로필 300) carry no headline
 
 test('a strip under 120px lays out in a row, and a flat spec uses a solid background', () => {
   // 레퍼런스가 없는 120px 미만 띠만 가로 한 줄 문법. 2160×160 커튼 배너는 가로형 레퍼런스 문법(세로 가운데 쌓기)
-  const strip = renderAd(ctx, style, specs['nap-dsp-pc-970x90']);
+  const strip = renderAd(ctx, style, specs['albamon-pc-sub-bottom']);   // 10-15 저녁: NAP 띠·전면·PC 는 공식 템플릿 틀(mold) — 자유 배치 픽스처는 다른 매체로(알바몬 PC 서브 하단 495×110)
   assert.match(strip, /flex-direction:row;align-items:center/);
   assert.match(renderAd(ctx, style, specs['albamon-pc-main-curtain']), /justify-content:center/);
   const flat = renderAd(ctx, style, { ...specs['google-gdn-300x600'], flat: true });

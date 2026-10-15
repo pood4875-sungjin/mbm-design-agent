@@ -18,7 +18,7 @@ const specs = adSpecEntries();
 const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
 const meta = id => JSON.parse(readFileSync(new URL(`../ref/learned/cases/${id}/meta.json`, import.meta.url), 'utf8'));
 const PLACE = ['place.textZone', 'place.textAlign', 'place.logoSlot', 'place.manualDrift', 'place.recommendedMargin'];
-const REP = ['kakao-display-pc-promo', 'instagram-feed-1080', 'nap-dsp-full-320x480', 'blind-post-banner', 'gamejob-community-pick-mo', 'jasoseol-pc-premium-popup-pc'];   // 10-15 저녁: 구글 3규격은 ABL 틀 → 자유 배치 대표는 카카오·인스타·NAP 전면·블라인드·게임잡   // 10-15: 리멤버 메인상단 MO 는 틀(mold) 규격이 됐다 → 자유 배치 대표는 카카오 디스플레이 PC
+const REP = ['kakao-display-pc-promo', 'instagram-feed-1080', 'instagram-story-1080x1920', 'blind-post-banner', 'gamejob-community-pick-mo', 'jasoseol-pc-premium-popup-pc'];   // 10-15 저녁: 구글 3규격은 ABL 틀 → 자유 배치 대표는 카카오·인스타·NAP 전면·블라인드·게임잡   // 10-15: 리멤버 메인상단 MO 는 틀(mold) 규격이 됐다 → 자유 배치 대표는 카카오 디스플레이 PC
 
 // 렌더 → 추적 → 합성 실측(글자는 자동 글자 열의 왼쪽 위에서 시작, 직접 수정 이동만큼 옮김 · 로고는 trace 자리 상자에 직접 수정 변형)
 function caseC(sid, { kv = 'fox-cutout', preset = {}, manual = null } = {}) {

@@ -125,9 +125,9 @@ test('렌더러: 키비주얼 위치 프리셋 — 왼쪽은 오른쪽 열을 �
   assert.match(h, /data-melt-dir="to left"/);
   const tpl = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'right' }, specs['jasoseol-pc-premium-popup-pc']));
   assert.equal(tpl.edit.place.ok, false); assert.match(tpl.edit.place.why, /템플릿/);
-  const bottom = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bottom' }, specs['nap-dsp-full-320x480']));   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로(세로형 NAP 전면)
+  const bottom = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bottom' }, specs['instagram-story-1080x1920']));   // 10-15 저녁: 구글·NAP 은 틀 — 세로형 자유 픽스처는 인스타 스토리
   assert.equal(bottom.place.objectSide, 'bottom');
-  const bg = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bg' }, specs['nap-dsp-full-320x480']));
+  const bg = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bg' }, specs['instagram-story-1080x1920']));
   assert.equal(bg.place.mode, 'full');
 });
 
