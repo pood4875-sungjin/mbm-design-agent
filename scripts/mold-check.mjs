@@ -44,22 +44,23 @@ for (const [id, v] of Object.entries(M.specs)) {
     if (r && !f) { add(`${roleName[role]} 줄`, '있음', '없음', (role === 'sub' || role === 'detail' || role === 'date') ? null : false, '문구 없음'); continue; }
     if (!r && f) { add(`${roleName[role]} 줄`, '없음', '있음', false); continue; }
     const fs = f.fs, lh = parseFloat(f.lh) || fs * 1.2;
-    const yFig = r1(f.y + (lh - fs * 1.2) / 2);   // Figma 글상자 top 으로 환산
+    const yFig = r.chip ? r1(f.y) : r1(f.y + (lh - fs * 1.2) / 2);   // Figma 글상자 top 으로 환산(날짜 알약 행은 칩 상자 top 이 곧 y)
     const stdY = used[role]?.y ?? r.y;            // 틀 y(메인 줄 수·서브 줄 수 따라 움직이는 줄은 렌더러가 쓴 값)
     const stdX = r.x != null ? r.x : mold.x;   // 행별 글상자 x(구글 ABL: 날짜 47·상세 127·세로형 메인 61 — 10-15 저녁)
     add(`${roleName[role]} x`, stdX, f.x, near(f.x, stdX));
     add(`${roleName[role]} y`, stdY, yFig, near(yFig, stdY, 1.5), used[role] && used[role].y !== r.y ? '틀 규칙(앞 줄 수)에 따라 이동' : '');
     add(`${roleName[role]} 크기`, r.px, fs, near(fs, r.px));
     if (r.weight != null) add(`${roleName[role]} 굵기`, r.weight, f.fw, +f.fw === +r.weight); else add(`${roleName[role]} 굵기`, '틀 없음', f.fw, null, '샘플 굵기 갈림 → 기존 가이드');
-    add(`${roleName[role]} 줄 간격`, r.pitch ?? r1(r.px * 1.2), r1(lh), near(lh, r.pitch ?? r.px * 1.2, 0.3));
+    const pitchStd = r.chip ? r.chip.h : (r.pitch ?? r1(r.px * 1.2)); add(`${roleName[role]} 줄 간격`, pitchStd, r1(lh), near(lh, pitchStd, 0.3), r.chip ? '날짜 알약 높이' : '');
     if (r.ls != null) { const got = f.ls && f.ls !== 'normal' ? r1(parseFloat(f.ls) / fs * 1000) / 10 : 0; add(`${roleName[role]} 자간`, `${r.ls}%`, `${got}%`, near(got, r.ls, 0.06)); }
     const dark = tr.mold?.color && tr.mold.color.toUpperCase() === (mold.colorDark ?? '#FFFFFF').toUpperCase();
-    if (mold.color) { const stdColor = mold.color.toUpperCase(); add(`${roleName[role]} 색`, dark ? mold.colorDark : stdColor, hex(f.color), hex(f.color) === (dark ? mold.colorDark : stdColor).toUpperCase(), dark ? '어두운 지면 → 흰 글자' : ''); }
+    if (mold.color === 'brand') { const stdColor = String(tr.mold?.color ?? '').toUpperCase(); add(`${roleName[role]} 색`, dark ? mold.colorDark : `브랜드 주색(${stdColor})`, hex(f.color), hex(f.color) === (dark ? (mold.colorDark ?? '#FFFFFF') : stdColor).toUpperCase(), dark ? '어두운 지면 → 흰 글자' : (stdColor === '#1A1A1A' ? '브랜드 주색이 밝은 지면 대비 4.5 미만 → 진회색' : '')); }   // NAP HS화성: 글자색 = 브랜드 주색(10-15 밤)
+    else if (mold.color) { const stdColor = mold.color.toUpperCase(); add(`${roleName[role]} 색`, dark ? mold.colorDark : stdColor, hex(f.color), hex(f.color) === (dark ? mold.colorDark : stdColor).toUpperCase(), dark ? '어두운 지면 → 흰 글자' : ''); }
     else add(`${roleName[role]} 색`, '틀 없음(자유)', hex(f.color), null, dark ? '어두운 지면 → 흰 글자(기존 가이드)' : '밝은 지면 → 검정(기존 가이드)');
     if (r.lines) add(`${roleName[role]} 줄 수`, `≤${r.lines}`, (f.lines ?? []).length, (f.lines ?? []).length <= r.lines);
     if (role === 'sub' && r.content === 'period') add('서브 내용', '접수기간 라벨 + 날짜', (f.text ?? '').slice(0, 30), new RegExp(`^${mold.labels?.period ?? '접수기간'} `).test(f.text ?? ''));
     if (role === 'detail' && r.labelWeight != null && f.bold?.length) { const ws = [...new Set(f.bold.map(b => +b[1]))]; add('상세 라벨 굵기', r.labelWeight, ws.join('/'), ws.length === 1 && ws[0] === +r.labelWeight); }
-    if (role === 'detail' && r.items) { const miss = r.items.filter(it => !(f.text ?? '').includes({ '접수기간': '기간', '모집직무': '직무' }[it] ?? it) && !(f.text ?? '').includes({ '접수기간': '일정' }[it] ?? it)); const capN = (r.byMainLines?.[String(tr.mold?.mainN)]?.lines ?? r.lines); add('상세 항목', r.items.join('·'), miss.length ? `${r.items.filter(i => !miss.includes(i)).join('·')} (생략: ${miss.join('·')})` : r.items.join('·'), miss.length === 0 ? true : null, miss.length ? `틀 행 한도 ${capN}행(메인 ${tr.mold?.mainN}줄) 안에 못 들어가 생략 — 값이 2행` : ''); }
+    if (role === 'detail' && r.items) { const miss = r.items.filter(it => !(f.text ?? '').includes({ '접수기간': '기간', '모집직무': '직무' }[it] ?? it) && !(f.text ?? '').includes({ '접수기간': '일정' }[it] ?? it) && !(mold.labels?.role && it === '모집직무' && (f.text ?? '').includes(mold.labels.role)) && !(mold.labels?.period && it === '접수기간' && (f.text ?? '').includes(mold.labels.period))); const capN = (r.byMainLines?.[String(tr.mold?.mainN)]?.lines ?? r.lines); add('상세 항목', r.items.join('·'), miss.length ? `${r.items.filter(i => !miss.includes(i)).join('·')} (생략: ${miss.join('·')})` : r.items.join('·'), miss.length === 0 ? true : null, miss.length ? `틀 행 한도 ${capN}행(메인 ${tr.mold?.mainN}줄) 안에 못 들어가 생략 — 값이 2행` : ''); }
   }
   // 태그 칩 행(잡다 PC)
   if (mold.rows?.tags) {

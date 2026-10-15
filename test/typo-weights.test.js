@@ -48,8 +48,9 @@ test('렌더: 역할마다 스케일이 붙는다 (가이드 없는 정사각 10
   if (chip) assert.equal(Number(chip), W.chip);
 });
 
-test('렌더: 블라인드·카카오 — 메인 700 · 슬로건 500 · 날짜 500 (카카오 디자이너 Medium 2/2)', () => {
-  for (const sid of ['blind-post-banner', 'kakao-display-pc-promo']) {
+test('렌더: 블라인드·카카오 — 메인 700 · 슬로건 500 · 날짜 500 (카카오 디자이너 Medium 2/2) · 블라인드 게시글은 틀(메인 800 · 날짜 500)', () => {
+  { const html = renderAd(ctx, style, specs['blind-post-banner']); assert.equal(fwIn(html, 'main'), 800, '블라인드 게시글 틀: 템플릿 ExtraBold 56'); assert.equal(fwIn(html, 'date'), 500); }
+  for (const sid of ['kakao-display-pc-promo']) {
     const html = renderAd(ctx, style, specs[sid]);
     assert.equal(fwIn(html, 'main'), W.main, sid);
     if (html.includes('data-field="sub"')) assert.equal(fwIn(html, 'sub'), W.slogan, sid + ' 슬로건');

@@ -49,7 +49,8 @@ test('마감일이 없고 고지 문구가 일정을 말하면 그 문구가 날
 test('모집직무 라벨이 상세 줄과 겹치면 한 번만(한진 NAP 320×480)', () => {
   const ctx = createContext({ client: '한진정보통신', hiringType: '경력직 채용', role: 'SW개발, 보안', notice: '* 채용 일정은 공고별 상이합니다.' }, 'recruit');
   const html = renderAd(ctx, normalizeStyle({ colors: ['#061266'] }), specs['nap-dsp-full-320x480']).replace(/data-trace="[^"]*"/, '');
-  assert.equal((html.match(/모집직무/g) ?? []).length, 1);
+  assert.equal((html.match(/모집분야/g) ?? []).length, 1);   // 10-15 밤: NAP 320×480 은 HS화성 틀 — 라벨 「모집분야」 한 번
+  assert.equal((html.match(/모집직무/g) ?? []).length, 0);
 });
 
 test('회사 + 긴 채용구분: 채용구분이 한 줄에 안 들어가면 회사 뒤에서 나누지 않는다 — 세 줄 말줄임 금지(한샘 2/2)', () => {

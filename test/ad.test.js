@@ -126,7 +126,7 @@ test('"이미지 밖 텍스트 필드" rows are handed over, not drawn — a pro
 import { DESIGN } from '../core/design.js';
 
 test('the date is plain text — no outlined pill, no widened tracking', () => {
-  for (const id of ['google-gdn-580x400', 'kakao-bizboard-mo', 'nap-dsp-full-300x250']) {
+  for (const id of ['google-gdn-580x400', 'kakao-bizboard-mo', 'kakao-display-pc-promo']) {   // 10-15 밤: NAP 300×250 은 HS화성 틀(날짜 알약 + 자간 -2%) — 자유 매체로
     const html = renderAd(ctx, style, specs[id]);
     assert.doesNotMatch(html, /data-field="date"[^>]*border-radius/, `${id}: 날짜에 테두리 알약을 두르지 않는다`);
     // 자간은 메인(28px 이상)만 좁힌다(CANON tracking −2.5% — Figma 9월 공채 typo A3). 날짜·서브·상세는 건드리지 않는다
@@ -174,38 +174,38 @@ test('wide formats follow the references: company and job on two lines where the
   assert.match(biz, /data-field="sub"[^>]*>~10\.31\(토\)</);
 });
 
-test('with a key visual the image bleeds to the edge instead of sitting in a rounded box', () => {
+test('with a key visual the image bleeds to the edge instead of sitting in a rounded box', () => {   // 10-15 저녁: 네이버 모바일 DA 는 공식 템플릿 틀 — 자유 가로형 픽스처는 카카오 디스플레이 PC 1200×600
   const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, edge: '#0B3C8C' } };
-  const wide = renderAd(ctx, kv, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(wide, /data-object="1" style="position:absolute;top:0;right:0px;[^"]*height:560px/, '오른쪽 끝·위아래 끝까지');
+  const wide = renderAd(ctx, kv, specs['kakao-display-pc-promo']);
+  assert.match(wide, /data-object="1" style="position:absolute;top:0;right:0px;[^"]*height:600px/, '오른쪽 끝·위아래 끝까지');
   assert.doesNotMatch(wide, /data-object="1"[^>]*border-radius/);
   assert.match(wide, /data-object="1"[^>]*mask-image:linear-gradient\(to right,transparent 0%/, '글자 쪽 변만 지면으로 녹인다');
   const tallHtml = renderAd(ctx, kv, specs['google-gdn-300x1050']);   // 10-15 저녁: ABL 틀 그림 칸 (1,804) 299×110
   assert.match(tallHtml, /data-object="1" style="position:absolute;left:1px;top:804px;width:299px;height:110px/);
   // 키비주얼이 없으면 오브젝트 자체가 없다 — 빈 상자를 그리지 않는다
-  assert.doesNotMatch(renderAd(ctx, style, specs['naver-gfa-mobile-da-1250x560']), /data-object/);
+  assert.doesNotMatch(renderAd(ctx, style, specs['kakao-display-pc-promo']), /data-object/);
 });
 
 test('the field colour is read from the key visual, not chosen as light or dark', () => {
   const edge = (from, to, rough = 0.004, opaque = 1) => ({ hex: from, from, to, rough, opaque });
   const kvMeta = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#F2E9FF', '#D9C8FF'), top: edge('#F2E9FF', '#F2E9FF'), right: edge('#F2E9FF', '#D9C8FF'), bottom: edge('#D9C8FF', '#D9C8FF') } } };
   const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta };
-  const wide = renderAd(ctx, kv, specs['naver-gfa-mobile-da-1250x560']).split('>')[0];
+  const wide = renderAd(ctx, kv, specs['kakao-display-pc-promo']).split('>')[0];
   assert.match(wide, /background:linear-gradient\(180deg,#F2E9FF 0%,#D9C8FF 100%\)/, '이미지의 왼쪽 변에 그라데이션이 있으면 지면도 그 그라데이션');
   assert.match(wide, /color:#0B3C8C/, '밝은 지면이면 메인은 브랜드색, 보조 글자는 검정 계열 — 사람이 고르지 않는다');
   assert.match(wide, /data-field-source="kv-edge"/);
   // 변이 한 색이면 지면도 단색
   const flatEdge = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#123A6B', '#123A6B') } } } };
-  assert.match(renderAd(ctx, flatEdge, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /background:#123A6B;.*color:#FFFFFF/);
+  assert.match(renderAd(ctx, flatEdge, specs['kakao-display-pc-promo']).split('>')[0], /background:#123A6B;.*color:#FFFFFF/);
   // 글자 쪽 변에만 그림이 걸쳐 있고 다른 변이 평평하면(한미글로벌 3D) 그 바탕색 — 대표색을 쓰면 그림의 바탕이 상자로 드러나고 규격마다 지면색이 달라진다
   const busyLeft = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#777777', '#333333', 0.12) } } } };
-  const busyHtml = renderAd(ctx, busyLeft, specs['naver-gfa-mobile-da-1250x560']).split('>')[0];
+  const busyHtml = renderAd(ctx, busyLeft, specs['kakao-display-pc-promo']).split('>')[0];
   assert.match(busyHtml, /background:#F2E9FF;/);
   assert.match(busyHtml, /data-field-source="kv-edge"/);
   // 네 변이 모두 복잡한 사진(한독 사옥)은 브랜드색 지면 — 사진의 변은 바탕이 아니다
   const rough = (a, b) => edge(a, b, 0.12);
   const photo = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, kind: 'photo', flatEdges: 0, edges: { left: rough('#777777', '#333333'), top: rough('#8899AA', '#445566'), right: rough('#777777', '#333333'), bottom: rough('#555555', '#222222') } } } };
-  assert.match(renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']).split('>')[0], /data-field-source="brand-photo"/);
+  assert.match(renderAd(ctx, photo, specs['kakao-display-pc-promo']).split('>')[0], /data-field-source="brand-photo"/);
   // 단색만 허용하는 지면(에브리타임 홈배너)은 그라데이션을 접는다
   assert.doesNotMatch(renderAd(ctx, kv, specs['everytime-home-banner']).split('>')[0], /linear-gradient/);
 });
@@ -245,7 +245,7 @@ test('a logo goes into the template logo slot exactly (130×30 at 15,23) and is 
 });
 
 test('on a dark field the white logo variant is used as-is; without one the colour logo is inverted', () => {
-  const dark = specs['nap-dsp-full-300x250'];   // 어두운 프로필 매체(NAP 0.56) → 브랜드 단색 지면 → 흰 글자. 구글은 이제 밝은 틴트 지면이라 제외
+  const dark = specs['instagram-feed-1080'];   // 어두운 프로필 매체(인스타 0.22 — 틀 없음; 10-15 밤 NAP 300×250 은 HS화성 틀이라 제외) → 브랜드 단색 지면 → 흰 글자. 구글은 이제 밝은 틴트 지면이라 제외
   const both = { ...style, logo: 'data:image/png;base64,AAAA', logoLight: 'data:image/png;base64,BBBB' };
   const html = renderAd(ctx, both, dark);
   assert.match(html, /data-logo="1" src="data:image\/png;base64,BBBB"/);
@@ -295,15 +295,15 @@ test('an image whose facing edge matches the field joins at that edge; a busy ph
   const calm = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#123A6B', '#123A6B'), top: edge('#123A6B', '#123A6B'), right: edge('#123A6B', '#123A6B'), bottom: edge('#123A6B', '#123A6B') } } };
   const busy = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#777777', '#333333', 0.12), top: edge('#777777', '#333333', 0.12), right: edge('#777777', '#333333', 0.12), bottom: edge('#777777', '#333333', 0.12) } } };
   const kv = 'data:image/png;base64,iVBORw0KGgo=';
-  const a = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: calm }, specs['naver-gfa-mobile-da-1250x560']);
+  const a = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: calm }, specs['kakao-display-pc-promo']);
   assert.match(a, /data-object="1"[^>]*left center\/cover[^>]*#000 16%/);
-  const b = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: busy }, specs['naver-gfa-mobile-da-1250x560']);
+  const b = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: busy }, specs['kakao-display-pc-promo']);
   // 복잡한 변은 더 길게 녹인다(10-06: 10→16 · 26→30 · 사진 32→38, 이징). 10-12 CANON melt: 회색 사진 변 × 주황 딥 지면은 색 거리가 멀어 30%보다 길게(최대 55%)
   const bm = b.match(/data-object="1"[^>]*center\/cover[^>]*#000 ([\d.]+)%/);
   assert.ok(bm && Number(bm[1]) >= 30 && Number(bm[1]) <= 55, bm?.[1]);
   // 배경을 딴 이미지는 자르지 않고, 녹이지도 않는다
   const cut = { colors: ['#E67814'], field: { opaque: 0.1, edges: {} } };
-  const c = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: cut }, specs['naver-gfa-mobile-da-1250x560']);
+  const c = renderAd(ctx, { ...style, keyVisual: kv, kvMeta: cut }, specs['kakao-display-pc-promo']);
   assert.match(c, /data-object="1"[^>]*right center\/contain/);
   assert.doesNotMatch(c, /data-object="1"[^>]*mask-image/);
 });
@@ -330,7 +330,7 @@ test('a floating logo stays inside the medium safe area and the copy starts belo
 });
 
 test('the text height rule caps every line, not only the headline (네이버 22~52px)', () => {
-  const html = renderAd(ctx, style, specs['naver-gfa-mobile-da-1250x560']);
+  const html = renderAd(ctx, style, specs['kakao-display-pc-promo']);
   for (const m of html.matchAll(/data-field="(\w+)" style="font-size:(\d+)px/g)) {
     assert.ok(+m[2] >= 22 && +m[2] <= 52, `${m[1]} ${m[2]}px`);
   }

@@ -151,7 +151,66 @@
         "top": null,
         "right": null,
         "bottom": null,
-        "left": null
+        "left": null,
+        "measuredFromTemplate": {
+          "frame": "1200×628",
+          "mold": {
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 블라인드 페이지 공식 템플릿 「_블라인드」 64:5053(피드) · 정식품 64:4979 같은 구조",
+            "measuredAt": "2026-10-15",
+            "note": "메인 Bold 85 행간 86 두 상자 (58,135)·(58,239) 738 → pitch 104 · 날짜 Medium 48 행간 54 (100,360) 602 · 상세 Regular 38 행간 54 (60,440) 340(라벨 포함 Regular — 정식품 「모집분야 : 마케팅」 1구간) · 로고 칸 (1000,50) 150×67 · 이미지 영역 오른쪽(라벨 (915,302), 샘플 대원 (827,306) 306×259 · HS (731,255) 487×376) · 「채용 공고 확인하기」 흰 글자는 플랫폼 버튼 목업(소재 아님)",
+            "x": 58,
+            "w": 738,
+            "color": "#555555",
+            "colorDark": "#FFFFFF",
+            "rows": {
+              "main": {
+                "y": 135,
+                "px": 85,
+                "pitch": 104,
+                "weight": 700,
+                "lines": 2,
+                "w": 738
+              },
+              "date": {
+                "y": 360,
+                "px": 48,
+                "pitch": 54,
+                "weight": 500,
+                "lines": 1,
+                "x": 100,
+                "w": 602
+              },
+              "detail": {
+                "y": 440,
+                "px": 38,
+                "pitch": 54,
+                "weight": 400,
+                "labelWeight": 400,
+                "lines": 1,
+                "x": 60,
+                "w": 740,
+                "items": [
+                  "모집직무"
+                ],
+                "labelWeightNote": "템플릿 상세 Regular 38 · 정식품 64:4979 「모집분야 : 마케팅(…)」 1구간 Regular(HS 는 Bold 라벨 — 갈림, 템플릿 따름)"
+              }
+            },
+            "logo": {
+              "x": 1000,
+              "y": 50,
+              "w": 150,
+              "h": 67,
+              "align": "right"
+            },
+            "image": {
+              "x": 700,
+              "y": 230,
+              "w": 500,
+              "h": 398,
+              "note": "라벨 (915,302) + 샘플 2건 KV 범위로 추정(확인 필요)"
+            }
+          }
+        }
       },
       "textLimits": [
         {
@@ -276,7 +335,68 @@
         "top": null,
         "right": null,
         "bottom": null,
-        "left": null
+        "left": null,
+        "measuredFromTemplate": {
+          "frame": "1250×560",
+          "mold": {
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 블라인드 페이지 공식 템플릿 「(재)FITI시험연구원_블라인드(게시글 배너,띠배너)」 64:5007(자리표시 글자)",
+            "measuredAt": "2026-10-15",
+            "note": "메인 ExtraBold 56 행간 124%(69.4) (142,142) 498 2줄 · 날짜(라벨 없이) Medium 36 행간 54 (164,297) 422(템플릿 서브 자리) · 상세 Bold 36 행간 54 (148,357) 322 → 모집직무 1행(샘플 대원 날짜 y348 + 직무 y426, HS 날짜 y340 + 모집분야 y414 와 맞음) · 로고 칸 라벨 (944,59) 131×33 → (900,50) 220×50 우상 · 이미지 영역 오른쪽(라벨 (868,262), 샘플 KV (789,242) 321×271 · (790,172) 395×305)",
+            "x": 142,
+            "w": 498,
+            "color": "#555555",
+            "colorDark": "#FFFFFF",
+            "rows": {
+              "main": {
+                "y": 142,
+                "px": 56,
+                "pitch": 69.4,
+                "weight": 800,
+                "lines": 2,
+                "w": 498
+              },
+              "date": {
+                "y": 297,
+                "px": 36,
+                "pitch": 54,
+                "weight": 500,
+                "lines": 1,
+                "x": 164,
+                "w": 422,
+                "note": "템플릿 「서브문구」 자리에 날짜(라벨 없이) — 디자이너 2/2(대원 y348 Bold 30 · HS y340 Medium 45)가 이 줄에 날짜를 둠"
+              },
+              "detail": {
+                "y": 357,
+                "px": 36,
+                "pitch": 54,
+                "weight": 700,
+                "labelWeight": 700,
+                "lines": 1,
+                "x": 148,
+                "w": 1000,
+                "items": [
+                  "모집직무"
+                ],
+                "labelWeightNote": "템플릿 상세 Bold 36 · 샘플 대원 Bold · HS 「모집분야 :」 Bold + 값 Medium",
+                "widthNote": "템플릿 상자 322 는 자리표시 폭 — 긴 직무 문구를 위해 오른쪽 여백 100 까지(1000). 1행 한도는 유지(4줄 규칙)"
+              }
+            },
+            "logo": {
+              "x": 900,
+              "y": 50,
+              "w": 220,
+              "h": 50,
+              "align": "right"
+            },
+            "image": {
+              "x": 750,
+              "y": 120,
+              "w": 500,
+              "h": 440,
+              "note": "라벨 (868,262) + 샘플 KV 범위로 추정(확인 필요)"
+            }
+          }
+        }
       },
       "textLimits": [
         {

@@ -89,9 +89,10 @@ test('B1 메인 두 톤 강조는 스타일이 강조색을 줬고 지면 대비
   const acc = normalizeStyle({ colors: ['#00146E'], accent: '#00ffe2', keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark' });
   assert.equal(acc.accent, '#00FFE2');
   assert.equal(style.accent, null, '입력이 없으면 강조색 없음(palette.accent 자동 생성색을 쓰지 않는다)');
-  const on = renderAd(ctx, acc, specs['blind-post-banner']);
+  const on = renderAd(ctx, acc, specs['kakao-display-pc-promo']);   // 10-15 저녁: 블라인드 게시글·피드도 공식 템플릿 틀 — 자유 배치 픽스처는 카카오 디스플레이·인스타
   assert.match(on, /data-field="main"[^>]*>[^]*?<span data-accent="1" style="color:#00FFE2">대규모 공개채용<\/span>/);
-  assert.doesNotMatch(renderAd(ctx, style, specs['blind-post-banner']), /data-accent/);
+  assert.doesNotMatch(renderAd(ctx, style, specs['kakao-display-pc-promo']), /data-accent/);
+  assert.doesNotMatch(renderAd(ctx, acc, specs['blind-post-banner']), /data-accent/, '블라인드 게시글은 틀 — 두 톤 강조 없음');
   assert.doesNotMatch(renderAd(ctx, acc, specs['jasoseol-m-premium-popup-mo']), /data-accent/, '자소설 단색');
   // 밝은 지면에서 대비가 모자라는 강조색은 켜지 않는다
   const pale = normalizeStyle({ colors: ['#00146E'], accent: '#C5ECFF' });

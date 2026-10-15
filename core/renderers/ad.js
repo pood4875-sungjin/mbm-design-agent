@@ -691,7 +691,9 @@ function renderAdBase(ctx, style, spec) {
   // 가이드 매체의 밝은 지면: 메인은 브랜드색(일화 레드·동부 네이비·비씨 네이비 3/3) — 지면 어디서나 4.5:1이 나올 때만. 어두운 지면은 흰색 그대로(ABL)
   const brandMain = !!(guide?.textColour === 'brand' && field && fgIsDark && !tc.main && p.primary && Math.min(...field.stops.map(s => contrast(s, p.primary))) >= 4.5);
   // 틀 글자색(10-15): 밝은 지면이면 샘플 글자색(세아제강 #555555 · 현대케피코 #000000), 어두운 지면이면 흰색(현대모비스 28:382) — 서브·상세도 흐리게 하지 않고 같은 색(「모든 문구 1가지 색상」)
-  const moldFg = mold ? (fgIsDark ? (mold.color ?? mainFg0) : (mold.colorDark ?? '#FFFFFF')) : null;
+  // 틀 글자색이 'brand' 면 브랜드 주색(NAP HS화성 샘플 네이비 #01193D = HS 브랜드색, 10-15 밤) — 밝은 지면(#F3F3F3 기준) 대비 4.5 미만이면 진회색
+  const moldBrandFg = (mold?.color === 'brand') ? ((p.primary && contrast(p.primary, '#F3F3F3') >= 4.5) ? p.primary : '#1A1A1A') : null;
+  const moldFg = mold ? (fgIsDark ? (moldBrandFg ?? mold.color ?? mainFg0) : (mold.colorDark ?? '#FFFFFF')) : null;
   const mainFg = moldFg ?? (brandMain ? p.primary : mainFg0);
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
   const tight = !!field && field.contrast < 4.5;
@@ -1411,7 +1413,7 @@ function renderAdBase(ctx, style, spec) {
   const { bg: chipBgCss, fg: chipFg } = chipStyleOf();
   const chipCss = `display:inline-block;font-weight:${fwOf('chip', Math.max(8, Math.round(z.dFs * 0.86)))};font-size:${Math.max(8, Math.round(z.dFs * 0.86))}px;line-height:1.5;padding:0 ${Math.round(z.dFs * 0.55)}px;border-radius:999px;background:${chipBgCss};color:${chipFg};vertical-align:baseline;white-space:nowrap`;
   // 접수기간 라벨 이름은 매체·틀이 정한다(10-15): 자소설 「모집일정」(PC팝업 28:124·채용공고 28:333), PC메인 「채용일정」(28:1002). 기본 「접수기간」. 내부 키는 그대로 '접수기간'
-  const labelOf = l => l === '접수기간' ? (mold?.labels?.period ?? guide?.labels?.period ?? l) : l;
+  const labelOf = l => l === '접수기간' ? (mold?.labels?.period ?? guide?.labels?.period ?? l) : l === '모집직무' ? (mold?.labels?.role ?? l) : l;   // 틀이 라벨 이름을 정하면(NAP HS화성 샘플 「모집분야」 — mold.labels.role, 10-15 밤)
   const label = d => chip
     ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * (stackTags ? 0.5 : 0.25)) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`
     : d.inline ? `<b style="font-weight:${lw}">${esc(labelOf(d.label))}</b> : ` : `<b style="font-weight:${lw};display:block">${esc(labelOf(d.label))}</b>`;
@@ -1477,7 +1479,7 @@ function renderAdBase(ctx, style, spec) {
   const LB = mold?.logo?.box ?? null;
   const boxCss = LB ? `background:${LB.bg ?? '#FFFFFF'};border-radius:${Math.round((LB.radius ?? 6) * tScale)}px;padding:${Math.round((LB.pad ?? 6) * tScale)}px;box-sizing:border-box;` : '';
   const tplLogo = (allowLogo && logoSrc && tLogo && !logoAsObject)
-    ? `<div data-logo-slot="1"${LB ? ' data-logo-box="1"' : ''} style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'};${boxCss}"><img data-logo="1" src="${esc(LB ? style.logo : logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${LB ? '' : logoFilter}"/></div>${(() => { const L2 = mold?.logo2 ? rect(mold.logo2, tScale) : null; if (!L2) return ''; fired('templateMold.logo2'); return `<div data-logo-slot="2" style="position:absolute;left:${L2.x}px;top:${L2.y}px;width:${L2.w}px;height:${L2.h}px;display:flex;align-items:center;justify-content:${mold.logo2.align === 'left' ? 'flex-start' : 'flex-end'}"><img data-logo="2" src="${esc(logoSrc)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`; })()}`
+    ? `<div data-logo-slot="1"${LB ? ' data-logo-box="1"' : ''} style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'};${boxCss}${mold ? 'z-index:2;' : ''}"><img data-logo="1" src="${esc(LB ? style.logo : logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${LB ? '' : logoFilter}"/></div>${(() => { const L2 = mold?.logo2 ? rect(mold.logo2, tScale) : null; if (!L2) return ''; fired('templateMold.logo2'); return `<div data-logo-slot="2" style="position:absolute;left:${L2.x}px;top:${L2.y}px;width:${L2.w}px;height:${L2.h}px;display:flex;align-items:center;justify-content:${mold.logo2.align === 'left' ? 'flex-start' : 'flex-end'}"><img data-logo="2" src="${esc(logoSrc)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`; })()}`
     : '';
   if (LB && tplLogo) fired('templateMold.logoBox');
   // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
@@ -1560,7 +1562,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const MR = mold.rows ?? {}, k = tScale;
     const sx = Math.round((mold.x ?? tText?.x ?? pad.left) * k), colW = Math.round((mold.w ?? (w / k - (mold.x ?? pad.left) - pad.right)) * k);
     const pxOf = r => Math.round(r.px * k), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
-    const topOf = r => Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;
+    const topOf = r => r.chip ? Math.round(r.y * k * 10) / 10 : Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;   // 알약 행(날짜 칩)은 칩 상자 top 이 곧 y
     const blocks = []; const used = {};
     // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
     const rowX = r => r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => r.align ?? mold.align ?? 'left';
@@ -1582,20 +1584,26 @@ ${tplLogo}${kvWrap(tplObject)}
     if (showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; }
     if (showSubM && MR.sub) put('sub', MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub)), copy.sub);
     const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}) } : null;   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
-    if (copy.main && mR) put('main', mR, mR.lines ?? 2, mR.weight ?? fwOf('main', mainPx), mainFg, String(copy.main).split('\n').map(t => esc(nb(t, false))).join('<br/>'), copy.main);
+    // 회사명 강조색(mold.rows.main.accentClient — NAP HS화성 샘플 「HS화성」 빨강 #D6061C = 브랜드 보조색, 나머지 네이비, 10-15 밤): 밝은 지면에서만, 강조색(style.accent·팔레트 accent)이 없으면 그대로
+    const accentFg = (mR?.accentClient && fgIsDark && ctx.core?.client) ? (accentHex ?? p.accent ?? null) : null;
+    const mainLines = String(copy.main ?? '').split('\n').map((t, i) => { const cl = String(ctx.core?.client ?? ''); if (accentFg && i === 0 && cl && t.startsWith(cl)) { fired('templateMold.accentClient'); return `<span data-accent="1" style="color:${accentFg}">${esc(nb(cl, false))}</span>${esc(nb(t.slice(cl.length), false))}`; } return esc(nb(t, false)); });
+    if (copy.main && mR) put('main', mR, mR.lines ?? 2, mR.weight ?? fwOf('main', mainPx), mainFg, mainLines.join('<br/>'), copy.main);
     // 틀 상세의 글감: 틀이 항목(items)을 정했으면 사다리의 상세 후보(ladder.details)에서 그 항목을 그대로 — 일반 배치의 「서브에 이미 든 말·날짜 줄 분리」 추림을 타지 않는다
     //   (에브리타임 홈배너 1:1309 「모집기간: …」 둘째 줄 · 캐치 이미지형 기타문구 — 10-15 틀 확장). 행 수는 틀 칸 폭·글꼴 폭으로
     const moldDetailSrc = (() => {
       if (!MR.detail?.items) return detailLines;
-      const dpx = pxOf(MR.detail), wr = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, colW))), sep0 = MR.detail.labelSep ?? ' :';
+      const dpx = pxOf(MR.detail), wr = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, rowW(MR.detail)))), sep0 = MR.detail.labelSep ?? ' :';   // 행 수는 상세 행 자체의 폭으로(열 폭이 아니라 — 블라인드 게시글 열 498 vs 상세 행 600, 네이버 479 vs 714; 10-15 저녁)
       const seen = new Set();
       const cap0 = MR.detail.lines ?? 3;
       const rowOf = (label, value) => MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
-      return (ladder.details ?? []).filter(d => MR.detail.items.includes(d.label) && d.value && !seen.has(d.label) && seen.add(d.label))
+      const rows0 = (ladder.details ?? []).filter(d => MR.detail.items.includes(d.label) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : [d.value];
           return cands.map(v => rowOf(d.label, v)).find(r => r.rows <= cap0) ?? rowOf(d.label, d.value);
         });
+      // 틀 상세 자리에 정보가 없으면 샘플 문구 자리표시(data-sample — 지어내지 않고 승인 전에 바꾼다, 10-15 저녁: 블라인드 게시글 「모집 직무를 입력하세요」)
+      if (!rows0.length && ctx.kind === 'recruit' && SAMPLE_COPY?.detail && MR.detail.items.includes(SAMPLE_COPY.detail.label)) { sampleText.add(SAMPLE_COPY.detail.value); return [rowOf(SAMPLE_COPY.detail.label, SAMPLE_COPY.detail.value)]; }
+      return rows0;
     })();
     if (MR.detail && moldDetailSrc.length) {
       const dR0 = { ...MR.detail, ...(MR.detail.byMainLines?.[String(mainN)] ?? {}) };   // PC메인: 메인 2줄이면 상세는 둘째 줄부터 2행(「메인 문구가 두 줄인 경우 상세 1행 입력 불가」)
@@ -1624,12 +1632,17 @@ ${tplLogo}${kvWrap(tplObject)}
       const dRow = dR.fillFromBottom ? { ...dR, y: dR.y + Math.max(0, cap - n) * (dR.pitch ?? dR.px * 1.2) } : dR;
       if (rows.length) put('detail', dRow, Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:pretty">${inner}</div>`, rows.map(d => d.value).join(' '));
     }
-    if (MR.date && mR && (copy.date || ctx.core?.deadline)) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
+    if (MR.date && mR && (copy.date || ctx.core?.deadline || ctx.kind === 'recruit')) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
       const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
       let txt = (MR.date.format === '~M/D' && dl) ? `~${+dl[2]}/${+dl[3]}` : (copy.date || '');
+      if (!txt && !ctx.core?.deadline && SAMPLE_COPY?.date) { txt = SAMPLE_COPY.date; sampleText.add(txt); }   // 틀 날짜 자리 샘플 문구 자리표시(data-sample)
       // 틀 날짜 칸이 좁으면(구글 ABL 580 날짜 158px 1줄) 짧은 날짜 후보(「~10.31(토)」 — ladder.date)로(10-15 저녁)
       if (txt && MR.date.lines && rowsIn(txt, MR.date) > MR.date.lines) { const alt = [...new Set([txt, ...(ladder.date ?? [])])].find(c => rowsIn(c, MR.date) <= MR.date.lines); if (alt) txt = alt; }
-      if (txt) put('date', { ...MR.date, y: MR.date.afterMain != null ? mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + MR.date.afterMain : MR.date.y }, MR.date.lines ?? 1, MR.date.weight ?? fwOf('date', pxOf(MR.date)), subFg, esc(txt), txt);
+      // 날짜 알약(mold.rows.date.chip — NAP HS화성 샘플: 브랜드색 바탕 radius 200 · 흰 글자 Bold 10/12 · 안쪽 8 · 높이 24/26, 10-15 밤): 폭은 글자대로(hug), 어두운 지면이면 흰 바탕 + 브랜드색 글자
+      const DC = MR.date.chip ?? null;
+      const dateRow = { ...MR.date, y: MR.date.afterMain != null ? mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + MR.date.afterMain : MR.date.y, ...(DC ? { chip: true, pitch: DC.h } : {}) };
+      const dateInner = (DC && txt) ? (() => { const ch = Math.round(DC.h * k), padX = Math.round((DC.padX ?? 8) * k), rad = Math.round((DC.radius ?? 200) * k); const brand = p.primary ?? field?.stops?.[0] ?? '#000000'; const bg = DC.bg === 'brand' ? (fgIsDark ? brand : '#FFFFFF') : (DC.bg ?? brand), fg = DC.bg === 'brand' ? (fgIsDark ? (DC.color ?? '#FFFFFF') : brand) : (DC.color ?? '#FFFFFF'); fired('templateMold.dateChip'); return `<span data-chip="1" style="display:inline-flex;align-items:center;height:${ch}px;padding:0 ${padX}px;border-radius:${rad}px;background:${bg};color:${fg};white-space:nowrap">${esc(txt)}</span>`; })() : esc(txt);
+      if (txt) put('date', dateRow, MR.date.lines ?? 1, MR.date.weight ?? fwOf('date', pxOf(MR.date)), subFg, dateInner, txt);
     }
     // 태그 칩 행(mold.rows.tags — 잡다 PC 1:6026 「태그문구」 칸: y174 칩 h24 글자 12 SemiBold, 모서리 4, 안쪽 8, 칩 간격 8 · 샘플 5/8). 글감은 고용형태·직무 조각, 칸 폭에 들어가는 만큼. 칩 색은 기존 가이드(chipStyleOf)
     if (MR.tags && (ctx.core?.employType || ctx.core?.role)) {
@@ -1643,8 +1656,13 @@ ${tplLogo}${kvWrap(tplObject)}
         blocks.push({ t: Math.round(tg.y * k * 10) / 10, h: th, html: `<div data-field="tags" style="position:absolute;left:0;top:@@px;width:${colW}px;height:${th}px;display:flex;gap:${gap}px;align-items:center;overflow:hidden">${items.map(t => `<b data-chip="1" style="display:inline-flex;align-items:center;height:${th}px;padding:0 ${padX}px;border-radius:${rad}px;font-size:${tpx}px;line-height:${th}px;font-weight:${tw};background:${chipBgCss};color:${chipFg};white-space:nowrap">${esc(t)}</b>`).join('')}</div>` });
       }
     }
-    const top0 = blocks.length ? Math.min(...blocks.map(b => b.t)) : 0, bot = blocks.length ? Math.max(...blocks.map(b => b.t + b.h)) : 0;
-    const textCol = `<div data-text-col="1" style="position:absolute;left:${sx}px;top:${top0}px;width:${colW}px;height:${Math.round((bot - top0) * 10) / 10}px">${blocks.map(b => b.html.replace('top:@@px', `top:${Math.round((b.t - top0) * 10) / 10}px`)).join('\n')}</div>`;
+    const top00 = blocks.length ? Math.min(...blocks.map(b => b.t)) : 0, bot0 = blocks.length ? Math.max(...blocks.map(b => b.t + b.h)) : 0;
+    // 세로 가운데(mold.vCenter — NAP 띠배너 HS화성 샘플 77:497·77:518: 글 덩어리(메인 + 날짜 알약)가 지면 세로 가운데. 줄 수·알약 유무에 따라 덩어리째 움직인다, 10-15 밤 사용자 「텍스트 위아래 미들로」)
+    const vOff = (mold.vCenter && blocks.length) ? Math.round((h / 2 - (top00 + bot0) / 2) * 10) / 10 : 0;
+    if (vOff) { for (const b of blocks) b.t = Math.round((b.t + vOff) * 10) / 10; for (const u of Object.values(used)) { u.top = Math.round((u.top + vOff) * 10) / 10; u.y = Math.round((u.y + vOff) * 10) / 10; } fired('templateMold.vCenter'); }
+    const top0 = top00 + vOff, bot = bot0 + vOff;
+    if (mold.font) fired('templateMold.font');   // 틀 글꼴(mold.font — NAP HS화성 샘플 A2Z 7 Bold = 에이투지체, 10-15 밤): 틀 글 덩어리에만
+    const textCol = `<div data-text-col="1" style="position:absolute;left:${sx}px;top:${top0}px;width:${colW}px;height:${Math.round((bot - top0) * 10) / 10}px${mold.font ? `;font-family:${fontStack(mold.font)}` : ''}">${blocks.map(b => b.html.replace('top:@@px', `top:${Math.round((b.t - top0) * 10) / 10}px`)).join('\n')}</div>`;
     // 지면 처리가 영역이면(PC메인 왼쪽 350×280) 브랜드 지면은 그 영역에만 — 나머지는 템플릿 고정 바탕(bgCss)
     const fz = mold.field ? rect(mold.field, k) : null;
     const moldField = (fz && field) ? `<div data-mold-field="1" style="position:absolute;left:${fz.x}px;top:${fz.y}px;width:${fz.w}px;height:${fz.h}px;background:${field.css}"></div>` : '';

@@ -56,23 +56,26 @@ test('NAP DSP 띠·전면 배너: 규정 표에 없는 날짜·상세 줄을 샘
   // 10-15 저녁: NAP 은 공식 템플릿 틀(mold) — 320×480 템플릿에만 라벨 줄 + 내용 줄(접수기간·모집직무)이 있고, 320×100(메인 2줄)·300×250(메인 + 서브)에는 날짜·상세 자리가 없다(샘플 3/4 에 있던 날짜는 「추가 문구(선택)」 자리 미확정 → 확인 필요)
   const h480 = renderAd(ahnlab, style, specs['nap-dsp-full-320x480']);
   assert.ok(/9\.4\(금\) - 9\.13\(일\)/.test(h480), '320×480: 접수기간 내용 줄');
-  assert.match(h480, /모집직무/, '320×480: 모집직무 라벨 줄');
-  for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250']) { const html = renderAd(ahnlab, style, specs[id]); assert.doesNotMatch(html, /data-field="date"|data-field="detail"/, `${id}: 템플릿에 날짜·상세 자리 없음`); }
-  assert.equal(px(h480, 'main'), 42, '320×480 메인 = 템플릿 42px');
+  // 10-15 밤: NAP 4규격은 HS화성 디자이너 샘플(77:497·518·541·567)이 틀 — 날짜는 알약, 모집직무 라벨은 「모집분야」(mold.labels.role), 320×50 만 날짜·상세 없음
+  assert.match(h480, /<b style="font-weight:700">모집분야<\/b>/, '320×480: 모집분야 라벨 줄');
+  assert.doesNotMatch(h480.replace(/data-trace="[^"]*"/, ''), /모집직무/, '화면 글자에는 「모집직무」 없음(trace 의 항목 이름은 제외)');
+  for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250']) { const html = renderAd(ahnlab, style, specs[id]); assert.match(html, /data-field="date"[^>]*>\s*<span data-chip="1"/, `${id}: 날짜 알약`); }
+  assert.doesNotMatch(renderAd(ahnlab, style, specs['nap-dsp-band-320x50']), /data-field="date"|data-field="detail"/, '320×50: 메인 1줄만');
+  assert.equal(px(h480, 'main'), 38, '320×480 메인 = HS화성 샘플 38px');
 });
 
 test('블라인드 게시글 배너 4줄 = 메인 2 + 날짜 1 + 모집직무 1(대원제약·HS화성 2/2) — 날짜 줄은 라벨 없이, 상세에 접수기간을 되풀이하지 않는다', () => {
   const html = renderAd(hs, style, specs['blind-post-banner']);
   assert.match(html, /data-field="date"[^>]*>8\.14\(금\) - 8\.27\(목\)</);
-  assert.match(html, /모집직무<\/b> : 건축/);
+  assert.match(html, /모집직무 :<\/b> 건축/);   // 10-15 저녁: 틀 상세 「라벨 :」 굵게 + 값
   assert.doesNotMatch(textOf(html, 'detail'), /접수기간/);
-  assert.ok(px(html, 'main') <= 56, '매체 글자 크기 띠 32~56 안');
+  assert.ok(px(html, 'main') <= 56, '매체 글자 크기 띠 32~56 안(틀 56)');
 });
 
 test('네이버 모바일 DA 「광고 문구(메인문구+서브문구) 4줄」도 한 덩어리 규정 — 날짜 + 모집직무 줄이 선다(한국콜마·대원제약·세아제강 3/3)', () => {
-  const html = renderAd(hs, style, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(html, /data-field="date"/);
-  assert.match(html, /모집직무<\/b> : 건축/);
+  const html = renderAd(hs, style, specs['naver-gfa-mobile-da-1250x560']);   // 10-15 저녁: 템플릿 틀 — 서브 자리 = 날짜(라벨 없이), 모집직무 줄(대원 샘플 1건)
+  assert.match(html, /data-field="date"[^>]*>8\.14\(금\) - 8\.27\(목\)</);
+  assert.match(html, /모집직무 :<\/b> 건축/);
 });
 
 test('잡다 PC 메인 배너: 라벨 칩 + 날짜가 메인 위(5/5), 메인 28px(샘플 5/5 Bold 28)', () => {
@@ -83,7 +86,7 @@ test('잡다 PC 메인 배너: 라벨 칩 + 날짜가 메인 위(5/5), 메인 28
 
 test('샘플 문구: 마감일·직무가 비어 있으면 자리를 두고 샘플 문구를 넣되 data-sample 로 표시한다 — 지어내지 않는다', () => {
   const bare = createContext({ client: '안랩', hiringType: '신입 채용' }, 'recruit');
-  const html = renderAd(bare, style, specs['blind-post-banner']);   // 10-15 저녁: NAP 띠·전면·PC 는 공식 템플릿 틀(mold) — 자유 배치 픽스처는 다른 매체로(블라인드 게시글 배너: 날짜 줄 + 상세)
+  const html = renderAd(bare, style, specs['blind-post-banner']);   // 10-15 저녁: 틀(블라인드 게시글)에서도 날짜·상세 자리에 샘플 문구 자리표시(data-sample)
   assert.match(html, /data-field="date" data-sample="1"[^>]*>0\/00\(월\) ~ 0\/00\(일\)</);
   assert.match(html, /data-field="detail" data-sample="1"/);
   // 실제 정보가 있으면 샘플 표시가 없다
