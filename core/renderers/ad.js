@@ -1533,7 +1533,7 @@ function renderAdBase(ctx, style, spec) {
     return `<div style="display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:${align === 'center' ? 'center' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
   };
 
-  if (strip) {
+  if (strip && !mold) {   // 틀(mold)이 있는 얇은 띠(NAP 320×50·320×100·PC 970/728, 10-15 저녁)는 띠 문법 대신 틀로
     const meta = [showSub ? copy.sub : null, want.date ? copy.date : null].filter(Boolean).join('  ·  ');
     const lg = flexLogo ? logoImg(z.logoH, Math.round(innerW * 0.16)) : '';
     return `${open('flex-direction:row;align-items:center;gap:20px')}

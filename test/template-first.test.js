@@ -305,3 +305,20 @@ test('구글GDN 틀(ABL생명 샘플, 사용자 결정 10-15) — 580 왼쪽 정
   assert.match(h930, /data-field="tags"/, '930 태그 칩 행');
   assert.match(h930, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:42px/, '930 하단 띠 42px(가이드 variants) 틀에서도 유지');
 });
+
+test('NAP-DSP 틀(공식 템플릿 64:1717·1727·1742·1756·1799·1815, 10-15 저녁) — 띠 320×50 메인 17/700 (13,19) · 320×100 2줄 행간 24.5 · 전면 300×250 메인 26 + 서브 20 아래 · 320×480 가운데 메인 42 행간 41.2 + 라벨 줄/내용 줄 · PC 970/728 메인 24 + 상세 15 · 비즈보드는 틀 없음', () => {
+  const t50 = traceOf(renderAd(ctx, glass, specs['nap-dsp-band-320x50']));
+  assert.equal(t50.mode, 'templateMold'); assert.deepEqual([t50.mold.rows.main.y, t50.mold.rows.main.px, t50.mold.rows.main.weight], [19, 17, 700]);
+  const h100 = renderAd(ctx, glass, specs['nap-dsp-band-320x100']);
+  assert.match(h100, /data-field="main"[^>]*font-size:19px;line-height:24.5px;font-weight:700/);
+  const t250 = traceOf(renderAd(ctx, glass, specs['nap-dsp-full-300x250']));
+  assert.deepEqual([t250.mold.rows.main.y, t250.mold.rows.main.px, t250.mold.rows.sub?.y, t250.mold.rows.sub?.px, t250.mold.rows.sub?.weight], [41, 26, 107, 20, 500], '서브가 메인 아래');
+  const h480 = renderAd(ctx, glass, specs['nap-dsp-full-320x480']); const t480 = traceOf(h480);
+  assert.equal(t480.place.zone.align, 'center');
+  assert.match(h480, /data-field="main"[^>]*font-size:42px;line-height:41.2px;font-weight:700;[^"]*text-align:center/);
+  if (h480.includes('data-field="sub"')) assert.match(h480, /data-field="sub"[^>]*style="position:absolute;left:65px;[^"]*font-size:23px;[^"]*font-weight:300;[^"]*text-align:left/, '소제목 (74,56) Light 23 왼쪽');   // 유리 케이스는 슬로건이 없어 소제목이 비기도 한다
+  assert.match(h480, /<div><b style="font-weight:600">접수기간<\/b><\/div><div>/, '라벨 줄(SemiBold) + 내용 줄');
+  const h970 = renderAd(ctx, glass, specs['nap-dsp-pc-970x90']);
+  assert.match(h970, /data-field="main"[^>]*font-size:24px;[^"]*font-weight:700/); assert.match(h970, /data-field="detail"[^>]*style="position:absolute;left:31px;[^"]*font-size:15px/);
+  assert.notEqual(traceOf(renderAd(ctx, glass, specs['nap-dsp-bizboard-1029x258'])).mode, 'templateMold', '비즈보드는 썸네일 규정 그대로(틀 없음)');
+});

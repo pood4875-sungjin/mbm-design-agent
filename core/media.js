@@ -5831,7 +5831,35 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "320×50",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 NAP-DSP 페이지 64:1706 공식 템플릿 _띠배너_320*50 (64:1717)",
+              "measuredAt": "2026-10-15",
+              "note": "틀 = 공식 템플릿. 메인 Bold 17 (13,19) 177 1줄(규정 12자) · 이미지 영역 오른쪽(라벨 (250,22)) · 로고 칸 없음(샘플 안랩 좌 47×11 · 마이다스 우 34×13 — 규정 없음). 디자이너 샘플 4사(안랩 Pretendard·GC Freesentation·HS Gmarket·마이다스)는 글꼴·구조가 달라 템플릿만 틀로",
+              "x": 13,
+              "w": 177,
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "main": {
+                  "y": 19,
+                  "px": 17,
+                  "weight": 700,
+                  "lines": 1,
+                  "w": 177
+                }
+              },
+              "image": {
+                "x": 200,
+                "y": 0,
+                "w": 120,
+                "h": 50,
+                "note": "템플릿 「이미지 영역」 라벨 (250,22) 기준 오른쪽 띠 — 폭은 추정(확인 필요)"
+              }
+            }
+          }
         },
         "textLimits": [
           {
@@ -5953,7 +5981,36 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "320×100",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 NAP-DSP 페이지 64:1706 공식 템플릿 _띠배너_320*100 (64:1727)",
+              "measuredAt": "2026-10-15",
+              "note": "메인 Bold 19 행간 129%(24.5) (14,31) 165 2줄(규정 10자×2) · 이미지 영역 오른쪽(라벨 (242,47)) · 로고 칸 없음",
+              "x": 14,
+              "w": 165,
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "main": {
+                  "y": 31,
+                  "px": 19,
+                  "pitch": 24.5,
+                  "weight": 700,
+                  "lines": 2,
+                  "w": 165
+                }
+              },
+              "image": {
+                "x": 190,
+                "y": 0,
+                "w": 130,
+                "h": 100,
+                "note": "라벨 (242,47) 기준 오른쪽 — 폭 추정(확인 필요)"
+              }
+            }
+          }
         },
         "textLimits": [
           {
@@ -6080,7 +6137,42 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "300×250",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 NAP-DSP 페이지 64:1706 공식 템플릿 _전면배너_300_250 (64:1742)",
+              "measuredAt": "2026-10-15",
+              "note": "메인 Bold 26 (28,41) 225 2줄(규정 10자×2) · 서브 Medium 20 (28,107) 173 1줄(메인 아래) · 이미지 영역 우하단(라벨 (208,180)) · 추가 문구(선택)는 템플릿 자리 없음 · 로고 칸 없음",
+              "x": 28,
+              "w": 225,
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "main": {
+                  "y": 41,
+                  "px": 26,
+                  "weight": 700,
+                  "lines": 2,
+                  "w": 225
+                },
+                "sub": {
+                  "y": 107,
+                  "px": 20,
+                  "weight": 500,
+                  "lines": 1,
+                  "w": 173
+                }
+              },
+              "image": {
+                "x": 150,
+                "y": 120,
+                "w": 150,
+                "h": 130,
+                "note": "라벨 (208,180) 기준 우하단 상자 — 범위 추정(확인 필요)"
+              }
+            }
+          }
         },
         "textLimits": [
           {
@@ -6232,7 +6324,60 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "320×480",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 NAP-DSP 페이지 64:1706 공식 템플릿 _전면배너_320_480 (64:1756, Freesentation 템플릿 = GC녹십자 64:1961 구조)",
+              "measuredAt": "2026-10-15",
+              "note": "상단 소제목 Light 23 (74,56) 175 1줄(규정 10자) · 메인 Bold 42 행간 98%(41.2) (9,85) 303 3줄 가운데(규정 6자×3) · 정보 = 라벨 줄(SemiBold 19.8, 4자) + 내용 줄(Regular 19.8, 14자) 가운데, 블록 y246(행간 150% = 29.7)·둘째 블록 y323.8 · 이미지 영역 하단(라벨 (146,422)) · 로고 칸 없음",
+              "x": 9,
+              "w": 303,
+              "align": "center",
+              "color": "#3D3D3D",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "sub": {
+                  "y": 56,
+                  "px": 23,
+                  "weight": 300,
+                  "lines": 1,
+                  "x": 74,
+                  "w": 175,
+                  "align": "left"
+                },
+                "main": {
+                  "y": 85,
+                  "px": 42,
+                  "pitch": 41.2,
+                  "weight": 700,
+                  "lines": 3,
+                  "w": 303
+                },
+                "detail": {
+                  "y": 246,
+                  "px": 19.8,
+                  "pitch": 29.7,
+                  "weight": 400,
+                  "labelWeight": 600,
+                  "labelRow": true,
+                  "lines": 4,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
+                  "labelWeightNote": "템플릿 64:1756 「 일이삼사」 6 SemiBold + 내용 4 Regular — GC 64:1961 「 채용기간 」 SemiBold 14 + 값 Regular 동일"
+                }
+              },
+              "image": {
+                "x": 0,
+                "y": 400,
+                "w": 320,
+                "h": 80,
+                "note": "라벨 (146,422) 기준 하단 띠 — 범위 추정(확인 필요). 샘플(GC·안랩·HS)은 그림이 배경 전체"
+              }
+            }
+          }
         },
         "textLimits": [
           {
@@ -6488,7 +6633,47 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "970×90",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 NAP-DSP 페이지 64:1706 공식 템플릿 _PC배너_970*100 (64:1799)",
+              "measuredAt": "2026-10-15",
+              "note": "메인 Bold 24 (362,28) 213 1줄 · 상세 Regular 15 (393,60) 1줄 · 이미지 영역 둘(라벨 (121,40)·(768,40)) · 로고 칸 없음",
+              "x": 362,
+              "w": 213,
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "main": {
+                  "y": 28,
+                  "px": 24,
+                  "weight": 700,
+                  "lines": 1,
+                  "w": 300
+                },
+                "detail": {
+                  "y": 60,
+                  "px": 15,
+                  "weight": 400,
+                  "lines": 1,
+                  "x": 393,
+                  "w": 300,
+                  "items": [
+                    "접수기간"
+                  ],
+                  "labelWeight": 400
+                }
+              },
+              "image": {
+                "x": 700,
+                "y": 0,
+                "w": 270,
+                "h": 90,
+                "note": "오른쪽 「이미지 영역」(라벨 (768,40)) — 범위 추정(확인 필요). 왼쪽 영역(121,40)은 로고/아이콘 자리로 보임"
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {
@@ -6529,7 +6714,47 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "728×90",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 NAP-DSP 페이지 64:1706 공식 템플릿 Frame 427322172 728×90 (64:1815)",
+              "measuredAt": "2026-10-15",
+              "note": "메인 Bold 24 (259,26) 213 1줄 · 상세 Regular 15 (297,58) 1줄 · 이미지 영역 둘(라벨 (88,38)·(587,36)) · 로고 칸 없음",
+              "x": 259,
+              "w": 213,
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "main": {
+                  "y": 26,
+                  "px": 24,
+                  "weight": 700,
+                  "lines": 1,
+                  "w": 280
+                },
+                "detail": {
+                  "y": 58,
+                  "px": 15,
+                  "weight": 400,
+                  "lines": 1,
+                  "x": 297,
+                  "w": 280,
+                  "items": [
+                    "접수기간"
+                  ],
+                  "labelWeight": 400
+                }
+              },
+              "image": {
+                "x": 540,
+                "y": 0,
+                "w": 188,
+                "h": 90,
+                "note": "오른쪽 「이미지 영역」(라벨 (587,36)) — 범위 추정(확인 필요)"
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {
