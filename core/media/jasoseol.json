@@ -1371,6 +1371,7 @@
                 "lines": 3,
                 "labelRow": false,
                 "labelSep": " ㅣ",
+                "byMainLines": { "2": { "y": 372.5, "lines": 2, "note": "템플릿 1:8625 「메인 문구가 두 줄인 경우 상세 1행 입력 불가」 — 메인 2줄이면 상세는 372.5·412.3 두 행만(10-15)" } },
                 "fillFromBottom": true,
                 "items": [
                   "접수기간",

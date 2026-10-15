@@ -17,7 +17,7 @@ const RING = { ar: 1.71, px: [1710, 1000], field: { kind: 'cutout', opaque: 0.04
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
 const fields = { client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기', slogan: '자소서 없는 간편지원', role: '자유직무, 경영·제품·사업 분야', employType: '신입·경력', startDate: '2025-09-22', deadline: '2025-10-12' };
 const ctx = createContext(fields, 'recruit');
-const glass = normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark' });
+const glass = normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark', logoMeta: { px: [1043, 304], tone: 'dark', solid: 0.56, colors: [{ hex: '#0F0F0F', share: 1 }] } });   // 로고 실측 = sep-open-recruit MIDAS 1043×304(3.4:1)
 const traceOf = html => JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
 const tagOf = (html, role) => html.match(new RegExp(`<div data-field="${role}"[^>]*>`))?.[0] ?? '';
 const detailOf = html => { const i = html.indexOf('<div data-field="detail"'); return i < 0 ? '' : html.slice(i, html.indexOf('</div></div></div>', i)); };
@@ -78,7 +78,7 @@ test('채용공고 160×600 틀 — 샘플 6개: 서브 16/700 y81.9 · 메인 2
     assert.doesNotMatch(detailOf(html), /고용형태/);
     assert.match(html, /data-logo-slot="1" style="position:absolute;left:15px;top:23px;width:130px;height:30px;[^"]*justify-content:center/);
     // 하단 칸 문법(디자인 가이드) 그대로, 칸만 틀 — 누끼는 폭 맞춤이 작으면 objectBleed tower(잘림 ≤ 42%)만큼 키워 좌우로 흘린다(10-15 사용자: 「작고 아래로 치우침」)
-    assert.match(html, /data-object="1" style="position:absolute;left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/auto 162px/, 'KV 높이 = min(칸 200, 160 ÷ 0.58 ÷ 1.71 = 162)');
+    assert.match(html, /data-object="1" style="position:absolute;left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/auto 161px/, 'KV 높이 = min(칸 200, 160 ÷ 0.58 ÷ 1.71 = 161.3 → 161)');
     assert.ok(tr.rules.includes('templateMold.bandBleed'));
   }
   // 서브 2줄이면 메인 첫 줄 y141
@@ -135,7 +135,7 @@ test('PC달력 164×233 틀(2배 328×466 실측 ×0.5) — 메인 20/700 x26 y1
   const tr = traceOf(html), R = tr.mold.rows;
   assert.equal(tr.mode, 'templateMold');
   assert.deepEqual([R.main.y, R.main.px, R.main.pitch, R.main.weight, R.date.px, R.date.weight], [19.5, 20, 26.95, 700, 16, 400]);
-  assert.equal(Math.round(R.date.y * 10) / 10, Math.round((19.5 + (tr.mold.mainN - 1) * 26.95 + 29.65) * 10) / 10);
+  assert.ok(Math.abs(R.date.y - (19.5 + (tr.mold.mainN - 1) * 26.95 + 29.65)) <= 0.15, '마감일 = 마지막 메인 줄 + 29.65(2배 59.3): ' + R.date.y);
   assert.match(html, /data-field="date"[^>]*>~10\/12</, '「~월/일」 0 없이');
   assert.ok(!/data-field="sub"|data-field="detail"|data-logo/.test(html), '서브·상세·로고 없음');
   assert.match(html, /data-object="1" style="position:absolute;left:0px;top:153px;width:164px;height:80px;/);

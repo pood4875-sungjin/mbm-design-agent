@@ -937,10 +937,12 @@ function renderAdBase(ctx, style, spec) {
       for (const d of cands0) {
         const inline = `${d.label} : ${d.value}`;
         // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
-        const inlineRows = estimateLines(inline, perLine, counting);
+        // 틀(mold)은 칸 폭이 정확하므로 글자수 어림 대신 글꼴 폭으로 센다 — 「접수기간 ㅣ 9.22(월) - 10.12(일)」(M메인 24px·칸 457)은 한 줄인데 글자수(27자 > 21)로는 두 줄로 세어 모집직무가 떨어졌다(10-15)
+        const widthRows = t => Math.max(1, Math.ceil(textWidth(t) * fs * 1.02 / Math.max(1, detailW)));
+        const inlineRows = mold ? widthRows(`${d.label}${mold.rows?.detail?.labelSep ?? ' :'} ${d.value}`) : estimateLines(inline, perLine, counting);
         const useInline = (stackTags || mold?.rows?.detail?.labelRow) ? false : (inlineRows <= 1 || !narrow);   // 틀이 라벨 줄 + 값 줄이면(자소설 채용공고 세아 「모집일정」/날짜) 항상 쌓는다
         const valTxt = stackTags ? String(d.value).split(/\s*,\s*/).filter(Boolean).join('ㅣ') : d.value;   // 쉼표로만 나눈다 — 「경영·제품·사업 분야」 가운뎃점 묶음은 한 항목(A5)
-        const valRows = (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
+        const valRows = mold ? widthRows(String(d.value)) : (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
         const needed = useInline ? inlineRows : 1 + valRows;
         if (used + needed > cap) { skipped++; continue; }
         lines.push({ label: d.label, value: d.value, inline: useInline, rows: needed });
