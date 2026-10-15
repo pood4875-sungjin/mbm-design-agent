@@ -191,6 +191,11 @@ export function meltMask(dir, pct) {
   const g = meltGradient(dir, pct);
   return `-webkit-mask-image:${g};mask-image:${g};`;
 }
+// 양옆(왼쪽·오른쪽)을 함께 녹인다 — 틀 그림 칸에 contain 으로 넣은 그라데이션 바탕 일러스트(10-15 저녁 사용자: 여우 몸 전체가 보이게)
+export function meltMaskSides(pctL, pctR) {
+  const g = `${meltGradient('to right', pctL)},${meltGradient('to left', pctR)}`;
+  return `-webkit-mask-image:${g};-webkit-mask-composite:source-in;mask-image:${g};mask-composite:intersect;`;
+}
 // 두 변(왼쪽·위)을 함께 녹인다 — 우하단 모서리 상자
 export function meltMask2(pctX, pctY) {
   const g = `${meltGradient('to right', pctX)},${meltGradient('to bottom', pctY)}`;
