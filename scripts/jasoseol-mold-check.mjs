@@ -56,7 +56,7 @@ for (const [id, v] of Object.entries(M.specs)) {
     const L = v.logo?.[0]; const b = mold.logo;
     if (!L) add('로고', `칸 ${b.w}×${b.h}@${b.x},${b.y}`, '없음', false);
     else {
-      const [x, y, w, h] = L; const inside = x >= b.x - 1 && y >= b.y - 1 && x + w <= b.x + b.w + 1 && y + h <= b.y + b.h + 1;
+      const [x, y, w, h] = L; const inside = x >= b.x - 2 && y >= b.y - 2 && x + w <= b.x + b.w + 2 && y + h <= b.y + b.h + 2;   // 칸 좌표가 .5 라 DOM 반올림으로 최대 2px
       add('로고 칸 안', `${b.w}×${b.h}@${b.x},${b.y}`, `${w}×${h}@${x},${y}`, inside);
       const align = b.align ?? 'center'; const ok = align === 'right' ? near(x + w, b.x + b.w, 2) : align === 'left' ? near(x, b.x, 2) : near(x + w / 2, b.x + b.w / 2, 2);
       add('로고 정렬', align === 'right' ? '오른쪽' : align === 'left' ? '왼쪽' : '가운데', align === 'right' ? `오른끝 ${x + w}` : `중심 ${r1(x + w / 2)}`, ok);
