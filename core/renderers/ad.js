@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW } from '../field.js';
+import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
@@ -1482,7 +1482,13 @@ function renderAdBase(ctx, style, spec) {
   const moldBandH = (() => { if (!(mold && tImage && imgBottomBand && hasKv && cutout && kvAR)) return null; const maxCut = guide?.objectBleed?.tower?.maxCut ?? guide?.objectBleed?.narrow?.maxCut ?? 0.42; const hh = Math.round(Math.min(tImage.h, tImage.w / (1 - maxCut) / kvAR)); return hh > Math.round(tImage.w / kvAR) + 2 ? hh : null; })();
   if (moldBandH) fired('templateMold.bandBleed');
   const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && !transparent && (style.kvMeta?.field?.edges?.top?.flat === false || !field?.seamless));
+  // 틀 그림 칸의 그라데이션 바탕 일러스트(kvtypes gradEdge — 가장자리가 지면으로 녹는 그림): cover 로 주인공을 당겨 채우면 캔버스 아래로 몸통이 잘린다(여우 M팝업·PC메인).
+  //   몸 전체가 보이게 contain(바닥 맞춤) + 양옆 녹임 — 지면은 이미 그림 가장자리 색(kv-edge)이라 녹인 변이 이어진다(10-15 저녁 사용자 결정)
+  const moldContain = !!(mold && tImage && hasKv && !cutout && !transparent && !logoAsObject && kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.gradEdge);
+  if (moldContain) fired('templateMold.containGrad');
   const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
+    : moldContain
+    ? (() => { const mL = fadeFor('to right'), mR = fadeFor('to left'); return `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') center bottom/contain no-repeat;${meltMaskSides(mL, mR)}overflow:hidden" data-melt="${mL}" data-melt-dir="sides" data-melt-right="${mR}"></div>`; })()
     : (hasKv && tImage)
     ? ((imgCorner || bleedP?.sym) && bleedP ? bleedLayer(style, bleedP, w, h)   // 좌우 양쪽 블리드(sym)는 상자가 지면 폭 전체라 아래 띠로 잡힌다 — 그래도 블리드로 그린다
       : imgCorner

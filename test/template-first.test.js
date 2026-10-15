@@ -268,3 +268,17 @@ test('캐치 이미지형 틀 — PC 1:5765(서브 20 y56 · 타이틀 40 y93 1�
   assert.equal(t2.mold.mainN, 2);
   assert.deepEqual(t2.place.tImage, { x: 0, y: 0, w: 702, h: 428 }, '그림 칸 = 통이미지 전체(템플릿에 상자 없음, 확인 필요)');
 });
+
+test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain 바닥 맞춤 + 양옆 녹임, 몸 전체가 보인다(10-15 저녁 사용자: 여우 M팝업·PC메인 몸통 잘림)', () => {
+  const E = { flat: true, from: '#6A4FE0', to: '#9B82F2', hex: '#8268E9' };
+  const GRAD = { ar: 1, px: [1000, 1000], field: { kind: 'illust', opaque: 1, flatEdges: 4, edges: { top: E, bottom: E, left: E, right: E }, focus: { x: 0.5, y: 0.55, w: 0.7, h: 0.8 } } };
+  const st = normalizeStyle({ colors: ['#6D5CF5'], keyVisual: PNG, kvMeta: GRAD });
+  for (const id of ['jasoseol-m-premium-popup-mo', 'jasoseol-pc-standard-main-pc', 'jasoseol-pc-premium-jobpost-pc']) {
+    const html = renderAd(ctx, st, specs[id]); const tr = traceOf(html);
+    assert.equal(tr.mode, 'templateMold', id);
+    assert.ok(tr.rules.includes('templateMold.containGrad'), id + ' ' + tr.rules.join(','));
+    assert.match(html, /data-object="1" style="[^"]*center bottom\/contain no-repeat;-webkit-mask-image:linear-gradient\(to right[^"]*linear-gradient\(to left[^"]*mask-composite:intersect;overflow:hidden" data-melt="\d+" data-melt-dir="sides"/, id + ' contain + 양옆 녹임');
+  }
+  // 유리 누끼(RING)는 그대로 — gradEdge 가 아니다
+  assert.ok(!traceOf(renderAd(ctx, glass, specs['jasoseol-m-premium-popup-mo'])).rules.includes('templateMold.containGrad'));
+});
