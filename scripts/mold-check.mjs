@@ -46,7 +46,8 @@ for (const [id, v] of Object.entries(M.specs)) {
     const fs = f.fs, lh = parseFloat(f.lh) || fs * 1.2;
     const yFig = r1(f.y + (lh - fs * 1.2) / 2);   // Figma 글상자 top 으로 환산
     const stdY = used[role]?.y ?? r.y;            // 틀 y(메인 줄 수·서브 줄 수 따라 움직이는 줄은 렌더러가 쓴 값)
-    add(`${roleName[role]} x`, mold.x, f.x, near(f.x, mold.x));
+    const stdX = r.x != null ? r.x : mold.x;   // 행별 글상자 x(구글 ABL: 날짜 47·상세 127·세로형 메인 61 — 10-15 저녁)
+    add(`${roleName[role]} x`, stdX, f.x, near(f.x, stdX));
     add(`${roleName[role]} y`, stdY, yFig, near(yFig, stdY, 1.5), used[role] && used[role].y !== r.y ? '틀 규칙(앞 줄 수)에 따라 이동' : '');
     add(`${roleName[role]} 크기`, r.px, fs, near(fs, r.px));
     if (r.weight != null) add(`${roleName[role]} 굵기`, r.weight, f.fw, +f.fw === +r.weight); else add(`${roleName[role]} 굵기`, '틀 없음', f.fw, null, '샘플 굵기 갈림 → 기존 가이드');

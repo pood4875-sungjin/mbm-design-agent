@@ -125,9 +125,9 @@ test('렌더러: 키비주얼 위치 프리셋 — 왼쪽은 오른쪽 열을 �
   assert.match(h, /data-melt-dir="to left"/);
   const tpl = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'right' }, specs['jasoseol-pc-premium-popup-pc']));
   assert.equal(tpl.edit.place.ok, false); assert.match(tpl.edit.place.why, /템플릿/);
-  const bottom = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bottom' }, specs['google-gdn-580x400']));
+  const bottom = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bottom' }, specs['nap-dsp-full-320x480']));   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로(세로형 NAP 전면)
   assert.equal(bottom.place.objectSide, 'bottom');
-  const bg = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bg' }, specs['google-gdn-580x400']));
+  const bg = traceOfHtml(renderAd(ctx, { ...st, kvPlace: 'bg' }, specs['nap-dsp-full-320x480']));
   assert.equal(bg.place.mode, 'full');
 });
 
@@ -152,10 +152,10 @@ test('렌더러: 크기·정렬·배경·스크림 프리셋', () => {
 test('렌더러: 직접 수정 — 키비주얼·로고는 캔버스 크기 층 변형, 글자는 left/top, 템플릿 그림 칸은 무시하고 trace 에 남긴다', () => {
   const st = styleOf('fox-cutout', { logo: 'file:///logo.png', logoTone: 'dark' });
   const L = { kv: { dx: -0.1, dy: 0, scale: 1.2, ox: 1, oy: 1 }, text: { dx: 0.02, dy: 0.01 }, logo: { dx: -0.05, dy: 0, scale: 0.9, ox: 0.9, oy: 0.1 } };
-  const h = renderAd(ctx, { ...st, manualLayout: L }, specs['google-gdn-580x400']);
-  assert.match(h, /data-edit="kv" style="position:absolute;left:0;top:0;width:580px;height:400px;transform:translate\(-58px,0px\) scale\(1.2\);transform-origin:580px 400px;/);
+  const h = renderAd(ctx, { ...st, manualLayout: L }, specs['kakao-display-pc-promo']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로 (1200×600)
+  assert.match(h, /data-edit="kv" style="position:absolute;left:0;top:0;width:1200px;height:600px;transform:translate\(-120px,0px\) scale\(1.2\);transform-origin:1200px 600px;/);
   assert.match(h, /data-edit="logo"/);
-  assert.match(h, /left:11.6px;top:4px;/);
+  assert.match(h, /left:24px;top:6px;/);
   const t = traceOfHtml(h);
   assert.deepEqual(t.edit.manual.kv, L.kv); assert.ok(t.rules.includes('edit.manual'));
   const tp = traceOfHtml(renderAd(ctx, { ...st, manualLayout: L }, specs['jasoseol-pc-premium-popup-pc']));

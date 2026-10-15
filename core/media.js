@@ -4506,7 +4506,95 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "580×400",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 — ABL생명 디자이너 샘플(사용자 결정 10-15) 64:816 (580×400)",
+              "measuredAt": "2026-10-15",
+              "note": "구멍 뚫린 틀 — 왼쪽 정렬. 서브 Regular 20 (35,59) · 메인 ExtraBold 37 (35,87) 423 고정 상자 2줄 · 날짜 ExtraBold 20 (47,183) · 「모집분야」 흰 칩 (34,223) 87×29 Bold 19 #0074E5 + 값 SemiBold 20 (127,226) 한 줄 · 로고 흰 둥근 상자 (15.3,16) 80.7×39.7 + 반대쪽 작은 로고 (517,23) 40×13 · 그림 칸 (105,233) 369×136. 폰트 Paperlogy(샘플 그대로, 10-15 기본 글꼴). 지면·KV 처리는 디자인 가이드",
+              "x": 35,
+              "w": 423,
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "sub": {
+                  "y": 59,
+                  "px": 20,
+                  "weight": 400,
+                  "lines": 1,
+                  "w": 297
+                },
+                "main": {
+                  "y": 87,
+                  "px": 37,
+                  "weight": 800,
+                  "lines": 2,
+                  "w": 423
+                },
+                "date": {
+                  "y": 183,
+                  "px": 20,
+                  "weight": 800,
+                  "lines": 1,
+                  "x": 47,
+                  "w": 158
+                },
+                "detail": {
+                  "y": 226,
+                  "px": 20,
+                  "weight": 600,
+                  "lines": 1,
+                  "x": 127,
+                  "w": 344,
+                  "items": [
+                    "모집직무"
+                  ],
+                  "labelWeightNote": "라벨은 칩(Bold 19 #0074E5), 값 SemiBold 20 — ABL 64:816 세그먼트",
+                  "chip": {
+                    "text": "모집분야",
+                    "x": 34,
+                    "y": 223,
+                    "w": 87,
+                    "h": 29,
+                    "px": 19,
+                    "weight": 700,
+                    "color": "brand",
+                    "bg": "#FFFFFF",
+                    "radius": 83
+                  }
+                }
+              },
+              "logo": {
+                "x": 15.3,
+                "y": 16,
+                "w": 80.7,
+                "h": 39.7,
+                "align": "center",
+                "box": {
+                  "bg": "#FFFFFF",
+                  "radius": 8,
+                  "pad": 6
+                },
+                "maxArea": 1740,
+                "note": "흰 둥근 상자 안 심볼 63×27.6(≈1,740px²). 워드마크 이미지(88,21 102×18)는 별도 자산이라 틀에 없음"
+              },
+              "logo2": {
+                "x": 517,
+                "y": 23,
+                "w": 40,
+                "h": 13,
+                "align": "right"
+              },
+              "image": {
+                "x": 105,
+                "y": 233,
+                "w": 369,
+                "h": 136,
+                "note": "하단 일러스트 칸 — 처리는 디자인 가이드(누끼 contain 바닥·바탕 있는 그림 cover+녹임·gradEdge contain+양옆 녹임)"
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {
@@ -4639,7 +4727,93 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "970×250",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 — ABL생명 디자이너 샘플(사용자 결정 10-15) 64:853 (970×250)",
+              "measuredAt": "2026-10-15",
+              "note": "왼쪽 정렬. 서브 Regular 24 (46,34) · 메인 ExtraBold 44 (46,69) 423 고정 2줄 · 날짜 ExtraBold 24 (434,80) 메인 오른쪽 옆 · 칩 (39,185) 87×29 Bold 19 + 값 SemiBold 20 (132,188) · 로고 상자 (685.7,16) 93×46 + 우측 작은 로고 (895,24) 48×15 · 그림 칸 (580,94) 365×134",
+              "x": 46,
+              "w": 423,
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "sub": {
+                  "y": 34,
+                  "px": 24,
+                  "weight": 400,
+                  "lines": 1,
+                  "w": 356
+                },
+                "main": {
+                  "y": 69,
+                  "px": 44,
+                  "weight": 800,
+                  "lines": 2,
+                  "w": 423
+                },
+                "date": {
+                  "y": 80,
+                  "px": 24,
+                  "weight": 800,
+                  "lines": 1,
+                  "x": 434,
+                  "w": 190
+                },
+                "detail": {
+                  "y": 188,
+                  "px": 20,
+                  "weight": 600,
+                  "lines": 1,
+                  "x": 132,
+                  "w": 344,
+                  "items": [
+                    "모집직무"
+                  ],
+                  "labelWeightNote": "라벨은 칩 Bold 19, 값 SemiBold 20 — ABL 64:853",
+                  "chip": {
+                    "text": "모집분야",
+                    "x": 39,
+                    "y": 185,
+                    "w": 87,
+                    "h": 29,
+                    "px": 19,
+                    "weight": 700,
+                    "color": "brand",
+                    "bg": "#FFFFFF",
+                    "radius": 83
+                  }
+                }
+              },
+              "logo": {
+                "x": 685.7,
+                "y": 16,
+                "w": 93,
+                "h": 46,
+                "align": "center",
+                "box": {
+                  "bg": "#FFFFFF",
+                  "radius": 8,
+                  "pad": 6
+                },
+                "maxArea": 2400
+              },
+              "logo2": {
+                "x": 895,
+                "y": 24,
+                "w": 48,
+                "h": 15,
+                "align": "right"
+              },
+              "image": {
+                "x": 580,
+                "y": 94,
+                "w": 365,
+                "h": 134
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {
@@ -4772,7 +4946,97 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "300×600",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 — ABL생명 디자이너 샘플(사용자 결정 10-15) 64:871 (300×600)",
+              "measuredAt": "2026-10-15",
+              "note": "가운데 정렬. 서브 Regular 17 (24,67) 252 · 메인 ExtraBold 32 행간 124.7% (61,94) 178×200 5줄 · 날짜 ExtraBold 24 (56,265) 190 · 칩 (110,313) 79×29 Bold 17 + 값 Medium 17 행간 162% (109,350) 81×112 4줄 세로 · 로고 상자 (45.6,21) 75×37 + (212,27) 38×13 · 그림 칸 (0,451) 299×110",
+              "x": 24,
+              "w": 252,
+              "align": "center",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "sub": {
+                  "y": 67,
+                  "px": 17,
+                  "weight": 400,
+                  "lines": 1,
+                  "w": 252
+                },
+                "main": {
+                  "y": 94,
+                  "px": 32,
+                  "pitch": 39.9,
+                  "weight": 800,
+                  "lines": 5,
+                  "x": 61,
+                  "w": 178
+                },
+                "date": {
+                  "y": 265,
+                  "px": 24,
+                  "weight": 800,
+                  "lines": 1,
+                  "x": 56,
+                  "w": 190
+                },
+                "detail": {
+                  "y": 350,
+                  "px": 17,
+                  "pitch": 27.5,
+                  "weight": 500,
+                  "lines": 4,
+                  "x": 109,
+                  "w": 81,
+                  "items": [
+                    "모집직무"
+                  ],
+                  "labelWeightNote": "라벨은 칩 Bold 17, 값 Medium 17 — ABL 64:871",
+                  "chip": {
+                    "text": "모집분야",
+                    "x": 110,
+                    "y": 313,
+                    "w": 79,
+                    "h": 29,
+                    "px": 17,
+                    "weight": 700,
+                    "color": "brand",
+                    "bg": "#FFFFFF",
+                    "radius": 83
+                  }
+                }
+              },
+              "logo": {
+                "x": 45.6,
+                "y": 21,
+                "w": 75,
+                "h": 37,
+                "align": "center",
+                "box": {
+                  "bg": "#FFFFFF",
+                  "radius": 8,
+                  "pad": 6
+                },
+                "maxArea": 1500
+              },
+              "logo2": {
+                "x": 212,
+                "y": 27,
+                "w": 38,
+                "h": 13,
+                "align": "right"
+              },
+              "image": {
+                "x": 0,
+                "y": 451,
+                "w": 299,
+                "h": 110
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {
@@ -4904,7 +5168,97 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "300×1050",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 — ABL생명 디자이너 샘플(사용자 결정 10-15) 64:834 (300×1050)",
+              "measuredAt": "2026-10-15",
+              "note": "가운데 정렬. 서브 Regular 17 (86,113) 129×40 2줄 · 메인 ExtraBold 42 행간 128% (30,170) 241×199 · 날짜 ExtraBold 26 (47,411) 206 · 칩 (93,493) 105×34 Bold 22 + 값 Medium 24 행간 217% (93,544) 114×208 4줄 · 로고 상자 (45.6,32) 75×37 + (212,38) 38×13 · 그림 칸 (1,804) 299×110",
+              "x": 30,
+              "w": 241,
+              "align": "center",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "sub": {
+                  "y": 113,
+                  "px": 17,
+                  "weight": 400,
+                  "lines": 2,
+                  "x": 86,
+                  "w": 129
+                },
+                "main": {
+                  "y": 170,
+                  "px": 42,
+                  "pitch": 53.8,
+                  "weight": 800,
+                  "lines": 3,
+                  "w": 241
+                },
+                "date": {
+                  "y": 411,
+                  "px": 26,
+                  "weight": 800,
+                  "lines": 1,
+                  "x": 47,
+                  "w": 206
+                },
+                "detail": {
+                  "y": 544,
+                  "px": 24,
+                  "pitch": 52,
+                  "weight": 500,
+                  "lines": 4,
+                  "x": 93,
+                  "w": 114,
+                  "items": [
+                    "모집직무"
+                  ],
+                  "labelWeightNote": "라벨은 칩 Bold 22, 값 Medium 24 — ABL 64:834",
+                  "chip": {
+                    "text": "모집분야",
+                    "x": 93,
+                    "y": 493,
+                    "w": 105,
+                    "h": 34,
+                    "px": 22,
+                    "weight": 700,
+                    "color": "brand",
+                    "bg": "#FFFFFF",
+                    "radius": 83
+                  }
+                }
+              },
+              "logo": {
+                "x": 45.6,
+                "y": 32,
+                "w": 75,
+                "h": 37,
+                "align": "center",
+                "box": {
+                  "bg": "#FFFFFF",
+                  "radius": 8,
+                  "pad": 6
+                },
+                "maxArea": 1500
+              },
+              "logo2": {
+                "x": 212,
+                "y": 38,
+                "w": 38,
+                "h": 13,
+                "align": "right"
+              },
+              "image": {
+                "x": 1,
+                "y": 804,
+                "w": 299,
+                "h": 110
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {
@@ -5005,6 +5359,7 @@ export const MEDIA = [
         "platform": "공통",
         "w": 930,
         "h": 180,
+        "variant": 1,
         "exportScale": 1,
         "format": [
           "jpg",
@@ -5018,7 +5373,73 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "frame": "930×180",
+            "mold": {
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 템플릿 _GDN_930*180 (64:1139) — ABL 샘플 없음, 템플릿 글자 칸 + 한국앤컴퍼니 예시",
+              "measuredAt": "2026-10-15",
+              "note": "왼쪽 정렬. 서브 Medium 16 (27,36) · 메인 ExtraBold 31 (26,58) 276×35 1줄 · 날짜 Medium 17 (27,95) · 태그 칩 4개 (24,123) 60×20 Medium 16 · 로고 칸 (24,8) 59×24 + (830,7) 88×24 · 이미지 (587,0) 343×180 오른쪽 열 · 하단 띠 42px(가이드 variants band)",
+              "band": 42,
+              "x": 26,
+              "w": 276,
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "rows": {
+                "sub": {
+                  "y": 36,
+                  "px": 16,
+                  "weight": 500,
+                  "lines": 1,
+                  "w": 276
+                },
+                "main": {
+                  "y": 58,
+                  "px": 31,
+                  "weight": 800,
+                  "lines": 1,
+                  "w": 276
+                },
+                "date": {
+                  "y": 95,
+                  "px": 17,
+                  "weight": 500,
+                  "lines": 1,
+                  "w": 276
+                },
+                "tags": {
+                  "y": 123,
+                  "h": 20,
+                  "px": 16,
+                  "weight": 500,
+                  "padX": 8,
+                  "gap": 8,
+                  "radius": 4,
+                  "max": 4
+                }
+              },
+              "logo": {
+                "x": 24,
+                "y": 8,
+                "w": 59,
+                "h": 24,
+                "align": "left"
+              },
+              "logo2": {
+                "x": 830,
+                "y": 7,
+                "w": 88,
+                "h": 24,
+                "align": "right"
+              },
+              "image": {
+                "x": 587,
+                "y": 0,
+                "w": 343,
+                "h": 180
+              }
+            }
+          }
         },
         "textLimits": [],
         "logo": {

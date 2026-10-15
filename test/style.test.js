@@ -333,17 +333,19 @@ test('오른쪽 열이 로고 띠 아래에서 시작하고 윗줄이 그림 바
 });
 
 // 10-06 "라벨 배경 찐한 노랑 말고 진한 노랑/블랙 7%" — 알약 톤: 기본 틴트, 브랜드 채움, 글자만. 산출물별 덮어쓰기는 generate.js가 overrides.style로 얹는다
-test('상세 라벨 알약은 기본이 틴트(밝은 지면 검정 7%·어두운 지면 흰 20%)이고 brand·plain으로 바꿀 수 있다', async () => {
-  const { registerAll } = await import('../core/generate.js');
-  const { renderArtifact } = await import('../core/contract.js');
+test('상세 라벨 알약은 기본이 틴트(밝은 지면 검정 7%·어두운 지면 흰 20%)이고 brand·plain으로 바꿀 수 있다', async () => {   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로(스펙업 카드뉴스 1080 정사각 — 가이드 없음, 칩 문법 stackTags)
+  const { renderAd } = await import('../core/renderers/ad.js');
+  const { adSpecEntries } = await import('../core/adspecs.js');
   const { createContext: createContextChip } = await import('../core/context.js');
-  registerAll();
+  const sq0 = adSpecEntries()['instagram-feed-1080'];   // 가이드 없는 정사각 자유 규격 = 인스타 1080 − guide(합성)
+  const sq = { ...sq0, mediumRules: sq0.mediumRules ? { ...sq0.mediumRules, guide: undefined } : sq0.mediumRules, rules: sq0.rules ? { ...sq0.rules, guide: undefined } : sq0.rules };
+  const renderArtifact = (_id, c, st) => renderAd(c, st, sq);
   const E = { hex: '#FFF7D3', flat: true, std: 0 };
   const rows = Array.from({ length: 16 }, () => ({ hex: '#FFF7D3', bg: 1 }));
   const kvMeta = { ar: 0.953, px: [936, 982], edge: '#FFF7D3', field: { opaque: 1, kind: 'illust', flatEdges: 4, rows, cols: rows, focus: { x: 0.52, y: 0.55, w: 0.86, h: 0.74 }, edges: { top: E, left: E, bottom: E, right: E } } };
   const ctx = createContextChip({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
   const base = { colors: ['#EA8F3D'], keyVisual: 'fox.png', kvMeta, logo: 'logo.png' };
-  const tint = renderArtifact('google-gdn-580x400', ctx, normalizeStyle(base), {});
+  const tint = renderArtifact('sq', ctx, normalizeStyle(base), {});
   assert.match(tint, /data-chip="1"[^>]*background:rgba\(0,0,0,\.07\)/);                 // 밝은 지면: 검정 7%
   assert.doesNotMatch(tint, /data-chip="1"[^>]*background:#EA8F3D/);
   const brand = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, chipTone: 'brand' }), {});

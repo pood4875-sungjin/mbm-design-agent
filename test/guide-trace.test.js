@@ -183,16 +183,15 @@ test('렌더 추적 — ad.js 가 루트 data-trace 에 결정을 적는다(그�
   const html = renderAd(ctx, style, specs['google-gdn-580x400']);
   const t = traceOf(html);
   assert.equal(t.kv.type, 'cutout'); assert.ok(t.kv.flags.includes('single'));
-  assert.equal(t.place.mode, 'bleed'); assert.ok(t.place.bleed.dw > 0); assert.ok(t.rules.includes('objectBleed'));
+  assert.equal(t.place.mode, 'mold'); assert.ok(t.rules.includes('templateMold'));   // 10-15 저녁: 구글 580 은 ABL 틀(블리드 대신 그림 칸)
   const g = guideFor(specs['google-gdn-580x400'].mediumRules);
-  assert.ok(t.field.stops.length >= 1); assert.equal(t.fonts.main.weight, g.weights?.main ?? 700);
-  const expTrk = (g.tracking?.main ?? 0) && t.fonts.main.px >= (g.tracking?.mainMinPx ?? 28) ? g.tracking.main : 0;   // 매체 guide 가 자간을 끄면 0(다른 작업이 구글 guide 를 바꿔도 깨지지 않게)
-  assert.equal(t.fonts.main.tracking, expTrk);
-  assert.ok(t.rules.includes('weights')); assert.equal(t.rules.includes('tracking'), expTrk !== 0);
-  assert.equal(t.logo.place, 'top-right');
+  assert.ok(t.field.stops.length >= 1); assert.equal(t.fonts.main.weight, 800);   // 10-15 저녁: 구글 580 은 ABL 틀 — 메인 ExtraBold 800(가이드 weights 대신 틀)
+  assert.ok(t.rules.includes('weights'));
+  void g;
+  assert.equal(t.logo.slot, 'template');   // 틀 로고 칸
   // data-trace 를 빼면 HTML 이 같다 — 추적이 그림을 바꾸지 않는다
   const strip = h => h.replace(/ data-trace="[^"]*"/, '').replace(/ data-melt[^=]*="[^"]*"/g, '').replace(/ data-cut-melt="[^"]*"| data-bleed-cut="[^"]*"/g, '');
-  assert.ok(strip(html).includes('data-object="1" data-bleed="1"'));
+  assert.ok(strip(html).includes('data-object="1"'));
   // 녹임 추적: 사진 오른쪽 열 — data-melt 가 마스크 길이와 같다
   const ph = renderAd(ctx, normalizeStyle({ colors: ['#002F66'], keyVisual: 'file:///x/kv.png', kvMeta: meta('ilhwa-photo') }), specs['remember-main-top-mo']);
   const dm = ph.match(/data-melt="(\d+)"/); assert.ok(dm, '사진 열에 data-melt');

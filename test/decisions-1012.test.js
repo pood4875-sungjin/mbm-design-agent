@@ -56,8 +56,8 @@ test('유형 지정 — 세분 유형을 고르면 그것이 대표가 되고 �
 
 test('유형 지정 — 렌더러가 따른다: 사진을 「현장·군중」으로 지정하면 지면 전체(data-kv-use=full)', () => {
   const m = photoMeta({ x: 0.7, y: 0.5, w: 0.4, h: 0.6, parts: 1, others: [], density: 0.7 });
-  const auto = renderAd(ctx, normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: m }), specs['google-gdn-580x400']);
-  const crowd = renderAd(ctx, normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: m, kvTypeOverride: 'photo-crowd' }), specs['google-gdn-580x400']);
+  const auto = renderAd(ctx, normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: m }), specs['instagram-feed-1080']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
+  const crowd = renderAd(ctx, normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: m, kvTypeOverride: 'photo-crowd' }), specs['instagram-feed-1080']);
   assert.doesNotMatch(auto, /data-kv-use="full"/);
   assert.match(crowd, /data-kv-use="full"/);
 });
@@ -142,9 +142,9 @@ test('로고 글자 속 — 렌더러는 단색으로 바꿀 때만 logoMono 를
   const MONO = 'data:image/png;base64,TU9OTw==';
   const base = { colors: ['#0A1E5A'], keyVisual: null, logo: PNG, logoMono: MONO, logoTone: 'dark' };
   const logoTag = html => html.match(/<img data-logo="1"[^>]*>/)[0];
-  const dark = logoTag(renderAd(ctx, normalizeStyle({ ...base, background: { mode: 'solid', color: '#0A1E5A' } }), specs['google-gdn-580x400']));
+  const dark = logoTag(renderAd(ctx, normalizeStyle({ ...base, background: { mode: 'solid', color: '#0A1E5A' } }), specs['kakao-display-pc-promo']));   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
   assert.match(dark, /TU9OTw==/); assert.match(dark, /filter:brightness\(0\) invert\(1\)/);
-  const light = logoTag(renderAd(ctx, normalizeStyle({ ...base, background: { mode: 'solid', color: '#FFFFFF' } }), specs['google-gdn-580x400']));
+  const light = logoTag(renderAd(ctx, normalizeStyle({ ...base, background: { mode: 'solid', color: '#FFFFFF' } }), specs['kakao-display-pc-promo']));
   assert.doesNotMatch(light, /filter/); assert.doesNotMatch(light, /TU9OTw==/);
 });
 

@@ -309,7 +309,7 @@ function renderAdBase(ctx, style, spec) {
   // 가이드 시안(구글 '좌측상단 정렬' / '좌측중앙 정렬') — 중앙 버전은 글자 덩어리를 세로 가운데에 두고 바닥에 브랜드색 띠를 깐다
   const gv = guide?.variants?.[spec.variant ?? 0] ?? null;
   let vCenter = gv ? gv.vAlign === 'center' : L.vAlign === 'center';   // 질감 배경이면 글자 덩어리를 세로 가운데에(마이다스 파랑 그라데이션 예시) — 아래가 비어 보이지 않게
-  const band = gv?.band ? Math.round(gv.band) : 0;
+  const band = rules.safeArea?.measuredFromTemplate?.mold?.band != null ? Math.round(rules.safeArea.measuredFromTemplate.mold.band) : (gv?.band ? Math.round(gv.band) : 0);   // 틀이 띠를 정하면(구글 930 템플릿 하단 42px) 그 값(10-15)
   let logoPlace = (guide?.logo && L.logo === 'none') ? 'top-right' : L.logo;   // 가이드 매체는 가로형에도 로고 우상단(구글 970 7/7). 배경형에서 그 모서리가 주인공이면 좌상단으로
   // 가로형 기본 우상단 로고(CANON wideLogo)는 매체가 오브젝트 상자를 정한 규격(카카오 비즈보드·에브리타임 커뮤니티보드 — 오른쪽이 오브젝트 자리, 광고주 표기는 카피·오브젝트로)엔 두지 않는다
   if (L.shape === 'wide' && !guide?.logo && rules.objectBox && !((rules.logo?.count ?? 0) >= 1)) logoPlace = 'none';
@@ -1473,9 +1473,13 @@ function renderAdBase(ctx, style, spec) {
   // 틀 로고 칸(10-15 사용자): 칸 안에 두되 꽉 채우지 않는다 — 샘플 면적 상한(mold.logo.maxArea, 채용공고 2,200px²·PC메인 3,600·M팝업 8,500). 칸에 맞춘 크기가 상한을 넘으면 √(상한/면적)배로 줄인다(비율 유지, 칸 가운데/우측 정렬 그대로)
   const moldLogoH = (() => { const mx = mold?.logo?.maxArea; const ar0 = style.logoMeta?.px ? style.logoMeta.px[0] / Math.max(1, style.logoMeta.px[1]) : null; if (!(mx && tLogo && ar0)) return null; const area = (mx * tScale * tScale); let hh = Math.min(tLogo.h, tLogo.w / ar0); if (hh * hh * ar0 > area) hh = Math.sqrt(area / ar0); return Math.max(8, Math.floor(hh)); })();   // 내림 — 반올림이면 상한을 1px 넘는다(ABL PC메인 3,699 > 3,600)
   if (moldLogoH) fired('templateMold.logoArea');
+  // 틀 로고 흰 상자(mold.logo.box — 구글 ABL: 둥근 흰 상자 안에 원색 심볼, 10-15 저녁): 상자가 있으면 로고는 원색 그대로(흰 변환 안 함), 안쪽 여백 box.pad. 반대쪽 끝 작은 보조 로고(mold.logo2)는 지면 규칙대로(어두우면 흰색)
+  const LB = mold?.logo?.box ?? null;
+  const boxCss = LB ? `background:${LB.bg ?? '#FFFFFF'};border-radius:${Math.round((LB.radius ?? 6) * tScale)}px;padding:${Math.round((LB.pad ?? 6) * tScale)}px;box-sizing:border-box;` : '';
   const tplLogo = (allowLogo && logoSrc && tLogo && !logoAsObject)
-    ? `<div data-logo-slot="1" style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'}"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${logoFilter}"/></div>`
+    ? `<div data-logo-slot="1"${LB ? ' data-logo-box="1"' : ''} style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'};${boxCss}"><img data-logo="1" src="${esc(LB ? style.logo : logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${LB ? '' : logoFilter}"/></div>${(() => { const L2 = mold?.logo2 ? rect(mold.logo2, tScale) : null; if (!L2) return ''; fired('templateMold.logo2'); return `<div data-logo-slot="2" style="position:absolute;left:${L2.x}px;top:${L2.y}px;width:${L2.w}px;height:${L2.h}px;display:flex;align-items:center;justify-content:${mold.logo2.align === 'left' ? 'flex-start' : 'flex-end'}"><img data-logo="2" src="${esc(logoSrc)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`; })()}`
     : '';
+  if (LB && tplLogo) fired('templateMold.logoBox');
   // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
   // 하단 칸의 윗변도 지면과 같은 색이 아니면(사진, 또는 그라데이션 변을 단색으로 접은 지면) 녹인다 — 상자째 붙인 직선 이음매를 없앤다
   // 틀 하단 칸의 누끼(채용공고 160×200·달력 328×160, 10-15 사용자): 폭 맞춤(contain)이면 작고 아래로 치우친다 — 기존 가이드(CANON objectBleed tower 잘림 ≤ 42%)만큼 키워 좌우로 흘리되 칸 높이(글자 영역) 안에서
@@ -1558,7 +1562,9 @@ ${tplLogo}${kvWrap(tplObject)}
     const pxOf = r => Math.round(r.px * k), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
     const topOf = r => Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;
     const blocks = []; const used = {};
-    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:0;top:@@px;width:${colW}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:left;${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+    // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
+    const rowX = r => r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => r.align ?? mold.align ?? 'left';
+    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r) }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
@@ -1571,6 +1577,9 @@ ${tplLogo}${kvWrap(tplObject)}
     // 틀의 서브 줄이 접수기간이면(mold.rows.sub.content 'period' — 잡다 PC 템플릿 1:6026 「서브문구」 자리에 샘플 8/8 「모집기간 날짜」) 시즌·슬로건 대신 「라벨 날짜」 한 줄(라벨·날짜 같은 굵기, 셀트리온 1:6223)
     if (MR.sub?.content === 'period') copy.sub = (copy.date || ctx.core?.deadline) ? `${labelOf('접수기간')} ${copy.date || ''}`.trim() : '';   // 날짜가 없으면 서브 줄 없음(틀의 서브 = 접수기간)
     const showSubM = MR.sub?.content === 'period' ? !!copy.sub : showSub;
+    // 틀 서브 줄 수 한도(구글 ABL 580 서브 1줄 297px): 넘기면 사다리의 들어가는 첫 후보(시즌 등)로 — 칸은 max-height 로 잘리므로 반 토막 대신 짧은 말(10-15 저녁)
+    const rowsIn = (t, r) => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * pxOf(r) / Math.max(1, rowW(r)))), 0);
+    if (showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; }
     if (showSubM && MR.sub) put('sub', MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub)), copy.sub);
     const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}) } : null;   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
     if (copy.main && mR) put('main', mR, mR.lines ?? 2, mR.weight ?? fwOf('main', mainPx), mainFg, String(copy.main).split('\n').map(t => esc(nb(t, false))).join('<br/>'), copy.main);
@@ -1596,7 +1605,19 @@ ${tplLogo}${kvWrap(tplObject)}
       const rows = []; let n = 0;
       for (const d of moldDetailSrc.filter(d => !dR.items || dR.items.includes(d.label))) { if (n + d.rows > cap) break; n += d.rows; rows.push(d); }   // 틀이 정한 항목만(세아: 모집일정·모집직무 — 고용형태 줄 없음)
       const sep = dR.labelSep ?? ' :';   // M메인 샘플 「접수기간 ㅣ 값」(FITI 1:10459) — 라벨 뒤 구분자
-      const inner = rows.map(d => d.inline
+      // 알약 칩 라벨(mold.rows.detail.chip — 구글 ABL 「모집분야」 흰 칩 Bold #0074E5 + 값 SemiBold/Medium, 세로형은 칩 아래 가운데 여러 줄, 10-15 저녁): 라벨은 칩에, 상세 행은 값만
+      const CH = dR.chip ?? null;
+      if (CH && rows.length) {
+        const cx = Math.round(CH.x * k), cy = Math.round(CH.y * k), cw = Math.round(CH.w * k), chh = Math.round(CH.h * k), cpx = Math.round(CH.px * k), crad = Math.round((CH.radius ?? chh / 2) * k);
+        const cfg = CH.color === 'brand' ? (p.primary ?? field?.stops?.[0] ?? '#000000') : (CH.color ?? '#000000'), cbg = CH.bg ?? '#FFFFFF';
+        const ctext = CH.text ?? labelOf(rows[0].label);
+        used.chip = { y: Math.round(CH.y * k * 10) / 10, px: cpx, pitch: chh, lines: 1, weight: CH.weight ?? 700, top: cy, x: cx, w: cw, align: 'center', text: ctext };
+        blocks.push({ t: cy, h: chh, html: `<div data-field="chip" data-chip="1" style="position:absolute;left:${cx - sx}px;top:@@px;width:${cw}px;height:${chh}px;display:flex;align-items:center;justify-content:center;border-radius:${crad}px;background:${cbg};color:${cfg};font-size:${cpx}px;line-height:${chh}px;font-weight:${CH.weight ?? 700};white-space:nowrap">${esc(ctext)}</div>` });
+        fired('templateMold.chipLabel');
+      }
+      const inner = CH
+        ? rows.map(d => `<div>${esc(nb(d.value))}</div>`).join('')
+        : rows.map(d => d.inline
         ? `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value))}</div>`
         : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div>${esc(nb(d.value))}</div>`).join('');
       // 「상세 입력 시 하단부터」(M메인 템플릿 1:8625): 쓰는 줄이 적으면 아래 줄부터 채운다 — 블록 y 를 빈 줄만큼 내린다
@@ -1605,7 +1626,9 @@ ${tplLogo}${kvWrap(tplObject)}
     }
     if (MR.date && mR && (copy.date || ctx.core?.deadline)) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
       const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      const txt = (MR.date.format === '~M/D' && dl) ? `~${+dl[2]}/${+dl[3]}` : (copy.date || '');
+      let txt = (MR.date.format === '~M/D' && dl) ? `~${+dl[2]}/${+dl[3]}` : (copy.date || '');
+      // 틀 날짜 칸이 좁으면(구글 ABL 580 날짜 158px 1줄) 짧은 날짜 후보(「~10.31(토)」 — ladder.date)로(10-15 저녁)
+      if (txt && MR.date.lines && rowsIn(txt, MR.date) > MR.date.lines) { const alt = [...new Set([txt, ...(ladder.date ?? [])])].find(c => rowsIn(c, MR.date) <= MR.date.lines); if (alt) txt = alt; }
       if (txt) put('date', { ...MR.date, y: MR.date.afterMain != null ? mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + MR.date.afterMain : MR.date.y }, MR.date.lines ?? 1, MR.date.weight ?? fwOf('date', pxOf(MR.date)), subFg, esc(txt), txt);
     }
     // 태그 칩 행(mold.rows.tags — 잡다 PC 1:6026 「태그문구」 칸: y174 칩 h24 글자 12 SemiBold, 모서리 4, 안쪽 8, 칩 간격 8 · 샘플 5/8). 글감은 고용형태·직무 조각, 칸 폭에 들어가는 만큼. 칩 색은 기존 가이드(chipStyleOf)
@@ -1629,12 +1652,12 @@ ${tplLogo}${kvWrap(tplObject)}
     //   하단 띠(native/contain/cover + 윗변 녹임), 왼쪽 열(cover + 오른변 녹임). 사각형으로 뚝 잘라 넣지 않는다 — tplObject(위 템플릿 칸 문법)를 그대로 쓴다
     const moldKv = tplObject;
     TR.mode = 'templateMold';
-    TR.place = { ...TR.place, mode: 'mold', tImage, imgCol: imgLeftCol ? 'left' : imgRightCol ? 'right' : imgBottomBand ? 'bottom' : imgCorner ? 'corner' : null, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
+    TR.place = { ...TR.place, mode: 'mold', tImage, imgCol: imgLeftCol ? 'left' : imgRightCol ? 'right' : imgBottomBand ? 'bottom' : imgCorner ? 'corner' : null, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: mold.align ?? 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
     TR.copy = { ...(TR.copy ?? {}), sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.map(d => d.label) : [] };
     TR.mold = { source: mold.source ?? null, rows: used, mainN, field: fz, logo: tLogo, image: tImage, labels: { period: labelOf('접수기간') }, color: moldFg };
     TR.fonts = { ...TR.fonts, main: used.main ? { ...(TR.fonts?.main ?? {}), px: used.main.px, weight: used.main.weight, lh: Math.round(used.main.pitch / used.main.px * 100) / 100, lines: mainN } : TR.fonts?.main, sub: used.sub ? { ...(TR.fonts?.sub ?? {}), px: used.sub.px, weight: used.sub.weight, lh: Math.round(used.sub.pitch / used.sub.px * 100) / 100 } : null, detail: used.detail ? { ...(TR.fonts?.detail ?? {}), px: used.detail.px, value: used.detail.weight, lh: Math.round(used.detail.pitch / used.detail.px * 100) / 100 } : null, logoCapW: null };
     return `${open('')}
-${moldField}${moldKv}
+${moldField}${moldKv}${bandEl}
 ${textCol}
 ${tplLogo}
 </div>`;

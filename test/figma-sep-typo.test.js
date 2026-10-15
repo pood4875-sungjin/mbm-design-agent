@@ -35,7 +35,7 @@ test('A2 세로형·정사각 메인 줄 간격 1.28 — 구글 가이드 1.22·
   assert.equal(layoutFor(600, 880).mainLine, 1.28);
   assert.equal(layoutFor(1080, 1080).mainLine, 1.28);
   assert.equal(layoutFor(160, 600).mainLine, 1.4);
-  assert.equal(num(tagOf(renderAd(ctx, style, specs['google-gdn-300x600']), 'main'), 'line-height'), 1.22);
+  assert.equal(num(tagOf(renderAd(ctx, style, specs['google-gdn-300x600']), 'main'), 'line-height'), 39.9);   // 10-15 저녁: 구글 300×600 은 ABL 틀 — 메인 32px × 124.7% = 39.9px(가이드 1.22 대신)
   assert.equal(num(tagOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo']), 'main'), 'line-height'), 69.6);   // 10-15 틀: 템플릿 28:1072 메인 줄 간격 69.6px(50px × 1.39)
 });
 
@@ -100,11 +100,11 @@ test('B1 메인 두 톤 강조는 스타일이 강조색을 줬고 지면 대비
 
 test('B2 좁은 세로 띠(폭 ≤ 320)의 단일 사물은 좌우 양쪽 + 아래로 흘린다', () => {
   assert.equal(CANON.objectBleed.narrow.maxW, 320);
+  // 10-15 저녁: 구글 300 세로형은 ABL 틀(templateMold) — 좁은 세로 띠 블리드(가이드 objectBleed)는 틀 그림 칸 안에서 쓰지 않는다. 가이드 objectBleed 를 가진 매체는 구글뿐이라 규칙 값만 남긴다
   for (const id of ['google-gdn-300x1050', 'google-gdn-300x600']) {
-    const m = renderAd(ctx, style, specs[id]).match(/data-bleed="1" style="position:absolute;left:(-?\d+)px;top:(\d+)px;width:(\d+)px[^"]*\/(\d+)px auto/);
-    assert.ok(m, id);
-    const [left, , , dw] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4])];
-    assert.ok(left < 0 && left + dw > specs[id].w, `${id}: 왼쪽(${left})·오른쪽(${left + dw}) 모두 지면 밖`);
+    const html = renderAd(ctx, style, specs[id]);
+    assert.doesNotMatch(html, /data-bleed="1"/, `${id}: 틀 규격은 블리드 없음`);
+    assert.match(html, /data-mold="1"/, id);
   }
 });
 

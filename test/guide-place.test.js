@@ -18,7 +18,7 @@ const specs = adSpecEntries();
 const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
 const meta = id => JSON.parse(readFileSync(new URL(`../ref/learned/cases/${id}/meta.json`, import.meta.url), 'utf8'));
 const PLACE = ['place.textZone', 'place.textAlign', 'place.logoSlot', 'place.manualDrift', 'place.recommendedMargin'];
-const REP = ['google-gdn-580x400', 'instagram-feed-1080', 'google-gdn-300x600', 'kakao-display-pc-promo', 'google-gdn-970x250', 'jasoseol-pc-premium-popup-pc'];   // 10-15: 리멤버 메인상단 MO 는 틀(mold) 규격이 됐다 → 자유 배치 대표는 카카오 디스플레이 PC
+const REP = ['kakao-display-pc-promo', 'instagram-feed-1080', 'nap-dsp-full-320x480', 'blind-post-banner', 'gamejob-community-pick-mo', 'jasoseol-pc-premium-popup-pc'];   // 10-15 저녁: 구글 3규격은 ABL 틀 → 자유 배치 대표는 카카오·인스타·NAP 전면·블라인드·게임잡   // 10-15: 리멤버 메인상단 MO 는 틀(mold) 규격이 됐다 → 자유 배치 대표는 카카오 디스플레이 PC
 
 // 렌더 → 추적 → 합성 실측(글자는 자동 글자 열의 왼쪽 위에서 시작, 직접 수정 이동만큼 옮김 · 로고는 trace 자리 상자에 직접 수정 변형)
 function caseC(sid, { kv = 'fox-cutout', preset = {}, manual = null } = {}) {
@@ -47,8 +47,7 @@ test('렌더러 추적: 글자 열·시작선·정렬과 로고 자리(모서리
   assert.equal(T.place.zone.align, 'left');
   assert.equal(T.place.zone.margin.left, T.place.pad.left);
   const g = traceOfHtml(renderAd(ctx, normalizeStyle({ colors: ['#1428A0'], keyVisual: 'file:///kv/fox.png', kvMeta: meta('fox-cutout'), logo: 'file:///logo.png' }), { ...specs['google-gdn-580x400'], id: 'google-gdn-580x400' }));
-  assert.equal(g.logo.corner, 'top-right'); assert.equal(g.logo.slot, 'abs');
-  assert.ok(g.place.zone.cut, '구글 580×400 우하단 그림 상자 → ㄱ자 칸');
+  assert.equal(g.logo.slot, 'template'); assert.equal(g.place.mode, 'mold');   // 10-15 저녁: 구글 580 은 ABL 틀 — 로고 칸 고정, ㄱ자 칸 없음
 });
 
 test('자동 렌더: 대표 6규격에서 place.* 모두 ✓(직접 수정 이탈은 직접 수정이 없으면 안 나온다)', () => {
@@ -84,13 +83,13 @@ test('3px 미세 이동은 모두 ✓, 10px 은 시작선만 ✗(±6px·1.5%)', 
 });
 
 test('로고를 반대 모서리로 옮기면 로고 자리 ✗ 「오른쪽 위 → 왼쪽 아래」', () => {
-  const R = rowsOf(caseC('google-gdn-580x400', { manual: { logo: { dx: -0.8, dy: 0.8 } } }));
+  const R = rowsOf(caseC('kakao-display-pc-promo', { manual: { logo: { dx: -0.8, dy: 0.8 } } }));   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
   assert.equal(R['place.logoSlot'].ok, false);
   assert.equal(R['place.logoSlot'].expect, '로고 자리: 오른쪽 위');
   assert.match(R['place.logoSlot'].actual, /^왼쪽 아래/);
   assert.equal(R['place.manualDrift'].ok, false);
   // 같은 모서리 안 4px 는 ✓
-  assert.equal(rowsOf(caseC('google-gdn-580x400', { manual: { logo: { dx: -4 / 580, dy: 0 } } }))['place.logoSlot'].ok, true);
+  assert.equal(rowsOf(caseC('kakao-display-pc-promo', { manual: { logo: { dx: -4 / 1200, dy: 0 } } }))['place.logoSlot'].ok, true);
 });
 
 test('프리셋은 자동 쪽이다 — 키비주얼 왼쪽·오른쪽, 글자 정렬 가운데에서 place.* 거짓 ✗ 없음', () => {

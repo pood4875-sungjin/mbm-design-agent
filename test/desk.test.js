@@ -54,7 +54,7 @@ test('타일 로고(불투명 ≥ 85%)는 어두운 지면에서 반전하지 �
 });
 
 test('세로로 긴 로고(폭÷높이 < 0.8)는 로고 칸 높이를 √(0.8÷비율)배(최대 1.8)로 키운다', () => {
-  const spec = specs['google-gdn-300x600'];
+  const spec = specs['nap-dsp-full-320x480'];   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
   const hOf = html => { const m = html.match(/data-logo-slot="1" style="[^"]*height:(\d+)px/) ?? html.match(/<img data-logo="1"[^>]*height:(\d+)px/); return m ? +m[1] : null; };
   const wide = hOf(renderAd(ctx, styleOf(CUT, { logoMeta: { px: [600, 150], solid: 0.4 } }), spec));
   const tall = hOf(renderAd(ctx, styleOf(CUT, { logoMeta: { px: [36, 172], solid: 0.5 } }), spec));
@@ -63,7 +63,7 @@ test('세로로 긴 로고(폭÷높이 < 0.8)는 로고 칸 높이를 √(0.8÷�
 });
 
 test('사진이 오른쪽 열인 가로형은 로고를 글자 쪽(좌상단)에 — 사진 위에 얹지 않는다', () => {
-  const html = renderAd(ctx, styleOf(PHOTO), specs['google-gdn-970x250']);
+  const html = renderAd(ctx, styleOf(PHOTO), specs['kakao-display-pc-promo']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
   const slot = html.match(/data-logo-slot="1" style="([^"]*)"/)?.[1] ?? '';
   assert.match(slot, /left:\d+px;justify-content:flex-start/, slot);
 });
@@ -83,7 +83,7 @@ test('질감은 GDN 580×400에서 지면에만 깐다 — 우하단 모서리 �
   const rgba = img(W, H, (x, y) => [140 + x * 0.2, 190, 235 - y * 0.1]);
   const meta = { ar: 1.5, px: [1200, 800], field: fieldFromImage(rgba, W, H), colors: ['#9BC0EB'] };
   assert.equal(meta.field.kind, 'texture');
-  const html = renderAd(ctx, styleOf(meta), specs['google-gdn-580x400']);
+  const html = renderAd(ctx, styleOf(meta), specs['instagram-feed-1080']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
   assert.match(html, /data-kv-use="bg"/);
   assert.doesNotMatch(html, /data-object="1"/);
 });

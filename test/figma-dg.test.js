@@ -35,7 +35,7 @@ test('장식 프레임 누끼(가운데 빈 유리 슬랩): 캐릭터·떼가 �
   assert.equal(t.flags.frame, true); assert.equal(t.flags.character, false); assert.equal(t.flags.group, false); assert.equal(t.sub.id, 'cutout-frame');
   // 가운데가 차 있으면(떼) 프레임이 아니다
   assert.equal(kvTypeOf({ ...SLAB, field: { ...SLAB.field, cols: col(Array(32).fill(0.3)) } }).flags.frame, false);
-  for (const id of ['google-gdn-580x400', 'instagram-feed-1080', 'google-gdn-300x600']) {
+  for (const id of ['instagram-feed-1080', 'instagram-story-1080x1920']) {   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
     const html = renderAd(ctx, styleOf(SLAB, '#080848'), specs[id]);
     assert.match(html, /data-kv-use="bg"/, id); assert.match(html, /data-field-source="kv-frame"/, id);
     assert.match(html, /url\('[^']+'\) right (center|bottom)\/\d+px auto/, id);
@@ -45,11 +45,11 @@ test('장식 프레임 누끼(가운데 빈 유리 슬랩): 캐릭터·떼가 �
 test('현장·군중 사진(어둡고 주인공 없음)은 자동 사진 전체형 — 주인공 있는 어두운 사진(일화)은 그대로', () => {
   assert.equal(kvTypeOf(CROWD).flags.crowd, true); assert.equal(kvTypeOf(CROWD).sub.id, 'photo-crowd');
   assert.equal(kvTypeOf(ILHWA_DARK).flags.crowd, false);
-  const html = renderAd(ctx, styleOf(CROWD), specs['google-gdn-580x400']);
+  const html = renderAd(ctx, styleOf(CROWD), specs['instagram-feed-1080']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
   assert.match(html, /data-kv-use="full"/);
-  assert.doesNotMatch(renderAd(ctx, styleOf(ILHWA_DARK), specs['google-gdn-580x400']), /data-kv-use="full"/);
+  assert.doesNotMatch(renderAd(ctx, styleOf(ILHWA_DARK), specs['instagram-feed-1080']), /data-kv-use="full"/);
   // '한쪽에 넣기'를 고르면 예전대로
-  assert.doesNotMatch(renderAd(ctx, normalizeStyle({ colors: ['#5828B8'], keyVisual: PNG, kvMeta: CROWD, kvUse: 'part' }), specs['google-gdn-580x400']), /data-kv-use="full"/);
+  assert.doesNotMatch(renderAd(ctx, normalizeStyle({ colors: ['#5828B8'], keyVisual: PNG, kvMeta: CROWD, kvUse: 'part' }), specs['instagram-feed-1080']), /data-kv-use="full"/);
 });
 
 // 합성 그림 → fieldFromImage

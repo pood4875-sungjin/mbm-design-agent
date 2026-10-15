@@ -92,8 +92,8 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자(6자까지) · 7자 이상 낱말은 U+200B 줄바꿈 자리(10-14 t1014 — 좁은 칸에서 낱말 속이 끊기지 않게)
   assert.match(html, /data-field="main"[^>]*>신입\/[\u2060\u200B]?경력사원 채용</);
   // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 구글은 시즌이 메인 첫머리 — 적지 않았으면 마감일에서 유추한 시즌(10-06 "정보 없는 건 임의로 넣어야지")
-  const free = renderAd(long, style, specs['google-gdn-300x600']);
-  assert.match(free, /data-field="main"[^>]*>2026 하반기(<br\/>| )한진정보통신(<br\/>| )신입\/[\u2060\u200B]?경력사원 채용</);
+  const free = renderAd(long, style, specs['google-gdn-300x600']);   // 10-15 저녁: 구글은 ABL 틀 — 메인 5줄 칸(178px), 회사 / 시즌 채용구분
+  assert.match(free, /data-field="main"[^>]*>한진정보통신<br\/>2026 하반기 신입\/[\u2060\u200B]?경력사원 채용</);
   // 구글 가이드: 아이브로는 슬로건 — 안 적어 줬으면 회사명을 넣은 기본 아이브로(세로형이 얇아 비어 보이지 않게)
   assert.match(free, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
   // 직무는 상세 줄에 간다 — 상세 칸이 있는 매체(자소설 M팝업 상세문구 22자×3줄)에서
@@ -146,14 +146,14 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
 test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
   // 그림이 있을 때 로고는 작게 위에 뜬다. (그림이 없으면 로고가 오브젝트 자리로 간다 — 아래 별도 테스트)
   const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } };
-  const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);
-  assert.doesNotMatch(tallHtml, /text-align:center/);
-  assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '세로형 로고는 우상단(한미글로벌·세아제강)');
+  const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);   // 10-15 저녁: 구글 300 세로형은 ABL 틀 — 가운데 정렬, 로고 흰 상자 (45.6,21)
+  assert.match(tallHtml, /data-field="main"[^>]*text-align:center/);
+  assert.match(tallHtml, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:46px;top:21px/, '세로형 로고는 틀 상자(ABL)');
   // 메인은 시즌 + 회사 + 채용구분(시즌은 마감일에서 유추). 아이브로는 기본 문구
   assert.match(tallHtml, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
-  assert.match(tallHtml, /data-field="main"[^>]*>2026 하반기(<br\/>| )한진정보통신(<br\/>| )정규직 채용</, '시즌 뒤·회사 뒤에서 줄을 바꾼다');
+  assert.match(tallHtml, /data-field="main"[^>]*>한진정보통신<br\/>2026 하반기 정규직 채용</, '틀: 회사 / 시즌 채용구분');
   const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
-  assert.match(tower, /data-logo-slot="1" style="position:absolute;top:\d+px;left:\d+px;right:\d+px;justify-content:center/, '세로 띠 로고는 위 가운데');
+  assert.match(tower, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:46px;top:32px/, '세로 띠 로고도 틀 상자(ABL 300×1050)');
   // 세로 띠도 구글은 회사가 메인에 남는다(일화 "㈜일화 / 신입/경력 / 사원 모집")
   assert.match(tower, /data-field="main"[^>]*>(2026 하반기(<br\/>| ))?한진정보통신/);
   const wideHtml = renderAd(ctx, withLogo, specs['remember-main-top-pc']);
@@ -161,7 +161,7 @@ test('every shape is left-aligned like the references; the logo floats top-right
   assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스(리멤버)에는 로고가 없다 — 매체가 요구할 때만');
   // 구글 GDN은 규정이 없는 대신 보드 가이드가 로고 자리를 정한다 — 가로형에도 우상단(970 예시 7/7, 템플릿 로고 상자 118×31)
   const gdnWide = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
-  assert.match(gdnWide, /data-logo-slot="1" style="position:absolute;top:\d+px;right:\d+px/, '구글 가로형 로고 우상단');
+  assert.match(gdnWide, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:686px;top:16px/, '구글 가로형 로고 = ABL 틀 상자 (685.7,16)');
 });
 
 test('wide formats follow the references: company and job on two lines where the medium gives two main rows', () => {
@@ -180,8 +180,8 @@ test('with a key visual the image bleeds to the edge instead of sitting in a rou
   assert.match(wide, /data-object="1" style="position:absolute;top:0;right:0px;[^"]*height:560px/, '오른쪽 끝·위아래 끝까지');
   assert.doesNotMatch(wide, /data-object="1"[^>]*border-radius/);
   assert.match(wide, /data-object="1"[^>]*mask-image:linear-gradient\(to right,transparent 0%/, '글자 쪽 변만 지면으로 녹인다');
-  const tallHtml = renderAd(ctx, kv, specs['google-gdn-300x1050']);
-  assert.match(tallHtml, /data-object="1" style="position:absolute;left:0;bottom:0;width:300px/);
+  const tallHtml = renderAd(ctx, kv, specs['google-gdn-300x1050']);   // 10-15 저녁: ABL 틀 그림 칸 (1,804) 299×110
+  assert.match(tallHtml, /data-object="1" style="position:absolute;left:1px;top:804px;width:299px;height:110px/);
   // 키비주얼이 없으면 오브젝트 자체가 없다 — 빈 상자를 그리지 않는다
   assert.doesNotMatch(renderAd(ctx, style, specs['naver-gfa-mobile-da-1250x560']), /data-object/);
 });

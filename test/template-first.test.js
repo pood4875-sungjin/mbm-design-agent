@@ -282,3 +282,26 @@ test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain
   // 유리 누끼(RING)는 그대로 — gradEdge 가 아니다
   assert.ok(!traceOf(renderAd(ctx, glass, specs['jasoseol-m-premium-popup-mo'])).rules.includes('templateMold.containGrad'));
 });
+
+test('구글GDN 틀(ABL생명 샘플, 사용자 결정 10-15) — 580 왼쪽 정렬 · 300×600 가운데 정렬 · 「모집분야」 칩 + 값 · 로고 흰 상자 + 보조 로고 · 970 날짜는 메인 옆 · 930 템플릿 태그 칩 + 하단 띠', () => {
+  const h580 = renderAd(ctx, glass, specs['google-gdn-580x400']); const t580 = traceOf(h580);
+  assert.equal(t580.mode, 'templateMold');
+  assert.deepEqual([t580.mold.rows.sub.y, t580.mold.rows.sub.px, t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.weight], [59, 20, 87, 37, 800]);
+  assert.ok(t580.rules.includes('templateMold.chipLabel') && t580.rules.includes('templateMold.logoBox') && t580.rules.includes('templateMold.logo2'), t580.rules.join(','));
+  assert.match(h580, /data-field="chip" data-chip="1" style="position:absolute;left:-1px;top:[\d.]+px;width:87px;height:29px;[^"]*border-radius:83px;background:#FFFFFF;color:#[0-9A-Fa-f]{6};font-size:19px;line-height:29px;font-weight:700/, '모집분야 칩 (34,223) 87×29');
+  assert.match(h580, /data-field="detail"[^>]*style="position:absolute;left:92px;[^"]*width:344px;font-size:20px;[^"]*font-weight:600/, '값 (127,226) 344 SemiBold 20');
+  assert.doesNotMatch(h580, /data-field="detail"[^>]*>[^<]*<div style="text-wrap:pretty"><div><b/, '칩이 있으면 상세 행에 라벨 없음');
+  assert.match(h580, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:15px;top:16px;width:81px;height:40px;[^"]*background:#FFFFFF;border-radius:8px/, '로고 흰 상자');
+  assert.match(h580, /data-logo-slot="2" style="position:absolute;left:517px;top:23px;width:40px;height:13px/, '반대쪽 보조 로고');
+  assert.match(h580, /data-field="date"[^>]*style="position:absolute;left:12px;[^"]*width:158px;font-size:20px;[^"]*font-weight:800/, '날짜 (47,183) ExtraBold 20 — 틀 x 35 기준 +12');
+  const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']);
+  assert.match(h970, /data-field="date"[^>]*style="position:absolute;left:388px;[^"]*width:190px;font-size:24px/, '970 날짜는 메인 오른쪽 (434,80)');
+  const h300 = renderAd(ctx, glass, specs['google-gdn-300x600']); const t300 = traceOf(h300);
+  assert.equal(t300.place.zone.align, 'center');
+  assert.match(h300, /data-field="main"[^>]*style="position:absolute;left:37px;[^"]*width:178px;font-size:32px;line-height:39.9px;font-weight:800;[^"]*text-align:center/, '300×600 메인 (61,94) 178 가운데, 행간 124.7%');
+  assert.match(h300, /data-field="detail"[^>]*style="position:absolute;left:85px;[^"]*width:81px;font-size:17px;line-height:27.5px;font-weight:500;[^"]*text-align:center/, '값 4줄 세로 가운데 Medium 17 행간 162%');
+  const h930 = renderAd(ctx, glass, specs['google-gdn-930x180']); const t930 = traceOf(h930);
+  assert.equal(t930.mode, 'templateMold');
+  assert.match(h930, /data-field="tags"/, '930 태그 칩 행');
+  assert.match(h930, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:42px/, '930 하단 띠 42px(가이드 variants) 틀에서도 유지');
+});

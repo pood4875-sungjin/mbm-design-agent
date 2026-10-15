@@ -37,8 +37,10 @@ test('weightOf: 어두운 지면 14px 미만은 500 하한, 매체 값엔 하한
   assert.equal(weightOf('없는역할'), 400);
 });
 
-test('렌더: 역할마다 스케일이 붙는다 (구글 580×400 — 아이브로·메인·상세 라벨/값·칩)', () => {
-  const html = renderAd(ctx, style, specs['google-gdn-580x400']);
+test('렌더: 역할마다 스케일이 붙는다 (가이드 없는 정사각 1080 — 아이브로·메인·상세 라벨/값·칩)', () => {   // 10-15 저녁: 구글 580 은 ABL 틀 → 가이드 없는 정사각 자유 규격이 없어 인스타 1080 에서 guide 만 뺀 합성 규격
+  const sq0 = specs['instagram-feed-1080'];
+  const sq = { ...sq0, mediumRules: sq0.mediumRules ? { ...sq0.mediumRules, guide: undefined } : sq0.mediumRules, rules: sq0.rules ? { ...sq0.rules, guide: undefined } : sq0.rules };
+  const html = renderAd(ctx, style, sq);
   assert.equal(fwIn(html, 'main'), W.main);
   assert.equal(fwIn(html, 'sub'), W.eyebrow, '메인 위 서브(아이브로) 600');
   assert.equal(fwIn(html, 'detail'), W.detailValue);
