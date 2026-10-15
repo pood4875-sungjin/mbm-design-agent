@@ -17,8 +17,8 @@ const ctx = createContext({ client: '한진정보통신', role: '백엔드 개�
 const mediumOf = id => MEDIA.find(m => m.id === id);
 
 test('every catalog entry has family, weights, license and a local folder; Paperlogy is the default (10-15: 규정 없는 매체 기본)', () => {
-  assert.equal(DEFAULT_FONT, 'Paperlogy');
-  assert.equal(fontGroup('Paperlogy'), 'default');
+  assert.equal(DEFAULT_FONT, 'KakaoBigSans');   // 10-15 밤: 기본 카카오 빅산스(규정 없는 매체) — Pretendard 는 규정 매체
+  assert.equal(fontGroup('KakaoBigSans'), 'default');
   assert.equal(fontGroup('Pretendard'), 'free');
   for (const id of FONT_IDS) {
     const f = FONTS[id];
@@ -29,7 +29,7 @@ test('every catalog entry has family, weights, license and a local folder; Paper
     assert.ok(isBundledFont(id), id);
     assert.match(fontInfoLine(id), /상업 광고 가능 · 임베딩 가능 · 굵기/);
   }
-  assert.deepEqual(FONT_IDS.filter(id => fontGroup(id) === 'free').slice(0, 7), ['Pretendard', 'Freesentation', 'A2Z', 'NanumSquare', 'NanumSquareNeo', 'NanumSquareRound', 'KakaoBigSans'], '사용자가 고른 넷이 무료 폰트 맨 앞');
+  assert.deepEqual(FONT_IDS.filter(id => fontGroup(id) === 'free').slice(0, 7), ['Paperlogy', 'Pretendard', 'Freesentation', 'A2Z', 'NanumSquare', 'NanumSquareNeo', 'NanumSquareRound'], '사용자가 고른 넷이 무료 폰트 맨 앞');
 });
 
 test('bundled woff2 files and LICENSE.txt exist on disk, subset size stays small', () => {

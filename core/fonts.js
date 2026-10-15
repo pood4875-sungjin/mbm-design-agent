@@ -17,7 +17,7 @@ const OFL = { name: 'SIL Open Font License 1.1', commercial: true, embed: true, 
 export const FONTS = {
   // ── 기본 글꼴(10-15 저녁 사용자: 「폰트 규정 없는 건 Paperlogy 로 제작」) — 매체가 글꼴을 정한 곳(자소설·카카오·리멤버 = Pretendard)은 그대로 ──
   Paperlogy: {
-    label: 'Paperlogy', group: 'default', maker: 'PT& (Lee Juim)',
+    label: 'Paperlogy', group: 'free', maker: 'PT& (Lee Juim)',
     family: 'Paperlogy',
     stack: `'Paperlogy','Pretendard','Apple SD Gothic Neo',system-ui,sans-serif`,
     dir: 'fonts/paperlogy', weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
@@ -78,7 +78,7 @@ export const FONTS = {
     source: 'https://hangeul.naver.com/fonts (nanum-square-round.zip)',
   },
   KakaoBigSans: {
-    label: '카카오 큰글씨 (Kakao Big Sans)', group: 'free', maker: '카카오',
+    label: '카카오 큰글씨 (Kakao Big Sans)', group: 'default', maker: '카카오',   // 10-15 밤: 규정 없는 매체 기본
     family: 'Kakao Big Sans',
     stack: `'Kakao Big Sans','Apple SD Gothic Neo',sans-serif`,
     dir: 'fonts/kakao-big-sans', weights: [400, 700, 800],
@@ -125,7 +125,7 @@ export const FONTS = {
 // 목록이 필요하면 fontIds()를 쓴다(FONT_IDS는 모듈 로드 시점에 굳는 값이다).
 export const FONT_IDS = Object.keys(FONTS);
 export function fontIds() { return Object.keys(FONTS); }
-export const DEFAULT_FONT = 'Paperlogy';   // 10-15 저녁: 규정 없는 매체 기본(이전 Pretendard)
+export const DEFAULT_FONT = 'KakaoBigSans';   // 10-15 밤 사용자: 「텍스트 디폴트는 Pretendard + 카카오빅산스 — 가이드 없는 건 카카오 빅산스로」(규정 매체 자소설·카카오·리멤버 = Pretendard 는 그대로). 저녁의 Paperlogy 기본은 폐기
 export function isBundledFont(id) { return !!FONTS[id]?.dir; }
 export function fontGroup(id) { return FONTS[id]?.custom ? 'custom' : (FONTS[id]?.group ?? 'free'); }
 

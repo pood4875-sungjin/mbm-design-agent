@@ -48,8 +48,8 @@ export function normalizeStyle(input = {}) {
       mode,
     }),
     fonts: {
-      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : 'Paperlogy',
-      body: FONTS[input.fonts?.body] ? input.fonts.body : 'Paperlogy',
+      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : 'KakaoBigSans',   // 10-15 밤: 기본 카카오 빅산스(규정 매체는 렌더러가 Pretendard 강제)
+      body: FONTS[input.fonts?.body] ? input.fonts.body : 'KakaoBigSans',
     },
     logo: input.logo ?? null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다(core/field.js). 사람이 고정할 수 있는 것은 단색/그라데이션과 색 하나뿐이다.

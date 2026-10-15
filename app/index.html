@@ -390,6 +390,8 @@
   .frame.gen .fbody::after{content:"";position:absolute;inset:-2px;border-radius:8px;padding:2px;background:var(--gen);background-size:220% 100%;animation:flow 2.2s linear infinite;
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
   .frame.gen .flabel{color:var(--gen1)}
+  #artboard .flabel .badge{display:none!important}   /* 10-15 밤: 보드 카드는 매체 · 사이즈만 */
+  .rowhead{position:absolute;font-size:14px;font-weight:800;color:var(--ink,#111);letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line,#ddd);pointer-events:none}
   .frame.done .fbody{animation:pop .5s ease-out}
   @keyframes shim{from{background-position:200% 0}to{background-position:-100% 0}}
   @keyframes flow{from{background-position:0% 0}to{background-position:220% 0}}

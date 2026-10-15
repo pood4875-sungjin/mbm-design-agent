@@ -70,7 +70,7 @@ const SAMPLES = [
 ];
 
 const state = {
-  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Paperlogy', mood: '', kvReadability: null, suggests: [], step: 0 },
+  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'KakaoBigSans', mood: '', kvReadability: null, suggests: [], step: 0 },
   campaign: null,
   selected: null,          // specId | null
   zoom: 1, panX: 0, panY: 0,
@@ -709,7 +709,7 @@ function renderSteps() {
 async function startIntake(text) {
   state.intake = {
     kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
-    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'Paperlogy', mood: '',
+    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'KakaoBigSans', mood: '',
     kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'target', styleDone: false, signageDone: false, history: [],
     // 무엇을(track: online·offline·both) → 어디에(targetDone) 를 대화에서 고른다. suggestTrack = 브리프에서 읽은 제안(고르기 전까지 확정 아님)
     targetDone: false, suggestTrack: null,
@@ -1661,7 +1661,7 @@ function revealStaged() {
     setTimeout(() => f.frame.classList.remove('done'), 600);
     f.iframe.style.visibility = 'visible';
     f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
-    f.label.textContent = artLabel(a);
+    f.label.textContent = boardLabel(a);
     log(`생성: ${id}`);
     if (i === ids.length - 1) toast(`${ids.length}종 생성 완료`);
   }, 240 + i * 260));
@@ -1703,13 +1703,14 @@ function layoutArtboard(opts = {}) {
   frames.clear();
   const c = state.campaign;
   // 줄 구성: 매체 광고는 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄
-  const adRows = (c.media ?? []).map(m => c.artifacts.filter(a => a.channel === 'ad' && SPECS[a.specId]?.medium === m)).filter(r => r.length);
-  const rows = [...adRows, [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)), OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch))];
+  const adRows = (c.media ?? []).map(m => ({ name: mediumName(m), arts: c.artifacts.filter(a => a.channel === 'ad' && SPECS[a.specId]?.medium === m) })).filter(r => r.arts.length);
+  const rows = [...adRows, { name: '온라인', arts: [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }, { name: '오프라인', arts: OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }];   // 10-15 밤: 매체마다 섹션(머리글 + 구분선)
   // 첫 줄 y: 라벨이 프레임 위에 붙는다(이름 2줄 + 뱃지 줄 ≈ 56px). 60이면 첫 줄 라벨이 보드 위로 잘린다
-  let y = 72;
-  for (const rowArts of rows) {
+  let y = 104;
+  for (const { name, arts: rowArts } of rows) {
     if (!rowArts.length) continue;
     let x = 60, rowH = 0;
+    const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${rowArts.length}종`; board.appendChild(head);
     {
       for (const a of rowArts) {
         const ch = a.channel;
@@ -1722,7 +1723,7 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : artLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
@@ -1739,7 +1740,8 @@ function layoutArtboard(opts = {}) {
         rowH = Math.max(rowH, h);
       }
     }
-    y += rowH + 130;
+    head.style.width = Math.max(320, x - 60 - 70) + 'px';
+    y += rowH + 170;
     state.boardW = Math.max(state.boardW ?? 0, x);
   }
   state.boardH = y;
@@ -1757,6 +1759,13 @@ function twinNote(specId) {
   const twins = (twinNote.map ??= new Map(adSpecGroups().map(g => [g.id, g.twins]))).get(specId) ?? [];
   const shared = twins.filter(id => !(state.campaign?.adSpecIds ?? []).includes(id));
   return shared.length ? ` · 상품 ${shared.length + 1}곳 공용` : '';
+}
+// 보드 카드 라벨은 매체 · 사이즈만(10-15 밤 사용자 「좌측은 매체와 사이즈 정도만」) — 배지(DRAFT·차단·디자인·가이드)는 CSS 로 숨긴다
+function boardLabel(a) {
+  const spec = SPECS[a.specId];
+  if (!spec || a.channel !== 'ad') return artLabel(a);
+  const sz = specSize(spec, a.size) || `${spec.w}×${spec.h}`;
+  return `${spec.mediumName ?? mediumName(spec.medium)} · ${sz}`;
 }
 function artLabel(a) {
   const spec = SPECS[a.specId];
@@ -2039,15 +2048,10 @@ function renderInspector() {
     insp.innerHTML = `
       <section class="isec">
       <h3>캠페인 <span class="mode">전체 일괄</span></h3>
-      <div class="hint">값을 바꾸면 전 산출물에 즉시 반영됩니다. 산출물을 클릭하면 개별 편집으로 전환.</div>
       ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
       </section>
       <section class="isec">
       <h3>스타일</h3>
-      ${c.style.keyVisual ? kvTypeControlHtml(c.style.kvMeta, c.style.kvTypeOverride, 'iKvType') : ''}
-      ${c.artifacts.some(x => x.channel === 'ad') ? '' : bgControlHtml(c.style, 'iBg')}
-      <label>상세 라벨 알약 <span style="opacity:.6">· 접수기간·모집직무 같은 라벨</span></label>
-      <div class="vseg" id="iChipSeg">${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-ct="${k}" class="${(c.style.chipTone ?? 'tint') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
       <div style="display:flex;gap:10px">
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
@@ -2055,7 +2059,6 @@ function renderInspector() {
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor3" value="${c.style.palette.accent}"><small style="font-size:10px;color:var(--sub)">포인트</small></span>
       </div>
       <label>키비주얼</label>
-      <div id="iDpi" style="font-size:11px;line-height:1.5;margin-bottom:6px"></div>
       <div class="kvthumb" id="iKv" style="width:100%;height:76px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
@@ -2070,14 +2073,8 @@ function renderInspector() {
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
-      <div id="iFontNote">${fontNoticeHtml(campaignMediumIds(c), c.style.fonts.heading)}</div>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
-      </section>
-      ${ED.presetCampaignHtml()}
-      <section class="isec">
-      <h3>산출물 <span class="mode">${c.artifacts.length}종</span></h3>
-      <button class="btn pri" id="iAdd" style="width:100%;margin-top:6px">＋ 산출물 추가</button>
       </section>
       <div id="inspNote"></div>`;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
@@ -2129,7 +2126,7 @@ function renderInspector() {
     insp.querySelector('#iColor1').oninput = styleChange;
     insp.querySelector('#iColor2').oninput = styleChange;
     insp.querySelector('#iColor3').oninput = styleChange;
-    insp.querySelector('#iFont').onchange = () => { insp.querySelector('#iFontNote').innerHTML = fontNoticeHtml(campaignMediumIds(c), insp.querySelector('#iFont').value); styleChange(); };
+    insp.querySelector('#iFont').onchange = () => styleChange();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     const setBg = (patch, label) => { restyle({ background: { ...c.style.background, ...patch } }, label); renderInspector(); };
     insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
@@ -2245,7 +2242,7 @@ function renderInspector() {
       restyle({ fonts: { heading: id, body: id } }, '폰트 첨부');
       renderInspector();
     });
-    insp.querySelector('#iAdd').onclick = () => addArtifactModal();
+    insp.querySelector('#iAdd')?.addEventListener('click', () => addArtifactModal());   // 10-15 밤: 인스펙터 간소화로 버튼 없음(상단 메뉴·모달은 그대로)
     ED.bindPresetCampaign(insp, restyle);
     return;
   }
@@ -2260,13 +2257,12 @@ function renderInspector() {
   insp.innerHTML = `
     <section class="isec">
     <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
-    <div class="hint">이 산출물에서만 다르게 표기할 값. 비우면 공통값. 개별 값은 일괄 반영에서 보존됩니다.</div>
     ${campaignFields(c).map(f => `
       <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
       <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
     </section>
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '<section class="isec">' : ''}
-    ${nVar > 1 ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
+    ${(nVar > 1 && a.channel !== 'ad') ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
       `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
     ${a.channel === 'badge' ? `
       <label>참석자 명단 <span style="opacity:.6">${(c.roster ?? []).length}명</span></label>
@@ -2290,14 +2286,8 @@ function renderInspector() {
       </div>` : ''}
     ${a.channel === 'ad' ? `
       ${artifactFontHtml(a, c)}
-      <label>상세 라벨 알약 <span style="opacity:.6">공통: ${CHIP_LABEL[c.style.chipTone ?? 'tint']}</span></label>
-      <div class="vseg" id="iChipOv"><button data-cto="" class="${!a.overrides.style?.chipTone ? 'on' : ''}">공통 따름</button>${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-cto="${k}" class="${a.overrides.style?.chipTone === k ? 'on' : ''}">${v}</button>`).join('')}</div>
-      <label>매체 규격</label>
-      <div style="font-size:11.5px;color:var(--sub);line-height:1.6">${adRulesText(spec)}</div>
-      <label>규격 검사</label>
-      <div id="inspLint">${lintHtml(a)}</div>` : ''}
+` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
-    ${a.channel === 'ad' ? ED.guideSectionHtml(a) + ED.editSectionHtml(a) + ED.presetArtifactHtml(a) : ''}
     <section class="isec">
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
