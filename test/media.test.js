@@ -7,7 +7,8 @@ import { join } from 'node:path';
 // 규칙이 되는 값에는 출처가 있고, 출처 없는 값은 "확인필요"로 격리되어 있어야 한다(불변식 ⑦).
 
 const dir = join(import.meta.dirname, '..', 'core', 'media');
-const files = readdirSync(dir).filter(f => f.endsWith('.json'));
+// '_' 로 시작하는 파일(_extract.json 추출 목록)은 매체 JSON 이 아니다 — build-media.mjs 와 같은 규칙
+const files = readdirSync(dir).filter(f => f.endsWith('.json') && !f.startsWith('_'));
 const media = files.map(f => ({ file: f, ...JSON.parse(readFileSync(join(dir, f), 'utf8')) }));
 
 test('there is at least one medium and every file parses to the schema shape', () => {
@@ -33,7 +34,9 @@ test('spec ids are globally unique — they become artifact keys', () => {
 test('a spec marked 확정 has the numbers a checker needs, and every number has a source', () => {
   for (const m of media) for (const s of m.specs) {
     assert.ok(s.source, `${s.id}: 출처 없음`);
-    assert.ok(['확정', '확인필요'].includes(s.confidence), `${s.id}: confidence는 확정/확인필요 중 하나`);
+    // 보드 = 매체 공식 규정이 아니라 사용자 「컨시어지」 보드(프레임 치수)에서 채운 값 — 앱·가이드는 확인 필요로 다룬다(10-14 당근 1종)
+    assert.ok(['확정', '확인필요', '보드'].includes(s.confidence), `${s.id}: confidence는 확정/확인필요/보드 중 하나`);
+    if (s.confidence === '보드') assert.match(String(s.source ?? ''), /figma:sZMBhkuLMEiyMLPPpGxvC1|컨시어지/, `${s.id}: 보드 값이면 출처에 컨시어지 보드가 있어야 한다`);
     // deliverable:false = 매체가 직접 만들고 우리는 자료만 넘기는 상품. 우리 산출물이 아니므로 치수를 요구하지 않는다.
     if (s.confidence === '확정' && s.deliverable !== false) {
       assert.ok(Array.isArray(s.format) && s.format.length, `${s.id}: 확정인데 포맷이 없다`);

@@ -40,6 +40,10 @@ const hireOf = t => { const s = String(t ?? '').trim(); return !s ? '채용' : /
 // 시즌이 없으면 마감일에서 — 레퍼런스 13장 중 12장이 "2024 상반기"·"2026년" 같은 시즌을 서브나 메인에 둔다
 const seasonOf = d => { const m = String(d ?? '').match(/^(\d{4})-(\d{2})/); return m ? `${m[1]} ${+m[2] <= 6 ? '상반기' : '하반기'}` : null; };
 
+// 일정을 말하는 고지 문구(「채용 일정은 공고별 상이」「상시 채용」「채용 시 마감」) — 마감일이 없을 때 날짜 자리를 대신한다
+const SCHEDULE_NOTE = /일정|상이|상시|수시|채용\s?시\s?마감|마감\s?시/;
+// 좁은 칸용 줄임 — 「* 채용 일정은 공고별 상이합니다.」 → 「채용 일정 공고별 상이」(한진 디자이너 잡다 PC 그대로)
+const shortNote = t => String(t).replace(/^[*※]\s*/, '').replace(/(\S)[은는]\s/, '$1 ').replace(/\s*(합니다|입니다|됩니다)\.?$/, '').replace(/\.$/, '').trim();
 // 맥락 → 역할별 문구 사다리(긴 것 → 짧은 것) + 상세 정보 줄. 채용이 기본, 행사 맥락도 같은 슬롯으로 흘린다.
 // 채용 헤드라인 문법은 보드 레퍼런스(한미글로벌·세아제강·안랩·삼진제약·신한캐피탈)에서: 서브 = 시즌, 메인 = 회사 + 채용구분, 직무는 상세 줄.
 // 좁은 세로 띠(도레이·PT코리아)는 회사가 서브로 올라가고 메인은 채용구분만 — *Narrow 사다리를 렌더러가 형태를 보고 고른다.
@@ -47,9 +51,12 @@ export function copyLadder(ctx) {
   const c = ctx.core ?? {};
   const uniq = arr => [...new Set(arr.filter(s => s != null && String(s).trim() !== ''))];
   if (ctx.kind === 'recruit') {
-    const d = c.deadline ? md(c.deadline) : '', s0 = c.startDate ? md(c.startDate) : '';
+    // 마감 시각(deadlineTime 'HH:MM') — 정시는 「17시」, 아니면 「23:59」(10-14 t1014: GS에너지 「7.2(수) 17시」·LT소재·제일약품 「23:59」 디자이너 3곳). 날짜가 없으면 붙이지 않는다
+    const tm = (() => { const m = String(c.deadlineTime ?? '').trim().match(/^(\d{1,2}):(\d{2})$/); return m ? (m[2] === '00' ? ` ${+m[1]}시` : ` ${m[1].padStart(2, '0')}:${m[2]}`) : ''; })();
+    const d = c.deadline ? md(c.deadline) + tm : '', s0 = c.startDate ? md(c.startDate) : '';
     const period = d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '';
     const qual = c.qualification ? String(c.qualification) : '';
+    const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
     const season = c.season || seasonOf(c.deadline);   // 적지 않았으면 마감일에서 유추(10월 마감 → 2026 하반기) — 정보가 없다고 비워 두지 않는다(10-06 사용자 "정보 없는 건 임의로 넣어야지")
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
     const slogan0 = c.slogan || (c.client ? `${c.client}에서 함께할 인재를 찾습니다` : null);   // 좁은 띠(narrowMain 분기)와 구글 아이브로가 쓴다
@@ -71,11 +78,12 @@ export function copyLadder(ctx) {
       mainNarrow: uniq([...narrowMain, c.role ? `${c.role} 채용` : null, '채용 공고']),
       subNarrow: uniq([c.headline ? subFull : null, slogan, [season, c.client].filter(Boolean).join(' '), season, c.client, slogan0]),
       // 날짜가 혼자 한 줄에 설 때(서브·날짜 줄)는 라벨을 붙이지 않는다 — Figma 9월 공채 디자이너 12/12 무라벨(10-08 typo A7). 상세 목록 안에서는 「접수기간」 라벨 유지(details)
-      date: uniq(period ? [period, d ? `~${d}` : null] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
+      // 마감일이 없고 고지 문구가 일정을 말하면(「* 채용 일정은 공고별 상이합니다.」) 그 문구가 날짜 자리를 쓴다 — 자리표시 「0/00(월) ~ 0/00(일)」 대신(10-14 t1014 한진정보통신 디자이너 9/9 날짜 없음, 3/9 이 문구)
+      date: uniq(period ? [period, d ? `~${d}` : null] : scheduleNote ? [scheduleNote, shortNote(scheduleNote), shortNote(scheduleNote).split(/\s+/).slice(-2).join(' ')] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
       extra: uniq([qual, qual.split(/[·,/]/)[0]?.trim()]),
       advertiser: uniq([c.client]),
       cta: uniq([c.ctaText, '지원하기', '지원']),
-      notice: uniq([c.notice]),
+      notice: uniq([scheduleNote ? null : c.notice]),
       // 라벨 칩은 날짜 앞의 「접수기간」이 먼저(잡다 PC 5/5 「모집기간」 칩 + 날짜, NAP 320×480 「모집기간」 칩 — 10-12 매체별 규격정리). 날짜가 없으면 직무·고용형태
       label: uniq([period ? '접수기간' : null, c.role ? `모집직무 : ${c.role}` : null, c.employType]),
       url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
@@ -168,6 +176,44 @@ function cutWindow(cols, kTarget, kMax = 2.4) {
   return best;
 }
 export function renderAd(ctx, style, spec) {
+  const bust = bustOf(style, spec);
+  if (!bust) return renderAdBase(ctx, style, spec);
+  return bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
+}
+
+// 서 있는 인물·캐릭터 누끼(전신 — 그림 비율 < CANON bust.maxAr)는 상반신으로(10-14 t1014 동서식품 인물 누끼 디자이너 9/9 머리~허리 · 바이오노트 개 누끼 인스타 V1 머리~가슴).
+//   상자에 통째로 맞추면(contain) 키에 맞춰 작아져 얼굴이 점만 해진다. 배치는 「위 vis 몫만 있는 그림」으로 잡고(비율·주인공 상자·행 프로필을 그 몫으로),
+//   그린 뒤 그림 상자마다 머리를 위(숨 top)에 붙이고 아래는 상자 밖으로 흘린다. 원본 확대 상한(CANON maxUpscale)은 그대로
+function bustOf(style, spec) {
+  const B = CANON.bust; const m = style?.kvMeta;
+  if (!B || !style?.keyVisual || !m?.field || objectNeedOf(spec.rules ?? {}, m.field ?? null)) return null;
+  const t = kvTypeOf(m), ar = m.ar;
+  if (!t || t.id !== 'cutout' || !t.flags.character || t.flags.group || !(ar > 0) || ar >= B.maxAr) return null;
+  if (spec.w / spec.h < (B.minCanvasAr ?? 0)) return null;   // 세로로 긴 지면(300×1050·스토리·세로 띠·320×480 — 폭/높이 < 0.7)은 전신이 자리를 채운다. 상반신이면 빈 띠(10-14 desk-03-cut·hdot-speaker-b 300×1050, 동서식품 NAP 320×480 29%)
+  const v = B.vis, f = m.field, fo = f.focus;
+  const focus = fo ? (() => { const top = Math.max(0, fo.y - fo.h / 2), bot = Math.min(v, fo.y + fo.h / 2); return { ...fo, y: Math.round((top + bot) / 2 / v * 100) / 100, h: Math.round((bot - top) / v * 100) / 100 }; })() : fo;
+  const rows = f.rows?.length ? f.rows.slice(0, Math.max(1, Math.round(f.rows.length * v))) : f.rows;
+  return { ar, v, meta: { ...m, ar: ar / v, px: m.px ? [m.px[0], Math.round(m.px[1] * v)] : m.px, field: { ...f, focus, rows }, bust: v } };
+}
+function bustCrop(html, style, bust, spec) {
+  const B = CANON.bust, ar = bust.ar;
+  const capW = cutoutCapW(style);
+  let hit = false;
+  const out = html.replace(/<div data-object="1" style="([^"]*?)width:(\d+)px;height:(\d+)px;([^"]*?)background:url\('([^']*)'\) ([a-z ]*?)\/contain no-repeat;/g, (m, a, bw, bh, b, url, pos) => {
+    bw = +bw; bh = +bh;
+    const Hd = Math.round(Math.min(bh / bust.v, bw * B.widen / ar, Number.isFinite(capW) ? capW / ar : Infinity));
+    if (Hd <= bh * 1.02) return m;
+    hit = true;
+    const x = /right/.test(pos) ? 'right' : /left/.test(pos) ? 'left' : 'center';
+    // 상자 아랫변이 지면 안쪽이면(카카오·에브리타임 오브젝트 상자) 허리 아래를 녹인다 — 지면 밖으로 흘리지 못하면 몸통이 상자 변에서 뚝 끊긴다(10-14 desk-03-cut·hdot-speaker-b 회귀)
+    const top = +((`${a}${b}`.match(/(?:^|;)top:(-?\d+)px/) ?? [])[1] ?? NaN), atBottom = /(?:^|;)bottom:0/.test(`${a}${b}`) || (Number.isFinite(top) && top + bh >= spec.h - 2);
+    const fade = atBottom ? '' : meltMask('to top', 100 - B.fadeFrom);   // 아래에서 위로 녹임(같은 smoothstep 곡선)
+    return `<div data-object="1" data-bust="${bust.v}"${fade ? ` data-melt="${100 - B.fadeFrom}" data-melt-dir="to top"` : ''} style="${a}width:${bw}px;height:${bh}px;${b}${fade}background:url('${url}') ${x} ${Math.round(bh * B.top)}px/auto ${Hd}px no-repeat;`;
+  });
+  return hit ? out.replace('&quot;rules&quot;:[', '&quot;rules&quot;:[&quot;kv.bust&quot;,') : out;
+}
+
+function renderAdBase(ctx, style, spec) {
   const rules = spec.rules ?? {};
   // 오브젝트 누끼 — 투명 PNG 필수 자리와 그라데이션을 넣을 수 없는 상자 자리는 배경 노릇을 하는 키비주얼 대신 따로 올린 누끼를 쓴다(core/adfields.js objectNeedOf).
   // 없으면 그 자리는 글자만(hasKv 게이트). 누끼가 아닌 그림을 올렸어도 같은 게이트에 걸려 글자만 — 앱이 올릴 때 알려 준다
@@ -238,9 +284,12 @@ export function renderAd(ctx, style, spec) {
   // 아이브로(sub)는 과반(> 0.5)일 때만, 얇은 띠(strip)엔 넣지 않는다 — NAP 320×100 아이브로 2/4 가 띠를 넘쳐 잘렸다
   // 매체 가이드가 슬롯을 정한 매체(구글 — 날짜는 상세 칩 안)도 더하지 않는다. 얇은 띠(h < 120)는 과반(> 0.5)일 때만 — NAP 320×50 날짜 2/4 를 넣으면 메인이 11px 로 내려앉는다
   if (sampleRoles && !logoOnly && ctx.kind === 'recruit' && !combined && !reqDate && !mr.guide?.slots) {
+    // 누끼 떼(사람·사물 여럿 — 키가 고르게 높아 위가 비지 않는다)는 샘플이 보여 준 상세 줄(규정 아님)을 더하지 않는다 — 상세가 머리 위로 올라갔다(10-14 t1014 ABL·바이오노트 고양이 NAP 300×250 77%, ABL 디자이너 300×250 상세 없음)
+    const groupCut = !!(style.keyVisual && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.group);
     for (const r of ['sub', 'date', 'detail']) {
       const sr = sampleRoles[r];
       if (slots[r] || !sr || sr.share < 0.5) continue;
+      if (r === 'detail' && groupCut) { fired('sample.detail.groupSkip'); continue; }
       if (r === 'date' && slots.extra && (ladder.extra ?? []).some(x => (ladder.date ?? []).includes(x))) continue;   // 날짜가 이미 「기타 문구」 칸(에브리타임 커뮤니티보드 모집 일정)에 갔으면 또 세우지 않는다 — 10-13 전수 검사: 두 줄이 되며 메인이 안전영역 위로 1px 밀렸다(17케이스)
       if ((r === 'sub' || h < 120) && sr.share <= 0.5) continue;
       if (r === 'sub' && h < 120) continue;
@@ -281,6 +330,26 @@ export function renderAd(ctx, style, spec) {
   }
 
   const tScale = templateScale(rules, w);
+  // 템플릿 틀(10-15 templateMold, 사용자 「구멍 뚫린 틀」): 매체 샘플을 그대로 틀로 쓰는 규격(자소설 — rules.safeArea.measuredFromTemplate.mold).
+  //   글자 칸(x·줄 y·크기·굵기·색)·로고 칸·그림 칸·지면 처리가 고정이고 캠페인마다 배경색·키비주얼·문구만 바뀐다. 일반 배치(CANON 행간·블리드·로고 상한·유리/채도 지면·스크림·프리셋)는 돌리지 않는다
+  const tpl0 = rules.safeArea?.measuredFromTemplate ?? null;
+  const mold = tpl0?.mold ?? null;
+  if (mold?.rows) for (const r of ['sub', 'main', 'detail']) { const ln = mold.rows[r]?.lines; if (slots[r] && ln) slots[r] = { ...slots[r], lines: Math.min(slots[r].lines ?? ln, ln) }; }   // 틀의 줄 수가 규정보다 적으면(채용공고 서브 1줄) 틀대로
+  if (mold) { if (!mold.rows?.date) delete slots.date; delete slots.label; }   // 틀에는 날짜 줄·라벨 칩이 따로 없다(달력은 마감일 줄이 틀) — 날짜는 상세 첫 항목(「모집일정」)으로(세아제강 28:124·28:333)
+  // 틀의 서브는 시즌이 먼저(mold.subPrefer 'season' — 자소설 샘플 4/4 「2026년 하반기」·「2026 상반기」), 시즌이 없으면 기존 사다리(슬로건·회사)
+  if (mold?.subPrefer === 'season' && ctx.kind === 'recruit' && ctx.core?.season) {
+    const s0 = String(ctx.core.season); ladder.sub = [s0, ...(ladder.sub ?? []).filter(x => x !== s0)]; ladder.subNarrow = [s0, ...(ladder.subNarrow ?? []).filter(x => x !== s0)];
+    // 시즌이 서브에 섰으니 메인에서는 뺀다(세아 「세아제강 / 신입/경력사원 채용」 — 메인에 시즌 없음 4/4). 후보가 하나도 안 남으면 그대로
+    for (const k0 of ['main', 'mainNarrow', 'mainWide']) { const kept = (ladder[k0] ?? []).filter(c => !String(c).includes(s0)); if (kept.length) ladder[k0] = kept; }
+  }
+  // 틀 메인은 회사 / 채용구분 두 줄이 먼저(세아 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (채용연계형 인턴)」 4/4) — 줄 수가 2 이상인 틀에서 회사로 시작하는 후보를 회사 뒤에서 나눈 것을 앞에 둔다
+  if (mold && (mold.rows?.main?.lines ?? 1) >= 2 && ctx.core?.client) {
+    const cl = String(ctx.core.client);
+    for (const k0 of ['main', 'mainNarrow']) {
+      const two = (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(cl + ' ') && String(c).length > cl.length + 1).map(c => `${cl}\n${String(c).slice(cl.length + 1)}`);
+      if (two.length) ladder[k0] = [...two, ...(ladder[k0] ?? [])];
+    }
+  }
   // 매체가 밝힌 글자 크기 띠(블라인드 게시글 textLimits fontSizeRange 32~56 — 이미지 안 글자 전부)
   const fsRange0 = inLimits.find(t => t.fontSizeRange)?.fontSizeRange ?? null;
   const fsRange = fsRange0 ? { min: fsRange0.min != null ? Math.round(fsRange0.min * tScale) : null, max: fsRange0.max != null ? Math.round(fsRange0.max * tScale) : null } : null;
@@ -303,7 +372,9 @@ export function renderAd(ctx, style, spec) {
     // 줄 수 추정: 매체가 줄당 글자수를 정했으면 글자수로, 아니면 글꼴 폭(textWidth)으로 — 글자수 0.9em 어림은 띄어쓰기·빗금까지 한 글자로 세어
     // "㈜일화 신입/경력 사원 모집"(575px)을 582px 칸에서 두 줄로 보고 회사를 떨어뜨린다(카카오). fitFontSize와 같은 자로 재야 둘이 어긋나지 않는다
     const linesOf = c => (slot?.maxCharsPerLine != null || !(fs && widthPx)) ? estimateLines(c, perLine, counting) : Math.max(1, Math.ceil(textWidth(c) * fs * 1.04 / widthPx));
-    const fits = c => (slot?.maxChars == null || countChars(c, counting) <= slot.maxChars) && wordOk(c)
+    // 틀(mold)의 글자수는 줄당 값(자소설 「행당 최대 15자」) — 적어 둔 줄바꿈이 있으면 가장 긴 줄로 센다(「현대케피코 / 신입채용 (채용연계형 인턴)」 28:1002)
+    const charsOf = c => mold ? Math.max(...String(c).split('\n').map(t => countChars(t, counting))) : countChars(c, counting);
+    const fits = c => (slot?.maxChars == null || charsOf(c) <= slot.maxChars) && wordOk(c)
       && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || linesOf(c) <= linesCap);
     if (only != null) return { text: only, fits: fits(only), last: false };   // 특정 문구 하나가 이 크기에 들어가는지만
     const hit = cands.find(fits);
@@ -344,17 +415,20 @@ export function renderAd(ctx, style, spec) {
   const edgeSolid = /좌우\s?(1px|16px|여백)|가변영역/.test(bgText);
   // 반사·유리 누끼(kvtypes flags.glass)는 매체의 밝은 지면보다 어두운 브랜드 지면이 먼저 — 밝은 틴트 위에선 회색으로 탁해진다(Figma 9월 공채 13/13 다크, 10-08 사용자 결정)
   const glassKv = !!(style.keyVisual && (kvTypeOf(style.kvMeta)?.flags.glass || kvTypeOf(style.kvMeta)?.flags.frame));   // 장식 프레임(유리 슬랩)도 어두운 지면(10-09 figma-dg 9/9)
-  const lightProfile = !glassKv && (!!guide?.lightField || (D?.bgLight?.value ?? 0) >= 0.6);      // 자소설: 밝은 지면 위 검정 카피(9/13) · 구글: 가이드가 밝은 지면(흰색·브랜드 틴트 20/28)
+  // 10-15 템플릿 우선(사다리: 매체 규정 > 템플릿 실측 > 매체 가이드 > CANON): 템플릿 틀 매체(자소설)는 템플릿의 밝은 지면이 유리 누끼 어두운 지면 규칙보다 먼저 — 세아제강 PC팝업 28:124 밝은 #FFFFF7 + #555 글자.
+  //   가이드 수준 밝은 지면(구글 lightField)만 유리 누끼가 어두운 지면으로 뒤집는다(10-08 결정 유지)
+  const templateLight = !!mold && (mold.light ?? ((D?.bgLight?.value ?? 0) >= 0.6));
+  const lightProfile = templateLight || (!glassKv && (!!guide?.lightField || (D?.bgLight?.value ?? 0) >= 0.6));      // 자소설: 밝은 지면 위 검정 카피(9/13) · 구글: 가이드가 밝은 지면(흰색·브랜드 틴트 20/28)
 
   /* ── 글꼴 ── */
   const required = mr.fonts?.required;
   const family = required ? `'${required}', ${fontStack(style.fonts.heading)}` : fontStack(style.fonts.heading);
 
   /* ── 템플릿 실측 칸 (자소설) ── */
-  const tpl = rules.safeArea?.measuredFromTemplate ?? null;
-  const tLogo = rect(tpl?.logo ?? tpl?.logoHorizontal ?? null, tScale);
-  let tImage = rect(tpl?.image ?? tpl?.imageMain ?? null, tScale);
-  const tText = tpl?.textColumn ? { x: Math.round(tpl.textColumn.x * tScale), w: Math.round(tpl.textColumn.w * tScale) } : null;
+  const tpl = tpl0;
+  const tLogo = rect(mold?.logo ?? tpl?.logo ?? tpl?.logoHorizontal ?? null, tScale);   // 틀의 로고 칸이 먼저(10-15)
+  let tImage = rect(mold?.image ?? tpl?.image ?? tpl?.imageMain ?? null, tScale);
+  const tText = mold?.x != null ? { x: Math.round(mold.x * tScale), w: Math.round((mold.w ?? (w - mold.x)) * tScale) } : tpl?.textColumn ? { x: Math.round(tpl.textColumn.x * tScale), w: Math.round(tpl.textColumn.w * tScale) } : null;
   const allowLogo = !(rules.logo && rules.logo.count === 0);   // M스탠다드·PC달력배너: 로고 삽입 불가
   // 투명 배경 필수 규격(알바몬 스플래시)에 바탕을 품은 그림을 넣으면 네모가 뜬다 — 누끼만 그린다. 바탕 있는 그림은 이 규격에선 생략(로고·글자만)
   const kvKind = style.kvMeta?.field?.kind ?? null;
@@ -370,8 +444,8 @@ export function renderAd(ctx, style, spec) {
   const mirrorX = forcedSide === 'left';                               // 왼쪽 = 오른쪽 열을 좌우로 뒤집어 그린다(그림 자체는 뒤집지 않는다)
   if (forcedSide) style = { ...style, kvUse: 'part' };
   else if (EP?.ok && EP.want === 'bg') { const t0 = kvTypeOf(style.kvMeta); const keep = kvKind === 'texture' || !!t0?.flags.frame || !!(t0?.flags.room && kvFull(style, w, h)); if (!keep) style = { ...style, kvUse: 'full' }; }
-  const frameFull = hasKv && !!kvTypeOf(style.kvMeta)?.flags.frame && !logoOnly && !transparent && style.kvUse !== 'part';
-  const textureFull = hasKv && (kvKind === 'texture' || frameFull) && !logoOnly && style.kvUse !== 'part';
+  const frameFull = hasKv && !mold && !!kvTypeOf(style.kvMeta)?.flags.frame && !logoOnly && !transparent && style.kvUse !== 'part';   // 틀 규격은 그림 칸에 담는다(10-15)
+  const textureFull = hasKv && !mold && (kvKind === 'texture' || frameFull) && !logoOnly && style.kvUse !== 'part';
   if (textureFull) { tImage = null; vCenter = true; }
   const hasLogo = !!(style.logo || style.logoLight);
   // 사진 전체형(보드 예시 9/136: 코엑스·원광대병원·호반) — 담당자가 고른 때만. 사진이 지면 전체를 채우고 글자 쪽에서 시작하는 브랜드색 스크림 위에 흰 글자
@@ -394,10 +468,10 @@ export function renderAd(ctx, style, spec) {
   const gCorner = !forcedSide && !!(guide?.objectRatio?.square && L.shape === 'square' && hasKv && !photoFull && !roomFull && !textureFull && !tImage && !kvWideBand);
   // 단일 사물 누끼(kvtypes flags.single — 캐릭터·떼 아님): 크게, 우하단으로 블리드(CANON objectBleed — 70% 이상 보임, 오른쪽·아래로만 30%까지 잘림, 목표 면적).
   // 형태 문법·가이드가 정한 그림 자리(오른쪽 열·모서리 상자·아래 띠)의 왼쪽·위 경계는 지키고, 그 안에서 맞춰 넣기 대신 키워서 오른쪽·아래 변 밖으로 흘린다. 템플릿 칸(자소설)은 템플릿대로
-  const singleObj = !mirrorX && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);
+  const singleObj = !mirrorX && !mold && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로)
   { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
     TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
-    if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv) fired('glassDark'); }
+    if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv && !templateLight) fired('glassDark'); if (mold) fired('templateMold'); }
   let bleedP = null;
   // 편집 「키비주얼 크기」: 블리드는 목표 면적을 배율²로(잘림 상한 maxCut 은 그대로)
   const bleedCfg = b => { const k = ED?.kvSize ? KV_SIZE_K[ED.kvSize] : 1; return k === 1 ? b : { ...b, targetArea: Object.fromEntries(Object.entries(b.targetArea ?? {}).map(([s0, v]) => [s0, [v[0] * k * k, v[1] * k * k]])) }; };
@@ -554,7 +628,11 @@ export function renderAd(ctx, style, spec) {
   else if (ED?.bgFill === 'kv' && style.keyVisual) { const hx = style.kvMeta?.field?.edges?.[facing]?.hex ?? style.kvMeta?.colors?.[0] ?? null; if (hx) style = { ...style, background: { ...(style.background ?? {}), color: String(hx).toUpperCase() } }; }
   if (ED?.bgGrad) style = { ...style, background: { ...(style.background ?? {}), mode: ED.bgGrad === 'none' ? 'solid' : 'gradient' } };
   const scrimBase = (() => { const b = style.background?.color ?? p.primary ?? '#2456D6'; return contrast(b, WHITE) >= 3 ? b : mix(b, BLACK, 0.55); })();
+  // 로고 전용 규격(프로필·브랜드 로고 96~300px): 흰 바탕 + 원색 로고 — 「매체별 규격정리」 샘플 5/5(대원제약·코엑스·제일약품·LX인터내셔널·PTKOREA)와 10-14 t1014 제일약품 네이버 프로필 3/3(시안 1·2·최종).
+  //   브랜드 지면 + 흰 단색 로고는 엠블럼 속 글자(JEIL)를 지워 흰 덩어리로 만들었다. 흰 로고만 있거나(톤 light) 배경색을 직접 골랐으면 예전대로
+  const logoWhite = logoOnly && !transparent && !!style.logo && style.logoTone !== 'light' && !style.background?.color && (style.logoMeta?.solid ?? 0) < 0.85;
   let field = transparent ? null
+    : logoWhite ? { stops: ['#FFFFFF'], angle: 0, css: '#FFFFFF', text: BLACK, source: 'logo-only-white', seamless: false, gradient: false, contrast: 21 }
     : photoFull ? { stops: [scrimBase], angle: 0, css: scrimBase, text: WHITE, source: 'photo-full', seamless: false, gradient: false, contrast: Math.round(contrast(scrimBase, WHITE) * 100) / 100 }
     // 질감: 지면 = 그림 전체. 글자색은 글자가 앉는 왼쪽 위 사분면 색으로 — 색 있는 지면은 흰색이 먼저(큰 글자 3:1, resolveField와 같은 관례 · 10-09 마이다스 파란 유리 면에 검정 글자), 못 넘으면 검정(4.5:1), 둘 다 아니면 흰색(3:1 미만이면 스크림을 깐다 — textureScrim)
     : frameFull ? (() => { const st = brandDeep(p.primary ?? '#2456D6'); return { stops: st, angle: 135, css: `linear-gradient(135deg,${st[0]} 0%,${st[1]} 100%)`, text: WHITE, source: 'kv-frame', seamless: true, gradient: true, contrast: Math.round(Math.min(...st.map(c => contrast(c, WHITE))) * 100) / 100 }; })()
@@ -562,6 +640,7 @@ export function renderAd(ctx, style, spec) {
     // 배경형: 지면색 = 글자 자리의 바탕색(그림 그대로), 글자는 그 밝기로 — 밝으면 검정(브랜드색이 4.5:1이면 brandMain이 이어받는다), 어두우면 흰색
     : roomFull ? (() => { const hx = roomFull.hex ?? '#FFFFFF', tx = (roomFull.lum ?? 1) >= 0.6 ? BLACK : WHITE; return { stops: [hx], angle: 0, css: hx, text: tx, source: 'kv-full', seamless: true, gradient: false, contrast: Math.round(contrast(hx, tx) * 100) / 100 }; })()
     : resolveField(style, { facing, solidOnly: solidOnly || (objectSide === 'template' && imgCorner), light: lightProfile, lightPhoto: !!guide?.lightField });
+  // 틀 지면(10-15, 채용공고 샘플 6개 전수 실측): 배경색은 자유(브랜드색 — 도레이·모비스·한독 어두운 바탕). 밝으면 샘플 글자색, 어두우면 흰 글자·흰 로고 — 흰/검 전환은 CANON 그대로(moldFg·logoSrc0)
   // 템플릿 하단 띠를 주인공으로 당겨 채웠으면 띠의 윗변은 그림 한가운데 — 그 줄의 바탕색으로 지면을 잇는다
   if (field && bandCrop) field = joinField(field, joinColour(style, bandCrop.top), 'bottom');
   // 스크림은 글자 쪽에서 시작해 글자 칸 폭의 60~70%에서 사라진다(보드 사진 전체형 9장) — 세로형은 위에서 아래로, 가로형은 왼쪽에서 오른쪽으로
@@ -590,7 +669,8 @@ export function renderAd(ctx, style, spec) {
   // 편집 「스크림 세기」(사진 전체형): 없음 = 스크림 층을 빼고, 약·중·강 = 불투명도 띠
   const PH_A = { low: [0.5, 0.35], mid: [0.75, 0.55], high: [0.96, 0.88] };
   const phA = ED?.scrim ? PH_A[ED.scrim] ?? null : [0.94, 0.82];
-  const bgCss = () => photoFull
+  const bgCss = () => (mold?.field && mold.bg) ? `background:${mold.bg};`   // 틀의 지면 처리가 영역이면(자소설 PC메인 왼쪽 350×280) 바탕은 템플릿 고정색, 브랜드 지면은 그 영역에만(아래 moldField)
+    : photoFull
     ? `background:${phA ? `linear-gradient(${scrimDir},${rgba(scrimBase, phA[0])} 0%,${rgba(scrimBase, phA[1])} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : ''}${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
     // 질감: 통째로 깐다(가운데 맞춤 cover). 글자 대비가 4.5:1에 못 미치면(10-09: 3:1 → 4.5:1 — 파란 유리 면 위 흰 상세 글자) 글자 쪽에서 시작하는 브랜드색 스크림(사진 전체형과 같은 문법)
     : frameFull ? (() => { const tallF = L.shape === 'tall' || L.shape === 'tower'; const dw = Math.round(Math.max(w * 1.7, tallF ? h * 0.45 * (style.kvMeta?.ar ?? 1.8) : 0)); return `background:linear-gradient(${scrimDir},${rgba(field.stops[0], 0.85)} 0%,${rgba(field.stops[0], 0.55)} ${Math.round(scrimEnd * 0.45)}%,${rgba(field.stops[0], 0)} ${Math.round(scrimEnd * 0.8)}%),url('${esc(style.keyVisual)}') ${tallF ? 'right bottom' : 'right center'}/${dw}px auto no-repeat,${field.css};`; })()
@@ -606,11 +686,13 @@ export function renderAd(ctx, style, spec) {
   const fgIsDark = mainFg0 !== '#FFFFFF';
   // 가이드 매체의 밝은 지면: 메인은 브랜드색(일화 레드·동부 네이비·비씨 네이비 3/3) — 지면 어디서나 4.5:1이 나올 때만. 어두운 지면은 흰색 그대로(ABL)
   const brandMain = !!(guide?.textColour === 'brand' && field && fgIsDark && !tc.main && p.primary && Math.min(...field.stops.map(s => contrast(s, p.primary))) >= 4.5);
-  const mainFg = brandMain ? p.primary : mainFg0;
+  // 틀 글자색(10-15): 밝은 지면이면 샘플 글자색(세아제강 #555555 · 현대케피코 #000000), 어두운 지면이면 흰색(현대모비스 28:382) — 서브·상세도 흐리게 하지 않고 같은 색(「모든 문구 1가지 색상」)
+  const moldFg = mold ? (fgIsDark ? (mold.color ?? mainFg0) : (mold.colorDark ?? '#FFFFFF')) : null;
+  const mainFg = moldFg ?? (brandMain ? p.primary : mainFg0);
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
   const tight = !!field && field.contrast < 4.5;
-  const subFg = tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.86)'));
-  const detailFg = tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.66)' : 'rgba(255,255,255,.82)'));
+  const subFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.86)'));
+  const detailFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.66)' : 'rgba(255,255,255,.82)'));
   // 어두운 지면에는 흰색 로고. 없으면 원색 로고를 반전한다(워드마크는 괜찮고 컬러 로고는 뭉개진다 — 흰색 로고를 받는 게 맞다)
   const logoSrc0 = (!fgIsDark && style.logoLight) ? style.logoLight : style.logo;
   // 어두운 지면에 원색 로고만 있으면 반전(컬러 로고가 뭉개진다) 대신 흰 판 위에 올린다 — 동부건설 300×600 예시가 네이비 위 흰 카드에 로고를 둔 것처럼
@@ -631,16 +713,25 @@ export function renderAd(ctx, style, spec) {
   // 단색으로 바꿀 때만 글자 속까지 지운 사본(style.logoMono, core/logo.js prepLogoRGBA mono) — 속이 메워져 「●」가 되지 않게.
   // 원색 그대로면 속의 흰색을 남긴 로고(색 엠블럼 안 흰 글자가 지면색으로 비치지 않게) — 10-12 결정 12
   const logoSrc = (logoFilter && style.logoMono && logoSrc0 === style.logo) ? style.logoMono : logoSrc0;
+  // 심볼 원색 유지(10-14 t1014 제일약품·LT소재): 단색으로 바꿀 때 로고 실측이 왼쪽 심볼(logoMeta.emblem — 속에 흰 무늬가 있는 색 엠블럼)을 찾았으면
+  //   심볼은 원색 그대로, 글자만 단색. 같은 상자에 두 장을 겹치고 마스크로 가른다(svg 내보내기가 읽는 mask-image 그라데이션). data-logo 는 단색 쪽(톤 실측이 그 장을 본다)
+  const emblemX = (logoFilter && !logoTile && logoSrc0 === style.logo && style.logoMeta?.emblem?.x1) ? Math.round(style.logoMeta.emblem.x1 * 1000) / 10 : null;
+  const logoTag = (css, fill = false) => {
+    if (emblemX == null) return `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="${css};${logoFilter}"/>`;
+    const mk = (a, b) => `-webkit-mask-image:linear-gradient(to right,${a} ${emblemX}%,${b} ${emblemX}%);mask-image:linear-gradient(to right,${a} ${emblemX}%,${b} ${emblemX}%)`;
+    return `<span data-logo-keep="${emblemX}" style="position:relative;display:block;width:fit-content;${fill ? 'height:100%;' : ''}line-height:0"><img data-logo-emblem="1" src="${esc(style.logo)}" alt="" style="${css};${mk('#000', 'transparent')}"/><img data-logo="1" src="${esc(logoSrc)}" alt="" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;${logoFilter};${mk('transparent', '#000')}"/></span>`;
+  };
+  if (emblemX != null) fired('logo.emblemKeep');
   TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined } : null;
   TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv };
   TR.scrim = photoFull ? { kind: 'photo-full', base: scrimBase, a: [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
-  TR.logo = { place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
+  TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
     // 가이드 배치 규칙(10-14 place.logoSlot): 자동 로고 자리 — 모서리(왼쪽 배치면 좌우 뒤집음)·칸 종류(abs 모서리 칸 · flex 글자 열 안 · template 매체 로고 칸 · object 그림 자리)
     corner: (mirrorX && /-(left|right)$/.test(logoPlace)) ? logoPlace.replace(/(left|right)$/, x => (x === 'left' ? 'right' : 'left')) : logoPlace, slot: logoAsObject ? 'object' : tLogo ? 'template' : logoBox ? 'abs' : 'flex', tplRect: tLogo ?? null };
-  if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
+  if (logoWhite) fired('logoOnly.white'); if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${mirrorX ? pad.left : pad.right}px ${pad.bottom}px ${mirrorX ? pad.right : pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} data-trace="${esc(JSON.stringify(TR))}" style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
+  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${mold ? ' data-mold="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} data-trace="${esc(JSON.stringify(TR))}" style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -811,8 +902,10 @@ export function renderAd(ctx, style, spec) {
   // 이미지 옆으로 흐르는 구간의 폭 — 가이드 모서리 상자(구글 580)는 상자 왼쪽 선보다 넓게(일화 목록 폭 78%): 그림의 녹인 구간 위로 글자가 가도 된다
   // 오른쪽 그림이 지면으로 녹는 경우(누끼·상자 아님) 상세는 그 녹인 구간의 30%까지 흘러도 된다 — 레퍼런스(일화 970 칩이 사진 위까지)처럼. "모집직무 : 클라우드 플랫폼 / 엔지니어"가 칸 경계에서 접히지 않게
   const rightMelt = objectSide === 'right' && hasKv && !isCutout && !transparent && !oBox && !logoAsObject;
-  const detailW = (imgCorner && hasKv)
-    ? (gCorner && guide?.detailColumn ? Math.round(textW * guide.detailColumn)
+  const detailW = mold ? (tText?.w ?? textW)   // 틀: 상세도 글자 칸 전체 폭(세아 팝업 「모집직무 : 인사, 연구개발, 전기,」가 그림 칸 위까지 — 10-15)
+    : (imgCorner && hasKv)
+    // 누끼 떼(키가 고른 사람 여럿)는 상자 왼쪽 위가 비지 않는다 — 상세는 상자 왼쪽 선까지만(10-14 t1014 ABL 580×400 상세가 머리 위 39%)
+    ? (gCorner && guide?.detailColumn ? ((isCutout && kvTypeOf(style.kvMeta)?.flags.group && cornerRect) ? Math.max(60, Math.min(Math.round(textW * guide.detailColumn), cornerRect.x - pad.left - 10)) : Math.round(textW * guide.detailColumn))
       // 자소설 모서리 상자: 그림이 실제로 그려지는 네모의 왼쪽 선까지 + 녹인 구간의 28% — "클라우드 플랫폼 / 엔지니어"처럼 상자 선에서 접히지 않게
       : bleedP ? Math.max(60, Math.round(bleedP.left + Math.max(0, style.kvMeta.field.focus.x - style.kvMeta.field.focus.w / 2) * bleedP.dw) - pad.left - Math.round(w * 0.02))   // 블리드: 주인공 상자 왼쪽 선까지
       : Math.max(60, (cornerRect ? cornerRect.x + ((meltCorner || isCutout) ? Math.round(cornerRect.w * 0.28) : 0) : tImage.x) - pad.left - 10))   // 누끼 상자의 왼쪽 위는 비어 있다 — 값 줄이 그 위로 28%까지 흘러도 된다(코엑스 '전시/컨벤션ㅣ베뉴마케팅ㅣDX'가 건물 위로)
@@ -845,7 +938,7 @@ export function renderAd(ctx, style, spec) {
         const inline = `${d.label} : ${d.value}`;
         // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
         const inlineRows = estimateLines(inline, perLine, counting);
-        const useInline = stackTags ? false : (inlineRows <= 1 || !narrow);
+        const useInline = (stackTags || mold?.rows?.detail?.labelRow) ? false : (inlineRows <= 1 || !narrow);   // 틀이 라벨 줄 + 값 줄이면(자소설 채용공고 세아 「모집일정」/날짜) 항상 쌓는다
         const valTxt = stackTags ? String(d.value).split(/\s*,\s*/).filter(Boolean).join('ㅣ') : d.value;   // 쉼표로만 나눈다 — 「경영·제품·사업 분야」 가운뎃점 묶음은 한 항목(A5)
         const valRows = (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
         const needed = useInline ? inlineRows : 1 + valRows;
@@ -957,14 +1050,15 @@ export function renderAd(ctx, style, spec) {
     if (fsFit < z.dFs) z = { ...z, dFs: Math.max(floorD, fsFit) };
   }
   let mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, mainW, titleBudget, Math.min(z.cap, mainCap), floorMain, mainLine));
-  let mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
+  // 틀(mold)은 세로 예산이 아니라 틀의 줄 수(PC메인 2줄·채용공고 4줄)가 메인 줄 수 — 일반 예산으로 재면 280px 지면에서 1줄로 깎여 「현대케피코 / 신입채용 (…)」이 떨어진다(10-15)
+  let mainLines = mold ? Math.max(1, mainLinesCap ?? 2) : Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
   // 가로형에서 글자 블록이 글자 칸 높이의 72%에 못 미치면 세로 가운데 — 위에 붙여 두면 아래가 비어 보인다(970 여우: 메인 1줄 + 칩 1행)
   if (useRef && L.shape === 'wide' && !vCenter && !mainSpan && (blocksOf(z) + Math.round(mainLines * mainFs * mainLine)) < innerH * 0.72) vCenter = true;
   const rePick = pickIn('main', mainW, mainFs, mainLines);
   if (rePick !== copy.main) {
     copy.main = rePick;
     mainFs = stated.main ?? Math.floor(fitFontSize(copy.main, mainW, titleBudget, Math.min(z.cap, mainCap), floorMain, mainLine));
-    mainLines = Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
+    mainLines = mold ? Math.max(1, mainLinesCap ?? 2) : Math.max(1, Math.min(mainLinesCap ?? 99, Math.floor(titleBudget / (mainFs * mainLine))));
   }
   let towerCopyOnly = false;   // 아래 조립에서 문구 덩어리를 남는 높이의 가운데에(위아래 빈 띠를 반씩)
   // 문구 하나만 허용된 세로 띠(알바몬 스카이 120×600 '카피 한 줄 5자'): 서브·상세가 없어 글자가 한 줄 16px로 남고 띠의 40%가 빈다 —
@@ -1082,7 +1176,7 @@ export function renderAd(ctx, style, spec) {
   const mainRows = inLimits.filter(t => roleOf(t.field) === 'main' && /메인|타이틀|제목|대문구/.test(String(t.field)) && !/전체/.test(String(t.field)));
   const mainRowLines = mainRows.length ? mainRows.reduce((n, t) => n + (t.lines ?? 1), 0) : L.mainLines;
   // 가이드 매체(구글)는 keepInfo·twoLines가 줄 나눔을 맡는다 — 이 짝 규칙(리멤버 안랩·삼진)은 시즌을 떨어뜨린다
-  if (useRef && L.shape === 'wide' && L.mainLines >= 2 && mainRowLines >= 2 && (mainLinesCap ?? 2) >= 2 && ctx.kind === 'recruit' && core.client && !guide?.seasonInMain) {
+  if (useRef && !mold && L.shape === 'wide' && L.mainLines >= 2 && mainRowLines >= 2 && (mainLinesCap ?? 2) >= 2 && ctx.kind === 'recruit' && core.client && !guide?.seasonInMain) {   // 틀(mold)은 사다리의 「회사 / 채용구분」 후보가 이미 앞에 있다(10-15) — 세로 예산 짝 규칙이 「현대케피코 / 채용」으로 깎지 않게
     const per = slots.main?.maxCharsPerLine ?? null, total = slots.main?.maxChars ?? null;
     // 안랩 "AhnLab / 신입/경력 채용" · 삼진제약 "2026년 / 삼진제약 부문별 채용" — 시즌을 적어 줬으면 시즌이 첫 줄
     const hireTxt = hireOf(core.hiringType || core.employType);
@@ -1097,7 +1191,8 @@ export function renderAd(ctx, style, spec) {
   // 세로형 메인이 "회사 + 채용구분"으로 두 줄이 되면 회사 뒤에서 줄을 바꾼다(세아제강 "세아제강 / 신입/경력사원 채용") — 균형 줄바꿈이 "신입/"에서 끊는 것을 막는다
   if (useRef && (L.shape === 'tall' || L.shape === 'square') && ctx.kind === 'recruit' && core.client && mainLines >= 2 && !copy.main.includes('\n')) {
     const hireTxt = hireOf(core.hiringType || core.employType);
-    if (copy.main === `${core.client} ${hireTxt}` && textWidth(copy.main) * mainFs > textW) copy.main = `${core.client}\n${hireTxt}`;
+    // 채용구분이 한 줄에 안 들어가면 나누지 않는다 — 「한샘 / 리모델링 디자이너 영업직 / 채용」 세 줄이 두 줄 칸에서 말줄임(…)으로 잘렸다(10-14 t1014 한샘 2/2, 디자이너 「한샘 리모델링 디자이너 / 영업직 채용」)
+    if (copy.main === `${core.client} ${hireTxt}` && textWidth(copy.main) * mainFs > textW && (textWidth(hireTxt) * mainFs * 1.02 <= textW || mainLines >= 3)) copy.main = `${core.client}\n${hireTxt}`;
   }
   // 가이드 매체(구글): 한 줄에 넣느라 글자가 작아졌으면(일화 580 35px) 예시처럼 회사 뒤에서 두 줄로 나눠 크게 쓴다(10/10 두 줄)
   // 모서리 상자 레이아웃(구글 580·누끼 정사각)에선 한 줄이 글자 칸의 70%를 넘으면 두 줄로 — 코엑스 카드 '코엑스 / 신입사원 채용'처럼 덩어리가 크고 오브젝트와 겹치지 않는다
@@ -1161,7 +1256,7 @@ export function renderAd(ctx, style, spec) {
   };
   byWidth('label', z.smallFs, textW * 0.45);
   // 세로 띠의 서브는 두 줄까지 쓴다(도레이 "2025년 하반기 / 도레이첨단소재") — 한 줄 폭으로 자르면 회사가 떨어져 나간다
-  const subRows = (useRef && L.shape === 'tower') ? 1.9 : 1;
+  const subRows = mold?.rows?.sub?.lines ?? ((useRef && L.shape === 'tower') ? 1.9 : 1);   // 틀은 틀의 서브 줄 수(자소설 채용공고 1줄 — 세아·현대모비스 2/2)
   // mainSpan(카카오 3줄): 슬로건 줄도 글자 열 밖, 블리드 그림 상자의 왼쪽 선까지 쓸 수 있다 — 매체 하한 48px에서 「자소서 없는 간편지원」(456px)이 446px 열에 막혀 시즌으로 바뀌지 않게
   //   폭 = 주인공 상자 왼쪽 선까지(블리드 상자의 왼쪽 위는 비어 있다). 폭 어림(textWidth)이 실제보다 15~20% 넉넉하므로 여기선 0.96 여유를 두지 않는다
   const subW = (mainSpan && bleedP) ? Math.max(textW, Math.round((bleedP.left + Math.max(0, style.kvMeta.field.focus.x - style.kvMeta.field.focus.w / 2) * bleedP.dw - pad.left - Math.round(w * 0.01)) / 0.96)) : textW;
@@ -1269,7 +1364,10 @@ export function renderAd(ctx, style, spec) {
   // 짧은 회사명(12자 이하, 띄어쓰기 있음 — 「MIDAS IT」)은 한 덩어리로 — 줄이 회사명 속에서 바뀌면(MIDAS / IT) 이름이 갈려 읽힌다(10-12 남은 문제: 유리 슬랩 580×400)
   const clientKeep = (() => { const cl = String(core.client ?? '').trim(); return cl && /\s/.test(cl) && [...cl].length <= 12 ? cl : null; })();
   const keepClient = t => clientKeep ? String(t ?? '').split(clientKeep).join(clientKeep.replace(/\s+/g, '\u00A0')) : String(t ?? '');
-  const nb = (t, orphan = true) => { const s0 = keepClient(t).replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, '$1\u2060')); return orphan && /\S \S/.test(s0) ? glue(s0) : s0; };
+  // 빗금 뒤를 붙이는 건 6자까지 — 「신입/경력사원」(7자)을 붙이면 좁은 칸(자소설 160×600 줄당 6자)에서 브라우저가 낱말 속 「경력사|원」을 끊었다(10-14 t1014 동서식품). 사다리(pickInfo pieces)는 빗금 뒤에서 끊는다고 본다
+  //   줄바꿈 자리는 줄이 좁을 때만(한 줄 7.5자 미만 — 메인 칸 폭 ÷ 메인 px) — 넓은 칸에서 열면 균형 줄바꿈이 「대졸 신입/ / 경력사원 채용」처럼 빗금 뒤에서 끊었다(구글 300×600)
+  const narrowLine = (textW / Math.max(1, mainFs)) < 7.5;
+  const nb = (t, orphan = true) => { const s0 = keepClient(t).replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, ([...w].length > 6 && narrowLine) ? '$1\u200B' : '$1\u2060')); return orphan && /\S \S/.test(s0) ? glue(s0) : s0; };
   // 메인 자간(CANON tracking): 메인 글자 28px 이상이면 −2.5%em. 매체 guide가 0으로 끄면(자소설·에브리타임 템플릿 실측 0%) 없음
   const trackMain = fs => { const tk = guide?.tracking ?? {}; const v = tk.main ?? 0; return v && fs >= (tk.mainMinPx ?? 28) ? `letter-spacing:${v}em;` : ''; };
   // 역할별 굵기(core/canon.js weights · 매체 guide.weights가 이김) — 메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400. 어두운 지면 14px 미만은 500 하한(weightOf)
@@ -1306,9 +1404,11 @@ export function renderAd(ctx, style, spec) {
   };
   const { bg: chipBgCss, fg: chipFg } = chipStyleOf();
   const chipCss = `display:inline-block;font-weight:${fwOf('chip', Math.max(8, Math.round(z.dFs * 0.86)))};font-size:${Math.max(8, Math.round(z.dFs * 0.86))}px;line-height:1.5;padding:0 ${Math.round(z.dFs * 0.55)}px;border-radius:999px;background:${chipBgCss};color:${chipFg};vertical-align:baseline;white-space:nowrap`;
+  // 접수기간 라벨 이름은 매체·틀이 정한다(10-15): 자소설 「모집일정」(PC팝업 28:124·채용공고 28:333), PC메인 「채용일정」(28:1002). 기본 「접수기간」. 내부 키는 그대로 '접수기간'
+  const labelOf = l => l === '접수기간' ? (mold?.labels?.period ?? guide?.labels?.period ?? l) : l;
   const label = d => chip
     ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * (stackTags ? 0.5 : 0.25)) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`
-    : d.inline ? `<b style="font-weight:${lw}">${esc(d.label)}</b> : ` : `<b style="font-weight:${lw};display:block">${esc(d.label)}</b>`;
+    : d.inline ? `<b style="font-weight:${lw}">${esc(labelOf(d.label))}</b> : ` : `<b style="font-weight:${lw};display:block">${esc(labelOf(d.label))}</b>`;
   // 가로형은 상세를 한 행에 가로로 푼다(일화 970: 접수기간·모집부문 라벨 2개 한 줄 / 중앙 템플릿 상세 4칸 한 행)
   const detailRow = useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
   // 쌓기 값: 항목은 ㅣ로 잇고(참고 예시처럼 띄어쓰기 없이) 줄은 ㅣ 뒤에서만 끊는다 — 항목 안의 '/'(전시/컨벤션)에서 끊기면 "전시/ / 컨벤션"이 된다
@@ -1319,7 +1419,8 @@ export function renderAd(ctx, style, spec) {
   // 로고 폭 상한(CANON logoCap): 메인 글자 크기 × 2.4, 그리고 캔버스 폭의 12%(폭 320 이하 세로 띠는 25%) — 높이 기준(logoH)만 두면 가로로 긴 워드마크(3.4:1)가 메인보다 커 보인다
   // (Figma 9월 공채: 디자이너 로고 폭 ÷ 메인 px 1.3~2.4, 우리 인스타 4.5·자소설 팝업 3.8). 템플릿 로고 칸 안에서도 이 폭을 넘지 않는다
   const LC = guide?.logoCap ?? null;
-  const logoCapW = LC ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio)))) : Infinity;
+  // 10-15 템플릿 우선: 틀 로고 칸(자소설 150×31)은 칸이 크기다 — 상한을 걸지 않는다(세아제강 로고 143×23 이 칸을 채운다). 템플릿 없는 매체만 상한
+  const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio)))) : Infinity;
   const capW = mw => Math.min(mw, logoCapW);
   { const subRole = showSub ? (subAbove ? 'eyebrow' : ((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan')) : null;
     const tk = guide?.tracking ?? {}; const trk = (tk.main ?? 0) && mainFs >= (tk.mainMinPx ?? 28) ? tk.main : 0;
@@ -1329,7 +1430,7 @@ export function renderAd(ctx, style, spec) {
     TR.copy = { main: copy.main, sub: showSub ? copy.sub : null, date: want.date ? copy.date : null, details: detailLines.map(d => d.label) };
     fired('weights'); if (trk) fired('tracking'); if (sqFloor && mainFs <= sqFloor + 1 && mainFs >= sqFloor) fired('mainFloor'); if (Number.isFinite(logoCapW)) fired('logoCap'); if (copy.main.includes('\n') && guide?.twoLines && stated.main == null) fired('twoLines'); if (guide?.keepInfo && mainFs < capMain) fired('keepInfo'); if (accentPhrase) fired('mainAccent'); }
   const logoImg = (hPx, maxW) => (allowLogo && logoSrc)
-    ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${hPx}px;width:auto;max-width:${capW(maxW)}px;object-fit:contain;${logoFilter}"/>`
+    ? logoTag(`display:block;height:${hPx}px;width:auto;max-width:${capW(maxW)}px;object-fit:contain`)
     : '';
   // 오브젝트 — 상자에 가두지 않는다. 지면 가장자리까지 붙이고, 글자 쪽 변만 지면으로 녹인다(마스크라 그라데이션 지면에도 맞는다).
   // 이미지의 그 변이 이미 지면색과 같으면(field.seamless) 녹이는 폭을 줄인다. 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
@@ -1363,11 +1464,17 @@ export function renderAd(ctx, style, spec) {
   if (align === 'center' && logoPos.startsWith('top')) logoPos = 'top-center';
   const logoRowJustify = logoPos.endsWith('right') ? 'flex-end' : logoPos.endsWith('center') ? 'center' : 'flex-start';
   const logoAtBottom = logoPos.startsWith('bottom');
+  // 틀 로고 칸(10-15 사용자): 칸 안에 두되 꽉 채우지 않는다 — 샘플 면적 상한(mold.logo.maxArea, 채용공고 2,200px²·PC메인 3,600·M팝업 8,500). 칸에 맞춘 크기가 상한을 넘으면 √(상한/면적)배로 줄인다(비율 유지, 칸 가운데/우측 정렬 그대로)
+  const moldLogoH = (() => { const mx = mold?.logo?.maxArea; const ar0 = style.logoMeta?.px ? style.logoMeta.px[0] / Math.max(1, style.logoMeta.px[1]) : null; if (!(mx && tLogo && ar0)) return null; const area = (mx * tScale * tScale); let hh = Math.min(tLogo.h, tLogo.w / ar0); if (hh * hh * ar0 > area) hh = Math.sqrt(area / ar0); return Math.max(8, Math.round(hh)); })();
+  if (moldLogoH) fired('templateMold.logoArea');
   const tplLogo = (allowLogo && logoSrc && tLogo && !logoAsObject)
-    ? `<div data-logo-slot="1" style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${tpl?.logoHorizontal && !tpl?.logo ? 'flex-end' : 'center'}"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:auto;object-fit:contain;${logoFilter}"/></div>`
+    ? `<div data-logo-slot="1" style="position:absolute;left:${tLogo.x}px;top:${tLogo.y}px;width:${tLogo.w}px;height:${tLogo.h}px;display:flex;align-items:center;justify-content:${mold?.logo?.align ? ({ right: 'flex-end', left: 'flex-start' }[mold.logo.align] ?? 'center') : (tpl?.logoHorizontal && !tpl?.logo) ? 'flex-end' : 'center'}"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;max-width:${Number.isFinite(logoCapW) ? `min(100%,${logoCapW}px)` : '100%'};max-height:100%;width:auto;height:${moldLogoH ? `${moldLogoH}px` : mold?.logo?.fitH ? `${Math.round(mold.logo.fitH * tScale)}px` : 'auto'};object-fit:contain;${logoFilter}"/></div>`
     : '';
   // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
   // 하단 칸의 윗변도 지면과 같은 색이 아니면(사진, 또는 그라데이션 변을 단색으로 접은 지면) 녹인다 — 상자째 붙인 직선 이음매를 없앤다
+  // 틀 하단 칸의 누끼(채용공고 160×200·달력 328×160, 10-15 사용자): 폭 맞춤(contain)이면 작고 아래로 치우친다 — 기존 가이드(CANON objectBleed tower 잘림 ≤ 42%)만큼 키워 좌우로 흘리되 칸 높이(글자 영역) 안에서
+  const moldBandH = (() => { if (!(mold && tImage && imgBottomBand && hasKv && cutout && kvAR)) return null; const maxCut = guide?.objectBleed?.tower?.maxCut ?? guide?.objectBleed?.narrow?.maxCut ?? 0.42; const hh = Math.round(Math.min(tImage.h, tImage.w / (1 - maxCut) / kvAR)); return hh > Math.round(tImage.w / kvAR) + 2 ? hh : null; })();
+  if (moldBandH) fired('templateMold.bandBleed');
   const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && !transparent && (style.kvMeta?.field?.edges?.top?.flat === false || !field?.seamless));
   const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : (hasKv && tImage)
@@ -1389,7 +1496,7 @@ export function renderAd(ctx, style, spec) {
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"${bandMelt ? meltAttr('to bottom') : ''}></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : moldBandH ? `center bottom/auto ${moldBandH}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? 'left center' : 'center bottom', imgLeftCol ? 'right center' : 'center top')}${melt(imgLeftCol ? 'to left' : 'to bottom')}overflow:hidden"${meltAttr(imgLeftCol ? 'to left' : 'to bottom')}></div>`)
     : '';
 
@@ -1397,12 +1504,14 @@ export function renderAd(ctx, style, spec) {
   const bandEl = band ? `<div data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:${band}px;background:${fgIsDark ? (p.primary ?? '#000000') : '#FFFFFF'}"></div>` : '';
   const lb = (mirrorX && logoBox) ? { ...logoBox, left: logoBox.right, right: logoBox.left } : logoBox;   // 왼쪽 배치면 로고 자리도 좌우로
   const absLogoEl = (absLogo && lb)
-    ? `<div data-logo-slot="1" style="position:absolute;top:${lb.top}px;${lb.left != null && lb.right != null ? `left:${lb.left}px;right:${lb.right}px;justify-content:center` : lb.left != null ? `left:${lb.left}px;justify-content:flex-start` : `right:${lb.right}px;justify-content:flex-end`};height:${lb.h}px;display:flex;align-items:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:100%;width:auto;max-width:${capW(logoBox.maxW)}px;object-fit:contain;${logoFilter}"/></div>`
+    ? `<div data-logo-slot="1" style="position:absolute;top:${lb.top}px;${lb.left != null && lb.right != null ? `left:${lb.left}px;right:${lb.right}px;justify-content:center` : lb.left != null ? `left:${lb.left}px;justify-content:flex-start` : `right:${lb.right}px;justify-content:flex-end`};height:${lb.h}px;display:flex;align-items:center">${logoTag(`display:block;height:100%;width:auto;max-width:${capW(logoBox.maxW)}px;object-fit:contain`, true)}</div>`
     : '';
 
   const metaRow = () => {
     const parts = [];
-    if (want.label && copy.label) parts.push(plain('label', copy.label, z.smallFs));   // 라벨 칩이 날짜 앞(「접수기간 9/4(금) ~ 9/13(일)」) — 샘플 잡다·NAP·구글 모두 라벨 → 값
+    // 라벨이 「모집직무 : …」(접수기간이 없을 때의 대체)인데 상세 줄에 모집직무가 또 있으면 빼다 — 같은 줄이 두 번 나왔다(10-14 t1014 한진정보통신 NAP 320×480)
+    const dupLabel = /^모집직무/.test(String(copy.label ?? '')) && detailLines.some(d => d.label === '모집직무');
+    if (want.label && copy.label && !dupLabel) parts.push(plain('label', copy.label, z.smallFs));   // 라벨 칩이 날짜 앞(「접수기간 9/4(금) ~ 9/13(일)」) — 샘플 잡다·NAP·구글 모두 라벨 → 값
     if (want.date) parts.push(plain('date', copy.date, z.smallFs));
     if (!parts.length) return '';
     return `<div style="display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:${align === 'center' ? 'center' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
@@ -1424,6 +1533,65 @@ ${want.notice ? T('notice', copy.notice, noticeFs, fwOf('notice', noticeFs), sub
 ${objectSide === 'right' ? `<div style="flex:none;width:${objW}px"></div>` : ''}
 ${want.cta ? `<div style="position:relative;flex:none">${ctaChip()}</div>` : ''}
 ${tplLogo}${kvWrap(tplObject)}
+</div>`;
+  }
+
+  /* ── 템플릿 틀(templateMold, 10-15) ── 매체 샘플이 곧 틀(사용자 「구멍 뚫린 틀」): 글자 칸(x·줄 y·크기·굵기·색·줄 간격)·로고 칸·그림 칸·지면 처리가 고정이고
+     캠페인마다 바뀌는 건 배경색(브랜드색을 틀의 지면 처리에)·키비주얼(그림 칸에 맞춰 넣기)·문구(정해진 줄에 붓기)뿐이다.
+     일반 배치(CANON 행간·블리드·로고 상한·유리/채도 지면·스크림·질감·글자 앵커 프리셋)는 돌리지 않는다. 문구가 칸을 넘으면 매체 글자수·줄 수로 자른다(lint 가 잡는다) — 줄을 옮기지 않는다.
+     줄 위치: Figma 글자 상자 y(높이 = 1.2em, Pretendard 올림·내림) → Chrome 줄 상자(line-height = 줄 간격 pitch) 안에서 글자 상자가 가운데이므로 top = y − (pitch − 1.2em)/2 */
+  if (mold) {
+    const MR = mold.rows ?? {}, k = tScale;
+    const sx = Math.round((mold.x ?? tText?.x ?? pad.left) * k), colW = Math.round((mold.w ?? (w / k - (mold.x ?? pad.left) - pad.right)) * k);
+    const pxOf = r => Math.round(r.px * k), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
+    const topOf = r => Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;
+    const blocks = []; const used = {};
+    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:0;top:@@px;width:${colW}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${color};text-align:left;${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+    const mainPx = pxOf(MR.main ?? { px: mainFs });
+    // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
+    if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
+    // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
+    const mainN = Math.max(1, Math.min(MR.main?.lines ?? 2, copy.main.split('\n').reduce((n, t) => n + Math.max(1, Math.ceil(textWidth(t) * mainPx / Math.max(1, colW))), 0)));
+    const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
+    if (showSub && MR.sub) put('sub', MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub)), copy.sub);
+    const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}) } : null;   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
+    if (copy.main && mR) put('main', mR, mR.lines ?? 2, mR.weight ?? fwOf('main', mainPx), mainFg, String(copy.main).split('\n').map(t => esc(nb(t, false))).join('<br/>'), copy.main);
+    if (MR.detail && detailLines.length) {
+      const dR0 = { ...MR.detail, ...(MR.detail.byMainLines?.[String(mainN)] ?? {}) };   // PC메인: 메인 2줄이면 상세는 둘째 줄부터 2행(「메인 문구가 두 줄인 경우 상세 1행 입력 불가」)
+      // 채용공고(160×600): 상세 블록은 마지막 메인 줄 y + 57.5 — 메인 줄 수 따라 내려간다(샘플 6개 전수 실측, 세아 메인 3줄 185.7 → 242.8)
+      const dR = (dR0.afterMain != null && mR) ? { ...dR0, y: mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + dR0.afterMain } : dR0;
+      const dLw = dR.labelWeight ?? 700; const cap = dR.lines ?? 3;
+      const rows = []; let n = 0;
+      for (const d of detailLines.filter(d => !dR.items || dR.items.includes(d.label))) { if (n + d.rows > cap) break; n += d.rows; rows.push(d); }   // 틀이 정한 항목만(세아: 모집일정·모집직무 — 고용형태 줄 없음)
+      const sep = dR.labelSep ?? ' :';   // M메인 샘플 「접수기간 ㅣ 값」(FITI 1:10459) — 라벨 뒤 구분자
+      const inner = rows.map(d => d.inline
+        ? `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value))}</div>`
+        : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div>${esc(nb(d.value))}</div>`).join('');
+      // 「상세 입력 시 하단부터」(M메인 템플릿 1:8625): 쓰는 줄이 적으면 아래 줄부터 채운다 — 블록 y 를 빈 줄만큼 내린다
+      const dRow = dR.fillFromBottom ? { ...dR, y: dR.y + Math.max(0, cap - n) * (dR.pitch ?? dR.px * 1.2) } : dR;
+      put('detail', dRow, Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:pretty">${inner}</div>`, rows.map(d => d.value).join(' '));
+    }
+    if (MR.date && mR && (copy.date || ctx.core?.deadline)) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
+      const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const txt = (MR.date.format === '~M/D' && dl) ? `~${+dl[2]}/${+dl[3]}` : (copy.date || '');
+      if (txt) put('date', { ...MR.date, y: MR.date.afterMain != null ? mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + MR.date.afterMain : MR.date.y }, MR.date.lines ?? 1, MR.date.weight ?? fwOf('date', pxOf(MR.date)), subFg, esc(txt), txt);
+    }
+    const top0 = blocks.length ? Math.min(...blocks.map(b => b.t)) : 0, bot = blocks.length ? Math.max(...blocks.map(b => b.t + b.h)) : 0;
+    const textCol = `<div data-text-col="1" style="position:absolute;left:${sx}px;top:${top0}px;width:${colW}px;height:${Math.round((bot - top0) * 10) / 10}px">${blocks.map(b => b.html.replace('top:@@px', `top:${Math.round((b.t - top0) * 10) / 10}px`)).join('\n')}</div>`;
+    // 지면 처리가 영역이면(PC메인 왼쪽 350×280) 브랜드 지면은 그 영역에만 — 나머지는 템플릿 고정 바탕(bgCss)
+    const fz = mold.field ? rect(mold.field, k) : null;
+    const moldField = (fz && field) ? `<div data-mold-field="1" style="position:absolute;left:${fz.x}px;top:${fz.y}px;width:${fz.w}px;height:${fz.h}px;background:${field.css}"></div>` : '';
+    // 그림: 칸(mold.image)의 위치·범위만 틀이 정하고, 처리는 기존 디자인 가이드 그대로(10-15 사용자 정정) — 모서리 상자(contain / 바탕 있는 그림은 cover + 글자 쪽 두 변 녹임),
+    //   하단 띠(native/contain/cover + 윗변 녹임), 왼쪽 열(cover + 오른변 녹임). 사각형으로 뚝 잘라 넣지 않는다 — tplObject(위 템플릿 칸 문법)를 그대로 쓴다
+    const moldKv = tplObject;
+    TR.mode = 'templateMold';
+    TR.place = { ...TR.place, mode: 'mold', tImage, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
+    TR.mold = { source: mold.source ?? null, rows: used, mainN, field: fz, logo: tLogo, image: tImage, labels: { period: labelOf('접수기간') }, color: moldFg };
+    TR.fonts = { ...TR.fonts, main: used.main ? { ...(TR.fonts?.main ?? {}), px: used.main.px, weight: used.main.weight, lh: Math.round(used.main.pitch / used.main.px * 100) / 100, lines: mainN } : TR.fonts?.main, sub: used.sub ? { ...(TR.fonts?.sub ?? {}), px: used.sub.px, weight: used.sub.weight, lh: Math.round(used.sub.pitch / used.sub.px * 100) / 100 } : null, detail: used.detail ? { ...(TR.fonts?.detail ?? {}), px: used.detail.px, value: used.detail.weight, lh: Math.round(used.detail.pitch / used.detail.px * 100) / 100 } : null, logoCapW: null };
+    return `${open('')}
+${moldField}${moldKv}
+${textCol}
+${tplLogo}
 </div>`;
   }
 

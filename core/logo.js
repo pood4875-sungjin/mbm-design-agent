@@ -105,7 +105,36 @@ export function logoMeta(d, W, H) {
     lum += LUM(r, g, b); sat += (Math.max(r, g, b) - Math.min(r, g, b)) / 255; n++;
   }
   const tot = Math.ceil(W / step) * Math.ceil(H / step);
-  return { px: [W, H], lum: n ? Math.round(lum / n * 100) / 100 : null, sat: n ? Math.round(sat / n * 100) / 100 : null, solid: tot ? Math.round(vis / tot * 100) / 100 : null, tone: logoToneOf(d, W, H), colors: logoColors(d, W, H) };
+  const emblem = logoEmblem(d, W, H);
+  return { px: [W, H], lum: n ? Math.round(lum / n * 100) / 100 : null, sat: n ? Math.round(sat / n * 100) / 100 : null, solid: tot ? Math.round(vis / tot * 100) / 100 : null, tone: logoToneOf(d, W, H), colors: logoColors(d, W, H), ...(emblem ? { emblem } : {}) };
+}
+
+// 왼쪽 심볼(엠블럼) — 빈 열로 글자와 떨어진 맨 왼쪽 덩어리가 정사각에 가깝고(폭/높이 0.6~1.8) 속에 밝은 무늬(흰 글자·흰 꽃)가 있으면 { x1: 경계(폭 비율) }.
+//   어두운 지면에서 로고를 흰 단색으로 바꿀 때 심볼은 원색 그대로 두고 글자만 흰색으로 — 단색이 심볼 속 무늬를 지워 흰 덩어리(●)가 됐다(10-14 t1014 제일약품 JEIL·LT소재 꽃).
+//   디자이너: 제일약품 파랑 지면 4/4 「원색 심볼 + 흰 글자」, GS에너지 2026 자소설 로고 「원색 심볼 + 흰 글자」
+export function logoEmblem(d, W, H) {
+  if (!W || !H || W / H < 1.6) return null;   // 가로형 로고(심볼 + 글자)만
+  const col = new Array(W).fill(0);
+  for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) if (d[(y * W + x) * 4 + 3] >= 128) col[x]++;
+  const gapMin = Math.max(2, Math.round(W * 0.012));
+  let x0 = 0; while (x0 < W && col[x0] === 0) x0++;
+  let x1 = x0, gap = 0;
+  for (let x = x0; x < W; x++) { if (col[x] === 0) { gap++; if (gap >= gapMin) { x1 = x - gap + 1; break; } } else gap = 0; }
+  if (x1 <= x0 || x1 >= W * 0.6) return null;
+  let y0 = H, y1 = -1;
+  for (let y = 0; y < H; y++) for (let x = x0; x < x1; x++) if (d[(y * W + x) * 4 + 3] >= 128) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; }
+  const ew = x1 - x0, eh = y1 - y0 + 1; if (eh <= 0 || ew / eh < 0.6 || ew / eh > 1.8 || eh < H * 0.5) return null;
+  let op = 0, light = 0, colr = 0;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x < x1; x++) {
+    const i = (y * W + x) * 4; if (d[i + 3] < 128) continue; op++;
+    const r = d[i], g = d[i + 1], b = d[i + 2], sat = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+    if (LUM(r, g, b) > 0.8 && sat < 0.3) light++; else if (sat >= 0.25) colr++;
+  }
+  if (!op) return null;
+  const ls = light / op, cs = colr / op;
+  if (ls < 0.15 || ls > 0.75 || cs < 0.2) return null;   // 속 무늬(밝은 몫)와 색 면(채도 몫)이 함께 있어야 심볼
+  let gapEnd = x1; while (gapEnd < W && col[gapEnd] === 0) gapEnd++;
+  return { x1: Math.round((x1 + gapEnd) / 2 / W * 1000) / 1000, light: Math.round(ls * 100) / 100 };
 }
 
 // 로고 대표색 — 불투명 픽셀(α≥128)을 채널당 8단계로 묶어 넓은 순 3색 + 면적 몫(share). 무채색(검정 글자·흰 글자)도 센다.

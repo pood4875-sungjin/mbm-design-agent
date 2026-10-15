@@ -110,6 +110,9 @@ export const RULES = [
     when: C => C.kt?.id === 'cutout' && !C.trace?.place?.bleed && !C.trace?.gate?.frameFull && ['column', 'band', 'corner-contain', 'box', 'template-band-contain', 'template-band-native', 'template-band-cover', 'template'].includes(C.trace?.place?.mode ?? '') && !!obj0(C)?.cut,
     eval: C => { const o = obj0(C), c = o.cut, fc = o.focusCut; const solo = !!(C.kt?.flags?.character && !C.kt?.flags?.group); const group = !!(C.kt?.flags?.group || C.kt?.flags?.multi); const win = C.trace?.place?.cutLeft != null || (C.trace?.place?.cutBleed ?? 1) > 1.01 || C.trace?.place?.cutBand; const vert = c.top <= 0.02 && c.bottom <= 0.02; const noMask = !o.mask || o.cutMelt != null;
       const cutTxt = `잘림 왼 ${pct(c.left)} 오른 ${pct(c.right)} 위 ${pct(c.top)} 아래 ${pct(c.bottom)} · 녹임 ${o.mask ? o.mask.pct + '%' : '없음'}`;
+      // 전신 인물 상반신(CANON bust, 10-14): 머리는 두고(위 0) 허리 아래는 흘린다 — 아래 잘림 ≤ 1 − vis(+여유), 아래 녹임(to top)만 허용
+      const bustV = (C.trace?.rules ?? []).includes('kv.bust') ? (C.guide.bust?.vis ?? 0.55) : null;
+      if (solo && bustV) { const okMask = !o.mask || o.mask.dir === 'to top'; return { expect: `상반신: 위 0 · 아래 잘림 ≤ ${pct(1 - bustV + 0.1)} · 좌우 합 ≤ 30% · 녹임은 아래(to top)만`, actual: cutTxt, ok: c.top <= 0.02 && c.bottom <= 1 - bustV + 0.1 && c.left + c.right <= 0.31 && okMask, note: '전신 인물 → 상반신(10-14 동서식품 9/9)' }; }
       if (solo) return { expect: '위·아래 0 · 주인공 상자 좌우 잘림 ≤ 15% · 녹임 없음(캐릭터)', actual: `${cutTxt}${fc ? ` · 주인공 상자 왼 ${pct(fc.left)} 오른 ${pct(fc.right)}` : ''}`, ok: vert && noMask && (fc ? fc.left <= 0.16 && fc.right <= 0.16 : c.left + c.right <= 0.31) };
       if (group && win) return { expect: '위·아래 0 · 틈 창 좌우 합 ≤ 60%(배율 2.4) · 녹임 없음', actual: cutTxt, ok: vert && noMask && c.left + c.right <= 0.6, note: '떼·장면은 틈 창(캐릭터 사이 틈)에서 자른다' };
       if (o.bleedFlag) return { expect: '위·아래 0 · 좌우 합 ≤ 30%(폭 130%) · 녹임 없음', actual: cutTxt, ok: vert && noMask && c.left + c.right <= 0.31, note: o.cutMelt != null ? `가로 띠 넘친 누끼 왼변 녹임 ${o.cutMelt}%(10-12 남은 문제)` : '' };
@@ -217,7 +220,7 @@ export const RULES = [
   { id: 'melt.cutout.none', group: '이음', name: '누끼는 녹이지 않는다', source: 'kvtypes.cutout.place[0]',
     text: '누끼는 녹임 마스크 없음 — 가로 띠에서 넘쳐 왼변이 잘린 누끼만 잘린 몫+8%(16~30%)',
     when: C => C.kt?.id === 'cutout' && (C.m?.objects ?? []).length > 0 && !C.trace?.gate?.frameFull,
-    eval: C => { const masked = C.m.objects.filter(o => o.mask); const bad = masked.filter(o => o.cutMelt == null); return { expect: '마스크 없음(넘친 누끼 왼변만 16~30%)', actual: masked.length ? masked.map(o => `${o.mask.dir} ${o.mask.pct}%${o.cutMelt != null ? '(넘침 ' + pct(o.bleedCut) + ')' : ''}`).join(' · ') : '없음', ok: !bad.length && masked.every(o => o.cutMelt == null || within(o.mask.pct, 16, 30, 0.5)) }; } },
+    eval: C => { const bust = (C.trace?.rules ?? []).includes('kv.bust'); const masked = C.m.objects.filter(o => o.mask); const bad = masked.filter(o => o.cutMelt == null && !(bust && o.mask.dir === 'to top')); /* 상반신 상자 아랫변이 지면 안쪽이면 아래 녹임(10-14 bust) */ return { expect: '마스크 없음(넘친 누끼 왼변만 16~30%)', actual: masked.length ? masked.map(o => `${o.mask.dir} ${o.mask.pct}%${o.cutMelt != null ? '(넘침 ' + pct(o.bleedCut) + ')' : ''}`).join(' · ') : '없음', ok: !bad.length && masked.every(o => o.cutMelt == null || within(o.mask.pct, 16, 30, 0.5)) }; } },
   { id: 'textureCalm', group: '지면', name: '어지러운 질감 위 글자 쪽 스크림', source: 'canon.textureCalm',
     text: '질감이 어지러우면(busy ≥ 0.09) 글자 쪽에서 지면 자기 색 스크림 0.35~0.75 — 매끈하면 없음',
     when: C => C.kt?.id === 'texture' && C.m?.ad?.['data-kv-use'] === 'bg' && !!C.meta?.field?.texture && !C.trace?.gate?.frameFull,
@@ -362,9 +365,9 @@ export const HUMAN_RULES = [
 // 대조표 규칙 id → 규칙 장부(ref/learned/rules.json, scripts/rules-ledger.mjs) id. 장부가 있으면 그 문장(rule — value)과 위치(where)로 가이드 문장을 덮는다
 export const RULES_JSON_MAP = {
   'objectBleed.area': ['object-bleed', 'object-bleed-narrow', 'object-bleed-tower'], 'objectBleed.cut': ['object-bleed', 'object-bleed-narrow', 'object-bleed-tower'], 'objectBleed.vis': ['object-bleed'], 'objectBleed.minTextCol': ['object-bleed'],
-  'cutout.contain': ['cutout-contain', 'cutout-wide-overflow', 'cutout-gap-window', 'cutout-char-bleed-70'], 'cutout.square.box': ['cutout-char-place', 'cutout-square-band'], 'fill.maxObject': ['fill-slack'], 'objectOverlap': ['object-overlap'],
+  'cutout.contain': ['cutout-contain', 'cutout-wide-overflow', 'cutout-gap-window', 'cutout-char-bleed-70', 'cutout-bust'], 'cutout.square.box': ['cutout-char-place', 'cutout-square-band'], 'fill.maxObject': ['fill-slack'], 'objectOverlap': ['object-overlap'],
   'roomFull': ['room-full'], 'photoCrowd.full': ['crowd-full'], 'texture.bg': ['texture-full'], 'frame.bg': ['frame-place'], 'photo.column.logoLeft': ['photo-logo-top-left'], 'character.head': ['illust-head-keep', 'cutout-char-place', 'portrait-fit'],
-  'kvMood': ['kv-mood', 'kv-mood-gradient'], 'vividWhite': ['vivid-white'], 'textColour.brand': ['text-colour-brand'], 'melt.length': ['melt-length', 'melt-base'], 'melt.curve': ['melt-length'], 'melt.cutout.none': ['cutout-contain', 'bleed-cut-melt'],
+  'kvMood': ['kv-mood', 'kv-mood-gradient'], 'vividWhite': ['vivid-white'], 'textColour.brand': ['text-colour-brand'], 'melt.length': ['melt-length', 'melt-base'], 'melt.curve': ['melt-length'], 'melt.cutout.none': ['cutout-contain', 'bleed-cut-melt', 'cutout-bust'],
   'textureCalm': ['texture-calm'], 'scrim.photoFull': ['photo-text-scrim', 'crowd-full'], 'weights': ['weights', 'small-dark-weight', 'media-weights-win'], 'tracking': ['tracking', 'everytime-tracking', 'jasoseol-typo'], 'required.date': ['required-date'],
   'mainFloor.square': ['main-floor-square'], 'guide.mainPx': ['google-main-px'], 'guide.detailPx': ['google-main-px'], 'guide.subPx': ['google-main-px'], 'main.lines': ['main-overflow'], 'contrast.main': ['text-black-or-white'], 'contrast.small': ['text-black-or-white'], 'hierarchy': ['layout-shape-sizes'],
   'logoCap': ['logo-cap'], 'logo.tone': ['logo-mono', 'logo-clash', 'logo-tile'], 'wideLogo': ['wide-logo'], 'guide.logo.h': ['logo-google'],

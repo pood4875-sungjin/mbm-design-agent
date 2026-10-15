@@ -37,8 +37,14 @@ test('1. 반사·유리 누끼(무채·중간 밝기·반투명 가장자리 ≥
   assert.match(html, /data-field-source="brand"/);
 });
 
-test('4. 로고 폭 ≤ 메인 글자 × 2.4, ≤ 캔버스 폭 12%(폭 320 이하 세로 띠 25%) — 템플릿 로고 칸 안에서도', () => {
-  for (const id of ['instagram-feed-1080', 'blind-post-banner', 'jasoseol-m-premium-popup-mo', 'jasoseol-pc-standard-jobpost-pc', 'google-gdn-580x400']) {
+test('4. 로고 폭 ≤ 메인 글자 × 2.4, ≤ 캔버스 폭 12%(폭 320 이하 세로 띠 25%) — 템플릿 틀(mold) 로고 칸은 칸이 크기(상한 없음, 10-15)', () => {
+  // 10-15 템플릿 우선: 자소설 PC 4규격(틀)은 로고 칸(150×31·130×30·163.5×45)이 곧 크기 — 세아제강 로고 143×23 이 칸을 채운다
+  for (const id of ['jasoseol-pc-standard-jobpost-pc', 'jasoseol-pc-premium-popup-pc', 'jasoseol-m-premium-popup-mo']) {
+    const html = renderAd(ctx, style, specs[id]);
+    assert.match(html, /<img data-logo="1"[^>]*?max-width:100%/, `${id}: 틀 로고는 칸 폭까지`);
+    assert.doesNotMatch(html, /<img data-logo="1"[^>]*?max-width:min\(100%/, `${id}: 로고 폭 상한 없음`);
+  }
+  for (const id of ['instagram-feed-1080', 'blind-post-banner', 'google-gdn-580x400']) {
     const sp = specs[id], html = renderAd(ctx, style, sp);
     const main = Math.max(...fsOf(html, 'main'));
     const caps = [...html.matchAll(/<img data-logo="1"[^>]*?max-width:(?:min\(100%,)?(\d+)px/g)].map(m => Number(m[1]));

@@ -1,0 +1,337 @@
+{
+  "note": "추출 규격 목록 — 이미지로 뽑아 전달하는 규격(extract:true)과 참고용으로만 두는 규격을 가른다. 사용자가 Figma 「컨시어지」 보드에 매체마다 적은 수(자소설 8·리멤버 8·잡다 2·캐치 2·구글 4·NAP 4·인스타 1·카카오 3·네이버 3·에브리타임 8·블라인드 3·당근 1 = 47)를 규격 id로 옮긴 것. 매체 순서도 보드 순서. 규칙 값은 여기서 바꾸지 않는다 — 어떤 규격을 뽑는지만 정한다. build-media.mjs 가 각 spec 에 extract 를 붙이고 EXTRACT 로 내보낸다.",
+  "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 보드 (2026-10-14 읽음) — 매체별 수 메모 31:4248·31:4247·31:4246·31:4245·31:4249·31:4253·31:4257·31:4261·31:4266·31:4270·31:4271, 당근은 보드 수 메모 없음(사용자 지시 1종)",
+  "order": [
+    "jasoseol",
+    "remember",
+    "jobda",
+    "catch",
+    "google-gdn",
+    "nap-dsp",
+    "instagram",
+    "kakao",
+    "naver-gfa",
+    "everytime",
+    "blind",
+    "daangn"
+  ],
+  "counts": {
+    "jasoseol": 8,
+    "remember": 8,
+    "jobda": 2,
+    "catch": 2,
+    "google-gdn": 4,
+    "nap-dsp": 4,
+    "instagram": 1,
+    "kakao": 3,
+    "naver-gfa": 3,
+    "everytime": 8,
+    "blind": 3,
+    "daangn": 1
+  },
+  "extract": [
+    "jasoseol-pc-premium-popup-pc",
+    "jasoseol-pc-premium-jobpost-pc",
+    "jasoseol-pc-standard-main-pc",
+    "jasoseol-pc-standard-jobpost-pc",
+    "jasoseol-m-premium-popup-mo",
+    "jasoseol-m-premium-chatlist-logo-mo",
+    "jasoseol-m-standard-main-mo",
+    "jasoseol-m-standard-chatlist-logo-mo",
+    "remember-main-top-pc",
+    "remember-main-top-mo",
+    "remember-main-mid-pc",
+    "remember-main-mid-mo",
+    "remember-job-top-pc",
+    "remember-job-top-mo",
+    "remember-job-side-pc",
+    "remember-job-side-mo",
+    "jobda-main-pc",
+    "jobda-main-mo",
+    "catch-mainlarge-image-pc",
+    "catch-mainlarge-image-mo",
+    "google-gdn-580x400",
+    "google-gdn-970x250",
+    "google-gdn-300x600",
+    "google-gdn-300x1050",
+    "nap-dsp-band-320x50",
+    "nap-dsp-band-320x100",
+    "nap-dsp-full-300x250",
+    "nap-dsp-full-320x480",
+    "instagram-feed-1080",
+    "kakao-bizboard-mo",
+    "kakao-display-pc-promo",
+    "kakao-display-pc-profile",
+    "naver-gfa-mobile-da-1250x560",
+    "naver-gfa-native-mo-342x228",
+    "naver-gfa-native-mo-profile-300",
+    "everytime-community-board",
+    "everytime-community-native",
+    "everytime-home-banner",
+    "everytime-home-card-profile",
+    "everytime-home-card-image",
+    "everytime-contest-card",
+    "everytime-search-keyword-thumb",
+    "everytime-daily-message-profile",
+    "blind-brand-logo",
+    "blind-feed-image",
+    "blind-post-banner",
+    "daangn-native-feed-image"
+  ],
+  "decisions": [
+    "자소설 8 = 4개 패키지 × 2(PC프리미엄 팝업·채용공고 / PC스탠다드 메인·채용공고 / M프리미엄 팝업·채팅목록 로고 / M스탠다드 메인·채팅목록 로고). 보드의 이전 메모 「6개」(30:4145)가 「8개」(31:4248)로 바뀐 것과 리멤버 「8개(PC/MO)」로 보아 같은 파일을 쓰는 상품(채용공고배너·채팅목록 로고)도 따로 센 것. PC달력배너 164×233 은 제외 — 확인 필요",
+    "캐치 2 = 메인 대형 배너 이미지형 PC 1256×295 · MO 702×428 (보드 31:4191·31:4206, 산출물 메모 31:4188). 중앙배너 오브젝트형 515×315·622×380·로고 160 은 참고",
+    "NAP DSP 4 = 피그마로 만드는 띠배너 320×50·320×100 · 전면배너 300×250·320×480 (보드 메모 「피그마(배너), 포토샵 제작(비즈보드)」 1:4593). 비즈보드 1029×258·PC 970×90·728×90 은 참고",
+    "네이버 3 = 보드 메모 「배너 / 비주얼만 / 로고만」(31:4268) → 모바일 DA 1250×560 · 네이티브 썸네일 342×228 · 프로필(로고) 300×300. PC·MO 네이티브는 규정이 달라 우리 규격이 둘인데 보드는 하나로 셈 — MO(M통합 네이티브 DA, 프로필 필수)를 뽑고 PC 는 참고. 확인 필요",
+    "인스타 1 = 피드 1080×1080 (사용자 지시). 보드 메모는 「4개」(31:4257) — 샘플 유형 수로 보임, 확인 필요. 스토리 1080×1920 은 참고",
+    "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고"
+  ],
+  "board": {
+    "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
+    "items": [
+      "배너 사이즈 규격",
+      "폰트 스타일",
+      "폰트 웨이트",
+      "폰트 크기",
+      "텍스트 갯수",
+      "폰트 영역",
+      "비주얼 영역",
+      "배경 컬러",
+      "추출 포맷과 규격·용량"
+    ],
+    "checklist": {
+      "jasoseol": {
+        "node": "31:4177",
+        "폰트 스타일": null,
+        "폰트 웨이트": null,
+        "폰트 크기": null,
+        "텍스트 갯수": null,
+        "폰트 영역": null,
+        "비주얼 영역": null,
+        "배경 컬러": null,
+        "추출 포맷과 규격·용량": null,
+        "note": "항목 이름만 있고 값은 안 적힘(미기입)"
+      },
+      "remember": {
+        "node": "30:4174",
+        "폰트 스타일": null,
+        "폰트 웨이트": null,
+        "폰트 크기": null,
+        "텍스트 갯수": null,
+        "폰트 영역": null,
+        "비주얼 영역": null,
+        "배경 컬러": null,
+        "추출 포맷과 규격·용량": null,
+        "note": "항목 이름만 있고 값은 안 적힘(미기입)"
+      },
+      "jobda": {
+        "node": "30:4175",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "자유지만 템플릿은 있으니 그거 기준으로"
+      },
+      "catch": {
+        "node": "31:4178",
+        "폰트 스타일": "시스템에서 반영 — 텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도 전달",
+        "폰트 웨이트": "시스템에서 반영(별도 전달)",
+        "폰트 크기": "시스템에서 반영(별도 전달)",
+        "텍스트 갯수": "시스템에서 반영(별도 전달)",
+        "폰트 영역": "시스템에서 반영(별도 전달)",
+        "비주얼 영역": "텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "자유지만 템플릿은 있으니 그거 기준으로",
+        "note": "「시스템에서 반영」은 중앙배너(오브젝트형, 텍스트 영역을 매체 시스템이 그림) 기준. 추출 목록의 메인 대형 배너(이미지형)는 통이미지라 글자를 우리가 그린다 — 확인 필요"
+      },
+      "google-gdn": {
+        "node": "31:4250",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유(굵어야 함)",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "(중요)"
+      },
+      "nap-dsp": {
+        "node": "31:4254",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유(굵어야 함)",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "(중요)"
+      },
+      "instagram": {
+        "node": "31:4258",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": null
+      },
+      "kakao": {
+        "node": "31:4262",
+        "폰트 스타일": "있음",
+        "폰트 웨이트": "있음",
+        "폰트 크기": "있음",
+        "텍스트 갯수": "있음",
+        "폰트 영역": "있음",
+        "비주얼 영역": "있음",
+        "배경 컬러": "있음",
+        "추출 포맷과 규격·용량": null,
+        "note": "폰트 컬러도 「있음」"
+      },
+      "naver-gfa": {
+        "node": "31:4267",
+        "폰트 스타일": "권장(고딕계열)",
+        "폰트 웨이트": null,
+        "폰트 크기": "어느정도만",
+        "텍스트 갯수": "어느정도만",
+        "폰트 영역": "있음",
+        "비주얼 영역": "있음",
+        "배경 컬러": "거의 자유로움",
+        "추출 포맷과 규격·용량": null,
+        "note": "폰트 웨이트·폰트 컬러 칸은 비어 있음"
+      },
+      "everytime": null,
+      "blind": null,
+      "daangn": null
+    },
+    "exportMemo": {
+      "jasoseol": {
+        "node": "1:10598",
+        "text": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG"
+      },
+      "remember": {
+        "node": "1:6499",
+        "text": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB"
+      },
+      "jobda": {
+        "node": "1:6298",
+        "text": "※ 피그마 제작 > 파일 유형 및 용량: PNG 2배 추출 / 용량 따로 제한 없음"
+      },
+      "catch": {
+        "node": "1:5761·1:5793",
+        "text": "디자인 최종 산출물 [이미지] 사이즈: 1256X295 파일포멧: PNG / 702X428 파일포멧: PNG · [예시화면] 375X812 JPG"
+      },
+      "google-gdn": {
+        "node": "1:5756",
+        "text": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG"
+      },
+      "nap-dsp": {
+        "node": "1:4593",
+        "text": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF"
+      },
+      "instagram": {
+        "node": "1:3010",
+        "text": "파일 포맷 JPG, PNG"
+      },
+      "kakao": {
+        "node": "1:2996",
+        "text": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG"
+      },
+      "naver-gfa": {
+        "node": "1:1335·1:1336",
+        "text": "1250x560px / 250KB / JP(E)G, PNG · 342x228px / 10~130KB / JP(E)G, PNG"
+      },
+      "everytime": {
+        "node": "1:396~1:403",
+        "text": "1029x258 PNG 300KB · 288x288 JPG,PNG 100KB · 640x200 JPG,PNG 100KB · 160x160 JPG,PNG · 720x480 JPG,PNG 300KB · 288x288 100KB · 288x288 PNG,JPG 100KB · 120x120 PNG,JPG"
+      },
+      "blind": {
+        "node": "1:71·1:72",
+        "text": "96x96px / 50KB / JPG, PNG · 1200x628px / 100KB / JPG, PNG · 1250x560px / 200KB / JPG, PNG"
+      },
+      "daangn": null
+    },
+    "countMemo": {
+      "jasoseol": "31:4248 「8개」(이전 30:4145 「6개」)",
+      "remember": "31:4247 「8개(PC/MO)」",
+      "jobda": "31:4246 「2개(PC,MO)」",
+      "catch": "31:4245 「2개(PC,MO)」",
+      "google-gdn": "31:4249 「4개」",
+      "nap-dsp": "31:4253 「4개」",
+      "instagram": "31:4257 「4개」(사용자 지시 1종)",
+      "kakao": "31:4261 「3」",
+      "naver-gfa": "31:4266 「3」 + 31:4268 「배너/비주얼만/로고만」",
+      "everytime": "31:4270 「8개」",
+      "blind": "31:4271 「3개」 + 31:4272 「로고/배너/배너」",
+      "daangn": "메모 없음(사용자 지시 1종)"
+    },
+    "exportMemoBySpec": {
+      "note": "매체 메모가 규격 여럿을 한 글에 적은 경우(에브리타임·네이버·블라인드·캐치) 규격별로 쪼갠 것 — 보드 텍스트 id 는 그대로",
+      "everytime-community-board": {
+        "node": "1:396",
+        "text": "1029x258px / PNG / 300KB 이내 / 배경색 투명한 이미지로 제작 필수"
+      },
+      "everytime-community-native": {
+        "node": "1:398",
+        "text": "사이즈 288x288px / 포맷 JPG, PNG / 용량 100KB 이내"
+      },
+      "everytime-home-banner": {
+        "node": "1:399",
+        "text": "사이즈 : 640x200px / JPG, PNG / 용량 100kb 이내"
+      },
+      "everytime-home-card-profile": {
+        "node": "1:400",
+        "text": "프로필 이미지 - 160x160px / JPG, PNG / 검은색 계열 제외 배경색 포함 이미지만 (용량 메모 없음)"
+      },
+      "everytime-home-card-image": {
+        "node": "1:400",
+        "text": "카드 이미지 - 720x480px / JPG, PNG / 300KB 이내"
+      },
+      "everytime-contest-card": {
+        "node": "1:401",
+        "text": "카드 이미지 - 288x288px / JPG, PNG / 100KB 이내"
+      },
+      "everytime-search-keyword-thumb": {
+        "node": "1:402",
+        "text": "이미지만 전달: 288x288px / PNG, JPG / 100KB 이내"
+      },
+      "everytime-daily-message-profile": {
+        "node": "1:403",
+        "text": "이미지만 전달: 120x120px / PNG, JPG (용량 메모 없음)"
+      },
+      "naver-gfa-mobile-da-1250x560": {
+        "node": "1:1335",
+        "text": "1250x560px / 250KB / JP(E)G, PNG"
+      },
+      "naver-gfa-native-mo-342x228": {
+        "node": "1:1336",
+        "text": "342x228px / 10~130KB / JP(E)G, PNG"
+      },
+      "naver-gfa-native-mo-profile-300": null,
+      "blind-brand-logo": {
+        "node": "1:71",
+        "text": "브랜드 로고 - 96x96px / 50KB / JPG, PNG / 투명 배경 불가"
+      },
+      "blind-feed-image": {
+        "node": "1:71",
+        "text": "피드 제작 - 1200x628px / 100KB / JPG, PNG"
+      },
+      "blind-post-banner": {
+        "node": "1:72",
+        "text": "1250x560px / 200KB / JPG, PNG"
+      },
+      "catch-mainlarge-image-pc": {
+        "node": "1:5761",
+        "text": "디자인 최종 산출물 [이미지] 사이즈: 1256X295 파일포멧: PNG (용량 메모 없음)"
+      },
+      "catch-mainlarge-image-mo": {
+        "node": "1:5793",
+        "text": "디자인 최종 산출물 [이미지] 사이즈: 702X428 파일포멧: PNG (용량 메모 없음)"
+      }
+    }
+  }
+}

@@ -98,6 +98,23 @@
   .st.rv{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line)}
   tr.rv td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
   tr.spec.hidden{display:none}
+  /* 8항목 체크리스트 — 규격 칸 맨 위. 고정 칸은 진하게, 자유 칸은 흐리게 */
+  tr.chk td{padding:0 10px 8px;background:var(--soft)}
+  /* 표가 가로로 넘칠 때도 체크리스트는 화면 폭 안에 — 가로 스크롤 안에서 왼쪽에 붙어 따라온다 */
+  .chk8{margin:0;font-size:11.5px;line-height:1.45;position:sticky;left:10px;max-width:min(960px,calc(100vw - 72px))}
+  .tag.ex{background:var(--accent);color:#fff}
+  .chk8 summary{cursor:pointer;color:var(--sub);font-weight:600}
+  .chk8 .tag.ex{background:var(--accent,#2563eb);color:#fff}
+  .chk8 ul{list-style:none;margin:4px 0 0;padding:0}
+  .chk8 li{display:grid;grid-template-columns:150px minmax(160px,1fr) minmax(220px,2fr) 92px;gap:10px;padding:3px 0;border-top:1px dashed var(--line)}
+  @media (max-width:720px){.chk8 li{grid-template-columns:1fr 1fr}}
+  .chk8 li.free{color:var(--sub)}
+  .chk8 li.free b{font-weight:500}
+  .chk8 .bd{color:var(--sub)}
+  .chk8 .bd::before{content:"보드 ";opacity:.6}
+  .chk8 .ours::before{content:"우리 ";opacity:.6}
+  .chk8 .v{white-space:nowrap;font-weight:600}
+  .chk8 .v.ok{color:var(--ok,#15803d)} .chk8 .v.rv{color:var(--warn,#b45309)} .chk8 .v.bad{color:var(--bad,#b91c1c)}
   .rej li, .conf li, .rv-list li{margin:3px 0}
   .rej .auto{color:var(--good);font-size:12px} .rej .manual{color:var(--warn);font-size:12px}
   .conf li{background:var(--bad-soft);border:1px solid var(--bad-line);border-radius:6px;padding:6px 10px;list-style:none}
@@ -148,8 +165,10 @@
 </div>
 
 <script type="module">
-  import { MEDIA, MEDIA_BOARD, MEDIA_COUNTS } from '../core/media.js';
+  import { MEDIA, MEDIA_BOARD, MEDIA_COUNTS, EXTRACT } from '../core/media.js';
   import { CANON } from '../core/canon.js';
+  import { orderedChecklist8 } from '../core/checklist8.js';
+  import { SPEC_BOARD } from '../core/spec-board-data.js';
 
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dash = v => (v == null || v === '' ? '<span style="color:var(--sub)">—</span>' : esc(v));
@@ -179,6 +198,16 @@
   });
 
   /* ── 본문 ── */
+  // 8항목 체크리스트 — 사용자 「컨시어지」 보드의 8칸(배너 사이즈 규격 / 폰트 스타일 / 웨이트 / 크기 / 텍스트 갯수 / 폰트 영역 / 비주얼 영역 / 배경 컬러 / 추출 포맷·규격·용량).
+  // 규격마다 맨 위에 둔다 — 정해진 칸(고정)이 위, 자유 칸이 아래. 판정(✓ 일치 · ? 확인 필요 · ✗ 불일치)은 core/checklist8.js. 추출 규격(47)에만 보드 값이 있고, 참고 규격은 우리 값만 보인다.
+  const V = { '일치': ['✓', 'ok'], '불일치': ['✗', 'bad'], '확인 필요': ['?', 'rv'] };
+  function checklistBlock(s, m) {
+    const rows = orderedChecklist8(s, m, { boardSize: SPEC_BOARD[s.id] ?? null });
+    const li = r => { const [mark, cls] = V[r.verdict]; return `<li class="${r.fixed ? 'fixed' : 'free'}"><b>${esc(r.item)}</b> <span class="bd">${s.extract ? esc(r.board ?? '미기입') : '—'}</span> <span class="ours">${esc(r.ours ?? '규정 없음')}</span>${s.extract ? ` <span class="v ${cls}" title="${esc(r.why)}">${mark} ${esc(r.verdict)}</span>` : ''}</li>`; };
+    return `<details class="chk8"${s.extract ? ' open' : ''}><summary>8항목 체크리스트 <span class="tag ${s.extract ? 'ex' : ''}">${s.extract ? '추출 규격' : '참고 규격'}</span> <span class="note">보드 값 → 우리 값${s.extract ? ' → 판정' : ''}</span></summary><ul>${rows.map(li).join('')}</ul></details>`;
+  }
+  const mediumOfSpec = new Map(MEDIA.flatMap(m => (m.specs ?? []).map(s => [s.id, m])));
+
   function specRow(s) {
     const canvas = s.format?.every(f => f === 'text') ? '텍스트' : px(s.w, s.h, s.maxH);
     const scale = s.exportScale && s.exportScale !== 1 ? `×${s.exportScale}` : '';
@@ -188,7 +217,7 @@
     const rv = s.confidence !== '확정';
     const notes = [...(s.layoutNotes ?? []), s.note].filter(Boolean);
     return `<tr class="spec ${rv ? 'rv' : ''}" data-text="${esc([s.name, s.platform, canvas, s.format?.join(' '), s.background, limits, notes.join(' ')].join(' ').toLowerCase())}">
-      <td><b>${esc(s.name)}</b>${s.deliverable === false ? ' <span class="tag">전달 자료만</span>' : ''}${notes.length ? `<span class="note">${notes.map(esc).join(' · ')}</span>` : ''}</td>
+      <td><b>${esc(s.name)}</b>${s.extract ? ' <span class="tag ex">추출</span>' : ''}${s.deliverable === false ? ' <span class="tag">전달 자료만</span>' : ''}${notes.length ? `<span class="note">${notes.map(esc).join(' · ')}</span>` : ''}</td>
       <td>${dash(s.platform)}</td>
       <td class="num">${dash(canvas)}${scale ? ` <span class="note">${scale} 추출</span>` : ''}</td>
       <td class="num">${dash(submit)}</td>
@@ -199,7 +228,8 @@
       <td>${limits || dash(null)}</td>
       <td>${dash(logo)}</td>
       <td><span class="st ${rv ? 'rv' : 'ok'}">${rv ? '확인 필요' : '확정'}</span>${s.source ? `<span class="note">${esc(s.source)}</span>` : ''}</td>
-    </tr>`;
+    </tr>
+    <tr class="spec chk ${rv ? 'rv' : ''}" data-text="${esc([s.name, s.platform, canvas].join(' ').toLowerCase())}"><td colspan="11">${checklistBlock(s, mediumOfSpec.get(s.id))}</td></tr>`;
   }
 
   const ruleList = (rules, open = false) => rules.length > 6 && !open
@@ -346,9 +376,11 @@
     document.querySelectorAll('.medium').forEach(card => {
       const gOk = !state.g || card.dataset.g === state.g;
       let any = false;
-      card.querySelectorAll('tr.spec').forEach(tr => {
+      card.querySelectorAll('tr.spec:not(.chk)').forEach(tr => {
         const ok = gOk && (!state.q || tr.dataset.text.includes(state.q)) && (!state.rv || tr.classList.contains('rv'));
         tr.classList.toggle('hidden', !ok); any = any || ok;
+        // 8항목 체크리스트 줄은 규격 줄을 따라간다
+        const chk = tr.nextElementSibling; if (chk?.classList.contains('chk')) chk.classList.toggle('hidden', !ok);
       });
       // 규격이 하나도 없는 매체는 그룹·검색어만으로 판단한다
       const noSpecs = !card.querySelector('tr.spec');

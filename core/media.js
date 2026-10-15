@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 15 · 규격 90 · 확인필요 111 · 충돌 43 · 반려사례 12
+// 매체 15 · 규격 90(추출 47) · 확인필요 111 · 충돌 43 · 반려사례 12
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 0/24 프레임
 
@@ -194,7 +194,74 @@ export const MEDIA = [
               "w": 310,
               "h": 216
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "구멍 뚫린 틀 — 세아제강 샘플 28:124 를 그대로 틀로 쓴다(가이드 그룹 28:126: 서브 칸 28:149 y76.5 h23 · 메인 칸 28:153/154 y121.5/164.5 h35 · 상세 칸 28:150~152 y252.5/279.6/306.6 h18.9 · 로고 28:155 150×50@371,20 안 가로 칸 150×31@371,29.5 · 이미지 28:127 310×216@240,184). 캠페인마다 배경색·키비주얼·문구만 바뀐다",
+              "source": "figma:qhEEyEBDCjTmTho3tByBf1 28:124 세아제강_자소설_PC프리미엄패키지 (PC팝업배너) — 글자 노드 28:182~187 · 로고 28:188 143×23@375,33 · 그림 28:125 249×183@293,187",
+              "measuredAt": "2026-10-15",
+              "bg": "#FFFFF7",
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "x": 29.6,
+              "w": 369,
+              "rows": {
+                "sub": {
+                  "y": 75,
+                  "px": 22,
+                  "weight": 700,
+                  "pitch": 26,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 118,
+                  "px": 35,
+                  "weight": 700,
+                  "pitch": 44,
+                  "lines": 2
+                },
+                "detail": {
+                  "y": 252,
+                  "px": 17,
+                  "weight": 400,
+                  "labelWeight": 400,
+                  "pitch": 27,
+                  "lines": 3,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ]
+                }
+              },
+              "labels": {
+                "period": "모집일정"
+              },
+              "logo": {
+                "x": 375,
+                "y": 33,
+                "w": 143,
+                "h": 23,
+                "align": "right",
+                "note": "샘플 로고 상자 그대로(칸 150×31 안 우측 정렬, 높이 23 맞춤 — 10-15 목표 프레임 37:2)",
+                "maxArea": 3300,
+                "areaNote": "로고는 칸 안 + 면적 상한(샘플 면적, 10-15 사용자): 채용공고 샘플 6개 1,400~2,400px²(세아 107×17·펑타이 129×17·케피코 81×30·모비스 72×25·한독 50×28.5) → 2,200 · 팝업 143×23 · PC메인 99×36 → 3,600 · M팝업 229×37 → 8,500. 칸을 꽉 채우지 않는다"
+              },
+              "image": {
+                "x": 293,
+                "y": 187,
+                "w": 249,
+                "h": 183,
+                "fit": "cover",
+                "anchor": "center",
+                "note": "샘플 그림 상자 그대로 cover, 프레임 안(블리드 없음) — 10-15 목표 프레임 37:2"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 37:2 (10-15 목표 프레임)",
+              "subPrefer": "season",
+              "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
+              "bgNote": "배경색 자유(브랜드색). 밝은 바탕이면 글자 샘플색(color), 어두운 바탕이면 흰 글자·흰 로고(colorDark) — 채용공고 샘플 6개 원칙을 전제로 적용(이 규격은 밝은 샘플 1개뿐, 10-15)",
+              "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "docRef": "docs/jasoseol-mold.md ①"
+            }
           }
         },
         "textLimits": [
@@ -289,7 +356,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-pc-premium-jobpost-pc",
@@ -328,7 +396,79 @@ export const MEDIA = [
               "w": 160,
               "h": 230
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "구멍 뚫린 틀 — 채용공고 160×600 샘플 6개(프리미엄 세아 28:333·펑타이·도레이, 스탠다드 케피코·모비스 28:382·한독) 전수 실측: 글자 슬롯 x=15 동일. 배경색은 자유(브랜드색 — 도레이 #005877·모비스 #1C256A·한독 #5693DA 어두운 바탕), 밝은 바탕이면 글자 #555, 어두운 바탕이면 흰 글자·흰 로고(흰/검 전환 유지). 상세 블록은 마지막 메인 줄 y + 57.5 에서 시작(메인 줄 수 따라 내려감). 프리미엄/스탠다드 채용공고 동일 틀(사용자 확정 10-15)",
+              "source": "figma:qhEEyEBDCjTmTho3tByBf1 28:333 세아제강 · 28:382 현대모비스 · 28:190 템플릿 + 채용공고 샘플 6개 전수 실측(10-15 코디네이터) · 목표 프레임 39:2",
+              "measuredAt": "2026-10-15",
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "x": 15,
+              "w": 130,
+              "rows": {
+                "sub": {
+                  "y": 81.9,
+                  "px": 16,
+                  "weight": 700,
+                  "pitch": 22.6,
+                  "lines": 2,
+                  "note": "2줄째 y104.5"
+                },
+                "main": {
+                  "y": 117.5,
+                  "px": 24,
+                  "weight": 700,
+                  "pitch": 34.1,
+                  "lines": 4,
+                  "bySubLines": {
+                    "2": {
+                      "y": 141
+                    }
+                  },
+                  "note": "서브 1줄 117.5/151.6/185.7/219.6 · 서브 2줄 141/174.3/208.9/242.6 (최대 4줄)"
+                },
+                "detail": {
+                  "afterMain": 57.5,
+                  "px": 13,
+                  "weight": 400,
+                  "labelWeight": 700,
+                  "pitch": 21.8,
+                  "lines": 6,
+                  "labelRow": true,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
+                  "note": "블록 시작 y = 마지막 메인 줄 y + 57.5(세아: 메인 3줄 185.7 → 242.8 ✓). 라벨 행 굵게 + 값 행(한독처럼 한 줄 「라벨 : 값」도 있지만 기본은 분리). 최대 6행"
+                }
+              },
+              "labels": {
+                "period": "모집일정"
+              },
+              "logo": {
+                "x": 15,
+                "y": 23,
+                "w": 130,
+                "h": 30,
+                "align": "center",
+                "note": "칸 130×30 안 가운데(중심 x80·y38), 최대 h30/w130 — 샘플 세아 107×17·모비스 72×25",
+                "maxArea": 2200,
+                "areaNote": "로고는 칸 안 + 면적 상한(샘플 면적, 10-15 사용자): 채용공고 샘플 6개 1,400~2,400px²(세아 107×17·펑타이 129×17·케피코 81×30·모비스 72×25·한독 50×28.5) → 2,200 · 팝업 143×23 · PC메인 99×36 → 3,600 · M팝업 229×37 → 8,500. 칸을 꽉 채우지 않는다"
+              },
+              "image": {
+                "x": 0,
+                "y": 400,
+                "w": 160,
+                "h": 200,
+                "anchor": "center",
+                "note": "하단 구역 y≥400(목표 프레임 39:2 160×200@0,400). 샘플은 크기·블리드 자유(세아 151×111@4,430 / 도레이 496×324@-229,268 / 한독 183×197@-19,402) — 글자 마지막 행 아래로 침범 금지. 누끼는 contain, 바탕 있는 그림은 cover"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 39:2 (10-15 목표 프레임)",
+              "subPrefer": "season",
+              "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
+              "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "docRef": "docs/jasoseol-mold.md ②"
+            }
           }
         },
         "textLimits": [
@@ -448,7 +588,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-pc-standard-main-pc",
@@ -493,7 +634,91 @@ export const MEDIA = [
               "w": 81.5,
               "h": 44.9
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "구멍 뚫린 틀 — 템플릿 28:880(글자 칸 x390.5: 서브 y43.8 h24.7 · 메인 y81.5/126 h35 · 상세 y166.5/196.2/225.9 h20 「메인 두 줄이면 상세 1행 입력 불가」 · 로고 칸 28:889 163.5×44.9@1006.5,30 · 왼쪽 그림 영역 28:923 350×280@0,0). 배경색(브랜드색)·키비주얼은 왼쪽 350×280 영역에만, 오른쪽은 템플릿 흰 지면 + 검정 글자. 샘플 현대케피코 28:1002: 서브 22 Medium · 메인 32 Bold 2줄 y81/124 · 상세 18 y195/225(메인 2줄이라 2행) · 로고 99×36@1073,33 우측 정렬",
+              "source": "figma:qhEEyEBDCjTmTho3tByBf1 28:1002 현대케피코_자소설_PC스탠다드패키지 (PC메인배너) — 글자 28:1005~1009 · 로고 28:1010 · 템플릿 28:880",
+              "measuredAt": "2026-10-15",
+              "bg": "#FFFFFF",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "field": {
+                "x": 0,
+                "y": 0,
+                "w": 350,
+                "h": 280
+              },
+              "x": 390.5,
+              "w": 544,
+              "rows": {
+                "sub": {
+                  "y": 43,
+                  "px": 22,
+                  "weight": 500,
+                  "pitch": 26,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 81,
+                  "px": 32,
+                  "weight": 700,
+                  "pitch": 43,
+                  "lines": 2
+                },
+                "detail": {
+                  "y": 166,
+                  "px": 18,
+                  "weight": 400,
+                  "labelWeight": 400,
+                  "pitch": 29.5,
+                  "lines": 3,
+                  "labelRow": false,
+                  "byMainLines": {
+                    "2": {
+                      "y": 195,
+                      "lines": 2
+                    }
+                  },
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ]
+                }
+              },
+              "labels": {
+                "period": "채용일정"
+              },
+              "logo": {
+                "x": 1006.5,
+                "y": 30,
+                "w": 163.5,
+                "h": 44.9,
+                "align": "right",
+                "sample": {
+                  "x": 1072.7,
+                  "y": 33,
+                  "w": 99.3,
+                  "h": 36.2
+                },
+                "maxArea": 3600,
+                "areaNote": "로고는 칸 안 + 면적 상한(샘플 면적, 10-15 사용자): 채용공고 샘플 6개 1,400~2,400px²(세아 107×17·펑타이 129×17·케피코 81×30·모비스 72×25·한독 50×28.5) → 2,200 · 팝업 143×23 · PC메인 99×36 → 3,600 · M팝업 229×37 → 8,500. 칸을 꽉 채우지 않는다"
+              },
+              "image": {
+                "x": 0,
+                "y": 0,
+                "w": 350,
+                "h": 280,
+                "fit": "cover",
+                "anchor": "center",
+                "note": "왼쪽 구역 350×280 = 배경색 + 키비주얼 cover·클립(목표 프레임 39:144). 샘플 원 그림(143×143@157,30 등)은 디자이너 표현"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 39:144 (10-15 목표 프레임)",
+              "subPrefer": "season",
+              "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
+              "bgNote": "배경색 자유(브랜드색). 밝은 바탕이면 글자 샘플색(color), 어두운 바탕이면 흰 글자·흰 로고(colorDark) — 채용공고 샘플 6개 원칙을 전제로 적용(이 규격은 밝은 샘플 1개뿐, 10-15)",
+              "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "docRef": "docs/jasoseol-mold.md ③"
+            }
           }
         },
         "textLimits": [
@@ -590,7 +815,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-pc-standard-jobpost-pc",
@@ -629,7 +855,79 @@ export const MEDIA = [
               "w": 160,
               "h": 230
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "프리미엄 채용공고(160×600)와 동일 틀(사용자 확정 10-15) — 구멍 뚫린 틀 — 채용공고 160×600 샘플 6개(프리미엄 세아 28:333·펑타이·도레이, 스탠다드 케피코·모비스 28:382·한독) 전수 실측: 글자 슬롯 x=15 동일. 배경색은 자유(브랜드색 — 도레이 #005877·모비스 #1C256A·한독 #5693DA 어두운 바탕), 밝은 바탕이면 글자 #555, 어두운 바탕이면 흰 글자·흰 로고(흰/검 전환 유지). 상세 블록은 마지막 메인 줄 y + 57.5 에서 시작(메인 줄 수 따라 내려감). 프리미엄/스탠다드 채용공고 동일 틀(사용자 확정 10-15)",
+              "source": "figma:qhEEyEBDCjTmTho3tByBf1 28:333 세아제강 · 28:382 현대모비스 · 28:190 템플릿 + 채용공고 샘플 6개 전수 실측(10-15 코디네이터) · 목표 프레임 39:2",
+              "measuredAt": "2026-10-15",
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "x": 15,
+              "w": 130,
+              "rows": {
+                "sub": {
+                  "y": 81.9,
+                  "px": 16,
+                  "weight": 700,
+                  "pitch": 22.6,
+                  "lines": 2,
+                  "note": "2줄째 y104.5"
+                },
+                "main": {
+                  "y": 117.5,
+                  "px": 24,
+                  "weight": 700,
+                  "pitch": 34.1,
+                  "lines": 4,
+                  "bySubLines": {
+                    "2": {
+                      "y": 141
+                    }
+                  },
+                  "note": "서브 1줄 117.5/151.6/185.7/219.6 · 서브 2줄 141/174.3/208.9/242.6 (최대 4줄)"
+                },
+                "detail": {
+                  "afterMain": 57.5,
+                  "px": 13,
+                  "weight": 400,
+                  "labelWeight": 700,
+                  "pitch": 21.8,
+                  "lines": 6,
+                  "labelRow": true,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
+                  "note": "블록 시작 y = 마지막 메인 줄 y + 57.5(세아: 메인 3줄 185.7 → 242.8 ✓). 라벨 행 굵게 + 값 행(한독처럼 한 줄 「라벨 : 값」도 있지만 기본은 분리). 최대 6행"
+                }
+              },
+              "labels": {
+                "period": "모집일정"
+              },
+              "logo": {
+                "x": 15,
+                "y": 23,
+                "w": 130,
+                "h": 30,
+                "align": "center",
+                "note": "칸 130×30 안 가운데(중심 x80·y38), 최대 h30/w130 — 샘플 세아 107×17·모비스 72×25",
+                "maxArea": 2200,
+                "areaNote": "로고는 칸 안 + 면적 상한(샘플 면적, 10-15 사용자): 채용공고 샘플 6개 1,400~2,400px²(세아 107×17·펑타이 129×17·케피코 81×30·모비스 72×25·한독 50×28.5) → 2,200 · 팝업 143×23 · PC메인 99×36 → 3,600 · M팝업 229×37 → 8,500. 칸을 꽉 채우지 않는다"
+              },
+              "image": {
+                "x": 0,
+                "y": 400,
+                "w": 160,
+                "h": 200,
+                "anchor": "center",
+                "note": "하단 구역 y≥400(목표 프레임 39:2 160×200@0,400). 샘플은 크기·블리드 자유(세아 151×111@4,430 / 도레이 496×324@-229,268 / 한독 183×197@-19,402) — 글자 마지막 행 아래로 침범 금지. 누끼는 contain, 바탕 있는 그림은 cover"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 39:2 (10-15 목표 프레임)",
+              "subPrefer": "season",
+              "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
+              "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "docRef": "docs/jasoseol-mold.md ②"
+            }
           }
         },
         "textLimits": [
@@ -749,7 +1047,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-m-premium-popup-mo",
@@ -794,7 +1093,76 @@ export const MEDIA = [
               "w": 128,
               "h": 80
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "구멍 뚫린 틀 — M팝업 600×880 템플릿 28:1072(메인 2줄)·28:1185(메인 1줄), 샘플 세아 28:1292·한미 28:1408(바탕 흰색 2/2). 배경색은 자유(어두우면 흰 글자·흰 로고), 밝은 바탕 글자 #555. 상세는 「라벨 : 값」 한 줄, 고용형태 줄 없음, 최대 3줄. 그림은 그림 칸(0,543.7 600×336.3) 안에서만(위로 침범 금지 — 우리 28:1480 이 y509 부터 깔아 34px 침범했었다)",
+              "source": "figma:qhEEyEBDCjTmTho3tByBf1 28:1072 · 28:1185 템플릿, 28:1292 세아제강 · 28:1408 한미글로벌 샘플(10-15 코디네이터 실측) · 목표 프레임 43:2",
+              "measuredAt": "2026-10-15",
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "x": 42,
+              "w": 518,
+              "rows": {
+                "sub": {
+                  "y": 159.5,
+                  "px": 30,
+                  "weight": 700,
+                  "pitch": 36,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 210.9,
+                  "px": 50,
+                  "weight": 700,
+                  "pitch": 69.6,
+                  "lines": 2
+                },
+                "detail": {
+                  "y": 335,
+                  "px": 26,
+                  "weight": 400,
+                  "labelWeight": 700,
+                  "pitch": 44.5,
+                  "lines": 3,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
+                  "byMainLines": {
+                    "2": {
+                      "y": 404.9
+                    }
+                  },
+                  "note": "메인 2줄이면 y404.9/448.6/493.9, 1줄이면 335/379/424"
+                }
+              },
+              "labels": {
+                "period": "모집일정"
+              },
+              "subPrefer": "season",
+              "logo": {
+                "x": 294,
+                "y": 33,
+                "w": 268,
+                "h": 54.5,
+                "align": "right",
+                "note": "가로형 칸 우측 정렬(오른쪽 끝 x562)·세로 가운데. 세로형 칸 (447,20) 115.6×80. 샘플 229×37@337,42",
+                "maxArea": 8500,
+                "areaNote": "로고는 칸 안 + 면적 상한(샘플 면적, 10-15 사용자): 채용공고 샘플 6개 1,400~2,400px²(세아 107×17·펑타이 129×17·케피코 81×30·모비스 72×25·한독 50×28.5) → 2,200 · 팝업 143×23 · PC메인 99×36 → 3,600 · M팝업 229×37 → 8,500. 칸을 꽉 채우지 않는다"
+              },
+              "image": {
+                "x": 0,
+                "y": 543.7,
+                "w": 600,
+                "h": 336.3,
+                "anchor": "center bottom",
+                "note": "그림 칸 안에서만 — 누끼 contain, 바탕 있는 그림 cover. 칸 안 크기·블리드 자유"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 43:2 (10-15 목표 프레임)",
+              "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "docRef": "docs/jasoseol-mold.md ⑤"
+            }
           }
         },
         "textLimits": [
@@ -896,7 +1264,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-m-premium-chatlist-logo-mo",
@@ -960,7 +1329,9 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37725 'M채팅목록배너 (로고 300*180px_배경 투명 PNG)', text 408:36999 '*배경은 투명 PNG로 로고 컬러는 진한 컬러로 (흰색 x)' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.10",
         "confidence": "확정",
         "note": "보드는 'M채팅목록배너', PDF는 'M텍스트배너'로 부름 — 같은 상품(300×180 투명 PNG 로고 + 문구). exportScale 1: 공통 5항 '로고 제외 모두 2배 추출'.",
-        "frame": "guide"
+        "renderNote": "로고 PNG 제출물(300×180 투명·진한 색, 흰색 X) — 틀 없음, 검사 항목만(사용자 확정 10-15)",
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-m-standard-main-mo",
@@ -1006,7 +1377,65 @@ export const MEDIA = [
               "x": 43.75,
               "w": 500
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "구멍 뚫린 틀 — M스탠다드 M메인 750×500: 컨시어지 보드 템플릿 1:8625 · 샘플 FITI 1:10459 실측(10-15 코디네이터). 바탕 흰색(샘플), 글자 #555, 로고 없음(규정). 메인 2줄이면 상세 첫 줄(332.3) 사용 불가, 「상세 입력 시 하단부터」. 라벨 Bold + 「 ㅣ 」 + 값 Regular 한 줄. 고용형태 줄 없음. 그림은 주요 칸(376,160 374×340) 안(최대 338,0 412×500), 글자 칸(x43~약 500) 침범 금지. 글자·로고·그림 칸 위치만 틀, 그림 처리는 디자인 가이드 그대로",
+              "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 1:8625 템플릿 · 1:10459 FITI 샘플 · 목표 프레임 qhEEyEBDCjTmTho3tByBf1 44:2",
+              "measuredAt": "2026-10-15",
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "x": 43,
+              "w": 457,
+              "rows": {
+                "sub": {
+                  "y": 166.5,
+                  "px": 28,
+                  "weight": 700,
+                  "pitch": 33.6,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 219.9,
+                  "px": 40,
+                  "weight": 700,
+                  "pitch": 60.5,
+                  "lines": 2
+                },
+                "detail": {
+                  "y": 332.3,
+                  "px": 24,
+                  "weight": 400,
+                  "labelWeight": 700,
+                  "pitch": 40,
+                  "lines": 3,
+                  "labelRow": false,
+                  "labelSep": " ㅣ",
+                  "fillFromBottom": true,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
+                  "byMainLines": {
+                    "2": {
+                      "y": 372.5,
+                      "lines": 2
+                    }
+                  },
+                  "note": "행 y332.3/372.5/412.3 — 메인 2줄이면 372.5/412.3 만, 아래부터 채움"
+                }
+              },
+              "subPrefer": "season",
+              "image": {
+                "x": 376,
+                "y": 160,
+                "w": 374,
+                "h": 340,
+                "note": "주요 칸. 최대 칸 (338,0) 412×500. 처리는 디자인 가이드(모서리 상자: 누끼 contain·바탕 있는 그림 cover + 녹임)"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 44:2 (10-15 목표 프레임)",
+              "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "docRef": "docs/jasoseol-mold.md ⑦"
+            }
           }
         },
         "textLimits": [
@@ -1102,7 +1531,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-m-standard-chatlist-logo-mo",
@@ -1166,7 +1596,9 @@ export const MEDIA = [
         "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37732 'M채팅목록배너 (로고 300*180px_배경 투명 PNG)', text 408:37740 '*배경은 투명 PNG로 로고 컬러는 진한 컬러로 (흰색 x)' / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.12",
         "confidence": "확정",
         "note": "보드는 'M채팅목록배너', PDF는 'M텍스트배너'로 부름 — 같은 상품(300×180 투명 PNG 로고 + 문구). exportScale 1: 공통 5항 '로고 제외 모두 2배 추출'.",
-        "frame": "guide"
+        "renderNote": "로고 PNG 제출물(300×180 투명·진한 색, 흰색 X) — 틀 없음, 검사 항목만(사용자 확정 10-15)",
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-m-start-package-mo",
@@ -1241,7 +1673,10 @@ export const MEDIA = [
         "confidence": "확정",
         "note": "제작 대상 아님(전달 자료 규격만). 자동 생성 에이전트는 이 상품의 완성 배너를 만들지 않고, 전달 자료 체크리스트로 쓴다.",
         "deliverable": false,
-        "frame": "guide"
+        "renderable": false,
+        "renderNote": "전달물만 — 소재 제작은 자소설 내부. 로고(가로 500px↑ 투명 PNG/AI)·이미지(가로 720px↑)만 전달. 렌더 대상 아님(사용자 확정 10-15)",
+        "frame": "guide",
+        "extract": false
       },
       {
         "id": "jasoseol-pc-calendar-pc",
@@ -1275,7 +1710,44 @@ export const MEDIA = [
               "x": 49.3,
               "w": 233.7
             },
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "mold": {
+              "note": "구멍 뚫린 틀 — PC달력 164×233(전달 2배 328×466). 템플릿 1:8706(4줄)·1:8742(3줄)·1:8776(2줄), 샘플 케피코 1:10548·키엔스 1:10560·예시 1:8808 실측(2배 기준, 제품은 ×0.5). 메인 Bold 40 x52 최대 4줄 행당 6자 한 가지 색·문구에 마감일 넣지 않음. 마감일 Regular 32 = 마지막 메인 줄 + 59.3(「~월/일」 0 빼고 5/26), 이 줄만 색 달라도 됨. 로고·흰 배경 금지 → 배경색은 KV 팔레트(연회색 #F4F4F4·#212121 OK), 어두우면 흰 글자. 그림 칸 (0,306) 328×160 하단 전폭, 블리드 자유, 글자 영역 침범 금지. 서브·상세·로고 없음",
+              "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 1:8706·1:8742·1:8776 템플릿, 1:10548 현대케피코·1:10560 키엔스·1:8808 예시 · 목표 프레임 qhEEyEBDCjTmTho3tByBf1 47:2(2배 캔버스)",
+              "measuredAt": "2026-10-15",
+              "frame": "328×466(2배)",
+              "color": "#555555",
+              "colorDark": "#FFFFFF",
+              "x": 52,
+              "w": 260,
+              "rows": {
+                "main": {
+                  "y": 38.9,
+                  "px": 40,
+                  "weight": 700,
+                  "pitch": 53.9,
+                  "lines": 4
+                },
+                "date": {
+                  "afterMain": 59.3,
+                  "px": 32,
+                  "weight": 400,
+                  "pitch": 38.4,
+                  "lines": 1,
+                  "format": "~M/D",
+                  "note": "4줄→260 · 3줄→206 · 2줄→151.9"
+                }
+              },
+              "image": {
+                "x": 0,
+                "y": 306,
+                "w": 328,
+                "h": 160,
+                "note": "하단 전폭 칸, 처리는 디자인 가이드(하단 띠: native/contain/cover + 윗변 녹임)"
+              },
+              "target": "figma:qhEEyEBDCjTmTho3tByBf1 47:2 (10-15 목표 프레임, 2배)",
+              "docRef": "docs/jasoseol-mold.md ⑩"
+            }
           }
         },
         "textLimits": [
@@ -1369,7 +1841,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": false
       }
     ],
     "rejections": [
@@ -1447,7 +1920,9 @@ export const MEDIA = [
         "eyebrow": 700,
         "detailValue": 400
       }
-    }
+    },
+    "specCountNote": "자소설 규격 수 10(사용자 확정 10-15): 1 PC팝업 550×400 · 2 PC프리미엄 채용공고 160×600 · 3 PC메인 1200×280 · 4 PC스탠다드 채용공고 160×600 · 5 M팝업 600×880 · 6 M프리미엄 채팅목록 로고 300×180 · 7 M메인 750×500 · 8 M스탠다드 채팅목록 로고 300×180 · 9 M시작배너패키지(전달물만) · 10 PC달력 164×233(2배 328×466). 틀(mold) 7(1·2·3·4·5·7·10), 6·8 로고 검사만, 9 전달물만",
+    "moldDoc": "docs/jasoseol-mold.md — 자소설 틀 정본(10-15). 규격별 mold 값은 이 문서와 1:1"
   },
   {
     "id": "remember",
@@ -1687,7 +2162,8 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48086 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.11~14 / psd:리멤버_메인상단배너_PC.psd",
         "confidence": "확정",
         "note": "",
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-main-top-mo",
@@ -1770,7 +2246,8 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48087 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.11,13,14 / psd:리멤버_메인상단배너_MobileAPP.psd",
         "confidence": "확정",
         "note": "platform은 Mobile·APP 공용 1종",
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-main-mid-pc",
@@ -1858,7 +2335,8 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48072 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.16~19 / psd:리멤버_메인중간배너_PC.psd",
         "confidence": "확정",
         "note": "",
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-main-mid-mo",
@@ -1947,7 +2425,8 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48073 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.16,18,19 / psd:리멤버_메인중간배너_MobileAPP.psd",
         "confidence": "확정",
         "note": "platform은 Mobile·APP 공용 1종",
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-job-top-pc",
@@ -2045,7 +2524,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-job-top-mo",
@@ -2146,7 +2626,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-job-side-pc",
@@ -2220,7 +2701,8 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48068 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.26~28 / psd:리멤버_공고상세사이드배너_PC.psd",
         "confidence": "확정",
         "note": "",
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "remember-job-side-mo",
@@ -2294,7 +2776,8 @@ export const MEDIA = [
         "source": "figma:리멤버02(제작가이드&예시) frame 408:48069 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.26~28 / psd:리멤버_공고상세사이드배너_MobileAPP.psd",
         "confidence": "확정",
         "note": "zip에 '-복구됨' 사본 PSD도 있음(동일 1125×276)",
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       }
     ],
     "rejections": [
@@ -2601,7 +3084,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jobda-main-mo",
@@ -2771,7 +3255,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       }
     ],
     "rejections": [],
@@ -2997,7 +3482,8 @@ export const MEDIA = [
         "source": "figma:캐치01(소재 제작 규정) frame 414:419·423:8666, text 414:415~433·423:8674~8680·423:8705 / pdf:메인 대형 배너-이미지형.pdf (250417.v1.0) p.2~7",
         "confidence": "확정",
         "note": "예시화면 파일포멧 JPG 별도 전달 (414:415)",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "catch-mainlarge-image-mo",
@@ -3084,7 +3570,8 @@ export const MEDIA = [
         "source": "figma:캐치01(소재 제작 규정) frame 414:436·423:8710, text 414:437~448·423:8711~8723 / pdf:메인 대형 배너-이미지형.pdf (250417.v1.0) p.8~13",
         "confidence": "확인필요",
         "note": "글자수 Figma↔PDF 불일치",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "catch-center-object-pc",
@@ -3194,7 +3681,8 @@ export const MEDIA = [
         "source": "figma:캐치01(소재 제작 규정) text 423:8575~8583, frame 423:8521·8682 / psd:PC_상품_중앙배너_BG.psd",
         "confidence": "확인필요",
         "note": "PDF 오브젝트형(250417)과 치수·글자수 불일치 — conflicts 참조. 제출 이미지는 515×315, 캔버스 1068×315는 미리보기용",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       },
       {
         "id": "catch-center-object-mo",
@@ -3326,7 +3814,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       },
       {
         "id": "catch-center-logo-mo",
@@ -3368,7 +3857,8 @@ export const MEDIA = [
         "source": "figma:캐치01(소재 제작 규정) text 423:8585, frame 423:8588 / psd:M_상품_중앙배너_Logo.psd",
         "confidence": "확인필요",
         "note": "PDF 오브젝트형 MO는 로고를 이미지 안 우상단에 삽입하는 방식 — conflicts 참조",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       }
     ],
     "rejections": [],
@@ -3658,7 +4148,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "google-gdn-970x250",
@@ -3790,7 +4281,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "google-gdn-300x600",
@@ -3921,7 +4413,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "google-gdn-300x1050",
@@ -4034,7 +4527,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "google-gdn-930x180",
@@ -4141,7 +4635,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "guide"
+        "frame": "guide",
+        "extract": false
       }
     ],
     "exportWorkflow": {
@@ -4545,7 +5040,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "nap-dsp-band-320x100",
@@ -4671,7 +5167,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "nap-dsp-full-300x250",
@@ -4820,7 +5317,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "nap-dsp-full-320x480",
@@ -4978,7 +5476,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "nap-dsp-bizboard-1029x258",
@@ -5076,7 +5575,8 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 19:214, text 418:2740·421:2777·102:178·102:179 / figma:NAPDSP 섹션 상단 메모 text 418:2738 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.7, p.10",
         "confidence": "확정",
         "note": "용량 200KB — 카카오 직접 집행 비즈보드(300KB)와 다름, 혼동 주의. 글자수는 자리표시 기준이라 확인필요.",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       },
       {
         "id": "nap-dsp-pc-970x90",
@@ -5116,7 +5616,8 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 418:2742, text 418:2775 'PC배너' / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.23",
         "confidence": "확인필요",
         "note": "보드 '총 5장'(418:2740)에 PC 배너가 없음 — 요청 시에만 제작하는지 확인. 프레임명 970*100과 실제 970×90이 다름(pdf는 970*90).",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       },
       {
         "id": "nap-dsp-pc-728x90",
@@ -5155,7 +5656,8 @@ export const MEDIA = [
         "source": "figma:NAPDSP01(소재 제작 규정/제작가이드&예시) frame 418:2758 / pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.23",
         "confidence": "확인필요",
         "note": "보드 '총 5장'에 없음. 프레임 이름에 규격 표기 없음.",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       }
     ],
     "rejections": [
@@ -5452,7 +5954,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "instagram-story-1080x1920",
@@ -5503,7 +6006,8 @@ export const MEDIA = [
         "source": "figma:인스타그램01 text 421:3289 '인스타그램 스토리1080*1920' / png:인스타스토리 상단부분 참고 이미지",
         "confidence": "확인필요",
         "note": "보드에 '인스타그램 스토리1080*1920' 한 줄만 있고 스토리 전용 포맷·용량·안전영역 수치 없음. 포맷은 보드 상단 공통 규격(JPG, PNG) 적용. 안전영역 px는 인스타그램 공식 스펙으로 채우지 않음(추측 금지).",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       }
     ],
     "rejections": [],
@@ -5928,7 +6432,8 @@ export const MEDIA = [
             "source": "psd 오브젝트형 'obj max 315px' · cpt 'OBJECT: 315x222'(x799,y18) — 누끼 오브젝트는 위아래 18px 여백 안에"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "kakao-display-pc-promo",
@@ -6044,7 +6549,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "kakao-display-pc-profile",
@@ -6106,7 +6612,8 @@ export const MEDIA = [
         "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) frame 421:5477 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
         "confidence": "확정",
         "note": "홍보이미지와 함께 제출.",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "kakao-cpt-background",
@@ -6150,7 +6657,8 @@ export const MEDIA = [
         "source": "psd:카카오 cpt/01_banner_template_background.psd / ai:카카오톡 CPT 제작가이드.ai / jpg:카카오 cpt/자산 1-100.jpg (pngs/guide6.png)",
         "confidence": "확인필요",
         "note": "보드·docx에 CPT 언급 없음 — 폴더(카카오 cpt)의 PSD 3종 + AI 제작가이드(아트보드 4개: 합성 1029×258 / 텍스트 1029×258 / 오브젝트 315×258 / 배경 1290×258, DN그룹 예시)만 있음. 포맷·용량·제출 방식 규정 없음.",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "kakao-cpt-object",
@@ -6192,7 +6700,8 @@ export const MEDIA = [
         "source": "psd:카카오 cpt/02_banner_template_object.psd / ai:카카오톡 CPT 제작가이드.ai",
         "confidence": "확인필요",
         "note": "보드·docx에 CPT 언급 없음 — 폴더(카카오 cpt)의 PSD 3종 + AI 제작가이드(아트보드 4개: 합성 1029×258 / 텍스트 1029×258 / 오브젝트 315×258 / 배경 1290×258, DN그룹 예시)만 있음. 포맷·용량·제출 방식 규정 없음.",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "kakao-cpt-text",
@@ -6267,7 +6776,8 @@ export const MEDIA = [
         "source": "psd:카카오 cpt/03_banner_template_text.psd / ai:카카오톡 CPT 제작가이드.ai",
         "confidence": "확인필요",
         "note": "보드·docx에 CPT 언급 없음 — 폴더(카카오 cpt)의 PSD 3종 + AI 제작가이드(아트보드 4개: 합성 1029×258 / 텍스트 1029×258 / 오브젝트 315×258 / 배경 1290×258, DN그룹 예시)만 있음. 포맷·용량·제출 방식 규정 없음.",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       }
     ],
     "rejections": [
@@ -6591,7 +7101,8 @@ export const MEDIA = [
             "confidence": "확정(샘플 3+)"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "naver-gfa-native-pc-342x228",
@@ -6692,7 +7203,8 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6930/6933, frame 421:6979 / pdf:네이티브 pc.pdf p.3~16",
         "confidence": "확정",
         "note": "보드 메모(342x228px / 10~130KB / JP(E)G, PNG)와 PDF 일치",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       },
       {
         "id": "naver-gfa-native-pc-profile-300",
@@ -6744,7 +7256,8 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6933, frame 421:6988/7141 / 포맷은 figma:섹션 상단 메모 text 423:8729 (JPG, PNG)",
         "confidence": "확인필요",
         "note": "PC 성과형 네이티브 PDF에는 광고주 로고(프로필) 에셋 항목이 없음. 300×300은 보드 제작 예시 프레임 치수, 포맷은 섹션 공통 메모 기준. 용량 규정 없음",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       },
       {
         "id": "naver-gfa-native-mo-342x228",
@@ -6832,7 +7345,8 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6931/6933, frame 421:6985 / pdf:네이티브 모바일.pdf p.3~10",
         "confidence": "확정",
         "note": "PDF 포맷 표기는 PNG-24, JPG, JPEG. 보드 메모(342x228px / 10~130KB / JP(E)G, PNG)와 일치",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "naver-gfa-native-mo-profile-300",
@@ -6885,7 +7399,8 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6931/6933, frame 421:7134 / pdf:네이티브 모바일.pdf p.4(지면 02) / figma:네이버GFA 소재 반려 이슈 사례 text 446:53",
         "confidence": "확정",
         "note": "사이즈·확장자는 PDF 명시. 용량(KB) 규정은 PDF·보드 모두 없음",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       }
     ],
     "rejections": [
@@ -7215,7 +7730,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-community-native",
@@ -7279,7 +7795,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7191, 421:7199, frame 421:7455 (288×288) / pdf:에브리타임 소재제작가이드_26년7월.pdf p.21~24",
         "confidence": "확정",
         "note": "zip에 커뮤니티 네이티브 PSD 없음. 보드 템플릿 프레임만 있고 고객사 제작 사례 없음",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-home-banner",
@@ -7430,7 +7947,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-home-card-profile",
@@ -7484,7 +8002,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7201 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.32",
         "confidence": "확정",
         "note": "용량 제한은 PDF·보드 모두 미기재 → maxKB null. zip에 프로필 이미지 PSD 없음",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-home-card-image",
@@ -7623,7 +8142,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-contest-card",
@@ -7680,7 +8200,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7202, frame 421:7458 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.37~39 / psd:에브리타임/04_공모전,대외활동,채용정보/공모전,대외활동,채용정보_카드이미지.psd (288×288)",
         "confidence": "확정",
         "note": "보드에 고객사 제작 사례 없음(템플릿 프레임만)",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-search-keyword-thumb",
@@ -7744,7 +8265,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7195, 421:7203, frame 421:7566 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.45~48 / psd:에브리타임/05_검색키워드/검색키워드_썸네일이미지.psd (288×288)",
         "confidence": "확정",
         "note": "보드에 고객사 제작 사례 없음",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "everytime-daily-message-profile",
@@ -7800,7 +8322,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7196, 421:7204, frame 421:7567 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.50~51 / psd:에브리타임/06_데일리메시지/데일리메시지_프로필이미지.psd (120×120)",
         "confidence": "확정",
         "note": "용량 제한 미기재 → maxKB null",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       }
     ],
     "rejections": [
@@ -8060,7 +8583,8 @@ export const MEDIA = [
         "source": "figma:블라인드01(소재 제작 규정) text 421:8136, frame 421:8259 / pdf:블라인드 2025 가이드.pdf p.9 / psd:블라인드_채용채널&피드광고_[Guide] 02.In-Feed Image Ad.psd (96×96 아트보드)",
         "confidence": "확정",
         "note": "보드에 '로고도 있음!!!'(text 421:8257) — 피드 광고는 로고 파일 별도 제출",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "blind-feed-image",
@@ -8186,7 +8710,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "blind-post-banner",
@@ -8299,7 +8824,8 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
-        "frame": "rules"
+        "frame": "rules",
+        "extract": true
       }
     ],
     "rejections": [
@@ -8382,12 +8908,15 @@ export const MEDIA = [
       {
         "id": "daangn-native-feed-image",
         "name": "네이티브 피드 광고 (이미지 유형)",
-        "platform": null,
-        "w": null,
-        "h": null,
+        "platform": "APP",
+        "w": 200,
+        "h": 200,
         "exportScale": 1,
-        "format": [],
-        "maxKB": null,
+        "format": [
+          "jpg",
+          "png"
+        ],
+        "maxKB": 10240,
         "background": null,
         "safeArea": {
           "note": "자료 없음",
@@ -8408,13 +8937,15 @@ export const MEDIA = [
         "boardFrame": {
           "w": 200,
           "h": 200,
-          "source": "figma frame 20:357",
-          "note": "고객사명 없는 자리표시 프레임 — 제출 규격인지 불명"
+          "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 frame 1:59 「당근_네이티브 피드 광고」 (원본 보드 20:357)",
+          "note": "고객사명 없는 자리표시 프레임 — 최소 규격 200×200 과 같아 제출 규격으로 삼음(보드)"
         },
-        "source": "figma:당근01(소재가이드) text 20:353, frame 20:357",
-        "confidence": "확인필요",
-        "note": "보드에 상품명과 캡처 이미지만 있음. 사이즈·용량·포맷 모두 원본 가이드 필요",
-        "frame": "rules"
+        "source": "figma:당근01(소재가이드) text 20:353, frame 20:357 / figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 frame 1:59 / web:https://businessdaangn.gitbook.io/business.daangn/ads-pro/product/creative (JPG·PNG · 10MB · 최소 200×200)",
+        "confidence": "보드",
+        "note": "10-14 컨시어지 보드: 프레임 「당근_네이티브 피드 광고」 200×200 (frame 1:59)이 유일한 치수. 포맷·용량은 보드에 없어 officialSources 의 당근비즈니스 제작 가이드(JPG/JPEG/PNG · 10MB 이하 · 최소 200×200 1:1)로 채움. 글자수·여백·배경 규정은 자료 없음 — 확인 필요. 사용자 추출 목록 「당근 1종」이 이 규격이다.",
+        "maxKBRule": "10MB 이하 (당근비즈니스 공식 제작 가이드)",
+        "frame": "rules",
+        "extract": true
       },
       {
         "id": "daangn-catalog-product",
@@ -8451,7 +8982,8 @@ export const MEDIA = [
         "source": "figma:당근01(소재가이드) text 20:354, frame 20:358",
         "confidence": "확인필요",
         "note": "보드에 상품명과 캡처 이미지만 있음. 사이즈·용량·포맷 모두 원본 가이드 필요",
-        "frame": "rules"
+        "frame": "rules",
+        "extract": false
       }
     ],
     "rejections": [],
@@ -8537,7 +9069,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.17",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-right-big-pc",
@@ -8569,7 +9102,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.18",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-right-strip-pc",
@@ -8601,7 +9135,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.19",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-square-big-pc",
@@ -8633,7 +9168,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.20",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-bootcamp-pc",
@@ -8665,7 +9201,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.21",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-activity-pc",
@@ -8697,7 +9234,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.22",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-post-bottom",
@@ -8727,7 +9265,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.25, p.26 / png:카드뉴스, 글양식배너 규격.png (194×49 원본, pngs/guide3.png로 판독)",
         "confidence": "확인필요",
         "note": "파일 형식은 글양식 배너 페이지에 미기재(다른 배너는 JPG/GIF/PNG)",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-cardnews",
@@ -8757,7 +9296,8 @@ export const MEDIA = [
         "source": "png:카드뉴스, 글양식배너 규격.png (194×49 원본, pngs/guide3.png로 판독) / pdf:[스펙업] 상품소개서_2601.pdf p.31, p.33",
         "confidence": "확인필요",
         "note": "1080×1080은 규격 PNG에만 있음 — 상품소개서엔 치수 없음. 어떤 SNS 상품에 적용되는지는 PNG 파일명('카드뉴스, 글양식배너 규격')과 p.31 소재명으로 연결",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-list-top",
@@ -8805,7 +9345,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.23, p.24",
         "confidence": "확인필요",
         "note": "이미지는 '정방형'만 명시, 픽셀 치수 없음",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-message-all",
@@ -8838,7 +9379,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.29",
         "confidence": "확정",
         "note": "이미지 소재 아님 — 텍스트 상품",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "specup-kakao-dm",
@@ -8872,7 +9414,8 @@ export const MEDIA = [
         "source": "pdf:[스펙업] 상품소개서_2601.pdf p.15, p.28",
         "confidence": "확정",
         "note": "이미지 소재 아님 — 텍스트 상품",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       }
     ],
     "rejections": [],
@@ -9057,7 +9600,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.12",
         "confidence": "확정",
         "note": "PSD 레이어 그룹명 pc_top_main_752x110x2_A/B",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-main-board",
@@ -9118,7 +9662,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.13",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-main-curtain",
@@ -9177,7 +9722,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.14",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-sky-recruit",
@@ -9223,7 +9769,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.15",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-sky-job",
@@ -9260,7 +9807,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.16",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-sub-bottom",
@@ -9295,7 +9843,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.17",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-sub-bottom-text",
@@ -9329,7 +9878,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.18",
         "confidence": "확정",
         "note": "이미지 소재 아님 — 텍스트 상품 (파일크기 30KB 이내 표기는 원문 그대로)",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-login-right",
@@ -9365,7 +9915,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.19",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-search-right",
@@ -9401,7 +9952,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.20",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-pc-company-left",
@@ -9436,7 +9988,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.21",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-m-splash",
@@ -9498,7 +10051,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.23~27",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-m-main",
@@ -9560,7 +10114,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.28",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-m-sub",
@@ -9605,7 +10160,8 @@ export const MEDIA = [
         "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.29",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "albamon-email-target",
@@ -9634,7 +10190,8 @@ export const MEDIA = [
         "confidence": "확정",
         "note": "h는 최대 1500 (1500 이내)",
         "maxH": 1500,
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       }
     ],
     "rejections": [],
@@ -9828,7 +10385,8 @@ export const MEDIA = [
         "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.10, p.13 / psd:게임잡_PC커뮤니티Pick_1780x528.psd",
         "confidence": "확정",
         "note": "PSD 예시는 게임잡×나 혼자만 레벨업 (매체 샘플, 고객사 사례 아님)",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       },
       {
         "id": "gamejob-community-pick-mo",
@@ -9895,7 +10453,8 @@ export const MEDIA = [
         "source": "pdf:게임잡커뮤니티Pick제작가이드.pdf (2025) p.11, p.13 / psd:게임잡_MO커뮤니티Pick_640x240.psd",
         "confidence": "확정",
         "note": "",
-        "frame": "off"
+        "frame": "off",
+        "extract": false
       }
     ],
     "rejections": [],
@@ -9914,6 +10473,344 @@ export const MEDIA = [
 ];
 
 export const MEDIA_GROUPS = ["채용포털","디지털","커뮤니티","기타"];
+
+// 추출 규격 — 이미지로 뽑아 전달하는 규격 47개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
+export const EXTRACT = {
+  "order": [
+    "jasoseol",
+    "remember",
+    "jobda",
+    "catch",
+    "google-gdn",
+    "nap-dsp",
+    "instagram",
+    "kakao",
+    "naver-gfa",
+    "everytime",
+    "blind",
+    "daangn"
+  ],
+  "counts": {
+    "jasoseol": 8,
+    "remember": 8,
+    "jobda": 2,
+    "catch": 2,
+    "google-gdn": 4,
+    "nap-dsp": 4,
+    "instagram": 1,
+    "kakao": 3,
+    "naver-gfa": 3,
+    "everytime": 8,
+    "blind": 3,
+    "daangn": 1
+  },
+  "ids": [
+    "jasoseol-pc-premium-popup-pc",
+    "jasoseol-pc-premium-jobpost-pc",
+    "jasoseol-pc-standard-main-pc",
+    "jasoseol-pc-standard-jobpost-pc",
+    "jasoseol-m-premium-popup-mo",
+    "jasoseol-m-premium-chatlist-logo-mo",
+    "jasoseol-m-standard-main-mo",
+    "jasoseol-m-standard-chatlist-logo-mo",
+    "remember-main-top-pc",
+    "remember-main-top-mo",
+    "remember-main-mid-pc",
+    "remember-main-mid-mo",
+    "remember-job-top-pc",
+    "remember-job-top-mo",
+    "remember-job-side-pc",
+    "remember-job-side-mo",
+    "jobda-main-pc",
+    "jobda-main-mo",
+    "catch-mainlarge-image-pc",
+    "catch-mainlarge-image-mo",
+    "google-gdn-580x400",
+    "google-gdn-970x250",
+    "google-gdn-300x600",
+    "google-gdn-300x1050",
+    "nap-dsp-band-320x50",
+    "nap-dsp-band-320x100",
+    "nap-dsp-full-300x250",
+    "nap-dsp-full-320x480",
+    "instagram-feed-1080",
+    "kakao-bizboard-mo",
+    "kakao-display-pc-promo",
+    "kakao-display-pc-profile",
+    "naver-gfa-mobile-da-1250x560",
+    "naver-gfa-native-mo-342x228",
+    "naver-gfa-native-mo-profile-300",
+    "everytime-community-board",
+    "everytime-community-native",
+    "everytime-home-banner",
+    "everytime-home-card-profile",
+    "everytime-home-card-image",
+    "everytime-contest-card",
+    "everytime-search-keyword-thumb",
+    "everytime-daily-message-profile",
+    "blind-brand-logo",
+    "blind-feed-image",
+    "blind-post-banner",
+    "daangn-native-feed-image"
+  ],
+  "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 보드 (2026-10-14 읽음) — 매체별 수 메모 31:4248·31:4247·31:4246·31:4245·31:4249·31:4253·31:4257·31:4261·31:4266·31:4270·31:4271, 당근은 보드 수 메모 없음(사용자 지시 1종)",
+  "decisions": [
+    "자소설 8 = 4개 패키지 × 2(PC프리미엄 팝업·채용공고 / PC스탠다드 메인·채용공고 / M프리미엄 팝업·채팅목록 로고 / M스탠다드 메인·채팅목록 로고). 보드의 이전 메모 「6개」(30:4145)가 「8개」(31:4248)로 바뀐 것과 리멤버 「8개(PC/MO)」로 보아 같은 파일을 쓰는 상품(채용공고배너·채팅목록 로고)도 따로 센 것. PC달력배너 164×233 은 제외 — 확인 필요",
+    "캐치 2 = 메인 대형 배너 이미지형 PC 1256×295 · MO 702×428 (보드 31:4191·31:4206, 산출물 메모 31:4188). 중앙배너 오브젝트형 515×315·622×380·로고 160 은 참고",
+    "NAP DSP 4 = 피그마로 만드는 띠배너 320×50·320×100 · 전면배너 300×250·320×480 (보드 메모 「피그마(배너), 포토샵 제작(비즈보드)」 1:4593). 비즈보드 1029×258·PC 970×90·728×90 은 참고",
+    "네이버 3 = 보드 메모 「배너 / 비주얼만 / 로고만」(31:4268) → 모바일 DA 1250×560 · 네이티브 썸네일 342×228 · 프로필(로고) 300×300. PC·MO 네이티브는 규정이 달라 우리 규격이 둘인데 보드는 하나로 셈 — MO(M통합 네이티브 DA, 프로필 필수)를 뽑고 PC 는 참고. 확인 필요",
+    "인스타 1 = 피드 1080×1080 (사용자 지시). 보드 메모는 「4개」(31:4257) — 샘플 유형 수로 보임, 확인 필요. 스토리 1080×1920 은 참고",
+    "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고"
+  ],
+  "board": {
+    "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
+    "items": [
+      "배너 사이즈 규격",
+      "폰트 스타일",
+      "폰트 웨이트",
+      "폰트 크기",
+      "텍스트 갯수",
+      "폰트 영역",
+      "비주얼 영역",
+      "배경 컬러",
+      "추출 포맷과 규격·용량"
+    ],
+    "checklist": {
+      "jasoseol": {
+        "node": "31:4177",
+        "폰트 스타일": null,
+        "폰트 웨이트": null,
+        "폰트 크기": null,
+        "텍스트 갯수": null,
+        "폰트 영역": null,
+        "비주얼 영역": null,
+        "배경 컬러": null,
+        "추출 포맷과 규격·용량": null,
+        "note": "항목 이름만 있고 값은 안 적힘(미기입)"
+      },
+      "remember": {
+        "node": "30:4174",
+        "폰트 스타일": null,
+        "폰트 웨이트": null,
+        "폰트 크기": null,
+        "텍스트 갯수": null,
+        "폰트 영역": null,
+        "비주얼 영역": null,
+        "배경 컬러": null,
+        "추출 포맷과 규격·용량": null,
+        "note": "항목 이름만 있고 값은 안 적힘(미기입)"
+      },
+      "jobda": {
+        "node": "30:4175",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "자유지만 템플릿은 있으니 그거 기준으로"
+      },
+      "catch": {
+        "node": "31:4178",
+        "폰트 스타일": "시스템에서 반영 — 텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도 전달",
+        "폰트 웨이트": "시스템에서 반영(별도 전달)",
+        "폰트 크기": "시스템에서 반영(별도 전달)",
+        "텍스트 갯수": "시스템에서 반영(별도 전달)",
+        "폰트 영역": "시스템에서 반영(별도 전달)",
+        "비주얼 영역": "텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "자유지만 템플릿은 있으니 그거 기준으로",
+        "note": "「시스템에서 반영」은 중앙배너(오브젝트형, 텍스트 영역을 매체 시스템이 그림) 기준. 추출 목록의 메인 대형 배너(이미지형)는 통이미지라 글자를 우리가 그린다 — 확인 필요"
+      },
+      "google-gdn": {
+        "node": "31:4250",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유(굵어야 함)",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "(중요)"
+      },
+      "nap-dsp": {
+        "node": "31:4254",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유(굵어야 함)",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": "(중요)"
+      },
+      "instagram": {
+        "node": "31:4258",
+        "폰트 스타일": "자유",
+        "폰트 웨이트": "자유",
+        "폰트 크기": "자유",
+        "텍스트 갯수": "자유",
+        "폰트 영역": "자유",
+        "비주얼 영역": "자유",
+        "배경 컬러": "자유",
+        "추출 포맷과 규격·용량": null
+      },
+      "kakao": {
+        "node": "31:4262",
+        "폰트 스타일": "있음",
+        "폰트 웨이트": "있음",
+        "폰트 크기": "있음",
+        "텍스트 갯수": "있음",
+        "폰트 영역": "있음",
+        "비주얼 영역": "있음",
+        "배경 컬러": "있음",
+        "추출 포맷과 규격·용량": null,
+        "note": "폰트 컬러도 「있음」"
+      },
+      "naver-gfa": {
+        "node": "31:4267",
+        "폰트 스타일": "권장(고딕계열)",
+        "폰트 웨이트": null,
+        "폰트 크기": "어느정도만",
+        "텍스트 갯수": "어느정도만",
+        "폰트 영역": "있음",
+        "비주얼 영역": "있음",
+        "배경 컬러": "거의 자유로움",
+        "추출 포맷과 규격·용량": null,
+        "note": "폰트 웨이트·폰트 컬러 칸은 비어 있음"
+      },
+      "everytime": null,
+      "blind": null,
+      "daangn": null
+    },
+    "exportMemo": {
+      "jasoseol": {
+        "node": "1:10598",
+        "text": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG"
+      },
+      "remember": {
+        "node": "1:6499",
+        "text": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB"
+      },
+      "jobda": {
+        "node": "1:6298",
+        "text": "※ 피그마 제작 > 파일 유형 및 용량: PNG 2배 추출 / 용량 따로 제한 없음"
+      },
+      "catch": {
+        "node": "1:5761·1:5793",
+        "text": "디자인 최종 산출물 [이미지] 사이즈: 1256X295 파일포멧: PNG / 702X428 파일포멧: PNG · [예시화면] 375X812 JPG"
+      },
+      "google-gdn": {
+        "node": "1:5756",
+        "text": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG"
+      },
+      "nap-dsp": {
+        "node": "1:4593",
+        "text": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF"
+      },
+      "instagram": {
+        "node": "1:3010",
+        "text": "파일 포맷 JPG, PNG"
+      },
+      "kakao": {
+        "node": "1:2996",
+        "text": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG"
+      },
+      "naver-gfa": {
+        "node": "1:1335·1:1336",
+        "text": "1250x560px / 250KB / JP(E)G, PNG · 342x228px / 10~130KB / JP(E)G, PNG"
+      },
+      "everytime": {
+        "node": "1:396~1:403",
+        "text": "1029x258 PNG 300KB · 288x288 JPG,PNG 100KB · 640x200 JPG,PNG 100KB · 160x160 JPG,PNG · 720x480 JPG,PNG 300KB · 288x288 100KB · 288x288 PNG,JPG 100KB · 120x120 PNG,JPG"
+      },
+      "blind": {
+        "node": "1:71·1:72",
+        "text": "96x96px / 50KB / JPG, PNG · 1200x628px / 100KB / JPG, PNG · 1250x560px / 200KB / JPG, PNG"
+      },
+      "daangn": null
+    },
+    "countMemo": {
+      "jasoseol": "31:4248 「8개」(이전 30:4145 「6개」)",
+      "remember": "31:4247 「8개(PC/MO)」",
+      "jobda": "31:4246 「2개(PC,MO)」",
+      "catch": "31:4245 「2개(PC,MO)」",
+      "google-gdn": "31:4249 「4개」",
+      "nap-dsp": "31:4253 「4개」",
+      "instagram": "31:4257 「4개」(사용자 지시 1종)",
+      "kakao": "31:4261 「3」",
+      "naver-gfa": "31:4266 「3」 + 31:4268 「배너/비주얼만/로고만」",
+      "everytime": "31:4270 「8개」",
+      "blind": "31:4271 「3개」 + 31:4272 「로고/배너/배너」",
+      "daangn": "메모 없음(사용자 지시 1종)"
+    },
+    "exportMemoBySpec": {
+      "note": "매체 메모가 규격 여럿을 한 글에 적은 경우(에브리타임·네이버·블라인드·캐치) 규격별로 쪼갠 것 — 보드 텍스트 id 는 그대로",
+      "everytime-community-board": {
+        "node": "1:396",
+        "text": "1029x258px / PNG / 300KB 이내 / 배경색 투명한 이미지로 제작 필수"
+      },
+      "everytime-community-native": {
+        "node": "1:398",
+        "text": "사이즈 288x288px / 포맷 JPG, PNG / 용량 100KB 이내"
+      },
+      "everytime-home-banner": {
+        "node": "1:399",
+        "text": "사이즈 : 640x200px / JPG, PNG / 용량 100kb 이내"
+      },
+      "everytime-home-card-profile": {
+        "node": "1:400",
+        "text": "프로필 이미지 - 160x160px / JPG, PNG / 검은색 계열 제외 배경색 포함 이미지만 (용량 메모 없음)"
+      },
+      "everytime-home-card-image": {
+        "node": "1:400",
+        "text": "카드 이미지 - 720x480px / JPG, PNG / 300KB 이내"
+      },
+      "everytime-contest-card": {
+        "node": "1:401",
+        "text": "카드 이미지 - 288x288px / JPG, PNG / 100KB 이내"
+      },
+      "everytime-search-keyword-thumb": {
+        "node": "1:402",
+        "text": "이미지만 전달: 288x288px / PNG, JPG / 100KB 이내"
+      },
+      "everytime-daily-message-profile": {
+        "node": "1:403",
+        "text": "이미지만 전달: 120x120px / PNG, JPG (용량 메모 없음)"
+      },
+      "naver-gfa-mobile-da-1250x560": {
+        "node": "1:1335",
+        "text": "1250x560px / 250KB / JP(E)G, PNG"
+      },
+      "naver-gfa-native-mo-342x228": {
+        "node": "1:1336",
+        "text": "342x228px / 10~130KB / JP(E)G, PNG"
+      },
+      "naver-gfa-native-mo-profile-300": null,
+      "blind-brand-logo": {
+        "node": "1:71",
+        "text": "브랜드 로고 - 96x96px / 50KB / JPG, PNG / 투명 배경 불가"
+      },
+      "blind-feed-image": {
+        "node": "1:71",
+        "text": "피드 제작 - 1200x628px / 100KB / JPG, PNG"
+      },
+      "blind-post-banner": {
+        "node": "1:72",
+        "text": "1250x560px / 200KB / JPG, PNG"
+      },
+      "catch-mainlarge-image-pc": {
+        "node": "1:5761",
+        "text": "디자인 최종 산출물 [이미지] 사이즈: 1256X295 파일포멧: PNG (용량 메모 없음)"
+      },
+      "catch-mainlarge-image-mo": {
+        "node": "1:5793",
+        "text": "디자인 최종 산출물 [이미지] 사이즈: 702X428 파일포멧: PNG (용량 메모 없음)"
+      }
+    }
+  }
+};
 
 // Figma 보드 구조 — 그룹 → 매체 → 프레임(01 규정 · 02 가이드&예시 · 반려 사례)과 프레임별 검수 기록
 export const MEDIA_BOARD = {
@@ -10217,4 +11114,4 @@ export function specOf(specId) {
   return null;
 }
 
-export const MEDIA_COUNTS = {"media":15,"specs":90,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
+export const MEDIA_COUNTS = {"media":15,"specs":90,"extract":47,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};

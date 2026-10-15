@@ -30,12 +30,15 @@
     {
       "id": "daangn-native-feed-image",
       "name": "네이티브 피드 광고 (이미지 유형)",
-      "platform": null,
-      "w": null,
-      "h": null,
+      "platform": "APP",
+      "w": 200,
+      "h": 200,
       "exportScale": 1,
-      "format": [],
-      "maxKB": null,
+      "format": [
+        "jpg",
+        "png"
+      ],
+      "maxKB": 10240,
       "background": null,
       "safeArea": {
         "note": "자료 없음",
@@ -56,12 +59,13 @@
       "boardFrame": {
         "w": 200,
         "h": 200,
-        "source": "figma frame 20:357",
-        "note": "고객사명 없는 자리표시 프레임 — 제출 규격인지 불명"
+        "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 frame 1:59 「당근_네이티브 피드 광고」 (원본 보드 20:357)",
+        "note": "고객사명 없는 자리표시 프레임 — 최소 규격 200×200 과 같아 제출 규격으로 삼음(보드)"
       },
-      "source": "figma:당근01(소재가이드) text 20:353, frame 20:357",
-      "confidence": "확인필요",
-      "note": "보드에 상품명과 캡처 이미지만 있음. 사이즈·용량·포맷 모두 원본 가이드 필요"
+      "source": "figma:당근01(소재가이드) text 20:353, frame 20:357 / figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 frame 1:59 / web:https://businessdaangn.gitbook.io/business.daangn/ads-pro/product/creative (JPG·PNG · 10MB · 최소 200×200)",
+      "confidence": "보드",
+      "note": "10-14 컨시어지 보드: 프레임 「당근_네이티브 피드 광고」 200×200 (frame 1:59)이 유일한 치수. 포맷·용량은 보드에 없어 officialSources 의 당근비즈니스 제작 가이드(JPG/JPEG/PNG · 10MB 이하 · 최소 200×200 1:1)로 채움. 글자수·여백·배경 규정은 자료 없음 — 확인 필요. 사용자 추출 목록 「당근 1종」이 이 규격이다.",
+      "maxKBRule": "10MB 이하 (당근비즈니스 공식 제작 가이드)"
     },
     {
       "id": "daangn-catalog-product",

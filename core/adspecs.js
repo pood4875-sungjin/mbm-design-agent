@@ -4,9 +4,13 @@
 //   제외: deliverable:false(매체가 직접 제작, 자료만 전달) · 텍스트 상품 · HTML 이메일 · 치수 없는 규격
 // 렌더러는 채널 'ad' 하나다 — 매체가 달라도 그리는 문법은 같고, 규칙(rules)만 다르게 받는다.
 
-import { MEDIA } from './media.js';
+import { MEDIA, EXTRACT } from './media.js';
 import { SPECS } from './contract.js';
 import { submitSize } from './lint.js';
+
+// 매체 순서 — 사용자 「컨시어지」 보드 순서(core/media/_extract.json order: 자소설 → 리멤버 → 잡다 → 캐치 → 구글 GDN → NAP DSP → 인스타 → 카카오 → 네이버 → 에브리타임 → 블라인드 → 당근).
+// 목록에 없는 매체(참고 규격만 있는 매체)는 그 뒤에 매체 JSON 순서대로.
+export function mediumRank(id) { const i = EXTRACT.order.indexOf(id); return i >= 0 ? i : EXTRACT.order.length + Math.max(0, MEDIA.findIndex(m => m.id === id)); }
 
 export function adSpecEntries() {
   const out = {};
@@ -25,6 +29,8 @@ export function adSpecEntries() {
         w: s.w, h: s.h, exportScale: s.exportScale ?? 1, submitW: submit.w, submitH: submit.h,
         format: fmts.filter(f => f !== 'text'), maxKB: s.maxKB ?? null,
         confidence: s.confidence,
+        // 추출 규격인가 — 사용자 「컨시어지」 보드 목록 47(core/media/_extract.json). false 면 참고 규격: 기본 선택·전체 내보내기·케이스 라운드에서 빠지고, 「참고 규격 포함」을 켜야 보인다
+        extract: s.extract === true,
         // 이미지 밖 텍스트 — 소재에 그리지 않고 매체 시스템에 따로 넘기는 글자 (검수 체크리스트·전달 세트에 쓴다)
         outsideTexts: (s.textLimits ?? []).filter(t => t.inImage === false || /이미지 밖/.test(String(t.field ?? ''))).map(t => ({ field: t.field, maxChars: t.maxChars ?? null, lines: t.lines ?? null })),
         rules: s,            // 검사기가 쓰는 규칙 원본 (참조)
@@ -56,14 +62,20 @@ function rulesOnly(v) {
 export function adSpecSignature(entry) { return JSON.stringify([entry.medium, rulesOnly(entry.rules)]); }
 
 // 고른 매체에서 실제로 만들 소재 목록 — [{ id, medium, entry, twins:[같은 파일을 쓰는 다른 규격 id] }]
-export function adSpecGroups(media = null) {
+// extractOnly: 추출 규격(47)만 — 참고 규격은 뺀다. 같은 파일을 쓰는 쌍은 둘 다 추출이어야 묶이고, 쌍 중 하나만 추출이면 그 하나만 남는다.
+export function adSpecGroups(media = null, { extractOnly = false } = {}) {
   const seen = new Map();
   for (const e of Object.values(adSpecEntries())) {
     if (media && !media.includes(e.medium)) continue;
+    if (extractOnly && !e.extract) continue;
     const sig = adSpecSignature(e);
     const g = seen.get(sig);
     if (g) g.twins.push(e.id);
     else seen.set(sig, { id: e.id, medium: e.medium, entry: e, twins: [] });
   }
-  return [...seen.values()];
+  // 매체는 보드 순서, 같은 매체 안에서는 매체 JSON 순서(안정 정렬)
+  return [...seen.values()].sort((a, b) => mediumRank(a.medium) - mediumRank(b.medium));
 }
+
+// 추출 규격만 — 앱 기본 선택·전체 내보내기·케이스 라운드의 기본 범위
+export function extractSpecGroups(media = null) { return adSpecGroups(media, { extractOnly: true }); }

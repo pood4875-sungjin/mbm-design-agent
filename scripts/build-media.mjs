@@ -24,8 +24,12 @@ const board = JSON.parse(readFileSync(join(root, 'core', 'media-board.json'), 'u
 const GROUP_ORDER = [...board.groups.map(g => g.name), OFF_GROUP];
 const FRAME_KEYS = Object.keys(board.frames);
 
+// 추출 목록(_extract.json): 이미지로 뽑는 규격 47 + 매체 순서. 매체 JSON 이 아니라 '_' 로 시작한다
+const extractCfg = JSON.parse(readFileSync(join(srcDir, '_extract.json'), 'utf8'));
+const EXTRACT_SET = new Set(extractCfg.extract);
+
 const byId = new Map(readdirSync(srcDir)
-  .filter(f => f.endsWith('.json'))
+  .filter(f => f.endsWith('.json') && !f.startsWith('_'))
   .map(f => {
     const m = JSON.parse(readFileSync(join(srcDir, f), 'utf8'));
     if (m.id !== f.replace(/\.json$/, '')) throw new Error(`${f}: id "${m.id}"가 파일명과 다르다`);
@@ -72,11 +76,16 @@ const seen = new Map();
 for (const m of media) for (const s of m.specs ?? []) {
   if (seen.has(s.id)) throw new Error(`규격 id 중복: ${s.id} (${seen.get(s.id)} / ${m.id})`);
   seen.set(s.id, m.id);
+  // 추출 규격인가 — 목록에 있으면 true, 아니면 false(참고 규격). 목록에만 있고 JSON 에 없는 id 는 아래서 막는다
+  s.extract = EXTRACT_SET.has(s.id);
 }
+for (const id of EXTRACT_SET) if (!seen.has(id)) throw new Error(`_extract.json: 규격 "${id}"가 매체 JSON 에 없다`);
+for (const id of extractCfg.order) if (!byId.has(id)) throw new Error(`_extract.json order: 매체 "${id}"의 JSON이 없다`);
 
 const counts = {
   media: media.length,
   specs: media.reduce((n, m) => n + (m.specs?.length ?? 0), 0),
+  extract: media.reduce((n, m) => n + (m.specs ?? []).filter(s => s.extract).length, 0),
   needsReview: media.reduce((n, m) => n + (m.needsReview?.length ?? 0), 0),
   conflicts: media.reduce((n, m) => n + (m.conflicts?.length ?? 0), 0),
   rejections: media.reduce((n, m) => n + (m.rejections?.length ?? 0), 0),
@@ -87,7 +96,7 @@ counts.frames = frames.length;
 counts.framesDone = frames.filter(f => f.review?.status === 'done').length;
 
 const header = `// 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 ${counts.media} · 규격 ${counts.specs} · 확인필요 ${counts.needsReview} · 충돌 ${counts.conflicts} · 반려사례 ${counts.rejections}
+// 매체 ${counts.media} · 규격 ${counts.specs}(추출 ${counts.extract}) · 확인필요 ${counts.needsReview} · 충돌 ${counts.conflicts} · 반려사례 ${counts.rejections}
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 ${counts.framesDone}/${counts.frames} 프레임
 `;
@@ -96,6 +105,9 @@ const body = `${header}
 export const MEDIA = ${JSON.stringify(media, null, 2)};
 
 export const MEDIA_GROUPS = ${JSON.stringify(GROUP_ORDER)};
+
+// 추출 규격 — 이미지로 뽑아 전달하는 규격 ${counts.extract}개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
+export const EXTRACT = ${JSON.stringify({ order: extractCfg.order, counts: extractCfg.counts, ids: extractCfg.extract, source: extractCfg.source, decisions: extractCfg.decisions, board: extractCfg.board ?? null }, null, 2)};
 
 // Figma 보드 구조 — 그룹 → 매체 → 프레임(01 규정 · 02 가이드&예시 · 반려 사례)과 프레임별 검수 기록
 export const MEDIA_BOARD = ${JSON.stringify(board, null, 2)};
@@ -114,4 +126,4 @@ export const MEDIA_COUNTS = ${JSON.stringify(counts)};
 `;
 
 writeFileSync(out, body);
-console.log(`core/media.js ← ${counts.media} media, ${counts.specs} specs, ${counts.needsReview} needsReview, ${counts.conflicts} conflicts · 보드 검수 ${counts.framesDone}/${counts.frames}`);
+console.log(`core/media.js ← ${counts.media} media, ${counts.specs} specs (extract ${counts.extract}), ${counts.needsReview} needsReview, ${counts.conflicts} conflicts · 보드 검수 ${counts.framesDone}/${counts.frames}`);

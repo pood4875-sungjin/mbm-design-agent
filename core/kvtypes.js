@@ -4,6 +4,8 @@
 //
 // 숫자는 지금까지 본 케이스(보드 예시 136장 + 기하 3D·삼성 3D·그라데이션·여우 3D·코엑스 건물)에서 귀납한 값 — 케이스가 늘면 바뀐다. 바꿀 때는 scripts/cases.mjs run 으로 전 케이스 회귀.
 
+import { CANON } from './canon.js';
+
 export const KV_TYPES = [
   {
     id: 'cutout', name: '배경 없는 오브젝트(누끼)',
@@ -143,6 +145,9 @@ export function kvTypeOf(kvMeta) {
   const subjectArea = focus ? Math.round(focus.w * focus.h * 100) / 100 : null;
   const room = f.room;
   const edges = f.edges ?? {};
+  // 맞닿은 사람 떼(어깨동무 ABL — 연결 성분 하나·틈 열 없음): 누끼 윗선 봉우리가 많고 가로로 넓다(CANON crowdPeaks, 10-14 t1014)
+  const CP = CANON.crowdPeaks;
+  const crowdTop = !!(kind === 'cutout' && CP && (f.topPeaks ?? 0) >= CP.peaks && ar >= CP.minAr);
   const flags = {
     room: !!(kind === 'illust' && room && (room.corner === 'tl' || room.corner === 'tr') && room.w >= 0.42 && room.h >= 0.38),   // 배경형 후보(캔버스 비율은 규격마다 따로 본다)
     subject: subjectArea != null && subjectArea < 0.6,                 // 주인공이 그림의 일부 → 당겨 채움 대상
@@ -151,9 +156,9 @@ export function kvTypeOf(kvMeta) {
     // 누끼는 상자 밀도도 본다(10-09 figma-dg): 사람·캐릭터 0.59~0.72(연사 둘·동서 모델·여우) — 별표 3D 0.48(팔이 뻗은 사물)·폴더·책 0.79~0.92(네모난 사물)는 캐릭터가 아니다
     // 사진은 인물 상자(Apple Vision 인물 분리, palette.js personFocus)로 잡은 주인공일 때만 인물 — 색 덩어리는 사람인지 모른다(10-12 hr-doctor·AI 간호사)
     character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 : ar < 1.05)),
-    group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
+    group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2) || crowdTop)),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
     // 장면 판정용 「덩어리 여럿」 — 연결 성분이 둘 이상이거나 열 봉우리 둘 이상(덩어리 하나에 속이 빈 고리는 아니다)
-    multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),
+    multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 맞닿은 사람 떼(crowdTop)는 장면이 아니라 떼 — 장면의 「누끼 위 빈 곳까지 글자 겹침 허용」을 받으면 머리 위로 상세가 올라갔다(10-14 ABL 580×400·300×250)
     // 반사·유리·크롬 누끼 — 무채·중간 밝기 + 반투명 가장자리 ≥ 10%. 어두운 브랜드 지면이 매체의 밝은 지면보다 먼저(ad.js lightProfile)
     glass: !!(kind === 'cutout' && f.lum != null && f.lum >= 0.35 && f.lum <= 0.6 && (f.sat ?? 1) < 0.35 && (f.semi ?? 0) >= 0.10),
     gradEdge: ['top', 'bottom', 'left', 'right'].some(k => edges[k]?.flat && dist(edges[k].from, edges[k].to) > 0.035),   // 평평하지만 그라데이션인 변 → 지면 잇기

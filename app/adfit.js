@@ -9,10 +9,11 @@ import { renderAd } from '../core/renderers/ad.js';
 import { lintArtifact } from '../core/lint.js';
 import { measureArtifact } from './measure.js';
 
-export async function renderFit(ctx, style, spec) {
+// post(html) — 렌더 결과에 내보내기용 @font-face 를 끼우는 자리(app.js, 묶은 무료 폰트 10-14). 재는 것·검사는 그 HTML 로 한다
+export async function renderFit(ctx, style, spec, post = h => h) {
   const attempts = [];
   const run = async (s, opts = {}, label = '기본') => {
-    const html = renderAd(ctx, style, s);
+    const html = post(renderAd(ctx, style, s));
     const measure = await measureArtifact(html, s, opts);
     const lint = lintArtifact({ spec: s.rules, medium: s.mediumRules, measure });
     attempts.push({ label, level: lint.level, bytes: measure.bytes, format: measure.format });

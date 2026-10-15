@@ -5,10 +5,10 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
-import { adSpecEntries, adSpecGroups } from '../core/adspecs.js';
+import { adSpecEntries, adSpecGroups, mediumRank } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
-import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK } from '../core/fonts.js';
+import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
 import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage, colorDistance } from '../core/palette.js';
 import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
@@ -128,8 +128,8 @@ function regen(c = state.campaign) {
 
 // 커스텀 폰트 @font-face 주입. 배너·eDM 렌더러는 fontLink를 부르지 않으므로(외부 CSS 정책)
 // 그쪽에는 여기서 넣어 준다. 이미 들어 있으면 건드리지 않는다 — 폰트 바이트를 두 번 실을 이유가 없다.
-function embedFont(html, face) {
-  if (!html || html.includes(CUSTOM_MARK)) return html;
+function embedFont(html, face, mark = CUSTOM_MARK) {
+  if (!html || !face || html.includes(mark)) return html;
   const style = `<style>${face}</style>`;
   const i = html.indexOf('</head>');
   // 완전한 문서면 head 안에, 조각(배너)이면 맨 앞에. doctype 앞에 붙이면 쿼크 모드로 떨어진다.
@@ -138,10 +138,39 @@ function embedFont(html, face) {
 // 보드 미리보기 문서 — 렌더러가 주는 조각(<div data-ad …>)을 그대로 srcdoc에 넣으면 브라우저 기본 body 여백 8px 때문에
 // 소재가 (8,8)에서 시작해 위·왼쪽은 흰 띠, 오른쪽·아래는 8px 잘렸다(10-06 사용자: "왜 자꾸 여백 있어 보이냐"). 내보내기(raster.js)는
 // foreignObject에 0,0으로 그리므로 미리보기만 달랐다. 완전한 문서(eDM·랜딩)는 그대로 둔다.
-function previewDoc(html) {
+// fontId(10-14): 묶은 무료 폰트는 상대 경로 @font-face 를 같이 넣는다 — srcdoc 문서는 부모의 base URL 을 물려받아 app/fonts/… 가 그대로 열린다.
+function previewDoc(html, fontId = null) {
   if (!html || /^\s*(<!doctype|<html)/i.test(html)) return html;
-  return `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style></head><body>${html}</body></html>`;
+  const face = fontId && isBundledFont(fontId) ? `<style>${localFaceCss(fontId)}</style>` : '';
+  return `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>${face}</head><body>${html}</body></html>`;
 }
+// 산출물이 실제로 쓰는 폰트 id — 매체가 고정하면(자소설·카카오·리멤버 Pretendard) 그 폰트, 아니면 캠페인(또는 산출물 개별) 폰트
+function artifactFontId(a, c = state.campaign) {
+  const spec = SPECS[a.specId];
+  const sel = (a.overrides?.style?.fonts?.heading) ?? c?.style?.fonts?.heading ?? DEFAULT_FONT;
+  if (!spec || a.channel !== 'ad') return sel;
+  return effectiveFontId(spec.mediumRules, sel, spec.rules);
+}
+/* 내보내기용 폰트 바이트 — SVG foreignObject(raster.js)는 바깥 파일을 못 받으니 묶은 폰트는 dataURL 로 넣는다(커스텀 폰트와 같은 길).
+   기본 Pretendard 는 예전처럼 설치된 폰트에 맡긴다(산출물마다 1.1MB 를 더 싣지 않게). 한 번 읽은 폰트는 세션 동안 캐시. */
+const fontBytesCache = new Map();
+async function exportFaceCss(fontId) {
+  if (!fontId || !isBundledFont(fontId) || fontId === DEFAULT_FONT) return '';
+  if (!fontBytesCache.has(fontId)) {
+    fontBytesCache.set(fontId, (async () => {
+      const urls = {};
+      for (const { weight, path } of fontFiles(fontId)) {
+        const r = await fetch(path); if (!r.ok) continue;
+        const buf = new Uint8Array(await r.arrayBuffer());
+        let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+        urls[weight] = `data:font/woff2;base64,${btoa(s)}`;
+      }
+      return embeddedFaceCss(fontId, urls);
+    })());
+  }
+  return fontBytesCache.get(fontId);
+}
+async function withExportFont(html, fontId) { return embedFont(html, await exportFaceCss(fontId), BUNDLED_MARK); }
 
 /* ═══ 폰트 파일 업로드 ═══
    카탈로그 4종은 CDN 웹폰트다. 행사 전용 서체는 거기 없으므로 파일을 직접 받아 끼운다.
@@ -199,9 +228,40 @@ function pickFontFile(input, onDone) {
   }).catch(e => toast(e.message)).finally(() => { input.value = ''; });
 }
 
+/* ═══ 폰트 고르기 · 매체 폰트 규정 안내 (10-14) ═══
+   목록은 「기본」 Pretendard · 「무료 폰트」(앱에 묶은 OFL 폰트, core/fonts.js) · 「첨부」(사용자 파일) 세 묶음.
+   매체 JSON fonts.required 가 있는 매체(자소설·카카오·리멤버 = Pretendard)는 여기서 뭘 골라도 그 폰트 — 렌더러가 강제한다. 안내 문구로 알린다. */
+const FONT_GROUP_LABEL = { default: '기본', free: '무료 폰트', custom: '첨부' };
 function fontOptions(selected) {
-  return fontIds().map(id => `<option value="${id}" ${id === selected ? 'selected' : ''}>${FONTS[id].label}</option>`).join('');
+  const groups = { default: [], free: [], custom: [] };
+  for (const id of fontIds()) (groups[fontGroup(id)] ?? groups.free).push(id);
+  return Object.entries(groups).filter(([, ids]) => ids.length).map(([g, ids]) =>
+    `<optgroup label="${FONT_GROUP_LABEL[g]}">${ids.map(id => `<option value="${id}" ${id === selected ? 'selected' : ''} title="${escH(fontInfoLine(id))}">${escH(FONTS[id].label)}</option>`).join('')}</optgroup>`).join('');
 }
+const FONT_NOTICE = '자소설닷컴·카카오·리멤버는 매체 규정상 Pretendard로 고정됩니다. 여기서 고른 폰트는 폰트 규정이 없는 매체에만 적용됩니다.';
+// 매체 id 목록 → 고정 / 자유 매체로 가른다(매체 JSON fonts 블록만 읽는다)
+function fontMediaSplit(mediumIds) {
+  const fixed = [], free = [];
+  for (const id of [...new Set(mediumIds ?? [])]) {
+    const m = MEDIA.find(x => x.id === id); if (!m) continue;
+    const r = fontRuleOf(m);
+    if (r.fixed) fixed.push({ id, name: m.name, font: r.required });
+    else free.push({ id, name: m.name, recommended: r.recommended ?? null });
+  }
+  return { fixed, free };
+}
+// 고른 폰트 아래 안내 — 공통 문구 + 이 캠페인에서 고정/자유 매체 + 라이선스 한 줄
+function fontNoticeHtml(mediumIds, selectedId) {
+  const { fixed, free } = fontMediaSplit(mediumIds);
+  const sel = FONTS[selectedId]?.label ?? selectedId;
+  const lines = [FONT_NOTICE];
+  if (fixed.length) lines.push(`고정: ${fixed.map(m => `${m.name}(${m.font})`).join(' · ')}`);
+  if (free.length) lines.push(`고른 폰트 적용(${escH(sel)}): ${free.map(m => m.name + (m.recommended ? ` <span style="opacity:.75">— 권장 ${escH(m.recommended)}</span>` : '')).join(' · ')}`);
+  const info = fontInfoLine(selectedId);
+  if (info) lines.push(`<span style="opacity:.75">${escH(sel)} — ${escH(info)}</span>`);
+  return `<div class="fontNote" style="font-size:11px;color:var(--sub);line-height:1.55;margin-top:6px">${lines.join('<br>')}</div>`;
+}
+const campaignMediumIds = (c = state.campaign) => (c?.artifacts ?? []).filter(a => a.channel === 'ad').map(a => SPECS[a.specId]?.medium).filter(Boolean);
 
 /* ═══ modal ═══ */
 function modal({ title, desc, body, actions, wide = false }) {
@@ -654,8 +714,8 @@ async function startIntake(text) {
     // 무엇을(track: online·offline·both) → 어디에(targetDone) 를 대화에서 고른다. suggestTrack = 브리프에서 읽은 제안(고르기 전까지 확정 아님)
     targetDone: false, suggestTrack: null,
     // briefDone: 내용(회사·직무…)이 정해졌는가 · asking: 꼭 필요한 값이 없어 대화로 묻는 중인 항목
-    // specOff: 고른 매체의 소재 중 이번에 만들지 않기로 끈 것
-    briefDone: false, asking: null, specOff: new Set(), pickerOpen: false,
+    // specOff: 고른 매체의 추출 규격 중 이번에 만들지 않기로 끈 것 · specOn: 참고 규격(extract:false) 중 일부러 켠 것 · specRefs: 「참고 규격 포함」 토글(10-14 추출 47규격)
+    briefDone: false, asking: null, specOff: new Set(), specOn: new Set(), specRefs: false, pickerOpen: false,
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
@@ -783,13 +843,19 @@ function renderSlot(opts = {}) {
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const mediumName = id => MEDIA.find(m => m.id === id)?.name ?? id;
 // 이 종류의 캠페인에 내는 매체(core/media/*.json campaigns) — 행사에는 채용포털·취준생 커뮤니티가 안 보인다
-const mediaForKind = kind => MEDIA.filter(m => (m.campaigns ?? ['recruit', 'event']).includes(kind ?? 'event'));
+// 매체 순서는 사용자 「컨시어지」 보드 순서(core/adspecs.js mediumRank — 자소설 → 리멤버 → 잡다 → 캐치 → 구글 → NAP → 인스타 → 카카오 → 네이버 → 에브리타임 → 블라인드 → 당근, 나머지는 뒤)
+const mediaForKind = kind => MEDIA.filter(m => (m.campaigns ?? ['recruit', 'event']).includes(kind ?? 'event')).sort((x, y) => mediumRank(x.id) - mediumRank(y.id));
 // 그릴 규격이 있는 매체 id — "전체 선택"이 고르는 범위
 const pickableMedia = kind => { const all = adSpecGroups(); return mediaForKind(kind).filter(m => all.some(x => x.medium === m.id)).map(m => m.id); };
 
-// 이번에 만들 소재 — 고른 매체의 소재 묶음에서 사용자가 끈 것만 뺀다
+// 소재 묶음이 켜져 있나 — 추출 규격(47, core/media/_extract.json)은 기본 켬(끈 것만 specOff), 참고 규격은 기본 끔(켠 것만 specOn)
+const groupOn = (g, it) => g.entry.extract ? !it.specOff?.has(g.id) : !!it.specOn?.has(g.id);
+// 목록에 보이는 묶음 — 추출 규격 + 「참고 규격 포함」을 켰을 때만 참고 규격
+const visibleGroups = (it, media = null) => adSpecGroups(media).filter(g => g.entry.extract || it.specRefs);
+const refGroupCount = () => adSpecGroups().filter(g => !g.entry.extract).length;
+// 이번에 만들 소재 — 고른 매체의 추출 규격에서 사용자가 끈 것을 빼고, 일부러 켠 참고 규격을 더한다
 function chosenAdGroups(it = state.intake) {
-  return adSpecGroups(it.media ?? []).filter(g => !it.specOff?.has(g.id));
+  return adSpecGroups(it.media ?? []).filter(g => groupOn(g, it));
 }
 function specRow(g, it, AD) {
   const e = g.entry;
@@ -798,8 +864,8 @@ function specRow(g, it, AD) {
   const names = [e.rules.name ?? e.title, ...g.twins.map(id => AD[id]?.rules?.name ?? id)];
   const place = split(names[0])[1];
   const prods = names.map(n => split(n)[0]).filter(Boolean);
-  const tag = prods.length ? `${prods.join(' · ')}${g.twins.length ? ' 공용' : ''}` : (g.twins.length ? `${g.twins.length + 1}곳 공용` : '');
-  return `<label class="prow2"><input type="checkbox" data-s="${g.id}" ${it.specOff.has(g.id) ? '' : 'checked'}>
+  const tag = [prods.length ? `${prods.join(' · ')}${g.twins.length ? ' 공용' : ''}` : (g.twins.length ? `${g.twins.length + 1}곳 공용` : ''), e.extract ? '' : '참고'].filter(Boolean).join(' · ');
+  return `<label class="prow2 ${e.extract ? '' : 'ref'}"><input type="checkbox" data-s="${g.id}" ${groupOn(g, it) ? 'checked' : ''}>
     <span class="pn" title="${escH(names.join(' / '))}">${escH(place)}</span>
     <span class="pd">${e.w}×${e.h}</span>
     <span class="pt">${escH(tag)}</span>
@@ -808,7 +874,7 @@ function specRow(g, it, AD) {
 
 function mediaPickerHtml(it) {
   {
-    const all = adSpecGroups(), AD = adSpecEntries();
+    const all = visibleGroups(it), AD = adSpecEntries();
     // 행사 캠페인에는 행사 홍보에 쓰는 매체(디지털·직장인/지역 커뮤니티)만 — 채용포털·취준생 커뮤니티는 숨긴다(core/media/*.json campaigns)
     const kindMedia = mediaForKind(it.kind);
     // 전체 선택 — 그릴 규격이 있는 매체를 한 번에(10-06 사용자 "소재 전체 선택도 있었으면"). 다 골라져 있으면 전체 해제
@@ -821,7 +887,7 @@ function mediaPickerHtml(it) {
       if (!ms.length) return '';
       return `<div class="pgrp"><h5>${g}</h5><div class="mcards">${ms.map(m => {
         const gs = all.filter(x => x.medium === m.id), n = gs.length, on = it.media.includes(m.id);
-        const k = on ? gs.filter(x => !it.specOff.has(x.id)).length : n;
+        const k = on ? gs.filter(x => groupOn(x, it)).length : gs.filter(x => x.entry.extract).length;
         // 투명 PNG 필수 자리 수 — 배경 있는 키비주얼로는 글자만 나가는 자리라 고르기 전에 보여 준다(오브젝트 누끼를 올리면 거기에 쓴다)
         const nCut = gs.filter(x => needsCutout(AD[x.id]?.rules)).length;
         return n
@@ -830,14 +896,16 @@ function mediaPickerHtml(it) {
       }).join('')}</div></div>`;
     }).join('');
     const picked = it.media.filter(id => all.some(x => x.medium === id));
-    const specToggle = picked.length ? `<div class="pspec"><span>고른 매체의 소재가 전부 만들어져요.</span>
+    // 추출 규격(47)만 기본으로 만든다. 「참고 규격 포함」을 켜면 나머지 규격도 목록에 보이고 하나씩 켤 수 있다(10-14 사용자 컨시어지 보드 목록)
+    const specToggle = picked.length ? `<div class="pspec"><span>${it.specRefs ? '추출 규격 + 참고 규격까지 보여요.' : '고른 매체의 추출 규격이 전부 만들어져요.'}</span>
+      <button type="button" class="lnk" id="sRefs" aria-pressed="${!!it.specRefs}">${it.specRefs ? '참고 규격 숨기기' : `참고 규격 포함 (${refGroupCount()})`}</button>
       <button type="button" class="lnk" id="sSpecs" aria-expanded="${!!it.specOpen}">${it.specOpen ? '규격 목록 닫기' : '규격 하나씩 고르기'}</button></div>` : '';
     if (!it.specOpen) return cards + specToggle;
     const lists = it.media.map(id => {
       const gs = all.filter(x => x.medium === id);
       if (!gs.length) return '';
       return `<div class="plist" data-m="${id}">
-        <div class="phead"><b>${escH(mediumName(id))}</b><span data-n>${gs.length}종 중 ${gs.filter(g => !it.specOff.has(g.id)).length}종</span>
+        <div class="phead"><b>${escH(mediumName(id))}</b><span data-n>${gs.length}종 중 ${gs.filter(g => groupOn(g, it)).length}종</span>
           <button type="button" class="lnk" data-all="${id}">전체</button><button type="button" class="lnk" data-none="${id}">해제</button></div>
         ${gs.map(g => specRow(g, it, AD)).join('')}</div>`;
     }).join('');
@@ -905,6 +973,7 @@ function slotWhere() {
     re(`.mcard[data-c="${c}"]`);
   });
   $('sSpecs')?.addEventListener('click', () => { it.specOpen = !it.specOpen; re('#sSpecs'); });
+  $('sRefs')?.addEventListener('click', () => { it.specRefs = !it.specRefs; if (it.specRefs) it.specOpen = true; re('#sRefs'); });
   $('mAll')?.addEventListener('click', () => {
     const ids = pickableMedia(it.kind);
     const allOn = ids.length > 0 && ids.every(id => it.media.includes(id));
@@ -912,14 +981,21 @@ function slotWhere() {
     re('#mAll');
   });
   box.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
-    if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
+    const g = adSpecGroups().find(x => x.id === cb.dataset.s);
+    if (g && !g.entry.extract) { it.specOn ??= new Set(); if (cb.checked) it.specOn.add(g.id); else it.specOn.delete(g.id); }
+    else if (cb.checked) it.specOff.delete(cb.dataset.s); else it.specOff.add(cb.dataset.s);
     const list = cb.closest('.plist'), all = list.querySelectorAll('input[data-s]');
     list.querySelector('[data-n]').textContent = `${all.length}종 중 ${[...all].filter(x => x.checked).length}종`;
     foot();
   });
   box.querySelectorAll('[data-all],[data-none]').forEach(b => b.onclick = () => {
     const id = b.dataset.all ?? b.dataset.none;
-    for (const g of adSpecGroups([id])) { if (b.dataset.all) it.specOff.delete(g.id); else it.specOff.add(g.id); }
+    // 「전체」는 보이는 묶음만 켠다 — 참고 규격은 「참고 규격 포함」을 켰을 때만. 「해제」는 참고 규격까지 다 끈다
+    it.specOn ??= new Set();
+    for (const g of adSpecGroups([id])) {
+      if (g.entry.extract) { if (b.dataset.all) it.specOff.delete(g.id); else it.specOff.add(g.id); }
+      else if (b.dataset.all) { if (it.specRefs) it.specOn.add(g.id); } else it.specOn.delete(g.id);
+    }
     re(`.plist[data-m="${id}"] [${b.dataset.all ? 'data-all' : 'data-none'}]`);
   });
   $('wBack').onclick = () => { it.track = null; clearSlot(); it.phase = 'target'; renderSteps(); slotType(); };
@@ -1163,11 +1239,12 @@ function slotStyle() {
         <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${fontOptions(it.font)}</select>
         <button class="lnk" id="fontUp" style="margin-top:4px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
+        <div id="fontNote">${fontNoticeHtml(it.media, it.font)}</div>
       </div>
     </div>
     <div class="sfoot2"><span class="smsg" id="stMsg" role="status">${(it.kv && it.logo) ? '' : '키비주얼과 로고를 올려야 진행할 수 있어요 — 보드 예시 소재는 전부 둘 다 들어 있어요'}</span><button class="btn pri" id="stOk" ${(it.kv && it.logo) ? '' : 'disabled aria-disabled="true"'}>이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
-  $('fontSel').onchange = () => { it.font = $('fontSel').value; };
+  $('fontSel').onchange = () => { it.font = $('fontSel').value; $('fontNote').innerHTML = fontNoticeHtml(it.media, it.font); };
   $('fontUp').onclick = () => $('fontFile').click();
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
@@ -1583,7 +1660,7 @@ function revealStaged() {
     f.frame.classList.add('done');
     setTimeout(() => f.frame.classList.remove('done'), 600);
     f.iframe.style.visibility = 'visible';
-    f.iframe.srcdoc = previewDoc(a.html);
+    f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
     f.label.textContent = artLabel(a);
     log(`생성: ${id}`);
     if (i === ids.length - 1) toast(`${ids.length}종 생성 완료`);
@@ -1652,7 +1729,7 @@ function layoutArtboard(opts = {}) {
           </div>`;
         const iframe = frame.querySelector('iframe');
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
-        if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html);
+        if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), label: frame.querySelector('.fname') });
@@ -1699,7 +1776,7 @@ function refreshFrames(only = null) {
     if (only && k !== only) continue;
     const f = frames.get(k);
     if (!f) continue;
-    f.iframe.srcdoc = previewDoc(a.html);
+    f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
     if (a.channel === 'ad') { a.lint = null; a.guide = null; ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·가이드)은 무효 — 다시 잰다
@@ -1993,6 +2070,7 @@ function renderInspector() {
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
+      <div id="iFontNote">${fontNoticeHtml(campaignMediumIds(c), c.style.fonts.heading)}</div>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </section>
@@ -2051,7 +2129,7 @@ function renderInspector() {
     insp.querySelector('#iColor1').oninput = styleChange;
     insp.querySelector('#iColor2').oninput = styleChange;
     insp.querySelector('#iColor3').oninput = styleChange;
-    insp.querySelector('#iFont').onchange = styleChange;
+    insp.querySelector('#iFont').onchange = () => { insp.querySelector('#iFontNote').innerHTML = fontNoticeHtml(campaignMediumIds(c), insp.querySelector('#iFont').value); styleChange(); };
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     const setBg = (patch, label) => { restyle({ background: { ...c.style.background, ...patch } }, label); renderInspector(); };
     insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
@@ -2211,6 +2289,7 @@ function renderInspector() {
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
       </div>` : ''}
     ${a.channel === 'ad' ? `
+      ${artifactFontHtml(a, c)}
       <label>상세 라벨 알약 <span style="opacity:.6">공통: ${CHIP_LABEL[c.style.chipTone ?? 'tint']}</span></label>
       <div class="vseg" id="iChipOv"><button data-cto="" class="${!a.overrides.style?.chipTone ? 'on' : ''}">공통 따름</button>${Object.entries(CHIP_LABEL).map(([k, v]) => `<button data-cto="${k}" class="${a.overrides.style?.chipTone === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       <label>매체 규격</label>
@@ -2242,6 +2321,24 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
   }, 450));
+  // 폰트 — 이 산출물만(overrides.style.fonts). 매체가 고정한 규격엔 선택 칸이 없다(artifactFontHtml)
+  const fontOv = insp.querySelector('#iFontOv');
+  if (fontOv) fontOv.onchange = () => {
+    const v = fontOv.value || null;
+    if ((a.overrides.style?.fonts?.heading ?? null) === v) return;
+    pushHistory(`${artLabel(a)} 폰트 개별 편집`);
+    const st = { ...(a.overrides.style ?? {}) };
+    if (v) st.fonts = { heading: v, body: v }; else delete st.fonts;
+    a.overrides.style = st;
+    a.status = 'draft';
+    logEvent(c, 'manual_edit', { specId: a.specId, style: 'fonts' });
+    regen(c);
+    autosave();
+    refreshFrames(a.specId);
+    renderInspector();
+    $('inspNote').textContent = '이 산출물만 반영됨';
+    log(`${a.specId} 폰트 ${v ? FONTS[v]?.label ?? v : '공통 따름'}`);
+  };
   // 라벨 알약 톤 — 이 산출물만(overrides.style). 비우면 공통값을 따른다. 일괄 변경이 와도 개별 값은 남는다
   insp.querySelectorAll('#iChipOv button').forEach(b => b.onclick = () => {
     const v = b.dataset.cto || null;
@@ -2493,7 +2590,8 @@ async function exportAdFiles(ads) {
   for (const a of ads) {
     const spec = SPECS[a.specId];
     const eff = adEffCtx(a);
-    const fit = await renderFit(eff, adEffStyle(a), spec);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
+    const face = await exportFaceCss(artifactFontId(a));   // 묶은 무료 폰트면 바이트째(10-14) — 래스터가 바깥 파일을 못 받는다
+    const fit = await renderFit(eff, adEffStyle(a), spec, h => embedFont(h, face, BUNDLED_MARK));   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
     out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
   }
   return out;
@@ -2510,7 +2608,26 @@ async function doAdExport(a) {
 }
 // SVG(Figma 편집용) — 용량 맞춤(단색 배경·JPG) 전의 원래 디자인을 옮긴다. Figma 에서 고친 뒤 디자이너가 다시 뽑기 때문이다.
 // 글자는 살아 있는 텍스트(Pretendard), 그림·로고는 따로 레이어, 지면·그라데이션·녹임은 벡터(core/svgexport.js)
-const SVG_NOTE = 'SVG(Figma 편집용): 글자는 텍스트, 키비주얼·로고는 따로 레이어로 들어갑니다. Figma에서 Pretendard 폰트가 설치되어 있어야 글자가 그대로 보입니다.';
+const SVG_NOTE = 'SVG(Figma 편집용): 글자는 텍스트, 키비주얼·로고는 따로 레이어로 들어갑니다. Figma에 같은 이름의 폰트(Pretendard, 또는 고른 무료 폰트)가 설치되어 있어야 글자가 그대로 보입니다.';
+// 내보내기 창 폰트 줄 — 「폰트 고정 매체: 자소설닷컴·카카오톡 (Pretendard) · 나머지: 나눔스퀘어」
+function exportFontLine(ads) {
+  const c = state.campaign;
+  const { fixed, free } = fontMediaSplit(ads.map(a => SPECS[a.specId]?.medium).filter(Boolean));
+  const picked = [...new Set(ads.filter(a => free.some(m => m.id === SPECS[a.specId]?.medium)).map(a => FONTS[artifactFontId(a, c)]?.label ?? artifactFontId(a, c)))];
+  const parts = [];
+  if (fixed.length) parts.push(`폰트 고정 매체: ${fixed.map(m => m.name).join('·')} (${[...new Set(fixed.map(m => m.font))].join('/')})`);
+  if (free.length) parts.push(`${fixed.length ? '나머지' : '폰트'}: ${picked.join(', ') || FONTS[c.style.fonts.heading]?.label}${picked.some(l => l !== FONTS[DEFAULT_FONT].label) ? ' — 파일에 폰트를 함께 넣어 내보냅니다' : ''}`);
+  return parts.join(' · ');
+}
+// 산출물 인스펙터 폰트 칸 — 고정 매체면 문구만, 자유 매체면 개별 선택(공통 따름 + 카탈로그)
+function artifactFontHtml(a, c) {
+  const spec = SPECS[a.specId];
+  const r = fontRuleOf(spec?.mediumRules, spec?.rules);
+  if (r.fixed) return `<label>폰트</label><div style="font-size:11.5px;color:var(--sub);line-height:1.5">이 매체는 ${escH(r.required)} 고정 — 매체 규정(${escH(spec.mediumName)})</div>`;
+  const ov = a.overrides?.style?.fonts?.heading ?? '';
+  return `<label>폰트 <span style="opacity:.6">공통: ${escH(FONTS[c.style.fonts.heading]?.label ?? c.style.fonts.heading)}</span></label>
+      <select id="iFontOv"><option value="" ${ov ? '' : 'selected'}>공통 따름</option>${fontOptions(ov)}</select>${r.recommended ? `<div style="font-size:11px;color:var(--sub);margin-top:4px">매체 권장: ${escH(r.recommended)}</div>` : ''}`;
+}
 async function adSvgOf(a, imgCache) {
   const spec = SPECS[a.specId];
   const html = renderAd(adEffCtx(a), adEffStyle(a), spec);
@@ -2562,7 +2679,8 @@ function exportAdModal(a) {
     desc: '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b></div>
       <div style="margin-top:10px">${lintHtml(a)}</div>
-      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">${SVG_NOTE}</div>`,
+      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">${exportFontLine([a])}</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${SVG_NOTE}</div>`,
     actions: [
       { label: '닫기' },
       { label: 'SVG (Figma 편집용)', fn: () => { doAdSvg(a); return false; } },
@@ -2641,7 +2759,7 @@ async function doBannerExport(a) {
   const s = Number($('modalBody').querySelector('#expScale .on').dataset.v);
   toast('이미지 생성 중…');
   try {
-    const blob = await rasterize(a.html, spec.w, spec.h, s, fmt);
+    const blob = await rasterize(await withExportFont(a.html, artifactFontId(a)), spec.w, spec.h, s, fmt);
     download(blob, `${kk}@${s}x.${fmt}`);
     log(`내보내기: ${kk}@${s}x.${fmt}`);
     closeModal();
@@ -2662,6 +2780,7 @@ function exportAllModal() {
       · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
+      ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">${exportFontLine(ads)}</div>` : ''}
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
@@ -2675,7 +2794,7 @@ async function batchBanners(banners) {
   toast('배너 이미지 생성 중…');
   for (const a of banners) {
     const spec = effSpec(a);
-    try { download(await rasterize(a.html, spec.w, spec.h, 2, 'png'), `${a.key ?? a.specId}@2x.png`); } catch {}
+    try { download(await rasterize(await withExportFont(a.html, artifactFontId(a)), spec.w, spec.h, 2, 'png'), `${a.key ?? a.specId}@2x.png`); } catch {}
   }
   log(`내보내기: 배너 PNG 2x ${banners.length}개`);
   closeModal();
@@ -2861,6 +2980,8 @@ async function runKeyTest() {
 
 /* ═══ boot ═══ */
 restoreCustomFonts();   // 지난 세션에 첨부한 폰트를 카탈로그에 되돌려 놓아야 저장된 캠페인이 같은 글자로 열린다
+// 묶은 무료 폰트의 @font-face 를 앱 문서에도 — SVG 내보내기(core/svgexport.js)는 앱 문서 안 상자에서 글자를 재므로 여기 있어야 같은 서체로 잰다. 브라우저는 쓰이는 굵기만 받는다
+document.head.insertAdjacentHTML('beforeend', `<style id="bundledFonts">${fontIds().filter(isBundledFont).map(id => localFaceCss(id)).join('')}</style>`);
 $('homeBtn').onclick = () => show('home');
 $('logHead').onclick = () => $('logCard').classList.toggle('open');
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다

@@ -69,7 +69,7 @@ export function normalizeStyle(input = {}) {
     // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다
     logoTone: ['light', 'dark', 'both'].includes(input.logoTone) ? input.logoTone : null,
     // 로고 실측(core/logo.js logoMeta) — px(원본 크기)·solid(트림 상자 안 불투명 몫: 타일 로고 ≥ 0.85)·lum·sat·colors(대표색 3 + 몫 — 지면과 같은 색이면 단색, 10-12). 렌더러가 세로 로고 크기·타일 로고 반전 여부를 정한다
-    logoMeta: input.logoMeta && Array.isArray(input.logoMeta.px) ? { px: input.logoMeta.px, solid: input.logoMeta.solid ?? null, lum: input.logoMeta.lum ?? null, sat: input.logoMeta.sat ?? null, colors: Array.isArray(input.logoMeta.colors) ? input.logoMeta.colors : null } : null,
+    logoMeta: input.logoMeta && Array.isArray(input.logoMeta.px) ? { px: input.logoMeta.px, solid: input.logoMeta.solid ?? null, lum: input.logoMeta.lum ?? null, sat: input.logoMeta.sat ?? null, colors: Array.isArray(input.logoMeta.colors) ? input.logoMeta.colors : null, emblem: input.logoMeta.emblem?.x1 > 0 ? { x1: input.logoMeta.emblem.x1 } : null } : null,   // emblem: 왼쪽 색 심볼 경계(단색 변환 때 심볼은 원색, 10-14 t1014)
     mood: input.mood ?? [],
     presetId: input.presetId ?? null,
     // 인쇄 사양 — 근사 CMYK(사양서·미리보기 표기용)

@@ -3,7 +3,8 @@
 // 규칙 숫자를 바꿀 때 "예전 케이스가 깨지지 않는가"를 한 장(index.html)에서 본다. 10-06 사용자: "케이스 자산화 — 뭘 넣어도 데이터가 있고 그걸로 분기".
 //
 //   node scripts/cases.mjs add <그림> --id <id> [--logo <파일>] [--note "..."] [--primary #HEX] [--fields '{"client":…}']
-//   node scripts/cases.mjs run [id …] [--shots] [--trace]   전 케이스(또는 지정) 재렌더 + 검수 → ref/learned/cases/_out/index.html
+//   node scripts/cases.mjs run [id …] [--shots] [--trace] [--all]   전 케이스(또는 지정) 재렌더 + 검수 → ref/learned/cases/_out/index.html
+//                                                        기본은 추출 규격 47(소재 묶음 45)만, --all: 참고 규격까지 전부(74+1)
 //                                                        --trace: 돌린 케이스의 가이드 대조표(scripts/guide-trace.mjs → _out/trace/<id>.html)까지
 //   node scripts/cases.mjs verdict <id> <specId|*> ok|issue "메모"     사람 판정 기록(데이터)
 //   node scripts/cases.mjs sheet [--specs a,b]                사람 판정 시트(대표 규격 × 전 케이스) → _out/verdict.html
@@ -314,11 +315,12 @@ if (cmd === 'run') {
   const { createContext } = await core('context.js');
   const { normalizeStyle } = await core('style.js');
   const { specOf } = await core('media.js');
-  const { adSpecGroups } = await core('adspecs.js');
+  const { adSpecGroups, extractSpecGroups } = await core('adspecs.js');
   registerAll();
   const l = ledger();
   const ids = positional.length ? positional : l.cases.map(c => c.id);
-  const specIds = adSpecGroups().map(g => g.id);
+  // 기본은 추출 규격(47 → 소재 묶음 45, core/media/_extract.json)만 — --all 이면 참고 규격까지 전부(r49 까지의 74규격 기준과 견줄 때)
+  const specIds = (flag('--all') ? adSpecGroups() : extractSpecGroups()).map(g => g.id);
   const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
   const doc = inner => `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${FONT}"><style>html,body{margin:0;background:transparent}</style></head><body>${inner}</body></html>`;
   const results = {};

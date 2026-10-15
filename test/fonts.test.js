@@ -12,12 +12,10 @@ const ctx = updateContext(createContext({
   name: 'MBM', date: 'd', venue: 'v', audience: 'a', cta: 'c',
 }), { channelFields: { edm: { senderName: 'S', subject: 'T' } } });
 
-test('catalog carries the four pilot fonts', () => {
-  assert.deepEqual(FONT_IDS, ['Pretendard', 'NanumSquareNeo', 'NanumSquare', 'NanumSquareRound']);
-  for (const id of FONT_IDS) {
-    assert.match(FONTS[id].css, /^https:\/\/cdn\.jsdelivr\.net\//);
-    assert.ok(FONTS[id].label && FONTS[id].stack);
-  }
+// 10-14: 카탈로그 = 기본 Pretendard + 묶은 무료 폰트 8종(사용자 지정 순서 나눔스퀘어 → 네오 → 라운드 → 카카오 큰글씨가 앞). 자세한 모양 검사는 test/fonts-bundled.test.js
+test('catalog starts with Pretendard and the four user picks in order', () => {
+  assert.deepEqual(FONT_IDS.slice(0, 5), ['Pretendard', 'NanumSquare', 'NanumSquareNeo', 'NanumSquareRound', 'KakaoBigSans']);
+  for (const id of FONT_IDS) assert.ok(FONTS[id].label && FONTS[id].stack && FONTS[id].dir, id);
 });
 
 test('unknown font falls back to Pretendard', () => {
@@ -105,8 +103,7 @@ const UPLOAD = { id: 'custom-미다스체', label: '미다스체 (첨부)', data
 
 test('an uploaded font joins the catalog without touching the pilot four', () => {
   registerCustomFont(UPLOAD);
-  assert.deepEqual(FONT_IDS, ['Pretendard', 'NanumSquareNeo', 'NanumSquare', 'NanumSquareRound'],
-    'FONT_IDS는 모듈 로드 시점 값 — 런타임 추가로 흔들리면 안 된다');
+  assert.ok(!FONT_IDS.includes(UPLOAD.id) && FONT_IDS.length === 9, 'FONT_IDS는 모듈 로드 시점 값 — 런타임 추가로 흔들리면 안 된다');
   assert.ok(fontIds().includes(UPLOAD.id), 'fontIds()는 지금 고를 수 있는 전부를 준다');
   assert.ok(isCustomFont(UPLOAD.id));
   assert.ok(!isCustomFont('Pretendard'));

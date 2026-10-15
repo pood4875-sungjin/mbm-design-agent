@@ -61,6 +61,7 @@ test('렌더: 상세 라벨은 가로형에서도 굵다 — 라벨 700 · 값 4
     const i = html.indexOf('data-field="detail"'); if (i < 0) continue;
     const block = html.slice(i, html.indexOf('</div></div>', i));
     const b = block.match(/<b style="font-weight:(\d+)/)?.[1];
+    if (s.rules?.safeArea?.measuredFromTemplate?.mold) continue;   // 10-15 틀 규격은 샘플 실측 굵기 그대로(팝업·PC메인 상세는 라벨까지 Regular)
     if (b) assert.ok(Number(b) - fwIn(html, 'detail') >= 100, `${sid} 라벨 ${b} vs 값 ${fwIn(html, 'detail')}`);
   }
 });

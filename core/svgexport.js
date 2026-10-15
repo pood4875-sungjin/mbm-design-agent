@@ -392,6 +392,7 @@ function monoSvg(svgEl, color) {
 }
 const radiiOf = cs => [cs.borderTopLeftRadius, cs.borderTopRightRadius, cs.borderBottomRightRadius, cs.borderBottomLeftRadius].map(v => parseFloat(v) || 0);
 const isInline = cs => cs.display === 'inline' || cs.display === 'contents';
+const FIGMA_ASCENT = 1.0;   // Figma 글상자 top = 기준선 − 1.0em(Pretendard 실측 0.999, 10-15 qhEEyEBDCjTmTho3tByBf1 48:76 외)
 const famAttr = f => f.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean).join(', ');
 
 // 글꼴 윗길이 비율(baseline 위치) — 캔버스 실측, 글꼴마다 기억
@@ -410,7 +411,7 @@ function ascentRatio(font, cache) {
 }
 
 // root: 렌더된 [data-ad] 요소(살아 있는 문서 안). 그림·폰트가 다 뜬 뒤 부른다
-export async function adToSvg(root, { submitW = null, submitH = null, title = '', imgCache = new Map(), debug = false } = {}) {
+export async function adToSvg(root, { submitW = null, submitH = null, title = '', imgCache = new Map(), debug = false , baseline = 'figma' } = {}) {
   const dbg = debug ? [] : null;   // 검사용: tspan 마다 DOM 토막 상자(scripts/svg-check.mjs)
   const win = root.ownerDocument.defaultView;
   const RR = root.getBoundingClientRect();
@@ -446,7 +447,9 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
             i += len;
             if (!rc) continue;
             const c = { ch: String.fromCodePoint(cp), x: rc.left - ox, y: rc.top - oy, w: rc.width, h: rc.height, key, style };
-            c.base = c.y + rc.height * asc;
+            // 10-15 Figma 가져오기 보정: Figma 는 SVG 글자의 기준선 y 에서 1.0em 위를 글상자 top 으로 둔다(실측 asc 0.999, Pretendard). Chrome 의 기준선은 content 상자 top + 0.95em(fontBoundingBoxAscent)이라
+            //   그대로 적으면 Figma 글상자가 0.05em(13px → 0.7 · 35px → 1.8px) 위로 올라간다(자소설 틀 대조 −0.8~−2.3px). Figma 편집용이므로 글상자 top 이 렌더와 같도록 y = top + 1.0em 으로 적는다(브라우저로 보면 글자가 0.05em 내려 보인다)
+            c.base = baseline === 'chrome' ? c.y + rc.height * asc : c.y + fs * FIGMA_ASCENT;
             // 넘침 감춤(line-clamp·overflow) 밖 글자는 보이지 않는다
             const cx = c.x + c.w / 2, cy = c.y + c.h / 2;
             if (clip && (cx < clip.x || cx > clip.x + clip.w || cy < clip.y || cy > clip.y + clip.h)) continue;

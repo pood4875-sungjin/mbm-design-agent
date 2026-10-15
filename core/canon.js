@@ -67,7 +67,8 @@ export const CANON = {
   // 녹임(그림 → 지면) 길이와 곡선 — 그림 변 색과 지면색의 거리(colorDistance)에 비례해 min~max(그림 칸·띠 길이의 몫), fullAt 거리에서 max.
   //   10-12 desk-15(한국산업단지공단 파랑→복숭아 그라데이션)·GC녹십자(밝은 3D × 네이비): 「뚝 끊기는 느낌」. 곡선은 smoothstep 여러 마디(직선 끝이 선으로 읽힌다)
   //   bridgeFrom·bridgeMax: 브랜드 지면이 그림 변과 멀면(≥ bridgeFrom) 지면의 이음매 쪽 끝을 그림 변 색 쪽으로 최대 bridgeMax 만큼(흰 글자 4.5:1 안에서) 당긴다(GC녹십자 1080)
-  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6 },
+  //   bridgeMinLum: 그림이 이만큼 밝을 때만 당긴다(10-14 t1014 한진 어두운 빌딩 사진 0.40 — 남색이 청록 회색으로 탁해짐, GC녹십자 밝은 사진 0.71 은 그대로)
+  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6, bridgeMinLum: 0.55 },
   // 질감 전체 깔기에서 글자 아래가 어지러우면(형태 가장자리가 뚜렷) 글자 쪽에서 지면 자기 색 스크림을 깐다 — 「아주 살짝」이 기본, 어지러울수록 진하게.
   //   10-12 desk-23 제주항공(알약 가장자리 뚜렷 「비주얼이랑 텍스트 너무 겹쳐」) · desk-02 대한항공(「글씨 영역 쪽만 아주 살짝 오퍼」).
   //   busy = max((texture.spread − spreadMin) / (spreadFull − spreadMin), texture.sharp / sharpFull) 를 0~1로 · busyMin 미만이면 스크림 없음(hdot-wave 0.01·hdot-purple3d 0.08은 그대로, desk-02 0.10부터)
@@ -83,6 +84,20 @@ export const CANON = {
   cutoutAuto: { chromaMax: 0.12, gradMax: 0.15 },
   // 작은 누끼를 크게 키우지 않는다 — 원본 픽셀의 maxUpscale 배까지(10-12 desk-37-cut 163px이 1005×360에서 계단). 넘으면 작게 둔다(참고 경고 low-res)
   maxUpscale: { cutout: 1.5 },
+  // ── 10-14 t1014 테스트 예시(10개 고객사 디자이너 산출물 54장 대조, ref/learned/cases/_out/t1014-report.md) ──
+  // 벡터 그림 판정(GS에너지 2026 svg 장면): 평평한 변 하나 · 주인공 못 가름이면 사진으로 보던 것을, 이웃 픽셀 같은 색 몫(palette flatFillOf) ≥ 이 값이면 일러스트로 둔다.
+  //   장부 사진 최대 0.782(desk-19, 평평한 변 0이라 이 갈래 밖) · gs2026 0.824 — 근거 1건
+  flatVector: 0.8,
+  // 누끼 사람 떼(맞닿아 틈 열이 없는 떼): 윗선 봉우리 ≥ peaks 이고 가로로 넓으면(비율 ≥ minAr) 떼(ABL 6명 어깨동무 봉우리 7 · 장부 단일 사물 최대 3, 장식 프레임 5~7은 frame 이 먼저)
+  crowdPeaks: { peaks: 5, minAr: 1.3 },
+  // 전신 인물·캐릭터 누끼 → 상반신(동서식품 디자이너 9/9 머리~허리 · 바이오노트 개 1/1 머리~가슴): 그림 비율 < maxAr(0.6 — 동서식품 전신 0.42·바이오노트 앉은 개 0.59 는 들고, 이미 허리 위인 연사 hdot-speaker-b 0.62·세로로 긴 3D 사물 desk-03-cut 0.63 은 뺀다) 인 세로로 선 누끼는 위 vis 몫만 있는 그림으로 배치하고,
+  //   그린 뒤 머리 위 숨 top(상자 높이 몫)을 두고 아래를 흘린다. 폭은 상자 폭의 widen 배까지(0.8 — 1.05 로 두니 인스타 정사각에서 상세 줄이 어깨 위로 겹쳤다: desk-03-cut·hdot-speaker-b·동서식품 17~29%).
+  //   minCanvasAr: 지면 비율(폭/높이)이 이보다 작으면(세로 띠·스토리·320×480) 전신 그대로 · fadeFrom: 상자 아랫변이 지면 안쪽이면 그 높이(%)부터 아래로 녹인다
+  bust: { maxAr: 0.6, vis: 0.55, top: 0.03, widen: 0.8, minCanvasAr: 0.7, fadeFrom: 72 },
+  // 밝은 난색 브랜드(주황·노랑·연두 — HSL 색상 hueMin~hueMax, 흰 글자 대비 < maxWhiteContrast)는 어둡히면 갈색·올리브가 된다 — 사진·누끼 지면을 브랜드 딥 대신
+  //   브랜드 틴트(mix(브랜드, 흰색, tint) → 흰색)로 두고 글자는 검정, 브랜드색은 로고·강조에(동서식품 #FFC000 디자이너 9/9 크림 지면 · 바이오노트 #F67E06 인스타 V2 밝은 회색 지면).
+  //   초록(#2EBA56 desk-12, 색상 0.38)은 범위 밖 — 10-12 「채도 지면 흰 글자」 그대로
+  warmLightBrand: { hueMin: 0.055, hueMax: 0.305, maxWhiteContrast: 3, tint: 0.82 },
 };
 
 // 매체 가이드 위에 공통 기준을 깐다 — 가이드가 정한 키가 이긴다

@@ -34,7 +34,8 @@ export function roleOf(field) {
 //   all-1      띄어쓰기·부호·특수문자 모두 1자 (네이버 GFA 명시 · 규칙 없는 매체의 기본값)
 //   half-latin 영문·특수문자 2글자 = 1글자, 띄어쓰기 = 1글자 (자소설닷컴 보드 메모)
 export function countChars(text, mode = 'all-1') {
-  const s = String(text ?? '');
+  // 줄바꿈 제어용 보이지 않는 문자(U+2060 결합 · U+200B 줄바꿈 자리 · U+00AD)는 글자가 아니다 — 렌더러가 넣은 것을 매체 글자수 검사가 세면 안 된다(10-14 t1014 동서식품 「신입/​경력사원」 14자 오판)
+  const s = String(text ?? '').replace(/[\u2060\u200B\u00AD]/g, '');
   if (mode !== 'half-latin') return [...s].length;
   let n = 0;
   for (const ch of s) {

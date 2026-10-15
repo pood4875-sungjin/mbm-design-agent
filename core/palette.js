@@ -6,6 +6,7 @@
 //
 // 키비주얼이 있으면 픽셀에서 대표색을 뽑아 제안하고, 없으면 프라이머리에서 파생한다.
 // 사람이 언제든 덮어쓸 수 있다 — 제안일 뿐 강제가 아니다.
+import { CANON } from './canon.js';
 
 export function hexToRgb(hex) {
   return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
@@ -181,6 +182,36 @@ export function colorDistance(a, b) {
 // 네 변마다: 평균색(hex), 변을 따라 앞 절반·뒤 절반의 색(from → to: 이미지에 그라데이션이 있으면 둘이 다르다),
 //           불투명한 픽셀 비율(opaque: 낮으면 배경을 딴 이미지), 거칠기(rough: 이웃 픽셀끼리 얼마나 다른가 — 높으면 사진처럼 복잡한 가장자리).
 // 왼쪽·오른쪽 변은 위→아래, 위·아래 변은 왼→오른쪽 순서다.
+// 이웃(오른쪽·아래) 픽셀과 RGB 합 차이 ≤ 3 인 픽셀 몫 — 벡터 면 채움은 높고 사진(잡티·결)은 낮다(10-14 장부: 사진 0.03~0.77 · 평면 일러스트 대부분 ≥ 0.5)
+export function flatFillOf(rgba, w, h) {
+  const step = Math.max(1, Math.floor(Math.max(w, h) / 480));
+  let n = 0, eq = 0;
+  for (let y = 0; y + step < h; y += step) for (let x = 0; x + step < w; x += step) {
+    const i = (y * w + x) * 4, r = (y * w + x + step) * 4, d = ((y + step) * w + x) * 4;
+    n++;
+    const dr = Math.abs(rgba[i] - rgba[r]) + Math.abs(rgba[i + 1] - rgba[r + 1]) + Math.abs(rgba[i + 2] - rgba[r + 2]);
+    const dd = Math.abs(rgba[i] - rgba[d]) + Math.abs(rgba[i + 1] - rgba[d + 1]) + Math.abs(rgba[i + 2] - rgba[d + 2]);
+    if (dr <= 3 && dd <= 3) eq++;
+  }
+  return n ? Math.round(eq / n * 1000) / 1000 : null;
+}
+// 누끼 윗선(열마다 첫 불투명 행) 봉우리 수 — 48칸, 높이의 8% 이상 내려갔다 올라와야 다른 봉우리
+export function topPeaksOf(rgba, w, h, n = 48, depth = 0.08) {
+  const seq = [];
+  for (let k = 0; k < n; k++) {
+    const x0 = Math.floor(k * w / n), x1 = Math.max(x0 + 1, Math.floor((k + 1) * w / n));
+    let top = 1;
+    outer: for (let y = 0; y < h; y++) for (let x = x0; x < x1; x++) if (rgba[(y * w + x) * 4 + 3] > 128) { top = y / h; break outer; }
+    seq.push(top);
+  }
+  let peaks = 0, mode = 'down', cand = seq[0], hi = seq[0];
+  for (const v of seq.slice(1)) {
+    if (mode === 'down') { if (v < cand) cand = v; else if (v - cand >= depth) { peaks++; mode = 'up'; hi = v; } }
+    else { if (v > hi) hi = v; else if (hi - v >= depth) { mode = 'down'; cand = v; } }
+  }
+  if (mode === 'down' && cand < 1) peaks++;
+  return peaks;
+}
 export function fieldFromImage(rgba, w, h, band = 0.06) {
   const bw = Math.max(2, Math.round(w * band)), bh = Math.max(2, Math.round(h * band));
   const scan = (x0, y0, x1, y1, along) => {
@@ -286,8 +317,12 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   }
   const focus = focusOf(rgba, w, h, bw, cutout, ref, corners, kind === 'illust' || cutout);   // 쌓인 덩어리 묶기 — 바탕 있는 일러스트·3D와 누끼(10-12 desk-20-cut 위 공 + 아래 반구). 사진 장면은 그대로, 옆으로 선 누끼 떼(ABL)는 묶이지 않는다
   // 평평한 변이 하나뿐인데 바탕을 못 가르면(주인공 픽셀 > 60% → focus null) 그 변은 바탕이 아니라 사진의 흐린 천장·벽이다 — 사진(10-09 figma-dg AI 간호사: 일러스트로 보고 윗변에 붙여 얼굴이 잘렸다)
-  if (kind === 'illust' && flatEdges === 1 && !focus) kind = 'photo';
-  return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus, rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
+  // 단, 면이 고르게 칠해진 벡터 그림(이웃 픽셀이 같은 색인 몫 flatFill ≥ CANON flatVector — 사진 최대 0.77, 10-14 t1014 GS에너지 2026 svg 장면 0.82)은 사진이 아니다(바탕이 구름·건물로 갈려 주인공을 못 가른 일러스트)
+  const flatFill = cutout ? null : flatFillOf(rgba, w, h);
+  if (kind === 'illust' && flatEdges === 1 && !focus && !(flatFill >= (CANON.flatVector ?? 2))) kind = 'photo';
+  // 누끼 윗선의 봉우리 수(머리·꼭대기) — 맞닿아 연결 성분 하나·틈 열 없는 사람 떼(10-14 t1014 ABL 6명 어깨동무: 봉우리 7)를 단일 사물과 가른다(kvtypes group)
+  const topPeaks = cutout ? topPeaksOf(rgba, w, h) : null;
+  return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus, ...(topPeaks != null ? { topPeaks } : {}), ...(flatFill != null ? { flatFill } : {}), rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
 }
 
 // 인물 상자로 주인공 잡기(10-12 결정 반영·남은 문제: hr-doctor 흰 가운 × 흰 흐린 배경, AI 간호사 얼굴이 코에서 잘림).

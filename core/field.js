@@ -21,6 +21,12 @@ const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션
 // 어두운 브랜드 지면 — 단색 대신 은은한 대각 그라데이션(왼쪽 위 살짝 밝고 따뜻하게 → 오른쪽 아래 짙게). 보드 1-884 코엑스 카드(보라 → 짙은 보라)·리멤버 예시의 문법.
 // 색 거리는 그라데이션 문턱(0.045)을 넘되 글자 대비는 두 끝 모두 지킨다. 단색 전용 규격·'단색' 선택이면 resolveField가 가운데 색으로 접는다
 // 어두운 브랜드 지면 — 색상(hue)은 그대로, 명도만 내린다. 밝은 끝이 흰 글자 4.5:1을 넘을 때까지 어둡힌다: 주황·노랑·연두 브랜드(여우 #E0813A)는 그냥 두면 2.7:1이라 검정 글자로 떨어져 싸구려 티가 난다(케이스 장부 R3) — 코엑스 카드처럼 딥 컬러 + 흰 글자가 답
+// 밝은 난색 브랜드(CANON warmLightBrand) — 어둡히면 갈색·올리브라 지면은 틴트로 둔다
+export function warmLightBrand(brand) {
+  const W = CANON.warmLightBrand; if (!W || !/^#[0-9A-Fa-f]{6}$/.test(brand ?? '')) return false;
+  const [h, sat] = rgbToHsl(hexToRgb(brand));
+  return sat >= 0.4 && h >= W.hueMin && h <= W.hueMax && contrast(brand, WHITE) < W.maxWhiteContrast;
+}
 export function brandDeep(brand) {
   let d = -0.06;
   while (d < 0.5 && contrast(shiftHue(brand, 0, -d, 0), WHITE) < 4.5) d += 0.02;
@@ -61,14 +67,16 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     // 어두운 지면 매체: 브랜드색 단색(한독 사옥 → 파랑, ABL 캐릭터 → 파랑). 밝은 지면 매체(구글·자소설): 브랜드색 틴트 → 흰색 그라데이션
     // (비씨월드 하늘색→흰색, 한국앤컴퍼니 오렌지 18%→흰색, PT코리아 라벤더). 그림의 대표색을 쓰면 탁해진다(ABL 캐릭터 → 보라회색)
     const brand = p.primary ?? '#2456D6';
-    const tint = f.kind === 'photo' ? lightPhoto : light;
-    if (tint) { stops = [mix(brand, WHITE, 0.78), WHITE]; angle = 180; source = 'brand-tint'; }
+    const warm = warmLightBrand(brand);
+    const tint = (f.kind === 'photo' ? lightPhoto : light) || warm;
+    if (tint) { stops = [mix(brand, WHITE, warm && !(f.kind === 'photo' ? lightPhoto : light) ? CANON.warmLightBrand.tint : 0.78), WHITE]; angle = 180; source = warm && !(f.kind === 'photo' ? lightPhoto : light) ? 'brand-tint-warm' : 'brand-tint'; }
     else {
       stops = brandDeep(brand); angle = 135; source = f.kind === 'photo' ? 'brand-photo' : 'brand';
       // 10-12 GC녹십자(밝은 사진 × 네이비 브랜드): 지면이 그림과 따로 정해져 이음매 쪽 색이 멀면(거리 ≥ bridgeFrom) 이음매 쪽 끝을 그림 변 색 쪽으로 당긴다 —
       //   흰 글자 4.5:1을 지키는 데까지만. 글자 쪽 끝은 브랜드 딥 그대로
       const eh = e?.hex, B = CANON.melt;
-      if (eh && B?.bridgeFrom && colorDistance(eh, stops[stops.length - 1]) >= B.bridgeFrom) {
+      // 밝은 사진만(그림 밝기 ≥ bridgeMinLum) — 어두운 사진(한진 빌딩 0.40)은 브랜드 딥 그대로 녹인다: 당기면 남색이 청록 회색으로 탁해졌다(10-14 t1014 한진정보통신 디자이너 9/9 남색 브랜드)
+      if (eh && B?.bridgeFrom && colorDistance(eh, stops[stops.length - 1]) >= B.bridgeFrom && (f?.lum ?? 1) >= (B.bridgeMinLum ?? 0)) {
         let t = B.bridgeMax ?? 0.6, end = null;
         while (t > 0.05) { const c = mix(stops[0], eh, t); if (contrast(c, WHITE) >= 4.5) { end = c; break; } t -= 0.05; }
         if (end) { stops = [stops[0], end]; angle = (facing === 'left' || facing === 'right') ? (facing === 'left' ? 90 : 270) : 180; source += '-bridge'; }
@@ -83,8 +91,9 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   if (!stops && style.keyVisual && style.kvMeta?.edge) { stops = [style.kvMeta.edge]; source = 'kv-edge'; }   // 예전에 저장된 캠페인
   if (!stops) {
     const brand = p.primary ?? '#2456D6';
-    stops = light ? [mix(brand, WHITE, 0.80), mix(brand, WHITE, 0.90)] : brandDeep(brand);
-    if (!light) angle = 135;
+    const lt = light || warmLightBrand(brand);
+    stops = lt ? [mix(brand, WHITE, 0.80), mix(brand, WHITE, 0.90)] : brandDeep(brand);
+    if (!lt) angle = 135;
     source = 'brand';
   }
 

@@ -10,7 +10,7 @@ import { specOf } from '../core/media.js';
 
 const specs = adSpecEntries();
 const style = normalizeStyle({ colors: ['#0B3C8C'] });
-const textOf = (html, role) => { const m = html.match(new RegExp(`data-field="${role}"[^>]*>([^]*?)</(?:div|span)>`)); return m ? m[1].replace(/<[^>]+>/g, '').replace(/⁠/g, '') : null; };
+const textOf = (html, role) => { const m = html.match(new RegExp(`data-field="${role}"[^>]*>([^]*?)</(?:div|span)>`)); return m ? m[1].replace(/<[^>]+>/g, '').replace(/[⁠\u200B]/g, '') : null; };   // 줄바꿈 제어 문자(U+2060 결합 · U+200B 줄바꿈 자리, 10-14) 빼고
 const tagOf = (html, role) => html.match(new RegExp(`data-field="${role}"[^>]*>`))?.[0] ?? null;
 const px = (html, role) => { const t = tagOf(html, role); return t ? Number(t.match(/font-size:(\d+)px/)?.[1]) : null; };
 
@@ -32,8 +32,9 @@ test('자소설 PC메인배너 1200×280: 템플릿 구조 — 서브(시즌) �
   assert.equal(textOf(html, 'sub'), '2026 상반기');
   assert.match(textOf(html, 'main'), /^현대케피코/);
   assert.doesNotMatch(textOf(html, 'main'), /2026/, '시즌은 서브에만');
-  assert.match(html, /접수기간<\/b> : 1\.24\(토\) - 2\.1\(일\)/);
-  assert.match(html, /모집직무<\/b> : 생산기술/);
+  assert.match(textOf(html, 'main'), /신입채용/, '회사 / 채용구분 두 줄(10-15 틀)');
+  assert.match(html, /채용일정 :<\/b> 1\.24\(토\) - 2\.1\(일\)/);   // 10-15 틀: 라벨 「채용일정 :」(28:1002)
+  assert.match(html, /모집직무 :<\/b> 생산기술/);
   assert.ok(html.indexOf('data-field="sub"') < html.indexOf('data-field="main"'), '서브가 메인 위');
 });
 

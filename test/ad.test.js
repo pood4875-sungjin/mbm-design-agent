@@ -89,16 +89,16 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   // 카카오 비즈보드 메인카피 15자: "한진정보통신 신입/경력사원 채용"(17)은 못 들어가고 "신입/경력사원 채용"(10)이 뽑힌다
   const long = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', hiringType: '신입/경력사원', location: '서울', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit');
   const html = renderAd(long, style, specs['kakao-bizboard-mo']);
-  // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자
-  assert.match(html, /data-field="main"[^>]*>신입\/\u2060?경력사원 채용</);
+  // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자(6자까지) · 7자 이상 낱말은 U+200B 줄바꿈 자리(10-14 t1014 — 좁은 칸에서 낱말 속이 끊기지 않게)
+  assert.match(html, /data-field="main"[^>]*>신입\/[\u2060\u200B]?경력사원 채용</);
   // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 구글은 시즌이 메인 첫머리 — 적지 않았으면 마감일에서 유추한 시즌(10-06 "정보 없는 건 임의로 넣어야지")
   const free = renderAd(long, style, specs['google-gdn-300x600']);
-  assert.match(free, /data-field="main"[^>]*>2026 하반기(<br\/>| )한진정보통신(<br\/>| )신입\/\u2060?경력사원 채용</);
+  assert.match(free, /data-field="main"[^>]*>2026 하반기(<br\/>| )한진정보통신(<br\/>| )신입\/[\u2060\u200B]?경력사원 채용</);
   // 구글 가이드: 아이브로는 슬로건 — 안 적어 줬으면 회사명을 넣은 기본 아이브로(세로형이 얇아 비어 보이지 않게)
   assert.match(free, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
   // 직무는 상세 줄에 간다 — 상세 칸이 있는 매체(자소설 M팝업 상세문구 22자×3줄)에서
   const popup = renderAd(long, style, specs['jasoseol-m-premium-popup-mo']);
-  assert.match(popup, /모집직무<\/b> : 클라우드 플랫폼 엔지니어/);
+  assert.match(popup, /모집직무 :<\/b> 클라우드 플랫폼 엔지니어/);   // 10-15 틀(M팝업): 「라벨 :」 굵게 + 값
 });
 
 test('logo-only specs (브랜드 로고 96×96, 프로필 300) carry no headline slot', () => {
@@ -138,8 +138,9 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
   assert.ok((DESIGN.jasoseol?.bgLight?.value ?? 0) >= 0.6, '프로필 전제');
   const html = renderAd(ctx, style, specs['jasoseol-pc-premium-popup-pc']);
   // 순백이 아니라 브랜드색 파스텔 틴트(현대케피코 라벤더 블루) — 위가 조금 진하고 아래가 옅다
-  assert.match(html.split('>')[0], /background:linear-gradient\(180deg,#[C-F][0-9A-F]{5} 0%,#[D-F][0-9A-F]{5} 100%\)/i);
-  assert.match(html, /data-field="main"[^>]*color:#0B3C8C/, '밝은 지면의 메인은 브랜드색(공통 조형 기준 textColour brand — 한미 블루·일화 레드)');
+  // 10-15 템플릿 틀(templateMold): 자소설 PC팝업은 세아제강 샘플 28:124 이 틀 — 밝은 틴트 지면(단색 또는 위가 조금 진한 그라데이션) + 샘플 글자색 #555555(브랜드색 메인 아님)
+  assert.match(html.split('>')[0], /background:(linear-gradient\(180deg,#[C-F][0-9A-F]{5} 0%,#[D-F][0-9A-F]{5} 100%\)|#[C-F][0-9A-F]{5});/i);
+  assert.match(html, /data-field="main"[^>]*color:#555555/, '틀 글자색은 샘플 실측(세아제강 #555555) — 밝은 지면에서 브랜드색으로 바꾸지 않는다(10-15)');
 });
 
 test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
@@ -215,7 +216,7 @@ test('template measurements taken on a 2x frame are scaled to the 1x canvas (자
   assert.equal(templateScale(spec.rules, spec.w), 0.5, '328×466 프레임 실측 → 164×233 캔버스');
   const html = renderAd(ctx, style, spec);
   // 문구 칸 x≈49(2배) → 25(1배), 폰트 40(2배) → 20(1배)
-  assert.match(html.split('>')[0], /padding:\d+px \d+px \d+px 2[45]px/);
+  assert.match(html, /data-text-col="1" style="position:absolute;left:26px/, '10-15 틀: 글자 왼쪽 패딩 52(2배) → 26');
   assert.match(html, /data-field="main"[^>]*font-size:20px/);
   // 환산할 것이 없는 규격은 1
   assert.equal(templateScale(specs['kakao-bizboard-mo'].rules, 1029), 1);
@@ -269,31 +270,17 @@ test('on a dark field the white logo variant is used as-is; without one the colo
   assert.doesNotMatch(light, /invert\(1\)/);
 });
 
-test('the template image area takes the picture by its size: tall pictures fill the rect, flat ones sit on the floor at full width', () => {
-  // 길쭉한 그림(도레이 160×324) → 칸을 채우고 위가 잘린다
+test('the template image area takes the picture by its size — 10-15 templateMold: 자소설 채용공고 160×600 은 틀 그림 칸(160×200 @0,400)에 누끼는 contain·가운데, 바탕 있는 그림은 cover(주인공 위치) — 블리드·녹임 없음', () => {
+  // 10-13 까지의 하단 띠 문법(native/contain/cover + 윗변 녹임)은 틀(mold)이 없는 템플릿 매체에만 남아 있다 — 자소설 PC 4규격은 세아제강·현대케피코 샘플이 틀이라 이 규칙을 타지 않는다
   const tall = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.5, px: [160, 324], edge: '#0B3C8C' } };
-  assert.match(renderAd(ctx, tall, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px;[^"]*center bottom\/cover/);
-  // 납작한 그림(ar 1.5) → 폭에 맞춰 바닥에 통째로(160×107), 위는 글자가 쓴다
-  // 납작한 그림을 폭에 맞추면 띠 아래 조각(107px)만 남아 비어 보인다(10-06 사용자 "그냥 뚝 끊긴 느낌") — 칸 높이의 60%를 못 채우면 잘라 채우고 윗변을 녹인다
-  const flat = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, px: [600, 400], edge: '#0B3C8C' } };
-  const flatHtml = renderAd(ctx, flat, specs['jasoseol-pc-standard-jobpost-pc']);
-  assert.match(flatHtml, /data-object="1"[^>]*left:0px;top:370px;width:160px;height:230px;[^"]*center bottom\/cover/);
-  assert.match(flatHtml, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/);
-  // 칸 높이의 60% 이상을 채우는 그림은 그대로 폭에 맞춘다(세아제강 373×274는 600×330 칸에 거의 꽉 찬다)
-  const flatOk = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.9, px: [600, 667], edge: '#0B3C8C' } };
-  assert.match(renderAd(ctx, flatOk, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*top:422px;width:160px;height:178px;[^"]*center bottom\/contain/);
-  // 칸보다 작은 그림(PT코리아 154×154) → 제 크기로 바닥에
-  const small = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [154, 154], edge: '#0B3C8C' } };
-  assert.match(renderAd(ctx, small, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*top:446px;width:160px;height:154px;[^"]*center bottom\/auto/);
-  // 사진(평평한 변 없음)이면 윗변을 지면으로 녹인다(한독)
-  const photo = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.81, px: [160, 198], field: { kind: 'photo', opaque: 1, flatEdges: 0, edges: { top: { flat: false, opaque: 1, std: 30 } } } } };
-  const ph = renderAd(ctx, photo, specs['jasoseol-pc-standard-jobpost-pc']);
-  assert.match(ph, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/);
-  assert.match(ph, /data-field-source="brand-photo"/, '사진이면 지면은 브랜드색(한독 → 파랑)');
-  // 구글은 사진도 밝은 지면(일화 사옥 → 흰색에 가까운 브랜드 틴트)에 녹인다
-  assert.match(renderAd(ctx, photo, specs['google-gdn-580x400']), /data-field-source="brand-tint"/);
+  const tallHtml = renderAd(ctx, tall, specs['jasoseol-pc-standard-jobpost-pc']);
+  // 10-15 사용자 정정: 틀은 칸의 위치·범위만 — 처리(cover + 윗변 녹임 / 누끼 contain)는 디자인 가이드 그대로
+  assert.match(tallHtml, /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*\/cover/);
+  assert.match(tallHtml, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/, '하단 칸 윗변 녹임은 그대로');
+  const cut = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.36, px: [302, 222], field: { opaque: 0.3 } } };
+  assert.match(renderAd(ctx, cut, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/auto \d+px/, '누끼는 objectBleed tower 만큼 키워 좌우로 흘린다(10-15)');
+  assert.match(tallHtml, /data-mold="1"/);
 });
-
 test('the sub line does not repeat what the headline already says', () => {
   for (const id of ['naver-gfa-mobile-da-1250x560', 'google-gdn-580x400', 'kakao-display-pc-promo']) {
     const html = renderAd(ctx, style, specs[id]);

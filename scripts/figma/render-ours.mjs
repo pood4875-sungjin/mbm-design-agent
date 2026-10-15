@@ -68,7 +68,10 @@ const unesc = s => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;
 const res = { measuredAt: new Date().toISOString(), case: id, primary, specs: {} };
 for (const variant of silPath ? ['n', 'sil'] : ['n']) {
   const kv = variant === 'n' ? path.join(dir, c.kv) : silPath;
-  const style = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kv).href, kvMeta: meta, logo: c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, logoTone: 'dark' });
+  // 케이스 장부 렌더(scripts/cases.mjs styleInput · guide-trace styleOf)와 같은 입력 — 로고 톤·단색 사본·유형 지정까지(10-14 t1014: 예전엔 로고 톤을 'dark' 로 박아 흰 로고 케이스가 장부 렌더와 달랐다)
+  const logo = c.logo ? pathToFileURL(path.join(dir, c.logo)).href : null, tone = c.logoMeta?.tone ?? 'dark';
+  const logoMono = (c.logo && c.logoMono && existsSync(path.join(dir, c.logoMono))) ? pathToFileURL(path.join(dir, c.logoMono)).href : null;
+  const style = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kv).href, kvMeta: meta, kvTypeOverride: c.typeOverride ?? null, logo, logoMono, logoLight: tone === 'light' ? logo : null, logoTone: tone, logoMeta: c.logoMeta ?? null });
   for (const sid of specs) {
     const sp = specOf(sid); if (!sp) { console.warn('없는 규격', sid); continue; }
     const base = variant === 'n' ? sid : `${sid}.sil`;

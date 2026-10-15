@@ -1,0 +1,200 @@
+{
+ "unicodes": 4718,
+ "fonts": {
+  "pretendard": {
+   "label": "Pretendard",
+   "family": "Pretendard",
+   "weights": {
+    "400": {
+     "bytes": 284408,
+     "src": 765892
+    },
+    "500": {
+     "bytes": 287964,
+     "src": 778432
+    },
+    "600": {
+     "bytes": 290140,
+     "src": 785856
+    },
+    "700": {
+     "bytes": 292500,
+     "src": 791156
+    }
+   },
+   "total": 1155012
+  },
+  "suit": {
+   "label": "SUIT",
+   "family": "SUIT",
+   "weights": {
+    "400": {
+     "bytes": 141144,
+     "src": 167672
+    },
+    "500": {
+     "bytes": 143812,
+     "src": 170956
+    },
+    "600": {
+     "bytes": 144244,
+     "src": 171164
+    },
+    "700": {
+     "bytes": 144164,
+     "src": 171380
+    }
+   },
+   "total": 573364
+  },
+  "nanum-square-neo": {
+   "label": "나눔스퀘어 네오",
+   "family": "NanumSquare Neo",
+   "weights": {
+    "300": {
+     "bytes": 171676,
+     "src": 2185392
+    },
+    "400": {
+     "bytes": 189828,
+     "src": 2189452
+    },
+    "700": {
+     "bytes": 189544,
+     "src": 2173148
+    },
+    "800": {
+     "bytes": 191048,
+     "src": 2155336
+    },
+    "900": {
+     "bytes": 180788,
+     "src": 2121084
+    }
+   },
+   "total": 922884
+  },
+  "nanum-square": {
+   "label": "나눔스퀘어",
+   "family": "NanumSquare",
+   "weights": {
+    "300": {
+     "bytes": 130248,
+     "src": 750932
+    },
+    "400": {
+     "bytes": 130636,
+     "src": 723640
+    },
+    "700": {
+     "bytes": 132476,
+     "src": 733500
+    },
+    "800": {
+     "bytes": 129588,
+     "src": 726684
+    }
+   },
+   "total": 522948
+  },
+  "nanum-square-round": {
+   "label": "나눔스퀘어 라운드",
+   "family": "NanumSquareRound",
+   "weights": {
+    "300": {
+     "bytes": 100608,
+     "src": 1015112
+    },
+    "400": {
+     "bytes": 115412,
+     "src": 1063276
+    },
+    "700": {
+     "bytes": 119376,
+     "src": 1030948
+    },
+    "800": {
+     "bytes": 108116,
+     "src": 1029388
+    }
+   },
+   "total": 443512
+  },
+  "nanum-gothic": {
+   "label": "나눔고딕",
+   "family": "NanumGothic",
+   "weights": {
+    "400": {
+     "bytes": 182996,
+     "src": 4691820
+    },
+    "700": {
+     "bytes": 245188,
+     "src": 4642244
+    },
+    "800": {
+     "bytes": 211176,
+     "src": 4526920
+    }
+   },
+   "total": 639360
+  },
+  "kakao-big-sans": {
+   "label": "카카오 큰글씨",
+   "family": "Kakao Big Sans",
+   "weights": {
+    "400": {
+     "bytes": 159176,
+     "src": 1520544
+    },
+    "700": {
+     "bytes": 158372,
+     "src": 1552576
+    },
+    "800": {
+     "bytes": 163464,
+     "src": 1573336
+    }
+   },
+   "total": 481012
+  },
+  "kakao-small-sans": {
+   "label": "카카오 작은글씨",
+   "family": "Kakao Small Sans",
+   "weights": {
+    "300": {
+     "bytes": 150028,
+     "src": 1436228
+    },
+    "400": {
+     "bytes": 154520,
+     "src": 1446124
+    },
+    "700": {
+     "bytes": 154280,
+     "src": 1405264
+    }
+   },
+   "total": 458828
+  },
+  "gmarket-sans": {
+   "label": "Gmarket Sans",
+   "family": "Gmarket Sans",
+   "weights": {
+    "300": {
+     "bytes": 157860,
+     "src": 2413604
+    },
+    "500": {
+     "bytes": 173512,
+     "src": 2417020
+    },
+    "700": {
+     "bytes": 171852,
+     "src": 2511976
+    }
+   },
+   "total": 503224
+  }
+ }
+}

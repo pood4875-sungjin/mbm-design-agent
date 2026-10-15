@@ -36,7 +36,7 @@ test('A2 세로형·정사각 메인 줄 간격 1.28 — 구글 가이드 1.22·
   assert.equal(layoutFor(1080, 1080).mainLine, 1.28);
   assert.equal(layoutFor(160, 600).mainLine, 1.4);
   assert.equal(num(tagOf(renderAd(ctx, style, specs['google-gdn-300x600']), 'main'), 'line-height'), 1.22);
-  assert.equal(num(tagOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo']), 'main'), 'line-height'), 1.28);
+  assert.equal(num(tagOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo']), 'main'), 'line-height'), 69.6);   // 10-15 틀: 템플릿 28:1072 메인 줄 간격 69.6px(50px × 1.39)
 });
 
 test('A3 메인 자간 −2.5%(28px 이상) — 자소설·에브리타임(템플릿 실측 0%)과 작은 메인은 0', () => {
@@ -55,7 +55,7 @@ test('A3 메인 자간 −2.5%(28px 이상) — 자소설·에브리타임(템�
 
 test('A4 상세 블록은 text-wrap:pretty, 끝 어절 2자 이하(「분야」)는 앞 어절에 붙는다 — 가운뎃점 묶음도 끊기지 않는다', () => {
   const html = renderAd(ctx, style, specs['jasoseol-pc-standard-jobpost-pc']);
-  assert.match(tagOf(html, 'detail'), /text-wrap:pretty/);
+  assert.match(detailOf(html), /text-wrap:pretty/);   // 10-15 틀(mold): 상세 블록 안쪽 묶음에 pretty
   const det = detailOf(html);
   assert.match(det, /사업 분야/, '「사업 분야」 붙임');
   assert.match(det, /경영⁠·⁠제품⁠·⁠사업/, '가운뎃점 양쪽 결합');
@@ -80,8 +80,8 @@ test('A7 혼자 선 날짜 줄은 라벨 없이(디자이너 12/12) — 상세 �
     assert.match(html, /data-field="(date|sub)"[^>]*>9\.22\(월\) - 10\.12\(일\)</, id);
   }
   // 10-12 매체별 규격정리: 자소설 PC메인배너(1200×280)는 템플릿 구조(서브 = 시즌·슬로건, 상세 = 채용일정·모집직무 — 현대케피코 408:37780)라 날짜가 상세 목록 안에 라벨과 함께 선다
-  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-pc-standard-main-pc'])), /접수기간<\/b> : 9\.22/);
-  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo'])), /접수기간<\/b> : 9\.22/);
+  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-pc-standard-main-pc'])), /채용일정 :<\/b> 9\.22/);   // 10-15 틀: 라벨은 샘플 실측 「채용일정 :」(현대케피코 28:1002), 굵은 라벨에 콜론까지
+  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo'])), /모집일정 :<\/b> 9\.22/);   // 10-15 틀: 「모집일정 :」
 });
 
 test('B1 메인 두 톤 강조는 스타일이 강조색을 줬고 지면 대비 4.5:1일 때만 — 기본 꺼짐, 자소설 꺼짐, 색을 짐작하지 않는다', () => {
