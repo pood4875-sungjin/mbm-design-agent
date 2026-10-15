@@ -95,9 +95,8 @@ test('PC메인 1200×280 틀 — 현대케피코 28:1002: 서브 22/500 y43 · �
   assert.equal(tr.mold.mainN, 2); assert.equal(R.detail.y, 195); assert.equal(R.detail.lines, 2);
   assert.match(tr.copy.main, /^마이다스\n대규모 공개채용$/);
   assert.match(html, /<b style="font-weight:400">채용일정 :<\/b> 9\.22/, 'PC메인 상세는 라벨까지 Regular(사용자 확정 굵기 표)');
-  assert.match(html, /color:#000000/);
-  assert.match(html.split('>')[0], /background:#FFFFFF;/, '바탕은 템플릿 흰색');
-  assert.match(html, /data-mold-field="1" style="position:absolute;left:0px;top:0px;width:350px;height:280px;background:/);
+  assert.doesNotMatch(html, /data-mold-field/, '10-15 저녁: 지면은 전체(디자인 가이드) — 왼쪽 350 상자에 가두지 않는다(「배경 컬러 자연스럽게 이어져야지」)');
+  assert.equal(tr.field.text, '#FFFFFF', '유리 누끼 → 어두운 지면(가이드)'); assert.match(tagOf(html, 'main'), /color:#FFFFFF/);
   assert.match(html, /data-object="1" style="position:absolute;left:0px;top:0px;width:350px;height:280px;/);
   assert.match(html, /data-logo-slot="1" style="position:absolute;left:1007px;top:30px;width:164px;height:45px;[^"]*justify-content:flex-end/);
   // 메인 1줄이면 상세 y166 · 3행
