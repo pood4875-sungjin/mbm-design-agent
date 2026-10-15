@@ -95,8 +95,8 @@ test('2·7. 단일 사물 누끼는 우하단 블리드(오른쪽·아래로만)
   const b = et.match(/data-object="1" style="position:absolute;left:(\d+)px;top:\d+px;width:(\d+)px/);
   assert.ok(b);
   const [x, bw] = b.slice(1).map(Number);
-  assert.ok(bw >= 220 && bw <= 320, `폭 ${bw}`);
-  assert.ok(x >= 1029 - 360 && x + bw <= 1029 - 40, `영역 ${x}~${x + bw}`);
+  // 10-15 틀(mold): 오브젝트는 템플릿 1:771 의 칸(658,0 320×258) 그대로 — 폭 320, 오른쪽 51(규칙 폭 220~320·오른쪽 40~360 안)
+  assert.equal(bw, 320); assert.equal(x, 658);
 });
 
 test('10. 정사각 메인 하한 = 짧은 변 × 0.067(인스타 1080 → 72px 이상)', () => {

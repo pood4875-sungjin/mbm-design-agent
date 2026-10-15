@@ -43,6 +43,7 @@ test('A3 메인 자간 −2.5%(28px 이상) — 자소설·에브리타임(템�
   assert.deepEqual(CANON.tracking, { main: -0.025, mainMinPx: 28 });
   let on = 0, off = 0;
   for (const [id, sp] of Object.entries(specs)) {
+    if (sp.rules?.safeArea?.measuredFromTemplate?.mold) continue;   // 10-15 틀(mold) 규격은 템플릿 실측 자간(리멤버 -2.2%/-4.5%/-2.5%/-3.5%/1%)을 그대로 쓴다 — 일반 규칙 대상 아님
     const html = renderAd(ctx, style, sp); const css = tagOf(html, 'main'); if (!css) continue;
     const fs = num(css, 'font-size'), ls = css.match(/letter-spacing:([^;]+)/)?.[1] ?? null;
     if (['jasoseol', 'everytime'].includes(sp.medium) || fs < 28) { assert.equal(ls, null, `${id}: ${fs}px 메인 자간 없음`); off++; }
@@ -66,7 +67,7 @@ test('A4 상세 블록은 text-wrap:pretty, 끝 어절 2자 이하(「분야」)
 test('A5 쌓기 값은 쉼표로만 나눈다 — 「경영·제품·사업 분야」는 한 항목', () => {
   const ctx2 = createContext({ ...fields, startDate: null, deadline: null }, 'recruit');   // 날짜가 없으면 정사각 쌓기 첫 항목이 모집직무
   // 10-12 매체별 규격정리: 인스타 피드는 샘플 9장에 알약 칩이 없어(guide.detailLabels inline) 쌓지 않는다 — 쌓기 문법은 에브리타임 홈 카드(보드 1-884 코엑스)로 본다
-  const html = renderAd(ctx2, plain, specs['everytime-home-card-image']);
+  const html = renderAd(ctx2, plain, specs['albamon-pc-sky-job']);   // 10-15: 에브리타임 홈 카드는 틀(mold) 규격이 됐다 → 쌓기 문법은 알바몬 PC 스카이(560×700)로 본다
   const det = detailOf(html);
   assert.match(det, /data-chip="1"/, '쌓기(알약 + 값)');
   assert.match(det, /자유직무ㅣ​경영⁠·⁠제품/);

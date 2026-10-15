@@ -48,7 +48,7 @@ test('틀 + 유리 누끼 — 자소설 팝업: 지면은 이전 가이드대로
   assert.ok(g.rules.includes('glassDark') && g.text.lightProfile === false, '구글(가이드 수준 밝은 지면)은 10-08 결정대로 유리 → 어두운 지면');
 });
 
-test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 35/700 y118 줄 간격 44 · 상세 17/400(라벨 700) y252 간격 27 · 로고 칸 143×23@375,33 우측 · 그림 칸 249×183@293,187 · 라벨 「모집일정 :」', () => {
+test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 35/700 y118 줄 간격 44 · 상세 17/400(라벨 Bold 700) y252 간격 27 · 로고 칸 143×23@375,33 우측 · 그림 칸 249×183@293,187 · 라벨 「모집일정 :」', () => {
   const html = renderAd(ctx, glass, specs['jasoseol-pc-premium-popup-pc']);
   const tr = traceOf(html), R = tr.mold.rows;
   assert.deepEqual([R.sub.y, R.sub.px, R.sub.weight, R.main.y, R.main.px, R.main.pitch, R.detail.y, R.detail.px, R.detail.pitch], [75, 22, 700, 118, 35, 44, 252, 17, 27]);
@@ -56,8 +56,8 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
   assert.match(tagOf(html, 'main'), /font-size:35px;line-height:44px;font-weight:700/);
   assert.match(tagOf(html, 'detail'), /font-size:17px;line-height:27px;font-weight:400/);
   assert.match(html, /data-text-col="1" style="position:absolute;left:30px;top:75/);
-  assert.match(html, /<b style="font-weight:400">모집일정 :<\/b> 9\.22\(월\) - 10\.12\(일\)/, '팝업 상세는 라벨까지 Regular(사용자 확정 굵기 표)');
-  assert.match(html, /<b style="font-weight:400">모집직무 :<\/b> /);
+  assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22\(월\) - 10\.12\(일\)/, '팝업 상세 라벨은 Bold, 값 Regular — 세아 28:124·보드 2798 세그먼트 실측(10-15 저녁 정정: 아침 「라벨까지 Regular」는 오독)');
+  assert.match(html, /<b style="font-weight:700">모집직무 :<\/b> /);
   assert.doesNotMatch(detailOf(html), /고용형태/, '틀 항목(모집일정·모집직무)만');
   assert.match(html, /data-logo-slot="1" style="position:absolute;left:375px;top:33px;width:143px;height:23px;[^"]*justify-content:flex-end/);
   assert.match(html, /<img data-logo="1"[^>]*max-width:100%/); assert.doesNotMatch(html, /max-width:min\(100%/, '로고 상한 없음(칸이 크기)');
@@ -94,7 +94,7 @@ test('PC메인 1200×280 틀 — 현대케피코 28:1002: 서브 22/500 y43 · �
   assert.deepEqual([R.sub.y, R.sub.px, R.sub.weight, R.main.y, R.main.px, R.main.pitch], [43, 22, 500, 81, 32, 43]);
   assert.equal(tr.mold.mainN, 2); assert.equal(R.detail.y, 195); assert.equal(R.detail.lines, 2);
   assert.match(tr.copy.main, /^마이다스\n대규모 공개채용$/);
-  assert.match(html, /<b style="font-weight:400">채용일정 :<\/b> 9\.22/, 'PC메인 상세는 라벨까지 Regular(사용자 확정 굵기 표)');
+  assert.match(html, /<b style="font-weight:700">채용일정 :<\/b> 9\.22/, 'PC메인 상세 라벨 Bold, 값 Regular — 케피코 보드 2784 세그먼트 실측(10-15 저녁 정정)');
   assert.doesNotMatch(html, /data-mold-field/, '10-15 저녁: 지면은 전체(디자인 가이드) — 왼쪽 350 상자에 가두지 않는다(「배경 컬러 자연스럽게 이어져야지」)');
   assert.equal(tr.field.text, '#FFFFFF', '유리 누끼 → 어두운 지면(가이드)'); assert.match(tagOf(html, 'main'), /color:#FFFFFF/);
   assert.match(html, /data-object="1" style="position:absolute;left:0px;top:0px;width:350px;height:280px;/);
@@ -154,4 +154,117 @@ test('틀 규격의 가이드 검수 추적 — place.mode mold · 로고 slot t
   const tr = traceOf(renderAd(ctx, glass, specs['jasoseol-pc-premium-popup-pc']));
   assert.equal(tr.place.mode, 'mold'); assert.equal(tr.logo.slot, 'template'); assert.equal(tr.place.detailW, 369);
   assert.deepEqual(tr.place.zone.col, { x: 30, y: tr.place.zone.col.y, w: 369, h: tr.place.zone.col.h });
+});
+
+/* ── 10-15 오후: 틀 확장 — 리멤버 8 · 잡다 2 · 에브리타임 3 · 캐치 2 (보드 sZMBhkuLMEiyMLPPpGxvC1 실측, docs/<매체>-mold.md) ── */
+const MOLD2 = {
+  remember: ['remember-main-top-pc', 'remember-main-top-mo', 'remember-main-mid-pc', 'remember-main-mid-mo', 'remember-job-top-pc', 'remember-job-top-mo', 'remember-job-side-pc', 'remember-job-side-mo'],
+  jobda: ['jobda-main-pc', 'jobda-main-mo'],
+  everytime: ['everytime-community-board', 'everytime-home-banner', 'everytime-home-card-image'],
+  catch: ['catch-mainlarge-image-pc', 'catch-mainlarge-image-mo'],
+};
+const flat = normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark', logoMeta: { px: [1043, 304], tone: 'dark', solid: 0.56, colors: [{ hex: '#0F0F0F', share: 1 }] } });
+
+test('틀 데이터 — 리멤버 8·잡다 2·에브리타임 3·캐치 2 에 mold(x·메인 줄 y·px·그림 칸)가 있고, 같은 칸을 쓰는 규격은 같은 틀(리멤버 공고 상단 PC = 메인 중간 PC · 사이드 MO = 공고 상단 MO) · 에브리타임 이미지 밖 글자 5규격·캐치 중앙배너는 틀 없음', () => {
+  for (const ids of Object.values(MOLD2)) for (const id of ids) {
+    const m = specOf(id).safeArea.measuredFromTemplate.mold;
+    assert.ok(m && m.x != null && m.rows?.main?.y && m.rows.main.px && m.image?.w && m.docRef, `${id}: 틀 데이터`);
+    assert.equal(m.measuredAt, '2026-10-15');
+  }
+  const R = id => specOf(id).safeArea.measuredFromTemplate.mold.rows;
+  assert.deepEqual(R('remember-job-top-pc'), R('remember-main-mid-pc'));
+  assert.deepEqual(R('remember-job-side-mo'), R('remember-job-top-mo'));
+  for (const id of ['everytime-community-native', 'everytime-home-card-profile', 'everytime-contest-card', 'everytime-search-keyword-thumb', 'everytime-daily-message-profile', 'catch-center-object-pc', 'catch-center-object-mo', 'catch-center-logo-mo']) assert.equal(specOf(id).safeArea?.measuredFromTemplate?.mold, undefined, `${id}: 틀 없음`);
+  for (const id of MOLD2.remember) assert.equal(specOf(id).logo?.count, 0, `${id}: 로고 불가`);
+});
+
+test('리멤버 메인 상단 PC 2240×360 틀 — 1:6404: 메인 48/600 (81.4,103) 1줄 · 부가 설명 28/400 y176 「모집기간 : 값」 · 썸네일 칸 988×360@1252,0 오른쪽 열(글자 쪽으로 녹임) · 로고 없음', () => {
+  const html = renderAd(ctx, flat, specs['remember-main-top-pc']);
+  const tr = traceOf(html), R = tr.mold.rows;
+  assert.equal(tr.mode, 'templateMold');
+  assert.deepEqual([R.main.y, R.main.px, R.main.weight, R.main.lines, R.detail.y, R.detail.px, R.detail.weight], [103, 48, 600, 1, 176, 28, 400]);
+  assert.match(html, /data-text-col="1" style="position:absolute;left:81px;top:103px;width:996px/);
+  assert.match(html, /<b style="font-weight:400">모집기간 :<\/b> 9\.22\(월\) - 10\.12\(일\)/);
+  assert.doesNotMatch(html, /data-logo/);
+  assert.match(html, /data-object="1" style="position:absolute;left:1252px;top:0px;width:988px;height:360px;/);
+  assert.equal(tr.place.imgCol, 'right', '오른쪽 이미지 열(imgRightCol)');
+  assert.match(html, /data-object="1" style="[^"]*center bottom\/contain/, '누끼는 칸 바닥에 세운다(사용자 10-15 저녁: 열 안 누끼 center bottom)');
+  const PHOTO = { ar: 1.5, px: [1500, 1000], field: { kind: 'photo', opaque: 1, lum: 0.5, sat: 0.3, semi: 0, focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.8, parts: 1, others: [], density: 0.5 }, cols: col([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]), rows: col([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]) } };
+  const ph = renderAd(ctx, normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: PHOTO }), specs['remember-main-top-pc']);
+  assert.match(ph, /data-object="1" style="position:absolute;left:1252px;top:0px;width:988px;height:360px;[^"]*data-melt-dir="to right"|data-melt-dir="to right"/, '바탕 있는 그림은 글자 쪽(왼쪽 변)으로 녹인다 — 왼쪽 열의 거울');
+  assert.doesNotMatch(tagOf(html, 'main'), /letter-spacing/, '메인 상단 PC 는 자간 없음(템플릿 0)');
+});
+
+test('리멤버 MO 2줄 틀 — 메인 상단 MO 48/600 y91 간격 75 자간 +1% · 메인 중간 MO 50/600 y90 간격 75 자간 −2.5% · 공고 상단/사이드 MO 48/600 y70.1 간격 79 · 사이드 PC 29/600 y57.1 간격 50 자간 −3.5% — 회사 / 채용구분 두 줄, 부가 설명 없음', () => {
+  const want = { 'remember-main-top-mo': [91, 48, 75, 1], 'remember-main-mid-mo': [90, 50, 75, -2.5], 'remember-job-top-mo': [70.1, 48, 79, -2.5], 'remember-job-side-mo': [70.1, 48, 79, -2.5], 'remember-job-side-pc': [57.1, 29, 50, -3.5] };
+  for (const [id, [y, px, pitch, ls]] of Object.entries(want)) {
+    const html = renderAd(ctx, flat, specs[id]); const tr = traceOf(html), R = tr.mold.rows;
+    assert.equal(tr.mode, 'templateMold', id);
+    assert.deepEqual([R.main.y, R.main.px, R.main.pitch, R.main.weight, R.main.lines], [y, px, pitch, 600, 2], id);
+    assert.equal(tr.mold.mainN, 2, id + ' 회사 / 채용구분');
+    assert.match(tagOf(html, 'main'), new RegExp(`letter-spacing:${ls / 100}em`), id + ' 자간');
+    assert.ok(!R.detail && !R.sub, id + ' 서브·부가 없음');
+  }
+  assert.match(tagOf(renderAd(ctx, flat, specs['remember-main-mid-pc']), 'detail'), /letter-spacing:-0.045em/, '부가 설명 자간 −4.5%');
+});
+
+test('잡다 PC 792×240 틀 — 템플릿 1:6026 + 샘플 8: 서브 = 「모집기간 날짜」 16/600 y42 · 메인 28/700 y74 간격 38 2줄 · 태그 칩 행 y174 h24 12/600(고용형태 둘로·직무는 쉼표로만) · 그림 칸 354×240@438,0 · 글자색은 바탕 밝기로 · 로고 칸 없음', () => {
+  const html = renderAd(ctx, flat, specs['jobda-main-pc']);
+  const tr = traceOf(html), R = tr.mold.rows;
+  assert.equal(tr.mode, 'templateMold');
+  assert.deepEqual([R.sub.y, R.sub.px, R.sub.weight, R.main.y, R.main.px, R.main.pitch, R.tags.y, R.tags.px, R.tags.pitch], [42, 16, 600, 74, 28, 38, 174, 12, 24]);
+  assert.match(html, /data-field="sub"[^>]*>모집기간 9\.22\(월\) - 10\.12\(일\)</);
+  assert.deepEqual(R.tags.items, ['신입', '경력', '자유직무', '경영·제품·사업 분야']);
+  assert.match(html, new RegExp(`data-field="tags" style="position:absolute;left:0;top:${Math.round((174 - tr.place.zone.col.y) * 10) / 10}px;width:480px;height:24px;display:flex;gap:8px`));
+  assert.match(html, /<b data-chip="1" style="display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:4px;font-size:12px;line-height:24px;font-weight:600/);
+  assert.match(html, /data-object="1" style="position:absolute;left:438px;top:0px;width:354px;height:240px;/);
+  assert.doesNotMatch(html, /data-logo|data-field="label"|data-field="date"/);
+  assert.equal(tr.copy.sub, '모집기간 9.22(월) - 10.12(일)');
+  // 날짜가 없으면 서브 줄 없음
+  const nd = traceOf(renderAd(createContext({ client: '마이다스', role: '엔지니어', employType: '정규직' }, 'recruit'), flat, specs['jobda-main-pc']));
+  assert.equal(nd.mold.rows.sub, undefined); assert.deepEqual(nd.mold.rows.tags.items, ['정규직', '엔지니어']);
+});
+
+test('잡다 MO 343×160 틀 — 템플릿 1:6071 + 샘플 7: 메인 20/700 (20,38) 간격 28 2줄 · 날짜 14/600 y100 라벨 없이 · 그림 칸 117×160@226,0 · 서브·태그 없음', () => {
+  const html = renderAd(ctx, flat, specs['jobda-main-mo']);
+  const tr = traceOf(html), R = tr.mold.rows;
+  assert.equal(tr.mode, 'templateMold');
+  assert.deepEqual([R.main.y, R.main.px, R.main.pitch, R.main.weight, R.date.y, R.date.px, R.date.weight, R.date.pitch], [38, 20, 28, 700, 100, 14, 600, 22]);
+  assert.match(html, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</);
+  assert.ok(!R.sub && !R.tags && !R.detail);
+  assert.match(html, /data-object="1" style="position:absolute;left:226px;top:0px;width:117px;height:160px;/);
+});
+
+test('에브리타임 틀 — 커뮤니티보드 1:771(메인 45 y79 · 날짜 35 y144, 굵기는 틀 없음 → 가이드 800 · 오브젝트 칸 320×258@658,0) · 홈배너 1:785(메인 30/700 y45 · 「모집기간: 값」 30/500 y94 짧은 날짜로 1줄 · 칸 220×200@400,0) · 홈카드 1:802(서브 31/700 y42 · 메인 52/800 y98 간격 68 · 「모집직무」 줄 + 값 줄 y253 · 로고 우상단 칸 · 오브젝트 401×258@329,228)', () => {
+  const cb = renderAd(ctx, flat, specs['everytime-community-board']); const t1 = traceOf(cb), R1 = t1.mold.rows;
+  assert.equal(t1.mode, 'templateMold');
+  assert.deepEqual([R1.main.y, R1.main.px, R1.main.weight, R1.date.y, R1.date.px], [79, 45, 800, 144, 35]);
+  assert.equal(specOf('everytime-community-board').safeArea.measuredFromTemplate.mold.rows.main.weight, undefined, '굵기는 틀에 없다(샘플 갈림)');
+  assert.match(cb, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</);
+  const hb = renderAd(ctx, flat, specs['everytime-home-banner']); const t2 = traceOf(hb), R2 = t2.mold.rows;
+  assert.deepEqual([R2.main.y, R2.main.px, R2.main.weight, R2.detail.y, R2.detail.px, R2.detail.weight, R2.detail.lines], [45, 30, 700, 94, 30, 500, 1]);
+  assert.match(hb, /<b style="font-weight:500">모집기간:<\/b> ~10\.12\(일\)/, '1줄 칸(344px)에 전체 기간이 안 들어가 짧은 날짜');
+  assert.match(hb, /data-object="1" style="position:absolute;left:400px;top:0px;width:220px;height:200px;/);
+  const hc = renderAd(ctx, flat, specs['everytime-home-card-image']); const t3 = traceOf(hc), R3 = t3.mold.rows;
+  assert.deepEqual([R3.sub.y, R3.sub.px, R3.main.y, R3.main.px, R3.main.pitch, R3.main.weight, R3.detail.y, R3.detail.px, R3.detail.pitch], [42, 31, 98, 52, 68, 800, 253, 23, 56]);
+  assert.match(hc, /<b style="font-weight:800">모집직무<\/b><\/div><div>자유직무/);
+  assert.match(hc, /data-logo-slot="1" style="position:absolute;left:530px;top:30px;width:160px;height:40px;[^"]*justify-content:flex-end/);
+  const ob = hc.match(/data-object="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);
+  assert.ok(ob && +ob[1] >= 329 && +ob[2] >= 228 && +ob[1] + +ob[3] <= 730 && +ob[2] + +ob[4] <= 486, '누끼는 오브젝트 칸(329,228 401×258) 안: ' + (ob && ob[0]));
+  assert.deepEqual(t3.place.tImage, { x: 329, y: 228, w: 401, h: 258 });
+});
+
+test('캐치 이미지형 틀 — PC 1:5765(서브 20 y56 · 타이틀 40 y93 1줄 · 기타문구 19 y164 간격 24.5 3줄 접수기간·모집직무 · 그림 칸 393×295@863,0) · MO 1:5782(서브 22 y87 · 타이틀 42 y129 간격 67 2줄 · 기타 24 y296 간격 44 · 그림 칸 전체) — 굵기·색은 틀 없음(FREE), 서브는 슬로건(가로형 날짜→서브 규칙 안 탐)', () => {
+  const pc = renderAd(ctx, flat, specs['catch-mainlarge-image-pc']); const t1 = traceOf(pc), R1 = t1.mold.rows;
+  assert.equal(t1.mode, 'templateMold');
+  assert.deepEqual([R1.sub.y, R1.sub.px, R1.main.y, R1.main.px, R1.main.lines, R1.detail.y, R1.detail.px, R1.detail.pitch], [56, 20, 93, 40, 1, 164, 19, 24.5]);
+  assert.equal(t1.copy.sub, '자소서 없는 간편지원');
+  assert.match(pc, /접수기간 :<\/b> 9\.22[\s\S]*모집직무 :<\/b> 자유직무/);
+  assert.match(pc, /data-object="1" style="position:absolute;left:863px;top:0px;width:393px;height:295px;/);
+  const m0 = specOf('catch-mainlarge-image-pc').safeArea.measuredFromTemplate.mold;
+  assert.ok(m0.rows.main.weight == null && m0.color == null, '굵기·색 FREE');
+  const mo = renderAd(ctx, flat, specs['catch-mainlarge-image-mo']); const t2 = traceOf(mo), R2 = t2.mold.rows;
+  assert.deepEqual([R2.sub.y, R2.sub.px, R2.main.y, R2.main.px, R2.main.pitch, R2.detail.y, R2.detail.px, R2.detail.pitch], [87, 22, 129, 42, 67, 296, 24, 44]);
+  assert.equal(t2.mold.mainN, 2);
+  assert.deepEqual(t2.place.tImage, { x: 0, y: 0, w: 702, h: 428 }, '그림 칸 = 통이미지 전체(템플릿에 상자 없음, 확인 필요)');
 });

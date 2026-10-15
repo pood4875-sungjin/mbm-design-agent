@@ -223,7 +223,7 @@ export const MEDIA = [
                   "y": 252,
                   "px": 17,
                   "weight": 400,
-                  "labelWeight": 400,
+                  "labelWeight": 700,
                   "pitch": 27,
                   "lines": 3,
                   "labelRow": false,
@@ -639,15 +639,8 @@ export const MEDIA = [
               "note": "구멍 뚫린 틀 — 템플릿 28:880(글자 칸 x390.5: 서브 y43.8 h24.7 · 메인 y81.5/126 h35 · 상세 y166.5/196.2/225.9 h20 「메인 두 줄이면 상세 1행 입력 불가」 · 로고 칸 28:889 163.5×44.9@1006.5,30 · 왼쪽 그림 영역 28:923 350×280@0,0). 배경색(브랜드색)·키비주얼은 왼쪽 350×280 영역에만, 오른쪽은 템플릿 흰 지면 + 검정 글자. 샘플 현대케피코 28:1002: 서브 22 Medium · 메인 32 Bold 2줄 y81/124 · 상세 18 y195/225(메인 2줄이라 2행) · 로고 99×36@1073,33 우측 정렬",
               "source": "figma:qhEEyEBDCjTmTho3tByBf1 28:1002 현대케피코_자소설_PC스탠다드패키지 (PC메인배너) — 글자 28:1005~1009 · 로고 28:1010 · 템플릿 28:880",
               "measuredAt": "2026-10-15",
-              "bg": "#FFFFFF",
               "color": "#000000",
               "colorDark": "#FFFFFF",
-              "field": {
-                "x": 0,
-                "y": 0,
-                "w": 350,
-                "h": 280
-              },
               "x": 390.5,
               "w": 544,
               "rows": {
@@ -669,7 +662,7 @@ export const MEDIA = [
                   "y": 166,
                   "px": 18,
                   "weight": 400,
-                  "labelWeight": 400,
+                  "labelWeight": 700,
                   "pitch": 29.5,
                   "lines": 3,
                   "labelRow": false,
@@ -1410,17 +1403,17 @@ export const MEDIA = [
                   "lines": 3,
                   "labelRow": false,
                   "labelSep": " ㅣ",
-                  "fillFromBottom": true,
-                  "items": [
-                    "접수기간",
-                    "모집직무"
-                  ],
                   "byMainLines": {
                     "2": {
                       "y": 372.5,
                       "lines": 2
                     }
                   },
+                  "fillFromBottom": true,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
                   "note": "행 y332.3/372.5/412.3 — 메인 2줄이면 372.5/412.3 만, 아래부터 채움"
                 }
               },
@@ -2120,6 +2113,48 @@ export const MEDIA = [
               "h": 360
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.12"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6404 메인상단배너_PC — 글자 「메인 카피」「부가 설명」 TEXT · 텍스트 가이드 82.4,110 996×95 · 썸네일 칸 1252,0 988×360",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 81.4,
+              "w": 996,
+              "rows": {
+                "main": {
+                  "y": 103,
+                  "px": 48,
+                  "weight": 600,
+                  "lines": 1
+                },
+                "detail": {
+                  "y": 176,
+                  "px": 28,
+                  "weight": 400,
+                  "labelWeight": 400,
+                  "lines": 1,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간"
+                  ]
+                }
+              },
+              "labels": {
+                "period": "모집기간"
+              },
+              "image": {
+                "x": 1252,
+                "y": 0,
+                "w": 988,
+                "h": 360,
+                "note": "썸네일형 칸(이미지 988×360 + 왼쪽 그라데이션). 오브젝트형(844×284)·풀이미지형은 기존 가이드 선택지"
+              },
+              "docSection": "①"
+            }
           }
         },
         "textLimits": [
@@ -2204,6 +2239,36 @@ export const MEDIA = [
               "h": 360
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.13"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6422 메인상단배너_Mobile/APP — 메인 카피 2줄 TEXT y91/166 · 텍스트 가이드 54.4,98 505×120 · 썸네일 칸 575,0 430×360 · 오브젝트 칸 605,28 346×304",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 55.4,
+              "w": 505,
+              "rows": {
+                "main": {
+                  "y": 91,
+                  "px": 48,
+                  "weight": 600,
+                  "pitch": 75,
+                  "ls": 1,
+                  "lines": 2
+                }
+              },
+              "image": {
+                "x": 575,
+                "y": 0,
+                "w": 430,
+                "h": 360,
+                "note": "썸네일형 칸. 오브젝트형 칸 (605,28) 346×304 은 이 안"
+              },
+              "docSection": "②"
+            }
           }
         },
         "textLimits": [
@@ -2288,6 +2353,50 @@ export const MEDIA = [
               "h": 240
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.17"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6364 메인 중간 배너_PC — 메인 카피 y49 41 SemiBold 자간 -2.2% · 부가 설명 y106 30 Regular 자간 -4.5% · 가이드 54.7,48 996×96 · 썸네일 칸 1251.7,0 988×240",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 56.7,
+              "w": 996,
+              "rows": {
+                "main": {
+                  "y": 49,
+                  "px": 41,
+                  "weight": 600,
+                  "ls": -2.2,
+                  "lines": 1
+                },
+                "detail": {
+                  "y": 106,
+                  "px": 30,
+                  "weight": 400,
+                  "labelWeight": 400,
+                  "ls": -4.5,
+                  "lines": 1,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간"
+                  ]
+                }
+              },
+              "labels": {
+                "period": "모집기간"
+              },
+              "image": {
+                "x": 1252,
+                "y": 0,
+                "w": 988,
+                "h": 240,
+                "note": "썸네일형 칸"
+              },
+              "docSection": "③"
+            }
           }
         },
         "textLimits": [
@@ -2377,6 +2486,36 @@ export const MEDIA = [
               "h": 360
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.18"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6379 메인 중간 배너_Mobile/APP — 메인 카피 2줄 y90/165 50 SemiBold 자간 -2.5% · 가이드 53.7,98 505×120 · 썸네일 칸 574.7,0 430×360",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 53.7,
+              "w": 505,
+              "rows": {
+                "main": {
+                  "y": 90,
+                  "px": 50,
+                  "weight": 600,
+                  "pitch": 75,
+                  "ls": -2.5,
+                  "lines": 2
+                }
+              },
+              "image": {
+                "x": 575,
+                "y": 0,
+                "w": 430,
+                "h": 360,
+                "note": "썸네일형 칸. 오브젝트형 칸 (604.7,28) 346×304 은 이 안"
+              },
+              "docSection": "④"
+            }
           }
         },
         "textLimits": [
@@ -2459,6 +2598,50 @@ export const MEDIA = [
               "h": 240
             },
             "source": "figma:리멤버02(제작가이드&예시) 410:3 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.22"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6334 공고 상세 상단 배너_PC + 예시 1:6342 「2026년 하반기 리멤버 공개 채용」/「모집기간 : 09/16(수) ~ 09/23(수)」 — 메인 중간 PC 와 같은 칸",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 56.7,
+              "w": 996,
+              "rows": {
+                "main": {
+                  "y": 49,
+                  "px": 41,
+                  "weight": 600,
+                  "ls": -2.2,
+                  "lines": 1
+                },
+                "detail": {
+                  "y": 106,
+                  "px": 30,
+                  "weight": 400,
+                  "labelWeight": 400,
+                  "ls": -4.5,
+                  "lines": 1,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간"
+                  ]
+                }
+              },
+              "labels": {
+                "period": "모집기간"
+              },
+              "image": {
+                "x": 1252,
+                "y": 0,
+                "w": 988,
+                "h": 240,
+                "note": "썸네일형 칸(템플릿은 썸네일형만)"
+              },
+              "docSection": "⑤"
+            }
           }
         },
         "textLimits": [
@@ -2566,6 +2749,36 @@ export const MEDIA = [
               "h": 276
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.23"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6350 공고 상세 상단 배너_Mobile/APP + 예시 1:6358 「2026년 하반기」/「리멤버 공개 채용」 — 메인 2줄 y70.1/149.1 48 SemiBold 자간 -2.5% · 가이드 47.7,76.1 513×124 · 썸네일 칸 664.7,0 460×276",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 47.7,
+              "w": 513,
+              "rows": {
+                "main": {
+                  "y": 70.1,
+                  "px": 48,
+                  "weight": 600,
+                  "pitch": 79,
+                  "ls": -2.5,
+                  "lines": 2
+                }
+              },
+              "image": {
+                "x": 665,
+                "y": 0,
+                "w": 460,
+                "h": 276,
+                "note": "썸네일형 칸"
+              },
+              "docSection": "⑥"
+            }
           }
         },
         "textLimits": [
@@ -2660,6 +2873,36 @@ export const MEDIA = [
               "h": 200
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.27"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6304 공고 상세 사이드 배너_PC — 메인 2줄 y57.1/107.1 29 SemiBold 자간 -3.5% · 가이드 31.7,62.1 258×77 · 썸네일 칸 289.7,0 240×200",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 30.7,
+              "w": 258,
+              "rows": {
+                "main": {
+                  "y": 57.1,
+                  "px": 29,
+                  "weight": 600,
+                  "pitch": 50,
+                  "ls": -3.5,
+                  "lines": 2
+                }
+              },
+              "image": {
+                "x": 290,
+                "y": 0,
+                "w": 240,
+                "h": 200,
+                "note": "썸네일형 칸(규정 썸네일형만)"
+              },
+              "docSection": "⑦"
+            }
           }
         },
         "textLimits": [
@@ -2735,6 +2978,36 @@ export const MEDIA = [
               "h": 276
             },
             "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.27"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6323 공고 상세 사이드 배너_Mobile/APP — 공고 상세 상단 MO 와 같은 칸(메인 2줄 y70.1/149.1 48 SemiBold 자간 -2.5% · 썸네일 칸 664.7,0 460×276)",
+              "measuredAt": "2026-10-15",
+              "color": "#000000",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/remember-mold.md",
+              "x": 47.7,
+              "w": 513,
+              "rows": {
+                "main": {
+                  "y": 70.1,
+                  "px": 48,
+                  "weight": 600,
+                  "pitch": 79,
+                  "ls": -2.5,
+                  "lines": 2
+                }
+              },
+              "image": {
+                "x": 665,
+                "y": 0,
+                "w": 460,
+                "h": 276,
+                "note": "썸네일형 칸"
+              },
+              "docSection": "⑧"
+            }
           }
         },
         "textLimits": [
@@ -2806,7 +3079,8 @@ export const MEDIA = [
       "폰트 크기는 PDF pt 표기만 있음(px 환산값 미기재) — PSD 샘플 텍스트 레이어를 그대로 쓰면 됨",
       "한진정보통신 MobileAPP PSD의 텍스트 레이어가 샘플 문구 그대로 — 최종 제출 문구 확인 불가",
       "zip의 '리멤버_메인중간배너_PCdsdds.psd', '공고상세사이드배너_MobileAPP-복구됨.psd'는 사본으로 보임(치수 동일) — 어느 쪽이 최신인지 불명"
-    ]
+    ],
+    "moldDoc": "docs/remember-mold.md — 리멤버 틀 정본(10-15). 규격별 mold 값은 이 문서와 1:1"
   },
   {
     "id": "jobda",
@@ -2908,6 +3182,59 @@ export const MEDIA = [
             },
             "source": "figma frame 414:261 템플릿 / 414:575·414:633 고객사 프레임의 텍스트 Frame 427325115",
             "confidence": "확인필요"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 잡다02 보드 템플릿(1:6026 태그 ver · 1:6052 태그 없는 ver)과 고객사 프레임 8개(코엑스·서울창조경제혁신센터·비씨월드제약·삼정KPMG·호남대·원광대병원·셀트리온·에스이에이) 전수 실측(10-15). 글자 x·줄 y·크기·굵기·줄 간격·태그 칩 행·그림 칸만 고정, 바탕·키비주얼·칩 색은 기존 가이드. 글자색 자유(검정 2·흰 2·브랜드색 4) → 바탕 밝기로 검정/흰색. 로고 규정 없음(샘플 3/8 그림 칸 안에 로고 이미지)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6026 템플릿(태그 ver) · 고객사 1:6090 1:6110 1:6129 1:6147 1:6168 1:6195 1:6223 1:6269 — 글자 블록 Frame 427325115 x50 y42(태그 있는 5/8 · 없는 3/8 은 y66·79) · 라벨+날짜 y42 16 SemiBold lh24 · 메인 y74 28 Bold lh38 2줄 · 태그 Badge y174 h24 12 SemiBold 모서리 4 안쪽 8 간격 8 · 이미지 영역 438,0 354×240(템플릿 Rectangle 49)",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/jobda-mold.md",
+              "x": 50,
+              "w": 480,
+              "rows": {
+                "sub": {
+                  "y": 42,
+                  "px": 16,
+                  "weight": 600,
+                  "pitch": 24,
+                  "lines": 1,
+                  "content": "period",
+                  "note": "「모집기간 06.15(월) ~ 07.10(금)」 라벨+날짜 한 줄(샘플 8/8), 라벨·날짜 같은 굵기"
+                },
+                "main": {
+                  "y": 74,
+                  "px": 28,
+                  "weight": 700,
+                  "pitch": 38,
+                  "lines": 2
+                },
+                "tags": {
+                  "y": 174,
+                  "px": 12,
+                  "weight": 600,
+                  "h": 24,
+                  "padX": 8,
+                  "gap": 8,
+                  "radius": 4,
+                  "max": 6,
+                  "note": "하단 태그 칩 행(샘플 5/8: 고용형태·직무·해시태그). 칩 색은 기존 가이드"
+                }
+              },
+              "labels": {
+                "period": "모집기간",
+                "note": "모집기간 5/8 · 접수기간 3/8"
+              },
+              "image": {
+                "x": 438,
+                "y": 0,
+                "w": 354,
+                "h": 240,
+                "note": "템플릿 이미지 영역. 샘플은 글자 블록(480)이 칸과 92px 겹치며 그림은 자유 블리드"
+              },
+              "colorNote": "mold.color 없음 — 샘플 글자색 자유(검정 서울창조·셀트리온, 흰 코엑스·원광대·삼정, 브랜드 비씨월드·호남대·에스이에이) → 바탕 밝기로 검정/흰색(기존 가이드)",
+              "docSection": "①"
+            }
           }
         },
         "textLimits": [
@@ -3116,6 +3443,43 @@ export const MEDIA = [
             },
             "source": "figma frame 414:306 템플릿 / 414:590 등 고객사 프레임 Frame 427325121",
             "confidence": "확인필요"
+          },
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 잡다02 보드 템플릿(1:6026 태그 ver · 1:6052 태그 없는 ver)과 고객사 프레임 8개(코엑스·서울창조경제혁신센터·비씨월드제약·삼정KPMG·호남대·원광대병원·셀트리온·에스이에이) 전수 실측(10-15). 글자 x·줄 y·크기·굵기·줄 간격·태그 칩 행·그림 칸만 고정, 바탕·키비주얼·칩 색은 기존 가이드. 글자색 자유(검정 2·흰 2·브랜드색 4) → 바탕 밝기로 검정/흰색. 로고 규정 없음(샘플 3/8 그림 칸 안에 로고 이미지)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6071 템플릿 · 고객사 1:6101 1:6122 1:6140 1:6162 1:6186 1:6217 1:6242 1:6250 — 글자 블록 Frame 427325121 x20 y38 260×84(6/7 · 코엑스 y46 · 에스이에이는 템플릿 자리 y41/69/103) · 메인 y38 20 Bold lh28 2줄 · 날짜 y100 14 SemiBold lh22(라벨 없음) · 이미지 영역 226,0 117×160(템플릿 Rectangle 58)",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/jobda-mold.md",
+              "x": 20,
+              "w": 260,
+              "rows": {
+                "main": {
+                  "y": 38,
+                  "px": 20,
+                  "weight": 700,
+                  "pitch": 28,
+                  "lines": 2
+                },
+                "date": {
+                  "y": 100,
+                  "px": 14,
+                  "weight": 600,
+                  "pitch": 22,
+                  "lines": 1,
+                  "note": "라벨 없이 날짜만(템플릿 「00.00(월) ~ 00.00(월)」, 샘플 8/8)"
+                }
+              },
+              "image": {
+                "x": 226,
+                "y": 0,
+                "w": 117,
+                "h": 160,
+                "note": "템플릿 이미지 영역(우측 세로 띠). 샘플 로고·그림은 자유 블리드"
+              },
+              "colorNote": "mold.color 없음 — 샘플 글자색 자유 → 바탕 밝기로 검정/흰색",
+              "docSection": "②"
+            }
           }
         },
         "textLimits": [
@@ -3285,7 +3649,8 @@ export const MEDIA = [
       "note": "잡다 샘플 실측(10-12 매체별 규격정리 PC 5·MO 5) — 라벨 칩+날짜 줄이 메인 위(PC 5/5: y42 → 메인 y74), 메인 28px Bold 2줄·날짜 16px SemiBold·태그 12px. canon.js 위에 이 키만 덮는다. 글자 크기는 spec.sampleText 에서 온다",
       "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 414:475/539/575/680/739 (ref/learned/cases/_out/figma-spec-compare.md)",
       "dateAbove": true
-    }
+    },
+    "moldDoc": "docs/jobda-mold.md — 잡다 틀 정본(10-15)"
   },
   {
     "id": "catch",
@@ -3410,7 +3775,51 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 캐치01 보드 템플릿 실측(10-15). 이미지형(통이미지)은 템플릿의 글자 칸(민트 상자)·글자 크기만 고정, 굵기·색 자유(규정 FREE)·폰트 규정 없음 → 기존 가이드. 그림 칸은 템플릿 「이미지」 상자 — 1:5765(=1:5955): 서브 칸 56,56 446×30 글자 20 · 타이틀 칸 56,93 713×51 글자 40(1줄) · 기타문구 칸 56,164/189/213 446×21 글자 19(3줄) · 이미지 863,-1 393×298. 템플릿 글자의 Black/Medium 은 설명 강조라 굵기로 쓰지 않는다",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:5765 · 1:5955 _캐치_메인 대형 배너_PC",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/catch-mold.md",
+              "x": 56,
+              "w": 713,
+              "rows": {
+                "sub": {
+                  "y": 56,
+                  "px": 20,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 93,
+                  "px": 40,
+                  "lines": 1
+                },
+                "detail": {
+                  "y": 164,
+                  "px": 19,
+                  "pitch": 24.5,
+                  "lines": 3,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ],
+                  "note": "기타문구 3줄(날짜·키워드·카피)"
+                }
+              },
+              "image": {
+                "x": 863,
+                "y": 0,
+                "w": 393,
+                "h": 295,
+                "note": "템플릿 「이미지」 상자(863,-1 393×298 을 지면에 자름)"
+              },
+              "colorNote": "mold.color 없음 — 텍스트 컬러 FREE → 바탕 밝기로",
+              "docSection": "①"
+            }
+          }
         },
         "textLimits": [
           {
@@ -3502,7 +3911,51 @@ export const MEDIA = [
           "top": null,
           "right": null,
           "bottom": null,
-          "left": null
+          "left": null,
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 캐치01 보드 템플릿 실측(10-15). 이미지형(통이미지)은 템플릿의 글자 칸(민트 상자)·글자 크기만 고정, 굵기·색 자유(규정 FREE)·폰트 규정 없음 → 기존 가이드. 그림 칸은 템플릿 「이미지」 상자 — 1:5782(=1:5999): 서브 칸 39,87 446×30 글자 22 · 타이틀 칸 39,129/196 570×51 글자 42(2줄, 간격 67) · 기타문구 칸 39,296/340 497×31 글자 24(2줄, 간격 44). 템플릿에 이미지 상자 표기 없음 → 통이미지 전체를 그림 칸으로(확인 필요)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:5782 · 1:5999 _캐치_메인 대형 배너_MO",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/catch-mold.md",
+              "x": 39,
+              "w": 570,
+              "rows": {
+                "sub": {
+                  "y": 87,
+                  "px": 22,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 129,
+                  "px": 42,
+                  "pitch": 67,
+                  "lines": 2
+                },
+                "detail": {
+                  "y": 296,
+                  "px": 24,
+                  "pitch": 44,
+                  "lines": 2,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간",
+                    "모집직무"
+                  ]
+                }
+              },
+              "image": {
+                "x": 0,
+                "y": 0,
+                "w": 702,
+                "h": 428,
+                "note": "템플릿에 그림 칸 표기 없음(확인 필요) — 통이미지 전체"
+              },
+              "colorNote": "mold.color 없음 — 텍스트 컬러 FREE",
+              "docSection": "②"
+            }
+          }
         },
         "textLimits": [
           {
@@ -3910,7 +4363,8 @@ export const MEDIA = [
       "이미지형 '타이틀 첫째줄 + 둘째줄 … 20자 미만 (최대1줄)' — 두 줄 합계인지 줄당인지 불명확. 기타문구 '각 60자 미만'과 '혼합 … 20자 미만'이 동시 기재",
       "Figma 이미지 노드(image 1 1068×441, image 2 1069×153, 스크린샷 2024-03-27, image 3·4·7 등)의 내용은 판독 못 함",
       "반려 사례 섹션 없음"
-    ]
+    ],
+    "moldDoc": "docs/catch-mold.md — 캐치 틀 정본(10-15). 틀 2(이미지형 PC·MO), 중앙배너 PC·MO 는 글자 미포함 제출물(틀 보류)·로고 160 은 로고 제출물"
   },
   {
     "id": "google-gdn",
@@ -7588,7 +8042,41 @@ export const MEDIA = [
           "top": 40,
           "right": 40,
           "bottom": 40,
-          "left": 40
+          "left": 40,
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 에브리타임01 보드 템플릿·고객사 프레임 실측(10-15). 글자 x·줄 y·크기·그림 칸만 고정(굵기·색은 샘플이 갈려 기존 가이드), 바탕·키비주얼 처리는 기존 가이드 — 템플릿 1:771(마이다스 자리표시: 메인 58,79 45 Bold · 날짜 58,144 35 SemiBold · 오브젝트 칸 658,0 320×258). 샘플 DN솔루션즈 1:819/835(3줄: 68,67 47 Bold · 118 35 Bold · 167 25 SemiBold) · 대원제약 1:848/865(49,71 45·121 35·167 20, Pyeojin Gothic) 은 줄 수·x·굵기가 다르다 → 공통은 메인 45·둘째 줄 35(규정 2줄형 45/35)뿐. 틀은 템플릿 2줄형 기준, 3줄형(45/35/25)은 확인 필요",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:771 템플릿 · 1:819 1:835 DN솔루션즈 · 1:848 1:865 대원제약",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/everytime-mold.md",
+              "x": 58,
+              "w": 600,
+              "rows": {
+                "main": {
+                  "y": 79,
+                  "px": 45,
+                  "lines": 1,
+                  "note": "굵기 없음 — 템플릿·DN Bold 700 vs 대원·9월 공채 1151:4743 ExtraBold 800 → 기존 가이드(800)"
+                },
+                "date": {
+                  "y": 144,
+                  "px": 35,
+                  "lines": 1,
+                  "note": "둘째 줄 35(규정 2줄형). 템플릿은 날짜 「0.00(월)-0.00(월)」, DN 은 시즌+채용 35 Bold + 셋째 줄 날짜 25 — 굵기 없음(600/700/400 갈림)"
+                }
+              },
+              "image": {
+                "x": 658,
+                "y": 0,
+                "w": 320,
+                "h": 258,
+                "note": "템플릿 오브젝트 칸(DN 675~982 · 대원 695~943 안)"
+              },
+              "colorNote": "mold.color 없음 — 템플릿 #555 · DN 브랜드 · 대원 검정 → 바탕 밝기로(투명 배경 규격)",
+              "docSection": "①"
+            }
+          }
         },
         "textLimits": [
           {
@@ -7816,7 +8304,51 @@ export const MEDIA = [
           "top": 20,
           "right": 20,
           "bottom": 20,
-          "left": 20
+          "left": 20,
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 에브리타임01 보드 템플릿·고객사 프레임 실측(10-15). 글자 x·줄 y·크기·그림 칸만 고정(굵기·색은 샘플이 갈려 기존 가이드), 바탕·키비주얼 처리는 기존 가이드 — 템플릿 1:785(마이다스 자리표시: 메인 31,45 30 Bold · 둘째 줄 31,94 31 Medium · 기타 33,141 10 Medium · 오브젝트 400,-13 220×223). 샘플 케이뱅크 1:1309(20.4,41.5 30 Bold · 84.5 30 Medium 「모집기간: …」 · 129.5 25 Medium 해시태그) · 맥도날드 1:1295(오른쪽 글자 261,41 30 Bold · 82 25 Medium 「서류접수 : …」). 둘째 줄은 샘플 2/2 접수기간, 크기 30(규정 3줄형 30/30/25, 템플릿 31은 예외)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:785 템플릿 · 1:1309 케이뱅크 · 1:1295 맥도날드",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/everytime-mold.md",
+              "x": 31,
+              "w": 344,
+              "rows": {
+                "main": {
+                  "y": 45,
+                  "px": 30,
+                  "weight": 700,
+                  "lines": 1
+                },
+                "detail": {
+                  "y": 94,
+                  "px": 30,
+                  "weight": 500,
+                  "labelWeight": 500,
+                  "lines": 1,
+                  "labelRow": false,
+                  "items": [
+                    "접수기간"
+                  ],
+                  "labelSep": ":",
+                  "note": "케이뱅크 「모집기간: 10/27(월) 17시까지」"
+                }
+              },
+              "labels": {
+                "period": "모집기간"
+              },
+              "image": {
+                "x": 400,
+                "y": 0,
+                "w": 220,
+                "h": 200,
+                "note": "템플릿 오브젝트 칸(400,-13 220×223 을 지면에 자름). 케이뱅크 오브젝트 409~518 안"
+              },
+              "colorNote": "mold.color 없음 — 템플릿 #555 · 샘플 흰(어두운 바탕 2/2) → 바탕 밝기로",
+              "docSection": "②"
+            }
+          }
         },
         "textLimits": [
           {
@@ -8023,7 +8555,63 @@ export const MEDIA = [
           "top": 30,
           "right": 50,
           "bottom": 30,
-          "left": 50
+          "left": 50,
+          "measuredFromTemplate": {
+            "mold": {
+              "note": "구멍 뚫린 틀 — 에브리타임01 보드 템플릿·고객사 프레임 실측(10-15). 글자 x·줄 y·크기·그림 칸만 고정(굵기·색은 샘플이 갈려 기존 가이드), 바탕·키비주얼 처리는 기존 가이드 — 코엑스 자리표시 프레임 1:802(SpoqaHanSans: 서브 칸 50,42 300×41 fs31 Bold · 메인 칸 50,98/166 491×56 fs52(최종 1:884 ExtraBold) · 「모집분야」 칩 50,253 118×38 fs22 · 상세 50,314 217×26 fs23 · 오브젝트 칸 329,228 401×258 · 로고 우상단 637,30). 티머니 1:1253 은 가운데 정렬 다른 구조 → 코엑스 1건 기준(확인 필요). 줄 y 는 빨간 가이드 상자 top(글꼴이 Pretendard 가 아니라 글상자 환산 ±8px)",
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:802 코엑스 자리표시 · 1:884 코엑스 최종 · 1:1253 티머니(구조 다름)",
+              "measuredAt": "2026-10-15",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/everytime-mold.md",
+              "x": 50,
+              "w": 491,
+              "rows": {
+                "sub": {
+                  "y": 42,
+                  "px": 31,
+                  "weight": 700,
+                  "lines": 1
+                },
+                "main": {
+                  "y": 98,
+                  "px": 52,
+                  "weight": 800,
+                  "pitch": 68,
+                  "lines": 2
+                },
+                "detail": {
+                  "y": 253,
+                  "px": 23,
+                  "pitch": 56,
+                  "lines": 2,
+                  "labelRow": true,
+                  "labelWeight": 800,
+                  "items": [
+                    "모집직무"
+                  ],
+                  "note": "「모집분야」 칩 줄 + 값 줄(코엑스 「전시/컨벤션ㅣ베뉴마케팅ㅣDX」). 값 굵기 없음(자리표시 Regular·최종 Bold)"
+                }
+              },
+              "logo": {
+                "x": 530,
+                "y": 30,
+                "w": 160,
+                "h": 40,
+                "align": "right",
+                "maxArea": 1300,
+                "note": "규정 「로고 상하좌우 30px 여백 안」 + 코엑스 최종 로고 622,30 59×21(1건) — 우상단 칸"
+              },
+              "image": {
+                "x": 329,
+                "y": 228,
+                "w": 401,
+                "h": 258,
+                "note": "오브젝트 칸(우하단)"
+              },
+              "colorNote": "mold.color 없음 — 자리표시 #555 · 최종 흰(어두운 그라데이션 바탕) → 바탕 밝기로",
+              "docSection": "③"
+            }
+          }
         },
         "textLimits": [
           {
@@ -8441,7 +9029,8 @@ export const MEDIA = [
         "note": "10-12 결정 9: 에브리타임 메인 800(ExtraBold) — Figma 9월 공채 커뮤니티보드 1151:4743 ExtraBold 45 실측 1건. 근거 1건도 채택(규칙 채택 방식). CANON 메인 700 위에 이 키만 덮는다",
         "main": 800
       }
-    }
+    },
+    "moldDoc": "docs/everytime-mold.md — 에브리타임 틀 정본(10-15). 틀 3(커뮤니티보드·홈배너·홈카드), 나머지 5규격은 이미지 밖 글자(틀 없음)"
   },
   {
     "id": "blind",

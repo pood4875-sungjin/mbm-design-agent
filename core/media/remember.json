@@ -173,6 +173,48 @@
             "h": 360
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.12"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6404 메인상단배너_PC — 글자 「메인 카피」「부가 설명」 TEXT · 텍스트 가이드 82.4,110 996×95 · 썸네일 칸 1252,0 988×360",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 81.4,
+            "w": 996,
+            "rows": {
+              "main": {
+                "y": 103,
+                "px": 48,
+                "weight": 600,
+                "lines": 1
+              },
+              "detail": {
+                "y": 176,
+                "px": 28,
+                "weight": 400,
+                "labelWeight": 400,
+                "lines": 1,
+                "labelRow": false,
+                "items": [
+                  "접수기간"
+                ]
+              }
+            },
+            "labels": {
+              "period": "모집기간"
+            },
+            "image": {
+              "x": 1252,
+              "y": 0,
+              "w": 988,
+              "h": 360,
+              "note": "썸네일형 칸(이미지 988×360 + 왼쪽 그라데이션). 오브젝트형(844×284)·풀이미지형은 기존 가이드 선택지"
+            },
+            "docSection": "①"
+          }
         }
       },
       "textLimits": [
@@ -255,6 +297,36 @@
             "h": 360
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.13"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6422 메인상단배너_Mobile/APP — 메인 카피 2줄 TEXT y91/166 · 텍스트 가이드 54.4,98 505×120 · 썸네일 칸 575,0 430×360 · 오브젝트 칸 605,28 346×304",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 55.4,
+            "w": 505,
+            "rows": {
+              "main": {
+                "y": 91,
+                "px": 48,
+                "weight": 600,
+                "pitch": 75,
+                "ls": 1,
+                "lines": 2
+              }
+            },
+            "image": {
+              "x": 575,
+              "y": 0,
+              "w": 430,
+              "h": 360,
+              "note": "썸네일형 칸. 오브젝트형 칸 (605,28) 346×304 은 이 안"
+            },
+            "docSection": "②"
+          }
         }
       },
       "textLimits": [
@@ -337,6 +409,50 @@
             "h": 240
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.17"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6364 메인 중간 배너_PC — 메인 카피 y49 41 SemiBold 자간 -2.2% · 부가 설명 y106 30 Regular 자간 -4.5% · 가이드 54.7,48 996×96 · 썸네일 칸 1251.7,0 988×240",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 56.7,
+            "w": 996,
+            "rows": {
+              "main": {
+                "y": 49,
+                "px": 41,
+                "weight": 600,
+                "ls": -2.2,
+                "lines": 1
+              },
+              "detail": {
+                "y": 106,
+                "px": 30,
+                "weight": 400,
+                "labelWeight": 400,
+                "ls": -4.5,
+                "lines": 1,
+                "labelRow": false,
+                "items": [
+                  "접수기간"
+                ]
+              }
+            },
+            "labels": {
+              "period": "모집기간"
+            },
+            "image": {
+              "x": 1252,
+              "y": 0,
+              "w": 988,
+              "h": 240,
+              "note": "썸네일형 칸"
+            },
+            "docSection": "③"
+          }
         }
       },
       "textLimits": [
@@ -424,6 +540,36 @@
             "h": 360
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.18"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6379 메인 중간 배너_Mobile/APP — 메인 카피 2줄 y90/165 50 SemiBold 자간 -2.5% · 가이드 53.7,98 505×120 · 썸네일 칸 574.7,0 430×360",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 53.7,
+            "w": 505,
+            "rows": {
+              "main": {
+                "y": 90,
+                "px": 50,
+                "weight": 600,
+                "pitch": 75,
+                "ls": -2.5,
+                "lines": 2
+              }
+            },
+            "image": {
+              "x": 575,
+              "y": 0,
+              "w": 430,
+              "h": 360,
+              "note": "썸네일형 칸. 오브젝트형 칸 (604.7,28) 346×304 은 이 안"
+            },
+            "docSection": "④"
+          }
         }
       },
       "textLimits": [
@@ -504,6 +650,50 @@
             "h": 240
           },
           "source": "figma:리멤버02(제작가이드&예시) 410:3 / pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.22"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6334 공고 상세 상단 배너_PC + 예시 1:6342 「2026년 하반기 리멤버 공개 채용」/「모집기간 : 09/16(수) ~ 09/23(수)」 — 메인 중간 PC 와 같은 칸",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 56.7,
+            "w": 996,
+            "rows": {
+              "main": {
+                "y": 49,
+                "px": 41,
+                "weight": 600,
+                "ls": -2.2,
+                "lines": 1
+              },
+              "detail": {
+                "y": 106,
+                "px": 30,
+                "weight": 400,
+                "labelWeight": 400,
+                "ls": -4.5,
+                "lines": 1,
+                "labelRow": false,
+                "items": [
+                  "접수기간"
+                ]
+              }
+            },
+            "labels": {
+              "period": "모집기간"
+            },
+            "image": {
+              "x": 1252,
+              "y": 0,
+              "w": 988,
+              "h": 240,
+              "note": "썸네일형 칸(템플릿은 썸네일형만)"
+            },
+            "docSection": "⑤"
+          }
         }
       },
       "textLimits": [
@@ -609,6 +799,36 @@
             "h": 276
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.23"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6350 공고 상세 상단 배너_Mobile/APP + 예시 1:6358 「2026년 하반기」/「리멤버 공개 채용」 — 메인 2줄 y70.1/149.1 48 SemiBold 자간 -2.5% · 가이드 47.7,76.1 513×124 · 썸네일 칸 664.7,0 460×276",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 47.7,
+            "w": 513,
+            "rows": {
+              "main": {
+                "y": 70.1,
+                "px": 48,
+                "weight": 600,
+                "pitch": 79,
+                "ls": -2.5,
+                "lines": 2
+              }
+            },
+            "image": {
+              "x": 665,
+              "y": 0,
+              "w": 460,
+              "h": 276,
+              "note": "썸네일형 칸"
+            },
+            "docSection": "⑥"
+          }
         }
       },
       "textLimits": [
@@ -701,6 +921,36 @@
             "h": 200
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.27"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6304 공고 상세 사이드 배너_PC — 메인 2줄 y57.1/107.1 29 SemiBold 자간 -3.5% · 가이드 31.7,62.1 258×77 · 썸네일 칸 289.7,0 240×200",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 30.7,
+            "w": 258,
+            "rows": {
+              "main": {
+                "y": 57.1,
+                "px": 29,
+                "weight": 600,
+                "pitch": 50,
+                "ls": -3.5,
+                "lines": 2
+              }
+            },
+            "image": {
+              "x": 290,
+              "y": 0,
+              "w": 240,
+              "h": 200,
+              "note": "썸네일형 칸(규정 썸네일형만)"
+            },
+            "docSection": "⑦"
+          }
         }
       },
       "textLimits": [
@@ -774,6 +1024,36 @@
             "h": 276
           },
           "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.27"
+        },
+        "measuredFromTemplate": {
+          "mold": {
+            "note": "구멍 뚫린 틀 — 리멤버02 보드 공식 템플릿(PSD 그대로 올린 프레임) 실측(10-15). 글자 x·줄 y·크기·굵기·자간·줄 간격·그림 칸만 고정, 바탕·그라데이션·키비주얼 처리는 기존 가이드. 로고 칸 없음(규정 로고 불가). 글자색은 바탕 따라 검정/흰색(PDF p.14 두 타입 택1)",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 1:6323 공고 상세 사이드 배너_Mobile/APP — 공고 상세 상단 MO 와 같은 칸(메인 2줄 y70.1/149.1 48 SemiBold 자간 -2.5% · 썸네일 칸 664.7,0 460×276)",
+            "measuredAt": "2026-10-15",
+            "color": "#000000",
+            "colorDark": "#FFFFFF",
+            "docRef": "docs/remember-mold.md",
+            "x": 47.7,
+            "w": 513,
+            "rows": {
+              "main": {
+                "y": 70.1,
+                "px": 48,
+                "weight": 600,
+                "pitch": 79,
+                "ls": -2.5,
+                "lines": 2
+              }
+            },
+            "image": {
+              "x": 665,
+              "y": 0,
+              "w": 460,
+              "h": 276,
+              "note": "썸네일형 칸"
+            },
+            "docSection": "⑧"
+          }
         }
       },
       "textLimits": [
@@ -842,5 +1122,6 @@
     "폰트 크기는 PDF pt 표기만 있음(px 환산값 미기재) — PSD 샘플 텍스트 레이어를 그대로 쓰면 됨",
     "한진정보통신 MobileAPP PSD의 텍스트 레이어가 샘플 문구 그대로 — 최종 제출 문구 확인 불가",
     "zip의 '리멤버_메인중간배너_PCdsdds.psd', '공고상세사이드배너_MobileAPP-복구됨.psd'는 사본으로 보임(치수 동일) — 어느 쪽이 최신인지 불명"
-  ]
+  ],
+  "moldDoc": "docs/remember-mold.md — 리멤버 틀 정본(10-15). 규격별 mold 값은 이 문서와 1:1"
 }

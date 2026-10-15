@@ -84,12 +84,13 @@ test('라벨 칩이 매체 글자수 한도(잡다 라벨 4자)를 넘는 문구
   const specs = adSpecEntries();
   const ctx = createContext({ client: '마이다스', role: '자유직무, 경영·제품·사업 분야', employType: '신입·경력', deadline: '2025-10-12', season: '2025 하반기', hiringType: '대규모 공개채용' }, 'recruit');
   const html = renderAd(ctx, normalizeStyle({ colors: ['#1428A0'] }), specs['jobda-main-pc']);
-  const labels = [...html.matchAll(/data-field="label"[^>]*>([^<]*)</g)].map(m => m[1]);
-  assert.ok(labels.every(t => countChars(t) <= 4), `라벨 ${JSON.stringify(labels)}`);
-  // 한도 안에 드는 고용형태는 그대로 — 규칙이 라벨을 통째로 없애는 게 아니다
+  // 10-15 틀(mold): 잡다 PC 는 템플릿 1:6026 「서브문구」 자리에 라벨 4자 + 날짜 한 줄(샘플 8/8 「모집기간 06.15(월) ~ 07.10(금)」) — 라벨 칩 대신 서브 줄
+  assert.doesNotMatch(html, /data-field="label"/);
+  const sub = html.match(/data-field="sub"[^>]*>([^<]*)</)?.[1] ?? '';
+  assert.match(sub, /^모집기간 /); assert.ok(countChars(sub.split(' ')[0]) <= 4, `라벨 ${sub}`);
   const ok = renderAd(createContext({ client: '마이다스', role: '엔지니어', employType: '정규직', deadline: '2025-10-12' }, 'recruit'), normalizeStyle({ colors: ['#1428A0'] }), specs['jobda-main-pc']);
-  // 10-12 매체별 규격정리: 날짜가 있으면 라벨 칩은 「접수기간」(4자, 잡다 샘플 5/5 「모집기간」 칩)이 먼저 — 고용형태는 날짜가 없을 때
-  assert.ok(/data-field="label"[^>]*>접수기간</.test(ok));
+  assert.match(ok, /data-field="sub"[^>]*>모집기간 /);
+  // 날짜가 없으면 서브 줄도 없다(틀의 서브 = 접수기간) — 고용형태는 태그 칩 행으로
   const noDate = renderAd(createContext({ client: '마이다스', role: '엔지니어', employType: '정규직' }, 'recruit'), normalizeStyle({ colors: ['#1428A0'] }), specs['jobda-main-pc']);
-  assert.ok(/data-field="label"[^>]*>정규직</.test(noDate));
+  assert.doesNotMatch(noDate, /data-field="sub"/); assert.match(noDate, /data-field="tags"[^>]*>[\s\S]*?>정규직</);
 });

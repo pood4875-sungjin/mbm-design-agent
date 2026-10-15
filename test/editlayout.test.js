@@ -83,7 +83,7 @@ test('nudge: px 이동은 몫으로, 배율은 곱(원점은 처음 정한 것)'
 });
 
 test('같은 모양 규격: 가로형·세로형·세로 띠·정사각·얇은 띠(shapeOf)로 묶고, 몫은 그대로·원점은 대상 상자에서', () => {
-  const items = ['google-gdn-580x400', 'instagram-feed-1080', 'google-gdn-300x600', 'remember-main-top-mo', 'google-gdn-970x250'].map(k => ({ key: k, spec: specs[k] }));
+  const items = ['google-gdn-580x400', 'instagram-feed-1080', 'google-gdn-300x600', 'kakao-display-pc-promo', 'google-gdn-970x250'].map(k => ({ key: k, spec: specs[k] }));   // 10-15: 리멤버 MO → 카카오(틀 규격 제외)
   const t = sameShapeTargets(items[0], items).map(x => x.key);
   assert.deepEqual(t, ['instagram-feed-1080']);
   assert.deepEqual(sameShapeTargets(items[3], items).map(x => x.key), ['google-gdn-970x250']);
@@ -107,7 +107,7 @@ test('프리셋 가능 여부: 매체 템플릿·오브젝트 상자·얇은 띠
 
 test('렌더러: 프리셋·직접 수정이 없으면 예전과 바이트 동일(스타일에 auto 키가 있어도)', () => {
   const st = styleOf('fox-cutout');
-  for (const sid of ['google-gdn-580x400', 'google-gdn-300x600', 'remember-main-top-mo', 'instagram-feed-1080', 'jasoseol-pc-premium-popup-pc']) {
+  for (const sid of ['google-gdn-580x400', 'google-gdn-300x600', 'kakao-display-pc-promo', 'instagram-feed-1080', 'jasoseol-pc-premium-popup-pc']) {   // 10-15: 리멤버 MO → 카카오
     const a = renderAd(ctx, st, specs[sid]);
     const b = renderAd(ctx, { ...st, kvPlace: 'auto', kvSize: 'auto', textAnchor: 'auto', bgFill: 'auto', bgGrad: 'auto', scrim: 'auto', manualLayout: null }, specs[sid]);
     assert.equal(a, b, sid);
@@ -117,7 +117,7 @@ test('렌더러: 프리셋·직접 수정이 없으면 예전과 바이트 동�
 
 test('렌더러: 키비주얼 위치 프리셋 — 왼쪽은 오른쪽 열을 좌우로(row-reverse·left 붙임·to left 녹임), 템플릿 규격은 자동 유지', () => {
   const st = styleOf('ilhwa-photo');
-  const h = renderAd(ctx, { ...st, kvPlace: 'left' }, specs['remember-main-top-mo']);
+  const h = renderAd(ctx, { ...st, kvPlace: 'left' }, specs['kakao-display-pc-promo']);   // 10-15: 리멤버 메인상단 MO 는 틀(mold) 규격이 됐다 → 자유 배치 픽스처는 카카오 디스플레이 PC
   const t = traceOfHtml(h);
   assert.equal(t.edit.place.ok, true); assert.equal(t.edit.mirror, true); assert.equal(t.place.mode, 'column');
   assert.match(h, /flex-direction:row-reverse/);
@@ -133,7 +133,7 @@ test('렌더러: 키비주얼 위치 프리셋 — 왼쪽은 오른쪽 열을 �
 
 test('렌더러: 크기·정렬·배경·스크림 프리셋', () => {
   const st = styleOf('ilhwa-photo');
-  const sp = specs['remember-main-top-mo'];
+  const sp = specs['kakao-display-pc-promo'];   // 10-15: 리멤버 MO 는 틀 규격 → 카카오 디스플레이 PC
   const w0 = traceOfHtml(renderAd(ctx, st, sp)).place.objW;
   const lg = traceOfHtml(renderAd(ctx, { ...st, kvSize: 'lg' }, sp)).place;
   const sm = traceOfHtml(renderAd(ctx, { ...st, kvSize: 'sm' }, sp)).place;
