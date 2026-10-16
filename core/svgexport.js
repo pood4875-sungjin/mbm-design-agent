@@ -449,7 +449,11 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
             const c = { ch: String.fromCodePoint(cp), x: rc.left - ox, y: rc.top - oy, w: rc.width, h: rc.height, key, style };
             // 10-15 Figma 가져오기 보정: Figma 는 SVG 글자의 기준선 y 에서 1.0em 위를 글상자 top 으로 둔다(실측 asc 0.999, Pretendard). Chrome 의 기준선은 content 상자 top + 0.95em(fontBoundingBoxAscent)이라
             //   그대로 적으면 Figma 글상자가 0.05em(13px → 0.7 · 35px → 1.8px) 위로 올라간다(자소설 틀 대조 −0.8~−2.3px). Figma 편집용이므로 글상자 top 이 렌더와 같도록 y = top + 1.0em 으로 적는다(브라우저로 보면 글자가 0.05em 내려 보인다)
-            c.base = baseline === 'chrome' ? c.y + rc.height * asc : c.y + fs * FIGMA_ASCENT;
+            // 10-16 네이버 DA 대조(사용자 수정본 100:613 vs 렌더 −8/−5px): 글리프 상자(rc)는 글꼴 content 영역이라 줄 상자와 다르다 — Kakao Big Sans 는 올림+내림 1.48em 이라 line-height 1.2em 줄 상자보다 위로 0.14em 삐져나온다.
+            //   Figma 글상자 top 은 Chrome 줄 상자 top(= 틀 y)과 같아야 하므로 반행간(half-leading)을 되돌려 줄 상자 top 에서 1.0em 내려 적는다(Pretendard 는 content 1.19em 이라 ±0.2px 변화)
+            const lhPx = parseFloat(pcs.lineHeight);
+            const lineTop = Number.isFinite(lhPx) && lhPx > 0 ? c.y + (rc.height - lhPx) / 2 : c.y;
+            c.base = baseline === 'chrome' ? c.y + rc.height * asc : lineTop + fs * FIGMA_ASCENT;
             // 넘침 감춤(line-clamp·overflow) 밖 글자는 보이지 않는다
             const cx = c.x + c.w / 2, cy = c.y + c.h / 2;
             if (clip && (cx < clip.x || cx > clip.x + clip.w || cy < clip.y || cy > clip.y + clip.h)) continue;

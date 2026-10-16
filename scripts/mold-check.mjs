@@ -85,7 +85,10 @@ for (const [id, v] of Object.entries(M.specs)) {
       const align = b.align ?? 'center'; const ok = align === 'right' ? near(x + w, b.x + b.w, 2) : align === 'left' ? near(x, b.x, 2) : near(x + w / 2, b.x + b.w / 2, 2);
       add('로고 정렬', align === 'right' ? '오른쪽' : align === 'left' ? '왼쪽' : '가운데', align === 'right' ? `오른끝 ${x + w}` : `중심 ${r1(x + w / 2)}`, ok);
       if (b.maxArea) add('로고 면적', `≤ ${b.maxArea.toLocaleString()}px²`, `${(w * h).toLocaleString()}px²`, w * h <= b.maxArea * 1.02, '칸 꽉 채우지 않음');
-      add('로고 세로 가운데', r1(b.y + b.h / 2), r1(y + h / 2), near(y + h / 2, b.y + b.h / 2, 2));
+      const va = b.valign ?? 'center';   // 10-16 네이버: 로고 칸 바닥 맞춤(valign bottom)
+      if (va === 'bottom') add('로고 세로 바닥', r1(b.y + b.h), r1(y + h), near(y + h, b.y + b.h, 2));
+      else if (va === 'top') add('로고 세로 위', r1(b.y), r1(y), near(y, b.y, 2));
+      else add('로고 세로 가운데', r1(b.y + b.h / 2), r1(y + h / 2), near(y + h / 2, b.y + b.h / 2, 2));
     }
   } else if (v.logo?.length) add('로고', '칸 없음', tr.logo?.asObject ? '그림 칸 안 오브젝트' : '있음', tr.logo?.asObject ? null : false, tr.logo?.asObject ? '키비주얼 대신 로고가 오브젝트(기존 가이드 logoAsObject) — 틀 로고 칸 없음' : ''); else add('로고', '칸 없음', '없음', true);
   // 그림 칸

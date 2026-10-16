@@ -337,7 +337,8 @@ test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 
 
 test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿, 10-15 저녁) — 네이버 메인 52/800 pitch 56 + 서브 32 · 블라인드 피드 메인 85 pitch 104 + 날짜 48 + 상세 38 · 게시글 메인 56 pitch 69.4 + 날짜(라벨 없이, 템플릿 서브 자리) + 모집직무 · 카카오 비즈보드·인스타(템플릿 3종 갈림)·네이버 네이티브는 틀 없음', () => {
   const tn = traceOf(renderAd(ctx, glass, specs['naver-gfa-mobile-da-1250x560']));
-  assert.equal(tn.mode, 'templateMold'); assert.deepEqual([tn.mold.rows.main.y, tn.mold.rows.main.px, tn.mold.rows.main.pitch, tn.mold.rows.main.weight, tn.mold.rows.sub?.px, tn.mold.rows.sub?.weight, tn.mold.rows.detail?.y], [70.2, 56, 63, 700, 31, 500, 285]);   // 10-16 사용자: 글자 간격은 한국콜마 64:4793 기준(메인 SUITE Bold 56 행간 63 y70.2 · 「모집 기간 | 날짜」 Medium 31 y217.8)
+  assert.equal(tn.mode, 'templateMold'); assert.deepEqual([tn.mold.rows.main.y, tn.mold.rows.main.px, tn.mold.rows.main.pitch, tn.mold.rows.main.weight, tn.mold.rows.sub?.px, tn.mold.rows.sub?.weight, tn.mold.rows.detail?.y], [62.3, 56, 67.2, 700, 31, 500, 285]);   // 10-16 사용자 수정본 100:613: 글자 x270(규정 좌우 270), 메인 Bold 56 y62.3 행간 auto, 「모집 기간 | 날짜」 Medium 31 y212.8 · 키비주얼 칸 (553,262) 444×278 누끼 contain(mold.kv slot)
+  assert.equal(tn.mold.rows.main.x, 270); assert.deepEqual(tn.place.tImage, { x: 553, y: 262, w: 444, h: 278 }); assert.ok(!tn.rules.includes('templateMold.freeKv'), '네이버 DA 는 칸 고정(kv slot)');
   assert.equal(tn.copy.sub, '모집 기간 | 9.22(월) - 10.12(일)', '라벨 + 「 | 」 + 날짜(64:4793)');
   // 블라인드 피드 상세(모집직무)는 1행·38px — 긴 직무 문구(19자)는 안 들어가 생략되므로 짧은 직무로 확인
   const ctxShort = createContext({ ...fields, role: '건축' }, 'recruit');
