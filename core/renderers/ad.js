@@ -1632,7 +1632,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const showSubM = MR.sub?.content === 'period' ? !!copy.sub : showSub;
     // 틀 서브 줄 수 한도(구글 ABL 580 서브 1줄 297px): 넘기면 사다리의 들어가는 첫 후보(시즌 등)로 — 칸은 max-height 로 잘리므로 반 토막 대신 짧은 말(10-15 저녁)
     const rowsIn = (t, r) => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * pxOf(r) / Math.max(1, rowW(r)))), 0);
-    if (showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; }
+    if (showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; else if (mold.subOptional) { copy.sub = ''; fired('templateMold.subDropped'); } }   // 틀 서브 칸(1줄)에 들어가는 후보가 없으면 비운다(mold.subOptional — 구글 템플릿 서브문구, 10-16: 잘린 채 그리지 않는다)
     if (showSubM && MR.sub) put('sub', MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub)), copy.sub);
     const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}) } : null;   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
     // 회사명 강조색(mold.rows.main.accentClient — NAP HS화성 샘플 「HS화성」 빨강 #D6061C = 브랜드 보조색, 나머지 네이비, 10-15 밤): 밝은 지면에서만, 강조색(style.accent·팔레트 accent)이 없으면 그대로
@@ -1708,12 +1708,29 @@ ${tplLogo}${kvWrap(tplObject)}
     if (MR.tags && (ctx.core?.employType || ctx.core?.role)) {
       const tg = MR.tags, tpx = pxOf(tg), th = Math.round((tg.h ?? tg.px * 2) * k), padX = Math.round((tg.padX ?? 8) * k), gap = Math.round((tg.gap ?? 8) * k), rad = Math.round((tg.radius ?? 4) * k);
       const toks = [...new Set([...String(ctx.core.employType ?? '').split(/\s*[,·\/]\s*/), ...String(ctx.core.role ?? '').split(/\s*,\s*/)].map(t => t.trim()).filter(t => t && t.length <= 14))];   // 고용형태는 「신입·경력」을 둘로(호남대 「정규직원」「경력」), 직무는 쉼표로만(A5: 「경영·제품·사업 분야」 한 항목)
-      const items = []; let used0 = 0;
-      for (const t of toks) { const cw = Math.round(textWidth(t) * tpx) + padX * 2; if (used0 + cw + (items.length ? gap : 0) > colW) break; used0 += cw + (items.length ? gap : 0); items.push(t); if (items.length >= (tg.max ?? 6)) break; }
+      // 여러 줄(tg.rows — 구글 템플릿 580·300 「상세 문구」 칩 2×2, 10-16)·평문(tg.plain — 한국앤컴퍼니 샘플 「Sales · Business · R&D」 점 구분, 칩 바탕 없음)
+      const tRows = Math.max(1, tg.rows ?? 1), rowGap = Math.round((tg.rowGap ?? 2) * k), tagW = tg.w != null ? Math.round(tg.w * k) : colW, plain = !!tg.plain, dotW = plain ? Math.round(tpx * 0.22) : 0, dotGap = plain ? Math.round(tpx * 0.55) : 0;
+      const items = []; let used0 = 0, rowN = 1;
+      for (const t of toks) { const cw = Math.round(textWidth(t) * tpx) + (plain ? 0 : padX * 2); const sep = items.length ? (plain ? dotW + dotGap * 2 : gap) : 0;
+        if (used0 + cw + sep > tagW) { if (rowN >= tRows) break; rowN++; used0 = cw; } else used0 += cw + sep;
+        items.push(t); if (items.length >= (tg.max ?? 6)) break; }
       if (items.length) {
         const tw = tg.weight ?? fwOf('chip', tpx);
-        used.tags = { y: Math.round(tg.y * k * 10) / 10, px: tpx, pitch: th, lines: 1, weight: tw, top: Math.round(tg.y * k * 10) / 10, items };
-        blocks.push({ t: Math.round(tg.y * k * 10) / 10, h: th, html: `<div data-field="tags" style="position:absolute;left:0;top:@@px;width:${colW}px;height:${th}px;display:flex;gap:${gap}px;align-items:center;overflow:hidden">${items.map(t => `<b data-chip="1" style="display:inline-flex;align-items:center;height:${th}px;padding:0 ${padX}px;border-radius:${rad}px;font-size:${tpx}px;line-height:${th}px;font-weight:${tw};background:${chipBgCss};color:${chipFg};white-space:nowrap">${esc(t)}</b>`).join('')}</div>` });
+        const totalH = th * tRows + rowGap * (tRows - 1);
+        const tagsX = tg.x != null ? Math.round(tg.x * k) - sx : 0;
+        const justify = (tg.align ?? mold.align) === 'center' ? 'center' : 'flex-start';
+        if (plain) fired('templateMold.tagsPlain');
+        used.tags = { y: Math.round(tg.y * k * 10) / 10, px: tpx, pitch: th, lines: tRows, weight: tw, top: Math.round(tg.y * k * 10) / 10, items, plain };
+        const dot = `<i data-dot="1" style="display:inline-block;width:${dotW}px;height:${dotW}px;border-radius:50%;background:${p.primary ?? chipFg};margin:0 ${dotGap}px;vertical-align:middle"></i>`;
+        if (plain) {
+          // 평문: 글 덩어리 하나(점으로 구분) — 긴 직무는 칸 안에서 자연 줄바꿈, 행간 = 칩 높이 + rowGap(템플릿 칩 간격 28/26), 최대 rows 줄
+          const lhp = th + rowGap;
+          const innerP = items.map((t, i) => `${i ? dot : ''}<span data-tag="1">${esc(nb(t))}</span>`).join('');
+          blocks.push({ t: Math.round(tg.y * k * 10) / 10, h: totalH, html: `<div data-field="tags" data-tags-plain="1" style="position:absolute;left:${tagsX}px;top:@@px;width:${tagW}px;height:${lhp * tRows}px;font-size:${tpx}px;line-height:${lhp}px;font-weight:${tw};color:${(fgIsDark && tg.color) ? tg.color : mainFg};text-align:${justify === 'center' ? 'center' : 'left'};${WRAP};overflow:hidden">${innerP}</div>` });
+        } else {
+          const inner = items.map(t => `<b data-chip="1" style="display:inline-flex;align-items:center;height:${th}px;padding:0 ${padX}px;border-radius:${rad}px;font-size:${tpx}px;line-height:${th}px;font-weight:${tw};background:${chipBgCss};color:${chipFg};white-space:nowrap">${esc(t)}</b>`).join('');
+          blocks.push({ t: Math.round(tg.y * k * 10) / 10, h: totalH, html: `<div data-field="tags" style="position:absolute;left:${tagsX}px;top:@@px;width:${tagW}px;height:${totalH}px;display:flex;${tRows > 1 ? `flex-wrap:wrap;gap:${rowGap}px ${gap}px;` : `gap:${gap}px;`}align-items:center;align-content:flex-start;justify-content:${justify};overflow:hidden">${inner}</div>` });
+        }
       }
     }
     const top00 = blocks.length ? Math.min(...blocks.map(b => b.t)) : 0, bot0 = blocks.length ? Math.max(...blocks.map(b => b.t + b.h)) : 0;

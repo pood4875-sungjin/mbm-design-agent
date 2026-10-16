@@ -67,9 +67,9 @@ for (const [id, v] of Object.entries(M.specs)) {
     const t = mold.rows.tags, f = v.fields.find(x => x.role === 'tags'), u = used.tags;
     if (!f) add('태그 줄', '있음', '없음', null, '글감 없음');
     else {
-      add('태그 x', mold.x, f.x, near(f.x, mold.x));
+      add('태그 x', t.x ?? mold.x, f.x, near(f.x, t.x ?? mold.x));
       add('태그 y', t.y, f.y, near(f.y, t.y, 1.5));
-      add('태그 칩 높이', t.h ?? t.px * 2, f.h, near(f.h, t.h ?? t.px * 2));
+      { const th0 = t.h ?? t.px * 2, rows0 = t.rows ?? 1, hStd = t.plain ? (th0 + (t.rowGap ?? 2)) * rows0 : th0 * rows0 + (t.rowGap ?? 2) * (rows0 - 1); add(rows0 > 1 || t.plain ? '태그 칸 높이' : '태그 칩 높이', hStd, f.h, near(f.h, hStd, 1.5), rows0 > 1 ? `${rows0}줄` : ''); }
       add('태그 글자 크기', t.px, u?.px ?? '?', u ? near(u.px, t.px) : null);
       add('태그 굵기', t.weight ?? '틀 없음', u?.weight ?? '?', t.weight != null ? +u?.weight === +t.weight : null);
       add('태그 칩 수', `≤${t.max ?? 6}`, (u?.items ?? []).length, (u?.items ?? []).length <= (t.max ?? 6), (u?.items ?? []).join('·'));

@@ -216,7 +216,7 @@ test('잡다 PC 792×240 틀 — 템플릿 1:6026 + 샘플 8: 서브 = 「모집
   assert.deepEqual([R.sub.y, R.sub.px, R.sub.weight, R.main.y, R.main.px, R.main.pitch, R.tags.y, R.tags.px, R.tags.pitch], [42, 16, 600, 74, 28, 38, 174, 12, 24]);
   assert.match(html, /data-field="sub"[^>]*>모집기간 9\.22\(월\) - 10\.12\(일\)</);
   assert.deepEqual(R.tags.items, ['신입', '경력', '자유직무', '경영·제품·사업 분야']);
-  assert.match(html, new RegExp(`data-field="tags" style="position:absolute;left:0;top:${Math.round((174 - tr.place.zone.col.y) * 10) / 10}px;width:480px;height:24px;display:flex;gap:8px`));
+  assert.match(html, new RegExp(`data-field="tags" style="position:absolute;left:0px;top:${Math.round((174 - tr.place.zone.col.y) * 10) / 10}px;width:480px;height:24px;display:flex;gap:8px`));   // 10-16: left 는 px 단위(태그 칸 x)
   assert.match(html, /<b data-chip="1" style="display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:4px;font-size:12px;line-height:24px;font-weight:600/);
   assert.match(html, /data-object="1" style="position:absolute;left:\d+px;top:0px;width:\d+px;height:240px;/);
   assert.doesNotMatch(html, /data-logo|data-field="label"|data-field="date"/);
@@ -284,27 +284,28 @@ test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain
   assert.ok(!traceOf(renderAd(ctx, glass, specs['jasoseol-m-premium-popup-mo'])).rules.includes('templateMold.containGrad'));
 });
 
-test('구글GDN 틀(ABL생명 샘플, 사용자 결정 10-15) — 580 왼쪽 정렬 · 300×600 가운데 정렬 · 「모집분야」 칩 + 값 · 로고 흰 상자 + 보조 로고 · 970 날짜는 메인 옆 · 930 템플릿 태그 칩 + 하단 띠', () => {
+test('구글GDN 틀(템플릿 64:1041·993·1090·1139, 사용자 결정 10-16 「구글 GDN 이거로 · 로고 누끼 · 폰트 카카오」) — 580 서브 M16 y68·메인 EB42 y95 2줄 행간 53·날짜 M22 y206·평문 태그 2×2·로고 우측 칸·띠 41 · 970 메인 1줄 · 300 가운데 정렬 Bold 42 행간 56 · 930 태그 + 띠 31', () => {
   const h580 = renderAd(ctx, glass, specs['google-gdn-580x400']); const t580 = traceOf(h580);
   assert.equal(t580.mode, 'templateMold');
-  assert.deepEqual([t580.mold.rows.sub.y, t580.mold.rows.sub.px, t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.weight], [59, 20, 87, 37, 800]);
-  assert.ok(t580.rules.includes('templateMold.chipLabel') && t580.rules.includes('templateMold.logoBox') && !t580.rules.includes('templateMold.logo2'), t580.rules.join(','));   // 보조 로고는 보조 자산(style.logo2)이 있을 때만(10-15 밤)
-  assert.match(h580, /data-field="chip" data-chip="1" style="position:absolute;left:-1px;top:[\d.]+px;width:87px;height:29px;[^"]*border-radius:83px;background:#FFFFFF;color:#[0-9A-Fa-f]{6};font-size:19px;line-height:29px;font-weight:700/, '모집분야 칩 (34,223) 87×29');
-  assert.match(h580, /data-field="detail"[^>]*style="position:absolute;left:92px;[^"]*width:440px;font-size:20px;[^"]*font-weight:600/, '값 (127,226) 440 SemiBold 20 — 상자 344 는 짧은 문구 기준, 10-15 저녁 440 으로 넓힘');
-  assert.doesNotMatch(h580, /data-field="detail"[^>]*>[^<]*<div style="text-wrap:pretty"><div><b/, '칩이 있으면 상세 행에 라벨 없음');
-  assert.match(h580, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:15px;top:16px;width:81px;height:40px;[^"]*background:#FFFFFF;border-radius:8px/, '로고 흰 상자');
-  assert.doesNotMatch(h580, /data-logo-slot="2"/, '보조 자산 없으면 보조 로고 칸 없음'); assert.match(renderAd(ctx, { ...glass, logo2: PNG }, specs['google-gdn-580x400']), /data-logo-slot="2" style="position:absolute;left:517px;top:23px;width:40px;height:13px/, '보조 자산이 있으면 반대쪽 보조 로고');
-  assert.match(h580, /data-field="date"[^>]*style="position:absolute;left:12px;[^"]*width:158px;font-size:20px;[^"]*font-weight:800/, '날짜 (47,183) ExtraBold 20 — 틀 x 35 기준 +12');
-  const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']);
-  assert.match(h970, /data-field="date"[^>]*style="position:absolute;left:388px;[^"]*width:190px;font-size:24px/, '970 날짜는 메인 오른쪽 (434,80)');
+  assert.deepEqual([t580.mold.rows.sub.y, t580.mold.rows.sub.px, t580.mold.rows.sub.weight, t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.date.y, t580.mold.rows.date.px], [68, 16, 500, 95, 42, 53, 800, 206, 22]);
+  assert.ok(t580.rules.includes('templateMold.font') && t580.rules.includes('templateMold.tagsPlain') && !t580.rules.includes('templateMold.logoBox') && !t580.rules.includes('templateMold.chipLabel'), t580.rules.join(','));
+  assert.match(h580, /font-family:'Kakao Big Sans'/, '글꼴 Kakao Big Sans(사용자 「폰트는 카카오로」)');
+  assert.match(h580, /data-logo-slot="1" style="position:absolute;left:442px;top:20px;width:118px;height:31px;[^"]*justify-content:flex-end/, '로고 = 템플릿 우측 칸 (442,20) 118×31, 흰 상자 없음(누끼)');
+  assert.doesNotMatch(h580, /data-logo-box="1"/); assert.doesNotMatch(h580, /data-logo-slot="2"/, '보조 자산 없으면 좌측 로고 칸 비움');
+  assert.match(renderAd(ctx, { ...glass, logo2: PNG }, specs['google-gdn-580x400']), /data-logo-slot="2" style="position:absolute;left:34px;top:18px;width:118px;height:31px/, '보조 자산이 있으면 좌측 칸');
+  assert.match(h580, /data-field="tags" data-tags-plain="1" style="position:absolute;left:0px;[^"]*width:153px;height:56px;font-size:20px;line-height:28px;font-weight:500/, '태그 = 템플릿 칩 2×2 자리(37,289) 75×26 → 평문 2줄 행간 28');
+  assert.match(h580, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:41px/, '하단 띠 y359');
+  const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']); const t970 = traceOf(h970);
+  assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.date.y, t970.mold.rows.date.px], [39, 1, 134, 23]);
+  assert.match(h970, /data-logo-slot="1" style="position:absolute;left:841px;top:14px;width:101px;height:24px/, '970 로고 우측 칸');
   const h300 = renderAd(ctx, glass, specs['google-gdn-300x600']); const t300 = traceOf(h300);
   assert.equal(t300.place.zone.align, 'center');
-  assert.match(h300, /data-field="main"[^>]*style="position:absolute;left:37px;[^"]*width:178px;font-size:32px;line-height:39.9px;font-weight:800;[^"]*text-align:center/, '300×600 메인 (61,94) 178 가운데, 행간 124.7%');
-  assert.match(h300, /data-field="detail"[^>]*style="position:absolute;left:37px;[^"]*width:178px;font-size:17px;line-height:27.5px;font-weight:500;[^"]*text-align:center/, '값 4줄 세로 가운데 Medium 17 행간 162% — 상자 81→178(메인 상자 폭, 10-15 밤)');
+  assert.match(h300, /data-field="main"[^>]*style="position:absolute;left:0px;[^"]*width:232px;font-size:42px;line-height:56px;font-weight:700;[^"]*text-align:center/, '300×600 메인 (34,101) 232 가운데 Bold 42, 2줄 행간 56(템플릿 상자 101/157)');
+  assert.match(h300, /data-logo-slot="1" style="position:absolute;left:188px;top:20px;width:91px;height:25px/, '300 로고 우측 칸');
   const h930 = renderAd(ctx, glass, specs['google-gdn-930x180']); const t930 = traceOf(h930);
   assert.equal(t930.mode, 'templateMold');
-  assert.match(h930, /data-field="tags"/, '930 태그 칩 행');
-  assert.match(h930, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:42px/, '930 하단 띠 42px(가이드 variants) 틀에서도 유지');
+  assert.match(h930, /data-field="tags" data-tags-plain="1"/, '930 태그 평문 행');
+  assert.match(h930, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:31px/, '930 하단 띠 31(템플릿 보이는 높이)');
 });
 
 test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 결정 10-15 밤 「NAP 기준 무조건 이거로 — 폰트 스타일부터 패딩까지」) — A2Z Bold 자간 -2% · 띠 320×50 메인 17/23.8 세로 가운데 · 320×100 메인 19/22.8 2줄 + 날짜 알약 24 · 300×250 메인 27/32.4 + 알약 26 + 모집분야 라벨 줄 15/18 · 320×480 가운데 메인 38/45.6 + 알약 + 모집분야 20/27 · PC 970/728 은 공식 템플릿 그대로 · 비즈보드는 틀 없음', () => {

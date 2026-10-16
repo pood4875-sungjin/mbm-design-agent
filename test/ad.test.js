@@ -94,10 +94,11 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자(6자까지) · 7자 이상 낱말은 U+200B 줄바꿈 자리(10-14 t1014 — 좁은 칸에서 낱말 속이 끊기지 않게)
   assert.match(html, /data-field="main"[^>]*>신입\/[\u2060\u200B]?경력사원 채용</);
   // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 구글은 시즌이 메인 첫머리 — 적지 않았으면 마감일에서 유추한 시즌(10-06 "정보 없는 건 임의로 넣어야지")
-  const free = renderAd(long, style, specs['google-gdn-300x600']);   // 10-15 저녁: 구글은 ABL 틀 — 메인 5줄 칸(178px), 회사 / 시즌 채용구분
-  assert.match(free, /data-field="main"[^>]*>한진정보통신<br\/>2026 하반기 신입\/[\u2060\u200B]?경력사원 채용</);
-  // 구글 가이드: 아이브로는 슬로건 — 안 적어 줬으면 회사명을 넣은 기본 아이브로(세로형이 얇아 비어 보이지 않게)
-  assert.match(free, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
+  const free = renderAd(long, style, specs['google-gdn-300x600']);   // 10-16: 구글 300×600 은 템플릿 64:1090 틀 — 메인 2줄 칸(232px, Bold 42), 서브 칸 1줄 223px(안 들어가면 비움)
+  assert.match(free, /data-field="main"[^>]*>[^<]+(<br\/>[^<]+)?</, '메인 ≤2줄'); assert.doesNotMatch(free, /data-field="main"[^>]*>[^<]*<br\/>[^<]*<br\/>/);
+  assert.match(free, /data-field="main"[^>]*>[^<]*채용/);
+  // 서브 칸(1줄 223px)에 기본 아이브로가 안 들어가면 비운다(mold.subOptional) — 잘린 채 그리지 않는다
+  assert.doesNotMatch(free, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다<\/div>\n<div data-field="main"[^>]*max-height:1/);
   // 직무는 상세 줄에 간다 — 상세 칸이 있는 매체(자소설 M팝업 상세문구 22자×3줄)에서
   const popup = renderAd(long, style, specs['jasoseol-m-premium-popup-mo']);
   assert.match(popup, /모집직무 :<\/b> 클라우드 플랫폼 엔지니어/);   // 10-15 틀(M팝업): 「라벨 :」 굵게 + 값
@@ -148,14 +149,12 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
 test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
   // 그림이 있을 때 로고는 작게 위에 뜬다. (그림이 없으면 로고가 오브젝트 자리로 간다 — 아래 별도 테스트)
   const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } };
-  const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);   // 10-15 저녁: 구글 300 세로형은 ABL 틀 — 가운데 정렬, 로고 흰 상자 (45.6,21)
+  const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);   // 10-16: 구글 300 세로형은 템플릿 64:1090 틀 — 가운데 정렬, 로고 우측 칸 (188,20) 누끼 그대로
   assert.match(tallHtml, /data-field="main"[^>]*text-align:center/);
-  assert.match(tallHtml, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:46px;top:21px/, '세로형 로고는 틀 상자(ABL)');
-  // 메인은 시즌 + 회사 + 채용구분(시즌은 마감일에서 유추). 아이브로는 기본 문구
-  assert.match(tallHtml, /data-field="sub"[^>]*>한진정보통신에서 함께할 인재를 찾습니다</);
-  assert.match(tallHtml, /data-field="main"[^>]*>한진정보통신<br\/>2026 하반기 정규직 채용</, '틀: 회사 / 시즌 채용구분');
+  assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;left:188px;top:20px;width:91px;height:25px/, '세로형 로고 = 템플릿 우측 칸(흰 상자 없음)');
+  assert.match(tallHtml, /data-field="main"[^>]*>[^<]*정규직 채용</, '메인에 채용구분'); assert.doesNotMatch(tallHtml, /data-field="main"[^>]*>[^<]*<br\/>[^<]*<br\/>/, '메인 ≤2줄');
   const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
-  assert.match(tower, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:46px;top:32px/, '세로 띠 로고도 틀 상자(ABL 300×1050)');
+  assert.match(tower, /data-logo-slot="1" style="position:absolute;left:212px;top:38px/, '세로 띠 로고 = 우측 작은 칸(ABL logo2 자리), 흰 상자 없음(10-16)');
   // 세로 띠도 구글은 회사가 메인에 남는다(일화 "㈜일화 / 신입/경력 / 사원 모집")
   assert.match(tower, /data-field="main"[^>]*>(2026 하반기(<br\/>| ))?한진정보통신/);
   const wideHtml = renderAd(ctx, withLogo, specs['remember-main-top-pc']);
@@ -163,7 +162,7 @@ test('every shape is left-aligned like the references; the logo floats top-right
   assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스(리멤버)에는 로고가 없다 — 매체가 요구할 때만');
   // 구글 GDN은 규정이 없는 대신 보드 가이드가 로고 자리를 정한다 — 가로형에도 우상단(970 예시 7/7, 템플릿 로고 상자 118×31)
   const gdnWide = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
-  assert.match(gdnWide, /data-logo-slot="1" data-logo-box="1" style="position:absolute;left:686px;top:16px/, '구글 가로형 로고 = ABL 틀 상자 (685.7,16)');
+  assert.match(gdnWide, /data-logo-slot="1" style="position:absolute;left:841px;top:14px;width:101px;height:24px/, '구글 가로형 로고 = 템플릿 64:993 우측 칸 (841,14)');
 });
 
 test('wide formats follow the references: company and job on two lines where the medium gives two main rows', () => {
