@@ -1259,6 +1259,7 @@ function slotStyle() {
   renderSuggests();
   renderDpi();
   bindUpload($('kvThumb'), $('kvFile'), async d => {
+    it.kvOrig = d;   // 원본(전달물용, 10-16)
     d = await prepKv(d);
     it.kv = d;
     $('kvHint').textContent = '분석 중…';
@@ -1279,6 +1280,7 @@ function slotStyle() {
   });
   bindUpload($('logoThumb'), $('logoFile'), async d => {
     // 흰 배경 위 로고면 누끼를 따서 쓴다 — 배경 네모가 소재에 뜨지 않게. 밝기(logoTone) 판정도 따낸 뒤에 해야 맞다
+    it.logoOrig = d;   // 원본(전달물용, 10-16)
     const prepped = await prepLogo(d);
     d = prepped.dataUrl;
     it.logo = d;
@@ -1602,6 +1604,7 @@ function buildAndGenerate() {
   ctx = updateContext(ctx, { channelFields: extraPatch });
   const style = normalizeStyle({
     keyVisual: it.kv,
+    kvOrig: it.kvOrig ?? null, logoOrig: it.logoOrig ?? null,   // 전달물은 원본 파일 그대로(10-16)
     kvReadability: it.kvReadability,
     kvMeta: it.kvMeta,
     logo: it.logo,
@@ -2098,6 +2101,7 @@ function renderInspector() {
         logoLight: c.style.logoLight ?? null,
         logoTone: c.style.logoTone ?? null,
         logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
+        logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
         object: c.style.object ?? null,
         objectMeta: c.style.objectMeta ?? null,
         mode: c.style.mode,
@@ -2183,7 +2187,7 @@ function renderInspector() {
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(kv)); } catch {}
         // 로고가 있으면 주색은 로고가 맡고 키비주얼은 보조·포인트만 바꾼다 — 이미지를 갈았다고 브랜드 색이 바뀌면 안 된다
         const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, mode: c.style.mode, kvColors: suggests });
-        restyle({ keyVisual: kv, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
+        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
         toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
       };
@@ -2225,7 +2229,7 @@ function renderInspector() {
             // 흰색 로고만이면 지면이 어두워진다(brand-dark-logo). 원색이면 흰색 로고가 있을 때 both
             tonePatch = { logoMeta, ...(tone === 'light' ? { logoTone: 'light', ...(c.style.logoLight ? {} : { logoLight: src }) } : { logoTone: c.style.logoLight ? 'both' : 'dark' }) };
           } else tonePatch = { logoTone: c.style.logoTone === 'light' ? 'light' : 'both' };
-          restyle({ [key]: src, ...monoPatch, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
+          restyle({ [key]: src, ...(key === 'logo' ? { logoOrig: r.result } : {}), ...monoPatch, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
           renderInspector();
           toast(roles ? `${label} — 주색 ${roles[0]}` : label);
         };
@@ -2556,7 +2560,7 @@ function addArtifactModal() {
 // 전달물 파일 — 로고는 손질된 투명 PNG(style.logo), 이미지는 올린 키비주얼 원본. 없으면 null
 function assetFileOf(a) {
   const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item;
-  const src = item === '로고' ? c.style.logo : c.style.keyVisual; if (!src || !/^data:/.test(src)) return null;
+  const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;   // 원본 우선 — 손질(누끼·트림)본이 아니라 올린 파일 그대로(AI 원본은 업로드 불가라 PNG/SVG 만)
   const m = src.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null;
   const ext = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' })[m[1]] ?? 'png';
   const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const data = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);

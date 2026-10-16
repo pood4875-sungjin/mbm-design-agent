@@ -66,6 +66,9 @@ export function normalizeStyle(input = {}) {
     ...Object.fromEntries(PRESET_KEYS.filter(k => input[k] && input[k] !== 'auto' && PRESETS[k].choices[input[k]]).map(k => [k, input[k]])),
     logoMono: input.logoMono ?? null,     // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
+    // 올린 원본(손질 전) — 전달물(자소설 M시작배너 로고 500px↑·이미지 720px↑)은 손질본이 아니라 원본 파일을 그대로 넘긴다(10-16). 손질본과 같으면 비워 둔다
+    logoOrig: typeof input.logoOrig === 'string' && input.logoOrig !== input.logo ? input.logoOrig : null,
+    kvOrig: typeof input.kvOrig === 'string' && input.kvOrig !== input.keyVisual ? input.kvOrig : null,
     // 올린 로고의 밝기 — 'light'(흰색 로고만: 지면은 어두운 브랜드색이어야 한다) · 'dark'(원색/진한 로고만) · 'both'(둘 다). 앱이 업로드 때 잰다
     logoTone: ['light', 'dark', 'both'].includes(input.logoTone) ? input.logoTone : null,
     // 로고 실측(core/logo.js logoMeta) — px(원본 크기)·solid(트림 상자 안 불투명 몫: 타일 로고 ≥ 0.85)·lum·sat·colors(대표색 3 + 몫 — 지면과 같은 색이면 단색, 10-12). 렌더러가 세로 로고 크기·타일 로고 반전 여부를 정한다
