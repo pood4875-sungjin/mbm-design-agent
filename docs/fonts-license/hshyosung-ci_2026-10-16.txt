@@ -1,0 +1,346 @@
+출처: https://www.hshyosung.com/kr/about/ci  (headless Chrome 본문 덤프, 2026-10-16)
+폰트 zip: /resources/front/font/HS_HYOSUNG_WEBFONT.zip · /resources/front/font/HS_HYOUSNG_DESKTOP.zip (zip 안에 라이선스 파일 없음)
+라이선스 가이드 PDF: https://www.hshyosung.com/resources/front/ebook/kr/HS_HYOSUNG_LICENSE_GUIDE_KR.pdf (4쪽, 2026-10-07 발행) — 본문을 아래 2부에 붙임
+폰트 name 테이블: [0] HS Hyosung is a registered trademark of HS Hyosung Co., Ltd. · [8] Sandolltium Inc. · [9] Kwon kyoungseok · [13] HS Hyosung Co., Ltd. · [14] https://www.hshyosung.com/ · OS/2 fsType=4(미리보기·인쇄 임베딩만) · OFL 문구 없음
+
+════ 1부. CI 페이지 본문 ════
+
+CI 소개 | HS효성 소개 | HS효성
+HS HYOSUNG
+HS효성 소개
+CEO 인사말
+연혁
+비전/핵심가치
+CI 소개
+윤리경영
+사업 소개
+첨단소재 부문
+에너지솔루션 부문
+AI/데이터 솔루션 부문
+SCM 솔루션 부문
+Mobility 부문
+미디어
+보도자료
+미디어 허브
+투자정보
+-->
+투자정보
+기업지배구조
+-->
+기업지배구조
+재무정보
+-->
+재무정보 삭제 -->
+주주정보
+공시
+공고
+IR 자료
+인재채용
+인재상
+인사제도
+직무소개
+인재육성
+언어-영어
+전체메뉴
+전체메뉴
+HS효성 소개
+CEO 인사말
+연혁
+비전/핵심가치
+CI 소개
+윤리경영
+사업 소개
+첨단소재 부문
+에너지솔루션 부문
+AI/데이터 솔루션 부문
+SCM 솔루션 부문
+Mobility 부문
+미디어
+보도자료
+미디어 허브
+투자정보
+기업지배구조
+기업지배구조 헌장
+-->
+이사회 구성 및 운영 현황
+이사회 내 위원회
+감사기구 현황
+재무정보
+-->
+재무정보 삭제 -->
+주주정보
+공시
+공시자료(DART)
+공시정보관리규정
+공고
+IR 자료
+인재채용
+인재상
+인사제도
+직무소개
+인재육성
+ETC
+법적고지
+개인정보처리방침
+개인정보처리방침
+개인정보처리방침 전문
+제보센터
+제보센터
+실명으로 제보하기
+익명으로 제보하기
+익명제보 조치내용 확인
+HS효성 소개
+CEO 인사말
+연혁
+비전/핵심가치
+CI 소개
+윤리경영
+사업 소개
+첨단소재 부문
+에너지솔루션 부문
+AI/데이터 솔루션 부문
+SCM 솔루션 부문
+Mobility 부문
+미디어
+보도자료
+미디어 허브
+투자정보
+기업지배구조
+기업지배구조 헌장
+-->
+이사회 구성 및 운영 현황
+이사회 내 위원회
+감사기구 현황
+재무정보
+-->
+재무정보 삭제 -->
+주주정보
+공시
+공시자료(DART)
+공시정보관리규정
+공고
+IR 자료
+인재채용
+인재상
+인사제도
+직무소개
+인재육성
+ETC
+법적고지
+개인정보처리방침
+개인정보처리방침
+개인정보처리방침 전문
+제보센터
+제보센터
+실명으로 제보하기
+익명으로 제보하기
+익명제보 조치내용 확인
+HOME
+HS효성 소개
+CI 소개
+CEO 인사말
+연혁
+비전/핵심가치
+CI 소개
+윤리경영
+CI 소개
+'함께 만들어 가는
+가치경영
+'
+CONCEPT
+HS효성의 Leading Star, Value Tree
+HS효성의 심볼인
+‘MASTERIA’
+는 ‘근원・나무(숲)’을 뜻하는 ‘Materia’와 별의 여신을 뜻하는 ‘Aster(별)’의 라틴어를 블렌딩 하였으며 ‘Master, Material’ 등으로 해석되기도 합니다.
+HS효성의 로고는 ‘새벽별’이라는 효성의 이름과 함께 해오며 늘 세상과 우리 삶을 가치 있는 방향으로 이끄는 ‘별’과 깨끗한 공기, 시원한 그늘 등 여러 가치를 만들며 강인한 생명력과
+성장을 통해 건강한 미래를 상징하는
+‘나무’
+에서 영감을 얻었습니다.
+세상을 이롭게 하고 인류에게 무한한 가능성과 가치를 제공하는
+‘Leading Star, Value Tree’
+로서 HS효성의 비전을 담고 있습니다.
+Full Color
+Duo Color
+Single Color
+Single Color
+HS효성이 새롭게 선보이는 로고는 그룹 창업자의 비전과 효성(새벽별) 사명에 담긴 깊은 뜻에서 영감을 얻었습니다.
+국가의 발전에 기여하고 세계 인류를 풍요롭게 하는 ‘Leading Star’로서 HS효성의 본질적 사명을 표현하고 있습니다. 인류의 보다 나은 삶과 미래를 선도한다는 우리의 사명은 변함없이 계속됩니다.
+COLOR
+HS Blue
+최고, 혁신, 지성
+PANTONE
+2738C
+RGB
+6 / 3 / 141
+CMYK
+100 / 91 / 0 / 13
+HEX
+#06038D
+HS Green
+책임, 신뢰, 존중, 협력
+PANTONE
+802C
+RGB
+0 / 230 / 0
+CMYK
+65 / 0 / 100 / 0
+HEX
+#00E600
+HS Orange
+긍지, 열정, 행복
+PANTONE
+151C
+RGB
+255 / 127 / 11
+CMYK
+0 / 54 / 100 / 0
+HEX
+#FF7F0B
+TYPEFACE
+HS HYOSUNG
+가치 또 같이
+HS효성체는 원과 직선을 기반으로 설계한 기하학적 산세리프 서체입니다.
+균일한 획은 진취적 기상과 안정감을, 정돈된 비례는 신뢰감을, 부드럽게 다듬은 모서리는 친근함을 표현합니다. 한글 11,172자, 라틴·숫자·기호 95자를 지원합니다.
+HS HYOSUNG Light
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+1234567890~!@#$%^&*()_+
+HS HYOSUNG Medium
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+1234567890~!@#$%^&*()_+
+HS HYOSUNG Bold
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+1234567890~!@#$%^&*()_+
+HS HYOSUNG Light
+사람들을 포용하고 함께 성장하며
+모두를 위한 삶을 풍요롭게 한다
+1234567890~!@#$%^&*()_+
+HS HYOSUNG Medium
+사람들을 포용하고 함께 성장하며
+모두를 위한 삶을 풍요롭게 한다
+1234567890~!@#$%^&*()_+
+HS HYOSUNG Bold
+사람들을 포용하고 함께 성장하며
+모두를 위한 삶을 풍요롭게 한다
+1234567890~!@#$%^&*()_+
+개인 및 기업의 상업적·비상업적 용도로 사용 가능합니다.
+아래 파일을 내려받아 사용하시기 바랍니다. 사용 전 라이선스 범위를 확인해 주시기 바랍니다.
+Desktop
+TTF · OTF
+구성
+Light / Medium / Bold
+용도
+문서, 인쇄물, 디자인 작업
+다운로드
+download
+Web Font
+WOFF2 · WOFF
+구성
+Light / Medium / Bold
+용도
+웹사이트 구현
+다운로드
+download
+License Guide
+PDF
+내용
+사용 범위 및 유의사항
+문의
+ham59@hshyosung.com
+다운로드
+download
+허용 범위
+인쇄물:
+도서, 잡지, 브로슈어, 제품 패키지, 명함 등
+디지털 콘텐츠:
+영상 자막, 블로그, 웹사이트 배너, SNS 카드뉴스 등
+웹폰트:
+웹사이트 서버 등록 및 화면 표시
+금지 범위
+서체 파일의 원본 또는 변형본 판매
+서체 수정 및 타 명칭으로의 재배포
+도박·음란물·불법 행위 홍보 등 유해 콘텐츠에의 사용
+서체를 활용한 로고(CI·BI) 제작 및 상표 등록
+※ 모바일 앱, 기기, 게임 등에 서체 파일을 내장하는 경우 브랜드팀과 사전 협의가 필요합니다.
+※ 서체 다운로드 시 라이선스에 동의한 것으로 간주합니다.
+HS HYOSUNG
+법적고지
+개인정보처리방침
+제보센터
+familySite
+Family Site
+HS효성첨단소재
+에어백(GST)
+HS효성인포메이션시스템
+HS효성더클래스
+HS효성토요타
+HS효성더프리미엄
+HS효성프리미어모터스
+HS효성오토웍스
+Family Site
+HS효성첨단소재
+에어백(GST)
+HS효성인포메이션시스템
+HS효성더클래스
+HS효성토요타
+HS효성더프리미엄
+HS효성프리미어모터스
+HS효성오토웍스
+SNS
+Instagram
+Youtube
+Naver blog
+Linkedin
+Facebook
+WEB AWARD
+WEB AWARD 24 WINNER
+(04144) 서울특별시 마포구 마포대로 119(공덕동)
+Tel : 02-707-6800
+COPYRIGHT@ 2024 HS HYOSUNG Corporation
+ALL RIGHTS RESERVED.
+go top
+
+════ 2부. HS_HYOSUNG_LICENSE_GUIDE_KR.pdf 본문(pdftotext) ════
+
+T YPEFACE GUIDE  2026. 10. 7 RELEASED
+HS HYOSUNG  서체 사용 가이드
+서체 소개  ABOUT
+HS효성체는 원과 직선을 기반으로 설계한 기하학적 산세리프입니다.
+균일한 획은 진취적 기상과 안정감을, 정돈된 비례는 신뢰감을, 부드럽게 다듬은 모서리는 친근함을 표현합니다.
+Light  Medium  Bold
+  가치 또 같이  가치 또 같이  가치 또 같이
+사람들을 포용하고 함께 성장하며  사람들을 포용하고 함께 성장하며  사람들을 포용하고 함께 성장하며
+모두를 위한 삶을 풍요롭게 한다  모두를 위한 삶을 풍요롭게 한다  모두를 위한 삶을 풍요롭게 한다
+1234567890~!@#$%^&*()_+  1234567890~!@#$%^&*()_+  1234567890~!@#$%^&*()_+
+HS HYOSUNG Typeface Guide
+사용 원칙  TERMS OF USE
+01  02
+권리와 제공  사용 시 권장 사항
+HS HYOSUNG 서체(Light, Medium, Bold)에 관한 모든 지식재산권은 ㈜HS효성에 있습니다.  서체 본래의 형태 그대로 사용하는 것을 권장합니다. 변형이 필요한 경우 서체의 조형적 특성이
+개인과 기업 누구나 별도 비용 없이 상업적·비상업적 목적으로 사용할 수 있습니다.  유지되는 범위에서 활용해 주시기 바랍니다.
+  상품 등에 사용할 때는 서체 정보를 함께 표기해 주시면 감사하겠습니다.
+  표기 예시 | 본 콘텐츠에는 ㈜HS효성의 HS HYOSUNG 서체가 사용되었습니다.
+03  04
+제한 사항  사전 협의 및 문의
+서체 파일(TTF·OTF·WOFF·WOFF2)은 원본이든 변형본이든 판매할 수 없으며, 수정 후  모바일 앱, 기기, 게임 등 소프트웨어에 서체 파일을 내장하려면 사전 협의가 필요합니다.
+다른 이름으로 배포할 수 없습니다.  사용 범위에 관한 문의는 아래로 연락해 주시기 바랍니다.
+서체를 활용해 로고(CI·BI)를 제작하거나 상표로 등록할 수 없으며, 도박·음란물·불법 행위 홍보 등
+  문의 | ham59@hshyosung.com
+유해 콘텐츠에 사용할 수 없습니다.
+HS HYOSUNG Typeface Guide
+사용 범위  USAGE SCOPE
+  사용 가능  사전 협의  사용 불가
+  별도 절차 없이 사용  협의 후 사용  어떤 경우에도 제한
+  인쇄·출판  소프트웨어 임베딩  서체 판매·재배포
+  명함, 브로슈어, 포스터, 간판, 현수막, 도서, 잡지 등  모바일 앱, 기기, 게임 등에 서체 파일 내장  서체 파일의 판매, 수정 후 타 명칭 배포
+  광고  로고·상표
+  온·오프라인 광고물, 웹 배너, SNS 카드뉴스 등  회사명, 브랜드명, 로고, 마크 등 CI·BI 제작 및 상표 등록
+  상품  유해 콘텐츠
+  패키지, 포장재 등  도박, 음란물, 불법 행위 홍보 등
+  영상
+  자막, 썸네일, 교육·강의 콘텐츠 등
+  웹폰트·문서
+  웹사이트 화면 표시, 문서, 프레젠테이션 등
+HS HYOSUNG Typeface Guide
