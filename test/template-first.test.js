@@ -308,12 +308,12 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
   assert.doesNotMatch(h930, /data-band="1"/);
 });
 
-test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 결정 10-15 밤 「NAP 기준 무조건 이거로 — 폰트 스타일부터 패딩까지」) — A2Z Bold 자간 -2% · 띠 320×50 메인 17/23.8 세로 가운데 · 320×100 메인 19/22.8 2줄 + 날짜 알약 24 · 300×250 메인 27/32.4 + 알약 26 + 모집분야 라벨 줄 15/18 · 320×480 가운데 메인 38/45.6 + 알약 + 모집분야 20/27 · PC 970/728 은 공식 템플릿 그대로 · 비즈보드는 틀 없음', () => {
+test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 결정 10-15 밤 「NAP 기준 무조건 이거로 — 폰트 스타일부터 패딩까지」, 글꼴은 10-16 기본 카카오빅) — Bold 자간 -2% · 띠 320×50 메인 17/23.8 세로 가운데 · 320×100 메인 19/22.8 2줄 + 날짜 알약 24 · 300×250 메인 27/32.4 + 알약 26 + 모집분야 라벨 줄 15/18 · 320×480 가운데 메인 38/45.6 + 알약 + 모집분야 20/27 · PC 970/728 은 공식 템플릿 그대로 · 비즈보드는 틀 없음', () => {
   const h50 = renderAd(ctx, glass, specs['nap-dsp-band-320x50']); const t50 = traceOf(h50);
   assert.equal(t50.mode, 'templateMold'); assert.deepEqual([t50.mold.rows.main.px, t50.mold.rows.main.pitch, t50.mold.rows.main.weight], [17, 23.8, 700]);
-  assert.ok(t50.rules.includes('templateMold.vCenter') && t50.rules.includes('templateMold.font'), t50.rules.join(','));
+  assert.ok(t50.rules.includes('templateMold.vCenter') && !t50.rules.includes('templateMold.font'), t50.rules.join(','));   // 10-16: 틀 글꼴 없음 — 폰트 규정 없는 규격은 기본 카카오 빅산스(A2Z 는 샘플 서체일 뿐)
   assert.ok(Math.abs((t50.mold.rows.main.top + 23.8 / 2) - 25) <= 0.6, `띠 320×50 메인 줄 세로 가운데(줄 상자 중심 25) — top ${t50.mold.rows.main.top}`);
-  assert.match(h50, /data-text-col="1" style="[^"]*font-family:'A2Z'/, '틀 글꼴 에이투지체');
+  assert.doesNotMatch(h50, /font-family:'A2Z'/, '틀 글꼴 강제 없음 — 기본 카카오 빅산스(10-16)');
   assert.match(h50, /data-field="main"[^>]*letter-spacing:-0.02em/, '자간 -2%');
   assert.doesNotMatch(h50, /data-field="date"|data-field="detail"/, '320×50 은 메인만');
   const h100 = renderAd(ctx, glass, specs['nap-dsp-band-320x100']); const t100 = traceOf(h100);

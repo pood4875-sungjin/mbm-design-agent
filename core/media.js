@@ -5804,7 +5804,6 @@ export const MEDIA = [
             "frame": "320×50",
             "mold": {
               "measuredAt": "2026-10-15",
-              "font": "A2Z",
               "light": true,
               "color": "brand",
               "colorDark": "#FFFFFF",
@@ -5841,7 +5840,8 @@ export const MEDIA = [
                 "w": 98,
                 "h": 50,
                 "note": "샘플 그림 (245.5,10) 48×37 + 블러 잔상 (221~317) — 오른쪽 98px 띠"
-              }
+              },
+              "fontNote": "10-16 사용자: 폰트 규정 없는 규격은 전부 카카오 빅산스 — HS화성 샘플의 에이투지체는 샘플 서체일 뿐 틀로 쓰지 않는다(글자 크기·굵기·간격은 유지)"
             }
           }
         },
@@ -5970,7 +5970,6 @@ export const MEDIA = [
             "frame": "320×100",
             "mold": {
               "measuredAt": "2026-10-15",
-              "font": "A2Z",
               "light": true,
               "color": "brand",
               "colorDark": "#FFFFFF",
@@ -6020,7 +6019,8 @@ export const MEDIA = [
                 "w": 125,
                 "h": 90,
                 "note": "샘플 그림 (214.6,23.4) 87×67 + 블러 잔상(170~344) — 오른쪽 아래 칸"
-              }
+              },
+              "fontNote": "10-16 사용자: 폰트 규정 없는 규격은 전부 카카오 빅산스 — HS화성 샘플의 에이투지체는 샘플 서체일 뿐 틀로 쓰지 않는다(글자 크기·굵기·간격은 유지)"
             }
           }
         },
@@ -6154,7 +6154,6 @@ export const MEDIA = [
             "frame": "300×250",
             "mold": {
               "measuredAt": "2026-10-15",
-              "font": "A2Z",
               "light": true,
               "color": "brand",
               "colorDark": "#FFFFFF",
@@ -6222,7 +6221,8 @@ export const MEDIA = [
                 "w": 150,
                 "h": 133,
                 "note": "샘플 그림 (162.8,142.3) 127×98 + 블러 잔상(97~352) — 오른쪽 아래 칸(상세 글 131 오른쪽)"
-              }
+              },
+              "fontNote": "10-16 사용자: 폰트 규정 없는 규격은 전부 카카오 빅산스 — HS화성 샘플의 에이투지체는 샘플 서체일 뿐 틀로 쓰지 않는다(글자 크기·굵기·간격은 유지)"
             }
           }
         },
@@ -6381,7 +6381,6 @@ export const MEDIA = [
             "frame": "320×480",
             "mold": {
               "measuredAt": "2026-10-15",
-              "font": "A2Z",
               "light": true,
               "color": "brand",
               "colorDark": "#FFFFFF",
@@ -6450,7 +6449,8 @@ export const MEDIA = [
                 "w": 320,
                 "h": 180,
                 "note": "샘플 그림 (57.3,308.6) 197×152 하단 + 전폭 사선 띠 y268~480(미구현) — 상세 3행(~323)과 살짝 겹칠 수 있음(확인 필요)"
-              }
+              },
+              "fontNote": "10-16 사용자: 폰트 규정 없는 규격은 전부 카카오 빅산스 — HS화성 샘플의 에이투지체는 샘플 서체일 뿐 틀로 쓰지 않는다(글자 크기·굵기·간격은 유지)"
             }
           }
         },
