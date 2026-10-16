@@ -8,13 +8,13 @@ import { checklist8, ITEMS } from '../core/checklist8.js';
 
 // 추출 47규격 — 사용자 「컨시어지」 보드 목록(core/media/_extract.json). 매체마다 수가 정해져 있고 그 밖은 참고 규격이다.
 
-const COUNTS = { jasoseol: 11, remember: 8, jobda: 2, catch: 2, 'google-gdn': 4, 'nap-dsp': 4, instagram: 1, kakao: 3, 'naver-gfa': 3, everytime: 8, blind: 3, daangn: 1 };
+const COUNTS = { jasoseol: 11, remember: 8, jobda: 2, catch: 3, 'google-gdn': 4, 'nap-dsp': 4, instagram: 1, kakao: 3, 'naver-gfa': 3, everytime: 8, blind: 3, daangn: 1 };
 const ORDER = ['jasoseol', 'remember', 'jobda', 'catch', 'google-gdn', 'nap-dsp', 'instagram', 'kakao', 'naver-gfa', 'everytime', 'blind', 'daangn'];
 
-test('exactly 50 specs are extract:true, with the per-medium counts from the board (10-16: 자소설 11 = 8 + M시작배너 전달물 2 + PC달력)', () => {
+test('exactly 51 specs are extract:true, with the per-medium counts from the board (10-16: 자소설 11 · 캐치 3 = 중앙배너 PC·MO 이미지 + MO 로고)', () => {
   const all = MEDIA.flatMap(m => (m.specs ?? []).map(s => ({ ...s, medium: m.id })));
   const ex = all.filter(s => s.extract === true);
-  assert.equal(ex.length, 50, `추출 규격은 50이어야 한다 (지금 ${ex.length})`);
+  assert.equal(ex.length, 51, `추출 규격은 51이어야 한다 (지금 ${ex.length})`);
   for (const [mid, n] of Object.entries(COUNTS)) assert.equal(ex.filter(s => s.medium === mid).length, n, `${mid}: 추출 ${n}개여야 한다`);
   for (const s of all) assert.equal(typeof s.extract, 'boolean', `${s.id}: extract 는 true/false 여야 한다`);
   // 생성 파일의 EXTRACT 와 원본 _extract.json 이 같다

@@ -359,245 +359,256 @@
       "note": "글자수 Figma↔PDF 불일치"
     },
     {
-      "id": "catch-center-object-pc",
-      "name": "중앙(메인 대형) 배너 오브젝트형 — PC 이미지(BG Img)",
-      "platform": "PC",
-      "w": 515,
-      "h": 315,
-      "exportScale": 1,
-      "format": [
-        "png"
-      ],
-      "maxKB": null,
-      "background": "[BG Img] 배경 투명 (누끼형 오브젝트) / 텍스트 X / 이미지만 O. 배경색은 [BG Hex Code] #6자리로 별도 전달 (예: PTKOREA #000000).",
-      "safeArea": {
-        "note": "완성 배너 캔버스 1068×315 중 이미지 영역 x553 515×315(우측). 하단 1068×60 '가려지는 영역 (비노출 영역)'. 텍스트 가이드(웹 폰트 렌더) x80 y52 572×115: 서브 타이틀 / 메인 타이틀 / 날짜 또는 키워드. PSD 텍스트 최대 영역 x79 (y52 574×16 / y89 574×38 / y150 574×18).",
-        "top": null,
-        "right": null,
-        "bottom": 60,
-        "left": null,
-        "canvas": {
-          "w": 1068,
-          "h": 315,
-          "source": "psd:PC_상품_중앙배너_BG.psd (레이어 'IMG_영역만 추출하여 사용') / figma:캐치01(소재 제작 규정) frame 423:8521"
+        "id": "catch-center-object-pc",
+        "name": "중앙(메인 대형) 배너 오브젝트형 — PC 이미지(BG Img)",
+        "platform": "PC",
+        "w": 515,
+        "h": 315,
+        "exportScale": 1,
+        "format": [
+          "png"
+        ],
+        "maxKB": null,
+        "background": "[BG Img] 배경 투명 (누끼형 오브젝트) / 텍스트 X / 이미지만 O. 배경색은 [BG Hex Code] #6자리로 별도 전달 (예: PTKOREA #000000).",
+        "safeArea": {
+          "note": "완성 배너 캔버스 1068×315 중 이미지 영역 x553 515×315(우측). 하단 1068×60 '가려지는 영역 (비노출 영역)'. 텍스트 가이드(웹 폰트 렌더) x80 y52 572×115: 서브 타이틀 / 메인 타이틀 / 날짜 또는 키워드. PSD 텍스트 최대 영역 x79 (y52 574×16 / y89 574×38 / y150 574×18).",
+          "top": null,
+          "right": null,
+          "bottom": 60,
+          "left": null,
+          "canvas": {
+            "w": 1068,
+            "h": 315,
+            "source": "psd:PC_상품_중앙배너_BG.psd (레이어 'IMG_영역만 추출하여 사용') / figma:캐치01(소재 제작 규정) frame 423:8521"
+          },
+          "imageArea": {
+            "x": 553,
+            "y": 0,
+            "w": 515,
+            "h": 315,
+            "source": "figma:캐치01(소재 제작 규정) 423:8522"
+          },
+          "hiddenArea": {
+            "x": 0,
+            "y": 255,
+            "w": 1068,
+            "h": 60,
+            "source": "figma:캐치01(소재 제작 규정) 423:8523·8524 '가려지는 영역 (비노출 영역)'"
+          },
+          "textArea": {
+            "x": 80,
+            "y": 52,
+            "w": 572,
+            "h": 115,
+            "source": "figma:캐치01(소재 제작 규정) frame 423:8526 Guide"
+          }
         },
-        "imageArea": {
-          "x": 553,
-          "y": 0,
-          "w": 515,
-          "h": 315,
-          "source": "figma:캐치01(소재 제작 규정) 423:8522"
+        "textLimits": [
+          {
+            "field": "서브 타이틀",
+            "maxChars": 19,
+            "lines": 1,
+            "required": null,
+            "original": "공백 포함 최대 20자 미만",
+            "note": "텍스트는 이미지에 넣지 않음 — 별도 전달, 웹 폰트 적용",
+            "source": "figma:캐치01(소재 제작 규정) text 423:8577·8530",
+            "confidence": "확정",
+            "inImage": false
+          },
+          {
+            "field": "메인 타이틀",
+            "maxChars": 16,
+            "lines": 1,
+            "required": null,
+            "original": "공백 포함 최대 17자 미만",
+            "note": "",
+            "source": "figma:캐치01(소재 제작 규정) text 423:8577·8531",
+            "confidence": "확정",
+            "inImage": false
+          },
+          {
+            "field": "날짜 + 키워드",
+            "maxChars": 29,
+            "lines": 1,
+            "required": null,
+            "original": "공백 포함 최대 30자 미만",
+            "note": "",
+            "source": "figma:캐치01(소재 제작 규정) text 423:8577·8532",
+            "confidence": "확정",
+            "inImage": false
+          }
+        ],
+        "logo": {
+          "count": 0,
+          "w": null,
+          "h": null,
+          "note": "PC는 로고 별도 전달 없음 ('로고 이미지(MO)')"
         },
-        "hiddenArea": {
-          "x": 0,
-          "y": 255,
-          "w": 1068,
-          "h": 60,
-          "source": "figma:캐치01(소재 제작 규정) 423:8523·8524 '가려지는 영역 (비노출 영역)'"
-        },
-        "textArea": {
-          "x": 80,
-          "y": 52,
-          "w": 572,
-          "h": 115,
-          "source": "figma:캐치01(소재 제작 규정) frame 423:8526 Guide"
-        }
+        "layoutNotes": [
+          "[중앙배너 공통] 텍스트 영역(웹 폰트 적용) / 이미지 영역 분리된 형태 (423:8575)",
+          "별도 전달: 텍스트 / 배경 Hex 코드 / 텍스트 없는 이미지 / 로고 이미지(MO) (423:8575)",
+          "텍스트 컬러: 배경 색상에 따라 흰색 또는 검은색 사용 (423:8575). PSD: 검정 #272727 / 흰색 #FFFFFF",
+          "캐치 PSD 가이드 양식으로 작업 (423:8575)",
+          "※ [중앙 대형 배너] '부분 이미지형'을 권장. 문구는 언제든 수정 가능. (423:8512)",
+          "2024.3.27 Updated (423:8518)"
+        ],
+        "examples": [
+          {
+            "client": "PTKOREA",
+            "w": 515,
+            "h": 315,
+            "source": "figma frame 423:8662 'PTKOREA/캐치/PC 중앙배너/BG Img'"
+          },
+          {
+            "client": "PTKOREA",
+            "w": 1068,
+            "h": 315,
+            "source": "figma frame 423:8536·8546·8556·8564 'PTKOREA/캐치/PC중앙배너' (합성 미리보기). 텍스트: 서브 'For Your Sustainable Growth' / 메인 'PTKOREA 2024 신입 공개채용' / 날짜 '4월 1일(월) - 4월 14일(일)' / BG #000000 (423:8578·8579)"
+          }
+        ],
+        "source": "figma:캐치01(소재 제작 규정) text 423:8575~8583, frame 423:8521·8682 / psd:PC_상품_중앙배너_BG.psd",
+        "confidence": "확인필요",
+        "note": "PDF 오브젝트형(250417)과 치수·글자수 불일치 — conflicts 참조. 제출 이미지는 515×315, 캔버스 1068×315는 미리보기용",
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 사용자: 글자는 캐치가 웹폰트로 올림 → 이미지에는 키비주얼만(투명 배경 누끼). 서브·메인·날짜/키워드와 배경 Hex 는 전달 시트"
       },
-      "textLimits": [
-        {
-          "field": "서브 타이틀",
-          "maxChars": 19,
-          "lines": 1,
-          "required": null,
-          "original": "공백 포함 최대 20자 미만",
-          "note": "텍스트는 이미지에 넣지 않음 — 별도 전달, 웹 폰트 적용",
-          "source": "figma:캐치01(소재 제작 규정) text 423:8577·8530",
-          "confidence": "확정"
-        },
-        {
-          "field": "메인 타이틀",
-          "maxChars": 16,
-          "lines": 1,
-          "required": null,
-          "original": "공백 포함 최대 17자 미만",
-          "note": "",
-          "source": "figma:캐치01(소재 제작 규정) text 423:8577·8531",
-          "confidence": "확정"
-        },
-        {
-          "field": "날짜 + 키워드",
-          "maxChars": 29,
-          "lines": 1,
-          "required": null,
-          "original": "공백 포함 최대 30자 미만",
-          "note": "",
-          "source": "figma:캐치01(소재 제작 규정) text 423:8577·8532",
-          "confidence": "확정"
-        }
-      ],
-      "logo": {
-        "count": 0,
-        "w": null,
-        "h": null,
-        "note": "PC는 로고 별도 전달 없음 ('로고 이미지(MO)')"
-      },
-      "layoutNotes": [
-        "[중앙배너 공통] 텍스트 영역(웹 폰트 적용) / 이미지 영역 분리된 형태 (423:8575)",
-        "별도 전달: 텍스트 / 배경 Hex 코드 / 텍스트 없는 이미지 / 로고 이미지(MO) (423:8575)",
-        "텍스트 컬러: 배경 색상에 따라 흰색 또는 검은색 사용 (423:8575). PSD: 검정 #272727 / 흰색 #FFFFFF",
-        "캐치 PSD 가이드 양식으로 작업 (423:8575)",
-        "※ [중앙 대형 배너] '부분 이미지형'을 권장. 문구는 언제든 수정 가능. (423:8512)",
-        "2024.3.27 Updated (423:8518)"
-      ],
-      "examples": [
-        {
-          "client": "PTKOREA",
-          "w": 515,
-          "h": 315,
-          "source": "figma frame 423:8662 'PTKOREA/캐치/PC 중앙배너/BG Img'"
-        },
-        {
-          "client": "PTKOREA",
-          "w": 1068,
-          "h": 315,
-          "source": "figma frame 423:8536·8546·8556·8564 'PTKOREA/캐치/PC중앙배너' (합성 미리보기). 텍스트: 서브 'For Your Sustainable Growth' / 메인 'PTKOREA 2024 신입 공개채용' / 날짜 '4월 1일(월) - 4월 14일(일)' / BG #000000 (423:8578·8579)"
-        }
-      ],
-      "source": "figma:캐치01(소재 제작 규정) text 423:8575~8583, frame 423:8521·8682 / psd:PC_상품_중앙배너_BG.psd",
-      "confidence": "확인필요",
-      "note": "PDF 오브젝트형(250417)과 치수·글자수 불일치 — conflicts 참조. 제출 이미지는 515×315, 캔버스 1068×315는 미리보기용"
-    },
     {
-      "id": "catch-center-object-mo",
-      "name": "중앙(메인 대형) 배너 — MO 이미지(BG Img)",
-      "platform": "MO",
-      "w": 622,
-      "h": 380,
-      "exportScale": 1,
-      "format": [
-        "png"
-      ],
-      "maxKB": null,
-      "background": "원문 그대로: '[BG Img] 622 x 380 (px) / PNG * 배경 투명 (누끼형 오브젝트) * 텍스트 X / 이미지만 O * 배경 컬러 포함' (423:8584). PSD M_상품_중앙배너_BG는 전면 BG 622×380.",
-      "safeArea": {
-        "note": "PSD @_가이드 텍스트 최대 영역: 서브 x40 y42 522×30 / 타이틀 x40 y99 462×98(2줄) / 날짜+키워드 x40 y229 408×63(2줄). 로고 원형 영역 x508 y183 164×162 — '가려지는 영역'(로고가 덮음). Figma 텍스트 Guide 423:8636 x41 y44 520×247. 좌하단 64×32 사각형(x41 y324, 용도 표기 없음).",
-        "top": null,
-        "right": null,
-        "bottom": null,
-        "left": null,
-        "textArea": {
-          "x": 40,
-          "y": 42,
-          "w": 522,
-          "h": 250,
-          "source": "psd:M_상품_중앙배너_BG.psd @_가이드"
+        "id": "catch-center-object-mo",
+        "name": "중앙(메인 대형) 배너 — MO 이미지(BG Img)",
+        "platform": "MO",
+        "w": 622,
+        "h": 380,
+        "exportScale": 1,
+        "format": [
+          "png"
+        ],
+        "maxKB": null,
+        "background": "배경 컬러 포함(이미지에 지면색을 깐다 — 가이드 「배경 컬러 포함」) · 누끼형 오브젝트 · 텍스트 X / 이미지만 O. 배경색 Hex 6자리도 별도 전달",
+        "safeArea": {
+          "note": "PSD @_가이드 텍스트 최대 영역: 서브 x40 y42 522×30 / 타이틀 x40 y99 462×98(2줄) / 날짜+키워드 x40 y229 408×63(2줄). 로고 원형 영역 x508 y183 164×162 — '가려지는 영역'(로고가 덮음). Figma 텍스트 Guide 423:8636 x41 y44 520×247. 좌하단 64×32 사각형(x41 y324, 용도 표기 없음).",
+          "top": null,
+          "right": null,
+          "bottom": null,
+          "left": null,
+          "textArea": {
+            "x": 40,
+            "y": 42,
+            "w": 522,
+            "h": 250,
+            "source": "psd:M_상품_중앙배너_BG.psd @_가이드"
+          },
+          "logoArea": {
+            "x": 510,
+            "y": 184,
+            "w": 160,
+            "h": 160,
+            "shape": "원형",
+            "source": "figma:캐치01(소재 제작 규정) frame 423:8627 Group 1 '로고 영역' / psd 타원 1"
+          }
         },
-        "logoArea": {
-          "x": 510,
-          "y": 184,
+        "textLimits": [
+          {
+            "field": "서브 타이틀",
+            "maxChars": 19,
+            "lines": 1,
+            "required": null,
+            "original": "공백 포함 최대 20자 미만",
+            "note": "",
+            "source": "figma:캐치01(소재 제작 규정) text 423:8580·8640",
+            "confidence": "확정",
+            "inImage": false
+          },
+          {
+            "field": "메인 타이틀",
+            "maxChars": 17,
+            "lines": 2,
+            "required": null,
+            "original": "최대 17자",
+            "note": "PC는 '17자 미만'(423:8577), MO는 '최대 17자'(423:8580). 2줄 배치(PSD 타이틀 박스 462×98, Figma 메인 타이틀 영역 2개)",
+            "source": "figma:캐치01(소재 제작 규정) text 423:8580·8641",
+            "confidence": "확인필요",
+            "inImage": false
+          },
+          {
+            "field": "날짜 + 키워드",
+            "maxChars": 29,
+            "lines": 2,
+            "required": null,
+            "original": "공백 포함 최대 30자 미만",
+            "note": "2줄 배치(Figma '날짜 또는 키워드 영역' 2개)",
+            "source": "figma:캐치01(소재 제작 규정) text 423:8580·8642",
+            "confidence": "확정",
+            "inImage": false
+          }
+        ],
+        "logo": {
+          "count": 1,
           "w": 160,
           "h": 160,
-          "shape": "원형",
-          "source": "figma:캐치01(소재 제작 규정) frame 423:8627 Group 1 '로고 영역' / psd 타원 1"
-        }
-      },
-      "textLimits": [
-        {
-          "field": "서브 타이틀",
-          "maxChars": 19,
-          "lines": 1,
-          "required": null,
-          "original": "공백 포함 최대 20자 미만",
-          "note": "",
-          "source": "figma:캐치01(소재 제작 규정) text 423:8580·8640",
-          "confidence": "확정"
+          "note": "별도 파일 catch-center-logo-mo (160×160 PNG)로 전달, 우하단 원형 영역에 합성"
         },
-        {
-          "field": "메인 타이틀",
-          "maxChars": 17,
-          "lines": 2,
-          "required": null,
-          "original": "최대 17자",
-          "note": "PC는 '17자 미만'(423:8577), MO는 '최대 17자'(423:8580). 2줄 배치(PSD 타이틀 박스 462×98, Figma 메인 타이틀 영역 2개)",
-          "source": "figma:캐치01(소재 제작 규정) text 423:8580·8641",
-          "confidence": "확인필요"
-        },
-        {
-          "field": "날짜 + 키워드",
-          "maxChars": 29,
-          "lines": 2,
-          "required": null,
-          "original": "공백 포함 최대 30자 미만",
-          "note": "2줄 배치(Figma '날짜 또는 키워드 영역' 2개)",
-          "source": "figma:캐치01(소재 제작 규정) text 423:8580·8642",
-          "confidence": "확정"
-        }
-      ],
-      "logo": {
-        "count": 1,
-        "w": 160,
-        "h": 160,
-        "note": "별도 파일 catch-center-logo-mo (160×160 PNG)로 전달, 우하단 원형 영역에 합성"
-      },
-      "layoutNotes": [
-        "텍스트 X — 텍스트는 별도 전달·웹 폰트 렌더 (423:8575·8584)",
-        "텍스트 컬러: 배경에 따라 흰색 또는 검은색 (PSD TEXT_W #FFFFFF / TEXT_B #272727)"
-      ],
-      "examples": [
-        {
-          "client": "PTKOREA",
-          "w": 622,
-          "h": 380,
-          "source": "figma frame 423:8621 (이름은 'PTKOREA/캐치/PC 중앙배너/BG Img'이나 622×380 MO BG)"
-        },
-        {
-          "client": "PTKOREA",
-          "w": 622,
-          "h": 380,
-          "source": "figma frame 423:8595·8608·8644 'PTKOREA/캐치/MO중앙배너' (합성 미리보기)"
-        }
-      ],
-      "source": "figma:캐치01(소재 제작 규정) text 423:8575·8580·8584, frame 423:8626·8695 / psd:M_상품_중앙배너_BG.psd",
-      "confidence": "확인필요",
-      "note": "'배경 투명'과 '배경 컬러 포함'이 한 노드에 같이 있음. PDF 오브젝트형 MO(702×428)와 불일치",
-      "sampleText": {
-        "measuredFromSamples": {
-          "n": 1,
-          "roles": {
-            "main": {
-              "share": 1.0,
-              "lines": 2,
-              "px": 40,
-              "weight": 700
-            },
-            "sub": {
-              "share": 1.0,
-              "lines": 1,
-              "px": 25,
-              "weight": 700
-            },
-            "date": {
-              "share": 1.0,
-              "lines": 1,
-              "px": 25,
-              "weight": 400
-            }
+        "layoutNotes": [
+          "텍스트 X — 텍스트는 별도 전달·웹 폰트 렌더 (423:8575·8584)",
+          "텍스트 컬러: 배경에 따라 흰색 또는 검은색 (PSD TEXT_W #FFFFFF / TEXT_B #272727)"
+        ],
+        "examples": [
+          {
+            "client": "PTKOREA",
+            "w": 622,
+            "h": 380,
+            "source": "figma frame 423:8621 (이름은 'PTKOREA/캐치/PC 중앙배너/BG Img'이나 622×380 MO BG)"
           },
-          "lineBudget": 4,
-          "kvArea": 0.396,
-          "kvBg": 0,
-          "logoShare": 0.0,
-          "padXr": 0.066,
-          "padTopr": 0.118,
-          "mainPxR": 0.0823,
-          "frameScale": 1,
-          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 423:8595 PTKOREA",
-          "measuredAt": "2026-10-12",
-          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
-          "confidence": "확인필요"
-        }
-      }
-    },
+          {
+            "client": "PTKOREA",
+            "w": 622,
+            "h": 380,
+            "source": "figma frame 423:8595·8608·8644 'PTKOREA/캐치/MO중앙배너' (합성 미리보기)"
+          }
+        ],
+        "source": "figma:캐치01(소재 제작 규정) text 423:8575·8580·8584, frame 423:8626·8695 / psd:M_상품_중앙배너_BG.psd",
+        "confidence": "확인필요",
+        "note": "'배경 투명'과 '배경 컬러 포함'이 한 노드에 같이 있음. PDF 오브젝트형 MO(702×428)와 불일치",
+        "sampleText": {
+          "measuredFromSamples": {
+            "n": 1,
+            "roles": {
+              "main": {
+                "share": 1.0,
+                "lines": 2,
+                "px": 40,
+                "weight": 700
+              },
+              "sub": {
+                "share": 1.0,
+                "lines": 1,
+                "px": 25,
+                "weight": 700
+              },
+              "date": {
+                "share": 1.0,
+                "lines": 1,
+                "px": 25,
+                "weight": 400
+              }
+            },
+            "lineBudget": 4,
+            "kvArea": 0.396,
+            "kvBg": 0,
+            "logoShare": 0.0,
+            "padXr": 0.066,
+            "padTopr": 0.118,
+            "mainPxR": 0.0823,
+            "frameScale": 1,
+            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 423:8595 PTKOREA",
+            "measuredAt": "2026-10-12",
+            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+            "confidence": "확인필요"
+          }
+        },
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 사용자: 글자는 캐치가 웹폰트로 올림 → 이미지에는 키비주얼 + 배경색(가이드 「배경 컬러 포함」). 글자·배경 Hex 는 전달 시트",
+        "backgroundNote": "원문엔 「배경 투명(누끼형 오브젝트)」도 적혀 있으나 「배경 컬러 포함」이 함께 있어 MO 는 배경색을 깐 PNG 로(PC 는 투명). 사용자 확인 10-16"
+      },
     {
       "id": "catch-center-logo-mo",
       "name": "중앙 배너 MO 로고",

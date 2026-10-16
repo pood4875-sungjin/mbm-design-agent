@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 15 · 규격 91(추출 50) · 확인필요 111 · 충돌 43 · 반려사례 12
+// 매체 15 · 규격 91(추출 51) · 확인필요 111 · 충돌 43 · 반려사례 12
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 0/24 프레임
 
@@ -3990,7 +3990,7 @@ export const MEDIA = [
         "confidence": "확정",
         "note": "예시화면 파일포멧 JPG 별도 전달 (414:415)",
         "frame": "rules",
-        "extract": true
+        "extract": false
       },
       {
         "id": "catch-mainlarge-image-mo",
@@ -4123,7 +4123,7 @@ export const MEDIA = [
         "confidence": "확인필요",
         "note": "글자수 Figma↔PDF 불일치",
         "frame": "rules",
-        "extract": true
+        "extract": false
       },
       {
         "id": "catch-center-object-pc",
@@ -4179,7 +4179,8 @@ export const MEDIA = [
             "original": "공백 포함 최대 20자 미만",
             "note": "텍스트는 이미지에 넣지 않음 — 별도 전달, 웹 폰트 적용",
             "source": "figma:캐치01(소재 제작 규정) text 423:8577·8530",
-            "confidence": "확정"
+            "confidence": "확정",
+            "inImage": false
           },
           {
             "field": "메인 타이틀",
@@ -4189,7 +4190,8 @@ export const MEDIA = [
             "original": "공백 포함 최대 17자 미만",
             "note": "",
             "source": "figma:캐치01(소재 제작 규정) text 423:8577·8531",
-            "confidence": "확정"
+            "confidence": "확정",
+            "inImage": false
           },
           {
             "field": "날짜 + 키워드",
@@ -4199,7 +4201,8 @@ export const MEDIA = [
             "original": "공백 포함 최대 30자 미만",
             "note": "",
             "source": "figma:캐치01(소재 제작 규정) text 423:8577·8532",
-            "confidence": "확정"
+            "confidence": "확정",
+            "inImage": false
           }
         ],
         "logo": {
@@ -4233,8 +4236,10 @@ export const MEDIA = [
         "source": "figma:캐치01(소재 제작 규정) text 423:8575~8583, frame 423:8521·8682 / psd:PC_상품_중앙배너_BG.psd",
         "confidence": "확인필요",
         "note": "PDF 오브젝트형(250417)과 치수·글자수 불일치 — conflicts 참조. 제출 이미지는 515×315, 캔버스 1068×315는 미리보기용",
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 사용자: 글자는 캐치가 웹폰트로 올림 → 이미지에는 키비주얼만(투명 배경 누끼). 서브·메인·날짜/키워드와 배경 Hex 는 전달 시트",
         "frame": "rules",
-        "extract": false
+        "extract": true
       },
       {
         "id": "catch-center-object-mo",
@@ -4247,7 +4252,7 @@ export const MEDIA = [
           "png"
         ],
         "maxKB": null,
-        "background": "원문 그대로: '[BG Img] 622 x 380 (px) / PNG * 배경 투명 (누끼형 오브젝트) * 텍스트 X / 이미지만 O * 배경 컬러 포함' (423:8584). PSD M_상품_중앙배너_BG는 전면 BG 622×380.",
+        "background": "배경 컬러 포함(이미지에 지면색을 깐다 — 가이드 「배경 컬러 포함」) · 누끼형 오브젝트 · 텍스트 X / 이미지만 O. 배경색 Hex 6자리도 별도 전달",
         "safeArea": {
           "note": "PSD @_가이드 텍스트 최대 영역: 서브 x40 y42 522×30 / 타이틀 x40 y99 462×98(2줄) / 날짜+키워드 x40 y229 408×63(2줄). 로고 원형 영역 x508 y183 164×162 — '가려지는 영역'(로고가 덮음). Figma 텍스트 Guide 423:8636 x41 y44 520×247. 좌하단 64×32 사각형(x41 y324, 용도 표기 없음).",
           "top": null,
@@ -4279,7 +4284,8 @@ export const MEDIA = [
             "original": "공백 포함 최대 20자 미만",
             "note": "",
             "source": "figma:캐치01(소재 제작 규정) text 423:8580·8640",
-            "confidence": "확정"
+            "confidence": "확정",
+            "inImage": false
           },
           {
             "field": "메인 타이틀",
@@ -4289,7 +4295,8 @@ export const MEDIA = [
             "original": "최대 17자",
             "note": "PC는 '17자 미만'(423:8577), MO는 '최대 17자'(423:8580). 2줄 배치(PSD 타이틀 박스 462×98, Figma 메인 타이틀 영역 2개)",
             "source": "figma:캐치01(소재 제작 규정) text 423:8580·8641",
-            "confidence": "확인필요"
+            "confidence": "확인필요",
+            "inImage": false
           },
           {
             "field": "날짜 + 키워드",
@@ -4299,7 +4306,8 @@ export const MEDIA = [
             "original": "공백 포함 최대 30자 미만",
             "note": "2줄 배치(Figma '날짜 또는 키워드 영역' 2개)",
             "source": "figma:캐치01(소재 제작 규정) text 423:8580·8642",
-            "confidence": "확정"
+            "confidence": "확정",
+            "inImage": false
           }
         ],
         "logo": {
@@ -4366,8 +4374,11 @@ export const MEDIA = [
             "confidence": "확인필요"
           }
         },
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 사용자: 글자는 캐치가 웹폰트로 올림 → 이미지에는 키비주얼 + 배경색(가이드 「배경 컬러 포함」). 글자·배경 Hex 는 전달 시트",
+        "backgroundNote": "원문엔 「배경 투명(누끼형 오브젝트)」도 적혀 있으나 「배경 컬러 포함」이 함께 있어 MO 는 배경색을 깐 PNG 로(PC 는 투명). 사용자 확인 10-16",
         "frame": "rules",
-        "extract": false
+        "extract": true
       },
       {
         "id": "catch-center-logo-mo",
@@ -4410,7 +4421,7 @@ export const MEDIA = [
         "confidence": "확인필요",
         "note": "PDF 오브젝트형 MO는 로고를 이미지 안 우상단에 삽입하는 방식 — conflicts 참조",
         "frame": "rules",
-        "extract": false
+        "extract": true
       }
     ],
     "rejections": [],
@@ -12101,7 +12112,7 @@ export const MEDIA = [
 
 export const MEDIA_GROUPS = ["채용포털","디지털","커뮤니티","기타"];
 
-// 추출 규격 — 이미지로 뽑아 전달하는 규격 50개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
+// 추출 규격 — 이미지로 뽑아 전달하는 규격 51개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
 export const EXTRACT = {
   "order": [
     "jasoseol",
@@ -12121,7 +12132,7 @@ export const EXTRACT = {
     "jasoseol": 11,
     "remember": 8,
     "jobda": 2,
-    "catch": 2,
+    "catch": 3,
     "google-gdn": 4,
     "nap-dsp": 4,
     "instagram": 1,
@@ -12153,8 +12164,9 @@ export const EXTRACT = {
     "remember-job-side-mo",
     "jobda-main-pc",
     "jobda-main-mo",
-    "catch-mainlarge-image-pc",
-    "catch-mainlarge-image-mo",
+    "catch-center-object-pc",
+    "catch-center-object-mo",
+    "catch-center-logo-mo",
     "google-gdn-580x400",
     "google-gdn-970x250",
     "google-gdn-300x600",
@@ -12192,7 +12204,8 @@ export const EXTRACT = {
     "인스타 1 = 피드 1080×1080 (사용자 지시). 보드 메모는 「4개」(31:4257) — 샘플 유형 수로 보임, 확인 필요. 스토리 1080×1920 은 참고",
     "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고",
     "10-16 사용자: 자소설은 10 = 패키지 5 × 2. 5번 M시작배너패키지(시작·서브)는 자소설 내부 제작이라 전달물 2개(로고 파일 500px↑ · 이미지 파일 720px↑)로 목록에 넣는다(렌더 없음, assetOnly). PC달력 164×233 은 패키지 밖이라 그대로 제외",
-    "10-16 사용자(가이드 「6. PC달력배너」 제시): PC달력 164×233(제출 328×466)도 상품 — 추출 목록에 넣는다. 자소설 11, 총 50"
+    "10-16 사용자(가이드 「6. PC달력배너」 제시): PC달력 164×233(제출 328×466)도 상품 — 추출 목록에 넣는다. 자소설 11, 총 50",
+    "10-16 사용자(캐치 중앙배너 가이드 제시 「결국 이미지랑 로고 이미지만 주면 되는 건가」→「응 그렇게」): 캐치 = 중앙배너 PC 515×315 BG 이미지(투명 누끼, 글자 X) · MO 622×380 BG 이미지(배경색 포함, 글자 X) · MO 로고 160×160. 글자(서브 20·메인 17·날짜/키워드 30자)와 배경 Hex 는 캐치가 웹폰트로 올리므로 전달 시트로. 메인 대형 배너 이미지형 1256×295·702×428 은 참고 규격으로"
   ],
   "board": {
     "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
@@ -12746,4 +12759,4 @@ export function specOf(specId) {
   return null;
 }
 
-export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":50,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
+export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":51,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};

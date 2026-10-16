@@ -2669,6 +2669,18 @@ async function exportAdZip(withSvg = false) {
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
     for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
+    // 전달 시트(10-16 캐치 중앙배너·네이버 썸네일·에브리타임 288): 글자를 매체가 웹폰트로 올리는 규격은 문구·배경 Hex 를 txt 로 — 이미지에는 글자가 없다
+    const sheet = {}; const hexOf = {};
+    const traceOf = a => { try { return JSON.parse(a.html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
+    for (const a of c.artifacts.filter(a => a.channel === 'ad')) { const tr = traceOf(a); const hx = tr?.field?.stops?.[0]; if (hx) hexOf[SPECS[a.specId].mediumName] ??= hx; }
+    for (const a of c.artifacts.filter(a => a.channel === 'ad')) {
+      const spec = SPECS[a.specId]; const vo = spec.rules?.visualOnly || spec.visualOnly; const outs = spec.outsideTexts ?? [];
+      if (!vo && !outs.length) continue;
+      const tr = traceOf(a); const cp = tr?.copy ?? {}; const hex = tr?.field?.stops?.[0] ?? hexOf[spec.mediumName] ?? c.style.palette?.primary ?? '';
+      const lines = [`■ ${artLabel(a)}`, cp.sub ? `서브: ${cp.sub}` : null, cp.main ? `메인: ${String(cp.main).replace(/\n/g, ' ')}` : null, cp.date ? `날짜·키워드: ${cp.date}` : null, hex ? `배경 Hex: ${hex}` : null, outs.length ? `글자수 한도: ${outs.map(t => `${t.field}${t.maxChars ? ' ' + t.maxChars + '자' : ''}`).join(' · ')}` : null, ''].filter(x => x !== null);
+      (sheet[spec.mediumName] ??= []).push(...lines);
+    }
+    for (const [mName, lines] of Object.entries(sheet)) entries.push({ name: `${mName}/전달_문구_배경색.txt`, data: new TextEncoder().encode(['이 매체는 글자를 매체가 직접 올립니다 — 이미지에는 글자가 없고, 아래 문구와 배경 Hex 를 신청서·입력란에 적어 주세요.', '', ...lines].join('\n')) });
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
     if (withSvg) {

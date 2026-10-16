@@ -783,6 +783,7 @@ function renderAdBase(ctx, style, spec) {
   //   사진은 칸을 꽉 채우고(cover), 누끼·오브젝트는 브랜드 지면 위에 가운데 contain(높이 78%). 키비주얼이 없으면 로고를 오브젝트로 가운데(기존 「그림 없으면 로고가 오브젝트」 규칙).
   if (rules.visualOnly || spec.visualOnly) {
     fired('visualOnly');
+    TR.copy = { main: copy.main ?? null, sub: copy.sub ?? null, date: copy.date ?? null, details: [] };   // 글자는 매체가 올린다 — 전달 시트(앱 ZIP txt)가 이 문구를 쓴다(10-16 캐치 중앙배너)
     if (hasKv) {
       const photo = kvKind ? kvKind !== 'cutout' : (style.kvMeta?.field?.opaque ?? 1) >= 0.5;   // 누끼는 종류가 정해졌으면 무조건 contain(10-16 오후 사용자: 로켓 누끼가 cover 로 잘림)
       const img = photo
