@@ -1,0 +1,6556 @@
+{
+ "note": "추출 47규격 × 8항목 — 보드 값(사용자 체크리스트·프레임·추출 메모) vs 우리 매체 JSON. 값은 바꾸지 않고 판정만. 만드는 법: node scripts/spec-matrix.mjs",
+ "generatedAt": "2026-10-15",
+ "board": {
+  "file": "sZMBhkuLMEiyMLPPpGxvC1",
+  "readAt": "2026-10-14"
+ },
+ "items": [
+  "배너 사이즈 규격",
+  "폰트 스타일",
+  "폰트 웨이트",
+  "폰트 크기",
+  "텍스트 갯수",
+  "폰트 영역",
+  "비주얼 영역",
+  "배경 컬러",
+  "추출 포맷과 규격·용량"
+ ],
+ "counts": {
+  "specs": 47,
+  "byMedium": {
+   "jasoseol": 8,
+   "remember": 8,
+   "jobda": 2,
+   "catch": 2,
+   "google-gdn": 4,
+   "nap-dsp": 4,
+   "instagram": 1,
+   "kakao": 3,
+   "naver-gfa": 3,
+   "everytime": 8,
+   "blind": 3,
+   "daangn": 1
+  },
+  "expected": {
+   "jasoseol": 8,
+   "remember": 8,
+   "jobda": 2,
+   "catch": 2,
+   "google-gdn": 4,
+   "nap-dsp": 4,
+   "instagram": 1,
+   "kakao": 3,
+   "naver-gfa": 3,
+   "everytime": 8,
+   "blind": 3,
+   "daangn": 1
+  },
+  "tally": {
+   "일치": 203,
+   "불일치": 0,
+   "확인 필요": 220
+  },
+  "byItem": {
+   "배너 사이즈 규격": {
+    "일치": 47,
+    "불일치": 0,
+    "확인 필요": 0
+   },
+   "폰트 스타일": {
+    "일치": 17,
+    "불일치": 0,
+    "확인 필요": 30
+   },
+   "폰트 웨이트": {
+    "일치": 14,
+    "불일치": 0,
+    "확인 필요": 33
+   },
+   "폰트 크기": {
+    "일치": 14,
+    "불일치": 0,
+    "확인 필요": 33
+   },
+   "텍스트 갯수": {
+    "일치": 16,
+    "불일치": 0,
+    "확인 필요": 31
+   },
+   "폰트 영역": {
+    "일치": 17,
+    "불일치": 0,
+    "확인 필요": 30
+   },
+   "비주얼 영역": {
+    "일치": 14,
+    "불일치": 0,
+    "확인 필요": 33
+   },
+   "배경 컬러": {
+    "일치": 19,
+    "불일치": 0,
+    "확인 필요": 28
+   },
+   "추출 포맷과 규격·용량": {
+    "일치": 45,
+    "불일치": 0,
+    "확인 필요": 2
+   }
+  }
+ },
+ "rows": [
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "PC프리미엄패키지 - PC팝업배너",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "550×400",
+    "frames": 3,
+    "ids": [
+     "1:6505",
+     "1:6568",
+     "1:9257"
+    ],
+    "names": [
+     "자소설_PC프리미엄패키지 (PC팝업배너)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "550×400 (프레임 3)",
+     "ours": "550×400",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "서브문구 22 · 메인문구 35 · 상세문구 17",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "3칸: 서브문구 25자/1줄, 메인문구 15자/2줄, 상세문구 24자/3줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "문구 열 x28.4 폭 369 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "이미지 영역 310×216 @240,184 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "1100×800 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "PC프리미엄패키지 - PC채용공고배너",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "160×600",
+    "frames": 24,
+    "ids": [
+     "1:6627",
+     "1:6769",
+     "1:6902",
+     "1:7026"
+    ],
+    "names": [
+     "자소설_PC프리미엄패키지 (PC채용공고배너)",
+     "자소설_PC스탠다드패키지 (PC채용공고배너)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "160×600 (프레임 24)",
+     "ours": "160×600",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "서브문구 16 · 메인문구 24 · 상세문구 13",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "3칸: 서브문구 9자/2줄, 메인문구 6자/4줄, 상세문구 11자/6줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "문구 열 x15.5 폭 130 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "이미지 영역 160×230 @0,370 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "320×1200 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "PC스탠다드패키지 - PC메인배너",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1200×280",
+    "frames": 2,
+    "ids": [
+     "1:7398",
+     "1:9243"
+    ],
+    "names": [
+     "자소설_PC스탠다드패키지 (PC메인배너)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1200×280 (프레임 2)",
+     "ours": "1200×280",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "서브문구만 Medium 굵기",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "서브문구 22 · 메인문구 32 · 상세문구 18",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "3칸: 서브문구 20자/1줄, 메인문구 15자/2줄, 상세문구 30자/3줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "문구 열 x391 폭 544 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "이미지 영역 350×280 @0,0 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "2400×560 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "PC스탠다드패키지 - PC채용공고배너",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "160×600",
+    "frames": 24,
+    "ids": [
+     "1:6627",
+     "1:6769",
+     "1:6902",
+     "1:7026"
+    ],
+    "names": [
+     "자소설_PC프리미엄패키지 (PC채용공고배너)",
+     "자소설_PC스탠다드패키지 (PC채용공고배너)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "160×600 (프레임 24)",
+     "ours": "160×600",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "서브문구 16 · 메인문구 24 · 상세문구 13",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "3칸: 서브문구 9자/2줄, 메인문구 6자/4줄, 상세문구 11자/6줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "문구 열 x15.5 폭 130 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "이미지 영역 160×230 @0,370 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "320×1200 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "M프리미엄패키지 - M팝업배너",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "600×880",
+    "frames": 5,
+    "ids": [
+     "1:8286",
+     "1:8404",
+     "1:8517",
+     "1:10343"
+    ],
+    "names": [
+     "자소설_M프리미엄패키지 (M팝업배너)",
+     "한미글로벌/자소설닷컴/M프리미엄패키지(M팝업배너)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "600×880 (프레임 5)",
+     "ours": "600×880",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "서브문구 30 · 메인문구 50 · 상세문구 26",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "3칸: 서브문구 19자/1줄, 메인문구 11자/2줄, 상세문구 22자/3줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "문구 열 x43 폭 518 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "이미지 영역 600×337 @0,543 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "1200×1760 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "M프리미엄패키지 - M채팅목록배너 로고 (PDF 명칭: M텍스트배너)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×180",
+    "frames": 3,
+    "ids": [
+     "1:8399",
+     "1:9241",
+     "1:10340"
+    ],
+    "names": [
+     "자소설_M프리미엄패키지 (M채팅목록배너 로고)",
+     "채용공고배너 (로고)",
+     "자소설_M스탠다드패키지 (로고)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×180 (프레임 3)",
+     "ours": "300×180",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "변경 불가, 폰트 스타일도 변경 불가 (보드). 예외: PC메인배너 서브문구는 Medium 굵기 (text 408:35496). PDF는 '상세 문구 부분 볼드 가능'. 매체 공식 템플릿(AI/SVG)은 Spoqa Han Sans Neo로 되어 있음 → conflicts 참고. 상품별 폰트 사이즈는 각 spec의 fontSizes",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "0칸 (+이미지 밖 2): ",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "자료에 없음",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "투명 배경 PNG 필수. 로고 컬러는 진한 컬러로 (흰색 X)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "300×180 · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "M스탠다드패키지 - M메인배너",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "750×500",
+    "frames": 2,
+    "ids": [
+     "1:8625",
+     "1:10459"
+    ],
+    "names": [
+     "자소설_ M스탠다드패키지 (M메인배너)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "750×500 (프레임 2)",
+     "ours": "750×500",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "서브문구 28 · 메인문구 40 · 상세문구 24",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "3칸: 서브문구 20자/1줄, 메인문구 15자/2줄, 상세문구 24자/3줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "문구 열 x43.75 폭 500 (템플릿 실측)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항). 우측 상단은 앱 아이콘과 겹치는 영역이라 복잡한 이미지 및 배경 사용 불가 (figma 408:37159 스크린샷, svg M스탠다드패키지(23.10).svg)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "1500×1000 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "medium": "jasoseol",
+   "mediumName": "자소설닷컴",
+   "name": "M스탠다드패키지 - M채팅목록배너 로고 (PDF 명칭: M텍스트배너)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×180",
+    "frames": 3,
+    "ids": [
+     "1:8399",
+     "1:9241",
+     "1:10340"
+    ],
+    "names": [
+     "자소설_M프리미엄패키지 (M채팅목록배너 로고)",
+     "채용공고배너 (로고)",
+     "자소설_M스탠다드패키지 (로고)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×180 (프레임 3)",
+     "ours": "300×180",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "변경 불가, 폰트 스타일도 변경 불가 (보드). 예외: PC메인배너 서브문구는 Medium 굵기 (text 408:35496). PDF는 '상세 문구 부분 볼드 가능'. 매체 공식 템플릿(AI/SVG)은 Spoqa Han Sans Neo로 되어 있음 → conflicts 참고. 상품별 폰트 사이즈는 각 spec의 fontSizes",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "0칸 (+이미지 밖 2): ",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "자료에 없음",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "투명 배경 PNG 필수. 로고 컬러는 진한 컬러로 (흰색 X)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 전체 로고 제외 2배 추출 필수 / 포맷 PNG (1:10598)",
+     "ours": "300×180 · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:10598",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-main-top-pc",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "메인 상단 배너 (PC)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "2240×360",
+    "frames": 1,
+    "ids": [
+     "1:6404"
+    ],
+    "names": [
+     "PC"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "2240×360 (프레임 1)",
+     "ours": "2240×360",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.14: '24자 이내 권장, 가이드 영역 내 문구 삽입' / Pretendard Semibold 12pt",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구(메인 카피) 24자/1줄, 상세 문구(부가 설명) 35자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 996×95 (PDF p.12) — PSD '텍스트 영역 (크기, 위치, 색상 변경 금지)'. PSD 실측: 텍스트 가이드 레이어 x81 y109 998×97, 메인 카피 x82 y110, 부가 설명 x82 y179. 이미지 영역 PSD 실측: 썸네일 x1252 988×360 / 오브젝트 가이드 x1314 y36 848×288 / 풀이미지 0,0 2240×360.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "썸네일형 / 오브젝트형 / 풀이미지형 중 택1. 썸네일형: 이미지 988×360 위 그라데이션 배경 배치 필수. 오브젝트형: 배경 2240×360 + 오브젝트 이미지 영역 844×284. 풀이미지형: 이미지 2240×360, 텍스트가 눈에 띄도록 이미지 위 그라데이션 배경 배치 권장. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "2240×360 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-main-top-mo",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "메인 상단 배너 (Mobile/APP)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1005×360",
+    "frames": 2,
+    "ids": [
+     "1:6379",
+     "1:6422"
+    ],
+    "names": [
+     "Mobile/APP"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1005×360 (프레임 2)",
+     "ours": "1005×360",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.14: MO 메인 카피 '24자 이내 권장', 'PC와 동일한 문구를 적용', Pretendard Semibold 12pt",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구 1 12자/1줄, 메인 문구 2 12자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 505×120 (PDF p.13). PSD 실측: 텍스트 가이드 영역 x52 y96 509×123, 메인 카피 x55 y98 504×120(2줄). 이미지 PSD 실측: 썸네일 x575 430×360 / 오브젝트 가이드 x603 y28 350×307.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "썸네일형(이미지 430×360 + 그라데이션 배경 필수) / 오브젝트형(배경 1005×360 + 오브젝트 346×304) / 풀이미지형(1005×360, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "1005×360 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "메인 중간 배너 (PC)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "2240×240",
+    "frames": 3,
+    "ids": [
+     "1:6334",
+     "1:6342",
+     "1:6364"
+    ],
+    "names": [
+     "PC",
+     "공고 상세 상단 배너_PC"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "2240×240 (프레임 3)",
+     "ours": "2240×240",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.19: '24자 이내 권장' / Pretendard Semibold 10pt",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구(메인 카피) 24자/1줄, 상세 문구(부가 설명) 30자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 996×96 (PDF p.17). Figma: 텍스트 가이드 996×96 (408:48133), 텍스트 영역(크기·위치·색상 변경 금지) 830×84 (408:48129). PSD 실측: 가이드 x54 y46 999×100, 메인 카피 x57 y54 830×38, 부가 설명 x58 y111 735×27. 이미지 PSD 실측: 썸네일 x1252 988×240 / 오브젝트 가이드 x1301 y23 883×194.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "썸네일형(이미지 988×240 + 그라데이션 배경 필수) / 오브젝트형(배경 2240×240 + 오브젝트 880×192) / 풀이미지형(2240×240, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "2240×240 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "메인 중간 배너 (Mobile/APP)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1005×360",
+    "frames": 2,
+    "ids": [
+     "1:6379",
+     "1:6422"
+    ],
+    "names": [
+     "Mobile/APP"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1005×360 (프레임 2)",
+     "ours": "1005×360",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.19: MO 메인 카피 '24자 이내 권장', 'PC와 동일한 문구를 적용', Pretendard Semibold 12pt. Figma 샘플 '일이삼사",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구 1 12자/1줄, 메인 문구 2 12자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 505×120 (PDF p.18). Figma 텍스트 영역 505×120 (408:48145). PSD 실측: 텍스트 가이드 영역 x52 y96 509×123, 메인 카피 x55 y98 504×120(2줄). 이미지 PSD 실측: 썸네일 x575 430×360 / 오브젝트 가이드 x603 y28 350×307.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "Figma 가이드 프레임 안에 'HS화성 채용 공고 AI이미지 3'(295×228, 408:48078) 오브젝트 소스 흔적 — 배너 치수 아님",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "썸네일형(430×360 + 그라데이션 필수) / 오브젝트형(배경 1005×360 + 오브젝트 346×304) / 풀이미지형(1005×360, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "1005×360 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-job-top-pc",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "공고 상세 상단 배너 (PC)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "2240×240",
+    "frames": 3,
+    "ids": [
+     "1:6334",
+     "1:6342",
+     "1:6364"
+    ],
+    "names": [
+     "PC",
+     "공고 상세 상단 배너_PC"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "2240×240 (프레임 3)",
+     "ours": "2240×240",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.24: '24자 이내 권장' / Pretendard Semibold 10pt",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구(메인 카피) 24자/1줄, 상세 문구(부가 설명) 30자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 996×96 (PDF p.22). Figma 텍스트 가이드 996×96 (410:5). 이 배너의 PSD는 zip에 없음.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "Figma 템플릿은 썸네일형만(이미지 영역 988×240, 410:3). PDF p.21 상품 개요 '이미지 형태: 썸네일 형'. 단 PDF p.22에는 오브젝트형(880×192)·풀이미지형(2240×240) 제작 가이드도 기재. 썸네일형은 이미지 위 그라데이션 배경 배치 필수. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "2240×240 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-job-top-mo",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "공고 상세 상단 배너 (Mobile/APP)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1125×276",
+    "frames": 3,
+    "ids": [
+     "1:6323",
+     "1:6350",
+     "1:6358"
+    ],
+    "names": [
+     "Mobile/APP",
+     "공고 상세 상단 배너_Mobile/APP"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1125×276 (프레임 3)",
+     "ours": "1125×276",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.24: MO 메인 카피 '24자 이내 권장', PC와 동일한 문구, Pretendard Semibold 12pt",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구 1 12자/1줄, 메인 문구 2 12자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 513×124 (PDF p.23, Figma 텍스트 가이드 영역 410:13). PSD 없음.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "Figma 템플릿: 이미지 영역 460×276 (410:11). PDF p.23: 썸네일형 460×276(그라데이션 필수) / 오브젝트형 412×252 / 풀이미지형 1125×276. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "1125×276 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-job-side-pc",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "공고 상세 사이드 배너 (PC)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "530×200",
+    "frames": 1,
+    "ids": [
+     "1:6304"
+    ],
+    "names": [
+     "PC"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "530×200 (프레임 1)",
+     "ours": "530×200",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.28: 메인 카피 '18자 이내 권장' / Pretendard Semibold 7pt. Figma 샘플 '일이삼사오육칠팔구십'(408:48174)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구 1 10자/1줄, 메인 문구 2 8자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 258×77 (PDF p.27). Figma 텍스트 영역(크기·위치·색상 변경 금지) 258×78 (408:48165), 텍스트 가이드 영역 258×77 (408:48170). PSD 실측: 가이드 x31 y61 260×79, 메인 카피 x32 y61 238×77(2줄). 이미지 PSD 실측 x290 y0 240×200.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "썸네일형만 가능 (PDF p.5, p.26). 이미지 영역 240×200 위 그라데이션 배경 배치 필수 (PDF p.27). 보드 메모: 공고상세사이드배너를 제외하고는 보통 풀이미지형 (figma 408:48017). 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "530×200 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "remember-job-side-mo",
+   "medium": "remember",
+   "mediumName": "리멤버",
+   "name": "공고 상세 사이드 배너 (Mobile/APP)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1125×276",
+    "frames": 3,
+    "ids": [
+     "1:6323",
+     "1:6350",
+     "1:6358"
+    ],
+    "names": [
+     "Mobile/APP",
+     "공고 상세 상단 배너_Mobile/APP"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1125×276 (프레임 3)",
+     "ours": "1125×276",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "Pretendard",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: PDF p.28: MO 메인 카피 '18자 이내 권장', PC와 동일한 문구, Pretendard Semibold 12pt",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 메인 문구 1 10자/1줄, 메인 문구 2 8자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "텍스트 영역 513×124 (PDF p.27). Figma 텍스트 영역(크기·위치·색상 변경 금지) 399×124 (408:48154), 텍스트 가이드 영역 513×124 (408:48157). PSD 실측: 가이드 x48 y74 517×128, 메인 카피 x49 y77 399×124(2줄). 이미지 PSD 실측 x665 y0 460×276.",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "썸네일형만 가능. 이미지 영역 460×276 위 그라데이션 배경 배치 필수 (PDF p.27). 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 포토샵 제작 > 파일 유형 및 용량: PSD로 제작 > PNG 추출 / 최대 600KB (1:6499)",
+     "ours": "1125×276 · PNG · 600KB",
+     "verdict": "일치",
+     "why": "보드 1:6499",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jobda-main-pc",
+   "medium": "jobda",
+   "mediumName": "잡다",
+   "name": "잡다 메인 배너 (PC)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "792×240",
+    "frames": 10,
+    "ids": [
+     "1:6026",
+     "1:6052",
+     "1:6090",
+     "1:6110"
+    ],
+    "names": [
+     "PC_",
+     "PC_코엑스",
+     "PC_서울창조경제혁신센터"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "792×240 (프레임 10)",
+     "ours": "792×240",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": "5칸: 라벨(서브문구 칩, 예: 모집기간·접수기간) 4자/1줄, 서브문구(날짜 등) 28자/1줄, 메인문구 1줄 12자/1줄, 메인문구 2줄 12자/1줄, 태그문구 (하단 태그 줄) 28자/1줄",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "여백 수치 규정 없음. Figma 템플릿(414:261) 실측: 텍스트 블록 x45~ (라벨 칩 y44, 메인 문구 y78·y115, 태그 y174), 이미지 영역 우측 x438 354×240. 고객사 제작 프레임 실측: 텍스트 블록 x50 y42 (폭 480 또는 692).",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "텍스트 좌측 / 이미지 영역 우측 354×240 (Figma 템플릿). ※ 가이드 PNG 문구는 '우측의 텍스트 영역과 좌측의 이미지 영역'이나 같은 PNG의 예시 이미지는 좌측 텍스트",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음(자유). 보드 예시 3유형: 배경 요소 추가 / 그라데이션형 / 오브젝트형 (figma 414:558·559·599)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 파일 유형 및 용량: PNG 2배 추출 / 용량 따로 제한 없음 (1:6298)",
+     "ours": "1584×480 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:6298",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "jobda-main-mo",
+   "medium": "jobda",
+   "mediumName": "잡다",
+   "name": "잡다 메인 배너 (MO)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "343×160",
+    "frames": 9,
+    "ids": [
+     "1:6071",
+     "1:6101",
+     "1:6122",
+     "1:6140"
+    ],
+    "names": [
+     "MO_",
+     "MO_코엑스_2",
+     "MO_서울창조경제혁신센터"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "343×160 (프레임 9)",
+     "ours": "343×160",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": "3칸: 메인문구 1줄 12자/1줄, 메인문구 2줄 12자/1줄, 날짜 19자/1줄",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "여백 수치 규정 없음. Figma 템플릿(414:306) 실측: 메인 문구 x16~18 y41·y69, 날짜 x18 y103, 이미지 영역 우측 x226 117×161. 고객사 프레임 실측: 텍스트 블록 x20 y38 260×84.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음(자유). PC와 동일 예시 3유형",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 파일 유형 및 용량: PNG 2배 추출 / 용량 따로 제한 없음 (1:6298)",
+     "ours": "686×320 (×2) · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:6298",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "medium": "catch",
+   "mediumName": "캐치",
+   "name": "메인 대형 배너 이미지형 (PC)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1256×295",
+    "frames": 3,
+    "ids": [
+     "1:5765",
+     "1:5955",
+     "31:4191"
+    ],
+    "names": [
+     "캐치_메인 대형 배너_PC (1256*295)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1256×295 (프레임 3)",
+     "ours": "1256×295",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "시스템에서 반영 — 텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도 전달",
+     "ours": "지정 없음 — 중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC ",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": "중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC NotoSansCJKkr-Bold, MO NotoSansKR-Bold/Regular — 규정이 아니라 샘플. 이미지형 폰트 규정 없음.",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "폰트 크기",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": "5칸: 서브타이틀 59자/1줄, 타이틀 첫째줄 + 둘째줄 19자/1줄, 기타문구 첫째 줄 59자/1줄, 기타문구 둘째 줄 59자/1줄, 기타문구 셋째 줄 59자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": "여백 수치 규정 없음. 텍스트 정렬 FREE. Figma 템플릿(414:419) 실측: 텍스트 좌측 x56 (서브 y56 446×30 / 타이틀 y93 713×51 / 기타문구 y164·189·213 446×21), 이미지 표기 영역 우측 x863 393×298.",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도",
+     "ours": "이미지 선정 기준: 1 기업 제공 키비주얼 > 2 채용공고 키비주얼 > 3 기업 대표 이미지 > 4 채용공고 관련 이미지 (PDF 이미지형 p.4)",
+     "verdict": "확인 필요",
+     "why": "보드 값 「텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도」 해석 필요",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "이미지에 텍스트 포함한 통이미지. BG color RGB 컬러값 #NNNNNN 별도 전달(컬러값은 파일명에 기재). 예시화면 JPG 별도.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "디자인 최종 산출물 [이미지] 사이즈: 1256X295 파일포멧: PNG (용량 메모 없음) (1:5761)",
+     "ours": "1256×295 · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:5761",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "medium": "catch",
+   "mediumName": "캐치",
+   "name": "메인 대형 배너 이미지형 (MO)",
+   "confidence": "확인필요",
+   "boardFrames": {
+    "size": "702×428",
+    "frames": 3,
+    "ids": [
+     "1:5782",
+     "1:5999",
+     "31:4206"
+    ],
+    "names": [
+     "캐치_메인 대형 배너_MO(702*428)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "702×428 (프레임 3)",
+     "ours": "702×428",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "시스템에서 반영 — 텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도 전달",
+     "ours": "지정 없음 — 중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC ",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": "중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC NotoSansCJKkr-Bold, MO NotoSansKR-Bold/Regular — 규정이 아니라 샘플. 이미지형 폰트 규정 없음.",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "폰트 크기",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": "5칸: 서브타이틀 59자/1줄, 타이틀 첫째줄 19자/1줄, 타이틀 둘째줄 19자/1줄, 기타문구 첫째 줄 59자/1줄, 기타문구 둘째 줄 59자/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "시스템에서 반영(별도 전달)",
+     "ours": "여백 수치 규정 없음. Figma 템플릿(414:436) 실측: 텍스트 박스 x39 (폭 446~590).",
+     "verdict": "확인 필요",
+     "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 값 「텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도」 해석 필요",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "이미지에 텍스트 포함한 통이미지. 예시화면 375×812 JPG 별도.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "디자인 최종 산출물 [이미지] 사이즈: 702X428 파일포멧: PNG (용량 메모 없음) (1:5793)",
+     "ours": "702×428 · PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:5793",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "google-gdn-580x400",
+   "medium": "google-gdn",
+   "mediumName": "구글 GDN",
+   "name": "GDN 고정 배너 580×400",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "580×400",
+    "frames": 8,
+    "ids": [
+     "1:4601",
+     "1:4640",
+     "1:4755",
+     "1:4798"
+    ],
+    "names": [
+     "GDN (580*400)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "580×400 (프레임 8)",
+     "ours": "580×400",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": "지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885), '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작'(414:2043-3)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "규정·수치 없음",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:483: 서브문구(위) → 메인문구 → [문구입력 라벨칩 + 상세 문구] 2묶음(상세 3줄) / 우하단 이미지 영역 박스 431×269 / 우상단 로고 박스 118×31",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG (1:5756)",
+     "ours": "580×400 · JPG/PNG · 150KB",
+     "verdict": "일치",
+     "why": "보드 1:5756",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "google-gdn-970x250",
+   "medium": "google-gdn",
+   "mediumName": "구글 GDN",
+   "name": "GDN 고정 배너 970×250",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "970×250",
+    "frames": 8,
+    "ids": [
+     "1:4603",
+     "1:4676",
+     "1:4765",
+     "1:4815"
+    ],
+    "names": [
+     "GDN (970*250)",
+     "GDN_970*250"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "970×250 (프레임 8)",
+     "ours": "970×250",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": "지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885), '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작'(414:2043-3)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "규정·수치 없음",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:484: 좌측 서브문구 → 메인문구 → [문구입력 라벨칩 + 상세 문구] 2줄 / 우측 이미지 영역 / 우상단 로고 박스 118×31",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG (1:5756)",
+     "ours": "970×250 · JPG/PNG · 150KB",
+     "verdict": "일치",
+     "why": "보드 1:5756",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "google-gdn-300x600",
+   "medium": "google-gdn",
+   "mediumName": "구글 GDN",
+   "name": "GDN 고정 배너 300×600",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×600",
+    "frames": 8,
+    "ids": [
+     "1:4605",
+     "1:4709",
+     "1:4775",
+     "1:4832"
+    ],
+    "names": [
+     "GDN (300*600)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×600 (프레임 8)",
+     "ours": "300×600",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": "지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885), '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작'(414:2043-3)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "규정·수치 없음",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:485: 서브문구 → 메인문구 2줄('메인문구를/입력하세요') → [문구입력 + 상세 문구] → [문구입력 + 상세 문구 2줄] / 하단 이미지 영역 321×189",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG (1:5756)",
+     "ours": "300×600 · JPG/PNG · 150KB",
+     "verdict": "일치",
+     "why": "보드 1:5756",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "google-gdn-300x1050",
+   "medium": "google-gdn",
+   "mediumName": "구글 GDN",
+   "name": "GDN 고정 배너 300×1050",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×1050",
+    "frames": 5,
+    "ids": [
+     "1:4599",
+     "1:4607",
+     "1:4785",
+     "1:4868"
+    ],
+    "names": [
+     "GDN (300*1050)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×1050 (프레임 5)",
+     "ours": "300×1050",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": "지정 폰트 없음. '글자가 크고 굵은체를 사용해야 보통 잘 보이기 때문에 유의해서 작업하기'(414:1885), '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작'(414:2043-3)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "규정·수치 없음",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:482: 서브문구 → 메인문구 2줄 → [문구입력 + 상세 문구] → [문구입력 + 상세 문구 4줄] / 하단 이미지 영역 321×315",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마 제작 > 용량 최대 150KB / 포맷 JPG, PNG (1:5756)",
+     "ours": "300×1050 · JPG/PNG · 150KB",
+     "verdict": "일치",
+     "why": "보드 1:5756",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "nap-dsp-band-320x50",
+   "medium": "nap-dsp",
+   "mediumName": "NAP DSP (나스미디어)",
+   "name": "띠배너 320×50 (2배 추출 640×100)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "320×50",
+    "frames": 5,
+    "ids": [
+     "1:4150",
+     "1:4270",
+     "1:4316",
+     "1:4425"
+    ],
+    "names": [
+     "띠배너_320*50(640*100)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "320×50 (프레임 5)",
+     "ours": "320×50",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 비즈보드: '제공되는 PSD 파일로 제작 필수 (*템플릿 내 폰트만 사용 가능)' — 폰트 이름은 자료에 없",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": "1칸: 메인문구 12자/1줄",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "nap dsp 워터마크가 배너 우측 상단에 노출될 수 있음 (워터마크 10*10 px) — pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.10. 수치 여백 규정 없음.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 frame 100:4: 좌측 텍스트 박스 183×19(x10) / 우측 이미지 영역 111×50(x209~320)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음. '이미지 양쪽 영역은 1px 컬러에 맞추어 자동 확장 처리 되오니, 좌우 1px은 단색 처리를 하는 것을 권장드립니다.' (pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.5)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF (1:4593)",
+     "ours": "640×100 (×2) · JPG/PNG/GIF · 200KB",
+     "verdict": "일치",
+     "why": "보드 1:4593",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "nap-dsp-band-320x100",
+   "medium": "nap-dsp",
+   "mediumName": "NAP DSP (나스미디어)",
+   "name": "띠배너 320×100",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "320×100",
+    "frames": 5,
+    "ids": [
+     "1:4160",
+     "1:4279",
+     "1:4343",
+     "1:4446"
+    ],
+    "names": [
+     "띠배너_320*100"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "320×100 (프레임 5)",
+     "ours": "320×100",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 비즈보드: '제공되는 PSD 파일로 제작 필수 (*템플릿 내 폰트만 사용 가능)' — 폰트 이름은 자료에 없",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": "1칸: 메인문구 10자/2줄",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "nap dsp 워터마크가 배너 우측 상단에 노출될 수 있음 (워터마크 10*10 px) — pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.10. 수치 여백 규정 없음.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 frame 100:16: 좌측 텍스트 그룹 168×46(x13,y27, 2줄) / 우측 이미지 영역 126×100(x194~320)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음. '이미지 양쪽 영역은 1px 컬러에 맞추어 자동 확장 처리 되오니, 좌우 1px은 단색 처리를 하는 것을 권장드립니다.' (pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.5) — p.5 띠 배너 공통 문구",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF (1:4593)",
+     "ours": "320×100 · JPG/PNG/GIF · 200KB",
+     "verdict": "일치",
+     "why": "보드 1:4593",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "nap-dsp-full-300x250",
+   "medium": "nap-dsp",
+   "mediumName": "NAP DSP (나스미디어)",
+   "name": "전면배너 300×250",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×250",
+    "frames": 5,
+    "ids": [
+     "1:4175",
+     "1:4288",
+     "1:4368",
+     "1:4469"
+    ],
+    "names": [
+     "전면배너_300_250"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×250 (프레임 5)",
+     "ours": "300×250",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 비즈보드: '제공되는 PSD 파일로 제작 필수 (*템플릿 내 폰트만 사용 가능)' — 폰트 이름은 자료에 없",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": "3칸: 메인문구 10자/2줄, 서브문구 10자/1줄, 추가 문구(선택) 10자/1줄",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "'배너 우측 상단에 광고 닫기 버튼(X)이 자동으로 생성됩니다.' (pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.6) / nap dsp 워터마크가 배너 우측 상단에 노출될 수 있음 (워터마크 10*10 px) — pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.10. 닫기 버튼 크기 수치 없음.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 frame 102:45: 좌측 텍스트 박스 239×27 ×2(x22,y37/68) + 185×23(y103) / 우하단 이미지 영역 154×132(x146,y117)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF (1:4593)",
+     "ours": "300×250 · JPG/PNG/GIF · 200KB",
+     "verdict": "일치",
+     "why": "보드 1:4593",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "nap-dsp-full-320x480",
+   "medium": "nap-dsp",
+   "mediumName": "NAP DSP (나스미디어)",
+   "name": "전면배너 320×480 (2배 추출 640×960)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "320×480",
+    "frames": 5,
+    "ids": [
+     "1:4189",
+     "1:4302",
+     "1:4394",
+     "1:4495"
+    ],
+    "names": [
+     "전면배너_320_480"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "320×480 (프레임 5)",
+     "ours": "320×480",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": "지정 없음 — 비즈보드: '제공되는 PSD 파일로 제작 필수 (*템플릿 내 폰트만 사용 가능)' — 폰트 이름은 자료에 없",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유(굵어야 함)",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": "4칸: 상단 소제목 10자/1줄, 메인문구 6자/3줄, 정보 라벨칩(예: 채용기간·모집직무) 4자/1줄, 정보 내용(라벨칩 옆·아래) 14자/1줄",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "'배너 우측 상단에 광고 닫기 버튼(X)이 자동으로 생성됩니다.' (pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.6) / nap dsp 워터마크가 배너 우측 상단에 노출될 수 있음 (워터마크 10*10 px) — pdf:nap+dsp+소재+제작+가이드_202603 (1).pdf p.10. 수치 없음.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 frame 102:115: 상단 소제목(y56) → 메인 3줄(y85~230) → [칩+내용]×2(y246·y323) / 하단 이미지 영역 320×191(y289~480)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "규정 없음",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 피그마(배너), 포토샵 제작(비즈보드) > 용량 200KB / 포맷 JPG, PNG, GIF (1:4593)",
+     "ours": "640×960 (×2) · JPG/PNG/GIF · 200KB",
+     "verdict": "일치",
+     "why": "보드 1:4593",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "instagram-feed-1080",
+   "medium": "instagram",
+   "mediumName": "인스타그램",
+   "name": "인스타그램 피드 (기본형 1080×1080)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1080×1080",
+    "frames": 22,
+    "ids": [
+     "1:3154",
+     "1:3176",
+     "1:3196",
+     "1:3220"
+    ],
+    "names": [
+     "인스타그램",
+     "인스타그램 / 호반그룹",
+     "인스타그램 / 기업명"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1080×1080 (프레임 22)",
+     "ours": "1080×1080",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "자유",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": "자유",
+     "ours": "보드 문구: '양옆위아래 여백 조금씩 남기기 필수X 권장O' — 수치 규정 없음. 참고용 템플릿 측정값: 실제 제작 프레임(호반그룹·동우화인켐·서울아산병원) 안의 '여백 - 라인' 가이드 사각형이 970×930 → 좌우 약 55px, 상하 약 75px 여백. 보드에 명시된 숫자가 아니라 프레임 치수에서 계산한 값.",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "자유",
+     "ours": "템플릿 그룹 2종: '이미지 혹은 일러스트 수급이 가능한 경우' → 이미지 or 일러스트 영역(상단 1080×495) + 기업 로고 + 메인 문구 + 채용 일자 + 지원자격 + 모집 회사 or 모집 분야 (figma text 421:5427, frames 421:4553~4585) / '이미지 혹은 일러스트 수급이 어려운 경우' → 텍스트 중심(이미지 영역 전면 1080×1080 또는 없음) + 메인 문구 + 서브 문구 + 상세 문구 + 채용 일자 + 기업 로고 (figma text 421:5430, frames 421:5367~5425)",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": "자유",
+     "ours": "자유 (보드에 배경 규정 없음). 템플릿 3종: ❶ 텍스트 / ❷ 텍스트+추상적 이미지(라이선스 구매 이미지) / ❸ 기업 분야 or 채용 직무별 이미지",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "파일 포맷 JPG, PNG (1:3010)",
+     "ours": "1080×1080 · JPG/PNG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:3010",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "kakao-bizboard-mo",
+   "medium": "kakao",
+   "mediumName": "카카오톡",
+   "name": "카카오 비즈보드 (MO)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1029×258",
+    "frames": 1,
+    "ids": [
+     "1:1594"
+    ],
+    "names": [
+     "카카오MO 비즈보드"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1029×258 (프레임 1)",
+     "ours": "1029×258",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "있음",
+     "ours": "Pretendard",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "있음",
+     "ours": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음.",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 크기",
+     "board": "있음",
+     "ours": "글자수 메모에: docx: '메인은 최대 15자 이하 *공백포함', '47pt 기준 15글자, 50pt 기준 13글자 정도 사용 가능'. 완화 가이드 p.12: 최대 1줄, Pr",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "있음",
+     "ours": "7칸: 메인카피 15자/1줄, 서브카피 16자/1줄, 부가정보/2줄, 카피 전체 줄 수/3줄, 카피형 CTA/1줄, CTA 버튼명 4자/1줄, 혜택 강조카피/1줄",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "있음",
+     "ours": "카피 영역 933×156",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "있음",
+     "ours": "오브젝트 상자 {\"note\":\"배경이 있는 그림(사진·배경 있는 일러스트)은 썸네일 상자에, 누끼는 오브젝트 영역에. 그림이 상하 여백 없이 영역 전체를 채우",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "배경 컬러",
+     "board": "있음",
+     "ours": "투명 (보드 'PNG 투명 배경' 421:5446, docx '투명 PNG 배경 추출'). 예외: DN솔루션즈는 흰 배경도 함께 추출(docx).",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG (1:2996)",
+     "ours": "1029×258 · PNG · 300KB",
+     "verdict": "일치",
+     "why": "보드 1:2996",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "kakao-display-pc-promo",
+   "medium": "kakao",
+   "mediumName": "카카오톡",
+   "name": "카카오 디스플레이 광고 (PC) — 홍보이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1200×600",
+    "frames": 3,
+    "ids": [
+     "1:1605",
+     "1:1611",
+     "1:1615"
+    ],
+    "names": [
+     "카카오_PC디스플레이 (홍보이미지)",
+     "카카오_PC디스플레이 (홍보이미지)(그라데이션)",
+     "카카오_PC디스플레이 (홍보이미지)(텍스트)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1200×600 (프레임 3)",
+     "ours": "1200×600",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "있음",
+     "ours": "Pretendard",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "있음",
+     "ours": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음.",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 크기",
+     "board": "있음",
+     "ours": "글자수 메모에: '이미지 내 텍스트는 48px~164px' / 심의필·저작권 등 필수 문구는 24px 이상 권장 / '최대 3줄까지 구성하는 것을 권장' / '4가지 이상의 폰트",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "있음",
+     "ours": "3칸: 타이틀(광고 텍스트 필드) 25자, 홍보문구(광고 텍스트 필드) 45자, 이미지 내 텍스트/3줄",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "있음",
+     "ours": "안전영역 상40 우40 하90 좌40",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "있음",
+     "ours": "한국앤컴퍼니 예시: 메인 '한국앤컴퍼니 Proactive Leaders 공개 채용' + 날짜 '9/23(수) ~ 10/5(월)' + CI 2종 + 우측 일러스트 오브젝트",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "배경 컬러",
+     "board": "있음",
+     "ours": "'투명도 있는 이미지 사용 불가'(docx). 예시: 그라데이션 배경+CI(LX인터내셔널), 텍스트+오브젝트형(한국앤컴퍼니)",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG (1:2996)",
+     "ours": "1200×600 · JPG/PNG · 500KB",
+     "verdict": "일치",
+     "why": "보드 1:2996",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "kakao-display-pc-profile",
+   "medium": "kakao",
+   "mediumName": "카카오톡",
+   "name": "카카오 디스플레이 광고 (PC) — 프로필이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×300",
+    "frames": 3,
+    "ids": [
+     "1:1604",
+     "1:1606",
+     "1:1608"
+    ],
+    "names": [
+     "카카오_PC디스플레이 (프로필이미지)",
+     "카카오_PC디스플레이 (프로필이미지)_로고2개버전"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×300 (프레임 3)",
+     "ours": "300×300",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "있음",
+     "ours": "Pretendard",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": "있음",
+     "ours": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음.",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 크기",
+     "board": "있음",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "있음",
+     "ours": "1칸: 이름(광고주/브랜드명) 20자",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "있음",
+     "ours": "안전영역 상10 우10 하10 좌10",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "있음",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "배경 컬러",
+     "board": "있음",
+     "ours": "규정 없음",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "※ 비즈보드(MO) > 용량 300KB / 포맷 JP(E)G, PNG ※ 디스플레이(PC) > 용량 500KB / 포맷 JP(E)G, PNG (1:2996)",
+     "ours": "300×300 · JPG/PNG · 500KB",
+     "verdict": "일치",
+     "why": "보드 1:2996",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "naver-gfa-mobile-da-1250x560",
+   "medium": "naver-gfa",
+   "mediumName": "네이버 GFA",
+   "name": "모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1250×560",
+    "frames": 4,
+    "ids": [
+     "1:1339",
+     "1:1391",
+     "1:1454",
+     "1:1496"
+    ],
+    "names": [
+     "네이버 (모바일 DA)",
+     "네이버 (모바일 DA)_A-2"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1250×560 (프레임 4)",
+     "ours": "1250×560",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "권장(고딕계열)",
+     "ours": "나눔고딕 혹은 고딕계열",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "어느정도만",
+     "ours": "글자수 메모에: 광고주 로고를 제외하고 최대 4줄. 텍스트 높이 최소 22px ~ 최대 52px 내에서 구성. 글자수 제한 규정 없음",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "어느정도만",
+     "ours": "2칸: 광고 문구(메인문구+서브문구)/4줄, 의료광고 심의필 번호(해당 시)",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "있음",
+     "ours": "안전영역 상50 우240 하35 좌240",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "있음",
+     "ours": "구성: 오브젝트 + 텍스트(광고 카피·CTA 버튼) + 배경 이미지 (PDF p.4 지면 p.02)",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "배경 컬러",
+     "board": "거의 자유로움",
+     "ours": "단색·패턴·그라데이션·이미지 모두 사용 가능(텍스트 가독성 유의). 투명 배경 불가. 흰색(#FFFFFF)은 전체 면적의 50% 이하만 사용 가능. 광고 영역이 구분되지 않는 색 불가 — #F2F2F2와 구분 가능한 색만 허용(#F3F3F3, #F4F4F4 등 불가). 배너 확장용 좌우 그라데이션 처리는 더 이상 하지 않음. 카피·버튼·소재 강조 목적 외 불필요한 배경 그라데이션 효과 지양",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "1250x560px / 250KB / JP(E)G, PNG (1:1335)",
+     "ours": "1250×560 · JPG/JPEG/PNG · 250KB",
+     "verdict": "일치",
+     "why": "보드 1:1335",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "naver-gfa-native-mo-342x228",
+   "medium": "naver-gfa",
+   "mediumName": "네이버 GFA",
+   "name": "M통합 네이티브 DA (모바일) 썸네일 342×228",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "342×228",
+    "frames": 5,
+    "ids": [
+     "1:1383",
+     "1:1387",
+     "1:1530",
+     "1:1532"
+    ],
+    "names": [
+     "네이버 (네이티브 PC)",
+     "네이버 (네이티브 DA)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "342×228 (프레임 5)",
+     "ours": "342×228",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "권장(고딕계열)",
+     "ours": "나눔고딕 혹은 고딕계열",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "어느정도만",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "어느정도만",
+     "ours": "5칸: 메인카피 20자/1줄, 서브카피 36자/3줄, 광고주명 14자/1줄, 고지문구 45자, 랜딩버튼",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "있음",
+     "ours": "모바일 PDF에는 Safe Area 수치 없음 (PC PDF는 상하좌우 20px). 텍스트+로고 영역은 이미지의 20% 미만",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "있음",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "배경 컬러",
+     "board": "거의 자유로움",
+     "ours": "배경 규정 없음. 단 테두리 또는 여백을 사용한 이미지는 사용 제한",
+     "verdict": "일치",
+     "why": "보드 자유 — 우리 값은 템플릿·예시 참고값",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "342x228px / 10~130KB / JP(E)G, PNG (1:1336)",
+     "ours": "342×228 · PNG/JPG/JPEG · 130KB",
+     "verdict": "일치",
+     "why": "보드 1:1336",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "naver-gfa-native-mo-profile-300",
+   "medium": "naver-gfa",
+   "mediumName": "네이버 GFA",
+   "name": "M통합 네이티브 DA 광고주 로고 썸네일(프로필 이미지) 300×300",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "300×300",
+    "frames": 5,
+    "ids": [
+     "1:1388",
+     "1:1389",
+     "1:1528",
+     "1:1534"
+    ],
+    "names": [
+     "네이버 (네이티브 DA-로고)",
+     "네이버 (네이티브 PC-로고)",
+     "네이버 프로필 이미지"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "300×300 (프레임 5)",
+     "ours": "300×300",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": "권장(고딕계열)",
+     "ours": "나눔고딕 혹은 고딕계열",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 칸 비어 있음",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": "어느정도만",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": "어느정도만",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "폰트 영역",
+     "board": "있음",
+     "ours": "규정 없음",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "비주얼 영역",
+     "board": "있음",
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음",
+     "fixed": true
+    },
+    {
+     "item": "배경 컬러",
+     "board": "거의 자유로움",
+     "ours": null,
+     "verdict": "일치",
+     "why": "보드 자유 — 우리도 규정 없음",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": null,
+     "ours": "300×300 · JPG/JPEG/PNG · 용량 제한 없음",
+     "verdict": "확인 필요",
+     "why": "보드에 추출 메모 없음",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-community-board",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "커뮤니티 보드",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1029×258",
+    "frames": 5,
+    "ids": [
+     "1:771",
+     "1:819",
+     "1:835",
+     "1:848"
+    ],
+    "names": [
+     "에브리타임_커뮤니티보드",
+     "에브리타임_커뮤니티보드_V2"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1029×258 (프레임 5)",
+     "ours": "1029×258",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: 첫 줄 45px, 둘째 줄 35px",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "4칸: 이미지 내 텍스트 — 1줄형/1줄, 이미지 내 텍스트 — 2줄형/2줄, 이미지 내 텍스트 — 3줄형/3줄, +기타 문구/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상40 우40 하40 좌40",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "오브젝트 상자 {\"side\":\"right\",\"wMin\":220,\"wMax\":320,\"zone\":[40,360],\"gap\":19,\"note\":\"layoutNot",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "투명 배경 필수(PNG). 실제 노출 배경색은 #F3F3F3 / #DCDCDC",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "1029x258px / PNG / 300KB 이내 / 배경색 투명한 이미지로 제작 필수 (1:396)",
+     "ours": "1029×258 · PNG · 300KB",
+     "verdict": "일치",
+     "why": "보드 1:396",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-community-native",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "커뮤니티 네이티브 (썸네일 이미지)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "288×288",
+    "frames": 3,
+    "ids": [
+     "1:655",
+     "1:658",
+     "1:766"
+    ],
+    "names": [
+     "에브리타임 (커뮤니티 네이티브)",
+     "에브리타임 (공모전,대외활동,채용정보)",
+     "에브리타임 (검색키워드)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "288×288 (프레임 3)",
+     "ours": "288×288",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "1칸 (+이미지 밖 3): 심의필/고지 문구",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상20 우20 하- 좌20",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000). (2026.7 ver+) 브랜드 컬러가 검은색이면 사전 협의 후 예외 가능. 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "사이즈 288x288px / 포맷 JPG, PNG / 용량 100KB 이내 (1:398)",
+     "ours": "288×288 · PNG/JPG · 100KB",
+     "verdict": "일치",
+     "why": "보드 1:398",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-home-banner",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "홈 배너",
+   "confidence": "확인필요",
+   "boardFrames": {
+    "size": "640×200",
+    "frames": 4,
+    "ids": [
+     "1:758",
+     "1:785",
+     "1:1295",
+     "1:1309"
+    ],
+    "names": [
+     "에브리타임 (홈 배너)",
+     "에브리타임_커뮤니티보드",
+     "에브리타임 (홈 배너) _ 확장형"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "640×200 (프레임 4)",
+     "ours": "640×200",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "4칸: 이미지 내 텍스트 — 1줄형/1줄, 이미지 내 텍스트 — 2줄형/2줄, 이미지 내 텍스트 — 3줄형/3줄, +기타 문구/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상20 우20 하20 좌20",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "PSD 변형 = 오브젝트 위치(왼쪽/오른쪽) × 1/2/3줄 × 기타 문구 유무 → 12종 (3줄+기타 문구 포함)",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "전체가 동일한 단색 배경만 가능. 다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000) / 라이트 모드에서 앱과 구분 안 되는 흰색 계열 배경 사용 불가 (#FFFFFF ~ #F2F2F2) / 라이트/다크 모드 모두에서 구분되는 회색 계열은 사용 가능 (#EDEDED ~ #5E5E5E). 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가. (2026.7 ver+) 브랜드 컬러가 검은색/흰색이면 사전 협의 후 예외 가능",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "사이즈 : 640x200px / JPG, PNG / 용량 100kb 이내 (1:399)",
+     "ours": "640×200 · JPG/PNG · 100KB",
+     "verdict": "일치",
+     "why": "보드 1:399",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "홈 카드 — 프로필 이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "160×160",
+    "frames": 3,
+    "ids": [
+     "1:765",
+     "1:882",
+     "1:1238"
+    ],
+    "names": [
+     "에브리타임_홈 카드(프로필이미지)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "160×160 (프레임 3)",
+     "ours": "160×160",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "0칸 (+이미지 밖 1): ",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "자료에 수치 없음",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "배경색이 포함된 이미지만 사용 가능(검은색 계열 제외)",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "프로필 이미지 - 160x160px / JPG, PNG / 검은색 계열 제외 배경색 포함 이미지만 (용량 메모 없음) (1:400)",
+     "ours": "160×160 · PNG/JPG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:400",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-home-card-image",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "홈 카드 — 카드 이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "720×480",
+    "frames": 4,
+    "ids": [
+     "1:764",
+     "1:802",
+     "1:884",
+     "1:1253"
+    ],
+    "names": [
+     "에브리타임_홈 카드 (카드 이미지)",
+     "에브리타임_홈 카드"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "720×480 (프레임 4)",
+     "ours": "720×480",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: 최대 5줄, 텍스트 높이 최소 25px ~ 최대 60px. 브랜드 이름 등도 이 규정에 맞춤",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸 (+이미지 밖 3): 이미지 내 텍스트(메인/서브 구분 없음)/5줄, 기타 문구",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상30 우50 하30 좌50",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "오브젝트: 광고 관련 이미지만(광고주·브랜드 로고 포함), 누끼형 권장, 배경 포함 오브젝트는 좌우 그라데이션",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "단색·그래픽·이미지 모두 가능(과도하게 화려한 배경 지양), 단색 배경 + 누끼 오브젝트 권장. 외곽 테두리 불가. 단색이면 다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000) / 라이트 모드에서 앱과 구분 안 되는 흰색 계열 배경 사용 불가 (#FFFFFF ~ #F2F2F2) / 라이트/다크 모드 모두에서 구분되는 회색 계열은 사용 가능 (#EDEDED ~ #5E5E5E). 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가. (2026.7 ver+) 브랜드 컬러 검은색/흰색 사전 협의 시 예외",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "카드 이미지 - 720x480px / JPG, PNG / 300KB 이내 (1:400)",
+     "ours": "720×480 · JPG/PNG · 300KB",
+     "verdict": "일치",
+     "why": "보드 1:400",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-contest-card",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "공모전·대외활동·채용 정보 — 카드 이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "288×288",
+    "frames": 3,
+    "ids": [
+     "1:655",
+     "1:658",
+     "1:766"
+    ],
+    "names": [
+     "에브리타임 (커뮤니티 네이티브)",
+     "에브리타임 (공모전,대외활동,채용정보)",
+     "에브리타임 (검색키워드)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "288×288 (프레임 3)",
+     "ours": "288×288",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸 (+이미지 밖 1): 뱃지 내용 — 공모전·대외활동 8자/1줄, 뱃지 내용 — 채용 정보/1줄",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상20 우- 하- 좌-",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "광고 내용과 관련된 오브젝트만 사용",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가. 외곽 테두리 삽입 불가",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "카드 이미지 - 288x288px / JPG, PNG / 100KB 이내 (1:401)",
+     "ours": "288×288 · JPG/PNG · 100KB",
+     "verdict": "일치",
+     "why": "보드 1:401",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "검색 키워드 — 썸네일 이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "288×288",
+    "frames": 3,
+    "ids": [
+     "1:655",
+     "1:658",
+     "1:766"
+    ],
+    "names": [
+     "에브리타임 (커뮤니티 네이티브)",
+     "에브리타임 (공모전,대외활동,채용정보)",
+     "에브리타임 (검색키워드)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "288×288 (프레임 3)",
+     "ours": "288×288",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸 (+이미지 밖 2): 표시 URL/1줄, 심의필/고지 문구",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상20 우20 하- 좌20",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000). (2026.7 ver+) 브랜드 컬러가 검은색이면 사전 협의 후 예외 가능. 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "이미지만 전달: 288x288px / PNG, JPG / 100KB 이내 (1:402)",
+     "ours": "288×288 · PNG/JPG · 100KB",
+     "verdict": "일치",
+     "why": "보드 1:402",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "medium": "everytime",
+   "mediumName": "에브리타임",
+   "name": "데일리 메시지 — 프로필 이미지",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "120×120",
+    "frames": 1,
+    "ids": [
+     "1:767"
+    ],
+    "names": [
+     "에브리타임 (데일리 메시지)"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "120×120 (프레임 1)",
+     "ours": "120×120",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "0칸 (+이미지 밖 3): ",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "안전영역 상10 우10 하10 좌10",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "배경색이 포함된 이미지만 가능, 검은색 계열 배경 불가 (PDF는 HEX 미기재, PSD 레이어는 '검은색 계열(000000~1f1f1f) 제외')",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "이미지만 전달: 120x120px / PNG, JPG (용량 메모 없음) (1:403)",
+     "ours": "120×120 · PNG/JPG · 용량 제한 없음",
+     "verdict": "일치",
+     "why": "보드 1:403",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "blind-brand-logo",
+   "medium": "blind",
+   "mediumName": "블라인드",
+   "name": "브랜드 로고 (피드 이미지 광고용)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "96×96",
+    "frames": 3,
+    "ids": [
+     "1:185",
+     "1:240",
+     "1:255"
+    ],
+    "names": [
+     "블라인드(피드광고로고)",
+     "블라인드_로고"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "96×96 (프레임 3)",
+     "ours": "96×96",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 피드 이미지 내 텍스트 최소 48px. 게시글 배너는 샘플 PSD 기준 텍스트 크기 최소 ",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "0칸 (+이미지 밖 1): ",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "앱에서 원형으로 잘려 노출 → 로고가 원 안에서 잘리지 않도록 확인 필수(PSD 가이드 참고). 수치 없음",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "투명 배경 불가 — 브랜드 로고의 배경 컬러로 채움",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "브랜드 로고 - 96x96px / 50KB / JPG, PNG / 투명 배경 불가 (1:71)",
+     "ours": "96×96 · JPG/PNG · 50KB",
+     "verdict": "일치",
+     "why": "보드 1:71",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "blind-feed-image",
+   "medium": "blind",
+   "mediumName": "블라인드",
+   "name": "피드 이미지 광고 (채용채널&피드광고 / 홈피드광고)",
+   "confidence": "확정",
+   "boardFrames": {
+    "size": "1200×628",
+    "frames": 4,
+    "ids": [
+     "1:101",
+     "1:148",
+     "1:187",
+     "1:297"
+    ],
+    "names": [
+     "블라인드(피드광고)",
+     "블라인드",
+     "블라인드_홈피드광고"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1200×628 (프레임 4)",
+     "ours": "1200×628",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 피드 이미지 내 텍스트 최소 48px. 게시글 배너는 샘플 PSD 기준 텍스트 크기 최소 ",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": "글자수 메모에: 메인 이미지 내 텍스트 최소 48px 이상. 너무 크거나 작은 폰트는 bad case",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "1칸 (+이미지 밖 4): 이미지 내 텍스트",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "자료에 수치 없음",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "규정 없음. 앱에서 #000 3% 오버레이가 덮임. 복잡한 배경으로 가독성 해치면 bad case",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "피드 제작 - 1200x628px / 100KB / JPG, PNG (1:71)",
+     "ours": "1200×628 · JPG/PNG · 100KB",
+     "verdict": "일치",
+     "why": "보드 1:71",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "blind-post-banner",
+   "medium": "blind",
+   "mediumName": "블라인드",
+   "name": "게시글 배너·댓글 배너 (보드 표기: 게시글 배너, 띠 배너)",
+   "confidence": "확인필요",
+   "boardFrames": {
+    "size": "1250×560",
+    "frames": 4,
+    "ids": [
+     "1:100",
+     "1:102",
+     "1:257",
+     "1:343"
+    ],
+    "names": [
+     "블라인드(게시글 배너,띠배너)",
+     "블라인드 (띠 배너)",
+     "블라인드_띠 배너"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "1250×560 (프레임 4)",
+     "ours": "1250×560",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": "지정 없음 — 지정 폰트 없음. 피드 이미지 내 텍스트 최소 48px. 게시글 배너는 샘플 PSD 기준 텍스트 크기 최소 ",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": "PSD: 컬러 외 폰트 사이즈·굵기·위치 수정 불가",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": "2칸: 이미지 내 텍스트/4줄, 심의필 텍스트",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "자료에 수치 없음",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": "이미지 영역: 브랜드 또는 프로모션을 대표하는 이미지 자유 구성",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": "과도한 데코·형광색·미색·그라데이션 권장하지 않음. 테두리 사용 불가. 광고 영역과 구분 안 되는 옅은 그레이 — 보드(실무): #FFFFFF만 불가, 나머지는 가능하나 눈에 띄어 지양 / PDF: 사용 불가. 플랫폼 배경색 #E9EBEE 참고(유사색 bad case)",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": "1250x560px / 200KB / JPG, PNG (1:72)",
+     "ours": "1250×560 · JPG/PNG · 200KB",
+     "verdict": "일치",
+     "why": "보드 1:72",
+     "fixed": true
+    }
+   ]
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "medium": "daangn",
+   "mediumName": "당근",
+   "name": "네이티브 피드 광고 (이미지 유형)",
+   "confidence": "보드",
+   "boardFrames": {
+    "size": "200×200",
+    "frames": 2,
+    "ids": [
+     "1:59",
+     "1:63"
+    ],
+    "names": [
+     "네이티브 피드 광고",
+     "카탈로그 상품 광고"
+    ]
+   },
+   "items": [
+    {
+     "item": "배너 사이즈 규격",
+     "board": "200×200 (프레임 2)",
+     "ours": "200×200",
+     "verdict": "일치",
+     "why": "",
+     "fixed": true
+    },
+    {
+     "item": "폰트 스타일",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 웨이트",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 크기",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "텍스트 갯수",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "폰트 영역",
+     "board": null,
+     "ours": "자료 없음",
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "비주얼 영역",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "배경 컬러",
+     "board": null,
+     "ours": null,
+     "verdict": "확인 필요",
+     "why": "보드 체크리스트 미기입",
+     "fixed": false
+    },
+    {
+     "item": "추출 포맷과 규격·용량",
+     "board": null,
+     "ours": "200×200 · JPG/PNG · 10240KB",
+     "verdict": "확인 필요",
+     "why": "보드에 치수만 있고 포맷·용량은 공식 가이드로 채움(confidence 보드)",
+     "fixed": true
+    }
+   ]
+  }
+ ],
+ "boardOnly": [
+  {
+   "medium": "instagram",
+   "size": "204×139",
+   "inOurRef": false,
+   "frames": [
+    "1:3042 자산 1ㅡ 1"
+   ]
+  },
+  {
+   "medium": "nap-dsp",
+   "size": "1029×258",
+   "inOurRef": true,
+   "frames": [
+    "1:4214 _카카오MO 비즈보드"
+   ]
+  },
+  {
+   "medium": "nap-dsp",
+   "size": "970×90",
+   "inOurRef": true,
+   "frames": [
+    "1:4232 _PC배너_970*100"
+   ]
+  },
+  {
+   "medium": "google-gdn",
+   "size": "930×180",
+   "inOurRef": true,
+   "frames": [
+    "1:4744 비씨월드제약_GDN_930*180",
+    "1:5173 _GDN_930*180",
+    "1:5607 동서식품_GDN (930*180)"
+   ]
+  },
+  {
+   "medium": "catch",
+   "size": "1068×315",
+   "inOurRef": false,
+   "frames": [
+    "1:5810 회사명/캐치/PC중앙배너",
+    "1:5825 PTKOREA/캐치/PC중앙배너",
+    "1:5835 PTKOREA/캐치/PC중앙배너",
+    "1:5845 PTKOREA/캐치/PC중앙배너",
+    "1:5853 PTKOREA/캐치/PC중앙배너",
+    "1:5971 캐치_PC_오브젝트형",
+    "31:4234 PTKOREA/캐치/PC중앙배너"
+   ]
+  },
+  {
+   "medium": "catch",
+   "size": "160×160",
+   "inOurRef": true,
+   "frames": [
+    "1:5875 PTKOREA/캐치/로고",
+    "1:5877 회사명/캐치/로고",
+    "1:5880 PTKOREA/캐치/로고",
+    "1:5882 PTKOREA/캐치/로고",
+    "1:5913 PTKOREA/캐치/로고",
+    "31:4179 PTKOREA/캐치/로고"
+   ]
+  },
+  {
+   "medium": "catch",
+   "size": "622×380",
+   "inOurRef": true,
+   "frames": [
+    "1:5884 PTKOREA/캐치/MO중앙배너",
+    "1:5897 PTKOREA/캐치/MO중앙배너",
+    "1:5910 PTKOREA/캐치/PC 중앙배너/BG Img",
+    "1:5915 회사명/캐치/MO중앙배너",
+    "1:5933 PTKOREA/캐치/MO중앙배너",
+    "1:5984 캐치_MO_중앙배너",
+    "31:4181 PTKOREA/캐치/PC 중앙배너/BG Img"
+   ]
+  },
+  {
+   "medium": "catch",
+   "size": "515×315",
+   "inOurRef": true,
+   "frames": [
+    "1:5951 PTKOREA/캐치/PC 중앙배너/BG Img",
+    "31:4184 PTKOREA/캐치/PC 중앙배너/BG Img"
+   ]
+  },
+  {
+   "medium": "jasoseol",
+   "size": "328×466",
+   "inOurRef": true,
+   "frames": [
+    "1:8706 _자소설_PC달력배너",
+    "1:8742 _자소설_PC달력배너",
+    "1:8776 _자소설_PC달력배너",
+    "1:8808 예시_자소설_PC달력배너",
+    "1:10548 현대케피코_자소설_PC달력배너",
+    "1:10560 키엔스코리아_자소설_PC달력배너"
+   ]
+  }
+ ],
+ "oursOnly": [
+  {
+   "id": "jasoseol-m-start-package-mo",
+   "medium": "jasoseol",
+   "name": "M시작배너패키지 (M시작배너 + M서브배너) — 매체 내부 제작, 자료만 전달",
+   "size": "치수 없음",
+   "confidence": "확정",
+   "deliverable": false,
+   "onBoard": false
+  },
+  {
+   "id": "jasoseol-pc-calendar-pc",
+   "medium": "jasoseol",
+   "name": "PC달력배너 (채용달력 좌측 게재)",
+   "size": "164×233",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "catch-center-object-pc",
+   "medium": "catch",
+   "name": "중앙(메인 대형) 배너 오브젝트형 — PC 이미지(BG Img)",
+   "size": "515×315",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "catch-center-object-mo",
+   "medium": "catch",
+   "name": "중앙(메인 대형) 배너 — MO 이미지(BG Img)",
+   "size": "622×380",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "catch-center-logo-mo",
+   "medium": "catch",
+   "name": "중앙 배너 MO 로고",
+   "size": "160×160",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "google-gdn-930x180",
+   "medium": "google-gdn",
+   "name": "GDN 배너 930×180 (고정 사이즈 외 — 예시에만 존재)",
+   "size": "930×180",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "nap-dsp-bizboard-1029x258",
+   "medium": "nap-dsp",
+   "name": "카카오MO 비즈보드 (NAP DSP 집행, 썸네일 박스형)",
+   "size": "1029×258",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "nap-dsp-pc-970x90",
+   "medium": "nap-dsp",
+   "name": "PC 배너 가로형 970×90",
+   "size": "970×90",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "nap-dsp-pc-728x90",
+   "medium": "nap-dsp",
+   "name": "PC 배너 가로형 728×90",
+   "size": "728×90",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "instagram-story-1080x1920",
+   "medium": "instagram",
+   "name": "인스타그램 스토리 (1080×1920)",
+   "size": "1080×1920",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "kakao-cpt-background",
+   "medium": "kakao",
+   "name": "카카오톡 CPT — 배경 이미지",
+   "size": "1290×258",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "kakao-cpt-object",
+   "medium": "kakao",
+   "name": "카카오톡 CPT — 오브젝트 이미지",
+   "size": "315×258",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "kakao-cpt-text",
+   "medium": "kakao",
+   "name": "카카오톡 CPT — 텍스트 이미지",
+   "size": "1029×258",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "naver-gfa-native-pc-342x228",
+   "medium": "naver-gfa",
+   "name": "네이티브 PC (PC 성과형 네이티브) 썸네일 342×228",
+   "size": "342×228",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "naver-gfa-native-pc-profile-300",
+   "medium": "naver-gfa",
+   "name": "네이티브 PC 프로필(로고) 이미지 300×300",
+   "size": "300×300",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": true
+  },
+  {
+   "id": "daangn-catalog-product",
+   "medium": "daangn",
+   "name": "카탈로그 상품 광고",
+   "size": "텍스트",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-maintop-pc",
+   "medium": "specup",
+   "name": "메인탑 배너",
+   "size": "812×140",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-right-big-pc",
+   "medium": "specup",
+   "name": "우측 빅배너",
+   "size": "400×170",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-right-strip-pc",
+   "medium": "specup",
+   "name": "우측 띠배너",
+   "size": "400×76",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-square-big-pc",
+   "medium": "specup",
+   "name": "스퀘어 빅배너",
+   "size": "400×340",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-bootcamp-pc",
+   "medium": "specup",
+   "name": "부트캠프(직무교육) 배너",
+   "size": "264×264",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-activity-pc",
+   "medium": "specup",
+   "name": "대외활동/공모전 배너",
+   "size": "264×264",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-post-bottom",
+   "medium": "specup",
+   "name": "글양식 배너 (게시글 하단)",
+   "size": "1440×240",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-cardnews",
+   "medium": "specup",
+   "name": "카드뉴스 이미지 (SNS)",
+   "size": "1080×1080",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-list-top",
+   "medium": "specup",
+   "name": "스펙업 공고 리스트 상단 배너",
+   "size": "치수 없음",
+   "confidence": "확인필요",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-message-all",
+   "medium": "specup",
+   "name": "전체쪽지 (텍스트)",
+   "size": "텍스트",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "specup-kakao-dm",
+   "medium": "specup",
+   "name": "카카오톡 DM (텍스트)",
+   "size": "텍스트",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-main-big",
+   "medium": "albamon",
+   "name": "PC 메인 빅 배너 (메인탑)",
+   "size": "1504×220",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-main-board",
+   "medium": "albamon",
+   "name": "PC 메인 보드 배너",
+   "size": "520×720",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-main-curtain",
+   "medium": "albamon",
+   "name": "PC 메인 커튼 배너",
+   "size": "2160×160",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-sky-recruit",
+   "medium": "albamon",
+   "name": "PC 채용 스카이 배너 (알서브스카이)",
+   "size": "120×600",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-sky-job",
+   "medium": "albamon",
+   "name": "PC 공고 스카이 배너",
+   "size": "560×700",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-sub-bottom",
+   "medium": "albamon",
+   "name": "PC 채용 하단 배너",
+   "size": "495×110",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-sub-bottom-text",
+   "medium": "albamon",
+   "name": "PC 채용 하단 텍스트 배너",
+   "size": "텍스트",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-login-right",
+   "medium": "albamon",
+   "name": "PC 로그인 우측 배너 (알로그인)",
+   "size": "325×310",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-search-right",
+   "medium": "albamon",
+   "name": "PC 검색 우측 배너",
+   "size": "320×155",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-pc-company-left",
+   "medium": "albamon",
+   "name": "PC 기업 좌측 배너",
+   "size": "200×275",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-m-splash",
+   "medium": "albamon",
+   "name": "M 앱 스플래시 배너",
+   "size": "1440×976",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-m-main",
+   "medium": "albamon",
+   "name": "M 메인 배너",
+   "size": "1029×258",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-m-sub",
+   "medium": "albamon",
+   "name": "M 서브 배너 (모바일서브띠)",
+   "size": "1029×258",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "albamon-email-target",
+   "medium": "albamon",
+   "name": "개인·기업 타겟메일",
+   "size": "치수 없음",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "gamejob-community-pick-pc",
+   "medium": "gamejob",
+   "name": "PC 커뮤니티 Pick",
+   "size": "1780×528",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  },
+  {
+   "id": "gamejob-community-pick-mo",
+   "medium": "gamejob",
+   "name": "MO 커뮤니티 Pick",
+   "size": "640×240",
+   "confidence": "확정",
+   "deliverable": true,
+   "onBoard": false
+  }
+ ],
+ "mismatches": [],
+ "reviews": [
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "서브문구 22 · 메인문구 35 · 상세문구 17",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "3칸: 서브문구 25자/1줄, 메인문구 15자/2줄, 상세문구 24자/3줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "문구 열 x28.4 폭 369 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "이미지 영역 310×216 @240,184 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-popup-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "서브문구 16 · 메인문구 24 · 상세문구 13",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "3칸: 서브문구 9자/2줄, 메인문구 6자/4줄, 상세문구 11자/6줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "문구 열 x15.5 폭 130 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "이미지 영역 160×230 @0,370 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-premium-jobpost-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "서브문구만 Medium 굵기",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "서브문구 22 · 메인문구 32 · 상세문구 18",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "3칸: 서브문구 20자/1줄, 메인문구 15자/2줄, 상세문구 30자/3줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "문구 열 x391 폭 544 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "이미지 영역 350×280 @0,0 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-main-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "서브문구 16 · 메인문구 24 · 상세문구 13",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "3칸: 서브문구 9자/2줄, 메인문구 6자/4줄, 상세문구 11자/6줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "문구 열 x15.5 폭 130 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "이미지 영역 160×230 @0,370 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-pc-standard-jobpost-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "서브문구 30 · 메인문구 50 · 상세문구 26",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "3칸: 서브문구 19자/1줄, 메인문구 11자/2줄, 상세문구 22자/3줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "문구 열 x43 폭 518 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "이미지 영역 600×337 @0,543 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-popup-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "변경 불가, 폰트 스타일도 변경 불가 (보드). 예외: PC메인배너 서브문구는 Medium 굵기 (text 408:35496). PDF는 '상세 문구 부분 볼드 가능'. 매체 공식 템플릿(AI/SVG)은 Spoqa Han Sans Neo로 되어 있음 → conflicts 참고. 상품별 폰트 사이즈는 각 spec의 fontSizes",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "0칸 (+이미지 밖 2): ",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "자료에 없음",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-premium-chatlist-logo-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "투명 배경 PNG 필수. 로고 컬러는 진한 컬러로 (흰색 X)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "폰트 및 폰트 스타일(사이즈, 굵기) 변경 불가, 단 상세 문구는 부분 볼드 처리 가능 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11) — 보드는 '폰트 스타일도 변경 불가'(conflicts 참고)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "서브문구 28 · 메인문구 40 · 상세문구 24",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "3칸: 서브문구 20자/1줄, 메인문구 15자/2줄, 상세문구 24자/3줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "문구 열 x43.75 폭 500 (템플릿 실측)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-main-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단일 색상·그라데이션 모두 가능, 흰색(#FFFFFF) 배경 가능. 강한 형광색·색이 분할된 배경 불가 (figma:자소설닷컴01(소재 제작 규정) text 408:44008 6항). 우측 상단은 앱 아이콘과 겹치는 영역이라 복잡한 이미지 및 배경 사용 불가 (figma 408:37159 스크린샷, svg M스탠다드패키지(23.10).svg)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "변경 불가, 폰트 스타일도 변경 불가 (보드). 예외: PC메인배너 서브문구는 Medium 굵기 (text 408:35496). PDF는 '상세 문구 부분 볼드 가능'. 매체 공식 템플릿(AI/SVG)은 Spoqa Han Sans Neo로 되어 있음 → conflicts 참고. 상품별 폰트 사이즈는 각 spec의 fontSizes",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "0칸 (+이미지 밖 2): ",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "자료에 없음",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "jasoseol-m-standard-chatlist-logo-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "투명 배경 PNG 필수. 로고 컬러는 진한 컬러로 (흰색 X)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.14: '24자 이내 권장, 가이드 영역 내 문구 삽입' / Pretendard Semibold 12pt",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구(메인 카피) 24자/1줄, 상세 문구(부가 설명) 35자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 996×95 (PDF p.12) — PSD '텍스트 영역 (크기, 위치, 색상 변경 금지)'. PSD 실측: 텍스트 가이드 레이어 x81 y109 998×97, 메인 카피 x82 y110, 부가 설명 x82 y179. 이미지 영역 PSD 실측: 썸네일 x1252 988×360 / 오브젝트 가이드 x1314 y36 848×288 / 풀이미지 0,0 2240×360.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "썸네일형 / 오브젝트형 / 풀이미지형 중 택1. 썸네일형: 이미지 988×360 위 그라데이션 배경 배치 필수. 오브젝트형: 배경 2240×360 + 오브젝트 이미지 영역 844×284. 풀이미지형: 이미지 2240×360, 텍스트가 눈에 띄도록 이미지 위 그라데이션 배경 배치 권장. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.14: MO 메인 카피 '24자 이내 권장', 'PC와 동일한 문구를 적용', Pretendard Semibold 12pt",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구 1 12자/1줄, 메인 문구 2 12자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 505×120 (PDF p.13). PSD 실측: 텍스트 가이드 영역 x52 y96 509×123, 메인 카피 x55 y98 504×120(2줄). 이미지 PSD 실측: 썸네일 x575 430×360 / 오브젝트 가이드 x603 y28 350×307.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-top-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "썸네일형(이미지 430×360 + 그라데이션 배경 필수) / 오브젝트형(배경 1005×360 + 오브젝트 346×304) / 풀이미지형(1005×360, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.19: '24자 이내 권장' / Pretendard Semibold 10pt",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구(메인 카피) 24자/1줄, 상세 문구(부가 설명) 30자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 996×96 (PDF p.17). Figma: 텍스트 가이드 996×96 (408:48133), 텍스트 영역(크기·위치·색상 변경 금지) 830×84 (408:48129). PSD 실측: 가이드 x54 y46 999×100, 메인 카피 x57 y54 830×38, 부가 설명 x58 y111 735×27. 이미지 PSD 실측: 썸네일 x1252 988×240 / 오브젝트 가이드 x1301 y23 883×194.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "썸네일형(이미지 988×240 + 그라데이션 배경 필수) / 오브젝트형(배경 2240×240 + 오브젝트 880×192) / 풀이미지형(2240×240, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.19: MO 메인 카피 '24자 이내 권장', 'PC와 동일한 문구를 적용', Pretendard Semibold 12pt. Figma 샘플 '일이삼사",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구 1 12자/1줄, 메인 문구 2 12자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 505×120 (PDF p.18). Figma 텍스트 영역 505×120 (408:48145). PSD 실측: 텍스트 가이드 영역 x52 y96 509×123, 메인 카피 x55 y98 504×120(2줄). 이미지 PSD 실측: 썸네일 x575 430×360 / 오브젝트 가이드 x603 y28 350×307.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "Figma 가이드 프레임 안에 'HS화성 채용 공고 AI이미지 3'(295×228, 408:48078) 오브젝트 소스 흔적 — 배너 치수 아님",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-main-mid-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "썸네일형(430×360 + 그라데이션 필수) / 오브젝트형(배경 1005×360 + 오브젝트 346×304) / 풀이미지형(1005×360, 그라데이션 권장) 중 택1. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.24: '24자 이내 권장' / Pretendard Semibold 10pt",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구(메인 카피) 24자/1줄, 상세 문구(부가 설명) 30자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 996×96 (PDF p.22). Figma 텍스트 가이드 996×96 (410:5). 이 배너의 PSD는 zip에 없음.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "Figma 템플릿은 썸네일형만(이미지 영역 988×240, 410:3). PDF p.21 상품 개요 '이미지 형태: 썸네일 형'. 단 PDF p.22에는 오브젝트형(880×192)·풀이미지형(2240×240) 제작 가이드도 기재. 썸네일형은 이미지 위 그라데이션 배경 배치 필수. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.24: MO 메인 카피 '24자 이내 권장', PC와 동일한 문구, Pretendard Semibold 12pt",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구 1 12자/1줄, 메인 문구 2 12자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 513×124 (PDF p.23, Figma 텍스트 가이드 영역 410:13). PSD 없음.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-top-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "Figma 템플릿: 이미지 영역 460×276 (410:11). PDF p.23: 썸네일형 460×276(그라데이션 필수) / 오브젝트형 412×252 / 풀이미지형 1125×276. 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.28: 메인 카피 '18자 이내 권장' / Pretendard Semibold 7pt. Figma 샘플 '일이삼사오육칠팔구십'(408:48174)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구 1 10자/1줄, 메인 문구 2 8자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 258×77 (PDF p.27). Figma 텍스트 영역(크기·위치·색상 변경 금지) 258×78 (408:48165), 텍스트 가이드 영역 258×77 (408:48170). PSD 실측: 가이드 x31 y61 260×79, 메인 카피 x32 y61 238×77(2줄). 이미지 PSD 실측 x290 y0 240×200.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-pc",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "썸네일형만 가능 (PDF p.5, p.26). 이미지 영역 240×200 위 그라데이션 배경 배치 필수 (PDF p.27). 보드 메모: 공고상세사이드배너를 제외하고는 보통 풀이미지형 (figma 408:48017). 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "Pretendard",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD 샘플 폰트 그대로: 메인 카피 Pretendard SemiBold, 부가 설명 Pretendard Regular. PDF 표기 크기(pt): 메인 상단 PC 메인 12pt·부가 7pt / 메인 중간·공고 상세 상단 PC 메인 10pt·부가 7pt / 공고 상세 사이드 PC 7pt / 모든 Mobile·APP 메인 12pt. 폰트 종류·크기·굵기·자간·장평·색상 변경 불가.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: PDF p.28: MO 메인 카피 '18자 이내 권장', PC와 동일한 문구, Pretendard Semibold 12pt",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 메인 문구 1 10자/1줄, 메인 문구 2 8자/1줄",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "텍스트 영역 513×124 (PDF p.27). Figma 텍스트 영역(크기·위치·색상 변경 금지) 399×124 (408:48154), 텍스트 가이드 영역 513×124 (408:48157). PSD 실측: 가이드 x48 y74 517×128, 메인 카피 x49 y77 399×124(2줄). 이미지 PSD 실측 x665 y0 460×276.",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "remember-job-side-mo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "썸네일형만 가능. 이미지 영역 460×276 위 그라데이션 배경 배치 필수 (PDF p.27). 사용 불가 배경색 #FFFFFF·#000000·#FF5414·#F7F7F0·#E8E7E0 (배너 글자색·리멤버 브랜드 컬러 유사색). 흰 글씨=분홍 영역, 검정 글씨=파랑 영역 권장 (pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8)",
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "item": "폰트 스타일",
+   "board": "시스템에서 반영 — 텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도 전달",
+   "ours": "지정 없음 — 중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC ",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "item": "폰트 웨이트",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": "중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC NotoSansCJKkr-Bold, MO NotoSansKR-Bold/Regular — 규정이 아니라 샘플. 이미지형 폰트 규정 없음.",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "item": "폰트 크기",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": null,
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "item": "텍스트 갯수",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": "5칸: 서브타이틀 59자/1줄, 타이틀 첫째줄 + 둘째줄 19자/1줄, 기타문구 첫째 줄 59자/1줄, 기타문구 둘째 줄 59자/1줄, 기타문구 셋째 줄 59자/1줄",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "item": "폰트 영역",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": "여백 수치 규정 없음. 텍스트 정렬 FREE. Figma 템플릿(414:419) 실측: 텍스트 좌측 x56 (서브 y56 446×30 / 타이틀 y93 713×51 / 기타문구 y164·189·213 446×21), 이미지 표기 영역 우측 x863 393×298.",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-pc",
+   "item": "비주얼 영역",
+   "board": "텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도",
+   "ours": "이미지 선정 기준: 1 기업 제공 키비주얼 > 2 채용공고 키비주얼 > 3 기업 대표 이미지 > 4 채용공고 관련 이미지 (PDF 이미지형 p.4)",
+   "why": "보드 값 「텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도」 해석 필요"
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "item": "폰트 스타일",
+   "board": "시스템에서 반영 — 텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도 전달",
+   "ours": "지정 없음 — 중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC ",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "item": "폰트 웨이트",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": "중앙배너·오브젝트형 텍스트는 캐치가 웹 폰트로 렌더(이미지에 미포함). PSD 가이드 미리보기 폰트: PC NotoSansCJKkr-Bold, MO NotoSansKR-Bold/Regular — 규정이 아니라 샘플. 이미지형 폰트 규정 없음.",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "item": "폰트 크기",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": null,
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "item": "텍스트 갯수",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": "5칸: 서브타이틀 59자/1줄, 타이틀 첫째줄 19자/1줄, 타이틀 둘째줄 19자/1줄, 기타문구 첫째 줄 59자/1줄, 기타문구 둘째 줄 59자/1줄",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "item": "폰트 영역",
+   "board": "시스템에서 반영(별도 전달)",
+   "ours": "여백 수치 규정 없음. Figma 템플릿(414:436) 실측: 텍스트 박스 x39 (폭 446~590).",
+   "why": "보드 「시스템에서 반영」은 중앙배너(오브젝트형) 기준"
+  },
+  {
+   "id": "catch-mainlarge-image-mo",
+   "item": "비주얼 영역",
+   "board": "텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도",
+   "ours": null,
+   "why": "보드 값 「텍스트/배경 hex코드/텍스트 없는 이미지/로고 이미지 별도」 해석 필요"
+  },
+  {
+   "id": "kakao-display-pc-profile",
+   "item": "폰트 크기",
+   "board": "있음",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "kakao-display-pc-profile",
+   "item": "비주얼 영역",
+   "board": "있음",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "naver-gfa-mobile-da-1250x560",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "naver-gfa-native-mo-342x228",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "naver-gfa-native-mo-342x228",
+   "item": "폰트 크기",
+   "board": "어느정도만",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "naver-gfa-native-mo-342x228",
+   "item": "비주얼 영역",
+   "board": "있음",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "naver-gfa-native-mo-profile-300",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 칸 비어 있음"
+  },
+  {
+   "id": "naver-gfa-native-mo-profile-300",
+   "item": "폰트 크기",
+   "board": "어느정도만",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "naver-gfa-native-mo-profile-300",
+   "item": "텍스트 갯수",
+   "board": "어느정도만",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "naver-gfa-native-mo-profile-300",
+   "item": "비주얼 영역",
+   "board": "있음",
+   "ours": null,
+   "why": "보드는 정해져 있다는데 우리 JSON 에 값 없음"
+  },
+  {
+   "id": "naver-gfa-native-mo-profile-300",
+   "item": "추출 포맷과 규격·용량",
+   "board": null,
+   "ours": "300×300 · JPG/JPEG/PNG · 용량 제한 없음",
+   "why": "보드에 추출 메모 없음"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: 첫 줄 45px, 둘째 줄 35px",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "4칸: 이미지 내 텍스트 — 1줄형/1줄, 이미지 내 텍스트 — 2줄형/2줄, 이미지 내 텍스트 — 3줄형/3줄, +기타 문구/1줄",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상40 우40 하40 좌40",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "오브젝트 상자 {\"side\":\"right\",\"wMin\":220,\"wMax\":320,\"zone\":[40,360],\"gap\":19,\"note\":\"layoutNot",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-board",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "투명 배경 필수(PNG). 실제 노출 배경색은 #F3F3F3 / #DCDCDC",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "1칸 (+이미지 밖 3): 심의필/고지 문구",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상20 우20 하- 좌20",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-community-native",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000). (2026.7 ver+) 브랜드 컬러가 검은색이면 사전 협의 후 예외 가능. 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "4칸: 이미지 내 텍스트 — 1줄형/1줄, 이미지 내 텍스트 — 2줄형/2줄, 이미지 내 텍스트 — 3줄형/3줄, +기타 문구/1줄",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상20 우20 하20 좌20",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "PSD 변형 = 오브젝트 위치(왼쪽/오른쪽) × 1/2/3줄 × 기타 문구 유무 → 12종 (3줄+기타 문구 포함)",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-banner",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "전체가 동일한 단색 배경만 가능. 다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000) / 라이트 모드에서 앱과 구분 안 되는 흰색 계열 배경 사용 불가 (#FFFFFF ~ #F2F2F2) / 라이트/다크 모드 모두에서 구분되는 회색 계열은 사용 가능 (#EDEDED ~ #5E5E5E). 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가. (2026.7 ver+) 브랜드 컬러가 검은색/흰색이면 사전 협의 후 예외 가능",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "0칸 (+이미지 밖 1): ",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "자료에 수치 없음",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-profile",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "배경색이 포함된 이미지만 사용 가능(검은색 계열 제외)",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: 최대 5줄, 텍스트 높이 최소 25px ~ 최대 60px. 브랜드 이름 등도 이 규정에 맞춤",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸 (+이미지 밖 3): 이미지 내 텍스트(메인/서브 구분 없음)/5줄, 기타 문구",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상30 우50 하30 좌50",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "오브젝트: 광고 관련 이미지만(광고주·브랜드 로고 포함), 누끼형 권장, 배경 포함 오브젝트는 좌우 그라데이션",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-home-card-image",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "단색·그래픽·이미지 모두 가능(과도하게 화려한 배경 지양), 단색 배경 + 누끼 오브젝트 권장. 외곽 테두리 불가. 단색이면 다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000) / 라이트 모드에서 앱과 구분 안 되는 흰색 계열 배경 사용 불가 (#FFFFFF ~ #F2F2F2) / 라이트/다크 모드 모두에서 구분되는 회색 계열은 사용 가능 (#EDEDED ~ #5E5E5E). 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가. (2026.7 ver+) 브랜드 컬러 검은색/흰색 사전 협의 시 예외",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸 (+이미지 밖 1): 뱃지 내용 — 공모전·대외활동 8자/1줄, 뱃지 내용 — 채용 정보/1줄",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상20 우- 하- 좌-",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "광고 내용과 관련된 오브젝트만 사용",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-contest-card",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가. 외곽 테두리 삽입 불가",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸 (+이미지 밖 2): 표시 URL/1줄, 심의필/고지 문구",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상20 우20 하- 좌20",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-search-keyword-thumb",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "다크 모드에서 앱과 구분 안 되는 검은색 계열 배경 사용 불가 (#444444 ~ #000000). (2026.7 ver+) 브랜드 컬러가 검은색이면 사전 협의 후 예외 가능. 사용성을 해치는 색상(채도 + 명도 = 170% 초과) 사용 불가",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 커뮤니티 보드·홈 배너: 고딕 계열 권장, 지나치게 얇거나 굵은 폰트 불가. 홈 카드·공모",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "0칸 (+이미지 밖 3): ",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "안전영역 상10 우10 하10 좌10",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "everytime-daily-message-profile",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "배경색이 포함된 이미지만 가능, 검은색 계열 배경 불가 (PDF는 HEX 미기재, PSD 레이어는 '검은색 계열(000000~1f1f1f) 제외')",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 피드 이미지 내 텍스트 최소 48px. 게시글 배너는 샘플 PSD 기준 텍스트 크기 최소 ",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "0칸 (+이미지 밖 1): ",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "앱에서 원형으로 잘려 노출 → 로고가 원 안에서 잘리지 않도록 확인 필수(PSD 가이드 참고). 수치 없음",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-brand-logo",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "투명 배경 불가 — 브랜드 로고의 배경 컬러로 채움",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 피드 이미지 내 텍스트 최소 48px. 게시글 배너는 샘플 PSD 기준 텍스트 크기 최소 ",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": "글자수 메모에: 메인 이미지 내 텍스트 최소 48px 이상. 너무 크거나 작은 폰트는 bad case",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "1칸 (+이미지 밖 4): 이미지 내 텍스트",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "자료에 수치 없음",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-feed-image",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "규정 없음. 앱에서 #000 3% 오버레이가 덮임. 복잡한 배경으로 가독성 해치면 bad case",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": "지정 없음 — 지정 폰트 없음. 피드 이미지 내 텍스트 최소 48px. 게시글 배너는 샘플 PSD 기준 텍스트 크기 최소 ",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": "PSD: 컬러 외 폰트 사이즈·굵기·위치 수정 불가",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": "2칸: 이미지 내 텍스트/4줄, 심의필 텍스트",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "자료에 수치 없음",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": "이미지 영역: 브랜드 또는 프로모션을 대표하는 이미지 자유 구성",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "blind-post-banner",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": "과도한 데코·형광색·미색·그라데이션 권장하지 않음. 테두리 사용 불가. 광고 영역과 구분 안 되는 옅은 그레이 — 보드(실무): #FFFFFF만 불가, 나머지는 가능하나 눈에 띄어 지양 / PDF: 사용 불가. 플랫폼 배경색 #E9EBEE 참고(유사색 bad case)",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "폰트 스타일",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "폰트 웨이트",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "폰트 크기",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "텍스트 갯수",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "폰트 영역",
+   "board": null,
+   "ours": "자료 없음",
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "비주얼 영역",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "배경 컬러",
+   "board": null,
+   "ours": null,
+   "why": "보드 체크리스트 미기입"
+  },
+  {
+   "id": "daangn-native-feed-image",
+   "item": "추출 포맷과 규격·용량",
+   "board": null,
+   "ours": "200×200 · JPG/PNG · 10240KB",
+   "why": "보드에 치수만 있고 포맷·용량은 공식 가이드로 채움(confidence 보드)"
+  }
+ ]
+}

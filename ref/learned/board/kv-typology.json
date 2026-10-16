@@ -1,0 +1,70 @@
+{
+  "_about": "보드 예시 141장(core/design/*.json 관찰분 + 레퍼런스 13장)을 키비주얼 유형과 처리 방식으로 나눈 기록. 2026-10-06 콘택트 시트(ref/learned/board/sheets)를 보고 적음. 숨김 레이어라 그림이 안 뜬 6장은 뺌.",
+  "kinds": {
+    "photo-full": "사진이 지면 전체를 채우고, 글자 쪽을 어둡게/브랜드색으로 물들인 그라데이션 스크림 위에 글자",
+    "photo-part": "사진이 한쪽(오른쪽·아래)에 들어가고 지면(단색)과 만나는 변을 그라데이션으로 녹임",
+    "photo-cutout": "배경을 딴 사진(사람·제품·건물)을 단색/그라데이션 지면 위에 그대로 — 녹임 없음",
+    "illust-bg": "일러스트·3D가 자기 배경을 품고 있고 그 배경색이 지면색 — 이음매 없이 이어 붙임(지면 전체가 일러스트인 경우 포함)",
+    "illust-cutout": "배경 없는 일러스트·아이콘을 매체가 정한 이미지 칸(둥근 상자·흰 바탕)에 — 녹임 없음",
+    "logo-only": "이미지 없이 로고가 오브젝트 자리(오른쪽·가운데)를 차지",
+    "none": "글자만(또는 도형 장식만)"
+  },
+  "examples": {
+    "jasoseol": {
+      "408:37780": "illust-bg", "408:37952": "illust-bg", "408:37971": "illust-bg",
+      "408:38102": "illust-bg", "408:38167": "illust-bg", "408:37986": "illust-bg",
+      "408:38305": "illust-bg", "408:38424": "illust-bg", "408:38710": "illust-bg",
+      "408:38560": "photo-part", "418:1992": "illust-bg", "408:38216": "illust-bg", "408:38739": "illust-bg"
+    },
+    "remember": { "414:23": "illust-bg", "414:22": "illust-bg", "414:24": "photo-part", "414:32": "photo-part",
+      "410:19": "illust-bg", "410:18": "illust-bg", "410:21": "illust-bg", "410:20": "illust-bg" },
+    "jobda": {
+      "414:322": "illust-bg", "414:323": "illust-bg", "414:324": "illust-bg",
+      "414:475": "photo-full", "414:486": "photo-full",
+      "414:519": "logo-only", "414:531": "logo-only",
+      "414:539": "illust-bg", "414:550": "illust-bg",
+      "414:575": "illust-bg", "414:590": "illust-bg",
+      "414:600": "illust-bg", "414:618": "illust-bg",
+      "414:633": "photo-full", "414:655": "photo-full",
+      "414:680": "logo-only", "414:699": "logo-only",
+      "414:739": "photo-part", "414:720": "photo-part"
+    },
+    "catch": { "423:8536": "illust-cutout", "423:8546": "illust-cutout", "423:8556": "illust-cutout", "423:8564": "illust-cutout",
+      "423:8595": "illust-cutout", "423:8608": "illust-cutout", "423:8644": "illust-cutout", "423:8520": "illust-bg" },
+    "google-gdn": {
+      "414:1927": "photo-cutout", "414:1963": "photo-cutout", "414:1996": "photo-cutout", "414:1894": "photo-cutout",
+      "414:2056": "illust-bg", "414:2066": "illust-bg", "414:2045": "illust-bg", "414:2076": "illust-bg",
+      "414:2100": "illust-bg", "414:2117": "illust-bg", "414:2134": "illust-bg", "414:2087": "illust-bg",
+      "414:2153": "illust-bg", "414:2190": "illust-bg", "414:2208": "illust-bg", "414:2171": "illust-bg",
+      "6:490": "illust-bg", "6:487": "illust-bg", "6:488": "illust-bg", "6:489": "illust-bg",
+      "418:2461": "photo-cutout", "418:2203": "photo-cutout", "418:2331": "photo-cutout", "418:2595": "photo-cutout"
+    },
+    "nap-dsp": {
+      "421:2786": "illust-bg", "421:2795": "illust-bg", "421:2804": "illust-bg", "421:2818": "illust-bg",
+      "421:2834": "illust-bg", "421:2861": "illust-bg", "421:2886": "illust-bg", "421:2912": "illust-bg",
+      "421:2944": "illust-bg", "421:2965": "illust-bg", "421:2988": "illust-bg", "421:3014": "illust-bg",
+      "421:3038": "none", "421:3044": "none", "421:3062": "none", "421:3088": "none",
+      "421:3112": "illust-cutout", "421:3113": "photo-cutout"
+    },
+    "kakao": { "421:5454": "illust-cutout", "421:5455": "logo-only", "421:5456": "logo-only", "421:5457": "photo-cutout",
+      "421:5438": "illust-cutout", "421:5480": "logo-only", "421:5484": "logo-only", "421:5487": "logo-only", "421:5491": "illust-cutout" },
+    "instagram": {
+      "421:4519": "photo-full", "421:4589": "photo-full", "421:4667": "illust-bg",
+      "421:3132": "illust-bg", "421:3138": "illust-bg", "421:3139": "photo-cutout", "421:3144": "illust-bg", "421:3145": "illust-bg",
+      "421:3146": "photo-full", "421:3265": "photo-part", "421:3266": "photo-full",
+      "421:5335": "none", "421:5264": "photo-full", "421:5304": "illust-bg", "421:5286": "illust-bg"
+    },
+    "naver-gfa": { "421:6995": "illust-bg", "421:7058": "photo-cutout", "421:7139": "illust-bg", "421:7158": "illust-bg", "421:7141": "logo-only", "421:7160": "logo-only" },
+    "everytime": { "421:7623": "illust-cutout", "421:7639": "illust-cutout", "421:7653": "photo-cutout", "421:7670": "photo-cutout",
+      "421:8104": "illust-bg", "421:8119": "illust-bg", "421:7691": "illust-bg", "421:8061": "illust-bg", "421:7689": "logo-only", "421:8046": "logo-only" },
+    "blind": { "421:8140": "photo-cutout", "421:8411": "illust-bg", "421:8260": "photo-cutout", "421:8370": "photo-cutout", "421:8448": "illust-bg", "421:8313": "logo-only" }
+  },
+  "treatment": {
+    "photo-full": { "field": "사진 위 스크림(글자 쪽에서 시작하는 어두운/브랜드색 그라데이션, 글자 칸 폭의 60~70%)", "text": "흰색", "melt": "스크림이 녹임 역할", "examples": ["코엑스 jobda·인스타", "원광대병원", "호반그룹", "동우화인켐", "조선내화", "텔레칩스"] },
+    "photo-part": { "field": "브랜드색 단색(로고 색)", "image": "사진은 칸을 채우고(cover), 지면과 만나는 변을 25~35% 그라데이션으로 녹임", "text": "지면 대비로", "examples": ["한독 자소설 160×600", "리멤버 예시 2240×240·1125×276", "에스이에이 jobda"] },
+    "photo-cutout": { "field": "단색 또는 브랜드 그라데이션", "image": "제 크기 또는 칸에 맞춰(contain), 녹임 없음", "examples": ["동서식품 GDN 4", "일화 GDN 4", "대원제약 5", "정식품", "동서식품 커피 비즈보드"] },
+    "illust-bg": { "field": "일러스트 가장자리 색 그대로(이음매 없음)", "image": "칸보다 작으면 제 크기, 납작하면 폭 맞춤, 길쭉하면 바닥 맞춤", "melt": "가장자리 색이 지면과 다를 때만", "examples": ["안랩 전부", "세아제강", "도레이", "한미글로벌", "마이다스 jobda", "동부건설", "ABL생명", "신한캐피탈"] },
+    "illust-cutout": { "field": "매체 템플릿(흰 바탕·둥근 상자)", "image": "칸에 맞춰(contain), 녹임 없음", "examples": ["캐치 썸네일", "카카오 비즈보드 HS화성·안랩", "에브리타임 DN솔루션즈"] },
+    "logo-only": { "field": "브랜드색 단색 또는 흰색", "image": "로고가 오브젝트 자리(오른쪽 칸 폭의 55~70%)를 차지, 상단 작은 로고는 생략", "examples": ["셀트리온", "서울창조경제혁신센터", "LX인터내셔널", "한국앤컴퍼니", "CMTX", "제일약품", "SPC"] }
+  }
+}

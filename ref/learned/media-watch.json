@@ -1,0 +1,136 @@
+{
+  "about": "매체 공식 가이드 자동 감시 목록 (2026-10-14 작성). 감지 → 변경 제안 → 사전 검증까지만, 자동 반영 금지. 원본 출처 목록은 core/media/*.json 의 officialSources, 설명은 docs/media-sources.md.",
+  "checkedAt": "2026-10-14",
+  "howTo": {
+    "md": "GitBook 페이지는 URL 뒤에 .md 를 붙이면 Markdown 원문이 온다 — 이미지 URL 토큰(?alt=media&token=…)을 지운 뒤 anchor 절을 잘라 diff.",
+    "html": "curl -sL -A 'Mozilla/5.0' 로 받아 script/style 제거 → 텍스트화 → anchor 사이 구간만 diff (페이지 공통 머리·꼬리 잡음 배제).",
+    "pdf": "파일을 저장하지 않고 HEAD 의 content-disposition 파일명(_YYYYMM)과 크기만 먼저 비교. 바뀌었을 때만 받아 pdftotext -layout 으로 이전 판과 diff.",
+    "link": "목록 페이지에서 특정 링크의 href·텍스트만 뽑아 비교 (파일명에 날짜가 들어가는 소개서 등)."
+  },
+  "watch": [
+    {
+      "medium": "kakao", "covers": ["kakao-bizboard-mo"],
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide.md",
+      "mode": "md",
+      "anchor": { "from": "# ", "keys": ["배너 사이즈", "1029 x 258", "300KB", "480px", "796px", "66x174"] },
+      "priority": "high"
+    },
+    {
+      "medium": "kakao", "covers": ["kakao-display-pc-promo", "kakao-display-pc-profile"],
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/performance/displayad/content-guide.md",
+      "mode": "md",
+      "anchor": { "keys": ["1200x600", "300x300", "500KB", "40px", "90px", "최대 25자", "최대 45자", "최대 20자"] },
+      "priority": "high"
+    },
+    {
+      "medium": "kakao", "covers": ["kakao-cpt-background", "kakao-cpt-object", "kakao-cpt-text"],
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/guarantee/cpt/content-guide/custom.md",
+      "mode": "md",
+      "anchor": { "keys": ["1290x258", "937x222", "315x258", "1029x258", "290px", "576px", "42px"] },
+      "priority": "high"
+    },
+    {
+      "medium": "kakao", "covers": ["kakao-cpt-background", "kakao-cpt-object", "kakao-cpt-text"],
+      "url": "https://kakaobusiness.gitbook.io/main/ad/moment/guarantee/cpt/10-20.md",
+      "mode": "md",
+      "anchor": { "from": "# 제작 가이드 (10/20 이후 버전)", "keys": ["고딕계열", "브랜드 폰트"] },
+      "note": "새 판 예고 페이지. 10/20 이후 기존 content-guide 를 대체하는지 확인.",
+      "priority": "high"
+    },
+    {
+      "medium": "kakao", "covers": [],
+      "url": "https://kakaobusiness.gitbook.io/main/llms.txt",
+      "mode": "md",
+      "anchor": { "keys": ["제작 가이드"] },
+      "note": "문서 목록. 제작 가이드 페이지가 새로 생기거나 경로가 바뀌면 여기서 먼저 보인다.",
+      "priority": "low"
+    },
+    {
+      "medium": "daangn", "covers": ["daangn-native-feed-image", "daangn-catalog-product"],
+      "url": "https://businessdaangn.gitbook.io/business.daangn/ads-pro/product/creative.md",
+      "mode": "md",
+      "anchor": { "from": "#### **A. 이미지 유형**", "to": "#### **B. 동영상 유형**", "keys": ["10MB", "200 x 200px", "최대 30자", "최대 20자"], "also": "### 4. 카탈로그 광고" },
+      "priority": "high"
+    },
+    {
+      "medium": "google-gdn", "covers": ["google-gdn-580x400", "google-gdn-970x250", "google-gdn-300x600", "google-gdn-300x1050", "google-gdn-930x180"],
+      "url": "https://support.google.com/google-ads/answer/1722096?hl=ko",
+      "mode": "html",
+      "anchor": { "from": "이미지 광고", "note": "선택자 미검증 — 본문 크기 표 구간을 텍스트로 잘라 비교", "keys": ["580x400", "970x250", "300x600", "300x1050", "930x180", "150KB"] },
+      "priority": "medium"
+    },
+    {
+      "medium": "instagram", "covers": ["instagram-feed-1080"],
+      "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-feed",
+      "mode": "html",
+      "anchor": { "from": "디자인 권장 사항", "to": "더 알아보기", "keys": ["비율", "해상도", "최대 파일 크기", "최소 너비"] },
+      "note": "로케일에 따라 영어(Design recommendations / Technical requirements)로 올 수 있음 — Accept-Language: ko 지정.",
+      "priority": "medium"
+    },
+    {
+      "medium": "instagram", "covers": ["instagram-story-1080x1920"],
+      "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-story",
+      "mode": "html",
+      "anchor": { "from": "디자인 추천 사항", "to": "더 알아보기", "keys": ["9:16", "14%", "35%", "6%", "30MB"] },
+      "priority": "medium"
+    },
+    {
+      "medium": "nap-dsp", "covers": ["nap-dsp-band-320x50", "nap-dsp-band-320x100", "nap-dsp-full-300x250", "nap-dsp-full-320x480", "nap-dsp-bizboard-1029x258", "nap-dsp-pc-970x90", "nap-dsp-pc-728x90"],
+      "url": "https://library.nasmedia.co.kr/file/ec8487cca87c575f470bf92df6efb042",
+      "mode": "pdf",
+      "anchor": { "header": "content-disposition filename (현재 …_202610.pdf)", "text": "Update 2026.10", "keys": ["640*100(320*50)", "320*100", "300*250", "640*960(320*480)", "960*300(px)", "200 KB"] },
+      "lastSeen": "nap+dsp+소재+제작+가이드_202610.pdf",
+      "priority": "high"
+    },
+    {
+      "medium": "nap-dsp", "covers": [],
+      "url": "https://napdsp-team.github.io/nap-dsp/",
+      "mode": "link",
+      "anchor": { "selector": "a[href*='library.nasmedia.co.kr/file/']", "text": "nap dsp 소재 제작 가이드" },
+      "note": "가이드 파일 id 가 바뀌면 새 링크로 교체됐다는 뜻. JS 렌더 페이지라 브라우저(헤드리스)가 필요할 수 있음.",
+      "priority": "low"
+    },
+    {
+      "medium": "blind", "covers": ["blind-brand-logo", "blind-feed-image", "blind-post-banner"],
+      "url": "https://www.teamblind.com/kr/ad-inquiry",
+      "mode": "link",
+      "anchor": { "selector": "a:has-text('제작가이드')", "text": "제작가이드" },
+      "lastSeen": "https://drive.google.com/file/d/1WAYHjWBLFZXHvcOpVOso35ESJiEHaNEz/view (title: Blind KR) 광고가이드_2503.pdf)",
+      "note": "링크는 JS 로 붙음 — 헤드리스 필요. Drive 파일 <title> 의 _YYMM 이 바뀌면 새 판. PDF 가 이미지라 숫자 diff 는 사람 확인.",
+      "priority": "medium"
+    },
+    {
+      "medium": "everytime", "covers": [],
+      "url": "https://www.vinuteam.com/business/ad",
+      "mode": "link",
+      "anchor": { "selector": "a[href*='cf-ownedmedia.vinuteam.com/attachment/'][href*='에브리타임']", "text": "소개서 다운로드" },
+      "lastSeen": "에브리타임_광고상품소개서_202607.pdf (2026-09-30까지 유효 — 새 판 나올 시점)",
+      "note": "상품소개서(규격 없음)라 상품 신설·폐지 신호로만 씀. 소재 제작 가이드 자체는 영업 경유.",
+      "priority": "low"
+    },
+    {
+      "medium": "jasoseol", "covers": [],
+      "url": "https://jasoseol.com/business/notices",
+      "mode": "html",
+      "anchor": { "text": "공지사항", "keys": ["광고", "배너", "상품"] },
+      "note": "목록 첫 페이지의 (제목, 날짜) 목록만 비교 — 새 공지 중 광고·배너·상품이 들어간 것만 알림. JS 렌더라 헤드리스 필요할 수 있음.",
+      "priority": "low"
+    },
+    {
+      "medium": "catch", "covers": ["catch-mainlarge-image-pc", "catch-mainlarge-image-mo"],
+      "url": "https://apply.catch.co.kr/main/ProductInfo/RecruitBanner",
+      "mode": "html",
+      "anchor": { "from": "배너 상품 한눈에 보기", "to": "상품 문의하기" },
+      "note": "상품 표(상품명·노출 위치·구좌)만 비교. 규격 숫자 없음 — 상품 신설·이름 변경 신호.",
+      "priority": "low"
+    }
+  ],
+  "notWatchable": {
+    "naver-gfa": "ads.naver.com/help — JS 렌더, WebFetch·브라우저 자동 접근 차단. 소재 가이드 문서 URL 미확인. 영업 PDF(모바일DA 1250×560·네이티브) 갱신은 사람이 받아 넣어야 함.",
+    "albamon": "공식 공개 가이드 없음. 광고 문의 = worxphere.ai/partnership 폼. 「잡코리아x알바몬 제작가이드.pdf (2025.08.22 ver)」는 영업 경유.",
+    "gamejob": "공식 공개 가이드 없음. 사이트에 ad@gamejob.co.kr 메일만. 「게임잡커뮤니티Pick제작가이드.pdf」는 영업 경유.",
+    "jobda": "jobda.im 에 광고 안내 페이지 없음. 가이드 png 는 영업 경유.",
+    "remember": "ads.rememberapp.co.kr → market.rememberapp.co.kr/targetads 는 B2B/B2C 타깃광고(스플래시·메인·팝업 등) 소개뿐, 우리 규격(채용 메인상단·공고상세 사이드 배너) 가이드는 「소개서 받기」 폼/영업 경유(리멤버 배너 상품 제작 가이드_ver.2408).",
+    "specup": "specup.net 응답 없음, 네이버 카페 기반. 상품소개서는 영업 경유."
+  }
+}

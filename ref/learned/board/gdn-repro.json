@@ -1,0 +1,35 @@
+{
+  "_about": "구글 GDN 보드 예시 5개 고객사를 우리 렌더러로 재현하기 위한 입력. 글자는 피그마 텍스트 노드(sZMB 1:4598 메타데이터)에서, 그림·로고는 download_assets/get_screenshot으로 꺼냄(ref/learned/board/gdn-assets). primary = 앱이 로고에서 뽑을 주색을 손으로 적은 것.",
+  "items": [
+    {
+      "client": "일화", "key": "ilhwa", "primary": "#E60012",
+      "kv": "ilhwa_building.png", "logo": "ilhwa_logo_full.png", "logoLight": null,
+      "fields": { "client": "㈜일화", "hiringType": "신입/경력 사원 모집", "slogan": "인류의 건강과 행복을 추구하는 기업!", "startDate": "2026-07-14", "deadline": "2026-07-20", "role": "총무, 디자인, 공무(전기), E-Biz영업, 건기식품질관리", "employType": "신입/경력" },
+      "sizes": { "google-gdn-580x400": "ref/ilhwa_580x400.png", "google-gdn-970x250": "ref/ilhwa_970x250.png", "google-gdn-300x600": "ref/ilhwa_300x600.png", "google-gdn-300x1050": "ref/ilhwa_300x1050.png" }
+    },
+    {
+      "client": "동부건설", "key": "dongbu", "primary": "#002F66",
+      "kv": "dongbu_illust.png", "logo": "dongbu_logo.png", "logoLight": null,
+      "fields": { "client": "동부건설", "season": "2026년", "hiringType": "신입사원 공개채용", "slogan": "We promise, your tomorrow", "startDate": "2026-03-30", "deadline": "2026-04-12", "role": "토목/건축/기계/전기/안전/품질/사무/IT", "employType": "신입" },
+      "sizes": { "google-gdn-580x400": "ref/dongbu_580x400.png", "google-gdn-970x250": "ref/dongbu_970x250.png", "google-gdn-300x600": "ref/dongbu_300x600.png", "google-gdn-300x1050": "ref/dongbu_300x1050.png" }
+    },
+    {
+      "client": "ABL생명", "key": "abl", "primary": "#0070E0",
+      "kv": "abl_characters.png", "logo": "woori_logo_white.png", "logoLight": "woori_logo_white.png",
+      "fields": { "client": "에이비엘생명", "season": "2026", "hiringType": "채용연계형 인턴 채용", "slogan": "IT•AI 역량을 갖춘 인재를 모집합니다!", "startDate": "2026-06-24", "deadline": "2026-07-05", "role": "경영지원, 재무•계리, 고객지원, IT•정보보호", "employType": "인턴" },
+      "sizes": { "google-gdn-580x400": "ref/abl_580x400.png", "google-gdn-970x250": "ref/abl_970x250.png", "google-gdn-300x600": "ref/abl_300x600.png", "google-gdn-300x1050": "ref/abl_300x1050.png" }
+    },
+    {
+      "client": "비씨월드제약", "key": "bc", "primary": "#172A71",
+      "kv": "bc_illust.png", "logo": "bc_logo.png", "logoLight": null,
+      "fields": { "client": "비씨월드제약/헬스케어", "season": "2026년", "hiringType": "3차 정기 채용", "startDate": "2026-09-05", "deadline": "2026-09-14", "role": "", "employType": "" },
+      "sizes": { "google-gdn-580x400": "ref/bc_580x400.png", "google-gdn-970x250": "ref/bc_970x250.png", "google-gdn-300x600": "ref/bc_300x600.png", "google-gdn-930x180": "ref/bc_930x180.png" }
+    },
+    {
+      "client": "동서식품", "key": "dongsuh", "primary": "#B6252B",
+      "kv": "dongsuh_model.png", "logo": "dongsuh_logo.png", "logoLight": null,
+      "fields": { "client": "동서식품", "season": "2026년", "hiringType": "대졸 신입/경력사원 채용", "startDate": "2026-09-28", "deadline": "2026-10-12", "role": "(경력) 연구(QA)｜디자인, (신입) 영업｜일반관리｜제조｜연구｜물류｜전산", "employType": "신입/경력" },
+      "sizes": { "google-gdn-580x400": "ref/dongsuh_580x400.png", "google-gdn-970x250": "ref/dongsuh_970x250.png", "google-gdn-300x600": "ref/dongsuh_300x600.png", "google-gdn-930x180": "ref/dongsuh_930x180.png" }
+    }
+  ]
+}

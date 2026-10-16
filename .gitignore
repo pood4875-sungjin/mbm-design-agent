@@ -7,3 +7,19 @@ ref/
 # 보드 재현·유형 분류 페이지는 로컬 전용(배포 안 함)
 docs/repro.html
 docs/kv-types.html
+
+# ref/ 는 로컬 전용(사진·렌더 수 GB)이지만, 작은 원본 자료는 올린다(10-16 사용자: 다른 컴퓨터에서 이어받기)
+!ref/
+ref/*
+!ref/learned/
+ref/learned/*
+!ref/learned/rules.json
+!ref/learned/spec-matrix.json
+!ref/learned/index.json
+!ref/learned/media-watch.json
+!ref/learned/board/
+ref/learned/board/*
+!ref/learned/board/*.json
+!ref/learned/cases/
+ref/learned/cases/*
+!ref/learned/cases/cases.json

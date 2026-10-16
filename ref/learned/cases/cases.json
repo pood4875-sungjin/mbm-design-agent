@@ -1,0 +1,3624 @@
+{
+  "cases": [
+    {
+      "id": "dongbu-flatbg",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "동부 아이소 + 단톤 네이비 바탕(합성) — 배경 있는 아이소메트릭",
+      "primary": "#002F66",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 44% · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "texture-dark",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "어두운 그라데이션 질감(합성)",
+      "primary": "#2456D6",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "texture",
+      "summary": "어두운 질감 · 가장자리 그라데이션 · 어두운 바탕 · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "slabs-3d",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "3D 슬랩 사물(초기 테스트)",
+      "primary": "#1428A0",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "geo-3d",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "기하 3D 조각(바탕 있음) — 첫 테스트 그림",
+      "primary": "#1428A0",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 18% · 덩어리 여럿 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          362,
+          90
+        ],
+        "lum": 0.17,
+        "sat": 0.55,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#1428A0",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "samsung-3d",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "삼성 3D 호 — 실제 키비주얼, 74규격 전수 검증",
+      "primary": "#1428A0",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 40% · 덩어리 여럿 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          362,
+          90
+        ],
+        "lum": 0.17,
+        "sat": 0.55,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#1428A0",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "gradient",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "블러 그라데이션 — 질감 유형",
+      "primary": "#2456D6",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "texture",
+      "summary": "밝은 질감 · 가장자리 그라데이션 · 세로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          362,
+          90
+        ],
+        "lum": 0.17,
+        "sat": 0.55,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#1428A0",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "fox-3d",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "여우 3D 캐릭터(크림 바탕) — 머리 보존·로고 트림·알약 틴트",
+      "primary": "#E0813A",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          203,
+          34
+        ],
+        "lum": 0.68,
+        "sat": 0.31,
+        "solid": 0.24,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#CDCDCD",
+            "share": 0.16
+          },
+          {
+            "hex": "#979797",
+            "share": 0.1
+          },
+          {
+            "hex": "#049C84",
+            "share": 0.09
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "ilhwa-dark",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "일화 사옥 어둡게(합성) — 어두운 사진",
+      "primary": "#E60012",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "photo",
+      "summary": "어두운 사진+여백 있는 사진(하늘·벽) · 주인공 39% · 덩어리 여럿 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ilhwa-photo",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "일화 사옥 사진(보드) — 실사",
+      "primary": "#E60012",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "photo",
+      "summary": "여백 있는 사진(하늘·벽) · 주인공 55% · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ilhwa-roomy",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "일화 사옥 + 하늘 여백 60%(합성) — 여백 있는 사진",
+      "primary": "#E60012",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "photo",
+      "summary": "여백 있는 사진(하늘·벽) · 주인공 34% · 어두운 바탕 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "bc-illust",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "비씨월드 일러스트(보드) — 배경 있는 일러스트",
+      "primary": "#172A71",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fox-gradbg",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "여우 + 보라 그라데이션 바탕(합성) — 배경 그라데이션 일러스트",
+      "primary": "#6D5CF5",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+그라데이션 바탕 일러스트·3D · 캐릭터(머리 보존) · 덩어리 여럿 · 가장자리 그라데이션 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "dongbu_illust",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "구글 GDN 보드 예시에서 꺼낸 그림",
+      "primary": "#002F66",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "abl-group",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "ABL 캐릭터 떼 누끼(보드) — 덩어리 여럿",
+      "primary": "#0070E0",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼+장면·건물 누끼(아이소메트릭) · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "dongsuh-model",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "동서식품 모델 누끼(보드) — 인물 누끼",
+      "primary": "#B6252B",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "fox-cutout",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "여우 누끼(합성) — 캐릭터 누끼: 머리 보존·발 바닥",
+      "primary": "#E0813A",
+      "fields": null,
+      "addedAt": "2026-10-06",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "sep-open-recruit",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "intake 2026-10-08 · sep-open-recruit.png · fields=Figma 1151:3968 실카피(location·applyUrl 미기재, employType은 0:1 기획안 89:18 \"신입/경력\")",
+      "primary": null,
+      "fields": {
+        "client": "마이다스",
+        "role": "자유직무, 경영·제품·사업 분야",
+        "employType": "신입·경력",
+        "location": null,
+        "deadline": "2025-10-12",
+        "applyUrl": null,
+        "season": "2025 하반기",
+        "hiringType": "대규모 공개채용",
+        "startDate": "2025-09-22",
+        "slogan": "자소서 없는 간편지원"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "반사·유리·크롬 누끼+단일 사물 누끼 · 어두운 지면 우선 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          1043,
+          304
+        ],
+        "lum": 0.06,
+        "sat": 0,
+        "solid": 0.56,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0F0F0F",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-wave",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · texture · 🟩 SK > ㄴ 온라인",
+      "primary": "#2878D8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "texture",
+      "summary": "어두운 질감 · 어두운 바탕 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-purple3d",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · texture · 🟩 SK > ㄴ 온라인",
+      "primary": "#5828B8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "texture",
+      "summary": "어두운 질감 · 어두운 바탕 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-hall",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · photo · 🟩 SK > ㄴ 온라인",
+      "primary": "#0888D8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 40% · 덩어리 여럿 · 어두운 바탕 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-speaker-a",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · cutout · 🟩 SK > ㄴ 온라인",
+      "primary": "#08A8F8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 어두운 바탕 · 세로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-speaker-b",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · cutout · 🟩 SK > ㄴ 온라인",
+      "primary": "#08A8F8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 어두운 바탕 · 세로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-seminar",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · photo · 🟩 SK > ㄴ 온라인",
+      "primary": "#5828B8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 덩어리 여럿 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-audience",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · photo · 🟩 SK > ㄴ 온라인",
+      "primary": "#6838E8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hdot-asterisk",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · cutout · 🟩 SK > ㄴ 온라인",
+      "primary": "#5828B8",
+      "fields": {
+        "client": "에이치닷",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          427,
+          88
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.41,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "hr-doctor",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟩 SK > ㄴ 리소스(사진, 그래픽)",
+      "primary": "#08D868",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "인물 사진+밝은 사진 · 캐릭터(머리 보존) · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "hr-teamhands",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟩 SK > ㄴ 리소스(사진, 그래픽)",
+      "primary": null,
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "밝은 사진 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "hr-nurse-ai",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟩 SK > ㄴ 리소스(사진, 그래픽)",
+      "primary": "#6716FF",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "인물 사진 · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-cablebridge",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟦 엔솔 > ㄴ 리소스(사진, 그래픽)",
+      "primary": null,
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "여백 있는 사진(하늘·벽) · 주인공 41% · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-stadium-wire",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · cutout · 🟦 엔솔 > ㄴ 리소스(사진, 그래픽)",
+      "primary": null,
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-city",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟦 엔솔 > ㄴ 리소스(사진, 그래픽)",
+      "primary": null,
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-folder-blue",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · cutout · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#2C88F3",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-folder-dark",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · cutout · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#01030F",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 어두운 바탕 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-glass-folders",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · illust · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#2C88F3",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 40% · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-acrylic-box",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · illust · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#01030F",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 29% · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-cards-orange",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · illust · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#01030F",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 36% · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-bridge-icons",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · illust · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#01030F",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 어두운 바탕 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-bridge-dark",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · illust · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#01030F",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 50% · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-book-vib",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#584898",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림) · 배경형 가능 · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-book-open",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · cutout · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#383888",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼 · 주인공 43% · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-book-flow",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · cutout · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#087878",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-book-sim",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#B85000",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "밝은 사진+여백 있는 사진(하늘·벽) · 주인공 51% · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-skyscraper",
+      "kv": "kv.png",
+      "logo": null,
+      "note": "figma-dg · photo · 🟦 엔솔 > ㄴ 온라인",
+      "primary": "#F16B01",
+      "fields": null,
+      "addedAt": "2026-10-08",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 덩어리 여럿 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-facets",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · texture · 🟦 엔솔 > ㄴ 리소스(사진, 그래픽)",
+      "primary": "#080858",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "texture",
+      "summary": "밝은 질감 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "midas-glass-mint",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · texture · 🟦 엔솔 > ㄴ 리소스(사진, 그래픽)",
+      "primary": "#080848",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "장식 프레임 누끼(가운데가 빈 유리 슬랩) · 주인공 39% · 어두운 바탕 · 어두운 지면 우선 · 전면 배경 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "midas-glass-dark",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "figma-dg · texture · 🟦 엔솔 > ㄴ 리소스(사진, 그래픽)",
+      "primary": "#182838",
+      "fields": {
+        "client": "MIDAS IT",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-08",
+      "type": "cutout",
+      "summary": "장식 프레임 누끼(가운데가 빈 유리 슬랩) · 주인공 37% · 어두운 바탕 · 어두운 지면 우선 · 전면 배경 · 가로형",
+      "verdicts": [],
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null
+    },
+    {
+      "id": "desk-01",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 009c2b1b0591eee8db7b2ba20eba38f1.jpg · CJ그룹 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#F89000",
+      "logoMeta": {
+        "px": [
+          602,
+          510
+        ],
+        "lum": 0.37,
+        "sat": 0.76,
+        "solid": 0.39,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FF9700",
+            "share": 0.28
+          },
+          {
+            "hex": "#006ECD",
+            "share": 0.28
+          },
+          {
+            "hex": "#EF151E",
+            "share": 0.28
+          }
+        ]
+      },
+      "fields": {
+        "client": "CJ그룹",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 26% · 덩어리 여럿 · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-02",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 0898d254326c3275e880edf89ff45eff.jpg · 대한항공 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#001060",
+      "logoMeta": {
+        "px": [
+          534,
+          113
+        ],
+        "lum": 0.1,
+        "sat": 0.38,
+        "solid": 0.2,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#041666",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "대한항공",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "texture",
+      "summary": "밝은 질감 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-03",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 153faafac63cecfd8c2b76e642c6dbbd.jpg · 딜로이트 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#86BC25",
+      "logoMeta": {
+        "px": [
+          1545,
+          290
+        ],
+        "lum": 0.99,
+        "sat": 0.01,
+        "solid": 0.54,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.98
+          },
+          {
+            "hex": "#86BC25",
+            "share": 0.02
+          }
+        ]
+      },
+      "fields": {
+        "client": "딜로이트",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 22% · 캐릭터(머리 보존) · 덩어리 여럿 · 가장자리 그라데이션 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-03-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 153f.png · 딜로이트 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트) · 원본 배경 분위기 있음 — 실사용은 원본",
+      "primary": "#86BC25",
+      "logoMeta": {
+        "px": [
+          1545,
+          290
+        ],
+        "lum": 0.99,
+        "sat": 0.01,
+        "solid": 0.54,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.98
+          },
+          {
+            "hex": "#86BC25",
+            "share": 0.02
+          }
+        ]
+      },
+      "fields": {
+        "client": "딜로이트",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-04",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 15dc3e21836f7f68fb0921003ead7b26.jpg · 기아 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#001018",
+      "logoMeta": {
+        "px": [
+          530,
+          148
+        ],
+        "lum": 0.98,
+        "sat": 0.01,
+        "solid": 0.38,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FEFFFF",
+            "share": 0.95
+          },
+          {
+            "hex": "#BDC3C8",
+            "share": 0.01
+          },
+          {
+            "hex": "#ABB1B6",
+            "share": 0
+          }
+        ]
+      },
+      "fields": {
+        "client": "기아",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-05",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 1f031f52b6fd40340eaa80d2642c05ef.jpg · KB손해보험 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#787060",
+      "logoMeta": {
+        "px": [
+          2362,
+          508
+        ],
+        "lum": 0.52,
+        "sat": 0.3,
+        "solid": 0.19,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#7C7266",
+            "share": 0.73
+          },
+          {
+            "hex": "#F7B500",
+            "share": 0.24
+          },
+          {
+            "hex": "#9D958B",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "KB손해보험",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "어두운 사진 · 주인공 52% · 덩어리 여럿 · 어두운 바탕 · 세로형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-06",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 32f9c027d139b958f79b2793d01e5df9.jpg · 동원그룹 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#0065BD",
+      "logoMeta": {
+        "px": [
+          959,
+          392
+        ],
+        "lum": 0.34,
+        "sat": 0.74,
+        "solid": 0.25,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0065BD",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "동원그룹",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 덩어리 여럿 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-07",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 35ada42b5e60c4cb2ca0f7a89ea7b8d4.jpg · 코스맥스그룹 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#EA0029",
+      "logoMeta": {
+        "px": [
+          239,
+          400
+        ],
+        "lum": 0.21,
+        "sat": 0.92,
+        "solid": 0.45,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#EA0029",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "코스맥스그룹",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 52% · 캐릭터(머리 보존) · 덩어리 여럿 · 가장자리 그라데이션 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-08",
+      "kv": "kv.jpg",
+      "logo": "logo-orig.png",
+      "note": "desk · 396f80f374b001b300c77fe66e538859.jpg · 한국능률협회 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000001",
+      "logoMeta": {
+        "px": [
+          1535,
+          400
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.45,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000001",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "한국능률협회",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-09",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 3e53828c8385b37394e66d650eaf38b3.jpg · 파르나스호텔 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          128,
+          33
+        ],
+        "lum": 1,
+        "sat": 0,
+        "solid": 0.31,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "파르나스호텔",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 46% · 가로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-11",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 57ef7522985b86daec8289139f0fbbed.jpg · 넷마블 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#F8E000",
+      "logoMeta": {
+        "px": [
+          107,
+          120
+        ],
+        "lum": 0.78,
+        "sat": 0.75,
+        "solid": 0.67,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FFE503",
+            "share": 0.62
+          },
+          {
+            "hex": "#5C3B2E",
+            "share": 0.12
+          },
+          {
+            "hex": "#FFFFFE",
+            "share": 0.11
+          }
+        ]
+      },
+      "fields": {
+        "client": "넷마블",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 46% · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-12",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 5c576e068e074f903d6d742a1b240703.jpg · 세방그룹 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#00A8A8",
+      "logoMeta": {
+        "px": [
+          526,
+          137
+        ],
+        "lum": 0.98,
+        "sat": 0.03,
+        "solid": 0.4,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.93
+          },
+          {
+            "hex": "#62CBCA",
+            "share": 0.03
+          },
+          {
+            "hex": "#40C0BF",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "세방그룹",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-13",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 5ff1976abf471335f9d97435abab78ba.jpg · 뉴발란스 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#C81028",
+      "logoMeta": {
+        "px": [
+          568,
+          273
+        ],
+        "lum": 0.23,
+        "sat": 0.75,
+        "solid": 0.56,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#CF112D",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "뉴발란스",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 57% · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-13-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 5ff1.png · 뉴발란스 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#C81028",
+      "logoMeta": {
+        "px": [
+          568,
+          273
+        ],
+        "lum": 0.23,
+        "sat": 0.75,
+        "solid": 0.56,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#CF112D",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "뉴발란스",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-14",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 6cbbacf27f58227c26df0c79ca8e4a81.jpg · 금호타이어 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          304,
+          93
+        ],
+        "lum": 0.07,
+        "sat": 0,
+        "solid": 0.34,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#020202",
+            "share": 0.86
+          },
+          {
+            "hex": "#7B7B7B",
+            "share": 0.04
+          },
+          {
+            "hex": "#393939",
+            "share": 0.03
+          }
+        ]
+      },
+      "fields": {
+        "client": "금호타이어",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-15",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 7dbbe68343c637846edc93905082a8a9.jpg · 한국산업단지공단 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#0076B4",
+      "logoMeta": {
+        "px": [
+          1550,
+          310
+        ],
+        "lum": 0.5,
+        "sat": 0.59,
+        "solid": 0.28,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0076B4",
+            "share": 0.52
+          },
+          {
+            "hex": "#9FA0A0",
+            "share": 0.13
+          },
+          {
+            "hex": "#F7AD0E",
+            "share": 0.04
+          }
+        ]
+      },
+      "fields": {
+        "client": "한국산업단지공단",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-15-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 7dbb.png · 한국산업단지공단 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트) · 원본 배경 분위기 있음 — 실사용은 원본",
+      "primary": "#0076B4",
+      "logoMeta": {
+        "px": [
+          1550,
+          310
+        ],
+        "lum": 0.5,
+        "sat": 0.59,
+        "solid": 0.28,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0076B4",
+            "share": 0.52
+          },
+          {
+            "hex": "#9FA0A0",
+            "share": 0.13
+          },
+          {
+            "hex": "#F7AD0E",
+            "share": 0.04
+          }
+        ]
+      },
+      "fields": {
+        "client": "한국산업단지공단",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼 · 덩어리 여럿 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-16",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 7f2419e61e66fdbb620b0b804e4d44c0.jpg · 휴온스글로벌 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#0068B0",
+      "logoMeta": {
+        "px": [
+          153,
+          32
+        ],
+        "lum": 0.82,
+        "sat": 0.24,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.62
+          },
+          {
+            "hex": "#0069B7",
+            "share": 0.1
+          },
+          {
+            "hex": "#50B2E5",
+            "share": 0.08
+          }
+        ]
+      },
+      "fields": {
+        "client": "휴온스글로벌",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "어두운 사진 · 덩어리 여럿 · 어두운 바탕 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-17",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 8185aac4f1be0ae142b72190669b7228.jpg · 키엔스코리아 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#E4002B",
+      "logoMeta": {
+        "px": [
+          1550,
+          274
+        ],
+        "lum": 0.03,
+        "sat": 0.11,
+        "solid": 0.46,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 0.87
+          },
+          {
+            "hex": "#E4002B",
+            "share": 0.13
+          }
+        ]
+      },
+      "fields": {
+        "client": "키엔스코리아",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 54% · 캐릭터(머리 보존) · 덩어리 여럿 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-18",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 86def5e163ff1a74a38c1addfcde8f15.jpg · 마이다스아이티 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#004098",
+      "logoMeta": {
+        "px": [
+          600,
+          206
+        ],
+        "lum": 0.28,
+        "sat": 0.58,
+        "solid": 0.43,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#014198",
+            "share": 0.6
+          },
+          {
+            "hex": "#023D94",
+            "share": 0.21
+          },
+          {
+            "hex": "#EA8F02",
+            "share": 0.03
+          }
+        ]
+      },
+      "fields": {
+        "client": "마이다스아이티",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 51% · 캐릭터(머리 보존) · 가장자리 그라데이션 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-18-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 86de.png · 마이다스아이티 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#004098",
+      "logoMeta": {
+        "px": [
+          600,
+          206
+        ],
+        "lum": 0.28,
+        "sat": 0.58,
+        "solid": 0.43,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#014198",
+            "share": 0.6
+          },
+          {
+            "hex": "#023D94",
+            "share": 0.21
+          },
+          {
+            "hex": "#EA8F02",
+            "share": 0.03
+          }
+        ]
+      },
+      "fields": {
+        "client": "마이다스아이티",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-19",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 8bdf7b1f55b22cfb4e3292efef4064d6.jpg · 계룡건설산업 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#303840",
+      "logoMeta": {
+        "px": [
+          134,
+          31
+        ],
+        "lum": 0.4,
+        "sat": 0.29,
+        "solid": 0.46,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#303E48",
+            "share": 0.37
+          },
+          {
+            "hex": "#0971CE",
+            "share": 0.25
+          },
+          {
+            "hex": "#ADB3B7",
+            "share": 0.06
+          }
+        ]
+      },
+      "fields": {
+        "client": "계룡건설산업",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "여백 있는 사진(하늘·벽) · 주인공 12% · 덩어리 여럿 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-20",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 93f95b7166ba1ffc73dfa89489d40e79.jpg · 코스알엑스 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#8020F8",
+      "logoMeta": {
+        "px": [
+          76,
+          134
+        ],
+        "lum": 0.98,
+        "sat": 0.03,
+        "solid": 0.48,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.92
+          },
+          {
+            "hex": "#E6D3FF",
+            "share": 0.03
+          },
+          {
+            "hex": "#AF71FF",
+            "share": 0.02
+          }
+        ]
+      },
+      "fields": {
+        "client": "코스알엑스",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 33% · 덩어리 여럿 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-20-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 93f9.png · 코스알엑스 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#8020F8",
+      "logoMeta": {
+        "px": [
+          76,
+          134
+        ],
+        "lum": 0.98,
+        "sat": 0.03,
+        "solid": 0.48,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.92
+          },
+          {
+            "hex": "#E6D3FF",
+            "share": 0.03
+          },
+          {
+            "hex": "#AF71FF",
+            "share": 0.02
+          }
+        ]
+      },
+      "fields": {
+        "client": "코스알엑스",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-21",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 957d99f2618be9abd5937063fc2c30d8.jpg · 두산건설 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#003890",
+      "logoMeta": {
+        "px": [
+          398,
+          124
+        ],
+        "lum": 0.27,
+        "sat": 0.56,
+        "solid": 0.31,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#004098",
+            "share": 0.82
+          },
+          {
+            "hex": "#013F98",
+            "share": 0.05
+          },
+          {
+            "hex": "#94AFD4",
+            "share": 0.02
+          }
+        ]
+      },
+      "fields": {
+        "client": "두산건설",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 어두운 바탕 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-22",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 991234a5d6f52f48956df6c305864fcc.jpg · 고려아연 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          334,
+          62
+        ],
+        "lum": 0.18,
+        "sat": 0.23,
+        "solid": 0.3,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 0.66
+          },
+          {
+            "hex": "#E78F05",
+            "share": 0.05
+          },
+          {
+            "hex": "#F3AB01",
+            "share": 0.03
+          }
+        ]
+      },
+      "fields": {
+        "client": "고려아연",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-22-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 9912.png · 고려아연 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          334,
+          62
+        ],
+        "lum": 0.18,
+        "sat": 0.23,
+        "solid": 0.3,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 0.66
+          },
+          {
+            "hex": "#E78F05",
+            "share": 0.05
+          },
+          {
+            "hex": "#F3AB01",
+            "share": 0.03
+          }
+        ]
+      },
+      "fields": {
+        "client": "고려아연",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-23",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 9c2395422a460435ba42bb3498f4b7bc.jpg · 제주항공 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#F85000",
+      "logoMeta": {
+        "px": [
+          362,
+          81
+        ],
+        "lum": 0.97,
+        "sat": 0.05,
+        "solid": 0.38,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.9
+          },
+          {
+            "hex": "#FFB18D",
+            "share": 0.02
+          },
+          {
+            "hex": "#FF9A6C",
+            "share": 0.02
+          }
+        ]
+      },
+      "fields": {
+        "client": "제주항공",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "texture",
+      "summary": "밝은 질감 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-24",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 9d2a27fcb362b32e0a4e580bd2bd5ca7.jpg · 서울아산병원 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#006868",
+      "logoMeta": {
+        "px": [
+          140,
+          38
+        ],
+        "lum": 0.37,
+        "sat": 0.43,
+        "solid": 0.46,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#00696D",
+            "share": 0.81
+          },
+          {
+            "hex": "#55A3A2",
+            "share": 0.14
+          },
+          {
+            "hex": "#F18D00",
+            "share": 0.04
+          }
+        ]
+      },
+      "fields": {
+        "client": "서울아산병원",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 32% · 캐릭터(머리 보존) · 덩어리 여럿 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-25",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · a35af446a459c45ee7d980e67def4ebe.jpg · 에스디바이오센서 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          1000,
+          96
+        ],
+        "lum": 0.03,
+        "sat": 0.07,
+        "solid": 0.48,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 0.88
+          },
+          {
+            "hex": "#00508E",
+            "share": 0.12
+          }
+        ]
+      },
+      "fields": {
+        "client": "에스디바이오센서",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 20% · 가장자리 그라데이션 · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-26",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · bd5c10f1c1b27ab28b88fae56e54924a.jpg · 시청자미디어재단 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#0060B0",
+      "logoMeta": {
+        "px": [
+          375,
+          247
+        ],
+        "lum": 0.51,
+        "sat": 0.78,
+        "solid": 0.42,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0066B2",
+            "share": 0.24
+          },
+          {
+            "hex": "#E33025",
+            "share": 0.19
+          },
+          {
+            "hex": "#FFCA02",
+            "share": 0.17
+          }
+        ]
+      },
+      "fields": {
+        "client": "시청자미디어재단",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 49% · 캐릭터(머리 보존) · 덩어리 여럿 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-27",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · c1c577c16d2bf406cb203790bdb1a99c.jpg · 법무법인(유) 세종 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#701060",
+      "logoMeta": {
+        "px": [
+          641,
+          197
+        ],
+        "lum": 0.94,
+        "sat": 0.02,
+        "solid": 0.21,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FEFEFE",
+            "share": 0.87
+          },
+          {
+            "hex": "#98548B",
+            "share": 0.03
+          },
+          {
+            "hex": "#CEAFC8",
+            "share": 0.03
+          }
+        ]
+      },
+      "fields": {
+        "client": "법무법인(유) 세종",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-28",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · d8c6d8967812ac8f1dfffd486931d06b.jpg · 웅진식품 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#55585F",
+      "logoMeta": {
+        "px": [
+          1161,
+          388
+        ],
+        "lum": 0.41,
+        "sat": 0.22,
+        "solid": 0.16,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#55585F",
+            "share": 0.57
+          },
+          {
+            "hex": "#717271",
+            "share": 0.19
+          },
+          {
+            "hex": "#F38B00",
+            "share": 0.06
+          }
+        ]
+      },
+      "fields": {
+        "client": "웅진식품",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-29",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · e4137ec5822fdd958d1d4ea58454d9f6.jpg · 볼보그룹코리아 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#E8E8E8",
+      "logoMeta": {
+        "px": [
+          560,
+          559
+        ],
+        "lum": 0.61,
+        "sat": 0.07,
+        "solid": 0.3,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#D1CFD1",
+            "share": 0.49
+          },
+          {
+            "hex": "#B2AFB2",
+            "share": 0.08
+          },
+          {
+            "hex": "#4E494D",
+            "share": 0.08
+          }
+        ]
+      },
+      "fields": {
+        "client": "볼보그룹코리아",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+그라데이션 바탕 일러스트·3D · 캐릭터(머리 보존) · 가장자리 그라데이션 · 세로형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-30",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · eb5a8d3f3ee4a140e1fb7ec4ae54e6c0.jpg · 실리콘투 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          36,
+          172
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.54,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "실리콘투",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 11% · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-31",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · ec83e03c3f76721f5a9f0c8672416f3f.jpg · 이노션 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#202018",
+      "logoMeta": {
+        "px": [
+          152,
+          62
+        ],
+        "lum": 0.72,
+        "sat": 0.13,
+        "solid": 0.27,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FDFDFD",
+            "share": 0.46
+          },
+          {
+            "hex": "#4F5049",
+            "share": 0.08
+          },
+          {
+            "hex": "#AFB0AD",
+            "share": 0.07
+          }
+        ]
+      },
+      "fields": {
+        "client": "이노션",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 덩어리 여럿 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-32",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · f22f79fe00c0bddc655400146d8f439d.jpg · 티웨이항공 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#D02820",
+      "logoMeta": {
+        "px": [
+          800,
+          334
+        ],
+        "lum": 0.34,
+        "sat": 0.65,
+        "solid": 0.43,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#D22C26",
+            "share": 0.91
+          },
+          {
+            "hex": "#82AB42",
+            "share": 0.07
+          },
+          {
+            "hex": "#E78F8C",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "티웨이항공",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-32-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · f22f.png · 티웨이항공 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트) · 원본 배경 분위기 있음 — 실사용은 원본",
+      "primary": "#D02820",
+      "logoMeta": {
+        "px": [
+          800,
+          334
+        ],
+        "lum": 0.34,
+        "sat": 0.65,
+        "solid": 0.43,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#D22C26",
+            "share": 0.91
+          },
+          {
+            "hex": "#82AB42",
+            "share": 0.07
+          },
+          {
+            "hex": "#E78F8C",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "티웨이항공",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-33",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · f78d2f8306d461a488866a7b4b84431a.jpg · LAYER · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#080008",
+      "logoMeta": {
+        "px": [
+          554,
+          156
+        ],
+        "lum": 0.06,
+        "sat": 0.01,
+        "solid": 0.33,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#090608",
+            "share": 0.93
+          },
+          {
+            "hex": "#4E4C4D",
+            "share": 0.02
+          },
+          {
+            "hex": "#8F8E8F",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "LAYER",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 덩어리 여럿 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-34",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · f95c898b85aafd2fa6f478de9e4c7d66.jpg · 도루코 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          670,
+          138
+        ],
+        "lum": 0.97,
+        "sat": 0,
+        "solid": 0.43,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.95
+          },
+          {
+            "hex": "#2F2F2F",
+            "share": 0.01
+          },
+          {
+            "hex": "#BBBBBB",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "도루코",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 어두운 바탕 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-35",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · fe388193c610dc1b43e2bad909fffcf5.jpg · 파라타항공 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#0018E0",
+      "logoMeta": {
+        "px": [
+          577,
+          298
+        ],
+        "lum": 0.18,
+        "sat": 0.87,
+        "solid": 0.18,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#011EE6",
+            "share": 0.92
+          },
+          {
+            "hex": "#0A27E7",
+            "share": 0.02
+          },
+          {
+            "hex": "#8D9AF4",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "파라타항공",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 40% · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-35-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · fe38.png · 파라타항공 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#0018E0",
+      "logoMeta": {
+        "px": [
+          577,
+          298
+        ],
+        "lum": 0.18,
+        "sat": 0.87,
+        "solid": 0.18,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#011EE6",
+            "share": 0.92
+          },
+          {
+            "hex": "#0A27E7",
+            "share": 0.02
+          },
+          {
+            "hex": "#8D9AF4",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "파라타항공",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-36",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · 다운로드.png · GC녹십자그룹 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#002B49",
+      "logoMeta": {
+        "px": [
+          929,
+          400
+        ],
+        "lum": 0.37,
+        "sat": 0.53,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#002B49",
+            "share": 0.43
+          },
+          {
+            "hex": "#8CD004",
+            "share": 0.08
+          },
+          {
+            "hex": "#50AB17",
+            "share": 0.06
+          }
+        ]
+      },
+      "fields": {
+        "client": "GC녹십자그룹",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "photo",
+      "summary": "밝은 사진 · 가장자리 그라데이션 · 세로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-10",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · 5204f72e474a716b6ad1a6f2b274013f.jpg · 아모레퍼시픽 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#000000",
+      "logoMeta": {
+        "px": [
+          1758,
+          628
+        ],
+        "lum": 0.05,
+        "sat": 0.01,
+        "solid": 0.08,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#060203",
+            "share": 0.92
+          },
+          {
+            "hex": "#848383",
+            "share": 0.02
+          },
+          {
+            "hex": "#C8C7C8",
+            "share": 0.01
+          }
+        ]
+      },
+      "fields": {
+        "client": "아모레퍼시픽",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-09",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 57% · 캐릭터(머리 보존) · 어두운 바탕 · 정사각형",
+      "verdicts": [],
+      "logoMono": "logo-mono.png"
+    },
+    {
+      "id": "desk-37",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "desk · ae6e00856d0c11bab65b0d4e8690310b.jpg · 동부건설 · as-is (KV는 이 회사 것이 아님 — 레이아웃 테스트)",
+      "primary": "#E86800",
+      "logoMeta": {
+        "px": [
+          128,
+          128
+        ],
+        "lum": 0.5,
+        "sat": 0.93,
+        "solid": 0.63,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#ED6D00",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "동부건설",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-12",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 가로형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "desk-37-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "desk · ae6e.png · 동부건설 · cutout (KV는 이 회사 것이 아님 — 레이아웃 테스트) · 원본 배경 분위기 있음 — 실사용은 원본",
+      "primary": "#E86800",
+      "logoMeta": {
+        "px": [
+          128,
+          128
+        ],
+        "lum": 0.5,
+        "sat": 0.93,
+        "solid": 0.63,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#ED6D00",
+            "share": 1
+          }
+        ]
+      },
+      "fields": {
+        "client": "동부건설",
+        "role": "클라우드 플랫폼 엔지니어",
+        "employType": "정규직",
+        "location": "서울 여의도",
+        "deadline": "2026-10-31",
+        "applyUrl": "https://hanjin.example"
+      },
+      "addedAt": "2026-10-12",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": [],
+      "logoMono": null
+    },
+    {
+      "id": "t1014-abl",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · ABL생명 · 1.수급자료/ABL생명_키비주얼.png (투명 누끼 원본, 5700→2400 축소)",
+      "primary": "#F64E4E",
+      "logoMeta": {
+        "px": [
+          1577,
+          311
+        ],
+        "lum": 0.39,
+        "sat": 0.55,
+        "solid": 0.42,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#E72510",
+            "share": 0.62
+          },
+          {
+            "hex": "#8F867D",
+            "share": 0.38
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "ABL생명",
+        "season": "2024",
+        "hiringType": "신입사원 공개채용",
+        "startDate": "2024-02-28",
+        "deadline": "2024-03-10",
+        "role": "영업마케팅, 상품/계리/리스크, 경영지원, IT, 보험지원"
+      },
+      "addedAt": "2026-10-14",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼 · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-gs2025",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · GS에너지 2025 · 2025년GS에너지_키비주얼.ai 11쪽 → PyMuPDF 로 글자·로고 그림 지움(모집분야 알약 자리는 하늘색으로 메움), 144dpi",
+      "primary": "#064E96",
+      "logoMeta": {
+        "px": [
+          447,
+          131
+        ],
+        "lum": 0.5,
+        "sat": 0.55,
+        "solid": 0.32,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0072BC",
+            "share": 0.25
+          },
+          {
+            "hex": "#6D6E71",
+            "share": 0.23
+          },
+          {
+            "hex": "#F7901E",
+            "share": 0.07
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "GS에너지",
+        "season": "2025년",
+        "hiringType": "신입 공채",
+        "startDate": "2025-06-20",
+        "deadline": "2025-07-02",
+        "role": "일반(사업, 재무 등), 보훈(사업/경영지원)",
+        "deadlineTime": "17:00"
+      },
+      "addedAt": "2026-10-14",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 39% · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-gs2026",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · GS에너지 2026 · 2026년GS에너지_키비주얼.svg → 박힌 흰 로고 경로 16개를 지우고 헤드리스 Chrome 2배 렌더(1522×1480)",
+      "primary": "#0672BA",
+      "logoMeta": {
+        "px": [
+          447,
+          131
+        ],
+        "lum": 0.5,
+        "sat": 0.55,
+        "solid": 0.32,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0072BC",
+            "share": 0.25
+          },
+          {
+            "hex": "#6D6E71",
+            "share": 0.23
+          },
+          {
+            "hex": "#F7901E",
+            "share": 0.07
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "GS에너지",
+        "season": "2026년",
+        "hiringType": "신입/경력 채용",
+        "startDate": "2026-01-29",
+        "deadline": "2026-02-13",
+        "role": "태양광사업, 자금/회계, 감사, SMR사업"
+      },
+      "addedAt": "2026-10-14",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-lt",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · LT소재 V1 · LT소재V1_키비주얼.png",
+      "primary": "#D21242",
+      "logoMeta": {
+        "px": [
+          272,
+          73
+        ],
+        "lum": 0.7,
+        "sat": 0.2,
+        "solid": 0.4,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FEFEFE",
+            "share": 0.59
+          },
+          {
+            "hex": "#AF0C39",
+            "share": 0.28
+          },
+          {
+            "hex": "#66666D",
+            "share": 0.02
+          }
+        ],
+        "emblem": {
+          "x1": 0.305,
+          "light": 0.29
+        }
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "LT소재",
+        "season": "2026년",
+        "hiringType": "경력 및 신입사원 채용",
+        "startDate": "2026-06-22",
+        "deadline": "2026-07-01",
+        "role": "연구직, 영업직, 사무직",
+        "deadlineTime": "23:59"
+      },
+      "addedAt": "2026-10-14",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-lt-v2",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "t1014 · LT소재 V2 · LT소재V2_키비주얼.jpg (3000→2000)",
+      "primary": "#D21242",
+      "logoMeta": {
+        "px": [
+          272,
+          73
+        ],
+        "lum": 0.7,
+        "sat": 0.2,
+        "solid": 0.4,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FEFEFE",
+            "share": 0.59
+          },
+          {
+            "hex": "#AF0C39",
+            "share": 0.28
+          },
+          {
+            "hex": "#66666D",
+            "share": 0.02
+          }
+        ],
+        "emblem": {
+          "x1": 0.305,
+          "light": 0.29
+        }
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "LT소재",
+        "season": "2026년",
+        "hiringType": "경력 및 신입사원 채용",
+        "startDate": "2026-06-22",
+        "deadline": "2026-07-01",
+        "role": "연구직, 영업직, 사무직",
+        "deadlineTime": "23:59"
+      },
+      "addedAt": "2026-10-14",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-lt-v3",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "t1014 · LT소재 V3 · LT소재V3_키비주얼.jpg",
+      "primary": "#D21242",
+      "logoMeta": {
+        "px": [
+          272,
+          73
+        ],
+        "lum": 0.7,
+        "sat": 0.2,
+        "solid": 0.4,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FEFEFE",
+            "share": 0.59
+          },
+          {
+            "hex": "#AF0C39",
+            "share": 0.28
+          },
+          {
+            "hex": "#66666D",
+            "share": 0.02
+          }
+        ],
+        "emblem": {
+          "x1": 0.305,
+          "light": 0.29
+        }
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "LT소재",
+        "season": "2026년",
+        "hiringType": "경력 및 신입사원 채용",
+        "startDate": "2026-06-22",
+        "deadline": "2026-07-01",
+        "role": "연구직, 영업직, 사무직",
+        "deadlineTime": "23:59"
+      },
+      "addedAt": "2026-10-14",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진+여백 있는 사진(하늘·벽) · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-dongsuh",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 동서식품 · 01_박보영.jpg(6400×8000 → 2000) → kv-cutout --auto CUT(무채 바탕) · --person(Apple Visi",
+      "primary": "#FFC000",
+      "logoMeta": {
+        "px": [
+          220,
+          58
+        ],
+        "lum": 0.42,
+        "sat": 0.83,
+        "solid": 0.26,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#FF1A00",
+            "share": 0.54
+          },
+          {
+            "hex": "#FF341A",
+            "share": 0.12
+          },
+          {
+            "hex": "#FFA88F",
+            "share": 0.1
+          }
+        ]
+      },
+      "logoMono": "logo-mono.png",
+      "fields": {
+        "client": "동서식품",
+        "season": "2026년",
+        "hiringType": "대졸 신입/경력사원 채용",
+        "startDate": "2026-09-28",
+        "deadline": "2026-10-12",
+        "role": "(신입) 영업, 일반관리, 제조, 연구, 물류, 전산 (경력) 연구(QA), 디자인",
+        "slogan": "동서식품의 새로운 인재를 찾습니다!"
+      },
+      "addedAt": "2026-10-14",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-bionote-dog",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 바이오노트 (인스타 V1) · 바이오노트V2_키비주얼.jpg(개) → kv-cutout --auto CUT",
+      "primary": "#1E72F6",
+      "logoMeta": {
+        "px": [
+          1552,
+          463
+        ],
+        "lum": 0.6,
+        "sat": 0.4,
+        "solid": 0.22,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#9D9D9D",
+            "share": 0.41
+          },
+          {
+            "hex": "#3AA731",
+            "share": 0.31
+          },
+          {
+            "hex": "#F0850C",
+            "share": 0.19
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "바이오노트",
+        "season": "2022 하반기",
+        "hiringType": "신입/경력 공개채용",
+        "deadline": "2022-11-27",
+        "role": "전략기획, 연구개발, QC/RA 등 N 분야",
+        "slogan": "BRINGING NEW INNOVATION"
+      },
+      "addedAt": "2026-10-14",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-bionote-cat",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 바이오노트 (인스타 V2) · 바이오노트V1_키비주얼.png(고양이) → kv-cutout --auto CUT --skipedge bottom (디자이너는 원본 바탕 그대로)",
+      "primary": "#F67E06",
+      "logoMeta": {
+        "px": [
+          1552,
+          463
+        ],
+        "lum": 0.6,
+        "sat": 0.4,
+        "solid": 0.22,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#9D9D9D",
+            "share": 0.41
+          },
+          {
+            "hex": "#3AA731",
+            "share": 0.31
+          },
+          {
+            "hex": "#F0850C",
+            "share": 0.19
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "바이오노트",
+        "season": "2022 하반기",
+        "hiringType": "신입/경력 공개채용",
+        "deadline": "2022-11-27",
+        "role": "전략기획, 연구개발, QC/RA 등 N 분야",
+        "slogan": "BRINGING NEW INNOVATION"
+      },
+      "addedAt": "2026-10-14",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼+장면·건물 누끼(아이소메트릭) · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-asan-illust",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 서울아산병원 V1 · ⚠ 서울아산병원V1_키비주얼.eps 변환 실패(미리보기 없는 순수 PostScript, ghostscript 없음, qlmanage 멈춤) — ",
+      "primary": "#5A72D2",
+      "logoMeta": {
+        "px": [
+          1590,
+          438
+        ],
+        "lum": 0.38,
+        "sat": 0.43,
+        "solid": 0.28,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#00696D",
+            "share": 0.8
+          },
+          {
+            "hex": "#55A3A3",
+            "share": 0.16
+          },
+          {
+            "hex": "#F18D00",
+            "share": 0.04
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "서울아산병원",
+        "hiringType": "디자이너 채용",
+        "role": "UX디자이너/서비스디자이너",
+        "startDate": "2022-10-17",
+        "deadline": "2022-10-30"
+      },
+      "addedAt": "2026-10-14",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-asan-photo",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "t1014 · 서울아산병원 V2 · 서울아산병원V2_키비주얼.jpg (900×392 — 작은 원본)",
+      "primary": "#121E42",
+      "logoMeta": {
+        "px": [
+          1590,
+          438
+        ],
+        "lum": 0.38,
+        "sat": 0.43,
+        "solid": 0.28,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#00696D",
+            "share": 0.8
+          },
+          {
+            "hex": "#55A3A3",
+            "share": 0.16
+          },
+          {
+            "hex": "#F18D00",
+            "share": 0.04
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "서울아산병원",
+        "hiringType": "사무직 채용",
+        "role": "행정·사무, 수납·창구, 전산",
+        "startDate": "2022-10-20",
+        "deadline": "2022-10-29"
+      },
+      "addedAt": "2026-10-14",
+      "type": "photo",
+      "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 어두운 바탕 · 전면 배경 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-jeil",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 제일약품 · 채용표지_제일약품_키비주얼.png (투명 누끼, 625×437 — 작은 원본)",
+      "primary": "#0460AF",
+      "logoMeta": {
+        "px": [
+          2215,
+          545
+        ],
+        "lum": 0.55,
+        "sat": 0.47,
+        "solid": 0.38,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#0061B0",
+            "share": 0.53
+          },
+          {
+            "hex": "#CDE0F4",
+            "share": 0.21
+          },
+          {
+            "hex": "#94C0E7",
+            "share": 0.2
+          }
+        ],
+        "emblem": {
+          "x1": 0.335,
+          "light": 0.42
+        }
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "제일약품",
+        "season": "2026년",
+        "hiringType": "ETC 영업 채용(전국)",
+        "deadline": "2026-01-18",
+        "role": "ETC 영업",
+        "location": "전국",
+        "slogan": "제일약품과 함께 제약산업의 미래를 이끌어갈 열정적인 인재를 찾습니다.",
+        "deadlineTime": "23:59"
+      },
+      "addedAt": "2026-10-14",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-hanssem",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 한샘 (사진) · 한샘_키비주얼이미지.png",
+      "primary": "#C61E1E",
+      "logoMeta": {
+        "px": [
+          222,
+          48
+        ],
+        "lum": 0.19,
+        "sat": 0.06,
+        "solid": 0.45,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#231815",
+            "share": 0.73
+          },
+          {
+            "hex": "#3A302C",
+            "share": 0.08
+          },
+          {
+            "hex": "#D6D2C7",
+            "share": 0.02
+          }
+        ]
+      },
+      "logoMono": "logo-mono.png",
+      "fields": {
+        "client": "한샘",
+        "season": "2026년 하반기",
+        "hiringType": "리모델링 디자이너 영업직 채용",
+        "startDate": "2026-07-27",
+        "deadline": "2026-08-09",
+        "role": "리모델링 디자이너 영업직",
+        "slogan": "한샘과 함께 성장할 인재를 찾습니다"
+      },
+      "addedAt": "2026-10-14",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-hanssem-blocks",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 한샘 (색 블록) · 한샘V3 키비주얼소스 jpg(8334→2000) → 그림 속 영문 스톡 문구 「COLOR BLOCKS DECOR」 지움 → kv-cutout -",
+      "primary": "#122AC6",
+      "logoMeta": {
+        "px": [
+          222,
+          48
+        ],
+        "lum": 0.19,
+        "sat": 0.06,
+        "solid": 0.45,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#231815",
+            "share": 0.73
+          },
+          {
+            "hex": "#3A302C",
+            "share": 0.08
+          },
+          {
+            "hex": "#D6D2C7",
+            "share": 0.02
+          }
+        ]
+      },
+      "logoMono": "logo-mono.png",
+      "fields": {
+        "client": "한샘",
+        "season": "2026년 하반기",
+        "hiringType": "리모델링 디자이너 영업직 채용",
+        "startDate": "2026-07-27",
+        "deadline": "2026-08-09",
+        "role": "리모델링 디자이너 영업직",
+        "slogan": "당신과 함께 만드는 공간의 가치"
+      },
+      "addedAt": "2026-10-14",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼+여러 오브젝트·캐릭터 떼 · 주인공 35% · 캐릭터(머리 보존) · 덩어리 여럿 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "t1014-hanjin",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "t1014 · 한진정보통신 · 한진정보통신_키비주얼.png (PDF p8: 키비주얼 제공X → 기업 홈페이지에서 선정)",
+      "primary": "#061266",
+      "logoMeta": {
+        "px": [
+          172,
+          38
+        ],
+        "lum": 0.32,
+        "sat": 0.29,
+        "solid": 0.25,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#051469",
+            "share": 0.41
+          },
+          {
+            "hex": "#475391",
+            "share": 0.07
+          },
+          {
+            "hex": "#ADB2CE",
+            "share": 0.07
+          }
+        ]
+      },
+      "logoMono": "logo-mono.png",
+      "fields": {
+        "client": "한진정보통신",
+        "season": "2026년도",
+        "hiringType": "경력직 채용",
+        "role": "SW개발, 보안",
+        "notice": "* 채용 일정은 공고별 상이합니다."
+      },
+      "addedAt": "2026-10-14",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    }
+  ]
+}
