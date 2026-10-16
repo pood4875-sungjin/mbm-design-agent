@@ -32,7 +32,7 @@ test('틀 데이터 — 자소설 7규격(10규격 중 렌더 규격 전부)에 
   }
   assert.deepEqual(specOf('jasoseol-pc-premium-jobpost-pc').safeArea.measuredFromTemplate.mold.rows, specOf('jasoseol-pc-standard-jobpost-pc').safeArea.measuredFromTemplate.mold.rows);
   for (const id of ['jasoseol-m-premium-chatlist-logo-mo', 'jasoseol-m-standard-chatlist-logo-mo']) assert.equal(specOf(id).safeArea?.measuredFromTemplate?.mold, undefined, `${id}: 로고 PNG 제출물 — 틀 없음`);
-  assert.equal(specOf('jasoseol-m-start-package-mo').renderable, false, 'M시작배너는 전달물만');
+  for (const id of ['jasoseol-m-start-logo-mo', 'jasoseol-m-start-image-mo']) assert.equal(specOf(id).renderable, false, 'M시작배너패키지는 전달물(로고 파일·이미지 파일)만 — 10-16 사용자 「자소설 10 = 패키지 5 × 2」');
 });
 
 test('틀 + 유리 누끼 — 자소설 팝업: 지면은 이전 가이드대로(유리 → 어두운 브랜드 지면, glassDark), 글자·로고 흰색(colorDark) · 틀은 칸 위치만 고정(objectBleed·logoCap 없음) · 구글 GDN 도 어두운 지면', () => {   // 10-15 오후 사용자 「키비주얼과 배경은 이전 가이드로」 — 틀의 밝은 샘플 지면 강제(templateLight) 폐지

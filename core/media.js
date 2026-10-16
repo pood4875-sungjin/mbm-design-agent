@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 15 · 규격 90(추출 47) · 확인필요 111 · 충돌 43 · 반려사례 12
+// 매체 15 · 규격 91(추출 49) · 확인필요 111 · 충돌 43 · 반려사례 12
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 0/24 프레임
 
@@ -1594,8 +1594,8 @@ export const MEDIA = [
         "extract": true
       },
       {
-        "id": "jasoseol-m-start-package-mo",
-        "name": "M시작배너패키지 (M시작배너 + M서브배너) — 매체 내부 제작, 자료만 전달",
+        "id": "jasoseol-m-start-logo-mo",
+        "name": "M시작배너패키지 — 전달물 ① 로고 파일(가로 500px↑ 투명 PNG/AI)",
         "platform": "MO",
         "w": null,
         "h": null,
@@ -1633,20 +1633,9 @@ export const MEDIA = [
             "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
           },
           {
-            "item": "이미지",
-            "rule": "가로 크기 최소 720px 이상, 가로형 이미지",
-            "minW": 720,
-            "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
-          },
-          {
             "item": "문구",
             "rule": "최대 2행, 행당 공백 포함 최대 20자",
             "source": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
-          },
-          {
-            "item": "제작 신청서",
-            "rule": "자소설닷컴_M시작배너_배너제작신청서.docx",
-            "source": "figma image 408:37736"
           }
         ],
         "logo": {
@@ -1664,12 +1653,105 @@ export const MEDIA = [
         "examples": [],
         "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728, image 408:37736 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13",
         "confidence": "확정",
-        "note": "제작 대상 아님(전달 자료 규격만). 자동 생성 에이전트는 이 상품의 완성 배너를 만들지 않고, 전달 자료 체크리스트로 쓴다.",
+        "note": "M시작배너·M서브배너는 자소설닷컴 내부 제작. 우리는 로고 원본(투명 PNG, 가로 500px↑)을 전달한다 — 렌더 없음, 파일 내보내기",
         "deliverable": false,
         "renderable": false,
         "renderNote": "전달물만 — 소재 제작은 자소설 내부. 로고(가로 500px↑ 투명 PNG/AI)·이미지(가로 720px↑)만 전달. 렌더 대상 아님(사용자 확정 10-15)",
+        "assetOnly": true,
+        "asset": {
+          "item": "로고",
+          "rule": "가로 크기 최소 500px 이상, 가로형 로고, 투명 배경 PNG 또는 Ai 원본 파일",
+          "minW": 500,
+          "format": [
+            "png",
+            "ai"
+          ],
+          "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
+        },
+        "splitFrom": "jasoseol-m-start-package-mo",
+        "splitNote": "10-16 사용자: 자소설 10 = 패키지 5 × 2 — M시작배너패키지를 전달물 2개(로고 파일 · 이미지 파일)로 가른다",
         "frame": "guide",
-        "extract": false
+        "extract": true
+      },
+      {
+        "id": "jasoseol-m-start-image-mo",
+        "name": "M시작배너패키지 — 전달물 ② 이미지 파일(가로 720px↑)",
+        "platform": "MO",
+        "w": null,
+        "h": null,
+        "exportScale": null,
+        "exportW": null,
+        "exportH": null,
+        "format": [
+          "png",
+          "ai"
+        ],
+        "maxKB": null,
+        "background": null,
+        "safeArea": {
+          "note": "해당 없음 — 소재는 자소설닷컴 내부 제작",
+          "top": null,
+          "right": null,
+          "bottom": null,
+          "left": null
+        },
+        "textLimits": [
+          {
+            "field": "문구",
+            "maxChars": 20,
+            "lines": 2,
+            "note": "최대 2행, 행당 공백 포함 최대 20자 (한글 기준). 텍스트로 전달"
+          }
+        ],
+        "textLimitsSource": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13 / figma image 408:37736 '배너 제작 안내' 캡처 ('한글 기준 공백 포함 행당 최대 20자, 2행까지 가능')",
+        "fontSizes": null,
+        "deliverables": [
+          {
+            "item": "이미지",
+            "rule": "가로 크기 최소 720px 이상, 가로형 이미지",
+            "minW": 720,
+            "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
+          },
+          {
+            "item": "문구",
+            "rule": "최대 2행, 행당 공백 포함 최대 20자",
+            "source": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
+          }
+        ],
+        "logo": {
+          "count": 1,
+          "w": null,
+          "h": null,
+          "note": "가로 최소 500px, 가로형, 투명 배경 PNG 또는 Ai 원본 (완성 소재가 아니라 원본 전달)",
+          "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
+        },
+        "layoutNotes": [
+          "소재 제작은 자소설닷컴 내부에서 진행하므로 로고·이미지(·문구)만 전달 (figma:자소설닷컴02(제작가이드&예시) text 408:37728)",
+          "M서브배너는 별도 소재 전달 필요 없음 (pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13 'M서브배너(제작X)')",
+          "M시작배너는 클릭 불가 / M서브배너는 클릭 시 자소설닷컴 내 채용 공고로 연결, 아웃링크 불가 (figma image 408:37736)"
+        ],
+        "examples": [],
+        "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728, image 408:37736 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13",
+        "confidence": "확정",
+        "note": "M시작배너·M서브배너는 자소설닷컴 내부 제작. 우리는 키비주얼 이미지(가로 720px↑)를 전달한다 — 렌더 없음, 파일 내보내기",
+        "deliverable": false,
+        "renderable": false,
+        "renderNote": "전달물만 — 소재 제작은 자소설 내부. 로고(가로 500px↑ 투명 PNG/AI)·이미지(가로 720px↑)만 전달. 렌더 대상 아님(사용자 확정 10-15)",
+        "assetOnly": true,
+        "asset": {
+          "item": "이미지",
+          "rule": "가로 크기 최소 720px 이상, 가로형 이미지",
+          "minW": 720,
+          "format": [
+            "png",
+            "jpg"
+          ],
+          "source": "figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13"
+        },
+        "splitFrom": "jasoseol-m-start-package-mo",
+        "splitNote": "10-16 사용자: 자소설 10 = 패키지 5 × 2 — M시작배너패키지를 전달물 2개(로고 파일 · 이미지 파일)로 가른다",
+        "frame": "guide",
+        "extract": true
       },
       {
         "id": "jasoseol-pc-calendar-pc",
@@ -12017,7 +12099,7 @@ export const MEDIA = [
 
 export const MEDIA_GROUPS = ["채용포털","디지털","커뮤니티","기타"];
 
-// 추출 규격 — 이미지로 뽑아 전달하는 규격 47개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
+// 추출 규격 — 이미지로 뽑아 전달하는 규격 49개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
 export const EXTRACT = {
   "order": [
     "jasoseol",
@@ -12034,7 +12116,7 @@ export const EXTRACT = {
     "daangn"
   ],
   "counts": {
-    "jasoseol": 8,
+    "jasoseol": 10,
     "remember": 8,
     "jobda": 2,
     "catch": 2,
@@ -12056,6 +12138,8 @@ export const EXTRACT = {
     "jasoseol-m-premium-chatlist-logo-mo",
     "jasoseol-m-standard-main-mo",
     "jasoseol-m-standard-chatlist-logo-mo",
+    "jasoseol-m-start-logo-mo",
+    "jasoseol-m-start-image-mo",
     "remember-main-top-pc",
     "remember-main-top-mo",
     "remember-main-mid-pc",
@@ -12103,7 +12187,8 @@ export const EXTRACT = {
     "NAP DSP 4 = 피그마로 만드는 띠배너 320×50·320×100 · 전면배너 300×250·320×480 (보드 메모 「피그마(배너), 포토샵 제작(비즈보드)」 1:4593). 비즈보드 1029×258·PC 970×90·728×90 은 참고",
     "네이버 3 = 보드 메모 「배너 / 비주얼만 / 로고만」(31:4268) → 모바일 DA 1250×560 · 네이티브 썸네일 342×228 · 프로필(로고) 300×300. PC·MO 네이티브는 규정이 달라 우리 규격이 둘인데 보드는 하나로 셈 — MO(M통합 네이티브 DA, 프로필 필수)를 뽑고 PC 는 참고. 확인 필요",
     "인스타 1 = 피드 1080×1080 (사용자 지시). 보드 메모는 「4개」(31:4257) — 샘플 유형 수로 보임, 확인 필요. 스토리 1080×1920 은 참고",
-    "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고"
+    "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고",
+    "10-16 사용자: 자소설은 10 = 패키지 5 × 2. 5번 M시작배너패키지(시작·서브)는 자소설 내부 제작이라 전달물 2개(로고 파일 500px↑ · 이미지 파일 720px↑)로 목록에 넣는다(렌더 없음, assetOnly). PC달력 164×233 은 패키지 밖이라 그대로 제외"
   ],
   "board": {
     "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
@@ -12657,4 +12742,4 @@ export function specOf(specId) {
   return null;
 }
 
-export const MEDIA_COUNTS = {"media":15,"specs":90,"extract":47,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
+export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":49,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};

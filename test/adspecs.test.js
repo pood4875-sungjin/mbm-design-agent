@@ -23,7 +23,7 @@ test('every renderable media spec becomes an ad SPEC entry, others stay out', ()
     assert.ok(!e.recommended, '매체 규격은 기본 생성 세트에 자동으로 들어가지 않는다 — 매체를 고를 때 켠다');
   }
   // 전달 자료만 넘기는 상품, 텍스트 상품, HTML 이메일은 이미지 렌더 대상이 아니다
-  assert.ok(!ids.includes('jasoseol-m-start-package-mo'));
+  assert.ok(!ids.includes('jasoseol-m-start-logo-mo') && !ids.includes('jasoseol-m-start-image-mo'));   // 전달물은 광고 규격 아님
   assert.ok(!ids.includes('albamon-pc-sub-bottom-text'));
   assert.ok(!ids.includes('albamon-email-target'));
 });
