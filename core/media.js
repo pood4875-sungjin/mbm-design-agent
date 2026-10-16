@@ -4516,7 +4516,7 @@ export const MEDIA = [
               "x": 34,
               "w": 408,
               "font": "KakaoBigSans",
-              "color": "#231815",
+              "color": "brand",
               "colorDark": "#FFFFFF",
               "rows": {
                 "sub": {
@@ -4538,9 +4538,17 @@ export const MEDIA = [
                 "date": {
                   "y": 206,
                   "px": 22,
-                  "weight": 500,
+                  "weight": 700,
                   "lines": 1,
-                  "w": 287
+                  "w": 287,
+                  "chip": {
+                    "h": 38,
+                    "padX": 14,
+                    "radius": 0,
+                    "bg": "brand",
+                    "color": "#FFFFFF"
+                  },
+                  "note": "y 는 템플릿 날짜 글상자 자리, 상자 높이·글자·안쪽 여백은 비씨월드 날짜 상자 실측 — 폭은 글자대로(hug). 비씨 y 를 쓰면 태그 행과 겹침(10-16)"
                 },
                 "tags": {
                   "y": 289,
@@ -4553,7 +4561,8 @@ export const MEDIA = [
                   "max": 4,
                   "plain": true,
                   "w": 153,
-                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄"
+                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄",
+                  "color": "#231815"
                 }
               },
               "logo": {
@@ -4579,7 +4588,8 @@ export const MEDIA = [
               },
               "docRef": "docs/google-gdn-mold.md",
               "subOptional": true,
-              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 41)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 41)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」",
+              "styleNote": "비씨월드제약 샘플 스타일(사용자 10-16 「이 스타일 잘 참고」, 64:721/731/741/710): 메인 브랜드색(KIMM Bold #13276F) · 날짜 = 브랜드색 상자 + 흰 글자 Bold(580 (27,213) 271×38 글자 22 · 970 (31,155) 264×33 글자 21 · 300 (26,268.5) 249×38 글자 20 가운데 · 930 (25,115) 237×30 글자 19) · CI 우상단 · 그림 우하단 · 서브·태그 없음(템플릿 자리는 유지, 서브는 optional) · 하단 얇은 띠 27/25/35/17 은 사용자 결정으로 안 그림"
             }
           }
         },
@@ -4724,7 +4734,7 @@ export const MEDIA = [
               "x": 32,
               "w": 370,
               "font": "KakaoBigSans",
-              "color": "#231815",
+              "color": "brand",
               "colorDark": "#FFFFFF",
               "rows": {
                 "sub": {
@@ -4745,10 +4755,18 @@ export const MEDIA = [
                 },
                 "date": {
                   "y": 134,
-                  "px": 23,
-                  "weight": 500,
+                  "px": 21,
+                  "weight": 700,
                   "lines": 1,
-                  "w": 223
+                  "w": 287,
+                  "chip": {
+                    "h": 33,
+                    "padX": 12,
+                    "radius": 0,
+                    "bg": "brand",
+                    "color": "#FFFFFF"
+                  },
+                  "note": "y 는 템플릿 날짜 글상자 자리, 상자 높이·글자·안쪽 여백은 비씨월드 날짜 상자 실측 — 폭은 글자대로(hug). 비씨 y 를 쓰면 태그 행과 겹침(10-16)"
                 },
                 "tags": {
                   "y": 178,
@@ -4760,7 +4778,8 @@ export const MEDIA = [
                   "max": 4,
                   "plain": true,
                   "w": 480,
-                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄"
+                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄",
+                  "color": "#231815"
                 }
               },
               "logo": {
@@ -4786,7 +4805,8 @@ export const MEDIA = [
               },
               "docRef": "docs/google-gdn-mold.md",
               "subOptional": true,
-              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 36)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 36)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」",
+              "styleNote": "비씨월드제약 샘플 스타일(사용자 10-16 「이 스타일 잘 참고」, 64:721/731/741/710): 메인 브랜드색(KIMM Bold #13276F) · 날짜 = 브랜드색 상자 + 흰 글자 Bold(580 (27,213) 271×38 글자 22 · 970 (31,155) 264×33 글자 21 · 300 (26,268.5) 249×38 글자 20 가운데 · 930 (25,115) 237×30 글자 19) · CI 우상단 · 그림 우하단 · 서브·태그 없음(템플릿 자리는 유지, 서브는 optional) · 하단 얇은 띠 27/25/35/17 은 사용자 결정으로 안 그림"
             }
           }
         },
@@ -4932,7 +4952,7 @@ export const MEDIA = [
               "w": 232,
               "align": "center",
               "font": "KakaoBigSans",
-              "color": "#231815",
+              "color": "brand",
               "colorDark": "#FFFFFF",
               "rows": {
                 "sub": {
@@ -4955,11 +4975,19 @@ export const MEDIA = [
                 },
                 "date": {
                   "y": 218,
-                  "px": 18,
-                  "weight": 500,
+                  "px": 20,
+                  "weight": 700,
                   "lines": 1,
-                  "x": 67,
-                  "w": 167
+                  "x": 26,
+                  "w": 249,
+                  "chip": {
+                    "h": 38,
+                    "padX": 12,
+                    "radius": 0,
+                    "bg": "brand",
+                    "color": "#FFFFFF"
+                  },
+                  "note": "y 는 템플릿 날짜 글상자 자리, 상자 높이·글자·안쪽 여백은 비씨월드 날짜 상자 실측 — 폭은 글자대로(hug). 비씨 y 를 쓰면 태그 행과 겹침(10-16)"
                 },
                 "tags": {
                   "y": 267,
@@ -4974,7 +5002,8 @@ export const MEDIA = [
                   "x": 78,
                   "w": 145,
                   "align": "center",
-                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄"
+                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄",
+                  "color": "#231815"
                 }
               },
               "logo": {
@@ -5000,7 +5029,8 @@ export const MEDIA = [
               },
               "docRef": "docs/google-gdn-mold.md",
               "subOptional": true,
-              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 43)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 43)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」",
+              "styleNote": "비씨월드제약 샘플 스타일(사용자 10-16 「이 스타일 잘 참고」, 64:721/731/741/710): 메인 브랜드색(KIMM Bold #13276F) · 날짜 = 브랜드색 상자 + 흰 글자 Bold(580 (27,213) 271×38 글자 22 · 970 (31,155) 264×33 글자 21 · 300 (26,268.5) 249×38 글자 20 가운데 · 930 (25,115) 237×30 글자 19) · CI 우상단 · 그림 우하단 · 서브·태그 없음(템플릿 자리는 유지, 서브는 optional) · 하단 얇은 띠 27/25/35/17 은 사용자 결정으로 안 그림"
             }
           }
         },
@@ -5338,7 +5368,7 @@ export const MEDIA = [
               "x": 24,
               "w": 296,
               "font": "KakaoBigSans",
-              "color": "#231815",
+              "color": "brand",
               "colorDark": "#FFFFFF",
               "rows": {
                 "sub": {
@@ -5359,13 +5389,21 @@ export const MEDIA = [
                 },
                 "date": {
                   "y": 97,
-                  "px": 17,
-                  "weight": 500,
+                  "px": 19,
+                  "weight": 700,
                   "lines": 1,
-                  "w": 158
+                  "w": 237,
+                  "chip": {
+                    "h": 30,
+                    "padX": 9,
+                    "radius": 0,
+                    "bg": "brand",
+                    "color": "#FFFFFF"
+                  },
+                  "note": "y 는 템플릿 날짜 글상자 자리, 상자 높이·글자·안쪽 여백은 비씨월드 날짜 상자 실측 — 폭은 글자대로(hug). 비씨 y 를 쓰면 태그 행과 겹침(10-16)"
                 },
                 "tags": {
-                  "y": 123,
+                  "y": 133,
                   "h": 20,
                   "px": 16,
                   "weight": 500,
@@ -5374,7 +5412,8 @@ export const MEDIA = [
                   "max": 4,
                   "plain": true,
                   "w": 480,
-                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄"
+                  "note": "템플릿 「상세 문구」 칩 자리(크기·간격) + 샘플 「Sales · Business · R&D」 점 구분 평문(plain) — 긴 직무는 칸 안에서 줄바꿈, 최대 rows 줄 · 930 태그 y 123→133: 날짜 상자(97+30=127) 아래로(10-16, 띠 없음)",
+                  "color": "#231815"
                 }
               },
               "logo": {
@@ -5400,7 +5439,8 @@ export const MEDIA = [
               },
               "docRef": "docs/google-gdn-mold.md",
               "subOptional": true,
-              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 31)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 31)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」",
+              "styleNote": "비씨월드제약 샘플 스타일(사용자 10-16 「이 스타일 잘 참고」, 64:721/731/741/710): 메인 브랜드색(KIMM Bold #13276F) · 날짜 = 브랜드색 상자 + 흰 글자 Bold(580 (27,213) 271×38 글자 22 · 970 (31,155) 264×33 글자 21 · 300 (26,268.5) 249×38 글자 20 가운데 · 930 (25,115) 237×30 글자 19) · CI 우상단 · 그림 우하단 · 서브·태그 없음(템플릿 자리는 유지, 서브는 optional) · 하단 얇은 띠 27/25/35/17 은 사용자 결정으로 안 그림"
             }
           }
         },

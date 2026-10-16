@@ -287,7 +287,8 @@ test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain
 test('구글GDN 틀(템플릿 64:1041·993·1090·1139, 사용자 결정 10-16 「구글 GDN 이거로 · 로고 누끼 · 폰트 카카오」) — 580 서브 M16 y68·메인 EB42 y95 2줄 행간 53·날짜 M22 y206·평문 태그 2×2·로고 우측 칸·띠 41 · 970 메인 1줄 · 300 가운데 정렬 Bold 42 행간 56 · 930 태그 + 띠 31', () => {
   const h580 = renderAd(ctx, glass, specs['google-gdn-580x400']); const t580 = traceOf(h580);
   assert.equal(t580.mode, 'templateMold');
-  assert.deepEqual([t580.mold.rows.sub.y, t580.mold.rows.sub.px, t580.mold.rows.sub.weight, t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.date.y, t580.mold.rows.date.px], [68, 16, 500, 95, 42, 53, 800, 206, 22]);
+  assert.deepEqual([t580.mold.rows.sub.y, t580.mold.rows.sub.px, t580.mold.rows.sub.weight, t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.date.y, t580.mold.rows.date.px], [68, 16, 500, 95, 42, 53, 800, 206, 22]);   // 날짜 y 는 템플릿 자리(206), 상자 38·글자 22 는 비씨월드 (27,213) 271×38(10-16 「이 스타일 참고」)
+  assert.ok(t580.rules.includes('templateMold.dateChip'), '날짜 브랜드색 상자'); assert.match(h580, /data-field="date"[^>]*>[^<]*<span data-chip="1" style="display:inline-flex;align-items:center;height:38px;padding:0 14px;border-radius:0px;background:#[0-9A-Fa-f]{6};color:#[0-9A-Fa-f]{6}/, '비씨 날짜 상자 38 (어두운 지면은 흰 바탕 + 브랜드 글자)');
   assert.ok(t580.rules.includes('templateMold.font') && t580.rules.includes('templateMold.tagsPlain') && !t580.rules.includes('templateMold.logoBox') && !t580.rules.includes('templateMold.chipLabel'), t580.rules.join(','));
   assert.match(h580, /font-family:'Kakao Big Sans'/, '글꼴 Kakao Big Sans(사용자 「폰트는 카카오로」)');
   assert.match(h580, /data-logo-slot="1" style="position:absolute;left:442px;top:20px;width:118px;height:31px;[^"]*justify-content:flex-end/, '로고 = 템플릿 우측 칸 (442,20) 118×31, 흰 상자 없음(누끼)');
@@ -296,7 +297,7 @@ test('구글GDN 틀(템플릿 64:1041·993·1090·1139, 사용자 결정 10-16 �
   assert.match(h580, /data-field="tags" data-tags-plain="1" style="position:absolute;left:0px;[^"]*width:153px;height:56px;font-size:20px;line-height:28px;font-weight:500/, '태그 = 템플릿 칩 2×2 자리(37,289) 75×26 → 평문 2줄 행간 28');
   assert.doesNotMatch(h580, /data-band="1"/, '하단 띠 없음(사용자 10-16 「아래 띠는 없애두 될듯」)');
   const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']); const t970 = traceOf(h970);
-  assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.date.y, t970.mold.rows.date.px], [39, 1, 134, 23]);
+  assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.date.y, t970.mold.rows.date.px], [39, 1, 134, 21]);
   assert.match(h970, /data-logo-slot="1" style="position:absolute;left:841px;top:14px;width:101px;height:24px/, '970 로고 우측 칸');
   const h300 = renderAd(ctx, glass, specs['google-gdn-300x600']); const t300 = traceOf(h300);
   assert.equal(t300.place.zone.align, 'center');
