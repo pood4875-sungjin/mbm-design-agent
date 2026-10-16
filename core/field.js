@@ -57,6 +57,14 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   else if (hasBg && other) { stops = [other.hex]; source = 'kv-edge'; }
   // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변
   else if (moodStops(style, e, f)) { const m = moodStops(style, e, f); stops = m.stops; source = m.source; angle = m.angle === 'edge' ? ((facing === 'left' || facing === 'right') ? 180 : 90) : m.angle; }
+  // 비주얼 우선 지면(CANON kvHarmony, 10-16): 사진은 글자 쪽 변 색, 누끼는 대표색 — 어두운 매체는 흰 글자 4.5:1 까지 어둡힌 같은 색상, 밝은 매체는 옅은 틴트. 브랜드색은 포인트에만
+  else if (CANON.kvHarmony && f && (f.kind === 'photo' || f.opaque < 0.5) && (e?.hex || dominant)) {
+    const K = CANON.kvHarmony;
+    const base = f.kind === 'photo' ? ((K.photoFrom === 'edge' ? e?.hex : null) ?? dominant ?? e?.hex) : ((K.cutoutFrom === 'dominant' ? dominant : null) ?? e?.hex ?? dominant);
+    const tint = f.kind === 'photo' ? lightPhoto : light;
+    if (tint) { stops = [mix(base, WHITE, K.tint ?? 0.78), WHITE]; angle = 180; source = 'kv-harmony-tint'; }
+    else { stops = brandDeep(base); angle = 135; source = f.kind === 'photo' ? 'kv-harmony-photo' : 'kv-harmony'; }
+  }
   else if (style.logoTone === 'light') {
     // 흰색 로고만 있다 — 그림이 지면을 정하지 않는 경우(사진·누끼·그림 없음) 로고가 지면을 정한다: 어두운 브랜드색. 브랜드색이 밝으면 검정을 섞는다
     const brand = p.primary ?? '#2456D6';

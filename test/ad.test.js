@@ -206,7 +206,7 @@ test('the field colour is read from the key visual, not chosen as light or dark'
   // 네 변이 모두 복잡한 사진(한독 사옥)은 브랜드색 지면 — 사진의 변은 바탕이 아니다
   const rough = (a, b) => edge(a, b, 0.12);
   const photo = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, kind: 'photo', flatEdges: 0, edges: { left: rough('#777777', '#333333'), top: rough('#8899AA', '#445566'), right: rough('#777777', '#333333'), bottom: rough('#555555', '#222222') } } } };
-  assert.match(renderAd(ctx, photo, specs['kakao-display-pc-promo']).split('>')[0], /data-field-source="brand-photo"/);
+  assert.match(renderAd(ctx, photo, specs['kakao-display-pc-promo']).split('>')[0], /data-field-source="kv-harmony-photo"/);
   // 단색만 허용하는 지면(에브리타임 홈배너)은 그라데이션을 접는다
   assert.doesNotMatch(renderAd(ctx, kv, specs['everytime-home-banner']).split('>')[0], /linear-gradient/);
 });

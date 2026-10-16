@@ -79,6 +79,10 @@ export const CANON = {
   //   minSat·minGrad: 글자 쪽 변이 채도 있는 그라데이션(평균 HSL 채도 ≥ minSat, 양 끝 거리 ≥ minGrad)이면 그 그라데이션을 지면으로 잇는다(기아 라벤더→파랑, GC 민트→파랑)
   //   누끼는 원본 바탕 팔레트(kvMeta.bgPalette — 케이스 장부가 kv-orig 에서 잰다)가 있으면 그 색으로. 앱에서 누끼만 올리면(원본 없음) 지금처럼 브랜드 규칙
   kvMood: { darkPhotoLum: 0.4, darkMin: 4.5, minSat: 0.5, minGrad: 0.15 },
+  // 지면은 비주얼이 우선(10-16 사용자 「배경색은 비주얼에 어울리게 뽑아야 — 비주얼이 우선」): 이음매(kv-edge)·분위기(kv-mood)가 없는 사진·누끼도 브랜드색이 아니라 그림 색에서 —
+  //   사진은 글자 쪽 변 색(photoFrom edge), 누끼는 대표색(cutoutFrom dominant). 어두운 지면 매체는 그 색을 흰 글자 4.5:1 까지 어둡힌 같은 색상(brandDeep), 밝은 지면 매체는 옅은 틴트(tint)→흰색.
+  //   브랜드색은 포인트(칩·날짜 상자·강조)에만. 채도가 아주 낮은 그림(무채)은 그대로 회색 계열
+  kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78 },
   // 누끼는 명확할 때만(10-12 사용자 「명확할 때만 누끼, 웬만하면 배경 분위기도 살려」 desk-37·desk-03) — 바탕 색감(chroma 평균) < chromaMax 이고
   //   그라데이션 세기 < gradMax 이면(흰·연회색·무채 단색) 딴다. 넘으면 원본이 주 KV(scripts/kv-cutout.py --auto, cases.mjs bgpalette 가 같은 수치)
   cutoutAuto: { chromaMax: 0.12, gradMax: 0.15 },

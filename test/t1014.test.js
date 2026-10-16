@@ -74,8 +74,8 @@ test('밝은 난색 브랜드(노랑·주황)는 지면을 어둡히지 않고 �
   assert.equal(warmLightBrand('#F64E4E'), false);   // 빨강은 딥 그대로
   assert.equal(warmLightBrand('#1E72F6'), false);
   const f = resolveField(normalizeStyle({ colors: ['#FFC000'], keyVisual: PNG, kvMeta: personMeta }), { light: false });
-  assert.equal(f.source, 'brand-tint-warm');
-  assert.equal(f.text, '#000000');
+  assert.equal(f.source, 'kv-harmony');   // 10-16 사용자 「배경색은 비주얼이 우선」: 누끼 지면은 그림 대표색에서(브랜드 난색 틴트 규칙은 그림 없을 때만 — 아래 g 는 여전히 warm 아님)
+  assert.equal(f.text, '#FFFFFF');
   const g = resolveField(normalizeStyle({ colors: ['#D21242'], keyVisual: PNG, kvMeta: personMeta }), { light: false });
   assert.notEqual(g.source, 'brand-tint-warm');
 });
@@ -155,9 +155,10 @@ test('전신 인물 누끼는 상반신으로 — 머리를 상자 위에, 허�
 test('어두운 사진(밝기 < 0.55)은 지면을 그림 변 색으로 당기지 않는다 — 남색 브랜드가 청록 회색이 됐다(한진 9/9 남색)', () => {
   const photo = lum => ({ ar: 2.2, px: [1920, 870], colors: ['#6A9AC0'], field: { kind: 'photo', opaque: 1, flatEdges: 0, lum, sat: 0.4, edges: { left: { hex: '#D8E6F2' }, top: { hex: '#D8E6F2' }, right: { hex: '#2A5A80' }, bottom: { hex: '#2A5A80' } }, focus: null, rows: null, cols: null, room: null } });
   const dark = resolveField(normalizeStyle({ colors: ['#061266'], keyVisual: PNG, kvMeta: photo(0.4) }), { facing: 'left' });
-  assert.doesNotMatch(dark.source, /bridge/);
+  assert.equal(dark.source, 'kv-harmony-photo');   // 10-16 비주얼 우선: 사진 지면 = 글자 쪽 변 색(#D8E6F2)을 흰 글자 4.5:1 까지 어둡힌 같은 색상 — 브랜드 남색·브릿지 둘 다 아님
+  assert.notEqual(dark.stops[0].toUpperCase(), '#061266');
   const bright = resolveField(normalizeStyle({ colors: ['#061266'], keyVisual: PNG, kvMeta: photo(0.71) }), { facing: 'left' });
-  assert.match(bright.source, /bridge/);
+  assert.equal(bright.source, 'kv-harmony-photo');
 });
 
 test('누끼 떼는 샘플이 보여 준 상세 줄을 더하지 않는다 — 머리 위로 올라갔다(ABL·바이오노트 NAP 300×250, ABL 디자이너 상세 없음)', () => {
