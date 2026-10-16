@@ -782,10 +782,10 @@ function renderAdBase(ctx, style, spec) {
   if (rules.visualOnly || spec.visualOnly) {
     fired('visualOnly');
     if (hasKv) {
-      const photo = kvKind === 'photo' || (style.kvMeta?.field?.opaque ?? 1) >= 0.5;
+      const photo = kvKind ? kvKind !== 'cutout' : (style.kvMeta?.field?.opaque ?? 1) >= 0.5;   // 누끼는 종류가 정해졌으면 무조건 contain(10-16 오후 사용자: 로켓 누끼가 cover 로 잘림)
       const img = photo
         ? `<div data-object="1" data-kv-only="1" style="position:absolute;inset:0;background:url('${esc(style.keyVisual)}') center/cover no-repeat"></div>`
-        : `<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.1)}px;top:${Math.round(h * 0.11)}px;width:${Math.round(w * 0.8)}px;height:${Math.round(h * 0.78)}px;background:url('${esc(style.keyVisual)}') center/contain no-repeat"></div>`;
+        : `<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.07)}px;top:${Math.round(h * 0.08)}px;width:${Math.round(w * 0.86)}px;height:${Math.round(h * 0.84)}px;background:url('${esc(style.keyVisual)}') center/contain no-repeat"></div>`;
       return `${open('padding:0')}${img}</div>`;
     }
     const side = Math.min(innerW, innerH);
@@ -1642,7 +1642,9 @@ ${tplLogo}${kvWrap(tplObject)}
       const dpx = pxOf(MR.detail), wr = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, rowW(MR.detail)))), sep0 = MR.detail.labelSep ?? ' :';   // 행 수는 상세 행 자체의 폭으로(열 폭이 아니라 — 블라인드 게시글 열 498 vs 상세 행 600, 네이버 479 vs 714; 10-15 저녁)
       const seen = new Set();
       const cap0 = MR.detail.lines ?? 3;
-      const rowOf = (label, value) => MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
+      // 라벨 열 + 값 열(mold.rows.detail.labelCol — 네이버 DA 107:657 「모집 기간 | 값」「모집 직무 | 값」, 10-16 오후): 행 수는 값 열 폭으로. 날짜(접수기간)는 한 줄(줄바꿈 금지 — 107:657 「2.28(수) - 3.10(일)」, 값 열 밖으로 나가도 칸 위쪽이라 그림과 안 겹침)
+      const wrc = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k))));   // 값 열 폭 = valueW(107:657 직무 값 상자 240) 또는 칸 폭 − 라벨 열
+      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? 1 : wrc(String(value)) } : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
       const rows0 = (ladder.details ?? []).filter(d => MR.detail.items.includes(d.label) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : [d.value];
@@ -1670,14 +1672,21 @@ ${tplLogo}${kvWrap(tplObject)}
         blocks.push({ t: cy, h: chh, html: `<div data-field="chip" data-chip="1" style="position:absolute;left:${cx - sx}px;top:@@px;width:${cw}px;height:${chh}px;display:flex;align-items:center;justify-content:center;border-radius:${crad}px;background:${cbg};color:${cfg};font-size:${cpx}px;line-height:${chh}px;font-weight:${CH.weight ?? 700};white-space:nowrap">${esc(ctext)}</div>` });
         fired('templateMold.chipLabel');
       }
+      // 라벨 열 + 값 열(labelCol): 항목마다 flex 행 — 라벨은 고정 폭 열(Bold), 값은 나머지. 값이 2줄이면 행간 valueLh(130%), 1줄이면 1.2. 항목 사이 gap
+      const dpx2 = pxOf(dR), colW = Math.round((dR.labelCol ?? 0) * k), gapPx = Math.round((dR.gap ?? 8) * k);
+      const lhOf = d => Math.round(dpx2 * (d.rows > 1 ? (dR.valueLh ?? 1.3) : 1.2) * 10) / 10;
+      const colH = dR.labelCol ? rows.reduce((a, d, i) => a + d.rows * lhOf(d) + (i < rows.length - 1 ? gapPx : 0), 0) : 0;
+      if (dR.labelCol && rows.length) fired('templateMold.labelCol');
       const inner = CH
         ? rows.map(d => `<div>${esc(nb(d.value))}</div>`).join('')
+        : dR.labelCol
+        ? rows.map((d, i) => `<div style="display:flex;align-items:flex-start;line-height:${lhOf(d)}px;${i < rows.length - 1 ? `margin-bottom:${gapPx}px;` : ''}"><b style="flex:0 0 ${colW}px;font-weight:${dLw}">${esc(labelOf(d.label))}</b><span style="flex:1 1 auto;min-width:0${d.label === '접수기간' ? ';white-space:nowrap' : dR.valueW ? `;max-width:${Math.round(dR.valueW * k)}px` : ''}">${esc(nb(d.value))}</span></div>`).join('')
         : rows.map(d => d.inline
         ? `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value))}</div>`
         : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div>${esc(nb(d.value))}</div>`).join('');
       // 「상세 입력 시 하단부터」(M메인 템플릿 1:8625): 쓰는 줄이 적으면 아래 줄부터 채운다 — 블록 y 를 빈 줄만큼 내린다
       const dRow = dR.fillFromBottom ? { ...dR, y: dR.y + Math.max(0, cap - n) * (dR.pitch ?? dR.px * 1.2) } : dR;
-      if (rows.length) put('detail', dRow, Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:pretty">${inner}</div>`, rows.map(d => d.value).join(' '));
+      if (rows.length) put('detail', dRow, dR.labelCol ? Math.min(cap, Math.max(1, Math.ceil(colH / pitchOf(dR)))) : Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:pretty">${inner}</div>`, rows.map(d => d.value).join(' '));
     }
     if (MR.date && mR && (copy.date || ctx.core?.deadline || ctx.kind === 'recruit')) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
       const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);

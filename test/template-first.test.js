@@ -337,9 +337,12 @@ test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 
 
 test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿, 10-15 저녁) — 네이버 메인 52/800 pitch 56 + 서브 32 · 블라인드 피드 메인 85 pitch 104 + 날짜 48 + 상세 38 · 게시글 메인 56 pitch 69.4 + 날짜(라벨 없이, 템플릿 서브 자리) + 모집직무 · 카카오 비즈보드·인스타(템플릿 3종 갈림)·네이버 네이티브는 틀 없음', () => {
   const tn = traceOf(renderAd(ctx, glass, specs['naver-gfa-mobile-da-1250x560']));
-  assert.equal(tn.mode, 'templateMold'); assert.deepEqual([tn.mold.rows.main.y, tn.mold.rows.main.px, tn.mold.rows.main.pitch, tn.mold.rows.main.weight, tn.mold.rows.sub?.px, tn.mold.rows.sub?.weight, tn.mold.rows.detail?.y], [62.3, 56, 67.2, 700, 31, 500, 285]);   // 10-16 사용자 수정본 100:613: 글자 x270(규정 좌우 270), 메인 Bold 56 y62.3 행간 auto, 「모집 기간 | 날짜」 Medium 31 y212.8 · 키비주얼 칸 (553,262) 444×278 누끼 contain(mold.kv slot)
+  assert.equal(tn.mode, 'templateMold'); assert.deepEqual([tn.mold.rows.main.y, tn.mold.rows.main.px, tn.mold.rows.main.pitch, tn.mold.rows.main.weight, tn.mold.rows.sub, tn.mold.rows.detail?.y, tn.mold.rows.detail?.px, tn.mold.rows.detail?.weight, specs['naver-gfa-mobile-da-1250x560'].rules.safeArea.measuredFromTemplate.mold.rows.detail.labelWeight, specs['naver-gfa-mobile-da-1250x560'].rules.safeArea.measuredFromTemplate.mold.rows.detail.labelCol], [62.3, 56, 67.2, 700, undefined, 212.8, 31, 400, 700, 130]);   // 10-16 오후 107:657: 서브 줄 없이 상세 2항목(모집 기간·모집 직무) 라벨 Bold 열 + 값 Regular 열(x400)   // 10-16 사용자 수정본 100:613: 글자 x270(규정 좌우 270), 메인 Bold 56 y62.3 행간 auto, 「모집 기간 | 날짜」 Medium 31 y212.8 · 키비주얼 칸 (553,262) 444×278 누끼 contain(mold.kv slot)
   assert.equal(tn.mold.rows.main.x, 270); assert.deepEqual(tn.place.tImage, { x: 553, y: 262, w: 444, h: 278 }); assert.ok(!tn.rules.includes('templateMold.freeKv'), '네이버 DA 는 칸 고정(kv slot)');
-  assert.equal(tn.copy.sub, '모집 기간 | 9.22(월) - 10.12(일)', '라벨 + 「 | 」 + 날짜(64:4793)');
+  const hn = renderAd(ctx, glass, specs['naver-gfa-mobile-da-1250x560']);
+  assert.match(hn, /<b style="flex:0 0 130px;font-weight:700">모집 기간<\/b><span[^>]*>9\.22\(월\) - 10\.12\(일\)</, '「모집 기간」 라벨 열 + 날짜 값 열(107:657)');
+  assert.match(hn, /<b style="flex:0 0 130px;font-weight:700">모집 직무<\/b>/, '「모집 직무」 라벨 열');
+  assert.ok(tn.rules.includes('templateMold.labelCol')); assert.ok(!tn.copy.sub, '서브 줄 없음');
   // 블라인드 피드 상세(모집직무)는 1행·38px — 긴 직무 문구(19자)는 안 들어가 생략되므로 짧은 직무로 확인
   const ctxShort = createContext({ ...fields, role: '건축' }, 'recruit');
   const hb = renderAd(ctxShort, glass, specs['blind-feed-image']); const tb = traceOf(hb);
