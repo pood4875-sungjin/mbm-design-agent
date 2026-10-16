@@ -340,22 +340,24 @@ test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 
 
 test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿, 10-15 저녁) — 네이버 메인 52/800 pitch 56 + 서브 32 · 블라인드 피드 메인 85 pitch 104 + 날짜 48 + 상세 38 · 게시글 메인 56 pitch 69.4 + 날짜(라벨 없이, 템플릿 서브 자리) + 모집직무 · 카카오 비즈보드·인스타(템플릿 3종 갈림)·네이버 네이티브는 틀 없음', () => {
   const tn = traceOf(renderAd(ctx, glass, specs['naver-gfa-mobile-da-1250x560']));
-  assert.equal(tn.mode, 'templateMold'); assert.deepEqual([tn.mold.rows.main.y, tn.mold.rows.main.px, tn.mold.rows.main.pitch, tn.mold.rows.main.weight, tn.mold.rows.sub, tn.mold.rows.detail?.y, tn.mold.rows.detail?.px, tn.mold.rows.detail?.weight, specs['naver-gfa-mobile-da-1250x560'].rules.safeArea.measuredFromTemplate.mold.rows.detail.labelWeight, specs['naver-gfa-mobile-da-1250x560'].rules.safeArea.measuredFromTemplate.mold.rows.detail.labelCol], [62.3, 56, 67.2, 700, undefined, 212.8, 31, 400, 700, 130]);   // 10-16 오후 107:657: 서브 줄 없이 상세 2항목(모집 기간·모집 직무) 라벨 Bold 열 + 값 Regular 열(x400)   // 10-16 사용자 수정본 100:613: 글자 x270(규정 좌우 270), 메인 Bold 56 y62.3 행간 auto, 「모집 기간 | 날짜」 Medium 31 y212.8 · 키비주얼 칸 (553,262) 444×278 누끼 contain(mold.kv slot)
+  assert.equal(tn.mode, 'templateMold'); assert.deepEqual([tn.mold.rows.main.y, tn.mold.rows.main.px, tn.mold.rows.main.pitch, tn.mold.rows.main.weight, tn.mold.rows.sub, tn.mold.rows.detail?.y, tn.mold.rows.detail?.px, tn.mold.rows.detail?.weight, specs['naver-gfa-mobile-da-1250x560'].rules.safeArea.measuredFromTemplate.mold.rows.detail.labelWeight, specs['naver-gfa-mobile-da-1250x560'].rules.safeArea.measuredFromTemplate.mold.rows.detail.labelCol], [62.3, 56, 73, 700, undefined, 228.2, 31, 400, 700, 122]);   // 10-16 오후 107:657: 서브 줄 없이 상세 2항목(모집 기간·모집 직무) 라벨 Bold 열 + 값 Regular 열(x400)   // 10-16 사용자 수정본 100:613: 글자 x270(규정 좌우 270), 메인 Bold 56 y62.3 행간 auto, 「모집 기간 | 날짜」 Medium 31 y228.2 · 키비주얼 칸 (553,262) 444×278 누끼 contain(mold.kv slot)
   assert.equal(tn.mold.rows.main.x, 270); assert.deepEqual(tn.place.tImage, { x: 553, y: 262, w: 444, h: 278 }); assert.ok(!tn.rules.includes('templateMold.freeKv'), '네이버 DA 는 칸 고정(kv slot)');
   const hn = renderAd(ctx, glass, specs['naver-gfa-mobile-da-1250x560']);
-  assert.match(hn, /<b style="flex:0 0 130px;font-weight:700">모집 기간<\/b><span[^>]*>9\.22\(월\) - 10\.12\(일\)</, '「모집 기간」 라벨 열 + 날짜 값 열(107:657)');
-  assert.match(hn, /<b style="flex:0 0 130px;font-weight:700">모집 직무<\/b>/, '「모집 직무」 라벨 열');
+  assert.match(hn, /<b style="flex:0 0 122px;font-weight:700">모집 기간<\/b><span[^>]*>9\.22\(월\) - 10\.12\(일\)</, '「모집 기간」 라벨 열 + 날짜 값 열(107:657)');
+  assert.match(hn, /<b style="flex:0 0 122px;font-weight:700">모집 직무<\/b>/, '「모집 직무」 라벨 열');
   assert.ok(tn.rules.includes('templateMold.labelCol')); assert.ok(!tn.copy.sub, '서브 줄 없음');
   // 블라인드 피드 상세(모집직무)는 1행·38px — 긴 직무 문구(19자)는 안 들어가 생략되므로 짧은 직무로 확인
   const ctxShort = createContext({ ...fields, role: '건축' }, 'recruit');
   const hb = renderAd(ctxShort, glass, specs['blind-feed-image']); const tb = traceOf(hb);
-  assert.deepEqual([tb.mold.rows.main.y, tb.mold.rows.main.px, tb.mold.rows.main.pitch, tb.mold.rows.date?.px, tb.mold.rows.detail?.px], [135, 85, 104, 48, 38]);
-  assert.match(hb, /data-field="date"[^>]*style="position:absolute;left:0px;/, '날짜 x 58 = 메인과 좌정렬(10-16 사용자 「블라인드 좌정렬」, 템플릿 x100 안 씀)');
-  assert.match(hb, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '상세도 x 58');
+  assert.deepEqual([tb.mold.rows.main.y, tb.mold.rows.main.px, tb.mold.rows.main.pitch, tb.mold.rows.date?.px, tb.mold.rows.date?.weight, tb.mold.rows.detail?.px], [118, 85, 104, 48, 400, 38]);   // 10-16 사용자 수정본 135:942: 글자 (78,118) · 날짜 Regular
+  assert.match(hb, /data-field="date"[^>]*style="position:absolute;left:0px;/, '날짜 x 78 = 메인과 좌정렬(사용자 수정본 135:942)');
+  assert.match(hb, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '상세도 x 78');
   const hp = renderAd(ctx, glass, specs['blind-post-banner']); const tp = traceOf(hp);
-  assert.deepEqual([tp.mold.rows.main.px, tp.mold.rows.main.pitch, tp.mold.rows.date?.y, tp.mold.rows.detail?.y], [56, 69.4, 297, 357]);
-  assert.match(hp, /data-field="date"[^>]*style="position:absolute;left:0px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이 · x 142 = 메인과 좌정렬(10-16)');
-  assert.match(hp, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '게시글 상세 x 142');
+  assert.deepEqual([tp.mold.rows.main.px, tp.mold.rows.main.pitch, tp.mold.rows.main.y, tp.mold.rows.date?.y, tp.mold.rows.detail?.y], [56, 73, 80, 252, 331]);   // 10-16 사용자 수정본 135:961: 패딩 80 · 행간 130% · gap 26 (메인 70 은 규정 32~56 상한 56 으로)
+  assert.match(hp, /data-field="date"[^>]*style="position:absolute;left:0px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이 · x 80 = 메인과 좌정렬(사용자 수정본 135:961)');
+  assert.match(hp, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '게시글 상세 x 80');
+  assert.match(hp, /data-logo-slot="1" style="position:absolute;left:980px;top:50px;width:220px;height:44px;[^"]*align-items:flex-start;justify-content:flex-end/, '로고 오른쪽 위 (980,50) 220×44');
+  { const ob = hp.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 852 && +ob[2] === 281 && +ob[3] === 398 && +ob[4] === 279, '키비주얼 칸 (852,281) 398×279 오른쪽 아래: ' + (ob && ob[0])); }
   for (const id of ['instagram-feed-1080', 'naver-gfa-native-mo-342x228']) assert.notEqual(traceOf(renderAd(ctx, glass, specs[id])).mode, 'templateMold', id);   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트)
   const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [68, 50, 62, 700, 144, 43, 400], '카카오 비즈보드 틀 64:3325: 메인 Bold 50 y68 · 서브 Regular 43 y144(17px 띔)'); assert.deepEqual(tk.place.tImage, { x: 663, y: 36, w: 313, h: 185, radius: 10 });
 });

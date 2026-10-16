@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // 추출 규격 전부를 케이스 하나로 렌더 → Figma 편집용 SVG(글자는 텍스트, core/svgexport.js adToSvg) 로 뽑는다.
 //   10-16 사용자: 「생성된 거 피그마에 페이지 파서 SVG 로 넘겨 줘 → 내가 디자인 수정 → 너한테 던지면 가이드 수정·고도화」 — 그 왕복의 첫 단.
-//   node scripts/figma/svg-page.mjs [--case t1014-hanjin] [--out ref/learned/cases/_out/figma-svg/<case>]
+//   node scripts/figma/svg-page.mjs [--case t1014-hanjin] [--out ref/learned/cases/_out/figma-svg/<case>] [--specs a,b]  (--specs: 일부 규격만, --out 을 다른 폴더로)
 //     → <out>/<spec>.svg + <out>/index.json([{ spec, medium, mediumName, name, w, h, file, kind }]) + <out>/uploads.json(figma-frames-upload.mjs 형식)
 //   전달물(asset 채널: 자소설 M시작배너 로고·이미지 파일)은 SVG 가 아니라 건너뛰고 index 에 kind:'asset' 으로만 적는다.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -67,8 +67,9 @@ function convertBatch(sids) {
 }
 
 const index = [];
-const svgIds = IDS.filter(id => ENTRIES[id] && ENTRIES[id].channel !== 'asset');
-for (const id of IDS) if (!ENTRIES[id] || ENTRIES[id].channel === 'asset') index.push({ spec: id, medium: ENTRIES[id]?.medium ?? id.split('-')[0], kind: 'asset', note: '전달물(파일 그대로) — SVG 없음' });
+const ONLY = opt('--specs') ? opt('--specs').split(',') : null;   // 일부 규격만(왕복 반영 렌더)
+const svgIds = IDS.filter(id => ENTRIES[id] && ENTRIES[id].channel !== 'asset' && (!ONLY || ONLY.includes(id)));
+for (const id of IDS) if (!ONLY && (!ENTRIES[id] || ENTRIES[id].channel === 'asset')) index.push({ spec: id, medium: ENTRIES[id]?.medium ?? id.split('-')[0], kind: 'asset', note: '전달물(파일 그대로) — SVG 없음' });
 // 한 번에 6규격씩 변환(문서가 너무 크면 가상 시간 안에 안 끝남)
 for (let i = 0; i < svgIds.length; i += 6) {
   const batch = svgIds.slice(i, i + 6);
