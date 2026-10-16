@@ -261,7 +261,7 @@ function fontNoticeHtml(mediumIds, selectedId) {
   if (info) lines.push(`<span style="opacity:.75">${escH(sel)} — ${escH(info)}</span>`);
   return `<div class="fontNote" style="font-size:11px;color:var(--sub);line-height:1.55;margin-top:6px">${lines.join('<br>')}</div>`;
 }
-const campaignMediumIds = (c = state.campaign) => (c?.artifacts ?? []).filter(a => a.channel === 'ad').map(a => SPECS[a.specId]?.medium).filter(Boolean);
+const campaignMediumIds = (c = state.campaign) => (c?.artifacts ?? []).filter(a => a.channel === 'ad' || a.channel === 'asset').map(a => SPECS[a.specId]?.medium).filter(Boolean);
 
 /* ═══ modal ═══ */
 function modal({ title, desc, body, actions, wide = false }) {
@@ -1688,7 +1688,7 @@ function naturalSize(spec) {
     const k = 3.7795;
     return [(spec.wmm + spec.bleed * 2) * k, (spec.hmm + spec.bleed * 2) * k];
   }
-  if (spec.channel === 'banner' || spec.channel === 'ad' || spec.channel === 'gwthumb') return [spec.w, spec.h];
+  if (spec.channel === 'banner' || spec.channel === 'ad' || spec.channel === 'gwthumb' || spec.channel === 'asset') return [spec.w, spec.h];
   if (spec.channel === 'edm') return [600, 900];
   return [1000, 1400];
 }
@@ -1699,7 +1699,7 @@ function layoutArtboard(opts = {}) {
   frames.clear();
   const c = state.campaign;
   // 줄 구성: 매체 광고는 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄
-  const adRows = (c.media ?? []).map(m => ({ name: mediumName(m), arts: c.artifacts.filter(a => a.channel === 'ad' && SPECS[a.specId]?.medium === m) })).filter(r => r.arts.length);
+  const adRows = (c.media ?? []).map(m => ({ name: mediumName(m), arts: c.artifacts.filter(a => (a.channel === 'ad' || a.channel === 'asset') && SPECS[a.specId]?.medium === m) })).filter(r => r.arts.length);
   const rows = [...adRows, { name: '온라인', arts: [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }, { name: '오프라인', arts: OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }];   // 10-15 밤: 매체마다 섹션(머리글 + 구분선)
   // 첫 줄 y: 라벨이 프레임 위에 붙는다(이름 2줄 + 뱃지 줄 ≈ 56px). 60이면 첫 줄 라벨이 보드 위로 잘린다
   let y = 104;
@@ -1759,6 +1759,7 @@ function twinNote(specId) {
 // 보드 카드 라벨은 매체 · 사이즈만(10-15 밤 사용자 「좌측은 매체와 사이즈 정도만」) — 배지(DRAFT·차단·디자인·가이드)는 CSS 로 숨긴다
 function boardLabel(a) {
   const spec = SPECS[a.specId];
+  if (spec && a.channel === 'asset') return `${spec.mediumName ?? mediumName(spec.medium)} · 전달물 ${spec.asset?.item ?? ''} 파일`;
   if (!spec || a.channel !== 'ad') return artLabel(a);
   const sz = specSize(spec, a.size) || `${spec.w}×${spec.h}`;
   return `${spec.mediumName ?? mediumName(spec.medium)} · ${sz}`;
@@ -2552,6 +2553,17 @@ function addArtifactModal() {
 
 /* ═══ 내보내기 ═══ */
 // 매체 소재 파일명 — 담당자가 매체사에 그대로 넘긴다: 고객사_직무_매체_치수_v회차.확장자
+// 전달물 파일 — 로고는 손질된 투명 PNG(style.logo), 이미지는 올린 키비주얼 원본. 없으면 null
+function assetFileOf(a) {
+  const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item;
+  const src = item === '로고' ? c.style.logo : c.style.keyVisual; if (!src || !/^data:/.test(src)) return null;
+  const m = src.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null;
+  const ext = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' })[m[1]] ?? 'png';
+  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const data = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
+  const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
+  const core = c.context.core; const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
+  return { name: `${[...who, clean(spec.mediumName), 'M시작배너', item === '로고' ? '로고' : '이미지', `v${c.context.version}`].filter(Boolean).join('_')}.${ext}`, data, mime: m[1] };
+}
 function adFileName(a, fmt) {
   const c = state.campaign, core = c.context.core, spec = SPECS[a.specId];
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
@@ -2641,6 +2653,8 @@ async function exportAdZip(withSvg = false) {
     for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
       entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
+    // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
+    for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = assetFileOf(a); if (f) entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); }
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
     if (withSvg) {
@@ -2678,6 +2692,7 @@ function exportAdModal(a) {
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
+  if (spec.channel === 'asset') { const f = assetFileOf(a); if (!f) { toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}`); return; }
   if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({

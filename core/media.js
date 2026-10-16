@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 15 · 규격 91(추출 49) · 확인필요 111 · 충돌 43 · 반려사례 12
+// 매체 15 · 규격 91(추출 50) · 확인필요 111 · 충돌 43 · 반려사례 12
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 0/24 프레임
 
@@ -1917,7 +1917,7 @@ export const MEDIA = [
           }
         },
         "frame": "guide",
-        "extract": false
+        "extract": true
       }
     ],
     "rejections": [
@@ -12099,7 +12099,7 @@ export const MEDIA = [
 
 export const MEDIA_GROUPS = ["채용포털","디지털","커뮤니티","기타"];
 
-// 추출 규격 — 이미지로 뽑아 전달하는 규격 49개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
+// 추출 규격 — 이미지로 뽑아 전달하는 규격 50개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
 export const EXTRACT = {
   "order": [
     "jasoseol",
@@ -12116,7 +12116,7 @@ export const EXTRACT = {
     "daangn"
   ],
   "counts": {
-    "jasoseol": 10,
+    "jasoseol": 11,
     "remember": 8,
     "jobda": 2,
     "catch": 2,
@@ -12140,6 +12140,7 @@ export const EXTRACT = {
     "jasoseol-m-standard-chatlist-logo-mo",
     "jasoseol-m-start-logo-mo",
     "jasoseol-m-start-image-mo",
+    "jasoseol-pc-calendar-pc",
     "remember-main-top-pc",
     "remember-main-top-mo",
     "remember-main-mid-pc",
@@ -12188,7 +12189,8 @@ export const EXTRACT = {
     "네이버 3 = 보드 메모 「배너 / 비주얼만 / 로고만」(31:4268) → 모바일 DA 1250×560 · 네이티브 썸네일 342×228 · 프로필(로고) 300×300. PC·MO 네이티브는 규정이 달라 우리 규격이 둘인데 보드는 하나로 셈 — MO(M통합 네이티브 DA, 프로필 필수)를 뽑고 PC 는 참고. 확인 필요",
     "인스타 1 = 피드 1080×1080 (사용자 지시). 보드 메모는 「4개」(31:4257) — 샘플 유형 수로 보임, 확인 필요. 스토리 1080×1920 은 참고",
     "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고",
-    "10-16 사용자: 자소설은 10 = 패키지 5 × 2. 5번 M시작배너패키지(시작·서브)는 자소설 내부 제작이라 전달물 2개(로고 파일 500px↑ · 이미지 파일 720px↑)로 목록에 넣는다(렌더 없음, assetOnly). PC달력 164×233 은 패키지 밖이라 그대로 제외"
+    "10-16 사용자: 자소설은 10 = 패키지 5 × 2. 5번 M시작배너패키지(시작·서브)는 자소설 내부 제작이라 전달물 2개(로고 파일 500px↑ · 이미지 파일 720px↑)로 목록에 넣는다(렌더 없음, assetOnly). PC달력 164×233 은 패키지 밖이라 그대로 제외",
+    "10-16 사용자(가이드 「6. PC달력배너」 제시): PC달력 164×233(제출 328×466)도 상품 — 추출 목록에 넣는다. 자소설 11, 총 50"
   ],
   "board": {
     "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
@@ -12742,4 +12744,4 @@ export function specOf(specId) {
   return null;
 }
 
-export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":49,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
+export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":50,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};

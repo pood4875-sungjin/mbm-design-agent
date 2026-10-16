@@ -12,6 +12,7 @@ import { renderPrint } from './renderers/print.js';
 import { renderBadge } from './renderers/badge.js';
 import { renderPhotobooth } from './renderers/photobooth.js';
 import { renderAd } from './renderers/ad.js';
+import { renderAsset } from './renderers/asset.js';
 import { registerAdSpecs } from './adspecs.js';
 
 export function registerAll() {
@@ -22,6 +23,7 @@ export function registerAll() {
     ...spec, id: spec.id ?? 'gwthumb-374x271', medium: 'groupware', mediumName: '그룹웨어', group: '사내', title: '그룹웨어 · 홍보 썸네일',
     rules: { id: 'gwthumb-374x271', name: '홍보 썸네일', w: spec.w, h: spec.h, format: ['png'] }, mediumRules: {}, format: ['png'],
   }, opts));
+  registerRenderer('asset', renderAsset);   // 전달물(파일 그대로) — 미리보기만 그린다(10-16)
   registerRenderer('edm', renderEdm);
   registerRenderer('landing', renderLanding);
   registerRenderer('poster', renderPrint);
@@ -50,7 +52,8 @@ export function artifactKey(specId, purpose = 'main', arrow = null) {
 export function plannedItems(campaign) {
   const items = [];
   for (const specId of campaign.adSpecIds ?? []) {
-    if (SPECS[specId]?.channel === 'ad') items.push({ specId, channel: 'ad', purpose: 'main', arrow: null });
+    const ch = SPECS[specId]?.channel;
+    if (ch === 'ad' || ch === 'asset') items.push({ specId, channel: ch, purpose: 'main', arrow: null });   // asset = 전달물(10-16)
   }
   for (const specId of channelSpecIds(campaign.channels)) {
     const spec = SPECS[specId];

@@ -24,7 +24,7 @@ test('샘플 실측(sampleText)이 매체 JSON 에 들어 있다 — 29규격, �
   const withSample = Object.values(specs).filter(s => s.rules.sampleText?.measuredFromSamples?.roles);
   assert.ok(withSample.length >= 29, `sampleText 규격 ${withSample.length}`);
   assert.deepEqual(specOf('jasoseol-pc-premium-jobpost-pc').sampleText.measuredFromSamples.roles, specOf('jasoseol-pc-standard-jobpost-pc').sampleText.measuredFromSamples.roles);
-  assert.equal(adSpecGroups(['jasoseol']).length, 7, '소재 묶기 7장 그대로');
+  assert.equal(adSpecGroups(['jasoseol']).filter(g => g.entry.channel === 'ad').length, 7, '소재 묶기 7장 그대로(전달물 2 제외)');
 });
 
 test('자소설 PC메인배너 1200×280: 템플릿 구조 — 서브(시즌) 위, 메인(회사+구분) 2줄, 상세(채용일정·모집직무) — 현대케피코 408:37780', () => {

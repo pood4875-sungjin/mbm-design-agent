@@ -16,6 +16,19 @@ export function adSpecEntries() {
   const out = {};
   for (const m of MEDIA) {
     for (const s of m.specs) {
+      // 전달물(assetOnly — 자소설 M시작배너패키지 로고 파일·이미지 파일, 10-16): 완성 배너가 아니라 파일 그대로 넘긴다. 보드 카드 + ZIP 파일을 위해 'asset' 채널 항목으로 올린다
+      if (s.assetOnly && s.asset) {
+        const isLogo = s.asset.item === '로고';
+        out[s.id] = {
+          id: s.id, channel: 'asset', track: 'online', unit: 'px', output: 'file',
+          medium: m.id, mediumName: m.name, group: m.group,
+          title: `${m.name} · ${s.name}`, label: s.platform ?? null, platform: s.platform ?? null,
+          w: isLogo ? 600 : 720, h: isLogo ? 300 : 405, exportScale: 1, submitW: null, submitH: null,
+          format: (s.asset.format ?? ['png']).map(f => String(f).toLowerCase()), maxKB: null, confidence: s.confidence,
+          extract: s.extract === true, asset: s.asset, outsideTexts: [], rules: s, mediumRules: m,
+        };
+        continue;
+      }
       if (s.deliverable === false) continue;
       const fmts = (s.format ?? []).map(f => String(f).toLowerCase());
       if (!fmts.length || fmts.every(f => f === 'text') || fmts.includes('html')) continue;

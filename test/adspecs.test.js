@@ -13,6 +13,7 @@ test('every renderable media spec becomes an ad SPEC entry, others stay out', ()
   const ids = Object.keys(entries);
   assert.ok(ids.length >= 60, `너무 적다: ${ids.length}`);
   for (const [id, e] of Object.entries(entries)) {
+    if (e.channel === 'asset') { assert.equal(e.output, 'file'); assert.ok(e.asset?.minW > 0, id); continue; }   // 전달물(10-16): 파일 그대로 — 아래 광고 규격 검사는 건너뛴다
     assert.equal(e.channel, 'ad');
     assert.equal(e.track, 'online');
     assert.equal(e.unit, 'px');
@@ -23,7 +24,7 @@ test('every renderable media spec becomes an ad SPEC entry, others stay out', ()
     assert.ok(!e.recommended, '매체 규격은 기본 생성 세트에 자동으로 들어가지 않는다 — 매체를 고를 때 켠다');
   }
   // 전달 자료만 넘기는 상품, 텍스트 상품, HTML 이메일은 이미지 렌더 대상이 아니다
-  assert.ok(!ids.includes('jasoseol-m-start-logo-mo') && !ids.includes('jasoseol-m-start-image-mo'));   // 전달물은 광고 규격 아님
+  for (const id of ['jasoseol-m-start-logo-mo', 'jasoseol-m-start-image-mo']) assert.equal(adSpecEntries()[id]?.channel, 'asset', '전달물은 asset 채널(파일 그대로, 10-16)');
   assert.ok(!ids.includes('albamon-pc-sub-bottom-text'));
   assert.ok(!ids.includes('albamon-email-target'));
 });
@@ -58,7 +59,8 @@ test('each entry carries what the renderer and linter need from the medium', () 
 
 test('identical rules under two product names make one creative, not two', () => {
   const j = adSpecGroups(['jasoseol']);
-  assert.equal(j.length, 7, '자소설 9규격 → 소재 7장 (채용공고배너 160×600 · 채팅목록 로고 300×180은 프리미엄·스탠다드 공용)');
+  assert.equal(j.length, 9, '자소설 광고 7장(채용공고배너 160×600 · 채팅목록 로고 300×180은 프리미엄·스탠다드 공용) + 전달물 2(10-16) = 9');
+  assert.equal(j.filter(g => g.entry.channel === 'asset').length, 2);
   const job = j.find(g => g.id === 'jasoseol-pc-premium-jobpost-pc');
   assert.deepEqual(job.twins, ['jasoseol-pc-standard-jobpost-pc']);
 });
