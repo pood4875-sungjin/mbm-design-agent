@@ -2557,16 +2557,26 @@ function addArtifactModal() {
 
 /* ═══ 내보내기 ═══ */
 // 매체 소재 파일명 — 담당자가 매체사에 그대로 넘긴다: 고객사_직무_매체_치수_v회차.확장자
-// 전달물 파일 — 로고는 손질된 투명 PNG(style.logo), 이미지는 올린 키비주얼 원본. 없으면 null
-function assetFileOf(a) {
-  const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item;
-  const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;   // 원본 우선 — 손질(누끼·트림)본이 아니라 올린 파일 그대로(AI 원본은 업로드 불가라 PNG/SVG 만)
-  const m = src.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null;
-  const ext = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' })[m[1]] ?? 'png';
-  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const data = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
+// 전달물 파일 — 올린 원본(style.logoOrig/kvOrig, 없으면 손질본). 원본 가로가 규정 최소 폭(로고 500 · 이미지 720)보다 작으면 그 폭으로 확대해서 넘긴다(비율 유지, PNG 알파 유지 — 10-16 사용자 「저 크기에 꽉 차야」). 없으면 null
+async function assetFileOf(a) {
+  const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item, minW = spec?.asset?.minW ?? 0;
+  const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
   const core = c.context.core; const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
-  return { name: `${[...who, clean(spec.mediumName), 'M시작배너', item === '로고' ? '로고' : '이미지', `v${c.context.version}`].filter(Boolean).join('_')}.${ext}`, data, mime: m[1] };
+  const base = [...who, clean(spec.mediumName), 'M시작배너', item === '로고' ? '로고' : '이미지', `v${c.context.version}`].filter(Boolean).join('_');
+  const toBytes = (dataUrl) => { const m = dataUrl.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null; const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const data = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i); return { data, mime: m[1] }; };
+  const img = new Image(); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = src; }).catch(() => null);
+  const w0 = img.naturalWidth || 0, h0 = img.naturalHeight || 0;
+  if (w0 && minW && w0 < minW) {   // 확대
+    const k = minW / w0, cv = document.createElement('canvas'); cv.width = minW; cv.height = Math.max(1, Math.round(h0 * k));
+    const g = cv.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, cv.width, cv.height);
+    const png = item === '로고' || /png|svg|webp|gif/.test(src.slice(5, 20));   // 로고와 알파 가능 포맷은 PNG, 사진(JPEG)은 JPEG 0.92
+    const out = png ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.92);
+    const b = toBytes(out); return { name: `${base}.${png ? 'png' : 'jpg'}`, data: b.data, mime: b.mime, scaled: [w0, cv.width] };
+  }
+  const b = toBytes(src); if (!b) return null;
+  const ext = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' })[b.mime] ?? 'png';
+  return { name: `${base}.${ext}`, data: b.data, mime: b.mime, scaled: null };
 }
 function adFileName(a, fmt) {
   const c = state.campaign, core = c.context.core, spec = SPECS[a.specId];
@@ -2658,7 +2668,7 @@ async function exportAdZip(withSvg = false) {
       entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
-    for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = assetFileOf(a); if (f) entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); }
+    for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); } }
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
     if (withSvg) {
@@ -2696,7 +2706,7 @@ function exportAdModal(a) {
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
-  if (spec.channel === 'asset') { const f = assetFileOf(a); if (!f) { toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}`); return; }
+  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); }); return; }
   if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({

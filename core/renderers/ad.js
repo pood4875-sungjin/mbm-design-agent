@@ -770,8 +770,10 @@ function renderAdBase(ctx, style, spec) {
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
     const side = Math.min(innerW, innerH);
+    // 투명 배경 로고 파일(자소설 M채팅목록 300×180 — 파일 자체가 로고): 화면을 거의 채운다(높이 86%·폭 90%, 10-16 사용자 「저 크기에 꽉 차야」). 흰 바탕 프로필(300×300 등)은 샘플대로 60%
+    if (transparent && style.logo) fired('logoOnly.fill');
     const mark = style.logo
-      ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${Math.round(side * 0.6)}px;width:auto;max-width:${Math.round(innerW * 0.86)}px;object-fit:contain;${logoFilter}"/>`
+      ? `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${transparent ? Math.round(h * 0.86) : Math.round(side * 0.6)}px;width:auto;max-width:${transparent ? Math.round(w * 0.9) : Math.round(innerW * 0.86)}px;object-fit:contain;${logoFilter}"/>`
       : (() => { const t = copy.advertiser || copy.main; const fs = Math.max(8, Math.floor(Math.min(side * 0.22, (innerW * 0.86) / Math.max(1, textWidth(t)))));
           return `<div data-field="advertiser" style="font-size:${fs}px;line-height:1.25;font-weight:700;color:${mainFg};text-align:center;white-space:nowrap">${esc(t)}</div>`; })();
     return `${open('align-items:center;justify-content:center')}${mark}</div>`;

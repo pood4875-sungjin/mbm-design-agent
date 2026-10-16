@@ -15,7 +15,7 @@ export function renderAsset(context, style, spec) {
   const w = spec.w ?? 720, h = spec.h ?? 405;
   const minW = asset.minW ?? null;
   const ok = !src ? null : (minW && px?.[0] ? px[0] >= minW : null);
-  const note = !src ? `${kind} 파일 없음 — 올리면 그대로 전달` : `${kind} 원본 ${px ? `${px[0]}×${px[1]}px` : '크기 미확인'}${minW ? ` · 규정 가로 ${minW}px 이상${ok === false ? ' ✗ 작음' : ok ? ' ✓' : ''}` : ''}`;
+  const note = !src ? `${kind} 파일 없음 — 올리면 그대로 전달` : `${kind} 원본 ${px ? `${px[0]}×${px[1]}px` : '크기 미확인'}${minW ? ` · 규정 가로 ${minW}px 이상${ok === false ? ` → 내보낼 때 ${minW}px 로 확대(원본 작음)` : ok ? ' ✓' : ''}` : ''}`;
   const checker = 'background-color:#F4F4F4;background-image:linear-gradient(45deg,#E6E6E6 25%,transparent 25%),linear-gradient(-45deg,#E6E6E6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#E6E6E6 75%),linear-gradient(-45deg,transparent 75%,#E6E6E6 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0';
   const trace = { v: 1, mode: 'asset', rules: ['asset.passthrough'], asset: { item: asset.item ?? kind, minW, px, ok } };
   return `<div data-ad="1" data-asset="1" data-spec="${esc(spec.id ?? '')}" data-transparent="0" data-field-source="none" data-trace="${esc(JSON.stringify(trace))}" style="position:relative;width:${w}px;height:${h}px;${checker};overflow:hidden;font-family:'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif;box-sizing:border-box">
