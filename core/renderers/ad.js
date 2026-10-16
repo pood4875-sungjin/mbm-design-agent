@@ -1606,7 +1606,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const mainN = Math.max(1, Math.min(MR.main?.lines ?? 2, copy.main.split('\n').reduce((n, t) => n + Math.max(1, Math.ceil(textWidth(t) * mainPx / Math.max(1, colW))), 0)));
     const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
     // 틀의 서브 줄이 접수기간이면(mold.rows.sub.content 'period' — 잡다 PC 템플릿 1:6026 「서브문구」 자리에 샘플 8/8 「모집기간 날짜」) 시즌·슬로건 대신 「라벨 날짜」 한 줄(라벨·날짜 같은 굵기, 셀트리온 1:6223)
-    if (MR.sub?.content === 'period') copy.sub = (copy.date || ctx.core?.deadline) ? `${labelOf('접수기간')} ${copy.date || ''}`.trim() : '';   // 날짜가 없으면 서브 줄 없음(틀의 서브 = 접수기간)
+    if (MR.sub?.content === 'period') copy.sub = (copy.date || ctx.core?.deadline) ? `${labelOf('접수기간')}${MR.sub.sep ?? ' '}${copy.date || ''}`.trim() : '';   // 날짜가 없으면 서브 줄 없음(틀의 서브 = 접수기간). 구분자는 틀이 정한다(네이버 한국콜마 64:4793 「모집 기간 | …」)
     const showSubM = MR.sub?.content === 'period' ? !!copy.sub : showSub;
     // 틀 서브 줄 수 한도(구글 ABL 580 서브 1줄 297px): 넘기면 사다리의 들어가는 첫 후보(시즌 등)로 — 칸은 max-height 로 잘리므로 반 토막 대신 짧은 말(10-15 저녁)
     const rowsIn = (t, r) => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * pxOf(r) / Math.max(1, rowW(r)))), 0);
