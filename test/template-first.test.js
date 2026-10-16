@@ -294,7 +294,7 @@ test('구글GDN 틀(템플릿 64:1041·993·1090·1139, 사용자 결정 10-16 �
   assert.doesNotMatch(h580, /data-logo-box="1"/); assert.doesNotMatch(h580, /data-logo-slot="2"/, '보조 자산 없으면 좌측 로고 칸 비움');
   assert.match(renderAd(ctx, { ...glass, logo2: PNG }, specs['google-gdn-580x400']), /data-logo-slot="2" style="position:absolute;left:34px;top:18px;width:118px;height:31px/, '보조 자산이 있으면 좌측 칸');
   assert.match(h580, /data-field="tags" data-tags-plain="1" style="position:absolute;left:0px;[^"]*width:153px;height:56px;font-size:20px;line-height:28px;font-weight:500/, '태그 = 템플릿 칩 2×2 자리(37,289) 75×26 → 평문 2줄 행간 28');
-  assert.match(h580, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:41px/, '하단 띠 y359');
+  assert.doesNotMatch(h580, /data-band="1"/, '하단 띠 없음(사용자 10-16 「아래 띠는 없애두 될듯」)');
   const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']); const t970 = traceOf(h970);
   assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.date.y, t970.mold.rows.date.px], [39, 1, 134, 23]);
   assert.match(h970, /data-logo-slot="1" style="position:absolute;left:841px;top:14px;width:101px;height:24px/, '970 로고 우측 칸');
@@ -305,7 +305,7 @@ test('구글GDN 틀(템플릿 64:1041·993·1090·1139, 사용자 결정 10-16 �
   const h930 = renderAd(ctx, glass, specs['google-gdn-930x180']); const t930 = traceOf(h930);
   assert.equal(t930.mode, 'templateMold');
   assert.match(h930, /data-field="tags" data-tags-plain="1"/, '930 태그 평문 행');
-  assert.match(h930, /data-band="1" style="position:absolute;left:0;right:0;bottom:0;height:31px/, '930 하단 띠 31(템플릿 보이는 높이)');
+  assert.doesNotMatch(h930, /data-band="1"/, '930 하단 띠 없음');
 });
 
 test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 결정 10-15 밤 「NAP 기준 무조건 이거로 — 폰트 스타일부터 패딩까지」) — A2Z Bold 자간 -2% · 띠 320×50 메인 17/23.8 세로 가운데 · 320×100 메인 19/22.8 2줄 + 날짜 알약 24 · 300×250 메인 27/32.4 + 알약 26 + 모집분야 라벨 줄 15/18 · 320×480 가운데 메인 38/45.6 + 알약 + 모집분야 20/27 · PC 970/728 은 공식 템플릿 그대로 · 비즈보드는 틀 없음', () => {

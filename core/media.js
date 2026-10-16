@@ -4518,7 +4518,6 @@ export const MEDIA = [
               "font": "KakaoBigSans",
               "color": "#231815",
               "colorDark": "#FFFFFF",
-              "band": 41,
               "rows": {
                 "sub": {
                   "y": 68,
@@ -4579,7 +4578,8 @@ export const MEDIA = [
                 "note": "참고(자유 배치)"
               },
               "docRef": "docs/google-gdn-mold.md",
-              "subOptional": true
+              "subOptional": true,
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 41)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
             }
           }
         },
@@ -4726,7 +4726,6 @@ export const MEDIA = [
               "font": "KakaoBigSans",
               "color": "#231815",
               "colorDark": "#FFFFFF",
-              "band": 36,
               "rows": {
                 "sub": {
                   "y": 53,
@@ -4786,7 +4785,8 @@ export const MEDIA = [
                 "note": "참고(자유 배치)"
               },
               "docRef": "docs/google-gdn-mold.md",
-              "subOptional": true
+              "subOptional": true,
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 36)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
             }
           }
         },
@@ -4934,7 +4934,6 @@ export const MEDIA = [
               "font": "KakaoBigSans",
               "color": "#231815",
               "colorDark": "#FFFFFF",
-              "band": 43,
               "rows": {
                 "sub": {
                   "y": 78,
@@ -5000,7 +4999,8 @@ export const MEDIA = [
                 "note": "참고(자유 배치)"
               },
               "docRef": "docs/google-gdn-mold.md",
-              "subOptional": true
+              "subOptional": true,
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 43)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
             }
           }
         },
@@ -5340,7 +5340,6 @@ export const MEDIA = [
               "font": "KakaoBigSans",
               "color": "#231815",
               "colorDark": "#FFFFFF",
-              "band": 31,
               "rows": {
                 "sub": {
                   "y": 36,
@@ -5400,7 +5399,8 @@ export const MEDIA = [
                 "note": "참고(자유 배치)"
               },
               "docRef": "docs/google-gdn-mold.md",
-              "subOptional": true
+              "subOptional": true,
+              "bandNote": "템플릿 하단 빨간 띠(보이는 높이 31)는 안 그림 — 사용자 10-16 「아래 띠는 없애두 될듯」"
             }
           }
         },
