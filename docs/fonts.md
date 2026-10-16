@@ -32,6 +32,7 @@
 | 나눔명조·나눔바른고딕·나눔손글씨·마루 부리 | 네이버 안내문에 같은 OFL 조건으로 명시(마루 부리는 「나눔 글꼴과 같은 오픈라이센스」 문장). 광고 소재에 거의 안 쓰여 묶지 않았다. 필요하면 `scripts/fonts-subset.py` MANIFEST 에 한 줄 더하면 된다(zip 주소는 nanum-myeongjo·nanum-barun-gothic, 마루 부리는 zip 주소를 못 찾음). |
 | 「Kakao OTF」·「카카오 서체」(2013년 무렵 옛 카카오 폰트) | 카카오 기업사이트에서 지금 배포하는 폰트는 **카카오 큰글씨·작은글씨(2025-06 공개)** 둘뿐. 옛 폰트의 현재 라이선스 페이지를 찾지 못해 **확인 필요** — 넣지 않음. 사용자가 말한 「카카오 빅산스」 = 카카오 큰글씨(영문명 Kakao Big Sans)로 보고 그것을 넣었다. |
 | 카카오 폰트 라이선스 **전문** | 배포 zip 에 라이선스 파일이 없다. 페이지 문장(OFL 적용·개인·상업 무료)과 폰트 name 테이블의 OFL URL 로 확인했고, LICENSE.txt 에는 그 인용 + OFL 1.1 전문을 넣었다. 카카오가 낸 자체 라이선스 문서는 없다(**확인 필요: 카카오에 문의하면 확실**). |
+| **29CM Editorial** (무신사, 2026-10-09 배포, 사용자 제공 29cm-editorial.zip 10-16) | **넣지 않음 — 비영리 전용.** 라이선스 전문: 「상업적 이용 일체(영리 목적 광고·홍보물 …) 금지」 · 「폰트 파일의 수정·개작·형식 변환 후 재배포 금지」. 이 에이전트의 산출물(기업 채용 광고)과 묶는 방식(서브셋 woff2) 둘 다 충돌 → 사용자 결정 「상업 금지면 탑재하지 마」 |
 | 캐치 PSD 의 Noto Sans CJK KR | 매체 규정이 아니라 샘플 폰트라 넣지 않음(OFL, 필요하면 추가 가능). |
 
 ## 쓰는 규칙 (규칙 장부 `font-medium-or-campaign`)
@@ -66,3 +67,20 @@
 
 ## 10-15 밤 정정 — 기본 글꼴 카카오 빅산스
 사용자: 「텍스트 디폴트는 Pretendard + 카카오빅산스. 가이드 없는 건 카카오 빅산스로 생성」 → `DEFAULT_FONT = 'KakaoBigSans'`(group default), 규정 매체(자소설·카카오·리멤버 = Pretendard)는 렌더러 강제 그대로. 저녁의 Paperlogy 기본은 폐기(무료 목록 맨 앞으로). 앱 인테이크·인스펙터 기본값·`core/style.js` 기본·하네스 fontOK 도 같이.
+
+## 재점검 (2026-10-16 저녁, 사용자 「지금 폰트들 다 확인해 줘」)
+묶은 13폴더(60 woff2)를 **파일에서 직접** 읽었다(fonttools: name 테이블 0 저작권 · 13 라이선스 문구 · 14 URL, OS/2 fsType 임베딩 권한) + 폴더 LICENSE.txt + `core/fonts.js` 카탈로그 플래그.
+
+| 폴더 | 파일 | 저작권(name 0) | 라이선스 근거 | fsType | 상업 광고 |
+|---|---|---|---|---|---|
+| paperlogy · freesentation · a2z | 9·9·9 | PT& 2024/2026 | 파일 name 13/14 = SIL OFL 1.1 | 0 설치형 / 0 / 8 편집 가능 | 가능 |
+| pretendard | 4 | Kil Hyung-jin 2023 | 파일 name 13/14 = OFL | 0 | 가능 |
+| suit | 4 | Sun. 2022 | 파일 name 13/14 = OFL | 4 미리보기·인쇄 | 가능 |
+| gmarket-sans | 3 | eBay Korea 2019 | 파일 name 13 에 OFL 전문 | 4 | 가능 |
+| kakao-big-sans · kakao-small-sans | 3·3 | Kakao Corp 2021 | **파일엔 없음** → 카카오 브랜드 리소스 페이지 「OFL … 개인 및 상업적 용도 자유」(LICENSE.txt 에 인용·URL) | 0 | 가능 |
+| nanum-gothic · nanum-square · nanum-square-round | 3·4·4 | NHN/NAVER 2011/2016/2017 | 파일 name 13/14 = 회사명·URL → 네이버 고객센터 나눔글꼴 라이선스(OFL, 글꼴 자체 유료 판매만 금지) | 8 / 4 / 8 | 가능 |
+| nanum-square-neo | 5 | NAVER 2022 | **파일엔 없음** → 같은 네이버 안내(예약 이름 NanumSquareNeo 명시) | 8 | 가능 |
+
+- fsType 은 전부 0·4·8 — 「제한 임베딩(2)」 없음. 4(미리보기·인쇄)는 문서 임베딩 등급이지 웹폰트·이미지 소재 사용과 무관(OFL 이 허용).
+- 카탈로그 12항목 모두 `license.commercial/embed/modify = true`, 이름 SIL OFL 1.1. 서브셋(수정)은 OFL 이 허용(예약 이름은 그대로 둠).
+- 결론: 묶은 폰트 중 상업 광고 불가·임베딩 제한 **없음**. 29CM Editorial 만 비영리 전용이라 제외.
