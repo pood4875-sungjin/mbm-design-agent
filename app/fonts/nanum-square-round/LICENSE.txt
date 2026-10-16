@@ -103,3 +103,5 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+[근거 보관 2026-10-16] 위 페이지 전체 스크린샷·본문 덤프: docs/fonts-license/naver-nanum-license-18088_2026-10-16.{png,txt} — 「글꼴 자체를 유료로 판매하는 것을 제외한 상업적인 사용이 가능」 + OFL 1.1 전문 + 예약 이름 목록(NanumSquareNeo·NanumSquareRound 포함) 확인(네오 폰트 파일 name 테이블엔 라이선스 문구 없음).
