@@ -9,7 +9,7 @@
 //
 // 사람이 덮어쓸 수 있는 것은 둘뿐이다: 색을 직접 고르기(background.color), 단색/그라데이션 고정(background.mode).
 
-import { mix, colorDistance, contrast, shiftHue, hexToRgb, rgbToHsl, BLACK, WHITE } from './palette.js';
+import { mix, colorDistance, contrast, shiftHue, hexToRgb, rgbToHsl, rgbToHex, hslToRgb, BLACK, WHITE } from './palette.js';
 import { CANON } from './canon.js';
 import { kvTypeOf } from './kvtypes.js';
 
@@ -31,6 +31,19 @@ export function brandDeep(brand) {
   let d = -0.06;
   while (d < 0.5 && contrast(shiftHue(brand, 0, -d, 0), WHITE) < 4.5) d += 0.02;
   return [shiftHue(brand, 0, -d, 0), shiftHue(brand, 0, -(d + 0.14), 0)];
+}
+
+// 화사한 지면색(CANON.kvHarmony, 10-16 오후): 후보 중 채도 ≥ minSat 인 첫 색을 채도 sat 이상·명도 lMin~lMax 로 맞추고, 흰 글자 4.5:1 이 될 때까지만 명도를 내린다. 전부 무채면 null
+export function vividOf(cands, K = CANON.kvHarmony) {
+  const ok = cands.filter(x => /^#[0-9A-Fa-f]{6}$/.test(x ?? '')).map(hex => ({ hex, hsl: rgbToHsl(hexToRgb(hex)) })).filter(c => c.hsl[1] >= (K.minSat ?? 0.18));
+  if (!ok.length) return null;
+  // 첫 후보(사진 변 색·누끼 대표색)가 충분히 채도 있으면 그대로, 아니면(베이지·크림·회갈색) 후보 중 가장 채도 높은 색 — 탁한 올리브 대신 복숭아·주황·청록
+  const pick = ok[0].hsl[1] >= (K.prefSat ?? 0.4) ? ok[0] : ok.reduce((a, b) => (b.hsl[1] > a.hsl[1] ? b : a));
+  let [h, s, l] = pick.hsl;
+  s = Math.max(s, K.sat ?? 0.55); l = Math.min(Math.max(l, K.lMin ?? 0.34), K.lMax ?? 0.5);
+  let c = rgbToHex(hslToRgb([h, s, l])), guard = 0;
+  while (contrast(c, WHITE) < 4.5 && guard++ < 40) { l -= 0.02; c = rgbToHex(hslToRgb([h, s, Math.max(0.08, l)])); }
+  return c;
 }
 
 export function resolveField(style, { facing = 'left', solidOnly = false, light = false, lightPhoto = false } = {}) {
@@ -60,10 +73,14 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // 비주얼 우선 지면(CANON kvHarmony, 10-16): 사진은 글자 쪽 변 색, 누끼는 대표색 — 어두운 매체는 흰 글자 4.5:1 까지 어둡힌 같은 색상, 밝은 매체는 옅은 틴트. 브랜드색은 포인트에만
   else if (CANON.kvHarmony && f && (f.kind === 'photo' || f.opaque < 0.5) && (e?.hex || dominant)) {
     const K = CANON.kvHarmony;
-    const base = f.kind === 'photo' ? ((K.photoFrom === 'edge' ? e?.hex : null) ?? dominant ?? e?.hex) : ((K.cutoutFrom === 'dominant' ? dominant : null) ?? e?.hex ?? dominant);
-    const tint = f.kind === 'photo' ? lightPhoto : light;
-    if (tint) { stops = [mix(base, WHITE, K.tint ?? 0.78), WHITE]; angle = 180; source = 'kv-harmony-tint'; }
-    else { stops = brandDeep(base); angle = 135; source = f.kind === 'photo' ? 'kv-harmony-photo' : 'kv-harmony'; }
+    const pal = (style.kvMeta?.colors ?? []).filter(Boolean);
+    const cands = [...new Set((f.kind === 'photo' ? [e?.hex, dominant, ...pal] : [dominant, ...pal, e?.hex]).filter(Boolean))];
+    const vivid = vividOf(cands, K);
+    if (vivid) { stops = [vivid, shiftHue(vivid, 0, -0.08, 0)]; angle = 135; source = f.kind === 'photo' ? 'kv-vivid-photo' : 'kv-vivid'; }   // 화사한 KV 색 + 흰 글자(10-16 오후)
+    else {   // 전부 무채(회색·베이지) — 「안 묻는」 그림. 그때만 옅은 틴트 + 검정 글자
+      const base = cands[0];
+      stops = [mix(base, WHITE, K.tint ?? 0.78), WHITE]; angle = 180; source = 'kv-harmony-tint';
+    }
   }
   else if (style.logoTone === 'light') {
     // 흰색 로고만 있다 — 그림이 지면을 정하지 않는 경우(사진·누끼·그림 없음) 로고가 지면을 정한다: 어두운 브랜드색. 브랜드색이 밝으면 검정을 섞는다

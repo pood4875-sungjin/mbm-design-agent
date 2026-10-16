@@ -82,7 +82,11 @@ export const CANON = {
   // 지면은 비주얼이 우선(10-16 사용자 「배경색은 비주얼에 어울리게 뽑아야 — 비주얼이 우선」): 이음매(kv-edge)·분위기(kv-mood)가 없는 사진·누끼도 브랜드색이 아니라 그림 색에서 —
   //   사진은 글자 쪽 변 색(photoFrom edge), 누끼는 대표색(cutoutFrom dominant). 어두운 지면 매체는 그 색을 흰 글자 4.5:1 까지 어둡힌 같은 색상(brandDeep), 밝은 지면 매체는 옅은 틴트(tint)→흰색.
   //   브랜드색은 포인트(칩·날짜 상자·강조)에만. 채도가 아주 낮은 그림(무채)은 그대로 회색 계열
-  kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78 },
+  //   10-16 오후 사용자 「배경은 기본적으로 화이트 계열 말고 — 규정 없으면 키비주얼 컬러에서 좀 화사하게 따오고 글자는 흰색. 그게 어려운 비주얼이나 안 묻을 때만 밝은 톤」:
+  //   화사하게 = HSL 채도를 sat 이상으로 올리고 명도를 lMin~lMax 로 — 그 뒤 흰 글자 4.5:1 이 될 때까지만 어둡힌다(brandDeep 처럼 탁하게 가라앉히지 않는다).
+  //   후보 색(사진: 글자 쪽 변 → 대표색 → 팔레트 / 누끼: 대표색 → 팔레트 → 변) 중 채도 ≥ minSat 인 첫 색. 전부 무채(회색·베이지)면 「안 묻는」 그림 → 그때만 옅은 틴트 + 검정 글자(tint)
+  //   prefSat: 첫 후보 채도가 이 값 이상이면 그대로, 아니면 후보 중 가장 채도 높은 색(ABL 베이지 → 복숭아, 동부 크림 → 주황, 유리 행성 청회색 → 청록)
+  kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.55, lMin: 0.34, lMax: 0.5 },
   // 누끼는 명확할 때만(10-12 사용자 「명확할 때만 누끼, 웬만하면 배경 분위기도 살려」 desk-37·desk-03) — 바탕 색감(chroma 평균) < chromaMax 이고
   //   그라데이션 세기 < gradMax 이면(흰·연회색·무채 단색) 딴다. 넘으면 원본이 주 KV(scripts/kv-cutout.py --auto, cases.mjs bgpalette 가 같은 수치)
   cutoutAuto: { chromaMax: 0.12, gradMax: 0.15 },
