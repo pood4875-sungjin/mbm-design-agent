@@ -2668,7 +2668,7 @@ async function exportAdZip(withSvg = false) {
       entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
-    for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); } }
+    for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
     if (withSvg) {
@@ -2706,7 +2706,7 @@ function exportAdModal(a) {
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
-  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); }); return; }
+  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); }); return; }
   if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({
