@@ -111,7 +111,7 @@ test('작은 누끼는 원본의 1.5배까지(CANON maxUpscale) — desk-37-cut 
 
 // ── 3·7. 질감 진정 ──
 test('질감 위 글자: 어지러울수록 진한 지면색 스크림(제주항공 > 대한항공), 매끈한 질감(texture-dark)은 없음', () => {
-  const calm = id => { const html = renderAd(ctx, styleOf(id, '#2456D6', { logoTone: 'dark' }), specs['instagram-feed-1080']); /* 10-15 저녁: 구글GDN 은 ABL 틀 — 자유 배치 픽스처는 인스타 */ return Number((shell(html).match(/data-calm="([\d.]+)"/) ?? [])[1] ?? 0); };
+  const calm = id => { const html = renderAd(ctx, styleOf(id, '#2456D6', { logoTone: 'dark' }), specs['instagram-story-1080x1920']); /* 10-15 저녁: 구글GDN 은 ABL 틀 — 자유 배치 픽스처는 인스타 */ /* 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로 */ return Number((shell(html).match(/data-calm="([\d.]+)"/) ?? [])[1] ?? 0); };
   const jeju = calm('desk-23'), kal = calm('desk-02'), smooth = calm('texture-dark');
   assert.ok(kal >= CANON.textureCalm.scrimMin && kal < jeju && jeju <= CANON.textureCalm.scrimMax, `${kal} ${jeju}`);
   assert.equal(smooth, 0);

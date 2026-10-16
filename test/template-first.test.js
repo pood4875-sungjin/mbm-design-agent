@@ -312,26 +312,31 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
 
 test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 결정 10-15 밤 「NAP 기준 무조건 이거로 — 폰트 스타일부터 패딩까지」, 글꼴은 10-16 기본 카카오빅) — Bold 자간 -2% · 띠 320×50 메인 17/23.8 세로 가운데 · 320×100 메인 19/22.8 2줄 + 날짜 알약 24 · 300×250 메인 27/32.4 + 알약 26 + 모집분야 라벨 줄 15/18 · 320×480 가운데 메인 38/45.6 + 알약 + 모집분야 20/27 · PC 970/728 은 공식 템플릿 그대로 · 비즈보드는 틀 없음', () => {
   const h50 = renderAd(ctx, glass, specs['nap-dsp-band-320x50']); const t50 = traceOf(h50);
-  assert.equal(t50.mode, 'templateMold'); assert.deepEqual([t50.mold.rows.main.px, t50.mold.rows.main.pitch, t50.mold.rows.main.weight], [17, 23.8, 700]);
-  assert.ok(t50.rules.includes('templateMold.vCenter') && !t50.rules.includes('templateMold.font'), t50.rules.join(','));   // 10-16: 틀 글꼴 없음 — 폰트 규정 없는 규격은 기본 카카오 빅산스(A2Z 는 샘플 서체일 뿐)
-  assert.ok(Math.abs((t50.mold.rows.main.top + 23.8 / 2) - 25) <= 0.6, `띠 320×50 메인 줄 세로 가운데(줄 상자 중심 25) — top ${t50.mold.rows.main.top}`);
+  // 10-16 저녁 사용자 수정본 135:1211(NAP 4규격): 띠 320×50 로고 왼쪽 위(12,10) + 메인 16/130%(21) y20 · 띠 320×100 로고 (16,15) + 메인 17/120%(20) 2줄 y29.8 + 날짜 10 afterMain 24 · 300×250 메인 27/35 y43.8 + 날짜 12 afterMain 43, 모집분야 줄 없음 · 320×480 메인 34/44 2줄 가운데 + 날짜 14/18 afterMain 62 + 「모집분야」 라벨 Bold + 값 Regular 15/22 afterMain 99 · 키비주얼 칸 고정(kv slot)
+  assert.equal(t50.mode, 'templateMold'); assert.deepEqual([t50.mold.rows.main.px, t50.mold.rows.main.pitch, t50.mold.rows.main.weight, t50.mold.rows.main.y], [16, 21, 700, 20]);
+  assert.ok(!t50.rules.includes('templateMold.vCenter') && !t50.rules.includes('templateMold.font'), t50.rules.join(','));   // 수정본은 로고+메인 덩어리를 자리 고정(세로 가운데 끔) · 틀 글꼴 없음 — 기본 카카오 빅산스
+  assert.match(h50, /data-logo-slot="1" style="position:absolute;left:12px;top:10px;width:41px;height:8px;[^"]*align-items:flex-start;justify-content:flex-start/, '로고 왼쪽 위 (12,10) 41×8');
   assert.doesNotMatch(h50, /font-family:'A2Z'/, '틀 글꼴 강제 없음 — 기본 카카오 빅산스(10-16)');
   assert.match(h50, /data-field="main"[^>]*letter-spacing:-0.02em/, '자간 -2%');
   assert.doesNotMatch(h50, /data-field="date"|data-field="detail"/, '320×50 은 메인만');
+  { const ob = h50.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 236 && +ob[3] === 84 && +ob[4] === 50, '키비주얼 칸 (236,0) 84×50: ' + (ob && ob[0])); }
   const h100 = renderAd(ctx, glass, specs['nap-dsp-band-320x100']); const t100 = traceOf(h100);
-  assert.match(h100, /data-field="main"[^>]*font-size:19px;line-height:22.8px;font-weight:700/);
-  assert.match(h100, /data-field="date"[^>]*font-size:10px;line-height:12px;font-weight:700;[^"]*letter-spacing:-0.02em[^>]*>9\.22/, '날짜 평문 Bold 10 — 10-16 사용자 「NAP 쪽도 라운드 없애 줘」(알약 제거)');
+  assert.match(h100, /data-field="main"[^>]*font-size:17px;line-height:20px;font-weight:700/);
+  assert.match(h100, /data-field="date"[^>]*font-size:10px;line-height:15px;font-weight:700;[^"]*letter-spacing:-0.02em[^>]*>9\.22/, '날짜 평문 Bold 10 — 10-16 사용자 「NAP 쪽도 라운드 없애 줘」(알약 제거)');
   assert.ok(!t100.rules.includes('templateMold.dateChip') && !/data-chip="1"/.test(h100), 'NAP 날짜 알약 없음');
-  const blk = [t100.mold.rows.main.top, t100.mold.rows.date.top + 12]; assert.ok(Math.abs((blk[0] + blk[1]) / 2 - 50) <= 0.6, `메인 + 날짜 덩어리 세로 가운데 — ${blk}`);
+  assert.deepEqual([t100.mold.rows.main.y, t100.mold.rows.date.y], [29.8, 73.8], '로고 아래 메인 2줄 + 날짜(afterMain 24)');
+  assert.match(h100, /data-logo-slot="1" style="position:absolute;left:16px;top:15px;width:45px;height:9px;/, '로고 왼쪽 위 (16,15)');
   const h250 = renderAd(ctx, glass, specs['nap-dsp-full-300x250']); const t250 = traceOf(h250);
-  assert.deepEqual([t250.mold.rows.main.y, t250.mold.rows.main.px, t250.mold.rows.main.pitch, t250.mold.rows.date?.y, t250.mold.rows.detail?.y, t250.mold.rows.detail?.px, t250.mold.rows.detail?.pitch], [44, 27, 32.4, 117.2, 158.2, 15, 18]);
-  assert.match(h250, /<div><b style="font-weight:700">모집분야<\/b><\/div><div>/, '모집분야 라벨 줄 + 값 줄 Bold');
+  assert.deepEqual([t250.mold.rows.main.y, t250.mold.rows.main.px, t250.mold.rows.main.pitch, t250.mold.rows.date?.y, t250.mold.rows.detail], [43.8, 27, 35, 121.8, undefined]);
+  assert.doesNotMatch(h250, /data-field="detail"/, '300×250 수정본: 모집분야 줄 없음');
   assert.match(h250, /data-field="date"[^>]*font-size:12px;[^>]*>9\.22/, '300×250 날짜 평문(알약 제거 10-16)'); assert.doesNotMatch(h250, /data-chip="1"/);
+  { const ob = h250.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 158 && Math.abs(+ob[2] - 161) <= 1 && +ob[3] === 142 && Math.abs(+ob[4] - 89) <= 1, '키비주얼 칸 (158,161) 142×89(블리드 반올림 ±1): ' + (ob && ob[0])); }
   const h480 = renderAd(ctx, glass, specs['nap-dsp-full-320x480']); const t480 = traceOf(h480);
   assert.equal(t480.place.zone.align, 'center');
-  assert.match(h480, /data-field="main"[^>]*font-size:38px;line-height:45.6px;font-weight:700;[^"]*text-align:center/);
-  assert.match(h480, /data-field="detail"[^>]*font-size:20px;line-height:27px;font-weight:700;[^"]*text-align:center/);
-  assert.deepEqual([t480.mold.rows.date?.y, t480.mold.rows.detail?.y], [203.2, 242]);
+  assert.match(h480, /data-field="main"[^>]*font-size:34px;line-height:44px;font-weight:700;[^"]*text-align:center/);
+  assert.match(h480, /data-field="detail"[^>]*font-size:15px;line-height:22px;font-weight:400;[^"]*text-align:center/);
+  assert.match(h480, /<div><b style="font-weight:700">모집분야<\/b><\/div><div>/, '「모집분야」 라벨 줄 Bold + 값 줄 Regular');
+  assert.deepEqual([t480.mold.rows.date?.y, t480.mold.rows.detail?.y], [160.2, 197.2]);
   if (t480.rules.includes('templateMold.accentClient')) assert.match(h480, /<span data-accent="1" style="color:#[0-9A-Fa-f]{6}">마이다스<\/span>/, '회사명 강조색');
   const h970 = renderAd(ctx, glass, specs['nap-dsp-pc-970x90']);
   assert.match(h970, /data-field="main"[^>]*font-size:24px;[^"]*font-weight:700/); assert.match(h970, /data-field="detail"[^>]*style="position:absolute;left:31px;[^"]*font-size:15px/);
@@ -353,12 +358,25 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.match(hb, /data-field="date"[^>]*style="position:absolute;left:0px;/, '날짜 x 78 = 메인과 좌정렬(사용자 수정본 135:942)');
   assert.match(hb, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '상세도 x 78');
   const hp = renderAd(ctx, glass, specs['blind-post-banner']); const tp = traceOf(hp);
-  assert.deepEqual([tp.mold.rows.main.px, tp.mold.rows.main.pitch, tp.mold.rows.main.y, tp.mold.rows.date?.y, tp.mold.rows.detail?.y], [56, 73, 80, 179, 331]);   // 10-16 사용자 수정본 135:961: 패딩 80 · 행간 130% · gap 26 (메인 70 은 규정 32~56 상한 56 으로) · 날짜는 메인 뒤 afterMain 99 — 이 문구는 메인 1줄이라 80+99=179(2줄이면 252)
+  assert.deepEqual([tp.mold.rows.main.px, tp.mold.rows.main.pitch, tp.mold.rows.main.y, tp.mold.rows.date?.y, tp.mold.rows.detail?.y], [56, 73, 80, 252, 331]);   // 10-16 사용자 수정본 135:961: 패딩 80 · 행간 130% · gap 26 (메인 70 은 규정 32~56 상한 56 으로) · 날짜는 메인 뒤 afterMain 99 — 시즌 포함 메인은 회사명 뒤에서 줄을 나눠 2줄 → 80+73+99=252
   assert.match(hp, /data-field="date"[^>]*style="position:absolute;left:0px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이 · x 80 = 메인과 좌정렬(사용자 수정본 135:961)');
   assert.match(hp, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '게시글 상세 x 80');
   assert.match(hp, /data-logo-slot="1" style="position:absolute;left:980px;top:50px;width:220px;height:44px;[^"]*align-items:flex-start;justify-content:flex-end/, '로고 오른쪽 위 (980,50) 220×44');
   { const ob = hp.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 852 && +ob[2] === 281 && +ob[3] === 398 && +ob[4] === 279, '키비주얼 칸 (852,281) 398×279 오른쪽 아래: ' + (ob && ob[0])); }
-  for (const id of ['instagram-feed-1080', 'naver-gfa-native-mo-342x228']) assert.notEqual(traceOf(renderAd(ctx, glass, specs[id])).mode, 'templateMold', id);   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트)
+  assert.notEqual(traceOf(renderAd(ctx, glass, specs['naver-gfa-native-mo-342x228'])).mode, 'templateMold', 'naver-gfa-native-mo-342x228');   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트) · 인스타 1080 도 틀 생김(사용자 수정본, 바로 아래)
+  // 10-16 인스타 피드 1080 틀 — 사용자 수정본 135:1185: 글자 (89,131) 폭 934 가운데 정렬 · 메인 Bold 72 행간 94 2줄 · 날짜 Regular 43(afterMain 108) · 모집직무 값만 Bold 43 · 로고 (835,45) 195×39 오른쪽 위 · 키비주얼 칸 (262,587) 786×493(kv slot)
+  const hi = renderAd(ctx, glass, specs['instagram-feed-1080']); const ti = traceOf(hi);
+  assert.equal(ti.mode, 'templateMold', '인스타 1080 은 10-16 사용자 수정본 틀');
+  assert.deepEqual([ti.mold.rows.main.y, ti.mold.rows.main.px, ti.mold.rows.main.pitch, ti.mold.rows.main.weight, ti.mold.rows.main.x, ti.mold.rows.main.w, ti.mold.rows.main.align], [131, 72, 94, 700, 89, 934, 'center']);
+  assert.deepEqual([ti.mold.rows.date?.y, ti.mold.rows.date?.px, ti.mold.rows.date?.weight, ti.mold.rows.detail?.px, ti.mold.rows.detail?.weight], [333, 43, 400, 43, 700], '날짜 y 333 = 131 + 94 + afterMain 108(메인 2줄) · Regular 43 · 상세 Bold 43');
+  assert.match(hi, /data-field="main"[^>]*font-size:72px;line-height:94px;font-weight:700;[^"]*text-align:center/, '메인 Bold 72/94 가운데');
+  assert.match(hi, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 Regular 43 가운데, 라벨 없이');
+  assert.match(hi, /data-field="detail"[^>]*font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/, '모집직무 Bold 43 가운데');
+  assert.doesNotMatch(detailOf(hi), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
+  assert.match(hi, /data-logo-slot="1" style="position:absolute;left:835px;top:45px;width:195px;height:39px;[^"]*justify-content:flex-end/, '로고 오른쪽 위 (835,45) 195×39');
+  assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 262, y: 587, w: 786, h: 493 });
+  assert.deepEqual(ti.place.tImage, { x: 262, y: 587, w: 786, h: 493 }); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)');
+  { const ob = hi.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 262 && +ob[3] === 786 && +ob[2] + +ob[4] === 1080, '키비주얼 칸 x 262 폭 786 바닥 맞닿음: ' + (ob && ob[0])); }
   const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [68, 50, 62, 700, 144, 43, 400], '카카오 비즈보드 틀 64:3325: 메인 Bold 50 y68 · 서브 Regular 43 y144(17px 띔)'); assert.deepEqual(tk.place.tImage, { x: 663, y: 36, w: 313, h: 185, radius: 10 });
 });
 

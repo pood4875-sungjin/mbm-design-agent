@@ -80,12 +80,12 @@ test('색 퍼짐 ≤ 25인 그림은 평평한 변이 없어도(압축 노이즈
   assert.equal(f.kind, 'texture');
 });
 
-test('질감은 GDN 580×400에서 지면에만 깐다 — 우하단 모서리 상자에 같은 그림을 또 넣지 않는다', () => {
+test('질감은 자유 규격(인스타 스토리 1080×1920)에서 지면에만 깐다 — 우하단 모서리 상자에 같은 그림을 또 넣지 않는다', () => {
   const W = 240, H = 160;
   const rgba = img(W, H, (x, y) => [140 + x * 0.2, 190, 235 - y * 0.1]);
   const meta = { ar: 1.5, px: [1200, 800], field: fieldFromImage(rgba, W, H), colors: ['#9BC0EB'] };
   assert.equal(meta.field.kind, 'texture');
-  const html = renderAd(ctx, styleOf(meta), specs['instagram-feed-1080']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로
+  const html = renderAd(ctx, styleOf(meta), specs['instagram-story-1080x1920']);   // 10-15 저녁: 구글GDN 은 ABL 틀(templateMold) — 자유 배치 픽스처는 다른 매체로   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
   assert.match(html, /data-kv-use="bg"/);
   assert.doesNotMatch(html, /data-object="1"/);
 });

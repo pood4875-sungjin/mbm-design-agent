@@ -301,8 +301,8 @@ test('an object cut-out is used only where the spec needs one; elsewhere the key
   const withObj = renderArtifact('albamon-m-splash', ctx, normalizeStyle({ ...base, object: 'obj.png', objectMeta: { ar: 1, px: [800, 800], field: cutout, colors: ['#1428A0'] } }), {});
   assert.match(withObj, /data-visual="object"/);
   assert.match(withObj, /data-object="1"/, '누끼가 그 자리에 들어간다');
-  // 일반 매체(인스타 피드)는 누끼가 있어도 키비주얼이 배경 — 질감은 통째로
-  const feed = renderArtifact('instagram-feed-1080', ctx, normalizeStyle({ ...base, object: 'obj.png', objectMeta: { ar: 1, px: [800, 800], field: cutout } }), {});
+  // 일반 매체(인스타 스토리)는 누끼가 있어도 키비주얼이 배경 — 질감은 통째로
+  const feed = renderArtifact('instagram-story-1080x1920', ctx, normalizeStyle({ ...base, object: 'obj.png', objectMeta: { ar: 1, px: [800, 800], field: cutout } }), {});   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
   assert.ok(!/data-visual="object"/.test(feed));
   assert.match(feed, /data-field-source="kv-texture"/);
 });
@@ -337,7 +337,7 @@ test('상세 라벨 알약은 기본이 틴트(밝은 지면 검정 7%·어두�
   const { renderAd } = await import('../core/renderers/ad.js');
   const { adSpecEntries } = await import('../core/adspecs.js');
   const { createContext: createContextChip } = await import('../core/context.js');
-  const sq0 = adSpecEntries()['instagram-feed-1080'];   // 가이드 없는 정사각 자유 규격 = 인스타 1080 − guide(합성)
+  const sq0 = adSpecEntries()['instagram-story-1080x1920'];   // 가이드 없는 세로형 자유 규격 = 인스타 스토리 1080×1920 − guide(합성)   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
   const sq = { ...sq0, mediumRules: sq0.mediumRules ? { ...sq0.mediumRules, guide: undefined } : sq0.mediumRules, rules: sq0.rules ? { ...sq0.rules, guide: undefined } : sq0.rules };
   const renderArtifact = (_id, c, st) => renderAd(c, st, sq);
   const E = { hex: '#FFF7D3', flat: true, std: 0 };

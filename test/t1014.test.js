@@ -57,7 +57,7 @@ test('회사 + 긴 채용구분: 채용구분이 한 줄에 안 들어가면 회
   const ctx = createContext({ client: '한샘', hiringType: '리모델링 디자이너 영업직 채용', deadline: '2026-08-09', startDate: '2026-07-27', slogan: '한샘과 함께 성장할 인재를 찾습니다' }, 'recruit');
   // 한샘 사진(꽉 찬 사진 · 아래 띠) — 메인 칸 3줄 상한, 90px 에서 「리모델링 디자이너 영업직 채용」은 한 줄(924px)에 안 들어간다
   const photo = { ar: 1.64, px: [1111, 677], colors: ['#806050'], field: { kind: 'photo', opaque: 1, flatEdges: 1, lum: 0.49, sat: 0.4, edges: { top: { hex: '#A08070' }, left: { hex: '#A08070' }, bottom: { hex: '#E0D8D0' }, right: { hex: '#A08070' } }, focus: null, rows: null, cols: null, room: null, texture: { rough: 0.037, sharp: 0.135, spread: 70 } } };
-  const html = renderAd(ctx, normalizeStyle({ colors: ['#C61E1E'], keyVisual: PNG, kvMeta: photo }), specs['instagram-feed-1080']);
+  const html = renderAd(ctx, normalizeStyle({ colors: ['#C61E1E'], keyVisual: PNG, kvMeta: photo }), specs['instagram-story-1080x1920']);   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로 — 글자 열 폭은 같은 924(1080 − 78×2)
   const main = html.match(/data-field="main"[^>]*>([^]*?)<\/div>/)[1];
   const fs = +html.match(/data-field="main" style="[^"]*font-size:(\d+)px/)[1];
   // 나눴다면 채용구분 줄이 한 줄에 들어가야 한다(아니면 회사 / 채용구분 2줄 / … 로 말줄임)
@@ -107,12 +107,12 @@ test('어두운 지면에서 로고를 흰 단색으로 바꿀 때 심볼은 원
   const lm = { px: [300, 80], solid: 0.4, lum: 0.4, sat: 0.6, tone: 'dark', colors: [{ hex: '#0061B0', share: 0.8 }], emblem: { x1: 0.3 } };
   // 그림이 있어 로고가 모서리 칸(px 높이)에 앉는 경우 — 그림 없는 지면에선 로고가 오브젝트 상자(% 크기)라 한 장 그대로
   const kv = { ar: 1.43, px: [625, 437], colors: ['#1E4FA0'], field: { kind: 'cutout', opaque: 0.3, lum: 0.66, sat: 0.3, semi: 0.02, focus: { x: 0.5, y: 0.5, w: 0.95, h: 0.9, parts: 1, others: [], density: 0.5 }, cols: prof(32), rows: prof(32), topPeaks: 1, edges: {}, room: null } };   // 10-16: 채도 있는 그림 색 → 어두운(화사한) 지면 + 흰 로고 변환. 무채(#CCCCCC)면 밝은 틴트라 변환 자체가 없다
-  const html = renderAd(ctx, normalizeStyle({ colors: ['#0460AF'], keyVisual: PNG, kvMeta: kv, logo: PNG, logoTone: 'dark', logoMeta: lm }), specs['instagram-feed-1080']);
+  const html = renderAd(ctx, normalizeStyle({ colors: ['#0460AF'], keyVisual: PNG, kvMeta: kv, logo: PNG, logoTone: 'dark', logoMeta: lm }), specs['instagram-story-1080x1920']);   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
   assert.match(html, /data-logo-keep="30"/);
   assert.match(html, /data-logo-emblem="1"[^>]*mask-image:linear-gradient\(to right,#000 30%,transparent 30%\)/);
   assert.equal((html.match(/data-logo="1"/g) ?? []).length, 1);
   // 심볼이 없으면 예전처럼 한 장
-  const plain = renderAd(ctx, normalizeStyle({ colors: ['#0460AF'], keyVisual: PNG, kvMeta: kv, logo: PNG, logoTone: 'dark', logoMeta: { ...lm, emblem: null } }), specs['instagram-feed-1080']);
+  const plain = renderAd(ctx, normalizeStyle({ colors: ['#0460AF'], keyVisual: PNG, kvMeta: kv, logo: PNG, logoTone: 'dark', logoMeta: { ...lm, emblem: null } }), specs['instagram-story-1080x1920']);   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
   assert.doesNotMatch(plain, /data-logo-keep/);
 });
 

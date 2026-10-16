@@ -61,7 +61,7 @@ test('NAP DSP 띠·전면 배너: 규정 표에 없는 날짜·상세 줄을 샘
   assert.doesNotMatch(h480.replace(/data-trace="[^"]*"/, ''), /모집직무/, '화면 글자에는 「모집직무」 없음(trace 의 항목 이름은 제외)');
   for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250']) { const html = renderAd(ahnlab, style, specs[id]); assert.match(html, /data-field="date"/, `${id}: 날짜 줄`); assert.doesNotMatch(html, /data-field="date"[^>]*>\s*<span data-chip="1"/, `${id}: 날짜 알약 없음(10-16 라운드 제거)`); }
   assert.doesNotMatch(renderAd(ahnlab, style, specs['nap-dsp-band-320x50']), /data-field="date"|data-field="detail"/, '320×50: 메인 1줄만');
-  assert.equal(px(h480, 'main'), 38, '320×480 메인 = HS화성 샘플 38px');
+  assert.equal(px(h480, 'main'), 34, '320×480 메인 = 사용자 수정본 34px(10-16 저녁, 전 HS화성 38)');
 });
 
 test('블라인드 게시글 배너 4줄 = 메인 2 + 날짜 1 + 모집직무 1(대원제약·HS화성 2/2) — 날짜 줄은 라벨 없이, 상세에 접수기간을 되풀이하지 않는다', () => {
@@ -93,11 +93,17 @@ test('샘플 문구: 마감일·직무가 비어 있으면 자리를 두고 샘�
   assert.doesNotMatch(renderAd(ahnlab, style, specs['blind-post-banner']), /data-sample/);
 });
 
-test('인스타 피드 1080: 메인은 짧은 변의 8.3%(90px, 9/9 중앙값) 2줄 — 회사·채용구분을 「세방그룹 채용」으로 줄이지 않는다', () => {
+test('인스타 피드 1080: 틀(사용자 수정본 10-16) — 메인 Bold 72 행간 94 2줄 가운데(y131) · 날짜 Regular 43 · 모집직무 값만 Bold 43 — 회사·채용구분을 「세방그룹 채용」으로 줄이지 않는다', () => {   // 10-16 전: 자유 배치 메인 90px(짧은 변 8.3%, 샘플 9/9 중앙값) — 사용자 수정본 틀 135:1185 가 생겨 72 Bold 로
   const ctx = createContext({ client: '세방그룹', season: '2023', hiringType: '3월 신입 채용연계형 인턴/경력 모집', startDate: '2023-03-01', deadline: '2023-03-07', role: '물류, 제조, IT 6개 계열사' }, 'recruit');
   const html = renderAd(ctx, style, specs['instagram-feed-1080']);
+  const tr = JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  assert.equal(tr.mode, 'templateMold');
+  assert.deepEqual([tr.mold.rows.main.y, tr.mold.rows.main.px, tr.mold.rows.main.pitch, tr.mold.rows.main.weight, tr.mold.rows.main.align], [131, 72, 94, 700, 'center']);
   assert.match(textOf(html, 'main'), /세방그룹.*모집/);
-  assert.ok(px(html, 'main') >= 80, `메인 ${px(html, 'main')}px`);
+  assert.equal(px(html, 'main'), 72, `메인 ${px(html, 'main')}px`); assert.match(tagOf(html, 'main'), /font-weight:700;[^"]*text-align:center/);
+  assert.equal(px(html, 'date'), 43); assert.match(tagOf(html, 'date'), /font-weight:400/);
+  assert.match(tagOf(html, 'detail'), /font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/);
+  const i = html.indexOf('<div data-field="detail"'); assert.doesNotMatch(html.slice(i, html.indexOf('</div></div></div>', i)), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
 });
 
 // 10-13 매체 규정 전수 검사에서 잡은 두 가지 (history/2026-10-13_규격정리_샘플_전체대조.md)

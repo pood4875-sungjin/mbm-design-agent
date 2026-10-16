@@ -39,8 +39,8 @@ test('weightOf: 어두운 지면 14px 미만은 500 하한, 매체 값엔 하한
   assert.equal(weightOf('없는역할'), 400);
 });
 
-test('렌더: 역할마다 스케일이 붙는다 (가이드 없는 정사각 1080 — 아이브로·메인·상세 라벨/값·칩)', () => {   // 10-15 저녁: 구글 580 은 ABL 틀 → 가이드 없는 정사각 자유 규격이 없어 인스타 1080 에서 guide 만 뺀 합성 규격
-  const sq0 = specs['instagram-feed-1080'];
+test('렌더: 역할마다 스케일이 붙는다 (가이드 없는 세로형 1080×1920 — 아이브로·메인·상세 라벨/값·칩)', () => {   // 10-15 저녁: 구글 580 은 ABL 틀 → 가이드 없는 정사각 자유 규격이 없어 인스타 1080 에서 guide 만 뺀 합성 규격
+  const sq0 = specs['instagram-story-1080x1920'];   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로(guide 만 뺀 합성은 그대로)
   const sq = { ...sq0, mediumRules: sq0.mediumRules ? { ...sq0.mediumRules, guide: undefined } : sq0.mediumRules, rules: sq0.rules ? { ...sq0.rules, guide: undefined } : sq0.rules };
   const html = renderAd(ctx, style, sq);
   assert.equal(fwIn(html, 'main'), W.main);
@@ -76,6 +76,6 @@ test('매체 실측이 이긴다: 자소설 메인 위 서브 700(템플릿 「�
   assert.equal(fwIn(html, 'main'), 700);
   assert.equal(fwIn(html, 'sub'), 700);
   if (html.includes('data-field="detail"')) assert.equal(fwIn(html, 'detail'), 400);
-  // 같은 정사각·세로형이라도 자소설이 아니면 CANON 아이브로 600
-  assert.equal(fwIn(renderAd(ctx, style, specs['instagram-feed-1080']), 'sub'), W.eyebrow);
+  // 같은 세로형이라도 자소설이 아니면 CANON 아이브로 600
+  assert.equal(fwIn(renderAd(ctx, style, specs['instagram-story-1080x1920']), 'sub'), W.eyebrow);   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
 });

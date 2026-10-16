@@ -358,7 +358,7 @@ function renderAdBase(ctx, style, spec) {
     const cands = ladder[role] ?? [];
     if (!cands.length) return { text: '', fits: true };
     const slot = slots[role];
-    let perLine = slot?.maxCharsPerLine ?? null;
+    let perLine = (role === 'main' && mold?.rows?.main?.px != null) ? null : (slot?.maxCharsPerLine ?? null);   /* 틀이 메인 크기·폭을 정했으면 매체 자리표시 글자수(NAP 320×480 「최대 6글자」×3줄)로 줄을 세지 않고 폭으로 센다 — 사용자 수정본(10-16)은 34px 2줄 「신입사원 공개채용」 */
     const fs = statedEarly[role] ?? fsHint;
     // 줄당 글자수 = 매체 값(자소설 메인 6자)과 실제 폭 어림 중 작은 쪽. 폭 어림은 0.9em/자 — 0.98로 재면 "영업∙마케팅"(5.5자)이 두 줄로 세어지고,
     // 매체 값만 믿으면 넓은 글자 칸을 전제한 값(캐치 17자)이 좁은 지면(515×315)에서 넘친다
@@ -392,7 +392,7 @@ function renderAdBase(ctx, style, spec) {
   // 가이드가 상세 슬롯을 둔 매체(구글)는 접수기간이 상세 칩으로 가므로 서브는 시즌·슬로건 그대로(일화 970: 슬로건 → 메인 → 라벨 2개)
   // 규정이 서브·상세 칸을 둘 다 정한 매체(자소설 PC메인배너 1200×280)는 가로형이어도 템플릿 구조 그대로 — 서브 = 시즌, 메인 = 회사 + 채용구분, 상세 = 채용일정·모집직무(현대케피코 샘플 408:37780, 10-12 매체별 규격정리)
   const tplCopy = !!(by.sub && by.detail && rules.fontSizes && ctx.kind === 'recruit');   // 글자 크기까지 템플릿이 정한 매체(자소설)만 — 카카오 비즈보드(메인·서브·부가정보)는 예전 문법
-  if (useRef && L.shape === 'wide' && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain && !tplCopy) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];
+  if (((useRef && L.shape === 'wide') || mold?.seasonMain) && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain && !tplCopy) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];   /* mold.seasonMain: 정사각 틀도 시즌 포함 메인(인스타 1080 수정본 10-16 「2024 ABL생명 / 신입사원 공개채용」) */
   if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.seasonInMain && !reqDate && !tplCopy && !mold) {   // reqDate: 날짜 줄이 따로 있다 — 서브는 슬로건 · 틀(mold)은 서브 = 시즌/슬로건, 날짜는 상세·날짜 줄(캐치 이미지형 1:5765)
     ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
   }
@@ -923,7 +923,7 @@ function renderAdBase(ctx, style, spec) {
   const mainLinesCap = slots.main.lines ?? (useRef ? (guide?.mainLines?.[L.shape] ?? L.mainLines) : (obsLines ? Math.max(2, Math.round(obsLines) + (tall ? 2 : 1)) : null));
   const noticeLines = slots.notice?.lines ?? 2;
   // 메인: 원하는 크기에서 사다리 전부가 안 맞으면(한 낱말이 한 줄보다 긴 300×1050 "신입/경력사원") 문구를 버리기 전에 글자를 한 단계씩 줄여 본다
-  let mainCap = stated.main ?? capMain;
+  let mainCap = (mold?.rows?.main?.px != null ? Math.round(mold.rows.main.px * tScale) : null) ?? stated.main ?? capMain;   /* 틀이 메인 크기를 정했으면 그 크기로 문구를 고른다(NAP 320×480 수정본 34px: 일반 상한 38 로 재면 「신입사원 공개채용」이 접혀 「ABL생명 / 채용」으로 줄었다, 10-16) */
   {
     let info = pickInfo('main', mainW, mainCap, mainLinesCap);
     // 가이드 매체(구글): 사다리 위쪽 문구(시즌+회사+구분 "2026년 비씨월드제약/헬스케어 3차 정기 채용")가 글자를 keepInfo(80%)까지 줄여서 들어가면 그쪽 — 예시는 글자보다 정보를 먼저 지켰다
@@ -1624,6 +1624,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
+    else if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && ctx.core?.season && copy.main.startsWith(`${ctx.core.season} ${ctx.core.client} `)) { const head = `${ctx.core.season} ${ctx.core.client}`; copy.main = `${head}\n${copy.main.slice(head.length + 1)}`; }   /* 시즌 포함 메인도 회사명 뒤에서 줄을 나눈다(인스타 수정본 「2024 ABL생명 / 신입사원 공개채용」, 10-16) */
     // 틀의 메인 줄 수 한도(에브리타임 커뮤니티보드·홈배너 1줄)를 넘기면 사다리에서 들어가는 첫 후보로 바꾼다 — 칸은 max-height 로 잘리므로 「2025 하반기 마이다스 대규모 공개채용」(600px·45px 두 줄)이 반 토막 나지 않게(10-15 검수 표 ✗ 메인 줄 수)
     const rowsOfMain = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * mainPx / Math.max(1, colW))), 0);
     if (MR.main?.lines && rowsOfMain(copy.main) > MR.main.lines) { const alt = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])].find(c => rowsOfMain(c) <= MR.main.lines); if (alt) copy.main = alt; }   // 좁은 칸(구글 300×600 178px)은 좁은 사다리(「한샘 / 채용」)까지 — 반 토막 글자 대신(10-15 밤)
@@ -1685,16 +1686,16 @@ ${tplLogo}${kvWrap(tplObject)}
       const lhOf = d => Math.round(dpx2 * (d.rows > 1 ? (dR.valueLh ?? 1.3) : 1.2) * 10) / 10;
       const colH = dR.labelCol ? rows.reduce((a, d, i) => a + d.rows * lhOf(d) + (i < rows.length - 1 ? gapPx : 0), 0) : 0;
       if (dR.labelCol && rows.length) fired('templateMold.labelCol');
-      const inner = CH
-        ? rows.map(d => `<div>${esc(nb(d.value))}</div>`).join('')
+      const inner = (CH || dR.valuesOnly)   /* valuesOnly: 라벨 없이 값만(인스타 1080 수정본 10-16 — 직무 값 가운데 2줄). 쉼표 항목 안에서는 안 끊는다(「상품/계리/리스크」가 / 에서 갈라지지 않게) */
+        ? rows.map(d => `<div>${dR.valuesOnly ? String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join(', ') : esc(nb(d.value))}</div>`).join('')
         : dR.labelCol
         ? rows.map((d, i) => `<div style="display:flex;align-items:flex-start;line-height:${lhOf(d)}px;${i < rows.length - 1 ? `margin-bottom:${gapPx}px;` : ''}"><b style="flex:0 0 ${colW}px;font-weight:${dLw}">${esc(labelOf(d.label))}</b><span style="flex:1 1 auto;min-width:0${d.label === '접수기간' ? ';white-space:nowrap' : dR.valueW ? `;max-width:${Math.round(dR.valueW * k)}px` : ''}">${esc(nb(d.value))}</span></div>`).join('')
         : rows.map(d => d.inline
         ? `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value))}</div>`
-        : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div>${esc(nb(d.value))}</div>`).join('');
+        : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div${align === 'center' ? ' style="text-wrap:balance;word-break:keep-all;overflow-wrap:normal"' : ''}>${align === 'center' ? String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join(', ') : esc(nb(d.value))}</div>`).join('');   /* 가운데 정렬 틀(NAP 320×480 수정본 10-16)은 값 줄을 쉼표 항목 단위로 고르게 */
       // 「상세 입력 시 하단부터」(M메인 템플릿 1:8625): 쓰는 줄이 적으면 아래 줄부터 채운다 — 블록 y 를 빈 줄만큼 내린다
       const dRow = dR.fillFromBottom ? { ...dR, y: dR.y + Math.max(0, cap - n) * (dR.pitch ?? dR.px * 1.2) } : dR;
-      if (rows.length) put('detail', dRow, dR.labelCol ? Math.min(cap, Math.max(1, Math.ceil(colH / pitchOf(dR)))) : Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:pretty">${inner}</div>`, rows.map(d => d.value).join(' '));
+      if (rows.length) put('detail', dRow, dR.labelCol ? Math.min(cap, Math.max(1, Math.ceil(colH / pitchOf(dR)))) : Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:${dR.valuesOnly ? 'balance' : 'pretty'}${dR.valuesOnly ? ';word-break:keep-all;overflow-wrap:normal' : ''}">${inner}</div>`, rows.map(d => d.value).join(' '));   /* valuesOnly(인스타 가운데 2줄)는 두 줄 길이를 고르게 */
     }
     if (MR.date && mR && (copy.date || ctx.core?.deadline || ctx.kind === 'recruit')) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
       const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);

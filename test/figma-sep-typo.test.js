@@ -121,11 +121,11 @@ test('B3 카카오 3줄 = 메인 1(회사 + 채용구분) + 슬로건 1 + 날짜
   for (const role of ['main', 'sub']) assert.ok(num(tagOf(html, role), 'font-size') >= 48, role);
 });
 
-test('B4 블리드 그림 옆 좁은 상세 열(인스타 1080)에서 날짜가 두 줄로 접히지 않게 상세를 줄인다', () => {
+test('B4 인스타 1080 — 틀(사용자 수정본 10-16): 날짜는 혼자 한 줄 Regular 43 · 모집직무는 라벨 없이 값만 Bold 43 가운데(블리드 옆 좁은 상세 열 줄이기는 틀이 대신한다)', () => {   // 10-16 전: 자유 배치에서 날짜 줄 + 상세 26~34px 인라인(샘플 7/9) — 틀 135:1185 가 생겨 줄 값 고정
   const html = renderAd(ctx, style, specs['instagram-feed-1080']);
   const css = tagOf(html, 'detail');
-  // 10-12 매체별 규격정리: 인스타 샘플 7/9 가 날짜를 혼자 한 줄(43px)에 둔다 — 날짜는 data-field="date" 줄, 상세(모집직무)는 26~34px 인라인
-  assert.match(html, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수)');
-  const fs = num(css, 'font-size');
-  assert.ok(fs >= 26 && fs <= 34, `상세 ${fs}px — 샘플 중앙값 31.5(26~34)`);
+  // 10-12 매체별 규격정리: 인스타 샘플 7/9 가 날짜를 혼자 한 줄(43px)에 둔다 — 수정본 틀도 날짜 줄 43 Regular(afterMain 108)
+  assert.match(html, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수) Regular 43 가운데');
+  assert.equal(num(css, 'font-size'), 43, '상세 43 Bold(틀)'); assert.equal(num(css, 'font-weight'), 700); assert.match(css, /text-align:center/);
+  assert.doesNotMatch(detailOf(html), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
 });
