@@ -74,8 +74,8 @@ test('블라인드 게시글 배너 4줄 = 메인 2 + 날짜 1 + 모집직무 1(
 
 test('네이버 모바일 DA 「광고 문구(메인문구+서브문구) 4줄」도 한 덩어리 규정 — 날짜 + 모집직무 줄이 선다(한국콜마·대원제약·세아제강 3/3)', () => {
   const html = renderAd(hs, style, specs['naver-gfa-mobile-da-1250x560']);   // 10-16 사용자: 한국콜마 64:4793 기준 — 날짜 줄은 「모집 기간 | 날짜」(서브 자리, Medium 31), 모집직무 줄(대원 샘플 1건)
-  assert.match(html, /<b style="flex:0 0 122px;font-weight:700">모집 기간<\/b><span[^>]*>8\.14\(금\) - 8\.27\(목\)</);   // 10-16 오후 107:657: 라벨 열 + 값 열
-  assert.match(html, /<b style="flex:0 0 122px;font-weight:700">모집 직무<\/b><span[^>]*>건축/);
+  assert.match(html, /<b style="flex:0 0 130px;font-weight:700">모집 기간<\/b><span[^>]*>8\.14\(금\) - 8\.27\(목\)</);   // 10-16 오후 107:657: 라벨 열 + 값 열
+  assert.match(html, /<b style="flex:0 0 130px;font-weight:700">모집 직무<\/b><span[^>]*>건축/);
 });
 
 test('잡다 PC 메인 배너: 라벨 칩 + 날짜가 메인 위(5/5), 메인 28px(샘플 5/5 Bold 28)', () => {
