@@ -8428,49 +8428,49 @@ export const MEDIA = [
         },
         "textLimits": [
           {
-            "field": "광고주명",
+            "field": "광고주명 (이미지 밖 텍스트 필드)",
             "maxChars": 14,
             "lines": 1,
             "note": "띄어쓰기·부호·특수문자 모두 1자 카운팅, 따옴표·쌍따옴표 사용 불가",
             "source": "pdf:네이티브 pc.pdf p.3(지면 p.01)·p.9"
           },
           {
-            "field": "메인카피",
+            "field": "메인카피 (이미지 밖 텍스트 필드)",
             "maxChars": 20,
             "lines": 1,
             "note": "",
             "source": "pdf:네이티브 pc.pdf p.3·p.9"
           },
           {
-            "field": "설명문구1 (MO/PC)",
+            "field": "설명문구1 (MO/PC) (이미지 밖 텍스트 필드)",
             "maxChars": 12,
             "lines": 1,
             "note": "주제판 세로타입, 베이직타입·기사 본문하단의 가로 625px 미만 지면에서 노출",
             "source": "pdf:네이티브 pc.pdf p.3·p.10(지면 p.08)·p.12(지면 p.10)"
           },
           {
-            "field": "PC배너형 긴 설명문구1 (PC Only)",
+            "field": "PC배너형 긴 설명문구1 (PC Only) (이미지 밖 텍스트 필드)",
             "maxChars": 28,
             "lines": 1,
             "note": "주제판 가로타입(1·2줄), 베이직타입·기사 본문하단의 가로 625px 이상 지면에서 노출",
             "source": "pdf:네이티브 pc.pdf p.3·p.9(지면 p.07)·p.12"
           },
           {
-            "field": "PC배너형 긴 설명문구2 (PC Only)",
+            "field": "PC배너형 긴 설명문구2 (PC Only) (이미지 밖 텍스트 필드)",
             "maxChars": 28,
             "lines": 1,
             "note": "주제판 가로타입에서 설명문구1과 함께 2줄(줄당 28자, 총 56자)로 노출",
             "source": "pdf:네이티브 pc.pdf p.3·p.9(지면 p.07)"
           },
           {
-            "field": "고지문구",
+            "field": "고지문구 (이미지 밖 텍스트 필드)",
             "maxChars": 45,
             "lines": null,
             "note": "",
             "source": "pdf:네이티브 pc.pdf p.3·p.9"
           },
           {
-            "field": "랜딩버튼",
+            "field": "랜딩버튼 (이미지 밖 텍스트 필드)",
             "maxChars": null,
             "lines": null,
             "note": "7종 중 택1: 지금 구매하기 / 지금 예약하기 / 가입하기 / 문의하기 / 더 알아보기 / 동영상 더보기 / 랜딩버튼 없음. 베이직타입 가로 625px 미만에서는 꺾쇠 형태로 대체",
@@ -8482,7 +8482,8 @@ export const MEDIA = [
           "w": null,
           "h": null,
           "note": "썸네일 안 로고는 선택 — 넣으면 SAFE AREA(20px) 안, 텍스트와 합쳐 20% 미만. 별도 프로필(로고) 이미지는 PDF에 없고 보드 예시로만 존재 → spec 'naver-gfa-native-pc-profile-300' 참고",
-          "source": "pdf:네이티브 pc.pdf p.15 / figma:네이버GFA01(소재 제작 규정/제작가이드&예시) frame 421:6988"
+          "source": "pdf:네이티브 pc.pdf p.15 / figma:네이버GFA01(소재 제작 규정/제작가이드&예시) frame 421:6988",
+          "inImage": false
         },
         "layoutNotes": [
           "보드 메모: 네이티브PC(이미지, 로고만 삽입 가능) (figma text 421:6930) — 썸네일에 텍스트를 넣지 않는다는 뜻으로 보이나 해석 확인필요 (conflicts 참고)",
@@ -8501,6 +8502,8 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6930/6933, frame 421:6979 / pdf:네이티브 pc.pdf p.3~16",
         "confidence": "확정",
         "note": "보드 메모(342x228px / 10~130KB / JP(E)G, PNG)와 PDF 일치",
+        "visualOnly": true,
+        "visualOnlyNote": "썸네일 이미지 = 키비주얼만(보드 31:4268 「배너/비주얼만/로고만」 중 「비주얼만」, 10-16 사용자 「2,3은 키비주얼/로고」). 메인·서브카피·광고주명·고지문구·랜딩버튼은 광고 플랫폼 입력칸(이미지 밖) — 이미지 안에 글자·로고를 그리지 않는다. 로고는 프로필 300×300 별도 파일",
         "frame": "rules",
         "extract": false
       },
@@ -8583,14 +8586,14 @@ export const MEDIA = [
         },
         "textLimits": [
           {
-            "field": "메인카피",
+            "field": "메인카피 (이미지 밖 텍스트 필드)",
             "maxChars": 20,
             "lines": 1,
             "note": "띄어쓰기·부호·특수문자 모두 1자 카운팅, 따옴표·쌍따옴표 제한",
             "source": "pdf:네이티브 모바일.pdf p.4(지면 02)·p.5(지면 03)"
           },
           {
-            "field": "서브카피",
+            "field": "서브카피 (이미지 밖 텍스트 필드)",
             "maxChars": 36,
             "lines": 3,
             "note": "3줄을 각각 입력하는 구조, 줄당 12자 × 3줄 = 총 36자. 띄어쓰기·부호·특수문자 모두 1자 카운팅, 따옴표·쌍따옴표 제한",
@@ -8598,21 +8601,21 @@ export const MEDIA = [
             "source": "pdf:네이티브 모바일.pdf p.4·p.5"
           },
           {
-            "field": "광고주명",
+            "field": "광고주명 (이미지 밖 텍스트 필드)",
             "maxChars": 14,
             "lines": 1,
             "note": "띄어쓰기·부호·특수문자 모두 1자 카운팅, 따옴표·쌍따옴표 제한",
             "source": "pdf:네이티브 모바일.pdf p.4"
           },
           {
-            "field": "고지문구",
+            "field": "고지문구 (이미지 밖 텍스트 필드)",
             "maxChars": 45,
             "lines": null,
             "note": "45자 이내면 고지문구 필드에 심의번호·문구 기재(예: 금융). 45자 초과 시 썸네일 이미지 안에 심의번호·고지문구를 텍스트로 입력(예: 제약) — 이미지 위에서 잘 보이게. 고지문구 등록 시에도 이미지 사이즈 동일",
             "source": "pdf:네이티브 모바일.pdf p.4·p.7~8(지면 05~06)"
           },
           {
-            "field": "랜딩버튼",
+            "field": "랜딩버튼 (이미지 밖 텍스트 필드)",
             "maxChars": null,
             "lines": null,
             "note": "Click to web 8종 중 택1: 더 알아보기 / 지금 예약하기 / 문의하기 / 다운로드 / 지금 구매하기 / 가입하기 / 동영상 더보기 / 랜딩 버튼 없음(제약 업종 사용 가능). Click to download(보장형)는 11종",
@@ -8624,7 +8627,8 @@ export const MEDIA = [
           "w": 300,
           "h": 300,
           "note": "광고주 로고 썸네일(프로필)은 별도 파일로 등록 → spec 'naver-gfa-native-mo-profile-300'",
-          "source": "pdf:네이티브 모바일.pdf p.4(지면 02)"
+          "source": "pdf:네이티브 모바일.pdf p.4(지면 02)",
+          "inImage": false
         },
         "layoutNotes": [
           "구성: 메인카피 + 이미지 썸네일 + 서브카피 + 광고주정보(광고주 썸네일 + 광고주명) + AD Mute + 랜딩버튼 (PDF p.3 지면 01)",
@@ -8643,6 +8647,8 @@ export const MEDIA = [
         "source": "figma:네이버GFA01(소재 제작 규정/제작가이드&예시) text 421:6931/6933, frame 421:6985 / pdf:네이티브 모바일.pdf p.3~10",
         "confidence": "확정",
         "note": "PDF 포맷 표기는 PNG-24, JPG, JPEG. 보드 메모(342x228px / 10~130KB / JP(E)G, PNG)와 일치",
+        "visualOnly": true,
+        "visualOnlyNote": "썸네일 이미지 = 키비주얼만(보드 31:4268 「배너/비주얼만/로고만」 중 「비주얼만」, 10-16 사용자 「2,3은 키비주얼/로고」). 메인·서브카피·광고주명·고지문구·랜딩버튼은 광고 플랫폼 입력칸(이미지 밖) — 이미지 안에 글자·로고를 그리지 않는다. 로고는 프로필 300×300 별도 파일",
         "frame": "rules",
         "extract": true
       },

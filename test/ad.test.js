@@ -319,8 +319,8 @@ test('without a key visual the logo becomes the object (셀트리온·LX·CMTX �
 });
 
 test('a floating logo stays inside the medium safe area and the copy starts below it', () => {
-  // 네이버 네이티브 342×228: 안전영역 상하좌우 20px. 그림이 있어야 로고가 위에 뜬다
-  const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } }, specs['naver-gfa-native-pc-342x228']);
+  // 에브리타임 커뮤니티 네이티브 288×288: 안전영역 상하좌우 20px. 그림이 있어야 로고가 위에 뜬다 (10-16: 네이버 네이티브 342×228 은 「비주얼만」 규격이 되어 로고·글자를 안 그리므로 여기서 뺌)
+  const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } }, specs['everytime-community-native']);
   const m = html.match(/data-logo-slot="1" style="position:absolute;top:(\d+)px;right:(\d+)px;[^"]*height:(\d+)px/);
   assert.ok(m, '로고가 떠 있다');
   const [top, right, lh] = m.slice(1).map(Number);
@@ -334,4 +334,19 @@ test('the text height rule caps every line, not only the headline (네이버 22~
   for (const m of html.matchAll(/data-field="(\w+)" style="font-size:(\d+)px/g)) {
     assert.ok(+m[2] >= 22 && +m[2] <= 52, `${m[1]} ${m[2]}px`);
   }
+});
+
+test('네이버 네이티브 썸네일 342×228 은 비주얼만 — 키비주얼 하나, 글자·로고 없음 (보드 31:4268 「배너/비주얼만/로고만」, 10-16 사용자)', () => {
+  const kv = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.5, px: [600, 400], field: { kind: 'photo', opaque: 1 } } };
+  for (const id of ['naver-gfa-native-mo-342x228', 'naver-gfa-native-pc-342x228']) {
+    const html = renderAd(ctx, kv, specs[id]);
+    assert.match(html, /data-kv-only="1"[^>]*center\/cover/, `${id}: 사진은 칸을 꽉 채운다`);
+    assert.doesNotMatch(html, /data-field="(main|sub|detail|date)"/, `${id}: 글자 없음`);
+    assert.doesNotMatch(html, /data-logo="1"/, `${id}: 로고 없음(프로필 300×300 별도)`);
+  }
+  const cut = renderAd(ctx, { ...kv, kvMeta: { ar: 1.2, px: [600, 500], field: { kind: 'cutout', opaque: 0.2 } } }, specs['naver-gfa-native-mo-342x228']);
+  assert.match(cut, /data-kv-only="1"[^>]*center\/contain/, '누끼는 지면 위 가운데 contain');
+  // 키비주얼이 없으면 로고가 오브젝트로 가운데
+  const noKv = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' }, specs['naver-gfa-native-mo-342x228']);
+  assert.match(noKv, /data-object="logo"/); assert.doesNotMatch(noKv, /data-field="main"/);
 });

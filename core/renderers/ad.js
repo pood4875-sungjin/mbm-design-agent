@@ -777,6 +777,24 @@ function renderAdBase(ctx, style, spec) {
     return `${open('align-items:center;justify-content:center')}${mark}</div>`;
   }
 
+  // 비주얼만 규격(10-16 네이버 네이티브 썸네일 342×228 — 보드 31:4268 「배너/비주얼만/로고만」): 이미지 = 키비주얼 하나. 글자·로고는 광고 플랫폼 입력칸(이미지 밖)이라 안 그린다.
+  //   사진은 칸을 꽉 채우고(cover), 누끼·오브젝트는 브랜드 지면 위에 가운데 contain(높이 78%). 키비주얼이 없으면 로고를 오브젝트로 가운데(기존 「그림 없으면 로고가 오브젝트」 규칙).
+  if (rules.visualOnly || spec.visualOnly) {
+    fired('visualOnly');
+    if (hasKv) {
+      const photo = kvKind === 'photo' || (style.kvMeta?.field?.opaque ?? 1) >= 0.5;
+      const img = photo
+        ? `<div data-object="1" data-kv-only="1" style="position:absolute;inset:0;background:url('${esc(style.keyVisual)}') center/cover no-repeat"></div>`
+        : `<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.1)}px;top:${Math.round(h * 0.11)}px;width:${Math.round(w * 0.8)}px;height:${Math.round(h * 0.78)}px;background:url('${esc(style.keyVisual)}') center/contain no-repeat"></div>`;
+      return `${open('padding:0')}${img}</div>`;
+    }
+    const side = Math.min(innerW, innerH);
+    const mark = style.logo
+      ? `<div data-object="logo" style="display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${Math.round(side * 0.5)}px;width:auto;max-width:${Math.round(innerW * 0.7)}px;object-fit:contain;${logoFilter}"/></div>`
+      : `<div data-field="advertiser" style="font-size:${Math.max(8, Math.floor(side * 0.18))}px;line-height:1.25;font-weight:700;color:${mainFg};text-align:center;white-space:nowrap">${esc(copy.advertiser || copy.main)}</div>`;
+    return `${open('align-items:center;justify-content:center')}${mark}</div>`;
+  }
+
   const objRatio = profNum('objectWidthRatio');
   // 가이드 템플릿의 '이미지 영역' 상자 비율(구글: 580×400 폭 51% · 970 44% · 300×600 높이 32% · 300×1050 30%)이 레퍼런스 값보다 우선
   const gObj = guide?.objectRatio?.[L.shape] ?? null;
