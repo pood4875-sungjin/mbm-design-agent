@@ -4631,15 +4631,7 @@ export const MEDIA = [
                   "lines": 1,
                   "x": 27,
                   "w": 271,
-                  "chip": {
-                    "h": 38,
-                    "w": 271,
-                    "padX": 14,
-                    "align": "left",
-                    "radius": 0,
-                    "bg": "brand",
-                    "color": "#FFFFFF"
-                  }
+                  "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로"
                 }
               },
               "logo": {
@@ -4820,15 +4812,7 @@ export const MEDIA = [
                   "lines": 1,
                   "x": 31,
                   "w": 264,
-                  "chip": {
-                    "h": 33,
-                    "w": 264,
-                    "padX": 12,
-                    "align": "center",
-                    "radius": 0,
-                    "bg": "brand",
-                    "color": "#FFFFFF"
-                  }
+                  "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로"
                 }
               },
               "logo": {
@@ -5012,15 +4996,7 @@ export const MEDIA = [
                   "x": 26,
                   "w": 249,
                   "align": "center",
-                  "chip": {
-                    "h": 38,
-                    "w": 249,
-                    "padX": 12,
-                    "align": "center",
-                    "radius": 0,
-                    "bg": "brand",
-                    "color": "#FFFFFF"
-                  }
+                  "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로"
                 }
               },
               "logo": {
@@ -8983,14 +8959,16 @@ export const MEDIA = [
                   "y": 79,
                   "px": 45,
                   "lines": 1,
-                  "note": "굵기 없음 — 템플릿·DN Bold 700 vs 대원·9월 공채 1151:4743 ExtraBold 800 → 기존 가이드(800)"
+                  "note": "굵기 없음 — 템플릿·DN Bold 700 vs 대원·9월 공채 1151:4743 ExtraBold 800 → 기존 가이드(800)",
+                  "weight": 700
                 },
                 "date": {
                   "y": 144,
                   "px": 35,
                   "lines": 1,
                   "note": "둘째 줄 35(규정 2줄형). 템플릿은 날짜 「0.00(월)-0.00(월)」, DN 은 시즌+채용 35 Bold + 셋째 줄 날짜 25 — 굵기 없음(600/700/400 갈림)",
-                  "labelWeightNote": "라벨 굵기 원칙(사용자 10-15 저녁): 매체마다 디자이너 샘플 세그먼트 실측이 기준(자소설 Bold · 리멤버 Regular). 커뮤니티보드 샘플에 라벨 없음 — 날짜만(DN 1:819 25 SemiBold · 대원 1:865 둘째 줄 35 Regular)"
+                  "labelWeightNote": "라벨 굵기 원칙(사용자 10-15 저녁): 매체마다 디자이너 샘플 세그먼트 실측이 기준(자소설 Bold · 리멤버 Regular). 커뮤니티보드 샘플에 라벨 없음 — 날짜만(DN 1:819 25 SemiBold · 대원 1:865 둘째 줄 35 Regular)",
+                  "weight": 600
                 }
               },
               "image": {
@@ -9001,7 +8979,8 @@ export const MEDIA = [
                 "note": "템플릿 오브젝트 칸(DN 675~982 · 대원 695~943 안)"
               },
               "colorNote": "mold.color 없음 — 템플릿 #555 · DN 브랜드 · 대원 검정 → 바탕 밝기로(투명 배경 규격)",
-              "docSection": "①"
+              "docSection": "①",
+              "weightNote": "10-16 샘플 실측: 템플릿 메인 Pretendard Bold 45 · 날짜 SemiBold 35, DN솔루션즈 Bold 47/35 · SemiBold 25 → 메인 700 · 날짜 600(전엔 가이드 800/500)"
             }
           }
         },
@@ -9173,25 +9152,29 @@ export const MEDIA = [
             "field": "제목 (이미지 밖 텍스트 필드)",
             "maxChars": 15,
             "lines": 1,
-            "note": "띄어쓰기 포함 15자 이내"
+            "note": "띄어쓰기 포함 15자 이내",
+            "inImage": false
           },
           {
             "field": "설명 (이미지 밖 텍스트 필드)",
             "maxChars": 40,
             "lines": 2,
-            "note": "띄어쓰기 포함 최소 20자~최대 40자. 줄바꿈 적용 시 한 줄 20자 × 2줄"
+            "note": "띄어쓰기 포함 최소 20자~최대 40자. 줄바꿈 적용 시 한 줄 20자 × 2줄",
+            "inImage": false
           },
           {
             "field": "광고주명 (이미지 밖 텍스트 필드)",
             "maxChars": 10,
             "lines": 1,
-            "note": "상호/법인명만, 일반 문구 불가"
+            "note": "상호/법인명만, 일반 문구 불가",
+            "inImage": false
           },
           {
             "field": "심의필/고지 문구",
             "maxChars": null,
             "lines": null,
-            "note": "필수 기입 업종(의료·의약·영상물·게임·주류·보험/은행/증권 등)만"
+            "note": "필수 기입 업종(의료·의약·영상물·게임·주류·보험/은행/증권 등)만",
+            "inImage": false
           }
         ],
         "logo": {
@@ -9210,6 +9193,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7191, 421:7199, frame 421:7455 (288×288) / pdf:에브리타임 소재제작가이드_26년7월.pdf p.21~24",
         "confidence": "확정",
         "note": "zip에 커뮤니티 네이티브 PSD 없음. 보드 템플릿 프레임만 있고 고객사 제작 사례 없음",
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 검토: 템플릿 288 프레임은 빈 이미지 칸, 글자(제목·설명·광고주명·뱃지)는 전부 이미지 밖 입력란 → 이미지는 키비주얼만(네이버 썸네일과 같은 그리기)",
         "frame": "rules",
         "extract": true
       },
@@ -9240,13 +9225,14 @@ export const MEDIA = [
               "colorDark": "#FFFFFF",
               "docRef": "docs/everytime-mold.md",
               "x": 31,
-              "w": 344,
+              "w": 369,
               "rows": {
                 "main": {
                   "y": 45,
                   "px": 30,
                   "weight": 700,
-                  "lines": 1
+                  "lines": 1,
+                  "w": 369
                 },
                 "detail": {
                   "y": 94,
@@ -9260,7 +9246,8 @@ export const MEDIA = [
                   ],
                   "labelSep": ":",
                   "note": "케이뱅크 「모집기간: 10/27(월) 17시까지」",
-                  "labelWeightNote": "라벨 굵기 원칙(사용자 10-15 저녁): 매체마다 디자이너 샘플 세그먼트 실측이 기준(자소설 Bold · 리멤버 Regular). 케이뱅크 1:1309 「모집기간: 10/27(월) 17시까지」 1구간 Medium 30 · 맥도날드 1:1295 「서류접수 : 9/1(월)~14(일)」 1구간 Medium 25 → 라벨 = 값 = 500"
+                  "labelWeightNote": "라벨 굵기 원칙(사용자 10-15 저녁): 매체마다 디자이너 샘플 세그먼트 실측이 기준(자소설 Bold · 리멤버 Regular). 케이뱅크 1:1309 「모집기간: 10/27(월) 17시까지」 1구간 Medium 30 · 맥도날드 1:1295 「서류접수 : 9/1(월)~14(일)」 1구간 Medium 25 → 라벨 = 값 = 500",
+                  "w": 369
                 }
               },
               "labels": {
@@ -9274,7 +9261,8 @@ export const MEDIA = [
                 "note": "템플릿 오브젝트 칸(400,-13 220×223 을 지면에 자름). 케이뱅크 오브젝트 409~518 안"
               },
               "colorNote": "mold.color 없음 — 템플릿 #555 · 샘플 흰(어두운 바탕 2/2) → 바탕 밝기로",
-              "docSection": "②"
+              "docSection": "②",
+              "widthNote": "10-16: 템플릿 글자 상자 26~375(349) → 글자 칸 x31 w369(그림 칸 400 앞까지). 344 로는 「마이다스 대규모 공개채용」이 회사명을 떨궜다"
             }
           }
         },
@@ -9508,17 +9496,30 @@ export const MEDIA = [
                   "lines": 2
                 },
                 "detail": {
-                  "y": 253,
+                  "y": 309,
                   "px": 23,
-                  "pitch": 56,
-                  "lines": 2,
-                  "labelRow": true,
+                  "pitch": 30,
+                  "lines": 1,
+                  "labelRow": false,
                   "labelWeight": 800,
                   "items": [
                     "모집직무"
                   ],
-                  "note": "「모집분야」 칩 줄 + 값 줄(코엑스 「전시/컨벤션ㅣ베뉴마케팅ㅣDX」). 값 굵기 없음(자리표시 Regular·최종 Bold)",
-                  "labelWeightNote": "라벨 굵기 원칙(사용자 10-15 저녁): 매체마다 디자이너 샘플 세그먼트 실측이 기준(자소설 Bold · 리멤버 Regular). 코엑스 최종 1:884 「모집분야」 칩 22 ExtraBold(NanumSquare Neo) + 값 「전시/컨벤션ㅣ베뉴마케팅ㅣDX」 23 Bold → 라벨 800. 값 굵기는 자리표시 1:802 Regular vs 최종 Bold 가 갈려 틀에 안 둠"
+                  "note": "코엑스 최종 67:910: 「모집분야」 알약(50,253 118×39 r19, ExtraBold 22) + 값 Bold 23 y309 1줄 · 템플릿 67:828 상세 자리 y309/253 동일",
+                  "labelWeightNote": "라벨 굵기 원칙(사용자 10-15 저녁): 매체마다 디자이너 샘플 세그먼트 실측이 기준(자소설 Bold · 리멤버 Regular). 코엑스 최종 1:884 「모집분야」 칩 22 ExtraBold(NanumSquare Neo) + 값 「전시/컨벤션ㅣ베뉴마케팅ㅣDX」 23 Bold → 라벨 800. 값 굵기는 자리표시 1:802 Regular vs 최종 Bold 가 갈려 틀에 안 둠",
+                  "weight": 700,
+                  "chip": {
+                    "text": "모집분야",
+                    "x": 50,
+                    "y": 253,
+                    "w": 118,
+                    "h": 39,
+                    "px": 22,
+                    "weight": 800,
+                    "color": "brand",
+                    "bg": "#FFFFFF",
+                    "radius": 19
+                  }
                 }
               },
               "logo": {
@@ -9538,7 +9539,12 @@ export const MEDIA = [
                 "note": "오브젝트 칸(우하단)"
               },
               "colorNote": "mold.color 없음 — 자리표시 #555 · 최종 흰(어두운 그라데이션 바탕) → 바탕 밝기로",
-              "docSection": "③"
+              "docSection": "③",
+              "labels": {
+                "role": "모집분야"
+              },
+              "kv": "slot",
+              "kvNote": "10-16: 오브젝트 칸 (329,228) 401×258 고정(템플릿·코엑스 최종 동일) — 자유 배치면 오른쪽 165px 열로 쪼그라들었다"
             }
           }
         },
@@ -9687,19 +9693,22 @@ export const MEDIA = [
             "field": "카드 제목 (이미지 밖 텍스트 필드)",
             "maxChars": 18,
             "lines": 2,
-            "note": "줄바꿈 적용 시 한 줄 9자 × 2줄(한 줄씩 두 줄 전달 필수), 미적용 시 18자. 주최사 이름은 뱃지에 나오므로 제목에 중복 기입 비권장"
+            "note": "줄바꿈 적용 시 한 줄 9자 × 2줄(한 줄씩 두 줄 전달 필수), 미적용 시 18자. 주최사 이름은 뱃지에 나오므로 제목에 중복 기입 비권장",
+            "inImage": false
           },
           {
             "field": "뱃지 내용 — 공모전·대외활동",
             "maxChars": 8,
             "lines": 1,
-            "note": "주최사 이름 필수, 띄어쓰기 포함 8자. 노출: '광고·주최사 이름'"
+            "note": "주최사 이름 필수, 띄어쓰기 포함 8자. 노출: '광고·주최사 이름'",
+            "inImage": false
           },
           {
             "field": "뱃지 내용 — 채용 정보",
             "maxChars": null,
             "lines": 1,
-            "note": "채용 종료 시점, 실제 일정과 동일 필수 (예: ~12/15). 노출: '광고 · ~12/15'"
+            "note": "채용 종료 시점, 실제 일정과 동일 필수 (예: ~12/15). 노출: '광고 · ~12/15'",
+            "inImage": false
           }
         ],
         "logo": {
@@ -9717,6 +9726,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7202, frame 421:7458 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.37~39 / psd:에브리타임/04_공모전,대외활동,채용정보/공모전,대외활동,채용정보_카드이미지.psd (288×288)",
         "confidence": "확정",
         "note": "보드에 고객사 제작 사례 없음(템플릿 프레임만)",
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 검토: 템플릿 288 프레임은 빈 이미지 칸, 글자(제목·설명·광고주명·뱃지)는 전부 이미지 밖 입력란 → 이미지는 키비주얼만(네이버 썸네일과 같은 그리기)",
         "frame": "rules",
         "extract": true
       },
@@ -9745,25 +9756,29 @@ export const MEDIA = [
             "field": "제목 (이미지 밖 텍스트 필드)",
             "maxChars": 15,
             "lines": 1,
-            "note": "한글 또는 영문만, 띄어쓰기 포함 15자. 수식어와 광고주/사이트명 사이 띄어쓰기 필수(미적용 시 띄어쓰기 보정 후 15자 이내여야 함)"
+            "note": "한글 또는 영문만, 띄어쓰기 포함 15자. 수식어와 광고주/사이트명 사이 띄어쓰기 필수(미적용 시 띄어쓰기 보정 후 15자 이내여야 함)",
+            "inImage": false
           },
           {
             "field": "설명 (이미지 밖 텍스트 필드)",
             "maxChars": 40,
             "lines": 2,
-            "note": "띄어쓰기 포함 최소 20자~최대 40자, 줄바꿈 시 한 줄 20자 × 2줄"
+            "note": "띄어쓰기 포함 최소 20자~최대 40자, 줄바꿈 시 한 줄 20자 × 2줄",
+            "inImage": false
           },
           {
             "field": "표시 URL",
             "maxChars": null,
             "lines": 1,
-            "note": "사이트 전 페이지에서 공통 확인되는 대표 URL, 앱 설치 광고도 웹사이트 URL"
+            "note": "사이트 전 페이지에서 공통 확인되는 대표 URL, 앱 설치 광고도 웹사이트 URL",
+            "inImage": false
           },
           {
             "field": "심의필/고지 문구",
             "maxChars": null,
             "lines": null,
-            "note": "필수 업종만"
+            "note": "필수 업종만",
+            "inImage": false
           }
         ],
         "logo": {
@@ -9782,6 +9797,8 @@ export const MEDIA = [
         "source": "figma:에브리타임01(소재 제작 규정/제작가이드&예시) text 421:7195, 421:7203, frame 421:7566 / pdf:에브리타임 소재제작가이드_26년7월.pdf p.45~48 / psd:에브리타임/05_검색키워드/검색키워드_썸네일이미지.psd (288×288)",
         "confidence": "확정",
         "note": "보드에 고객사 제작 사례 없음",
+        "visualOnly": true,
+        "visualOnlyNote": "10-16 검토: 템플릿 288 프레임은 빈 이미지 칸, 글자(제목·설명·광고주명·뱃지)는 전부 이미지 밖 입력란 → 이미지는 키비주얼만(네이버 썸네일과 같은 그리기)",
         "frame": "rules",
         "extract": true
       },

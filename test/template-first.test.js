@@ -239,16 +239,17 @@ test('잡다 MO 343×160 틀 — 템플릿 1:6071 + 샘플 7: 메인 20/700 (20,
 test('에브리타임 틀 — 커뮤니티보드 1:771(메인 45 y79 · 날짜 35 y144, 굵기는 틀 없음 → 가이드 800 · 오브젝트 칸 320×258@658,0) · 홈배너 1:785(메인 30/700 y45 · 「모집기간: 값」 30/500 y94 짧은 날짜로 1줄 · 칸 220×200@400,0) · 홈카드 1:802(서브 31/700 y42 · 메인 52/800 y98 간격 68 · 「모집직무」 줄 + 값 줄 y253 · 로고 우상단 칸 · 오브젝트 401×258@329,228)', () => {
   const cb = renderAd(ctx, flat, specs['everytime-community-board']); const t1 = traceOf(cb), R1 = t1.mold.rows;
   assert.equal(t1.mode, 'templateMold');
-  assert.deepEqual([R1.main.y, R1.main.px, R1.main.weight, R1.date.y, R1.date.px], [79, 45, 800, 144, 35]);
-  assert.equal(specOf('everytime-community-board').safeArea.measuredFromTemplate.mold.rows.main.weight, undefined, '굵기는 틀에 없다(샘플 갈림)');
+  assert.deepEqual([R1.main.y, R1.main.px, R1.main.weight, R1.date.y, R1.date.px, R1.date.weight], [79, 45, 700, 144, 35, 600]);   // 10-16 샘플 실측: 템플릿 Bold 45 · SemiBold 35, DN Bold/SemiBold
   assert.match(cb, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</);
   const hb = renderAd(ctx, flat, specs['everytime-home-banner']); const t2 = traceOf(hb), R2 = t2.mold.rows;
   assert.deepEqual([R2.main.y, R2.main.px, R2.main.weight, R2.detail.y, R2.detail.px, R2.detail.weight, R2.detail.lines], [45, 30, 700, 94, 30, 500, 1]);
-  assert.match(hb, /<b style="font-weight:500">모집기간:<\/b> ~10\.12\(일\)/, '1줄 칸(344px)에 전체 기간이 안 들어가 짧은 날짜');
+  assert.match(hb, /<b style="font-weight:500">모집기간:<\/b> (~10\.12\(일\)|9\.22\(월\) - 10\.12\(일\))/, '1줄 칸(369px, 10-16 템플릿 글자 상자 폭)에 들어가는 날짜');
   assert.match(hb, /data-object="1" style="position:absolute;left:\d+px;top:0px;width:\d+px;height:200px;/);
   const hc = renderAd(ctx, flat, specs['everytime-home-card-image']); const t3 = traceOf(hc), R3 = t3.mold.rows;
-  assert.deepEqual([R3.sub.y, R3.sub.px, R3.main.y, R3.main.px, R3.main.pitch, R3.main.weight, R3.detail.y, R3.detail.px, R3.detail.pitch], [42, 31, 98, 52, 68, 800, 253, 23, 56]);
-  assert.match(hc, /<b style="font-weight:800">모집직무<\/b><\/div><div>자유직무/);
+  assert.deepEqual([R3.sub.y, R3.sub.px, R3.main.y, R3.main.px, R3.main.pitch, R3.main.weight, R3.detail.y, R3.detail.px, R3.detail.pitch], [42, 31, 98, 52, 68, 800, 309, 23, 30]);   // 10-16 코엑스 최종 67:910: 「모집분야」 알약(50,253 118×39) + 값 Bold 23 y309
+  assert.match(hc, /data-field="chip" data-chip="1" style="position:absolute;left:0px;top:[\d.]+px;width:118px;height:39px;[^"]*border-radius:19px/, '모집분야 알약');
+  assert.match(hc, /data-field="detail"[^>]*font-size:23px;line-height:30px;font-weight:700;[^>]*><div style="text-wrap:pretty"><div>자유직무/, '값 Bold 23, 라벨 없이');
+  assert.ok(t3.rules.includes('templateMold.chipLabel') && !t3.rules.includes('templateMold.freeKv'), t3.rules.join(','));
   assert.match(hc, /data-logo-slot="1" style="position:absolute;left:530px;top:30px;width:160px;height:40px;[^"]*justify-content:flex-end/);
   const ob = hc.match(/data-object="1"(?: data-bleed="1")? style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);   // 10-15 밤: 모서리 칸 누끼는 블리드(data-bleed) 허용 — 칸의 왼쪽·위 경계만 지킨다
   assert.ok(ob && +ob[1] >= 329 && +ob[1] + +ob[3] <= 730 && +ob[2] + +ob[4] <= 486, '누끼는 글자 상자를 피한 칸(오른쪽 열·모서리, 10-15 밤 자유 배치) 안: ' + (ob && ob[0]));
@@ -288,15 +289,15 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
   const h580 = renderAd(ctx, glass, specs['google-gdn-580x400']); const t580 = traceOf(h580);
   assert.equal(t580.mode, 'templateMold');
   assert.deepEqual([t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.main.lines, t580.mold.rows.date.y, t580.mold.rows.date.px, t580.mold.rows.sub, t580.mold.rows.tags], [98, 43, 53.3, 700, 2, 213, 22, undefined, undefined]);
-  assert.ok(t580.rules.includes('templateMold.font') && t580.rules.includes('templateMold.dateChip') && !t580.rules.includes('templateMold.freeKv') && !t580.rules.includes('templateMold.logoBox'), t580.rules.join(','));
+  assert.ok(t580.rules.includes('templateMold.font') && !t580.rules.includes('templateMold.dateChip') && !t580.rules.includes('templateMold.freeKv') && !t580.rules.includes('templateMold.logoBox'), t580.rules.join(','));   // 10-16 사용자 「뱃지 스타일 빼고」 — 날짜 상자 없음
   assert.match(h580, /font-family:'Kakao Big Sans'/);
-  assert.match(h580, /<span data-chip="1" style="display:inline-flex;align-items:center;width:271px;justify-content:flex-start;box-sizing:border-box;height:38px;padding:0 14px;border-radius:0px;/, '날짜 상자 (27,213) 271×38 왼쪽 안쪽 14');
+  assert.match(h580, /data-field="date"[^>]*font-size:22px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 평문 22(상자 없음)');
   assert.match(h580, /data-logo-slot="1" style="position:absolute;left:406px;top:24px;width:148px;height:27px;[^"]*justify-content:flex-end/, 'CI (406,24) 148×27 우상단');
   assert.deepEqual(t580.place.tImage, { x: 309, y: 192, w: 245, h: 163 }, '그림 칸 고정');
   assert.doesNotMatch(h580, /data-band="1"/); assert.doesNotMatch(h580, /data-field="(sub|tags)"/);
   const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']); const t970 = traceOf(h970);
   assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.date.y, t970.mold.rows.date.px], [39, 2, 155, 21]);
-  assert.match(h970, /<span data-chip="1" style="display:inline-flex;align-items:center;width:264px;justify-content:center;/, '970 날짜 상자 264×33 가운데');
+  assert.doesNotMatch(h970, /data-field="date"[^>]*>\s*<span data-chip/, '970 날짜 상자 없음');
   assert.match(h970, /data-logo-slot="1" style="position:absolute;left:848px;top:17px;width:103px;height:19px/);
   const h300 = renderAd(ctx, glass, specs['google-gdn-300x600']); const t300 = traceOf(h300);
   assert.equal(t300.place.zone.align, 'center');
