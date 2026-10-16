@@ -151,10 +151,10 @@ test('every shape is left-aligned like the references; the logo floats top-right
   const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } };
   const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);   // 10-16: 구글 300 세로형은 템플릿 64:1090 틀 — 가운데 정렬, 로고 우측 칸 (188,20) 누끼 그대로
   assert.match(tallHtml, /data-field="main"[^>]*text-align:center/);
-  assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;left:79px;top:35px;width:141px;height:26px/, '세로형 로고 = 비씨월드 CI 자리 (79,35) 가운데(10-16)');
+  assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;left:194px;top:19px;width:91px;height:18px/   /* 10-16 저녁 사용자 수정본 135:1353: 300×600 로고 오른쪽 위(전 가운데 79,35) */, '세로형 로고 = 비씨월드 CI 자리 (79,35) 가운데(10-16)');
   assert.match(tallHtml, /data-field="main"[^>]*>[\s\S]{0,200}?정규직 채용/, '메인에 채용구분'); assert.doesNotMatch(tallHtml, /data-field="main"[^>]*>[^<]*(<br\/>[^<]*){4}/, '메인 ≤4줄(비씨)');
   const tower = renderAd(ctx, withLogo, specs['google-gdn-300x1050']);
-  assert.match(tower, /data-logo-slot="1" style="position:absolute;left:212px;top:38px/, '세로 띠 로고 = 우측 작은 칸(ABL logo2 자리), 흰 상자 없음(10-16)');
+  assert.match(tower, /data-logo-slot="1" style="position:absolute;left:104px;top:35px;width:91px;height:18px/   /* 10-16 저녁 수정본 135:1375: 1050 로고 가운데 위 */, '세로 띠 로고 = 우측 작은 칸(ABL logo2 자리), 흰 상자 없음(10-16)');
   // 세로 띠도 구글은 회사가 메인에 남는다(일화 "㈜일화 / 신입/경력 / 사원 모집")
   assert.match(tower, /data-field="main"[^>]*>(2026 하반기(<br\/>| ))?한진정보통신/);
   const wideHtml = renderAd(ctx, withLogo, specs['remember-main-top-pc']);
@@ -162,7 +162,7 @@ test('every shape is left-aligned like the references; the logo floats top-right
   assert.doesNotMatch(wideHtml, /data-logo/, '가로형 레퍼런스(리멤버)에는 로고가 없다 — 매체가 요구할 때만');
   // 구글 GDN은 규정이 없는 대신 보드 가이드가 로고 자리를 정한다 — 가로형에도 우상단(970 예시 7/7, 템플릿 로고 상자 118×31)
   const gdnWide = renderAd(ctx, withLogo, specs['google-gdn-970x250']);
-  assert.match(gdnWide, /data-logo-slot="1" style="position:absolute;left:848px;top:17px;width:103px;height:19px/, '구글 가로형 로고 = 비씨월드 CI 자리 (848,17)');
+  assert.match(gdnWide, /data-logo-slot="1" style="position:absolute;left:855px;top:17px;width:96px;height:19px/   /* 10-16 저녁 수정본 135:1333 */, '구글 가로형 로고 = 비씨월드 CI 자리 (848,17)');
 });
 
 test('wide formats follow the references: company and job on two lines where the medium gives two main rows', () => {

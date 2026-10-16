@@ -347,7 +347,10 @@ function renderAdBase(ctx, style, spec) {
     const cl = String(ctx.core.client);
     for (const k0 of ['main', 'mainNarrow']) {
       const two = (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(cl + ' ') && String(c).length > cl.length + 1).map(c => `${cl}\n${String(c).slice(cl.length + 1)}`);
-      if (two.length) ladder[k0] = [...two, ...(ladder[k0] ?? [])];
+      /* mold.seasonMain(인스타 1080·구글 300×1050 수정본 10-16): 「시즌 회사명 / 채용구분」 두 줄을 회사명 두 줄보다 먼저 — 구글 가이드(seasonInMain) 사다리의 「회사명 시즌 채용구분」이 「ABL생명 / 2024 신입사원 공개채용」 3줄로 접히던 것 */
+      const sn = ctx.core?.season ? String(ctx.core.season) : null; const head = sn ? `${sn} ${cl}` : null;
+      const seasonTwo = (mold.seasonMain && head) ? (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(head + ' ') && String(c).length > head.length + 1).map(c => `${head}\n${String(c).slice(head.length + 1)}`) : [];
+      if (two.length || seasonTwo.length) ladder[k0] = [...seasonTwo, ...two, ...(ladder[k0] ?? [])];
     }
   }
   // 매체가 밝힌 글자 크기 띠(블라인드 게시글 textLimits fontSizeRange 32~56 — 이미지 안 글자 전부)

@@ -288,22 +288,29 @@ test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain
 
 test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, 사용자 10-16 「이거대로」) — 메인 Bold 브랜드색 2줄(300 은 4줄 가운데) · 날짜 고정 폭 브랜드색 상자 · CI 우상단(300 가운데) 누끼 · 그림 칸 고정 · 서브·태그·띠 없음 · 글꼴 카카오', () => {
   const h580 = renderAd(ctx, glass, specs['google-gdn-580x400']); const t580 = traceOf(h580);
+  // 10-16 저녁 사용자 수정본 135:1311(구글 4규격): 580/970 글자 프레임 폭 317 메인 43/53.3 2줄 + 날짜 22 afterMain 66 · 300×600 가운데 메인 32/42 2줄 + 날짜 22 afterMain 52, 로고 오른쪽 위 · 300×1050 로고 가운데 위, 메인 32/42 3줄, 날짜 afterMain 72, 「모집분야」 라벨 줄 + 값 Regular 20/30, 서브·알약 없음 · 키비주얼 칸 4종 고정
   assert.equal(t580.mode, 'templateMold');
-  assert.deepEqual([t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.main.lines, t580.mold.rows.date.y, t580.mold.rows.date.px, t580.mold.rows.sub, t580.mold.rows.tags], [98, 43, 53.3, 700, 2, 213, 22, undefined, undefined]);
-  assert.ok(t580.rules.includes('templateMold.font') && !t580.rules.includes('templateMold.dateChip') && !t580.rules.includes('templateMold.freeKv') && !t580.rules.includes('templateMold.logoBox'), t580.rules.join(','));   // 10-16 사용자 「뱃지 스타일 빼고」 — 날짜 상자 없음
+  assert.deepEqual([t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.main.lines, t580.mold.rows.date.px, t580.mold.rows.sub, t580.mold.rows.tags], [104.5, 43, 53.3, 700, 2, 22, undefined, undefined]);
+  assert.ok(t580.rules.includes('templateMold.font') && !t580.rules.includes('templateMold.dateChip') && !t580.rules.includes('templateMold.freeKv') && !t580.rules.includes('templateMold.logoBox'), t580.rules.join(','));
   assert.match(h580, /font-family:'Kakao Big Sans'/);
   assert.match(h580, /data-field="date"[^>]*font-size:22px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 평문 22(상자 없음)');
-  assert.match(h580, /data-logo-slot="1" style="position:absolute;left:406px;top:24px;width:148px;height:27px;[^"]*justify-content:flex-end/, 'CI (406,24) 148×27 우상단');
-  assert.deepEqual(t580.place.tImage, { x: 309, y: 192, w: 245, h: 163 }, '그림 칸 고정');
+  assert.match(h580, /data-logo-slot="1" style="position:absolute;left:427px;top:24px;width:127px;height:25px;[^"]*justify-content:flex-end/, 'CI (427,24) 127×25 우상단');
+  { const ti = t580.place.tImage; assert.ok(ti && Math.abs(ti.x - 297) <= 2 && ti.y === 229 && Math.abs(ti.w - 283) <= 2 && ti.y + ti.h <= 400 && ti.x + ti.w >= 578, '그림 칸 (297,229) 283×178 오른쪽 아래(누끼 비율 맞춤 ±): ' + JSON.stringify(ti)); }
   assert.doesNotMatch(h580, /data-band="1"/); assert.doesNotMatch(h580, /data-field="(sub|tags)"/);
   const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']); const t970 = traceOf(h970);
-  assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.date.y, t970.mold.rows.date.px], [39, 2, 155, 21]);
+  assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.main.y, t970.mold.rows.date.px], [43, 2, 52, 22]);
   assert.doesNotMatch(h970, /data-field="date"[^>]*>\s*<span data-chip/, '970 날짜 상자 없음');
-  assert.match(h970, /data-logo-slot="1" style="position:absolute;left:848px;top:17px;width:103px;height:19px/);
+  assert.match(h970, /data-logo-slot="1" style="position:absolute;left:855px;top:17px;width:96px;height:19px/);
   const h300 = renderAd(ctx, glass, specs['google-gdn-300x600']); const t300 = traceOf(h300);
   assert.equal(t300.place.zone.align, 'center');
-  assert.match(h300, /data-field="main"[^>]*style="position:absolute;left:0px;[^"]*width:204px;font-size:33px;line-height:38.9px;font-weight:700;[^"]*text-align:center/, '300×600 메인 (48,86.8) 204 가운데 Bold 33 행간 118%');
-  assert.match(h300, /data-logo-slot="1" style="position:absolute;left:79px;top:35px;width:141px;height:26px;[^"]*justify-content:center/, '300 CI 가운데');
+  assert.match(h300, /data-field="main"[^>]*style="position:absolute;left:0px;[^"]*width:300px;font-size:32px;line-height:42px;font-weight:700;[^"]*text-align:center/, '300×600 메인 가운데 Bold 32 행간 130%');
+  assert.match(h300, /data-logo-slot="1" style="position:absolute;left:194px;top:19px;width:91px;height:18px;[^"]*justify-content:flex-end/, '300 CI 오른쪽 위(수정본)');
+  const h1050 = renderAd(ctx, glass, specs['google-gdn-300x1050']); const t1050 = traceOf(h1050);
+  assert.equal(t1050.mode, 'templateMold'); assert.ok(!t1050.mold.rows.sub, '1050 아이브로 없음');
+  assert.deepEqual([t1050.mold.rows.main.px, t1050.mold.rows.main.pitch, t1050.mold.rows.main.lines, t1050.mold.rows.detail?.px, t1050.mold.rows.detail?.weight], [32, 42, 3, 20, 400]);
+  assert.match(h1050, /<div><b style="font-weight:700">모집분야<\/b><\/div><div/, '1050 「모집분야」 라벨 줄 + 값 줄(알약 없음)'); assert.doesNotMatch(h1050, /data-field="chip"/);
+  assert.match(h1050, /data-logo-slot="1" style="position:absolute;left:104px;top:35px;width:91px;height:18px;[^"]*justify-content:center/, '1050 로고 가운데 위');
+  assert.ok(!t1050.rules.includes('templateMold.freeKv') && t1050.place.tImage && t1050.place.tImage.y + t1050.place.tImage.h === 1050, '1050 키비주얼 칸 바닥 맞닿음: ' + JSON.stringify(t1050.place.tImage));
   const h930 = renderAd(ctx, glass, specs['google-gdn-930x180']); const t930 = traceOf(h930);
   assert.deepEqual([t930.mold.rows.main.px, t930.mold.rows.main.lines, t930.mold.rows.date.y], [36, 2, 115]);
   assert.match(h930, /<span data-chip="1" style="display:inline-flex;align-items:center;width:237px;/, '930 날짜 상자 237×30');

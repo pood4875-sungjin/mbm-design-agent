@@ -92,544 +92,568 @@
   },
   "specs": [
     {
-        "id": "google-gdn-580x400",
-        "name": "GDN 고정 배너 580×400",
-        "platform": "공통",
-        "w": 580,
-        "h": 400,
-        "exportScale": 1,
-        "format": [
-          "jpg",
-          "png"
-        ],
-        "maxKB": 150,
-        "maxKBRule": "150KB 미만 (150KB 이상이면 불합격)",
-        "background": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
-        "safeArea": {
-          "note": "규정·수치 없음",
-          "top": null,
-          "right": null,
-          "bottom": null,
-          "left": null,
-          "measuredFromTemplate": {
-            "frame": "580×400",
-            "mold": {
-              "measuredAt": "2026-10-16",
-              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 비씨월드제약 디자이너 샘플 — 580 64:721 · 970 64:731 · 300×600 64:741 · 930 64:710 (사용자 10-16 「구글 GDN 도 수정 — 이거대로」). 템플릿 빨간 자리상자(64:1041 등)는 참고로만",
-              "note": "64:721: 메인 (24,98) 465×106 Bold 43 lh124% 2줄 · 날짜 상자 (27,213) 271×38 글자 22 lh131% 왼쪽(x41) · CI (406,24) 148×27 · 그림 (309,192) 245×163 · 바탕 흰색 + 위 그라데이션 (−39,0) 619×238 · 띠 (0,373) 27 안 그림. 비씨월드 그대로: 메인 KIMM Bold → Bold 700 브랜드색(#13276F 자리) · 날짜 = 브랜드색 고정 폭 상자 + 흰 글자 Bold · CI 우상단(300 은 가운데) 누끼 · 그림 칸 우하단 고정(kv slot: 사진·바탕 그림은 칸 채움, 누끼 contain) · 서브·태그·띠 없음 · 글꼴 Kakao Big Sans(사용자)",
-              "x": 24,
-              "w": 465,
-              "font": "KakaoBigSans",
-              "color": "brand",
-              "colorDark": "#FFFFFF",
-              "kv": "slot",
-              "rows": {
-                "main": {
-                  "y": 98,
-                  "px": 43,
-                  "pitch": 53.3,
-                  "weight": 700,
-                  "lines": 2,
-                  "x": 24,
-                  "w": 465
-                },
-                "date": {
-                  "y": 213,
-                  "px": 22,
-                  "weight": 700,
-                  "lines": 1,
-                  "x": 27,
-                  "w": 271,
-                  "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로"
-                }
-              },
-              "logo": {
-                "x": 406,
-                "y": 24,
-                "w": 148,
-                "h": 27,
-                "align": "right"
-              },
-              "image": {
-                "x": 309,
-                "y": 192,
-                "w": 245,
-                "h": 163
-              },
-              "docRef": "docs/google-gdn-mold.md"
-            }
-          }
-        },
-        "textLimits": [],
-        "logo": {
-          "count": null,
-          "w": null,
-          "h": null,
-          "note": "로고 규정 없음. '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작' (text 414:2043-3). 템플릿의 '로고' 자리는 참고 박스일 뿐 규정 아님.",
-          "source": "figma:구글GDN01(소재 제작 규정) text 414:2043"
-        },
-        "layoutNotes": [
-          "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:483: 서브문구(위) → 메인문구 → [문구입력 라벨칩 + 상세 문구] 2묶음(상세 3줄) / 우하단 이미지 영역 박스 431×269 / 우상단 로고 박스 118×31",
-          "템플릿 '좌측중앙 정렬 버전'(text 9:770) frame 9:772: 로고 2개(좌상단·우상단, 118×31) / 서브문구(소) → 메인문구 2줄 → 서브문구 → 상세 문구 4칸(2×2) / 우하단 이미지 영역 331×228 / 42px 높이 띠 영역(Rectangle 9:813 580×42)",
-          "실제 예시 구성(일화 414:1927): 슬로건 '인류의 건강과 행복을 추구하는 기업!' → 메인 '㈜일화 신입/경력 사원 모집' → 라벨칩 '접수기간' + '7/14(화) ~ 7/20(월)' → 라벨칩 '모집부문' + 직무 나열"
-        ],
-        "examples": [
-          {
-            "client": "일화",
-            "w": 580,
-            "h": 400,
-            "source": "figma frame 414:1927 '일화_GDN (580*400)'"
-          },
-          {
-            "client": "비씨월드제약",
-            "w": 580,
-            "h": 400,
-            "source": "figma frame 414:2056 '비씨월드제약_GDN (580*400)'"
-          },
-          {
-            "client": "동부건설",
-            "w": 580,
-            "h": 400,
-            "source": "figma frame 414:2100 '동부건설_GDN (580*400)'"
-          },
-          {
-            "client": "ABL생명",
-            "w": 580,
-            "h": 400,
-            "source": "figma frame 414:2153 'ABL생명 _GDN (580*400)'"
-          },
-          {
-            "client": "한국앤컴퍼니",
-            "w": 580,
-            "h": 400,
-            "source": "figma frame 9:726 '한국앤컴퍼니_GDN (580*400)'"
-          },
-          {
-            "client": "동서식품",
-            "w": 580,
-            "h": 400,
-            "source": "figma frame 418:2461 '동서식품_GDN (580*400)'"
-          },
-          {
-            "client": "안랩",
-            "w": 580,
-            "h": 400,
-            "source": "figma image 6:490 '안랩_GDN (580_400) 1' (템플릿 6:483 안의 이미지 노드)"
-          }
-        ],
-        "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
-        "confidence": "확정",
-        "note": "고정 4사이즈 중 (1). 제출 파일 = 580×400 그대로(배율 언급 없음).",
-        "sampleText": {
-          "measuredFromSamples": {
-            "n": 5,
-            "roles": {
+      "id": "google-gdn-580x400",
+      "name": "GDN 고정 배너 580×400",
+      "platform": "공통",
+      "w": 580,
+      "h": 400,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "png"
+      ],
+      "maxKB": 150,
+      "maxKBRule": "150KB 미만 (150KB 이상이면 불합격)",
+      "background": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+      "safeArea": {
+        "note": "규정·수치 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "measuredFromTemplate": {
+          "frame": "580×400",
+          "mold": {
+            "measuredAt": "2026-10-16",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 비씨월드제약 디자이너 샘플 — 580 64:721 · 970 64:731 · 300×600 64:741 · 930 64:710 (사용자 10-16 「구글 GDN 도 수정 — 이거대로」). 템플릿 빨간 자리상자(64:1041 등)는 참고로만 → 사용자 수정본 10-16 피그마 133:44 섹션 「구글 GDN · 4규격(수정)」 135:1311 프레임 135:1313",
+            "note": "64:721: 메인 (24,98) 465×106 Bold 43 lh124% 2줄 · 날짜 상자 (27,213) 271×38 글자 22 lh131% 왼쪽(x41) · CI (406,24) 148×27 · 그림 (309,192) 245×163 · 바탕 흰색 + 위 그라데이션 (−39,0) 619×238 · 띠 (0,373) 27 안 그림. 비씨월드 그대로: 메인 KIMM Bold → Bold 700 브랜드색(#13276F 자리) · 날짜 = 브랜드색 고정 폭 상자 + 흰 글자 Bold · CI 우상단(300 은 가운데) 누끼 · 그림 칸 우하단 고정(kv slot: 사진·바탕 그림은 칸 채움, 누끼 contain) · 서브·태그·띠 없음 · 글꼴 Kakao Big Sans(사용자)",
+            "x": 48,
+            "w": 420,
+            "font": "KakaoBigSans",
+            "color": "brand",
+            "colorDark": "#FFFFFF",
+            "kv": "slot",
+            "rows": {
               "main": {
-                "share": 1.0,
-                "lines": 2,
+                "y": 104.5,
                 "px": 43,
-                "weight": 700
-              },
-              "date": {
-                "share": 1.0,
-                "lines": 1,
-                "px": 22,
-                "weight": 700
-              },
-              "label": {
-                "share": 0.6,
-                "lines": 1,
-                "px": 19,
-                "weight": 600
-              },
-              "detail": {
-                "share": 0.8,
-                "lines": 2.5,
-                "px": 18.5,
-                "weight": 650
-              },
-              "sub": {
-                "share": 0.8,
-                "lines": 1.0,
-                "px": 20.0,
-                "weight": 500
-              }
-            },
-            "lineBudget": 7,
-            "kvArea": 0.216,
-            "kvBg": 0,
-            "logoShare": 0.0,
-            "padXr": 0.06,
-            "padTopr": 0.147,
-            "mainPxR": 0.0893,
-            "frameScale": 1,
-            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1927 ㈜일화 / 414:2056 비씨월드제약 / 414:2100 동부건설 / 414:2153 ABL생명 / 418:2461 동서식품",
-            "measuredAt": "2026-10-12",
-            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
-            "confidence": "확정(샘플 3+)"
-          }
-        }
-      },
-    {
-        "id": "google-gdn-970x250",
-        "name": "GDN 고정 배너 970×250",
-        "platform": "공통",
-        "w": 970,
-        "h": 250,
-        "exportScale": 1,
-        "format": [
-          "jpg",
-          "png"
-        ],
-        "maxKB": 150,
-        "maxKBRule": "150KB 미만 (150KB 이상이면 불합격)",
-        "background": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
-        "safeArea": {
-          "note": "규정·수치 없음",
-          "top": null,
-          "right": null,
-          "bottom": null,
-          "left": null,
-          "measuredFromTemplate": {
-            "frame": "970×250",
-            "mold": {
-              "measuredAt": "2026-10-16",
-              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 비씨월드제약 디자이너 샘플 — 580 64:721 · 970 64:731 · 300×600 64:741 · 930 64:710 (사용자 10-16 「구글 GDN 도 수정 — 이거대로」). 템플릿 빨간 자리상자(64:1041 등)는 참고로만",
-              "note": "64:731: 메인 (31,54) 422×94 Bold 39 lh120% 2줄 · 날짜 상자 (31,155) 264×33 글자 21 가운데 · CI (848,17) 103×19 · 그림 (636,22) 292×195 · 위 그라데이션 (−42,0) 1012×165 · 띠 25 안 그림. 비씨월드 그대로: 메인 KIMM Bold → Bold 700 브랜드색(#13276F 자리) · 날짜 = 브랜드색 고정 폭 상자 + 흰 글자 Bold · CI 우상단(300 은 가운데) 누끼 · 그림 칸 우하단 고정(kv slot: 사진·바탕 그림은 칸 채움, 누끼 contain) · 서브·태그·띠 없음 · 글꼴 Kakao Big Sans(사용자)",
-              "x": 31,
-              "w": 422,
-              "font": "KakaoBigSans",
-              "color": "brand",
-              "colorDark": "#FFFFFF",
-              "kv": "slot",
-              "rows": {
-                "main": {
-                  "y": 54,
-                  "px": 39,
-                  "pitch": 46.8,
-                  "weight": 700,
-                  "lines": 2,
-                  "x": 31,
-                  "w": 422
-                },
-                "date": {
-                  "y": 155,
-                  "px": 21,
-                  "weight": 700,
-                  "lines": 1,
-                  "x": 31,
-                  "w": 264,
-                  "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로"
-                }
-              },
-              "logo": {
-                "x": 848,
-                "y": 17,
-                "w": 103,
-                "h": 19,
-                "align": "right"
-              },
-              "image": {
-                "x": 636,
-                "y": 22,
-                "w": 292,
-                "h": 195
-              },
-              "docRef": "docs/google-gdn-mold.md"
-            }
-          }
-        },
-        "textLimits": [],
-        "logo": {
-          "count": null,
-          "w": null,
-          "h": null,
-          "note": "로고 규정 없음. '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작' (text 414:2043-3). 템플릿의 '로고' 자리는 참고 박스일 뿐 규정 아님.",
-          "source": "figma:구글GDN01(소재 제작 규정) text 414:2043"
-        },
-        "layoutNotes": [
-          "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:484: 좌측 서브문구 → 메인문구 → [문구입력 라벨칩 + 상세 문구] 2줄 / 우측 이미지 영역 / 우상단 로고 박스 118×31",
-          "템플릿 '좌측중앙 정렬 버전'(text 9:770) frame 9:869: 로고 2개(좌상단 59×24·우상단 101×24) / 서브문구 → 메인문구 → 서브문구 → 상세 문구 4칸 가로 나열 / 우측 이미지 영역 406×250 / 42px 높이 띠 영역(Rectangle 9:981 1025×42)",
-          "실제 예시(일화 414:1963): 좌측 텍스트 블록, 라벨칩 '접수기간'·'모집부문'을 한 줄에 가로 배치"
-        ],
-        "examples": [
-          {
-            "client": "일화",
-            "w": 970,
-            "h": 250,
-            "source": "figma frame 414:1963 '일화_GDN (970*250)'"
-          },
-          {
-            "client": "비씨월드제약",
-            "w": 970,
-            "h": 250,
-            "source": "figma frame 414:2066 '비씨월드제약_GDN (970*250)'"
-          },
-          {
-            "client": "동부건설",
-            "w": 970,
-            "h": 250,
-            "source": "figma frame 414:2117 '동부건설_GDN (970*250)'"
-          },
-          {
-            "client": "ABL생명",
-            "w": 970,
-            "h": 250,
-            "source": "figma frame 414:2190 'ABL생명_GDN (970*250)'"
-          },
-          {
-            "client": "한국앤컴퍼니",
-            "w": 970,
-            "h": 250,
-            "source": "figma frame 9:685 '한국앤컴퍼니_GDN (970*250)'"
-          },
-          {
-            "client": "동서식품",
-            "w": 970,
-            "h": 250,
-            "source": "figma frame 418:2203 '동서식품_GDN (970*250)'"
-          },
-          {
-            "client": "안랩",
-            "w": 970,
-            "h": 250,
-            "source": "figma image 6:487 '안랩_GDN (970_250) 1' (템플릿 6:484 안의 이미지 노드)"
-          }
-        ],
-        "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
-        "confidence": "확정",
-        "note": "고정 4사이즈 중 (2).",
-        "sampleText": {
-          "measuredFromSamples": {
-            "n": 5,
-            "roles": {
-              "main": {
-                "share": 1.0,
+                "pitch": 53.3,
+                "weight": 700,
                 "lines": 2,
-                "px": 44,
-                "weight": 700
-              },
-              "sub": {
-                "share": 0.8,
-                "lines": 1.0,
-                "px": 22.0,
-                "weight": 500
+                "x": 48,
+                "w": 420
               },
               "date": {
-                "share": 1.0,
-                "lines": 1,
+                "y": 223.8,
                 "px": 22,
-                "weight": 700
-              },
-              "label": {
-                "share": 0.6,
+                "weight": 700,
                 "lines": 1,
-                "px": 19,
-                "weight": 600
-              },
-              "detail": {
-                "share": 0.8,
-                "lines": 1.5,
-                "px": 19.5,
-                "weight": 650
+                "x": 48,
+                "w": 420,
+                "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로",
+                "afterMain": 66,
+                "pitch": 29,
+                "note": "수정본: 메인 둘째 줄(157.8) + 56 + gap 10 = 223.8 → afterMain 66"
               }
             },
-            "lineBudget": 6,
-            "kvArea": 0.235,
-            "kvBg": 0,
-            "logoShare": 0.0,
-            "padXr": 0.046,
-            "padTopr": 0.148,
-            "mainPxR": 0.0894,
-            "frameScale": 1,
-            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1963 ㈜일화 / 414:2066 비씨월드제약 / 414:2117 동부건설 / 414:2190 ABL생명 / 418:2203 동서식품",
-            "measuredAt": "2026-10-12",
-            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
-            "confidence": "확정(샘플 3+)"
+            "logo": {
+              "x": 427,
+              "y": 24,
+              "w": 127,
+              "h": 25,
+              "align": "right",
+              "valign": "top",
+              "note": "수정본 (427.2,24) 126.8×25"
+            },
+            "image": {
+              "x": 297,
+              "y": 229,
+              "w": 283,
+              "h": 178,
+              "note": "수정본 키비주얼 칸 (297,229.1) 283×177.9 — 오른쪽 아래"
+            },
+            "docRef": "docs/google-gdn-mold.md",
+            "userEdit": "글자 프레임 (48,104.5) 폭 317 세로 gap 10: 메인 43 Bold 행간 130%(둘째 줄 +53.3) 2줄 → 날짜 22 Bold 행간 130%(29) · 로고 (427,24) 127×25 오른쪽 위 · 키비주얼 칸 (297,229) 283×178 오른쪽 아래 맞닿음",
+            "colNote": "글자 칸은 수정본 프레임 317 대신 420 — 왼쪽 정렬이라 보이는 자리는 같고, 렌더러 글자 폭 어림(43px 「신입사원 공개채용」≈383)이 317 을 넘겨 문구를 줄이던 것. 키비주얼 칸과는 세로로 안 겹침(580: 글자 끝 253 < 칸 229 는 x 297 부터라 날짜 폭 안)"
           }
         }
       },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "로고 규정 없음. '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작' (text 414:2043-3). 템플릿의 '로고' 자리는 참고 박스일 뿐 규정 아님.",
+        "source": "figma:구글GDN01(소재 제작 규정) text 414:2043"
+      },
+      "layoutNotes": [
+        "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:483: 서브문구(위) → 메인문구 → [문구입력 라벨칩 + 상세 문구] 2묶음(상세 3줄) / 우하단 이미지 영역 박스 431×269 / 우상단 로고 박스 118×31",
+        "템플릿 '좌측중앙 정렬 버전'(text 9:770) frame 9:772: 로고 2개(좌상단·우상단, 118×31) / 서브문구(소) → 메인문구 2줄 → 서브문구 → 상세 문구 4칸(2×2) / 우하단 이미지 영역 331×228 / 42px 높이 띠 영역(Rectangle 9:813 580×42)",
+        "실제 예시 구성(일화 414:1927): 슬로건 '인류의 건강과 행복을 추구하는 기업!' → 메인 '㈜일화 신입/경력 사원 모집' → 라벨칩 '접수기간' + '7/14(화) ~ 7/20(월)' → 라벨칩 '모집부문' + 직무 나열"
+      ],
+      "examples": [
+        {
+          "client": "일화",
+          "w": 580,
+          "h": 400,
+          "source": "figma frame 414:1927 '일화_GDN (580*400)'"
+        },
+        {
+          "client": "비씨월드제약",
+          "w": 580,
+          "h": 400,
+          "source": "figma frame 414:2056 '비씨월드제약_GDN (580*400)'"
+        },
+        {
+          "client": "동부건설",
+          "w": 580,
+          "h": 400,
+          "source": "figma frame 414:2100 '동부건설_GDN (580*400)'"
+        },
+        {
+          "client": "ABL생명",
+          "w": 580,
+          "h": 400,
+          "source": "figma frame 414:2153 'ABL생명 _GDN (580*400)'"
+        },
+        {
+          "client": "한국앤컴퍼니",
+          "w": 580,
+          "h": 400,
+          "source": "figma frame 9:726 '한국앤컴퍼니_GDN (580*400)'"
+        },
+        {
+          "client": "동서식품",
+          "w": 580,
+          "h": 400,
+          "source": "figma frame 418:2461 '동서식품_GDN (580*400)'"
+        },
+        {
+          "client": "안랩",
+          "w": 580,
+          "h": 400,
+          "source": "figma image 6:490 '안랩_GDN (580_400) 1' (템플릿 6:483 안의 이미지 노드)"
+        }
+      ],
+      "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
+      "confidence": "확정",
+      "note": "고정 4사이즈 중 (1). 제출 파일 = 580×400 그대로(배율 언급 없음).",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 5,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 43,
+              "weight": 700
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 22,
+              "weight": 700
+            },
+            "label": {
+              "share": 0.6,
+              "lines": 1,
+              "px": 19,
+              "weight": 600
+            },
+            "detail": {
+              "share": 0.8,
+              "lines": 2.5,
+              "px": 18.5,
+              "weight": 650
+            },
+            "sub": {
+              "share": 0.8,
+              "lines": 1.0,
+              "px": 20.0,
+              "weight": 500
+            }
+          },
+          "lineBudget": 7,
+          "kvArea": 0.216,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.06,
+          "padTopr": 0.147,
+          "mainPxR": 0.0893,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1927 ㈜일화 / 414:2056 비씨월드제약 / 414:2100 동부건설 / 414:2153 ABL생명 / 418:2461 동서식품",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
+    },
     {
-        "id": "google-gdn-300x600",
-        "name": "GDN 고정 배너 300×600",
-        "platform": "공통",
-        "w": 300,
-        "h": 600,
-        "exportScale": 1,
-        "format": [
-          "jpg",
-          "png"
-        ],
-        "maxKB": 150,
-        "maxKBRule": "150KB 미만 (150KB 이상이면 불합격)",
-        "background": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
-        "safeArea": {
-          "note": "규정·수치 없음",
-          "top": null,
-          "right": null,
-          "bottom": null,
-          "left": null,
-          "measuredFromTemplate": {
-            "frame": "300×600",
-            "mold": {
-              "measuredAt": "2026-10-16",
-              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 비씨월드제약 디자이너 샘플 — 580 64:721 · 970 64:731 · 300×600 64:741 · 930 64:710 (사용자 10-16 「구글 GDN 도 수정 — 이거대로」). 템플릿 빨간 자리상자(64:1041 등)는 참고로만",
-              "note": "64:741(가운데 정렬): 메인 (48,86.8) 204×156 Bold 33 lh118% 4줄 · 날짜 상자 (26,268.5) 249×38 글자 20 가운데 · CI (79,35) 141×26 가운데 · 그림 (14,340) 271×181 · 위 그라데이션 (0,0) 300×253 · 띠 35 안 그림. 비씨월드 그대로: 메인 KIMM Bold → Bold 700 브랜드색(#13276F 자리) · 날짜 = 브랜드색 고정 폭 상자 + 흰 글자 Bold · CI 우상단(300 은 가운데) 누끼 · 그림 칸 우하단 고정(kv slot: 사진·바탕 그림은 칸 채움, 누끼 contain) · 서브·태그·띠 없음 · 글꼴 Kakao Big Sans(사용자)",
-              "x": 48,
-              "w": 204,
-              "align": "center",
-              "font": "KakaoBigSans",
-              "color": "brand",
-              "colorDark": "#FFFFFF",
-              "kv": "slot",
-              "rows": {
-                "main": {
-                  "y": 86.8,
-                  "px": 33,
-                  "pitch": 38.9,
-                  "weight": 700,
-                  "lines": 4,
-                  "x": 48,
-                  "w": 204,
-                  "align": "center"
-                },
-                "date": {
-                  "y": 268.5,
-                  "px": 20,
-                  "weight": 700,
-                  "lines": 1,
-                  "x": 26,
-                  "w": 249,
-                  "align": "center",
-                  "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로"
-                }
+      "id": "google-gdn-970x250",
+      "name": "GDN 고정 배너 970×250",
+      "platform": "공통",
+      "w": 970,
+      "h": 250,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "png"
+      ],
+      "maxKB": 150,
+      "maxKBRule": "150KB 미만 (150KB 이상이면 불합격)",
+      "background": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+      "safeArea": {
+        "note": "규정·수치 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "measuredFromTemplate": {
+          "frame": "970×250",
+          "mold": {
+            "measuredAt": "2026-10-16",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 비씨월드제약 디자이너 샘플 — 580 64:721 · 970 64:731 · 300×600 64:741 · 930 64:710 (사용자 10-16 「구글 GDN 도 수정 — 이거대로」). 템플릿 빨간 자리상자(64:1041 등)는 참고로만 → 사용자 수정본 10-16 피그마 133:44 섹션 「구글 GDN · 4규격(수정)」 135:1311 프레임 135:1333",
+            "note": "64:731: 메인 (31,54) 422×94 Bold 39 lh120% 2줄 · 날짜 상자 (31,155) 264×33 글자 21 가운데 · CI (848,17) 103×19 · 그림 (636,22) 292×195 · 위 그라데이션 (−42,0) 1012×165 · 띠 25 안 그림. 비씨월드 그대로: 메인 KIMM Bold → Bold 700 브랜드색(#13276F 자리) · 날짜 = 브랜드색 고정 폭 상자 + 흰 글자 Bold · CI 우상단(300 은 가운데) 누끼 · 그림 칸 우하단 고정(kv slot: 사진·바탕 그림은 칸 채움, 누끼 contain) · 서브·태그·띠 없음 · 글꼴 Kakao Big Sans(사용자)",
+            "x": 46,
+            "w": 420,
+            "font": "KakaoBigSans",
+            "color": "brand",
+            "colorDark": "#FFFFFF",
+            "kv": "slot",
+            "rows": {
+              "main": {
+                "y": 52,
+                "px": 43,
+                "pitch": 53.3,
+                "weight": 700,
+                "lines": 2,
+                "x": 46,
+                "w": 420
               },
-              "logo": {
-                "x": 79,
-                "y": 35,
-                "w": 141,
-                "h": 26,
+              "date": {
+                "y": 171.3,
+                "px": 22,
+                "weight": 700,
+                "lines": 1,
+                "x": 46,
+                "w": 420,
+                "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로",
+                "afterMain": 66,
+                "pitch": 29,
+                "note": "수정본: 메인 둘째 줄(105.3) + 56 + gap 10 = 171.3 → afterMain 66"
+              }
+            },
+            "logo": {
+              "x": 855,
+              "y": 17,
+              "w": 96,
+              "h": 19,
+              "align": "right",
+              "valign": "top",
+              "note": "수정본 (854.7,17) 96.3×19"
+            },
+            "image": {
+              "x": 654,
+              "y": 52,
+              "w": 316,
+              "h": 198,
+              "note": "수정본 키비주얼 칸 (654.1,52) 315.9×198 — 오른쪽 아래"
+            },
+            "docRef": "docs/google-gdn-mold.md",
+            "userEdit": "글자 프레임 (46,52) 폭 317 세로 gap 10: 메인 43 Bold 행간 130%(둘째 줄 +53.3) 2줄 → 날짜 22 Bold(29) · 로고 (855,17) 96×19 오른쪽 위 · 키비주얼 칸 (654,52) 316×198 오른쪽 아래 맞닿음",
+            "colNote": "글자 칸은 수정본 프레임 317 대신 420 — 왼쪽 정렬이라 보이는 자리는 같고, 렌더러 글자 폭 어림(43px 「신입사원 공개채용」≈383)이 317 을 넘겨 문구를 줄이던 것. 키비주얼 칸과는 세로로 안 겹침(580: 글자 끝 253 < 칸 229 는 x 297 부터라 날짜 폭 안)"
+          }
+        }
+      },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "로고 규정 없음. '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작' (text 414:2043-3). 템플릿의 '로고' 자리는 참고 박스일 뿐 규정 아님.",
+        "source": "figma:구글GDN01(소재 제작 규정) text 414:2043"
+      },
+      "layoutNotes": [
+        "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:484: 좌측 서브문구 → 메인문구 → [문구입력 라벨칩 + 상세 문구] 2줄 / 우측 이미지 영역 / 우상단 로고 박스 118×31",
+        "템플릿 '좌측중앙 정렬 버전'(text 9:770) frame 9:869: 로고 2개(좌상단 59×24·우상단 101×24) / 서브문구 → 메인문구 → 서브문구 → 상세 문구 4칸 가로 나열 / 우측 이미지 영역 406×250 / 42px 높이 띠 영역(Rectangle 9:981 1025×42)",
+        "실제 예시(일화 414:1963): 좌측 텍스트 블록, 라벨칩 '접수기간'·'모집부문'을 한 줄에 가로 배치"
+      ],
+      "examples": [
+        {
+          "client": "일화",
+          "w": 970,
+          "h": 250,
+          "source": "figma frame 414:1963 '일화_GDN (970*250)'"
+        },
+        {
+          "client": "비씨월드제약",
+          "w": 970,
+          "h": 250,
+          "source": "figma frame 414:2066 '비씨월드제약_GDN (970*250)'"
+        },
+        {
+          "client": "동부건설",
+          "w": 970,
+          "h": 250,
+          "source": "figma frame 414:2117 '동부건설_GDN (970*250)'"
+        },
+        {
+          "client": "ABL생명",
+          "w": 970,
+          "h": 250,
+          "source": "figma frame 414:2190 'ABL생명_GDN (970*250)'"
+        },
+        {
+          "client": "한국앤컴퍼니",
+          "w": 970,
+          "h": 250,
+          "source": "figma frame 9:685 '한국앤컴퍼니_GDN (970*250)'"
+        },
+        {
+          "client": "동서식품",
+          "w": 970,
+          "h": 250,
+          "source": "figma frame 418:2203 '동서식품_GDN (970*250)'"
+        },
+        {
+          "client": "안랩",
+          "w": 970,
+          "h": 250,
+          "source": "figma image 6:487 '안랩_GDN (970_250) 1' (템플릿 6:484 안의 이미지 노드)"
+        }
+      ],
+      "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
+      "confidence": "확정",
+      "note": "고정 4사이즈 중 (2).",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 5,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 2,
+              "px": 44,
+              "weight": 700
+            },
+            "sub": {
+              "share": 0.8,
+              "lines": 1.0,
+              "px": 22.0,
+              "weight": 500
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 22,
+              "weight": 700
+            },
+            "label": {
+              "share": 0.6,
+              "lines": 1,
+              "px": 19,
+              "weight": 600
+            },
+            "detail": {
+              "share": 0.8,
+              "lines": 1.5,
+              "px": 19.5,
+              "weight": 650
+            }
+          },
+          "lineBudget": 6,
+          "kvArea": 0.235,
+          "kvBg": 0,
+          "logoShare": 0.0,
+          "padXr": 0.046,
+          "padTopr": 0.148,
+          "mainPxR": 0.0894,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1963 ㈜일화 / 414:2066 비씨월드제약 / 414:2117 동부건설 / 414:2190 ABL생명 / 418:2203 동서식품",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
+    },
+    {
+      "id": "google-gdn-300x600",
+      "name": "GDN 고정 배너 300×600",
+      "platform": "공통",
+      "w": 300,
+      "h": 600,
+      "exportScale": 1,
+      "format": [
+        "jpg",
+        "png"
+      ],
+      "maxKB": 150,
+      "maxKBRule": "150KB 미만 (150KB 이상이면 불합격)",
+      "background": "규정 없음 (보드에 배경 규정 없음). 예시 레이어로 본 배경 유형: 사옥 사진(일화 '일화 신사옥'), 디지털 일러스트(ABL생명 'magnific_digital-illustration'), 키비주얼(한국앤컴퍼니 '한국앤컴퍼니 키비주얼'), 모델 사진(동서식품 '01_박보영')",
+      "safeArea": {
+        "note": "규정·수치 없음",
+        "top": null,
+        "right": null,
+        "bottom": null,
+        "left": null,
+        "measuredFromTemplate": {
+          "frame": "300×600",
+          "mold": {
+            "measuredAt": "2026-10-16",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 비씨월드제약 디자이너 샘플 — 580 64:721 · 970 64:731 · 300×600 64:741 · 930 64:710 (사용자 10-16 「구글 GDN 도 수정 — 이거대로」). 템플릿 빨간 자리상자(64:1041 등)는 참고로만 → 사용자 수정본 10-16 피그마 133:44 섹션 「구글 GDN · 4규격(수정)」 135:1311 프레임 135:1353",
+            "note": "64:741(가운데 정렬): 메인 (48,86.8) 204×156 Bold 33 lh118% 4줄 · 날짜 상자 (26,268.5) 249×38 글자 20 가운데 · CI (79,35) 141×26 가운데 · 그림 (14,340) 271×181 · 위 그라데이션 (0,0) 300×253 · 띠 35 안 그림. 비씨월드 그대로: 메인 KIMM Bold → Bold 700 브랜드색(#13276F 자리) · 날짜 = 브랜드색 고정 폭 상자 + 흰 글자 Bold · CI 우상단(300 은 가운데) 누끼 · 그림 칸 우하단 고정(kv slot: 사진·바탕 그림은 칸 채움, 누끼 contain) · 서브·태그·띠 없음 · 글꼴 Kakao Big Sans(사용자)",
+            "x": 0,
+            "w": 300,
+            "align": "center",
+            "font": "KakaoBigSans",
+            "color": "brand",
+            "colorDark": "#FFFFFF",
+            "kv": "slot",
+            "rows": {
+              "main": {
+                "y": 82,
+                "px": 32,
+                "pitch": 42,
+                "weight": 700,
+                "lines": 2,
+                "x": 0,
+                "w": 300,
                 "align": "center"
               },
-              "image": {
-                "x": 14,
-                "y": 340,
-                "w": 271,
-                "h": 181
-              },
-              "docRef": "docs/google-gdn-mold.md"
-            }
-          }
-        },
-        "textLimits": [],
-        "logo": {
-          "count": null,
-          "w": null,
-          "h": null,
-          "note": "로고 규정 없음. '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작' (text 414:2043-3). 템플릿의 '로고' 자리는 참고 박스일 뿐 규정 아님.",
-          "source": "figma:구글GDN01(소재 제작 규정) text 414:2043"
-        },
-        "layoutNotes": [
-          "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:485: 서브문구 → 메인문구 2줄('메인문구를/입력하세요') → [문구입력 + 상세 문구] → [문구입력 + 상세 문구 2줄] / 하단 이미지 영역 321×189",
-          "템플릿 '좌측중앙 정렬 버전'(text 9:770) frame 9:773: 로고 2개(상단 좌·우) / 서브문구 → 메인문구 2줄 → 서브문구 → 상세 문구 4칸 / 하단 이미지 영역 321×266 / 42px 높이 띠 영역(Rectangle 9:863)"
-        ],
-        "examples": [
-          {
-            "client": "일화",
-            "w": 300,
-            "h": 600,
-            "source": "figma frame 414:1996 '일화_GDN (300*600)'"
-          },
-          {
-            "client": "비씨월드제약",
-            "w": 300,
-            "h": 600,
-            "source": "figma frame 414:2076 '비씨월드제약_GDN (300*600)'"
-          },
-          {
-            "client": "동부건설",
-            "w": 300,
-            "h": 600,
-            "source": "figma frame 414:2134 '동부건설_GDN (300*600)'"
-          },
-          {
-            "client": "ABL생명",
-            "w": 300,
-            "h": 600,
-            "source": "figma frame 414:2208 'ABL생명_GDN (300*600)'"
-          },
-          {
-            "client": "한국앤컴퍼니",
-            "w": 300,
-            "h": 600,
-            "source": "figma frame 9:707 '한국앤컴퍼니_GDN (300*600)'"
-          },
-          {
-            "client": "동서식품",
-            "w": 300,
-            "h": 600,
-            "source": "figma frame 418:2331 '동서식품_GDN (300*600)'"
-          },
-          {
-            "client": "안랩",
-            "w": 300,
-            "h": 600,
-            "source": "figma image 6:488 '안랩_GDN (300_600) 1' (템플릿 6:485 안의 이미지 노드)"
-          }
-        ],
-        "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
-        "confidence": "확정",
-        "note": "고정 4사이즈 중 (3).",
-        "sampleText": {
-          "measuredFromSamples": {
-            "n": 5,
-            "roles": {
-              "main": {
-                "share": 1.0,
-                "lines": 4,
-                "px": 32,
-                "weight": 700
-              },
-              "sub": {
-                "share": 0.6,
-                "lines": 1,
-                "px": 17,
-                "weight": 400
-              },
-              "label": {
-                "share": 0.6,
-                "lines": 1,
-                "px": 17,
-                "weight": 600
-              },
               "date": {
-                "share": 1.0,
+                "y": 176,
+                "px": 22,
+                "weight": 700,
                 "lines": 1,
-                "px": 20,
-                "weight": 700
-              },
-              "detail": {
-                "share": 0.8,
-                "lines": 4.0,
-                "px": 16.5,
-                "weight": 600
+                "x": 0,
+                "w": 300,
+                "align": "center",
+                "chipRemoved": "10-16 사용자 「구글도 비씨월드처럼, 뱃지 스타일 빼고」 → 날짜 브랜드색 상자 제거(평문). 자리·크기는 그대로",
+                "afterMain": 52,
+                "pitch": 29,
+                "note": "수정본: 메인 둘째 줄(124) + 42 + gap 10 = 176 → afterMain 52"
               }
             },
-            "lineBudget": 11,
-            "kvArea": 0.308,
-            "kvBg": 1,
-            "logoShare": 0.2,
-            "padXr": 0.08,
-            "padTopr": 0.112,
-            "mainPxR": 0.1067,
-            "frameScale": 1,
-            "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1996 ㈜일화 / 414:2076 비씨월드제약 / 414:2134 동부건설 / 414:2208 ABL생명 / 418:2331 동서식품",
-            "measuredAt": "2026-10-12",
-            "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
-            "confidence": "확정(샘플 3+)"
+            "logo": {
+              "x": 194,
+              "y": 19,
+              "w": 91,
+              "h": 18,
+              "align": "right",
+              "valign": "top",
+              "note": "수정본 (194,19) 91.3×18 오른쪽 위"
+            },
+            "image": {
+              "x": -49,
+              "y": 351,
+              "w": 397,
+              "h": 249,
+              "note": "수정본 키비주얼 칸 (−49,351) 396.9×249 — 지면 밖으로 넘치는 폭(블리드), 바닥 맞춤"
+            },
+            "docRef": "docs/google-gdn-mold.md",
+            "userEdit": "글자 프레임 (25,82) 폭 260 가운데 세로 gap 10: 메인 32 Bold 행간 130%(42) 2줄 → 날짜 22 Bold(29) · 로고 (194,19) 91×18 오른쪽 위(전 가운데) · 키비주얼 칸 (−49,351) 397×249 — 좌우로 넘치는 블리드, 바닥 맞닿음",
+            "colNote": "글자 칸은 수정본 프레임 260 대신 300(x0, 가운데 같음) — 렌더러 글자 폭 어림이 「신입사원 공개채용」(32px≈285)을 260 에서 접어 문구를 줄이던 것"
           }
         }
       },
+      "textLimits": [],
+      "logo": {
+        "count": null,
+        "w": null,
+        "h": null,
+        "note": "로고 규정 없음. '폰트 크기와 굵기, 로고 크기는 꼭 잘 보이게 제작' (text 414:2043-3). 템플릿의 '로고' 자리는 참고 박스일 뿐 규정 아님.",
+        "source": "figma:구글GDN01(소재 제작 규정) text 414:2043"
+      },
+      "layoutNotes": [
+        "템플릿 '좌측상단 정렬 버전'(text 9:768) frame 6:485: 서브문구 → 메인문구 2줄('메인문구를/입력하세요') → [문구입력 + 상세 문구] → [문구입력 + 상세 문구 2줄] / 하단 이미지 영역 321×189",
+        "템플릿 '좌측중앙 정렬 버전'(text 9:770) frame 9:773: 로고 2개(상단 좌·우) / 서브문구 → 메인문구 2줄 → 서브문구 → 상세 문구 4칸 / 하단 이미지 영역 321×266 / 42px 높이 띠 영역(Rectangle 9:863)"
+      ],
+      "examples": [
+        {
+          "client": "일화",
+          "w": 300,
+          "h": 600,
+          "source": "figma frame 414:1996 '일화_GDN (300*600)'"
+        },
+        {
+          "client": "비씨월드제약",
+          "w": 300,
+          "h": 600,
+          "source": "figma frame 414:2076 '비씨월드제약_GDN (300*600)'"
+        },
+        {
+          "client": "동부건설",
+          "w": 300,
+          "h": 600,
+          "source": "figma frame 414:2134 '동부건설_GDN (300*600)'"
+        },
+        {
+          "client": "ABL생명",
+          "w": 300,
+          "h": 600,
+          "source": "figma frame 414:2208 'ABL생명_GDN (300*600)'"
+        },
+        {
+          "client": "한국앤컴퍼니",
+          "w": 300,
+          "h": 600,
+          "source": "figma frame 9:707 '한국앤컴퍼니_GDN (300*600)'"
+        },
+        {
+          "client": "동서식품",
+          "w": 300,
+          "h": 600,
+          "source": "figma frame 418:2331 '동서식품_GDN (300*600)'"
+        },
+        {
+          "client": "안랩",
+          "w": 300,
+          "h": 600,
+          "source": "figma image 6:488 '안랩_GDN (300_600) 1' (템플릿 6:485 안의 이미지 노드)"
+        }
+      ],
+      "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
+      "confidence": "확정",
+      "note": "고정 4사이즈 중 (3).",
+      "sampleText": {
+        "measuredFromSamples": {
+          "n": 5,
+          "roles": {
+            "main": {
+              "share": 1.0,
+              "lines": 4,
+              "px": 32,
+              "weight": 700
+            },
+            "sub": {
+              "share": 0.6,
+              "lines": 1,
+              "px": 17,
+              "weight": 400
+            },
+            "label": {
+              "share": 0.6,
+              "lines": 1,
+              "px": 17,
+              "weight": 600
+            },
+            "date": {
+              "share": 1.0,
+              "lines": 1,
+              "px": 20,
+              "weight": 700
+            },
+            "detail": {
+              "share": 0.8,
+              "lines": 4.0,
+              "px": 16.5,
+              "weight": 600
+            }
+          },
+          "lineBudget": 11,
+          "kvArea": 0.308,
+          "kvBg": 1,
+          "logoShare": 0.2,
+          "padXr": 0.08,
+          "padTopr": 0.112,
+          "mainPxR": 0.1067,
+          "frameScale": 1,
+          "source": "figma:gD8RsVVg5iWAvQ0VbV2Wbz 매체별 규격정리 — 414:1996 ㈜일화 / 414:2076 비씨월드제약 / 414:2134 동부건설 / 414:2208 ABL생명 / 418:2331 동서식품",
+          "measuredAt": "2026-10-12",
+          "note": "디자이너 샘플 프레임의 글자 역할(share = 그 역할이 있는 프레임 비율)·줄 수·fontSize(px, 규격 캔버스 기준)·굵기 중앙값. 규정이 정하지 않은 역할·크기만 렌더러가 쓴다(scripts/figma/spec-apply.py)",
+          "confidence": "확정(샘플 3+)"
+        }
+      }
+    },
     {
       "id": "google-gdn-300x1050",
       "name": "GDN 고정 배너 300×1050",
@@ -653,79 +677,81 @@
         "measuredFromTemplate": {
           "frame": "300×1050",
           "mold": {
-            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 — ABL생명 디자이너 샘플(사용자 결정 10-15) 64:834 (300×1050)",
-            "measuredAt": "2026-10-15",
+            "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 구글GDN 페이지 — ABL생명 디자이너 샘플(사용자 결정 10-15) 64:834 (300×1050) → 사용자 수정본 10-16 피그마 133:44 섹션 「구글 GDN · 4규격(수정)」 135:1311 프레임 135:1375",
+            "measuredAt": "2026-10-16",
             "note": "가운데 정렬. 서브 Regular 17 (86,113) 129×40 2줄 · 메인 ExtraBold 42 행간 128% (30,170) 241×199 · 날짜 ExtraBold 26 (47,411) 206 · 칩 (93,493) 105×34 Bold 22 + 값 Medium 24 행간 217% (93,544) 114×208 4줄 · 로고 상자 (45.6,32) 75×37 + (212,38) 38×13 · 그림 칸 (1,804) 299×110 · 10-16: 글꼴 Kakao Big Sans, 로고 흰 상자 제거",
-            "x": 30,
-            "w": 241,
+            "x": 0,
+            "w": 300,
             "align": "center",
             "color": "#000000",
             "colorDark": "#FFFFFF",
             "rows": {
-              "sub": {
-                "y": 113,
-                "px": 17,
-                "weight": 400,
-                "lines": 2,
-                "x": 86,
-                "w": 129
-              },
               "main": {
-                "y": 170,
-                "px": 42,
-                "pitch": 53.8,
-                "weight": 800,
+                "y": 164,
+                "px": 32,
+                "pitch": 42,
+                "weight": 700,
                 "lines": 3,
-                "w": 241
+                "w": 300,
+                "x": 0,
+                "align": "center"
               },
               "date": {
-                "y": 411,
-                "px": 26,
-                "weight": 800,
+                "y": 320,
+                "px": 22,
+                "weight": 700,
                 "lines": 1,
-                "x": 47,
-                "w": 206
+                "x": 0,
+                "w": 300,
+                "afterMain": 72,
+                "pitch": 29,
+                "align": "center",
+                "note": "수정본: 메인 셋째 줄(248) + 42 + gap 30 = 320 → afterMain 72"
               },
               "detail": {
-                "y": 544,
-                "px": 24,
-                "pitch": 52,
-                "weight": 500,
-                "lines": 4,
-                "x": 93,
-                "w": 114,
+                "y": 379,
+                "afterMain": 131,
+                "px": 20,
+                "pitch": 30,
+                "weight": 400,
+                "labelWeight": 700,
+                "labelRow": true,
+                "lines": 3,
+                "x": 0,
+                "w": 300,
+                "align": "center",
                 "items": [
                   "모집직무"
                 ],
-                "labelWeightNote": "라벨은 칩 Bold 22, 값 Medium 24 — ABL 64:834",
-                "chip": {
-                  "text": "모집분야",
-                  "x": 93,
-                  "y": 493,
-                  "w": 105,
-                  "h": 34,
-                  "px": 22,
-                  "weight": 700,
-                  "bg": "none",
-                  "bgNote": "10-16 사용자 「라운드 없애 줘」 → 흰 알약(radius) 제거, 라벨 글자만 같은 자리(왼쪽 맞춤·상세 글자색)"
-                }
+                "note": "수정본: 날짜(320)+29+gap 30 = 379 → afterMain 131 · 「모집분야」 Bold 20 줄 + 값 Regular 20 최대 3줄 가운데(알약 없음)"
               }
             },
             "logo": {
-              "x": 212,
-              "y": 38,
-              "w": 38,
-              "h": 13,
-              "align": "right",
-              "note": "10-16: ABL 흰 상자 로고 폐지(사용자 「로고 누끼로」) — 우측 작은 칸(ABL logo2 자리)에 누끼 그대로. 300×1050 템플릿 없음 → 사용자 확인"
+              "x": 104,
+              "y": 35,
+              "w": 91,
+              "h": 18,
+              "align": "center",
+              "valign": "top",
+              "note": "수정본 (104,35) 91.3×18 — 가운데 위"
             },
             "image": {
-              "x": 1,
-              "y": 804,
-              "w": 299,
-              "h": 110
+              "x": 0,
+              "y": 689,
+              "w": 300,
+              "h": 361,
+              "note": "수정본 키비주얼 칸 (0,689) 300×361 — 바닥 맞춤"
             },
-            "font": "KakaoBigSans"
+            "font": "KakaoBigSans",
+            "userEdit": "로고 (104,35) 91×18 가운데 위 · 글자 프레임 (25,164) 폭 260 가운데 세로 gap 30: 메인 32 Bold 행간 130%(42) 3줄(「3줄은 써야해」) → 날짜 22 Bold(29) → 상세(gap 2): 「모집분야」 Bold 20(30) + 값 Regular 20 줄 30 · 서브(아이브로) 없음 · 알약 없음 · 키비주얼 칸 (0,689) 300×361(그림 (0,725) 300×325 바닥)",
+            "kv": "slot",
+            "subRemoved": "수정본에 아이브로(「…에서 함께할 인재를」) 없음(10-16)",
+            "labels": {
+              "role": "모집분야"
+            },
+            "colNote": "글자 칸은 수정본 프레임 260 대신 300(x0, 가운데 같음) — 렌더러 글자 폭 어림이 「신입사원 공개채용」(32px≈285)을 260 에서 접어 문구를 줄이던 것",
+            "seasonMain": true,
+            "seasonMainNote": "수정본 「3줄은 써야해」 — 시즌 포함 메인을 먼저(2024 ABL생명 / 신입사원 공개채용), 3줄째는 문구 길이에 따라"
           }
         }
       },
