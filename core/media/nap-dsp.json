@@ -314,13 +314,7 @@
                 "weight": 700,
                 "ls": -2,
                 "lines": 1,
-                "chip": {
-                  "h": 24,
-                  "padX": 8,
-                  "radius": 200,
-                  "bg": "brand",
-                  "color": "#FFFFFF"
-                }
+                "chipRemoved": "10-16 사용자 「NAP 쪽도 라운드 넣은 거 없애 줘」 → 날짜 알약(브랜드색 radius 200) 제거, 평문. 자리·크기 그대로"
               }
             },
             "logo": {
@@ -498,13 +492,7 @@
                 "weight": 700,
                 "ls": -2,
                 "lines": 1,
-                "chip": {
-                  "h": 26,
-                  "padX": 8,
-                  "radius": 200,
-                  "bg": "brand",
-                  "color": "#FFFFFF"
-                }
+                "chipRemoved": "10-16 사용자 「NAP 쪽도 라운드 넣은 거 없애 줘」 → 날짜 알약(브랜드색 radius 200) 제거, 평문. 자리·크기 그대로"
               },
               "detail": {
                 "y": 158.2,
@@ -724,13 +712,7 @@
                 "weight": 700,
                 "ls": -2,
                 "lines": 1,
-                "chip": {
-                  "h": 26,
-                  "padX": 8,
-                  "radius": 200,
-                  "bg": "brand",
-                  "color": "#FFFFFF"
-                }
+                "chipRemoved": "10-16 사용자 「NAP 쪽도 라운드 넣은 거 없애 줘」 → 날짜 알약(브랜드색 radius 200) 제거, 평문. 자리·크기 그대로"
               },
               "detail": {
                 "y": 242,

@@ -247,9 +247,10 @@ test('에브리타임 틀 — 커뮤니티보드 1:771(메인 45 y79 · 날짜 3
   assert.match(hb, /data-object="1" style="position:absolute;left:\d+px;top:0px;width:\d+px;height:200px;/);
   const hc = renderAd(ctx, flat, specs['everytime-home-card-image']); const t3 = traceOf(hc), R3 = t3.mold.rows;
   assert.deepEqual([R3.sub.y, R3.sub.px, R3.main.y, R3.main.px, R3.main.pitch, R3.main.weight, R3.detail.y, R3.detail.px, R3.detail.pitch], [42, 31, 98, 52, 68, 800, 309, 23, 30]);   // 10-16 코엑스 최종 67:910: 「모집분야」 알약(50,253 118×39) + 값 Bold 23 y309
-  assert.match(hc, /data-field="chip" data-chip="1" style="position:absolute;left:0px;top:[\d.]+px;width:118px;height:39px;[^"]*border-radius:19px/, '모집분야 알약');
+  assert.match(hc, /data-field="chip" style="position:absolute;left:0px;top:[\d.]+px;width:118px;height:39px;[^"]*justify-content:flex-start;border-radius:0px;background:transparent/, '「모집분야」 라벨 글자만 — 10-16 사용자 「라운드 없애 줘」(알약 없이 같은 자리)');
+  assert.doesNotMatch(hc, /data-chip="1"/, '홈카드에 알약 없음');
   assert.match(hc, /data-field="detail"[^>]*font-size:23px;line-height:30px;font-weight:700;[^>]*><div style="text-wrap:pretty"><div>자유직무/, '값 Bold 23, 라벨 없이');
-  assert.ok(t3.rules.includes('templateMold.chipLabel') && !t3.rules.includes('templateMold.freeKv'), t3.rules.join(','));
+  assert.ok(t3.rules.includes('templateMold.plainLabel') && !t3.rules.includes('templateMold.chipLabel') && !t3.rules.includes('templateMold.freeKv'), t3.rules.join(','));
   assert.match(hc, /data-logo-slot="1" style="position:absolute;left:530px;top:30px;width:160px;height:40px;[^"]*justify-content:flex-end/);
   const ob = hc.match(/data-object="1"(?: data-bleed="1")? style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);   // 10-15 밤: 모서리 칸 누끼는 블리드(data-bleed) 허용 — 칸의 왼쪽·위 경계만 지킨다
   assert.ok(ob && +ob[1] >= 329 && +ob[1] + +ob[3] <= 730 && +ob[2] + +ob[4] <= 486, '누끼는 글자 상자를 피한 칸(오른쪽 열·모서리, 10-15 밤 자유 배치) 안: ' + (ob && ob[0]));
@@ -319,13 +320,13 @@ test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 
   assert.doesNotMatch(h50, /data-field="date"|data-field="detail"/, '320×50 은 메인만');
   const h100 = renderAd(ctx, glass, specs['nap-dsp-band-320x100']); const t100 = traceOf(h100);
   assert.match(h100, /data-field="main"[^>]*font-size:19px;line-height:22.8px;font-weight:700/);
-  assert.match(h100, /data-field="date"[^>]*font-size:10px;line-height:24px;font-weight:700;[^"]*letter-spacing:-0.02em[^>]*>\s*<span data-chip="1" style="display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:200px/, '날짜 알약 h24 안쪽 8 radius 200');
-  assert.ok(t100.rules.includes('templateMold.dateChip'));
-  const blk = [t100.mold.rows.main.top, t100.mold.rows.date.top + 24]; assert.ok(Math.abs((blk[0] + blk[1]) / 2 - 50) <= 0.6, `메인 + 알약 덩어리 세로 가운데 — ${blk}`);
+  assert.match(h100, /data-field="date"[^>]*font-size:10px;line-height:12px;font-weight:700;[^"]*letter-spacing:-0.02em[^>]*>9\.22/, '날짜 평문 Bold 10 — 10-16 사용자 「NAP 쪽도 라운드 없애 줘」(알약 제거)');
+  assert.ok(!t100.rules.includes('templateMold.dateChip') && !/data-chip="1"/.test(h100), 'NAP 날짜 알약 없음');
+  const blk = [t100.mold.rows.main.top, t100.mold.rows.date.top + 12]; assert.ok(Math.abs((blk[0] + blk[1]) / 2 - 50) <= 0.6, `메인 + 날짜 덩어리 세로 가운데 — ${blk}`);
   const h250 = renderAd(ctx, glass, specs['nap-dsp-full-300x250']); const t250 = traceOf(h250);
   assert.deepEqual([t250.mold.rows.main.y, t250.mold.rows.main.px, t250.mold.rows.main.pitch, t250.mold.rows.date?.y, t250.mold.rows.detail?.y, t250.mold.rows.detail?.px, t250.mold.rows.detail?.pitch], [44, 27, 32.4, 117.2, 158.2, 15, 18]);
   assert.match(h250, /<div><b style="font-weight:700">모집분야<\/b><\/div><div>/, '모집분야 라벨 줄 + 값 줄 Bold');
-  assert.match(h250, /data-field="date"[^>]*>\s*<span data-chip="1" style="display:inline-flex;align-items:center;height:26px;padding:0 8px;border-radius:200px/);
+  assert.match(h250, /data-field="date"[^>]*font-size:12px;[^>]*>9\.22/, '300×250 날짜 평문(알약 제거 10-16)'); assert.doesNotMatch(h250, /data-chip="1"/);
   const h480 = renderAd(ctx, glass, specs['nap-dsp-full-320x480']); const t480 = traceOf(h480);
   assert.equal(t480.place.zone.align, 'center');
   assert.match(h480, /data-field="main"[^>]*font-size:38px;line-height:45.6px;font-weight:700;[^"]*text-align:center/);
@@ -349,10 +350,12 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   const ctxShort = createContext({ ...fields, role: '건축' }, 'recruit');
   const hb = renderAd(ctxShort, glass, specs['blind-feed-image']); const tb = traceOf(hb);
   assert.deepEqual([tb.mold.rows.main.y, tb.mold.rows.main.px, tb.mold.rows.main.pitch, tb.mold.rows.date?.px, tb.mold.rows.detail?.px], [135, 85, 104, 48, 38]);
-  assert.match(hb, /data-field="date"[^>]*style="position:absolute;left:42px;/, '날짜 (100,360) — 틀 x 58 기준 +42');
+  assert.match(hb, /data-field="date"[^>]*style="position:absolute;left:0px;/, '날짜 x 58 = 메인과 좌정렬(10-16 사용자 「블라인드 좌정렬」, 템플릿 x100 안 씀)');
+  assert.match(hb, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '상세도 x 58');
   const hp = renderAd(ctx, glass, specs['blind-post-banner']); const tp = traceOf(hp);
   assert.deepEqual([tp.mold.rows.main.px, tp.mold.rows.main.pitch, tp.mold.rows.date?.y, tp.mold.rows.detail?.y], [56, 69.4, 297, 357]);
-  assert.match(hp, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이');
+  assert.match(hp, /data-field="date"[^>]*style="position:absolute;left:0px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이 · x 142 = 메인과 좌정렬(10-16)');
+  assert.match(hp, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '게시글 상세 x 142');
   for (const id of ['instagram-feed-1080', 'naver-gfa-native-mo-342x228']) assert.notEqual(traceOf(renderAd(ctx, glass, specs[id])).mode, 'templateMold', id);   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트)
   const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [68, 50, 62, 700, 144, 43, 400], '카카오 비즈보드 틀 64:3325: 메인 Bold 50 y68 · 서브 Regular 43 y144(17px 띔)'); assert.deepEqual(tk.place.tImage, { x: 663, y: 36, w: 313, h: 185, radius: 10 });
 });

@@ -5203,9 +5203,8 @@ export const MEDIA = [
                     "h": 34,
                     "px": 22,
                     "weight": 700,
-                    "color": "brand",
-                    "bg": "#FFFFFF",
-                    "radius": 83
+                    "bg": "none",
+                    "bgNote": "10-16 사용자 「라운드 없애 줘」 → 흰 알약(radius) 제거, 라벨 글자만 같은 자리(왼쪽 맞춤·상세 글자색)"
                   }
                 }
               },
@@ -5983,13 +5982,7 @@ export const MEDIA = [
                   "weight": 700,
                   "ls": -2,
                   "lines": 1,
-                  "chip": {
-                    "h": 24,
-                    "padX": 8,
-                    "radius": 200,
-                    "bg": "brand",
-                    "color": "#FFFFFF"
-                  }
+                  "chipRemoved": "10-16 사용자 「NAP 쪽도 라운드 넣은 거 없애 줘」 → 날짜 알약(브랜드색 radius 200) 제거, 평문. 자리·크기 그대로"
                 }
               },
               "logo": {
@@ -6169,13 +6162,7 @@ export const MEDIA = [
                   "weight": 700,
                   "ls": -2,
                   "lines": 1,
-                  "chip": {
-                    "h": 26,
-                    "padX": 8,
-                    "radius": 200,
-                    "bg": "brand",
-                    "color": "#FFFFFF"
-                  }
+                  "chipRemoved": "10-16 사용자 「NAP 쪽도 라운드 넣은 거 없애 줘」 → 날짜 알약(브랜드색 radius 200) 제거, 평문. 자리·크기 그대로"
                 },
                 "detail": {
                   "y": 158.2,
@@ -6397,13 +6384,7 @@ export const MEDIA = [
                   "weight": 700,
                   "ls": -2,
                   "lines": 1,
-                  "chip": {
-                    "h": 26,
-                    "padX": 8,
-                    "radius": 200,
-                    "bg": "brand",
-                    "color": "#FFFFFF"
-                  }
+                  "chipRemoved": "10-16 사용자 「NAP 쪽도 라운드 넣은 거 없애 줘」 → 날짜 알약(브랜드색 radius 200) 제거, 평문. 자리·크기 그대로"
                 },
                 "detail": {
                   "y": 242,
@@ -9516,9 +9497,8 @@ export const MEDIA = [
                     "h": 39,
                     "px": 22,
                     "weight": 800,
-                    "color": "brand",
-                    "bg": "#FFFFFF",
-                    "radius": 19
+                    "bg": "none",
+                    "bgNote": "10-16 사용자 「라운드 없애 줘」 → 흰 알약(radius) 제거, 라벨 글자만 같은 자리(왼쪽 맞춤·상세 글자색)"
                   }
                 }
               },
@@ -10165,8 +10145,9 @@ export const MEDIA = [
                   "pitch": 54,
                   "weight": 500,
                   "lines": 1,
-                  "x": 100,
-                  "w": 602
+                  "x": 58,
+                  "w": 644,
+                  "xNote": "템플릿 날짜 상자 x100 → 메인과 같은 58(10-16 사용자 「블라인드 좌정렬」)"
                 },
                 "detail": {
                   "y": 440,
@@ -10175,8 +10156,8 @@ export const MEDIA = [
                   "weight": 400,
                   "labelWeight": 400,
                   "lines": 1,
-                  "x": 60,
-                  "w": 740,
+                  "x": 58,
+                  "w": 742,
                   "items": [
                     "모집직무"
                   ],
@@ -10351,8 +10332,9 @@ export const MEDIA = [
                   "pitch": 54,
                   "weight": 500,
                   "lines": 1,
-                  "x": 164,
-                  "w": 422,
+                  "x": 142,
+                  "w": 444,
+                  "xNote": "템플릿 서브 상자 x164 → 글자 칸 142(10-16 사용자 「블라인드 좌정렬」)",
                   "note": "템플릿 「서브문구」 자리에 날짜(라벨 없이) — 디자이너 2/2(대원 y348 Bold 30 · HS y340 Medium 45)가 이 줄에 날짜를 둠"
                 },
                 "detail": {
@@ -10362,8 +10344,8 @@ export const MEDIA = [
                   "weight": 700,
                   "labelWeight": 700,
                   "lines": 1,
-                  "x": 148,
-                  "w": 1000,
+                  "x": 142,
+                  "w": 1006,
                   "items": [
                     "모집직무"
                   ],

@@ -59,7 +59,7 @@ test('NAP DSP 띠·전면 배너: 규정 표에 없는 날짜·상세 줄을 샘
   // 10-15 밤: NAP 4규격은 HS화성 디자이너 샘플(77:497·518·541·567)이 틀 — 날짜는 알약, 모집직무 라벨은 「모집분야」(mold.labels.role), 320×50 만 날짜·상세 없음
   assert.match(h480, /<b style="font-weight:700">모집분야<\/b>/, '320×480: 모집분야 라벨 줄');
   assert.doesNotMatch(h480.replace(/data-trace="[^"]*"/, ''), /모집직무/, '화면 글자에는 「모집직무」 없음(trace 의 항목 이름은 제외)');
-  for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250']) { const html = renderAd(ahnlab, style, specs[id]); assert.match(html, /data-field="date"[^>]*>\s*<span data-chip="1"/, `${id}: 날짜 알약`); }
+  for (const id of ['nap-dsp-band-320x100', 'nap-dsp-full-300x250']) { const html = renderAd(ahnlab, style, specs[id]); assert.match(html, /data-field="date"/, `${id}: 날짜 줄`); assert.doesNotMatch(html, /data-field="date"[^>]*>\s*<span data-chip="1"/, `${id}: 날짜 알약 없음(10-16 라운드 제거)`); }
   assert.doesNotMatch(renderAd(ahnlab, style, specs['nap-dsp-band-320x50']), /data-field="date"|data-field="detail"/, '320×50: 메인 1줄만');
   assert.equal(px(h480, 'main'), 38, '320×480 메인 = HS화성 샘플 38px');
 });

@@ -1673,11 +1673,12 @@ ${tplLogo}${kvWrap(tplObject)}
       const CH = dR.chip ?? null;
       if (CH && rows.length) {
         const cx = Math.round(CH.x * k), cy = Math.round(CH.y * k), cw = Math.round(CH.w * k), chh = Math.round(CH.h * k), cpx = Math.round(CH.px * k), crad = Math.round((CH.radius ?? chh / 2) * k);
-        const cfg = CH.color === 'brand' ? (p.primary ?? field?.stops?.[0] ?? '#000000') : (CH.color ?? '#000000'), cbg = CH.bg ?? '#FFFFFF';
+        const plain = CH.bg === 'none';   /* 10-16 사용자 「라운드 없애 줘」(에브리타임 홈카드·구글 300×1050 「모집분야」 알약) — 상자 없이 라벨 글자만, 같은 자리·크기, 왼쪽 맞춤, 상세 글자색 */
+        const cfg = plain ? detailFg : CH.color === 'brand' ? (p.primary ?? field?.stops?.[0] ?? '#000000') : (CH.color ?? '#000000'), cbg = plain ? 'transparent' : (CH.bg ?? '#FFFFFF');
         const ctext = CH.text ?? labelOf(rows[0].label);
-        used.chip = { y: Math.round(CH.y * k * 10) / 10, px: cpx, pitch: chh, lines: 1, weight: CH.weight ?? 700, top: cy, x: cx, w: cw, align: 'center', text: ctext };
-        blocks.push({ t: cy, h: chh, html: `<div data-field="chip" data-chip="1" style="position:absolute;left:${cx - sx}px;top:@@px;width:${cw}px;height:${chh}px;display:flex;align-items:center;justify-content:center;border-radius:${crad}px;background:${cbg};color:${cfg};font-size:${cpx}px;line-height:${chh}px;font-weight:${CH.weight ?? 700};white-space:nowrap">${esc(ctext)}</div>` });
-        fired('templateMold.chipLabel');
+        used.chip = { y: Math.round(CH.y * k * 10) / 10, px: cpx, pitch: chh, lines: 1, weight: CH.weight ?? 700, top: cy, x: cx, w: cw, align: plain ? 'left' : 'center', text: ctext, plain };
+        blocks.push({ t: cy, h: chh, html: `<div data-field="chip"${plain ? '' : ' data-chip="1"'} style="position:absolute;left:${cx - sx}px;top:@@px;width:${cw}px;height:${chh}px;display:flex;align-items:center;justify-content:${plain ? 'flex-start' : 'center'};border-radius:${plain ? 0 : crad}px;background:${cbg};color:${cfg};font-size:${cpx}px;line-height:${chh}px;font-weight:${CH.weight ?? 700};white-space:nowrap">${esc(ctext)}</div>` });
+        fired(plain ? 'templateMold.plainLabel' : 'templateMold.chipLabel');
       }
       // 라벨 열 + 값 열(labelCol): 항목마다 flex 행 — 라벨은 고정 폭 열(Bold), 값은 나머지. 값이 2줄이면 행간 valueLh(130%), 1줄이면 1.2. 항목 사이 gap
       const dpx2 = pxOf(dR), colW = Math.round((dR.labelCol ?? 0) * k), gapPx = Math.round((dR.gap ?? 8) * k);
