@@ -185,7 +185,7 @@ test('렌더 추적 — ad.js 가 루트 data-trace 에 결정을 적는다(그�
   assert.equal(t.kv.type, 'cutout'); assert.ok(t.kv.flags.includes('single'));
   assert.equal(t.place.mode, 'mold'); assert.ok(t.rules.includes('templateMold'));   // 10-15 저녁: 구글 580 은 ABL 틀(블리드 대신 그림 칸)
   const g = guideFor(specs['google-gdn-580x400'].mediumRules);
-  assert.ok(t.field.stops.length >= 1); assert.equal(t.fonts.main.weight, 800);   // 10-15 저녁: 구글 580 은 ABL 틀 — 메인 ExtraBold 800(가이드 weights 대신 틀)
+  assert.ok(t.field.stops.length >= 1); assert.equal(t.fonts.main.weight, 700);   // 10-16: 구글 580 은 비씨월드 틀 — 메인 Bold 700(KIMM_Bold)
   assert.ok(t.rules.includes('weights'));
   void g;
   assert.equal(t.logo.slot, 'template');   // 틀 로고 칸

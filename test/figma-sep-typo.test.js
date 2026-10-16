@@ -37,7 +37,7 @@ test('A2 세로형·정사각 메인 줄 간격 1.28 — 구글 가이드 1.22·
   assert.equal(layoutFor(600, 880).mainLine, 1.28);
   assert.equal(layoutFor(1080, 1080).mainLine, 1.28);
   assert.equal(layoutFor(160, 600).mainLine, 1.4);
-  assert.equal(num(tagOf(renderAd(ctx, style, specs['google-gdn-300x600']), 'main'), 'line-height'), 56);   // 10-16: 템플릿 64:1090 메인 상자 101/157 → 행간 56   // 10-15 저녁: 구글 300×600 은 ABL 틀 — 메인 32px × 124.7% = 39.9px(가이드 1.22 대신)
+  assert.equal(num(tagOf(renderAd(ctx, style, specs['google-gdn-300x600']), 'main'), 'line-height'), 38.9);   // 10-16: 비씨월드 300×600 메인 Bold 33 lh118% → 38.9   // 10-15 저녁: 구글 300×600 은 ABL 틀 — 메인 32px × 124.7% = 39.9px(가이드 1.22 대신)
   assert.equal(num(tagOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo']), 'main'), 'line-height'), 69.6);   // 10-15 틀: 템플릿 28:1072 메인 줄 간격 69.6px(50px × 1.39)
 });
 
