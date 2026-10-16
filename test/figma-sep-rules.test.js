@@ -13,6 +13,8 @@ const cutout = (focus, ar, cols, extra = {}) => ({ ar, px: [Math.round(ar * 1000
 const RING = cutout({ x: 0.5, y: 0.49, w: 0.94, h: 0.86, parts: 1, others: [], density: 0.57 }, 1.71, [1, 0.6, 0.4, 0.3, 0.3, 0.4, 0.5, 1], { lum: 0.48, sat: 0.3, semi: 0.157 });
 
 const specs = adSpecEntries();
+// 10-16: 카카오 PC디스플레이 1200×600 은 한국앤컴퍼니 샘플 틀(templateMold)이 생겼다 — 이 파일의 자유 배치 검증은 틀 뗀 사본으로(숫자·안전영역·글자 한도는 그대로)
+specs['kakao-display-pc-promo'] = (e => { const c = structuredClone(e); delete c.rules.safeArea.measuredFromTemplate.mold; return c; })(specs['kakao-display-pc-promo']);
 const ctx = createContext({ client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기', slogan: '자소서 없는 간편지원', role: '자유직무', startDate: '2025-09-22', deadline: '2025-10-12' }, 'recruit');
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
 const style = normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark' });

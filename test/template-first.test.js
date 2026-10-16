@@ -351,5 +351,17 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   const hp = renderAd(ctx, glass, specs['blind-post-banner']); const tp = traceOf(hp);
   assert.deepEqual([tp.mold.rows.main.px, tp.mold.rows.main.pitch, tp.mold.rows.date?.y, tp.mold.rows.detail?.y], [56, 69.4, 297, 357]);
   assert.match(hp, /data-field="date"[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이');
-  for (const id of ['kakao-bizboard-mo', 'instagram-feed-1080', 'naver-gfa-native-mo-342x228']) assert.notEqual(traceOf(renderAd(ctx, glass, specs[id])).mode, 'templateMold', id);
+  for (const id of ['instagram-feed-1080', 'naver-gfa-native-mo-342x228']) assert.notEqual(traceOf(renderAd(ctx, glass, specs[id])).mode, 'templateMold', id);   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트)
+  const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [68, 50, 62, 700, 144, 43, 400], '카카오 비즈보드 틀 64:3325: 메인 Bold 50 y68 · 서브 Regular 43 y144(17px 띔)'); assert.deepEqual(tk.place.tImage, { x: 663, y: 36, w: 313, h: 185, radius: 10 });
+});
+
+test('카카오 PC디스플레이 1200×600 틀 — 한국앤컴퍼니 샘플(421:5491 픽셀 실측): 로고 왼쪽 위 (78,57) 127×50 · 메인 ExtraBold 72 2줄 y131 행간 88 · 날짜 Bold 52 y337 라벨 없이 · 키비주얼은 칸 고정 없이 기존 가이드(10-16)', () => {
+  const t = traceOf(renderAd(ctx, glass, specs['kakao-display-pc-promo']));
+  assert.equal(t.mode, 'templateMold');
+  assert.deepEqual([t.mold.rows.main.y, t.mold.rows.main.px, t.mold.rows.main.pitch, t.mold.rows.main.weight, t.mold.rows.main.lines, t.mold.rows.sub.y, t.mold.rows.sub.px, t.mold.rows.sub.weight], [131, 72, 88, 800, 2, 337, 52, 700]);
+  assert.deepEqual(t.mold.logo, { x: 78, y: 57, w: 127, h: 50 });
+  assert.ok(t.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정 아님(mold.kv slot 없음)');
+  const html = renderAd(ctx, glass, specs['kakao-display-pc-promo']);
+  assert.match(html, /data-field="sub"[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄 라벨 없음(샘플 「9/23(수) ~ 10/5(월)」)');
+  assert.match(html, /data-logo-slot="1"[^>]*left:78px;top:57px/, '로고 칸 왼쪽 위');
 });

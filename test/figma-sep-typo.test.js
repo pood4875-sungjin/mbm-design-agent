@@ -11,6 +11,8 @@ import { CANON } from '../core/canon.js';
 const col = arr => arr.map(bg => ({ bg }));
 const RING = { ar: 1.71, px: [1710, 1000], field: { kind: 'cutout', opaque: 0.04, lum: 0.48, sat: 0.3, semi: 0.157, focus: { x: 0.5, y: 0.49, w: 0.94, h: 0.86, parts: 1, others: [], density: 0.57 }, cols: col([1, 0.6, 0.4, 0.3, 0.3, 0.4, 0.5, 1]), rows: col([1, 0.6, 0.4, 0.3, 0.3, 0.4, 0.5, 1]) } };
 const specs = adSpecEntries();
+// 10-16: 카카오 PC디스플레이 1200×600 은 한국앤컴퍼니 샘플 틀(templateMold)이 생겼다 — 이 파일의 자유 배치 검증은 틀 뗀 사본으로(숫자·안전영역·글자 한도는 그대로)
+specs['kakao-display-pc-promo'] = (e => { const c = structuredClone(e); delete c.rules.safeArea.measuredFromTemplate.mold; return c; })(specs['kakao-display-pc-promo']);
 const fields = { client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기', slogan: '자소서 없는 간편지원', role: '자유직무, 경영·제품·사업 분야', employType: '신입·경력', startDate: '2025-09-22', deadline: '2025-10-12' };
 const ctx = createContext(fields, 'recruit');
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';

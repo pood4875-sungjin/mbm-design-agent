@@ -158,7 +158,7 @@ function safePad(rules, fallback) {
   return { top: n('top') ?? fallback, right: n('right') ?? fallback, bottom: n('bottom') ?? fallback, left: n('left') ?? fallback, stated: true };
 }
 const val = (m, fallback = null) => (m && m.value != null ? m.value : fallback);
-const rect = (r, k) => r ? { x: Math.round(r.x * k), y: Math.round(r.y * k), w: Math.round(r.w * k), h: Math.round(r.h * k) } : null;
+const rect = (r, k) => r ? { x: Math.round(r.x * k), y: Math.round(r.y * k), w: Math.round(r.w * k), h: Math.round(r.h * k), ...(r.radius != null ? { radius: Math.round(r.radius * k) } : {}) } : null;   // radius: 틀 그림 칸 모서리(카카오 비즈보드 템플릿 64:3325 오브젝트 상자 r10, 10-16)
 
 // 버튼(CTA)은 그리지 않는다 — 2026-10-02 사용자 결정("버튼 빼줘 그냥, 우선"). 실제 소재 141장에도 버튼은 없었다. 되살릴 때는 이것만 켠다.
 const SHOW_CTA = false;
@@ -1613,7 +1613,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const blocks = []; const used = {};
     // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
     const rowX = r => r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => r.align ?? mold.align ?? 'left';
-    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r) }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r) }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;

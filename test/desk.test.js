@@ -10,6 +10,8 @@ import { normalizeStyle } from '../core/style.js';
 import { textWidth } from '../core/renderers/banner.js';
 
 const specs = adSpecEntries();
+// 10-16: 카카오 PC디스플레이 1200×600 은 한국앤컴퍼니 샘플 틀(templateMold)이 생겼다 — 이 파일의 자유 배치 검증은 틀 뗀 사본으로(숫자·안전영역·글자 한도는 그대로)
+specs['kakao-display-pc-promo'] = (e => { const c = structuredClone(e); delete c.rules.safeArea.measuredFromTemplate.mold; return c; })(specs['kakao-display-pc-promo']);
 const ctxOf = client => createContext({ client, role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
 const ctx = ctxOf('한진정보통신');
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
