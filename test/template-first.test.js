@@ -365,3 +365,12 @@ test('카카오 PC디스플레이 1200×600 틀 — 한국앤컴퍼니 샘플(42
   assert.match(html, /data-field="sub"[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄 라벨 없음(샘플 「9/23(수) ~ 10/5(월)」)');
   assert.match(html, /data-logo-slot="1"[^>]*left:78px;top:57px/, '로고 칸 왼쪽 위');
 });
+
+test('카카오 비즈보드 둥근 그림 칸(r10): 사진·바탕 있는 그림은 칸을 채우고 모서리를 둥글게, 누끼는 contain 그대로 (10-16 사용자 「라운드 넣거나 누끼면 툭」)', () => {
+  const photo = renderAd(ctx, { ...glass, kvMeta: { ar: 1.5, px: [600, 400], field: { kind: 'photo', opaque: 1 } } }, specs['kakao-bizboard-mo']);
+  assert.match(photo, /data-slot-round="1"[^>]*border-radius:10px;background:url\('[^']*'\) [^;]*\/cover/, '사진: 칸 cover + r10');
+  assert.doesNotMatch(photo, /data-slot-round="1"[^>]*data-melt=/, '둥근 칸은 녹임 없음');
+  const cut = renderAd(ctx, { ...glass, kvMeta: { ar: 1.5, px: [600, 400], field: { kind: 'cutout', opaque: 0.2 } } }, specs['kakao-bizboard-mo']);
+  assert.doesNotMatch(cut, /data-slot-round="1"/, '누끼: 둥근 칸 아님');
+  assert.match(cut, /data-object="1"[^>]*\/contain/, '누끼: contain');
+});

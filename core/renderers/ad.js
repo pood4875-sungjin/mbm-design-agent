@@ -1536,7 +1536,10 @@ function renderAdBase(ctx, style, spec) {
   const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && !transparent && (style.kvMeta?.field?.edges?.top?.flat === false || !field?.seamless));
   // 틀 그림 칸의 그라데이션 바탕 일러스트(kvtypes gradEdge — 가장자리가 지면으로 녹는 그림): cover 로 주인공을 당겨 채우면 캔버스 아래로 몸통이 잘린다(여우 M팝업·PC메인).
   //   몸 전체가 보이게 contain(바닥 맞춤) + 양옆 녹임 — 지면은 이미 그림 가장자리 색(kv-edge)이라 녹인 변이 이어진다(10-15 저녁 사용자 결정)
-  const moldContain = !!(mold && tImage && hasKv && !cutout && !transparent && !logoAsObject && kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.gradEdge);
+  // 둥근 그림 칸(mold.image.radius — 카카오 비즈보드 템플릿 64:3325 오브젝트 상자 r10, 10-16 사용자 「우측 비주얼 라운드 넣거나, 누끼면 그냥 툭」): 사진·바탕 있는 그림은 칸을 채우고(cover) 모서리를 둥글게 자른다(녹임 없음 — 안랩 샘플), 누끼는 칸 안에 contain 그대로
+  const roundSlot = !!(mold && tImage && tImage.radius != null && hasKv && !cutout && !isCutout && !logoAsObject);
+  if (roundSlot) fired('templateMold.slotRound');
+  const moldContain = !!(mold && tImage && hasKv && !cutout && !transparent && !logoAsObject && kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.gradEdge) && !roundSlot;
   if (moldContain) fired('templateMold.containGrad');
   const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : moldContain
@@ -1549,12 +1552,13 @@ function renderAdBase(ctx, style, spec) {
       ? (() => {
           // 그림이 실제로 차지하는 네모(cornerRect, 우하단 맞춤·자르지 않음)에 그린다 — 녹임 마스크가 상자 변이 아니라 그림의 변에서 시작한다.
           // 지면이 그림 가장자리 색과 같지 않으면 글자 쪽 두 변(왼쪽·위)을 녹인다 — "뚝 끊긴" 직선 이음매가 사라진다. 누끼는 그대로. 사진(구글 580)은 상자를 채우고 녹인다
-          const photoCover = (gCorner && kvKindPhoto && !cutout) || (!!mold && !cutout && !isCutout && !transparent && !cornerCrop && !cornerFill);   // 틀 모서리 칸(10-15 밤): 사진·바탕 있는 일러스트는 칸을 채우고 글자 쪽 두 변을 녹인다 — 작은 네모로 contain 하면 「뚝 끊긴」 상자(사용자 「이전 버전이 더 견고」)
+          const photoCover = roundSlot || (gCorner && kvKindPhoto && !cutout) || (!!mold && !cutout && !isCutout && !transparent && !cornerCrop && !cornerFill);   // 틀 모서리 칸(10-15 밤): 사진·바탕 있는 일러스트는 칸을 채우고 글자 쪽 두 변을 녹인다 — 작은 네모로 contain 하면 「뚝 끊긴」 상자(사용자 「이전 버전이 더 견고」)
           if (!!mold && photoCover && !(gCorner && kvKindPhoto)) fired('templateMold.slotCover');
           // 주인공이 그림의 일부면 상자를 주인공으로 채운다(cornerCrop) — 통째로 맞춰 넣으면 상자에 바탕만 보인다
           const rect = (photoCover || cornerCrop || cornerFill) ? tImage : (cornerRect ?? tImage);
           const mL = meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), mT = meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34);
-          return `<div data-object="1" style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : 'right bottom/contain'} no-repeat;${meltCorner ? meltMask2(mL, mT) : ''}overflow:hidden"${meltCorner ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
+          const meltC = meltCorner && !roundSlot;
+          return `<div data-object="1"${roundSlot ? ' data-slot-round="1"' : ''} style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;${roundSlot ? `border-radius:${tImage.radius}px;` : ''}background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : 'right bottom/contain'} no-repeat;${meltC ? meltMask2(mL, mT) : ''}overflow:hidden"${meltC ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
