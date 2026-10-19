@@ -3777,7 +3777,7 @@
    "id": "naver-da-labelcol-1016",
    "date": "2026-10-16",
    "rule": "네이버 DA 상세 = 라벨 Bold 열(x270, 130) + 값 Regular 열(x400, 240) 「모집 기간」「모집 직무」, 날짜 한 줄 고정, 항목 간격 8 (사용자 수정본 107:657)",
-   "source": "docs/naver-gfa-mold.md 개정 3"
+   "source": "docs/naver-gfa-mold.md"
   },
   {
    "id": "google-gdn-template-mold-1016",
