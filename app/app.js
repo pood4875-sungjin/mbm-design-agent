@@ -14,6 +14,7 @@ import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
 import { checkAdDoc } from '../core/adcheck.js';
 import { kvTypeOf, kvTypeSummary, kvTypeChoices, baseKvMeta, applyKvTypeOverride } from '../core/kvtypes.js';
+import { kvGuideText, logoGuideText, checkKv, checkLogo, CHECK_TONE } from '../core/inputcheck.js';   // 10-19 첨부 안내·크기 검사
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
@@ -1215,10 +1216,11 @@ function slotStyle() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
+    ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
     <div class="styleRow">
-      <div><div class="kvthumb" id="kvThumb" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
+      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())}" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
-      <div><div class="kvthumb logo" id="logoThumb" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
+      <div><div class="kvthumb logo" id="logoThumb" title="${escH(logoGuideText())}" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
@@ -1266,6 +1268,7 @@ function slotStyle() {
     try {
       const { suggests, readability, meta } = await analyzeKeyVisual(d);
       it.suggests = suggests; it.kvReadability = readability; it.kvMeta = meta;
+      it.kvCheck = await kvCheckOf(it.kvOrig ?? d, meta); if (it.kvCheck.level === 'weak' || it.kvCheck.level === 'bad') toast(it.kvCheck.text);
       it.kvUse = 'auto';         // 새 그림이면 쓰임도 처음부터
       it.kvTypeOverride = null;  // 유형 지정도 새 그림이면 자동부터 — 사진이 아니면 '전체' 선택지가 사라진다
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
@@ -1290,7 +1293,8 @@ function slotStyle() {
     // 흰색 로고만 올렸으면 그게 다크용 로고이기도 하다 — 지면은 어두운 브랜드색으로 간다
     // 톤·실측은 잉크만(글자 속을 지운 사본이 있으면 그것으로) — 남긴 흰 속을 세면 흰 원판 엠블럼이 「흰색 로고」가 된다(10-12 결정 12)
     try { it.logoTone = await logoToneOf(it.logoMono ?? d); } catch { it.logoTone = 'dark'; }
-    try { it.logoMeta = await logoMetaOfUrl(it.logoMono ?? d); } catch { it.logoMeta = null; }   // 세로 로고 크기·타일 로고 반전 여부(core/logo.js logoMeta → 렌더러)
+    try { it.logoMeta = await logoMetaOfUrl(it.logoMono ?? d); } catch { it.logoMeta = null; }
+    it.logoCheck = await logoCheckOf(it.logoOrig ?? d, { changed: !!prepped.changed, tone: it.logoTone }); if (it.logoCheck.level === 'weak' || it.logoCheck.level === 'bad') toast(it.logoCheck.text);   // 세로 로고 크기·타일 로고 반전 여부(core/logo.js logoMeta → 렌더러)
     if (it.logoLightManual) it.logoTone = it.logoTone === 'light' ? 'light' : 'both';
     else if (it.logoTone === 'light') it.logoLight = d;
     else it.logoLight = null;
@@ -1447,8 +1451,10 @@ $('cvFileIn').onchange = () => {
     const kv = await prepKv(r.result);
     state.intake.kv = kv;
     bub('user', `키비주얼 첨부: ${f.name}`);
-    analyzeKeyVisual(kv).then(({ suggests, readability, meta }) => {
+    state.intake.kvOrig = r.result;   // 원본(전달물·크기 검사용)
+    analyzeKeyVisual(kv).then(async ({ suggests, readability, meta }) => {
       state.intake.suggests = suggests; state.intake.kvReadability = readability; state.intake.kvMeta = meta;
+      state.intake.kvCheck = await kvCheckOf(state.intake.kvOrig ?? state.intake.kv, meta); if (state.intake.kvCheck.level === 'weak' || state.intake.kvCheck.level === 'bad') bub('agent', state.intake.kvCheck.text);
       state.intake.colorsManual = false;
       applyDerived();
       bub('agent', `색을 배치했어요 — 주색 ${state.intake.colors[0]} · 보조 ${state.intake.colors[1]} · 포인트 ${state.intake.colors[2]}.${leadOf(state.intake) === 'logo' ? ' 주색은 로고 색입니다.' : ''}`);
@@ -1461,6 +1467,17 @@ $('cvFileIn').onchange = () => {
 const EXTRA_FIELDS = { edm: ['senderName', 'subject'], landing: ['formFields'], poster: ['printSize'], xbanner: ['printSize'], hyunsumak: ['printSize'], photobooth: ['printSize'] };
 const OFFLINE_CH = ['poster', 'xbanner', 'hyunsumak', 'badge', 'photobooth'];
 
+// 입력 자료 안내·검사 표시(10-19 사용자 「몇 사이즈로 어떤 스펙을 넣어야 잘 나오는지 — 첨부할 때 안내」). 첨부 전엔 권장 스펙, 첨부 뒤엔 판정(core/inputcheck.js)
+const imgSize = u => new Promise(res => { if (!u) return res(null); const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = u; });
+function specLine(label, check, guide) {
+  const ok = check && check.level !== 'na';
+  return `<div><b style="font-weight:600">${label}</b> <span style="color:${ok ? CHECK_TONE[check.level] : 'var(--sub)'}">${escH(ok ? check.text : guide)}</span></div>`;
+}
+function inputSpecHtml(kvCheck, logoCheck) {
+  return `<div class="fontNote" id="inputSpec" style="font-size:11px;color:var(--sub);line-height:1.55;margin-top:8px">${specLine('키비주얼', kvCheck, kvGuideText())}${specLine('로고', logoCheck, logoGuideText())}</div>`;
+}
+async function kvCheckOf(orig, meta) { const T = kvTypeOf(meta); return checkKv((await imgSize(orig)) ?? meta?.px ?? null, T?.type?.id ?? meta?.field?.kind ?? null); }
+async function logoCheckOf(orig, { changed = null, tone = null } = {}) { return checkLogo(await imgSize(orig), { transparent: changed == null ? null : !changed, tone }); }
 function bindUpload(thumb, file, set) {
   thumb.onclick = () => file.click();
   file.onchange = () => {
@@ -2061,6 +2078,7 @@ function renderInspector() {
       <label>키비주얼</label>
       <div class="kvthumb" id="iKv" style="width:100%;height:76px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
+      <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
         <button class="btn" id="iKvClear" style="flex:1">제거</button></div>` : ''}
@@ -2071,6 +2089,7 @@ function renderInspector() {
       </div>
       <input type="file" id="iLogoFile" accept="image/*" style="display:none">
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
+      <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
@@ -2176,6 +2195,10 @@ function renderInspector() {
     // 키비주얼 교체 — 새 이미지의 대표색·가독성을 다시 재고 반영.
     // 색까지 함께 바꾸는 이유: 이미지를 갈아 끼웠는데 팔레트가 전 이미지 색으로 남아 있으면
     // 산출물이 키비주얼과 따로 논다(사용자 지적). 손으로 고친 색은 교체할 때만 덮는다.
+    // 첨부 안내·검사(10-19): 첨부 전엔 권장 스펙, 첨부 뒤엔 원본 크기 판정(원본이 없으면 손질본 크기)
+    { const kb = insp.querySelector('#iKvSpec'), lb = insp.querySelector('#iLogoSpec');
+      if (kb) { kb.textContent = kvGuideText(); if (c.style.keyVisual) kvCheckOf(c.style.kvOrig ?? c.style.keyVisual, c.style.kvMeta).then(ck => { if (ck.level !== 'na') { kb.textContent = ck.text; kb.style.color = CHECK_TONE[ck.level]; } }); }
+      if (lb) { lb.textContent = logoGuideText(); if (c.style.logo) logoCheckOf(c.style.logoOrig ?? c.style.logo, { tone: c.style.logoTone }).then(ck => { if (ck.level !== 'na') { lb.textContent = ck.text; lb.style.color = CHECK_TONE[ck.level]; } }); } }
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
     kvIn.onchange = () => {
@@ -2190,6 +2213,7 @@ function renderInspector() {
         restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
         toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
+        { const ck = await kvCheckOf(r.result, meta); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
       };
       r.readAsDataURL(f);
     };
@@ -2232,6 +2256,7 @@ function renderInspector() {
           restyle({ [key]: src, ...(key === 'logo' ? { logoOrig: r.result } : {}), ...monoPatch, ...(roles ? { colors: roles } : {}), ...tonePatch }, label);
           renderInspector();
           toast(roles ? `${label} — 주색 ${roles[0]}` : label);
+          if (key === 'logo') { const ck = await logoCheckOf(r.result, { changed: src !== r.result }); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
         };
         r.readAsDataURL(f);
       };
