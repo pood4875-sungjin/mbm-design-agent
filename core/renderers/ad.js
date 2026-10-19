@@ -718,8 +718,12 @@ function renderAdBase(ctx, style, spec) {
   const tc = rules.textColors ?? {};
   // 틀의 지면 처리가 영역이면(자소설 PC메인 왼쪽 350×280 만 브랜드 지면, 바탕 mold.bg 흰색) 글자·로고는 영역 밖 바탕(mold.bg) 위에 선다 — 글자색·로고 흰/검은 지면(field)이 아니라 바탕 밝기로(10-15 오후: 지면이 어두워져도 흰 바탕 위 글자가 희어지면 안 된다)
   const moldOnBg = !!(mold?.field && mold.bg);
-  const mainFg0 = tc.main ?? (moldOnBg ? (contrast(mold.bg, '#000000') >= contrast(mold.bg, '#FFFFFF') ? '#000000' : '#FFFFFF') : field ? field.text : '#000000');
+  const regulatedText = !!tc.main || !!mr.fonts?.required;   // 글자색 규정(textColors.main) 또는 규정 매체(자소설·리멤버·카카오)
+  // 사람이 고른 글자색 톤(style.textTone 'dark'|'light', 10-19 「폰트 컬러 다크/라이트 선택」) — 규정 없는 매체에서만. 로고 흰/원색 판정(fgIsDark)도 같이 따라간다
+  const toneOv = (!regulatedText && (style.textTone === 'dark' || style.textTone === 'light')) ? style.textTone : null;
+  const mainFg0 = toneOv ? (toneOv === 'dark' ? '#000000' : '#FFFFFF') : (tc.main ?? (moldOnBg ? (contrast(mold.bg, '#000000') >= contrast(mold.bg, '#FFFFFF') ? '#000000' : '#FFFFFF') : field ? field.text : '#000000'));
   const fgIsDark = mainFg0 !== '#FFFFFF';
+  if (toneOv) fired('textTone.' + toneOv);
   // 가이드 매체의 밝은 지면: 메인은 브랜드색(일화 레드·동부 네이비·비씨 네이비 3/3) — 지면 어디서나 4.5:1이 나올 때만. 어두운 지면은 흰색 그대로(ABL)
   const brandMain = !!(guide?.textColour === 'brand' && field && fgIsDark && !tc.main && !!mr.fonts?.required && p.primary && Math.min(...field.stops.map(s => contrast(s, p.primary))) >= 4.5);   /* 10-19: 글자색 규정 없는 매체는 타이틀 #333 — 밝은 지면 브랜드색 메인(구글 가이드)은 규정 매체에서만(사실상 꺼짐) */
   // 틀 글자색(10-15): 밝은 지면이면 샘플 글자색(세아제강 #555555 · 현대케피코 #000000), 어두운 지면이면 흰색(현대모비스 28:382) — 서브·상세도 흐리게 하지 않고 같은 색(「모든 문구 1가지 색상」)
@@ -727,7 +731,6 @@ function renderAdBase(ctx, style, spec) {
   const moldBrandFg = (mold?.color === 'brand') ? ((p.primary && contrast(p.primary, '#F3F3F3') >= 4.5) ? p.primary : '#1A1A1A') : null;
   // 글자색 규정이 있는 곳만 틀·규정 색을 쓴다(10-19 사용자 「규칙 있는 애들 제외하고 타이틀 #333/#fff, 서브텍스트 오퍼시티 0.7」): 규정 = textColors.main(카카오·캐치·리멤버·NAP 비즈보드) 또는 규정 매체(fonts.required — 자소설·리멤버·카카오, 틀 색 「모든 문구 1가지 색」 유지).
   //   그 밖(구글·NAP 띠/전면·네이버·블라인드·인스타·에브리타임·잡다·당근)은 CANON.textDefault: 밝은 지면 #333 / 어두운 지면 #fff, 서브·날짜·상세는 같은 색 70%
-  const regulatedText = !!tc.main || !!mr.fonts?.required;
   const TD = CANON.textDefault ?? { light: '#333333', dark: '#FFFFFF', subOpacity: 0.7 };
   const moldFg = (mold && regulatedText) ? (fgIsDark ? (moldBrandFg ?? mold.color ?? mainFg0) : (mold.colorDark ?? '#FFFFFF')) : null;
   const defMain = fgIsDark ? TD.light : TD.dark;

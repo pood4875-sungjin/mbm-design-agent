@@ -15,3 +15,18 @@ test('손으로 고친 색(colorsManual)은 지면이 주색을 따라간다 —
   assert.equal(manual.text, '#FFFFFF');
   assert.equal(normalizeStyle({ colors: ['#1E8BFF'] }).colorsManual, false, '기본은 자동');
 });
+
+test('글자색 톤(textTone): 규정 없는 매체는 다크 → #333 글자, 라이트 → 흰 글자(서브 70%) · 규정 매체(자소설)는 무시(10-19 사용자 「텍스트는 무조건 블랙 아니면 화이트, 다크/라이트 선택」)', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); const { registerAll } = await import('../core/generate.js'); const { createContext } = await import('../core/context.js');
+  registerAll();
+  const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', deadline: '2026-10-31' }, 'recruit');
+  const trace = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const base = { colors: ['#1428A0', '#F2D24B', '#5CB85C'], keyVisual: PNG, kvMeta: cutoutMeta };
+  const dark = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, textTone: 'dark' }), {}));
+  assert.equal(dark.text.mainFg, '#333333'); assert.match(dark.text.subFg, /rgba\(51,51,51,0\.7\)/); assert.ok(dark.rules.includes('textTone.dark'));
+  const light = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, textTone: 'light' }), {}));
+  assert.equal(light.text.mainFg, '#FFFFFF'); assert.match(light.text.subFg, /rgba\(255,255,255,0\.7\)/);
+  const jaso = trace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, normalizeStyle({ ...base, textTone: 'light' }), {}));
+  assert.ok(!jaso.rules.includes('textTone.light'), '자소설은 규정 매체 — 톤 무시');
+  assert.equal(normalizeStyle({ colors: ['#000000'] }).textTone, 'auto');
+});

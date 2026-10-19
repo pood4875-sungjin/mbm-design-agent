@@ -36,7 +36,8 @@ import { PRESET_KEYS } from '../core/editlayout.js';
 import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolder, deleteFolder, reorderFolder, moveFolderBy, moveCampaign,
   toggleFolder, folderOf, filterCampaigns, groupCampaigns, nameError, cleanName, displayName, logoSig, tileToneFor, containBox } from '../core/folders.js';
 
-const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };   // 상세 라벨 알약 톤(style.chipTone)
+const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };
+const TONE_LABEL = { auto: '자동', dark: '다크', light: '라이트' };   // 글자색 톤(style.textTone, 10-19)   // 상세 라벨 알약 톤(style.chipTone)
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
@@ -2103,6 +2104,8 @@ function renderInspector() {
       <input type="file" id="iLogoFile" accept="image/*" style="display:none">
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
+      <label>글자색 <span style="opacity:.6">· 규정 매체(자소설·리멤버·카카오)는 규정대로</span></label>
+      <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
@@ -2134,6 +2137,7 @@ function renderInspector() {
         logoTone: c.style.logoTone ?? null,
         logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
         colorsManual: !!c.style.colorsManual,   // 손으로 고친 색(10-19) — 지면이 주색을 따라간다
+        textTone: c.style.textTone ?? 'auto',   // 글자색 톤(10-19)
         logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
         object: c.style.object ?? null,
         objectMeta: c.style.objectMeta ?? null,
@@ -2178,6 +2182,8 @@ function renderInspector() {
     insp.querySelectorAll('#iBgUse button').forEach(b => b.onclick = () => { restyle({ kvUse: b.dataset.u }, b.dataset.u === 'full' ? '사진 전체 + 스크림' : '사진 한쪽 + 녹임'); renderInspector(); });
     // 라벨 알약 톤 — 일괄. 산출물에 개별 값이 있으면 그 산출물은 그대로(overrides.style)
     insp.querySelectorAll('#iChipSeg button').forEach(b => b.onclick = () => { if ((c.style.chipTone ?? 'tint') === b.dataset.ct) return; restyle({ chipTone: b.dataset.ct }, `라벨 알약 ${CHIP_LABEL[b.dataset.ct]}`); renderInspector(); });
+    // 글자색 톤 — 일괄(10-19). 'auto' 지면 밝기 / 'dark' #333 / 'light' 흰. 규정 매체·산출물 개별값은 그대로
+    insp.querySelectorAll('#iToneSeg button').forEach(b => b.onclick = () => { if ((c.style.textTone ?? 'auto') === b.dataset.tt) return; restyle({ textTone: b.dataset.tt }, `글자색 ${TONE_LABEL[b.dataset.tt]}`); renderInspector(); });
     insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
     const dpiBox = insp.querySelector('#iDpi');
@@ -2327,6 +2333,8 @@ function renderInspector() {
       </div>` : ''}
     ${a.channel === 'ad' ? `
       ${artifactFontHtml(a, c)}
+      ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
+      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>` : ''}
 ` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
     <section class="isec">
@@ -2370,6 +2378,19 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 폰트 ${v ? FONTS[v]?.label ?? v : '공통 따름'}`);
   };
+  // 글자색 톤 — 이 산출물만(overrides.style.textTone, 10-19). 비우면 공통
+  insp.querySelectorAll('#iToneOv button').forEach(b => b.onclick = () => {
+    const v = b.dataset.tto || null;
+    if ((a.overrides.style?.textTone ?? null) === v) return;
+    pushHistory(`${artLabel(a)} 글자색 개별 편집`);
+    const st = { ...(a.overrides.style ?? {}) };
+    if (v) st.textTone = v; else delete st.textTone;
+    a.overrides.style = st; a.status = 'draft';
+    logEvent(c, 'manual_edit', { specId: a.specId, style: 'textTone' });
+    regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+    $('inspNote').textContent = '이 산출물만 반영됨';
+    log(`${a.specId} 글자색 ${v ? TONE_LABEL[v] : '공통 따름'}`);
+  });
   // 라벨 알약 톤 — 이 산출물만(overrides.style). 비우면 공통값을 따른다. 일괄 변경이 와도 개별 값은 남는다
   insp.querySelectorAll('#iChipOv button').forEach(b => b.onclick = () => {
     const v = b.dataset.cto || null;
