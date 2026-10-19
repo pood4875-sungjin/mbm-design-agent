@@ -23,3 +23,6 @@ ref/learned/board/*
 !ref/learned/cases/
 ref/learned/cases/*
 !ref/learned/cases/cases.json
+
+# 서브에이전트 작업 트리(정렬 프리셋 등) — 저장소에 올리지 않음
+.claude/worktrees/
