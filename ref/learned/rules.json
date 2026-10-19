@@ -1,6 +1,6 @@
 {
  "note": "규칙 장부 — 한 규칙 = 한 줄. 사람용은 history/규칙장부.md(scripts/rules-ledger.mjs --md 로 표를 다시 만든다). 규칙을 넣거나 바꾸면 여기 한 줄 추가·수정 + 히스토리 기록.",
- "updated": "2026-10-16",
+ "updated": "2026-10-19",
  "rules": [
   {
    "status": "active",
@@ -3879,6 +3879,23 @@
    "round": 64,
    "source": "history/2026-10-16_비주얼우선_지면.md",
    "supersedes": "10-15 틀 하단 칸 누끼 tower 블리드(templateMold.bandBleed)"
+  },
+  {
+   "id": "text-align-preset",
+   "category": "배치·비중",
+   "scope": "all",
+   "status": "active",
+   "rule": "글자 정렬(자동/왼쪽/가운데/오른쪽)은 사람이 고른다 — 캠페인 일괄 + 산출물 개별. 기준이 명확한 규격은 잠긴다: 규정 매체 틀(mediumRules.fonts.required — 자소설·리멤버·카카오)·글자 없는 규격(비주얼만·로고만·전달물)·틀이 정렬을 고정한 규격(mold.alignLocked). 정렬이 키비주얼·로고 자리를 데려간다 — 자유 배치: 왼쪽→오른쪽 열, 오른쪽→왼쪽 열(거울), 가운데→아래 띠(가로형은 띠가 안 서서 자리 유지) / 틀: 글자 칸은 그대로 두고 칸 안 text-align 만, 그림 칸·로고 칸은 렌더 시 거울(오른쪽 x′=w−x−폭, 가운데 가로 가운데 — 글자 줄과 세로로 겹치면 원자리). 글자를 끌어 옮기는 직접 수정은 UI 에서 뺀다(데이터·렌더 훅은 유지).",
+   "value": "style.textAlign auto|left|center|right → ALIGN_KV_PLACE {left:right, right:left, center:bottom} · alignLockOf(spec) {medium|noText|mold} · mirrorSlot x′ = w − x − w_slot / (w − w_slot)/2",
+   "where": "core/alignrule.js · core/editlayout.js (PRESETS.textAlign) · core/renderers/ad.js (TA·AM 훅) · core/guidecheck.js (place.textAlign 오른쪽 분기) · app/editor.js (alignCampaignHtml·alignArtifactHtml, MANUAL_EDIT_UI)",
+   "evidence": [
+    "사용자 10-19 「기준 명확한 거 제외하곤 정렬 선택할 수 있게」·「텍스트 이동하는 기능은 빼도 되는데 정렬만 바꿀 수 있게. 그에 따른 비주얼 위치도 바뀌게」",
+    "시트 ref/learned/cases/_out/cmp-1016/align_sheet.png — ABL 떼 누끼·일화 사진 × 구글 580·블라인드 게시글·게임잡 MO·인스타 스토리·NAP 300×250·리멤버(잠김)",
+    "test/align-preset.test.js 7건(잠금 판정·거울 공식·자유/틀/잠긴 규격 렌더)"
+   ],
+   "since": "2026-10-19",
+   "round": 65,
+   "source": "history/2026-10-19_정렬_프리셋.md"
   }
  ]
 }

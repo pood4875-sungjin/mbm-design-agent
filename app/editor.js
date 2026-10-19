@@ -14,6 +14,10 @@ import { guideFor } from '../core/canon.js';
 import { shapeOf } from '../core/layouts.js';
 import { kvTypeOf } from '../core/kvtypes.js';
 import { renderArtifact } from '../core/contract.js';
+import { ALIGN_CHOICES, alignLockOf, lockedSummary } from '../core/alignrule.js';
+
+// 직접 수정(끌어 옮기기) 손잡이·섹션은 숨긴다(10-19 사용자 「텍스트 이동하는 기능은 빼도 되는데 정렬만 바꿀 수 있게」) — 데이터(overrides.layout)·렌더 훅은 남겨 기존 캠페인이 깨지지 않게
+const MANUAL_EDIT_UI = false;
 
 const RULESET = rulesetOf(RULES_DATA);
 export const GUIDE_RULE_COUNT = GUIDE_RULES.length, GUIDE_HUMAN_COUNT = HUMAN_RULES.length;
@@ -48,6 +52,7 @@ export function createEditor(E) {
     if (key === 'kvSize') return sizeAvail(spec, v, ctx);
     if (key === 'bgFill' || key === 'bgGrad') return key === 'bgFill' ? bgAvail(spec, v, ctx) : (['bg-room', 'bg-texture', 'full'].includes(ctx.mode) && v !== 'auto' ? { ok: false, why: '그림이 곧 지면' } : { ok: true });
     if (key === 'scrim') return (ctx.gate.transparent && v !== 'auto') ? { ok: false, why: '투명 배경 규격' } : { ok: true };
+    if (key === 'textAlign') { const L = alignLockOf(spec); return (v !== 'auto' && L.locked) ? { ok: false, why: L.why } : { ok: true }; }   // 정렬 잠금(10-19 core/alignrule.js)
     return { ok: true };
   };
   // 예전 값(kvUse·background.mode·background.color)을 프리셋 화면에 보이는 값으로
@@ -71,7 +76,7 @@ export function createEditor(E) {
       const notes = cur !== 'auto' ? blocked(cur) : [];
       const why = notes.length ? [...notes.reduce((m, { a, t }) => { const r = availOf(k, a, cur, t).why; m.set(r, (m.get(r) ?? 0) + 1); return m; }, new Map())].map(([r, n]) => `${r} ${n}`).join(' · ') : '';
       return `<div class="pctl" role="group" aria-labelledby="pl-${k}"><div class="plab" id="pl-${k}">${PRESETS[k].label} <span class="pauto">자동: ${escH(dist(k) || '—')}</span></div>
-        <div class="pseg">${Object.keys(PRESETS[k].choices).map(v => { const b = blocked(v).length; return `<button data-pk="${k}" data-pv="${v}" class="${cur === v ? 'on' : ''}" aria-pressed="${cur === v}" title="${escH(PRESETS[k].choices[v])}${b ? ` — ${b}개 규격은 매체 규정·형태 때문에 자동 유지` : ''}">${escH(label(k, v))}${b && v !== 'auto' ? `<sup aria-label="${b}개 규격 적용 안 됨">${b}</sup>` : ''}</button>`; }).join('')}</div>
+        <div class="pseg">${Object.keys(PRESETS[k].choices).map(v => { const b = blocked(v).length; return `<button data-pk="${k}" data-pv="${v}" class="${cur === v ? 'on' : ''}" aria-pressed="${cur === v}" title="${escH(PRESETS[k].choices[v])}${b ? (k === 'textAlign' ? ` — ${b}개 규격은 규정으로 잠김` : ` — ${b}개 규격은 매체 규정·형태 때문에 자동 유지`) : ''}">${escH(label(k, v))}${b && v !== 'auto' ? `<sup aria-label="${b}개 규격 적용 안 됨">${b}</sup>` : ''}</button>`; }).join('')}</div>
         ${k === 'bgFill' ? `<div class="bgrow" style="margin-top:6px"><label class="bgpick"><input type="color" id="pBgColor" value="${escH(c.style.background?.color ?? c.style.palette?.primary ?? '#2456D6')}" aria-label="배경 직접 색">직접 색 고르기</label></div>` : ''}
         ${why ? `<div class="pwhy">적용 안 됨(자동 유지): ${escH(why)}</div>` : ''}</div>`;
     };
@@ -129,6 +134,48 @@ export function createEditor(E) {
     });
   }
 
+  /* ── ①-b 글자 정렬 세그먼트(10-19, 인스펙터 「스타일」) — 캠페인 일괄 + 산출물 개별. 잠긴 규격(규정 매체 틀·글자 없음)은 비활성 + 사유 한 줄(core/alignrule.js alignLockOf) ── */
+  function alignCampaignHtml() {
+    const c = camp(); const list = ads(); if (!list.length) return '';
+    const cur = c.style.textAlign ?? 'auto';
+    const lock = lockedSummary(list.map(a => specOf(a)).filter(Boolean));
+    return `<label>글자 정렬 <span style="opacity:.6">· 키비주얼·로고 자리가 따라감</span></label>
+      <div class="vseg" id="iAlignSeg" role="group" aria-label="글자 정렬">${Object.entries(ALIGN_CHOICES).map(([k, v]) => `<button data-al="${k}" class="${cur === k ? 'on' : ''}" aria-pressed="${cur === k}" title="${escH(v)}">${escH(v)}</button>`).join('')}</div>
+      <div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">왼쪽 → 키비주얼 오른쪽 · 오른쪽 → 왼쪽(거울) · 가운데 → 아래 띠${lock.n ? `<br>${lock.n}개 규격은 규정으로 잠김 — ${escH(lock.reasons.map(([r, n]) => `${r} ${n}`).join(' · '))}` : ''}</div>`;
+  }
+  function bindAlignCampaign(insp, restyle) {
+    const c = camp();
+    insp.querySelectorAll('#iAlignSeg [data-al]').forEach(b => b.onclick = () => {
+      const v = b.dataset.al; if ((c.style.textAlign ?? 'auto') === v) return;
+      restyle({ textAlign: v }, `글자 정렬 ${ALIGN_CHOICES[v]}`);
+      E.renderInspector();
+      document.querySelector(`#iAlignSeg [data-al="${v}"]`)?.focus();
+    });
+  }
+  function alignArtifactHtml(a) {
+    const c = camp(); const spec = specOf(a); if (!spec) return '';
+    const L = alignLockOf(spec);
+    const own = a.overrides?.style?.textAlign ?? null, camp0 = c.style.textAlign ?? 'auto';
+    const t = autoTrace(a);
+    if (L.locked) return `<label>글자 정렬</label><div style="font-size:11.5px;color:var(--sub);line-height:1.5">잠김 — ${escH(L.why)}</div>`;
+    return `<label>글자 정렬 <span style="opacity:.6">공통: ${escH(ALIGN_CHOICES[camp0] ?? camp0)}${camp0 === 'auto' && autoLabel('textAlign', t) ? `(${escH(autoLabel('textAlign', t))})` : ''}</span></label>
+      <div class="vseg" id="iAlignOv" role="group" aria-label="글자 정렬(이 산출물만)"><button data-alo="" class="${!own ? 'on' : ''}" aria-pressed="${!own}">공통 따름</button>${Object.entries(ALIGN_CHOICES).filter(([k]) => k !== 'auto').map(([k, v]) => `<button data-alo="${k}" class="${own === k ? 'on' : ''}" aria-pressed="${own === k}" title="${escH(v)}">${escH(v)}</button>`).join('')}</div>`;
+  }
+  function bindAlignArtifact(insp, a) {
+    insp.querySelectorAll('#iAlignOv [data-alo]').forEach(b => b.onclick = () => {
+      const v = b.dataset.alo || null;
+      if ((a.overrides.style?.textAlign ?? null) === v) return;
+      E.pushHistory(`${E.artLabel(a)} 글자 정렬 개별`);
+      const st = { ...(a.overrides.style ?? {}) };
+      if (v) st.textAlign = v; else delete st.textAlign;
+      a.overrides.style = st; a.status = 'draft';
+      E.logEvent(camp(), 'manual_edit', { specId: a.specId, style: 'textAlign' });
+      E.regen(); E.autosave(); E.refreshFrames(keyOf(a)); E.renderInspector();
+      document.querySelector(`#iAlignOv [data-alo="${v ?? ''}"]`)?.focus();
+      E.log(`${a.specId} 글자 정렬 ${v ? ALIGN_CHOICES[v] : '공통 따름'}`);
+    });
+  }
+
   /* ── ② 직접 수정 ── */
   const frameOf = a => E.frames.get(keyOf(a));
   const rel = (el, base) => { const r = el.getBoundingClientRect(); return { x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height }; };
@@ -160,6 +207,7 @@ export function createEditor(E) {
   let ov = null;   // { a, el, parts, drag }
   function hideOverlay() { ov?.el?.remove(); ov = null; }
   function showOverlay(a) {
+    if (!MANUAL_EDIT_UI) { hideOverlay(); return; }   // 10-19: 끌어 옮기기 진입 숨김 — 정렬 프리셋으로 대신
     const keepFocus = ov?.a && keyOf(ov.a) === keyOf(a) ? document.activeElement?.dataset?.part ?? S.editFocus : S.editFocus;
     hideOverlay();
     if (!a || a.channel !== 'ad') return;
@@ -345,6 +393,7 @@ export function createEditor(E) {
   }
   function renderEditState(a) { const box = document.getElementById('editState'); if (box && S.selected === keyOf(a)) box.innerHTML = editStateHtml(a); const r = document.getElementById('iEditRevert'), p = document.getElementById('iEditProp'); const has = !!normLayout(a.overrides?.layout); if (r) r.disabled = !has; if (p) p.disabled = !has; }
   function editSectionHtml(a) {
+    if (!MANUAL_EDIT_UI) return '';   // 10-19: 직접 수정 섹션 숨김
     const P = partsOf(a); const n = ads().filter(x => x !== a && shapeOf(specOf(x).w, specOf(x).h) === shapeOf(specOf(a).w, specOf(a).h)).length;
     const why = P ? Object.entries(P.why).map(([k, w]) => `<li>${PART_LABEL[k]}: ${escH(w)}</li>`).join('') : '';
     const has = !!normLayout(a.overrides?.layout);
@@ -494,5 +543,5 @@ export function createEditor(E) {
     if (S.selected === keyOf(a)) showOverlay(a);
     guideCheck(a);
   }
-  return { presetCampaignHtml, bindPresetCampaign, presetArtifactHtml, bindPresetArtifact, editSectionHtml, bindEditSection, guideSectionHtml, bindGuideSection, showOverlay, hideOverlay, afterRender, guideBadge, editedBadge, approveSummary, partsOf };
+  return { presetCampaignHtml, bindPresetCampaign, presetArtifactHtml, bindPresetArtifact, alignCampaignHtml, bindAlignCampaign, alignArtifactHtml, bindAlignArtifact, editSectionHtml, bindEditSection, guideSectionHtml, bindGuideSection, showOverlay, hideOverlay, afterRender, guideBadge, editedBadge, approveSummary, partsOf };
 }

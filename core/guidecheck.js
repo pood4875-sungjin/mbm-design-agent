@@ -171,11 +171,12 @@ export const RULES = [
       const act = side === 'bottom' && blk.x >= u.x - t.x && blk.x + blk.w <= u.x + u.w + t.x ? `세로 ${range(blk.y, blk.y + blk.h, H)}` : `가로 ${range(blk.x, blk.x + blk.w, W)} · 세로 ${range(blk.y, blk.y + blk.h, H)}`;
       return { expect: `글자 칸: ${exp}`, actual: act, ok: !out.length, note: out.length ? `칸 밖: ${[...new Set(out.map(x => x.role))].join('·')}${manualOf(C, 'text') ? ' — 직접 수정으로 옮김' : ' — 자동 배치(규칙 과제)'}` : '' }; } },
   { id: 'place.textAlign', group: '배치', name: '글자 시작선(여백·정렬선)', source: 'ad.js trace.place.zone.margin / align',
-    text: '글자 덩어리의 시작선은 자동 배치의 여백 선과 같다 — 왼쪽 정렬은 왼쪽 여백, 가운데 정렬은 가운데 선, 아래 띠 규격은 위 여백까지(±6px 또는 1.5%)',
+    text: '글자 덩어리의 시작선은 자동 배치의 여백 선과 같다 — 왼쪽 정렬은 왼쪽 여백, 가운데 정렬은 가운데 선, 오른쪽 정렬은 오른쪽 여백선, 아래 띠 규격은 위 여백까지(±6px 또는 1.5%)',
     when: C => textsOf(C).length > 0 && !C.m?.ad?.['data-logo-only'] && !!C.trace?.place?.zone,
     // 시작선 = 자동 글자 열의 시작(실측 [data-text-col] 에서 직접 수정 이동을 뺀 것 — 렌더러 여백 pad 와 같다). 글자 잉크의 왼쪽 곁 여백(≤ 4px, 92케이스 실측)은 허용 오차 안
     eval: C => { const Z = C.trace.place.zone, off = textOffPx(C), blk = textBlockOf(C), t = tolOf(C, PLACE_TOL.align, PLACE_TOL.alignPx); const col = C.m?.textCol ? shiftBox(C.m.textCol, -off.x, -off.y) : Z.col ?? shiftBox(blk, -off.x, -off.y); const rows = [], acts = []; let ok = true;
       if (Z.align === 'center') { const e = col.x + col.w / 2, a = blk.x + blk.w / 2; const g = Math.abs(a - e) <= t.x; ok = ok && g; rows.push(`가운데 정렬선 x ${Math.round(e)}px`); acts.push(`${Math.round(a)}px`); }
+      else if (Z.align === 'right') { const e = col.x + col.w, a = blk.x + blk.w; const g = Math.abs(a - e) <= t.x; ok = ok && g; rows.push(`오른쪽 여백선 x ${Math.round(e)}px`); acts.push(`${Math.round(a)}px`); }   // 정렬 프리셋 오른쪽(10-19): 글자 덩어리 오른끝 = 글자 열 오른끝
       else { const g = Math.abs(blk.x - col.x) <= t.x; ok = ok && g; rows.push(`왼쪽 여백 ${Math.round(col.x)}px`); acts.push(`${Math.round(blk.x)}px`); }
       if (Z.side === 'bottom' && Z.v === 'top') { const g = Math.abs(blk.y - col.y) <= t.y; ok = ok && g; rows.push(`위 여백 ${Math.round(col.y)}px`); acts.push(`${Math.round(blk.y)}px`); }
       return { expect: rows.join(' · '), actual: acts.join(' · '), ok, note: ok ? '' : manualOf(C, 'text') ? '직접 수정으로 여백 선에서 벗어남' : '자동 배치의 글자가 여백 선에서 떨어짐(규칙 과제)' }; } },
