@@ -3913,6 +3913,24 @@
    "since": "2026-10-19",
    "round": 66,
    "source": "history/2026-10-16_비주얼우선_지면.md"
+  },
+  {
+   "id": "text-kv-overlap-fix",
+   "category": "배치·비중",
+   "scope": "all",
+   "status": "active",
+   "rule": "글자가 키비주얼 주인공 위에 얹혀 안 보이면 자동으로 고친다. 그린 뒤 글자 행 상자(메인 줄마다·서브·날짜·상세 행, 틀은 행 실측)와 주인공(열·행 투명 프로필이 있는 누끼는 불투명 칸만, 아니면 focus 상자; 글자 쪽 녹인 구간은 뺌)의 겹침 = 교집합 ÷ 글자 행 면적이 문턱(캐릭터·프로필 누끼 2%, 그 외 15% — 검수 textOverSubject 와 같음)을 넘으면 다시 그린다. 자유 배치: ① 글자 줄이기(0.92·0.84·0.75) ② 메인을 회사명 뒤/어절에서 두 줄 ③ 키비주얼 축소(0.85·0.7, 편집 「키비주얼 크기」와 같은 길). 틀: 글자는 템플릿 규정이라 ① 칸 안 그림 축소(누끼는 그림만, 사진은 칸을 우하단으로) ② 글자(규정 매체 0.85 바닥). 처음 문턱 아래로 내려오는 것을 쓰고, 끝까지 안 되면 가장 덜 겹치는 것 + overlapFix.fail(검수가 보고).",
+   "value": "CANON.overlapFix { character .02, other .15, textSteps [.92,.84,.75], textFloor .75, textFloorRegulated .85, kvSteps [.85,.7], cellOpaque .3 } · 루트 data-overlap=\"전%>후%:단계\" · trace rules overlapFix.ok|fail + overlapFix.text|wrap · TR.textBox",
+   "where": "core/renderers/ad.js (renderAd → overlapFix · overlapRatio · objectRects · TR.textBox · FIX 힌트 textK/wrap/kvK) · core/canon.js overlapFix",
+   "evidence": [
+    "사용자 10-19 「키비주얼과 텍스트가 겹쳐서 텍스트가 안 보일 땐 텍스트를 줄이던지 띄어쓰던지 키비주얼 위치를 조정해야 하는데, 그런 규칙도 가능할까?」",
+    "긴 공고(한국산업단지공단 · 산업단지 개발·관리, 기업지원, 경영기획) 5케이스×49규격 발동 10건: 네이버 DA ABL 4→0%(kv) · 당근 25→0% · 블라인드 피드 16~20→0~1% · 자소설 PC팝업 ABL 16→1%, 미다스·동부 7%·2%(fail, 규정 글자 0.85 바닥) — ref/learned/cases/_out/cmp-1016/overlap_fix_sheet.png",
+    "기본 공고(한진정보통신) 발동 4건: 에브리타임 홈카드 15·28→0%, 자소설 M메인 18→0%",
+    "test/overlap-fix.test.js 4건"
+   ],
+   "since": "2026-10-19",
+   "round": 67,
+   "source": "history/2026-10-19_겹침_교정.md"
   }
  ]
 }

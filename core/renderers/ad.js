@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
+import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltLength, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
@@ -176,11 +176,110 @@ function cutWindow(cols, kTarget, kMax = 2.4) {
   for (const a of gaps) for (const b of gaps) { const wf = b - a; if (wf <= 0) continue; const k = 1 / wf; if (k < 1.15 || k > kMax) continue; const d = Math.abs(k - kTarget); if (!best || d < best.d) best = { k: Math.round(k * 100) / 100, left: Math.round(a * 1000) / 1000, d }; }
   return best;
 }
-export function renderAd(ctx, style, spec) {
+let LAST_TR = null;   // renderAdBase 가 만든 추적 객체(겹침 교정이 글자 상자·그림 칸을 읽는다)
+function renderOnce(ctx, style, spec) {
   const bust = bustOf(style, spec);
   const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
-  return cutFade(html, bust ? { ...style, kvMeta: bust.meta } : style, spec);
+  return { html: cutFade(html, bust ? { ...style, kvMeta: bust.meta } : style, spec), tr: LAST_TR, styleUsed: bust ? { ...style, kvMeta: bust.meta } : style };
 }
+export function renderAd(ctx, style, spec) {
+  const first = renderOnce(ctx, style, spec);
+  return overlapFix(ctx, style, spec, first);
+}
+// 겹침 교정 사다리(10-19 사용자 「키비주얼과 텍스트가 겹쳐서 텍스트가 안 보일 땐 텍스트를 줄이던지 띄어쓰던지 키비주얼 위치를 조정해야」):
+//   그린 뒤 글자 어림 상자(TR.textBox 행)와 그림 주인공 상자(kvMeta.field.focus 를 실제 그림 사각형에 투영, 없으면 그림 전체)의 겹침 = 교집합 ÷ 글자 행 면적, 행 중 최대.
+//   문턱은 검수(core/guidecheck.js check.textOverSubject)와 같게 캐릭터·인물 2%, 그 외 15%. 넘으면 ① 글자 줄이기(0.92·0.84·0.75 — 규정 매체 틀은 0.85 바닥) ② 메인 두 줄 ③ 키비주얼 축소(0.85·0.7, 틀은 칸 안 축소만)
+//   순서대로 다시 그려 처음 문턱 아래로 내려오는 것을 쓴다. 끝까지 안 되면 가장 덜 겹치는 것 + overlapFix.fail(검수가 그대로 보고).
+function overlapFix(ctx, style, spec, first) {
+  const C = CANON.overlapFix; if (!C || !style?.keyVisual || style.__fix) return first.html;
+  const f0 = style.kvMeta?.field, profiled = (f0?.opaque ?? 1) < 0.5 && Array.isArray(f0?.cols) && Array.isArray(f0?.rows);   // 열·행 프로필이 있는 누끼는 불투명 칸만 세므로 정확 — 캐릭터가 아니어도 엄한 문턱(네이버 DA ABL 떼: 첫 사람 팔에 글자 4.5%)
+  const thr = (kvTypeOf(style.kvMeta)?.flags?.character || profiled) ? C.character : C.other;
+  const r0 = overlapRatio(first.html, first.tr, first.styleUsed, spec);
+  if (r0 == null || r0 <= thr) return first.html;
+  const regulated = !!spec.mediumRules?.fonts?.required;
+  const floor = regulated ? C.textFloorRegulated : C.textFloor;
+  const textSteps = C.textSteps.filter(k => k >= floor - 1e-9), tk = textSteps.length ? textSteps[textSteps.length - 1] : 1;
+  const steps = [];
+  if (first.tr?.mold) {   // 틀: 글자 크기는 템플릿 규정, 그림 크기는 자유(샘플 「크기·블리드 자유」) — 칸 안 그림 축소부터, 그다음 글자(규정 매체는 0.85 바닥)
+    for (const k of C.kvSteps) steps.push({ kvK: k });
+    const kk = C.kvSteps[C.kvSteps.length - 1];
+    for (const k of textSteps) steps.push({ kvK: kk, textK: k });
+  } else {   // 자유 배치: 사용자가 말한 순서 — 글자 줄이기 → 띄어쓰기(두 줄) → 키비주얼 자리·크기
+    for (const k of textSteps) steps.push({ textK: k });
+    steps.push({ textK: tk, wrap: true });
+    for (const k of C.kvSteps) steps.push({ textK: tk, wrap: true, kvK: k });
+  }
+  let best = { ...first, ratio: r0, step: null };
+  for (const fx of steps) {
+    const out = renderOnce(ctx, { ...style, __fix: fx }, spec);
+    const r = overlapRatio(out.html, out.tr, out.styleUsed, spec) ?? r0;
+    if (r < best.ratio) best = { ...out, ratio: r, step: fx };
+    if (r <= thr) break;
+  }
+  const ok = best.ratio <= thr;
+  const stepName = best.step ? (best.step.kvK ? 'kv' : best.step.wrap ? 'wrap' : 'text') : null;
+  const mark = ok ? 'overlapFix.ok' : 'overlapFix.fail';
+  return best.html
+    .replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`)
+    .replace('<div data-ad="1"', `<div data-ad="1" data-overlap="${Math.round(r0 * 100)}>${Math.round(best.ratio * 100)}${stepName ? ':' + stepName : ''}"`);
+}
+// 글자 행 × 주인공 상자 겹침 비율(0~1) — 그림이 없거나 글자 상자를 못 세면 null
+export function overlapRatio(html, tr, style, spec) {
+  const rows = tr?.textBox?.rows; if (!rows?.length) return null;
+  const objs = objectRects(html, style, spec); if (!objs.length) return null;
+  const f = style.kvMeta?.field ?? null, focus = f?.focus ?? profileFocus(f) ?? null;
+  const cutout = (f?.opaque ?? 1) < 0.5, cols = f?.cols, rws = f?.rows;
+  const prof = cutout && Array.isArray(cols) && cols.length > 1 && Array.isArray(rws) && rws.length > 1;   // 누끼 열·행 투명 프로필이 있으면 칸마다 불투명도로 가중(머리 위 빈 자리·발 옆 빈 자리는 겹침이 아니다)
+  const inter = (A, B) => Math.max(0, Math.min(A.x + A.w, B.x + B.w) - Math.max(A.x, B.x)) * Math.max(0, Math.min(A.y + A.h, B.y + B.h) - Math.max(A.y, B.y));
+  let worst = 0;
+  for (const o of objs) {
+    const pic = o.pic;
+    if (prof) {
+      const nx = cols.length, ny = rws.length, cw = pic.w / nx, ch = pic.h / ny;
+      for (const r of rows) { const A = r.w * r.h; if (!(A > 0)) continue; let s = 0;
+        for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { const cell = { x: pic.x + i * cw, y: pic.y + j * ch, w: cw, h: ch }; const op0 = Math.min(1 - (cols[i]?.bg ?? 1), 1 - (rws[j]?.bg ?? 1)); const op = op0 >= (CANON.overlapFix?.cellOpaque ?? 0.3) ? 1 : 0; if (op <= 0) continue;   /* 칸 불투명도는 이진화 — 팔·다리처럼 가는 부분도 글자가 닿으면 가려진다(네이버 DA ABL 첫 사람 팔) */ const vis = inter(cell, o.clip); if (vis <= 0) continue; s += inter(r, { x: Math.max(cell.x, o.clip.x), y: Math.max(cell.y, o.clip.y), w: Math.min(cell.x + cell.w, o.clip.x + o.clip.w) - Math.max(cell.x, o.clip.x), h: Math.min(cell.y + cell.h, o.clip.y + o.clip.h) - Math.max(cell.y, o.clip.y) }) * op; }
+        worst = Math.max(worst, s / A); }
+      continue;
+    }
+    const full = focus ? { x: pic.x + (focus.x - focus.w / 2) * pic.w, y: pic.y + (focus.y - focus.h / 2) * pic.h, w: focus.w * pic.w, h: focus.h * pic.h } : pic;
+    const x0 = Math.max(full.x, o.clip.x), y0 = Math.max(full.y, o.clip.y), x1 = Math.min(full.x + full.w, o.clip.x + o.clip.w), y1 = Math.min(full.y + full.h, o.clip.y + o.clip.h);
+    const S = { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) }; if (!(S.w > 0 && S.h > 0)) continue;
+    for (const r of rows) { const A = r.w * r.h; if (!(A > 0)) continue; worst = Math.max(worst, inter(r, S) / A); }
+  }
+  return worst;
+}
+// 오브젝트 상자(data-object="1")마다 실제 그림 사각형(pic)·보이는 창(clip = 상자 ∩ 지면) — cutFade 와 같은 계산(contain/cover/auto/px)
+export function objectRects(html, style, spec) {
+  const W = spec.w, H = spec.h; const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar; const out = [];
+  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)px')); return m ? parseFloat(m[1]) : null; };
+  for (const m of html.matchAll(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g)) {
+    const attrs = m[1], st = m[2], rest = m[3]; if (/data-kv-only/.test(attrs) || /inset:0/.test(st)) continue;
+    const bw = num(st, 'width'), bh = num(st, 'height'), bx = num(st, 'left'), by = num(st, 'top'); if (!(bw > 0 && bh > 0) || bx == null || by == null) continue;
+    const bg = st.match(/background:url\('[^']*'\) ([^;]*?)\/([^;]*?) no-repeat;/); if (!bg) continue;
+    const pos = bg[1].trim().split(/\s+/), size = bg[2].trim();
+    const iw = px?.[0] ?? (ar0 ? ar0 * 1000 : bw), ih = px?.[1] ?? (ar0 ? 1000 : bh), ar = iw / ih;
+    const lenOf = (s, total) => s.endsWith('%') ? total * parseFloat(s) / 100 : parseFloat(s);
+    let dw, dh;
+    if (size === 'contain') { const k = Math.min(bw / iw, bh / ih); dw = iw * k; dh = ih * k; }
+    else if (size === 'cover') { const k = Math.max(bw / iw, bh / ih); dw = iw * k; dh = ih * k; }
+    else if (size === 'auto' || size === 'auto auto') { dw = iw; dh = ih; }
+    else { const [sw, sh] = size.split(/\s+/); if (sw === 'auto' && sh) { dh = lenOf(sh, bh); dw = dh * ar; } else if (!sh || sh === 'auto') { dw = lenOf(sw, bw); dh = dw / ar; } else { dw = lenOf(sw, bw); dh = lenOf(sh, bh); } }
+    if (!(dw > 0 && dh > 0)) continue;
+    const word = { left: '0%', right: '100%', center: '50%', top: '0%', bottom: '100%' };
+    const px0 = word[pos[0] ?? 'center'] ?? pos[0], py0 = word[pos[1] ?? 'center'] ?? pos[1];
+    const ox = px0.endsWith('%') ? (bw - dw) * parseFloat(px0) / 100 : parseFloat(px0), oy = py0.endsWith('%') ? (bh - dh) * parseFloat(py0) / 100 : parseFloat(py0);
+    const clip = { x: Math.max(bx, 0), y: Math.max(by, 0) }; clip.w = Math.min(bx + bw, W) - clip.x; clip.h = Math.min(by + bh, H) - clip.y;
+    // 글자 쪽 변의 녹임(data-melt %·방향)은 지면으로 읽힌다 — 그 구간은 주인공에서 뺀다(틀 사진 칸 왼쪽 35%·아래 띠 윗변·양옆 녹임)
+    const melt = parseFloat((rest.match(/data-melt="(\d+(?:\.\d+)?)"/) ?? [])[1] ?? '0'), mdir = (rest.match(/data-melt-dir="([^"]*)"/) ?? [])[1] ?? '', meltR = parseFloat((rest.match(/data-melt-right="(\d+(?:\.\d+)?)"/) ?? [])[1] ?? '0'), meltT = parseFloat((rest.match(/data-melt-top="(\d+(?:\.\d+)?)"/) ?? [])[1] ?? '0');
+    if (melt > 0) { const cutL = (mdir === 'to right' || mdir === 'sides') ? bw * melt / 100 : 0, cutR = mdir === 'to left' ? bw * melt / 100 : mdir === 'sides' ? bw * (meltR || melt) / 100 : 0, cutT = mdir === 'to bottom' ? bh * melt / 100 : 0, cutB = mdir === 'to top' ? bh * melt / 100 : 0;
+      const nx = Math.max(clip.x, bx + cutL), ny = Math.max(clip.y, by + cutT); clip.w = Math.min(clip.x + clip.w, bx + bw - cutR) - nx; clip.h = Math.min(clip.y + clip.h, by + bh - cutB) - ny; clip.x = nx; clip.y = ny;
+      if (meltT > 0) { const ny2 = Math.max(clip.y, by + bh * meltT / 100); clip.h = clip.y + clip.h - ny2; clip.y = ny2; } }
+    if (!(clip.w > 0 && clip.h > 0)) continue;
+    out.push({ box: { x: bx, y: by, w: bw, h: bh }, pic: { x: bx + ox, y: by + oy, w: dw, h: dh }, clip });
+  }
+  return out;
+}
+
 // 끊김 녹임(10-19 사용자 「그라데이션으로 옅게 처리하던지 해 줘. 끊기는 건. 네이버도 마찬가지」) — 그린 뒤 오브젝트 상자마다 실제 그림 사각형을 계산해, 뚝 잘린 변을 지면으로 녹이는 마스크를 더한다(기존 녹임과 교집합).
 //   누끼: 그림이 상자 밖으로 넘친 변(지면 변에서 잘리든 상자 변에서 잘리든) · 사진·바탕 있는 그림: 상자 변이 지면 안쪽에 있는 변(지면 변에 붙은 변은 자연스러운 끝)
 //   제외: 지면 전체 그림(data-kv-only·inset:0) · 둥근 상자(카카오 썸네일·비즈보드 r10) · 템플릿이 여백을 적어 둔 변(mold.image.edgeInset — 자소설 PC팝업 8/30) · 이미 그 변을 녹인 마스크
@@ -286,9 +385,12 @@ function renderAdBase(ctx, style, spec) {
   const p = style.palette;
   const { w, h } = spec;
   // 가이드 대조표용 추적(10-12 scripts/guide-trace.mjs): 이 렌더가 내린 결정을 루트 data-trace(JSON)에 적는다 — 그림엔 영향 없음. rules = 걸린 CANON·유형 규칙 이름
-  const TR = { v: 1, rules: [] };
+  const TR = { v: 1, rules: [] }; LAST_TR = TR;
   // 편집(10-14 core/editlayout.js) — 프리셋·직접 수정이 하나도 없으면 null 이고 아래 모든 분기가 꺼진다(기본 그림 바이트 동일)
   const ED = editOf(style);
+  // 겹침 교정 사다리(10-19 overlapFix, renderAd 가 재렌더 때 넘기는 내부 힌트 — 저장 안 함): textK 글자 배율 · wrap 메인 두 줄 · kvK 키비주얼 배율(편집 「키비주얼 크기」와 같은 자리)
+  const FIX = style.__fix ?? null;
+  const kvK = FIX?.kvK ?? (ED?.kvSize ? KV_SIZE_K[ED.kvSize] : 1);
   const TA = textAlignOf(style, spec);   // 정렬 프리셋(10-19 core/alignrule.js): 'left'|'center'|'right' — 잠긴 규격(규정 매체 틀·글자 없음)은 null
   const fired = n => { if (!TR.rules.includes(n)) TR.rules.push(n); };
   const ladder = copyLadder(ctx);
@@ -573,7 +675,7 @@ function renderAdBase(ctx, style, spec) {
     if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv && !templateLight) fired('glassDark'); if (mold) fired('templateMold'); }
   let bleedP = null;
   // 편집 「키비주얼 크기」: 블리드는 목표 면적을 배율²로(잘림 상한 maxCut 은 그대로)
-  const bleedCfg = b => { const k = ED?.kvSize ? KV_SIZE_K[ED.kvSize] : 1; return k === 1 ? b : { ...b, targetArea: Object.fromEntries(Object.entries(b.targetArea ?? {}).map(([s0, v]) => [s0, [v[0] * k * k, v[1] * k * k]])) }; };
+  const bleedCfg = b => { const k = kvK; return k === 1 ? b : { ...b, targetArea: Object.fromEntries(Object.entries(b.targetArea ?? {}).map(([s0, v]) => [s0, [v[0] * k * k, v[1] * k * k]])) }; };
   const bleedAt = (x0, y0, sym = false) => objectBleedPlace(style, { w, h, x0, y0, shape: L.shape, bleed: bleedCfg(sym ? { ...guide.objectBleed, ...guide.objectBleed.narrow, ...(guide.objectBleed.tower && w <= guide.objectBleed.tower.maxW ? guide.objectBleed.tower : {}) } : guide.objectBleed), sym });
   if (gCorner) {
     const cw = Math.round(w * guide.objectRatio.square), ch = Math.round(h * (guide.objectRatio.squareH ?? 0.6));
@@ -597,12 +699,14 @@ function renderAdBase(ctx, style, spec) {
   // 캐릭터 하나(세로로 선 누끼)는 58%×55% 상자에선 키가 지면의 45% 남짓 — 위가 빈다(에브리타임 288 여우 빈 띠 37%, 캐치 700 30%). 키 72%까지, 폭 64%
   else if (cutCorner) { const solo = (() => { const t = kvTypeOf(style.kvMeta); return !!(t?.flags.character && !t.flags.group); })(); const bw = Math.round(w * (solo ? 0.64 : 0.58)), bh = Math.round(h * (solo ? 0.72 : 0.55)); tImage = { x: w - bw, y: h - bh, w: bw, h: bh }; }
   // 편집 「키비주얼 크기」: 모서리 상자(구글 580·누끼 정사각)·아래 띠 상자를 배율만큼(지면의 75%까지), 우하단에 붙인 채
-  if (ED?.kvSize && tImage && (gCorner || cutCorner) && !bleedP && KV_SIZE_K[ED.kvSize] !== 1) {
-    const k = KV_SIZE_K[ED.kvSize];
+  if (kvK !== 1 && tImage && (gCorner || cutCorner) && !bleedP) {
+    const k = kvK;
     const nh = Math.max(Math.round(h * 0.15), Math.min(Math.round(h * 0.75), Math.round(tImage.h * k)));
     if (tImage.x <= 1) tImage = { x: 0, y: h - nh, w, h: nh };
     else { const nw = Math.max(Math.round(w * 0.15), Math.min(Math.round(w * 0.75), Math.round(tImage.w * k))); tImage = { x: w - nw, y: h - nh, w: nw, h: nh }; }
   }
+  // 겹침 교정(kvK<1) — 틀의 사진·바탕 그림 칸: 칸 자체를 배율만큼 줄여 우하단(글자 반대쪽)에 붙인다. 누끼는 칸은 두고 그림만 줄인다(containSz)
+  if (FIX?.kvK && FIX.kvK < 1 && mold && tImage && (style.kvMeta?.field?.opaque ?? 1) >= 0.5) { const nw = Math.max(8, Math.round(tImage.w * FIX.kvK)), nh = Math.max(8, Math.round(tImage.h * FIX.kvK)); tImage = { ...tImage, x: tImage.x + tImage.w - nw, y: tImage.y + tImage.h - nh, w: nw, h: nh }; }
   const kvKindPhoto = style.kvMeta?.field?.kind === 'photo';
   // 그림이 없고 로고만 있으면 로고가 오브젝트 자리를 차지한다(보드 예시 14/136: 셀트리온·LX·CMTX·제일약품·SPC…) — 작은 상단 로고는 그때 생략
   // 매체가 로고 칸을 따로 정해 둔 템플릿(자소설)에서는 로고를 그 칸에 두고 이미지 칸은 비운다 — 로고가 두 번 나오면 안 된다
@@ -920,7 +1024,7 @@ function renderAdBase(ctx, style, spec) {
     }
   }
   // 편집 「키비주얼 크기」(오른쪽 열): 열 폭 × 배율 — 글자 칸은 안쪽 폭의 42%(CANON objectBleed.minTextCol) 아래로 내려가지 않는다
-  if (ED?.kvSize && objectSide === 'right' && !oBox && !logoAsObject && !bleedP && !strip && KV_SIZE_K[ED.kvSize] !== 1) objW = Math.round(Math.max(innerW * 0.15, Math.min(innerW * (1 - (guide?.objectBleed?.minTextCol ?? 0.42)), objW * KV_SIZE_K[ED.kvSize])));
+  if (kvK !== 1 && objectSide === 'right' && !oBox && !logoAsObject && !bleedP && !strip) objW = Math.round(Math.max(innerW * 0.15, Math.min(innerW * (1 - (guide?.objectBleed?.minTextCol ?? 0.42)), objW * kvK)));
   let objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
   const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
@@ -1299,10 +1403,10 @@ function renderAdBase(ctx, style, spec) {
     }
   }
   // 편집 「키비주얼 크기」(아래 띠): 자동 크기(빈 곳 채우기까지 한 뒤) × 배율 — 그림 높이 상한(CANON fill.maxObject 55%·세로형 64%, 캐릭터 72%) 안. 블리드는 위 bleedCfg 가 맡는다
-  if (ED?.kvSize && objectSide === 'bottom' && !logoAsObject && !tImage && !bleedP && KV_SIZE_K[ED.kvSize] !== 1) {
+  if (kvK !== 1 && objectSide === 'bottom' && !logoAsObject && !tImage && !bleedP) {
     const maxO = (L.shape === 'tall' || L.shape === 'tower') ? Math.max(guide?.fill?.maxObjectTall ?? guide?.fill?.maxObject ?? 0.64, isCutout ? 0.72 : 0) : (guide?.fill?.maxObject ?? 0.55);
     const full = objReserve === objH;
-    objH = Math.round(Math.max(h * 0.12, Math.min(h * maxO, objH * KV_SIZE_K[ED.kvSize])));
+    objH = Math.round(Math.max(h * 0.12, Math.min(h * maxO, objH * kvK)));
     objReserve = full ? objH : Math.round(objH * (1 - overlap));
   }
   // 자리의 글자 쪽 변이 그림 한가운데 걸리면(주인공으로 당겼거나 그림이 자리보다 길어서) 그 줄의 바탕색으로 지면을 잇는다 — 흰 글로우 바탕이 연파랑 지면 위에 네모로 뜨지 않게
@@ -1384,6 +1488,23 @@ function renderAdBase(ctx, style, spec) {
         if (pr.length === 2) { let f2 = mainFs; while (f2 > floorFs && need(pr.join('\n'), f2) > mainLines) f2--; copy.main = pr.join('\n'); mainFs = f2; }
       }
     }
+  }
+  // 겹침 교정 사다리 ② 줄바꿈: 메인을 회사명 뒤(없으면 폭이 비슷한 어절)에서 두 줄로 — 줄 수 상한 안에서, 글자 바닥(floorMain) 위에서만
+  if (FIX?.wrap && !mold && stated.main == null && !String(copy.main).includes('\n') && (mainLinesCap ?? 2) >= 2) {
+    const words = String(copy.main).split(' ').filter(Boolean);
+    if (words.length >= 2) {
+      let cutAt = -1;
+      if (core.client && String(copy.main).startsWith(core.client + ' ')) cutAt = core.client.split(' ').length;
+      else { let bd = Infinity; for (let i = 1; i < words.length; i++) { const d = Math.abs(textWidth(words.slice(0, i).join(' ')) - textWidth(words.slice(i).join(' '))); if (d < bd) { bd = d; cutAt = i; } } }
+      const pr = cutAt > 0 ? [words.slice(0, cutAt).join(' '), words.slice(cutAt).join(' ')].filter(Boolean) : [];
+      if (pr.length === 2) { const fs2 = Math.min(mainFs, Math.floor(mainW / (Math.max(...pr.map(t => textWidth(t))) * 1.04)), Math.floor(titleBudget / (2 * mainLine))); if (fs2 >= floorMain) { copy.main = pr.join('\n'); mainFs = fs2; mainLines = 2; fired('overlapFix.wrap'); } }
+    }
+  }
+  // 겹침 교정 사다리 ① 글자 줄이기: 메인·서브·상세를 배율만큼(바닥 floorMain·10px) — 틀은 아래 mold 블록의 pxOf 가 같은 배율을 쓴다
+  if (FIX?.textK && FIX.textK < 1 && !mold) {
+    if (stated.main == null) mainFs = Math.max(floorMain, Math.round(mainFs * FIX.textK));
+    z = { ...z, dFs: Math.max(10, Math.round(z.dFs * FIX.textK)), subFs: Math.max(10, Math.round(z.subFs * FIX.textK)), smallFs: Math.max(10, Math.round(z.smallFs * FIX.textK)) };
+    fired('overlapFix.text');
   }
   if (globalThis.__adDebug) globalThis.__adDebug({ spec: spec.id, shape: L.shape, textW, textH, titleBudget, capMain, mainCap, mainFs, mainLines, mainLinesCap, preferMain, main: copy.main, sub: copy.sub, pad: { ...pad }, detailW, details: detailLines.map(d => `${d.label}:${d.rows}`), dFs: z.dFs, subFs: z.subFs, objW, objH, objectSide, tImage });
   TR.place = { shape: L.shape, objectSide, mode: photoFull ? 'full' : frameFull ? 'bg-frame' : textureFull ? 'bg-texture' : roomFull ? 'bg-room' : !hasKv ? 'none' : bleedP ? (bleedP.sym ? 'bleed-sym' : 'bleed') : oBox ? 'box' : (tImage && imgCorner) ? (cutCorner ? 'corner-contain' : cornerFill ? 'corner-cover' : 'corner') : (tImage && imgBottomBand) ? `template-band-${bandMode}` : tImage ? 'template' : objectSide === 'right' ? 'column' : objectSide === 'bottom' ? 'band' : 'none',
@@ -1469,6 +1590,18 @@ function renderAdBase(ctx, style, spec) {
       ? { x: pad.left, y: pad.top, w: innerW, h: Math.max(0, innerH - objReserve - 12) }
       : { x: mirrorX ? w - pad.left - colW : pad.left, y: pad.top, w: colW, h: innerH };
     const v = anchorJ ? ED.textAnchor : distribute ? 'distribute' : (useRef ? vCenter : tall && objectSide === 'none') ? 'center' : strip ? 'center' : 'top';
+    // 글자 덩어리 어림 상자(겹침 교정 overlapFix 가 읽는다): 메인 줄마다 폭(textWidth×크기×1.04)·높이(줄 피치), 나머지 블록(서브·날짜·상세·칩)은 한 덩어리. 세로 자리는 v, 가로 자리는 align
+    if (col && copy.main) {
+      const lh = Math.round(mainFs * mainLine), mains = String(copy.main).split('\n').map(t => ({ w: Math.min(col.w, Math.round(textWidth(t) * mainFs * 1.04)), h: lh }));
+      const rest = { w: Math.min(col.w, Math.round(Math.max(detailW ?? col.w, textW * 0.5))), h: Math.max(0, Math.round(blocksOf(z))) };
+      const H = mains.reduce((s, r) => s + r.h, 0) + rest.h;
+      const y0 = v === 'center' ? col.y + Math.max(0, (col.h - H) / 2) : v === 'bottom' ? col.y + Math.max(0, col.h - H) : col.y;
+      const xOf = rw => align === 'center' ? col.x + (col.w - rw) / 2 : align === 'right' ? col.x + col.w - rw : col.x;
+      let yy = y0; const rows = [];
+      for (const r of mains) { rows.push({ role: 'main', x: Math.round(xOf(r.w)), y: Math.round(yy), w: r.w, h: r.h }); yy += r.h; }
+      if (rest.h > 0) rows.push({ role: 'rest', x: Math.round(xOf(rest.w)), y: Math.round(v === 'distribute' ? col.y + col.h - rest.h : yy), w: rest.w, h: rest.h });
+      TR.textBox = { v, align, rows };
+    }
     TR.place.zone = { col, cut: (imgCorner && hasKv && tImage) ? { ...tImage } : null, detailW: (imgCorner && hasKv) ? detailW : null, spanW: Math.max(textW, mainW ?? 0, subW ?? 0), room: roomFull?.room ? { ...roomFull.room } : null, objTop: objectSide === 'bottom' ? h - pad.bottom - objReserve : null, side: objectSide === 'right' ? (mirrorX ? 'left' : 'right') : objectSide, align, v, margin: { left: mirrorX ? w - pad.left - colW : pad.left, top: pad.top, right: pad.right, bottom: pad.bottom } };
   }
   if (ED) {
@@ -1585,8 +1718,10 @@ function renderAdBase(ctx, style, spec) {
   const melt = dir => (transparent || cutout) ? '' : meltMask(dir, fadeFor(dir));
   const meltAttr = dir => (transparent || cutout) ? '' : ` data-melt="${fadeFor(dir)}" data-melt-dir="${dir}"`;   // 가이드 대조표(guide-trace)가 읽는 녹임 길이 — 마스크와 같은 값
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
+  // 겹침 교정(kvK<1)으로 틀 칸·아래 띠의 누끼를 줄일 때: contain 대신 그 배율의 높이(우하단·바닥 가운데 정렬은 그대로)
+  const containSz = (bw, bh) => (FIX?.kvK && FIX.kvK < 1 && kvAR) ? `auto ${Math.max(8, Math.round(Math.min(bh, bw / kvAR) * FIX.kvK))}px` : 'contain';
   const kvFill = (pos, join) => { const c = (cutout || !tImage) ? null : subjectCrop(style, tImage.w, tImage.h);
-    return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/contain` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
+    return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/${containSz(tImage.w, tImage.h)}` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
   // 로고가 오브젝트일 때 — 칸 가운데에 크게(칸 폭의 2/3, 높이의 절반 안). 셀트리온·LX 예시처럼 로고 하나가 그림 노릇을 한다
   const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${mirrorX ? w - x - zw : x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
   // 매체 오브젝트 상자(카카오 썸네일형): 둥근 상자 안에 그림을 채운다(누끼는 맞춰 넣기). 상하 여백이 남는다 — 가이드 Good Case
@@ -1645,14 +1780,14 @@ function renderAdBase(ctx, style, spec) {
           const rect = (photoCover || cornerCrop || cornerFill) ? tImage : (cornerRect ?? tImage);
           const mL = meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), mT = meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34);
           const meltC = meltCorner && !roundSlot;
-          return `<div data-object="1"${roundSlot ? ' data-slot-round="1"' : ''} style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;${roundSlot ? `border-radius:${tImage.radius}px;` : ''}background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : 'right bottom/contain'} no-repeat;${meltC ? meltMask2(mL, mT) : ''}overflow:hidden"${meltC ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
+          return `<div data-object="1"${roundSlot ? ' data-slot-round="1"' : ''} style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;${roundSlot ? `border-radius:${tImage.radius}px;` : ''}background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : `right bottom/${containSz(rect.w, rect.h)}`} no-repeat;${meltC ? meltMask2(mL, mT) : ''}overflow:hidden"${meltC ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"${bandMelt ? meltAttr('to bottom') : ''}></div>`
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : moldBandH ? `center bottom/auto ${moldBandH}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
+      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : moldBandH ? `center bottom/auto ${moldBandH}px` : `center bottom/${containSz(tImage.w, tImage.h)}`) : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
       // 오른쪽 열의 누끼는 열 바닥·오른쪽 변에 붙인다(10-19 사용자 「배경과 키비주얼 쪽 여백 애매하게 생기지 않도록 전수조사」 — kv-gap-audit: 열 안 가운데 정렬이면 오른쪽에 그림 폭 남은 몫의 절반(리멤버 22~92px·에브리타임 7px·NAP 띠 2~8px)이 애매하게 비었다. 10-15 저녁 「열 안 누끼 center bottom」 은 이 결정으로 바뀜. 왼쪽 열(자소설 PC메인)은 그대로)
       : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? (cutout ? 'center bottom' : 'left center') : imgRightCol ? (cutout ? 'right bottom' : 'right center') : 'center bottom', imgLeftCol ? 'right center' : imgRightCol ? 'left center' : 'center top')}${melt(imgLeftCol ? 'to left' : imgRightCol ? 'to right' : 'to bottom')}overflow:hidden"${meltAttr(imgLeftCol ? 'to left' : imgRightCol ? 'to right' : 'to bottom')}></div>`)
     : '';
@@ -1700,12 +1835,12 @@ ${tplLogo}${kvWrap(tplObject)}
   if (mold) {
     const MR = mold.rows ?? {}, k = tScale;
     const sx = Math.round((mold.x ?? tText?.x ?? pad.left) * k), colW = Math.round((mold.w ?? (w / k - (mold.x ?? pad.left) - pad.right)) * k);
-    const pxOf = r => Math.round(r.px * k), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
+    const pxOf = r => Math.round(r.px * k * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
     const topOf = r => r.chip ? Math.round(r.y * k * 10) / 10 : Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;   // 알약 행(날짜 칩)은 칩 상자 top 이 곧 y
     const blocks = []; const used = {};
     // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
     const rowX = r => r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA: 정렬 프리셋(10-19) — 칸은 그대로, 칸 안 text-align 만 */
-    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r) }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+    const put = (role, r, lines, weight, color, inner, text) => { const t = topOf(r), px = pxOf(r), pitch = pitchOf(r); used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
@@ -1781,6 +1916,7 @@ ${tplLogo}${kvWrap(tplObject)}
       // 「상세 입력 시 하단부터」(M메인 템플릿 1:8625): 쓰는 줄이 적으면 아래 줄부터 채운다 — 블록 y 를 빈 줄만큼 내린다
       const dRow = dR.fillFromBottom ? { ...dR, y: dR.y + Math.max(0, cap - n) * (dR.pitch ?? dR.px * 1.2) } : dR;
       if (rows.length) put('detail', dRow, dR.labelCol ? Math.min(cap, Math.max(1, Math.ceil(colH / pitchOf(dR)))) : Math.min(cap, Math.max(1, n)), dR.weight ?? fwOf('detailValue', pxOf(dR)), detailFg, `<div style="text-wrap:${dR.valuesOnly ? 'balance' : 'pretty'}${dR.valuesOnly ? ';word-break:keep-all;overflow-wrap:normal' : ''}">${inner}</div>`, rows.map(d => d.value).join(' '));   /* valuesOnly(인스타 가운데 2줄)는 두 줄 길이를 고르게 */
+      if (used.detail) Object.assign(used.detail, { items: rows.map(d => ({ label: labelOf(d.label), value: String(d.value ?? ''), rows: d.rows ?? 1, col: !!d.col, inline: !!d.inline })), labelCol: Math.round((dR.labelCol ?? 0) * k), valueW: MR.detail.valueW ? Math.round(MR.detail.valueW * k) : null, gap: dR.labelCol ? Math.round((dR.gap ?? 0) * k) : 0 });   /* 겹침 교정(overlapFix)이 행마다 실제 글자 폭을 어림하려고 — 라벨 열·값 열 폭·줄 수 */
     }
     if (MR.date && mR && (copy.date || ctx.core?.deadline || ctx.kind === 'recruit')) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
       const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -1842,6 +1978,21 @@ ${tplLogo}${kvWrap(tplObject)}
     TR.place = { ...TR.place, mode: 'mold', tImage, imgCol: imgLeftCol ? 'left' : imgRightCol ? 'right' : imgBottomBand ? 'bottom' : imgCorner ? 'corner' : null, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: TA ?? mold.align ?? 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
     TR.copy = { ...(TR.copy ?? {}), sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.map(d => d.label) : [] };
     TR.mold = { source: mold.source ?? null, rows: used, mainN, field: fz, logo: tLogo, image: tImage, labels: { period: labelOf('접수기간') }, color: moldFg };
+    if (FIX?.textK && FIX.textK < 1) fired('overlapFix.text');
+    // 글자 덩어리 어림 상자(겹침 교정 overlapFix): 틀 행마다 top·피치·줄 수, 폭은 글자 폭(textWidth×px×1.04, 행 폭 안) — 정렬대로 x
+    { const rows = [];
+      for (const [role, u] of Object.entries(used)) {
+        if (role === 'detail' && u.items?.length) {   // 상세: 항목마다 「라벨 열 + 값 열(valueW 안에서 접힘)」 또는 「라벨 : 값」 한 줄 — 실제 글자 폭으로(칸 폭 740 전체로 잡으면 네이버 DA 그림 칸까지 닿아 거짓 겹침·반대로 값이 그림 밑으로 길게 흐르는 건 잡아야 한다)
+          let yy = u.top;
+          for (const it of u.items) { const valW = Math.round(textWidth(it.value) * u.px * 1.04), colW2 = u.valueW ?? Math.max(1, u.w - u.labelCol);
+            const n = Math.max(1, it.rows ?? 1);
+            for (let i = 0; i < n; i++) { const rw = it.col ? Math.min(u.w, u.labelCol + Math.min(colW2, n > 1 && i < n - 1 ? colW2 : valW)) : Math.min(u.w, it.inline ? Math.round(textWidth(`${it.label} : ${it.value}`) * u.px * 1.04) : Math.max(Math.round(textWidth(it.label) * u.px * 1.04), Math.min(valW, u.w)));
+              rows.push({ role, x: u.x, y: Math.round(yy * 10) / 10, w: rw, h: u.pitch }); yy += u.pitch; }
+            yy += u.gap ?? 0; }
+          continue; }
+        const lines = role === 'main' ? String(u.text ?? '').split('\n') : [String(u.text ?? '')]; const n = Math.max(1, Math.min(u.lines ?? 1, role === 'main' ? lines.length : (u.lines ?? 1)));
+        for (let i = 0; i < n; i++) { const t = role === 'main' ? lines[i] ?? '' : (lines[0] ?? ''); const rw = role === 'tags' ? u.w : role === 'detail' ? Math.min(u.w, Math.round(Math.max(0, ...(detailLines ?? []).map(d => textWidth(`${labelOf(d.label)} : ${d.value ?? ''}`))) * u.px * 1.04) || u.w) : Math.min(u.w, Math.round(textWidth(t) * u.px * 1.04) || u.w);   /* 상세 행 폭 = 가장 긴 「라벨 : 값」 글자 폭(행 폭 전체로 잡으면 그림 칸까지 닿아 거짓 겹침 — 자소설 팝업) */ const x = u.align === 'center' ? u.x + (u.w - rw) / 2 : u.align === 'right' ? u.x + u.w - rw : u.x; rows.push({ role, x: Math.round(x), y: Math.round((u.top + i * u.pitch) * 10) / 10, w: rw, h: u.pitch }); } }
+      TR.textBox = { v: 'mold', align: mold.align ?? 'left', rows }; }
     TR.fonts = { ...TR.fonts, main: used.main ? { ...(TR.fonts?.main ?? {}), px: used.main.px, weight: used.main.weight, lh: Math.round(used.main.pitch / used.main.px * 100) / 100, lines: mainN } : TR.fonts?.main, sub: used.sub ? { ...(TR.fonts?.sub ?? {}), px: used.sub.px, weight: used.sub.weight, lh: Math.round(used.sub.pitch / used.sub.px * 100) / 100 } : null, detail: used.detail ? { ...(TR.fonts?.detail ?? {}), px: used.detail.px, value: used.detail.weight, lh: Math.round(used.detail.pitch / used.detail.px * 100) / 100 } : null, logoCapW: null };
     return `${open('')}
 ${moldField}${moldKv}${scrimEl}${bandEl}

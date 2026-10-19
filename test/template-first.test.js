@@ -62,7 +62,7 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
   assert.match(html, /data-logo-slot="1" style="position:absolute;left:375px;top:33px;width:143px;height:23px;[^"]*justify-content:flex-end/);
   assert.match(html, /<img data-logo="1"[^>]*max-width:100%/); assert.doesNotMatch(html, /max-width:min\(100%/, '로고 상한 없음(칸이 크기)');
   // 그림: 칸(293,187 249×183)의 위치·범위만 틀 — 처리는 디자인 가이드(모서리 상자: 누끼 contain 우하단, 바탕 있는 그림 cover + 녹임). 칸 밖으로 나가지 않는다
-  const ob = html.match(/data-object="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px;[^"]*right bottom\/contain/);
+  const ob = html.match(/data-object="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px;[^"]*right bottom\/(contain|auto \d+px)/);   // auto Npx = 겹침 교정 사다리가 칸 안에서 누끼를 줄인 것(10-19 overlapFix — 긴 직무 값이 칸 밑으로 흘러 21%→11%)
   assert.ok(ob && +ob[1] >= 293 && +ob[2] >= 187 && +ob[1] + +ob[3] <= 542 && +ob[2] + +ob[4] <= 370, 'KV 는 그림 칸 안(블리드 없음): ' + (ob && ob[0]));
   assert.doesNotMatch(html, /data-scrim/);
 });
@@ -245,7 +245,7 @@ test('에브리타임 틀 — 커뮤니티보드 1:771(메인 45 y79 · 날짜 3
   assert.deepEqual([R2.main.y, R2.main.px, R2.main.weight, R2.detail.y, R2.detail.px, R2.detail.weight, R2.detail.lines], [45, 30, 700, 94, 30, 500, 1]);
   assert.match(hb, /<b style="font-weight:500">모집기간:<\/b> (~10\.12\(일\)|9\.22\(월\) - 10\.12\(일\))/, '1줄 칸(369px, 10-16 템플릿 글자 상자 폭)에 들어가는 날짜');
   assert.match(hb, /data-object="1" style="position:absolute;left:\d+px;top:0px;width:\d+px;height:200px;/);
-  const hc = renderAd(ctx, flat, specs['everytime-home-card-image']); const t3 = traceOf(hc), R3 = t3.mold.rows;
+  const hc = renderAd(ctx, { ...flat, __fix: {} }, specs['everytime-home-card-image']); const t3 = traceOf(hc), R3 = t3.mold.rows;   // __fix {}: 겹침 교정 사다리 끔(10-19) — 이 픽스처의 긴 직무 값이 그림 칸 밑으로 흘러 사다리가 글자를 0.84 로 줄인다(의도된 동작, test/overlap-fix.test.js). 여기선 틀 실측값만 확인
   assert.deepEqual([R3.sub.y, R3.sub.px, R3.main.y, R3.main.px, R3.main.pitch, R3.main.weight, R3.detail.y, R3.detail.px, R3.detail.pitch], [42, 31, 98, 52, 68, 800, 309, 23, 30]);   // 10-16 코엑스 최종 67:910: 「모집분야」 알약(50,253 118×39) + 값 Bold 23 y309
   assert.match(hc, /data-field="chip" style="position:absolute;left:0px;top:[\d.]+px;width:118px;height:39px;[^"]*justify-content:flex-start;border-radius:0px;background:transparent/, '「모집분야」 라벨 글자만 — 10-16 사용자 「라운드 없애 줘」(알약 없이 같은 자리)');
   assert.doesNotMatch(hc, /data-chip="1"/, '홈카드에 알약 없음');
