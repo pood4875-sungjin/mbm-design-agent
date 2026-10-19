@@ -1,6 +1,6 @@
 # 키비주얼 여백 전수조사 (kv-gap-audit)
 
-- 생성: `node scripts/kv-gap-audit.mjs` · 2026-10-19 04:18 · 규격 49(추출 규격 중 전달물 제외) × 케이스 5
+- 생성: `node scripts/kv-gap-audit.mjs` · 2026-10-19 04:37 · 규격 49(추출 규격 중 전달물 제외) × 케이스 5
 - 케이스: `t1014-abl` 여러 오브젝트·캐릭터 떼 · 덩어리 여럿 · 가로형 · `midas-glass-mint` 장식 프레임 누끼(가운데가 빈 유리 슬랩) · 주인공 39% · 어두운 바탕 · 어두운 지면 우선 · 전면 배경 · 가로형 · `dongbu_illust` 단일 사물 누끼 · 가로형 · `bc-illust` 배경과 엮인 장면 일러스트·3D · 가로형 · `t1014-hanssem` 꽉 찬 사진 · 가장자리 그라데이션 · 가로형
 - 판정: 그림(누끼 contain 은 kvMeta.px 비율로 계산한 실제 그림, 사진 cover 는 칸) 오른쪽·아래 변이 캔버스 변에서 **2px 초과 ~ 변 길이 12% 이하** 떨어지면 ✗. 12% 넘으면 의도한 여백 ✓(수치 남김). 왼쪽/위(글자 쪽)는 안 잰다. 누끼 PNG 안의 투명 여백은 그림 사각형에 포함(원본 자산의 여백은 따로).
 - 예외(✓, 수치는 남김): ① 매체 JSON `mold.image.edgeInset` — 템플릿 칸 자체가 안쪽(자소설 PC팝업 샘플 상자 오른 8·아래 30, 카카오 비즈보드 r10 상자 오른 53·아래 37) ② 캔버스 좌우 변에 다 닿는 전폭 띠 안에서 그림이 좌우 대칭 가운데(NAP 320×480 사용자 수정본도 좌우 25/25) — 「한쪽이 비는」 틈이 아님.
@@ -31,7 +31,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| t1014-abl | templateMold templateMold,templateMold.logoArea,templateMold.bandBleed | (0,400) 160×200 | (-57.8,427) 275.5×173 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| t1014-abl | templateMold templateMold,templateMold.logoArea | (0,400) 160×200 | (0,499.5) 160×100.5 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · PC스탠다드패키지 - PC메인배너 `jasoseol-pc-standard-main-pc` 1200×280
 
@@ -43,7 +43,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| t1014-abl | templateMold templateMold,templateMold.logoArea,templateMold.bandBleed | (0,400) 160×200 | (-57.8,427) 275.5×173 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| t1014-abl | templateMold templateMold,templateMold.logoArea | (0,400) 160×200 | (0,499.5) 160×100.5 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · M프리미엄패키지 - M팝업배너 `jasoseol-m-premium-popup-mo` 600×880
 
@@ -175,7 +175,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| t1014-abl | templateMold templateMold,templateMold.bandBleed | (0,689) 300×361 | (-108.8,725) 517.6×325 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| t1014-abl | templateMold templateMold | (0,689) 300×361 | (0,861.6) 300×188.4 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### NAP DSP (나스미디어) · 띠배너 320×50 (2배 추출 640×100) `nap-dsp-band-320x50` 320×50
 
@@ -325,7 +325,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.logoArea,templateMold.bandBleed | (0,400) 160×200 | (-58.3,451) 276.7×149 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold,templateMold.logoArea | (0,400) 160×200 | (0,513.8) 160×86.2 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · PC스탠다드패키지 - PC메인배너 `jasoseol-pc-standard-main-pc` 1200×280
 
@@ -337,13 +337,13 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.logoArea,templateMold.bandBleed | (0,400) 160×200 | (-58.3,451) 276.7×149 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold,templateMold.logoArea | (0,400) 160×200 | (0,513.8) 160×86.2 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · M프리미엄패키지 - M팝업배너 `jasoseol-m-premium-popup-mo` 600×880
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.logoArea,templateMold.bandBleed | (0,557) 600×323 | (0.1,557) 599.7×323 contain | 0.1 (0) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold,templateMold.logoArea | (0,557) 600×323 | (0.1,557) 599.7×323 contain | 0.1 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · M프리미엄패키지 - M채팅목록배너 로고 (PDF 명칭: M텍스트배너) `jasoseol-m-premium-chatlist-logo-mo` 300×180
 
@@ -463,13 +463,13 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.bandBleed | (-49,386) 397×214 | (-49,386.2) 397×213.8 contain | 0 (-48) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold | (-49,386) 397×214 | (-49,386.2) 397×213.8 contain | 0 (-48) | 0 (0) | ✓ 붙음 |
 
 ### 구글 GDN · GDN 고정 배너 300×1050 `google-gdn-300x1050` 300×1050
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.bandBleed | (0,689) 300×361 | (-109,771) 518×279 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold | (0,689) 300×361 | (0,888.4) 300×161.6 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### NAP DSP (나스미디어) · 띠배너 320×50 (2배 추출 640×100) `nap-dsp-band-320x50` 320×50
 
@@ -493,7 +493,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.logoArea,templateMold.bandBleed | (0,308) 320×172 | (0.3,308) 319.4×172 contain | 0.3 (0) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold,templateMold.logoArea | (0,308) 320×172 | (0.3,308) 319.4×172 contain | 0.3 (0) | 0 (0) | ✓ 붙음 |
 
 ### 인스타그램 · 인스타그램 피드 (기본형 1080×1080) `instagram-feed-1080` 1080×1080
 
@@ -619,7 +619,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| dongbu_illust | templateMold templateMold,templateMold.bandBleed | (0,400) 160×200 | (-55.1,400) 270.1×200 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| dongbu_illust | templateMold templateMold | (0,400) 160×200 | (0,481.5) 160×118.5 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · PC스탠다드패키지 - PC메인배너 `jasoseol-pc-standard-main-pc` 1200×280
 
@@ -631,7 +631,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| dongbu_illust | templateMold templateMold,templateMold.bandBleed | (0,400) 160×200 | (-55.1,400) 270.1×200 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
+| dongbu_illust | templateMold templateMold | (0,400) 160×200 | (0,481.5) 160×118.5 contain | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · M프리미엄패키지 - M팝업배너 `jasoseol-m-premium-popup-mo` 600×880
 
@@ -763,7 +763,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| dongbu_illust | templateMold templateMold,templateMold.bandBleed | (0,828) 300×222 | (0.1,828) 299.9×222 contain | 0.1 (0) | 0 (0) | ✓ 붙음 |
+| dongbu_illust | templateMold templateMold | (0,828) 300×222 | (0.1,828) 299.9×222 contain | 0.1 (0) | 0 (0) | ✓ 붙음 |
 
 ### NAP DSP (나스미디어) · 띠배너 320×50 (2배 추출 640×100) `nap-dsp-band-320x50` 320×50
 
