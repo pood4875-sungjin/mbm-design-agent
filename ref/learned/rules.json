@@ -3783,7 +3783,10 @@
    "id": "google-gdn-template-mold-1016",
    "date": "2026-10-16",
    "rule": "구글 GDN 틀 = 보드 템플릿 빨간 자리상자(580 64:1041 · 970 64:993 · 300×600 64:1090 · 930 64:1139). 로고 = 우측 로고 칸 누끼(흰 상자 없음), 글꼴 Kakao Big Sans, 상세 칩 자리 = 점 구분 평문 태그, 하단 띠. ABL 기준 틀 폐지(사용자 10-16)",
-   "source": "docs/google-gdn-mold.md"
+   "source": "docs/google-gdn-mold.md",
+   "where": "core/media/google-gdn.json (safeArea.measuredFromTemplate.mold) · core/renderers/ad.js (templateMold)",
+   "since": "2026-10-16",
+   "round": 62
   },
   {
    "id": "kv-harmony-field",
