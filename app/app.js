@@ -1615,8 +1615,12 @@ function campaignName(ctx) {
   const c = ctx?.core ?? {};
   return ctx?.kind === 'recruit' ? [c.client, c.role].filter(Boolean).join(' ') || '채용 캠페인' : (c.name || '캠페인');
 }
+// 편집 칸(인스펙터 캠페인 공통 + 산출물별). 10-19 사용자: 「모집기간은 언제부터 언제까지로 · 텍스트는 수정 가능하게」 → 접수 시작(startDate)과 글자 자리(시즌·채용 구분·메인 문구)를 칸으로 연다.
+//   날짜 둘 다 있으면 렌더러가 「2.28(수) - 3.10(일)」, 마감만 있으면 「~3.10(일)」. 메인 문구를 적으면 그 문장이 메인(회사·구분은 서브·상세로).
+const RECRUIT_EDIT_FIELDS = ['client', 'role', 'employType', 'location', 'startDate', 'deadline', 'applyUrl', 'season', 'hiringType', 'headline'];
+const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)', deadline: 'YYYY-MM-DD', season: '예: 2026 하반기', hiringType: '예: 신입사원 공개채용', headline: '예: ○○그룹 2026 하반기 신입 채용 — 비우면 고객사·시즌·채용 구분으로 자동' };
 function campaignFields(c) {
-  return c.kind === 'recruit' ? KINDS.recruit.required : ['name', 'date', 'venue', 'cta'];
+  return c.kind === 'recruit' ? RECRUIT_EDIT_FIELDS : ['name', 'date', 'venue', 'cta'];
 }
 function slug(name) {
   return (name || 'campaign').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
@@ -2074,7 +2078,7 @@ function renderInspector() {
     insp.innerHTML = `
       <section class="isec">
       <h3>캠페인 <span class="mode">전체 일괄</span></h3>
-      ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}">`).join('')}
+      ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`).join('')}
       </section>
       <section class="isec">
       <h3>스타일</h3>
@@ -2296,7 +2300,7 @@ function renderInspector() {
     <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
     ${campaignFields(c).map(f => `
       <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
-      <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${c.context.core[f] ?? ''}">`).join('')}
+      <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${escH(c.context.core[f] ?? FIELD_HINT[f] ?? '')}">`).join('')}
     </section>
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '<section class="isec">' : ''}
     ${(nVar > 1 && a.channel !== 'ad') ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>

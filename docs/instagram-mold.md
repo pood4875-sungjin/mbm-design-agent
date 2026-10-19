@@ -16,3 +16,8 @@
 - 배경·글자색: 기존 지면 규칙(kv-vivid) + 흰 글자(colorDark).
 - 반영 렌더 r4 = 154:44(수정 섹션 아래). r1 연도 빠짐 → r2 시즌 메인 → r3 직무 쉼표 단위 줄바꿈 → r4 상세 afterMain 212(키비주얼과 안 겹침).
 - 테스트: 인스타 1080 을 자유 규격 픽스처로 쓰던 19건은 자유 규격(albamon-m-splash 등)으로 이관.
+
+## 개정(10-19) 우측 여백
+- 사용자 「우측에 여백 생기는 거 수정」: 수정본 키비주얼 칸 (262,587) 786×493 은 오른쪽 끝이 1048(여백 32) — 렌더는 그 칸을 그대로 그려(누끼 `right bottom/contain`, 사진 cover) 그림이 1048 에서 끝났다. 칸을 **폭 818(x+w = 1080)** 로 오른쪽 가장자리까지 넓힘(`instagram.json mold.image`, `node scripts/build-media.mjs` 로 `core/media.js` 재생성).
+- 칸이 모서리에 닿으면 NAP·블라인드식 단일 누끼 블리드(`templateMold.slotBleed`)가 걸리는데 인스타는 수정본 「누끼 contain 바닥 맞춤」 그대로 두려고 `mold.image.bleed: false` 옵션 신설(렌더러 `singleObj` 게이트, 기본값은 기존 동작). 전/후: `ref/learned/cases/_out/cmp-1016/insta_gap_before.png` · `insta_gap_after.png`.
+- 남는 틈은 누끼 PNG 자체의 투명 여백(ABL 원본 오른쪽 52/2400 → 17px · 유리 111/3929 → 22px) — 자산 다듬기(알파 트림) 몫. 전수조사는 `docs/kv-gap-audit.md`.

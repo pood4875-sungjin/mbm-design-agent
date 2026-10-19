@@ -253,7 +253,12 @@ export const MEDIA = [
                 "h": 183,
                 "fit": "cover",
                 "anchor": "center",
-                "note": "샘플 그림 상자 그대로 cover, 프레임 안(블리드 없음) — 10-15 목표 프레임 37:2"
+                "note": "샘플 그림 상자 그대로 cover, 프레임 안(블리드 없음) — 10-15 목표 프레임 37:2",
+                "edgeInset": {
+                  "right": 8,
+                  "bottom": 30
+                },
+                "edgeInsetNote": "10-19 kv-gap-audit: 샘플 28:125 그림 상자 자체가 오른쪽 8·아래 30 안쪽(10-15 사용자 「프레임 안, 블리드 없음」) — 렌더러는 칸을 그대로 그림. 공식 템플릿 칸(safeArea.image 240,184 310×216)은 변에 닿으니 여백을 없애려면 사용자 결정으로 mold.image 를 그 칸으로"
               },
               "target": "figma:qhEEyEBDCjTmTho3tByBf1 37:2 (10-15 목표 프레임)",
               "subPrefer": "season",
@@ -7080,9 +7085,10 @@ export const MEDIA = [
               "image": {
                 "x": 262,
                 "y": 587,
-                "w": 786,
+                "w": 818,
                 "h": 493,
-                "note": "수정본 키비주얼 상자 — 오른쪽 아래(오른 여백 32), 누끼 contain 바닥 맞춤"
+                "bleed": false,
+                "note": "수정본 키비주얼 상자 (262,587) 786×493 은 오른 여백 32 — 10-19 사용자 「우측에 여백 생기는 거 수정」: 폭 818(x+w = 1080) 로 오른쪽 가장자리까지. 누끼 contain 우하단 맞춤(bleed false: 모서리 칸이어도 NAP·블라인드식 블리드 없음) · 사진 cover"
               },
               "seasonMain": true,
               "seasonMainNote": "수정본 메인 「2024 ABL생명 / 신입사원 공개채용」 — 정사각이라도 시즌 포함 메인 사다리(mainWide)를 먼저"
@@ -7518,7 +7524,12 @@ export const MEDIA = [
                 "w": 313,
                 "h": 185,
                 "radius": 10,
-                "note": "템플릿 오브젝트 상자 Rectangle 1430106735 (663,36) 313×185 r10 — 썸네일 가이드 최대 438×258 안, 상하 여백 36/37 유지"
+                "note": "템플릿 오브젝트 상자 Rectangle 1430106735 (663,36) 313×185 r10 — 썸네일 가이드 최대 438×258 안, 상하 여백 36/37 유지",
+                "edgeInset": {
+                  "right": 53,
+                  "bottom": 37
+                },
+                "edgeInsetNote": "10-19 kv-gap-audit: 템플릿 오브젝트 상자(r10, 상하 36/37·오른쪽 53) 자체가 안쪽 — 의도한 썸네일 칸"
               },
               "logo": null,
               "color": "#4C4C4C",

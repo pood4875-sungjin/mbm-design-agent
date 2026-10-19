@@ -3847,6 +3847,22 @@
     "warmLightBrand 틴트(10-14)",
     "dark photo no-bridge(10-14)"
    ]
+  },
+  {
+   "id": "text-default-1019",
+   "category": "글자 색·스크림",
+   "scope": "all (글자색 규정 없는 매체)",
+   "status": "active",
+   "rule": "글자색 규정이 없는 매체는 메인(타이틀) = 밝은 지면 #333333 / 어두운 지면 #FFFFFF, 서브·날짜·상세 = 같은 색 70%(rgba …,.7). 규정 = 매체 textColors.main(카카오·캐치·리멤버·NAP 비즈보드) 또는 규정 매체(fonts.required: 자소설·리멤버·카카오 — 틀 색 「모든 문구 1가지 색」 유지). 지면 대비가 4.5 미만이면 서브도 흐리게 하지 않는다. 틀(mold)의 color/colorDark 는 규정 매체에서만 쓴다(블라인드 #555·구글·NAP brand·인스타 #222 는 기본값으로).",
+   "value": "CANON.textDefault { light '#333333', dark '#FFFFFF', subOpacity 0.7 } → trace rules 'textDefault'",
+   "where": "core/renderers/ad.js (글자색 블록 regulatedText·moldFg) · core/canon.js textDefault",
+   "evidence": [
+    "사용자 10-19 「텍스트 컬러는 규칙 있는 애들 제외하고 타이틀 #333 #fff, 서브텍스트 오퍼시티 0.7 정도로」"
+   ],
+   "since": "2026-10-19",
+   "round": 63,
+   "source": "history/2026-10-16_비주얼우선_지면.md",
+   "supersedes": "순흑/순백 + 서브 .72/.86·상세 .66/.82(10-06)·틀 색 전 매체 적용(10-15)"
   }
  ]
 }

@@ -498,7 +498,8 @@ function renderAdBase(ctx, style, spec) {
   // 단일 사물 누끼(kvtypes flags.single — 캐릭터·떼 아님): 크게, 우하단으로 블리드(CANON objectBleed — 70% 이상 보임, 오른쪽·아래로만 30%까지 잘림, 목표 면적).
   // 형태 문법·가이드가 정한 그림 자리(오른쪽 열·모서리 상자·아래 띠)의 왼쪽·위 경계는 지키고, 그 안에서 맞춰 넣기 대신 키워서 오른쪽·아래 변 밖으로 흘린다. 템플릿 칸(자소설)은 템플릿대로
   const moldSlotEdge = !!(mold && tImage && tImage.x + tImage.w >= w - 2 && tImage.y + tImage.h >= h - 2 && tImage.y > 0 && !(tImage.w >= w - 1));   // 틀 그림 칸이 오른쪽·아래 모서리에 닿는 상자(NAP 300×250·블라인드 피드·네이버 DA) — 여백 있는 칸(자소설 팝업 8/30·구글 ABL)은 아님
-  const singleObj = !mirrorX && (!mold || moldSlotEdge) && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸: 여백 있는 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로) · 모서리에 닿는 칸은 이전 가이드대로 우하단 블리드(10-15 밤 「KV·배경은 이전 버전이 더 견고」)
+  // mold.image.bleed === false(인스타 1080, 10-19): 칸이 모서리에 닿아도 블리드 없이 contain 우하단 맞춤 — 사용자 수정본 「누끼 contain 바닥 맞춤」 그대로, 칸만 오른쪽 가장자리까지(우측 여백 0)
+  const singleObj = !mirrorX && (!mold || (moldSlotEdge && mold.image?.bleed !== false)) && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸: 여백 있는 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로) · 모서리에 닿는 칸은 이전 가이드대로 우하단 블리드(10-15 밤 「KV·배경은 이전 버전이 더 견고」)
   { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
     TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
     if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv && !templateLight) fired('glassDark'); if (mold) fired('templateMold'); }
@@ -720,16 +721,23 @@ function renderAdBase(ctx, style, spec) {
   const mainFg0 = tc.main ?? (moldOnBg ? (contrast(mold.bg, '#000000') >= contrast(mold.bg, '#FFFFFF') ? '#000000' : '#FFFFFF') : field ? field.text : '#000000');
   const fgIsDark = mainFg0 !== '#FFFFFF';
   // 가이드 매체의 밝은 지면: 메인은 브랜드색(일화 레드·동부 네이비·비씨 네이비 3/3) — 지면 어디서나 4.5:1이 나올 때만. 어두운 지면은 흰색 그대로(ABL)
-  const brandMain = !!(guide?.textColour === 'brand' && field && fgIsDark && !tc.main && p.primary && Math.min(...field.stops.map(s => contrast(s, p.primary))) >= 4.5);
+  const brandMain = !!(guide?.textColour === 'brand' && field && fgIsDark && !tc.main && !!mr.fonts?.required && p.primary && Math.min(...field.stops.map(s => contrast(s, p.primary))) >= 4.5);   /* 10-19: 글자색 규정 없는 매체는 타이틀 #333 — 밝은 지면 브랜드색 메인(구글 가이드)은 규정 매체에서만(사실상 꺼짐) */
   // 틀 글자색(10-15): 밝은 지면이면 샘플 글자색(세아제강 #555555 · 현대케피코 #000000), 어두운 지면이면 흰색(현대모비스 28:382) — 서브·상세도 흐리게 하지 않고 같은 색(「모든 문구 1가지 색상」)
   // 틀 글자색이 'brand' 면 브랜드 주색(NAP HS화성 샘플 네이비 #01193D = HS 브랜드색, 10-15 밤) — 밝은 지면(#F3F3F3 기준) 대비 4.5 미만이면 진회색
   const moldBrandFg = (mold?.color === 'brand') ? ((p.primary && contrast(p.primary, '#F3F3F3') >= 4.5) ? p.primary : '#1A1A1A') : null;
-  const moldFg = mold ? (fgIsDark ? (moldBrandFg ?? mold.color ?? mainFg0) : (mold.colorDark ?? '#FFFFFF')) : null;
-  const mainFg = moldFg ?? (brandMain ? p.primary : mainFg0);
+  // 글자색 규정이 있는 곳만 틀·규정 색을 쓴다(10-19 사용자 「규칙 있는 애들 제외하고 타이틀 #333/#fff, 서브텍스트 오퍼시티 0.7」): 규정 = textColors.main(카카오·캐치·리멤버·NAP 비즈보드) 또는 규정 매체(fonts.required — 자소설·리멤버·카카오, 틀 색 「모든 문구 1가지 색」 유지).
+  //   그 밖(구글·NAP 띠/전면·네이버·블라인드·인스타·에브리타임·잡다·당근)은 CANON.textDefault: 밝은 지면 #333 / 어두운 지면 #fff, 서브·날짜·상세는 같은 색 70%
+  const regulatedText = !!tc.main || !!mr.fonts?.required;
+  const TD = CANON.textDefault ?? { light: '#333333', dark: '#FFFFFF', subOpacity: 0.7 };
+  const moldFg = (mold && regulatedText) ? (fgIsDark ? (moldBrandFg ?? mold.color ?? mainFg0) : (mold.colorDark ?? '#FFFFFF')) : null;
+  const defMain = fgIsDark ? TD.light : TD.dark;
+  const defSub = fgIsDark ? `rgba(${hexToRgb(TD.light).join(',')},${TD.subOpacity})` : `rgba(${hexToRgb(TD.dark).join(',')},${TD.subOpacity})`;
+  const mainFg = moldFg ?? (brandMain ? p.primary : (tc.main ?? defMain));
+  if (!regulatedText) fired('textDefault');
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
   const tight = !!field && field.contrast < 4.5;
-  const subFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.86)'));
-  const detailFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg0 : (fgIsDark ? 'rgba(0,0,0,.66)' : 'rgba(255,255,255,.82)'));
+  const subFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
+  const detailFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
   // 어두운 지면에는 흰색 로고. 없으면 원색 로고를 반전한다(워드마크는 괜찮고 컬러 로고는 뭉개진다 — 흰색 로고를 받는 게 맞다)
   const logoSrc0 = (!fgIsDark && style.logoLight) ? style.logoLight : style.logo;
   // 어두운 지면에 원색 로고만 있으면 반전(컬러 로고가 뭉개진다) 대신 흰 판 위에 올린다 — 동부건설 300×600 예시가 네이비 위 흰 카드에 로고를 둔 것처럼
@@ -1572,7 +1580,8 @@ function renderAdBase(ctx, style, spec) {
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : moldBandH ? `center bottom/auto ${moldBandH}px` : 'center bottom/contain') : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤
-      : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? (cutout ? 'center bottom' : 'left center') : imgRightCol ? (cutout ? 'center bottom' : 'right center') : 'center bottom', imgLeftCol ? 'right center' : imgRightCol ? 'left center' : 'center top')}${melt(imgLeftCol ? 'to left' : imgRightCol ? 'to right' : 'to bottom')}overflow:hidden"${meltAttr(imgLeftCol ? 'to left' : imgRightCol ? 'to right' : 'to bottom')}></div>`)
+      // 오른쪽 열의 누끼는 열 바닥·오른쪽 변에 붙인다(10-19 사용자 「배경과 키비주얼 쪽 여백 애매하게 생기지 않도록 전수조사」 — kv-gap-audit: 열 안 가운데 정렬이면 오른쪽에 그림 폭 남은 몫의 절반(리멤버 22~92px·에브리타임 7px·NAP 띠 2~8px)이 애매하게 비었다. 10-15 저녁 「열 안 누끼 center bottom」 은 이 결정으로 바뀜. 왼쪽 열(자소설 PC메인)은 그대로)
+      : `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;${kvFill(imgLeftCol ? (cutout ? 'center bottom' : 'left center') : imgRightCol ? (cutout ? 'right bottom' : 'right center') : 'center bottom', imgLeftCol ? 'right center' : imgRightCol ? 'left center' : 'center top')}${melt(imgLeftCol ? 'to left' : imgRightCol ? 'to right' : 'to bottom')}overflow:hidden"${meltAttr(imgLeftCol ? 'to left' : imgRightCol ? 'to right' : 'to bottom')}></div>`)
     : '';
 
   // 하단 띠(구글 '좌측중앙 정렬' 템플릿 42px: 비씨월드 네이비 띠) — 밝은 지면엔 브랜드색, 어두운 지면엔 흰색
@@ -1643,7 +1652,7 @@ ${tplLogo}${kvWrap(tplObject)}
     if (showSubM && MR.sub) put('sub', MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub)), copy.sub);
     const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}) } : null;   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
     // 회사명 강조색(mold.rows.main.accentClient — NAP HS화성 샘플 「HS화성」 빨강 #D6061C = 브랜드 보조색, 나머지 네이비, 10-15 밤): 밝은 지면에서만, 강조색(style.accent·팔레트 accent)이 없으면 그대로
-    const accentFg = (mR?.accentClient && fgIsDark && ctx.core?.client) ? (accentHex ?? p.accent ?? null) : null;
+    const accentFg = (mR?.accentClient && fgIsDark && ctx.core?.client && (!!tc.main || !!mr.fonts?.required)) ? (accentHex ?? p.accent ?? null) : null;   /* 10-19: 규정 없는 매체(NAP)는 타이틀 한 색(#333) — 회사명 강조색 끔 */
     const mainLines = String(copy.main ?? '').split('\n').map((t, i) => { const cl = String(ctx.core?.client ?? ''); if (accentFg && i === 0 && cl && t.startsWith(cl)) { fired('templateMold.accentClient'); return `<span data-accent="1" style="color:${accentFg}">${esc(nb(cl, false))}</span>${esc(nb(t.slice(cl.length), false))}`; } return esc(nb(t, false)); });
     if (copy.main && mR) put('main', mR, mR.lines ?? 2, mR.weight ?? fwOf('main', mainPx), mainFg, mainLines.join('<br/>'), copy.main);
     // 틀 상세의 글감: 틀이 항목(items)을 정했으면 사다리의 상세 후보(ladder.details)에서 그 항목을 그대로 — 일반 배치의 「서브에 이미 든 말·날짜 줄 분리」 추림을 타지 않는다

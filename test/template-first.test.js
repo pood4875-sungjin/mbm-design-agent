@@ -189,7 +189,7 @@ test('리멤버 메인 상단 PC 2240×360 틀 — 1:6404: 메인 48/600 (81.4,1
   assert.doesNotMatch(html, /data-logo/);
   assert.match(html, /data-object="1" style="position:absolute;left:1\d{3}px;top:0px;width:\d+px;height:360px;/, '10-15 밤: KV 는 글자 상자를 피한 오른쪽 열(자유 배치)');
   assert.equal(tr.place.imgCol, 'right', '오른쪽 이미지 열(imgRightCol)');
-  assert.match(html, /data-object="1" style="[^"]*center bottom\/contain/, '누끼는 칸 바닥에 세운다(사용자 10-15 저녁: 열 안 누끼 center bottom)');
+  assert.match(html, /data-object="1" style="[^"]*right bottom\/contain/, '누끼는 열 바닥·오른쪽 변에 붙인다(10-19 kv-gap-audit: 10-15 저녁 「열 안 누끼 center bottom」 은 오른쪽에 22~92px 애매한 틈 → 사용자 「여백 애매하게 생기지 않도록 싹」으로 right bottom)');
   const PHOTO = { ar: 1.5, px: [1500, 1000], field: { kind: 'photo', opaque: 1, lum: 0.5, sat: 0.3, semi: 0, focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.8, parts: 1, others: [], density: 0.5 }, cols: col([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]), rows: col([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]) } };
   const ph = renderAd(ctx, normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: PHOTO }), specs['remember-main-top-pc']);
   assert.match(ph, /data-object="1" style="position:absolute;left:1\d{3}px;top:0px;width:\d+px;height:360px;[^"]*data-melt-dir="to right"|data-melt-dir="to right"/, '바탕 있는 그림은 글자 쪽(왼쪽 변)으로 녹인다 — 왼쪽 열의 거울');
@@ -372,7 +372,7 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.match(hp, /data-logo-slot="1" style="position:absolute;left:980px;top:50px;width:220px;height:44px;[^"]*align-items:flex-start;justify-content:flex-end/, '로고 오른쪽 위 (980,50) 220×44');
   { const ob = hp.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 852 && +ob[2] === 281 && +ob[3] === 398 && +ob[4] === 279, '키비주얼 칸 (852,281) 398×279 오른쪽 아래: ' + (ob && ob[0])); }
   assert.notEqual(traceOf(renderAd(ctx, glass, specs['naver-gfa-native-mo-342x228'])).mode, 'templateMold', 'naver-gfa-native-mo-342x228');   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트) · 인스타 1080 도 틀 생김(사용자 수정본, 바로 아래)
-  // 10-16 인스타 피드 1080 틀 — 사용자 수정본 135:1185: 글자 (89,131) 폭 934 가운데 정렬 · 메인 Bold 72 행간 94 2줄 · 날짜 Regular 43(afterMain 108) · 모집직무 값만 Bold 43 · 로고 (835,45) 195×39 오른쪽 위 · 키비주얼 칸 (262,587) 786×493(kv slot)
+  // 10-16 인스타 피드 1080 틀 — 사용자 수정본 135:1185: 글자 (89,131) 폭 934 가운데 정렬 · 메인 Bold 72 행간 94 2줄 · 날짜 Regular 43(afterMain 108) · 모집직무 값만 Bold 43 · 로고 (835,45) 195×39 오른쪽 위 · 키비주얼 칸 (262,587) 786×493(kv slot) → 10-19 사용자 「우측에 여백 생기는 거 수정」: 폭 818(x+w = 1080, 오른 여백 32 → 0) · bleed false(누끼 contain 우하단 맞춤, 블리드 없음)
   const hi = renderAd(ctx, glass, specs['instagram-feed-1080']); const ti = traceOf(hi);
   assert.equal(ti.mode, 'templateMold', '인스타 1080 은 10-16 사용자 수정본 틀');
   assert.deepEqual([ti.mold.rows.main.y, ti.mold.rows.main.px, ti.mold.rows.main.pitch, ti.mold.rows.main.weight, ti.mold.rows.main.x, ti.mold.rows.main.w, ti.mold.rows.main.align], [131, 72, 94, 700, 89, 934, 'center']);
@@ -382,9 +382,9 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.match(hi, /data-field="detail"[^>]*font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/, '모집직무 Bold 43 가운데');
   assert.doesNotMatch(detailOf(hi), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
   assert.match(hi, /data-logo-slot="1" style="position:absolute;left:835px;top:45px;width:195px;height:39px;[^"]*justify-content:flex-end/, '로고 오른쪽 위 (835,45) 195×39');
-  assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 262, y: 587, w: 786, h: 493 });
-  assert.deepEqual(ti.place.tImage, { x: 262, y: 587, w: 786, h: 493 }); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)');
-  { const ob = hi.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 262 && +ob[3] === 786 && +ob[2] + +ob[4] === 1080, '키비주얼 칸 x 262 폭 786 바닥 맞닿음: ' + (ob && ob[0])); }
+  assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 262, y: 587, w: 818, h: 493 });   // 10-19: 786 → 818 (오른쪽 가장자리까지)
+  assert.deepEqual(ti.place.tImage, { x: 262, y: 587, w: 818, h: 493 }); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)'); assert.ok(!ti.rules.includes('templateMold.slotBleed'), '인스타는 모서리 칸이어도 블리드 없음(image.bleed false)');
+  { const ob = hi.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] + +ob[3] === 1080 && +ob[2] + +ob[4] === 1080, '키비주얼 그림 오른쪽·바닥 맞닿음(10-19 우측 여백 0): ' + (ob && ob[0])); }
   const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [68, 50, 62, 700, 144, 43, 400], '카카오 비즈보드 틀 64:3325: 메인 Bold 50 y68 · 서브 Regular 43 y144(17px 띔)'); assert.deepEqual(tk.place.tImage, { x: 663, y: 36, w: 313, h: 185, radius: 10 });
 });
 

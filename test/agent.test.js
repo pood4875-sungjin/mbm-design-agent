@@ -134,3 +134,10 @@ test('when nothing could be read the agent does not claim it read something', ()
   assert.doesNotMatch(r.say, /읽었어요/);
   assert.deepEqual(r.patch.fields, {});
 });
+
+test('기간을 「10/1 ~ 10/31」·「10월 1일부터 10월 31일까지」로 적어도 접수 시작·마감 둘 다 읽는다(10-19 사용자 「모집기간은 언제부터 언제까지로」)', () => {
+  const a = extractRecruit('한진정보통신 클라우드 엔지니어 채용, 접수 10/1 ~ 10/31', NOW);
+  assert.equal(a.startDate, `${NOW.getFullYear()}-10-01`); assert.equal(a.deadline, `${NOW.getFullYear()}-10-31`);
+  const b = extractRecruit('한진정보통신 클라우드 엔지니어 채용. 10월 1일부터 10월 31일까지 접수', NOW);
+  assert.equal(b.startDate, `${NOW.getFullYear()}-10-01`); assert.equal(b.deadline, `${NOW.getFullYear()}-10-31`);
+});

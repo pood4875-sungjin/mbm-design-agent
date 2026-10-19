@@ -86,6 +86,8 @@ export const CANON = {
   //   화사하게 = HSL 채도를 sat 이상으로 올리고 명도를 lMin~lMax 로 — 그 뒤 흰 글자 4.5:1 이 될 때까지만 어둡힌다(brandDeep 처럼 탁하게 가라앉히지 않는다).
   //   후보 색(사진: 글자 쪽 변 → 대표색 → 팔레트 / 누끼: 대표색 → 팔레트 → 변) 중 채도 ≥ minSat 인 첫 색. 전부 무채(회색·베이지)면 「안 묻는」 그림 → 그때만 옅은 틴트 + 검정 글자(tint)
   //   prefSat: 첫 후보 채도가 이 값 이상이면 그대로, 아니면 후보 중 가장 채도 높은 색(ABL 베이지 → 복숭아, 동부 크림 → 주황, 유리 행성 청회색 → 청록)
+  // 글자색 기본(10-19 사용자 「규칙 있는 애들 제외하고 타이틀 #333/#fff, 서브텍스트 오퍼시티 0.7」): 글자색 규정(textColors.main)·규정 매체(fonts.required: 자소설·리멤버·카카오)가 아니면 메인은 밝은 지면 #333 / 어두운 지면 #fff, 서브·날짜·상세는 같은 색 70%
+  textDefault: { light: '#333333', dark: '#FFFFFF', subOpacity: 0.7 },
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7
   // 누끼는 명확할 때만(10-12 사용자 「명확할 때만 누끼, 웬만하면 배경 분위기도 살려」 desk-37·desk-03) — 바탕 색감(chroma 평균) < chromaMax 이고
   //   그라데이션 세기 < gradMax 이면(흰·연회색·무채 단색) 딴다. 넘으면 원본이 주 KV(scripts/kv-cutout.py --auto, cases.mjs bgpalette 가 같은 수치)

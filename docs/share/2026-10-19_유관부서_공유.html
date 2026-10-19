@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>채용 광고 소재 자동 생성 에이전트 현황 공유</title>
+<style>
+  :root{--ink:#1c1c1c;--sub:#6b6b6b;--line:#e4e2dc;--bg:#f6f5f1;--card:#fff;--accent:#1f4fd6;--warn:#b3261e;--ok:#1f7a4d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Kakao Big Sans','Kakao Small Sans','Apple SD Gothic Neo','Pretendard',sans-serif;line-height:1.6;font-size:15px}
+  .bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;padding:10px 20px;flex-wrap:wrap}
+  .bar b{margin-right:auto;font-size:13px;color:var(--sub);font-weight:500}
+  .bar button{font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .bar button.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .bar .hint{font-size:12px;color:var(--sub)}
+  main{max-width:860px;margin:0 auto;padding:36px 28px 90px}
+  [contenteditable]:focus{outline:2px solid #cfd9ff;outline-offset:4px;border-radius:4px}
+  h1{font-size:26px;line-height:1.3;margin:0 0 6px}
+  .meta{color:var(--sub);font-size:13.5px;margin:0 0 28px}
+  h2{font-size:18px;margin:34px 0 10px;padding-left:10px;border-left:4px solid var(--ink)}
+  h3{font-size:15.5px;margin:20px 0 6px}
+  p{margin:6px 0}
+  ul{margin:6px 0 10px;padding-left:22px}li{margin:3px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:10px 0}
+  .q{border-left:4px solid var(--accent)}
+  .q h3{margin-top:0;color:var(--accent)}
+  table{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px;margin:10px 0}
+  th{text-align:left;background:#f1f0eb;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:700}
+  td{padding:8px 10px;border-bottom:1px solid #f0efe9;vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .blank{color:var(--warn);background:#fff3f1;border-radius:4px;padding:0 4px}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:#eef1f7;color:#394b78;margin-left:6px;vertical-align:middle}
+  .foot{margin-top:40px;color:var(--sub);font-size:12.5px}
+  @media print{.bar{display:none}body{background:#fff}main{padding:0;max-width:none}.card,table{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="bar"><b>본문은 바로 클릭해서 고칠 수 있습니다. 고친 내용은 이 브라우저에 자동 저장됩니다.</b>
+  <button id="save" class="pri">HTML로 저장</button><button id="print">PDF로 인쇄</button><button id="copy">텍스트 복사</button><button id="reset">원본으로 되돌리기</button><span class="hint" id="status"></span></div>
+<main id="doc" contenteditable="true" spellcheck="false">
+
+<h1>채용 광고 소재 자동 생성 에이전트<br>현황 공유 및 확인 요청</h1>
+<p class="meta">2026년 10월 19일 유관부서 회의 · 작성 <span class="blank">담당자 이름</span> · 목표 11월 컨시어지 베타</p>
+
+<h2>1. 지금 상태</h2>
+<div class="card">
+<ul>
+<li><b>매체 12곳, 규격 51종을 한 번에 생성</b>합니다. 자소설닷컴 11, 리멤버 8, 에브리타임 8, 구글 4, NAP 4, 캐치 3, 카카오 3, 네이버 3, 블라인드 3, 잡다 2, 인스타그램 1, 당근 1.</li>
+<li>입력은 여섯 가지입니다. 고객사, <b>공고 타이틀</b>(예: ○○그룹 2026 하반기 신입 채용), 지원 분야(모집 직무), 모집 기간(시작과 마감), 키비주얼 1장, 로고 1장. 문장으로 적어도 읽어서 채우고, 타이틀을 비우면 고객사·시즌·채용 구분으로 자동 조합합니다.</li>
+<li><b>생성 뒤 모든 문구는 수정할 수 있습니다.</b> 캠페인 전체 일괄 또는 규격 하나만 따로(타이틀, 기간, 지원 분야, 시즌, 채용 구분).</li>
+<li><b>매체 규정은 전부 코드에 들어가 있습니다.</b> 크기, 용량, 글자 수, 폰트 고정(자소설·리멤버·카카오 Pretendard), 투명 배경, 전달 파일(자소설 M시작배너 로고·이미지)까지 내보낼 때 자동으로 맞춥니다.</li>
+<li>규정이 없는 매체는 공식 템플릿과 실제 집행 소재를 실측해 만든 <b>틀</b>로 글자 자리, 로고, 키비주얼 칸을 고정합니다.</li>
+<li>디자이너가 피그마에서 결과물을 고치면 그 수치를 실측해 틀에 반영하는 <b>왕복 흐름</b>이 돌고 있습니다. 이번 주에 블라인드, 네이버, 인스타그램, NAP, 구글을 반영했습니다.</li>
+<li>글꼴은 상업 사용이 가능한 OFL 글꼴만 탑재했습니다(13종). 라이선스가 비영리 전용이거나 수정이 금지된 글꼴(29CM Editorial, HS효성체)은 넣지 않았습니다.</li>
+<li>데모: <a href="https://pood4875-sungjin.github.io/mbm-design-agent/app/">pood4875-sungjin.github.io/mbm-design-agent/app</a> · 규칙 문서: <a href="https://pood4875-sungjin.github.io/mbm-design-agent/docs/guide-overview.html">guide-overview.html</a></li>
+</ul>
+</div>
+
+<h2>2. 목표</h2>
+<div class="card"><p><b>11월 컨시어지 베타.</b> 실제 고객사 요청에 바로 써 보면서 틀과 규칙을 고도화합니다. 베타 기간에는 캠페인당 제작 시간, 수정 횟수, 매체 반려 건수를 기록합니다.</p></div>
+
+<h2>3. 확인과 결정이 필요한 것</h2>
+
+<div class="card q"><h3>① 11월 컨시어지 고객사 요청 리스트</h3>
+<p>고객사, 매체, 규격, 마감 일정 공유를 요청합니다. 리스트에 없는 매체(알바몬, 게임잡, 스펙업 등)가 있으면 그 매체 규정부터 추가해야 하므로 미리 알아야 합니다.</p>
+<table><tr><th style="width:22%">고객사</th><th>매체</th><th style="width:20%">마감</th><th style="width:22%">비고</th></tr>
+<tr><td><span class="blank">채워 주세요</span></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td></tr></table>
+</div>
+
+<div class="card q"><h3>② 키비주얼 제작 주체와 형식</h3>
+<ul>
+<li>베타 초기는 <b>배경 없는 누끼(3D, 캐릭터, 제품) 기반</b>으로 시작할 것을 제안합니다. 자동 배치 품질이 가장 안정적이고 51규격에서 일관됩니다. 사진도 가능하지만 칸에 맞춰 잘라 쓰는 방식이라 구도에 따라 결과 편차가 있습니다.</li>
+<li>입력 권장 스펙: 키비주얼 긴 변 1,800px 이상 투명 PNG, 로고 가로 900px 이상 원색 투명 PNG. 앱에서 올릴 때 자동으로 안내하고 작으면 어느 규격이 흐려지는지 알려 줍니다.</li>
+<li><b>질문: 키비주얼을 누가 만듭니까?</b> 디자이너 제작 / 고객사 제공 / 생성형 이미지 / 기존 소재 재활용 중 베타 기간 담당과 공급 방식을 정하고 싶습니다.</li>
+</ul></div>
+
+<div class="card q"><h3>③ 레이아웃 자유도</h3>
+<ul>
+<li>지금은 규격마다 정해진 틀에 내용을 채우는 방식입니다. 글자 위치, 크기, 로고, 키비주얼 칸이 고정이라 캠페인마다 다른 구도는 나오지 않습니다.</li>
+<li>바꿀 수 있는 것: 배경색(키비주얼에서 자동 추출한 화사한 단색과 그라데이션), 글꼴, 색, 문구. 글자 정렬(왼쪽, 가운데, 오른쪽)을 고르면 키비주얼 자리가 따라 바뀌는 기능을 추가 중입니다. 피그마에서 고친 디자인은 틀로 다시 넣을 수 있습니다.</li>
+<li><b>질문: 베타에서 「틀 1종 × 고객사별 색·비주얼·문구」로 충분합니까?</b> 아니면 매체별 틀 2~3종(왼쪽 글자, 가운데 글자, 전면 사진)이 있어야 합니까?</li>
+</ul></div>
+
+<div class="card q"><h3>④ 비주얼 처리 수준</h3>
+<ul>
+<li>배경은 키비주얼 색 기반 단색과 그라데이션입니다. 장식 요소, 패턴, 사진 합성은 없습니다.</li>
+<li>자체 평가는 디자이너 산출물 대비 <b>80% 수준</b>입니다. 구성과 규격 정확도는 동등하고, 표현의 다양성과 마감 디테일이 부족합니다.</li>
+<li><b>질문: 어느 수준이면 실제 집행이 가능합니까?</b><br>
+ⓐ 지금 수준으로 바로 집행 ⓑ 디자이너가 피그마에서 10~20분 다듬어 집행 ⓒ 초안과 시안용으로만 사용<br>
+디자이너 검수 기준(체크리스트)을 같이 정하고 싶습니다.</li>
+</ul></div>
+
+<div class="card q"><h3>⑤ 운영 역할</h3>
+<table><tr><th style="width:30%">단계</th><th>담당</th><th style="width:22%">소요(예상)</th></tr>
+<tr><td>요청 접수, 입력 정리</td><td><span class="blank">담당</span></td><td></td></tr>
+<tr><td>생성, 1차 확인</td><td><span class="blank">담당</span></td><td>10분</td></tr>
+<tr><td>디자이너 검수, 피그마 수정</td><td><span class="blank">담당</span></td><td></td></tr>
+<tr><td>수정 내용 틀 반영</td><td><span class="blank">담당</span></td><td></td></tr>
+<tr><td>매체 제출</td><td><span class="blank">담당</span></td><td></td></tr></table>
+</div>
+
+<h2>4. 회의 결론 <span class="tag">회의 중 기록</span></h2>
+<div class="card"><ul><li></li><li></li><li></li></ul></div>
+
+<p class="foot">이 문서는 편집 가능한 HTML입니다. 위 「HTML로 저장」을 누르면 고친 내용이 담긴 파일을 내려받습니다.</p>
+</main>
+<script>
+const KEY = 'share-doc:2026-10-19';
+const doc = document.getElementById('doc'), status = document.getElementById('status');
+const original = doc.innerHTML;
+try { const saved = localStorage.getItem(KEY); if (saved) doc.innerHTML = saved; } catch {}
+let t; doc.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { try { localStorage.setItem(KEY, doc.innerHTML); status.textContent = '자동 저장됨'; setTimeout(() => status.textContent = '', 1500); } catch {} }, 400); });
+document.getElementById('save').onclick = () => {
+  const html = '<!doctype html>\n' + document.documentElement.outerHTML.replace(/<script[\s\S]*?<\/script>/, m => m);
+  const blob = new Blob([html], { type: 'text/html' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '2026-10-19_유관부서_공유.html'; a.click();
+};
+document.getElementById('print').onclick = () => window.print();
+document.getElementById('copy').onclick = async () => { try { await navigator.clipboard.writeText(doc.innerText); status.textContent = '복사됨'; setTimeout(() => status.textContent = '', 1500); } catch { status.textContent = '복사 실패'; } };
+document.getElementById('reset').onclick = () => { if (confirm('고친 내용을 지우고 원본으로 되돌릴까요?')) { doc.innerHTML = original; try { localStorage.removeItem(KEY); } catch {} } };
+</script>
+</body>
+</html>

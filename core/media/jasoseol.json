@@ -226,7 +226,9 @@
               "h": 183,
               "fit": "cover",
               "anchor": "center",
-              "note": "샘플 그림 상자 그대로 cover, 프레임 안(블리드 없음) — 10-15 목표 프레임 37:2"
+              "note": "샘플 그림 상자 그대로 cover, 프레임 안(블리드 없음) — 10-15 목표 프레임 37:2",
+              "edgeInset": { "right": 8, "bottom": 30 },
+              "edgeInsetNote": "10-19 kv-gap-audit: 샘플 28:125 그림 상자 자체가 오른쪽 8·아래 30 안쪽(10-15 사용자 「프레임 안, 블리드 없음」) — 렌더러는 칸을 그대로 그림. 공식 템플릿 칸(safeArea.image 240,184 310×216)은 변에 닿으니 여백을 없애려면 사용자 결정으로 mold.image 를 그 칸으로"
             },
             "target": "figma:qhEEyEBDCjTmTho3tByBf1 37:2 (10-15 목표 프레임)",
             "subPrefer": "season",

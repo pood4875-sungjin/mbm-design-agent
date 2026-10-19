@@ -25,7 +25,7 @@ export const KINDS = {
     labels: {
       client: '고객사', role: '모집 직무', employType: '고용 형태', location: '근무지', deadline: '지원 마감', applyUrl: '지원 경로',
       qualification: '자격 요건', process: '전형 절차', notice: '필수 고지 문구',
-      season: '시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '메인 문구', slogan: '슬로건', deadlineTime: '마감 시각',
+      season: '시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '공고 타이틀', slogan: '슬로건', deadlineTime: '마감 시각',   // headline: 10-19 사용자 「고객사 이름 이외에 공고 타이틀이 필요 — ○○그룹 2026 하반기 신입 채용!」 → 적으면 그 문장이 메인, 비우면 회사·시즌·채용구분으로 자동
     },
   },
 };
