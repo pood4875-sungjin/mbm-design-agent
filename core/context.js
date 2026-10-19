@@ -21,7 +21,7 @@ export const KINDS = {
     // deadlineTime: 마감 시각(HH:MM) — 10-14 t1014 디자이너 산출물 3곳(GS에너지 「7.2(수) 17시」·LT소재·제일약품 「23:59」)이 날짜 뒤에 시각을 붙였다
     fields: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl', 'qualification', 'process', 'notice',
       'season', 'hiringType', 'startDate', 'headline', 'slogan', 'deadlineTime'],
-    required: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl'],
+    required: ['client', 'role', 'employType', 'location', 'deadline'],   // applyUrl 은 선택(10-19 사용자 「지원경로는 필요 없을 듯」 — 광고 지면에 안 그리고, 되묻지도 않는다)
     labels: {
       client: '고객사', role: '모집 직무', employType: '고용 형태', location: '근무지', deadline: '지원 마감', applyUrl: '지원 경로',
       qualification: '자격 요건', process: '전형 절차', notice: '필수 고지 문구',

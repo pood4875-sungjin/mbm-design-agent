@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
+import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltLength, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
@@ -178,8 +178,69 @@ function cutWindow(cols, kTarget, kMax = 2.4) {
 }
 export function renderAd(ctx, style, spec) {
   const bust = bustOf(style, spec);
-  if (!bust) return renderAdBase(ctx, style, spec);
-  return bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
+  const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
+  return cutFade(html, bust ? { ...style, kvMeta: bust.meta } : style, spec);
+}
+// 끊김 녹임(10-19 사용자 「그라데이션으로 옅게 처리하던지 해 줘. 끊기는 건. 네이버도 마찬가지」) — 그린 뒤 오브젝트 상자마다 실제 그림 사각형을 계산해, 뚝 잘린 변을 지면으로 녹이는 마스크를 더한다(기존 녹임과 교집합).
+//   누끼: 그림이 상자 밖으로 넘친 변(지면 변에서 잘리든 상자 변에서 잘리든) · 사진·바탕 있는 그림: 상자 변이 지면 안쪽에 있는 변(지면 변에 붙은 변은 자연스러운 끝)
+//   제외: 지면 전체 그림(data-kv-only·inset:0) · 둥근 상자(카카오 썸네일·비즈보드 r10) · 템플릿이 여백을 적어 둔 변(mold.image.edgeInset — 자소설 PC팝업 8/30) · 이미 그 변을 녹인 마스크
+function cutFade(html, style, spec) {
+  const C = CANON.cutFade; if (!C || !style?.keyVisual) return html;
+  const W = spec.w, H = spec.h; if (!(W > 0 && H > 0)) return html;
+  const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar;
+  const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
+  const inset = (spec.rules ?? spec)?.safeArea?.measuredFromTemplate?.mold?.image?.edgeInset ?? null;
+  const dirOf = { left: 'to right', right: 'to left', top: 'to bottom', bottom: 'to top' };
+  const grads = s => { const out = []; let i = 0; while ((i = s.indexOf('linear-gradient(', i)) >= 0) { let d = 0, j = i; for (; j < s.length; j++) { if (s[j] === '(') d++; else if (s[j] === ')' && --d === 0) break; } out.push(s.slice(i, j + 1)); i = j + 1; } return out; };
+  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)px')); return m ? parseFloat(m[1]) : null; };
+  let hit = false;
+  const out = html.replace(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g, (m, attrs, st, rest) => {
+    if (/data-kv-only/.test(attrs) || /inset:0/.test(st) || /border-radius:(?!0px)/.test(st)) return m;
+    const bw = num(st, 'width'), bh = num(st, 'height'), bx = num(st, 'left'), by = num(st, 'top');
+    if (!(bw > 0 && bh > 0) || bx == null || by == null) return m;
+    const bg = st.match(/background:url\('[^']*'\) ([^;]*?)\/([^;]*?) no-repeat;/); if (!bg) return m;
+    const pos = bg[1].trim().split(/\s+/), size = bg[2].trim();
+    const iw = px?.[0] ?? (ar0 ? ar0 * 1000 : bw), ih = px?.[1] ?? (ar0 ? 1000 : bh), ar = iw / ih;
+    const lenOf = (s, total) => s.endsWith('%') ? total * parseFloat(s) / 100 : parseFloat(s);
+    let dw, dh;
+    if (size === 'contain') { const k = Math.min(bw / iw, bh / ih); dw = iw * k; dh = ih * k; }
+    else if (size === 'cover') { const k = Math.max(bw / iw, bh / ih); dw = iw * k; dh = ih * k; }
+    else if (size === 'auto' || size === 'auto auto') { dw = iw; dh = ih; }
+    else { const [sw, sh] = size.split(/\s+/); if (sw === 'auto' && sh) { dh = lenOf(sh, bh); dw = dh * ar; } else if (!sh || sh === 'auto') { dw = lenOf(sw, bw); dh = dw / ar; } else { dw = lenOf(sw, bw); dh = lenOf(sh, bh); } }
+    if (!(dw > 0 && dh > 0)) return m;
+    const word = { left: '0%', right: '100%', center: '50%', top: '0%', bottom: '100%' };
+    const p0 = pos[0] ?? 'center', p1 = pos[1] ?? 'center';
+    const px0 = word[p0] ?? p0, py0 = word[p1] ?? p1;
+    const ox = px0.endsWith('%') ? (bw - dw) * parseFloat(px0) / 100 : parseFloat(px0);
+    const oy = py0.endsWith('%') ? (bh - dh) * parseFloat(py0) / 100 : parseFloat(py0);
+    // 그림 사각형(지면 좌표)과 실제로 보이는 창(상자 ∩ 지면) — 상자 자체가 지면 밖으로 나간 경우(구글 300×600 상자 -49~348)도 잘리는 선은 지면 변이다
+    const P = { l: bx + ox, r: bx + ox + dw, t: by + oy, b: by + oy + dh };
+    const clip = { l: Math.max(bx, 0), r: Math.min(bx + bw, W), t: Math.max(by, 0), b: Math.min(by + bh, H) };
+    const over = { left: clip.l - P.l, right: P.r - clip.r, top: clip.t - P.t, bottom: P.b - clip.b };   // 그림이 보이는 창 밖으로 넘친 px(잘린 몫)
+    const gapC = { left: bx, right: W - (bx + bw), top: by, bottom: H - (by + bh) };   // 상자 변과 지면 변 사이(사진 상자의 안쪽 변 판정)
+    const visLen = s => (s === 'left' || s === 'right') ? (clip.r - clip.l) : (clip.b - clip.t);
+    const startPx = s => s === 'left' ? clip.l - bx : s === 'right' ? (bx + bw) - clip.r : s === 'top' ? clip.t - by : (by + bh) - clip.b;   // 상자 변에서 잘리는 선까지(상자가 지면 밖이면 > 0)
+    const gradPx = (dir, from, len) => { const n = Math.max(3, CANON.melt?.stops ?? 7); const st = []; for (let i = 0; i < n; i++) { const t = i / (n - 1), al = t * t * (3 - 2 * t); const at = Math.round((from + len * t) * 10) / 10; st.push(i === 0 ? `transparent ${at}px` : i === n - 1 ? `#000 ${at}px` : `rgba(0,0,0,${al.toFixed(2)}) ${at}px`); } return `linear-gradient(${dir},${st.join(',')})`; };
+    const own = grads((st.match(/-webkit-mask-image:[^;]*;/) ?? [''])[0]);   // 기존 녹임(접두사 사본 한 벌만 — mask-image 쪽은 같은 목록)
+    const had = new Set(own.map(g => (g.match(/^linear-gradient\((to [a-z]+)/) ?? [])[1]).filter(Boolean));
+    const add = [], sides = [];
+    for (const s of ['left', 'right', 'top', 'bottom']) {
+      if (inset && inset[s] != null) continue;
+      if (had.has(dirOf[s])) continue;
+      const len = visLen(s); if (!(len > 0)) continue;
+      let pct = null;
+      if (cutout) { if (over[s] > C.minGap) pct = Math.min(C.max, Math.max(C.min, Math.round(over[s] / len * 100) * C.k + C.base)); }
+      else if (gapC[s] > C.minGap && over[s] > -C.minGap) pct = C.photo;
+      if (pct == null) continue;
+      add.push(gradPx(dirOf[s], startPx(s), Math.round(len * pct / 100))); sides.push(s[0].toUpperCase() + pct);
+    }
+    if (!add.length) return m;
+    hit = true;
+    const seg = /-webkit-mask-image:[^;]*;(?:-webkit-mask-composite:[^;]*;)?mask-image:[^;]*;(?:mask-composite:[^;]*;)?/;
+    const st2 = seg.test(st) ? st.replace(seg, meltMaskList([...own, ...add])) : st + meltMaskList(add);   // 기존 녹임 자리에 합쳐 넣는다(마스크 순서·다른 속성 위치 그대로 — 테스트·svg 내보내기가 읽는 문자열)
+    return `<div data-object="1"${attrs} style="${st2}"${rest} data-cut-fade="${sides.join(',')}">`;   // 녹인 변 표시는 태그 끝에(앞 속성 순서를 읽는 테스트·대조표 그대로)
+  });
+  return hit ? out.replace('&quot;rules&quot;:[', '&quot;rules&quot;:[&quot;cutFade&quot;,') : out;
 }
 
 // 서 있는 인물·캐릭터 누끼(전신 — 그림 비율 < CANON bust.maxAr)는 상반신으로(10-14 t1014 동서식품 인물 누끼 디자이너 9/9 머리~허리 · 바이오노트 개 누끼 인스타 V1 머리~가슴).

@@ -223,6 +223,12 @@ export function meltMaskSides(pctL, pctR) {
   const g = `${meltGradient('to right', pctL)},${meltGradient('to left', pctR)}`;
   return `-webkit-mask-image:${g};-webkit-mask-composite:source-in;mask-image:${g};mask-composite:intersect;`;
 }
+// 여러 그라데이션을 교집합 마스크 한 줄로(끊김 녹임 cutFade — 기존 녹임 그라데이션과 합친다)
+export function meltMaskList(grads) {
+  if (!grads.length) return '';
+  const g = grads.join(',');
+  return grads.length === 1 ? `-webkit-mask-image:${g};mask-image:${g};` : `-webkit-mask-image:${g};-webkit-mask-composite:source-in;mask-image:${g};mask-composite:intersect;`;
+}
 // 두 변(왼쪽·위)을 함께 녹인다 — 우하단 모서리 상자
 export function meltMask2(pctX, pctY) {
   const g = `${meltGradient('to right', pctX)},${meltGradient('to bottom', pctY)}`;

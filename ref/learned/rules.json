@@ -3896,6 +3896,23 @@
    "since": "2026-10-19",
    "round": 65,
    "source": "history/2026-10-19_정렬_프리셋.md"
+  },
+  {
+   "id": "cut-fade",
+   "category": "자르기·블리드",
+   "scope": "all",
+   "status": "active",
+   "rule": "그림이 뚝 잘리는 변은 지면으로 녹인다. 누끼는 보이는 창(상자 ∩ 지면) 밖으로 넘친 변(구글 300×600 좌우·당근 아래·에브리타임 우하단), 사진·바탕 있는 그림은 상자 변이 지면 안쪽에 있는 변(네이버 DA 사진 칸 오른쪽·아래). 지면 변에 붙은 사진 변은 자연스러운 끝이라 그대로. 둥근 상자(카카오)·템플릿이 여백을 적은 변(자소설 PC팝업 8/30)·지면 전체 그림·이미 녹인 변은 제외. 그린 뒤 후처리라 모든 배치 경로에 같이 걸린다.",
+   "value": "CANON.cutFade { base 8, k 2, min 10, max 36, photo 28, minGap 2 } — 길이 = 잘린 몫%×2+8 (10~36%), 사진 안쪽 변 28% · px 그라데이션(상자가 지면 밖이면 잘리는 선 = 지면 변) · data-cut-fade=\"L36,R36\" · trace rules cutFade",
+   "where": "core/renderers/ad.js (cutFade 후처리, renderAd) · core/canon.js cutFade · core/field.js meltMaskList",
+   "evidence": [
+    "사용자 10-19 「그라데이션으로 옅게 처리하던지 해 줘. 끊기는 건. 네이버도 마찬가지임」",
+    "ABL 떼 누끼 구글 300×600 L36/R36 · 에브리타임 홈카드 R14/B12 · 구글 580 B16 · 동부 3D 당근 R36/B36 · 한샘 사진 네이버 DA R28/B28",
+    "test/cut-fade.test.js 3건"
+   ],
+   "since": "2026-10-19",
+   "round": 66,
+   "source": "history/2026-10-16_비주얼우선_지면.md"
   }
  ]
 }

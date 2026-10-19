@@ -18,7 +18,7 @@ test('kind, track and media are detected from plain Korean', () => {
 });
 
 test('required fields follow the campaign kind', () => {
-  assert.deepEqual(fieldsFor('recruit'), ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl']);
+  assert.deepEqual(fieldsFor('recruit'), ['client', 'role', 'employType', 'location', 'deadline']);
   assert.deepEqual(fieldsFor('event'), ['name', 'date', 'venue', 'audience', 'cta']);
 });
 
