@@ -3789,7 +3789,12 @@
    "round": 62,
    "evidence": [
     "figma 보드 구글GDN 페이지 비씨월드 4장 64:721·731·741·710"
-   ]
+   ],
+   "category": "지면 색",
+   "scope": "field",
+   "status": "active",
+   "value": "",
+   "supersedes": ""
   },
   {
    "id": "kv-harmony-field",
