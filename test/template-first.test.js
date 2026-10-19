@@ -78,9 +78,9 @@ test('채용공고 160×600 틀 — 샘플 6개: 서브 16/700 y81.9 · 메인 2
     assert.match(html, /<b style="font-weight:700">모집일정<\/b><\/div><div>9\.22\(월\) - 10\.12\(일\)<\/div>/, '라벨 줄 + 값 줄');
     assert.doesNotMatch(detailOf(html), /고용형태/);
     assert.match(html, /data-logo-slot="1" style="position:absolute;left:15px;top:23px;width:130px;height:30px;[^"]*justify-content:center/);
-    // 하단 칸 문법(디자인 가이드) 그대로, 칸만 틀 — 누끼는 폭 맞춤이 작으면 objectBleed tower(잘림 ≤ 42%)만큼 키워 좌우로 흘린다(10-15 사용자: 「작고 아래로 치우침」)
-    assert.match(html, /data-object="1" style="position:absolute;left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/auto 161px/, 'KV 높이 = min(칸 200, 160 ÷ 0.58 ÷ 1.71 = 161.3 → 161)');
-    assert.ok(tr.rules.includes('templateMold.bandBleed'));
+    // 하단 칸 문법(디자인 가이드) 그대로, 칸만 틀 — 누끼는 칸 안 contain(바닥 가운데, 잘림 없음). 10-15 의 tower 블리드(좌우 ≤ 42% 흘림)는 10-19 사용자 「비주얼 끊기지 않게 하라고 했음」으로 끔 — mold.image.bleed:true 일 때만
+    assert.match(html, /data-object="1" style="position:absolute;left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/contain/, '누끼 = 칸 160×200 안 contain');
+    assert.ok(!tr.rules.includes('templateMold.bandBleed'));
   }
   // 서브 2줄이면 메인 첫 줄 y141
   const long = createContext({ ...fields, season: '2025년 하반기 정기 공개채용 시즌' }, 'recruit');

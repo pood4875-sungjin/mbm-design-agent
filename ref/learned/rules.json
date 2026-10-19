@@ -995,7 +995,7 @@
    "category": "자르기·블리드",
    "scope": "tower",
    "rule": "아주 좁은 세로 띠(알바몬 120×600·자소설 160×600)에서는 폭 맞춤 그림이 너무 작아 글자 아래가 빈다. 면적 목표를 올리고 좌우를 더 흘린다.",
-   "value": "폭 ≤ 160 · 잘림 ≤ 42% · 핵심부 40% · 면적 28~34%",
+   "value": "폭 ≤ 160 · 잘림 ≤ 42% · 핵심부 40% · 면적 28~34% · 틀 하단 칸(mold.image, 자소설 160×200·달력)에는 적용 안 함(10-19)",
    "since": "2026-10-12",
    "round": 42,
    "where": "core/canon.js:44",
@@ -3863,6 +3863,22 @@
    "round": 63,
    "source": "history/2026-10-16_비주얼우선_지면.md",
    "supersedes": "순흑/순백 + 서브 .72/.86·상세 .66/.82(10-06)·틀 색 전 매체 적용(10-15)"
+  },
+  {
+   "id": "template-mold-band-nocut",
+   "category": "자르기·블리드",
+   "scope": "template-mold",
+   "status": "active",
+   "rule": "틀이 하단 그림 칸을 정하면(자소설 채용공고 160×200·달력 328×160) 누끼는 칸 안에 통째로 넣는다(contain, 바닥 가운데). 10-15 의 「작으니 tower 잘림 42% 만큼 키워 좌우로 흘림」은 캐릭터가 좌우·아래로 끊겨 보여 끈다. 틀이 mold.image.bleed:true 로 적을 때만 블리드.",
+   "value": "mold 하단 칸 + 누끼 → center bottom/contain · trace rules 에 templateMold.bandBleed 없음",
+   "where": "core/renderers/ad.js (moldBandH)",
+   "evidence": [
+    "사용자 10-19 자소설 550×400·160×600 화면 「비주얼 끊기지 않게 하라고 했음」 — 160×600 하단 캐릭터 3인 좌우 57px·아래 잘림"
+   ],
+   "since": "2026-10-19",
+   "round": 64,
+   "source": "history/2026-10-16_비주얼우선_지면.md",
+   "supersedes": "10-15 틀 하단 칸 누끼 tower 블리드(templateMold.bandBleed)"
   }
  ]
 }

@@ -279,7 +279,7 @@ test('the template image area takes the picture by its size — 10-15 templateMo
   assert.match(tallHtml, /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*\/cover/);
   assert.match(tallHtml, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/, '하단 칸 윗변 녹임은 그대로');
   const cut = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.36, px: [302, 222], field: { opaque: 0.3 } } };
-  assert.match(renderAd(ctx, cut, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/auto \d+px/, '누끼는 objectBleed tower 만큼 키워 좌우로 흘린다(10-15)');
+  assert.match(renderAd(ctx, cut, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/contain/, '누끼는 칸 안 contain — 10-15 tower 블리드는 10-19 사용자 「비주얼 끊기지 않게」로 끔');
   assert.match(tallHtml, /data-mold="1"/);
 });
 test('the sub line does not repeat what the headline already says', () => {

@@ -1547,8 +1547,8 @@ function renderAdBase(ctx, style, spec) {
   if (LB && tplLogo) fired('templateMold.logoBox');
   // 사진은 윗변이 평평하지 않다 — 하단 칸에 제 크기로 놓아도 윗변을 지면으로 녹인다(한독 사옥 → 파랑 지면으로 번짐)
   // 하단 칸의 윗변도 지면과 같은 색이 아니면(사진, 또는 그라데이션 변을 단색으로 접은 지면) 녹인다 — 상자째 붙인 직선 이음매를 없앤다
-  // 틀 하단 칸의 누끼(채용공고 160×200·달력 328×160, 10-15 사용자): 폭 맞춤(contain)이면 작고 아래로 치우친다 — 기존 가이드(CANON objectBleed tower 잘림 ≤ 42%)만큼 키워 좌우로 흘리되 칸 높이(글자 영역) 안에서
-  const moldBandH = (() => { if (!(mold && tImage && imgBottomBand && hasKv && cutout && kvAR)) return null; const maxCut = guide?.objectBleed?.tower?.maxCut ?? guide?.objectBleed?.narrow?.maxCut ?? 0.42; const hh = Math.round(Math.min(tImage.h, tImage.w / (1 - maxCut) / kvAR)); return hh > Math.round(tImage.w / kvAR) + 2 ? hh : null; })();
+  // 틀 하단 칸의 누끼(채용공고 160×200·달력 328×160): 10-15 에는 폭 맞춤이 작다고 tower 잘림 ≤ 42% 만큼 키워 좌우로 흘렸으나(bandBleed), 10-19 사용자 「비주얼 끊기지 않게 하라고 했음」(자소설 160×600 캐릭터 좌우·아래 잘림) → 기본은 칸 안 contain(바닥 가운데, 잘림 없음). 틀이 mold.image.bleed:true 로 명시할 때만 예전 블리드
+  const moldBandH = (() => { if (!(mold && mold.image?.bleed === true && tImage && imgBottomBand && hasKv && cutout && kvAR)) return null; const maxCut = guide?.objectBleed?.tower?.maxCut ?? guide?.objectBleed?.narrow?.maxCut ?? 0.42; const hh = Math.round(Math.min(tImage.h, tImage.w / (1 - maxCut) / kvAR)); return hh > Math.round(tImage.w / kvAR) + 2 ? hh : null; })();
   if (moldBandH) fired('templateMold.bandBleed');
   const bandMelt = !!(tImage && imgBottomBand && hasKv && !cutout && !transparent && (style.kvMeta?.field?.edges?.top?.flat === false || !field?.seamless));
   // 틀 그림 칸의 그라데이션 바탕 일러스트(kvtypes gradEdge — 가장자리가 지면으로 녹는 그림): cover 로 주인공을 당겨 채우면 캔버스 아래로 몸통이 잘린다(여우 M팝업·PC메인).
