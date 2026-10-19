@@ -12,7 +12,8 @@ import { shapeOf, SHAPE_LABEL } from './layouts.js';
 export const PRESETS = {
   kvPlace: { label: '키비주얼 위치', choices: { auto: '자동', right: '오른쪽', bottom: '아래', bg: '전체 배경', left: '왼쪽' } },
   kvSize: { label: '키비주얼 크기', choices: { auto: '자동', sm: '작게', md: '보통', lg: '크게' } },
-  textAnchor: { label: '글자 정렬', choices: { auto: '자동', top: '위', center: '가운데', bottom: '아래' } },
+  textAlign: { label: '글자 정렬', choices: { auto: '자동', left: '왼쪽', center: '가운데', right: '오른쪽' } },   // 10-19 가로 정렬 — 키비주얼·로고 자리가 따라간다(core/alignrule.js). 규정 매체·글자 없는 규격은 잠김
+  textAnchor: { label: '글자 세로 위치', choices: { auto: '자동', top: '위', center: '가운데', bottom: '아래' } },
   bgFill: { label: '배경', choices: { auto: '자동', brand: '브랜드색', kv: '키비주얼 배경 이어 칠하기', custom: '직접 색' } },
   bgGrad: { label: '그라데이션', choices: { auto: '자동', none: '없음', v: '세로', h: '가로', d: '대각' } },
   scrim: { label: '스크림 세기', choices: { auto: '자동', none: '없음', low: '약', mid: '중', high: '강' } },
@@ -212,6 +213,7 @@ export function autoLabel(key, trace) {
     return MODE_LABEL[P.mode] ?? '';
   }
   if (key === 'textAnchor') return P.vCenter ? '가운데' : P.distribute ? '위(상세는 아래로)' : '위';
+  if (key === 'textAlign') return { left: '왼쪽', center: '가운데', right: '오른쪽' }[P.zone?.align] ?? '';
   if (key === 'bgFill') return { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드색', 'brand-tint': '브랜드 틴트', 'brand-photo': '브랜드색', 'brand-dark-logo': '어두운 브랜드색', 'photo-full': '사진 + 브랜드 스크림', 'kv-full': '그림 그대로', 'kv-texture': '그림 그대로', 'kv-frame': '어두운 브랜드색', manual: '직접 고른 색' }[trace.field?.source?.replace(/-bridge$/, '')] ?? (trace.field?.source?.startsWith('kv-mood') ? '키비주얼 분위기 색' : trace.field?.source ?? '없음');
   if (key === 'bgGrad') return trace.field?.gradient ? `${trace.field.angle}°` : '없음';
   if (key === 'scrim') return trace.scrim ? ({ 'photo-full': '사진 스크림', 'texture-contrast': '대비 스크림', calm: '질감 진정', frame: '프레임 스크림' }[trace.scrim.kind] ?? trace.scrim.kind) : '없음';
@@ -224,11 +226,11 @@ export function traceOfHtml(html) {
 }
 
 // 가이드 규칙 ✗ 를 「규칙대로 고치기」 하면 지울 편집 — 그 규칙 값에 닿는 프리셋·직접 수정
-const K = { place: 'kvPlace', size: 'kvSize', anchor: 'textAnchor', fill: 'bgFill', grad: 'bgGrad', scrim: 'scrim', kv: 'layout.kv', text: 'layout.text', logo: 'layout.logo' };
+const K = { place: 'kvPlace', size: 'kvSize', anchor: 'textAnchor', align: 'textAlign', fill: 'bgFill', grad: 'bgGrad', scrim: 'scrim', kv: 'layout.kv', text: 'layout.text', logo: 'layout.logo' };
 const KV_ALL = [K.place, K.size, K.kv];
 export const RULE_EDIT_KEYS = {
   'objectBleed.area': KV_ALL, 'objectBleed.cut': KV_ALL, 'objectBleed.vis': KV_ALL, 'objectBleed.minTextCol': [...KV_ALL, K.text],
-  'cutout.contain': KV_ALL, 'cutout.square.box': KV_ALL, 'fill.maxObject': KV_ALL, 'objectOverlap': [...KV_ALL, K.text, K.anchor],
+  'cutout.contain': KV_ALL, 'cutout.square.box': KV_ALL, 'fill.maxObject': KV_ALL, 'objectOverlap': [...KV_ALL, K.text, K.anchor, K.align],   // K.align(10-19): 글자 정렬이 키비주얼 자리를 데려간다
   roomFull: [K.place], 'photoCrowd.full': [K.place, K.scrim], 'texture.bg': [K.place, K.anchor], 'frame.bg': [K.place, K.fill],
   'photo.column.logoLeft': [K.place, K.logo], 'character.head': KV_ALL,
   kvMood: [K.fill, K.grad, K.place], vividWhite: [K.fill, K.grad], 'textColour.brand': [K.fill, K.grad],
@@ -237,10 +239,10 @@ export const RULE_EDIT_KEYS = {
   'contrast.main': [K.fill, K.grad, K.scrim, K.text, K.kv, K.place], 'contrast.small': [K.fill, K.grad, K.scrim, K.text, K.kv, K.place],
   hierarchy: [K.place, K.size], 'main.lines': [K.place, K.size],
   logoCap: [K.logo], 'logo.tone': [K.fill, K.logo], wideLogo: [K.logo, K.place], 'guide.logo.h': [K.logo],
-  'check.textOverSubject': [...KV_ALL, K.text, K.anchor], 'check.emptyBand': [...KV_ALL, K.text, K.anchor], 'check.logoCovered': [...KV_ALL, K.logo],
+  'check.textOverSubject': [...KV_ALL, K.text, K.anchor, K.align], 'check.emptyBand': [...KV_ALL, K.text, K.anchor], 'check.logoCovered': [...KV_ALL, K.logo, K.align],
   'check.hardCut': [...KV_ALL, K.fill], 'check.textClipped': [K.text, K.anchor, K.place, K.size], 'check.chipOverflow': [K.text, K.place, K.size], maxUpscale: [K.size, K.kv],
   // 가이드 배치(10-14): 글자 칸·시작선·로고 자리·직접 수정 이탈·권장 여백 — 직접 수정을 지운다. 글자 정렬·키비주얼 위치·크기 프리셋이 글자를 칸 밖으로 밀었으면(우하단 그림 위로 내린 정렬, 580×400 「아래」 띠에서 넘친 상세) 그것도
-  'place.textZone': [K.text, K.anchor, K.place, K.size], 'place.textAlign': [K.text], 'place.logoSlot': [K.logo], 'place.manualDrift': [K.text, K.logo, K.kv], 'place.recommendedMargin': [K.text, K.logo, K.anchor],
+  'place.textZone': [K.text, K.anchor, K.place, K.size, K.align], 'place.textAlign': [K.text, K.align], 'place.logoSlot': [K.logo, K.align], 'place.manualDrift': [K.text, K.logo, K.kv], 'place.recommendedMargin': [K.text, K.logo, K.anchor],
 };
 // 이 산출물에서 그 규칙에 닿는 편집이 지금 걸려 있나 — effStyle(캠페인 + 개별을 합친 스타일), layout(overrides.layout)
 export function editsTouching(ruleId, effStyle, layout) {

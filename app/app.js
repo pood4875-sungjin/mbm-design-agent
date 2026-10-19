@@ -2103,6 +2103,7 @@ function renderInspector() {
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
+      ${ED.alignCampaignHtml()}
       </section>
       <div id="inspNote"></div>`;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
@@ -2281,6 +2282,7 @@ function renderInspector() {
     });
     insp.querySelector('#iAdd')?.addEventListener('click', () => addArtifactModal());   // 10-15 밤: 인스펙터 간소화로 버튼 없음(상단 메뉴·모달은 그대로)
     ED.bindPresetCampaign(insp, restyle);
+    ED.bindAlignCampaign(insp, restyle);   // 글자 정렬 세그먼트(10-19)
     return;
   }
 
@@ -2323,6 +2325,7 @@ function renderInspector() {
       </div>` : ''}
     ${a.channel === 'ad' ? `
       ${artifactFontHtml(a, c)}
+      ${ED.alignArtifactHtml(a)}
 ` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
     <section class="isec">
@@ -2383,7 +2386,7 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 라벨 알약 ${v ? CHIP_LABEL[v] : '공통 따름'}`);
   });
-  if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); }
+  if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); }
   insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
     if ((a.variant ?? 0) === Number(b.dataset.v)) return;   // 같은 시안 다시 누르면 되돌릴 것도 없다
     pushHistory(`${artLabel(a)} 시안 ${Number(b.dataset.v) + 1}`);
