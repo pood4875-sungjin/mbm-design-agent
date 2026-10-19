@@ -62,6 +62,8 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const other = (hasBg && !flatEdge(e)) ? ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge) : null;
 
   if (opt.color) { stops = [opt.color]; source = 'manual'; }
+  // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°. 비주얼 우선(kv-vivid)보다 앞
+  else if (style.colorsManual && p.primary) { stops = [p.primary, shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
   else if (hasBg && flatEdge(e)) {
     stops = [e.from, e.to];
     angle = (facing === 'left' || facing === 'right') ? 180 : 90;
@@ -137,7 +139,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   if (stops.length > 1 && worst(text) < 3) { stops = [mid()]; text = pick(); }
   // 채도 높은 지면엔 흰 글자(CANON vividWhite, 10-12 desk-12) — 같은 색상으로 명도만 조금 내려 흰 큰 글자 3:1, 되면 작은 글자 4.5:1까지
   let dim = null;
-  const vv = vividWhite(stops, { manual: !!opt.color });
+  const vv = vividWhite(stops, { manual: !!opt.color || source === 'palette-manual' });
   if (text === BLACK && vv) {
     // 그림 변이 곧 지면(kv-edge) — 그림도 같은 비율로 어둡혀 이음매를 지킨다(CANON vividWhite.dimKv). 단 그림 속 흰 주인공이 회색으로 죽으면 안 된다:
     //   어둡힘이 dimMin 보다 세면 그림은 dimMin 까지만, 남는 차이는 녹임이 잇는다(seamless 해제 → CANON melt 길이)

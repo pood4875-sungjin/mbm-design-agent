@@ -1395,7 +1395,7 @@ async function doUpscale(a) {
 function applyDerived() {
   const it = state.intake;
   if (it.colorsManual) return;                       // 손으로 고른 색이 있으면 건드리지 않는다
-  const roles = rolesFromSources({ logo: it.logoSuggests, kv: it.suggests, lead: leadOf(it) }, it.mode);
+  const roles = alignPrimaryToField(rolesFromSources({ logo: it.logoSuggests, kv: it.suggests, lead: leadOf(it) }, it.mode), { keyVisual: it.kv, kvMeta: it.kvMeta, logoLeads: leadOf(it) === 'logo' });
   if (roles) { it.colors = roles; return; }
   const auto = buildPalette({ primary: it.colors[0], mode: it.mode });
   it.colors[1] = auto.secondary;
@@ -1590,11 +1590,19 @@ async function analyzeLogo(dataUrl) {
   return extractPalette(g.getImageData(0, 0, W, H).data, 3);
 }
 // 작업 화면에서 자료를 갈아 끼울 때 — 지금 걸려 있는 로고·키비주얼에서 세 자리를 다시 읽는다
-async function rolesFromAssets({ logo, keyVisual, mode, kvColors = null }) {
+// 주색 = 지면색(10-19 사용자 「컬러는 어디서 뽑는 거야? 조금 더 밝아야」): 키비주얼이 지면을 정하는(kv-vivid) 캠페인은 색 자리의 주색을 실제 지면 색으로 맞춘다 —
+//   전엔 추출 대표색(음영 섞인 탁한 색)이 주색 칸에 보이고 지면은 따로 계산돼 어긋났다. 로고가 주색을 맡으면(브랜드색) 그대로 둔다.
+function alignPrimaryToField(roles, { keyVisual, kvMeta, logoLeads = false } = {}) {
+  if (!roles || !keyVisual || logoLeads) return roles;
+  try { const f = resolveField(normalizeStyle({ colors: roles, keyVisual, kvMeta })); if (f && /^kv-vivid/.test(f.source ?? '') && f.stops?.[0]) return [f.stops[0], roles[1], roles[2]]; } catch {}
+  return roles;
+}
+async function rolesFromAssets({ logo, keyVisual, mode, kvColors = null, kvMeta = null }) {
   let L = [], K = kvColors ?? [];
   try { if (logo) L = await analyzeLogo(logo); } catch {}
   try { if (!kvColors && keyVisual) K = (await analyzeKeyVisual(keyVisual)).suggests; } catch {}
-  return { roles: rolesFromSources({ logo: L, kv: K }, mode), fromLogo: L.length > 0, fromKv: K.length > 0 };
+  const roles = alignPrimaryToField(rolesFromSources({ logo: L, kv: K }, mode), { keyVisual, kvMeta, logoLeads: L.length > 0 });
+  return { roles, fromLogo: L.length > 0, fromKv: K.length > 0 };
 }
 
 function specIdsFor(channels) {
@@ -1621,6 +1629,7 @@ function buildAndGenerate() {
   ctx = updateContext(ctx, { channelFields: extraPatch });
   const style = normalizeStyle({
     keyVisual: it.kv,
+    colorsManual: !!it.colorsManual,   // 손으로 고른 색 → 지면도 그 색(10-19)
     kvOrig: it.kvOrig ?? null, logoOrig: it.logoOrig ?? null,   // 전달물은 원본 파일 그대로(10-16)
     kvReadability: it.kvReadability,
     kvMeta: it.kvMeta,
@@ -2120,6 +2129,7 @@ function renderInspector() {
         logoLight: c.style.logoLight ?? null,
         logoTone: c.style.logoTone ?? null,
         logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
+        colorsManual: !!c.style.colorsManual,   // 손으로 고친 색(10-19) — 지면이 주색을 따라간다
         logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
         object: c.style.object ?? null,
         objectMeta: c.style.objectMeta ?? null,
@@ -2143,9 +2153,10 @@ function renderInspector() {
     };
     // 컬러피커는 드래그하는 내내 값이 흐른다 — 한 번의 색 고르기가 되돌리기 한 걸음이 되도록 묶는다
     const styleChange = debounce(() => restyle({}, '스타일 변경', true), 350);
-    insp.querySelector('#iColor1').oninput = styleChange;
-    insp.querySelector('#iColor2').oninput = styleChange;
-    insp.querySelector('#iColor3').oninput = styleChange;
+    const colorEdit = debounce(() => restyle({ colorsManual: true }, '색 직접 변경', true), 350);   // 10-19: 손으로 고른 색은 지면(그라데이션)까지 따라간다
+    insp.querySelector('#iColor1').oninput = colorEdit;
+    insp.querySelector('#iColor2').oninput = colorEdit;
+    insp.querySelector('#iColor3').oninput = colorEdit;
     insp.querySelector('#iFont').onchange = () => styleChange();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     const setBg = (patch, label) => { restyle({ background: { ...c.style.background, ...patch } }, label); renderInspector(); };
@@ -2209,8 +2220,8 @@ function renderInspector() {
         const kv = await prepKv(r.result);
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(kv)); } catch {}
         // 로고가 있으면 주색은 로고가 맡고 키비주얼은 보조·포인트만 바꾼다 — 이미지를 갈았다고 브랜드 색이 바뀌면 안 된다
-        const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, mode: c.style.mode, kvColors: suggests });
-        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
+        const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, keyVisual: kv, kvMeta: meta, mode: c.style.mode, kvColors: suggests });
+        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, colorsManual: false, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
         renderInspector();
         toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
         { const ck = await kvCheckOf(r.result, meta); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
@@ -2223,7 +2234,7 @@ function renderInspector() {
         const { suggests } = await analyzeKeyVisual(c.style.keyVisual);
         const roles = rolesFromKeyVisual(suggests, c.style.mode);
         if (!roles) { toast('이미지에서 쓸 만한 색을 찾지 못했어요'); return; }
-        restyle({ colors: roles }, '키비주얼 색 재추출');
+        restyle({ colors: alignPrimaryToField(roles, { keyVisual: c.style.keyVisual, kvMeta: c.style.kvMeta }), colorsManual: false }, '키비주얼 색 재추출');
         renderInspector();
         toast(`주색 ${roles[0]} · 보조 ${roles[1]} · 포인트 ${roles[2]}`);
       } catch { toast('색 추출 실패'); }

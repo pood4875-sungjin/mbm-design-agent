@@ -64,6 +64,7 @@ export function normalizeStyle(input = {}) {
     accent: HEX.test(input.accent ?? '') ? input.accent.toUpperCase() : null,
     // 편집 프리셋(10-14, core/editlayout.js PRESETS) — 캠페인 일괄 값. 'auto'(기본)면 키를 두지 않는다(렌더 결과·저장 모양이 예전과 같게)
     ...Object.fromEntries(PRESET_KEYS.filter(k => input[k] && input[k] !== 'auto' && PRESETS[k].choices[input[k]]).map(k => [k, input[k]])),
+    colorsManual: !!input.colorsManual,   // 사람이 색 자리를 손으로 고쳤다(10-19) — 지면이 주색을 따라간다(core/field.js palette-manual)
     logoMono: input.logoMono ?? null,     // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
     // 올린 원본(손질 전) — 전달물(자소설 M시작배너 로고 500px↑·이미지 720px↑)은 손질본이 아니라 원본 파일을 그대로 넘긴다(10-16). 손질본과 같으면 비워 둔다
