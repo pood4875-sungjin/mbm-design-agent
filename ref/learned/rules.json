@@ -3786,7 +3786,10 @@
    "source": "docs/google-gdn-mold.md",
    "where": "core/media/google-gdn.json (safeArea.measuredFromTemplate.mold) · core/renderers/ad.js (templateMold)",
    "since": "2026-10-16",
-   "round": 62
+   "round": 62,
+   "evidence": [
+    "figma 보드 구글GDN 페이지 비씨월드 4장 64:721·731·741·710"
+   ]
   },
   {
    "id": "kv-harmony-field",
