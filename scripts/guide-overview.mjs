@@ -8,7 +8,7 @@ import path from 'node:path';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const core = f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
 const F = await core('fonts.js'); const { CANON } = await core('canon.js'); const { resolveField } = await core('field.js'); const { normalizeStyle } = await core('style.js');
-const { INPUT_SPEC } = await core('input-spec.js');
+const { INPUT_SPEC } = await core('input-spec.js'); const { KV_TYPES, KV_SUBTYPES } = await core('kvtypes.js');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const X = JSON.parse(readFileSync(path.join(ROOT, 'core/media/_extract.json'), 'utf8'));
 const ORDER = X.order ?? [...new Set(X.extract.map(i => i.split('-')[0]))];
@@ -28,6 +28,11 @@ if (existsSync(path.join(CASES, 'cases.json'))) {
   const pick = [['t1014-hanssem', '한샘 — 사무실 사진'], ['t1014-abl', 'ABL — 캐릭터 누끼'], ['midas-glass-mint', '마이다스 — 유리 누끼'], ['dongbu_illust', '동부 — 건물 누끼'], ['bc-illust', '비씨월드 — 배경 있는 일러스트']];
   examples = pick.map(([id, label]) => { const c = L.cases.find(x => x.id === id); if (!c || !existsSync(path.join(CASES, id, 'meta.json'))) return ''; const meta = JSON.parse(readFileSync(path.join(CASES, id, 'meta.json'), 'utf8')); const f = resolveField(normalizeStyle({ colors: [c.primary ?? '#1428A0'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: meta })); const src = { 'kv-vivid': '누끼 대표색을 화사하게', 'kv-vivid-photo': '사진 글자 쪽 변 색을 화사하게', 'kv-edge': '그림 가장자리 색 그대로(이음매 없음)', 'kv-harmony-tint': '무채 → 옅은 틴트 + 검정 글자', 'kv-mood': '그림 분위기(원본 바탕)' }[f.source] ?? f.source; return `<tr><td>${esc(label)}</td><td>${f.stops.map(chip).join(' → ')}</td><td>${chip(f.text)} ${f.contrast}:1</td><td>${esc(src)} <code>${f.source}</code></td></tr>`; }).join('');
 }
+
+/* 2b. 키비주얼 유형별 배치(kvtypes.js — 10-06 사용자 「사진일 때·누끼일 때 나눠서 규칙으로」) */
+const li = a => (a ?? []).map(x => `<li>${esc(x)}</li>`).join('');
+const typeCards = KV_TYPES.map(t => `<div class="card"><h3 style="margin-top:0">${esc(t.name)} <code>${t.id}</code></h3><p class="dim2">판정: ${esc(t.detect)}</p><b>넣는 법</b><ul>${li(t.place)}</ul><b>지면</b><p>${esc(t.field)}</p><b>글자</b><p>${esc(t.text)}</p><p class="dim2">검수: ${(t.checks ?? []).map(esc).join(' · ')}</p>
+<details><summary>세분 유형 ${(KV_SUBTYPES[t.id] ?? []).length}개</summary><table><tr><th>세분</th><th>언제</th><th>이렇게</th></tr>${(KV_SUBTYPES[t.id] ?? []).map(s => `<tr><td><b>${esc(s.name)}</b><br><code>${s.id}</code></td><td class="c">${esc(s.why)}</td><td class="c"><ul style="margin:0;padding-left:16px">${li(s.guide)}</ul></td></tr>`).join('')}</table></details></div>`).join('');
 
 /* 3. 폰트 */
 const fontRows = ORDER.map(m => { const d = MEDIA[m]; const fo = d.fonts ?? {}; const fixed = !!fo.required; return `<tr><td>${esc(d.name)}</td><td>${fixed ? `<b class="fix">고정 — ${esc(fo.required)}</b>` : fo.recommended ? `자유 · 권장 ${esc(fo.recommended)}` : '자유'}</td><td>${fixed ? esc(fo.required) : `고른 글꼴(기본 ${esc(F.FONTS[F.DEFAULT_FONT].label)})`}</td><td class="c">${esc(fo.note ?? '규정 없음')}</td></tr>`; }).join('');
@@ -50,9 +55,9 @@ table{border-collapse:collapse;width:100%;background:var(--card);border:1px soli
 code{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#888}.c{max-width:520px}.fix{color:var(--fix)}.dim{color:#aaa}
 .chip{display:inline-flex;align-items:center;gap:5px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;margin-right:4px}.chip i{width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.12);display:inline-block}
 ol.steps{padding-left:20px;margin:6px 0}ol.steps li{margin:4px 0}details{margin:8px 0}summary{cursor:pointer;color:var(--sub);font-size:12.5px}
-.foot{color:var(--sub);font-size:12px;margin-top:40px}</style></head><body><main>
+.foot{color:var(--sub);font-size:12px;margin-top:40px}.dim2{color:var(--sub);font-size:12.5px;margin:2px 0 8px}.card ul{margin:4px 0 10px;padding-left:18px}.card p{margin:2px 0 8px}</style></head><body><main>
 <h1>가이드 반영 현황</h1><p class="lead">폰트·키비주얼·로고·배경색 규칙이 지금 코드에 어떻게 들어가 있는지. 값은 전부 코드와 데이터에서 읽어 만든 페이지(${today}, <code>node scripts/guide-overview.mjs</code>).</p>
-<nav><a href="#input">① 키비주얼·로고 입력 스펙</a><a href="#field">② 배경색(지면) 규칙</a><a href="#font">③ 폰트</a><a href="#spec">④ 규격별 글자·로고·KV 칸</a><a href="spec-inventory.html">규칙표 51규격 →</a><a href="../history/규칙장부.md">규칙 장부 →</a></nav>
+<nav><a href="#input">① 키비주얼·로고 입력 스펙</a><a href="#kvtype">② 키비주얼 유형별 배치</a><a href="#field">③ 배경색(지면) 규칙</a><a href="#font">④ 폰트</a><a href="#spec">⑤ 규격별 글자·로고·KV 칸</a><a href="spec-inventory.html">규칙표 51규격 →</a><a href="../history/규칙장부.md">규칙 장부 →</a></nav>
 
 <h2 id="input">① 키비주얼·로고 — 무엇을 올려야 잘 나오나</h2>
 <div class="kpi">
@@ -62,7 +67,10 @@ ol.steps{padding-left:20px;margin:6px 0}ol.steps li{margin:4px 0}details{margin:
 </div>
 <details><summary>규격별 칸 크기(내보내기 px) 51개 펼치기</summary><table><tr><th>매체</th><th>규격</th><th>출력</th><th>키비주얼 칸</th><th>로고 칸</th><th>KV 방식</th></tr>${inputRows}</table></details>
 
-<h2 id="field">② 배경색(지면) — 키비주얼에서 어떻게 뽑나</h2>
+<h2 id="kvtype">② 키비주얼 유형별 배치 — 사진·누끼·일러스트·질감</h2>
+<p class="lead" style="margin-bottom:8px">올린 그림을 측정값으로 네 유형(+세분)으로 가르고, 유형마다 「어디에 어떻게 넣는가·지면·글자·검수」가 정해져 있음(<code>core/kvtypes.js</code>, 렌더러·앱 진단·케이스 장부가 모두 이 표를 봄). 유형이 잘못 읽히면 앱에서 유형을 직접 지정할 수 있음.</p>
+${typeCards}
+<h2 id="field">③ 배경색(지면) — 키비주얼에서 어떻게 뽑나</h2>
 <div class="card"><ol class="steps">
 <li><b>직접 고른 지면색</b>이 있으면 그 색(인스펙터 「지면색 선택」).</li>
 <li><b>색 자리를 손으로 고쳤으면</b> 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°, 흰 글자. 「색 다시 뽑기」·키비주얼 교체 시 자동으로 복귀.</li>
@@ -73,15 +81,15 @@ ol.steps{padding-left:20px;margin:6px 0}ol.steps li{margin:4px 0}details{margin:
 <p style="margin:8px 0 0;color:var(--sub);font-size:12.5px">색 자리의 <b>주색 = 실제 지면 색</b>(키비주얼이 지면을 정할 때). 브랜드색은 알약·날짜 상자·회사명 강조 같은 포인트에 쓰임. 밝기가 어두운 쪽으로 잡히는 건 흰 글자 대비 4.5:1 때문 — 10-19 결정: 명도는 그대로, 채도만 ${K.sat}.</p></div>
 ${examples ? `<h3>예시(케이스 사진으로 계산한 실제 값)</h3><table><tr><th>키비주얼</th><th>지면</th><th>글자</th><th>어떤 길로</th></tr>${examples}</table>` : ''}
 
-<h2 id="font">③ 폰트 — 매체 규정과 실제 적용</h2>
+<h2 id="font">④ 폰트 — 매체 규정과 실제 적용</h2>
 <table><tr><th>매체</th><th>규정</th><th>실제 들어가는 글꼴</th><th>규정 원문·메모</th></tr>${fontRows}</table>
 <h3>앱에 묶은 글꼴(라이선스 확인본)</h3>
 <table><tr><th>글꼴</th><th>제작</th><th>라이선스</th><th>굵기</th><th>자리</th></tr>${bundled}</table>
 <p style="color:var(--sub);font-size:12.5px">넣지 않은 글꼴과 사유(29CM Editorial 비영리 전용 · HS효성체 수정·재배포 금지)는 <a href="fonts.md">fonts.md</a>. 글꼴 파일에 라이선스 문구가 없는 카카오·나눔네오는 배포처 페이지를 <a href="fonts-license/">fonts-license/</a> 에 보관.</p>
 
-<h2 id="spec">④ 규격별 글자 자리·로고 칸·키비주얼 칸</h2>
+<h2 id="spec">⑤ 규격별 글자 자리·로고 칸·키비주얼 칸</h2>
 <div class="card">규격마다 글자 x·줄 y·크기·굵기·자간, 로고 칸, 키비주얼 칸(고정/자유/비주얼만)이 매체 JSON 의 <code>mold</code> 에 들어 있고 한 표로는 <a href="spec-inventory.html"><b>규칙표 51규격</b></a>에서 봄. 매체별 정본(피그마 수정본 실측·개정 이력): ${moldDocs}.<br>피그마 왕복: 보드 페이지 133:44 에서 고친 프레임 링크를 주면 실측해 틀에 반영하고 반영 렌더를 옆에 올림.</div>
-<p class="foot">출처 파일: core/input-spec.json · core/media/*.json · core/fonts.js · core/canon.js · core/field.js. 규칙 전체는 <a href="../history/규칙장부.md">history/규칙장부.md</a>(ref/learned/rules.json).</p>
+<p class="foot">출처 파일: core/input-spec.json · core/kvtypes.js · core/media/*.json · core/fonts.js · core/canon.js · core/field.js. 규칙 전체는 <a href="../history/규칙장부.md">history/규칙장부.md</a>(ref/learned/rules.json).</p>
 </main></body></html>`;
 writeFileSync(path.join(ROOT, 'docs/guide-overview.html'), html);
 console.log('docs/guide-overview.html', (html.length / 1024).toFixed(0) + 'KB');
