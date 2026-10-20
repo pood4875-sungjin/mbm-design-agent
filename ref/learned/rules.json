@@ -4106,6 +4106,24 @@
    "round": 70,
    "source": "history/2026-10-16_비주얼우선_지면.md",
    "supersedes": "textTone 규정 매체 무시(10-19)"
+  },
+  {
+   "id": "layout-variants",
+   "category": "배치·비중",
+   "scope": "non-regulated (2·3단계 — 규정 매체·파일 규격 제외)",
+   "status": "active",
+   "rule": "레이아웃 안은 새 디자인이 아니라 편집 프리셋(키비주얼 위치·크기·글자 정렬·배경·글자색 톤)의 조합이다. 규정 매체(자소설·리멤버·카카오 — fonts.required)와 로고·비주얼만 파일 규격(등급 B)은 안이 하나, 등급 C 는 5, 그 외 3. 후보를 우선순위대로 실제 렌더해 프리셋이 안 먹거나(edit.ignored) 겹침 교정이 실패하거나 그림이 같은 안은 버린다 — 「많이」가 아니라 「쓸 수 있는 안만」. 선택은 산출물 overrides.style 로 복사되고(기존 렌더·게이트·내보내기 그대로), 「이 안으로 전부」는 캠페인 프리셋 전파 뒤 안 목록을 새 기준선으로 다시 센다. 내보내기는 선택안만이 기본, 「전체 안 포함」이면 규격 폴더에 안마다(전달_안내에 선택안 번호). 선택은 variant_selected 로 쌓여 다음 기본안·템플릿 후보의 근거가 된다.",
+   "value": "CANON.variants { regulated 1, default 3, free 5, maxRender 14 } · core/variants.js CANDIDATE_ORDER 14 · artifact.variants[{id,label,style,hash}]·variantSel(style 동치 재매핑) · ZIP 매체/specId/__안N · scripts/variant-stats.mjs",
+   "where": "core/variants.js · core/generate.js(generateArtifacts) · app/app.js(인스펙터 레이아웃 안·currentVariantIndex·restyleWith·exportAdFiles allVariants) · scripts/variant-stats.mjs",
+   "evidence": [
+    "사용자 10-20 「2차 단계에서는 여러 레이아웃과 디자인 템플릿이 생성되고 선택할 수 있게 해야 하는데 그 플로우가 필요 — 다 추출할 수도 있는 거고」",
+    "10-20 단계 표: 1단계 자소설·리멤버·비즈보드(변형 없음) / 2단계 네이버 DA·에브리타임 틀·NAP·카카오 PC / 3단계 구글·잡다·인스타·당근·블라인드",
+    "브라우저 확인 10-20: 네이버 DA 3안 선택·일괄 전파·전체 안 ZIP",
+    "test/variants.test.js 6건 · test/generate.test.js 2건 · test/variant-stats.test.js"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_레이아웃_안.md"
   }
  ]
 }
