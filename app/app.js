@@ -1876,7 +1876,8 @@ async function lintAds() {
     if (a.channel === 'asset') {   // 전달물: 원본 파일의 가로·포맷만 본다(렌더 측정 없음)
       const isLogo = (spec.rules.asset ?? spec.asset)?.item === '로고';
       const src = isLogo ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual);
-      const px = isLogo ? c.style.logoMeta?.px : c.style.kvMeta?.px;
+      const px = src ? await new Promise(r => { const i = new Image(); i.onload = () => r([i.naturalWidth, i.naturalHeight]); i.onerror = () => r(null); i.src = src; }) : null;   // 실제 내보내는 원본을 직접 잰다(assetFileOf 와 같은 기준)
+      if (run !== lintRun) return;
       const fmt = src ? (src.match(/^data:image\/(png|jpe?g|svg\+xml|webp|gif)/)?.[1] ?? null) : null;
       a.lint = lintArtifact({ spec: { ...spec.rules, asset: spec.rules.asset ?? spec.asset, format: spec.format }, medium: spec.mediumRules, measure: { assetPx: px ?? null, format: fmt === 'jpeg' ? 'jpg' : fmt === 'svg+xml' ? 'svg' : fmt } });
       lintBadge(a);
@@ -2635,7 +2636,7 @@ function addArtifactModal() {
 // 전달물 파일 — 올린 원본(style.logoOrig/kvOrig, 없으면 손질본). 원본 가로가 규정 최소 폭(로고 500 · 이미지 720)보다 작으면 그 폭으로 확대해서 넘긴다(비율 유지, PNG 알파 유지 — 10-16 사용자 「저 크기에 꽉 차야」). 없으면 null
 async function assetFileOf(a) {
   const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item, minW = spec?.asset?.minW ?? 0;
-  if (a.lint?.level === 'block') { toast('전달물 규정 미달 — 더 큰 원본을 받아야 합니다'); return null; }   // 규정 폭 미달 원본은 늘려 보내지 않는다(10-20 출고규정)
+  if (a.lint?.level === 'block') return null;   // 사유는 a.lint — 알림은 호출처가 한다   // 규정 폭 미달 원본은 늘려 보내지 않는다(10-20 출고규정)
   const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
   const core = c.context.core; const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
@@ -2744,6 +2745,8 @@ async function exportAdZip(withSvg = false) {
       entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
+    const assetBlocked = c.artifacts.filter(a => a.channel === 'asset' && a.lint?.level === 'block').length;
+    if (assetBlocked) toast(`전달물 차단 ${assetBlocked}건 — ZIP에서 제외됨`);
     for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
     // 전달 시트(10-16 캐치 중앙배너·네이버 썸네일·에브리타임 288): 글자를 매체가 웹폰트로 올리는 규격은 문구·배경 Hex 를 txt 로 — 이미지에는 글자가 없다
     const sheet = {}; const hexOf = {};
@@ -2794,7 +2797,7 @@ function exportAdModal(a) {
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
-  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { if (a.lint?.level !== 'block') toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); }); return; }
+  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(a.lint?.level === 'block' ? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다' : `${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); }); return; }
   if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({
