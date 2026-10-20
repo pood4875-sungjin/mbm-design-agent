@@ -71,7 +71,7 @@ test('유형 지정 — 앱(선택 상자·라벨·restyle 전달)과 케이스 
   assert.match(app, /<label for="\$\{id\}">키비주얼 유형/);
   assert.match(app, /<select id="\$\{id\}" aria-describedby=/);
   assert.match(app, /opt\('auto', `자동 \(지금:/);
-  const restyle = app.slice(app.indexOf('const restyle = '), app.indexOf('...patch,', app.indexOf('const restyle = ')));
+  const restyle = app.slice(app.indexOf('function restyleWith('), app.indexOf('...patch,', app.indexOf('function restyleWith(')));
   assert.match(restyle, /kvTypeOverride: c\.style\.kvTypeOverride/);
   const cases = readFileSync(new URL('../scripts/cases.mjs', import.meta.url), 'utf8');
   assert.match(cases, /if \(cmd === 'type'\)/);

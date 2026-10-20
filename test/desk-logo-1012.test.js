@@ -57,7 +57,7 @@ test('타일 로고·실측 없는 로고에는 걸지 않는다(예전 그대�
 
 test('앱: 스타일을 바꿔도(restyle) 로고 실측이 남고, 로고를 갈면 실측을 다시 잰다', () => {
   const src = readFileSync(new URL('../app/app.js', import.meta.url), 'utf8');
-  const restyle = src.slice(src.indexOf('const restyle = '), src.indexOf('...patch,', src.indexOf('const restyle = ')));
+  const restyle = src.slice(src.indexOf('function restyleWith('), src.indexOf('...patch,', src.indexOf('function restyleWith(')));
   assert.match(restyle, /logoMeta: c\.style\.logoMeta/);
   assert.match(src, /const logoMeta = await logoMetaOfUrl\(ink\)/);   // 10-12 결정 12: 잉크(글자 속을 지운 사본)로 잰다 — 이전 logoMetaOfUrl(src)
 });

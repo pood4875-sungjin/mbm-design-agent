@@ -15,7 +15,7 @@ import { resolveField } from '../core/field.js';
 import { checkAdDoc } from '../core/adcheck.js';
 import { kvTypeOf, kvTypeSummary, kvTypeChoices, baseKvMeta, applyKvTypeOverride } from '../core/kvtypes.js';
 import { kvGuideText, logoGuideText, checkKv, checkLogo, CHECK_TONE } from '../core/inputcheck.js';   // 10-19 첨부 안내·크기 검사
-import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
+import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf, renderArtifact } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import { approvalGate, STATE_LABEL } from '../core/gate.js';   // 승인 게이트(10-20 운영 모델 §4·§5)
@@ -27,7 +27,6 @@ import { measureArtifact } from './measure.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
 import { htmlToSvg } from '../core/svgexport.js';
-import { renderAd } from '../core/renderers/ad.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA } from '../core/logo.js';
@@ -2369,7 +2368,7 @@ function renderInspector() {
       <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>` : ''}
       ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
-      <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll">이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
+      <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
       ${ED.alignArtifactHtml(a)}
 ` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
@@ -2452,9 +2451,9 @@ function renderInspector() {
     const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec), k = Math.min(106 / nw, 66 / nh);
     for (const box of insp.querySelectorAll('.vthumb-box')) {
       const v = a.variants[+box.dataset.vi]; if (!v) continue;
-      let html = ''; try { html = renderAd(adEffCtx(a), { ...c.style, ...v.style }, spec); } catch {}
+      let html = ''; try { html = renderArtifact(a.specId, adEffCtx(a), { ...c.style, ...v.style }, artRenderOpts(a)); } catch {}   // 보드와 같은 옵션(시안 번호·용도·화살표·규격)
       if (!html) continue;
-      const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.srcdoc = previewDoc(html, artifactFontId(a)); box.appendChild(f);
+      const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(html, artifactFontId(a)); box.appendChild(f);
     }
     insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
       const cur = currentVariantIndex(a), i = +b.dataset.vi; if (i === cur) return;
@@ -2468,17 +2467,18 @@ function renderInspector() {
       log(`${a.specId} 레이아웃 안 ${i + 1} ${a.variants[i]?.label ?? ''}`);
     });
     $('iVariantAll').onclick = () => {
-      const v = a.variants[currentVariantIndex(a)]; if (!v) return;
+      const v = a.variants[currentVariantIndex(a)]; if (!v || !Object.keys(v.style ?? {}).length) return;   // 기본안은 전파할 값이 없다(버튼도 disabled)
       const spread = { ...v.style };   // 전파할 키·값 — restyleWith 뒤 안 목록이 재계산되므로 미리 잡아 둔다
       restyleWith(c, spread, `레이아웃 안 일괄 「${v.label}」`);   // 캠페인 프리셋으로 전파 — 쓸 수 없는 규격은 렌더러가 무시하고 자동 배치 그대로
-      // 전파 뒤 정리: 새 기준선에선 이 안이 곧 기본안 — 전 광고 산출물의 선택을 0 으로, 전파한 키와 값이 같은 개별값은 지운다(다르게 둔 값은 유지)
+      // 전파 뒤 정리: 새 기준선에선 이 안이 곧 기본안 — 전파한 키와 값이 같은 개별값은 지우고(다르게 둔 값은 유지) 선택은 다시 센다
       for (const x of c.artifacts) {
         if (x.channel !== 'ad') continue;
-        x.variantSel = 0;
         if (x.overrides?.style) { const st = { ...x.overrides.style }; for (const [k, val] of Object.entries(spread)) if (st[k] === val) delete st[k]; x.overrides.style = st; }
       }
+      regen(c);   // 안 목록을 새 기준선으로 먼저 다시 세우고
+      for (const x of c.artifacts) if (x.channel === 'ad') x.variantSel = currentVariantIndex(x);   // 남은 개별값과 맞는 안으로(대개 0)
       logEvent(c, 'variant_selected', { all: true, from: a.specId, label: v.label, style: spread });
-      regen(c); autosave(); refreshFrames(); renderInspector();
+      autosave(); refreshFrames(); renderInspector();
       toast(`「${v.label}」 을 캠페인 전체에 — 쓸 수 없는 규격은 자동 배치 그대로`);
     };
   }
@@ -2787,6 +2787,7 @@ function adRulesText(spec) {
   ].filter(Boolean).join('<br>');
 }
 const adEffCtx = a => { const c = state.campaign; return { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } }; };
+const artRenderOpts = a => ({ variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size });   // renderArtifact 옵션 — generate.js 가 보드를 그릴 때와 같은 것(10-20)
 // 내보낼 때도 보드와 같은 스타일 — 산출물 개별 값(overrides.style: 알약 톤·프리셋)과 직접 수정(overrides.layout)을 얹는다(10-14 generate.js 와 같은 합성)
 const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? { ...c.style, ...a.overrides.style } : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
 async function exportAdFiles(ads) {
@@ -2835,7 +2836,7 @@ function artifactFontHtml(a, c) {
 }
 async function adSvgOf(a, imgCache) {
   const spec = SPECS[a.specId];
-  const html = renderAd(adEffCtx(a), adEffStyle(a), spec);
+  const html = renderArtifact(a.specId, adEffCtx(a), adEffStyle(a), artRenderOpts(a));   // 보드와 같은 옵션(시안 번호·용도·화살표·규격) — renderAd 직접 호출은 variant 를 잃었다
   const r = await htmlToSvg(html, spec, { imgCache, title: adFileName(a, 'svg').replace(/\.svg$/, '') });
   return { ...r, name: adFileName(a, 'svg') };
 }
