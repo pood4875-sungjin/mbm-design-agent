@@ -3166,6 +3166,14 @@ restoreCustomFonts();   // 지난 세션에 첨부한 폰트를 카탈로그에 
 document.head.insertAdjacentHTML('beforeend', `<style id="bundledFonts">${fontIds().filter(isBundledFont).map(id => localFaceCss(id)).join('')}</style>`);
 $('homeBtn').onclick = () => show('home');
 $('logHead').onclick = () => $('logCard').classList.toggle('open');
+// 캔버스 배경색(10-20 사용자 「배경 색 조정 가능하게 피그마처럼」) — 이 브라우저에만 저장(localStorage), 산출물·내보내기와 무관한 보기용
+{
+  const KEY = 'mbm-canvas-bg';
+  const apply = v => { if (v) document.getElementById('work').style.setProperty('--canvas-bg', v); else document.getElementById('work').style.removeProperty('--canvas-bg'); const i = $('canvasBg'); if (i && v) i.value = v; };
+  try { apply(localStorage.getItem(KEY) || null); } catch {}
+  $('canvasBg').oninput = e => { apply(e.target.value); try { localStorage.setItem(KEY, e.target.value); } catch {} };
+  $('canvasBgReset').onclick = () => { apply(null); try { localStorage.removeItem(KEY); } catch {} };
+}
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다
 initHome();
 show('home');

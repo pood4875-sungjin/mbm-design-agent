@@ -108,9 +108,8 @@
     box-shadow:none;
     background-image:
       radial-gradient(900px 500px at 12% -10%, rgba(59,130,246,.07), transparent 60%),
-      radial-gradient(700px 420px at 95% 110%, rgba(16,185,129,.06), transparent 60%),
-      radial-gradient(var(--dot) 1px, transparent 1px);
-    background-size:auto,auto,18px 18px}
+      radial-gradient(700px 420px at 95% 110%, rgba(16,185,129,.06), transparent 60%);
+    background-size:auto,auto}   /* 10-20 사용자 「배경 닷 없는 게 나을 거 같아」 — 점 격자 층 제거 */
   @media (prefers-color-scheme: dark){ #shell{box-shadow:none} }
   /* 판 왼쪽 위 — ‹ 뒤로 + 작업 제목. 홈에서는 숨긴다(돌아갈 곳이 없다) */
   /* 뒤로·캠페인명은 GNB 안에(10-06 사용자: "캠페인은 GNB 드롭박스에, 뒤로가기 줄은 따로 두지 말고"). 홈에선 뒤로가 없고, 작업 중엔 드롭다운 라벨이 캠페인명이 된다 */
@@ -362,7 +361,7 @@
 
   /* ═══ work (아트보드) ═══ */
   #work{position:absolute;inset:0;display:none;--dock:0px}
-  #viewport{position:absolute;inset:62px 0 0 0;overflow:hidden;cursor:grab}   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
+  #viewport{position:absolute;inset:62px 0 0 0;overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
   #viewport.panning{cursor:grabbing}
   #artboard{position:absolute;left:0;top:0;transform-origin:0 0}
   .frame{position:absolute}
@@ -419,16 +418,19 @@
 
   /* ─ 하단 플로팅 바 — 왼쪽 로그 알약 · 가운데 지시 입력 알약 · 오른쪽 되돌리기/줌/도움말 알약. 전부 유리 ─ */
   .glassPill{background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);border-radius:var(--r-pill)}
-  #boardCtl{position:absolute;right:16px;bottom:calc(16px + var(--dock));display:flex;gap:8px;z-index:11}
+  #boardCtl{position:absolute;right:calc(12px + 296px + 16px);bottom:calc(16px + var(--dock));display:flex;gap:8px;z-index:11}   /* 10-20 사용자 「이거도 겹치지 않게」 — 넓은 화면에선 우측 인스펙터(296px) 왼쪽에 */
   .ctlGrp{display:flex;align-items:center;gap:2px;padding:4px;
     background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);border-radius:var(--r-pill)}
   .ctlGrp button{border:0;background:none;width:34px;height:34px;font-size:15px;font-weight:700;line-height:1;border-radius:var(--r-pill);color:var(--ctl-ink);display:inline-flex;align-items:center;justify-content:center}
   .ctlGrp button:hover{background:rgba(0,0,0,.06)}
   .ctlGrp button:disabled{color:var(--ctl-off);cursor:default}
   .ctlGrp button:disabled:hover{background:none}
+  .cbg{position:relative;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+  .cbg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+  .cbg-sw{width:18px;height:18px;border-radius:50%;border:1px solid var(--glass-line);background:var(--canvas-bg,var(--panel-bg));box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
   #zoomPct{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--ctl-ink);padding:0 4px;min-width:46px;font-variant-numeric:tabular-nums}
 
-  #helpPop{position:absolute;right:16px;bottom:calc(68px + var(--dock));width:280px;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-md);box-shadow:var(--glass-shadow);padding:14px 16px;z-index:12;display:none}
+  #helpPop{position:absolute;right:calc(12px + 296px + 16px);bottom:calc(68px + var(--dock));width:280px;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-md);box-shadow:var(--glass-shadow);padding:14px 16px;z-index:12;display:none}
   #helpPop.open{display:block}
   #helpPop h4{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:10px}
   #helpPop dl{display:grid;grid-template-columns:auto 1fr;gap:7px 10px;font-size:12px;color:var(--sub);line-height:1.5;align-items:center}
@@ -490,6 +492,7 @@
     #work{--dock:38%}
     #viewport{inset:62px 0 var(--dock) 0}
     #inspector{left:12px;right:12px;top:auto;bottom:12px;width:auto;max-height:calc(var(--dock) - 24px);display:grid;grid-template-columns:1fr 1fr;align-content:start}
+    #boardCtl,#helpPop{right:16px}
     #inspector:empty{display:none}
     #inspNote{grid-column:1 / -1}
     #sidebar{width:260px}
@@ -672,6 +675,7 @@
       <div class="ctlGrp" id="zoomCtl">
         <button id="zOut" aria-label="축소"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div id="zoomPct">100%</div><button id="zIn" aria-label="확대"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><button id="zFit" title="전체 보기" aria-label="전체 보기"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
+      <div class="ctlGrp" title="캔버스 배경색"><label class="cbg" aria-label="캔버스 배경색"><input type="color" id="canvasBg" value="#f6f7f9"><span class="cbg-sw" id="canvasBgSw"></span></label><button id="canvasBgReset" aria-label="배경색 기본으로" title="기본으로">↺</button></div>
       <div class="ctlGrp">
         <button id="helpBtn" title="단축키 · 조작법" aria-label="단축키 · 조작법" aria-expanded="false">?</button>
       </div>
