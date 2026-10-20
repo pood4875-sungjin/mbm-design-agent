@@ -1,6 +1,7 @@
 // test/ship-checklist.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { shipRows } from '../scripts/ship-checklist.mjs';
 
 test('ship checklist: every grade-A 자소설·리멤버 spec has rows for size, format, text limits; each row names an auto check code or 수동; rows have a source', () => {
@@ -18,4 +19,7 @@ test('ship checklist: every grade-A 자소설·리멤버 spec has rows for size,
   // 자소설 용량은 자료에 없다 — 확인 필요로만 남는다
   const kb = rows.find(r => r.spec === 'jasoseol-pc-premium-popup-pc' && r.item === '용량');
   assert.equal(kb.status, '확인 필요');
+  // check 코드가 core/lint.js 실제 issue code 와 어긋나지 않는다
+  const lintSrc = readFileSync(new URL('../core/lint.js', import.meta.url), 'utf8');
+  for (const code of new Set(rows.filter(r => r.check !== '수동').flatMap(r => r.check.split(',')))) assert.ok(lintSrc.includes(`'${code}'`), `lint.js 에 '${code}' 없음`);
 });
