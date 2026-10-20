@@ -2122,6 +2122,16 @@ function select(specId) {
   if (sa?.channel === 'ad') ED.showOverlay(sa); else { state.editFocus = null; ED.hideOverlay(); }
 }
 
+// 지금 산출물이 어느 레이아웃 안에 서 있나 — variantSel 인덱스가 아니라 overrides.style 과 안 style 의 일치로 판정(10-20).
+//   일괄 전파 뒤 안 목록이 새 기준선으로 재계산되면 인덱스가 어긋나므로. 키가 가장 많이 맞는 안, 아무 것도 안 맞으면 0(기본안)
+function currentVariantIndex(a) {
+  const st = a?.overrides?.style ?? {}; let best = 0, bestN = 0;
+  (a?.variants ?? []).forEach((v, i) => {
+    const keys = Object.keys(v.style ?? {}); if (!keys.length) return;
+    if (keys.every(k => st[k] === v.style[k]) && keys.length > bestN) { best = i; bestN = keys.length; }
+  });
+  return best;
+}
 function renderInspector() {
   const insp = $('inspector');
   const c = state.campaign;
@@ -2358,7 +2368,7 @@ function renderInspector() {
       ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
       <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>` : ''}
       ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
-      <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${(a.variantSel ?? 0) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
+      <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
       <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll">이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
       ${ED.alignArtifactHtml(a)}
 ` : ''}
@@ -2447,9 +2457,9 @@ function renderInspector() {
       const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.srcdoc = previewDoc(html, artifactFontId(a)); box.appendChild(f);
     }
     insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
-      const i = +b.dataset.vi; if (i === (a.variantSel ?? 0)) return;
+      const cur = currentVariantIndex(a), i = +b.dataset.vi; if (i === cur) return;
       pushHistory(`${artLabel(a)} 레이아웃 안 ${i + 1}`);
-      const prev = a.variants[a.variantSel ?? 0]?.style ?? {}; const next = a.variants[i].style;
+      const prev = a.variants[cur]?.style ?? {}; const next = a.variants[i].style;
       const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, next);   // 이전 안의 키는 지우고 새 안의 키만
       a.overrides.style = st; a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
       logEvent(c, 'variant_selected', { specId: a.specId, variant: i, label: a.variants[i].label, style: next });
@@ -2458,10 +2468,17 @@ function renderInspector() {
       log(`${a.specId} 레이아웃 안 ${i + 1} ${a.variants[i]?.label ?? ''}`);
     });
     $('iVariantAll').onclick = () => {
-      const v = a.variants[a.variantSel ?? 0]; if (!v) return;
-      restyleWith(c, { ...v.style }, `레이아웃 안 일괄 「${v.label}」`);   // 캠페인 프리셋으로 전파 — 쓸 수 없는 규격은 렌더러가 무시하고 자동 배치 그대로
-      logEvent(c, 'variant_selected', { all: true, from: a.specId, label: v.label, style: v.style });
-      renderInspector();
+      const v = a.variants[currentVariantIndex(a)]; if (!v) return;
+      const spread = { ...v.style };   // 전파할 키·값 — restyleWith 뒤 안 목록이 재계산되므로 미리 잡아 둔다
+      restyleWith(c, spread, `레이아웃 안 일괄 「${v.label}」`);   // 캠페인 프리셋으로 전파 — 쓸 수 없는 규격은 렌더러가 무시하고 자동 배치 그대로
+      // 전파 뒤 정리: 새 기준선에선 이 안이 곧 기본안 — 전 광고 산출물의 선택을 0 으로, 전파한 키와 값이 같은 개별값은 지운다(다르게 둔 값은 유지)
+      for (const x of c.artifacts) {
+        if (x.channel !== 'ad') continue;
+        x.variantSel = 0;
+        if (x.overrides?.style) { const st = { ...x.overrides.style }; for (const [k, val] of Object.entries(spread)) if (st[k] === val) delete st[k]; x.overrides.style = st; }
+      }
+      logEvent(c, 'variant_selected', { all: true, from: a.specId, label: v.label, style: spread });
+      regen(c); autosave(); refreshFrames(); renderInspector();
       toast(`「${v.label}」 을 캠페인 전체에 — 쓸 수 없는 규격은 자동 배치 그대로`);
     };
   }
@@ -3160,6 +3177,7 @@ function openStored(saved) {
     if (s.variantSel != null) a.variantSel = s.variantSel;   // 레이아웃 안 선택 — 뒤의 regen 이 범위 밖이면 0 으로 되돌린다
   }
   regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
+  for (const a of state.campaign.artifacts) if (a.variants?.length > 1) a.variantSel = currentVariantIndex(a);   // 안 목록이 재계산돼 인덱스가 어긋나도 overrides 와 맞는 안으로
   migrateLogos(state.campaign);
   logEvent(state.campaign, 'campaign_reopened', {});
   enterWork();
