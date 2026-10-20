@@ -36,6 +36,6 @@ test('grade C is never ready — 초안(draft); grade B behaves like A', () => {
 });
 
 test('REVIEW_CODES lists the design warnings that demand a human look', () => {
-  for (const c of ['text-over-subject', 'logo-covered', 'text-clipped', 'low-res', 'low-res-logo', 'chip-overflow']) assert.ok(REVIEW_CODES.has(c), c);
+  for (const c of ['text-over-subject', 'logo-covered', 'text-clipped', 'low-res', 'low-res-logo', 'chip-overflow', 'design-failed']) assert.ok(REVIEW_CODES.has(c), c);
   assert.ok(!REVIEW_CODES.has('short-melt'));
 });

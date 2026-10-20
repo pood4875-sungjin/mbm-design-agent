@@ -1820,7 +1820,7 @@ function refreshFrames(only = null) {
     f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
-    if (a.channel === 'ad') { a.lint = null; a.guide = null; ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·가이드)은 무효 — 다시 잰다
+    if (a.channel === 'ad') { a.lint = null; a.design = undefined; a.guide = null; ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·디자인·가이드)은 무효 — 다시 잰다(design undefined = 검수 전 → 게이트 pending)
     if (a.channel === 'asset') a.lint = null;   // 전달물도 로고·이미지를 바꾸면 다시 잰다
     lintBadge(a);
   }
@@ -1844,7 +1844,7 @@ function lintBadge(a) {
 function designCheck(a) {
   if (a.channel !== 'ad' || !state.campaign) return;
   const f = frames.get(a.key ?? a.specId); if (!f?.iframe?.contentDocument) return;
-  try { a.design = checkAdDoc(f.iframe.contentDocument, { kvMeta: state.campaign.style.kvMeta }); } catch (e) { a.design = null; }
+  try { a.design = checkAdDoc(f.iframe.contentDocument, { kvMeta: state.campaign.style.kvMeta }); } catch (e) { a.design = { warnings: [{ code: 'design-failed', level: 'warn', msg: '디자인 검수 실패 — 사람이 확인' }] }; }   // 실패도 조용히 통과시키지 않는다 → 게이트 review
   designBadge(a);
   // 샘플 문구(data-sample — 마감일·직무가 비어 있어 샘플 밀도를 맞추려 넣은 자리표시) 배지: 승인 전에 디자이너가 실제 정보로 바꾼다(10-12 매체별 규격정리)
   try { const n = f.iframe.contentDocument.querySelectorAll('[data-sample]').length; if (f.sample) { f.sample.style.display = n ? '' : 'none'; f.sample.textContent = n ? `샘플 문구 ${n}` : ''; f.sample.title = n ? '비어 있는 정보 자리에 넣은 샘플 문구 — 승인 전에 실제 정보로 바꾸세요' : ''; } } catch {}
@@ -1865,7 +1865,9 @@ function gateOf(a) {
   if (a.channel !== 'ad' && a.channel !== 'asset') return null;
   const spec = SPECS[a.specId];
   const f = frames.get(a.key ?? a.specId);
+  if (a.channel === 'ad' && a.design === undefined) { a.gate = { state: 'pending', reasons: ['디자인 검수 전'] }; return a.gate; }   // iframe onload 전엔 「승인 가능」이 잠깐 뜨지 않게
   const samples = (() => { try { return f?.iframe?.contentDocument?.querySelectorAll('[data-sample]').length ?? 0; } catch { return 0; } })();
+  // design 은 adcheck 의 warnings 전체(level info 인 low-res·low-res-logo 포함) — 프레임 「디자인 n」 배지는 info 를 세지 않지만 게이트는 흐린 키비주얼도 「검수 필요」로 둔다(출고 불가 사유)
   a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples });
   return a.gate;
 }
@@ -2405,7 +2407,7 @@ function renderInspector() {
     if (v && v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
     pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 개별 편집`, true);
     a.overrides.core = o;
-    a.status = 'draft';
+    a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId });
     regen(c);
     autosave();
@@ -2422,7 +2424,7 @@ function renderInspector() {
     const st = { ...(a.overrides.style ?? {}) };
     if (v) st.fonts = { heading: v, body: v }; else delete st.fonts;
     a.overrides.style = st;
-    a.status = 'draft';
+    a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId, style: 'fonts' });
     regen(c);
     autosave();
@@ -2438,7 +2440,7 @@ function renderInspector() {
     pushHistory(`${artLabel(a)} 글자색 개별 편집`);
     const st = { ...(a.overrides.style ?? {}) };
     if (v) st.textTone = v; else delete st.textTone;
-    a.overrides.style = st; a.status = 'draft';
+    a.overrides.style = st; a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId, style: 'textTone' });
     regen(c); autosave(); refreshFrames(a.specId); renderInspector();
     $('inspNote').textContent = '이 산출물만 반영됨';
@@ -2452,7 +2454,7 @@ function renderInspector() {
     const st = { ...(a.overrides.style ?? {}) };
     if (v) st.chipTone = v; else delete st.chipTone;
     a.overrides.style = st;
-    a.status = 'draft';
+    a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId, style: 'chipTone' });
     regen(c);
     autosave();
@@ -2466,7 +2468,7 @@ function renderInspector() {
     if ((a.variant ?? 0) === Number(b.dataset.v)) return;   // 같은 시안 다시 누르면 되돌릴 것도 없다
     pushHistory(`${artLabel(a)} 시안 ${Number(b.dataset.v) + 1}`);
     a.variant = Number(b.dataset.v);
-    a.status = 'draft';
+    a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'variation_cycled', { specId: a.specId, variant: a.variant });
     regen(c);
     autosave();
@@ -2519,7 +2521,7 @@ function renderInspector() {
     };
   }
   insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
-  insp.querySelector('#iExp').onclick = () => { if (gateOf(a)?.state === 'blocked') { toast('규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용, 차단만 막는다
+  insp.querySelector('#iExp').onclick = () => { if (gateOf(a)?.state === 'blocked') { toast(a.channel === 'asset' ? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다' : '규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용, 차단만 막는다
   // 산출물 하나 승인 — ready 는 바로, review·draft 는 사유를 적어야(사례 기록의 입력), blocked 는 불가
   const approveBtn = insp.querySelector('#iApprove');
   if (approveBtn) approveBtn.onclick = () => {
@@ -3084,7 +3086,7 @@ function saveCampaignToStore() {
 const LOG_LABEL = {
   campaign_created: '캠페인 생성', artifact_generated: '산출물 생성', manual_edit: '개별 편집',
   propagation_run: '일괄 반영', style_changed: '스타일 변경', size_changed: '규격 변경',
-  variation_cycled: '시안 변경', roster_loaded: '명단 적용', artifact_approved: '전체 승인',
+  variation_cycled: '시안 변경', roster_loaded: '명단 적용', artifact_approved: '승인', artifact_unapproved: '승인 취소',
   campaign_reopened: '다시 열기', artifact_added: '산출물 추가', artifact_removed: '산출물 제거',
 };
 

@@ -5,7 +5,7 @@
 //   ready    등급 A·B 가 검사 다 통과 — 「통과분 승인」 묶음에 들어간다
 //   draft    등급 C(자유 배치) 또는 등급 모름 — 디자이너 수정 전제. 개별 승인만
 // 원칙: 확신 없으면 내보내지 않고 표시한다(광고는 틀린 걸 내보내는 비용이 더 크다).
-export const REVIEW_CODES = new Set(['text-over-subject', 'logo-covered', 'text-clipped', 'low-res', 'low-res-logo', 'chip-overflow']);
+export const REVIEW_CODES = new Set(['text-over-subject', 'logo-covered', 'text-clipped', 'low-res', 'low-res-logo', 'chip-overflow', 'design-failed']);   // design-failed: 검수 자체가 실패 → 사람이 본다
 export const STATE_LABEL = { blocked: '차단', pending: '검사 중', review: '검수 필요', ready: '승인 가능', draft: '초안' };
 
 export function approvalGate({ grade, lint, design, samples = 0 }) {
