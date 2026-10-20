@@ -136,3 +136,27 @@ test('광고 산출물은 생성될 때 레이아웃 안(variants)을 갖고, �
   for (const [k, v] of Object.entries(g.variants[1].style)) assert.equal(g.overrides.style[k], v);
   assert.ok(g.html.includes('data-trace'));
 });
+
+test('캠페인 스타일이 바뀌어 안 목록이 달라지면 선택은 번호가 아니라 같은 프리셋 묶음으로 다시 찾고, 묶음이 사라지면 기본안(0)', () => {
+  registerAll();
+  const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+  const kvMeta = { ar: 1.6, px: [1600, 1000], field: { kind: 'cutout', opaque: 0.05, lum: 0.5, sat: 0.4, focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.8 } } };
+  const c = createCampaign({ id: 'v2',
+    context: createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울', deadline: '2026-10-31' }, 'recruit'),
+    style: normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta }), channels: [] });
+  c.adSpecIds = ['albamon-pc-main-board'];
+  generateArtifacts(c);
+  const a = c.artifacts[0];
+  const idx = a.variants.findIndex(v => v.style.kvPlace === 'left');
+  assert.ok(idx > 0, '알바몬 보드는 키비주얼 왼쪽 안이 선다');
+  a.variantSel = idx;
+  // ① 색만 바뀜 — 같은 묶음이 목록에 남아 있으면 선택 유지(번호가 바뀌어도 묶음이 같다)
+  c.style = normalizeStyle({ colors: ['#0A7B3E'], keyVisual: PNG, kvMeta });
+  generateArtifacts(c);
+  assert.deepEqual(a.variants[a.variantSel].style, { kvPlace: 'left' }, '같은 프리셋 묶음 유지');
+  // ② 키비주얼이 없어져 위치 안이 빠짐 — 묶음이 사라지면 기본안
+  c.style = normalizeStyle({ colors: ['#0A7B3E'] });
+  generateArtifacts(c);
+  assert.ok(!a.variants.some(v => v.style.kvPlace), '위치 안이 빠졌다');
+  assert.equal(a.variantSel, 0);
+});

@@ -99,9 +99,12 @@ export function generateArtifacts(campaign) {
     // 레이아웃 안(10-20 2단계): 광고 규격마다 후보를 캠페인 공통 스타일로 만든다 — 안은 「프리셋 묶음」이라 선택하면 overrides.style 로 복사된다.
     //   이미 선택한 안(variantSel)이 있으면 다시 계산해도 선택은 유지. 안은 html 보다 먼저 만들어야 overrides 와 섞이지 않는다. 저장 크기 때문에 trace 는 빼고 {id,label,style,hash}만
     if (item.channel === 'ad') {
+      // 안 목록은 캠페인 스타일이 바뀌면 달라진다 — 번호가 아니라 같은 프리셋 묶음을 다시 찾는다(10-20 리뷰). 없으면 기본안(0)
+      const prevStyle = artifact.variants?.[artifact.variantSel]?.style ?? null;
       const vs = variantCandidates(item.specId, effContext, campaign.style, { variant: artifact.variant ?? 0 });
       artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
-      if (!(artifact.variantSel >= 0 && artifact.variantSel < artifact.variants.length)) artifact.variantSel = 0;
+      const i = prevStyle ? artifact.variants.findIndex(v => JSON.stringify(v.style) === JSON.stringify(prevStyle)) : -1;
+      artifact.variantSel = i >= 0 ? i : 0;
     }
     artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), effStyle, {
       variant: artifact.variant ?? 0,
