@@ -45,8 +45,8 @@ export async function measureDom(html, spec) {
   const logo = logoEl ? (() => { const r = logoEl.getBoundingClientRect(); return { bbox: { x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height } }; })() : null;
   const fontFamily = getComputedStyle(root).fontFamily.split(',')[0].replace(/["']/g, '').trim();
   const objects = [...root.querySelectorAll('[data-object]')].map(o => { const r = o.getBoundingClientRect(); return { x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height }; });
-  host.remove();
   const logoCount = [...root.querySelectorAll('[data-logo]')].filter(el => { const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2; }).length;
+  host.remove();
   return { texts, logo, fontFamily, objects, logoCount };
 }
 
