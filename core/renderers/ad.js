@@ -1039,7 +1039,8 @@ function renderAdBase(ctx, style, spec) {
   const moldOnBg = !!(mold?.field && mold.bg);
   const regulatedText = !!tc.main || !!mr.fonts?.required;   // 글자색 규정(textColors.main) 또는 규정 매체(자소설·리멤버·카카오)
   // 사람이 고른 글자색 톤(style.textTone 'dark'|'light', 10-19 「폰트 컬러 다크/라이트 선택」) — 규정 없는 매체에서만. 로고 흰/원색 판정(fgIsDark)도 같이 따라간다
-  const toneOv = (!regulatedText && (style.textTone === 'dark' || style.textTone === 'light')) ? style.textTone : null;
+  //   10-20 사용자 「일괄 바꿀 수 있어야 하는데 일부만 바뀐다」: 규정 매체라도 글자색이 고정(tc.main)되지 않았으면(자소설 「밝으면 #555, 어두우면 흰색」 둘 다 허용) 톤을 따른다 — 틀 색(mold.color/colorDark) 사이에서만 고른다. 고정색 매체(카카오 #4C4C4C)만 잠김
+  const toneOv = (!tc.main && (style.textTone === 'dark' || style.textTone === 'light')) ? style.textTone : null;
   const mainFg0 = toneOv ? (toneOv === 'dark' ? '#000000' : '#FFFFFF') : (tc.main ?? (moldOnBg ? (contrast(mold.bg, '#000000') >= contrast(mold.bg, '#FFFFFF') ? '#000000' : '#FFFFFF') : field ? field.text : '#000000'));
   const fgIsDark = mainFg0 !== '#FFFFFF';
   if (toneOv) fired('textTone.' + toneOv);

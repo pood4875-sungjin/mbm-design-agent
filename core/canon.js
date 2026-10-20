@@ -92,6 +92,8 @@ export const CANON = {
   //   prefSat: 첫 후보 채도가 이 값 이상이면 그대로, 아니면 후보 중 가장 채도 높은 색(ABL 베이지 → 복숭아, 동부 크림 → 주황, 유리 행성 청회색 → 청록)
   // 글자색 기본(10-19 사용자 「규칙 있는 애들 제외하고 타이틀 #333/#fff, 서브텍스트 오퍼시티 0.7」): 글자색 규정(textColors.main)·규정 매체(fonts.required: 자소설·리멤버·카카오)가 아니면 메인은 밝은 지면 #333 / 어두운 지면 #fff, 서브·날짜·상세는 같은 색 70%
   textDefault: { light: '#333333', dark: '#FFFFFF', subOpacity: 0.7 },
+  // 글자색 흑/백 판정(10-20 사용자 「이 수준이면 화이트 폰트가 맞아」 — 중간 밝기 파랑 지면에 회색 글자가 묻힘): 지면 상대휘도가 darkIfLum 이상(파스텔·흰 계열)일 때만 검정, 그 외 색 있는 지면은 대비가 3:1 에 못 미쳐도 흰색(실제 소재 관례). 손 지정 색(manual)도 같은 규칙
+  textOn: { darkIfLum: 0.45 },   // .45: 연보라 #C7AEFF(.49)·복숭아는 검정, 중간 파랑 #6AA7F2(.37)·주황 #F07020(.37)·초록 #2EBA56(.38)은 흰색
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7
   // 누끼는 명확할 때만(10-12 사용자 「명확할 때만 누끼, 웬만하면 배경 분위기도 살려」 desk-37·desk-03) — 바탕 색감(chroma 평균) < chromaMax 이고
   //   그라데이션 세기 < gradMax 이면(흰·연회색·무채 단색) 딴다. 넘으면 원본이 주 KV(scripts/kv-cutout.py --auto, cases.mjs bgpalette 가 같은 수치)

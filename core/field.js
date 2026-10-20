@@ -163,13 +163,16 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // 글자색 — 그라데이션의 두 끝 모두에서 읽혀야 한다. 큰 글자 기준 대비 3:1(WCAG)을 못 넘으면 그라데이션을 접는다.
   // 색이 있는 지면에는 흰 글자가 먼저다(실제 소재의 관례) — 흰색이 큰 글자 기준 3:1을 넘으면 흰색, 못 넘는 밝은 지면에서만 검정.
   const worst = c => Math.min(...stops.map(s => contrast(s, c)));
-  const pick = () => worst(WHITE) >= 3 ? WHITE : (worst(BLACK) >= worst(WHITE) ? BLACK : WHITE);
+  // 10-20: 색 있는 지면은 흰 글자가 기본 — 지면이 파스텔·흰 계열(모든 정지점 상대휘도 ≥ CANON.textOn.darkIfLum)일 때만 검정. 흰색 3:1 미만이어도 중간 밝기 색면엔 흰색(사용자 「이 수준이면 화이트」)
+  const relLum = hx => { const [r, g, b] = hexToRgb(hx).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const lightField = () => stops.every(s => relLum(s) >= (CANON.textOn?.darkIfLum ?? 0.55));
+  const pick = () => worst(WHITE) >= 3 ? WHITE : (lightField() ? BLACK : WHITE);
   let text = pick();
-  if (stops.length > 1 && worst(text) < 3) { stops = [mid()]; text = pick(); }
+  if (stops.length > 1 && text === BLACK && worst(BLACK) < 3) { stops = [mid()]; text = pick(); }   // 검정 글자 그라데이션만 접는다 — 흰 글자는 아래 vividWhite 가 명도를 내려 3:1 을 맞춘다(손 지정 색은 그대로, 10-20)
   // 채도 높은 지면엔 흰 글자(CANON vividWhite, 10-12 desk-12) — 같은 색상으로 명도만 조금 내려 흰 큰 글자 3:1, 되면 작은 글자 4.5:1까지
   let dim = null;
   const vv = vividWhite(stops, { manual: !!opt.color || source === 'palette-manual' });
-  if (text === BLACK && vv) {
+  if (vv && (text === BLACK || worst(WHITE) < 3)) {   // 10-20: 흰 글자로 정해졌어도 큰 글자 3:1 이 안 되면 같은 색상으로 명도만 내린다
     // 그림 변이 곧 지면(kv-edge) — 그림도 같은 비율로 어둡혀 이음매를 지킨다(CANON vividWhite.dimKv). 단 그림 속 흰 주인공이 회색으로 죽으면 안 된다:
     //   어둡힘이 dimMin 보다 세면 그림은 dimMin 까지만, 남는 차이는 녹임이 잇는다(seamless 해제 → CANON melt 길이)
     if ((seamless || source === 'kv-edge') && CANON.vividWhite.dimKv !== false && vv.dim) { dim = Math.max(vv.dim, CANON.vividWhite.dimMin ?? 0); if (dim > vv.dim + 0.005) seamless = false; if (dim >= 0.995) dim = null; }
