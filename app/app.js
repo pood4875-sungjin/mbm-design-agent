@@ -18,6 +18,7 @@ import { kvGuideText, logoGuideText, checkKv, checkLogo, CHECK_TONE } from '../c
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
+import { approvalGate, STATE_LABEL } from '../core/gate.js';   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
@@ -1753,7 +1754,7 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
+          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge gate"></span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
@@ -1763,7 +1764,7 @@ function layoutArtboard(opts = {}) {
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
-        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), label: frame.querySelector('.fname') });
+        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
         lintBadge(a);
         x += w + 70;
@@ -1834,9 +1835,10 @@ function lintBadge(a) {
   if (a.channel !== 'ad' && a.channel !== 'asset') { f.lint.style.display = 'none'; return; }
   const L = a.lint;
   f.lint.style.display = '';
-  if (!L) { f.lint.className = 'badge lint'; f.lint.textContent = '검사 중…'; return; }
+  if (!L) { f.lint.className = 'badge lint'; f.lint.textContent = '검사 중…'; gateBadge(a); return; }
   f.lint.className = 'badge lint ' + L.level;
   f.lint.textContent = L.level === 'pass' ? '규격 통과' : `${L.level === 'block' ? '차단' : '경고'} ${L.issues.length}`;
+  gateBadge(a);
 }
 // 디자인 검수 — 규격 검사(치수·용량·글자수)와 별개로, 그려진 프레임을 재서 디자이너 눈에 걸리는 것(글자-주인공 겹침·로고 가림·뚝 끊긴 변·빈 여백·글자 잘림)을 경고로
 function designCheck(a) {
@@ -1856,6 +1858,40 @@ function designBadge(a) {
   f.design.style.display = n ? '' : 'none';
   f.design.textContent = n ? `디자인 ${n}` : '';
   f.design.title = designWarnings(a).map(w => w.msg).join('\n');
+  gateBadge(a);
+}
+// 승인 게이트(core/gate.js) — 규격 검사·디자인 검수·샘플 문구가 바뀔 때마다 다시 계산해 프레임 배지·인스펙터에 쓴다
+function gateOf(a) {
+  if (a.channel !== 'ad' && a.channel !== 'asset') return null;
+  const spec = SPECS[a.specId];
+  const f = frames.get(a.key ?? a.specId);
+  const samples = (() => { try { return f?.iframe?.contentDocument?.querySelectorAll('[data-sample]').length ?? 0; } catch { return 0; } })();
+  a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples });
+  return a.gate;
+}
+function gateBadge(a) {
+  const g = gateOf(a); const f = frames.get(a.key ?? a.specId); if (!g || !f?.gate) return;
+  const ok = a.status === 'approved';
+  f.gate.className = 'badge gate ' + (ok ? 'approved' : g.state);
+  f.gate.textContent = ok ? '승인됨' : STATE_LABEL[g.state];
+  f.gate.title = (ok && a.gateOverride ? [`사유: ${a.gateOverride.reason}`, ...a.gateOverride.reasons] : g.reasons).join('\n');
+  if (state.selected === (a.key ?? a.specId)) { const box = $('iGate'); if (box) box.innerHTML = gateHtml(a); }
+}
+// 인스펙터 「승인」 줄 — 상태 한 단어 + 사유 목록(검수 필요·초안은 여기 적힌 사유를 보고 사유를 적어 승인한다)
+function gateHtml(a) {
+  const g = a.gate ?? gateOf(a); if (!g) return '';
+  const ok = a.status === 'approved';
+  const rs = ok && a.gateOverride ? [`승인 사유: ${a.gateOverride.reason}`, ...a.gateOverride.reasons] : g.reasons;
+  return `<span class="badge gate ${ok ? 'approved' : g.state}">${ok ? '승인됨' : STATE_LABEL[g.state]}</span>${rs.length ? `<ul style="margin:4px 0 0;padding-left:16px;font-size:11.5px;line-height:1.5;color:var(--sub)">${rs.map(r => `<li>${escH(r)}</li>`).join('')}</ul>` : ''}`;
+}
+// 승인 상태만 바뀐 경우 — iframe 을 다시 그리지 않고(다시 그리면 규격 검사가 처음부터) 상태 배지·게이트 배지만 갱신한다
+function statusBadges(only = null) {
+  for (const a of state.campaign.artifacts) {
+    const k = a.key ?? a.specId; if (only && k !== only) continue;
+    const f = frames.get(k); if (!f) continue;
+    f.badge.className = 'badge ' + a.status; f.badge.textContent = badgeText(a.status);
+    gateBadge(a);
+  }
 }
 function lintHtml(a) {
   const L = a.lint;
@@ -2353,6 +2389,8 @@ function renderInspector() {
 ` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
     <section class="isec">
+    ${(a.channel === 'ad' || a.channel === 'asset') ? `<label>승인</label><div id="iGate" style="margin-bottom:8px">${gateHtml(a)}</div>
+    <button class="btn" id="iApprove" style="width:100%;margin-bottom:8px">${a.status === 'approved' ? '승인 취소' : '이 소재 승인'}</button>` : ''}
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
       <button class="btn pri" id="iExp">내보내기</button>
@@ -2481,7 +2519,30 @@ function renderInspector() {
     };
   }
   insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
-  insp.querySelector('#iExp').onclick = () => exportArtifactModal(a);
+  insp.querySelector('#iExp').onclick = () => { if (gateOf(a)?.state === 'blocked') { toast('규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용, 차단만 막는다
+  // 산출물 하나 승인 — ready 는 바로, review·draft 는 사유를 적어야(사례 기록의 입력), blocked 는 불가
+  const approveBtn = insp.querySelector('#iApprove');
+  if (approveBtn) approveBtn.onclick = () => {
+    const k = a.key ?? a.specId;
+    const after = () => { statusBadges(k); renderInspector(); saveCampaignToStore(); };
+    if (a.status === 'approved') { a.status = 'draft'; a.gateOverride = null; logEvent(c, 'artifact_unapproved', { key: k }); after(); return; }
+    const g = gateOf(a);
+    if (g?.state === 'blocked') { toast('규정 차단 — 고치기 전에는 승인할 수 없어요'); return; }
+    if (g?.state === 'pending') { toast('규격 검사 중 — 잠시 후 다시'); return; }
+    if (g?.state === 'ready') { a.status = 'approved'; a.gateOverride = null; logEvent(c, 'artifact_approved', { key: k, gate: 'ready' }); after(); toast(`${artLabel(a)} 승인`); return; }
+    modal({
+      title: `${STATE_LABEL[g.state]} — 사유를 적고 승인`,
+      desc: g.reasons.join(' · '),
+      body: `<textarea id="gateReason" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical" placeholder="예: 겹침은 빈 하늘 부분이라 읽힘 / 디자이너가 피그마에서 손봄"></textarea>`,
+      actions: [{ label: '돌아가기' }, { label: '사유 적고 승인', pri: true, fn: () => {
+        const reason = $('gateReason').value.trim(); if (!reason) { toast('사유를 적어 주세요'); return false; }
+        a.status = 'approved'; a.gateOverride = { state: g.state, reasons: g.reasons, reason, at: Date.now() };
+        logEvent(c, 'artifact_approved', { key: k, gate: g.state, override: reason });
+        after(); toast(`${artLabel(a)} 승인 — 사유 기록됨`);
+      } }],
+    });
+    modalFocus('#gateReason');
+  };
   insp.querySelector('#iDesel').onclick = () => select(null);
   insp.querySelector('#iDel').onclick = () => removeArtifact(a);
 }
@@ -2734,7 +2795,12 @@ async function doAdSvg(a) {
 }
 async function exportAdZip(withSvg = false) {
   const c = state.campaign;
-  const ads = c.artifacts.filter(a => a.channel === 'ad');
+  // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로
+  const all = c.artifacts.filter(a => a.channel === 'ad');
+  const ads = all.filter(a => a.status === 'approved');
+  if (!ads.length) { toast(`승인된 매체 소재가 없어요 — 먼저 승인하세요(미승인 ${all.length}장)`); return; }
+  if (ads.length < all.length) toast(`승인분 ${ads.length}장만 ZIP 에 — 미승인 ${all.length - ads.length}장 제외`);
+  const assets = c.artifacts.filter(a => a.channel === 'asset' && a.status === 'approved');   // 전달물도 승인분만
   toast(`매체 소재 ${ads.length}장 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
   try {
     const files = await exportAdFiles(ads);
@@ -2745,14 +2811,14 @@ async function exportAdZip(withSvg = false) {
       entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
-    const assetBlocked = c.artifacts.filter(a => a.channel === 'asset' && a.lint?.level === 'block').length;
+    const assetBlocked = assets.filter(a => a.lint?.level === 'block').length;
     if (assetBlocked) toast(`전달물 차단 ${assetBlocked}건 — ZIP에서 제외됨`);
-    for (const a of c.artifacts.filter(a => a.channel === 'asset')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
+    for (const a of assets.filter(a => a.lint?.level !== 'block')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
     // 전달 시트(10-16 캐치 중앙배너·네이버 썸네일·에브리타임 288): 글자를 매체가 웹폰트로 올리는 규격은 문구·배경 Hex 를 txt 로 — 이미지에는 글자가 없다
     const sheet = {}; const hexOf = {};
     const traceOf = a => { try { return JSON.parse(a.html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
-    for (const a of c.artifacts.filter(a => a.channel === 'ad')) { const tr = traceOf(a); const hx = tr?.field?.stops?.[0]; if (hx) hexOf[SPECS[a.specId].mediumName] ??= hx; }
-    for (const a of c.artifacts.filter(a => a.channel === 'ad')) {
+    for (const a of ads) { const tr = traceOf(a); const hx = tr?.field?.stops?.[0]; if (hx) hexOf[SPECS[a.specId].mediumName] ??= hx; }
+    for (const a of ads) {
       const spec = SPECS[a.specId]; const vo = spec.rules?.visualOnly || spec.visualOnly; const outs = spec.outsideTexts ?? [];
       if (!vo && !outs.length) continue;
       const tr = traceOf(a); const cp = tr?.copy ?? {}; const hex = tr?.field?.stops?.[0] ?? hexOf[spec.mediumName] ?? c.style.palette?.primary ?? '';
@@ -2878,11 +2944,12 @@ function exportAllModal() {
   const htmls = c.artifacts.filter(a => ['edm', 'landing'].includes(a.channel));
   const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner', 'gwthumb', 'ad'].includes(a.channel));
   const ads = c.artifacts.filter(a => a.channel === 'ad');
+  const adsOk = ads.filter(a => a.status === 'approved');
   modal({
     title: '전체 내보내기',
     desc: '온라인은 파일로 즉시, 인쇄물은 산출물별 PDF 저장으로 진행합니다. 매체 소재는 매체별 폴더로 묶은 ZIP.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.8">
-      ${ads.length ? `· 매체 소재 ZIP — ${[...new Set(ads.map(a => SPECS[a.specId].mediumName))].join(', ')} (${ads.length}장${ads.some(a => a.lint?.level === 'block') ? `, 차단 ${ads.filter(a => a.lint?.level === 'block').length}건 제외` : ''})<br>` : ''}
+      ${ads.length ? `· 매체 소재 ZIP — ${[...new Set(adsOk.map(a => SPECS[a.specId].mediumName))].join(', ') || '승인분 없음'} (<b>승인 ${adsOk.length}장</b> / 전체 ${ads.length}장${ads.length > adsOk.length ? ` · 미승인 ${ads.length - adsOk.length}장 제외` : ''})<br>` : ''}
       · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
@@ -2949,30 +3016,35 @@ $('cmdIn').onkeydown = e => { if (e.key === 'Enter') $('cmdGo').click(); };
 
 /* ═══ 승인 · 저장 · 재열기 ═══ */
 function approveAll() {
-  const c = state.campaign;
-  const blocked = c.artifacts.filter(a => a.lint?.level === 'block');
-  if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 먼저 해결해야 승인할 수 있어요`); return; }
-  if (c.artifacts.some(a => a.channel === 'ad' && !a.lint)) { toast('규격 검사가 아직 끝나지 않았어요 — 잠시 후 다시'); return; }
-  // 가이드 검수 요약(10-14) — ✗ 는 승인을 막지 않는다. 한 번 보여 주고 승인
-  const G = ED.approveSummary();
-  if (G.n && !approveAll.confirmed) {
-    modal({
-      title: '전체 승인 전 — 가이드 검수 요약',
-      desc: '가이드 ✗ 는 경고입니다. 승인은 매체 규정(규격 검사) 위반만 막습니다.',
-      body: `<div style="font-size:14px;font-weight:700;margin-bottom:8px">가이드 ✗ ${G.fail}건(넘김 ${G.skipped}건)${G.pending ? ` · 검수 중 ${G.pending}장` : ''}</div>
-        ${G.top.length ? `<ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.7">${G.top.map(([n, k]) => `<li>${n} — ${k}장</li>`).join('')}</ul>` : '<div style="font-size:12.5px;color:var(--good)">넘기지 않은 ✗ 없음</div>'}
-        <div style="font-size:12px;color:var(--sub);margin-top:10px;line-height:1.6">산출물을 눌러 인스펙터 「가이드 검수」에서 규칙대로 고치거나 이유를 남기고 넘길 수 있어요.</div>`,
-      actions: [{ label: '돌아가기' }, { label: `${c.artifacts.length}종 승인`, pri: true, fn: () => { approveAll.confirmed = true; approveAll(); approveAll.confirmed = false; } }],
-    });
-    return;
-  }
-  for (const a of c.artifacts) a.status = 'approved';
-  logEvent(c, 'artifact_approved', { all: true });
-  refreshFrames();
-  const kpi = c.log.reduce((m, e) => (m[e.type] = (m[e.type] ?? 0) + 1, m), {});
-  log(`전체 승인 — 생성 ${kpi.artifact_generated ?? 0} · 편집 ${kpi.manual_edit ?? 0} · 전파 ${kpi.propagation_run ?? 0}`);
-  saveCampaignToStore();
-  toast('전체 승인 — 홈 "내 캠페인"에 저장됨');
+  // 「통과분 승인」(10-20 운영 모델 §4·§5) — 게이트 ready(등급 A·B · 규격 통과 · 검수 경고 없음)만 묶어 승인한다.
+  // review·draft 는 산출물을 열어 사유를 적고 하나씩, blocked 는 절대. 인쇄·eDM 등 게이트 밖 채널은 기존대로 함께 승인.
+  const c = state.campaign; if (!c) return;
+  const ads = c.artifacts.filter(a => a.channel === 'ad' || a.channel === 'asset');
+  for (const a of ads) gateOf(a);
+  const by = st => ads.filter(a => a.gate?.state === st && a.status !== 'approved');
+  const ready = by('ready'), review = by('review'), blocked = by('blocked'), draft = by('draft'), pending = by('pending');
+  if (pending.length) { toast(`규격 검사가 아직 끝나지 않았어요(${pending.length}장) — 잠시 후 다시`); return; }
+  const others = c.artifacts.filter(a => a.channel !== 'ad' && a.channel !== 'asset' && a.status !== 'approved');
+  const n = ready.length + others.length;
+  if (!n && !review.length && !draft.length && !blocked.length) { toast('승인할 것이 없어요 — 전부 승인됨'); return; }
+  const li = (arr, label) => arr.length ? `<li><b>${label} ${arr.length}장</b> — ${arr.slice(0, 6).map(a => escH(artLabel(a))).join(' · ')}${arr.length > 6 ? ' …' : ''}</li>` : '';
+  modal({
+    title: '승인 — 검사 통과분만',
+    desc: '규정 차단은 승인할 수 없습니다. 검수 필요·초안은 산출물을 열어 사유를 적고 하나씩 승인합니다.',
+    body: `<ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8">${li(ready, '승인 가능')}${li(others, '게이트 밖(인쇄·온라인)')}${li(review, '검수 필요')}${li(draft, '초안(자유 배치)')}${li(blocked, '차단')}</ul>`,
+    actions: [
+      { label: '돌아가기' },
+      { label: `${n}장 승인`, pri: n > 0, fn: () => {
+        if (!n) { toast('승인 가능한 소재가 없어요'); return false; }
+        for (const a of [...ready, ...others]) { a.status = 'approved'; a.gateOverride = null; }
+        logEvent(c, 'artifact_approved', { count: n, gate: 'ready', skipped: { review: review.length, draft: draft.length, blocked: blocked.length } });
+        statusBadges(); renderInspector(); saveCampaignToStore();
+        const kpi = c.log.reduce((m, e) => (m[e.type] = (m[e.type] ?? 0) + 1, m), {});
+        log(`통과분 승인 ${n}장 — 검수 필요 ${review.length} · 초안 ${draft.length} · 차단 ${blocked.length} (생성 ${kpi.artifact_generated ?? 0} · 편집 ${kpi.manual_edit ?? 0} · 전파 ${kpi.propagation_run ?? 0})`);
+        toast(`${n}장 승인 — 남은 검수 필요 ${review.length} · 초안 ${draft.length} · 차단 ${blocked.length}`);
+      } },
+    ],
+  });
 }
 $('approveAll').onclick = approveAll;
 
@@ -2995,6 +3067,7 @@ function saveCampaignToStore() {
       purpose: a.purpose, arrow: a.arrow, overrides: a.overrides,
       guideSkips: a.guideSkips ?? null, guideHuman: a.guideHuman ?? null,   // 가이드 검수 넘김 이유·눈으로 확인(10-14)
       variant: a.variant ?? 0, size: a.size ?? null, status: a.status,
+      gateOverride: a.gateOverride ?? null,   // 검수 필요·초안을 사유 적고 승인한 기록(10-20 승인 게이트)
     })),
     log: c.log,
   };
@@ -3042,6 +3115,7 @@ function openStored(saved) {
     if (s.overrides) a.overrides = s.overrides;
     if (s.guideSkips) a.guideSkips = s.guideSkips;
     if (s.guideHuman) a.guideHuman = s.guideHuman;
+    if (s.gateOverride) a.gateOverride = s.gateOverride;
     if (s.variant != null) a.variant = s.variant;
   }
   regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더

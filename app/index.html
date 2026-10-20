@@ -381,6 +381,14 @@
   .badge.design{background:var(--amber-soft);color:var(--amber);cursor:help}
   .badge.sample{background:var(--amber-soft);color:var(--amber);cursor:help;outline:1px dashed var(--amber)}
   .badge.lint.block{background:var(--danger-soft);color:var(--danger)}
+  /* 승인 게이트 배지(10-20) — 규격·디자인·샘플을 한 단어로: 승인 가능 / 검수 필요 / 초안 / 차단 / 검사 중 / 승인됨 */
+  .badge.gate{cursor:help}
+  .badge.gate.ready{background:var(--good-soft);color:var(--good)}
+  .badge.gate.approved{background:var(--good);color:#fff}
+  .badge.gate.review{background:var(--amber-soft);color:var(--amber)}
+  .badge.gate.blocked{background:var(--danger-soft);color:var(--danger)}
+  .badge.gate.draft{background:var(--soft);color:var(--sub);outline:1px dashed var(--sub)}
+  .badge.gate.pending{background:var(--soft);color:var(--sub);opacity:.7}
   .kvthumb.logo.dark{background-color:#2a2a2a;color:#ddd}
   .mgroup h5{font-size:11px;color:var(--sub);font-weight:600;margin:10px 0 6px}
   .fbody{position:relative;background:#fff;box-shadow:0 0 0 1px rgba(16,24,40,.06), 0 2px 10px rgba(16,24,40,.08);border-radius:6px;overflow:hidden}
@@ -392,6 +400,7 @@
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
   .frame.gen .flabel{color:var(--gen1)}
   #artboard .flabel .badge{display:none!important}   /* 10-15 밤: 보드 카드는 매체 · 사이즈만 */
+  #artboard .flabel .badge.gate:not(:empty){display:inline-block!important}   /* 10-20: 게이트 한 단어만 예외 — 규격·디자인·샘플 배지 다섯을 하나로 합친 것 */
   .rowhead{position:absolute;font-size:14px;font-weight:800;color:var(--ink,#111);letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line,#ddd);pointer-events:none}
   .frame.done .fbody{animation:pop .5s ease-out}
   @keyframes shim{from{background-position:200% 0}to{background-position:-100% 0}}
