@@ -18,7 +18,8 @@ import { kvGuideText, logoGuideText, checkKv, checkLogo, CHECK_TONE } from '../c
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf, renderArtifact } from '../core/contract.js';
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
-import { approvalGate, STATE_LABEL } from '../core/gate.js';   // 승인 게이트(10-20 운영 모델 §4·§5)
+import { approvalGate, STATE_LABEL } from '../core/gate.js';
+import { htmlHash } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
@@ -2469,6 +2470,7 @@ function renderInspector() {
     $('iVariantAll').onclick = () => {
       const v = a.variants[currentVariantIndex(a)]; if (!v || !Object.keys(v.style ?? {}).length) return;   // 기본안은 전파할 값이 없다(버튼도 disabled)
       const spread = { ...v.style };   // 전파할 키·값 — restyleWith 뒤 안 목록이 재계산되므로 미리 잡아 둔다
+      const before = new Map(c.artifacts.map(x => [x.key ?? x.specId, htmlHash(x.html)]));   // 전파 전 그림 지문 — 승인 산출물이 바뀌는지 보려고
       restyleWith(c, spread, `레이아웃 안 일괄 「${v.label}」`);   // 캠페인 프리셋으로 전파 — 쓸 수 없는 규격은 렌더러가 무시하고 자동 배치 그대로
       // 전파 뒤 정리: 새 기준선에선 이 안이 곧 기본안 — 전파한 키와 값이 같은 개별값은 지우고(다르게 둔 값은 유지) 선택은 다시 센다
       for (const x of c.artifacts) {
@@ -2476,10 +2478,15 @@ function renderInspector() {
         if (x.overrides?.style) { const st = { ...x.overrides.style }; for (const [k, val] of Object.entries(spread)) if (st[k] === val) delete st[k]; x.overrides.style = st; }
       }
       regen(c);   // 안 목록을 새 기준선으로 먼저 다시 세우고
-      for (const x of c.artifacts) if (x.channel === 'ad') x.variantSel = currentVariantIndex(x);   // 남은 개별값과 맞는 안으로(대개 0)
-      logEvent(c, 'variant_selected', { all: true, from: a.specId, label: v.label, style: spread });
+      let unapproved = 0;
+      for (const x of c.artifacts) {
+        if (x.channel !== 'ad') continue;
+        x.variantSel = currentVariantIndex(x);   // 남은 개별값과 맞는 안으로(대개 0)
+        if (x.status === 'approved' && before.get(x.key ?? x.specId) !== htmlHash(x.html)) { x.status = 'draft'; x.gateOverride = null; unapproved++; logEvent(c, 'artifact_unapproved', { key: x.key ?? x.specId, why: 'variant_all' }); }   // 승인된 산출물은 조용히 바뀌지 않는다(10-20 리뷰) — 그림이 달라졌으면 승인 해제
+      }
+      logEvent(c, 'variant_selected', { all: true, from: a.specId, label: v.label, style: spread, unapproved });
       autosave(); refreshFrames(); renderInspector();
-      toast(`「${v.label}」 을 캠페인 전체에 — 쓸 수 없는 규격은 자동 배치 그대로`);
+      toast(`「${v.label}」 을 캠페인 전체에 — 쓸 수 없는 규격은 자동 배치 그대로${unapproved ? ` · 그림이 바뀐 승인 ${unapproved}장 해제` : ''}`);
     };
   }
   insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
@@ -2903,7 +2910,10 @@ async function exportAdZip(withSvg = false, { allVariants = false } = {}) {
       (sheet[spec.mediumName] ??= []).push(...lines);
     }
     for (const [mName, lines] of Object.entries(sheet)) entries.push({ name: `${mName}/전달_문구_배경색.txt`, data: new TextEncoder().encode(['이 매체는 글자를 매체가 직접 올립니다 — 이미지에는 글자가 없고, 아래 문구와 배경 Hex 를 신청서·입력란에 적어 주세요.', '', ...lines].join('\n')) });
-    if (allVariants && files.some(f => f.variant != null)) entries.push({ name: '전달_안내.txt', data: new TextEncoder().encode('「전체 안 포함」 내보내기 — 규격 폴더 안의 __안N 파일은 검토용 레이아웃 안입니다. 승인된 것은 선택안(규격 폴더 안 __안N 중 캠페인에서 고른 번호)이고, 안이 하나뿐인 규격은 파일명에 __안이 없습니다. SVG(Figma 편집용)는 선택안만 svg/ 폴더에 들어갑니다.') });
+    if (allVariants && files.some(f => f.variant != null)) {   // 규격마다 어느 번호가 승인(선택)안인지 — 받는 쪽이 __안N 중 무엇을 쓰면 되는지 알아야 한다(10-20 리뷰)
+      const sel = files.filter(f => f.variant != null && f.variant === currentVariantIndex(f.a)).map(f => `■ ${artLabel(f.a)} — 선택안 안${f.variant + 1} (${f.variantLabel}) — 승인은 이 안 기준, 나머지 __안N 은 검토용`);
+      entries.push({ name: '전달_안내.txt', data: new TextEncoder().encode(['「전체 안 포함」 내보내기 — 규격 폴더 안의 __안N 파일은 검토용 레이아웃 안입니다. 안이 하나뿐인 규격은 파일명에 __안이 없습니다.', '개별 편집값(라벨 알약 톤·직접 수정)은 선택안에만 반영되고, 나머지 안은 캠페인 공통 값 + 안 프리셋으로 나갑니다. SVG(Figma 편집용)는 선택안만 svg/ 폴더에 들어갑니다.', '', ...sel].join('\n')) });
+    }
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
     if (withSvg) {
@@ -3032,7 +3042,7 @@ function exportAllModal() {
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">${exportFontLine(ads)}</div>` : ''}
-      ${ads.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
+      ${ads.some(x => (x.variants?.length ?? 0) > 1) ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
