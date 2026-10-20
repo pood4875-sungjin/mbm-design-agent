@@ -20,6 +20,7 @@ export function variantCountFor(spec) {
   const V = CANON.variants ?? { regulated: 1, default: 3, free: 5 };
   if (!spec) return V.default;
   if (spec.mediumRules?.fonts?.required) return V.regulated;
+  if (spec.grade === 'B') return V.regulated;   // 로고·비주얼만 파일 규격(등급 B)은 글자·배치가 없어 안이 뜻이 없다(10-20 ZIP 확인: 네이버 네이티브에 3안이 생김)
   if (spec.grade === 'C') return V.free;
   return V.default;
 }

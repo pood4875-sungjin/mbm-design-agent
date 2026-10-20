@@ -20,6 +20,8 @@ test('안 수는 등급·규정으로 정해진다: 규정 매체(fonts.required
   assert.equal(variantCountFor(specs['kakao-bizboard-mo']), 1, '카카오 비즈보드(폰트 고정 매체)');
   assert.equal(variantCountFor(specs['google-gdn-580x400']), CANON.variants.default);
   assert.equal(variantCountFor(specs['daangn-native-feed-image']), CANON.variants.free);
+  assert.equal(variantCountFor(specs['naver-gfa-native-mo-342x228']), 1, '비주얼만(B) 파일 규격은 1안');
+  assert.equal(variantCountFor(specs['blind-brand-logo']), 1, '로고만(B) 파일 규격은 1안');
   assert.ok(CANON.variants.free > CANON.variants.default && CANON.variants.default >= 3);
 });
 
