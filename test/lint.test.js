@@ -124,3 +124,12 @@ test('banned background colours (medium.backgroundColors.banned) block when a sa
   // 금지색이 없는 매체는 검사하지 않는다
   assert.deepEqual(codes(lintArtifact({ spec, medium, measure: { ...ok, bgColors: ['#FFFFFF'] } })), []);
 });
+
+test('bg-banned boundary: ±12 per channel blocks, 13 passes; 3-digit hex is expanded; malformed colours are ignored, never a silent pass-as-violation', () => {
+  const med = { ...medium, backgroundColors: { banned: ['#FF5414', '#FFFFFF', '#'] } };
+  const run = bgColors => codes(lintArtifact({ spec, medium: med, measure: { ...ok, bgColors } }));
+  assert.deepEqual(run(['#FF6014']), ['bg-banned']);          // +12
+  assert.deepEqual(run(['#FF6114']), []);                      // +13
+  assert.deepEqual(run(['#fff']), ['bg-banned']);              // #fff → #FFFFFF
+  assert.deepEqual(run(['rgb(1,2,3)', '#12345', '']), []);     // 비정상 입력은 무시
+});

@@ -7,6 +7,7 @@
 // 두 번 그린다: DOM에 한 번(글자 실측), 캔버스에 한 번(제출 파일 실측). 둘은 같은 HTML이다.
 
 import { rasterizeCanvas } from './raster.js';
+import { CANON } from '../core/canon.js';
 
 const toHex = rgb => {
   const m = String(rgb).match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
@@ -68,9 +69,10 @@ export async function measureArtifact(html, spec, opts = {}) {
     try {
       const ctx2 = canvas.getContext('2d'); const W = canvas.width, H = canvas.height;
       const boxes = [...dom.texts.map(t => t.bbox), dom.logo?.bbox, ...(dom.objects ?? [])].filter(Boolean).map(b => ({ x: b.x * scale, y: b.y * scale, w: b.w * scale, h: b.h * scale }));
-      const inBox = (x, y) => boxes.some(b => x >= b.x - 4 && x <= b.x + b.w + 4 && y >= b.y - 4 && y <= b.y + b.h + 4);
+      const pad = CANON.bgBanned.boxPad * scale;
+      const inBox = (x, y) => boxes.some(b => x >= b.x - pad && x <= b.x + b.w + pad && y >= b.y - pad && y <= b.y + b.h + pad);
       const out = [];
-      for (const fx of [0.06, 0.5, 0.94]) for (const fy of [0.06, 0.5, 0.94]) {
+      for (const fx of CANON.bgBanned.grid) for (const fy of CANON.bgBanned.grid) {
         const x = Math.round(W * fx), y = Math.round(H * fy); if (inBox(x, y)) continue;
         const d = ctx2.getImageData(x, y, 1, 1).data; if (d[3] < 255) continue;
         out.push('#' + [d[0], d[1], d[2]].map(n => n.toString(16).padStart(2, '0')).join('').toUpperCase());

@@ -17,6 +17,7 @@
 // level: block = 승인·추출을 막는다 / warn = 표시만, 사람이 넘길 수 있다.
 
 import { limitsByRole, countChars, inImage } from './adfields.js';
+import { CANON } from './canon.js';
 
 const norm = c => String(c ?? '').trim().toLowerCase().replace(/^#?/, '#');
 const fmtNorm = f => ({ jpeg: 'jpg' })[String(f ?? '').toLowerCase()] ?? String(f ?? '').toLowerCase();
@@ -117,15 +118,18 @@ export function lintArtifact({ spec, medium, measure }) {
     }
   }
 
-  // 배경 금지색(리멤버 PDF p.8: 흰·검·브랜드 주황·근접 흰 2색) — 측정한 바탕 샘플색이 금지색과 채널당 ±12 안이면 차단.
-  //   bgColors 는 앱이 글자·로고·그림 상자를 피한 지점에서 뽑은 hex 목록. null 이면 측정 못 한 것(위반 아님).
-  const banned = (medium?.backgroundColors?.banned ?? []).map(norm).filter(Boolean);
+  // 배경 금지색(리멤버 PDF p.8: 흰·검·브랜드 주황·근접 흰 2색) — 측정한 바탕 샘플색이 금지색과 채널당 ±CANON.bgBanned.tol 안이면 차단.
+  //   bgColors 는 앱이 글자·로고·그림 상자를 피한 지점에서 뽑은 hex 목록. null 이면 측정 못 한 것(위반 아님). 6자리(3자리는 확장) hex 가 아니면 「측정 못 함」처럼 무시.
+  const rgb = hx => {
+    let h = norm(hx); if (/^#[0-9a-f]{3}$/i.test(h)) h = '#' + [...h.slice(1)].map(c => c + c).join('');
+    return /^#[0-9a-f]{6}$/i.test(h) ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : null;
+  };
+  const banned = (medium?.backgroundColors?.banned ?? []).map(b => ({ hex: norm(b), rgb: rgb(b) })).filter(b => b.rgb);
   if (banned.length && Array.isArray(measure.bgColors)) {
-    const rgb = hx => [1, 3, 5].map(i => parseInt(String(hx).slice(i, i + 2), 16));
-    const near = (a, b) => rgb(a).every((v, i) => Math.abs(v - rgb(b)[i]) <= 12);
     for (const c of measure.bgColors) {
-      const hit = banned.find(b => near(norm(c), b));
-      if (hit) { block('bg-banned', `배경색 ${norm(c).toUpperCase()} — 매체 금지색 ${hit.toUpperCase()}(근접)`); break; }
+      const cv = rgb(c); if (!cv) continue;
+      const hit = banned.find(b => b.rgb.every((v, i) => Math.abs(v - cv[i]) <= CANON.bgBanned.tol));
+      if (hit) { block('bg-banned', `배경색 ${norm(c).toUpperCase()} — 매체 금지색 ${hit.hex.toUpperCase()}(근접)`); break; }
     }
   }
 
