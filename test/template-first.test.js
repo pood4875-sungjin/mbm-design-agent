@@ -281,7 +281,14 @@ test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain
     assert.equal(tr.mode, 'templateMold', id);
     assert.ok(tr.rules.includes('templateMold.containGrad'), id + ' ' + tr.rules.join(','));
     // 10-20: 윗변 색이 지면과 다르면 윗변 녹임(to bottom)이 더 붙을 수 있고, meltFix 가 그림 변에 맞춰 길이를 소수로 적을 수 있다(data-melt="48.2")
-    assert.match(html, /data-object="1" style="[^"]*center bottom\/contain no-repeat;-webkit-mask-image:linear-gradient\(to right[^"]*linear-gradient\(to left[^"]*mask-composite:intersect;overflow:hidden" data-melt="[\d.]+" data-melt-dir="sides"/, id + ' contain + 양옆 녹임');
+    // 10-20 저녁(종합 점수표 ② 여백 1위 원인, 장부 mold-contain-edge-align): 상자 = contain 으로 그려지는 그림 사각형. 칸이 지면 한쪽 변에만 닿으면 그쪽으로 붙이고 그 변은 녹이지 않는다(PC메인 왼쪽 열 350×280 → 그림 280×280 이 left:0, 왼 녹임 0·오른 녹임만).
+    //   양쪽 다 닿는 하단 띠(M팝업)는 가운데 + 양옆 녹임 그대로. 기대를 바꾼 이유: 예전 가운데 contain 은 지면 변에서 13~130px 애매한 틈을 남겼다(107케이스 × 49규격 ② ✗ 의 대부분)
+    const m = html.match(/data-object="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px;background:url\([^)]*\) center bottom\/contain no-repeat;[^"]*overflow:hidden" data-melt="([\d.]+)" data-melt-dir="sides" data-melt-right="([\d.]+)"/);
+    assert.ok(m, id + ' contain 상자');
+    const P = tr.place.tImage, W = specs[id].w; const atL = P.x <= 1, atR = P.x + P.w >= W - 1; const [, bx, , bw, , mL, mR] = m;
+    if (atL && !atR) { assert.equal(+bx, P.x, id + ' 왼쪽 열은 왼쪽 변에 붙는다'); assert.equal(+mL, 0, id + ' 지면 변 쪽은 안 녹인다'); assert.ok(+mR > 0, id + ' 글자 쪽 변은 녹인다'); assert.ok(tr.rules.includes('templateMold.containEdge'), id); }
+    else if (atR && !atL) { assert.equal(Math.round(+bx + +bw), P.x + P.w, id + ' 오른쪽 열은 오른쪽 변에 붙는다'); assert.equal(+mR, 0, id); assert.ok(+mL > 0, id); assert.ok(tr.rules.includes('templateMold.containEdge'), id); }
+    else { assert.ok(+mL > 0 && +mR > 0, id + ' 양쪽 다 닿는 띠는 양옆 녹임'); assert.ok(!tr.rules.includes('templateMold.containEdge'), id); }
   }
   // 유리 누끼(RING)는 그대로 — gradEdge 가 아니다
   assert.ok(!traceOf(renderAd(ctx, glass, specs['jasoseol-m-premium-popup-mo'])).rules.includes('templateMold.containGrad'));

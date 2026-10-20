@@ -97,10 +97,17 @@ test('required.date — 날짜 글자가 없으면 ✗, 매체 글자 규정에 
 
 test('contrast — 메인 3:1 · 작은 글자 4.5:1, 그림 위 표본 대비가 있으면 그것을 쓴다, 없으면 –', () => {
   assert.equal(row(evaluate(baseC()), 'contrast.main').ok, true);
-  assert.equal(row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'main' ? { ...t, contrastField: 2.5 } : t) } })), 'contrast.main').ok, false);
-  assert.equal(row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'main' ? { ...t, contrastField: 8, contrastSampled: 2.2 } : t) } })), 'contrast.main').ok, false, '표본이 우선');
+  // 10-20 종합 점수표: 자동 색 지면(모든 정지점 상대휘도 < .45) 위 흰 글자는 사용자 결정(장부 text-on-field-lum)으로 대비 규칙에서 면제(–, note) — 기본 맥락(남색 지면 흰 글자) 2.5:1 은 ✗ 가 아니라 면제
+  const ex = row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'main' ? { ...t, contrastField: 2.5 } : t) } })), 'contrast.main');
+  assert.equal(ex.ok, null); assert.match(ex.note, /면제/);
+  // 밝은 지면(흰 계열) 검정 글자가 모자라면 그대로 ✗ — 면제는 색 지면 흰 글자에만
+  const light = { field: { source: 'brand', stops: ['#F2F2F2'], text: '#333333' } };
+  assert.equal(row(evaluate(C({ trace: light, m: { texts: baseC().m.texts.map(t => t.role === 'main' ? { ...t, color: 'rgb(51, 51, 51)', colorHex: '#333333', contrastField: 2.5 } : t) } })), 'contrast.main').ok, false);
+  assert.equal(row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'main' ? { ...t, contrastField: 8, contrastSampled: 2.2 } : t) } })), 'contrast.main').ok, false, '표본이 우선(그림 위 표본은 면제 밖)');
   assert.equal(row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'main' ? { ...t, contrastField: undefined } : t) } })), 'contrast.main').ok, null);
-  const small = row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'detail' ? { ...t, contrastField: 4.2 } : t) } })), 'contrast.small');
+  const smallEx = row(evaluate(C({ m: { texts: baseC().m.texts.map(t => t.role === 'detail' ? { ...t, contrastField: 4.2 } : t) } })), 'contrast.small');
+  assert.equal(smallEx.ok, null); assert.match(smallEx.note, /면제/);
+  const small = row(evaluate(C({ trace: light, m: { texts: baseC().m.texts.map(t => t.role === 'detail' ? { ...t, color: 'rgb(51, 51, 51)', colorHex: '#333333', contrastField: 4.2 } : t) } })), 'contrast.small');
   assert.equal(small.ok, false); assert.match(small.note, /detail/);
 });
 

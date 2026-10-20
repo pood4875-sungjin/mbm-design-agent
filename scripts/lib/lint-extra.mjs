@@ -98,7 +98,7 @@ function measureDoc(d) {
     const cs = getComputedStyle(el), r = el.getBoundingClientRect();
     const fontPx = parseFloat(cs.fontSize), lh = parseFloat(cs.lineHeight) || fontPx * 1.2;
     const padV = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    return { role: el.dataset.field, text: el.textContent, lines: Math.max(1, Math.round((r.height - padV) / lh)), fontPx, color: toHex(cs.color), bbox: box(r), truncated: el.scrollHeight > el.clientHeight + 2 };
+    return { role: el.dataset.field, text: el.textContent, lines: Math.max(1, Math.round((r.height - padV) / lh)), fontPx, color: toHex(cs.color), bbox: box(r), truncated: el.scrollHeight > el.clientHeight + Math.max(2, lh * 0.5) };   // 반 줄 넘게 넘쳐야 잘림(adcheck text-clipped 와 같은 자) — 글꼴 ascent/descent 가 line-height 를 2~5px 넘는 것은 잘림이 아니다(10-20)
   });
   const logoEl = root.querySelector('[data-logo]');
   const logo = logoEl ? { bbox: box(logoEl.getBoundingClientRect()), natural: { w: logoEl.naturalWidth, h: logoEl.naturalHeight } } : null;
