@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { adSpecEntries, registerAdSpecs } from '../core/adspecs.js';
 import { adSpecGroups } from '../core/adspecs.js';
 import { SPECS } from '../core/contract.js';
-import { MEDIA, specOf } from '../core/media.js';
+import { MEDIA, EXTRACT, specOf } from '../core/media.js';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // 매체 규격은 데이터(core/media)에 산다. 렌더러 계약(SPECS)에는 "그릴 수 있는 것"만 올린다:
 // 치수가 있고, 우리가 만드는 이미지이고, 전달 자료만 넘기는 상품이 아닌 것.
@@ -71,4 +73,12 @@ test('same size with different rules stays separate', () => {
   const all = adSpecGroups();
   const ids = all.flatMap(g => [g.id, ...g.twins]);
   assert.equal(new Set(ids).size, ids.length, '어떤 규격도 두 묶음에 들어가지 않는다');
+});
+
+test('규격 등급 grade 가 추출 엔트리마다 A/B/C 로 배선되고, EXTRACT.grades 가 _extract.json 과 같다', () => {
+  const ex = JSON.parse(readFileSync(join(import.meta.dirname, '..', 'core', 'media', '_extract.json'), 'utf8'));
+  assert.deepEqual(EXTRACT.grades, ex.grades, 'core/media.js 의 EXTRACT.grades 가 _extract.json 과 다르다 — node scripts/build-media.mjs');
+  const entries = Object.values(adSpecEntries()).filter(e => e.extract === true || ex.extract.includes(e.id));
+  assert.ok(entries.length > 0);
+  for (const e of entries) assert.ok(['A', 'B', 'C'].includes(e.grade), `${e.id}: grade 가 A/B/C 가 아니다 (${e.grade})`);
 });
