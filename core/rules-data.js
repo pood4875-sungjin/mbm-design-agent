@@ -1,7 +1,7 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: ref/learned/rules.json, 빌드: node scripts/build-rules.mjs
-// 장부 갱신 2026-10-19 · 가이드 검수 짝 58건
+// 장부 갱신 2026-10-20 · 가이드 검수 짝 58건
 export const RULES_DATA = {
- "updated": "2026-10-19",
+ "updated": "2026-10-20",
  "rules": [
   {
    "id": "cutout-contain",

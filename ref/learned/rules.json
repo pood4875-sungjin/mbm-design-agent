@@ -1,6 +1,6 @@
 {
  "note": "규칙 장부 — 한 규칙 = 한 줄. 사람용은 history/규칙장부.md(scripts/rules-ledger.mjs --md 로 표를 다시 만든다). 규칙을 넣거나 바꾸면 여기 한 줄 추가·수정 + 히스토리 기록.",
- "updated": "2026-10-19",
+ "updated": "2026-10-20",
  "rules": [
   {
    "status": "active",
@@ -3931,6 +3931,41 @@
    "since": "2026-10-19",
    "round": 67,
    "source": "history/2026-10-19_겹침_교정.md"
+  },
+  {
+   "id": "ship-rules-grade-a",
+   "category": "자동 검사",
+   "scope": "grade-A (자소설·리멤버)",
+   "status": "active",
+   "rule": "등급 A 규격은 매체 규정 전 항목이 데이터와 검사 코드로 묶여 있어야 한다(출고 체크리스트). 자료에 없는 값은 지어내지 않고 「확인 필요」로 남겨 매체·컨시어지에 묻는다. 새로 검사기에 들어간 것: 배경 금지색(리멤버 5색 ±12) · 로고 개수(불가/최대) · 글자색 통일(자소설, 달력 마감일 예외) · 전달물 최소 폭(자소설 M시작배너, 원본 그대로 재서 미달은 차단).",
+   "value": "scripts/ship-checklist.mjs → docs/ship-checklist.md(19규격·193행·확인 필요 9) · lint codes bg-banned · logo-forbidden · logo-count · text-colors-uniform · asset-min · CANON.bgBanned",
+   "where": "core/lint.js · core/media/jasoseol.json(textColors.uniform, logoMaxCount, 달력 freeRoles) · core/media/remember.json(backgroundColors.banned) · app/measure.js(bgColors, logoCount) · scripts/cases-lint.mjs",
+   "evidence": [
+    "10-19 회의: 자소설·리멤버부터 100% 대체",
+    "자소설 PDF p.5~11 모든 문구 1가지 색 · 리멤버 PDF p.8 사용 불가 배경색 · 자소설 보드 408:44008 로고 1~2개 · 자소설 M시작배너 로고 500px·이미지 720px",
+    "test/lint.test.js 18건 · test/ship-checklist.test.js"
+   ],
+   "since": "2026-10-20",
+   "round": 68,
+   "source": "history/2026-10-20_출고규정_승인게이트.md"
+  },
+  {
+   "id": "approval-gate",
+   "category": "자동 검사",
+   "scope": "all",
+   "status": "active",
+   "rule": "승인은 게이트가 정한다. 규격 검사 차단은 승인·전달 불가. 등급 A·B 는 디자인 검수(겹침·로고 가림·글자 잘림·저해상도·칩 넘침·검수 실패)와 샘플 문구가 없을 때만 「승인 가능」으로 묶음 승인되고, 있으면 「검수 필요」 — 사유를 적어야 승인. 등급 C(자유 배치)·등급 없음은 늘 「초안」 — 개별 승인만. 디자인 검수 전은 「검사 중」. ZIP 은 승인분만. 확신 없으면 내보내지 않고 표시한다.",
+   "value": "core/gate.js approvalGate → blocked | pending | review | ready | draft · REVIEW_CODES · a.gateOverride{state,reasons,reason,at} · _extract.json grades A 38/B 12/C 1",
+   "where": "core/gate.js · app/app.js (gateOf·gateBadge·approveAll·#iApprove·exportAdZip·saveCampaignToStore)",
+   "evidence": [
+    "사용자 10-19 회의록 「기준이 명확하고 디자인 난이도가 낮은 소재를 … 100% 대체」",
+    "docs/plans/2026-10-20-운영모델_재설계.md §4·§5",
+    "브라우저 확인 10-20: 한진 캠페인 15장 — 승인 가능 13·차단 2(네이버 DA 글자 56px>52 규정·카카오 서브 19자>16)",
+    "test/gate.test.js 5건"
+   ],
+   "since": "2026-10-20",
+   "round": 68,
+   "source": "history/2026-10-20_출고규정_승인게이트.md"
   }
  ]
 }
