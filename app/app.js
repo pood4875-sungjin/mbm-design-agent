@@ -2877,7 +2877,8 @@ async function exportAdZip(withSvg = false, { allVariants = false } = {}) {
   if (!ads.length) { toast(`승인된 매체 소재가 없어요 — 먼저 승인하세요(미승인 ${all.length}장)`); return; }
   if (ads.length < all.length) toast(`승인분 ${ads.length}장만 ZIP 에 — 미승인 ${all.length - ads.length}장 제외`);
   const assets = c.artifacts.filter(a => a.channel === 'asset' && a.status === 'approved');   // 전달물도 승인분만
-  toast(`매체 소재 ${ads.length}장 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
+  const renderN = allVariants ? ads.reduce((n, a) => n + ((a.variants?.length ?? 0) > 1 ? a.variants.length : 1), 0) : ads.length;
+  toast(`매체 소재 ${ads.length}장${allVariants ? `(안 포함 ${renderN}장)` : ''} 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
   try {
     const files = await exportAdFiles(ads, { allVariants });
     const blocked = files.filter(f => f.fit.lint.level === 'block');
