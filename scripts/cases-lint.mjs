@@ -108,9 +108,9 @@ document.documentElement.dataset.done = '1';
   for (const [sid, e] of Object.entries(entries)) {
     const mm = measures[sid];
     if (!mm || mm.error) { res[sid] = { level: 'error', issues: [{ level: 'error', code: 'render', msg: mm?.error ?? '측정 없음' }], roles: [] }; continue; }
-    const measure = { w: mm.w * (e.exportScale ?? 1), h: mm.h * (e.exportScale ?? 1), bytes: null, format: null, transparent: mm.transparent, fontFamily: mm.fontFamily, texts: mm.texts, logo: mm.logo, objects: mm.objects, cutout: (meta.field?.opaque ?? 1) < 0.5 };
+    const measure = { w: mm.w * (e.exportScale ?? 1), h: mm.h * (e.exportScale ?? 1), bytes: null, format: null, transparent: mm.transparent, fontFamily: mm.fontFamily, texts: mm.texts, logo: mm.logo, objects: mm.objects, logoCount: mm.logoCount, bgColors: mm.bgColors ?? null, cutout: (meta.field?.opaque ?? 1) < 0.5 };
     const L = lintArtifact({ spec: e.rules, medium: e.mediumRules, measure });
-    const X = extraChecks(e, measure);
+    const X = extraChecks(e, measure).filter(x => !L.issues.some(i => i.code === x.code));   // logo-forbidden 은 core/lint.js 가 개수로 먼저 잡는다 — 같은 코드 이중 집계 방지
     const issues = [...L.issues, ...X];
     const level = issues.some(i => i.level === 'block') ? 'block' : issues.some(i => i.level === 'warn') ? 'warn' : 'pass';
     res[sid] = { level, issues, roles: roleTable(e, measure), logo: mm.logo?.bbox ?? null, logoCount: mm.logoCount, objects: mm.objects, kvUse: mm.kvUse };

@@ -142,4 +142,7 @@ test('logo count: spec.logo.count 0 forbids any logo (block); count 1 allows up 
   assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium, measure: { ...ok, logoCount: 2 } })), ['logo-count']);
   assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium: { ...medium, logoMaxCount: 2 }, measure: { ...ok, logoCount: 2 } })), []);
   assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium, measure: { ...ok, logoCount: null } })), []);
+  assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium, measure: { ...ok, logoCount: 1 } })), []);   // 경계: 한도와 같은 수는 통과
+  assert.deepEqual(codes(lintArtifact({ spec: { ...spec, logo: { w: 150, h: 31 } }, medium, measure: { ...ok, logoCount: 3 } })), []);   // count 없는 규격은 검사 안 함
+  assert.deepEqual(codes(lintArtifact({ spec: noLogo, medium: { ...medium, logoMaxCount: 2 }, measure: { ...ok, logoCount: 1 } })), ['logo-forbidden']);   // 매체 값은 완화 전용 — 규격 0 을 풀지 못한다
 });

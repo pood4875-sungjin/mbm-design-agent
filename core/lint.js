@@ -136,8 +136,11 @@ export function lintArtifact({ spec, medium, measure }) {
 
   // 로고 개수(자소설 PDF: 1개 / 보드: 필요시 2개 · M스탠다드 메인·PC달력·리멤버 전 규격: 로고 불가)
   if (spec.logo && typeof spec.logo.count === 'number' && measure.logoCount != null) {
-    if (spec.logo.count === 0 && measure.logoCount > 0) block('logo-forbidden', `로고 ${measure.logoCount}개 — 이 규격은 로고 삽입 불가`);
-    else if (spec.logo.count > 0) { const max = medium?.logoMaxCount ?? spec.logo.count; if (measure.logoCount > max) block('logo-count', `로고 ${measure.logoCount}개 — 최대 ${max}개`); }
+    const max = spec.logo.count === 0 ? 0 : Math.max(spec.logo.count, medium?.logoMaxCount ?? 0);   // 매체 값은 완화 전용 — 규격이 0(자소설 M메인·PC달력)이면 매체가 2여도 불가
+    if (measure.logoCount > max) {
+      if (max === 0) block('logo-forbidden', `로고 ${measure.logoCount}개 — 이 규격은 로고 삽입 불가`);
+      else block('logo-count', `로고 ${measure.logoCount}개 — 최대 ${max}개`);
+    }
   }
 
   // ── 투명 배경
