@@ -2790,15 +2790,35 @@ const adEffCtx = a => { const c = state.campaign; return { ...c.context, core: {
 const artRenderOpts = a => ({ variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size });   // renderArtifact 옵션 — generate.js 가 보드를 그릴 때와 같은 것(10-20)
 // 내보낼 때도 보드와 같은 스타일 — 산출물 개별 값(overrides.style: 알약 톤·프리셋)과 직접 수정(overrides.layout)을 얹는다(10-14 generate.js 와 같은 합성)
 const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? { ...c.style, ...a.overrides.style } : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
-async function exportAdFiles(ads) {
+// renderFit 은 renderAd 를 직접 부르므로 renderArtifact 가 spec 에 얹던 시안 번호·용도·화살표·규격을 여기서 같이 얹는다(보드·썸네일과 같은 출력, 10-20)
+function adSpecOf(a) {
+  const o = artRenderOpts(a), spec = { ...SPECS[a.specId], variant: o.variant ?? 0, purpose: o.purpose ?? 'main', arrow: o.arrow ?? null };
+  if (o.size?.wmm) { spec.wmm = o.size.wmm; spec.hmm = o.size.hmm; }
+  if (o.size?.w) { spec.w = o.size.w; spec.h = o.size.h; }
+  return spec;
+}
+// opts.allVariants — 레이아웃 안이 여럿인 규격은 안마다 파일(…__안N). 선택안은 개별 편집값까지, 나머지 안은 캠페인 공통 + 안 프리셋
+async function exportAdFiles(ads, opts = {}) {
   const c = state.campaign;
   const out = [];
   for (const a of ads) {
-    const spec = SPECS[a.specId];
+    const spec = adSpecOf(a);
     const eff = adEffCtx(a);
     const face = await exportFaceCss(artifactFontId(a));   // 묶은 무료 폰트면 바이트째(10-14) — 래스터가 바깥 파일을 못 받는다
-    const fit = await renderFit(eff, adEffStyle(a), spec, h => embedFont(h, face, BUNDLED_MARK));   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
-    out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
+    const post = h => embedFont(h, face, BUNDLED_MARK);
+    const variants = (opts.allVariants && (a.variants?.length ?? 0) > 1) ? a.variants : null;
+    if (!variants) {
+      const fit = await renderFit(eff, adEffStyle(a), spec, post);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
+      out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
+      continue;
+    }
+    const sel = currentVariantIndex(a);
+    for (const [i, v] of variants.entries()) {
+      const styleV = i === sel ? adEffStyle(a) : { ...c.style, ...v.style };
+      const fitV = await renderFit(eff, styleV, spec, post);
+      const base = adFileName(a, fitV.measure.format === 'jpeg' ? 'jpg' : fitV.measure.format);
+      out.push({ a, spec, fit: fitV, variant: i, variantLabel: v.label, name: base.replace(/(\.[a-z]+)$/, `__안${i + 1}$1`) });
+    }
   }
   return out;
 }
@@ -2849,7 +2869,7 @@ async function doAdSvg(a) {
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
-async function exportAdZip(withSvg = false) {
+async function exportAdZip(withSvg = false, { allVariants = false } = {}) {
   const c = state.campaign;
   // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로
   const all = c.artifacts.filter(a => a.channel === 'ad');
@@ -2859,12 +2879,12 @@ async function exportAdZip(withSvg = false) {
   const assets = c.artifacts.filter(a => a.channel === 'asset' && a.status === 'approved');   // 전달물도 승인분만
   toast(`매체 소재 ${ads.length}장 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
   try {
-    const files = await exportAdFiles(ads);
+    const files = await exportAdFiles(ads, { allVariants });
     const blocked = files.filter(f => f.fit.lint.level === 'block');
     if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — ZIP에서 제외됨`); }
     const entries = [];
     for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
-      entries.push({ name: `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
+      entries.push({ name: f.variant != null ? `${f.spec.mediumName}/${f.spec.id}/${f.name}` : `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
     const assetBlocked = assets.filter(a => a.lint?.level === 'block').length;
@@ -2882,12 +2902,13 @@ async function exportAdZip(withSvg = false) {
       (sheet[spec.mediumName] ??= []).push(...lines);
     }
     for (const [mName, lines] of Object.entries(sheet)) entries.push({ name: `${mName}/전달_문구_배경색.txt`, data: new TextEncoder().encode(['이 매체는 글자를 매체가 직접 올립니다 — 이미지에는 글자가 없고, 아래 문구와 배경 Hex 를 신청서·입력란에 적어 주세요.', '', ...lines].join('\n')) });
+    if (allVariants && files.some(f => f.variant != null)) entries.push({ name: '전달_안내.txt', data: new TextEncoder().encode('「전체 안 포함」 내보내기 — 규격 폴더 안의 __안N 파일은 검토용 레이아웃 안입니다. 승인된 것은 선택안(규격 폴더 안 __안N 중 캠페인에서 고른 번호)이고, 안이 하나뿐인 규격은 파일명에 __안이 없습니다. SVG(Figma 편집용)는 선택안만 svg/ 폴더에 들어갑니다.') });
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
     if (withSvg) {
       // 래스터와 같은 이름 규칙으로 svg/ 폴더에 — 차단된 소재는 래스터처럼 뺀다
       const enc = new TextEncoder(), cache = new Map();
-      for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
+      for (const f of files.filter(f => f.fit.lint.level !== 'block' && (f.variant == null || f.variant === currentVariantIndex(f.a)))) {   // SVG 는 선택안만
         const r = await adSvgOf(f.a, cache);
         r.fallbacks.forEach(x => svgFallbacks.add(x));
         entries.push({ name: `svg/${r.name}`, data: enc.encode(r.svg) });
@@ -3010,11 +3031,12 @@ function exportAllModal() {
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">${exportFontLine(ads)}</div>` : ''}
+      ${ads.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
-      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(); return false; } }] : []),
+      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true, { allVariants: !!document.getElementById('expAllVariants')?.checked }); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(false, { allVariants: !!document.getElementById('expAllVariants')?.checked }); return false; } }] : []),
       { label: '배너 PNG 2x 일괄', pri: !ads.length, fn: () => { batchBanners(banners); return false; } },
     ],
   });
