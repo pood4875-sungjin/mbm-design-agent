@@ -3218,6 +3218,10 @@ $('keyBtn').onclick = () => {
     actions: [
       { label: '지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('키 삭제됨'); } },
       { label: '연결 테스트', fn: () => { runKeyTest(); return false; } },
+      { label: '캠페인 JSON 내보내기', fn: () => {   // 레이아웃 안 선택 집계(scripts/variant-stats.mjs)·사례 기록의 입구
+        const raw = localStorage.getItem(STORE_LS); if (!raw) { toast('저장된 캠페인이 없어요'); return false; }
+        downloadText(raw, 'mbm-campaigns.json', 'application/json'); log('내보내기: mbm-campaigns.json'); return false;
+      } },
       { label: '저장', pri: true, fn: () => { LLM.setKey($('modalBody').querySelector('#keyIn').value); refreshAiChip(); toast('키 저장됨'); } },
     ],
   });
