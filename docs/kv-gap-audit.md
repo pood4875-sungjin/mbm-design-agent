@@ -1,6 +1,6 @@
 # 키비주얼 여백 전수조사 (kv-gap-audit)
 
-- 생성: `node scripts/kv-gap-audit.mjs` · 2026-10-19 04:50 · 규격 49(추출 규격 중 전달물 제외) × 케이스 5
+- 생성: `node scripts/kv-gap-audit.mjs` · 2026-10-20 09:19 · 규격 49(추출 규격 중 전달물 제외) × 케이스 5
 - 케이스: `t1014-abl` 여러 오브젝트·캐릭터 떼 · 덩어리 여럿 · 가로형 · `midas-glass-mint` 장식 프레임 누끼(가운데가 빈 유리 슬랩) · 주인공 39% · 어두운 바탕 · 어두운 지면 우선 · 전면 배경 · 가로형 · `dongbu_illust` 단일 사물 누끼 · 가로형 · `bc-illust` 배경과 엮인 장면 일러스트·3D · 가로형 · `t1014-hanssem` 꽉 찬 사진 · 가장자리 그라데이션 · 가로형
 - 판정: 그림(누끼 contain 은 kvMeta.px 비율로 계산한 실제 그림, 사진 cover 는 칸) 오른쪽·아래 변이 캔버스 변에서 **2px 초과 ~ 변 길이 12% 이하** 떨어지면 ✗. 12% 넘으면 의도한 여백 ✓(수치 남김). 왼쪽/위(글자 쪽)는 안 잰다. 누끼 PNG 안의 투명 여백은 그림 사각형에 포함(원본 자산의 여백은 따로).
 - 예외(✓, 수치는 남김): ① 매체 JSON `mold.image.edgeInset` — 템플릿 칸 자체가 안쪽(자소설 PC팝업 샘플 상자 오른 8·아래 30, 카카오 비즈보드 r10 상자 오른 53·아래 37) ② 캔버스 좌우 변에 다 닿는 전폭 띠 안에서 그림이 좌우 대칭 가운데(NAP 320×480 사용자 수정본도 좌우 25/25) — 「한쪽이 비는」 틈이 아님.
@@ -11,7 +11,7 @@
 | 규격 | 케이스 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 사유 |
 |---|---|---|---|---|---|---|
 | naver-gfa-mobile-da-1250x560 1250×560 | t1014-abl | (554,262) 443×278 | (554.3,262) 442.7×278 contain | 253 | 20 | 칸이 변에서 떨어짐 |
-| naver-gfa-mobile-da-1250x560 1250×560 | midas-glass-mint | (553,301) 444×239 | (553.2,301) 443.8×239 contain | 253 | 20 | 칸이 변에서 떨어짐 |
+| naver-gfa-mobile-da-1250x560 1250×560 | midas-glass-mint | (553,301) 444×239 | (620.1,337) 376.9×203 autoH | 253 | 20 | 칸이 변에서 떨어짐 |
 | naver-gfa-mobile-da-1250x560 1250×560 | dongbu_illust | (622,262) 375×278 | (622,262.4) 375×277.6 contain | 253 | 20 | 칸이 변에서 떨어짐 |
 | naver-gfa-mobile-da-1250x560 1250×560 | bc-illust | (553,262) 444×278 | (553,262) 444×278 cover | 253 | 20 | 칸이 변에서 떨어짐 |
 | naver-gfa-mobile-da-1250x560 1250×560 | t1014-hanssem | (553,262) 444×278 | (553,262) 444×278 cover | 253 | 20 | 칸이 변에서 떨어짐 |
@@ -25,7 +25,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| t1014-abl | templateMold templateMold,templateMold.logoArea | (293,214) 249×156 | (293.6,214) 248.4×156 contain | 8 (8) | 30 (30) | ✓ 템플릿 칸 안쪽(의도, edgeInset right 8·bottom 30) |
+| t1014-abl | templateMold templateMold,templateMold.logoArea | (293,214) 249×156 | (368.4,261) 173.6×109 autoH | 8 (8) | 30 (30) | ✓ 템플릿 칸 안쪽(의도, edgeInset right 8·bottom 30) |
 
 ### 자소설닷컴 · PC프리미엄패키지 - PC채용공고배너 `jasoseol-pc-premium-jobpost-pc` 160×600
 
@@ -319,7 +319,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.logoArea | (293,236) 249×134 | (293.2,236) 248.8×134 contain | 8 (8) | 30 (30) | ✓ 템플릿 칸 안쪽(의도, edgeInset right 8·bottom 30) |
+| midas-glass-mint | templateMold templateMold,templateMold.logoArea | (293,236) 249×134 | (330.3,256) 211.7×114 autoH | 8 (8) | 30 (30) | ✓ 템플릿 칸 안쪽(의도, edgeInset right 8·bottom 30) |
 
 ### 자소설닷컴 · PC프리미엄패키지 - PC채용공고배너 `jasoseol-pc-premium-jobpost-pc` 160×600
 
@@ -355,7 +355,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold | (376,299) 374×201 | (376.8,299) 373.2×201 contain | 0 (0) | 0 (0) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold | (376,299) 374×201 | (488.2,359) 261.8×141 autoH | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · M스탠다드패키지 - M채팅목록배너 로고 (PDF 명칭: M텍스트배너) `jasoseol-m-standard-chatlist-logo-mo` 300×180
 
@@ -523,7 +523,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.labelCol | (553,301) 444×239 | (553.2,301) 443.8×239 contain | 253 (253) | 20 (20) | ✗ 칸이 변에서 떨어짐 |
+| midas-glass-mint | templateMold templateMold,templateMold.labelCol | (553,301) 444×239 | (620.1,337) 376.9×203 autoH | 253 (253) | 20 (20) | ✗ 칸이 변에서 떨어짐 |
 
 ### 네이버 GFA · M통합 네이티브 DA (모바일) 썸네일 342×228 `naver-gfa-native-mo-342x228` 342×228
 
@@ -565,7 +565,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| midas-glass-mint | templateMold templateMold,templateMold.logoArea,templateMold.plainLabel | (329,270) 401×216 | (329,270) 401×216 contain | 0 (-10) | 0 (-6) | ✓ 붙음 |
+| midas-glass-mint | templateMold templateMold,templateMold.logoArea,templateMold.plainLabel | (329,270) 401×216 | (449.6,335) 280.4×151 autoH | 0 (-10) | 0 (-6) | ✓ 붙음 |
 
 ### 에브리타임 · 공모전·대외활동·채용 정보 — 카드 이미지 `everytime-contest-card` 288×288
 
@@ -649,7 +649,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| dongbu_illust | templateMold objectBleed,templateMold,templateMold.slotBleed | (377,183) 373×317 | (377,183) 428×316.9 autoW | 0 (0) | 0.1 (0) | ✓ 붙음 |
+| dongbu_illust | templateMold objectBleed,templateMold,templateMold.slotBleed | (376,223) 374×277 | (376,223) 374×276.9 autoW | 0 (0) | 0.1 (0) | ✓ 붙음 |
 
 ### 자소설닷컴 · M스탠다드패키지 - M채팅목록배너 로고 (PDF 명칭: M텍스트배너) `jasoseol-m-standard-chatlist-logo-mo` 300×180
 
@@ -859,7 +859,7 @@
 
 | 케이스 | 배치 | 칸 | 그림 | 오른쪽 틈 | 아래 틈 | 판정 |
 |---|---|---|---|---|---|---|
-| dongbu_illust | templateMold objectBleed,templateMold,templateMold.slotBleed,templateMold.plainLabel | (331,228) 389×252 | (331,228) 420×310.9 autoW | 0 (0) | 0 (0) | ✓ 붙음 |
+| dongbu_illust | templateMold objectBleed,templateMold,templateMold.slotBleed,templateMold.plainLabel | (373,228) 347×252 | (373,228) 347×256.9 autoW | 0 (0) | 0 (0) | ✓ 붙음 |
 
 ### 에브리타임 · 공모전·대외활동·채용 정보 — 카드 이미지 `everytime-contest-card` 288×288
 

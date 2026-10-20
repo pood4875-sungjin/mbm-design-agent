@@ -23,7 +23,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack } from '../fonts.js';
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltLength, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
+import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltGradientFrom, meltLength, seamHexes, meltNeed, cutFadePct, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
@@ -180,7 +180,39 @@ let LAST_TR = null;   // renderAdBase 가 만든 추적 객체(겹침 교정이 
 function renderOnce(ctx, style, spec) {
   const bust = bustOf(style, spec);
   const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
-  return { html: cutFade(html, bust ? { ...style, kvMeta: bust.meta } : style, spec), tr: LAST_TR, styleUsed: bust ? { ...style, kvMeta: bust.meta } : style };
+  const used = bust ? { ...style, kvMeta: bust.meta } : style;
+  return { html: cutFade(meltFix(fieldAlign(html, used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), tr: LAST_TR, styleUsed: used };
+}
+// 지면 그라데이션을 그림 자리에 맞춘다(10-20 사용자 「배경색 일관되지 않게 나오는 것도 문제」 + 이음 전수 감사 bg-box·seam-far kv-edge 367변):
+//   캠페인 공통 지면(core/field.js edgeField·moodStops — 그림 네 변에서 한 번 정한 그라데이션, field.align { axis v|h, at [두 끝 색이 그림 길이의 어느 몫인가] })을
+//   규격마다 실제 그림 사각형에 px 로 건다 — `linear-gradient(180deg, 위색 (그림 위+3%)px, 아래색 (그림 아래−3%)px)`. 그림 밖은 CSS 가 양 끝 색으로 늘인다.
+//   전에는 지면 그라데이션이 캔버스 전체(0~100%)에 걸려 그림(캔버스 일부)의 가장자리 색과 어긋났다(desk-21 세로 그라데이션 일러스트: 자리 변에서 색 차 0.33). 틀 지면 영역(data-mold-field)도 같은 px 로(그 상자 기준으로 뺀다)
+function fieldAlign(html, style, spec, tr) {
+  const F = tr?.field; if (!F?.align || !(F.stops?.length === 2) || !F.css) return html;
+  if ((style.kvMeta?.field?.opaque ?? 1) < 0.5) return html;
+  const W = spec.w, H = spec.h; if (!(W > 0 && H > 0)) return html;
+  const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar;
+  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return m ? parseFloat(m[1]) : null; };
+  let best = null;
+  for (const m of html.matchAll(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"/g)) {
+    const attrs = m[1], st = m[2]; if (/data-kv-only/.test(attrs) || /inset:0/.test(st)) continue;
+    const bw = num(st, 'width'), bh = num(st, 'height'); if (!(bw > 0 && bh > 0)) continue;
+    const bx = num(st, 'left') ?? (num(st, 'right') != null ? W - num(st, 'right') - bw : null), by = num(st, 'top') ?? (num(st, 'bottom') != null ? H - num(st, 'bottom') - bh : null);
+    if (bx == null || by == null) continue;
+    const pic = picOf(st, bw, bh, px, ar0); if (!pic) continue;
+    if (!best || bw * bh > best.area) best = { area: bw * bh, P: { l: bx + pic.ox, t: by + pic.oy, w: pic.dw, h: pic.dh } };
+  }
+  if (!best) return html;
+  const { P } = best, [t0, t1] = F.align.at, v = F.align.axis === 'v';
+  const a = Math.round((v ? P.t + P.h * t0 : P.l + P.w * t0) * 10) / 10, b = Math.round((v ? P.t + P.h * t1 : P.l + P.w * t1) * 10) / 10;
+  if (!(b > a)) return html;
+  const css = (dx, dy) => `linear-gradient(${v ? 180 : 90}deg,${F.stops[0]} ${Math.round((a - (v ? dy : dx)) * 10) / 10}px,${F.stops[1]} ${Math.round((b - (v ? dy : dx)) * 10) / 10}px)`;
+  let hit = false;
+  let out = html.replace(/(<div data-ad="1"[^>]*? style=")([^"]*)"/, (m0, head, st) => { if (!st.includes(`background:${F.css};`)) return m0; hit = true; return head + st.replace(`background:${F.css};`, `background:${css(0, 0)};`) + '"'; });
+  out = out.replace(/(<div data-mold-field="1" style=")([^"]*)"/, (m0, head, st) => { const x = num(st, 'left') ?? 0, y = num(st, 'top') ?? 0; if (!st.includes(`background:${F.css}`)) return m0; hit = true; return head + st.replace(`background:${F.css}`, `background:${css(x, y)}`) + '"'; });
+  if (!hit) return html;
+  F.css = css(0, 0); F.aligned = { axis: F.align.axis, a, b }; if (!tr.rules.includes('fieldAlign')) tr.rules.unshift('fieldAlign');
+  return out.replace(/data-trace="[^"]*"/, `data-trace="${esc(JSON.stringify(tr))}"`);
 }
 export function renderAd(ctx, style, spec) {
   const first = renderOnce(ctx, style, spec);
@@ -251,7 +283,7 @@ export function overlapRatio(html, tr, style, spec) {
 // 오브젝트 상자(data-object="1")마다 실제 그림 사각형(pic)·보이는 창(clip = 상자 ∩ 지면) — cutFade 와 같은 계산(contain/cover/auto/px)
 export function objectRects(html, style, spec) {
   const W = spec.w, H = spec.h; const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar; const out = [];
-  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)px')); return m ? parseFloat(m[1]) : null; };
+  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return m ? parseFloat(m[1]) : null; };
   for (const m of html.matchAll(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g)) {
     const attrs = m[1], st = m[2], rest = m[3]; if (/data-kv-only/.test(attrs) || /inset:0/.test(st)) continue;
     const bw = num(st, 'width'), bh = num(st, 'height'), bx = num(st, 'left'), by = num(st, 'top'); if (!(bw > 0 && bh > 0) || bx == null || by == null) continue;
@@ -280,18 +312,116 @@ export function objectRects(html, style, spec) {
   return out;
 }
 
+// 그림 사각형(배경 size/position 환산, 상자 좌표계) — cutFade·meltFix·objectRects 가 같은 계산을 쓴다
+function picOf(st, bw, bh, px, ar0) {
+  const bg = st.match(/background:url\('[^']*'\) ([^;]*?)\/([^;]*?) no-repeat;/); if (!bg) return null;
+  const pos = bg[1].trim().split(/\s+/), size = bg[2].trim();
+  const iw = px?.[0] ?? (ar0 ? ar0 * 1000 : bw), ih = px?.[1] ?? (ar0 ? 1000 : bh), ar = iw / ih;
+  const lenOf = (s, total) => s.endsWith('%') ? total * parseFloat(s) / 100 : parseFloat(s);
+  let dw, dh;
+  if (size === 'contain') { const k = Math.min(bw / iw, bh / ih); dw = iw * k; dh = ih * k; }
+  else if (size === 'cover') { const k = Math.max(bw / iw, bh / ih); dw = iw * k; dh = ih * k; }
+  else if (size === 'auto' || size === 'auto auto') { dw = iw; dh = ih; }
+  else { const [sw, sh] = size.split(/\s+/); if (sw === 'auto' && sh) { dh = lenOf(sh, bh); dw = dh * ar; } else if (!sh || sh === 'auto') { dw = lenOf(sw, bw); dh = dw / ar; } else { dw = lenOf(sw, bw); dh = lenOf(sh, bh); } }
+  if (!(dw > 0 && dh > 0)) return null;
+  const word = { left: '0%', right: '100%', center: '50%', top: '0%', bottom: '100%' };
+  const p0 = pos[0] ?? 'center', p1 = pos[1] ?? 'center';
+  const px0 = word[p0] ?? p0, py0 = word[p1] ?? p1;
+  const ox = px0.endsWith('%') ? (bw - dw) * parseFloat(px0) / 100 : parseFloat(px0);
+  const oy = py0.endsWith('%') ? (bh - dh) * parseFloat(py0) / 100 : parseFloat(py0);
+  return { ox, oy, dw, dh, size };
+}
+// 녹임 길이 교정(10-20 사용자 「어떤 키비주얼을 넣어도 끊김이나 배경 컬러와 이질감 … 계속 틀어져서」 — 107케이스 × 49규격 전수 감사 scripts/kv-seam-audit.mjs):
+//   그린 뒤 바탕 있는 그림의 % 녹임 마스크마다, 실제 그림 사각형에서 그 변이 그림의 어디를 지나는지(frac) 보고 이음매 색을 다시 잰다(core/field.js seamHexes —
+//   그림 변이면 변 색, 바탕 줄이면 그 줄 색, 주인공을 가르는 줄이면 그림 속 색 중 지면과 가장 먼 색). CANON.melt 길이가 지금 마스크보다 길면 늘인다(짧아지는 쪽은 없음).
+//   한샘 사진 cover 칸: 변 색(갈색) 기준 35% → 속 색(크림·하늘색) 기준 55%. data-melt·data-melt-top·data-melt-right·seam·far 도 같은 값으로(가이드 대조표·겹침 계산이 읽는다) + data-melt-fix="L35>55"
+function meltFix(html, style, spec, tr) {
+  const S = CANON.melt?.seamInside; if (!S || !style?.keyVisual) return html;
+  const stops = tr?.field?.stops; if (!stops?.length) return html;
+  if ((style.kvMeta?.field?.opaque ?? 1) < 0.5) return html;   // 누끼는 녹이지 않는다(cutFade·상반신 녹임만)
+  const W = spec.w, H = spec.h; if (!(W > 0 && H > 0)) return html;
+  const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar;
+  const sideOf = { 'to right': 'left', 'to left': 'right', 'to bottom': 'top', 'to top': 'bottom' };
+  const grads = s => { const out = []; let i = 0; while ((i = s.indexOf('linear-gradient(', i)) >= 0) { let d = 0, j = i; for (; j < s.length; j++) { if (s[j] === '(') d++; else if (s[j] === ')' && --d === 0) break; } out.push(s.slice(i, j + 1)); i = j + 1; } return out; };
+  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return m ? parseFloat(m[1]) : null; };
+  let hit = false;
+  const out = html.replace(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g, (m, attrs, st, rest) => {
+    if (/data-kv-only/.test(attrs) || /inset:0/.test(st)) return m;
+    const seg = /-webkit-mask-image:[^;]*;(?:-webkit-mask-composite:[^;]*;)?mask-image:[^;]*;(?:mask-composite:[^;]*;)?/;
+    const mk = st.match(seg); if (!mk) return m;
+    const own = grads((st.match(/-webkit-mask-image:[^;]*;/) ?? [''])[0]); if (!own.length) return m;
+    const bw = num(st, 'width'), bh = num(st, 'height'); if (!(bw > 0 && bh > 0)) return m;
+    const bx = num(st, 'left') ?? (num(st, 'right') != null ? W - num(st, 'right') - bw : null), by = num(st, 'top') ?? (num(st, 'bottom') != null ? H - num(st, 'bottom') - bh : null);
+    if (bx == null || by == null) return m;
+    const pic = picOf(st, bw, bh, px, ar0); if (!pic) return m;
+    const P = { l: bx + pic.ox, r: bx + pic.ox + pic.dw, t: by + pic.oy, b: by + pic.oy + pic.dh };
+    const clip = { l: Math.max(bx, 0), r: Math.min(bx + bw, W), t: Math.max(by, 0), b: Math.min(by + bh, H) };
+    const fixes = []; let restOut = rest;
+    const meltDir = (rest.match(/data-melt-dir="([^"]*)"/) ?? [])[1] ?? null;
+    const next = own.map(g => {
+      const dm = g.match(/^linear-gradient\((to [a-z]+),transparent 0%,[\s\S]*#000 ([\d.]+)%\)$/); if (!dm) return g;   // % 녹임만(px 는 cutFade)
+      const dir = dm[1], cur = parseFloat(dm[2]), side = sideOf[dir]; if (!side) return g;
+      const edge = side === 'left' ? clip.l : side === 'right' ? clip.r : side === 'top' ? clip.t : clip.b;
+      const frac = side === 'left' ? (edge - P.l) / pic.dw : side === 'right' ? (P.r - edge) / pic.dw : side === 'top' ? (edge - P.t) / pic.dh : (P.b - edge) / pic.dh;   // 그림 변에서 보이는 변까지(그림 길이 몫)
+      const idxFrac = side === 'left' ? (edge - P.l) / pic.dw : side === 'right' ? (edge - P.l) / pic.dw : side === 'top' ? (edge - P.t) / pic.dh : (edge - P.t) / pic.dh;   // 열·행 색인(왼→오·위→아래)
+      const hexes = seamHexes(style, side, Math.max(0, frac));
+      const seamFrac = Math.max(0, frac) <= (S.edgeTol ?? 0.02) ? 0 : Math.min(1, Math.max(0, idxFrac));
+      const hx = Math.max(0, frac) <= (S.edgeTol ?? 0.02) ? hexes : seamHexes(style, side, seamFrac);
+      // 그림 자리에 맞춘 지면 그라데이션(fieldAlign)이면 변이 닿는 자리의 지면 색과 비교한다(변에 수직인 축이면 변 위치의 색, 평행이면 보이는 구간 가운데 색) — 캔버스 전체 두 끝 색과 비교하면 이어진 변도 멀다고 읽는다
+      const AL = tr.field.aligned;
+      const perp = AL ? ((AL.axis === 'v') === (side === 'top' || side === 'bottom')) : false;   // 변이 그라데이션 축에 수직인가(윗변 × 세로 축)
+      const posAlong = AL ? (perp ? edge : (AL.axis === 'v' ? (Math.max(clip.t, P.t) + Math.min(clip.b, P.b)) / 2 : (Math.max(clip.l, P.l) + Math.min(clip.r, P.r)) / 2)) : 0;
+      const t = AL ? Math.min(1, Math.max(0, (posAlong - AL.a) / Math.max(1, AL.b - AL.a))) : null;
+      // 축에 평행한 그림 변(세로 그라데이션의 왼·오른쪽 변)은 변 안에서도 색이 흐른다(hex·from·to) — 지면의 같은 높이 색과 짝지어 잰다(from ↔ 위 1/4 · hex ↔ 가운데 · to ↔ 아래 3/4). 뭉뚱그려 재면 변의 아래 반 색이 지면 가운데 색과 멀다고 읽어 55% 로 늘인다
+      const span = AL && !perp ? (AL.axis === 'v' ? [Math.max(clip.t, P.t), Math.min(clip.b, P.b)] : [Math.max(clip.l, P.l), Math.min(clip.r, P.r)]) : null;
+      const fieldAt = pos => mix(stops[0], stops[1], Math.min(1, Math.max(0, (pos - AL.a) / Math.max(1, AL.b - AL.a))));
+      const E0 = style.kvMeta?.field?.edges?.[side];
+      const need = (AL && span && Math.max(0, frac) <= (S.edgeTol ?? 0.02) && E0?.hex && E0.from && E0.to)
+        ? [[E0.from, fieldAt(span[0] + (span[1] - span[0]) * 0.25)], [E0.hex, fieldAt((span[0] + span[1]) / 2)], [E0.to, fieldAt(span[0] + (span[1] - span[0]) * 0.75)]].map(([h0, f0]) => meltNeed([h0], [f0], cur)).sort((p0, q0) => q0.pct - p0.pct)[0]
+        : meltNeed(hx, AL ? [mix(stops[0], stops[1], t)] : stops, cur);
+      // 그림 변이 상자 변보다 안쪽이면(contain·제 크기 그림이 칸보다 작음) 마스크를 그림 변에서 시작시킨다 — 상자 변에서 잰 길이의 상당수가 빈 칸에 쓰여 그림 변에선 짧았다(NAP 320×50 틀 칸 84 안 그림 37: 46% 가 그림 변에선 15px)
+      const boxEdge = side === 'left' ? bx : side === 'right' ? bx + bw : side === 'top' ? by : by + bh;
+      const picEdgeIn = side === 'left' ? P.l : side === 'right' ? P.r : side === 'top' ? P.t : P.b;
+      const off = (side === 'left' || side === 'top') ? picEdgeIn - boxEdge : boxEdge - picEdgeIn;   // 상자 변 → 그림 변(px, 안쪽이면 +)
+      const boxLen = (side === 'left' || side === 'right') ? bw : bh, picLen = Math.min(boxLen, (side === 'left' || side === 'right') ? pic.dw : pic.dh);
+      if (off > 1) {
+        const fromPct = Math.round(off / boxLen * 1000) / 10, lenPct = Math.round(Math.max(need.pct, cur) * picLen / boxLen * 10) / 10, endPct = Math.round((fromPct + lenPct) * 10) / 10;   // 길이(%)는 그림 길이 기준을 상자 % 로 환산
+        if (endPct <= cur + 0.5) return g;
+        fixes.push({ dir, side, cur, pct: endPct, seam: need.seam, far: need.far });
+        if (meltDir === dir || (meltDir === 'sides' && dir === 'to right')) restOut = restOut.replace(/data-melt="[^"]*"/, `data-melt="${endPct}"`).replace(/data-melt-seam="[^"]*"/, `data-melt-seam="${need.seam ?? ''}"`).replace(/data-melt-far="[^"]*"/, `data-melt-far="${need.far ?? ''}"`);
+        else if (dir === 'to bottom' && /data-melt-top=/.test(restOut)) restOut = restOut.replace(/data-melt-top="[^"]*"/, `data-melt-top="${endPct}"`);
+        else if (dir === 'to left' && meltDir === 'sides') restOut = restOut.replace(/data-melt-right="[^"]*"/, `data-melt-right="${endPct}"`);
+        return meltGradientFrom(dir, fromPct, lenPct);
+      }
+      if (!(need.pct > cur + 0.5)) return g;
+      fixes.push({ dir, side, cur, pct: need.pct, seam: need.seam, far: need.far });
+      // 추적 속성 갱신 — 같은 방향의 data-melt / 두 번째 변 data-melt-top(to bottom) / 양옆 data-melt-right(to left)
+      if (meltDir === dir || (meltDir === 'sides' && dir === 'to right')) restOut = restOut.replace(/data-melt="[^"]*"/, `data-melt="${need.pct}"`).replace(/data-melt-seam="[^"]*"/, `data-melt-seam="${need.seam ?? ''}"`).replace(/data-melt-far="[^"]*"/, `data-melt-far="${need.far ?? ''}"`);
+      else if (dir === 'to bottom' && /data-melt-top=/.test(restOut)) restOut = restOut.replace(/data-melt-top="[^"]*"/, `data-melt-top="${need.pct}"`);
+      else if (dir === 'to left' && meltDir === 'sides') restOut = restOut.replace(/data-melt-right="[^"]*"/, `data-melt-right="${need.pct}"`);
+      return meltGradient(dir, need.pct);
+    });
+    if (!fixes.length) return m;
+    hit = true;
+    const st2 = st.replace(seg, meltMaskList(next));
+    return `<div data-object="1"${attrs} style="${st2}"${restOut} data-melt-fix="${fixes.map(f => f.side[0].toUpperCase() + f.cur + '→' + f.pct).join(',')}">`;
+  });
+  return hit ? out.replace('&quot;rules&quot;:[', '&quot;rules&quot;:[&quot;meltFix&quot;,') : out;
+}
+
 // 끊김 녹임(10-19 사용자 「그라데이션으로 옅게 처리하던지 해 줘. 끊기는 건. 네이버도 마찬가지」) — 그린 뒤 오브젝트 상자마다 실제 그림 사각형을 계산해, 뚝 잘린 변을 지면으로 녹이는 마스크를 더한다(기존 녹임과 교집합).
 //   누끼: 그림이 상자 밖으로 넘친 변(지면 변에서 잘리든 상자 변에서 잘리든) · 사진·바탕 있는 그림: 상자 변이 지면 안쪽에 있는 변(지면 변에 붙은 변은 자연스러운 끝)
 //   제외: 지면 전체 그림(data-kv-only·inset:0) · 둥근 상자(카카오 썸네일·비즈보드 r10) · 템플릿이 여백을 적어 둔 변(mold.image.edgeInset — 자소설 PC팝업 8/30) · 이미 그 변을 녹인 마스크
-function cutFade(html, style, spec) {
+function cutFade(html, style, spec, tr = null) {
   const C = CANON.cutFade; if (!C || !style?.keyVisual) return html;
+  const fStops = tr?.field?.stops ?? null, AL = tr?.field?.aligned ?? null;
   const W = spec.w, H = spec.h; if (!(W > 0 && H > 0)) return html;
   const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar;
   const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
   const inset = (spec.rules ?? spec)?.safeArea?.measuredFromTemplate?.mold?.image?.edgeInset ?? null;
   const dirOf = { left: 'to right', right: 'to left', top: 'to bottom', bottom: 'to top' };
   const grads = s => { const out = []; let i = 0; while ((i = s.indexOf('linear-gradient(', i)) >= 0) { let d = 0, j = i; for (; j < s.length; j++) { if (s[j] === '(') d++; else if (s[j] === ')' && --d === 0) break; } out.push(s.slice(i, j + 1)); i = j + 1; } return out; };
-  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)px')); return m ? parseFloat(m[1]) : null; };
+  const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return m ? parseFloat(m[1]) : null; };
   let hit = false;
   const out = html.replace(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g, (m, attrs, st, rest) => {
     if (/data-kv-only/.test(attrs) || /inset:0/.test(st) || /border-radius:(?!0px)/.test(st)) return m;
@@ -328,15 +458,29 @@ function cutFade(html, style, spec) {
       if (had.has(dirOf[s])) continue;
       const len = visLen(s); if (!(len > 0)) continue;
       let pct = null;
-      if (cutout) { if (over[s] > C.minGap) pct = Math.min(C.max, Math.max(C.min, Math.round(over[s] / len * 100) * C.k + C.base)); }
-      else if (gapC[s] > C.minGap && over[s] > -C.minGap) pct = C.photo;
+      if (cutout) { if (over[s] > C.minGap) pct = cutFadePct(over[s] / len); }
+      else if (gapC[s] > C.minGap && over[s] > -C.minGap) {
+        // 사진·바탕 그림의 안쪽 변: 28% 는 바닥, 그 변에서 드러나는 색과 지면이 멀면 CANON.melt 길이까지(meltFix 와 같은 자 — 네이버 DA 사진 칸 오른쪽·아래가 28% 로는 색 차 .3~.5 를 못 덮었다, 10-20 전수 감사 49건)
+        pct = C.photo;
+        if (fStops?.length) {
+          const picLen = (s === 'left' || s === 'right') ? dw : dh;
+          const frac = s === 'left' ? (clip.l - P.l) / picLen : s === 'right' ? (P.r - clip.r) / picLen : s === 'top' ? (clip.t - P.t) / picLen : (P.b - clip.b) / picLen;
+          const edgePos = s === 'left' ? clip.l : s === 'right' ? clip.r : s === 'top' ? clip.t : clip.b;
+          const perp = AL ? ((AL.axis === 'v') === (s === 'top' || s === 'bottom')) : false;
+          const posAlong = AL ? (perp ? edgePos : (AL.axis === 'v' ? (clip.t + clip.b) / 2 : (clip.l + clip.r) / 2)) : 0;
+          const stopsAt = AL ? [mix(fStops[0], fStops[1], Math.min(1, Math.max(0, (posAlong - AL.a) / Math.max(1, AL.b - AL.a))))] : fStops;
+          pct = Math.max(C.photo, meltNeed(seamHexes(style, s, Math.max(0, frac)), stopsAt, C.photo).pct);
+        }
+      }
       if (pct == null) continue;
       add.push(gradPx(dirOf[s], startPx(s), Math.round(len * pct / 100))); sides.push(s[0].toUpperCase() + pct);
     }
     if (!add.length) return m;
     hit = true;
     const seg = /-webkit-mask-image:[^;]*;(?:-webkit-mask-composite:[^;]*;)?mask-image:[^;]*;(?:mask-composite:[^;]*;)?/;
-    const st2 = seg.test(st) ? st.replace(seg, meltMaskList([...own, ...add])) : st + meltMaskList(add);   // 기존 녹임 자리에 합쳐 넣는다(마스크 순서·다른 속성 위치 그대로 — 테스트·svg 내보내기가 읽는 문자열)
+    // 기존 녹임 자리에 합쳐 넣는다(마스크 순서·다른 속성 위치 그대로 — 테스트·svg 내보내기가 읽는 문자열). 마스크가 없던 상자는 뒤에 붙이되 `;` 를 보장한다 —
+    //   10-20 전수 감사: 틀 모서리 칸(`…overflow:hidden"`)·블리드 층 뒤에 `;` 없이 붙어 `overflow:hidden-webkit-mask-image:…` 가 되면 Chrome 이 overflow 와 마스크를 둘 다 버린다(인스타 1080 비씨월드 L28/T28 이 적용되지 않았다)
+    const st2 = seg.test(st) ? st.replace(seg, meltMaskList([...own, ...add])) : st + (/;\s*$/.test(st) || !st ? '' : ';') + meltMaskList(add);
     return `<div data-object="1"${attrs} style="${st2}"${rest} data-cut-fade="${sides.join(',')}">`;   // 녹인 변 표시는 태그 끝에(앞 속성 순서를 읽는 테스트·대조표 그대로)
   });
   return hit ? out.replace('&quot;rules&quot;:[', '&quot;rules&quot;:[&quot;cutFade&quot;,') : out;
@@ -847,10 +991,11 @@ function renderAdBase(ctx, style, spec) {
     : textureFull ? (() => { const hx = style.kvMeta?.field?.quadrants?.tl ?? style.kvMeta?.colors?.[0] ?? '#808080'; const tx = contrast(hx, WHITE) >= 3 ? WHITE : contrast(hx, BLACK) >= 4.5 ? BLACK : WHITE; return { stops: [hx], angle: 0, css: hx, text: tx, source: 'kv-texture', seamless: true, gradient: false, contrast: Math.round(contrast(hx, tx) * 100) / 100 }; })()
     // 배경형: 지면색 = 글자 자리의 바탕색(그림 그대로), 글자는 그 밝기로 — 밝으면 검정(브랜드색이 4.5:1이면 brandMain이 이어받는다), 어두우면 흰색
     : roomFull ? (() => { const hx = roomFull.hex ?? '#FFFFFF', tx = (roomFull.lum ?? 1) >= 0.6 ? BLACK : WHITE; return { stops: [hx], angle: 0, css: hx, text: tx, source: 'kv-full', seamless: true, gradient: false, contrast: Math.round(contrast(hx, tx) * 100) / 100 }; })()
-    : resolveField(style, { facing, solidOnly: solidOnly || (objectSide === 'template' && imgCorner && !mold), light: lightProfile, lightPhoto: !!guide?.lightField });
+    : resolveField(style, { facing, solidOnly, light: lightProfile, lightPhoto: !!guide?.lightField });   // 10-20: 모서리 칸이라고 그라데이션을 단색으로 접지 않는다(캠페인 공통 지면) — 그림 자리에 px 로 맞춰 건다(fieldAlign)
   // 틀 지면(10-15, 채용공고 샘플 6개 전수 실측): 배경색은 자유(브랜드색 — 도레이·모비스·한독 어두운 바탕). 밝으면 샘플 글자색, 어두우면 흰 글자·흰 로고 — 흰/검 전환은 CANON 그대로(moldFg·logoSrc0)
   // 템플릿 하단 띠를 주인공으로 당겨 채웠으면 띠의 윗변은 그림 한가운데 — 그 줄의 바탕색으로 지면을 잇는다
-  if (field && bandCrop) field = joinField(field, joinColour(style, bandCrop.top), 'bottom');
+  if (field && bandCrop) { const j = joinField(field, joinColour(style, bandCrop.top), 'bottom'); if (j !== field) field = { ...j, deviation: 'join-colour' }; }   // 이음매 줄 색으로 잇는 지면은 그 규격만의 것 — 캠페인 공통 지면에서 벗어남을 기록(10-20)
+  if (field && objectNeed && style.visual === 'object') field = { ...field, deviation: field.deviation ?? 'object-slot' };   // 오브젝트 누끼 자리(투명·상자 규격)는 다른 그림이라 지면도 다를 수 있다
   // 스크림은 글자 쪽에서 시작해 글자 칸 폭의 60~70%에서 사라진다(보드 사진 전체형 9장) — 세로형은 위에서 아래로, 가로형은 왼쪽에서 오른쪽으로
   const rgba = (hex, a) => { const [r, g, b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
   const kvFocus = style.kvMeta?.field?.focus;
@@ -944,7 +1089,7 @@ function renderAdBase(ctx, style, spec) {
     return `<span data-logo-keep="${emblemX}" style="position:relative;display:block;width:fit-content;${fill ? 'height:100%;' : ''}line-height:0"><img data-logo-emblem="1" src="${esc(style.logo)}" alt="" style="${css};${mk('#000', 'transparent')}"/><img data-logo="1" src="${esc(logoSrc)}" alt="" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;${logoFilter};${mk('transparent', '#000')}"/></span>`;
   };
   if (emblemX != null) fired('logo.emblemKeep');
-  TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined } : null;
+  TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, css: field.css, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined, align: field.align ?? null, deviation: field.deviation ?? null } : null;
   TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv };
   TR.scrim = photoFull ? { kind: 'photo-full', base: scrimBase, a: [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
   TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
@@ -1765,7 +1910,11 @@ function renderAdBase(ctx, style, spec) {
   if (moldContain) fired('templateMold.containGrad');
   const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : moldContain
-    ? (() => { const mL = fadeFor('to right'), mR = fadeFor('to left'); return `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') center bottom/contain no-repeat;${meltMaskSides(mL, mR)}overflow:hidden" data-melt="${mL}" data-melt-dir="sides" data-melt-right="${mR}"></div>`; })()
+    ? (() => { const mL = fadeFor('to right'), mR = fadeFor('to left');
+        // 윗변(그림 변)이 지면색과 0.15 넘게 다르면 윗변도 녹인다(10-20 전수 감사 desk-11 네 변 평평한 일러스트 — 왼·오른쪽만 녹여 윗변이 네모 선). 길이는 CANON.melt, 같은 색이면 0
+        const tHex = edgeOf('top'), tFar = farFrom(tHex); const mT = (tHex && tFar && colorDistance(tHex, tFar) >= 0.15) ? meltLength(tHex, tFar, 0) : 0;
+        const mk = mT > 0 ? meltMaskList([meltGradient('to right', mL), meltGradient('to left', mR), meltGradient('to bottom', mT)]) : meltMaskSides(mL, mR);
+        return `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') center bottom/contain no-repeat;${mk}overflow:hidden" data-melt="${mL}" data-melt-dir="sides" data-melt-right="${mR}"${mT > 0 ? ` data-melt-top="${mT}"` : ''}></div>`; })()
     : (hasKv && tImage)
     ? ((imgCorner || bleedP?.sym) && bleedP ? bleedLayer(style, bleedP, w, h)   // 좌우 양쪽 블리드(sym)는 상자가 지면 폭 전체라 아래 띠로 잡힌다 — 그래도 블리드로 그린다
       : imgCorner
@@ -1779,12 +1928,20 @@ function renderAdBase(ctx, style, spec) {
           // 주인공이 그림의 일부면 상자를 주인공으로 채운다(cornerCrop) — 통째로 맞춰 넣으면 상자에 바탕만 보인다
           const rect = (photoCover || cornerCrop || cornerFill) ? tImage : (cornerRect ?? tImage);
           const mL = meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), mT = meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34);
-          const meltC = meltCorner && !roundSlot;
+          // 칸을 덮어 자른(photoCover) 그림은 바탕이 평평해도 글자 쪽 변이 그림 한가운데를 지난다 — cornerSeamless(그림 변 = 지면색) 는 contain 전제라 cover 에선 녹인다(10-20 전수 감사: 인스타 1080 비씨월드 흰 바탕 × 흰 지면이 녹임 없이 남색 주인공을 가로질렀다). 길이는 meltFix 가 속 색으로 다시 잰다
+          const meltC = (meltCorner || photoCover) && !roundSlot;
           return `<div data-object="1"${roundSlot ? ' data-slot-round="1"' : ''} style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;${roundSlot ? `border-radius:${tImage.radius}px;` : ''}background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : `right bottom/${containSz(rect.w, rect.h)}`} no-repeat;${meltC ? meltMask2(mL, mT) : ''}overflow:hidden"${meltC ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
-      ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${bandMelt ? melt('to bottom') : ''}overflow:hidden"${bandMelt ? meltAttr('to bottom') : ''}></div>`
+      ? (() => {
+          // 제 크기(native)로 놓은 그림이 띠보다 좁으면 왼·오른쪽 그림 변이 지면 한가운데 네모 변으로 선다(10-20 전수 감사 desk-08 자소설 M팝업·구글 300×600·300×1050 seam-far, 녹임 없음) — 변 색이 지면과 다르면 양옆도 녹인다(길이는 CANON.melt, 같은 색이면 0). 길이 보정은 meltFix 가 잇는다
+          const narrow = bandMode === 'native' && kvPx && kvPx[0] < tImage.w - 2 && !transparent;
+          const mL = narrow ? meltLength(edgeOf('left'), farFrom(edgeOf('left')), 0) : 0, mR = narrow ? meltLength(edgeOf('right'), farFrom(edgeOf('right')), 0) : 0, mT = bandMelt ? fadeFor('to bottom') : 0;
+          const gr = [mT > 0 ? meltGradient('to bottom', mT) : null, mL > 0 ? meltGradient('to right', mL) : null, mR > 0 ? meltGradient('to left', mR) : null].filter(Boolean);
+          const attrs = (mL > 0 || mR > 0) ? ` data-melt="${mL}" data-melt-dir="sides" data-melt-right="${mR}"${mT > 0 ? ` data-melt-top="${mT}"` : ''}` : (bandMelt ? meltAttr('to bottom') : '');
+          return `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${bandObjTop}px;width:${tImage.w}px;height:${bandObjH}px;background:url('${esc(style.keyVisual)}') center bottom/${bandMode === 'native' ? 'auto' : 'contain'} no-repeat;${meltMaskList(gr)}overflow:hidden"${attrs}></div>`;
+        })()
       : imgBottomBand
       // 길쭉한 그림은 바닥에 맞춰 붙인다 — 위를 맞추면 주인공(아래쪽)이 칸 밖으로 나간다. 윗변은 지면으로 녹인다
       ? `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') ${cutout ? (cutBand ? `${cutWin ? -Math.round(cutWin.left * tImage.h * cutAr) + 'px' : 'center'} bottom/auto ${tImage.h}px` : moldBandH ? `center bottom/auto ${moldBandH}px` : `center bottom/${containSz(tImage.w, tImage.h)}`) : bandCrop ? `${bandCrop.pos}/${bandCrop.size}` : `${coverPos(style, tImage.w, tImage.h, { fallback: 'center bottom' }).pos}/cover`} no-repeat;${melt('to bottom')}overflow:hidden"${meltAttr('to bottom')}></div>`   // 통째로 덮을 땐 머리를 지키는 위치(자소설 M팝업 600×880 여우), 주인공을 모르면 바닥 맞춤

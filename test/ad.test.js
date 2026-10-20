@@ -192,7 +192,8 @@ test('the field colour is read from the key visual, not chosen as light or dark'
   const kvMeta = { colors: ['#E67814'], field: { opaque: 1, edges: { left: edge('#F2E9FF', '#D9C8FF'), top: edge('#F2E9FF', '#F2E9FF'), right: edge('#F2E9FF', '#D9C8FF'), bottom: edge('#D9C8FF', '#D9C8FF') } } };
   const kv = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta };
   const wide = renderAd(ctx, kv, specs['kakao-display-pc-promo']).split('>')[0];
-  assert.match(wide, /background:linear-gradient\(180deg,#F2E9FF 0%,#D9C8FF 100%\)/, '이미지의 왼쪽 변에 그라데이션이 있으면 지면도 그 그라데이션');
+  // 10-20 fieldAlign: 지면 그라데이션은 캔버스 0~100% 가 아니라 그림 자리에 px 로 걸린다(위 색 → 아래 색, 그림 위 25%·아래 75% 자리) — 색은 같다
+  assert.match(wide, /background:linear-gradient\(180deg,#F2E9FF [\d.]+px,#D9C8FF [\d.]+px\)/, '이미지의 왼쪽 변에 그라데이션이 있으면 지면도 그 그라데이션(그림 자리에 맞춰)');
   assert.match(wide, /color:#0B3C8C/, '밝은 지면이면 메인은 브랜드색, 보조 글자는 검정 계열 — 사람이 고르지 않는다');
   assert.match(wide, /data-field-source="kv-edge"/);
   // 변이 한 색이면 지면도 단색
@@ -201,7 +202,8 @@ test('the field colour is read from the key visual, not chosen as light or dark'
   // 글자 쪽 변에만 그림이 걸쳐 있고 다른 변이 평평하면(한미글로벌 3D) 그 바탕색 — 대표색을 쓰면 그림의 바탕이 상자로 드러나고 규격마다 지면색이 달라진다
   const busyLeft = { ...kv, kvMeta: { ...kvMeta, field: { opaque: 1, edges: { ...kvMeta.field.edges, left: edge('#777777', '#333333', 0.12) } } } };
   const busyHtml = renderAd(ctx, busyLeft, specs['kakao-display-pc-promo']).split('>')[0];
-  assert.match(busyHtml, /background:#F2E9FF;/);
+  // 10-20 캠페인 공통 지면(edgeField): 글자 쪽 변이 아니라 그림 네 변에서 — 위(#F2E9FF)·아래(#D9C8FF) 평평한 변이 다르면 그 세로 그라데이션(어느 규격이든 같은 답). 전에는 「첫 평평한 변」 단색 #F2E9FF
+  assert.match(busyHtml, /background:linear-gradient\(180deg,#F2E9FF [\d.]+px,#D9C8FF [\d.]+px\)/);
   assert.match(busyHtml, /data-field-source="kv-edge"/);
   // 네 변이 모두 복잡한 사진(한독 사옥)은 브랜드색 지면 — 사진의 변은 바탕이 아니다
   const rough = (a, b) => edge(a, b, 0.12);
