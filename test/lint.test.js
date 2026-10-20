@@ -146,3 +146,15 @@ test('logo count: spec.logo.count 0 forbids any logo (block); count 1 allows up 
   assert.deepEqual(codes(lintArtifact({ spec: { ...spec, logo: { w: 150, h: 31 } }, medium, measure: { ...ok, logoCount: 3 } })), []);   // count 없는 규격은 검사 안 함
   assert.deepEqual(codes(lintArtifact({ spec: noLogo, medium: { ...medium, logoMaxCount: 2 }, measure: { ...ok, logoCount: 1 } })), ['logo-forbidden']);   // 매체 값은 완화 전용 — 규격 0 을 풀지 못한다
 });
+
+test('uniform text colour (medium.textColors.uniform): two different text colours block, unless the spec marks a role free (자소설 PC달력 마감일)', () => {
+  const med = { ...medium, textColors: { main: null, sub: [], uniform: true } };
+  const two = { ...ok, texts: [{ ...ok.texts[0] }, { role: 'detail', text: '상세', lines: 1, fontPx: 17, color: '#FF0000', bbox: { x: 40, y: 120, w: 100, h: 20 } }] };
+  assert.deepEqual(codes(lintArtifact({ spec, medium: med, measure: two })), ['text-colors-uniform']);
+  const one = { ...ok, texts: [{ ...ok.texts[0] }, { ...two.texts[1], color: '#000000' }] };
+  assert.deepEqual(codes(lintArtifact({ spec, medium: med, measure: one })), []);
+  const cal = { ...spec, textColors: { freeRoles: ['date'] } };
+  const dateFree = { ...ok, texts: [{ ...ok.texts[0] }, { role: 'date', text: '~5/26', lines: 1, fontPx: 16, color: '#FF0000', bbox: { x: 40, y: 150, w: 60, h: 20 } }] };
+  assert.deepEqual(codes(lintArtifact({ spec: cal, medium: med, measure: dateFree })), []);
+  // 서브의 70% 흐림(rgba) 은 같은 색으로 본다 — 앱 측정이 rgba 를 hex 로 바꿀 때 알파를 버리므로 여기선 hex 만 비교
+});

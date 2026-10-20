@@ -89,6 +89,13 @@ export function lintArtifact({ spec, medium, measure }) {
     }
   }
 
+  // 「모든 문구 1가지 색」(자소설 PDF p.5~11) — 매체 textColors.uniform. 규격이 풀어 준 역할(spec.textColors.freeRoles — PC달력 마감일)은 뺀다
+  if (medium?.textColors?.uniform) {
+    const free = new Set(spec.textColors?.freeRoles ?? []);
+    const cols = [...new Set((measure.texts ?? []).filter(t => t.color != null && !free.has(t.role) && t.role !== 'notice').map(t => norm(t.color)))];
+    if (cols.length > 1) block('text-colors-uniform', `글자색 ${cols.length}가지(${cols.map(c => c.toUpperCase()).join(' · ')}) — 이 매체는 모든 문구 한 색`);
+  }
+
   // ── 글꼴
   if (medium?.fonts?.required && measure.fontFamily != null
       && !measure.fontFamily.toLowerCase().includes(medium.fonts.required.toLowerCase())) {

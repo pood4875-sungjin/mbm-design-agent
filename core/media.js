@@ -141,6 +141,7 @@ export const MEDIA = [
     "textColors": {
       "main": null,
       "sub": [],
+      "uniform": true,
       "rule": "색상 hex 규정 없음. 모든 문구는 1가지 색상으로 통일 (PDF p.5~11). PC달력배너만 마감일 날짜 문구를 메인문구와 다른 색상으로 쓸 수 있음 (figma text 408:37733)",
       "source": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11 / figma:자소설닷컴02(제작가이드&예시) text 408:37733",
       "note": "템플릿 SVG의 자리표시 글자색 #555는 가이드 표시용이지 규정 아님"
@@ -1769,6 +1770,12 @@ export const MEDIA = [
         "exportScale": 2,
         "exportW": 328,
         "exportH": 466,
+        "textColors": {
+          "freeRoles": [
+            "date"
+          ],
+          "source": "figma text 408:37733 — 마감일 날짜 문구만 메인과 다른 색 가능"
+        },
         "format": [
           "png"
         ],
