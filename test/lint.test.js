@@ -158,3 +158,12 @@ test('uniform text colour (medium.textColors.uniform): two different text colour
   assert.deepEqual(codes(lintArtifact({ spec: cal, medium: med, measure: dateFree })), []);
   // 서브의 70% 흐림(rgba) 은 같은 색으로 본다 — 앱 측정이 rgba 를 hex 로 바꿀 때 알파를 버리므로 여기선 hex 만 비교
 });
+
+test('deliverable asset specs (spec.asset.minW) block when the original file is narrower, warn when it had to be upscaled; format must be in spec.format', () => {
+  const asset = { id: 'm-asset', name: '전달물', w: null, h: null, format: ['png', 'ai'], asset: { item: '로고', minW: 500 }, channel: 'asset' };
+  assert.deepEqual(codes(lintArtifact({ spec: asset, medium, measure: { assetPx: [600, 200], format: 'png' } })), []);
+  const r = lintArtifact({ spec: asset, medium, measure: { assetPx: [320, 100], format: 'png' } });
+  assert.deepEqual(codes(r), ['asset-min']); assert.equal(r.level, 'block');
+  assert.deepEqual(codes(lintArtifact({ spec: asset, medium, measure: { assetPx: [600, 200], format: 'jpg' } })), ['format']);
+  assert.deepEqual(codes(lintArtifact({ spec: asset, medium, measure: { assetPx: null, format: null } })), []);
+});

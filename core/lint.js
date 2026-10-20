@@ -12,6 +12,7 @@
 //   logo: { bbox } | null,
 //   logoCount,            화면에 실제로 그려진 로고 수 (null=측정 못 함)
 //   bgColors,             바탕 샘플색 hex 목록 — 글자·로고·그림 상자를 피한 점 (null=측정 못 함)
+//   assetPx: [w,h],       전달물(spec.asset) 원본 파일 픽셀 (null=측정 못 함)
 // }
 // 측정 못 한 값(null)은 위반이 아니다 — "모름"과 "틀림"을 섞으면 검사기를 못 믿게 된다.
 //
@@ -35,6 +36,16 @@ export function lintArtifact({ spec, medium, measure }) {
   const issues = [];
   const block = (code, msg, role) => issues.push({ level: 'block', code, msg, role });
   const warn = (code, msg, role) => issues.push({ level: 'warn', code, msg, role });
+  const verdict = () => ({ level: issues.some(i => i.level === 'block') ? 'block' : issues.some(i => i.level === 'warn') ? 'warn' : 'pass', issues });
+
+  // 전달물 규격(spec.asset — 자소설 M시작배너 로고·이미지 파일): 완성 소재가 아니라 원본 파일을 넘기므로 치수·글자 검사 대신 원본 최소 폭·포맷만 본다
+  if (spec.asset) {
+    const px = measure.assetPx;
+    if (spec.asset.minW != null && Array.isArray(px) && px[0] != null && px[0] < spec.asset.minW) block('asset-min', `${spec.asset.item ?? '파일'} 원본 가로 ${px[0]}px — 규정 최소 ${spec.asset.minW}px (더 큰 원본을 받아야 함)`);
+    const allowedA = (spec.format ?? []).map(fmtNorm);
+    if (allowedA.length && measure.format != null && !allowedA.includes(fmtNorm(measure.format))) block('format', `${String(measure.format).toUpperCase()} — 허용 포맷 ${allowedA.map(f => f.toUpperCase()).join('/')}`);
+    return verdict();
+  }
 
   // ── 치수: 1px 차이도 반려된 실제 사례가 있다(구글 GDN 뷰웍스)
   const want = submitSize(spec);
@@ -158,6 +169,5 @@ export function lintArtifact({ spec, medium, measure }) {
     if (!mustBeOpaque && !measure.transparent) block('transparent', '불투명 배경 — 이 규격은 투명 PNG');
   }
 
-  const level = issues.some(i => i.level === 'block') ? 'block' : issues.some(i => i.level === 'warn') ? 'warn' : 'pass';
-  return { level, issues };
+  return verdict();
 }

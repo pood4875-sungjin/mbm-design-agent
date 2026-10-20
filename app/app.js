@@ -1820,6 +1820,7 @@ function refreshFrames(only = null) {
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
     if (a.channel === 'ad') { a.lint = null; a.guide = null; ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·가이드)은 무효 — 다시 잰다
+    if (a.channel === 'asset') a.lint = null;   // 전달물도 로고·이미지를 바꾸면 다시 잰다
     lintBadge(a);
   }
   scheduleLint();
@@ -1830,7 +1831,7 @@ function refreshFrames(only = null) {
 function lintBadge(a) {
   const f = frames.get(a.key ?? a.specId);
   if (!f?.lint) return;
-  if (a.channel !== 'ad') { f.lint.style.display = 'none'; return; }
+  if (a.channel !== 'ad' && a.channel !== 'asset') { f.lint.style.display = 'none'; return; }
   const L = a.lint;
   f.lint.style.display = '';
   if (!L) { f.lint.className = 'badge lint'; f.lint.textContent = '검사 중…'; return; }
@@ -1869,9 +1870,19 @@ let lintRun = 0;
 async function lintAds() {
   const c = state.campaign; if (!c) return;
   const run = ++lintRun;
-  for (const a of c.artifacts.filter(a => a.channel === 'ad' && !a.lint)) {
+  for (const a of c.artifacts.filter(a => (a.channel === 'ad' || a.channel === 'asset') && !a.lint)) {
     if (run !== lintRun) return;    // 그 사이 다시 그려졌으면 이 판정은 버린다
     const spec = SPECS[a.specId]; if (!spec?.rules) continue;
+    if (a.channel === 'asset') {   // 전달물: 원본 파일의 가로·포맷만 본다(렌더 측정 없음)
+      const isLogo = (spec.rules.asset ?? spec.asset)?.item === '로고';
+      const src = isLogo ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual);
+      const px = isLogo ? c.style.logoMeta?.px : c.style.kvMeta?.px;
+      const fmt = src ? (src.match(/^data:image\/(png|jpe?g|svg\+xml|webp|gif)/)?.[1] ?? null) : null;
+      a.lint = lintArtifact({ spec: { ...spec.rules, asset: spec.rules.asset ?? spec.asset, format: spec.format }, medium: spec.mediumRules, measure: { assetPx: px ?? null, format: fmt === 'jpeg' ? 'jpg' : fmt === 'svg+xml' ? 'svg' : fmt } });
+      lintBadge(a);
+      if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
+      continue;
+    }
     try {
       const m = await measureArtifact(a.html, spec);
       a.lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m });
@@ -2624,6 +2635,7 @@ function addArtifactModal() {
 // 전달물 파일 — 올린 원본(style.logoOrig/kvOrig, 없으면 손질본). 원본 가로가 규정 최소 폭(로고 500 · 이미지 720)보다 작으면 그 폭으로 확대해서 넘긴다(비율 유지, PNG 알파 유지 — 10-16 사용자 「저 크기에 꽉 차야」). 없으면 null
 async function assetFileOf(a) {
   const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item, minW = spec?.asset?.minW ?? 0;
+  if (a.lint?.level === 'block') { toast('전달물 규정 미달 — 더 큰 원본을 받아야 합니다'); return null; }   // 규정 폭 미달 원본은 늘려 보내지 않는다(10-20 출고규정)
   const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
   const core = c.context.core; const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
@@ -2782,7 +2794,7 @@ function exportAdModal(a) {
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
-  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); }); return; }
+  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { if (a.lint?.level !== 'block') toast(`${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); }); return; }
   if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({
