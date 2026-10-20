@@ -114,3 +114,25 @@ test('adSpecIds plan one artifact per media spec, and the ad channel never expan
   const wrong = { ...c, adSpecIds: [], channels: ['ad'] };
   assert.equal(plannedItems(wrong).length, 0, "'ad'를 채널로 켜도 77장이 깔리면 안 된다");
 });
+
+test('광고 산출물은 생성될 때 레이아웃 안(variants)을 갖고, 선택(variantSel)은 다시 생성해도 유지된다 — 규정 매체는 1안', () => {
+  registerAll();
+  const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+  // createCampaign 은 {id, context, style, channels}만 받는다 — 매체 규격(adSpecIds)은 만든 뒤 붙인다
+  const c = createCampaign({ id: 'v',
+    context: createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울', deadline: '2026-10-31' }, 'recruit'),
+    style: normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: { ar: 1.6, px: [1600, 1000], field: { kind: 'cutout', opaque: 0.05, lum: 0.5, sat: 0.4, focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.8 } } } }),
+    channels: [] });
+  c.adSpecIds = ['google-gdn-580x400', 'jasoseol-pc-premium-popup-pc'];
+  generateArtifacts(c);
+  const g = c.artifacts.find(a => a.specId === 'google-gdn-580x400'), j = c.artifacts.find(a => a.specId === 'jasoseol-pc-premium-popup-pc');
+  assert.ok(g.variants.length >= 2, '구글 580 안 ≥ 2'); assert.equal(j.variants.length, 1, '자소설 1안');
+  assert.equal(g.variantSel, 0);
+  for (const v of g.variants) assert.deepEqual(Object.keys(v).sort(), ['hash', 'id', 'label', 'style'], '저장용은 trace 없이');
+  // 선택 → overrides.style 에 복사 → 다시 생성해도 선택과 선택한 프리셋이 유지
+  g.variantSel = 1; g.overrides.style = { ...(g.overrides.style ?? {}), ...g.variants[1].style };
+  generateArtifacts(c);
+  assert.equal(g.variantSel, 1);
+  for (const [k, v] of Object.entries(g.variants[1].style)) assert.equal(g.overrides.style[k], v);
+  assert.ok(g.html.includes('data-trace'));
+});

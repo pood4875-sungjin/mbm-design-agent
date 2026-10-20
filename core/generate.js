@@ -14,6 +14,7 @@ import { renderPhotobooth } from './renderers/photobooth.js';
 import { renderAd } from './renderers/ad.js';
 import { renderAsset } from './renderers/asset.js';
 import { registerAdSpecs } from './adspecs.js';
+import { variantCandidates } from './variants.js';
 
 export function registerAll() {
   _clearRenderers();
@@ -95,6 +96,13 @@ export function generateArtifacts(campaign) {
     let effStyle = artifact.overrides?.style && Object.keys(artifact.overrides.style).length ? { ...campaign.style, ...artifact.overrides.style } : campaign.style;
     // 직접 수정(10-14 편집 고도화) — 산출물 하나의 키비주얼·글자 덩어리·로고 이동·크기(캔버스 몫 단위). 렌더러가 자동 배치 뒤 마지막 변형으로 얹는다(core/editlayout.js)
     if (artifact.overrides?.layout && Object.keys(artifact.overrides.layout).length) effStyle = { ...effStyle, manualLayout: artifact.overrides.layout };
+    // 레이아웃 안(10-20 2단계): 광고 규격마다 후보를 캠페인 공통 스타일로 만든다 — 안은 「프리셋 묶음」이라 선택하면 overrides.style 로 복사된다.
+    //   이미 선택한 안(variantSel)이 있으면 다시 계산해도 선택은 유지. 안은 html 보다 먼저 만들어야 overrides 와 섞이지 않는다. 저장 크기 때문에 trace 는 빼고 {id,label,style,hash}만
+    if (item.channel === 'ad') {
+      const vs = variantCandidates(item.specId, effContext, campaign.style, { variant: artifact.variant ?? 0 });
+      artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
+      if (!(artifact.variantSel >= 0 && artifact.variantSel < artifact.variants.length)) artifact.variantSel = 0;
+    }
     artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), effStyle, {
       variant: artifact.variant ?? 0,
       purpose: artifact.purpose,
