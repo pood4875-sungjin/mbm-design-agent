@@ -2,7 +2,7 @@
 
 > 생성: `node scripts/ship-checklist.mjs` · 데이터 `core/media/*.json` · 자동검사 코드 = `core/lint.js` issue code. 「수동」은 승인 전 사람이 보는 항목. 「확인 필요」는 자료에 값이 없어 매체·컨시어지에 물을 것.
 
-## 물을 것 (9)
+## 물을 것 (10)
 
 - jasoseol-pc-premium-popup-pc · 용량
 - jasoseol-pc-premium-jobpost-pc · 용량
@@ -12,6 +12,7 @@
 - jasoseol-m-premium-chatlist-logo-mo · 용량
 - jasoseol-m-standard-main-mo · 용량
 - jasoseol-m-standard-chatlist-logo-mo · 용량
+- jasoseol-m-start-image-mo · 포맷
 - jasoseol-pc-calendar-pc · 용량
 
 ## 자소설닷컴 · PC프리미엄패키지 - PC팝업배너 `jasoseol-pc-premium-popup-pc`
@@ -155,7 +156,7 @@
 | 항목 | 값 | 자동검사 | 상태 | 근거 |
 |---|---|---|---|---|
 | 전달물 최소 폭 | 720px | `asset-min` | 확정 | figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13 |
-| 포맷 | png/ai | `format` | 확정 | figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13 |
+| 포맷 | png/jpg | `format` | 확인 필요 | figma:자소설닷컴02(제작가이드&예시) text 408:37728 / pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.13 · 최상위 f |
 | 내용 대조(공고 원문) | 필수 | 수동 | 확정 | rejections: 도화엔지니어링 모집대상 미수정 반려(2026-09-10) |
 
 ## 자소설닷컴 · PC달력배너 (채용달력 좌측 게재) `jasoseol-pc-calendar-pc`

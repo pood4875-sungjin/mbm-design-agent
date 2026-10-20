@@ -105,6 +105,5 @@ function measureDoc(d) {
   const objects = [...root.querySelectorAll('[data-object="1"]')].map(el => ({ bbox: box(el.getBoundingClientRect()) }));
   const fontFamily = getComputedStyle(root).fontFamily.split(',')[0].replace(/["']/g, '').trim();
   return { w: Math.round(rr.width), h: Math.round(rr.height), texts, logo, objects, fontFamily, logoCount: [...root.querySelectorAll('[data-logo]')].filter(el => { const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2; }).length,   // app/measure.js 와 같은 기준. bgColors 는 재지 않는다(null) — 헤드리스 DOM 엔 캔버스 픽셀이 없다
-   
     transparent: root.dataset.transparent === '1', kvUse: root.dataset.kvUse ?? null };
 }`;

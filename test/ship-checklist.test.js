@@ -21,5 +21,6 @@ test('ship checklist: every grade-A 자소설·리멤버 spec has rows for size,
   assert.equal(kb.status, '확인 필요');
   // check 코드가 core/lint.js 실제 issue code 와 어긋나지 않는다
   const lintSrc = readFileSync(new URL('../core/lint.js', import.meta.url), 'utf8');
-  for (const code of new Set(rows.filter(r => r.check !== '수동').flatMap(r => r.check.split(',')))) assert.ok(lintSrc.includes(`'${code}'`), `lint.js 에 '${code}' 없음`);
+  const lintCodes = new Set([...lintSrc.matchAll(/(?:block|warn)\('([a-z-]+)'/g)].map(m => m[1]));   // 주석·문자열 언급만으로는 통과하지 않는다
+  for (const code of new Set(rows.filter(r => r.check !== '수동').flatMap(r => r.check.split(',')))) assert.ok(lintCodes.has(code), `lint.js 에 block/warn('${code}') 없음`);
 });

@@ -24,7 +24,11 @@ export function shipRows() {
       const row = (item, value, check, source, status = value == null ? '확인 필요' : '확정') => rows.push({ medium: m.name, spec: s.id, name: s.name, item, value: value ?? '—', check, source: source ?? '', status });
       if (s.asset) {
         row('전달물 최소 폭', s.asset.minW != null ? `${s.asset.minW}px` : null, 'asset-min', s.asset.source ?? s.logo?.source ?? srcOf(s, m));
-        row('포맷', (s.format ?? []).join('/') || null, 'format', s.asset.source ?? srcOf(s, m));
+        {
+          const fmt = s.asset.format ?? s.format;   // 앱 lint 가 실제로 쓰는 값(엔트리 = asset.format)
+          const clash = s.asset.format && s.format && s.asset.format.join('/') !== s.format.join('/');
+          row('포맷', (fmt ?? []).join('/') || null, 'format', (s.asset.source ?? srcOf(s, m) ?? '') + (clash ? ` · 최상위 format ${s.format.join('/')} 와 불일치 — 확인 필요` : ''), clash ? '확인 필요' : undefined);
+        }
         row('내용 대조(공고 원문)', '필수', '수동', 'rejections: 도화엔지니어링 모집대상 미수정 반려(2026-09-10)');
         continue;
       }
