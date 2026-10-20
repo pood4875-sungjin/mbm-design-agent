@@ -10,6 +10,7 @@
 //   fontFamily,           본문에 실제 적용된 글꼴
 //   texts: [{ role, text, lines, fontPx, color, bbox:{x,y,w,h} }],   bbox는 캔버스(1배) 좌표
 //   logo: { bbox } | null,
+//   logoCount,            화면에 실제로 그려진 로고 수 (null=측정 못 함)
 //   bgColors,             바탕 샘플색 hex 목록 — 글자·로고·그림 상자를 피한 점 (null=측정 못 함)
 // }
 // 측정 못 한 값(null)은 위반이 아니다 — "모름"과 "틀림"을 섞으면 검사기를 못 믿게 된다.
@@ -131,6 +132,12 @@ export function lintArtifact({ spec, medium, measure }) {
       const hit = banned.find(b => b.rgb.every((v, i) => Math.abs(v - cv[i]) <= CANON.bgBanned.tol));
       if (hit) { block('bg-banned', `배경색 ${norm(c).toUpperCase()} — 매체 금지색 ${hit.hex.toUpperCase()}(근접)`); break; }
     }
+  }
+
+  // 로고 개수(자소설 PDF: 1개 / 보드: 필요시 2개 · M스탠다드 메인·PC달력·리멤버 전 규격: 로고 불가)
+  if (spec.logo && typeof spec.logo.count === 'number' && measure.logoCount != null) {
+    if (spec.logo.count === 0 && measure.logoCount > 0) block('logo-forbidden', `로고 ${measure.logoCount}개 — 이 규격은 로고 삽입 불가`);
+    else if (spec.logo.count > 0) { const max = medium?.logoMaxCount ?? spec.logo.count; if (measure.logoCount > max) block('logo-count', `로고 ${measure.logoCount}개 — 최대 ${max}개`); }
   }
 
   // ── 투명 배경

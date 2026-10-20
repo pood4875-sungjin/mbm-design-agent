@@ -133,3 +133,13 @@ test('bg-banned boundary: ±12 per channel blocks, 13 passes; 3-digit hex is exp
   assert.deepEqual(run(['#fff']), ['bg-banned']);              // #fff → #FFFFFF
   assert.deepEqual(run(['rgb(1,2,3)', '#12345', '']), []);     // 비정상 입력은 무시
 });
+
+test('logo count: spec.logo.count 0 forbids any logo (block); count 1 allows up to medium.logoMaxCount (default 1, 자소설 보드 2) and more is a block', () => {
+  const noLogo = { ...spec, logo: { count: 0, w: null, h: null } };
+  assert.deepEqual(codes(lintArtifact({ spec: noLogo, medium, measure: { ...ok, logoCount: 1 } })), ['logo-forbidden']);
+  assert.deepEqual(codes(lintArtifact({ spec: noLogo, medium, measure: { ...ok, logoCount: 0 } })), []);
+  const oneLogo = { ...spec, logo: { count: 1, w: 150, h: 31 } };
+  assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium, measure: { ...ok, logoCount: 2 } })), ['logo-count']);
+  assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium: { ...medium, logoMaxCount: 2 }, measure: { ...ok, logoCount: 2 } })), []);
+  assert.deepEqual(codes(lintArtifact({ spec: oneLogo, medium, measure: { ...ok, logoCount: null } })), []);
+});

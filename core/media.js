@@ -145,6 +145,8 @@ export const MEDIA = [
       "source": "pdf:자소설닷컴_배너_제작신청서_작성_가이드(23.08).pdf p.5~11 / figma:자소설닷컴02(제작가이드&예시) text 408:37733",
       "note": "템플릿 SVG의 자리표시 글자색 #555는 가이드 표시용이지 규정 아님"
     },
+    "logoMaxCount": 2,
+    "logoMaxCountSource": "figma:자소설닷컴01(소재 제작 규정) text 408:44008 3항 — 기본 1개, 필요한 경우 2개(비씨월드제약 사례). PDF 는 1개만(conflicts 참고). 검사기는 2개까지 허용",
     "fonts": {
       "required": "Pretendard",
       "note": "변경 불가, 폰트 스타일도 변경 불가 (보드). 예외: PC메인배너 서브문구는 Medium 굵기 (text 408:35496). PDF는 '상세 문구 부분 볼드 가능'. 매체 공식 템플릿(AI/SVG)은 Spoqa Han Sans Neo로 되어 있음 → conflicts 참고. 상품별 폰트 사이즈는 각 spec의 fontSizes",

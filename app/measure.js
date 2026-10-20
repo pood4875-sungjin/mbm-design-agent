@@ -46,7 +46,8 @@ export async function measureDom(html, spec) {
   const fontFamily = getComputedStyle(root).fontFamily.split(',')[0].replace(/["']/g, '').trim();
   const objects = [...root.querySelectorAll('[data-object]')].map(o => { const r = o.getBoundingClientRect(); return { x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height }; });
   host.remove();
-  return { texts, logo, fontFamily, objects };
+  const logoCount = [...root.querySelectorAll('[data-logo]')].filter(el => { const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2; }).length;
+  return { texts, logo, fontFamily, objects, logoCount };
 }
 
 // 캔버스 가장자리·모서리 몇 점의 알파를 본다 — 투명 규격인지 아닌지 가르는 데는 충분하다.
@@ -87,6 +88,7 @@ export async function measureArtifact(html, spec, opts = {}) {
     fontFamily: dom.fontFamily,
     texts: dom.texts,
     logo: dom.logo,
+    logoCount: dom.logoCount,
     bgColors,
     blob,
   };
