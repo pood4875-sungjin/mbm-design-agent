@@ -1867,7 +1867,8 @@ function renderAdBase(ctx, style, spec) {
   // 겹침 교정(kvK<1)으로 틀 칸·아래 띠의 누끼를 줄일 때: contain 대신 그 배율의 높이(우하단·바닥 가운데 정렬은 그대로)
   const containSz = (bw, bh) => (FIX?.kvK && FIX.kvK < 1 && kvAR) ? `auto ${Math.max(8, Math.round(Math.min(bh, bw / kvAR) * FIX.kvK))}px` : 'contain';
   const kvFill = (pos, join) => { const c = (cutout || !tImage) ? null : subjectCrop(style, tImage.w, tImage.h);
-    return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/${containSz(tImage.w, tImage.h)}` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : 'center'}/cover`} no-repeat;`; };
+    // 10-20 종합 점수표 ① character.head: 가운데 cover 가 주인공 윗변을 5~16% 잘랐다(리멤버·잡다 오른쪽 열, 자소설 PC메인 왼쪽 열) — 자유 배치·M팝업과 같은 coverPos(머리 지킴, 숨 4%)
+    return `background:url('${esc(style.keyVisual)}') ${cutout ? `${pos}/${containSz(tImage.w, tImage.h)}` : c ? `${c.pos}/${c.size}` : `${field?.seamless ? join : coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.04 }).pos}/cover`} no-repeat;`; };
   // 로고가 오브젝트일 때 — 칸 가운데에 크게(칸 폭의 2/3, 높이의 절반 안). 셀트리온·LX 예시처럼 로고 하나가 그림 노릇을 한다
   const logoZone = (x, y, zw, zh) => `<div data-object="logo" style="position:absolute;left:${mirrorX ? w - x - zw : x}px;top:${y}px;width:${zw}px;height:${zh}px;display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:66%;max-height:56%;height:auto;object-fit:contain;${logoFilter}"/></div>`;
   // 매체 오브젝트 상자(카카오 썸네일형): 둥근 상자 안에 그림을 채운다(누끼는 맞춰 넣기). 상하 여백이 남는다 — 가이드 Good Case
@@ -1911,11 +1912,18 @@ function renderAdBase(ctx, style, spec) {
   if (moldContain) fired('templateMold.containGrad');
   const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : moldContain
-    ? (() => { const mL = fadeFor('to right'), mR = fadeFor('to left');
+    ? (() => { const mL0 = fadeFor('to right'), mR0 = fadeFor('to left');
         // 윗변(그림 변)이 지면색과 0.15 넘게 다르면 윗변도 녹인다(10-20 전수 감사 desk-11 네 변 평평한 일러스트 — 왼·오른쪽만 녹여 윗변이 네모 선). 길이는 CANON.melt, 같은 색이면 0
         const tHex = edgeOf('top'), tFar = farFrom(tHex); const mT = (tHex && tFar && colorDistance(tHex, tFar) >= 0.15) ? meltLength(tHex, tFar, 0) : 0;
-        const mk = mT > 0 ? meltMaskList([meltGradient('to right', mL), meltGradient('to left', mR), meltGradient('to bottom', mT)]) : meltMaskSides(mL, mR);
-        return `<div data-object="1" style="position:absolute;left:${tImage.x}px;top:${tImage.y}px;width:${tImage.w}px;height:${tImage.h}px;background:url('${esc(style.keyVisual)}') center bottom/contain no-repeat;${mk}overflow:hidden" data-melt="${mL}" data-melt-dir="sides" data-melt-right="${mR}"${mT > 0 ? ` data-melt-top="${mT}"` : ''}></div>`; })()
+        // 상자 = contain 으로 실제 그려지는 그림 사각형(10-20 종합 점수표 ② 여백 1위 원인: 칸 가운데 contain 이 오른쪽 열·모서리 칸에서 지면 오른쪽 변까지 13~130px 틈 — 장부 mold-contain-edge-align).
+        //   칸이 지면 변에 닿는 쪽으로 그림을 붙이고(오른쪽 열·우하단 칸 → 오른쪽, 왼쪽 열 → 왼쪽, 어디에도 안 닿으면 가운데) 닿은 변은 지면 끝이라 녹이지 않는다. 녹임 마스크도 그림 변에서 시작한다(칸 변이 아니라)
+        const ar0 = kvAR || (tImage.w / Math.max(1, tImage.h)); const picW = Math.min(tImage.w, Math.round(tImage.h * ar0)), picH = Math.min(tImage.h, Math.round(tImage.w / ar0));
+        const atR = tImage.x + tImage.w >= w - 1, atL = tImage.x <= 1; const hPos = atR && !atL ? 'right' : atL && !atR ? 'left' : 'center';
+        const bx = hPos === 'right' ? tImage.x + tImage.w - picW : hPos === 'left' ? tImage.x : tImage.x + Math.round((tImage.w - picW) / 2), by = tImage.y + tImage.h - picH;
+        const mL = hPos === 'left' ? 0 : mL0, mR = hPos === 'right' ? 0 : mR0;
+        const mk = meltMaskList([mL > 0 ? meltGradient('to right', mL) : null, mR > 0 ? meltGradient('to left', mR) : null, mT > 0 ? meltGradient('to bottom', mT) : null].filter(Boolean));
+        if (hPos !== 'center') fired('templateMold.containEdge');
+        return `<div data-object="1" style="position:absolute;left:${bx}px;top:${by}px;width:${picW}px;height:${picH}px;background:url('${esc(style.keyVisual)}') center bottom/contain no-repeat;${mk}overflow:hidden" data-melt="${mL}" data-melt-dir="sides" data-melt-right="${mR}"${mT > 0 ? ` data-melt-top="${mT}"` : ''}></div>`; })()
     : (hasKv && tImage)
     ? ((imgCorner || bleedP?.sym) && bleedP ? bleedLayer(style, bleedP, w, h)   // 좌우 양쪽 블리드(sym)는 상자가 지면 폭 전체라 아래 띠로 잡힌다 — 그래도 블리드로 그린다
       : imgCorner
@@ -1931,7 +1939,7 @@ function renderAdBase(ctx, style, spec) {
           const mL = meltLength(edgeOf('left'), farFrom(edgeOf('left')), 34), mT = meltLength(edgeOf('top'), farFrom(edgeOf('top')), 34);
           // 칸을 덮어 자른(photoCover) 그림은 바탕이 평평해도 글자 쪽 변이 그림 한가운데를 지난다 — cornerSeamless(그림 변 = 지면색) 는 contain 전제라 cover 에선 녹인다(10-20 전수 감사: 인스타 1080 비씨월드 흰 바탕 × 흰 지면이 녹임 없이 남색 주인공을 가로질렀다). 길이는 meltFix 가 속 색으로 다시 잰다
           const meltC = (meltCorner || photoCover) && !roundSlot;
-          return `<div data-object="1"${roundSlot ? ' data-slot-round="1"' : ''} style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;${roundSlot ? `border-radius:${tImage.radius}px;` : ''}background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${kvPos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : `right bottom/${containSz(rect.w, rect.h)}`} no-repeat;${meltC ? meltMask2(mL, mT) : ''}overflow:hidden"${meltC ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
+          return `<div data-object="1"${roundSlot ? ' data-slot-round="1"' : ''} style="position:absolute;left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;${roundSlot ? `border-radius:${tImage.radius}px;` : ''}background:url('${esc(style.keyVisual)}') ${cornerCrop ? `${cornerCrop.pos}/${cornerCrop.size}` : photoCover ? `${coverPos(style, rect.w, rect.h, { fallback: kvPos, headroom: 0.04 }).pos}/cover` : cornerFill ? `${coverPos(style, tImage.w, tImage.h, { fallback: 'center', headroom: 0.3 }).pos}/cover` : `right bottom/${containSz(rect.w, rect.h)}`} no-repeat;${meltC ? meltMask2(mL, mT) : ''}overflow:hidden"${meltC ? ` data-melt="${mL}" data-melt-dir="to right" data-melt-top="${mT}"` : ''}></div>`;
         })()
       : imgBottomBand && bandMode !== 'cover'
       // 상자를 그림 크기에 맞춘다 — 녹이는 마스크가 그림의 윗변에서 시작하게
@@ -1992,7 +2000,10 @@ ${tplLogo}${kvWrap(tplObject)}
      줄 위치: Figma 글자 상자 y(높이 = 1.2em, Pretendard 올림·내림) → Chrome 줄 상자(line-height = 줄 간격 pitch) 안에서 글자 상자가 가운데이므로 top = y − (pitch − 1.2em)/2 */
   if (mold) {
     const MR = mold.rows ?? {}, k = tScale;
-    const sx = Math.round((mold.x ?? tText?.x ?? pad.left) * k), colW = Math.round((mold.w ?? (w / k - (mold.x ?? pad.left) - pad.right)) * k);
+    const sx = Math.round((mold.x ?? tText?.x ?? pad.left) * k);
+    let colW = Math.round((mold.w ?? (w / k - (mold.x ?? pad.left) - pad.right)) * k);
+    // 틀 글자 칸이 오른쪽 그림 열 밑으로 들어가면(잡다 MO 글자 20+260 > 그림 칸 226 — 10-20 종합 점수표 ④ text-over-subject 16~18% × 11케이스) 글자 줄은 그림 칸 앞 8px 에서 접는다 — 칸의 x·y·px 는 템플릿 그대로, 폭만 그림 앞에서 멈춤(장부 mold-text-stop-at-image)
+    if (tImage && imgRightCol && hasKv && sx + colW > tImage.x && tImage.x - 8 - sx >= Math.round(colW * 0.6)) { colW = tImage.x - 8 - sx; fired('templateMold.textStopAtImage'); }   // 실제로 겹칠 때만(잡다 PC 는 글자 530 < 그림 537 — 그대로)
     const pxOf = r => Math.round(r.px * k * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
     const topOf = r => r.chip ? Math.round(r.y * k * 10) / 10 : Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;   // 알약 행(날짜 칩)은 칩 상자 top 이 곧 y
     const blocks = []; const used = {};
@@ -2004,19 +2015,36 @@ ${tplLogo}${kvWrap(tplObject)}
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
     else if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && ctx.core?.season && copy.main.startsWith(`${ctx.core.season} ${ctx.core.client} `)) { const head = `${ctx.core.season} ${ctx.core.client}`; copy.main = `${head}\n${copy.main.slice(head.length + 1)}`; }   /* 시즌 포함 메인도 회사명 뒤에서 줄을 나눈다(인스타 수정본 「2024 ABL생명 / 신입사원 공개채용」, 10-16) */
     // 틀의 메인 줄 수 한도(에브리타임 커뮤니티보드·홈배너 1줄)를 넘기면 사다리에서 들어가는 첫 후보로 바꾼다 — 칸은 max-height 로 잘리므로 「2025 하반기 마이다스 대규모 공개채용」(600px·45px 두 줄)이 반 토막 나지 않게(10-15 검수 표 ✗ 메인 줄 수)
-    const rowsOfMain = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * mainPx / Math.max(1, colW))), 0);
-    if (MR.main?.lines && rowsOfMain(copy.main) > MR.main.lines) { const alt = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])].find(c => rowsOfMain(c) <= MR.main.lines); if (alt) copy.main = alt; }   // 좁은 칸(구글 300×600 178px)은 좁은 사다리(「한샘 / 채용」)까지 — 반 토막 글자 대신(10-15 밤)
+    // 줄 수 어림은 어절 단위 그리디(word-break:keep-all 과 같은 식 — 10-20: 전체 폭 ÷ 칸 폭(ceil)은 「2026 하반기 한국산업단지공단 정규직 채용」을 513px 에 2줄로 봤지만 어절이 안 끊기는 실제는 3줄이라 셋째 줄이 잘렸다). 칸보다 긴 어절은 anywhere 로 쪼개지는 만큼 더한다
+    const wrapRows = (t, px, width) => String(t).split('\n').reduce((n, line) => { let rows = 1, cur = 0; for (const wd of line.split(/\s+/).filter(Boolean)) { const ww = textWidth(wd) * px; if (cur > 0 && cur + 0.35 * px + ww > width) { rows++; cur = ww; } else cur = cur > 0 ? cur + 0.35 * px + ww : ww; if (ww > width) rows += Math.ceil(ww / width) - 1; } return n + rows; }, 0);
+    const rowsOfMain = t => wrapRows(t, mainPx, Math.max(1, colW));
+    let mainShrink = 1;   // 틀 메인 글자 배율(1 = 템플릿 px 그대로)
+    if (MR.main?.lines && rowsOfMain(copy.main) > MR.main.lines) {
+      const cands = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])];
+      const alt = cands.find(c => rowsOfMain(c) <= MR.main.lines); if (alt) copy.main = alt;   // 좁은 칸(구글 300×600 178px)은 좁은 사다리(「한샘 / 채용」)까지 — 반 토막 글자 대신(10-15 밤)
+      else {
+        // 어떤 후보도 틀 줄 수에 안 들어가면(긴 회사명 「한국산업단지공단」 — 10-20 종합 점수표 ④ text-clipped 리멤버·카카오·네이버 DA 셋째 줄 잘림) 글자를 규정 매체 바닥(CANON.overlapFix.textFloorRegulated .85)까지 줄여 가며 들어가는 첫 후보로,
+        //   그래도 안 되면 줄 수가 가장 적은 후보 — 잘린 채로는 그리지 않는다(장부 mold-main-fit)
+        const floor = CANON.overlapFix?.textFloorRegulated ?? 0.85;
+        const rowsAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, colW));
+        let hit = null;
+        for (const kk of [0.95, 0.9, floor]) { const c = [copy.main, ...cands].find(c => rowsAt(c, kk) <= MR.main.lines); if (c) { hit = { c, kk }; break; } }
+        if (!hit) { const best = [copy.main, ...cands].map(c => ({ c, n: rowsAt(c, floor) })).sort((x, y) => x.n - y.n)[0]; hit = { c: best.c, kk: floor }; }
+        copy.main = hit.c; mainShrink = hit.kk; fired('templateMold.mainShrink');
+      }
+    }
+    const mainPxUsed = mainShrink < 1 ? Math.round(MR.main.px * k * mainShrink * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)) : mainPx;
     // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
-    const mainN = Math.max(1, Math.min(MR.main?.lines ?? 2, copy.main.split('\n').reduce((n, t) => n + Math.max(1, Math.ceil(textWidth(t) * mainPx / Math.max(1, colW))), 0)));
+    const mainN = Math.max(1, Math.min(MR.main?.lines ?? 2, wrapRows(copy.main, mainPxUsed, Math.max(1, colW))));
     const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
     // 틀의 서브 줄이 접수기간이면(mold.rows.sub.content 'period' — 잡다 PC 템플릿 1:6026 「서브문구」 자리에 샘플 8/8 「모집기간 날짜」) 시즌·슬로건 대신 「라벨 날짜」 한 줄(라벨·날짜 같은 굵기, 셀트리온 1:6223)
     if (MR.sub?.content === 'period') copy.sub = (copy.date || ctx.core?.deadline) ? `${labelOf('접수기간')}${MR.sub.sep ?? ' '}${copy.date || ''}`.trim() : '';   // 날짜가 없으면 서브 줄 없음(틀의 서브 = 접수기간). 구분자는 틀이 정한다(네이버 한국콜마 64:4793 「모집 기간 | …」)
     const showSubM = MR.sub?.content === 'period' ? !!copy.sub : showSub;
     // 틀 서브 줄 수 한도(구글 ABL 580 서브 1줄 297px): 넘기면 사다리의 들어가는 첫 후보(시즌 등)로 — 칸은 max-height 로 잘리므로 반 토막 대신 짧은 말(10-15 저녁)
-    const rowsIn = (t, r) => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * pxOf(r) / Math.max(1, rowW(r)))), 0);
+    const rowsIn = (t, r) => wrapRows(t, pxOf(r), Math.max(1, rowW(r)));
     if (showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; else if (mold.subOptional) { copy.sub = ''; fired('templateMold.subDropped'); } }   // 틀 서브 칸(1줄)에 들어가는 후보가 없으면 비운다(mold.subOptional — 구글 템플릿 서브문구, 10-16: 잘린 채 그리지 않는다)
     if (showSubM && MR.sub) put('sub', MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub)), copy.sub);
-    const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}) } : null;   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
+    const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}), ...(mainShrink < 1 ? { px: MR.main.px * mainShrink } : {}) } : null;   // 줄인 배율은 px 에만(줄 간격 pitch 는 템플릿 그대로)   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
     // 회사명 강조색(mold.rows.main.accentClient — NAP HS화성 샘플 「HS화성」 빨강 #D6061C = 브랜드 보조색, 나머지 네이비, 10-15 밤): 밝은 지면에서만, 강조색(style.accent·팔레트 accent)이 없으면 그대로
     const accentFg = (mR?.accentClient && fgIsDark && ctx.core?.client && (!!tc.main || !!mr.fonts?.required)) ? (accentHex ?? p.accent ?? null) : null;   /* 10-19: 규정 없는 매체(NAP)는 타이틀 한 색(#333) — 회사명 강조색 끔 */
     const mainLines = String(copy.main ?? '').split('\n').map((t, i) => { const cl = String(ctx.core?.client ?? ''); if (accentFg && i === 0 && cl && t.startsWith(cl)) { fired('templateMold.accentClient'); return `<span data-accent="1" style="color:${accentFg}">${esc(nb(cl, false))}</span>${esc(nb(t.slice(cl.length), false))}`; } return esc(nb(t, false)); });

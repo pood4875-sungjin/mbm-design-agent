@@ -4106,6 +4106,118 @@
    "round": 70,
    "source": "history/2026-10-16_비주얼우선_지면.md",
    "supersedes": "textTone 규정 매체 무시(10-19)"
+  },
+  {
+   "id": "quality-audit-loop",
+   "category": "자동 검사",
+   "scope": "all (전 케이스 × 추출 규격, 전달물·로고만 제외)",
+   "status": "active",
+   "rule": "품질은 한 점수표로 잰다 — 케이스 × 추출 규격마다 ① 가이드 준수(guidecheck ✗ + 매체 규정 block) ② 여백(kv-gap) ③ 빈 곳(empty-band·단일 사물 면적 하한) ④ 겹침(text-over-subject·logo-covered·text-clipped·overlapFix.fail) ⑤ 끊김·이질감(kv-seam) ⑥ 레이아웃 다양성(측정만). 전/후(--tag before|after)를 남기고 원인별로 묶어 건수 많은 순서로 렌더러를 고친다. 판정 코드는 현재 판으로 고정하고 렌더러(--core)만 바꿔 잰다. 판정만 바꿨으면 --reeval.",
+   "value": "scripts/quality-audit.mjs → docs/quality-audit.md · _out/cmp-1016/quality_audit{,_before}.json · quality_sheet.png(✗, before 에 ✗ 였던 칸은 전|후). 107 × 49 = 5,243 줄, 측정 4,387, 전수 7~8분(①~④ 4개 Chrome 병렬 + ⑤ 이음 감사 5개 병렬)",
+   "where": "scripts/quality-audit.mjs",
+   "where_also": [
+    "scripts/lib/kv-gap.mjs",
+    "scripts/lib/lint-extra.mjs (잘림 여유 반 줄)",
+    "core/guidecheck.js (isMold 예외 · 대비 면제 · melt.curve px 마스크 제외)"
+   ],
+   "evidence": [
+    "사용자 10-20 「가이드에 맞게 / 다양한 레이아웃 / 배경과 키비주얼을 여백 없이·비어 보이지 않게·텍스트와 겹치지 않게·끊어 보이지 않게 — 이거 중심으로 검수하면서 계속 고도화」",
+    "전(HEAD f23ef03) ✗ 1,483 / 4,387 → 후 898 (① 1,381→880 · ② 252→108 · ③ 7→7 · ④ 46→16 · ⑤ 20→19), 고침 585 · 새로 ✗ 0",
+    "판정 예외(틀은 템플릿 실측): weights 는 trace.fonts 와 비교, tracking·hierarchy·guide.*Px·objectBleed.area·wideLogo·textColour.brand 는 틀 밖 · 대비 규칙은 10-20 결정(색 지면 흰 글자)으로 면제(–) · lint 잘림은 반 줄 넘게 넘쳐야(한글 글꼴 ascent 2~5px 오탐 overflow 26) · 여백은 좌우 같은 여백 가운데 칸 ✓"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_품질_검수_루프.md",
+   "supersedes": "kv-gap-audit(10-19)·kv-seam-audit(10-20)·guide-trace(10-12)·cases-lint 를 따로 돌리던 것 — 셋을 한 표로(각 스크립트는 그대로 쓴다)"
+  },
+  {
+   "id": "mold-contain-edge-align",
+   "category": "배치·비중",
+   "scope": "templateMold (그라데이션 바탕 일러스트·질감 — templateMold.containGrad)",
+   "status": "active",
+   "rule": "틀 그림 칸에 contain 으로 넣는 그림(gradEdge 일러스트·질감)은 칸 가운데가 아니라 칸이 지면 변에 닿는 쪽으로 붙인다 — 오른쪽 열·우하단 칸은 오른쪽, 왼쪽 열은 왼쪽, 양쪽 다 닿는 하단 띠는 가운데. 상자는 칸이 아니라 실제 그림 사각형이고, 지면 변에 닿은 변은 녹이지 않는다(글자 쪽 변만).",
+   "value": "ad.js moldContain: picW/picH = contain 사각형, hPos = right|left|center, 닿은 변 melt 0, rules templateMold.containEdge",
+   "where": "core/renderers/ad.js (moldContain)",
+   "evidence": [
+    "종합 점수표 ② 여백 1위 원인 gap:칸 안 그림 정렬(contain) 145규격(16케이스 × 구글 970·NAP 띠·리멤버·잡다·에브리타임·블라인드) — 가운데 contain 이 지면 오른쪽 변까지 13~130px 애매한 틈",
+    "후 0 (② 252 → 108, 남은 108 = 네이버 DA 칸 바닥 20px 107 + 구글 300×1050 1 — 매체 JSON 제안)",
+    "test/quality-audit.test.js ① · test/template-first.test.js containGrad 기대 갱신"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_품질_검수_루프.md",
+   "supersedes": "10-15 저녁 「틀 그림 칸 gradEdge 는 contain 바닥 가운데 + 양옆 녹임」 의 가운데 맞춤(양옆 녹임은 글자 쪽만 남음)"
+  },
+  {
+   "id": "mold-main-fit",
+   "category": "타이포",
+   "scope": "templateMold (메인 줄 수가 정해진 틀)",
+   "status": "active",
+   "rule": "틀 메인 줄 수는 어절 단위(word-break:keep-all 과 같은 그리디)로 센다 — 전체 폭 ÷ 칸 폭(ceil)은 어절이 안 끊기는 실제보다 적게 세어 셋째 줄이 잘렸다. 넘치면 사다리의 들어가는 후보, 그래도 없으면 글자를 규정 매체 바닥(CANON.overlapFix.textFloorRegulated .85)까지 줄여 가며 첫 후보, 그래도 없으면 줄 수가 가장 적은 후보 — 잘린 채로는 그리지 않는다. 줄 간격(pitch)은 템플릿 그대로.",
+   "value": "ad.js mold: wrapRows(어절 그리디) · mainShrink ∈ {1, .95, .9, .85} · rules templateMold.mainShrink",
+   "where": "core/renderers/ad.js (mold wrapRows·mainShrink)",
+   "evidence": [
+    "종합 점수표 ④ text-clipped 26 · lint overflow 26 · main.lines 24 — 긴 회사명(한국산업단지공단·에스디바이오센서) × 리멤버 채용공고 MO·카카오 PC 디스플레이·네이버 DA: 「2026 하반기 / 한국산업단지공단 정규직 / 채용」 셋째 줄 잘림",
+    "후 text-clipped 7 · overflow 7 · main.lines 5 (남은 7 = 네이버 DA 메인 2줄 칸 — 사다리 후보가 모두 3줄, 다음 루프)",
+    "test/quality-audit.test.js ②"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_품질_검수_루프.md",
+   "supersedes": "10-15 「문구가 칸을 넘으면 매체 글자수·줄 수로 자른다(lint 가 잡는다)」 — 자르는 대신 줄이거나 짧은 후보"
+  },
+  {
+   "id": "mold-text-stop-at-image",
+   "category": "배치·비중",
+   "scope": "templateMold (오른쪽 그림 열이 글자 칸과 겹치는 틀 — 잡다 MO)",
+   "status": "active",
+   "rule": "틀 글자 칸이 오른쪽 그림 열 밑으로 들어가면(잡다 MO 글자 20+260 > 그림 칸 226) 글자 줄은 그림 칸 앞 8px 에서 접는다 — 칸의 x·y·px 는 템플릿 그대로, 폭만 그림 앞에서 멈춤. 실제로 겹칠 때만(잡다 PC 530 < 537 은 그대로), 남는 폭이 원래의 60% 이상일 때만.",
+   "value": "ad.js mold: colW = tImage.x − 8 − sx (imgRightCol && sx+colW > tImage.x && 남는 폭 ≥ 60%) · rules templateMold.textStopAtImage",
+   "where": "core/renderers/ad.js (mold colW)",
+   "evidence": [
+    "종합 점수표 ④ text-over-subject 20 중 잡다 MO 11 (질감·사진·일러스트 가리지 않고 16~18% — 템플릿 글자 상자가 그림 칸과 54px 겹침)",
+    "후 text-over-subject 10 (잡다 MO 0, 남은 10 = 네이버 DA 6·자소설 팝업 2·당근 2)",
+    "test/quality-audit.test.js ③"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_품질_검수_루프.md"
+  },
+  {
+   "id": "mold-cover-keep-head",
+   "category": "자르기·블리드",
+   "scope": "templateMold (칸을 덮어 자르는 사진·바탕 있는 그림 — slotCover·좌우 열 cover)",
+   "status": "active",
+   "rule": "틀 칸을 cover 로 채울 때 위치는 주인공 가운데(kvPos)가 아니라 자유 배치와 같은 coverPos — 주인공 상자가 칸보다 높으면 머리를 지키고(숨 4%) 아래를 자른다. 모서리 칸(slotCover)과 좌우 열(kvFill 의 cover 갈래) 둘 다.",
+   "value": "ad.js: photoCover → coverPos(style, rect.w, rect.h, { fallback: kvPos, headroom: .04 }) · kvFill 의 cover 기본 위치 center → coverPos(headroom .04)",
+   "where": "core/renderers/ad.js (photoCover·kvFill)",
+   "evidence": [
+    "종합 점수표 ① character.head 155 (18케이스 — midas-bridge-icons 20·desk-13 18·desk-22 17: 자소설 팝업·PC메인·리멤버 열에서 주인공 윗변 5~16% 잘림)",
+    "후 51 (틀 27 = 리멤버 열 10·구글/인스타 — 주인공 상자가 칸 비율과 많이 다른 것 · 자유 배치 24 = 캐치·네이버 네이티브 사진 전체 깔기)",
+    "test/quality-audit.test.js ④"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_품질_검수_루프.md"
+  },
+  {
+   "id": "field-mixed-lightness-solid",
+   "category": "지면 색",
+   "scope": "all (자동 지면 — 손 지정 제외)",
+   "status": "active",
+   "rule": "두 끝의 밝기 판정이 갈리는 그라데이션 지면(한 끝 상대휘도 < .45 색 지면 → 흰 글자, 한 끝 ≥ .45 파스텔 → 검정)은 흰 글자가 밝은 끝에서 1.5:1 까지 떨어진다 — 10-20 gradientReadable 원칙(「한 끝 채도 지면·한 끝 연한 색이면 단색」)대로 색 쪽(어두운) 끝 단색으로 접고 다시 고른다(흰 글자). deviation: mixed-lightness.",
+   "value": "field.js resolveField: text WHITE && worst(WHITE) < 3 && stops 밝기 갈림 → stops = [어두운 끝], align null, deviation mixed-lightness",
+   "where": "core/field.js (resolveField pick 뒤)",
+   "evidence": [
+    "종합 점수표 ① contrast.main 354 · contrast.small 369 — 11케이스(gradient #9CA1FE→#C4D3FE 1.49:1 · desk-19 #2672FE→#BDCAEB 1.64:1 · desk-03·desk-24·desk-29…) × 자소설·구글·리멤버 틀 33규격",
+    "후 contrast.main 0 · contrast.small 10(틀 밖 당근·질감)",
+    "부작용: desk-19 는 지면이 파랑 단색이 되며 그림 왼변 색 차가 .37 로 벌어져 이음 감사 cut-short 12규격(녹임 34% < 필요 50%) — 메타 변 색으로 재는 녹임 길이의 한계(다음 루프)",
+    "test/quality-audit.test.js ⑤"
+   ],
+   "since": "2026-10-20",
+   "round": 71,
+   "source": "history/2026-10-20_품질_검수_루프.md",
+   "supersedes": "text-on-field-lum(r70) 의 그라데이션 처리 — 「검정 글자 그라데이션만 3:1 미만이면 단색으로 접는다」에 흰 글자 혼합 밝기도 추가"
   }
  ]
 }

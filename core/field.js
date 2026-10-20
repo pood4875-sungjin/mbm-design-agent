@@ -169,6 +169,11 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const pick = () => worst(WHITE) >= 3 ? WHITE : (lightField() ? BLACK : WHITE);
   let text = pick();
   if (stops.length > 1 && text === BLACK && worst(BLACK) < 3) { stops = [mid()]; text = pick(); }   // 검정 글자 그라데이션만 접는다 — 흰 글자는 아래 vividWhite 가 명도를 내려 3:1 을 맞춘다(손 지정 색은 그대로, 10-20)
+  // 10-20 종합 점수표(① contrast.main 354 · contrast.small 369 — 11케이스 × 자소설·구글 틀, 연보라 #9CA1FE→#C4D3FE 흰 글자 1.49:1): 두 끝의 밝기 판정이 갈리는 그라데이션(한 끝 색 지면 → 흰, 한 끝 파스텔 → 검정)은
+  //   흰 글자가 밝은 끝에서 읽히지 않고 검정은 어두운 끝에서 읽히지 않는다 — 10-20 edgeField.gradientReadable 원칙(「한 끝 채도 지면·한 끝 연한 색이면 단색」)대로 색 쪽(어두운) 끝 단색으로 접고 다시 고른다. 손 지정(manual) 지면은 그대로
+  if (stops.length > 1 && text === WHITE && worst(WHITE) < 3 && !opt.color && source !== 'palette-manual' && stops.some(s => relLum(s) >= (CANON.textOn?.darkIfLum ?? 0.55)) && stops.some(s => relLum(s) < (CANON.textOn?.darkIfLum ?? 0.55))) {
+    stops = [stops.reduce((a, b) => (relLum(b) < relLum(a) ? b : a))]; align = null; text = pick(); deviation = deviation ?? 'mixed-lightness';
+  }
   // 채도 높은 지면엔 흰 글자(CANON vividWhite, 10-12 desk-12) — 같은 색상으로 명도만 조금 내려 흰 큰 글자 3:1, 되면 작은 글자 4.5:1까지
   let dim = null;
   const vv = vividWhite(stops, { manual: !!opt.color || source === 'palette-manual' });

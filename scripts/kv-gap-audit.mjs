@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { judgeGap, MIN_GAP, MAX_RATIO } from './lib/kv-gap.mjs';   // 판정은 공용 모듈(quality-audit ②축과 같은 자, 10-20)
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const argv = process.argv.slice(2);
@@ -22,7 +23,6 @@ const TMP = path.join(ROOT, 'ref/learned/cases/_out/cmp-1016/_kv_gap_tmp'); mkdi
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
 const DEFAULT_FIELDS = { client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', applyUrl: 'https://hanjin.example' };
-const MIN_GAP = 2, MAX_RATIO = 0.12;   // ✗ 구간: 2px 초과 ~ 변 길이 12% 이하
 
 const CORE_DIR = path.resolve(opt('--core') ?? path.join(ROOT, 'core'));   // 다른 판의 core 로 그린다(전/후 회귀 비교, 10-20)
 const core = f => import(pathToFileURL(path.join(CORE_DIR, f)).href);
@@ -77,23 +77,6 @@ function measureBatch(K, sids, tag) {
   return o ?? {};
 }
 
-// 배경 size/position → 칸 안 실제 그림 사각형(칸 좌표계). 누끼 contain·auto 는 kvMeta.px 비율로, cover·퍼센트 크기(주인공 자르기)는 칸 전체
-function drawnRect(obj, px) {
-  const [iw, ih] = px ?? [obj.w, obj.h]; const ar = iw / ih; const bw = obj.w, bh = obj.h;
-  const size = obj.size.trim(), pos = obj.pos.trim().split(/\s+/);
-  const lenOf = (s, total) => s.endsWith('%') ? total * parseFloat(s) / 100 : parseFloat(s);
-  let dw, dh, fit;
-  if (size === 'contain') { const k = Math.min(bw / iw, bh / ih); dw = iw * k; dh = ih * k; fit = 'contain'; }
-  else if (size === 'cover') { return { x: 0, y: 0, w: bw, h: bh, fit: 'cover' }; }
-  else if (size === 'auto' || size === 'auto auto') { dw = iw; dh = ih; fit = 'native'; }
-  else { const [sw, sh] = size.split(/\s+/); if (sw === 'auto' && sh) { dh = lenOf(sh, bh); dw = dh * ar; fit = 'autoH'; } else if (sh === 'auto' || !sh) { dw = lenOf(sw, bw); dh = dw / ar; fit = 'autoW'; } else { dw = lenOf(sw, bw); dh = lenOf(sh, bh); fit = 'size'; } }
-  // CSS: 퍼센트 위치 = (칸 − 그림) × p, px 는 그대로
-  const ox = pos[0] ? (pos[0].endsWith('%') ? (bw - dw) * parseFloat(pos[0]) / 100 : parseFloat(pos[0])) : 0;
-  const oy = pos[1] ? (pos[1].endsWith('%') ? (bh - dh) * parseFloat(pos[1]) / 100 : parseFloat(pos[1])) : 0;
-  return { x: ox, y: oy, w: dw, h: dh, fit };
-}
-const r1 = v => Math.round(v * 10) / 10;
-
 const rows = []; const byCase = {};
 for (const cid of CASE_IDS) {
   const K = caseOf(cid); byCase[cid] = K;
@@ -101,36 +84,7 @@ for (const cid of CASE_IDS) {
     const batch = IDS.slice(i, i + 8); const o = measureBatch(K, batch, `${cid}_${i}`);
     for (const sid of batch) {
       const sp = ENTRIES[sid]; const m = o[sid];
-      const row = { spec: sid, medium: sp.medium, mediumName: mediaName(sp.medium), name: sp.rules?.name ?? sp.title ?? sid, W: sp.w, H: sp.h, case: cid, kvKind: K.meta.field?.kind ?? null };
-      if (!m) { row.skip = '측정 실패'; rows.push(row); continue; }
-      if (m.logoOnly || (m.trace?.rules ?? []).includes('visualOnly') || m.objs.some(x => x.kvOnly)) { row.skip = m.logoOnly ? '로고만 규격' : 'visualOnly'; rows.push(row); continue; }
-      const obj = m.objs.find(x => x.visible && x.hasBg) ?? null;
-      row.mode = m.trace?.mode ?? null; row.kvUse = m.kvUse; row.tImage = m.trace?.tImage ?? null; row.rules = (m.trace?.rules ?? []).filter(r => /Bleed|bleed|templateMold|Full|Col|corner|Corner|band|Band/.test(r));
-      if (!obj) { row.skip = m.kvUse === 'none' ? '키비주얼 없음(kvUse none)' : '오브젝트 없음(' + m.kvUse + ')'; rows.push(row); continue; }
-      const W = m.w, H = m.h;
-      row.obj = { x: r1(obj.x), y: r1(obj.y), w: r1(obj.w), h: r1(obj.h), size: obj.size, pos: obj.pos, melt: obj.melt, meltDir: obj.meltDir, bust: obj.bust };
-      const full = obj.x <= 1 && obj.y <= 1 && obj.x + obj.w >= W - 1 && obj.y + obj.h >= H - 1;   // 지면 전체(photoFull·roomFull·textureFull)
-      const d = drawnRect(obj, K.meta.px);
-      // 보이는 그림 = 그림 ∩ 칸(overflow hidden) ∩ 캔버스
-      const vx0 = Math.max(obj.x, obj.x + d.x, 0), vy0 = Math.max(obj.y, obj.y + d.y, 0);
-      const vx1 = Math.min(obj.x + obj.w, obj.x + d.x + d.w, W), vy1 = Math.min(obj.y + obj.h, obj.y + d.y + d.h, H);
-      row.img = { x: r1(obj.x + d.x), y: r1(obj.y + d.y), w: r1(d.w), h: r1(d.h), fit: d.fit, visible: { x: r1(vx0), y: r1(vy0), r: r1(vx1), b: r1(vy1) } };
-      const gapR = W - vx1, gapB = H - vy1, slotGapR = W - (obj.x + obj.w), slotGapB = H - (obj.y + obj.h);
-      row.gap = { right: r1(gapR), bottom: r1(gapB), slotRight: r1(slotGapR), slotBottom: r1(slotGapB) };
-      const amb = (g, len) => g > MIN_GAP && g <= len * MAX_RATIO;
-      const bad = []; if (amb(gapR, W)) bad.push(`오른쪽 ${r1(gapR)}px`); if (amb(gapB, H)) bad.push(`아래 ${r1(gapB)}px`);
-      row.full = full;
-      // 예외 ① 템플릿 칸이 의도적으로 안쪽(매체 JSON mold.image.edgeInset — 자소설 PC팝업 샘플 상자 8/30 · 카카오 비즈보드 r10 상자 53/37): 수치는 남기고 ✓
-      const inset = sp.rules?.safeArea?.measuredFromTemplate?.mold?.image?.edgeInset ?? null;
-      // 예외 ② 칸이 캔버스 왼쪽·오른쪽 변에 다 닿는 전폭 띠(또는 양쪽으로 넘치는 블리드 상자) 안에서 그림이 좌우 대칭으로 가운데: 「한쪽이 비는」 틈이 아니라 가운데 구성(NAP 320×480 사용자 수정본 「그림 (25,310) 270×170」 도 좌우 25/25)
-      const gapL = vx0; const sym = obj.x <= 1 && obj.x + obj.w >= W - 1 && Math.abs(gapL - gapR) <= 1 && gapR > MIN_GAP;
-      row.gap.left = r1(gapL); row.symmetric = sym; row.inset = inset;
-      const badEff = bad.filter(b => !(inset && ((b.startsWith('오른쪽') && inset.right != null) || (b.startsWith('아래') && inset.bottom != null)))).filter(b => !(sym && b.startsWith('오른쪽')));
-      row.verdict = badEff.length ? '✗' : '✓'; row.bad = badEff;
-      // 사유: 틈이 칸 자체의 틈과 같으면 「칸이 변에서 떨어짐」(데이터), 칸은 닿는데 그림이 떨어졌으면 「칸 안 그림 정렬」(렌더러)
-      const slotWhy = (g, sg) => Math.abs(g - sg) < 1 ? '칸이 변에서 떨어짐' : '칸 안 그림 정렬(' + d.fit + ')';
-      row.why = badEff.length ? [...new Set(badEff.map(b => b.startsWith('오른쪽') ? slotWhy(gapR, slotGapR) : slotWhy(gapB, slotGapB)))].join('·')
-        : inset && bad.length ? `템플릿 칸 안쪽(의도, edgeInset ${Object.entries(inset).map(([k, v]) => k + ' ' + v).join('·')})` : sym && bad.length ? `전폭 띠 가운데 대칭(좌 ${r1(gapL)} = 우 ${r1(gapR)})` : (gapR > W * MAX_RATIO || gapB > H * MAX_RATIO ? '의도한 여백(12% 초과)' : full ? '지면 전체' : '붙음');
+      const row = { spec: sid, medium: sp.medium, mediumName: mediaName(sp.medium), name: sp.rules?.name ?? sp.title ?? sid, W: sp.w, H: sp.h, case: cid, kvKind: K.meta.field?.kind ?? null, ...judgeGap(m, sp, K.meta.px) };
       rows.push(row);
     }
   }

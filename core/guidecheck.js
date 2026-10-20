@@ -32,7 +32,12 @@ const isBlack = c => /^#?000(000)?$/i.test(String(c ?? '')) || /^rgba?\(0,\s*0,\
 
 // 실측 글자 하나의 지면 대비 — 그림 위면 표본(sampled), 아니면 지면 색 가운데 가장 불리한 값(field)
 const textContrast = t => t?.contrastSampled ?? t?.contrastField ?? null;
+// 10-20 사용자 결정(장부 text-on-field-lum): 색 있는 지면(모든 정지점 상대휘도 < CANON.textOn.darkIfLum)은 흰 글자가 기본 — 대비가 3:1 에 못 미쳐도 흰색. 자동 지면(손 지정 아님)의 흰 글자는 대비 규칙에서 「결정으로 면제」(–, note)
+const relLumHex = h => { const m = String(h ?? '').match(/^#?([0-9a-f]{6})$/i); if (!m) return null; const [r, g, b] = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const whiteOnColourField = C => { const F = C.trace?.field; if (!F?.stops?.length || !isWhite(F.text)) return false; if (F.source === 'palette-manual') return false; const thr = CANON.textOn?.darkIfLum ?? 0.45; return F.stops.every(s => { const l = relLumHex(s); return l != null && l < thr; }); };
 const mainOf = C => (C.m?.texts ?? []).find(t => t.role === 'main') ?? null;
+// 「구멍 뚫린 틀」(templateMold, 10-15~) — 글자 px·굵기·자간·로고 칸이 매체 템플릿 실측(docs/*-mold.md)이라 CANON·보드 가이드 수치로 재지 않는다(10-20 종합 점수표: 틀 규격 34/41 이 weights·tracking ✗ 로 떠 가이드 축을 덮었다)
+const isMold = C => C.trace?.mode === 'templateMold';
 const textsOf = C => C.m?.texts ?? [];
 const obj0 = C => (C.m?.objects ?? [])[0] ?? null;
 const warn = (C, code) => (C.m?.check?.warnings ?? []).find(w => w.code === code && w.level !== 'info') ?? null;
@@ -87,7 +92,7 @@ export const RULES = [
   // ── 배치 ──
   { id: 'objectBleed.area', group: '배치', name: '단일 사물 누끼 면적', source: 'canon.objectBleed.targetArea',
     text: '단일 사물 누끼는 크게, 우하단 블리드 — 목표 면적 가로형 20~30% · 정사각·세로형 22~27%(아주 좁은 세로 띠 28~34%)',
-    when: C => !!(C.trace?.gate?.singleObj && C.trace?.place?.bleed),
+    when: C => !!(C.trace?.gate?.singleObj && C.trace?.place?.bleed) && !isMold(C),   // 틀 그림 칸은 템플릿이 크기를 정한다(10-15 「칸 안에 맞춰 넣기」) — 면적 목표는 자유 배치에만(10-20)
     eval: C => { const B = C.guide.objectBleed, sh = C.spec.shape; const tower = B.tower && C.spec.w <= B.tower.maxW && tallish(sh); const [lo, hi] = (tower ? B.tower.targetArea?.[sh] : null) ?? B.targetArea?.[sh] ?? B.targetArea.wide; const a = C.m?.kvArea ?? null;
       return { expect: `${pct(lo)}~${pct(hi)}`, actual: a == null ? null : pct(a), ok: a == null ? null : (C.trace.rules ?? []).includes('maxUpscale') && a < lo ? null : within(a, lo, hi, 0.01), note: `렌더 어림 ${pct(C.trace.place.bleed.area)}${(C.trace.rules ?? []).includes('maxUpscale') ? ' · 작은 원본 1.5배 상한(maxUpscale)에 걸림 — 그림 탓' : C.trace.place.bleed.reached ? '' : ' (목표 못 닿음 — 글자 칸·로고 띠 경계 안에서 가장 큰 배치)'}` }; } },
   { id: 'objectBleed.cut', group: '배치', name: '블리드 잘림 변·몫', source: 'canon.objectBleed.maxCut/edges',
@@ -199,8 +204,8 @@ export const RULES = [
     when: C => { const f = C.trace?.field; return !!(f?.stops?.length && ['brand', 'kv-edge', 'kv-mood', 'kv-colour', 'brand-photo', 'kv-mood-dark', 'brand-tint'].some(s => f.source?.startsWith(s)) && (vividWhite(f.stops) || f.vivid != null)); },
     eval: C => { const mt = mainOf(C); const c = textContrast(mt); return { expect: '흰 글자 · 대비 ≥ 3:1', actual: `${mt?.color ?? '—'} · ${c == null ? '—' : num(c) + ':1'}`, ok: mt ? isWhite(mt.color) && (c == null || c >= 2.9) : null, note: C.trace.field.vivid != null ? `명도 −${C.trace.field.vivid}` : (mt && isWhite(mt.color)) ? '원래 흰 글자(어두운 지면) — 명도 내림 없음' : '지면이 채도 조건을 만족하는데 vividWhite 가 안 걸림' }; } },
   { id: 'textColour.brand', group: '글자', name: '밝은 지면의 메인은 브랜드색', source: 'canon.textColour',
-    text: '밝은 지면의 메인은 브랜드색(지면 어디서나 4.5:1 넘을 때) — 어두운 지면은 흰색',
-    when: C => !!(C.guide.textColour === 'brand' && C.trace?.field && C.trace.text?.mainFg && !isWhite(C.trace.text.mainFg) && C.primary && !C.rules?.textColors?.main),
+    text: '밝은 지면의 메인은 브랜드색(지면 어디서나 4.5:1 넘을 때) — 어두운 지면은 흰색. 10-19 사용자 결정(textDefault: 규정 없는 매체는 #333/#fff, 서브 70%)이 걸린 지면은 제외',
+    when: C => !!(C.guide.textColour === 'brand' && C.trace?.field && C.trace.text?.mainFg && !isWhite(C.trace.text.mainFg) && C.primary && !C.rules?.textColors?.main && !(C.trace.rules ?? []).includes('textDefault') && !isMold(C) && !C.mr?.fonts?.required),   // 틀 글자색(mold.color — 자소설 #555)·규정 매체(fonts.required)는 매체가 정한 색
     eval: C => { const ok45 = Math.min(...C.trace.field.stops.map(s => contrast(s, C.primary))) >= 4.5; const mt = mainOf(C); const got = (mt?.color ?? C.trace.text.mainFg).toUpperCase(); const brand = got.replace(/\s/g, '') === C.primary.toUpperCase() || (mt?.colorHex ?? '').toUpperCase() === C.primary.toUpperCase();
       return { expect: ok45 ? `브랜드색 ${C.primary}` : `검정(브랜드색 대비 부족 ${num(Math.min(...C.trace.field.stops.map(s => contrast(s, C.primary))))}:1)`, actual: mt?.colorHex ?? got, ok: ok45 ? brand : !brand }; } },
   // ── 이음 ──
@@ -216,8 +221,8 @@ export const RULES = [
       return { expect: `≥ 거리별 필요 길이(${pct(M.min)}~${pct(M.max)})`, actual: rows.join(' · '), ok: any ? ok : null, note: any ? '' : '그림 변과 지면이 같은 색 — 해당 없음' }; } },
   { id: 'melt.curve', group: '이음', name: '녹임 곡선(smoothstep 여러 마디)', source: 'canon.melt.ease/stops',
     text: '녹임은 직선이 아니라 smoothstep 7마디 — 끝이 선으로 읽히지 않게',
-    when: C => (C.m?.objects ?? []).some(o => o.mask),
-    eval: C => { const n = C.guide.melt?.stops ?? 7; const got = C.m.objects.filter(o => o.mask).map(o => o.mask.stops); return { expect: `마디 ${n}`, actual: got.join(' · '), ok: got.every(g => g >= n) }; } },
+    when: C => (C.m?.objects ?? []).some(o => o.mask && o.mask.stops > 0),   // % 녹임 마스크만 — px 마스크(cutFade, CANON.cutFade 곡선)는 마디를 세지 않는다(10-20)
+    eval: C => { const n = C.guide.melt?.stops ?? 7; const got = C.m.objects.filter(o => o.mask && o.mask.stops > 0).map(o => o.mask.stops); return { expect: `마디 ${n}`, actual: got.join(' · '), ok: got.every(g => g >= n) }; } },
   { id: 'melt.cutout.none', group: '이음', name: '누끼는 녹이지 않는다', source: 'kvtypes.cutout.place[0]',
     text: '누끼는 녹임 마스크 없음 — 잘린 변(넘친 누끼 왼변 cutMelt · 끊김 녹임 cutFade)만 CANON.cutFade 길이(잘린 몫%×2+8, 10~36%), 상반신 상자 아랫변만 아래 녹임',
     when: C => C.kt?.id === 'cutout' && (C.m?.objects ?? []).length > 0 && !C.trace?.gate?.frameFull,
@@ -235,20 +240,23 @@ export const RULES = [
     eval: C => { const a = C.m.scrim?.maxA ?? null; return { expect: '불투명 0.94 → 0 · 흰 글자', actual: `${a == null ? '스크림 없음' : '최대 ' + a} · 끝 ${C.m.scrim?.end ?? '—'}%`, ok: a != null && a >= 0.9 }; } },
   // ── 글자 ──
   { id: 'weights', group: '글자', name: '굵기 위계', source: 'canon.weights / 매체 guide.weights',
-    text: '메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400, 라벨 700, 칩·CTA 600 (매체 실측 값이 이김 · 어두운 지면 14px 미만은 500 하한)',
+    text: '메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400, 라벨 700, 칩·CTA 600 (매체 실측 값이 이김 · 어두운 지면 14px 미만은 500 하한 · 틀은 템플릿 실측 굵기)',
     when: C => !!C.trace?.fonts && textsOf(C).length > 0,
-    eval: C => { const F = C.trace.fonts, dark = isWhite(C.trace.text?.mainFg); const rows = []; let ok = true; const ex = (role, fs) => weightOf(role, { medium: C.mr, fs, darkField: dark });
-      const chk = (label, role, fs, got) => { if (got == null) return; const e = ex(role, fs); const g = Number(got); const good = g === e; ok = ok && good; rows.push(`${label} ${e}→${g}${good ? '' : ' ✗'}`); };
+    eval: C => { const F = C.trace.fonts, dark = isWhite(C.trace.text?.mainFg); const rows = []; let ok = true; const mold = isMold(C);
+      // 틀: 기대 = 템플릿 실측(trace.fonts 의 main/sub/detail.value) — 적히지 않은 역할(날짜·라벨·칩)은 틀이 정한 것이라 건너뛴다
+      const moldW = { main: F.main?.weight, sub: F.sub?.weight, detailValue: F.detail?.value ?? F.detail?.weight }; if (F.sub?.role) moldW[F.sub.role] = F.sub.weight;
+      const ex = (role, fs) => mold ? (Number.isFinite(moldW[role]) ? moldW[role] : null) : weightOf(role, { medium: C.mr, fs, darkField: dark });
+      const chk = (label, role, fs, got) => { if (got == null) return; const e = ex(role, fs); if (e == null) return; const g = Number(got); const good = g === e; ok = ok && good; rows.push(`${label} ${e}→${g}${good ? '' : ' ✗'}`); };
       const T = r => textsOf(C).find(t => t.role === r);
       if (T('main')) chk('메인', 'main', T('main').fs, T('main').fw);
       if (T('sub') && F.sub) chk(`서브(${F.sub.role})`, F.sub.role, T('sub').fs, T('sub').fw);
       if (T('date')) chk('날짜', 'date', T('date').fs, T('date').fw);
       const d = T('detail'); if (d) { chk('값', 'detailValue', d.fs, d.fw); const lb = (d.bolds ?? []).find(b => !b.chip); if (lb) chk('라벨', 'detailLabel', d.fs, lb.fw); const ch = (d.bolds ?? []).find(b => b.chip); if (ch) chk('칩', 'chip', ch.fs ?? d.fs, ch.fw); }
       if (T('extra')) chk('부가', 'extra', T('extra').fs, T('extra').fw);
-      return { expect: rows.map(r => r.split('→')[0]).join(' · '), actual: rows.join(' · '), ok, note: C.mr?.guide?.weights ? '매체 실측 굵기 적용' : '' }; } },
+      return { expect: rows.map(r => r.split('→')[0]).join(' · '), actual: rows.join(' · ') || '—', ok: rows.length ? ok : null, note: mold ? '틀 템플릿 실측 굵기' : C.mr?.guide?.weights ? '매체 실측 굵기 적용' : '' }; } },
   { id: 'tracking', group: '글자', name: '메인 자간', source: 'canon.tracking',
-    text: '메인 28px 이상이면 자간 −2.5%em(템플릿 실측 매체 자소설·에브리타임은 0)',
-    when: C => !!mainOf(C),
+    text: '메인 28px 이상이면 자간 −2.5%em(템플릿 실측 매체 자소설·에브리타임은 0 · 틀은 템플릿 실측 자간이라 제외)',
+    when: C => !!mainOf(C) && !isMold(C),
     eval: C => { const mt = mainOf(C); const tk = C.guide.tracking ?? {}; const v = (tk.main ?? 0) && mt.fs >= (tk.mainMinPx ?? 28) ? tk.main : 0; const expPx = v * mt.fs; const got = mt.ls ?? 0; return { expect: v ? `${v}em = ${px(expPx)}` : '0', actual: px(got), ok: Math.abs(got - expPx) <= 0.6 }; } },
   { id: 'required.date', group: '글자', name: '채용 소재는 날짜를 버리지 않는다', source: 'canon.required.recruit',
     text: '채용 소재는 날짜(접수기간)를 둔다 — 날짜 줄을 먼저 확보하고 메인을 줄인다',
@@ -264,15 +272,15 @@ export const RULES = [
     eval: C => { const fl = Math.round(Math.min(C.spec.w, C.spec.h) * C.guide.mainFloor.square); const fs = mainOf(C).fs; return { expect: `≥ ${fl}px`, actual: px(fs), ok: fs >= fl - 0.5 }; } },
   { id: 'guide.mainPx', group: '글자', name: '매체 가이드 메인 px 띠', source: '매체 guide.mainPx',
     text: '가이드 매체(구글)는 메인 24~44px — 규격이 작아져도 비례로 줄이지 않는다',
-    when: C => !!C.guide.mainPx && !!mainOf(C),
+    when: C => !!C.guide.mainPx && !!mainOf(C) && !isMold(C),
     eval: C => { const { min, max } = C.guide.mainPx, fs = mainOf(C).fs; return { expect: `${min}~${max}px`, actual: px(fs), ok: within(fs, min ?? 0, max ?? 999, 0.5) }; } },
   { id: 'guide.detailPx', group: '글자', name: '매체 가이드 상세 px', source: '매체 guide.detailPx',
     text: '가이드 매체 상세 글자 13~15px(메인과 달리 작게)',
-    when: C => !!C.guide.detailPx && !!textsOf(C).find(t => t.role === 'detail'),
+    when: C => !!C.guide.detailPx && !!textsOf(C).find(t => t.role === 'detail') && !isMold(C),
     eval: C => { const { min, max } = C.guide.detailPx, fs = textsOf(C).find(t => t.role === 'detail').fs; return { expect: `${min ?? '…'}~${max ?? '…'}px`, actual: px(fs), ok: within(fs, min ?? 0, max ?? 999, 0.5) }; } },
   { id: 'guide.subPx', group: '글자', name: '매체 가이드 서브 px', source: '매체 guide.subPx',
     text: '가이드 매체 서브(슬로건·시즌) ≤ 20px',
-    when: C => !!C.guide.subPx && !!textsOf(C).find(t => t.role === 'sub'),
+    when: C => !!C.guide.subPx && !!textsOf(C).find(t => t.role === 'sub') && !isMold(C),
     eval: C => { const { max } = C.guide.subPx, fs = textsOf(C).find(t => t.role === 'sub').fs; return { expect: `≤ ${max}px`, actual: px(fs), ok: fs <= max + 0.5 }; } },
   { id: 'main.lines', group: '글자', name: '메인 줄 수(계획대로 접혔나)', source: 'ad.js mainLines',
     text: '메인은 렌더러가 잡은 줄 수 안에서 접힌다 — 넘치면 「…」로 잘린다',
@@ -281,20 +289,22 @@ export const RULES = [
   { id: 'contrast.main', group: '글자', name: '메인 대비', source: 'canon(WCAG 큰 글자 3:1)',
     text: '큰 글자(메인) 지면 대비 ≥ 3:1 — 그림 위면 스크림 포함 표본',
     when: C => !!mainOf(C),
-    eval: C => { const mt = mainOf(C), c = textContrast(mt); return { expect: '≥ 3:1', actual: c == null ? '측정 불가' : `${num(c)}:1${mt.contrastSampled != null ? ' (그림 위 표본)' : ''}`, ok: c == null ? null : c >= 2.95 }; } },
+    eval: C => { const mt = mainOf(C), c = textContrast(mt); const exempt = c != null && c < 2.95 && mt.contrastSampled == null && isWhite(mt.colorHex ?? mt.color) && whiteOnColourField(C); return { expect: '≥ 3:1', actual: c == null ? '측정 불가' : `${num(c)}:1${mt.contrastSampled != null ? ' (그림 위 표본)' : ''}`, ok: c == null ? null : exempt ? null : c >= 2.95, note: exempt ? '10-20 사용자 결정 — 색 지면은 흰 글자(대비 3:1 미만이어도) · 면제' : '' }; } },
   { id: 'contrast.small', group: '글자', name: '작은 글자 대비', source: 'canon(WCAG 4.5:1) / kvtypes.illust-grad-bg.guide[2]',
     text: '서브·날짜·상세 같은 작은 글자는 지면 가장 불리한 곳에서 4.5:1',
     when: C => textsOf(C).some(t => t.role !== 'main' && textContrast(t) != null),
     eval: C => { const rows = textsOf(C).filter(t => t.role !== 'main' && textContrast(t) != null).map(t => ({ t, c: textContrast(t), large: t.fs >= 24 || (t.fs >= 18.66 && Number(t.fw) >= 700) })); const bad = rows.filter(r => r.c < (r.large ? 2.95 : 4.45));
-      return { expect: '≥ 4.5:1(큰 글자 3:1)', actual: rows.map(r => `${r.t.role} ${num(r.c, 1)}`).join(' · '), ok: !bad.length, note: bad.length ? `모자람: ${bad.map(r => r.t.role).join(', ')}${C.trace?.field?.vivid != null ? ' — vividWhite 가 명도 상한(smallMaxDL) 안에서 4.5 에 못 닿아 3:1 에서 멈춤(가이드 vs 코드 틈)' : ''}` : '' }; } },
+      // 10-20 사용자 결정(색 지면 흰 글자 · 서브·상세는 같은 색 70%, CANON.textDefault.subOpacity): 자동 색 지면 위 흰 계열 작은 글자가 모자라면 결정으로 면제(–)
+      const exempt = bad.length > 0 && bad.every(r => r.t.contrastSampled == null && isWhite(r.t.colorHex ?? r.t.color)) && whiteOnColourField(C);
+      return { expect: '≥ 4.5:1(큰 글자 3:1)', actual: rows.map(r => `${r.t.role} ${num(r.c, 1)}`).join(' · '), ok: exempt ? null : !bad.length, note: exempt ? '10-20 사용자 결정 — 색 지면 흰 글자(서브 70%) · 면제' : bad.length ? `모자람: ${bad.map(r => r.t.role).join(', ')}${C.trace?.field?.vivid != null ? ' — vividWhite 가 명도 상한(smallMaxDL) 안에서 4.5 에 못 닿아 3:1 에서 멈춤(가이드 vs 코드 틈)' : ''}` : '' }; } },
   { id: 'hierarchy', group: '글자', name: '위계(메인 ≥ 상세 1.8배·서브 1.6배)', source: 'ad.js 위계',
     text: '메인은 상세의 1.8배·서브의 1.6배는 돼야 한다(매체가 px 를 정한 경우 제외)',
-    when: C => !!mainOf(C) && !C.trace?.fonts?.stated && !C.guide.detailPx && !C.rules?.textHeightPx && !C.trace?.fonts?.fsRange && textsOf(C).some(t => t.role === 'detail' || t.role === 'sub'),
+    when: C => !!mainOf(C) && !C.trace?.fonts?.stated && !isMold(C) && !C.guide.detailPx && !C.rules?.textHeightPx && !C.trace?.fonts?.fsRange && textsOf(C).some(t => t.role === 'detail' || t.role === 'sub'),
     eval: C => { const m = mainOf(C).fs, d = textsOf(C).find(t => t.role === 'detail')?.fs, s = textsOf(C).find(t => t.role === 'sub')?.fs; const okD = d == null || m >= d * 1.8 - 0.5, okS = s == null || m >= s * 1.6 - 0.5; return { expect: '메인/상세 ≥ 1.8 · 메인/서브 ≥ 1.6', actual: `${d != null ? '상세 ' + num(m / d) : ''} ${s != null ? '서브 ' + num(m / s) : ''}`.trim(), ok: okD && okS }; } },
   // ── 로고 ──
   { id: 'logoCap', group: '로고', name: '로고 폭 상한', source: 'canon.logoCap',
     text: '로고 폭 ≤ 메인 글자 크기 × 2.4, 그리고 ≤ 캔버스 폭 12%(폭 ≤ 320 세로 띠는 25%)',
-    when: C => !!C.m?.logo?.box && !!mainOf(C) && !!C.guide.logoCap && !C.trace?.logo?.asObject && !C.m?.ad?.['data-logo-only'],
+    when: C => !!C.m?.logo?.box && !!mainOf(C) && !!C.guide.logoCap && !C.trace?.logo?.asObject && !C.m?.ad?.['data-logo-only'] && !(isMold(C) && (C.rules?.safeArea?.measuredFromTemplate?.mold?.logo || (C.trace?.rules ?? []).includes('templateMold.logoArea'))),   // 틀 로고 칸(mold.logo·templateMold.logoArea)은 템플릿 실측 크기
     eval: C => { const LC = C.guide.logoCap, b = C.m.logo.box, fs = mainOf(C).fs; const cap = Math.max(24, Math.min(fs * LC.perMainPx, C.spec.w * (C.spec.w <= 320 ? LC.wRatioTower : LC.wRatio))); return { expect: `≤ ${Math.round(cap)}px (메인 ${px(fs)} × ${LC.perMainPx} / 폭 ${pct(C.spec.w <= 320 ? LC.wRatioTower : LC.wRatio)})`, actual: `${Math.round(b.w)}px (메인의 ${num(b.w / fs, 1)}배)`, ok: b.w <= cap + 1 }; } },
   { id: 'logo.tone', group: '로고', name: '로고 단색 변환(지면에 맞춰)', source: 'ad.js logoFilter / canon.logoClash',
     text: '어두운 지면에 원색 로고만 있으면 흰색으로, 밝은 지면에 흰 로고만 있으면 검정으로. 로고색 = 지면색이면(대비 < 1.6 인 색이 절반 이상) 검정 단색. 타일 로고는 그대로',
@@ -303,7 +313,7 @@ export const RULES = [
       const got = C.m.logo.tone; return { expect: exp, actual: `${got} (filter ${C.m.logo.filter || 'none'})`, ok: got === exp, note: L.clash ? '지면과 색 겹침(logoClash)' : '' }; } },
   { id: 'wideLogo', group: '로고', name: '가로형 로고 자리', source: 'canon.wideLogo',
     text: '가로형도 로고를 둔다 — 기본 우상단 소형(매체가 로고 0개면 생략, 오브젝트 상자 규격은 없음, 사진 열·배경형 주인공 쪽이면 좌상단)',
-    when: C => C.spec.shape === 'wide' && !!C.trace?.logo?.has && C.trace.logo.allow !== false && !C.trace.logo.asObject && !C.trace.logo.template,
+    when: C => !isMold(C) && C.spec.shape === 'wide' && !!C.trace?.logo?.has && C.trace.logo.allow !== false && !C.trace.logo.asObject && !C.trace.logo.template,
     eval: C => { const b = C.m?.logo?.box; const exp = C.trace.logo.place; if (exp === 'none') return { expect: '없음', actual: b ? C.m.logo.corner : '없음', ok: !b }; return { expect: exp, actual: b ? `${C.m.logo.corner} (y ${pct(b.y / C.spec.h)})` : '없음', ok: !!b && b.y < C.spec.h * 0.35 && (exp === 'top-right' ? (b.x + b.w) > C.spec.w * 0.6 : exp === 'top-left' ? b.x < C.spec.w * 0.4 : true) }; } },
   { id: 'guide.logo.h', group: '로고', name: '매체 가이드 로고 높이', source: '매체 guide.logo.hRatio',
     text: '가이드 매체 로고 높이 ≈ 짧은 변의 7.5%(세로 로고는 면적 보정으로 최대 1.8배), 폭 ≤ 30%',

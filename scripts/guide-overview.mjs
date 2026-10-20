@@ -90,7 +90,7 @@ ${examples ? `<h3>예시(케이스 사진으로 계산한 실제 값)</h3><table
 
 <h2 id="spec">⑤ 규격별 글자 자리·로고 칸·키비주얼 칸</h2>
 <div class="card">규격마다 글자 x·줄 y·크기·굵기·자간, 로고 칸, 키비주얼 칸(고정/자유/비주얼만)이 매체 JSON 의 <code>mold</code> 에 들어 있고 한 표로는 <a href="spec-inventory.html"><b>규칙표 51규격</b></a>에서 봄. 매체별 정본(피그마 수정본 실측·개정 이력): ${moldDocs}.<br>피그마 왕복: 보드 페이지 133:44 에서 고친 프레임 링크를 주면 실측해 틀에 반영하고 반영 렌더를 옆에 올림.</div>
-<p class="foot">출처 파일: core/input-spec.json · core/kvtypes.js · core/media/*.json · core/fonts.js · core/canon.js · core/field.js. 규칙 전체는 <a href="../history/규칙장부.md">history/규칙장부.md</a>(ref/learned/rules.json).</p>
+<p class="foot">출처 파일: core/input-spec.json · core/kvtypes.js · core/media/*.json · core/fonts.js · core/canon.js · core/field.js. 규칙 전체는 <a href="../history/규칙장부.md">history/규칙장부.md</a>(ref/learned/rules.json). 품질 점수표(가이드·여백·빈 곳·겹침·끊김·다양성, 전 케이스 × 추출 규격)는 <a href="quality-audit.md">docs/quality-audit.md</a>(<code>node scripts/quality-audit.mjs</code>).</p>
 </main></body></html>`;
 writeFileSync(path.join(ROOT, 'docs/guide-overview.html'), html);
 console.log('docs/guide-overview.html', (html.length / 1024).toFixed(0) + 'KB');
