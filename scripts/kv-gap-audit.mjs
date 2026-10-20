@@ -24,7 +24,8 @@ const FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web
 const DEFAULT_FIELDS = { client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', applyUrl: 'https://hanjin.example' };
 const MIN_GAP = 2, MAX_RATIO = 0.12;   // ✗ 구간: 2px 초과 ~ 변 길이 12% 이하
 
-const core = f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
+const CORE_DIR = path.resolve(opt('--core') ?? path.join(ROOT, 'core'));   // 다른 판의 core 로 그린다(전/후 회귀 비교, 10-20)
+const core = f => import(pathToFileURL(path.join(CORE_DIR, f)).href);
 const F = await core('fonts.js');
 const FACES = F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pathToFileURL(path.join(ROOT, 'app')).href + '/')).join('');
 const { renderArtifact } = await core('contract.js'); const { registerAll } = await core('generate.js');
@@ -32,9 +33,9 @@ const { createContext } = await core('context.js'); const { normalizeStyle } = a
 const { adSpecEntries } = await core('adspecs.js'); const { applyKvTypeOverride } = await core('kvtypes.js');
 registerAll();
 const ENTRIES = adSpecEntries();
-const EXTRACT = JSON.parse(readFileSync(path.join(ROOT, 'core/media/_extract.json'), 'utf8'));
+const EXTRACT = JSON.parse(readFileSync(path.join(CORE_DIR, 'media/_extract.json'), 'utf8'));
 const IDS = (EXTRACT.extract ?? EXTRACT.ids ?? []).filter(id => ENTRIES[id] && ENTRIES[id].channel !== 'asset' && (!ONLY || ONLY.includes(id)));
-const MEDIA = {}; const mediaName = m => { if (!MEDIA[m]) MEDIA[m] = JSON.parse(readFileSync(path.join(ROOT, 'core/media', m + '.json'), 'utf8')); return MEDIA[m].name ?? m; };
+const MEDIA = {}; const mediaName = m => { if (!MEDIA[m]) MEDIA[m] = JSON.parse(readFileSync(path.join(CORE_DIR, 'media', m + '.json'), 'utf8')); return MEDIA[m].name ?? m; };
 const unesc = s => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
 const CASES = path.join(ROOT, 'ref/learned/cases');

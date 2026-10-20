@@ -70,7 +70,9 @@ export const CANON = {
   //   10-12 desk-15(한국산업단지공단 파랑→복숭아 그라데이션)·GC녹십자(밝은 3D × 네이비): 「뚝 끊기는 느낌」. 곡선은 smoothstep 여러 마디(직선 끝이 선으로 읽힌다)
   //   bridgeFrom·bridgeMax: 브랜드 지면이 그림 변과 멀면(≥ bridgeFrom) 지면의 이음매 쪽 끝을 그림 변 색 쪽으로 최대 bridgeMax 만큼(흰 글자 4.5:1 안에서) 당긴다(GC녹십자 1080)
   //   bridgeMinLum: 그림이 이만큼 밝을 때만 당긴다(10-14 t1014 한진 어두운 빌딩 사진 0.40 — 남색이 청록 회색으로 탁해짐, GC녹십자 밝은 사진 0.71 은 그대로)
-  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6, bridgeMinLum: 0.55 },
+  //   seamInside(10-20 키비주얼 이음 전수 감사): 덮어 자른 자리(cover·주인공 당김)의 글자 쪽 변은 그림 한가운데를 지난다 — 그 변의 색을 그림 「변 색」으로 보면 한샘 사진(변 갈색·속 크림)이 지면과 같은 색으로 읽혀 35% 에 머물렀다(cut-short 107케이스 전수).
+  //     보이는 변이 그림 변이 아니고(frac > edgeTol) 걸린 열·행이 바탕 줄(bg ≥ bgQuiet)도 아니면 그림 속 색(걸린 줄 + 대표색 dominant 개 + 그 변 쪽 사분면 색) 중 지면과 가장 먼 색으로 길이를 잰다. 그린 뒤 후처리(ad.js meltFix)라 모든 배치 경로에 같이 걸린다 — 짧아지는 쪽으로는 안 바꾼다
+  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6, bridgeMinLum: 0.55, seamInside: { edgeTol: 0.02, bgQuiet: 0.85, dominant: 3 } },
   // 질감 전체 깔기에서 글자 아래가 어지러우면(형태 가장자리가 뚜렷) 글자 쪽에서 지면 자기 색 스크림을 깐다 — 「아주 살짝」이 기본, 어지러울수록 진하게.
   //   10-12 desk-23 제주항공(알약 가장자리 뚜렷 「비주얼이랑 텍스트 너무 겹쳐」) · desk-02 대한항공(「글씨 영역 쪽만 아주 살짝 오퍼」).
   //   busy = max((texture.spread − spreadMin) / (spreadFull − spreadMin), texture.sharp / sharpFull) 를 0~1로 · busyMin 미만이면 스크림 없음(hdot-wave 0.01·hdot-purple3d 0.08은 그대로, desk-02 0.10부터)

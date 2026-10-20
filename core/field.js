@@ -46,12 +46,40 @@ export function vividOf(cands, K = CANON.kvHarmony) {
   return c;
 }
 
+// 캠페인 공통 「그림 변 지면」(10-20 사용자 「배경색 일관되지 않게 나오는 것도 문제」): 어느 규격이든 같은 답 — 글자 쪽 변(facing)이 아니라 그림 자체의 네 변에서 고른다.
+//   바탕이 그라데이션이면 그림의 축대로(위·아래 평평한 변 색이 다르면 세로 180°, 왼·오른쪽이 다르면 가로 90° — 둘 다면 더 먼 쪽. 한 변 안에서 앞·뒤 반이 다른 것(from→to)도 같은 축의 증거),
+//   단톤이면 평평한 변 중 가장 고른(std 작은) 변 색 하나. 규격마다 다른 건 이 그라데이션을 그림 자리에 px 로 맞춰 거는 일뿐(ad.js fieldAlign — at: 두 끝 색이 그림 길이의 어느 몫에 있나).
+//   전에는 facing 변의 from→to 를 썼다 — 오른쪽 열 규격(왼변)과 아래 띠 규격(윗변)이 다른 지면이 되고(desk-21 세로 그라데이션: 팝업 하단 띠는 윗변 남색 단색, 모서리 칸은 왼변 그라데이션), 한 캠페인이 두 색이었다
+export function edgeField(f, { flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX)) } = {}) {
+  const E = f?.edges ?? {}; const T = E.top, B = E.bottom, L = E.left, R = E.right;
+  const flats = ['top', 'left', 'right', 'bottom'].filter(k => flatEdge(E[k]));
+  if (!flats.length) return null;
+  const d = (a, b) => (a && b) ? colorDistance(a, b) : 0;
+  const cand = [];
+  // 세로 축: 위·아래 변 색 / 왼·오른쪽 변 안의 위 반→아래 반
+  if (flatEdge(T) && flatEdge(B) && d(T.hex, B.hex) >= GRADIENT_MIN) cand.push({ axis: 'v', stops: [T.hex, B.hex], at: [0.03, 0.97], str: d(T.hex, B.hex) });
+  for (const x of [L, R]) if (flatEdge(x) && d(x.from, x.to) >= GRADIENT_MIN) { cand.push({ axis: 'v', stops: [x.from, x.to], at: [0.25, 0.75], str: d(x.from, x.to) }); break; }
+  // 가로 축: 왼·오른쪽 변 색 / 위·아래 변 안의 왼 반→오른 반
+  if (flatEdge(L) && flatEdge(R) && d(L.hex, R.hex) >= GRADIENT_MIN) cand.push({ axis: 'h', stops: [L.hex, R.hex], at: [0.03, 0.97], str: d(L.hex, R.hex) });
+  for (const x of [T, B]) if (flatEdge(x) && d(x.from, x.to) >= GRADIENT_MIN) { cand.push({ axis: 'h', stops: [x.from, x.to], at: [0.25, 0.75], str: d(x.from, x.to) }); break; }
+  // 그라데이션은 한 글자색으로 읽혀야 쓴다(gradientReadable): 흰 글자 3:1 이 두 끝 다 되거나(또는 vividWhite 로 되거나), 두 끝 다 밝아 검정 글자인 그라데이션(비씨월드 라벤더). 한 끝은 채도 지면(흰 글자, 10-12 desk-12 초록)·한 끝은 연한 색이면 글자색이 갈라진다 — 단색으로
+  if (cand.length) { const c = cand.sort((a, b) => b.str - a.str)[0]; if (gradientReadable(c.stops)) return { stops: c.stops, angle: c.axis === 'v' ? 180 : 90, align: { axis: c.axis, at: c.at } }; }
+  // 단색: 평평한 변 중 왼쪽 → 위 → 오른쪽 → 아래 순(글자가 왼쪽에 서는 규격이 다수 — 어느 규격이든 같은 변)
+  const solid = ['left', 'top', 'right', 'bottom'].map(k => E[k]).find(flatEdge);
+  return { stops: [solid.hex], angle: 180, align: null };
+}
+export function gradientReadable(stops) {
+  const w = Math.min(...stops.map(s => contrast(s, WHITE))), b = Math.min(...stops.map(s => contrast(s, BLACK)));
+  if (w >= 3) return true;
+  if (vividWhite(stops)) return true;
+  return b >= 4.5 && !stops.some(s => !!vividWhite([s]));
+}
 export function resolveField(style, { facing = 'left', solidOnly = false, light = false, lightPhoto = false } = {}) {
   const p = style.palette ?? {};
   const opt = style.background ?? {};
   const f = style.keyVisual ? style.kvMeta?.field ?? null : null;
   const dominant = style.keyVisual ? style.kvMeta?.colors?.[0] ?? null : null;
-  let stops = null, angle = 180, source = null, seamless = false;
+  let stops = null, angle = 180, source = null, seamless = false, align = null, deviation = null;   // deviation: 이 규격이 캠페인 공통 지면에서 벗어난 이유(규정·모드) — 없으면 null(10-20)
 
   // 지면을 정하는 순서: ① 직접 고른 색 → ② 배경을 품은 일러스트의 가장자리 색(이음매가 없어야 하니 로고보다 우선) → ③ 흰색 로고만 있으면 어두운 브랜드색 → ④ 사진·누끼는 브랜드색(밝은 매체면 틴트)
   const flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX));
@@ -64,19 +92,16 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   if (opt.color) { stops = [opt.color]; source = 'manual'; }
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°. 비주얼 우선(kv-vivid)보다 앞
   else if (style.colorsManual && p.primary) { stops = [p.primary, shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
-  else if (hasBg && flatEdge(e)) {
-    stops = [e.from, e.to];
-    angle = (facing === 'left' || facing === 'right') ? 180 : 90;
-    source = 'kv-edge'; seamless = true;
-  }
-  else if (hasBg && other) { stops = [other.hex]; source = 'kv-edge'; }
-  // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변
-  else if (moodStops(style, e, f)) { const m = moodStops(style, e, f); stops = m.stops; source = m.source; angle = m.angle === 'edge' ? ((facing === 'left' || facing === 'right') ? 180 : 90) : m.angle; }
+  // 그림 변 지면(kv-edge): 규격(facing)과 무관하게 그림 네 변에서 한 번 정한다(edgeField, 10-20 캠페인 공통 지면). seamless 는 배치용(글자 쪽 변이 평평해 그 변을 기준으로 붙인다) — 색은 바꾸지 않는다
+  else if (hasBg && (flatEdge(e) || other)) { const ef = edgeField(f, { flatEdge }); stops = ef.stops; angle = ef.angle; align = ef.align; source = 'kv-edge'; seamless = flatEdge(e); }
+  // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변(10-20: facing 변이 아니라 그림 축으로 — 캠페인 공통)
+  else if (moodStops(style, e, f)) { const m = moodStops(style, e, f); stops = m.stops; source = m.source; angle = m.angle; align = m.align ?? null; }
   // 비주얼 우선 지면(CANON kvHarmony, 10-16): 사진은 글자 쪽 변 색, 누끼는 대표색 — 어두운 매체는 흰 글자 4.5:1 까지 어둡힌 같은 색상, 밝은 매체는 옅은 틴트. 브랜드색은 포인트에만
   else if (CANON.kvHarmony && f && (f.kind === 'photo' || f.opaque < 0.5) && (e?.hex || dominant)) {
     const K = CANON.kvHarmony;
     const pal = (style.kvMeta?.colors ?? []).filter(Boolean);
-    const cands = [...new Set((f.kind === 'photo' ? [e?.hex, dominant, ...pal] : [dominant, ...pal, e?.hex]).filter(Boolean))];
+    // 10-20 캠페인 공통 지면: 후보에 글자 쪽 변(facing)을 넣으면 오른쪽 열 규격(왼변)과 아래 띠 규격(윗변)의 색이 갈린다 — 사진은 왼변(글자가 왼쪽에 서는 규격이 다수) 하나로 고정, 누끼는 대표색·팔레트만
+    const cands = [...new Set((f.kind === 'photo' ? [f.edges?.left?.hex, dominant, ...pal] : [dominant, ...pal]).filter(Boolean))];
     const vivid = vividOf(cands, K);
     if (vivid) { stops = [vivid, shiftHue(vivid, 0, -0.08, 0)]; angle = 135; source = f.kind === 'photo' ? 'kv-vivid-photo' : 'kv-vivid'; }   // 화사한 KV 색 + 흰 글자(10-16 오후)
     else {   // 전부 무채(회색·베이지) — 「안 묻는」 그림. 그때만 옅은 틴트 + 검정 글자
@@ -95,40 +120,44 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     // (비씨월드 하늘색→흰색, 한국앤컴퍼니 오렌지 18%→흰색, PT코리아 라벤더). 그림의 대표색을 쓰면 탁해진다(ABL 캐릭터 → 보라회색)
     const brand = p.primary ?? '#2456D6';
     const warm = warmLightBrand(brand);
-    const tint = (f.kind === 'photo' ? lightPhoto : light) || warm;
-    if (tint) { stops = [mix(brand, WHITE, warm && !(f.kind === 'photo' ? lightPhoto : light) ? CANON.warmLightBrand.tint : 0.78), WHITE]; angle = 180; source = warm && !(f.kind === 'photo' ? lightPhoto : light) ? 'brand-tint-warm' : 'brand-tint'; }
+    // 10-20 캠페인 공통 지면: 매체 프로필(구글 lightField·자소설 bgLight)로 틴트/딥을 가르지 않는다 — 같은 캠페인이 자소설은 분홍 틴트, 카카오는 딥 빨강으로 갈렸다(사용자 보드: ABL 떼 누끼 × 로고 빨강). 밝은 난색 브랜드(warm)는 브랜드 자체의 성질이라 캠페인 공통
+    const tint = warm;
+    if (tint) { stops = [mix(brand, WHITE, CANON.warmLightBrand.tint), WHITE]; angle = 180; source = 'brand-tint-warm'; }
     else {
       stops = brandDeep(brand); angle = 135; source = f.kind === 'photo' ? 'brand-photo' : 'brand';
       // 10-12 GC녹십자(밝은 사진 × 네이비 브랜드): 지면이 그림과 따로 정해져 이음매 쪽 색이 멀면(거리 ≥ bridgeFrom) 이음매 쪽 끝을 그림 변 색 쪽으로 당긴다 —
       //   흰 글자 4.5:1을 지키는 데까지만. 글자 쪽 끝은 브랜드 딥 그대로
-      const eh = e?.hex, B = CANON.melt;
+      const eh = f?.edges?.left?.hex ?? e?.hex, B = CANON.melt;   // 10-20: 브릿지 색도 규격(facing)과 무관하게 왼변 기준
       // 밝은 사진만(그림 밝기 ≥ bridgeMinLum) — 어두운 사진(한진 빌딩 0.40)은 브랜드 딥 그대로 녹인다: 당기면 남색이 청록 회색으로 탁해졌다(10-14 t1014 한진정보통신 디자이너 9/9 남색 브랜드)
       if (eh && B?.bridgeFrom && colorDistance(eh, stops[stops.length - 1]) >= B.bridgeFrom && (f?.lum ?? 1) >= (B.bridgeMinLum ?? 0)) {
         let t = B.bridgeMax ?? 0.6, end = null;
         while (t > 0.05) { const c = mix(stops[0], eh, t); if (contrast(c, WHITE) >= 4.5) { end = c; break; } t -= 0.05; }
-        if (end) { stops = [stops[0], end]; angle = (facing === 'left' || facing === 'right') ? (facing === 'left' ? 90 : 270) : 180; source += '-bridge'; }
+        if (end) { stops = [stops[0], end]; angle = 90; source += '-bridge'; }
       }
     }
   }
   else if (f && dominant) {
     // 배경을 딴 이미지 + 밝은 지면을 쓰는 매체(자소설)면 대표색의 옅은 틴트, 아니면 대표색 그대로
-    stops = (f.opaque < 0.5 && light) ? [mix(dominant, WHITE, 0.80), mix(dominant, WHITE, 0.90)] : [dominant];
+    stops = [dominant];   // 10-20: 밝은 매체 틴트 분기 제거(캠페인 공통 지면)
     source = 'kv-colour';
   }
   if (!stops && style.keyVisual && style.kvMeta?.edge) { stops = [style.kvMeta.edge]; source = 'kv-edge'; }   // 예전에 저장된 캠페인
   if (!stops) {
     const brand = p.primary ?? '#2456D6';
+    // 그림 없는 캠페인(브랜드색뿐): 매체 밝은 프로필(자소설 bgLight·구글 lightField)의 틴트는 유지하되 캠페인 공통 지면에서 벗어난 것으로 기록한다(deviation medium-light, 10-20).
+    //   그림 있는 캠페인의 같은 분기는 없앴다(위 brand-photo/brand). 그림 없는 캠페인까지 한 색으로 할지는 사용자 결정 대기(테스트 ad.test 「자소설 밝은 단색」 유지)
     const lt = light || warmLightBrand(brand);
     stops = lt ? [mix(brand, WHITE, 0.80), mix(brand, WHITE, 0.90)] : brandDeep(brand);
     if (!lt) angle = 135;
     source = 'brand';
+    if (light && !warmLightBrand(brand)) deviation = 'medium-light';
   }
 
   const mode = solidOnly ? 'solid' : (opt.mode ?? 'auto');
   const far = stops.length > 1 && colorDistance(stops[0], stops[1]) >= GRADIENT_MIN;
   const mid = () => stops.length > 1 ? mix(stops[0], stops[1], 0.5) : stops[0];
   // 그라데이션 변을 단색으로 접으면(우하단 상자·단색 전용 규격) 그림의 변과 지면이 더는 같은 색이 아니다 — 이음매를 녹여야 한다
-  if (mode === 'solid' || (mode === 'auto' && !far)) { if (far) seamless = false; stops = [mid()]; }
+  if (mode === 'solid' || (mode === 'auto' && !far)) { if (far) { seamless = false; if (mode === 'solid') deviation = solidOnly ? 'solid-only' : 'mode-solid'; } stops = [mid()]; align = null; }   // 단색 전용 규정(에브리타임 홈배너 「동일한 단색 배경만」)이 그라데이션을 접으면 그 규격만 캠페인 지면에서 벗어난다 — 기록
   else if (mode === 'gradient' && !far) { const b = mid(); stops = [shiftHue(b, 0, 0.05, 0), shiftHue(b, 0, -0.05, 0)]; angle = 180; }
 
   // 글자색 — 그라데이션의 두 끝 모두에서 읽혀야 한다. 큰 글자 기준 대비 3:1(WCAG)을 못 넘으면 그라데이션을 접는다.
@@ -149,7 +178,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
 
   const css = stops.length > 1 ? `linear-gradient(${angle}deg,${stops[0]} 0%,${stops[1]} 100%)` : stops[0];
   // contrast: 지면에서 가장 불리한 곳의 글자 대비 — 4.5에 못 미치면 렌더러가 작은 글자를 흐리게 쓰지 않는다
-  return { stops, angle, css, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(worst(text) * 100) / 100, ...(vv && text === WHITE && vv.d > 0 ? { vivid: vv.d } : {}), ...(dim ? { dim } : {}) };
+  return { stops, angle, css, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(worst(text) * 100) / 100, ...(vv && text === WHITE && vv.d > 0 ? { vivid: vv.d } : {}), ...(dim ? { dim } : {}), ...(align && stops.length > 1 ? { align } : {}), ...(deviation ? { deviation } : {}) };
 }
 
 // 분위기 지면(CANON kvMood) — 그림 바탕의 색감이 브랜드 지면색보다 먼저다. 없으면 null
@@ -159,14 +188,19 @@ export function moodStops(style, e, f, K = CANON.kvMood) {
   // ① 누끼 + 원본 바탕 팔레트(kv-orig 에서 잰 것, 또는 사용자가 준 것)
   const bp = style.kvMeta?.bgPalette;
   if (f.opaque < 0.5) return bp?.stops?.length ? { stops: bp.stops.slice(0, 2), angle: bp.angle ?? 180, source: 'kv-mood' } : null;   // 누끼는 원본 팔레트가 있을 때만
-  if (!e?.from || !e?.to) return null;
+  // 10-20 캠페인 공통 지면: 글자 쪽 변(e)이 아니라 그림 자체의 축으로 — 위·아래 변 색(세로 180°, 두 끝 그림 길이의 3%·97%) 또는 왼·오른쪽 변 색(가로 90°) 중 더 먼 쪽. 규격마다 px 로 맞춰 건다(ad.js fieldAlign)
+  if (!e?.from || !e?.to) return null;   // 변 안의 흐름(from→to)까지 잰 메타일 때만(예전과 같은 조건)
+  const E = f.edges ?? {};
+  const ok = x => !!(x?.hex && x.from && x.to);
+  const pair = (() => { const v = (ok(E.top) && ok(E.bottom)) ? { stops: [E.top.hex, E.bottom.hex], angle: 180, d: colorDistance(E.top.hex, E.bottom.hex) } : null, h = (ok(E.left) && ok(E.right)) ? { stops: [E.left.hex, E.right.hex], angle: 90, d: colorDistance(E.left.hex, E.right.hex) } : null; const best = [v, h].filter(Boolean).sort((a, b) => b.d - a.d)[0]; return best ?? { stops: [e.from, e.to], angle: 180, d: colorDistance(e.from, e.to) }; })();
+  const align = { axis: pair.angle === 180 ? 'v' : 'h', at: [0.03, 0.97] };
   // ② 어두운 사진 → 사진 변 색을 같은 색상으로 흰 글자 4.5:1까지 내린 어두운 지면(군중 사진 전체 깔기는 따로)
   if (f.kind === 'photo' && (f.lum ?? 1) < K.darkPhotoLum) {
     const deep = c => { let d = 0; while (d < 0.5 && contrast(shiftHue(c, 0, -d, 0), WHITE) < K.darkMin) d += 0.02; return shiftHue(c, 0, -d, 0); };
-    return { stops: [deep(e.from), deep(e.to)], angle: 'edge', source: 'kv-mood-dark' };
+    return { stops: pair.stops.map(deep), angle: pair.angle, align, source: 'kv-mood-dark' };
   }
   // ③ 채도 있는 그라데이션 변(기아 라벤더→파랑 · GC 민트→파랑)
-  if ((sat(e.from) + sat(e.to)) / 2 >= K.minSat && colorDistance(e.from, e.to) >= K.minGrad) return { stops: [e.from, e.to], angle: 'edge', source: 'kv-mood' };
+  if ((sat(pair.stops[0]) + sat(pair.stops[1])) / 2 >= K.minSat && pair.d >= K.minGrad) return { stops: pair.stops, angle: pair.angle, align, source: 'kv-mood' };
   return null;
 }
 
@@ -213,6 +247,45 @@ export function meltLength(kvHex, fieldHex, base = 30) {
   if (d < 0.035) return base;
   const k = Math.min(1, d / M.fullAt);
   return Math.round(Math.max(base, (M.min + (M.max - M.min) * k) * 100));
+}
+// 이음매 색 후보(10-20 키비주얼 이음 전수 감사): 그림을 덮어 자른(cover·주인공 당김) 자리의 글자 쪽 변은 그림의 변이 아니라 그림 한가운데를 지난다 —
+//   그 자리의 색을 그림 「변 색」(edges)으로 보면 한샘 사무실 사진(변 갈색 · 속은 크림 벽·하늘색 화면)이 갈색 지면과 같은 색으로 읽혀 녹임이 기본값(35%)에 머물렀다(전수 감사 cut-short 16/39 규격).
+//   · 보이는 변이 그림의 변(frac ≤ edgeTol)이면 변 색(hex·from·to)
+//   · 그 변이 걸린 열·행(cols/rows)이 바탕 줄(bg ≥ bgQuiet)이면 그 줄 바탕색 — 기존 quiet/calm 판정과 같은 자리
+//   · 그 밖(주인공을 가르는 줄)은 그림 속 색 — 걸린 줄 색 + 대표색 3 + 그 변 쪽 사분면 색. 녹임 길이는 이 중 지면과 가장 먼 색으로 잰다(CANON.melt.seamInside)
+export function seamHexes(style, side, frac, { S = CANON.melt?.seamInside } = {}) {
+  const f = style.kvMeta?.field; if (!f) return [];
+  const axis = (side === 'left' || side === 'right') ? 'cols' : 'rows';
+  const prof = f[axis], e = f.edges?.[side];
+  const edgeTol = S?.edgeTol ?? 0.02, bgQuiet = S?.bgQuiet ?? 0.85;
+  // 사진은 변이 평평해도 그 띠(6%)뿐이고 녹임(30~55%)이 끝나는 곳은 사진 속이다 — 변 색이 아니라 속 색으로(한샘 580 모서리 칸: 왼변 frac 0.016 인데 35% 끝은 크림 벽). 일러스트는 평평한 변(바탕)이 그대로 이어질 때만 변 색
+  const atEdge = !(frac > edgeTol) && !(S && f.kind === 'photo') && (e?.flat !== false || !S);
+  if (atEdge) return [...new Set([e?.hex, e?.from, e?.to].filter(Boolean))];
+  const at = prof?.length ? prof[Math.min(prof.length - 1, Math.max(0, Math.floor(frac * prof.length)))] : null;
+  if (at?.hex && (at.bg ?? 0) >= bgQuiet && frac > edgeTol) return [at.hex];
+  if (!S) return [at?.hex ?? e?.hex].filter(Boolean);
+  const q = f.quadrants ?? {};
+  const quads = side === 'left' ? [q.tl, q.bl] : side === 'right' ? [q.tr, q.br] : side === 'top' ? [q.tl, q.tr] : [q.bl, q.br];
+  return [...new Set([at?.hex, e?.hex, ...(style.kvMeta?.colors ?? []).slice(0, S.dominant ?? 3), ...quads].filter(h => /^#[0-9A-Fa-f]{6}$/.test(h ?? '')))];
+}
+// 여러 이음매 색 후보 × 지면 색 끝들 중 가장 먼 거리로 잰 녹임 길이 — 길이와 함께 어떤 색끼리 멀었는지(seam·far) 돌려준다
+export function meltNeed(hexes, stops, base = 30) {
+  let best = { pct: base, seam: hexes?.[0] ?? null, far: stops?.[0] ?? null, d: 0 };
+  for (const hx of hexes ?? []) for (const st of stops ?? []) { const d = colorDistance(hx, st); if (d > best.d) best = { pct: meltLength(hx, st, base), seam: hx, far: st, d }; }
+  best.d = Math.round(best.d * 1000) / 1000;
+  return best;
+}
+// 끊김 녹임 길이(%): 잘린 몫(0~1) → CANON.cutFade 의 잘린 몫%×k+base 를 min~max 로 — ad.js cutFade(후처리)와 kvLayer 의 넘친 누끼 왼변 녹임이 같은 자를 쓴다
+export function cutFadePct(cutFrac) {
+  const C = CANON.cutFade ?? { base: 8, k: 2, min: 10, max: 36 };
+  return Math.min(C.max, Math.max(C.min, Math.round(Math.max(0, cutFrac) * 100) * C.k + C.base));
+}
+// 상자 변이 아니라 그 안의 그림 변(fromPct 만큼 들어간 곳)에서 시작하는 녹임 — 칸보다 작은 그림(contain·제 크기)은 마스크를 상자 변에 걸면 그림 변에선 짧아진다(10-20 전수 감사: NAP 320×50 틀 칸 84px 안 그림 37px, desk-08 제 크기 띠)
+export function meltGradientFrom(dir, fromPct, pct) {
+  const n = Math.max(3, CANON.melt?.stops ?? 7);
+  const st = [`transparent 0%`, `transparent ${Math.round(fromPct * 10) / 10}%`];
+  for (let i = 1; i < n; i++) { const t = i / (n - 1), a = t * t * (3 - 2 * t); const at = Math.round((fromPct + pct * t) * 10) / 10; st.push(i === n - 1 ? `#000 ${at}%` : `rgba(0,0,0,${a.toFixed(2)}) ${at}%`); }
+  return `linear-gradient(${dir},${st.join(',')})`;
 }
 export function meltMask(dir, pct) {
   const g = meltGradient(dir, pct);
@@ -512,7 +585,8 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
   // 넘쳐 흘린 누끼(bleed)는 열의 왼변에서 잘린다 — 가로 띠(320×50·400×76·728×90)에선 그 변이 지면 한가운데의 직선이라 「뚝 끊김」(10-12 남은 문제, midas-stadium-wire·abl-group·desk-22-cut).
   //   잘린 몫이 2%를 넘으면 왼변을 녹인다(잘린 몫 + 8%, 16~30%) — 사진·바탕 그림과 같은 녹임 문법
   const bleedCut = bleed && arKv ? 1 - bw / Math.min(hh * arKv, capW) : 0;
-  const cutMask = (melt && bleedCut > 0.02) ? meltMask('to right', Math.round(Math.min(30, Math.max(16, bleedCut * 100 + 8)))) : '';
+  //   길이는 끊김 녹임과 한 자(CANON.cutFade: 잘린 몫%×k+base, min~max — 10-20 전수 감사: 예전 「잘린 몫+8%, 16~30%」 와 cutFade 가 따로 놀아 같은 잘림에 두 길이가 났다)
+  const cutMask = (melt && bleedCut > 0.02) ? meltMask('to right', cutFadePct(bleedCut)) : '';
   const fill = `background:url('${url}') ${cutout ? `${bleed ? 'right bottom' : bleedB ? bPos : far}/${cutSize}` : crop ? `${crop.pos}/${crop.size}` : `${pos}/cover`} no-repeat;${cutout && /px auto$/.test(cutSize) ? '--kv-capped:1;' : ''}${crop ? `--kv-gain:${crop.gain};` : ''}${(bleed || bleedB) ? '--kv-bleed:1;' : ''}`;
   // 인물 사진을 줄여 오른쪽에 붙였으면(portraitFit) 그림 칸만큼만 — 왼변(글자 쪽 지면)과 윗변을 녹인다. 윗변은 짧게(22%) — 머리 위를 길게 녹이면 뿌옇다
   if (side === 'bottom' && crop?.portrait) {
@@ -523,7 +597,7 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
     return `<div data-object="1" style="position:absolute;right:0;bottom:0;width:${pw}px;height:${size + edgePad}px;${fill}${mk}--kv-portrait:1"${mk ? ` data-melt="${pw < w - 1 ? meltLength(lHex, lFar, 30) : 22}" data-melt-dir="${pw < w - 1 ? 'to right' : 'to bottom'}" data-melt-top="22"` : ''}></div>`;
   }
   return side === 'right'
-    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}${cutMask}"${meltData}${cutMask ? ` data-cut-melt="${Math.round(Math.min(30, Math.max(16, bleedCut * 100 + 8)))}" data-bleed-cut="${Math.round(bleedCut * 100) / 100}"` : ''}></div>`
+    ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}${cutMask}"${meltData}${cutMask ? ` data-cut-melt="${cutFadePct(bleedCut)}" data-bleed-cut="${Math.round(bleedCut * 100) / 100}"` : ''}></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"${meltData}></div>`;
 }
 

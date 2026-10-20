@@ -280,7 +280,8 @@ test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain
     const html = renderAd(ctx, st, specs[id]); const tr = traceOf(html);
     assert.equal(tr.mode, 'templateMold', id);
     assert.ok(tr.rules.includes('templateMold.containGrad'), id + ' ' + tr.rules.join(','));
-    assert.match(html, /data-object="1" style="[^"]*center bottom\/contain no-repeat;-webkit-mask-image:linear-gradient\(to right[^"]*linear-gradient\(to left[^"]*mask-composite:intersect;overflow:hidden" data-melt="\d+" data-melt-dir="sides"/, id + ' contain + 양옆 녹임');
+    // 10-20: 윗변 색이 지면과 다르면 윗변 녹임(to bottom)이 더 붙을 수 있고, meltFix 가 그림 변에 맞춰 길이를 소수로 적을 수 있다(data-melt="48.2")
+    assert.match(html, /data-object="1" style="[^"]*center bottom\/contain no-repeat;-webkit-mask-image:linear-gradient\(to right[^"]*linear-gradient\(to left[^"]*mask-composite:intersect;overflow:hidden" data-melt="[\d.]+" data-melt-dir="sides"/, id + ' contain + 양옆 녹임');
   }
   // 유리 누끼(RING)는 그대로 — gradEdge 가 아니다
   assert.ok(!traceOf(renderAd(ctx, glass, specs['jasoseol-m-premium-popup-mo'])).rules.includes('templateMold.containGrad'));

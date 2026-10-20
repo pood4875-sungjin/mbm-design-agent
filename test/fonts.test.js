@@ -79,7 +79,8 @@ test('the banner field comes from the key visual and the image sits beside the c
   assert.match(wide.split('>')[0], /background:linear-gradient\(180deg,#E5CAFF 0%,#C7AEFF 100%\)/, '가로형: 이미지 왼쪽 변의 색이 지면');
   assert.match(wide, /data-object="1" style="position:absolute;top:0;right:0px/);
   const tall = renderBanner(ctx, s, SPECS['banner-300x600']);
-  assert.match(tall.split('>')[0], /background:#E5CAFF/, '세로형: 이미지 위쪽 변의 색이 지면');
+  // 10-20 캠페인 공통 지면(edgeField): 세로형도 가로형과 같은 그라데이션(왼쪽 변 위 반 → 아래 반) — 규격(facing)에 따라 지면이 갈리지 않는다. 전에는 위쪽 변 단색 #E5CAFF
+  assert.match(tall.split('>')[0], /background:linear-gradient\(180deg,#E5CAFF 0%,#C7AEFF 100%\)/, '세로형: 가로형과 같은 지면(캠페인 공통)');
   assert.match(tall, /data-object="1" style="position:absolute;left:0;bottom:0/);
   // 사람이 배경색을 고르면 그 색이 이긴다
   const manual = renderBanner(ctx, { ...s, background: { mode: 'auto', color: '#101820' } }, SPECS['banner-300x600']);
