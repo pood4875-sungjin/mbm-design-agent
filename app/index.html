@@ -463,6 +463,8 @@
   .btn.danger:hover{background:var(--danger-soft);opacity:.85}
   #inspNote{font-size:11.5px;color:var(--accent);padding:0 6px;line-height:1.5;min-height:16px}
 
+  /* 10-20 사용자 「캔버스에서 로그 보는 거나 채팅 입력 추가하는 거 이런 건 없어져도 될 듯」 — 에이전트 로그 카드·변경 지시 바는 숨긴다(코드·log() 기록은 그대로, 다시 보이려면 이 줄만 지움) */
+  #logCard,#cmdBar{display:none !important}
   #logCard{position:absolute;left:16px;bottom:calc(16px + var(--dock));width:280px;z-index:11;overflow:hidden;
     background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);border-radius:var(--r-lg)}
   #logCard .lhead{display:flex;align-items:center;gap:8px;padding:12px 14px;font-size:12.5px;font-weight:600;color:var(--ctl-ink);cursor:pointer}
