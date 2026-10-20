@@ -6,11 +6,12 @@ import path from 'node:path'; import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export function variantStats(campaigns) {
   const bySpec = {}, campaignWide = {}; let total = 0;
-  for (const c of campaigns) for (const e of c.log ?? []) {
+  for (const c of campaigns) for (const e of c?.log ?? []) {
     if (e.type !== 'variant_selected') continue; total++;
     const m = e.meta ?? {};
-    if (m.all) { campaignWide[m.label] = (campaignWide[m.label] ?? 0) + 1; continue; }
-    (bySpec[m.specId] ??= {})[m.label] = (bySpec[m.specId][m.label] ?? 0) + 1;
+    const label = m.label ?? '(라벨 없음)', specId = m.specId ?? '(규격 없음)';   // 구버전·손편집 로그 방어 — 'undefined' 행이 생기지 않게
+    if (m.all) { campaignWide[label] = (campaignWide[label] ?? 0) + 1; continue; }
+    (bySpec[specId] ??= {})[label] = (bySpec[specId][label] ?? 0) + 1;
   }
   return { bySpec, campaignWide, total };
 }
