@@ -454,6 +454,13 @@
   #inspector .vseg{display:flex;gap:5px;margin-top:4px}
   #inspector .vseg button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:var(--r-xs);padding:7px 0;font-size:12px;font-weight:600}
   #inspector .vseg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  /* 레이아웃 안 썸네일(10-20 2단계) */
+  #inspector .vrow{display:flex;gap:8px;overflow-x:auto;padding:4px 0;margin-top:4px}
+  #inspector .vthumb{flex:0 0 auto;width:116px;border:1px solid var(--line);border-radius:var(--r-xs);background:var(--card);padding:4px;text-align:left;cursor:pointer;color:var(--ink)}
+  #inspector .vthumb.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-line)}
+  #inspector .vthumb-box{display:block;width:106px;height:66px;border-radius:4px;background:var(--soft);overflow:hidden;position:relative}
+  #inspector .vthumb-box iframe{position:absolute;left:0;top:0;transform-origin:0 0;border:0;pointer-events:none}
+  #inspector .vthumb-lab{display:block;font-size:10.5px;line-height:1.3;color:var(--ink);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #inspector .row{display:flex;gap:6px;margin-top:4px}
   #inspector .row .btn{flex:1}
   #inspector .kvthumb{border-color:var(--accent-line)}

@@ -2176,40 +2176,10 @@ function renderInspector() {
       log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
       autosave();
     }, 450));
-    const restyle = (patch = {}, label = '스타일 변경', coalesce = false) => {
-      pushHistory(label, coalesce);
-      c.style = normalizeStyle({
-        keyVisual: c.style.keyVisual,
-        kvReadability: c.style.kvReadability,
-        kvMeta: c.style.kvMeta,
-        logo: c.style.logo,
-        logoMono: c.style.logoMono ?? null,
-        logoLight: c.style.logoLight ?? null,
-        logoTone: c.style.logoTone ?? null,
-        logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
-        colorsManual: !!c.style.colorsManual,   // 손으로 고친 색(10-19) — 지면이 주색을 따라간다
-        textTone: c.style.textTone ?? 'auto',   // 글자색 톤(10-19)
-        logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
-        object: c.style.object ?? null,
-        objectMeta: c.style.objectMeta ?? null,
-        mode: c.style.mode,
-        background: c.style.background,
-        kvUse: c.style.kvUse,
-        kvTypeOverride: c.style.kvTypeOverride ?? null,
-        chipTone: c.style.chipTone,
-        ...Object.fromEntries(PRESET_KEYS.map(k => [k, c.style[k]])),   // 편집 프리셋(10-14) — 색·글꼴만 바꿔도 풀리지 않게
-        colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
-        fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
-        mood: c.style.mood,
-        ...patch,
-      });
-      logEvent(c, 'style_changed', {});
-      regen(c);
-      autosave();
-      refreshFrames();
-      $('inspNote').textContent = '스타일 전체 반영됨';
-      log('스타일 변경 → 전체 재생성');
-    };
+    const restyle = (patch = {}, label = '스타일 변경', coalesce = false) => restyleWith(c, patch, label, coalesce, {
+      colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
+      fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
+    });
     // 컬러피커는 드래그하는 내내 값이 흐른다 — 한 번의 색 고르기가 되돌리기 한 걸음이 되도록 묶는다
     const styleChange = debounce(() => restyle({}, '스타일 변경', true), 350);
     const colorEdit = debounce(() => restyle({ colorsManual: true }, '색 직접 변경', true), 350);   // 10-19: 손으로 고른 색은 지면(그라데이션)까지 따라간다
@@ -2387,6 +2357,9 @@ function renderInspector() {
       ${artifactFontHtml(a, c)}
       ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
       <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>` : ''}
+      ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
+      <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${(a.variantSel ?? 0) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
+      <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll">이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
       ${ED.alignArtifactHtml(a)}
 ` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
@@ -2464,6 +2437,34 @@ function renderInspector() {
     log(`${a.specId} 라벨 알약 ${v ? CHIP_LABEL[v] : '공통 따름'}`);
   });
   if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); }
+  // 레이아웃 안(10-20): 썸네일은 그 안의 프리셋으로 다시 그린 html 을 작은 iframe 에 — 안은 캠페인 공통 스타일 + 안 프리셋(산출물 개별 편집값은 안 섞는다)
+  if (a.channel === 'ad' && (a.variants?.length ?? 0) > 1) {
+    const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec), k = Math.min(106 / nw, 66 / nh);
+    for (const box of insp.querySelectorAll('.vthumb-box')) {
+      const v = a.variants[+box.dataset.vi]; if (!v) continue;
+      let html = ''; try { html = renderAd(adEffCtx(a), { ...c.style, ...v.style }, spec); } catch {}
+      if (!html) continue;
+      const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.srcdoc = previewDoc(html, artifactFontId(a)); box.appendChild(f);
+    }
+    insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
+      const i = +b.dataset.vi; if (i === (a.variantSel ?? 0)) return;
+      pushHistory(`${artLabel(a)} 레이아웃 안 ${i + 1}`);
+      const prev = a.variants[a.variantSel ?? 0]?.style ?? {}; const next = a.variants[i].style;
+      const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, next);   // 이전 안의 키는 지우고 새 안의 키만
+      a.overrides.style = st; a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
+      logEvent(c, 'variant_selected', { specId: a.specId, variant: i, label: a.variants[i].label, style: next });
+      regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+      $('inspNote').textContent = `레이아웃 안 ${i + 1} — 이 산출물만`;
+      log(`${a.specId} 레이아웃 안 ${i + 1} ${a.variants[i]?.label ?? ''}`);
+    });
+    $('iVariantAll').onclick = () => {
+      const v = a.variants[a.variantSel ?? 0]; if (!v) return;
+      restyleWith(c, { ...v.style }, `레이아웃 안 일괄 「${v.label}」`);   // 캠페인 프리셋으로 전파 — 쓸 수 없는 규격은 렌더러가 무시하고 자동 배치 그대로
+      logEvent(c, 'variant_selected', { all: true, from: a.specId, label: v.label, style: v.style });
+      renderInspector();
+      toast(`「${v.label}」 을 캠페인 전체에 — 쓸 수 없는 규격은 자동 배치 그대로`);
+    };
+  }
   insp.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
     if ((a.variant ?? 0) === Number(b.dataset.v)) return;   // 같은 시안 다시 누르면 되돌릴 것도 없다
     pushHistory(`${artLabel(a)} 시안 ${Number(b.dataset.v) + 1}`);
@@ -2547,6 +2548,41 @@ function renderInspector() {
   };
   insp.querySelector('#iDesel').onclick = () => select(null);
   insp.querySelector('#iDel').onclick = () => removeArtifact(a);
+}
+// 캠페인 공통 스타일 다시 세우기 — 캠페인 인스펙터(restyle: 색·글꼴은 피커에서)와 산출물 인스펙터(「이 안으로 전부」: 현재 값 그대로)가 같이 쓴다(10-20)
+function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false, { colors, fonts } = {}) {
+  pushHistory(label, coalesce);
+  c.style = normalizeStyle({
+    keyVisual: c.style.keyVisual,
+    kvReadability: c.style.kvReadability,
+    kvMeta: c.style.kvMeta,
+    logo: c.style.logo,
+    logoMono: c.style.logoMono ?? null,
+    logoLight: c.style.logoLight ?? null,
+    logoTone: c.style.logoTone ?? null,
+    logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
+    colorsManual: !!c.style.colorsManual,   // 손으로 고친 색(10-19) — 지면이 주색을 따라간다
+    textTone: c.style.textTone ?? 'auto',   // 글자색 톤(10-19)
+    logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
+    object: c.style.object ?? null,
+    objectMeta: c.style.objectMeta ?? null,
+    mode: c.style.mode,
+    background: c.style.background,
+    kvUse: c.style.kvUse,
+    kvTypeOverride: c.style.kvTypeOverride ?? null,
+    chipTone: c.style.chipTone,
+    ...Object.fromEntries(PRESET_KEYS.map(k => [k, c.style[k]])),   // 편집 프리셋(10-14) — 색·글꼴만 바꿔도 풀리지 않게
+    colors: colors ?? [c.style.palette.primary, c.style.palette.secondary, c.style.palette.accent],
+    fonts: fonts ?? c.style.fonts,
+    mood: c.style.mood,
+    ...patch,
+  });
+  logEvent(c, 'style_changed', {});
+  regen(c);
+  autosave();
+  refreshFrames();
+  const n = $('inspNote'); if (n) n.textContent = '스타일 전체 반영됨';
+  log('스타일 변경 → 전체 재생성');
 }
 
 /* ═══ 산출물 추가 · 제거 ═══
@@ -3070,6 +3106,7 @@ function saveCampaignToStore() {
       guideSkips: a.guideSkips ?? null, guideHuman: a.guideHuman ?? null,   // 가이드 검수 넘김 이유·눈으로 확인(10-14)
       variant: a.variant ?? 0, size: a.size ?? null, status: a.status,
       gateOverride: a.gateOverride ?? null,   // 검수 필요·초안을 사유 적고 승인한 기록(10-20 승인 게이트)
+      variants: a.variants ?? null, variantSel: a.variantSel ?? 0,   // 레이아웃 안·고른 안(10-20 2단계) — 안은 다시 열 때 재계산되지만 기록으로 남긴다
     })),
     log: c.log,
   };
@@ -3088,6 +3125,7 @@ const LOG_LABEL = {
   propagation_run: '일괄 반영', style_changed: '스타일 변경', size_changed: '규격 변경',
   variation_cycled: '시안 변경', roster_loaded: '명단 적용', artifact_approved: '승인', artifact_unapproved: '승인 취소',
   campaign_reopened: '다시 열기', artifact_added: '산출물 추가', artifact_removed: '산출물 제거',
+  variant_selected: '레이아웃 안 선택',
 };
 
 // 저장된 캠페인의 로고를 한 번 손질한다(누끼·여백 트림) — 트림 기능 전에 올린 로고가 작게 보이는 것을 고친다. 바뀐 게 없으면 표시만 남긴다
@@ -3119,6 +3157,7 @@ function openStored(saved) {
     if (s.guideHuman) a.guideHuman = s.guideHuman;
     if (s.gateOverride) a.gateOverride = s.gateOverride;
     if (s.variant != null) a.variant = s.variant;
+    if (s.variantSel != null) a.variantSel = s.variantSel;   // 레이아웃 안 선택 — 뒤의 regen 이 범위 밖이면 0 으로 되돌린다
   }
   regen(state.campaign);   // 복원한 개별 설정을 반영해 다시 렌더
   migrateLogos(state.campaign);
