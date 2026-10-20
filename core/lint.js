@@ -10,6 +10,7 @@
 //   fontFamily,           본문에 실제 적용된 글꼴
 //   texts: [{ role, text, lines, fontPx, color, bbox:{x,y,w,h} }],   bbox는 캔버스(1배) 좌표
 //   logo: { bbox } | null,
+//   bgColors,             바탕 샘플색 hex 목록 — 글자·로고·그림 상자를 피한 점 (null=측정 못 함)
 // }
 // 측정 못 한 값(null)은 위반이 아니다 — "모름"과 "틀림"을 섞으면 검사기를 못 믿게 된다.
 //
@@ -113,6 +114,18 @@ export function lintArtifact({ spec, medium, measure }) {
       if ((th.min != null && t.fontPx < th.min) || (th.max != null && t.fontPx > th.max)) {
         block('text-height', `${t.role} 글자 ${t.fontPx}px — 규정 ${th.min ?? '?'}~${th.max ?? '?'}px`, t.role);
       }
+    }
+  }
+
+  // 배경 금지색(리멤버 PDF p.8: 흰·검·브랜드 주황·근접 흰 2색) — 측정한 바탕 샘플색이 금지색과 채널당 ±12 안이면 차단.
+  //   bgColors 는 앱이 글자·로고·그림 상자를 피한 지점에서 뽑은 hex 목록. null 이면 측정 못 한 것(위반 아님).
+  const banned = (medium?.backgroundColors?.banned ?? []).map(norm).filter(Boolean);
+  if (banned.length && Array.isArray(measure.bgColors)) {
+    const rgb = hx => [1, 3, 5].map(i => parseInt(String(hx).slice(i, i + 2), 16));
+    const near = (a, b) => rgb(a).every((v, i) => Math.abs(v - rgb(b)[i]) <= 12);
+    for (const c of measure.bgColors) {
+      const hit = banned.find(b => near(norm(c), b));
+      if (hit) { block('bg-banned', `배경색 ${norm(c).toUpperCase()} — 매체 금지색 ${hit.toUpperCase()}(근접)`); break; }
     }
   }
 

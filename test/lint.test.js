@@ -112,3 +112,15 @@ test('an unmeasured value never fails — null means "could not measure", not "w
   const r = lintArtifact({ spec, medium, measure: { ...ok, bytes: null, transparent: null, fontFamily: null } });
   assert.equal(r.level, 'pass');
 });
+
+test('banned background colours (medium.backgroundColors.banned) block when a sampled background pixel is within tolerance; unmeasured bgColors never fail', () => {
+  const med = { ...medium, backgroundColors: { banned: ['#FFFFFF', '#000000', '#FF5414', '#F7F7F0', '#E8E7E0'] } };
+  const r1 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#1E8BFF', '#1C7FE6'] } });
+  assert.deepEqual(codes(r1), []);
+  const r2 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#1E8BFF', '#FF5212'] } });   // 브랜드 주황 ±2
+  assert.deepEqual(codes(r2), ['bg-banned']); assert.equal(r2.level, 'block');
+  const r3 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: null } });
+  assert.deepEqual(codes(r3), []);
+  // 금지색이 없는 매체는 검사하지 않는다
+  assert.deepEqual(codes(lintArtifact({ spec, medium, measure: { ...ok, bgColors: ['#FFFFFF'] } })), []);
+});

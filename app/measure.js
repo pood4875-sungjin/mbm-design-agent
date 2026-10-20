@@ -43,8 +43,9 @@ export async function measureDom(html, spec) {
   const logoEl = root.querySelector('[data-logo]');
   const logo = logoEl ? (() => { const r = logoEl.getBoundingClientRect(); return { bbox: { x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height } }; })() : null;
   const fontFamily = getComputedStyle(root).fontFamily.split(',')[0].replace(/["']/g, '').trim();
+  const objects = [...root.querySelectorAll('[data-object]')].map(o => { const r = o.getBoundingClientRect(); return { x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height }; });
   host.remove();
-  return { texts, logo, fontFamily };
+  return { texts, logo, fontFamily, objects };
 }
 
 // 캔버스 가장자리·모서리 몇 점의 알파를 본다 — 투명 규격인지 아닌지 가르는 데는 충분하다.
@@ -62,6 +63,21 @@ export async function measureArtifact(html, spec, opts = {}) {
   const submitW = spec.submitW ?? spec.w * (spec.exportScale ?? 1);
   const scale = submitW / spec.w;
   const { canvas, blob } = await rasterizeCanvas(html, spec.w, spec.h, scale, format === 'jpeg' ? 'jpg' : format, opts.quality ?? 0.92);
+  // 바탕 샘플색: 캔버스 9점(3×3 격자, 가장자리 6%) 중 글자·로고·그림 상자에 안 걸리는 점의 색. 알파 < 255 면 뺀다(투명 PNG)
+  const bgColors = (() => {
+    try {
+      const ctx2 = canvas.getContext('2d'); const W = canvas.width, H = canvas.height;
+      const boxes = [...dom.texts.map(t => t.bbox), dom.logo?.bbox, ...(dom.objects ?? [])].filter(Boolean).map(b => ({ x: b.x * scale, y: b.y * scale, w: b.w * scale, h: b.h * scale }));
+      const inBox = (x, y) => boxes.some(b => x >= b.x - 4 && x <= b.x + b.w + 4 && y >= b.y - 4 && y <= b.y + b.h + 4);
+      const out = [];
+      for (const fx of [0.06, 0.5, 0.94]) for (const fy of [0.06, 0.5, 0.94]) {
+        const x = Math.round(W * fx), y = Math.round(H * fy); if (inBox(x, y)) continue;
+        const d = ctx2.getImageData(x, y, 1, 1).data; if (d[3] < 255) continue;
+        out.push('#' + [d[0], d[1], d[2]].map(n => n.toString(16).padStart(2, '0')).join('').toUpperCase());
+      }
+      return out.length ? [...new Set(out)] : null;
+    } catch { return null; }
+  })();
   return {
     w: canvas.width, h: canvas.height,
     bytes: blob.size, format,
@@ -69,6 +85,7 @@ export async function measureArtifact(html, spec, opts = {}) {
     fontFamily: dom.fontFamily,
     texts: dom.texts,
     logo: dom.logo,
+    bgColors,
     blob,
   };
 }
