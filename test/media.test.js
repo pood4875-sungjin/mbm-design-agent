@@ -85,3 +85,15 @@ test('officialSources (매체 공식 가이드 링크) — 있으면 url·covers
     }
   }
 });
+
+test('every extracted spec has a grade A/B/C in _extract.json (A = 규정 틀, B = 로고·비주얼만, C = 자유 배치)', () => {
+  const ex = JSON.parse(readFileSync(join(dir, '_extract.json'), 'utf8'));
+  assert.ok(ex.grades && typeof ex.grades === 'object', '_extract.json 에 grades 맵이 없다');
+  for (const id of ex.extract) {
+    assert.ok(['A', 'B', 'C'].includes(ex.grades[id]), `${id}: 등급 없음/모름 (${ex.grades[id]})`);
+  }
+  // 11월 100% 대상은 전부 A
+  for (const id of ex.extract.filter(id => id.startsWith('jasoseol-') || id.startsWith('remember-'))) {
+    assert.equal(ex.grades[id], 'A', `${id}: 자소설·리멤버는 등급 A`);
+  }
+});

@@ -26,6 +26,7 @@ export function adSpecEntries() {
           w: isLogo ? 600 : 720, h: isLogo ? 300 : 405, exportScale: 1, submitW: null, submitH: null,
           format: (s.asset.format ?? ['png']).map(f => String(f).toLowerCase()), maxKB: null, confidence: s.confidence,
           extract: s.extract === true, asset: s.asset, outsideTexts: [], rules: s, mediumRules: m,
+          grade: EXTRACT.grades?.[s.id] ?? null,   // 규격 등급 A/B/C (core/media/_extract.json grades, 10-20)
         };
         continue;
       }
@@ -46,6 +47,7 @@ export function adSpecEntries() {
         extract: s.extract === true,
         // 이미지 밖 텍스트 — 소재에 그리지 않고 매체 시스템에 따로 넘기는 글자 (검수 체크리스트·전달 세트에 쓴다)
         outsideTexts: (s.textLimits ?? []).filter(t => t.inImage === false || /이미지 밖/.test(String(t.field ?? ''))).map(t => ({ field: t.field, maxChars: t.maxChars ?? null, lines: t.lines ?? null })),
+        grade: EXTRACT.grades?.[s.id] ?? null,   // 규격 등급 A/B/C (core/media/_extract.json grades, 10-20)
         rules: s,            // 검사기가 쓰는 규칙 원본 (참조)
         mediumRules: m,      // 글자색·글꼴·글자수 계산법 등 매체 공통 규칙
       };

@@ -107,7 +107,7 @@ export const MEDIA = ${JSON.stringify(media, null, 2)};
 export const MEDIA_GROUPS = ${JSON.stringify(GROUP_ORDER)};
 
 // 추출 규격 — 이미지로 뽑아 전달하는 규격 ${counts.extract}개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
-export const EXTRACT = ${JSON.stringify({ order: extractCfg.order, counts: extractCfg.counts, ids: extractCfg.extract, source: extractCfg.source, decisions: extractCfg.decisions, board: extractCfg.board ?? null }, null, 2)};
+export const EXTRACT = ${JSON.stringify({ order: extractCfg.order, counts: extractCfg.counts, ids: extractCfg.extract, grades: extractCfg.grades ?? {}, source: extractCfg.source, decisions: extractCfg.decisions, board: extractCfg.board ?? null }, null, 2)};
 
 // Figma 보드 구조 — 그룹 → 매체 → 프레임(01 규정 · 02 가이드&예시 · 반려 사례)과 프레임별 검수 기록
 export const MEDIA_BOARD = ${JSON.stringify(board, null, 2)};
