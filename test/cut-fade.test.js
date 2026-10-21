@@ -36,7 +36,9 @@ test('사진 상자의 안쪽 변만 녹인다 — 네이버 DA 사진 칸 오�
 
 test('제외 — 둥근 상자(카카오 썸네일) · 템플릿 여백 변(자소설 PC팝업 8/30) · 칸 안 contain 누끼(자소설 160×600·네이버 DA)', () => {
   assert.equal(fadeOf(renderAd(ctx, photo, specs['kakao-display-pc-promo'])), null, '카카오 둥근 상자');
-  assert.equal(fadeOf(renderAd(ctx, photo, specs['jasoseol-pc-premium-popup-pc'])), null, '자소설 팝업 edgeInset');
+  // 10-21 사용자 「또 끊김」: 템플릿 여백 변(자소설 팝업 오른쪽 8·아래 30)도 cover 로 자른 사진·바탕 그림은 녹인다 — 칸은 지면 안쪽 그대로. 누끼 contain 은 안 잘리니 그대로 없음
+  const jp = fadeOf(renderAd(ctx, photo, specs['jasoseol-pc-premium-popup-pc'])); assert.ok(jp && /R\d+/.test(jp) && /B\d+/.test(jp), '자소설 팝업 사진 칸 오른쪽·아래: ' + jp);
+  assert.equal(fadeOf(renderAd(ctx, cut, specs['jasoseol-pc-premium-popup-pc'])), null, '자소설 팝업 누끼 contain 은 안 잘림');
   assert.equal(fadeOf(renderAd(ctx, cut, specs['jasoseol-pc-premium-jobpost-pc'])), null, '160×600 contain');
   assert.equal(fadeOf(renderAd(ctx, cut, specs['naver-gfa-mobile-da-1250x560'])), null, '네이버 누끼 contain');
 });

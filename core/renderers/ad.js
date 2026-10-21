@@ -461,7 +461,7 @@ function meltFix(html, style, spec, tr) {
 
 // 끊김 녹임(10-19 사용자 「그라데이션으로 옅게 처리하던지 해 줘. 끊기는 건. 네이버도 마찬가지」) — 그린 뒤 오브젝트 상자마다 실제 그림 사각형을 계산해, 뚝 잘린 변을 지면으로 녹이는 마스크를 더한다(기존 녹임과 교집합).
 //   누끼: 그림이 상자 밖으로 넘친 변(지면 변에서 잘리든 상자 변에서 잘리든) · 사진·바탕 있는 그림: 상자 변이 지면 안쪽에 있는 변(지면 변에 붙은 변은 자연스러운 끝)
-//   제외: 지면 전체 그림(data-kv-only·inset:0) · 둥근 상자(카카오 썸네일·비즈보드 r10) · 템플릿이 여백을 적어 둔 변(mold.image.edgeInset — 자소설 PC팝업 8/30) · 이미 그 변을 녹인 마스크
+//   제외: 지면 전체 그림(data-kv-only·inset:0) · 둥근 상자(카카오 썸네일·비즈보드 r10) · 템플릿이 여백을 적어 둔 변(mold.image.edgeInset — 자소설 PC팝업 8/30)은 누끼만(사진·바탕 그림은 10-21부터 녹인다) · 이미 그 변을 녹인 마스크
 function cutFade(html, style, spec, tr = null) {
   const C = CANON.cutFade; if (!C || !style?.keyVisual) return html;
   const fStops = tr?.field?.stops ?? null, AL = tr?.field?.aligned ?? null;
@@ -504,7 +504,8 @@ function cutFade(html, style, spec, tr = null) {
     const had = new Set(own.map(g => (g.match(/^linear-gradient\((to [a-z]+)/) ?? [])[1]).filter(Boolean));
     const add = [], sides = [];
     for (const s of ['left', 'right', 'top', 'bottom']) {
-      if (inset && inset[s] != null) continue;
+      // 템플릿 여백 변(edgeInset)은 누끼(칸 안 contain, 안 잘림)에서만 건너뛴다 — 사진·바탕 있는 그림은 cover 로 칸 변에서 뚝 잘리므로 여백 변이어도 녹인다(10-21 사용자 「또 끊김」: 자소설 PC 팝업 오른쪽 8·아래 30 안쪽 칸의 3D 캐릭터 그림이 칸 변에서 끊김. 칸 자체는 10-15 결정대로 지면 안쪽 그대로)
+      if (inset && inset[s] != null && cutout) continue;
       if (had.has(dirOf[s])) continue;
       const len = visLen(s); if (!(len > 0)) continue;
       let pct = null;
