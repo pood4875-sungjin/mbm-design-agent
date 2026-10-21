@@ -4274,6 +4274,22 @@
    "since": "2026-10-21",
    "round": 73,
    "source": "history/2026-10-21_빈_지면_보정.md"
+  },
+  {
+   "id": "fade-budget",
+   "category": "이음·녹임",
+   "scope": "all (틀 그림 칸·사진 칸의 끊김 녹임 cutFade 후처리)",
+   "status": "active",
+   "rule": "한 그림 칸의 한 축에서 양쪽 녹임(글자 쪽 % 녹임 + 잘린 변 녹임)의 합이 칸 길이의 60%(1−keep)를 넘지 않는다 — 가운데 40%는 늘 또렷이 남긴다. 줄이는 순서: 글자 쪽 녹임을 CANON.melt.min(30%)까지 → 그래도 넘치면 잘린 변 녹임을 cutFade.min(10%)까지. 템플릿이 여백을 적어 둔 변(mold.image.edgeInset — 자소설 PC팝업 오른쪽 8·아래 30)은 색 차로 늘리지 않고 photo(28%) 고정(insetFixed). 한쪽만 녹이는 칸(구글 580 모서리 칸 왼 55%·인스타 1080 틀 칸 위 55%)은 예산 안이라 그대로",
+   "value": "CANON.cutFade.keep .4 · insetFixed true · 표시 data-fade-budget=\"L39→32,T45→32\"",
+   "where": "core/renderers/ad.js (cutFade 끝 예산 단계) · core/canon.js cutFade",
+   "evidence": [
+    "10-21 사용자 「너무 조금 보여… 좌, 하단을 보이는 게 낫지 않나」 — 자소설 PC팝업 550×400 틀 그림 칸 249×183 에 방 사진(동서식품): 왼쪽 39~50 + 오른쪽 42~53 + 아래 55% 가 색 차(meltNeed)로 다 늘어나 그림 가운데 조각만 남았다. pin-32·pin-27 로 재현",
+    "고친 뒤 pin-32: L39·R42·B55·T45 → L32·R28·B28·T32 · pin-27: L50·R53·B55 → L32·R28·B28. 테스트 539(cut-fade 예산 1건 추가), meltFix 구글 580·인스타 1080 55% 단언 그대로"
+   ],
+   "since": "2026-10-21",
+   "round": 74,
+   "source": "history/2026-10-21_녹임_예산.md"
   }
  ]
 }

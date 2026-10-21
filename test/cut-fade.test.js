@@ -42,3 +42,19 @@ test('제외 — 둥근 상자(카카오 썸네일) · 템플릿 여백 변(자�
   assert.equal(fadeOf(renderAd(ctx, cut, specs['jasoseol-pc-premium-jobpost-pc'])), null, '160×600 contain');
   assert.equal(fadeOf(renderAd(ctx, cut, specs['naver-gfa-mobile-da-1250x560'])), null, '네이버 누끼 contain');
 });
+
+test('녹임 예산(10-21 사용자 「너무 조금 보여… 좌·하단」): 자소설 PC팝업 사진 칸 — 여백 변(오른쪽 8·아래 30)은 photo 28% 고정(insetFixed), 양쪽 합은 60% 이하(keep .4) · 구글 580 모서리 칸(한쪽만 녹임)은 예산 밖', async () => {
+  const { CANON } = await import('../core/canon.js');
+  // 밝은 속색 사진 × 갈색 지면: 색 차로 왼쪽·위 녹임이 55% 까지 늘고, 여백 변도 55% 까지 늘던 조합
+  const bright = normalizeStyle({ colors: ['#B5571B'], keyVisual: PNG, kvMeta: { ar: 1.5, px: [1500, 1000], colors: ['#F4E7D6', '#8FB7E0', '#6B4A2E'], field: { kind: 'photo', opaque: 1, lum: 0.6, sat: 0.3, edges: { left: { hex: '#6B4A2E' }, top: { hex: '#6B4A2E' }, right: { hex: '#6B4A2E' }, bottom: { hex: '#6B4A2E' } }, quadrants: { tl: '#F4E7D6', tr: '#8FB7E0', bl: '#F4E7D6', br: '#8FB7E0' } } } });
+  const h = renderAd(ctx, { ...bright, __fix: {} }, specs['jasoseol-pc-premium-popup-pc']);
+  const f = fadeOf(h); assert.ok(f && /R28\b/.test(f) && /B28\b/.test(f), '여백 변 28 고정: ' + f);
+  const melt = +(h.match(/data-object="1"[^>]*data-melt="([\d.]+)"/) ?? [])[1], top = +(h.match(/data-object="1"[^>]*data-melt-top="([\d.]+)"/) ?? [])[1];
+  const limit = Math.round((1 - CANON.cutFade.keep) * 100);
+  assert.ok(melt + 28 <= limit + 0.5 && top + 28 <= limit + 0.5, `왼 ${melt}+28 · 위 ${top}+28 ≤ ${limit}`);
+  assert.ok(melt >= CANON.melt.min * 100 - 0.5, '글자 쪽 녹임은 바닥(30%) 아래로는 안 줄인다: ' + melt);
+  if (/data-fade-budget=/.test(h)) assert.match(h, /data-fade-budget="[LT]\d+(\.\d+)?→\d+/);
+  // 한쪽만 녹이는 칸은 그대로 — 구글 580 모서리 칸 왼·위 녹임(오른쪽·아래는 지면 변)
+  const g = renderAd(ctx, { ...bright, __fix: {} }, specs['google-gdn-580x400']);
+  assert.ok(!/data-fade-budget=/.test(g), '구글 580 은 예산 안: ' + (g.match(/data-fade-budget="[^"]*"/) ?? [''])[0]);
+});

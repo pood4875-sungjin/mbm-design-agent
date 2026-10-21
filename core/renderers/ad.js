@@ -513,7 +513,9 @@ function cutFade(html, style, spec, tr = null) {
       else if (gapC[s] > C.minGap && over[s] > -C.minGap) {
         // 사진·바탕 그림의 안쪽 변: 28% 는 바닥, 그 변에서 드러나는 색과 지면이 멀면 CANON.melt 길이까지(meltFix 와 같은 자 — 네이버 DA 사진 칸 오른쪽·아래가 28% 로는 색 차 .3~.5 를 못 덮었다, 10-20 전수 감사 49건)
         pct = C.photo;
-        if (fStops?.length) {
+        // 템플릿 여백 변(edgeInset)은 photo 고정(CANON.cutFade.insetFixed, 10-21 「너무 조금 보여」) — 그 너머는 8·30px 지면색 띠뿐, 색 차로 55% 까지 늘리면 칸의 아래 반이 사라진다
+        const fixedInset = !!(C.insetFixed && inset && inset[s] != null);
+        if (fStops?.length && !fixedInset) {
           const picLen = (s === 'left' || s === 'right') ? dw : dh;
           const frac = s === 'left' ? (clip.l - P.l) / picLen : s === 'right' ? (P.r - clip.r) / picLen : s === 'top' ? (clip.t - P.t) / picLen : (P.b - clip.b) / picLen;
           const edgePos = s === 'left' ? clip.l : s === 'right' ? clip.r : s === 'top' ? clip.t : clip.b;
@@ -528,11 +530,36 @@ function cutFade(html, style, spec, tr = null) {
     }
     if (!add.length) return m;
     hit = true;
+    // 축별 녹임 예산(CANON.cutFade.keep, 10-21 「너무 조금 보여」): 한 축의 양쪽 녹임 합이 (1−keep) 를 넘으면 글자 쪽 % 녹임을 melt.min 까지, 그래도 넘치면 이번 잘린 변 녹임을 cutFade.min 까지 줄인다
+    let ownOut = own, restOut = rest, budgetNote = '';
+    if (C.keep > 0) {
+      const ownPct = {}; const ownIdx = {};
+      own.forEach((g, i) => { const dm = g.match(/^linear-gradient\((to [a-z]+),transparent 0%,(?:transparent ([\d.]+)%,)?[\s\S]*#000 ([\d.]+)%\)$/); if (!dm) return; const side = { 'to right': 'left', 'to left': 'right', 'to bottom': 'top', 'to top': 'bottom' }[dm[1]]; if (!side) return; ownPct[side] = { end: parseFloat(dm[3]), from: dm[2] != null ? parseFloat(dm[2]) : 0, dir: dm[1] }; ownIdx[side] = i; });
+      const newPct = {}; sides.forEach((tag, i) => { newPct[{ L: 'left', R: 'right', T: 'top', B: 'bottom' }[tag[0]]] = { pct: parseFloat(tag.slice(1)), i }; });
+      const minOwn = Math.round((CANON.melt?.min ?? 0.3) * 100), minNew = C.min ?? 10, limit = Math.round((1 - C.keep) * 100);
+      const trims = [];
+      for (const [a, b] of [['left', 'right'], ['top', 'bottom']]) {
+        const o = ownPct[a] ? a : ownPct[b] ? b : null, n = newPct[a] ? a : newPct[b] ? b : null;
+        if (!o || !n || o === n) continue;   // 양쪽이 각각 기존 녹임·이번 녹임일 때만(같은 변이면 교집합이라 더 짧은 쪽이 보인다)
+        let oP = ownPct[o].end, nP = newPct[n].pct; const total = oP + nP; if (total <= limit) continue;
+        let over = total - limit; const cutO = Math.min(over, Math.max(0, oP - minOwn)); oP -= cutO; over -= cutO;
+        const cutN = Math.min(over, Math.max(0, nP - minNew)); nP -= cutN;
+        if (cutO > 0) { const { from, dir } = ownPct[o]; const len = Math.round((oP - from) * 10) / 10; ownOut = ownOut.map((g, i) => i === ownIdx[o] ? (from > 0 ? meltGradientFrom(dir, from, len) : meltGradient(dir, Math.round(oP))) : g);
+          const oPct = from > 0 ? Math.round(oP * 10) / 10 : Math.round(oP);
+          const md = (rest.match(/data-melt-dir="([^"]*)"/) ?? [])[1];
+          if (md === dir || (md === 'sides' && dir === 'to right')) restOut = restOut.replace(/data-melt="[^"]*"/, `data-melt="${oPct}"`);
+          else if (dir === 'to bottom' && /data-melt-top=/.test(restOut)) restOut = restOut.replace(/data-melt-top="[^"]*"/, `data-melt-top="${oPct}"`);
+          else if (dir === 'to left' && md === 'sides') restOut = restOut.replace(/data-melt-right="[^"]*"/, `data-melt-right="${oPct}"`);
+          trims.push(`${o[0].toUpperCase()}${ownPct[o].end}→${oPct}`); }
+        if (cutN > 0) { const i = newPct[n].i; add[i] = gradPx(dirOf[n], startPx(n), Math.round(visLen(n) * nP / 100)); sides[i] = n[0].toUpperCase() + Math.round(nP); trims.push(`${n[0].toUpperCase()}${newPct[n].pct}→${Math.round(nP)}`); }
+      }
+      if (trims.length) budgetNote = ` data-fade-budget="${trims.join(',')}"`;
+    }
     const seg = /-webkit-mask-image:[^;]*;(?:-webkit-mask-composite:[^;]*;)?mask-image:[^;]*;(?:mask-composite:[^;]*;)?/;
     // 기존 녹임 자리에 합쳐 넣는다(마스크 순서·다른 속성 위치 그대로 — 테스트·svg 내보내기가 읽는 문자열). 마스크가 없던 상자는 뒤에 붙이되 `;` 를 보장한다 —
     //   10-20 전수 감사: 틀 모서리 칸(`…overflow:hidden"`)·블리드 층 뒤에 `;` 없이 붙어 `overflow:hidden-webkit-mask-image:…` 가 되면 Chrome 이 overflow 와 마스크를 둘 다 버린다(인스타 1080 비씨월드 L28/T28 이 적용되지 않았다)
-    const st2 = seg.test(st) ? st.replace(seg, meltMaskList([...own, ...add])) : st + (/;\s*$/.test(st) || !st ? '' : ';') + meltMaskList(add);
-    return `<div data-object="1"${attrs} style="${st2}"${rest} data-cut-fade="${sides.join(',')}">`;   // 녹인 변 표시는 태그 끝에(앞 속성 순서를 읽는 테스트·대조표 그대로)
+    const st2 = seg.test(st) ? st.replace(seg, meltMaskList([...ownOut, ...add])) : st + (/;\s*$/.test(st) || !st ? '' : ';') + meltMaskList(add);
+    return `<div data-object="1"${attrs} style="${st2}"${restOut} data-cut-fade="${sides.join(',')}"${budgetNote}>`;   // 녹인 변 표시는 태그 끝에(앞 속성 순서를 읽는 테스트·대조표 그대로)
   });
   return hit ? out.replace('&quot;rules&quot;:[', '&quot;rules&quot;:[&quot;cutFade&quot;,') : out;
 }
