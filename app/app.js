@@ -946,7 +946,8 @@ function mediaPickerHtml(it) {
     }).join('');
     const picked = it.media.filter(id => all.some(x => x.medium === id));
     // 추출 규격(47)만 기본으로 만든다. 「참고 규격 포함」을 켜면 나머지 규격도 목록에 보이고 하나씩 켤 수 있다(10-14 사용자 컨시어지 보드 목록)
-    const specToggle = picked.length ? `<div class="pspec"><span>${it.specRefs ? '추출 규격 + 참고 규격까지 보여요.' : '고른 매체의 추출 규격이 전부 만들어져요.'}</span>
+    const offN = all.filter(x => x.entry.extract && picked.includes(x.medium) && it.specOff.has(x.id)).reduce((n, g) => n + 1 + (g.twins?.length ?? 0), 0);
+    const specToggle = picked.length ? `<div class="pspec"><span>${offN ? `고른 매체 중 <b>${offN}종은 꺼져</b> 있어요(차수 칩·규격 목록에서 끈 것) — 전체 선택을 누르면 다 켜져요.` : it.specRefs ? '추출 규격 + 참고 규격까지 보여요.' : '고른 매체의 추출 규격이 전부 만들어져요.'}</span>
       <button type="button" class="lnk" id="sRefs" aria-pressed="${!!it.specRefs}">${it.specRefs ? '참고 규격 숨기기' : `참고 규격 포함 (${refGroupCount()})`}</button>
       <button type="button" class="lnk" id="sSpecs" aria-expanded="${!!it.specOpen}">${it.specOpen ? '규격 목록 닫기' : '규격 하나씩 고르기'}</button></div>` : '';
     if (!it.specOpen) return cards + specToggle;
@@ -1013,7 +1014,9 @@ function slotWhere() {
   const re = sel => { slotWhere(); if (sel) $('slot').querySelector(sel)?.focus({ preventScroll: true }); };
   box.querySelectorAll('.mcard[data-m]').forEach(b => b.onclick = () => {
     const id = b.dataset.m;
-    it.media = it.media.includes(id) ? it.media.filter(x => x !== id) : [...it.media, id];
+    const turningOn = !it.media.includes(id);
+    it.media = turningOn ? [...it.media, id] : it.media.filter(x => x !== id);
+    if (turningOn) for (const g of visibleGroups(it)) if (g.medium === id && g.entry.extract) it.specOff.delete(g.id);   // 카드로 매체를 켜면 그 매체의 추출 규격은 전부(차수 칩이 꺼 둔 것도)
     re(`.mcard[data-m="${id}"]`);
   });
   box.querySelectorAll('.mcard[data-c]').forEach(b => b.onclick = () => {
@@ -1028,6 +1031,7 @@ function slotWhere() {
     const ids = pickableMedia(it.kind);
     const allOn = ids.length > 0 && ids.every(id => it.media.includes(id));
     it.media = allOn ? it.media.filter(id => !ids.includes(id)) : [...new Set([...it.media, ...ids])];
+    if (!allOn) it.specOff.clear();   // 10-21 사용자 「전체 선택했는데 1단계 산출물만」: 차수 칩이 꺼 둔 다른 차수 규격(specOff)이 남아 있었다 — 전체 선택 = 모든 추출 규격 켬
     re('#mAll');
   });
   box.querySelectorAll('input[data-s]').forEach(cb => cb.onchange = () => {
@@ -2936,14 +2940,18 @@ async function doAdSvg(a) {
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
-async function exportAdZip(withSvg = false, { allVariants = false } = {}) {
+async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false } = {}) {
   const c = state.campaign;
-  // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로
+  // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로.
+  // 「미승인도 포함(검토용)」(10-21 사용자 「전체 선택했는데 1단계 산출물만 추출됨」 — 2·3단계는 게이트가 검수 필요라 승인분만 ZIP 에 들어갔다)을 켜면 차단 아닌 미승인도 「미승인_검토용/」 폴더로 함께
   const all = c.artifacts.filter(a => a.channel === 'ad');
-  const ads = all.filter(a => a.status === 'approved');
-  if (!ads.length) { toast(`승인된 매체 소재가 없어요 — 먼저 승인하세요(미승인 ${all.length}장)`); return; }
-  if (ads.length < all.length) toast(`승인분 ${ads.length}장만 ZIP 에 — 미승인 ${all.length - ads.length}장 제외`);
-  const assets = c.artifacts.filter(a => a.channel === 'asset' && a.status === 'approved');   // 전달물도 승인분만
+  const approved = all.filter(a => a.status === 'approved');
+  const ads = includeUnapproved ? all : approved;
+  if (!ads.length) { toast(`승인된 매체 소재가 없어요 — 먼저 승인하거나 「미승인도 포함」을 켜세요(미승인 ${all.length}장)`); return; }
+  if (!includeUnapproved && ads.length < all.length) toast(`승인분 ${ads.length}장만 ZIP 에 — 미승인 ${all.length - ads.length}장 제외(「미승인도 포함」으로 검토용 묶음 가능)`);
+  if (includeUnapproved && approved.length < all.length) toast(`미승인 ${all.length - approved.length}장은 「미승인_검토용/」 폴더에 — 매체 전달은 승인분만`);
+  const unapprovedKey = new Set(ads.filter(a => a.status !== 'approved').map(a => a.key ?? a.specId));
+  const assets = c.artifacts.filter(a => a.channel === 'asset' && (includeUnapproved || a.status === 'approved'));   // 전달물도 승인분만(검토용이면 같이)
   const renderN = allVariants ? ads.reduce((n, a) => n + ((a.variants?.length ?? 0) > 1 ? a.variants.length : 1), 0) : ads.length;
   toast(`매체 소재 ${ads.length}장${allVariants ? `(안 포함 ${renderN}장)` : ''} 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
   try {
@@ -2952,12 +2960,13 @@ async function exportAdZip(withSvg = false, { allVariants = false } = {}) {
     if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — ZIP에서 제외됨`); }
     const entries = [];
     for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
-      entries.push({ name: f.variant != null ? `${f.spec.mediumName}/${f.spec.id}/${f.name}` : `${f.spec.mediumName}/${f.name}`, data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
+      const pre = unapprovedKey.has(f.a?.key ?? f.a?.specId ?? f.spec.id) ? '미승인_검토용/' : '';
+      entries.push({ name: pre + (f.variant != null ? `${f.spec.mediumName}/${f.spec.id}/${f.name}` : `${f.spec.mediumName}/${f.name}`), data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
     const assetBlocked = assets.filter(a => a.lint?.level === 'block').length;
     if (assetBlocked) toast(`전달물 차단 ${assetBlocked}건 — ZIP에서 제외됨`);
-    for (const a of assets.filter(a => a.lint?.level !== 'block')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
+    for (const a of assets.filter(a => a.lint?.level !== 'block')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${a.status !== 'approved' ? '미승인_검토용/' : ''}${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
     // 전달 시트(10-16 캐치 중앙배너·네이버 썸네일·에브리타임 288): 글자를 매체가 웹폰트로 올리는 규격은 문구·배경 Hex 를 txt 로 — 이미지에는 글자가 없다
     const sheet = {}; const hexOf = {};
     const traceOf = a => { try { return JSON.parse(a.html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
@@ -3103,11 +3112,12 @@ function exportAllModal() {
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">${exportFontLine(ads)}</div>` : ''}
       ${ads.some(x => (x.variants?.length ?? 0) > 1) ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
+      ${ads.length > adsOk.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expUnapproved"> 미승인도 포함(검토용) — 미승인 ${ads.length - adsOk.length}장을 「미승인_검토용/」 폴더에 같이 (매체 전달은 승인분만)</label>` : ''}
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
-      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true, { allVariants: !!document.getElementById('expAllVariants')?.checked }); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(false, { allVariants: !!document.getElementById('expAllVariants')?.checked }); return false; } }] : []),
+      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true, { allVariants: !!document.getElementById('expAllVariants')?.checked, includeUnapproved: !!document.getElementById('expUnapproved')?.checked }); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(false, { allVariants: !!document.getElementById('expAllVariants')?.checked, includeUnapproved: !!document.getElementById('expUnapproved')?.checked }); return false; } }] : []),
       { label: '배너 PNG 2x 일괄', pri: !ads.length, fn: () => { batchBanners(banners); return false; } },
     ],
   });
