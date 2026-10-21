@@ -67,7 +67,7 @@
   svg.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   /* 포커스 링 — 유리·잉크 어느 표면 위에서도 보이게 하나로 통일 */
   button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-  .inputCard textarea:focus-visible,#sidebar .search input:focus-visible,#cmdBar input:focus-visible,.composer input#cvIn:focus-visible{outline:none}
+  .inputCard textarea:focus-visible,#sidebar .search input:focus-visible,#cmdBar input:focus-visible{outline:none}
 
   /* ═══ GNB — 화면 폭을 다 쓰는 반투명 유리 바(10-06 사용자: "오퍼 주고 글래스모피즘으로 full 너비로 딱"). 바탕의 점무늬·보드가 비쳐 보인다 ═══ */
   header{position:fixed;inset:0 0 auto 0;height:52px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:20;
@@ -278,10 +278,18 @@
     .prow2 .pt,.prow2 .pw{grid-column:2 / -1;justify-self:start}
   }
   /* 작성창 — 유리. 안의 단계 카드가 흰색이라 층이 읽힌다 */
-  .composer{background:var(--glass);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);border-radius:var(--r-xl);padding:10px 12px;margin-bottom:6px}
-  .composer .crow{display:flex;align-items:center;gap:8px;padding-left:2px}
-  .composer input#cvIn{flex:1;min-width:0;border:0;background:none;outline:0;font-size:15px}
-  #slot:not(:empty){margin-bottom:10px}
+  /* 10-21: 자유 입력창(답장·+첨부)은 없앴다 — 묻는 것은 전부 카드. 읽은 내용 카드(.bcard)는 필수 칸 격자 + 접힌 선택 칸 */
+  #slot:not(:empty){margin-bottom:14px}
+  .bf{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+  .bf .f.wide{grid-column:1/-1}
+  .bf .f input[type=text]:focus-visible{border-color:var(--focus);outline:none}
+  .bmore{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+  .bmore summary{font-size:12px;color:var(--sub);font-weight:700;cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
+  .bmore summary::-webkit-details-marker{display:none}
+  .bmore summary::before{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-left:2px}
+  .bmore[open] summary::before{transform:rotate(45deg)}
+  .bmore[open] summary{margin-bottom:12px}
+  @media (max-width:560px){.bf{grid-template-columns:1fr}}
   #slot > .card2{max-height:max(280px,calc(100vh - 380px));overflow-y:auto}
   .scard{padding-bottom:0}
   .sfoot2{position:sticky;bottom:0;background:var(--card);display:flex;justify-content:flex-end;padding:12px 0 16px;margin-top:6px}
@@ -673,15 +681,7 @@
     <div class="convo">
       <div class="steps" id="steps"></div>
       <div id="thread"></div>
-      <div class="composer">
-        <div id="slot"></div>
-        <div class="crow">
-          <button class="iconb" id="cvFile" title="키비주얼·로고 첨부" aria-label="키비주얼·로고 첨부"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-          <input type="file" id="cvFileIn" accept="image/*" style="display:none">
-          <input id="cvIn" placeholder="답장을 입력하세요…" aria-label="답장">
-          <button class="sendb" id="cvGo" aria-label="보내기"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-        </div>
-      </div>
+      <div id="slot"></div>
     </div>
   </div>
 
