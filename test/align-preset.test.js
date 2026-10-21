@@ -102,7 +102,7 @@ test('자유 규격(게임잡 PC 1780×528 · 인스타 스토리 1080×1920): �
 
 test('틀 규격(블라인드 게시글 1250×560 · 구글 580×400): 글자 칸은 그대로 text-align 만, 키비주얼 칸은 거울(오른쪽: w − x − 폭), 로고 칸도 거울 — 가운데는 글자 줄과 겹치면 칸 유지', () => {
   for (const kv of ['fox-cutout', 'ilhwa-photo']) {
-    const st = styleOf(kv);
+    const st = { ...styleOf(kv), __fix: {} };   // 빈 지면 보정(emptyFix, 10-21)은 끈다 — 글자 칸은 거울이 아니라 정렬만 바뀌므로 칸 키우기가 좌우 비대칭이 된다(상자 기준 겹침 가드). 여기선 틀 칸 거울만 본다
     for (const [sid, textX] of [['blind-post-banner', 80], ['google-gdn-580x400', 48]]) {
       const sp = S(sid); const base = renderAd(ctx, st, sp); const w = sp.w;
       const x0 = objLeftAny(base), w0 = Number(base.match(/<div data-object="1"[^>]*style="[^"]*?width:(\d+)px/)[1]);

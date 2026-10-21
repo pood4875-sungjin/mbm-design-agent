@@ -231,10 +231,12 @@ function emptyFix(ctx, style, spec, first) {
   const c0 = coverageOf(first.html, T, first.styleUsed, spec); if (c0 == null || c0.all >= C.min) return first.html;
   const f0 = style.kvMeta?.field, profiled = (f0?.opaque ?? 1) < 0.5 && Array.isArray(f0?.cols) && Array.isArray(f0?.rows);
   const OV = CANON.overlapFix, thr = OV ? ((kvTypeOf(style.kvMeta)?.flags?.character || profiled) ? OV.character : OV.other) : 0.15;
+  const bo0 = overlapRatio(first.html, T, first.styleUsed, spec, { box: true }) ?? 0;   // 그림 상자 기준 겹침(녹임 무시) — 키워서 이보다 나빠지고 문턱도 넘으면 안 쓴다
   let best = { ...first, cov: c0.all, k: null };
   for (const k of C.steps) {
     const out = renderOnce(ctx, { ...style, __fix: { kvK: k } }, spec);
     const ov = overlapRatio(out.html, out.tr, out.styleUsed, spec) ?? 0; if (ov > thr) break;
+    const bo = overlapRatio(out.html, out.tr, out.styleUsed, spec, { box: true }) ?? 0; if (bo > thr && bo > bo0 + 0.01) break;
     const c = coverageOf(out.html, out.tr, out.styleUsed, spec); if (!c || c.all <= best.cov + 0.005) break;
     best = { ...out, cov: c.all, k }; if (c.all >= C.min) break;
   }
@@ -297,9 +299,15 @@ function overlapFix(ctx, style, spec, first) {
     .replace('<div data-ad="1"', `<div data-ad="1" data-overlap="${Math.round(r0 * 100)}>${Math.round(best.ratio * 100)}${stepName ? ':' + stepName : ''}"`);
 }
 // 글자 행 × 주인공 상자 겹침 비율(0~1) — 그림이 없거나 글자 상자를 못 세면 null
-export function overlapRatio(html, tr, style, spec) {
+export function overlapRatio(html, tr, style, spec, opt = null) {
   const rows = tr?.textBox?.rows; if (!rows?.length) return null;
   const objs = objectRects(html, style, spec); if (!objs.length) return null;
+  const inter0 = (A, B) => Math.max(0, Math.min(A.x + A.w, B.x + B.w) - Math.max(A.x, B.x)) * Math.max(0, Math.min(A.y + A.h, B.y + B.h) - Math.max(A.y, B.y));
+  // opt.box: 녹임·주인공을 따지지 않고 그림 상자(∩ 지면) 자체와의 겹침 — 빈 지면 보정이 칸을 키울 때 글자가 녹인 구간으로라도 들어가면 안 된다(10-21 네이버 DA 상세 값 vs 키운 사진 칸: 녹임 기준 0% 인데 검수는 30%)
+  if (opt?.box) { const W = spec.w, H = spec.h; let worst = 0;
+    for (const o of objs) { const b = o.box, B = { x: Math.max(0, b.x), y: Math.max(0, b.y) }; B.w = Math.min(W, b.x + b.w) - B.x; B.h = Math.min(H, b.y + b.h) - B.y; if (!(B.w > 0 && B.h > 0)) continue;
+      for (const r of rows) { const A = r.w * r.h; if (A > 0) worst = Math.max(worst, inter0(r, B) / A); } }
+    return worst; }
   const f = style.kvMeta?.field ?? null, focus = f?.focus ?? profileFocus(f) ?? null;
   const cutout = (f?.opaque ?? 1) < 0.5, cols = f?.cols, rws = f?.rows;
   const prof = cutout && Array.isArray(cols) && cols.length > 1 && Array.isArray(rws) && rws.length > 1;   // 누끼 열·행 투명 프로필이 있으면 칸마다 불투명도로 가중(머리 위 빈 자리·발 옆 빈 자리는 겹침이 아니다)
