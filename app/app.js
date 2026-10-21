@@ -321,11 +321,13 @@ function parseBriefRegex(text) {
 /* ═══ home ═══ */
 function initHome() {
   const box = $('samples');
-  box.innerHTML = '';
-  for (const s of SAMPLES) {
-    const b = document.createElement('button');
-    b.textContent = s.slice(0, 34) + '…'; b.title = s;
-    b.onclick = () => { $('briefText').value = s; };
+  box.innerHTML = '<div class="cap">예시 브리프 — 누르면 입력 칸에 들어갑니다</div>';
+  for (const s of SAMPLES) {   // 한 줄에 하나, 전문 그대로(10-21). 맨 앞 낱말(고객사)은 알약으로
+    const b = document.createElement('button'); b.type = 'button';
+    const sp = s.indexOf(' '); const head = sp > 0 ? s.slice(0, sp) : '', body = sp > 0 ? s.slice(sp + 1) : s;
+    b.innerHTML = `<b></b><span></span><svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+    b.querySelector('b').textContent = head; b.querySelector('span').textContent = body; b.title = s; b.setAttribute('aria-label', s);
+    b.onclick = () => { $('briefText').value = s; $('briefText').focus(); };
     box.appendChild(b);
   }
   $('briefGo').onclick = () => {
