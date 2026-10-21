@@ -1086,12 +1086,12 @@ function afterWhere() {
 // 읽은 내용 카드 — 필수 칸(채용: 고객사·채용 구분·모집 직무·지원 마감 / 행사: 행사명) + 접힌 선택 칸.
 // 「다음」을 막는 건 ESSENTIAL(고객사·채용 구분·직무)뿐 — 마감은 필수 표시만 하고 비워 둘 수 있다(한진처럼 「공고별 상이」인 공고). 날짜 칸은 떠날 때 YYYY-MM-DD 로 정리한다
 const BRIEF_FIELDS = {
-  recruit: { must: ['client', 'hiringType', 'role', 'deadline'], more: ['startDate', 'deadlineTime', 'season', 'slogan', 'notice', 'employType', 'location'] },
+  recruit: { must: ['client', 'hiringType', 'role', 'deadline'], more: ['startDate', 'season', 'slogan', 'notice', 'employType', 'location'] },   // 마감 시각은 칸으로 안 받는다(10-21 사용자 「마감 시각까진 필요 없을 것 같음」) — 공고에 「17시」「23:59」가 있으면 파서가 읽어 날짜 뒤에 붙인다
   event: { must: ['name'], more: ['date', 'venue', 'audience', 'cta'] },
 };
 const BRIEF_HINT = {
   client: '예: 한진정보통신', hiringType: '예: 신입사원 공개채용 · 경력직 채용', role: '예: 클라우드 플랫폼 엔지니어', deadline: 'YYYY-MM-DD — 「공고별 상이」면 비워 두세요',
-  startDate: 'YYYY-MM-DD', deadlineTime: '예: 23:59', season: '예: 2026 하반기', slogan: '큰 글자 위 한 줄', notice: '예: 공고별 상이', employType: '예: 정규직', location: '예: 서울 여의도',
+  startDate: 'YYYY-MM-DD', season: '예: 2026 하반기', slogan: '큰 글자 위 한 줄', notice: '예: 공고별 상이', employType: '예: 정규직', location: '예: 서울 여의도',
   name: '예: 2026 AX 세미나', date: 'YYYY-MM-DD', venue: '예: 코엑스 그랜드볼룸', audience: '예: 재직자', cta: '예: 사전등록',
 };
 const DATE_FIELDS = ['deadline', 'startDate', 'date'];
@@ -1659,7 +1659,7 @@ function campaignName(ctx) {
 }
 // 편집 칸(인스펙터 캠페인 공통 + 산출물별). 10-19 사용자: 「모집기간은 언제부터 언제까지로 · 텍스트는 수정 가능하게」 → 접수 시작(startDate)과 글자 자리(시즌·채용 구분·메인 문구)를 칸으로 연다.
 //   날짜 둘 다 있으면 렌더러가 「2.28(수) - 3.10(일)」, 마감만 있으면 「~3.10(일)」. 메인 문구를 적으면 그 문장이 메인(회사·구분은 서브·상세로).
-const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'deadlineTime', 'season', 'slogan', 'notice', 'employType', 'location', 'headline'];   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
+const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'season', 'slogan', 'notice', 'employType', 'location', 'headline'];   // 마감 시각 칸은 뺐다(10-21) — 파서가 읽은 값은 그대로 쓰인다   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
 const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)', deadline: 'YYYY-MM-DD', season: '예: 2026 하반기', hiringType: '예: 신입사원 공개채용', headline: '예: ○○그룹 2026 하반기 신입 채용 — 비우면 고객사·시즌·채용 구분으로 자동' };
 function campaignFields(c) {
   return c.kind === 'recruit' ? RECRUIT_EDIT_FIELDS : ['name', 'date', 'venue', 'cta'];
