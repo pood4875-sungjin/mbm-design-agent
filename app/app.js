@@ -1620,7 +1620,7 @@ function campaignName(ctx) {
 }
 // 편집 칸(인스펙터 캠페인 공통 + 산출물별). 10-19 사용자: 「모집기간은 언제부터 언제까지로 · 텍스트는 수정 가능하게」 → 접수 시작(startDate)과 글자 자리(시즌·채용 구분·메인 문구)를 칸으로 연다.
 //   날짜 둘 다 있으면 렌더러가 「2.28(수) - 3.10(일)」, 마감만 있으면 「~3.10(일)」. 메인 문구를 적으면 그 문장이 메인(회사·구분은 서브·상세로).
-const RECRUIT_EDIT_FIELDS = ['client', 'role', 'employType', 'location', 'startDate', 'deadline', 'season', 'hiringType', 'headline'];
+const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'deadlineTime', 'season', 'slogan', 'notice', 'employType', 'location', 'headline'];   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
 const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)', deadline: 'YYYY-MM-DD', season: '예: 2026 하반기', hiringType: '예: 신입사원 공개채용', headline: '예: ○○그룹 2026 하반기 신입 채용 — 비우면 고객사·시즌·채용 구분으로 자동' };
 function campaignFields(c) {
   return c.kind === 'recruit' ? RECRUIT_EDIT_FIELDS : ['name', 'date', 'venue', 'cta'];
