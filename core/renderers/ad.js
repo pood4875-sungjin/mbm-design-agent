@@ -905,15 +905,16 @@ function renderAdBase(ctx, style, spec) {
   //   둥근 칸(비즈보드 r10)·bleed:false 칸(인스타 1080)·자유 자리(moldFreeKv)는 안 키운다. 글자 칸과의 충돌은 emptyFix 가 overlapRatio 로 거른다
   if (FIX?.kvK > 1 && mold && tImage && tImage.radius == null && mold.image?.bleed !== false && !moldFreeKv) {
     const k = FIX.kvK, cap = CANON.emptyFix?.slotCap ?? 0.8;
-    const atR = tImage.x + tImage.w >= w - 1, atL = tImage.x <= 1, atB = tImage.y + tImage.h >= h - 1, fullW = tImage.w >= w - 1, fullH = tImage.h >= h - 1;
+    const fullW = tImage.w >= w - 1, fullH = tImage.h >= h - 1;
     const capH = fullW ? Math.round(h * (guide?.fill?.maxObject ?? 0.55)) : Math.round(h * cap), capW = Math.round(w * cap);
     const nw = fullW ? tImage.w : fullH ? Math.min(capW, Math.round(tImage.w * k)) : Math.min(capW, Math.round(tImage.w * k));
     const nh = fullH ? tImage.h : Math.min(capH, Math.round(tImage.h * k));
-    // 지면 변에 닿은 변은 그대로, 안 닿은 칸은 가운데로 키우되 지면 밖으로는 안 나간다(네이버 DA 칸 바닥 20px 틈 → 키우면 바닥에 닿는다)
+    // 글자 반대쪽 변(칸 중심이 지면 중심보다 오른쪽이면 오른쪽 변, 아래면 아랫변)은 원래 좌표 그대로 두고 글자 쪽으로만 — 지면에 닿았든(구글 580 아랫변 407, 밖 7px 블리드) 여백이 있든(자소설 PC 팝업 오른쪽 8px 템플릿 여백 · 네이버 DA 바닥 20px) 그 변은 안 움직인다
+    //   가운데 정렬 프리셋으로 칸이 지면 가운데에 온 경우(NAP 300×250 「가운데」)는 양쪽으로 고르게
     const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-    //   닿은 변은 원래 변 좌표 그대로(구글 580 칸 아랫변 407 — 지면 밖 7px 블리드도 그대로)
-    const nx = atR && !atL ? tImage.x + tImage.w - nw : atL ? tImage.x : clamp(Math.round(tImage.x - (nw - tImage.w) / 2), 0, Math.max(0, w - nw));
-    const ny = atB ? tImage.y + tImage.h - nh : clamp(Math.round(tImage.y - (nh - tImage.h) / 2), 0, Math.max(0, h - nh));
+    const cx = tImage.x + tImage.w / 2, cy = tImage.y + tImage.h / 2, midX = Math.abs(cx - w / 2) <= w * 0.02, midY = Math.abs(cy - h / 2) <= h * 0.02;
+    const nx = fullW ? tImage.x : midX ? clamp(Math.round(tImage.x - (nw - tImage.w) / 2), 0, Math.max(0, w - nw)) : Math.max(0, cx > w / 2 ? tImage.x + tImage.w - nw : tImage.x);
+    const ny = fullH ? tImage.y : midY ? clamp(Math.round(tImage.y - (nh - tImage.h) / 2), 0, Math.max(0, h - nh)) : Math.max(0, cy > h / 2 ? tImage.y + tImage.h - nh : tImage.y);
     if (nw !== tImage.w || nh !== tImage.h) { tImage = { ...tImage, x: nx, y: ny, w: nw, h: nh }; fired('emptyFix.slot'); }
   }
   const kvKindPhoto = style.kvMeta?.field?.kind === 'photo';

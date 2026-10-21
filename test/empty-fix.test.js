@@ -63,12 +63,16 @@ test('덮는 몫이 이미 30% 이상이면 아무것도 안 한다 — 주인�
   }
 });
 
-test('편집 「키비주얼 크기」를 손으로 정했으면 안 건드린다 · 규정 매체 틀(자소설 PC 팝업)은 emptyFix.regulated=false 라 샘플 칸 그대로', () => {
+test('편집 「키비주얼 크기」를 손으로 정했으면 안 건드린다 · 규정 매체 틀(자소설 PC 팝업)도 켠다(emptyFix.regulated=true, 10-21 사용자) — 칸은 우하단 변 그대로 글자 쪽으로', () => {
   const manual = renderAd(ctx, { ...cube, kvSize: 'sm' }, specs['google-gdn-580x400']);
   assert.equal(emptyAttr(manual), null, '편집 크기');
-  const reg = renderAd(ctx, cube, specs['jasoseol-pc-premium-popup-pc']);
-  assert.equal(emptyAttr(reg), null, '규정 매체');
-  assert.ok(!traceOf(reg).rules.some(r => r.startsWith('emptyFix')));
+  const spec = specs['jasoseol-pc-premium-popup-pc'];
+  const before = renderAd(ctx, { ...cube, __fix: {} }, spec), reg = renderAd(ctx, cube, spec);
+  assert.ok(CANON.emptyFix.regulated && emptyAttr(reg), '규정 매체도 보정: ' + emptyAttr(reg));
+  const b = traceOf(before).place.tImage, a = traceOf(reg).place.tImage;
+  assert.ok(a.w > b.w || a.h > b.h, `${JSON.stringify(b)} → ${JSON.stringify(a)}`);
+  assert.equal(a.x + a.w, b.x + b.w); assert.equal(a.y + a.h, b.y + b.h);
+  assert.equal(traceOf(reg).mold.rows.main.px, traceOf(before).mold.rows.main.px, '글자 규정은 그대로');
 });
 
 test('coverageOf — 글자 행이 없으면 null, 주인공 상자는 열·행 프로필에서 (큐브는 그림 가운데 덩어리만 센다: 그림 전체보다 작다)', () => {
