@@ -401,6 +401,7 @@
   #artboard .flabel .badge{display:none!important}   /* 10-15 밤: 보드 카드는 매체 · 사이즈만 */
   #artboard .flabel .badge.gate:not(:empty){display:inline-block!important}   /* 10-20: 게이트 한 단어만 예외 — 규격·디자인·샘플 배지 다섯을 하나로 합친 것 */
   .rowhead{position:absolute;font-size:14px;font-weight:800;color:var(--ink,#111);letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line,#ddd);pointer-events:none}
+  .stagehead{position:absolute;font-size:14px;font-weight:800;color:var(--ink,#111);letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line,#ddd);pointer-events:none;font-weight:800;font-size:15px;color:var(--ink,#111);letter-spacing:-.01em}
   .frame.done .fbody{animation:pop .5s ease-out}
   @keyframes shim{from{background-position:200% 0}to{background-position:-100% 0}}
   @keyframes flow{from{background-position:0% 0}to{background-position:220% 0}}
@@ -644,11 +645,10 @@
     <section id="hero">
       <h1>어떤 캠페인을 시작할까요?</h1>
       <div class="inputCard">
-        <textarea id="briefText" placeholder="기획 내용을 자유롭게 적어주세요. 고객사, 모집 직무, 나갈 매체, 마감일… 적은 내용으로 바로 만들어요." aria-label="기획 내용"></textarea>
+        <textarea id="briefText" placeholder="채용공고를 그대로 붙여 넣거나 한 줄로 적어주세요 — 고객사, 채용 구분(신입 공채·경력직 채용…), 접수 기간, 모집직무, 나갈 매체. 시즌·슬로건은 있으면." aria-label="기획 내용"></textarea>
         <div class="bar">
           <button class="iconb" id="fileBtn" title="txt·md 첨부 (PPT·워드는 서버 연동 후)" aria-label="파일 첨부"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
           <input type="file" id="fileIn" accept=".txt,.md" style="display:none">
-          <span class="chip" id="aiChip"></span>
           <button class="sendb" id="briefGo" title="시작" aria-label="시작"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         </div>
       </div>

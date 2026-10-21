@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MEDIA, EXTRACT } from '../core/media.js';
-import { adSpecGroups, extractSpecGroups, mediumRank } from '../core/adspecs.js';
+import { adSpecGroups, extractSpecGroups, mediumRank, specRank, specStage } from '../core/adspecs.js';
 import { checklist8, ITEMS } from '../core/checklist8.js';
 
 // 추출 47규격 — 사용자 「컨시어지」 보드 목록(core/media/_extract.json). 매체마다 수가 정해져 있고 그 밖은 참고 규격이다.
@@ -44,11 +44,19 @@ test('extractSpecGroups covers all 49 (twins folded, 전달물 2 제외), adSpec
   assert.ok(ex.every(g => g.twins.every(t => EXTRACT.ids.includes(t))), '추출 묶음의 쌍은 모두 추출 규격이어야 한다');
   const all = adSpecGroups();
   assert.ok(all.length > ex.length, '참고 규격은 adSpecGroups 에 남아 있어야 한다');
+  // 10-21: 묶음 순서 = 난이도·차수(하 → 중 → 상 → 로고·프로필·보조 → 참고). 보드 순서(EXTRACT.order)는 데이터로 남고 차수 안·4차 이후의 매체 순에만 쓰인다
   for (const groups of [ex, all]) {
-    const ranks = groups.map(g => mediumRank(g.medium));
-    assert.deepEqual(ranks, [...ranks].sort((a, b) => a - b), '매체 순서는 보드 순서여야 한다');
+    const ranks = groups.map(g => specRank(g.id, g.medium));
+    assert.deepEqual(ranks, [...ranks].sort((a, b) => a - b), '규격 순서는 차수 순이어야 한다');
+    const stages = groups.map(g => specStage(g.id));
+    assert.deepEqual(stages, [...stages].sort((a, b) => a - b));
   }
-  assert.deepEqual([...new Set(ex.map(g => g.medium))], ORDER);
+  assert.deepEqual(Object.values(EXTRACT.stages).map(l => l.length), [20, 9, 10, 12], '하 20 · 중 9 · 상 10 · 보조 12');
+  assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 1).map(g => g.medium))], ['jasoseol', 'remember', 'kakao']);
+  assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 2).map(g => g.medium))], ['naver-gfa', 'everytime', 'nap-dsp', 'kakao']);
+  assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 3).map(g => g.medium))], ['blind', 'google-gdn', 'jobda', 'instagram', 'daangn']);
+  assert.ok(all.every(g => g.entry.extract || specStage(g.id) === 5), '참고 규격은 5');
+  assert.ok(mediumRank('jasoseol') < mediumRank('remember') && mediumRank('remember') < mediumRank('kakao') && mediumRank('kakao') < mediumRank('naver-gfa') && mediumRank('daangn') < mediumRank('catch'));
 });
 
 test('checklist8 gives 9 cells per extract spec; sizes match the board and nothing is a 불일치', () => {

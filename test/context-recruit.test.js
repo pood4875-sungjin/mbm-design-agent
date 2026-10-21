@@ -20,13 +20,13 @@ test('a recruit context has recruitment fields and required/optional split', () 
   assert.deepEqual(Object.keys(ctx.core), KINDS.recruit.fields);
   assert.equal(ctx.core.client, '한진정보통신');
   assert.equal(ctx.core.deadline, null);
-  assert.deepEqual(KINDS.recruit.required, ['client', 'role', 'employType', 'location', 'deadline']);   // applyUrl 선택(10-19)
+  assert.deepEqual(KINDS.recruit.required, ['client', 'hiringType', 'deadline', 'role']);   // 10-21 레퍼런스 13장 기준(고용 형태·근무지는 선택) · applyUrl 선택(10-19)
 });
 
 test('missingFields asks only for the required fields of that kind — no guessing (invariant 3)', () => {
   const ctx = createContext({ client: 'A', role: 'B' }, 'recruit');
   const missing = missingFields(ctx).map(m => m.field);
-  assert.deepEqual(missing, ['employType', 'location', 'deadline']);
+  assert.deepEqual(missing, ['hiringType', 'deadline']);
   // 선택 필드(자격요건·전형절차·고지)는 비어 있어도 묻지 않는다
   assert.ok(!missing.includes('qualification'));
 });

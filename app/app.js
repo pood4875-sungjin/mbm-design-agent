@@ -5,7 +5,7 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
-import { adSpecEntries, adSpecGroups, mediumRank } from '../core/adspecs.js';
+import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
@@ -65,12 +65,7 @@ const variantCount = a => guideVariants(a)?.length ?? VARIANTS[a.channel] ?? 1;
 const DISPLAY_SCALE = { banner: 1, gwthumb: 1, badge: 0.42, edm: 0.62, landing: 0.42, poster: 0.28, xbanner: 0.1, hyunsumak: 0.05, photobooth: 0.05 };
 const STORE_LS = 'mbm-campaigns';
 
-const SAMPLES = [
-  '한진정보통신 클라우드 플랫폼 엔지니어 채용 광고. 카카오 비즈보드, 자소설닷컴, 네이버에 나가요. 정규직, 서울 여의도, 10월 31일 마감.',
-  '10월 15일 코엑스에서 2026 ONSITE MBM 서울 진행. 대상은 건설 구조 엔지니어, 사전등록 받아야 함. 배너, 포스터, X배너 필요해.',
-  '내년 3월 킨텍스 MBM 신제품 발표회. 교량 설계 실무자 대상, 현장 데모 신청 유도. 현수막이랑 배너만.',
-  '2026 ONSITE MBM 도쿄, 6월 20일, 대상 일본 파트너사. 배너와 포스터.',
-];
+import { SAMPLES } from './samples.js';   // 10-21 샘플 입력(테스트 test/brief-samples.test.js 가 같은 파일을 읽는다)
 
 const state = {
   intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'KakaoBigSans', mood: '', kvReadability: null, suggests: [], step: 0 },
@@ -343,15 +338,21 @@ function initHome() {
     const f = $('fileIn').files[0]; if (!f) return;
     if (!/\.(txt|md)$/i.test(f.name)) { toast('PPT·워드 파싱은 서버 연동 후 — 지금은 txt/md'); return; }
     const r = new FileReader();
-    r.onload = () => { $('briefText').value = r.result.slice(0, 4000); toast(`${f.name} 읽음`); };
+    // 10-21 사용자 「파일 첨부했을 때 거기서 해당 데이터 확인해서 추출하는 건 있어야 돼」 — 읽자마자 규칙 파서로 고객사·채용 구분·접수 기간·모집직무를 뽑아 뭘 찾았는지 알려 준다(시작하면 같은 값이 카드에 들어간다. 못 찾은 필수 값은 대화로 묻는다)
+    r.onload = () => {
+      const txt = String(r.result).slice(0, 8000); $('briefText').value = txt;
+      const kind = detectKind(txt), f0 = kind === 'recruit' ? extractRecruit(txt) : {};
+      const KEY = ['client', 'hiringType', 'startDate', 'deadline', 'role', 'season', 'slogan', 'notice'];
+      const got = KEY.filter(k => f0[k]);
+      const L = { client: '고객사', hiringType: '채용 구분', startDate: '접수 시작', deadline: '마감', role: '모집직무', season: '시즌', slogan: '슬로건', notice: '고지' };
+      toast(kind === 'recruit' ? `${f.name} 읽음 — 찾은 것: ${got.length ? got.map(k => `${L[k]} ${String(f0[k]).slice(0, 18)}`).join(' · ') : '없음'}${['client', 'hiringType', 'deadline', 'role'].some(k => !f0[k]) ? ' · 빈 필수 값은 시작하면 물어봐요' : ''}` : `${f.name} 읽음`, 6000);
+    };
     r.readAsText(f);
   };
   $('searchIn').oninput = () => renderSidebar($('searchIn').value.trim());
-  refreshAiChip();
 }
-function refreshAiChip() {
-  $('aiChip').textContent = LLM.hasKey() ? `AI 해석 켜짐 · ${LLM.maskKey()}` : 'AI 해석 꺼짐 — 규칙 파서';
-}
+// 10-21 사용자 「이거도 삭제해도 되잖아」 — 입력 칸의 「AI 해석 꺼짐 — 규칙 파서」 칩 제거. 키 상태는 AI 키 모달에서만 보인다
+function refreshAiChip() { const el = $('aiChip'); if (el) el.textContent = LLM.hasKey() ? `AI 해석 켜짐 · ${LLM.maskKey()}` : 'AI 해석 꺼짐 — 규칙 파서'; }
 
 /* ═══ 자산 검색 사이드바 ═══ */
 function loadStore() { try { return JSON.parse(localStorage.getItem(STORE_LS) || '[]'); } catch { return []; } }
@@ -1733,14 +1734,27 @@ function layoutArtboard(opts = {}) {
   board.innerHTML = '';
   frames.clear();
   const c = state.campaign;
-  // 줄 구성: 매체 광고는 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄
-  const adRows = (c.media ?? []).map(m => ({ name: mediumName(m), arts: c.artifacts.filter(a => (a.channel === 'ad' || a.channel === 'asset') && SPECS[a.specId]?.medium === m) })).filter(r => r.arts.length);
+  // 줄 구성: 매체 광고는 차수(하 → 중 → 상 → 로고·프로필·보조, 10-21 사용자 「난이도 하를 제일 위에」) × 매체마다 한 줄 → 온라인 채널 한 줄 → 오프라인 한 줄.
+  //   한 매체가 두 차수에 걸치면(카카오 비즈보드 1차·PC 2차·프로필 4차, 네이버 DA 2차·네이티브 4차) 줄이 갈린다. 차수가 바뀌는 첫 줄 위에 차수 머리글
+  const ads = c.artifacts.filter(a => (a.channel === 'ad' || a.channel === 'asset') && SPECS[a.specId]);
+  const adRows = [];
+  for (const st of [1, 2, 3, 4, 5]) for (const m of [...(c.media ?? [])].sort((x, y) => mediumRank(x) - mediumRank(y))) {
+    const arts = ads.filter(a => SPECS[a.specId].medium === m && specStage(a.specId) === st).sort((a, b) => specRank(a.specId, m) - specRank(b.specId, m));
+    if (arts.length) adRows.push({ name: mediumName(m), arts, stage: st });
+  }
   const rows = [...adRows, { name: '온라인', arts: [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }, { name: '오프라인', arts: OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }];   // 10-15 밤: 매체마다 섹션(머리글 + 구분선)
   // 첫 줄 y: 라벨이 프레임 위에 붙는다(이름 2줄 + 뱃지 줄 ≈ 56px). 60이면 첫 줄 라벨이 보드 위로 잘린다
-  let y = 104;
-  for (const { name, arts: rowArts } of rows) {
+  let y = 104, lastStage = null;
+  for (const { name, arts: rowArts, stage } of rows) {
     if (!rowArts.length) continue;
     let x = 60, rowH = 0;
+    if (stage && stage !== lastStage) {   // 차수 머리글(하 · 1차 적용 …) — 차수가 바뀌는 줄 위에
+      if (lastStage != null) y += 36;
+      const sh = document.createElement('div'); sh.className = 'stagehead'; sh.style.left = '60px'; sh.style.top = (y - 126) + 'px';
+      const n = rows.filter(r => r.stage === stage).reduce((s0, r) => s0 + r.arts.length, 0);
+      sh.textContent = `${STAGE_NAMES[stage] ?? (stage === 5 ? '참고 규격' : `${stage}차`)} · ${n}종`; board.appendChild(sh);
+      lastStage = stage;
+    }
     const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${rowArts.length}종`; board.appendChild(head);
     {
       for (const a of rowArts) {

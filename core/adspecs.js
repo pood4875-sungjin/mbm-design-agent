@@ -8,9 +8,15 @@ import { MEDIA, EXTRACT } from './media.js';
 import { SPECS } from './contract.js';
 import { submitSize } from './lint.js';
 
-// 매체 순서 — 사용자 「컨시어지」 보드 순서(core/media/_extract.json order: 자소설 → 리멤버 → 잡다 → 캐치 → 구글 GDN → NAP DSP → 인스타 → 카카오 → 네이버 → 에브리타임 → 블라인드 → 당근).
-// 목록에 없는 매체(참고 규격만 있는 매체)는 그 뒤에 매체 JSON 순서대로.
-export function mediumRank(id) { const i = EXTRACT.order.indexOf(id); return i >= 0 ? i : EXTRACT.order.length + Math.max(0, MEDIA.findIndex(m => m.id === id)); }
+// 난이도·적용 차수(10-21 사용자 표, core/media/_extract.json stages): 하·1차 20(자소설 11·리멤버 8·비즈보드 1) → 중·2차 9 → 상·3차 10 → 4 로고·프로필·보조 12(표에 없는 B등급 9 + 캐치 3). 참고 규격은 5.
+//   캔버스 줄·매체 고르기·규격 묶음이 이 순서를 따른다(사용자 「난이도 하를 제일 위에 생성되게」). 차수 안에서는 표에 적힌 매체 순(stages 배열 순), 4·5 는 보드 순(EXTRACT.order) 뒤 매체 JSON 순
+export const STAGE_NAMES = EXTRACT.stageNames ?? {};
+export function specStage(id) { const S = EXTRACT.stages ?? {}; for (const k of Object.keys(S)) if (S[k].includes(id)) return +k; return 5; }
+const boardRank = id => { const i = EXTRACT.order.indexOf(id); return i >= 0 ? i : EXTRACT.order.length + Math.max(0, MEDIA.findIndex(m => m.id === id)); };
+const mediumOfSpec = id => MEDIA.find(m => m.specs.some(s => s.id === id))?.id ?? null;
+export function specRank(id, medium = null) { const st = specStage(id); const i = (EXTRACT.stages?.[st] ?? []).indexOf(id); return st * 1000 + (i >= 0 ? i : 500 + boardRank(medium ?? mediumOfSpec(id)) * 10); }
+// 매체 순서 = 그 매체의 가장 앞 규격의 차수 순위(자소설 → 리멤버 → 카카오(비즈보드) → 네이버 → 에브리타임 → NAP → 블라인드 → 구글 → 잡다 → 인스타 → 당근 → 캐치). 규격 없는 매체는 보드 순 뒤
+export function mediumRank(id) { const m = MEDIA.find(x => x.id === id); const ranks = (m?.specs ?? []).map(s => specRank(s.id, id)); return ranks.length ? Math.min(...ranks) : 6000 + boardRank(id); }
 
 export function adSpecEntries() {
   const out = {};
@@ -88,8 +94,8 @@ export function adSpecGroups(media = null, { extractOnly = false } = {}) {
     if (g) g.twins.push(e.id);
     else seen.set(sig, { id: e.id, medium: e.medium, entry: e, twins: [] });
   }
-  // 매체는 보드 순서, 같은 매체 안에서는 매체 JSON 순서(안정 정렬)
-  return [...seen.values()].sort((a, b) => mediumRank(a.medium) - mediumRank(b.medium));
+  // 규격은 차수 순(하 → 중 → 상 → 로고·프로필·보조 → 참고), 같은 차수·매체 안에서는 매체 JSON 순서(안정 정렬)
+  return [...seen.values()].sort((a, b) => specRank(a.id, a.medium) - specRank(b.id, b.medium));
 }
 
 // 추출 규격만 — 앱 기본 선택·전체 내보내기·케이스 라운드의 기본 범위

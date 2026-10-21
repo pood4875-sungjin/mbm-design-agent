@@ -18,19 +18,19 @@ test('kind, track and media are detected from plain Korean', () => {
 });
 
 test('required fields follow the campaign kind', () => {
-  assert.deepEqual(fieldsFor('recruit'), ['client', 'role', 'employType', 'location', 'deadline']);
+  assert.deepEqual(fieldsFor('recruit'), ['client', 'hiringType', 'deadline', 'role']);
   assert.deepEqual(fieldsFor('event'), ['name', 'date', 'venue', 'audience', 'cta']);
 });
 
 test('the flow has three phases and only asks for what the big text needs', () => {
   assert.deepEqual(PHASES, ['target', 'style', 'draft']);
-  assert.deepEqual(ESSENTIAL, { recruit: ['client', 'role'], event: ['name'] });
+  assert.deepEqual(ESSENTIAL, { recruit: ['client', 'hiringType', 'role'], event: ['name'] });   // 10-21: 메인 = 고객사 + 채용 구분
   for (const f of [...ESSENTIAL.recruit, ...ESSENTIAL.event]) assert.ok(ASK[f], `${f}: 없을 때 물을 말이 있다`);
 });
 
 test('what the brief already says is read, not asked again', () => {
   const r = extractRecruit('한진정보통신 클라우드 플랫폼 엔지니어 채용 광고. 카카오 비즈보드, 자소설닷컴, 네이버에 나가요. 정규직, 서울 여의도, 10월 31일 마감.', NOW);
-  assert.deepEqual(r, { employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', client: '한진정보통신', role: '클라우드 플랫폼 엔지니어' });
+  assert.deepEqual(r, { employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', hiringType: '클라우드 플랫폼 엔지니어 채용' });   // 10-21: 「○○ 채용」의 ○○이 직무면 채용 구분도 그 구절(서울아산병원 「디자이너 채용」)
   assert.equal(extractRecruit('한독의 영업 담당자 모집 (서울 강남구, 11/15까지)', NOW).deadline, '2026-11-15');
   assert.equal(extractRecruit('SK하이닉스 신입 공정 엔지니어 모집, 경기 이천, 계약직', NOW).location, '경기 이천');
   assert.equal(extractRecruit('지원은 https://x.y/apply/2026/10/31 에서', NOW).applyUrl, 'https://x.y/apply/2026/10/31');
@@ -57,11 +57,11 @@ test('season, hiring type and application period are read the way the board refe
   assert.equal(yr.deadline, '2026-07-26');
   const gc = extractRecruit('2026 ㈜한독 신입/경력 공채 광고. 2026.9.27 마감', NOW);
   assert.deepEqual({ season: gc.season, client: gc.client, hiringType: gc.hiringType }, { season: '2026', client: '㈜한독', hiringType: '신입/경력 공채' }, '"공채"로 끝나는 구절도 채용 구절이다');
-  assert.equal(extractRecruit('한진정보통신 백엔드 개발자 채용', NOW).hiringType, undefined);
+  assert.equal(extractRecruit('한진정보통신 백엔드 개발자 채용', NOW).hiringType, '백엔드 개발자 채용', '10-21: 「○○ 채용」의 ○○이 직무면 그 구절이 채용 구분(메인 = 고객사 + 구절, 서울아산병원 「디자이너 채용」)');
 });
 
 test('what the brief does not say stays blank — no guessing', () => {
-  assert.deepEqual(extractRecruit('백엔드 개발자 채용', NOW), { role: '백엔드 개발자' }, '회사로 볼 근거가 없으면 고객사는 비운다');
+  assert.deepEqual(extractRecruit('백엔드 개발자 채용', NOW), { role: '백엔드 개발자', hiringType: '백엔드 개발자 채용' }, '회사로 볼 근거가 없으면 고객사는 비운다(채용 구분은 적힌 「○○ 채용」 구절 — 추측이 아니다)');
   assert.equal(extractRecruit('AI 엔지니어 채용', NOW).client, undefined, '직무 약어를 회사로 읽지 않는다');
   const many = extractRecruit('2026 하반기 신입 공채 채용, 9월 1일 시작 10월 5일 종료', NOW);
   assert.equal(many.deadline, undefined, '날짜가 여럿이고 마감 표시도 기간 표시(~·부터)도 없으면 고르지 않는다');

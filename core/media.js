@@ -12387,6 +12387,73 @@ export const EXTRACT = {
     "remember-job-side-pc": "A",
     "remember-job-side-mo": "A"
   },
+  "stages": {
+    "1": [
+      "jasoseol-pc-premium-popup-pc",
+      "jasoseol-pc-premium-jobpost-pc",
+      "jasoseol-pc-standard-main-pc",
+      "jasoseol-pc-standard-jobpost-pc",
+      "jasoseol-m-premium-popup-mo",
+      "jasoseol-m-premium-chatlist-logo-mo",
+      "jasoseol-m-standard-main-mo",
+      "jasoseol-m-standard-chatlist-logo-mo",
+      "jasoseol-m-start-logo-mo",
+      "jasoseol-m-start-image-mo",
+      "jasoseol-pc-calendar-pc",
+      "remember-main-top-pc",
+      "remember-main-top-mo",
+      "remember-main-mid-pc",
+      "remember-main-mid-mo",
+      "remember-job-top-pc",
+      "remember-job-top-mo",
+      "remember-job-side-pc",
+      "remember-job-side-mo",
+      "kakao-bizboard-mo"
+    ],
+    "2": [
+      "naver-gfa-mobile-da-1250x560",
+      "everytime-community-board",
+      "everytime-home-banner",
+      "everytime-home-card-image",
+      "nap-dsp-band-320x50",
+      "nap-dsp-band-320x100",
+      "nap-dsp-full-300x250",
+      "nap-dsp-full-320x480",
+      "kakao-display-pc-promo"
+    ],
+    "3": [
+      "blind-feed-image",
+      "blind-post-banner",
+      "google-gdn-580x400",
+      "google-gdn-970x250",
+      "google-gdn-300x600",
+      "google-gdn-300x1050",
+      "jobda-main-pc",
+      "jobda-main-mo",
+      "instagram-feed-1080",
+      "daangn-native-feed-image"
+    ],
+    "4": [
+      "catch-center-object-pc",
+      "catch-center-object-mo",
+      "catch-center-logo-mo",
+      "kakao-display-pc-profile",
+      "naver-gfa-native-mo-342x228",
+      "naver-gfa-native-mo-profile-300",
+      "everytime-community-native",
+      "everytime-home-card-profile",
+      "everytime-contest-card",
+      "everytime-search-keyword-thumb",
+      "everytime-daily-message-profile",
+      "blind-brand-logo"
+    ]
+  },
+  "stageNames": {
+    "1": "하 · 1차 적용",
+    "2": "중 · 2차 적용",
+    "3": "상 · 3차 적용",
+    "4": "로고·프로필·보조"
+  },
   "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 보드 (2026-10-14 읽음) — 매체별 수 메모 31:4248·31:4247·31:4246·31:4245·31:4249·31:4253·31:4257·31:4261·31:4266·31:4270·31:4271, 당근은 보드 수 메모 없음(사용자 지시 1종)",
   "decisions": [
     "자소설 8 = 4개 패키지 × 2(PC프리미엄 팝업·채용공고 / PC스탠다드 메인·채용공고 / M프리미엄 팝업·채팅목록 로고 / M스탠다드 메인·채팅목록 로고). 보드의 이전 메모 「6개」(30:4145)가 「8개」(31:4248)로 바뀐 것과 리멤버 「8개(PC/MO)」로 보아 같은 파일을 쓰는 상품(채용공고배너·채팅목록 로고)도 따로 센 것. PC달력배너 164×233 은 제외 — 확인 필요",

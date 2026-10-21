@@ -17,8 +17,8 @@ import { MEDIA } from '../core/media.js';
 export const PHASES = ['target', 'style', 'draft'];
 export const PHASE_LABEL = { target: '만들 것', style: '스타일', draft: '초안 생성' };
 // 이것 없이는 소재의 큰 글자를 쓸 수 없다 — 브리프에 없으면 이것만 대화로 묻는다. 나머지(마감·근무지…)는 없으면 그 줄을 빼고 그린다.
-export const ESSENTIAL = { recruit: ['client', 'role'], event: ['name'] };
-export const ASK = { client: '어느 회사 채용인가요?', role: '모집하는 직무는 무엇인가요?', name: '행사 이름이 무엇인가요?' };
+export const ESSENTIAL = { recruit: ['client', 'hiringType', 'role'], event: ['name'] };   // 10-21: 메인 글자 = 고객사 + 채용 구분(레퍼런스 13/13), 상세 = 모집직무 — 없으면 묻는다. 마감은 필수지만 묻지 않는다(한진처럼 「공고별 상이」인 공고가 있다)
+export const ASK = { client: '어느 회사 채용인가요?', hiringType: '채용 구분은 무엇인가요? (예: 신입 공채 · 경력직 채용 · 대졸 신입/경력사원 채용)', role: '모집하는 직무는 무엇인가요?', name: '행사 이름이 무엇인가요?' };
 export const TRACKS = { online: '온라인 광고', offline: '오프라인 인쇄물' };
 
 // eDM·랜딩페이지는 만들지 않는다(2026-10-02 제외)
@@ -51,7 +51,7 @@ const pad2 = n => String(n).padStart(2, '0');
 // 날짜 읽기 — 2026-10-31 · 2026.10.31 · 2026년 10월 31일 · 10월 31일 · 10/31. 읽지 못하면 null(추측하지 않는다).
 // 연도가 없으면 올해로 읽되, 그 날이 이미 지났으면 내년이다 — 마감도 행사도 앞날의 일이다.
 export function normDate(s, now = new Date()) {
-  const t = String(s ?? '').trim();
+  const t = String(s ?? '').replace(/\s?\([월화수목금토일]\)/g, '').trim();   // 10-21: 「6.20(금)」의 요일 괄호
   let y, mo, d;
   let m = t.match(/(\d{4})\s?[-./년]\s?(\d{1,2})\s?[-./월]\s?(\d{1,2})/);
   if (m) { y = +m[1]; mo = +m[2]; d = +m[3]; }
@@ -75,12 +75,14 @@ const PLACE_TAIL = /(구|동|로|길|읍|면|리|역|단지|밸리|타워|센터
 const NOT_PLACE = /^(근무|소재|본사|지사|지역|전역|전체|채용|모집|마감|광고|및|또는|등)$/;
 // 회사로 읽는 근거 — 법인 표기, 흔한 사명 끝말, 영문 대문자+한글(SK하이닉스). 근거가 없으면 고객사는 비워 둔다.
 const CORP_MARK = /\(주\)|㈜|^주식회사$/;
-const CORP_TAIL = /(글로벌|제강|제철|첨단소재|소재|캐피탈|카드|생명|화재|통신|전자|그룹|건설|은행|증권|보험|화학|제약|자동차|중공업|물산|산업|에너지|바이오|테크|소프트|시스템즈?|네트웍스|랩스?|컴퍼니|코리아|홀딩스|엔지니어링|해운|항공|물류|카드|캐피탈|생명|화재|텔레콤|모빌리티|게임즈|엔터테인먼트|공사|공단|재단|병원|대학교)$/;
+const CORP_TAIL = /(글로벌|제강|제철|첨단소재|소재|캐피탈|카드|생명|화재|통신|전자|그룹|건설|은행|증권|보험|화학|제약|자동차|중공업|물산|산업|에너지|바이오|테크|소프트|시스템즈?|네트웍스|랩스?|컴퍼니|코리아|홀딩스|엔지니어링|해운|항공|물류|텔레콤|모빌리티|게임즈|엔터테인먼트|공사|공단|재단|병원|대학교|식품|약품|정보통신|의료원|저축은행|유통|호텔|리츠|파트너스|테크놀로지|솔루션즈?|이엔지|디스플레이|반도체|전기|가스|석유|정유|시멘트|제지|타이어|조선|해양|방산|항공우주|음료|제과|유업|생활건강|패션|백화점|마트|홈쇼핑|금융|자산운용|신탁|캐피털|페이|뱅크|플랫폼|게임즈?|미디어|방송|에듀|스쿨|아카데미|협회|연구원|연구소)$/;
 const JOB = /(엔지니어|개발자?|디자이너|기획자?|마케터|마케팅|영업|연구원|매니저|운영|회계|인사|설계|생산|품질|분석가?|사이언티스트|간호사|상담사?|컨설턴트|에디터|담당자?|사원|PD|PM|PO|QA|직)$/;
 const NOT_ROLE = /^(\d{4}년?|상반기|하반기|공채|공개|수시|신입|경력|신입·경력|신입\/경력|대규모|광고|소재|배너|홍보)$/;
 // 채용 구분·시즌 — 보드 레퍼런스 헤드라인 문법(2026-10-06): "2024 상반기 / 한미글로벌 신입 채용", "세아제강 신입/경력사원 채용", "PTKOREA 2026 8기 신입공개채용"
-const HIRING = /(신입\s?[\/·∙]\s?경력\s?(?:사원|공채)?|(?:신입|경력)(?:사원)?\s?(?:공개\s?채용|공채)|신입(?:사원)?|경력(?:사원)?|공개\s?채용|공채|부문별\s?채용|수시\s?채용)/;
-const SEASON = /((?:19|20)\d{2}\s?년?\s?(?:상반기|하반기|\d{1,2}기))/;
+// 채용 구분 — 레퍼런스 13장(10-21): 신입사원 공개채용 · 신입 공채 · 경력 및 신입사원 채용 · 대졸 신입/경력사원 채용 · 경력직 채용 · 신입/경력 공개채용. 「채용」 낱말은 안 담는다(렌더러 hireOf 가 없으면 붙인다)
+const HIRING = /((?:대졸\s?)?(?:신입|경력)(?:\s?(?:및|[\/·∙])\s?(?:신입|경력))?(?:\s?사원)?(?:직)?(?:\s?(?:공개\s?채용|공채))?|공개\s?채용|공채|부문별\s?채용|수시\s?채용)/;
+// 시즌 — 「2024 상반기」「2026년 하반기」「2025년」「2026년도」(레퍼런스 12/13 장). 연도만일 때는 날짜(2022년 10월 17일)의 연도가 아니어야 한다
+const SEASON = /((?:19|20)\d{2}(?:\s?년도?)?\s?(?:상반기|하반기|\d{1,2}기)|(?:19|20)\d{2}\s?년도?(?!\s?\d{1,2}\s?월))/;
 
 function looksCompany(tok) {
   if (!tok || JOB.test(tok)) return false;
@@ -112,16 +114,22 @@ export function extractRecruit(text, now = new Date()) {
   }
 
   // 마감일 — "마감"·"까지"가 붙은 날짜가 먼저. 날짜가 하나뿐이면 그것. 여럿인데 표시가 없으면 고르지 않는다.
-  const DATE = /(\d{4}\s?[-./년]\s?\d{1,2}\s?[-./월]\s?\d{1,2}\s?일?|\d{1,2}\s?월\s?\d{1,2}\s?일|\d{1,2}\/\d{1,2}(?=\s?(?:까지|마감|~|-|–|—|부터))|(?<=(?:~|-|–|—|부터|에서)\s?)\d{1,2}\/\d{1,2})/g;   // 10-19: 「10/1 ~ 10/31」 꼴 기간도 시작·마감으로
+  // 10-21: 레퍼런스 기간 표기 「6.20(금)~7.2(수) 17시」「02.28 ~ 03.10」「9/28(월)~10/12(월)」「~1/18(일) 23:59까지」 — 점·빗금 날짜 + 요일 괄호 + 시각
+  const WD = '(?:\\s?\\([월화수목금토일]\\))?', TM = '(?:\\s?\\d{1,2}(?::\\d{2})?\\s?시?\\s?)?';
+  const DATE = new RegExp(`(\\d{4}\\s?[-./년]\\s?\\d{1,2}\\s?[-./월]\\s?\\d{1,2}\\s?일?${WD}|\\d{1,2}\\s?월\\s?\\d{1,2}\\s?일${WD}|\\d{1,2}\\s?[./]\\s?\\d{1,2}${WD}(?=\\s?${TM}(?:까지|마감|~|-|–|—|부터))|(?<=(?:~|-|–|—|부터|에서)\\s?)\\d{1,2}\\s?[./]\\s?\\d{1,2}${WD})`, 'g');   // 10-19: 「10/1 ~ 10/31」 꼴 기간도 시작·마감으로
   const dates = [...t.matchAll(DATE)].map(m => ({ s: m[0], at: m.index, end: m.index + m[0].length }));
-  const marked = dates.find(d => /^\s{0,2}(까지|마감)/.test(t.slice(d.end, d.end + 6)) || /(마감|까지)[은는이가:]?\s{0,2}~?\s?$/.test(t.slice(Math.max(0, d.at - 8), d.at)));
+  const marked = dates.find(d => /^\s{0,2}(?:\d{1,2}(?::\d{2})?\s?시?\s?)?(까지|마감)/.test(t.slice(d.end, d.end + 14)) || /(마감|까지)[은는이가:]?\s{0,2}~?\s?$/.test(t.slice(Math.max(0, d.at - 8), d.at)));
   // 기간 — "5.3 ~ 5.21", "5월 3일부터 5월 21일까지": 앞 날짜가 접수 시작, 뒤 날짜가 마감
   const range = dates.slice(0, -1).map((d, i) => [d, dates[i + 1]]).find(([a, b]) => /^\s*(~|-|–|—|부터|에서)\s*$/.test(t.slice(a.end, b.at)));
   const pick = marked ?? (range ? range[1] : dates.length === 1 ? dates[0] : null);
   const iso = pick && normDate(pick.s, now);
   if (iso) out.deadline = iso;
-  const iso0 = range && normDate(range[0].s, now);
+  let iso0 = range && normDate(range[0].s, now);
+  // 연도 없는 기간 「9/28~10/12」: 날짜마다 따로 올해/내년을 고르면 시작이 마감 뒤로 갈 수 있다 — 시작은 마감보다 앞이어야 하므로 한 해 당긴다
+  if (iso0 && iso && iso0 > iso) iso0 = `${+iso0.slice(0, 4) - 1}${iso0.slice(4)}`;
   if (iso0 && iso) out.startDate = iso0;
+  // 마감 시각 — 마감 날짜 바로 뒤의 「17시」「23:59」(디자이너 산출물 3곳이 날짜 뒤에 시각을 붙였다)
+  if (pick) { const tm = t.slice(pick.end, pick.end + 16).match(/^\s?(?:\([월화수목금토일]\)\s?)?(?:(\d{1,2}):(\d{2})|(\d{1,2})\s?시)/); if (tm) out.deadlineTime = tm[1] ? `${pad2(tm[1])}:${tm[2]}` : `${pad2(tm[3])}:00`; }
 
   // 고객사·직무 — "…채용/모집" 앞 구절에서 읽는다
   // "…공채"도 채용 구절이다("2026 ㈜한독 신입/경력 공채")
@@ -146,6 +154,21 @@ export function extractRecruit(text, now = new Date()) {
     const lab = t.match(/(?:모집\s?(?:부문|직무|분야)|대상\s?직무|채용\s?직무)\s*[:：]?\s*([^,.\n]+(?:,\s*[^,.\n]+)*)/);
     if (lab) out.role = lab[1].replace(/\s*(?:입니다|이에요|예요)$/, '').trim();
   }
+  // 채용 구분이 없고 「○○ 채용」의 ○○이 직무면 그 구절이 채용 구분이다(서울아산병원 「디자이너 채용」·제일약품 「ETC 영업 채용(전국)」 — 메인 = 고객사 + 그 구절). 괄호의 지역은 근무지
+  if (!out.hiringType && clause && out.role) {
+    const headRole = clause.slice(0, clause.search(/채용|모집|구인|공채/)).replace(SEASON, ' ').replace(/\s+/g, ' ').trim();
+    if (headRole.endsWith(out.role)) {
+      const par = clause.match(/(?:채용|모집)\s?\(([가-힣A-Za-z· ]{2,8})\)/);
+      out.hiringType = `${out.role} 채용${par ? `(${par[1]})` : ''}`;
+      if (par && !out.location && /^(전국|전\s?지역|수도권|지방)$/.test(par[1])) out.location = par[1];
+    }
+  }
+  // 슬로건 — 「슬로건 "…"」 또는 따옴표 문구(바이오노트 BRINGING NEW INNOVATION·한샘 「당신과 함께 만드는 공간의 가치」)
+  const slo = t.match(/슬로건\s*[:：]?\s*["“'‘]([^"”'’\n]{2,60})["”'’]/) ?? t.match(/["“]([^"”\n]{4,60})["”]/);
+  if (slo) out.slogan = slo[1].trim();
+  // 고지 문구 — 「* …」 줄, 또는 「채용 일정은 공고별 상이」(한진: 마감 대신 적는 말)
+  const nt = t.match(/(?:^|\s)\*\s?([^\n*]{4,80}?)(?=\s*(?:\n|$))/m) ?? (/일정은\s?공고별\s?상이/.test(t) ? [null, '채용 일정은 공고별 상이합니다.'] : null);
+  if (nt) out.notice = `* ${nt[1].trim().replace(/^\*\s?/, '')}`;
   return out;
 }
 
@@ -171,7 +194,7 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
     "kind": "event|recruit",
     "track": "online|offline",
     "media": [${MEDIA_IDS.map(id => `"${id}"`).join(',')}] 중 확정된 것,
-    "fields": { 행사: name,date(YYYY-MM-DD),venue,audience,cta,headline,slogan,host,deadline(사전등록 마감 YYYY-MM-DD),applyUrl / 채용: client,role,employType,location,deadline(YYYY-MM-DD),deadlineTime(마감 시각 HH:MM, 적혀 있을 때만),applyUrl,qualification,process,notice },
+    "fields": { 행사: name,date(YYYY-MM-DD),venue,audience,cta,headline,slogan,host,deadline(사전등록 마감 YYYY-MM-DD),applyUrl / 채용: client,hiringType(채용 구분 — 신입 공채·경력직 채용·대졸 신입/경력사원 채용 같은 공고 제목의 구분 어구),role(모집직무 — 쉼표 나열),deadline(YYYY-MM-DD),startDate(접수 시작 YYYY-MM-DD),deadlineTime(마감 시각 HH:MM, 적혀 있을 때만),season(2026 하반기 같은 시즌),slogan,notice(「* 채용 일정은 공고별 상이」 같은 고지),employType,location,applyUrl,qualification,process },
     "channels": [${CHANNELS.map(c => `"${c}"`).join(',')}] 중 확정된 것(오프라인),
     "signage": { "xbanner":[{"purpose":"main|way|agenda|reception","arrow":"up|down|left|right|null"}] },
     "style": { "mode":"light|dark", "colors":["#RRGGBB",...], "font":"${FONT_IDS.join('|')}", "mood":"쉼표구분" },
