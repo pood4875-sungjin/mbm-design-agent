@@ -336,20 +336,43 @@ function initHome() {
     startIntake(t);
   };
   $('fileBtn').onclick = () => $('fileIn').click();
-  $('fileIn').onchange = () => {
+  // 10-21 사용자 「파일 첨부했을 때 거기서 해당 데이터 확인해서 추출하는 건 있어야 돼」 — 읽자마자 규칙 파서로 고객사·채용 구분·접수 기간·모집직무를 뽑아 뭘 찾았는지 알려 준다(시작하면 같은 값이 카드에 들어간다. 못 찾은 필수 값은 대화로 묻는다)
+  //   txt·md 는 그대로, PDF 는 pdf.js(cdnjs) 글자 추출, 워드(docx)는 mammoth(cdnjs) 본문 추출 — 브라우저 안에서만, 서버 없음. PPT 는 아직
+  const afterFileText = (name, raw) => {
+    const txt = String(raw ?? '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 8000); $('briefText').value = txt;
+    if (!txt) { toast(`${name} — 글자를 못 읽었어요(스캔 PDF 면 글자가 없어요)`); return; }
+    const kind = detectKind(txt), f0 = kind === 'recruit' ? extractRecruit(txt) : {};
+    const KEY = ['client', 'hiringType', 'startDate', 'deadline', 'role', 'season', 'slogan', 'notice'];
+    const got = KEY.filter(k => f0[k]);
+    const L = { client: '고객사', hiringType: '채용 구분', startDate: '접수 시작', deadline: '마감', role: '모집직무', season: '시즌', slogan: '슬로건', notice: '고지' };
+    toast(kind === 'recruit' ? `${name} 읽음 — 찾은 것: ${got.length ? got.map(k => `${L[k]} ${String(f0[k]).slice(0, 18)}`).join(' · ') : '없음'}${['client', 'hiringType', 'deadline', 'role'].some(k => !f0[k]) ? ' · 빈 필수 값은 시작하면 물어봐요' : ''}` : `${name} 읽음`, 6000);
+  };
+  const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs', PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+  const MAMMOTH = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
+  const loadScript = src => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('불러오기 실패 ' + src)); document.head.appendChild(el); });
+  const pdfText = async buf => {
+    const pdfjs = await import(/* @vite-ignore */ PDFJS); pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+    const doc = await pdfjs.getDocument({ data: buf }).promise; const parts = [];
+    // 한글 PDF 는 글자마다 항목이 따로 온다(「GS 에 너 지」) — 앞 항목 끝과의 간격이 글자 크기의 1/4 보다 넓을 때만 띄어쓰기, 줄은 y 가 바뀔 때
+    for (let i = 1; i <= Math.min(doc.numPages, 8); i++) { const pg = await doc.getPage(i); const tc = await pg.getTextContent(); let line = '', lastY = null, lastEnd = null;
+      for (const it of tc.items) { if (!('str' in it)) continue; const x = it.transform?.[4] ?? 0, y = Math.round(it.transform?.[5] ?? 0), fs = Math.abs(it.transform?.[0] ?? 10) || 10;
+        if (lastY != null && Math.abs(y - lastY) > 2) { parts.push(line.trim()); line = ''; lastEnd = null; }
+        if (lastEnd != null && x - lastEnd > fs * 0.25 && !line.endsWith(' ')) line += ' ';
+        line += it.str; if (it.hasEOL) { parts.push(line.trim()); line = ''; lastEnd = null; } else lastEnd = x + (it.width ?? 0); lastY = y; }
+      parts.push(line.trim()); }
+    return parts.filter(Boolean).join('\n');
+  };
+  const docxText = async buf => { await loadScript(MAMMOTH); const r = await window.mammoth.extractRawText({ arrayBuffer: buf }); return r.value; };
+  $('fileIn').onchange = async () => {
     const f = $('fileIn').files[0]; if (!f) return;
-    if (!/\.(txt|md)$/i.test(f.name)) { toast('PPT·워드 파싱은 서버 연동 후 — 지금은 txt/md'); return; }
-    const r = new FileReader();
-    // 10-21 사용자 「파일 첨부했을 때 거기서 해당 데이터 확인해서 추출하는 건 있어야 돼」 — 읽자마자 규칙 파서로 고객사·채용 구분·접수 기간·모집직무를 뽑아 뭘 찾았는지 알려 준다(시작하면 같은 값이 카드에 들어간다. 못 찾은 필수 값은 대화로 묻는다)
-    r.onload = () => {
-      const txt = String(r.result).slice(0, 8000); $('briefText').value = txt;
-      const kind = detectKind(txt), f0 = kind === 'recruit' ? extractRecruit(txt) : {};
-      const KEY = ['client', 'hiringType', 'startDate', 'deadline', 'role', 'season', 'slogan', 'notice'];
-      const got = KEY.filter(k => f0[k]);
-      const L = { client: '고객사', hiringType: '채용 구분', startDate: '접수 시작', deadline: '마감', role: '모집직무', season: '시즌', slogan: '슬로건', notice: '고지' };
-      toast(kind === 'recruit' ? `${f.name} 읽음 — 찾은 것: ${got.length ? got.map(k => `${L[k]} ${String(f0[k]).slice(0, 18)}`).join(' · ') : '없음'}${['client', 'hiringType', 'deadline', 'role'].some(k => !f0[k]) ? ' · 빈 필수 값은 시작하면 물어봐요' : ''}` : `${f.name} 읽음`, 6000);
-    };
-    r.readAsText(f);
+    const ext = (f.name.match(/\.([a-z0-9]+)$/i) ?? [])[1]?.toLowerCase();
+    try {
+      if (ext === 'txt' || ext === 'md') afterFileText(f.name, await f.text());
+      else if (ext === 'pdf') { toast(`${f.name} 읽는 중…`); afterFileText(f.name, await pdfText(await f.arrayBuffer())); }
+      else if (ext === 'docx') { toast(`${f.name} 읽는 중…`); afterFileText(f.name, await docxText(await f.arrayBuffer())); }
+      else toast('txt · md · PDF · 워드(docx)만 — PPT·한글은 서버 연동 후');
+    } catch (e) { toast(`${f.name} 읽기 실패 — ${e.message}`); }
+    $('fileIn').value = '';
   };
   $('searchIn').oninput = () => renderSidebar($('searchIn').value.trim());
 }
@@ -878,6 +901,24 @@ function specRow(g, it, AD) {
     <span class="pw">${e.confidence !== '확정' ? '확인 필요' : ''}</span></label>`;
 }
 
+// 차수 세트(10-21 사용자 「매체를 문장에 나열하는 대신 1차 세트 칩」): 하·1차 20(자소설·리멤버·비즈보드) / 중·2차 9 / 상·3차 10 / 로고·프로필·보조 12 — core/media/_extract.json stages
+//   켜기 = 그 차수 규격의 매체를 고르고 그 규격만 켠다(새로 고른 매체의 다른 차수 규격은 끈다 — 비즈보드만 골랐는데 카카오 PC·프로필까지 켜지지 않게). 끄기 = 그 차수 규격을 끄고, 켜진 규격이 하나도 안 남은 매체는 해제
+const stageGroups = (it, st) => { const pickable = pickableMedia(it.kind); return visibleGroups(it).filter(g => g.entry.extract && specStage(g.id) === st && pickable.includes(g.medium)); };
+const stageOn = (it, st) => { const gs = stageGroups(it, st); return gs.length > 0 && gs.every(g => it.media.includes(g.medium) && !it.specOff.has(g.id)); };
+const stageSpecCount = (it, st) => stageGroups(it, st).reduce((n, g) => n + 1 + (g.twins?.length ?? 0), 0);
+function toggleStage(it, st) {
+  const gs = stageGroups(it, st), media = [...new Set(gs.map(g => g.medium))];
+  if (stageOn(it, st)) {
+    for (const g of gs) it.specOff.add(g.id);
+    for (const m of media) if (!visibleGroups(it).some(g => g.medium === m && g.entry.extract && !it.specOff.has(g.id))) it.media = it.media.filter(x => x !== m);
+    return;
+  }
+  for (const m of media) if (!it.media.includes(m)) {   // 새로 고르는 매체: 이 차수 밖의 추출 규격은 끈 채로 시작
+    it.media.push(m);
+    for (const g of visibleGroups(it)) if (g.medium === m && g.entry.extract && specStage(g.id) !== st) it.specOff.add(g.id);
+  }
+  for (const g of gs) it.specOff.delete(g.id);
+}
 function mediaPickerHtml(it) {
   {
     const all = visibleGroups(it), AD = adSpecEntries();
@@ -887,7 +928,9 @@ function mediaPickerHtml(it) {
     const pickable = pickableMedia(it.kind);
     const allOn = pickable.length > 0 && pickable.every(id => it.media.includes(id));
     const pickAll = `<div class="pspec"><span>매체 ${pickable.length}곳 · 소재 ${all.filter(x => pickable.includes(x.medium)).length}종</span>
-      <button type="button" class="lnk" id="mAll" aria-pressed="${allOn}">${allOn ? '전체 해제' : '전체 선택'}</button></div>`;
+      <button type="button" class="lnk" id="mAll" aria-pressed="${allOn}">${allOn ? '전체 해제' : '전체 선택'}</button></div>
+      <div class="pspec stages"><span>차수로 고르기</span>${[1, 2, 3, 4].map(st => { const gs = stageGroups(it, st); if (!gs.length) return ''; const on = stageOn(it, st);
+        return `<button type="button" class="stg ${on ? 'on' : ''}" data-stage="${st}" aria-pressed="${on}" title="${gs.map(g => mediumName(g.medium)).filter((m, i, a) => a.indexOf(m) === i).join(' · ')}">${STAGE_NAMES[st] ?? st + '차'} <small>${stageSpecCount(it, st)}종</small></button>`; }).join('')}</div>`;
     const cards = pickAll + ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
       const ms = kindMedia.filter(m => m.group === g);
       if (!ms.length) return '';
@@ -980,6 +1023,7 @@ function slotWhere() {
   });
   $('sSpecs')?.addEventListener('click', () => { it.specOpen = !it.specOpen; re('#sSpecs'); });
   $('sRefs')?.addEventListener('click', () => { it.specRefs = !it.specRefs; if (it.specRefs) it.specOpen = true; re('#sRefs'); });
+  box.querySelectorAll('button[data-stage]').forEach(b => b.addEventListener('click', () => { toggleStage(it, +b.dataset.stage); re(`button[data-stage="${b.dataset.stage}"]`); }));
   $('mAll')?.addEventListener('click', () => {
     const ids = pickableMedia(it.kind);
     const allOn = ids.length > 0 && ids.every(id => it.media.includes(id));
