@@ -26,8 +26,12 @@ test('누끼가 지면 변에서 잘리면 그 변을 녹인다 — 구글 300×
 });
 
 test('사진 상자의 안쪽 변만 녹인다 — 네이버 DA 사진 칸 오른쪽·아래(지면 변에 붙은 변은 그대로)', () => {
-  const h = renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']);
+  // __fix: {} 로 빈 지면 보정(emptyFix, 10-21)을 끄고 칸 그대로 — 칸 바닥이 지면 바닥에서 20px 떠 있어 오른쪽·아래 두 변이 안쪽 변
+  const h = renderAd(ctx, { ...photo, __fix: {} }, specs['naver-gfa-mobile-da-1250x560']);
   const f = fadeOf(h); assert.ok(f && /R28/.test(f) && /B28/.test(f) && !/L/.test(f), '네이버: ' + f);
+  // 빈 지면 보정이 칸을 키우면(주인공 없는 사진 → 덮는 몫 27% → 35%) 칸이 지면 바닥에 닿아 아랫변은 지면 변 — 오른쪽만 녹인다
+  const g = renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']);
+  const fg = fadeOf(g); assert.ok(/data-empty="/.test(g) && fg && /R28/.test(fg) && !/B/.test(fg) && !/L/.test(fg), '네이버(보정 뒤): ' + fg);
 });
 
 test('제외 — 둥근 상자(카카오 썸네일) · 템플릿 여백 변(자소설 PC팝업 8/30) · 칸 안 contain 누끼(자소설 160×600·네이버 DA)', () => {

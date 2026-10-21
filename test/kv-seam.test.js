@@ -114,7 +114,8 @@ test('fieldAlign — 그림 네 변에서 정한 세로 그라데이션(위 남�
   assert.ok(ta.rules.includes('fieldAlign') && tb.rules.includes('fieldAlign'));
   const ma = a.match(/<div data-ad="1"[^>]*style="[^"]*background:linear-gradient\(180deg,#081A4E ([\d.]+)px,#0144D3 ([\d.]+)px\)/); assert.ok(ma, '루트 지면이 px 정지점 그라데이션');
   assert.ok(+ma[1] >= 544 && +ma[2] <= 880 && +ma[2] > +ma[1], `하단 띠 안에서 위 3%→아래 97%: ${ma[1]}~${ma[2]}`);
-  const mb = b.match(/background:linear-gradient\(180deg,#081A4E ([\d.]+)px,#0144D3 ([\d.]+)px\)/); assert.ok(mb && +mb[1] >= 229 && +mb[2] <= 407, `모서리 칸 229~407 안: ${mb?.[1]}~${mb?.[2]}`);
+  // 모서리 칸은 빈 지면 보정(emptyFix, 10-21)이 글자 쪽으로 키울 수 있다 — 정지점은 실제 칸(trace place.tImage) 안이면 된다
+  const tb0 = tb.place.tImage, mb = b.match(/background:linear-gradient\(180deg,#081A4E ([\d.]+)px,#0144D3 ([\d.]+)px\)/); assert.ok(mb && +mb[1] >= tb0.y && +mb[2] <= tb0.y + tb0.h, `모서리 칸 ${tb0.y}~${tb0.y + tb0.h} 안: ${mb?.[1]}~${mb?.[2]}`);
   // 글자 쪽 양옆 녹임은 늘이지 않는다(변 색 = 같은 높이의 지면 색) — meltFix 가 55% 로 키우지 않는다
   const o = (a.match(/<div data-object="1"[^>]*>/g) ?? []).find(t => /mask-image/.test(t)) ?? '';
   const dm = +((o.match(/data-melt="([\d.]+)"/) ?? [])[1] ?? 0); assert.ok(dm > 0 && dm < 50, '양옆 녹임 ' + dm);

@@ -216,7 +216,48 @@ function fieldAlign(html, style, spec, tr) {
 }
 export function renderAd(ctx, style, spec) {
   const first = renderOnce(ctx, style, spec);
-  return overlapFix(ctx, style, spec, first);
+  const fixed = overlapFix(ctx, style, spec, first);
+  return fixed !== first.html ? fixed : emptyFix(ctx, style, spec, first);   // 겹침 교정이 손댄 그림은 이미 꽉 찬 그림 — 빈 지면 보정은 건너뛴다
+}
+// 빈 지면 보정 사다리(10-21 사용자 「이런 경우 키비주얼이 꽤 크게 들어가야 비어 보이지 않고 임팩트」):
+//   글자 행 ∪ 그림 주인공이 지면을 덮는 몫(coverageOf)이 CANON.emptyFix.min 미만이면 키비주얼 배율 steps 순으로 다시 그려(__fix.kvK — 편집 「키비주얼 크기」와 같은 자리, 틀 칸은 emptyFix.slot)
+//   처음 min 에 닿는 것을 쓴다. 겹침이 overlapFix 문턱을 넘는 단계, 더 커지지 않는 단계(상한에 닿음)에서 멈추고 그 전 단계를 쓴다. 그림이 지면 전체(질감·배경형·사진 전체)·로고만·투명·편집으로 크기를 정한 것·규정 매체 틀(emptyFix.regulated)은 제외
+function emptyFix(ctx, style, spec, first) {
+  const C = CANON.emptyFix; if (!C || !style?.keyVisual || style.__fix) return first.html;
+  if (editOf(style)?.kvSize) return first.html;
+  const T = first.tr, g = T?.gate; if (!g?.hasKv || g.logoOnly || g.transparent || g.textureFull || g.frameFull || g.photoFull || g.roomFull) return first.html;
+  if (!(spec.h >= C.minH)) return first.html;
+  const regulated = !!spec.mediumRules?.fonts?.required; if (regulated && !C.regulated) return first.html;
+  const c0 = coverageOf(first.html, T, first.styleUsed, spec); if (c0 == null || c0.all >= C.min) return first.html;
+  const f0 = style.kvMeta?.field, profiled = (f0?.opaque ?? 1) < 0.5 && Array.isArray(f0?.cols) && Array.isArray(f0?.rows);
+  const OV = CANON.overlapFix, thr = OV ? ((kvTypeOf(style.kvMeta)?.flags?.character || profiled) ? OV.character : OV.other) : 0.15;
+  let best = { ...first, cov: c0.all, k: null };
+  for (const k of C.steps) {
+    const out = renderOnce(ctx, { ...style, __fix: { kvK: k } }, spec);
+    const ov = overlapRatio(out.html, out.tr, out.styleUsed, spec) ?? 0; if (ov > thr) break;
+    const c = coverageOf(out.html, out.tr, out.styleUsed, spec); if (!c || c.all <= best.cov + 0.005) break;
+    best = { ...out, cov: c.all, k }; if (c.all >= C.min) break;
+  }
+  if (best.k == null) return first.html;
+  const mark = best.cov >= C.min ? 'emptyFix.ok' : 'emptyFix.max';
+  return best.html
+    .replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`)
+    .replace('<div data-ad="1"', `<div data-ad="1" data-empty="${Math.round(c0.all * 100)}>${Math.round(best.cov * 100)}:${best.k}"`);
+}
+// 덮는 몫(0~1): 글자 행(TR.textBox.rows) ∪ 그림 주인공(focus, 없으면 열·행 프로필 상자 profileFocus, 그것도 없으면 그림 전체 — 실제 그림 사각형에 투영 ∩ 상자 ∩ 지면) ÷ 지면. 격자 48×48 근사. 글자 행이 없으면 null
+export function coverageOf(html, tr, style, spec) {
+  const rows = tr?.textBox?.rows; if (!rows?.length) return null;
+  const W = spec.w, H = spec.h; if (!(W > 0 && H > 0)) return null;
+  const f = style.kvMeta?.field ?? null, focus = f?.focus ?? profileFocus(f) ?? null;
+  const kv = [];
+  for (const o of objectRects(html, style, spec)) {
+    const pic = o.pic, b = o.box; const vis = { x: Math.max(0, b.x), y: Math.max(0, b.y), w: Math.min(W, b.x + b.w) - Math.max(0, b.x), h: Math.min(H, b.y + b.h) - Math.max(0, b.y) };
+    const full = focus ? { x: pic.x + (focus.x - focus.w / 2) * pic.w, y: pic.y + (focus.y - focus.h / 2) * pic.h, w: focus.w * pic.w, h: focus.h * pic.h } : pic;
+    const x0 = Math.max(full.x, vis.x), y0 = Math.max(full.y, vis.y), x1 = Math.min(full.x + full.w, vis.x + vis.w), y1 = Math.min(full.y + full.h, vis.y + vis.h);
+    if (x1 > x0 && y1 > y0) kv.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+  }
+  const N = 48, hit = rects => { let n = 0; for (let i = 0; i < N; i++) { const x = (i + 0.5) / N * W; for (let j = 0; j < N; j++) { const y = (j + 0.5) / N * H; if (rects.some(r => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)) n++; } } return n / (N * N); };
+  return { text: hit(rows), kv: hit(kv), all: hit([...rows, ...kv]) };
 }
 // 겹침 교정 사다리(10-19 사용자 「키비주얼과 텍스트가 겹쳐서 텍스트가 안 보일 땐 텍스트를 줄이던지 띄어쓰던지 키비주얼 위치를 조정해야」):
 //   그린 뒤 글자 어림 상자(TR.textBox 행)와 그림 주인공 상자(kvMeta.field.focus 를 실제 그림 사각형에 투영, 없으면 그림 전체)의 겹침 = 교집합 ÷ 글자 행 면적, 행 중 최대.
@@ -265,7 +306,7 @@ export function overlapRatio(html, tr, style, spec) {
   const inter = (A, B) => Math.max(0, Math.min(A.x + A.w, B.x + B.w) - Math.max(A.x, B.x)) * Math.max(0, Math.min(A.y + A.h, B.y + B.h) - Math.max(A.y, B.y));
   let worst = 0;
   for (const o of objs) {
-    const pic = o.pic;
+    const pic = o.pic; if (!(o.clip.w > 0 && o.clip.h > 0)) continue;   // 보이는 창이 없는 그림(녹임이 전부)은 주인공이 아니다
     if (prof) {
       const nx = cols.length, ny = rws.length, cw = pic.w / nx, ch = pic.h / ny;
       for (const r of rows) { const A = r.w * r.h; if (!(A > 0)) continue; let s = 0;
@@ -303,10 +344,11 @@ export function objectRects(html, style, spec) {
     const clip = { x: Math.max(bx, 0), y: Math.max(by, 0) }; clip.w = Math.min(bx + bw, W) - clip.x; clip.h = Math.min(by + bh, H) - clip.y;
     // 글자 쪽 변의 녹임(data-melt %·방향)은 지면으로 읽힌다 — 그 구간은 주인공에서 뺀다(틀 사진 칸 왼쪽 35%·아래 띠 윗변·양옆 녹임)
     const melt = parseFloat((rest.match(/data-melt="(\d+(?:\.\d+)?)"/) ?? [])[1] ?? '0'), mdir = (rest.match(/data-melt-dir="([^"]*)"/) ?? [])[1] ?? '', meltR = parseFloat((rest.match(/data-melt-right="(\d+(?:\.\d+)?)"/) ?? [])[1] ?? '0'), meltT = parseFloat((rest.match(/data-melt-top="(\d+(?:\.\d+)?)"/) ?? [])[1] ?? '0');
-    if (melt > 0) { const cutL = (mdir === 'to right' || mdir === 'sides') ? bw * melt / 100 : 0, cutR = mdir === 'to left' ? bw * melt / 100 : mdir === 'sides' ? bw * (meltR || melt) / 100 : 0, cutT = mdir === 'to bottom' ? bh * melt / 100 : 0, cutB = mdir === 'to top' ? bh * melt / 100 : 0;
+    // sides 의 오른쪽 길이는 data-melt-right 그대로(0 이면 0 — containEdge 로 오른쪽 변에 붙인 그림은 오른쪽을 안 녹인다. 10-21 전엔 0 을 「없음」으로 읽어 왼쪽 길이를 또 빼 상자가 사라졌다 → desk-11 구글 580 그림 상자 미검출)
+    if (melt > 0) { const cutL = (mdir === 'to right' || mdir === 'sides') ? bw * melt / 100 : 0, cutR = mdir === 'to left' ? bw * melt / 100 : mdir === 'sides' ? bw * (/data-melt-right=/.test(rest) ? meltR : melt) / 100 : 0, cutT = mdir === 'to bottom' ? bh * melt / 100 : 0, cutB = mdir === 'to top' ? bh * melt / 100 : 0;
       const nx = Math.max(clip.x, bx + cutL), ny = Math.max(clip.y, by + cutT); clip.w = Math.min(clip.x + clip.w, bx + bw - cutR) - nx; clip.h = Math.min(clip.y + clip.h, by + bh - cutB) - ny; clip.x = nx; clip.y = ny;
       if (meltT > 0) { const ny2 = Math.max(clip.y, by + bh * meltT / 100); clip.h = clip.y + clip.h - ny2; clip.y = ny2; } }
-    if (!(clip.w > 0 && clip.h > 0)) continue;
+    if (!(clip.w > 0 && clip.h > 0)) { clip.w = 0; clip.h = 0; }   // 양옆 녹임이 폭을 다 덮는 그림(desk-11 네이버 DA 55%+50%)도 상자는 돌려준다 — 보이는 창만 0(겹침·끊김은 건너뛰고, 덮는 몫 coverageOf 는 상자로 센다)
     out.push({ box: { x: bx, y: by, w: bw, h: bh }, pic: { x: bx + ox, y: by + oy, w: dw, h: dh }, clip });
   }
   return out;
@@ -851,6 +893,21 @@ function renderAdBase(ctx, style, spec) {
   }
   // 겹침 교정(kvK<1) — 틀의 사진·바탕 그림 칸: 칸 자체를 배율만큼 줄여 우하단(글자 반대쪽)에 붙인다. 누끼는 칸은 두고 그림만 줄인다(containSz)
   if (FIX?.kvK && FIX.kvK < 1 && mold && tImage && (style.kvMeta?.field?.opaque ?? 1) >= 0.5) { const nw = Math.max(8, Math.round(tImage.w * FIX.kvK)), nh = Math.max(8, Math.round(tImage.h * FIX.kvK)); tImage = { ...tImage, x: tImage.x + tImage.w - nw, y: tImage.y + tImage.h - nh, w: nw, h: nh }; }
+  // 빈 지면 보정(kvK>1, emptyFix — 10-21): 틀 그림 칸은 지면 변에 닿은 변을 그대로 두고 글자 쪽으로 키운다. 오른쪽·왼쪽 열은 폭만, 아래 띠는 높이만(열·띠 판정이 바뀌지 않게), 모서리 칸은 둘 다 — 상한 CANON.emptyFix.slotCap(아래 띠는 fill.maxObject).
+  //   둥근 칸(비즈보드 r10)·bleed:false 칸(인스타 1080)·자유 자리(moldFreeKv)는 안 키운다. 글자 칸과의 충돌은 emptyFix 가 overlapRatio 로 거른다
+  if (FIX?.kvK > 1 && mold && tImage && tImage.radius == null && mold.image?.bleed !== false && !moldFreeKv) {
+    const k = FIX.kvK, cap = CANON.emptyFix?.slotCap ?? 0.8;
+    const atR = tImage.x + tImage.w >= w - 1, atL = tImage.x <= 1, atB = tImage.y + tImage.h >= h - 1, fullW = tImage.w >= w - 1, fullH = tImage.h >= h - 1;
+    const capH = fullW ? Math.round(h * (guide?.fill?.maxObject ?? 0.55)) : Math.round(h * cap), capW = Math.round(w * cap);
+    const nw = fullW ? tImage.w : fullH ? Math.min(capW, Math.round(tImage.w * k)) : Math.min(capW, Math.round(tImage.w * k));
+    const nh = fullH ? tImage.h : Math.min(capH, Math.round(tImage.h * k));
+    // 지면 변에 닿은 변은 그대로, 안 닿은 칸은 가운데로 키우되 지면 밖으로는 안 나간다(네이버 DA 칸 바닥 20px 틈 → 키우면 바닥에 닿는다)
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    //   닿은 변은 원래 변 좌표 그대로(구글 580 칸 아랫변 407 — 지면 밖 7px 블리드도 그대로)
+    const nx = atR && !atL ? tImage.x + tImage.w - nw : atL ? tImage.x : clamp(Math.round(tImage.x - (nw - tImage.w) / 2), 0, Math.max(0, w - nw));
+    const ny = atB ? tImage.y + tImage.h - nh : clamp(Math.round(tImage.y - (nh - tImage.h) / 2), 0, Math.max(0, h - nh));
+    if (nw !== tImage.w || nh !== tImage.h) { tImage = { ...tImage, x: nx, y: ny, w: nw, h: nh }; fired('emptyFix.slot'); }
+  }
   const kvKindPhoto = style.kvMeta?.field?.kind === 'photo';
   // 그림이 없고 로고만 있으면 로고가 오브젝트 자리를 차지한다(보드 예시 14/136: 셀트리온·LX·CMTX·제일약품·SPC…) — 작은 상단 로고는 그때 생략
   // 매체가 로고 칸을 따로 정해 둔 템플릿(자소설)에서는 로고를 그 칸에 두고 이미지 칸은 비운다 — 로고가 두 번 나오면 안 된다
