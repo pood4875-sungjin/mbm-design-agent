@@ -94,6 +94,268 @@
    },
    "tall": {
     "crop": {
+     "x": 0.195,
+     "y": 0,
+     "w": 0.619,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#74B7F5",
+      "#A0CBF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.42,
+     "w": 1.1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.35,
+     "bottom": 0
+    },
+    "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
+   },
+   "square": {
+    "crop": {
+     "x": 0,
+     "y": 0.16,
+     "w": 1,
+     "h": 0.79
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#74B7F5",
+      "#A0CBF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.45,
+     "w": 1.1,
+     "h": 0.58
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.35,
+     "bottom": 0
+    },
+    "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
+   },
+   "tower": {
+    "crop": {
+     "x": 0.208,
+     "y": 0.107,
+     "w": 0.583,
+     "h": 0.893
+    },
+    "kvPlace": "bottom",
+    "kvSize": "sm",
+    "textAlign": "center",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#74B7F5",
+      "#A0CBF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.66,
+     "w": 1.2,
+     "h": 0.36
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "세로 띠는 글자 공간이 필요해서 인물 중심으로 잘라 아래쪽에 작게 둔다."
+   },
+   "strip": {
+    "crop": {
+     "x": 0.148,
+     "y": 0.358,
+     "w": 0.721,
+     "h": 0.556
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#74B7F5",
+      "#9CC8F8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.65,
+     "y": -0.1,
+     "w": 0.4,
+     "h": 1.25
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0.1,
+     "bottom": 0.1
+    },
+    "why": "가로 띠는 오른쪽 끝에 인물 얼굴만 작게 두고 왼쪽 글자 쪽을 녹인다."
+   }
+  },
+  "logo": {
+   "kind": "wordmark"
+  },
+  "rationale": "파란 그라데이션 배경의 3D 캐릭터 일러스트라 배경색을 이어 칠하고 가장자리를 녹여, 인물 얼굴과 스마트폰을 크게 살리면서 글자 쪽이 비지 않게 했다. 로고는 어두운 워드마크라 밝은 파랑 지면에서 잘 읽히며, 글자도 검정 계열로 대비를 맞췄다."
+ },
+ "fixes": [
+  "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 6337,
+  "output_tokens": 1868,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0,
+ "ms": 16295,
+ "model": "claude-sonnet-5-5",
+ "raw": {
+  "kv": {
+   "type": "illust-grad-bg",
+   "subject": {
+    "x": 0.225,
+    "y": 0.37,
+    "w": 0.558,
+    "h": 0.531
+   },
+   "keep": [
+    {
+     "x": 0.392,
+     "y": 0.37,
+     "w": 0.2,
+     "h": 0.321,
+     "label": "가운데 인물 얼굴"
+    },
+    {
+     "x": 0.229,
+     "y": 0.519,
+     "w": 0.204,
+     "h": 0.272,
+     "label": "모자 쓴 인물 얼굴"
+    },
+    {
+     "x": 0.575,
+     "y": 0.488,
+     "w": 0.175,
+     "h": 0.259,
+     "label": "금발 인물 얼굴"
+    },
+    {
+     "x": 0.225,
+     "y": 0.642,
+     "w": 0.558,
+     "h": 0.259,
+     "label": "스마트폰 든 손"
+    }
+   ],
+   "cutSafe": {
+    "top": 0.12,
+    "right": 0.08,
+    "bottom": 0.05,
+    "left": 0.08
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#6CB6F6",
+     "#E9E68E",
+     "#E1BAD5"
+    ]
+   },
+   "note": "파란 그라데이션 배경 위에 3D 캐릭터 세 명과 유리 카드가 떠 있는 일러스트. 배경이 위쪽 진한 파랑에서 아래쪽 연한 파랑으로 이어져 연장하기 쉽다."
+  },
+  "groups": {
+   "wide": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#78B9F4",
+      "#9CC8F8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.38,
+     "y": 0.02,
+     "w": 0.64,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0.1,
+     "bottom": 0.1
+    },
+    "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
+   },
+   "tall": {
+    "crop": {
      "x": 0.083,
      "y": 0.123,
      "w": 0.833,
@@ -245,15 +507,5 @@
    "kind": "wordmark"
   },
   "rationale": "파란 그라데이션 배경의 3D 캐릭터 일러스트라 배경색을 이어 칠하고 가장자리를 녹여, 인물 얼굴과 스마트폰을 크게 살리면서 글자 쪽이 비지 않게 했다. 로고는 어두운 워드마크라 밝은 파랑 지면에서 잘 읽히며, 글자도 검정 계열로 대비를 맞췄다."
- },
- "fixes": [],
- "usage": {
-  "input_tokens": 6337,
-  "output_tokens": 1868,
-  "cache_read_input_tokens": 0,
-  "cache_creation_input_tokens": 0
- },
- "cost": 0,
- "ms": 16295,
- "model": "claude-sonnet-5-5"
+ }
 }

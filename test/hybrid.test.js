@@ -39,7 +39,11 @@ test('검증 — 픽셀 상자 → 비율, crop 이 주인공·보존 요소를 
   G.square.kvBox = { x: 0, y: 0, w: 300, h: 200 };
   const { analysis: a2 } = validateAnalysis(A, { kvMeta: meta28 });
   assert.deepEqual(a2.groups.tower.field, { colors: ['#123456', '#ABCDEF'], angle: 360, text: 'auto', melt: 0.75 });
-  assert.deepEqual(a2.groups.tower.kvBox, { x: 0.6, y: 0, w: 0.5, h: 1 }); assert.equal(a2.groups.tower.fade.left, 0.6);
+  // 세로 띠 상자(0.5×1 → px 비율 0.145)에 원본 0.75 그림: 넓히기 불가 → 주인공 폭까지 좁히기 → 그래도 넓으면 상자를 그림 비율로(아래 변 고정)
+  const tw = a2.groups.tower, twAR = (tw.crop.w * 736) / (tw.crop.h * 980), boxAR = (tw.kvBox.w / tw.kvBox.h) * 0.29;
+  assert.ok(Math.abs(Math.log(twAR / boxAR)) < Math.log(1.2), `crop ${twAR.toFixed(3)} ≈ 상자 ${boxAR.toFixed(3)}`);
+  assert.ok(tw.crop.x <= a2.kv.subject.x + 1e-6 && tw.crop.x + tw.crop.w >= a2.kv.subject.x + a2.kv.subject.w - 1e-6, '주인공 폭 유지');
+  assert.equal(tw.fade.left, 0.6);
   assert.equal(a2.groups.tall.kvBox.w, 0, '너무 작은 상자 → 규칙'); assert.equal(a2.groups.square.kvBox.w, 0, '픽셀 상자 → 규칙');
   assert.equal(analysis.logo.kind, 'none');
   assert.deepEqual(analysis.groups.strip.crop, analysis.groups.wide.crop, 'strip 은 wide 복사'); assert.ok(fixes.some(s => s.includes('strip 묶음')));
@@ -119,4 +123,15 @@ test('AI 그림 상자 — 규칙 렌더 뒤 그림 층만 바꾸고(글자·로
   const st = normalizeStyle({ ...base, aiKvBox: { x: 0.5, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.9, top: -1 } });
   assert.deepEqual(st.aiFade, { left: 0.6, right: 0, top: 0, bottom: 0 });
   assert.equal(normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 0, h: 1 } }).aiKvBox, undefined);
+});
+
+test('검증 — 세로형 상자에 가로로 넓은 crop 이면 원본에서 더 가져와 상자 비율에 맞춘다(10-22 GS 300×600 사람 잘림)', () => {
+  const A = good(); const G = Object.fromEntries(A.groups.map(g => [g.shape, g]));
+  A.kv.subject = { x: 100, y: 500, w: 500, h: 450 }; A.kv.keep = [];
+  G.tall.crop = { x: 0, y: 409, w: 736, h: 571 };   // 아래 58% (px 비율 1.29)
+  G.tall.kvBox = { x: 0, y: 0.5, w: 1, h: 0.5 };   // 300×600 의 아래 절반 = 300×300(비율 1)
+  const { analysis, fixes } = validateAnalysis(A, { kvMeta: meta28 });
+  const c = analysis.groups.tall.crop, ar = (c.w * 736) / (c.h * 980);
+  assert.ok(Math.abs(ar - 1) < 0.15, `crop 비율 ${ar.toFixed(2)} ≈ 1`); assert.ok(c.h > 0.583, '위로 더 가져옴(하늘)');
+  assert.ok(fixes.some(s => s.includes('tall: 보일 부분을 그림 상자 비율에')));
 });

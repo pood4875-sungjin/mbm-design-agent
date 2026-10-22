@@ -242,13 +242,14 @@ function aiBoxRender(ctx, style, spec) {
   const logoM = first.html.match(/<div data-logo-slot="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
   const logoR = logoM ? { x: +logoM[1], y: +logoM[2], w: +logoM[3], h: +logoM[4] } : null;
   const OV = CANON.overlapFix, thr = (kvTypeOf(style.kvMeta)?.flags?.character || transparent) ? OV.character : OV.other;
-  const build = k => {
-    // 글자 쪽 축만 줄인다(가로로 떨어져 있으면 폭만, 세로면 높이만) — 글자 반대쪽 변을 붙잡고. 위아래 꽉 찬 사진에 빈 띠가 생기지 않게
+  const build = (k, grow = 1) => {
+    // 줄일 때(k<1): 글자 쪽 축만(가로로 떨어져 있으면 폭만, 세로면 높이만) — 글자 반대쪽 변을 붙잡고. 위아래 꽉 찬 사진에 빈 띠가 생기지 않게
+    // 키울 때(grow>1): 두 축 다 — 글자 반대쪽 변을 붙잡고, 다른 축은 가운데 기준(빈 지면 보정과 같은 뜻 — 그림이 커서 비어 보이지 않게)
     const cx = (B.x + B.w / 2) * W, cy = (B.y + B.h / 2) * H;
     const horiz = Math.abs(cx - tc.x) / W >= Math.abs(cy - tc.y) / H;
-    const bw = B.w * W * (horiz ? k : 1), bh = B.h * H * (horiz ? 1 : k);
-    const x = horiz ? (cx >= tc.x ? (B.x + B.w) * W - bw : B.x * W) : B.x * W;
-    const y = horiz ? B.y * H : (cy >= tc.y ? (B.y + B.h) * H - bh : B.y * H);
+    const bw = B.w * W * (horiz ? k : 1) * grow, bh = B.h * H * (horiz ? 1 : k) * grow;
+    const x = horiz ? (cx >= tc.x ? (B.x + B.w) * W - bw : B.x * W) : cx - bw / 2;
+    const y = horiz ? cy - bh / 2 : (cy >= tc.y ? (B.y + B.h) * H - bh : B.y * H);
     const r1 = v => Math.round(v * 10) / 10;
     const pos = fo ? `${Math.round(Math.min(100, Math.max(0, fo.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, fo.y * 100)))}%` : '50% 50%';
     const sides = transparent ? [] : [['left', 'to right'], ['right', 'to left'], ['top', 'to bottom'], ['bottom', 'to top']].filter(([s0]) => (Fd[s0] ?? 0) >= 0.03).map(([s0, dir]) => meltGradient(dir, Math.round(Fd[s0] * 1000) / 10));
@@ -279,12 +280,21 @@ function aiBoxRender(ctx, style, spec) {
     if (horiz) { const far = cx >= tc.x ? (B.x + B.w) * W : B.x * W, near = cx >= tc.x ? r0.x1 + W * 0.02 : r0.x0 - W * 0.02; const len = Math.abs(far - near); return len >= W * 0.25 ? Math.min(1, len / (B.w * W)) : null; }
     const far = cy >= tc.y ? (B.y + B.h) * H : B.y * H, near = cy >= tc.y ? r0.y1 + H * 0.02 : r0.y0 - H * 0.02; const len = Math.abs(far - near); return len >= H * 0.25 ? Math.min(1, len / (B.h * H)) : null;
   })();
+  // 주인공이 지면 밖으로 잘리는 몫 — 키울 때 15% 넘게 잘리면 안 쓴다
+  const subjCut = html => { let worst = 0; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, S0 = fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p; const a = S0.w * S0.h; if (!(a > 0)) continue; const vis = Math.max(0, Math.min(S0.x + S0.w, W, o.clip.x + o.clip.w) - Math.max(S0.x, 0, o.clip.x)) * Math.max(0, Math.min(S0.y + S0.h, H, o.clip.y + o.clip.h) - Math.max(S0.y, 0, o.clip.y)); worst = Math.max(worst, 1 - vis / a); } return worst; };
+  const passes = html => { const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0; return { ok: ov <= thr && logoHit(html) <= 0.05, ov }; };
   for (const k of [1, 0.85, 0.7, ...(fitK && fitK < 0.7 ? [fitK] : [])]) {
-    const html = build(k);
-    const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0, lh = logoHit(html);
-    if (ov <= thr && lh <= 0.05) {
-      const mark = k === 1 ? 'aiBox.ok' : k === fitK ? 'aiBox.fit' : 'aiBox.shrink';
-      return html.replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`).replace('<div data-ad="1"', `<div data-ad="1" data-ai-box="${Math.round(k * 100)}:${Math.round(ov * 100)}"`);
+    let html = build(k); const r = passes(html);
+    if (r.ok) {
+      let mark = k === 1 ? 'aiBox.ok' : k === fitK ? 'aiBox.fit' : 'aiBox.shrink', ov = r.ov, gk = 1;
+      // 빈 지면 보정(CANON.emptyFix 와 같은 문턱): 글자 ∪ 주인공이 지면의 min 미만이면 1.2·1.45·1.7 배로 키워 통과하는 가장 큰 것
+      const C = CANON.emptyFix, c0 = C ? coverageOf(html, T, first.styleUsed, spec) : null;
+      if (k === 1 && c0 && c0.all < C.min) {
+        let cov = c0.all;
+        for (const gr of [1.2, 1.45, 1.7]) { const h2 = build(1, gr), r2 = passes(h2); if (!r2.ok || subjCut(h2) > 0.15) break; const c2 = coverageOf(h2, T, first.styleUsed, spec); if (!c2 || c2.all <= cov + 0.005) break; html = h2; ov = r2.ov; gk = gr; cov = c2.all; if (cov >= C.min) break; }
+        if (gk > 1) mark = 'aiBox.grow';
+      }
+      return html.replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`).replace('<div data-ad="1"', `<div data-ad="1" data-ai-box="${Math.round(k * gk * 100)}:${Math.round(ov * 100)}"`);
     }
   }
   return null;   // 규칙 자리로(호출자가 기존 파이프라인)

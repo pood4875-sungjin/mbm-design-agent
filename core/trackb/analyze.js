@@ -9,6 +9,8 @@ import { shapeOf } from '../layouts.js';
 import { kvTypeChoices } from '../kvtypes.js';
 
 export const SHAPES = ['wide', 'tall', 'square', 'tower', 'strip'];
+// 모양 묶음의 대표 캔버스 비율(가로÷세로) — 카카오 1200×600 · 구글 300×600 · 인스타 1080 · 구글 300×1050 · 띠 728×120 급
+export const REP_AR = { wide: 2, tall: 0.5, square: 1, tower: 0.29, strip: 6 };
 export const SHAPE_LABEL = { wide: '가로형(비율 ≥ 1.8)', tall: '세로형(1.2~2.5)', square: '정사각(0.8~1.2)', tower: '세로 띠(≥ 2.5)', strip: '가로 띠(높이 < 120px)' };
 const TYPE_IDS = kvTypeChoices().flatMap(t => [t.id, ...t.subs.map(s => s.id)]);
 const choice = key => ({ type: 'string', enum: Object.keys(PRESETS[key].choices) });
@@ -124,6 +126,30 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
     if (K.w > 0 && (K.w < 0.15 || K.h < 0.15)) { fixes.push(`${s}: 그림 상자가 너무 작아(${r3(K.w)}×${r3(K.h)}) 규칙 자리로`); K = { x: 0, y: 0, w: 0, h: 0 }; }
     if (K.w > 0) { K.w = clamp(K.w, 0.15, 1.4); K.h = clamp(K.h, 0.15, 1.4); K.x = clamp(K.x, -0.4, 1 - 0.1); K.y = clamp(K.y, -0.4, 1 - 0.1); }
     g.kvBox = { x: r3(K.x), y: r3(K.y), w: r3(K.w), h: r3(K.h) };
+    // 보일 부분(crop)과 그림 상자의 비율 맞추기(10-22 GS 300×600: 세로형에 가로로 넓은 아래 58% 만 잘라 정사각 상자에 cover → 사람 잘림·하늘 빠져 가운데가 빔).
+    //   모양의 대표 캔버스 비율로 상자 px 비율을 어림하고, crop 을 원본 안에서 넓혀(주인공·보존 요소는 그대로 안에) 맞춘다. 원본 끝에 닿아 못 넓히면 상자를 crop 비율에 맞춘다(글자 반대쪽 변 고정)
+    if (g.kvBox.w > 0 && W > 1 && H > 1) {
+      const boxAR = (g.kvBox.w / g.kvBox.h) * REP_AR[s], c0 = g.crop, cropAR = (c0.w * W) / (c0.h * H);
+      if (Math.abs(Math.log(cropAR / boxAR)) > Math.log(1.15)) {
+        let c = { ...c0 };
+        if (cropAR > boxAR) { const nh = Math.min(1, (c.w * W / boxAR) / H); const cy = c.y + c.h / 2; c.h = nh; c.y = clamp(cy - nh / 2, 0, 1 - nh); }
+        else { const nw = Math.min(1, (c.h * H * boxAR) / W); const cx = c.x + c.w / 2; c.w = nw; c.x = clamp(cx - nw / 2, 0, 1 - nw); }
+        if (!contains(c, must)) { const u = union(c, must); c = { x: u.x, y: u.y, w: u.w, h: u.h }; }
+        // ② 넓히기로 모자라면 주인공·보존 요소 폭(높이)까지 좁힌다
+        { const a1 = (c.w * W) / (c.h * H);
+          if (a1 > boxAR * 1.15) { const nw = Math.max(must.w, (c.h * H * boxAR) / W); const mx = must.x + must.w / 2; c.w = Math.min(c.w, nw); c.x = clamp(mx - c.w / 2, Math.max(0, must.x + must.w - c.w), Math.min(1 - c.w, must.x)); }
+          else if (a1 < boxAR / 1.15) { const nh = Math.max(must.h, (c.w * W / boxAR) / H); const my = must.y + must.h / 2; c.h = Math.min(c.h, nh); c.y = clamp(my - c.h / 2, Math.max(0, must.y + must.h - c.h), Math.min(1 - c.h, must.y)); } }
+        c = { x: r3(c.x), y: r3(c.y), w: r3(c.w), h: r3(c.h) };
+        const ar2 = (c.w * W) / (c.h * H);
+        if (Math.abs(Math.log(ar2 / boxAR)) > Math.log(1.15)) {   // 원본 끝 — 상자를 그림 비율에 맞춘다(넓은 그림이면 높이를, 좁은 그림이면 폭을 줄임; 글자 쪽 변을 움직인다)
+          const kb2 = { ...g.kvBox };
+          if (ar2 > boxAR) { const nh = kb2.w * REP_AR[s] / ar2; if (g.kvPlace === 'bottom' || kb2.y + kb2.h >= 0.98) kb2.y = r3(kb2.y + kb2.h - nh); kb2.h = r3(nh); }
+          else { const nw = kb2.h * ar2 / REP_AR[s]; if (g.kvPlace === 'right' || kb2.x + kb2.w >= 0.98) kb2.x = r3(kb2.x + kb2.w - nw); kb2.w = r3(nw); }
+          if (kb2.w >= 0.15 && kb2.h >= 0.15) { g.kvBox = kb2; fixes.push(`${s}: 그림 상자를 그림 비율에 맞춤`); }
+        }
+        g.crop = c; fixes.push(`${s}: 보일 부분을 그림 상자 비율에 맞춰 넓힘`);
+      }
+    }
     const fa = g.fade ?? {}; const transparentKv = (kvMeta?.field?.opaque ?? 1) < 0.5;
     g.fade = Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, transparentKv ? 0 : r3(clamp(num(fa[k]), 0, 0.6))]));
     g.why = String(g.why ?? '').slice(0, 200);

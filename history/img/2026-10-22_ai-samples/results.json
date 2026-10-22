@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T09:11:08.277Z",
+ "at": "2026-10-22T09:29:48.644Z",
  "specs": [
   "kakao-display-pc-promo",
   "google-gdn-580x400",
@@ -25,10 +25,10 @@
      "shape": "wide",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.044,
-       "w": 1,
-       "h": 0.956
+       "x": 0.059,
+       "y": 0,
+       "w": 0.891,
+       "h": 1
       },
       "kvPlace": "right",
       "kvSize": "lg",
@@ -75,9 +75,9 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.036,
+       "x": 0,
        "y": 0.044,
-       "w": 0.927,
+       "w": 1,
        "h": 0.956
       },
       "kvPlace": "bottom",
@@ -125,9 +125,9 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.036,
+       "x": 0,
        "y": 0.044,
-       "w": 0.927,
+       "w": 1,
        "h": 0.956
       },
       "kvPlace": "bottom",
@@ -175,10 +175,10 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0.036,
-       "y": 0.044,
-       "w": 0.927,
-       "h": 0.956
+       "x": 0.059,
+       "y": 0,
+       "w": 0.891,
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -198,9 +198,9 @@
       },
       "kvBox": {
        "x": -0.05,
-       "y": 0.42,
+       "y": 0.624,
        "w": 1.1,
-       "h": 0.58
+       "h": 0.376
       },
       "fade": {
        "left": 0,
@@ -225,10 +225,10 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.054,
-       "y": 0.066,
-       "w": 0.896,
-       "h": 0.934
+       "x": 0.059,
+       "y": 0,
+       "w": 0.891,
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "md",
@@ -248,9 +248,9 @@
       },
       "kvBox": {
        "x": -0.1,
-       "y": 0.6,
+       "y": 0.762,
        "w": 1.2,
-       "h": 0.4
+       "h": 0.238
       },
       "fade": {
        "left": 0,
@@ -280,13 +280,14 @@
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "wide: 직접 색은 사람만 → auto",
-     "tall: 직접 색은 사람만 → auto",
-     "square: 직접 색은 사람만 → auto",
-     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "tower: 직접 색은 사람만 → auto",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: 직접 색은 사람만 → auto"
+     "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tall: 그림 상자를 그림 비율에 맞춤",
+     "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tower: 그림 상자를 그림 비율에 맞춤",
+     "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "strip: 그림 상자를 그림 비율에 맞춤",
+     "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
     ]
    }
   },
@@ -306,9 +307,9 @@
      "shape": "wide",
      "group": {
       "crop": {
-       "x": 0.171,
+       "x": 0.127,
        "y": 0,
-       "w": 0.829,
+       "w": 0.638,
        "h": 1
       },
       "kvPlace": "right",
@@ -356,9 +357,9 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.171,
+       "x": 0.058,
        "y": 0,
-       "w": 0.661,
+       "w": 0.887,
        "h": 1
       },
       "kvPlace": "bottom",
@@ -406,9 +407,9 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.171,
+       "x": 0.058,
        "y": 0,
-       "w": 0.661,
+       "w": 0.887,
        "h": 1
       },
       "kvPlace": "bottom",
@@ -446,7 +447,7 @@
       "png": "hr-doctor_instagram-feed-1080_C.png",
       "html": "hr-doctor_instagram-feed-1080_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "120% 로 키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x600",
@@ -458,7 +459,7 @@
       "crop": {
        "x": 0.171,
        "y": 0,
-       "w": 0.732,
+       "w": 0.55,
        "h": 1
       },
       "kvPlace": "bottom",
@@ -479,9 +480,9 @@
       },
       "kvBox": {
        "x": 0,
-       "y": 0.4,
+       "y": 0.532,
        "w": 1,
-       "h": 0.6
+       "h": 0.468
       },
       "fade": {
        "left": 0,
@@ -496,7 +497,7 @@
       "png": "hr-doctor_google-gdn-300x600_C.png",
       "html": "hr-doctor_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "120% 로 키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -508,7 +509,7 @@
       "crop": {
        "x": 0.171,
        "y": 0,
-       "w": 0.61,
+       "w": 0.55,
        "h": 1
       },
       "kvPlace": "bottom",
@@ -529,9 +530,9 @@
       },
       "kvBox": {
        "x": 0,
-       "y": 0.5,
+       "y": 0.729,
        "w": 1,
-       "h": 0.5
+       "h": 0.271
       },
       "fade": {
        "left": 0,
@@ -546,7 +547,7 @@
       "png": "hr-doctor_google-gdn-300x1050_C.png",
       "html": "hr-doctor_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "120% 로 키움(빈 지면)"
     }
    ],
    "ai": {
@@ -561,16 +562,12 @@
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "wide: 직접 색은 사람만 → auto",
-     "tall: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "tall: 직접 색은 사람만 → auto",
-     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "square: 직접 색은 사람만 → auto",
-     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "tower: 직접 색은 사람만 → auto",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: 직접 색은 사람만 → auto"
+     "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tall: 그림 상자를 그림 비율에 맞춤",
+     "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tower: 그림 상자를 그림 비율에 맞춤",
+     "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
     ]
    }
   },
@@ -590,9 +587,9 @@
      "shape": "wide",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.064,
        "y": 0,
-       "w": 1,
+       "w": 0.896,
        "h": 1
       },
       "kvPlace": "right",
@@ -613,9 +610,9 @@
       },
       "kvBox": {
        "x": 0.48,
-       "y": 0.02,
+       "y": 0.168,
        "w": 0.52,
-       "h": 0.96
+       "h": 0.812
       },
       "fade": {
        "left": 0,
@@ -643,7 +640,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 1
+       "h": 0.973
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -662,9 +659,9 @@
        "melt": 0
       },
       "kvBox": {
-       "x": -0.03,
+       "x": 0.251,
        "y": 0.47,
-       "w": 1.06,
+       "w": 0.779,
        "h": 0.53
       },
       "fade": {
@@ -680,7 +677,7 @@
       "png": "t1014-jeil_google-gdn-580x400_C.png",
       "html": "t1014-jeil_google-gdn-580x400_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "그대로"
     },
     {
      "spec": "instagram-feed-1080",
@@ -693,7 +690,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 1
+       "h": 0.973
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -712,9 +709,9 @@
        "melt": 0
       },
       "kvBox": {
-       "x": -0.03,
+       "x": 0.251,
        "y": 0.47,
-       "w": 1.06,
+       "w": 0.779,
        "h": 0.53
       },
       "fade": {
@@ -740,9 +737,9 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.064,
        "y": 0,
-       "w": 1,
+       "w": 0.896,
        "h": 1
       },
       "kvPlace": "bottom",
@@ -763,9 +760,9 @@
       },
       "kvBox": {
        "x": -0.05,
-       "y": 0.5,
+       "y": 0.571,
        "w": 1.1,
-       "h": 0.5
+       "h": 0.429
       },
       "fade": {
        "left": 0,
@@ -813,9 +810,9 @@
       },
       "kvBox": {
        "x": -0.1,
-       "y": 0.62,
+       "y": 0.728,
        "w": 1.2,
-       "h": 0.38
+       "h": 0.272
       },
       "fade": {
        "left": 0,
@@ -845,12 +842,16 @@
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "wide: 직접 색은 사람만 → auto",
-     "tall: 직접 색은 사람만 → auto",
-     "square: 직접 색은 사람만 → auto",
-     "tower: 직접 색은 사람만 → auto",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: 직접 색은 사람만 → auto"
+     "wide: 그림 상자를 그림 비율에 맞춤",
+     "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tall: 그림 상자를 그림 비율에 맞춤",
+     "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "square: 그림 상자를 그림 비율에 맞춤",
+     "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tower: 그림 상자를 그림 비율에 맞춤",
+     "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "strip: 그림 상자를 그림 비율에 맞춤",
+     "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
     ]
    }
   },
@@ -923,7 +924,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.702
+       "h": 1
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -960,7 +961,7 @@
       "png": "t1014-dongsuh_google-gdn-580x400_C.png",
       "html": "t1014-dongsuh_google-gdn-580x400_C.html"
      },
-     "aiBox": "규칙 자리(겹침)"
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "instagram-feed-1080",
@@ -973,7 +974,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.702
+       "h": 1
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -1023,7 +1024,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 1
+       "h": 0.776
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -1110,7 +1111,7 @@
       "png": "t1014-dongsuh_google-gdn-300x1050_C.png",
       "html": "t1014-dongsuh_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "120% 로 키움(빈 지면)"
     }
    ],
    "ai": {
@@ -1125,7 +1126,8 @@
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "strip: 그림 상자가 캔버스 몫(0~1)이 아니라 규칙 자리로"
+     "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
     ]
    }
   },
@@ -1146,9 +1148,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.463,
+       "y": 0.208,
        "w": 1,
-       "h": 0.537
+       "h": 0.792
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -1293,9 +1295,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.417,
+       "y": 0.038,
        "w": 1,
-       "h": 0.583
+       "h": 0.962
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -1342,9 +1344,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.481,
+       "y": 0.08,
        "w": 1,
-       "h": 0.519
+       "h": 0.92
       },
       "kvPlace": "bottom",
       "kvSize": "md",
@@ -1395,8 +1397,9 @@
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
     ]
    }
   },
@@ -1466,9 +1469,9 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.225,
+       "x": 0.098,
        "y": 0.075,
-       "w": 0.625,
+       "w": 0.879,
        "h": 0.863
       },
       "kvPlace": "bottom",
@@ -1516,9 +1519,9 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.225,
+       "x": 0.098,
        "y": 0.075,
-       "w": 0.625,
+       "w": 0.879,
        "h": 0.863
       },
       "kvPlace": "bottom",
@@ -1566,10 +1569,10 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0.25,
-       "y": 0.075,
-       "w": 0.6,
-       "h": 0.825
+       "x": 0.32,
+       "y": 0,
+       "w": 0.5,
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -1617,9 +1620,9 @@
      "group": {
       "crop": {
        "x": 0.32,
-       "y": 0.09,
+       "y": 0,
        "w": 0.5,
-       "h": 0.735
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "sm",
@@ -1671,9 +1674,9 @@
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: 그림 상자가 캔버스 몫(0~1)이 아니라 규칙 자리로"
+     "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+     "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
     ]
    }
   }
