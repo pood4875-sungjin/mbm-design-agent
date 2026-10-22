@@ -95,7 +95,8 @@
     "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -138,7 +139,8 @@
     "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -181,7 +183,8 @@
     "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -224,7 +227,8 @@
     "why": "세로 띠는 수염 남자와 앉은 남자 두 명만 좁혀 아래쪽에 두고 위는 글자에 비운다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -267,7 +271,8 @@
     "why": "가로 띠는 글자 공간이 좁아 사람 상반신만 오른쪽 끝에 작게 두고 왼쪽을 벽 색으로 녹인다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

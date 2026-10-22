@@ -60,7 +60,7 @@ test('프리셋 조각 — auto 는 빼고, 유형 지정은 kvTypeOverride 로;
   const { analysis } = validateAnalysis(good(), { kvMeta: meta28 });
   const g = analysis.groups.wide; g.scrim = 'auto';
   const p = presetPatch(g, analysis);
-  assert.deepEqual(p, { kvPlace: 'right', kvSize: 'lg', bgFill: 'kv', bgGrad: 'v', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#2A65CF', '#5A8FDD'], angle: 180, text: null, melt: 0.6 } } }, '글자 톤은 안 넘김(규칙)');
+  assert.deepEqual(p, { kvPlace: 'right', kvSize: 'lg', bgFill: 'kv', bgGrad: 'v', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#2A65CF', '#5A8FDD'], angle: 180, text: 'light', melt: 0.6 } } }, '글자 톤은 지면의 바람으로만(textTone 강제 아님)');
   for (const k of Object.keys(p)) if (!['kvTypeOverride', 'background', 'aiKvBox', 'aiFade'].includes(k)) assert.ok(PRESET_KEYS.includes(k), k);
   // 지면 색을 비우면 프리셋만 — 녹임 값만 있으면 melt 만
   const g2 = { ...g, field: { colors: [], angle: 0, text: 'auto', melt: 0.5 } }; assert.deepEqual(presetPatch(g2, analysis).background, { mode: 'auto', color: null, ai: { stops: [], angle: 180, text: null, melt: 0.5 } });
@@ -187,7 +187,7 @@ test('공개 페이지 경로 — 서버 없으면 브라우저 직접 호출: �
   const out = await analyzeDirect('sk-ant-test', { kv: { dataUrl: png, meta: meta28 }, brief: { client: 'GS에너지' }, brand: { primary: '#326CD1' } }, fake);
   assert.equal(seen.url, 'https://api.anthropic.com/v1/messages');
   assert.equal(seen.init.headers['x-api-key'], 'sk-ant-test'); assert.equal(seen.init.headers['anthropic-dangerous-direct-browser-access'], 'true');
-  assert.equal(seen.body.model, 'claude-sonnet-5-5'); assert.equal(seen.body.output_config.format.type, 'json_schema');
+  assert.equal(seen.body.model, 'claude-sonnet-5-5'); assert.equal(seen.body.output_config.format, undefined, '스키마 강제 없음(grammar too large)'); assert.ok(seen.body.messages[0].content.at(-1).text.includes('"kvBox"'), '형식은 프롬프트에');
   assert.equal(seen.body.messages[0].content[0].type, 'image'); assert.ok(seen.body.messages[0].content.at(-1).text.includes('GS에너지'));
   assert.equal(out.via, 'browser'); assert.ok(out.analysis.groups.wide); assert.ok(out.cost > 0);
   await assert.rejects(analyzeDirect('sk-ant-test', { kv: { dataUrl: png, meta: meta28 } }, async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'invalid x-api-key' } }) })), /HTTP 401 · invalid x-api-key/);
@@ -207,7 +207,36 @@ test('캠페인 공통 지면·틀 고정 매체 제외·예전 캠페인 바로
   const old = { ai: { analysis: { kv: { type: 'illust-object' }, groups: { wide: { field: { colors: ['#C8B89A'], angle: 90, text: 'dark' } }, tall: { field: { colors: ['#4CAF50'], angle: 180, text: 'light' } } } }, groups: { tall: { keyVisual: 'crop.png', kvMeta: { ar: 1 }, patch: { kvPlace: 'bottom', textTone: 'light' } } } } };
   const st = { aiShape: 'tall', kvPlace: 'bottom', textTone: 'light', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#4CAF50'], angle: 180, text: 'light', melt: 0.4 } } };
   const free = resolveAiStyle(old, st, { medium: 'google-gdn', id: 'google-gdn-300x600' });
-  assert.equal(free.textTone, undefined, 'AI 글자 톤 걷어냄'); assert.deepEqual(free.background.ai.stops, ['#C8B89A'], '공통 지면'); assert.equal(free.background.ai.melt, 0.4); assert.equal(free.keyVisual, 'crop.png');
+  assert.equal(free.textTone, undefined, 'AI 글자 톤 강제(textTone) 걷어냄'); assert.deepEqual(free.background.ai.stops, ['#C8B89A'], '공통 지면'); assert.equal(free.background.ai.text, 'dark'); assert.equal(free.background.ai.melt, 0.4); assert.equal(free.keyVisual, 'crop.png');
   const fixed = resolveAiStyle(old, st, { medium: 'jasoseol', id: 'jasoseol-pc-premium-popup-pc' });
   assert.equal(fixed.background.ai, undefined); assert.equal(fixed.aiShape, undefined); assert.equal(fixed.kvPlace, undefined); assert.equal(fixed.kvTypeOverride, undefined); assert.equal(fixed.keyVisual, undefined, '그림도 원본');
+});
+
+test('AI 배경 — 도형은 그림·글자 뒤(뿌리 맨 앞)에 그대로, 틀 고정 매체엔 안 넣음 · AI 지면색은 규칙이 안 바꾸고 글자색만 고른다', async () => {
+  const { registerAll } = await import('../core/generate.js'); registerAll();
+  const { renderArtifact } = await import('../core/contract.js');
+  const { createContext } = await import('../core/context.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const { resolveField } = await import('../core/field.js');
+  const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', deadline: '2025-07-02', season: '2025년' }, 'recruit');
+  const shapes = [{ kind: 'ellipse', x: 0.6, y: -0.2, w: 0.6, h: 0.9, color: '#FFB3D9', opacity: 0.4, blur: 0.15 }, { kind: 'pill', x: -0.1, y: 0.8, w: 0.7, h: 0.15, color: '#80C8FF', opacity: 0.3, blur: 0 }];
+  const base = { colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: meta28, aiShapes: shapes, background: { ai: { stops: ['#3D7BFF', '#9EC3FF', '#FFD1E0'], angle: 180, text: null, melt: 0 } } };
+  const h = renderArtifact('kakao-display-pc-promo', ctx, normalizeStyle(base), {});
+  assert.match(h, /<div data-ad="1"[^>]*><div data-ai-shape="0"[^>]*left:720px;top:-120px;width:720px;height:540px;background:#FFB3D9;opacity:0.4;border-radius:50%;filter:blur\(90px\)/);
+  assert.ok(h.includes('data-ai-shape="1"') && h.includes('border-radius:9999px'));
+  assert.ok(h.includes('linear-gradient(180deg,#3D7BFF 0%,#9EC3FF 50%,#FFD1E0 100%)'), 'AI 지면 3색 그대로');
+  const j = renderArtifact('jasoseol-pc-premium-popup-pc', ctx, normalizeStyle(base), {});
+  assert.ok(!j.includes('data-ai-shape'), '틀 고정 매체엔 안 넣음');
+  // 지면색 보존: 중간 밝기 파랑에 흰 글자가 3:1 못 넘어도 색은 그대로 — 검정 글자
+  const f = resolveField(normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['#6FA8FF', '#A8CCFF'], angle: 180, text: null, melt: 0 } } }));
+  assert.deepEqual(f.stops, ['#6FA8FF', '#A8CCFF']); assert.equal(f.source, 'ai'); assert.equal(f.text, '#000000');
+});
+
+test('AI 지면 글자색 — 글자 쪽 끝(시작색) 대비로 고르고, AI 톤은 3:1 넘을 때만 따른다(10-22 진한 파랑에 검정)', async () => {
+  const { normalizeStyle } = await import('../core/style.js');
+  const { resolveField } = await import('../core/field.js');
+  const f = resolveField(normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['#1265FF', '#7FABFE'], angle: 90, text: 'light', melt: 0 } } }));
+  assert.equal(f.text, '#FFFFFF', '왼쪽(글자 쪽) #1265FF 흰 글자'); assert.deepEqual(f.stops, ['#1265FF', '#7FABFE']);
+  const g = resolveField(normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['#E8F4FF', '#1265FF'], angle: 90, text: 'light', melt: 0 } } }));
+  assert.equal(g.text, '#000000', '글자 쪽이 밝으면 AI 가 흰색이라 해도 검정');
 });

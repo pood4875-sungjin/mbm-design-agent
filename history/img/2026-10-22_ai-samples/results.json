@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T10:28:37.871Z",
+ "at": "2026-10-22T11:04:06.105Z",
  "specs": [
   "kakao-display-pc-promo",
   "google-gdn-580x400",
@@ -64,7 +64,8 @@
       "why": "벽 색을 이어 지면으로 녹이고 왼쪽에 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -120,7 +121,8 @@
       "why": "두 인물과 모니터를 담아 아래쪽에 크게 두고 위는 글자에 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -176,7 +178,8 @@
       "why": "두 인물과 모니터를 담아 아래쪽에 크게 두고 위는 글자에 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -232,7 +235,8 @@
       "why": "왼쪽 인물과 모니터 일부를 중심으로 아래에 크게 놓고 위쪽은 글자 자리로 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -288,7 +292,8 @@
       "why": "좁은 띠에서는 왼쪽 인물 상반신만 좁혀 아래쪽에 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -375,7 +380,8 @@
       "why": "밝은 사진이라 왼쪽을 옅은 청회색으로 녹여 글자 공간을 만들고 손은 오른쪽 중앙에 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -431,7 +437,8 @@
       "why": "손이 잘리지 않게 정사각으로 잘라 아래에 배치하고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -487,7 +494,8 @@
       "why": "손이 잘리지 않게 정사각으로 잘라 아래에 배치하고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -543,7 +551,8 @@
       "why": "손과 가운 상체로 좁혀 아래쪽에 크게 두고 위쪽은 글자 자리로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -599,7 +608,8 @@
       "why": "좁은 띠라 손 중심으로만 좁혀 아래쪽에 두고 위쪽 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -685,7 +695,8 @@
       "why": "가로형은 장면 전체를 오른쪽에 크게 두고 왼쪽 약 45%를 밝은 지면으로 비워 글자를 얹는다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -741,7 +752,8 @@
       "why": "정사각은 장면 전체를 아래쪽에 가로로 넓게 두고 위쪽에 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -797,7 +809,8 @@
       "why": "정사각은 장면 전체를 아래쪽에 가로로 넓게 두고 위쪽에 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -853,7 +866,8 @@
       "why": "세로형은 JEIL 입체 글자와 주변 인물 중심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 공간으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -909,7 +923,8 @@
       "why": "세로 띠는 JEIL 글자 중심으로 좁혀 아래쪽에 두고 위쪽을 글자 공간으로 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -993,7 +1008,8 @@
       "why": "가로형은 상반신을 크게 오른쪽에 두고 글자는 왼쪽 노란 지면에 놓는다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1049,7 +1065,8 @@
       "why": "정사각은 인물 상반신을 오른쪽에 크게 두고 왼쪽에 글자를 놓는다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1105,7 +1122,8 @@
       "why": "정사각은 인물 상반신을 오른쪽에 크게 두고 왼쪽에 글자를 놓는다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1161,7 +1179,8 @@
       "why": "세로형은 인물을 아래쪽에 크게 두고 위쪽에 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1217,7 +1236,8 @@
       "why": "세로 띠는 얼굴과 스틱 중심의 상반신만 하단에 두고 위쪽을 글자에 준다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1303,7 +1323,8 @@
       "why": "가로형은 장면 하단을 오른쪽에 크게 두고 왼쪽 하늘색 지면으로 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1359,7 +1380,8 @@
       "why": "정사각은 전체 장면을 하단에 깔고 위쪽 하늘을 글자 공간으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1415,7 +1437,8 @@
       "why": "정사각은 전체 장면을 하단에 깔고 위쪽 하늘을 글자 공간으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1471,7 +1494,8 @@
       "why": "세로형은 확성기와 앉은 사람, 손 흔드는 사람으로 좁혀 아래에 크게 놓고 위쪽을 글자 영역으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1527,7 +1551,8 @@
       "why": "세로 띠는 글자 공간이 좁아서 앉은 사람과 손 흔드는 사람만 하단에 작게 두었다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1612,7 +1637,8 @@
       "why": "가로로 넓은 지면은 오른쪽에 칩을 크게 두고 왼쪽 어두운 남색을 글자 자리로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1668,7 +1694,8 @@
       "why": "정사각에서는 글자를 위쪽 남색 바탕에 두고 칩을 아래쪽에 크게 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1724,7 +1751,8 @@
       "why": "정사각에서는 글자를 위쪽 남색 바탕에 두고 칩을 아래쪽에 크게 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1780,7 +1808,8 @@
       "why": "칩 중심으로 좁혀 아래쪽에 크게 두고 위쪽 어두운 남색을 글자 자리로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1836,7 +1865,8 @@
       "why": "세로 띠는 중앙 칩만 좁혀 아래쪽에 두고 위쪽을 글자 자리로 남긴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {

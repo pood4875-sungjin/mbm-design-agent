@@ -80,11 +80,14 @@ for (const id of CASES) {
   const dir = path.join(ROOT, 'ref/learned/cases', id);
   const kvFile = path.join(dir, c.kv ?? 'kv.jpg'); if (!existsSync(kvFile)) { console.log(`[${id}] 키비주얼 없음`); continue; }
   const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8'));
-  const logoFile = c.logo && existsSync(path.join(dir, c.logo)) ? path.join(dir, c.logo) : null;
+  const logoCase = opt('--logo-from') ? ledger.cases.find(x => x.id === opt('--logo-from')) : null;   // 다른 케이스의 로고를 빌려 쓰기(사용자 캠페인과 같은 조건)
+  const logoDir = logoCase ? path.join(ROOT, 'ref/learned/cases', logoCase.id) : dir;
+  const logoFile = (logoCase ?? c).logo && existsSync(path.join(logoDir, (logoCase ?? c).logo)) ? path.join(logoDir, (logoCase ?? c).logo) : null;
+  if (logoCase) { c.logoMeta = logoCase.logoMeta; c.logoMono = null; }
   const logoMono = c.logoMono && existsSync(path.join(dir, c.logoMono)) ? path.join(dir, c.logoMono) : null;
   const tone = c.logoMeta?.tone ?? 'dark';
-  const brief = c.fields ?? DEFAULT_BRIEF;
-  const primary = c.primary ?? meta.colors?.[0] ?? '#2456D6';
+  const brief = opt('--brief') ? JSON.parse(opt('--brief')) : (c.fields ?? DEFAULT_BRIEF);
+  const primary = opt('--primary') ?? c.primary ?? meta.colors?.[0] ?? '#2456D6';
   const ctx = createContext(brief, 'recruit');
   const logoStyle = { logo: logoFile ? pathToFileURL(logoFile).href : null, logoMono: logoMono ? pathToFileURL(logoMono).href : null, logoLight: tone === 'light' && logoFile ? pathToFileURL(logoFile).href : null, logoTone: tone, logoMeta: c.logoMeta ?? null };
   copyFileSync(kvFile, path.join(OUT, `${id}_kv${path.extname(kvFile)}`));

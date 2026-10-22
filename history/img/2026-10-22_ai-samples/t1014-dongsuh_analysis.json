@@ -83,7 +83,8 @@
     "why": "가로형은 상반신을 크게 오른쪽에 두고 글자는 왼쪽 노란 지면에 놓는다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -126,7 +127,8 @@
     "why": "세로형은 인물을 아래쪽에 크게 두고 위쪽에 글자 공간을 확보한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -169,7 +171,8 @@
     "why": "정사각은 인물 상반신을 오른쪽에 크게 두고 왼쪽에 글자를 놓는다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -212,7 +215,8 @@
     "why": "세로 띠는 얼굴과 스틱 중심의 상반신만 하단에 두고 위쪽을 글자에 준다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -255,7 +259,8 @@
     "why": "가로 띠는 얼굴과 스틱만 좁혀 오른쪽 끝에 작게 둔다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

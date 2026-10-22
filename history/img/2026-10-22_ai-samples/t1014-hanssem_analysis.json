@@ -96,7 +96,8 @@
     "why": "벽 색을 이어 지면으로 녹이고 왼쪽에 글자 공간을 확보한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -139,7 +140,8 @@
     "why": "왼쪽 인물과 모니터 일부를 중심으로 아래에 크게 놓고 위쪽은 글자 자리로 둔다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -182,7 +184,8 @@
     "why": "두 인물과 모니터를 담아 아래쪽에 크게 두고 위는 글자에 쓴다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -225,7 +228,8 @@
     "why": "좁은 띠에서는 왼쪽 인물 상반신만 좁혀 아래쪽에 둔다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -268,7 +272,8 @@
     "why": "가로 띠는 그림을 오른쪽 끝에 작게 두고 왼쪽을 글자 공간으로 비운다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

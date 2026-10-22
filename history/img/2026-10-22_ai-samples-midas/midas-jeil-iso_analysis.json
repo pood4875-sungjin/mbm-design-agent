@@ -120,7 +120,8 @@
     "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -163,7 +164,8 @@
     "why": "JEIL 입체 조형을 핵심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 영역으로 쓴다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -206,7 +208,8 @@
     "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -249,7 +252,8 @@
     "why": "좁은 띠라 JEIL 조형만 아래쪽에 두어 글자 공간을 확보한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -292,7 +296,8 @@
     "why": "가로 띠는 글자 공간이 좁아 조형만 오른쪽 끝에 작게 둔다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T10:27:44.672Z",
+ "at": "2026-10-22T11:03:07.148Z",
  "specs": [
   "jasoseol-pc-premium-popup-pc",
   "jasoseol-pc-premium-jobpost-pc",
@@ -110,7 +110,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -166,7 +167,8 @@
       "why": "좁은 띠라 가운데 인물 하나의 얼굴과 폰만 좁혀 아래쪽에 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -222,7 +224,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -278,7 +281,8 @@
       "why": "좁은 띠라 가운데 인물 하나의 얼굴과 폰만 좁혀 아래쪽에 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -334,7 +338,8 @@
       "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -390,7 +395,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -446,7 +452,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -502,7 +509,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -558,7 +566,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -614,7 +623,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -670,7 +680,8 @@
       "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -726,7 +737,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -782,7 +794,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -838,7 +851,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -894,7 +908,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -950,7 +965,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -1006,7 +1022,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -1062,7 +1079,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -1118,7 +1136,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -1174,7 +1193,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -1230,7 +1250,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1286,7 +1307,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1342,7 +1364,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1398,7 +1421,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1454,7 +1478,8 @@
       "why": "가로 띠는 오른쪽 끝에 인물 얼굴들만 작게 두고 왼쪽을 녹여 글자 공간을 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1510,7 +1535,8 @@
       "why": "가로 띠는 오른쪽 끝에 인물 얼굴들만 작게 두고 왼쪽을 녹여 글자 공간을 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1566,7 +1592,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1622,7 +1649,8 @@
       "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1678,7 +1706,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -1734,14 +1763,15 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_blind-feed-image_C.png",
       "html": "midas-faces-3d_blind-feed-image_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "blind-post-banner",
@@ -1790,7 +1820,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1846,7 +1877,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1902,7 +1934,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -1958,7 +1991,8 @@
       "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -2014,7 +2048,8 @@
       "why": "좁은 띠라 가운데 인물 하나의 얼굴과 폰만 좁혀 아래쪽에 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -2070,7 +2105,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -2126,7 +2162,8 @@
       "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -2182,7 +2219,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -2238,7 +2276,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -2294,7 +2333,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2350,7 +2390,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2406,7 +2447,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2462,7 +2504,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2518,7 +2561,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2574,7 +2618,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2630,7 +2675,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2686,7 +2732,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2742,7 +2789,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2798,7 +2846,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2854,7 +2903,8 @@
       "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2910,7 +2960,8 @@
       "why": "가로 띠는 오른쪽 끝에 인물 얼굴들만 작게 두고 왼쪽을 녹여 글자 공간을 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -2996,7 +3047,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3052,7 +3104,8 @@
       "why": "좁은 띠라 JEIL 조형만 아래쪽에 두어 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3108,7 +3161,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3164,7 +3218,8 @@
       "why": "좁은 띠라 JEIL 조형만 아래쪽에 두어 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3220,7 +3275,8 @@
       "why": "JEIL 입체 조형을 핵심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 영역으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3276,7 +3332,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3332,7 +3389,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3388,7 +3446,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3444,7 +3503,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3500,7 +3560,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3556,7 +3617,8 @@
       "why": "JEIL 입체 조형을 핵심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 영역으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3612,7 +3674,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3668,7 +3731,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3724,7 +3788,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3780,7 +3845,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3836,7 +3902,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3892,7 +3959,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -3948,7 +4016,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -4004,7 +4073,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -4060,7 +4130,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -4116,7 +4187,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4172,7 +4244,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4228,7 +4301,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4284,7 +4358,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4340,7 +4415,8 @@
       "why": "가로 띠는 글자 공간이 좁아 조형만 오른쪽 끝에 작게 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4396,7 +4472,8 @@
       "why": "가로 띠는 글자 공간이 좁아 조형만 오른쪽 끝에 작게 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4452,7 +4529,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4508,7 +4586,8 @@
       "why": "JEIL 입체 조형을 핵심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 영역으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4564,7 +4643,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -4620,7 +4700,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -4676,7 +4757,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -4732,7 +4814,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -4788,7 +4871,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -4844,7 +4928,8 @@
       "why": "JEIL 입체 조형을 핵심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 영역으로 쓴다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -4900,7 +4985,8 @@
       "why": "좁은 띠라 JEIL 조형만 아래쪽에 두어 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -4956,7 +5042,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -5012,7 +5099,8 @@
       "why": "누끼 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 브랜드 파랑으로 채운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -5068,7 +5156,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -5124,7 +5213,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -5180,7 +5270,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5236,7 +5327,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5292,7 +5384,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5348,7 +5441,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5404,7 +5498,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5460,7 +5555,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5516,7 +5612,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5572,7 +5669,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5628,7 +5726,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5684,7 +5783,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5740,7 +5840,8 @@
       "why": "장면 전체를 아래에 넓게 깔고 위쪽에 글자를 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5796,7 +5897,8 @@
       "why": "가로 띠는 글자 공간이 좁아 조형만 오른쪽 끝에 작게 둔다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -5884,7 +5986,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -5940,7 +6043,8 @@
       "why": "세로 띠는 수염 남자와 앉은 남자 두 명만 좁혀 아래쪽에 두고 위는 글자에 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -5996,7 +6100,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6052,7 +6157,8 @@
       "why": "세로 띠는 수염 남자와 앉은 남자 두 명만 좁혀 아래쪽에 두고 위는 글자에 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6108,7 +6214,8 @@
       "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6164,7 +6271,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6220,7 +6328,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6276,7 +6385,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6332,7 +6442,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6388,7 +6499,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6444,7 +6556,8 @@
       "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6500,7 +6613,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6556,7 +6670,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6612,7 +6727,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6668,7 +6784,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6724,7 +6841,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6780,7 +6898,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6836,7 +6955,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6892,7 +7012,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -6948,7 +7069,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "1",
      "C": {
@@ -7004,7 +7126,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7060,7 +7183,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7116,7 +7240,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7172,7 +7297,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7228,7 +7354,8 @@
       "why": "가로 띠는 글자 공간이 좁아 사람 상반신만 오른쪽 끝에 작게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7284,7 +7411,8 @@
       "why": "가로 띠는 글자 공간이 좁아 사람 상반신만 오른쪽 끝에 작게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7340,14 +7468,15 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_nap-dsp-full-300x250_C.png",
       "html": "midas-team-photo_nap-dsp-full-300x250_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -7396,7 +7525,8 @@
       "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7452,7 +7582,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "2",
      "C": {
@@ -7508,7 +7639,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7564,7 +7696,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7620,14 +7753,15 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_google-gdn-580x400_C.png",
       "html": "midas-team-photo_google-gdn-580x400_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "google-gdn-970x250",
@@ -7676,7 +7810,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7732,7 +7867,8 @@
       "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7788,7 +7924,8 @@
       "why": "세로 띠는 수염 남자와 앉은 남자 두 명만 좁혀 아래쪽에 두고 위는 글자에 비운다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7844,7 +7981,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7900,7 +8038,8 @@
       "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -7956,7 +8095,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -8012,7 +8152,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "3",
      "C": {
@@ -8068,7 +8209,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8124,7 +8266,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8180,7 +8323,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8236,7 +8380,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8292,7 +8437,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8348,7 +8494,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8404,7 +8551,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8460,7 +8608,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8516,7 +8665,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8572,7 +8722,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8628,7 +8779,8 @@
       "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {
@@ -8684,7 +8836,8 @@
       "why": "가로 띠는 글자 공간이 좁아 사람 상반신만 오른쪽 끝에 작게 두고 왼쪽을 벽 색으로 녹인다.",
       "textAlign": "auto",
       "textAnchor": "auto",
-      "bgGrad": "auto"
+      "bgGrad": "auto",
+      "shapes": []
      },
      "stage": "4",
      "C": {

@@ -10,7 +10,7 @@ import { kvTypeOf, kvTypeSummary } from '../core/kvtypes.js';
 import { LAYOUT_SCHEMA, validateLayout } from '../core/trackb/schema.js';
 import { buildFixed, buildPrompt, retryPrompt, SYSTEM_PROMPT } from '../core/trackb/prompt.js';
 import { estimateCost, sumUsage, DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
-import { ANALYSIS_SCHEMA, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis } from '../core/trackb/analyze.js';
+import { ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis, parseAnalysisText } from '../core/trackb/analyze.js';
 
 registerAll();
 
@@ -98,11 +98,17 @@ export async function analyzeKv(client, input = {}) {
   const content = [imageBlock(input.kv.dataUrl, '키비주얼')];
   if (hasLogo) content.push(imageBlock(input.logo.dataUrl, '로고'));
   content.push({ type: 'text', text: userText });
-  const params = { model, max_tokens: 4000, system: ANALYSIS_SYSTEM, messages: [{ role: 'user', content }], output_config: { effort, format: { type: 'json_schema', schema: ANALYSIS_SCHEMA } } };
-  const t0 = Date.now();
-  const res = await callOnce(client, params);
-  const raw = textOf(res);
+  const messages = [{ role: 'user', content }];
+  const params = { model, max_tokens: 6000, system: ANALYSIS_SYSTEM, messages, output_config: { effort } };
+  const t0 = Date.now(); const usages = []; let raw = null, lastErr = null;
+  for (let i = 0; i < 2 && !raw; i++) {   // 형식이 깨지면 한 번 더
+    const res = await callOnce(client, params); usages.push(res.usage ?? {});
+    if (res.stop_reason === 'refusal') throw new Error('모델이 요청을 거절했습니다');
+    const text = (res.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('');
+    try { raw = parseAnalysisText(text); } catch (e) { lastErr = e; messages.push({ role: 'assistant', content: text || '(빈 응답)' }, { role: 'user', content: 'JSON 하나만 다시 — 설명·코드펜스 없이, 형식 그대로.' }); }
+  }
+  if (!raw) throw lastErr ?? new Error('JSON 을 받지 못했습니다');
   const { analysis, fixes } = validateAnalysis(raw, { kvMeta, hasLogo });
-  const usage = sumUsage([res.usage ?? {}]);
-  return { analysis, fixes, usage, cost: estimateCost(model, usage), calls: 1, ms: Date.now() - t0, model, effort, raw, prompt: { system: ANALYSIS_SYSTEM, user: userText } };
+  const usage = sumUsage(usages);
+  return { analysis, fixes, usage, cost: estimateCost(model, usage), calls: usages.length, ms: Date.now() - t0, model, effort, raw, prompt: { system: ANALYSIS_SYSTEM, user: userText } };
 }

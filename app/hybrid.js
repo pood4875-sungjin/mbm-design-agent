@@ -1,6 +1,6 @@
 // 하이브리드(A+AI) — 브라우저 쪽: 서버의 그림 판단(/api/analyze) → 모양 묶음마다 키비주얼 crop 사본 + 측정 → 규격별 스타일 조각.
 //   그리기는 기존 규칙 렌더러(renderArtifact)가 한다. 비교 화면(app/ab.js)과 본 앱(app/app.js) 둘 다 이 모듈을 쓴다.
-import { SHAPES, groupFor, shapeOfSpec, presetPatch, kvMetaWithAi, aiEligible, ANALYSIS_SCHEMA, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis } from '../core/trackb/analyze.js';
+import { SHAPES, groupFor, shapeOfSpec, presetPatch, kvMetaWithAi, aiEligible, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis, parseAnalysisText } from '../core/trackb/analyze.js';
 import { estimateCost, sumUsage } from '../core/trackb/cost.js';
 import { getKey } from './llm.js';
 
@@ -22,24 +22,29 @@ export async function analyzeDirect(key, { kv, logo = null, brief = {}, brand = 
   if (!kv?.dataUrl) throw new Error('키비주얼이 필요합니다');
   const userText = analysisPrompt({ kvMeta: kv.meta ?? null, logoMeta: logo?.meta ?? null, brief, brand, requests });
   const content = [imageBlock(kv.dataUrl, '키비주얼'), ...(logo?.dataUrl ? [imageBlock(logo.dataUrl, '로고')] : []), { type: 'text', text: userText }];
-  const body = { model, max_tokens: 4000, system: ANALYSIS_SYSTEM, messages: [{ role: 'user', content }], output_config: { effort, format: { type: 'json_schema', schema: ANALYSIS_SCHEMA } } };
-  const ac = typeof AbortController !== 'undefined' ? new AbortController() : null; const timer = ac ? setTimeout(() => ac.abort(), 90000) : null;
-  const t0 = Date.now(); let res;
-  try {
-    res = await fetchFn('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac?.signal, headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify(body) });
-  } catch (e) { throw new Error(e?.name === 'AbortError' ? '응답이 90초를 넘겨 중단했습니다' : `호출 실패: ${e?.message ?? e}`); }
-  finally { if (timer) clearTimeout(timer); }
-  if (!res.ok) {
-    let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch {}
-    throw new Error(`HTTP ${res.status}${detail ? ' · ' + detail : ''}${res.status === 401 ? ' (「AI 키 · 환경 설정」의 키를 확인해 주세요)' : ''}`);
+  const messages = [{ role: 'user', content }];
+  const t0 = Date.now(); const usages = []; let raw = null, lastErr = null;
+  for (let i = 0; i < 2 && !raw; i++) {   // 형식이 깨지면 한 번 더(structured output 은 스키마가 커서 API 가 거부 — core/trackb/analyze.js)
+    const body = { model, max_tokens: 6000, system: ANALYSIS_SYSTEM, messages, output_config: { effort } };
+    const ac = typeof AbortController !== 'undefined' ? new AbortController() : null; const timer = ac ? setTimeout(() => ac.abort(), 120000) : null;
+    let res;
+    try {
+      res = await fetchFn('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac?.signal, headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify(body) });
+    } catch (e) { throw new Error(e?.name === 'AbortError' ? '응답이 120초를 넘겨 중단했습니다' : `호출 실패: ${e?.message ?? e}`); }
+    finally { if (timer) clearTimeout(timer); }
+    if (!res.ok) {
+      let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch {}
+      throw new Error(`HTTP ${res.status}${detail ? ' · ' + detail : ''}${res.status === 401 ? ' (「AI 키 · 환경 설정」의 키를 확인해 주세요)' : ''}`);
+    }
+    const data = await res.json(); usages.push(data.usage ?? {});
+    if (data.stop_reason === 'refusal') throw new Error('모델이 요청을 거절했습니다');
+    const text = (data.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('');
+    try { raw = parseAnalysisText(text); } catch (e) { lastErr = e; messages.push({ role: 'assistant', content: text || '(빈 응답)' }, { role: 'user', content: 'JSON 하나만 다시 — 설명·코드펜스 없이, 형식 그대로.' }); }
   }
-  const data = await res.json();
-  if (data.stop_reason === 'refusal') throw new Error('모델이 요청을 거절했습니다');
-  const text = (data.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
-  let raw; try { raw = JSON.parse(text); } catch { throw new Error('응답이 JSON 이 아닙니다: ' + text.slice(0, 120)); }
+  if (!raw) throw lastErr ?? new Error('JSON 을 받지 못했습니다');
   const { analysis, fixes } = validateAnalysis(raw, { kvMeta: kv.meta ?? null, hasLogo: !!logo?.dataUrl });
-  const usage = sumUsage([data.usage ?? {}]);
-  return { analysis, fixes, usage, cost: estimateCost(model, usage), calls: 1, ms: Date.now() - t0, model, effort, raw, prompt: { system: ANALYSIS_SYSTEM, user: userText }, via: 'browser' };
+  const usage = sumUsage(usages);
+  return { analysis, fixes, usage, cost: estimateCost(model, usage), calls: usages.length, ms: Date.now() - t0, model, effort, raw, prompt: { system: ANALYSIS_SYSTEM, user: userText }, via: 'browser' };
 }
 
 const loadImg = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('이미지를 읽지 못했습니다')); i.src = src; });

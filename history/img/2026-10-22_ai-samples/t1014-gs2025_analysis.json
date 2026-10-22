@@ -95,7 +95,8 @@
     "why": "가로형은 장면 하단을 오른쪽에 크게 두고 왼쪽 하늘색 지면으로 글자 공간을 만든다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -138,7 +139,8 @@
     "why": "세로형은 확성기와 앉은 사람, 손 흔드는 사람으로 좁혀 아래에 크게 놓고 위쪽을 글자 영역으로 쓴다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -181,7 +183,8 @@
     "why": "정사각은 전체 장면을 하단에 깔고 위쪽 하늘을 글자 공간으로 쓴다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -224,7 +227,8 @@
     "why": "세로 띠는 글자 공간이 좁아서 앉은 사람과 손 흔드는 사람만 하단에 작게 두었다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -267,7 +271,8 @@
     "why": "가로 띠는 확성기만 오른쪽 끝에 작게 두고 나머지는 하늘색으로 채운다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

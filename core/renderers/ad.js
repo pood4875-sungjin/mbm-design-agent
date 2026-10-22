@@ -215,7 +215,17 @@ function fieldAlign(html, style, spec, tr) {
   F.css = css(0, 0); F.aligned = { axis: F.align.axis, a, b }; if (!tr.rules.includes('fieldAlign')) tr.rules.unshift('fieldAlign');
   return out.replace(/data-trace="[^"]*"/, `data-trace="${esc(JSON.stringify(tr))}"`);
 }
+// AI 배경 도형(10-22) — 뿌리 바로 안 맨 앞(그림·글자 뒤)에 넣는다. 캔버스 몫 → px, blur 는 짧은 변 몫. 틀 고정 매체·비즈보드는 넣지 않는다
+export function withAiShapes(html, style, spec) {
+  const S = style?.aiShapes; if (!S?.length || !aiEligible(spec)) return html;
+  const W = spec.w, H = spec.h, m = Math.min(W, H), r1 = v => Math.round(v * 10) / 10;
+  const divs = S.map((sh, i) => `<div data-ai-shape="${i}" aria-hidden="true" style="position:absolute;left:${r1(sh.x * W)}px;top:${r1(sh.y * H)}px;width:${r1(sh.w * W)}px;height:${r1(sh.h * H)}px;background:${sh.color};opacity:${sh.opacity};border-radius:${sh.kind === 'rect' ? '0' : sh.kind === 'pill' ? '9999px' : '50%'};${sh.blur ? `filter:blur(${r1(sh.blur * m)}px);` : ''}pointer-events:none"></div>`).join('');
+  return html.replace(/(<div data-ad="1"[^>]*>)/, `$1${divs}`);
+}
 export function renderAd(ctx, style, spec) {
+  return withAiShapes(renderAdInner(ctx, style, spec), style, spec);
+}
+function renderAdInner(ctx, style, spec) {
   if (style?.aiKvBox && !style.__fix) {
     const ai = aiBoxRender(ctx, style, spec); if (ai) return ai;
     // AI 상자가 가이드 검사를 못 넘으면 규칙 자리 — 그림은 AI 가 그 모양용으로 자른 조각이 아니라 원본(규칙 칸에 조각이 들어가면 확성기만 크게, 10-22 GS 카카오)
@@ -245,7 +255,7 @@ function aiBoxRender(ctx, style, spec) {
   const tc = rows.length ? { x: rows.reduce((a, r) => a + r.x + r.w / 2, 0) / rows.length, y: rows.reduce((a, r) => a + r.y + r.h / 2, 0) / rows.length } : { x: 0, y: 0 };
   const logoM = first.html.match(/<div data-logo-slot="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
   const logoR = logoM ? { x: +logoM[1], y: +logoM[2], w: +logoM[3], h: +logoM[4] } : null;
-  const OV = CANON.overlapFix, thr = (kvTypeOf(style.kvMeta)?.flags?.character || transparent) ? OV.character : OV.other;
+  const OV = CANON.overlapFix, thr = OV.character;   // AI 상자는 엄하게(2%) — 규칙 자리보다 크게 쓰는 만큼 글자가 주인공에 닿으면 안 된다(10-22 네이버 1250 제목이 신호등 기둥에)
   const build = (k, grow = 1, inside = false) => {
     // 줄일 때(k<1): 글자 쪽 축만(가로로 떨어져 있으면 폭만, 세로면 높이만) — 글자 반대쪽 변을 붙잡고. 위아래 꽉 찬 사진에 빈 띠가 생기지 않게
     // 키울 때(grow>1): 두 축 다 — 글자 반대쪽 변을 붙잡고, 다른 축은 가운데 기준(빈 지면 보정과 같은 뜻 — 그림이 커서 비어 보이지 않게)

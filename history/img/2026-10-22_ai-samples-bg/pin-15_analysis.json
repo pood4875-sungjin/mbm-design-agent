@@ -1,0 +1,596 @@
+{
+ "analysis": {
+  "kv": {
+   "type": null,
+   "subject": {
+    "x": 0.143,
+    "y": 0.356,
+    "w": 0.584,
+    "h": 0.612
+   },
+   "keep": [
+    {
+     "x": 0.143,
+     "y": 0.356,
+     "w": 0.584,
+     "h": 0.52,
+     "label": "신호등과 보행 신호기"
+    }
+   ],
+   "faces": [],
+   "cutSafe": {
+    "top": 0.35,
+    "right": 0.1,
+    "bottom": 0.03,
+    "left": 0.1
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#1265FF",
+     "#7FABFE",
+     "#FFD69D"
+    ]
+   },
+   "note": "파란 하늘에서 분홍·살구색으로 이어지는 세로 그라데이션 위에 신호등 기둥이 놓인 일러스트. 아래쪽은 밝게 사라진다."
+  },
+  "groups": {
+   "wide": {
+    "crop": {
+     "x": 0,
+     "y": 0.321,
+     "w": 1,
+     "h": 0.679
+    },
+    "focus": {
+     "x": 0.143,
+     "y": 0.356,
+     "w": 0.584,
+     "h": 0.52
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.5,
+     "y": 0.02,
+     "w": 0.42,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0.05,
+     "top": 0.05,
+     "bottom": 0.1
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.55,
+      "y": 0.5,
+      "w": 0.5,
+      "h": 0.9,
+      "color": "#FFD69D",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "그림을 오른쪽에 두고 왼쪽은 파란 지면으로 이어 글자 공간을 확보한다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "tall": {
+    "crop": {
+     "x": 0,
+     "y": 0.321,
+     "w": 1,
+     "h": 0.679
+    },
+    "focus": {
+     "x": 0.143,
+     "y": 0.356,
+     "w": 0.584,
+     "h": 0.612
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.02,
+     "y": 0.38,
+     "w": 0.96,
+     "h": 0.64
+    },
+    "fade": {
+     "left": 0.05,
+     "right": 0.05,
+     "top": 0.4,
+     "bottom": 0.05
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.75,
+      "w": 0.9,
+      "h": 0.5,
+      "color": "#FFB6D5",
+      "opacity": 0.35,
+      "blur": 0.2
+     }
+    ],
+    "why": "그림을 아래에 크게 두고 위쪽은 파란 하늘 색으로 글자 영역을 만든다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "square": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "focus": {
+     "x": 0.143,
+     "y": 0.356,
+     "w": 0.584,
+     "h": 0.52
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.45,
+     "y": 0.03,
+     "w": 0.5,
+     "h": 0.94
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0.05,
+     "top": 0.05,
+     "bottom": 0.08
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": 0.55,
+      "w": 0.6,
+      "h": 0.8,
+      "color": "#FFD69D",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "오른쪽에 그림을 크게 두고 왼쪽은 그라데이션으로 녹인다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "tower": {
+    "crop": {
+     "x": 0.122,
+     "y": 0.352,
+     "w": 0.639,
+     "h": 0.535
+    },
+    "focus": {
+     "x": 0.143,
+     "y": 0.356,
+     "w": 0.584,
+     "h": 0.52
+    },
+    "kvPlace": "bottom",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.6,
+     "w": 0.9,
+     "h": 0.4
+    },
+    "fade": {
+     "left": 0.05,
+     "right": 0.05,
+     "top": 0.4,
+     "bottom": 0.05
+    },
+    "shapes": [],
+    "why": "좁은 띠라 그림을 아래에 작게 두고 위는 글자에 쓴다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "strip": {
+    "crop": {
+     "x": 0.054,
+     "y": 0.356,
+     "w": 0.762,
+     "h": 0.275
+    },
+    "focus": {
+     "x": 0.143,
+     "y": 0.356,
+     "w": 0.584,
+     "h": 0.26
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.72,
+     "y": 0,
+     "w": 0.26,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [],
+    "why": "가로 띠는 신호등 핵심만 오른쪽 끝에 작게 둔다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   }
+  },
+  "logo": {
+   "kind": "wordmark"
+  },
+  "rationale": "파란 하늘에서 분홍·살구색으로 이어지는 배경을 지면 색으로 이어 칠해 그림이 지면에 자연스럽게 붙게 했다. 신호등 오브젝트는 글자 반대쪽에 크게 두고 글자 쪽 변은 충분히 녹여 흰 글자가 잘 읽히게 했다."
+ },
+ "fixes": [
+  "유형 「cutout-object」 이 그림 투명도(1)와 안 맞아 → 자동",
+  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 5886,
+  "output_tokens": 1858,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0,
+ "ms": 11355,
+ "model": "claude-sonnet-5-5",
+ "raw": {
+  "kv": {
+   "type": "cutout-object",
+   "subject": {
+    "x": 105,
+    "y": 465,
+    "w": 430,
+    "h": 800
+   },
+   "keep": [
+    {
+     "x": 105,
+     "y": 465,
+     "w": 430,
+     "h": 680,
+     "label": "신호등과 보행 신호기"
+    }
+   ],
+   "faces": [],
+   "cutSafe": {
+    "top": 0.35,
+    "right": 0.1,
+    "bottom": 0.03,
+    "left": 0.1
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#1265FF",
+     "#7FABFE",
+     "#FFD69D"
+    ]
+   },
+   "note": "파란 하늘에서 분홍·살구색으로 이어지는 세로 그라데이션 위에 신호등 기둥이 놓인 일러스트. 아래쪽은 밝게 사라진다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 420,
+     "w": 736,
+     "h": 888
+    },
+    "focus": {
+     "x": 105,
+     "y": 465,
+     "w": 430,
+     "h": 680
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.5,
+     "y": 0.02,
+     "w": 0.42,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0.05,
+     "top": 0.05,
+     "bottom": 0.1
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.55,
+      "y": 0.5,
+      "w": 0.5,
+      "h": 0.9,
+      "color": "#FFD69D",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "그림을 오른쪽에 두고 왼쪽은 파란 지면으로 이어 글자 공간을 확보한다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 0,
+     "y": 420,
+     "w": 736,
+     "h": 888
+    },
+    "focus": {
+     "x": 105,
+     "y": 465,
+     "w": 430,
+     "h": 800
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.02,
+     "y": 0.38,
+     "w": 0.96,
+     "h": 0.64
+    },
+    "fade": {
+     "left": 0.05,
+     "right": 0.05,
+     "top": 0.4,
+     "bottom": 0.05
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.75,
+      "w": 0.9,
+      "h": 0.5,
+      "color": "#FFB6D5",
+      "opacity": 0.35,
+      "blur": 0.2
+     }
+    ],
+    "why": "그림을 아래에 크게 두고 위쪽은 파란 하늘 색으로 글자 영역을 만든다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 0,
+     "y": 430,
+     "w": 736,
+     "h": 878
+    },
+    "focus": {
+     "x": 105,
+     "y": 465,
+     "w": 430,
+     "h": 680
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.45,
+     "y": 0.03,
+     "w": 0.5,
+     "h": 0.94
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0.05,
+     "top": 0.05,
+     "bottom": 0.08
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": 0.55,
+      "w": 0.6,
+      "h": 0.8,
+      "color": "#FFD69D",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "오른쪽에 그림을 크게 두고 왼쪽은 그라데이션으로 녹인다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 90,
+     "y": 460,
+     "w": 470,
+     "h": 700
+    },
+    "focus": {
+     "x": 105,
+     "y": 465,
+     "w": 430,
+     "h": 680
+    },
+    "kvPlace": "bottom",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.6,
+     "w": 0.9,
+     "h": 0.4
+    },
+    "fade": {
+     "left": 0.05,
+     "right": 0.05,
+     "top": 0.4,
+     "bottom": 0.05
+    },
+    "shapes": [],
+    "why": "좁은 띠라 그림을 아래에 작게 두고 위는 글자에 쓴다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 100,
+     "y": 465,
+     "w": 440,
+     "h": 360
+    },
+    "focus": {
+     "x": 105,
+     "y": 465,
+     "w": 430,
+     "h": 340
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1265FF",
+      "#7FABFE"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.72,
+     "y": 0,
+     "w": 0.26,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [],
+    "why": "가로 띠는 신호등 핵심만 오른쪽 끝에 작게 둔다."
+   }
+  ],
+  "logo": {
+   "kind": "wordmark"
+  },
+  "rationale": "파란 하늘에서 분홍·살구색으로 이어지는 배경을 지면 색으로 이어 칠해 그림이 지면에 자연스럽게 붙게 했다. 신호등 오브젝트는 글자 반대쪽에 크게 두고 글자 쪽 변은 충분히 녹여 흰 글자가 잘 읽히게 했다."
+ }
+}

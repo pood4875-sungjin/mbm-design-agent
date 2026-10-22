@@ -11,8 +11,10 @@ AI 는 **그림 판단만**(캠페인당 호출 1회), 그리기는 **규칙 렌
 | 타이포(크기·굵기·색·행간·정렬) | 규칙 | 매체 규정·굵기 위계·글자색 문턱·틀 값 — AI 손 안 댐 |
 | 로고 | 규칙 | 규정 매체는 틀 자리, 자유 매체는 규칙 크기·톤 |
 | 비주얼(어디를·얼마나·어느 쪽) | **AI** | 유형·주인공·보존 요소·**얼굴 상자** + 모양 묶음(wide·tall·square·tower·strip)마다 **모양별 주인공(좁은 모양은 좁혀 크게)**·crop·**그림 상자(캔버스 몫)·녹일 변**. 얼굴은 걸쳐 잘리면 탈락. 렌더러 `aiBoxRender` 가 겹침·로고 가림을 재서 넘으면 축소 → 글자 끝선 맞춤 → 규칙 자리 |
-| 배경 | **AI** + 규칙 | AI 가 지면 색 1~3개·각도·글자 톤·녹임 길이를 직접(`field`). 비우면 프리셋(bgFill) → 규칙. 글자색 대비·그라데이션 접기·녹임 상한은 규칙이 검사. 장식 없음 |
+| 배경 | **AI** | AI 가 캠페인 공통 지면(1~3색·각도·녹임)과 모양별 배경 도형(원·띠·블러 0~4개)을 직접 — 규칙은 색을 안 바꾸고 글자색(글자 쪽 대비)만 고른다 |
 | 검수·게이트 | 규칙 | 그대로 |
+
+structured output 은 안 쓴다(스키마가 커지면 「compiled grammar is too large」) — 프롬프트에 형식을 싣고 `parseAnalysisText` + `validateAnalysis`.
 
 흐름: `POST /api/analyze`(`server/design.js analyzeKv`, Sonnet 5.5 medium) → `core/trackb/analyze.js`(스키마 `ANALYSIS_SCHEMA` · 검증 `validateAnalysis`: 픽셀→비율, crop 이 주인공·보존 요소를 자르면 넓힘, 선택지 밖은 auto) → `app/hybrid.js`(모양 묶음마다 crop 사본 + 측정 + 프리셋 조각) → `renderArtifact`(규칙). 비용 캠페인당 **$0.02(≈30원)**, 20종 전부 포함.
 

@@ -120,7 +120,8 @@
     "why": "가로형은 장면 전체를 오른쪽에 크게 두고 왼쪽 약 45%를 밝은 지면으로 비워 글자를 얹는다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -163,7 +164,8 @@
     "why": "세로형은 JEIL 입체 글자와 주변 인물 중심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 공간으로 쓴다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -206,7 +208,8 @@
     "why": "정사각은 장면 전체를 아래쪽에 가로로 넓게 두고 위쪽에 글자 공간을 확보한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -249,7 +252,8 @@
     "why": "세로 띠는 JEIL 글자 중심으로 좁혀 아래쪽에 두고 위쪽을 글자 공간으로 비운다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -292,7 +296,8 @@
     "why": "가로 띠는 글자 공간이 좁아 장면 일부를 오른쪽 끝에 작게 두고 나머지를 글자에 쓴다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

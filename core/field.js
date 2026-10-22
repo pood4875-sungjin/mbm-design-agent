@@ -90,7 +90,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const other = (hasBg && !flatEdge(e)) ? ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge) : null;
 
   // 10-22 하이브리드: AI 가 정한 지면(background.ai) — 색·각도는 그대로, 글자색·그라데이션 접기·vividWhite 는 아래 규칙이 그대로 검사(대비 못 넘으면 규칙이 고친다)
-  if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 2); angle = opt.ai.angle ?? 180; source = 'ai'; }
+  if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
   else if (opt.color) { stops = [opt.color]; source = 'manual'; }
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°. 비주얼 우선(kv-vivid)보다 앞
   else if (style.colorsManual && p.primary) { stops = [p.primary, shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
@@ -170,6 +170,15 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const lightField = () => stops.every(s => relLum(s) >= (CANON.textOn?.darkIfLum ?? 0.55));
   const pick = () => worst(WHITE) >= 3 ? WHITE : (lightField() ? BLACK : WHITE);
   let text = pick();
+  // 10-22 AI 지면(source 'ai'): 색을 고치지 않는다(그라데이션 접기·명도 내리기 없음) — 글자색만 대비로 고른다(흰 3:1 → 흰, 아니면 검정 3:1 → 검정, 둘 다 못 넘으면 더 나은 쪽)
+  if (source === 'ai') {
+    // 글자가 놓이는 쪽 지면색으로 잰다 — 글자는 대개 왼쪽·위: 각도 45~225°(→·↓ 방향)면 시작색, 아니면 끝색. 가장 밝은 끝으로 재면 진한 파랑 위에 검정이 나왔다(10-22 신호등)
+    const a0 = ((angle % 360) + 360) % 360, side = stops.length > 1 ? (a0 >= 45 && a0 <= 225 ? stops[0] : stops[stops.length - 1]) : stops[0];
+    const cw = contrast(side, WHITE), cb = contrast(side, BLACK), want = opt.ai.text === 'light' ? WHITE : opt.ai.text === 'dark' ? BLACK : null;
+    text = (want && contrast(side, want) >= 3) ? want : cw >= 3 ? WHITE : cb >= 3 ? BLACK : (cw >= cb ? WHITE : BLACK);
+    const css0 = stops.length > 1 ? `linear-gradient(${angle}deg,${stops.map((c0, i) => `${c0} ${Math.round(100 * i / (stops.length - 1))}%`).join(',')})` : stops[0];
+    return { stops, angle, css: css0, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(contrast(side, text) * 100) / 100, ...(align && stops.length > 1 ? { align } : {}) };
+  }
   if (stops.length > 1 && text === BLACK && worst(BLACK) < 3) { stops = [mid()]; text = pick(); }   // 검정 글자 그라데이션만 접는다 — 흰 글자는 아래 vividWhite 가 명도를 내려 3:1 을 맞춘다(손 지정 색은 그대로, 10-20)
   // 10-20 종합 점수표(① contrast.main 354 · contrast.small 369 — 11케이스 × 자소설·구글 틀, 연보라 #9CA1FE→#C4D3FE 흰 글자 1.49:1): 두 끝의 밝기 판정이 갈리는 그라데이션(한 끝 색 지면 → 흰, 한 끝 파스텔 → 검정)은
   //   흰 글자가 밝은 끝에서 읽히지 않고 검정은 어두운 끝에서 읽히지 않는다 — 10-20 edgeField.gradientReadable 원칙(「한 끝 채도 지면·한 끝 연한 색이면 단색」)대로 색 쪽(어두운) 끝 단색으로 접고 다시 고른다. 손 지정(manual) 지면은 그대로

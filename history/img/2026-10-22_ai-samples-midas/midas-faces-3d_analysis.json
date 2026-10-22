@@ -102,7 +102,8 @@
     "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tall": {
     "crop": {
@@ -145,7 +146,8 @@
     "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "square": {
     "crop": {
@@ -188,7 +190,8 @@
     "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "tower": {
     "crop": {
@@ -231,7 +234,8 @@
     "why": "좁은 띠라 가운데 인물 하나의 얼굴과 폰만 좁혀 아래쪽에 둔다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    },
    "strip": {
     "crop": {
@@ -274,7 +278,8 @@
     "why": "가로 띠는 오른쪽 끝에 인물 얼굴들만 작게 두고 왼쪽을 녹여 글자 공간을 비운다.",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto"
+    "bgGrad": "auto",
+    "shapes": []
    }
   },
   "logo": {

@@ -44,6 +44,8 @@ export const ANALYSIS_SCHEMA = obj({
     // 10-22 사용자 「비중 정해 놓고 규칙대로 하는 느낌 — AI 가 직접」: 그림 상자(캔버스 몫 0~1, 지면 밖으로 흘려도 됨)·녹일 변(그림 상자 몫 0~0.6). w 가 0 이면 규칙 자리
     kvBox: box,
     fade: obj({ left: NUM, right: NUM, top: NUM, bottom: NUM }),
+    // 10-22 사용자 「클로드가 판단해서 배경 만드는 거 아니었어?」: 배경 그래픽 — 부드러운 원·띠·빛 번짐(캔버스 몫, 지면 밖으로 흘려도 됨). 규칙이 색을 바꾸지 않는다
+    shapes: { type: 'array', items: obj({ kind: STR, x: NUM, y: NUM, w: NUM, h: NUM, color: STR, opacity: NUM, blur: NUM }) },
     why: STR,
   }) },
   logo: obj({ kind: STR }),   // wordmark | symbol | combo | none
@@ -56,9 +58,18 @@ export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디�
 1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크 등), 사람·캐릭터 얼굴 상자 전부(faces — 머리카락·모자 포함, 원본 픽셀), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
 2. 모양 묶음 5개(shape 값은 wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·이 모양의 주인공(focus)·키비주얼 자리(kvPlace)·크기(kvSize)·배경 방식(bgFill)·스크림(scrim). 값은 주어진 선택지 문자열 중에서만, 모르겠으면 auto. 글자 정렬은 규칙이 정한다.
 3. 그림 상자(kvBox)를 네가 직접 정한다 — 캔버스 비율(0~1) {x,y,w,h}, 지면 밖으로 흘려도 된다(x<0, x+w>1). 이 모양에서 그림을 얼마나 크게, 어디에 둘지가 핵심 판단이다. 글자 덩어리는 kvPlace 반대쪽(오른쪽 그림이면 왼쪽 약 55%, 아래 그림이면 위쪽)에 놓이고 로고는 위쪽 모서리에 놓인다 — 주인공(얼굴·제품)은 글자 쪽과 위쪽 로고 모서리에 들어가지 않게. 그림 상자가 글자 쪽으로 넘어가도 되지만 그 변은 fade 로 녹여야 한다. fade 는 그림 상자 각 변을 녹이는 길이(상자 폭·높이의 0~0.6, 0 이면 안 녹임) — 글자 쪽을 향한 변은 0.3 이상. 누끼(투명 배경)는 fade 0. 그림을 크게 써서 지면이 비어 보이지 않게 하되, 겹치면 서버가 줄이거나 규칙 자리로 되돌린다. 모르겠으면 kvBox 의 w 를 0 으로.
+5. 배경 그래픽(shapes)을 모양마다 디자인한다 — 그림에서 뽑은 색으로 부드러운 원(ellipse)·둥근 띠(pill)·사각(rect) 0~4개. 좌표는 캔버스 몫(0~1, 지면 밖으로 흘려도 됨), opacity 0.1~0.7, blur 는 캔버스 짧은 변의 몫(0~0.3, 빛 번짐이면 0.1 이상). 목적: 그림의 바탕(하늘·그라데이션·빛)을 지면까지 자연스럽게 이어 지면이 단조롭지 않게, 그림이 지면에 붙어 보이게. 글자 덩어리 뒤는 차분하게(글자 대비를 해치지 않게). 장식을 위한 장식(아이콘·패턴·글자)은 넣지 않는다.
 4. 지면(field)은 캠페인 공통 하나다 — 모든 모양에 같은 colors·angle 을 준다(melt 만 모양별). 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
 원칙: 주인공과 보존 요소는 crop 안에. 모양마다 focus(이 모양의 주인공)를 정한다 — 가로형·정사각은 전체 주인공, 좁은 세로형(tall)·세로 띠(tower)·가로 띠(strip)는 장면 전체를 작게 넣지 말고 핵심만 좁혀(예: 확성기와 두 사람, 인물 한두 명의 상반신, 제품 하나) 크게 쓴다. 얼굴은 어떤 모양에서도 걸쳐 자르지 않는다 — crop 에 넣으면 통째로, 빼면 통째로. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
 
+// structured output(스키마 강제)은 쓰지 않는다 — 판단 칸이 늘 때마다 API 가 「compiled grammar is too large」로 거부(10-22 세 번).
+// 대신 프롬프트에 형식(스키마 JSON)을 싣고, 받은 글에서 JSON 을 꺼내 validateAnalysis 가 전부 검사·보정한다
+export const ANALYSIS_FORMAT = JSON.stringify(ANALYSIS_SCHEMA);
+export function parseAnalysisText(text) {
+  let t = String(text ?? '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
+  const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b <= a) throw new Error('응답에 JSON 이 없습니다: ' + t.slice(0, 120));
+  return JSON.parse(t.slice(a, b + 1));
+}
 export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}, requests = '' } = {}) {
   const [W, H] = kvMeta?.px ?? [0, 0];
   const lines = [];
@@ -73,6 +84,7 @@ export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}
   lines.push(`- 고객사 ${brief.client ?? '?'} · ${brief.hiringType ?? ''} · 메인 문구 2줄 + 접수 기간 1줄(+ 직무) 이 글자 쪽에 놓인다`);
   lines.push(`- 브랜드 색 ${[brand.primary, brand.accent].filter(Boolean).join(' ') || '없음'}`);
   lines.push(`- 고객사 요구: ${requests?.trim() || '없음'}`);
+  lines.push(`## 답 형식 — 아래 JSON 스키마 모양의 JSON 하나만(설명·코드펜스 없이). 모든 칸을 채운다\n${ANALYSIS_FORMAT}`);
   lines.push(`위를 보고 JSON 으로 답하라. rationale 은 한국어 두 문장. type 은 위 유형 id 중 하나, mood.tone 은 light|dark, field.text 는 auto|light|dark, logo.kind 는 wordmark|symbol|combo|none.`);
   return lines.join('\n');
 }
@@ -99,6 +111,8 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
   const A = structuredClone(raw ?? {});
   const kv = A.kv ?? (A.kv = {});
   if (!TYPE_IDS.includes(kv.type)) { fixes.push(`유형 「${kv.type}」 모름 → 자동`); kv.type = null; }
+  // 투명도와 안 맞는 유형은 버린다(측정이 더 정확) — 불투명 그림을 누끼로(10-22 신호등), 투명 그림을 사진·배경 그림으로 보면 렌더러 분기가 틀어진다
+  { const op = kvMeta?.field?.opaque; if (kv.type && op != null) { const cut = /^cutout/.test(kv.type); if ((cut && op >= 0.9) || (!cut && op < 0.5)) { fixes.push(`유형 「${kv.type}」 이 그림 투명도(${op})와 안 맞아 → 자동`); kv.type = null; } } }
   kv.subject = fracBox(kv.subject, W, H) ?? { x: 0.15, y: 0.1, w: 0.7, h: 0.8 };
   kv.keep = (Array.isArray(kv.keep) ? kv.keep : []).slice(0, 6).map(k => ({ ...fracBox(k, W, H), label: String(k.label ?? '').slice(0, 40) }));
   const cs = kv.cutSafe ?? {}; kv.cutSafe = Object.fromEntries(['top', 'right', 'bottom', 'left'].map(k => [k, r3(clamp(num(cs[k]), 0, 0.5))]));
@@ -167,6 +181,8 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
       }
     }
     { const c2 = faceWhole(g.crop); if (c2 !== g.crop) { g.crop = { x: r3(c2.x), y: r3(c2.y), w: r3(c2.w), h: r3(c2.h) }; fixes.push(`${s}: 얼굴이 걸쳐 잘려 통째로 넣음`); } }
+    { const HEXR = /^#[0-9A-Fa-f]{6}$/;
+      g.shapes = (Array.isArray(g.shapes) ? g.shapes : []).slice(0, 4).map(sh => ({ kind: ['ellipse', 'pill', 'rect'].includes(sh?.kind) ? sh.kind : 'ellipse', x: r3(clamp(num(sh?.x), -0.6, 1.2)), y: r3(clamp(num(sh?.y), -0.6, 1.2)), w: r3(clamp(num(sh?.w, 0.3), 0.02, 2)), h: r3(clamp(num(sh?.h, 0.3), 0.02, 2)), color: HEXR.test(sh?.color ?? '') ? sh.color.toUpperCase() : null, opacity: r3(clamp(num(sh?.opacity, 0.3), 0.05, 0.8)), blur: r3(clamp(num(sh?.blur), 0, 0.3)) })).filter(sh => sh.color); }
     const fa = g.fade ?? {}; const transparentKv = (kvMeta?.field?.opaque ?? 1) < 0.5;
     g.fade = Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, transparentKv ? 0 : r3(clamp(num(fa[k]), 0, 0.6))]));
     g.why = String(g.why ?? '').slice(0, 200);
@@ -192,10 +208,11 @@ export function presetPatch(group, analysis) {
   if (analysis?.kv?.type) out.kvTypeOverride = analysis.kv.type;
   // AI 그림 상자 — 렌더러 aiBoxRender 가 규칙 렌더 뒤 그림 층만 바꾸고 겹침·로고 가림을 다시 잰다(넘으면 축소 → 규칙 자리)
   if (group.kvBox?.w > 0) { out.aiKvBox = { ...group.kvBox }; out.aiFade = { ...(group.fade ?? {}) }; }
+  if (group.shapes?.length) out.aiShapes = group.shapes.map(sh => ({ ...sh }));
   // AI 지면(있으면 bgFill/bgGrad 프리셋보다 앞) — 렌더러 규칙이 글자색 대비·녹임 상한을 다시 검사
   const fd = group.field;
   // 글자색은 규칙(대비 계산) — AI 의 글자 톤은 넘기지 않는다(10-22 연한 초록에 흰 글자 강제)
-  if (fd?.colors?.length) out.background = { mode: 'auto', color: null, ai: { stops: fd.colors, angle: fd.angle ?? 180, text: null, melt: fd.melt ?? 0 } };
+  if (fd?.colors?.length) out.background = { mode: 'auto', color: null, ai: { stops: fd.colors, angle: fd.angle ?? 180, text: ['light', 'dark'].includes(fd.text) ? fd.text : null, melt: fd.melt ?? 0 } };   // 글자 톤은 「바람」 — field.js 가 글자 쪽 대비 3:1 넘을 때만 따른다
   else if (fd?.melt) out.background = { mode: 'auto', color: null, ai: { stops: [], angle: 180, text: null, melt: fd.melt } };
   return out;
 }
@@ -230,7 +247,7 @@ export function resolveAiStyle(campaign, style, spec = null) {
   if (out.textTone && (out.textTone === aiTone || out.textTone === G?.patch?.textTone)) delete out.textTone;
   // 틀 고정 매체(자소설·리멤버·잡다·에브리타임·캐치)·비즈보드 — AI 값을 걷어내고 규칙 그대로(예전에 저장된 캠페인 포함)
   if (spec && !aiEligible(spec)) {
-    delete out.aiShape; delete out.aiKvBox; delete out.aiFade;
+    delete out.aiShape; delete out.aiKvBox; delete out.aiFade; delete out.aiShapes;
     if (out.background?.ai) { const { ai, ...rest } = out.background; out.background = rest; }
     if (A?.kv?.type && out.kvTypeOverride === A.kv.type) delete out.kvTypeOverride;
     for (const [k, v] of Object.entries(G?.patch ?? {})) if (PRESETS[k] && out[k] === v) delete out[k];
@@ -238,7 +255,7 @@ export function resolveAiStyle(campaign, style, spec = null) {
   }
   // 캠페인 공통 지면 — 예전에 모양마다 다르게 저장된 지면도 하나로(녹임 길이는 그 모양 값)
   const cf = ['wide', 'square', 'tall', 'tower', 'strip'].map(k => A?.groups?.[k]?.field).find(f => f?.colors?.length);
-  if (cf && out.background?.ai) out.background = { ...out.background, ai: { ...out.background.ai, stops: [...cf.colors], angle: cf.angle ?? out.background.ai.angle, text: null } };
+  if (cf && out.background?.ai) out.background = { ...out.background, ai: { ...out.background.ai, stops: [...cf.colors], angle: cf.angle ?? out.background.ai.angle, text: ['light', 'dark'].includes(cf.text) ? cf.text : null } };
   if (!G?.keyVisual) return out;
   return { ...out, keyVisual: G.keyVisual, kvMeta: G.kvMeta ?? out.kvMeta, ...(out.aiKvBox ? { aiKvOrig: out.keyVisual, aiKvMetaOrig: out.kvMeta } : {}) };
 }
