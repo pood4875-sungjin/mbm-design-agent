@@ -29,7 +29,8 @@
   .up{display:flex;gap:10px;align-items:center}
   .up .th{width:72px;height:54px;border:1px dashed var(--line);border-radius:8px;background:#fafafa center/contain no-repeat;flex:none}
   .up small{color:var(--mute);display:block}
-  #cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+  #cmp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  @media (max-width:1500px){#cmp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
   .trk .pv{position:relative;width:100%;background:#eceef2;border-radius:8px;overflow:hidden;min-height:120px}
   .trk .pv iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;display:block;background:#fff}
   .trk .meta{font-size:12px;color:var(--mute);margin-top:8px;white-space:pre-wrap}
@@ -90,8 +91,10 @@
     <div class="row"><div><label class="f">모델</label><select id="modelSel"></select></div><div><label class="f">effort</label><select id="effortSel"><option>high</option><option>medium</option><option>low</option><option>xhigh</option></select></div></div>
     <div class="btns">
       <button id="runA">A 그리기 (무료)</button>
+      <button class="pri" id="runC" disabled>A+AI 그림 판단 (API 1회)</button>
       <button class="pri" id="runB" disabled>B 생성 (API 호출 · 유료)</button>
     </div>
+    <div class="row" style="margin-top:6px"><div><label class="f">그림 판단 모델(A+AI)</label><select id="cModelSel"></select></div><div><label class="f">판단 effort</label><select id="cEffortSel"><option>medium</option><option>low</option><option>high</option></select></div></div>
     <div class="mini" style="margin-top:6px">B 는 「B 생성」을 누를 때만 API 를 부릅니다. 같은 입력으로 A·B 가 그려지면 아래 표에 기록하세요.</div>
   </aside>
 
@@ -103,6 +106,14 @@
         <div class="chk" id="aChk"></div>
         <div class="meta" id="aMeta"></div>
         <div class="btns"><button class="sm" id="aPng">PNG 저장</button><button class="sm" id="aHtml">HTML 복사</button></div>
+      </section>
+      <section class="card trk" id="trkC">
+        <h2>A+AI · 규칙 + 그림 판단 <span class="mini" id="cTitle"></span></h2>
+        <div class="pv" id="cPv"></div>
+        <div class="chk" id="cChk"></div>
+        <div class="meta" id="cMeta"></div>
+        <details id="cWrap"><summary>모양 묶음별 판단 · 고친 것 · 프롬프트</summary><div id="cGroups" class="mini"></div><ul class="fx" id="cFixes"></ul><pre id="cPrompt"></pre></details>
+        <div class="btns"><button class="sm" id="cPng">PNG 저장</button><button class="sm" id="cJson">판단 JSON 내려받기</button><button class="sm" id="cHtml">HTML 복사</button><button class="sm" id="cLoad">판단 JSON 불러오기</button><input type="file" id="cLoadFile" accept=".json" hidden></div>
       </section>
       <section class="card trk" id="trkB">
         <h2>B · AI 디자인 <span class="mini" id="bTitle"></span></h2>
@@ -123,10 +134,10 @@
       <h2>비교 기록 <span class="mini">사람 평가 칸(품질·요구 반영 1~5)은 직접 적고, 나머지는 자동으로 채워집니다. 브라우저에 저장됩니다.</span></h2>
       <div class="btns" style="margin:0 0 8px"><button class="pri sm" id="recAdd">지금 결과를 표에 추가</button><button class="sm" id="recMd">Markdown 표 복사</button><button class="sm" id="recJson">JSON 내려받기</button><button class="sm" id="recClear">표 비우기</button></div>
       <div style="overflow:auto"><table id="recTbl"><thead><tr>
-        <th>#</th><th>케이스</th><th>규격</th><th>B 모델</th>
-        <th>디자인 품질<br>A / B (사람)</th><th>고객사 요구 반영<br>A / B (사람)</th>
-        <th>매체 규정 준수 (자동)<br>A / B</th><th>수정 시간<br>A (손으로) / B (자동 기록)</th>
-        <th>생성 시간<br>A / B</th><th>API 사용량 (B)</th><th>메모</th><th></th>
+        <th>#</th><th>케이스</th><th>규격</th><th>모델 (A+AI / B)</th>
+        <th>디자인 품질<br>A / A+AI / B (사람)</th><th>고객사 요구 반영<br>A / A+AI / B (사람)</th>
+        <th>매체 규정 준수 (자동)<br>A / A+AI / B</th><th>수정 시간<br>A / A+AI (손으로) / B (자동 기록)</th>
+        <th>생성 시간<br>A / A+AI / B</th><th>API 사용량<br>A+AI / B</th><th>메모</th><th></th>
       </tr></thead><tbody></tbody></table></div>
     </section>
   </main>

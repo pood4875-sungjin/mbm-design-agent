@@ -1,0 +1,292 @@
+{
+ "analysis": {
+  "kv": {
+   "type": "photo",
+   "subject": {
+    "x": 0.158,
+    "y": 0.244,
+    "w": 0.584,
+    "h": 0.756
+   },
+   "keep": [
+    {
+     "x": 0.375,
+     "y": 0.244,
+     "w": 0.113,
+     "h": 0.198,
+     "label": "남성 얼굴"
+    },
+    {
+     "x": 0.559,
+     "y": 0.257,
+     "w": 0.146,
+     "h": 0.191,
+     "label": "여성 얼굴"
+    },
+    {
+     "x": 0.179,
+     "y": 0.534,
+     "w": 0.2,
+     "h": 0.184,
+     "label": "노트북"
+    }
+   ],
+   "cutSafe": {
+    "top": 0.15,
+    "right": 0.2,
+    "bottom": 0.05,
+    "left": 0.15
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#EDBE84",
+     "#C75420",
+     "#502C16"
+    ]
+   },
+   "note": "따뜻한 나무 벽 앞 주황 소파에 두 사람이 앉아 노트북을 보는 사진. 왼쪽 위 벽과 오른쪽 위 그림자는 비교적 비어 있어 글자 여유 공간으로 쓸 수 있다."
+  },
+  "groups": {
+   "wide": {
+    "crop": {
+     "x": 0,
+     "y": 0.158,
+     "w": 1,
+     "h": 0.842
+    },
+    "kvPlace": "bg",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "mid",
+    "why": "넓은 가로형이라 사진을 전체 배경으로 깔고, 왼쪽 벽 빈 곳에 글자를 두며 인물은 중앙과 오른쪽에 둔다."
+   },
+   "tall": {
+    "crop": {
+     "x": 0.142,
+     "y": 0,
+     "w": 0.634,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "mid",
+    "why": "두 인물과 노트북을 담아 아래쪽에 두고, 위쪽 나무 벽 부분에 글자를 놓는다."
+   },
+   "square": {
+    "crop": {
+     "x": 0.142,
+     "y": 0.079,
+     "w": 0.617,
+     "h": 0.921
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "low",
+    "why": "정사각이라 두 인물 중심으로 잘라 아래에 두고, 위쪽 벽에 글자 공간을 마련한다."
+   },
+   "tower": {
+    "crop": {
+     "x": 0.158,
+     "y": 0.198,
+     "w": 0.61,
+     "h": 0.802
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "textAlign": "center",
+    "textAnchor": "top",
+    "bgFill": "brand",
+    "bgGrad": "v",
+    "scrim": "none",
+    "why": "좁은 세로 띠라 두 얼굴이 들어가게만 좁게 자르고 아래에 둔다. 위는 브랜드색으로 채워 글자 공간으로 쓴다."
+   },
+   "strip": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "brand",
+    "bgGrad": "h",
+    "scrim": "none",
+    "why": "낮은 가로 띠라 두 얼굴만 작게 잘라 오른쪽 끝에 두고, 왼쪽은 브랜드색 바탕에 글자를 놓는다."
+   }
+  },
+  "logo": {
+   "kind": "none"
+  },
+  "rationale": "따뜻한 나무 벽과 주황 소파가 브랜드색 #C75420과 잘 맞아, 사진을 살리면서 얼굴과 노트북은 모든 crop에 담았다. 글자는 왼쪽·위쪽의 비교적 빈 벽 쪽에 두고, 좁은 모양은 브랜드색 바탕으로 공간을 확보했다."
+ },
+ "fixes": [
+  "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "strip: crop 이 너무 작아(0.417×0.224) 원본 전체로"
+ ],
+ "usage": {
+  "input_tokens": 4606,
+  "output_tokens": 1284,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0221,
+ "ms": 10046,
+ "model": "claude-sonnet-5-5",
+ "effort": "medium",
+ "raw": {
+  "kv": {
+   "type": "photo",
+   "subject": {
+    "x": 190,
+    "y": 185,
+    "w": 700,
+    "h": 574
+   },
+   "keep": [
+    {
+     "x": 450,
+     "y": 185,
+     "w": 135,
+     "h": 150,
+     "label": "남성 얼굴"
+    },
+    {
+     "x": 670,
+     "y": 195,
+     "w": 175,
+     "h": 145,
+     "label": "여성 얼굴"
+    },
+    {
+     "x": 215,
+     "y": 405,
+     "w": 240,
+     "h": 140,
+     "label": "노트북"
+    }
+   ],
+   "cutSafe": {
+    "top": 0.15,
+    "right": 0.2,
+    "bottom": 0.05,
+    "left": 0.15
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#EDBE84",
+     "#C75420",
+     "#502C16"
+    ]
+   },
+   "note": "따뜻한 나무 벽 앞 주황 소파에 두 사람이 앉아 노트북을 보는 사진. 왼쪽 위 벽과 오른쪽 위 그림자는 비교적 비어 있어 글자 여유 공간으로 쓸 수 있다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 120,
+     "w": 1199,
+     "h": 520
+    },
+    "kvPlace": "bg",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "mid",
+    "why": "넓은 가로형이라 사진을 전체 배경으로 깔고, 왼쪽 벽 빈 곳에 글자를 두며 인물은 중앙과 오른쪽에 둔다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 170,
+     "y": 0,
+     "w": 760,
+     "h": 759
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "mid",
+    "why": "두 인물과 노트북을 담아 아래쪽에 두고, 위쪽 나무 벽 부분에 글자를 놓는다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 170,
+     "y": 60,
+     "w": 740,
+     "h": 699
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "low",
+    "why": "정사각이라 두 인물 중심으로 잘라 아래에 두고, 위쪽 벽에 글자 공간을 마련한다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 400,
+     "y": 150,
+     "w": 520,
+     "h": 609
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "textAlign": "center",
+    "textAnchor": "top",
+    "bgFill": "brand",
+    "bgGrad": "v",
+    "scrim": "none",
+    "why": "좁은 세로 띠라 두 얼굴이 들어가게만 좁게 자르고 아래에 둔다. 위는 브랜드색으로 채워 글자 공간으로 쓴다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 420,
+     "y": 185,
+     "w": 500,
+     "h": 170
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "brand",
+    "bgGrad": "h",
+    "scrim": "none",
+    "why": "낮은 가로 띠라 두 얼굴만 작게 잘라 오른쪽 끝에 두고, 왼쪽은 브랜드색 바탕에 글자를 놓는다."
+   }
+  ],
+  "logo": {
+   "kind": "none"
+  },
+  "rationale": "따뜻한 나무 벽과 주황 소파가 브랜드색 #C75420과 잘 맞아, 사진을 살리면서 얼굴과 노트북은 모든 crop에 담았다. 글자는 왼쪽·위쪽의 비교적 빈 벽 쪽에 두고, 좁은 모양은 브랜드색 바탕으로 공간을 확보했다."
+ }
+}

@@ -10,6 +10,7 @@ import { kvTypeOf, kvTypeSummary } from '../core/kvtypes.js';
 import { LAYOUT_SCHEMA, validateLayout } from '../core/trackb/schema.js';
 import { buildFixed, buildPrompt, retryPrompt, SYSTEM_PROMPT } from '../core/trackb/prompt.js';
 import { estimateCost, sumUsage, DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
+import { ANALYSIS_SCHEMA, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis } from '../core/trackb/analyze.js';
 
 registerAll();
 
@@ -83,4 +84,25 @@ export async function designLayout(client, input = {}) {
     usage, cost: estimateCost(model, usage), calls, ms: Date.now() - t0, model, effort, raw,
     prompt: { system: SYSTEM_PROMPT, user: userText },
   };
+}
+
+// 하이브리드(A+AI) — 그림 판단 1회. 입력: { kv:{dataUrl, meta}, logo?:{dataUrl, meta}, brief, brand, requests, model(기본 Sonnet), effort(기본 medium) }
+// 출력: { analysis, fixes, usage, cost, calls, ms, model, effort, raw, prompt }
+export const ANALYZE_MODEL = 'claude-sonnet-5-5';
+export async function analyzeKv(client, input = {}) {
+  if (!input.kv?.dataUrl) throw new Error('키비주얼이 필요합니다');
+  const model = PRICES[input.model] ? input.model : ANALYZE_MODEL;
+  const effort = ['low', 'medium', 'high'].includes(input.effort) ? input.effort : 'medium';
+  const kvMeta = input.kv.meta ?? null, logoMeta = input.logo?.meta ?? null, hasLogo = !!input.logo?.dataUrl;
+  const userText = analysisPrompt({ kvMeta, logoMeta, brief: input.brief ?? {}, brand: input.brand ?? {}, requests: input.requests ?? '' });
+  const content = [imageBlock(input.kv.dataUrl, '키비주얼')];
+  if (hasLogo) content.push(imageBlock(input.logo.dataUrl, '로고'));
+  content.push({ type: 'text', text: userText });
+  const params = { model, max_tokens: 4000, system: ANALYSIS_SYSTEM, messages: [{ role: 'user', content }], output_config: { effort, format: { type: 'json_schema', schema: ANALYSIS_SCHEMA } } };
+  const t0 = Date.now();
+  const res = await callOnce(client, params);
+  const raw = textOf(res);
+  const { analysis, fixes } = validateAnalysis(raw, { kvMeta, hasLogo });
+  const usage = sumUsage([res.usage ?? {}]);
+  return { analysis, fixes, usage, cost: estimateCost(model, usage), calls: 1, ms: Date.now() - t0, model, effort, raw, prompt: { system: ANALYSIS_SYSTEM, user: userText } };
 }

@@ -34,6 +34,8 @@ import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { PRESET_KEYS } from '../core/editlayout.js';
+import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
+import { resolveAiStyle } from '../core/trackb/analyze.js';
 import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolder, deleteFolder, reorderFolder, moveFolderBy, moveCampaign,
   toggleFolder, folderOf, filterCampaigns, groupCampaigns, nameError, cleanName, displayName, logoSig, tileToneFor, containBox } from '../core/folders.js';
 
@@ -2214,7 +2216,11 @@ function renderInspector() {
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
-        <button class="btn" id="iKvClear" style="flex:1">제거</button></div>` : ''}
+        <button class="btn" id="iKvClear" style="flex:1">제거</button></div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.01~0.03) 모양 묶음마다 보일 부분·자리·크기·배경 방식을 정합니다. 글자·타이포·검수는 규칙 그대로">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>
+        ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
+      ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
       <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>
       <div style="display:flex;gap:6px">
         <div class="kvthumb logo" id="iLogo" style="flex:1;height:44px;${c.style.logo ? `background-image:url(${c.style.logo})` : ''}">${c.style.logo ? '' : '원색 로고'}</div>
@@ -2341,8 +2347,31 @@ function renderInspector() {
     });
     insp.querySelector('#iKvClear')?.addEventListener('click', () => {
       restyle({ keyVisual: null, kvReadability: null, kvMeta: null, kvTypeOverride: null }, '키비주얼 제거');
-      renderInspector();
+      clearAiOverrides(c); renderInspector();
     });
+    // 하이브리드(10-22): AI 가 그림만 판단(캠페인당 1회) → 광고 규격마다 모양 묶음의 crop 사본·프리셋을 개별값(overrides.style)으로. 글자·타이포·검수는 규칙 그대로
+    insp.querySelector('#iKvAi')?.addEventListener('click', async () => {
+      const btn = insp.querySelector('#iKvAi');
+      if (!confirm('Claude 가 키비주얼을 한 번 봅니다(캠페인당 1회, 약 $0.01~0.03). 모양 묶음마다 보일 부분·자리·크기·배경 방식을 정하고, 광고 규격 전부에 적용합니다. 진행할까요?')) return;
+      btn.disabled = true; btn.textContent = '그림 보는 중…';
+      try {
+        const res = await requestAnalysis({ kv: { dataUrl: await apiCopy(c.style.keyVisual), meta: c.style.kvMeta }, logo: c.style.logo ? { dataUrl: await apiCopy(c.style.logo, true), meta: c.style.logoMeta } : null, brief: c.context.core, brand: { primary: c.style.palette?.primary ?? null }, requests: '' });
+        const groups = await buildGroupStyles(res.analysis, { keyVisual: c.style.keyVisual, kvMeta: c.style.kvMeta, metaOf: async d => (await analyzeKeyVisual(d)).meta });
+        pushHistory('AI 그림 판단');
+        c.ai = { analysis: res.analysis, groups, fixes: res.fixes, usage: res.usage, cost: res.cost, model: res.model, effort: res.effort, ms: res.ms, at: new Date().toISOString() };
+        let n = 0;
+        for (const a of c.artifacts) {
+          if (a.channel !== 'ad') continue; const spec = SPECS[a.specId]; if (!spec) continue;
+          const shape = shapeOfSpec(spec), g = groups[shape]; if (!g) continue;
+          a.overrides = a.overrides ?? {}; a.overrides.style = { ...(a.overrides.style ?? {}), ...g.patch, aiShape: shape }; a.status = 'draft'; a.gateOverride = null; n++;
+        }
+        logEvent(c, 'ai_analysis', { model: res.model, cost: res.cost, artifacts: n });
+        regen(c); autosave(); refreshFrames(); renderInspector();
+        log(`AI 그림 판단 — ${res.analysis.kv.type ?? '유형 자동'} · 규격 ${n}개에 적용 · $${res.cost} · ${Math.round(res.ms / 1000)}초`);
+        toast(`AI 그림 판단 적용 — ${n}개 규격 · $${res.cost}`);
+      } catch (e) { toast(`AI 그림 판단 실패: ${e.message}`, 6000); btn.disabled = false; btn.textContent = 'AI 그림 판단'; }
+    });
+    insp.querySelector('#iKvAiClear')?.addEventListener('click', () => { pushHistory('AI 판단 해제'); clearAiOverrides(c); regen(c); autosave(); refreshFrames(); renderInspector(); toast('AI 판단 해제 — 자동 배치로'); });
     // 로고 두 벌 — 원색은 밝은 지면·투명 지면에, 흰색은 브랜드색 지면에 (자소설 한독·도레이는 흰색 로고)
     for (const [thumbId, fileId, key, label] of [['iLogo', 'iLogoFile', 'logo', '로고 교체'], ['iLogoLight', 'iLogoLightFile', 'logoLight', '흰색 로고 교체']]) {
       const inEl = insp.querySelector(`#${fileId}`);
@@ -2633,6 +2662,15 @@ function renderInspector() {
   insp.querySelector('#iDel').onclick = () => removeArtifact(a);
 }
 // 캠페인 공통 스타일 다시 세우기 — 캠페인 인스펙터(restyle: 색·글꼴은 피커에서)와 산출물 인스펙터(「이 안으로 전부」: 현재 값 그대로)가 같이 쓴다(10-20)
+// AI 그림 판단 값(c.ai + 산출물 aiShape·프리셋) 걷어내기
+function clearAiOverrides(c) {
+  if (!c) return; c.ai = null;
+  for (const a of c.artifacts ?? []) {
+    const st = a.overrides?.style; if (!st?.aiShape) continue;
+    const next = { ...st }; delete next.aiShape; delete next.kvTypeOverride; for (const k of PRESET_KEYS) delete next[k];
+    a.overrides.style = next; a.status = 'draft'; a.gateOverride = null;
+  }
+}
 function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false, { colors, fonts } = {}) {
   pushHistory(label, coalesce);
   c.style = normalizeStyle({
@@ -2855,7 +2893,7 @@ function adRulesText(spec) {
 const adEffCtx = a => { const c = state.campaign; return { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } }; };
 const artRenderOpts = a => ({ variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size });   // renderArtifact 옵션 — generate.js 가 보드를 그릴 때와 같은 것(10-20)
 // 내보낼 때도 보드와 같은 스타일 — 산출물 개별 값(overrides.style: 알약 톤·프리셋)과 직접 수정(overrides.layout)을 얹는다(10-14 generate.js 와 같은 합성)
-const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? { ...c.style, ...a.overrides.style } : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
+const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? resolveAiStyle(c, { ...c.style, ...a.overrides.style }) : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
 // renderFit 은 renderAd 를 직접 부르므로 renderArtifact 가 spec 에 얹던 시안 번호·용도·화살표·규격을 여기서 같이 얹는다(보드·썸네일과 같은 출력, 10-20)
 function adSpecOf(a) {
   const o = artRenderOpts(a), spec = { ...SPECS[a.specId], variant: o.variant ?? 0, purpose: o.purpose ?? 'main', arrow: o.arrow ?? null };

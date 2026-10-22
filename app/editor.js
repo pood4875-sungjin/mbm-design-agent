@@ -15,6 +15,7 @@ import { shapeOf } from '../core/layouts.js';
 import { kvTypeOf } from '../core/kvtypes.js';
 import { renderArtifact } from '../core/contract.js';
 import { ALIGN_CHOICES, alignLockOf, lockedSummary } from '../core/alignrule.js';
+import { resolveAiStyle } from '../core/trackb/analyze.js';
 
 // 직접 수정(끌어 옮기기) 손잡이·섹션은 숨긴다(10-19 사용자 「텍스트 이동하는 기능은 빼도 되는데 정렬만 바꿀 수 있게」) — 데이터(overrides.layout)·렌더 훅은 남겨 기존 캠페인이 깨지지 않게
 const MANUAL_EDIT_UI = false;
@@ -30,7 +31,7 @@ export function createEditor(E) {
   // E: { state, SPECS, frames, pushHistory, regen, refreshFrames, autosave, renderInspector, log, toast, select, artLabel, adEffCtx, logEvent }
   const S = E.state;
   const camp = () => S.campaign;
-  const effStyleOf = a => { const c = camp(); return a.overrides?.style && Object.keys(a.overrides.style).length ? { ...c.style, ...a.overrides.style } : c.style; };
+  const effStyleOf = a => { const c = camp(); return a.overrides?.style && Object.keys(a.overrides.style).length ? resolveAiStyle(c, { ...c.style, ...a.overrides.style }) : c.style; };
   const specOf = a => E.SPECS[a.specId];
   const ads = () => (camp()?.artifacts ?? []).filter(a => a.channel === 'ad');
   const keyOf = a => a.key ?? a.specId;

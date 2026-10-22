@@ -7,7 +7,7 @@ import http from 'node:http';
 import { readFileSync, existsSync, statSync, createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { makeClient, designLayout } from './design.js';
+import { makeClient, designLayout, analyzeKv, ANALYZE_MODEL } from './design.js';
 import { DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -48,7 +48,13 @@ function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
-    if (req.method === 'GET' && u.pathname === '/api/health') return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })) });
+    if (req.method === 'GET' && u.pathname === '/api/health') return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })) });
+    if (req.method === 'POST' && u.pathname === '/api/analyze') {   // 하이브리드: 그림 판단 1회(캠페인당)
+      if (!client) return json(res, 503, { error: 'API 키가 없습니다 — server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' });
+      let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }
+      try { const out = await analyzeKv(client, body); return json(res, 200, out); }
+      catch (e) { console.error('[analyze]', e?.status ?? '', e?.message ?? e); return json(res, e?.status && e.status >= 400 && e.status < 600 ? e.status : 500, { error: e?.message ?? String(e) }); }
+    }
     if (req.method === 'POST' && u.pathname === '/api/design') {
       if (!client) return json(res, 503, { error: 'API 키가 없습니다 — server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' });
       let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }

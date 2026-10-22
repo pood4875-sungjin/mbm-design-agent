@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T04:13:43.238Z",
+ "at": "2026-10-22T04:45:31.153Z",
  "spec": "kakao-display-pc-promo",
  "records": [
   {
@@ -19,24 +19,45 @@
     "ms": 11,
     "png": "pin-28_kakao-display-pc-promo_A.png"
    },
-   "b": {
-    "ms": 25728,
-    "calls": 1,
+   "b": null,
+   "c": {
+    "ms": 13502,
+    "renderMs": 1,
     "usage": {
-     "input_tokens": 4585,
-     "output_tokens": 2215,
+     "input_tokens": 4342,
+     "output_tokens": 1254,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
-    "cost": 0.0626,
-    "model": "claude-opus-5-5",
-    "effort": "high",
+    "cost": 0.0212,
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
     "fixes": [
-     "키비주얼 crop 을 픽셀 → 비율로 환산"
+     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
     ],
-    "unresolved": [],
-    "rationale": "하늘색과 이어지는 브랜드 블루 그라데이션 위 왼쪽에 시즌·메인·접수기간 3줄만 흰 계열로 쌓아 최소 글자 크기와 3줄 권장을 지키며 대비를 확보했고, 지구를 받친 손 키비주얼은 오른쪽에 통째로 보이게 crop하고 왼쪽을 녹여 배경과 자연스럽게 잇습니다. 키비주얼의 잔디색을 작은 구분선으로 가져와 메인과 기간 사이 위계를 정리했습니다.",
-    "png": "pin-28_kakao-display-pc-promo_B.png"
+    "shape": "wide",
+    "group": {
+     "crop": {
+      "x": 0,
+      "y": 0.153,
+      "w": 1,
+      "h": 0.837
+     },
+     "kvPlace": "right",
+     "kvSize": "md",
+     "textAlign": "left",
+     "textAnchor": "center",
+     "bgFill": "kv",
+     "bgGrad": "h",
+     "scrim": "none",
+     "why": "가로형은 전체 그림이 들어가지 않아 지구가 있는 상단 중심으로 자르고 오른쪽에 두며, 왼쪽 하늘색 영역에 글자를 둔다."
+    },
+    "type": "illust-object",
+    "rationale": "파란 하늘 배경의 3D 일러스트라 브랜드 파랑 #326CD1과 자연스럽게 이어지므로 배경을 그림에서 이어 칠하고, 지구와 두 손은 모든 crop에 보존한다. 글자는 비어 있는 하늘 쪽에 놓이도록 그림 위치를 모양마다 달리 정했고 띠 형태에서는 그림을 작게 줄였다.",
+    "png": "pin-28_kakao-display-pc-promo_C.png"
    }
   },
   {
@@ -53,27 +74,47 @@
    },
    "primary": "#C75420",
    "a": {
-    "ms": 4,
+    "ms": 2,
     "png": "pin-32_kakao-display-pc-promo_A.png"
    },
-   "b": {
-    "ms": 25054,
-    "calls": 1,
+   "b": null,
+   "c": {
+    "ms": 10046,
+    "renderMs": 2,
     "usage": {
-     "input_tokens": 4950,
-     "output_tokens": 2008,
+     "input_tokens": 4606,
+     "output_tokens": 1284,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
-    "cost": 0.06,
-    "model": "claude-opus-5-5",
-    "effort": "high",
+    "cost": 0.0221,
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
     "fixes": [
-     "키비주얼 crop 을 픽셀 → 비율로 환산"
+     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: crop 이 너무 작아(0.417×0.224) 원본 전체로"
     ],
-    "unresolved": [],
-    "rationale": "두 인물이 있는 소파 장면을 오른쪽 600px에 크게 두고, 왼쪽 가장자리를 사진의 짙은 갈색 그림자 톤 배경으로 녹여 인물 위에 글자가 겹치지 않게 했습니다. 48px 이상 규정과 3줄 권장에 맞춰 메인 2줄(흰색)과 접수기간 1줄(키비주얼의 따뜻한 베이지)만 남겼고, 브랜드 오렌지는 소파 색과 어울리는 짧은 강조 바로만 사용했습니다.",
-    "png": "pin-32_kakao-display-pc-promo_B.png"
+    "shape": "wide",
+    "group": {
+     "crop": {
+      "x": 0,
+      "y": 0.158,
+      "w": 1,
+      "h": 0.842
+     },
+     "kvPlace": "bg",
+     "kvSize": "lg",
+     "textAlign": "left",
+     "textAnchor": "center",
+     "bgFill": "kv",
+     "bgGrad": "h",
+     "scrim": "mid",
+     "why": "넓은 가로형이라 사진을 전체 배경으로 깔고, 왼쪽 벽 빈 곳에 글자를 두며 인물은 중앙과 오른쪽에 둔다."
+    },
+    "type": "photo",
+    "rationale": "따뜻한 나무 벽과 주황 소파가 브랜드색 #C75420과 잘 맞아, 사진을 살리면서 얼굴과 노트북은 모든 crop에 담았다. 글자는 왼쪽·위쪽의 비교적 빈 벽 쪽에 두고, 좁은 모양은 브랜드색 바탕으로 공간을 확보했다.",
+    "png": "pin-32_kakao-display-pc-promo_C.png"
    }
   }
  ]

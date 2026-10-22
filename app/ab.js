@@ -21,6 +21,8 @@ import { buildFixed } from '../core/trackb/prompt.js';
 import { PRICES, DEFAULT_MODEL } from '../core/trackb/cost.js';
 import { measureArtifact } from './measure.js';
 import { rasterize, download, downloadText } from './raster.js';
+import { requestAnalysis, buildGroupStyles, styleFor as aiStyleFor, apiCopy, shapeOfSpec } from './hybrid.js';
+import { SHAPES, SHAPE_LABEL } from '../core/trackb/analyze.js';
 
 registerAll();
 const $ = id => document.getElementById(id);
@@ -36,6 +38,7 @@ const state = {
   caseLabel: '직접 입력',
   a: null,                       // { html, ms, checks }
   b: null,                       // { res, layout, fixed, html, checks, edits, t0, editMs, done }
+  c: null,                       // A+AI: { res(analysis…), groupStyles, html, checks, specId }
   server: null,
 };
 
@@ -75,15 +78,6 @@ async function logoMetaOf(dataUrl) {
   const { data, W, H } = rgbaOf(img, Math.min(480, img.width));
   const m = logoMetaRGBA(data, W, H) ?? {};
   return { ...m, ar: img.width / img.height, px: [img.width, img.height] };
-}
-// API 로 보낼 사본 — 긴 변 1600px·JPEG(투명 PNG 는 PNG 유지). 미리보기·렌더는 원본을 쓴다
-async function apiCopy(dataUrl, keepPng = false) {
-  const img = await loadImg(dataUrl);
-  const k = Math.min(1, 1600 / Math.max(img.width, img.height));
-  if (k === 1 && dataUrl.length < 3_000_000) return dataUrl;
-  const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-  cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-  return keepPng ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.9);
 }
 async function setKv(dataUrl, name = '') {
   const meta = await kvMetaOf(dataUrl);
@@ -129,9 +123,10 @@ function specInfo() {
   const fr = s.mediumRules?.fonts?.required;
   $('specInfo').textContent = `등급 ${s.grade} · 안전영역 ${[sa.top, sa.right, sa.bottom, sa.left].map(v => v ?? '–').join('/')} · 폰트 ${fr ? fr + ' 고정' : '캠페인 선택'} · ${s.maxKB ?? '–'}KB`;
 }
-$('specSel').onchange = specInfo; specInfo();
+$('specSel').onchange = async () => { specInfo(); if (state.a) await runA(); if (state.c) await drawC(); }; specInfo();
 for (const id of fontIds()) $('fontSel').add(new Option(FONTS[id].label, id, id === DEFAULT_FONT, id === DEFAULT_FONT));
 for (const [id, p] of Object.entries(PRICES)) $('modelSel').add(new Option(`${p.label} ($${p.in}/$${p.out} MTok)`, id, id === DEFAULT_MODEL, id === DEFAULT_MODEL));
+for (const [id, p] of Object.entries(PRICES)) $('cModelSel').add(new Option(`${p.label} ($${p.in}/$${p.out} MTok)`, id, id === 'claude-sonnet-5-5', id === 'claude-sonnet-5-5'));
 
 /* ── 미리보기(iframe, 비율 맞춤) + 검수 ── */
 function showPreview(host, html, spec) {
@@ -163,11 +158,7 @@ function renderChecks(el, c) {
 const checkSummary = c => !c ? '–' : `규정 ${c.lint.level === 'pass' ? '통과' : c.lint.level === 'block' ? '차단' : '경고' + c.lint.issues.length} · 디자인 ${(c.design.warnings ?? []).filter(w => w.level !== 'info').length ? '경고' + (c.design.warnings ?? []).filter(w => w.level !== 'info').length : '통과'} · ${STATE_LABEL[c.gate.state]}`;
 
 /* ── A 트랙 ── */
-function styleFor() {
-  const b = brand(); const colors = [b.primary ?? state.kv?.meta?.colors?.[0] ?? '#2456D6']; if (b.accent) colors.push(b.accent);
-  const lg = state.logo;
-  return normalizeStyle({ colors, keyVisual: state.kv?.dataUrl ?? null, kvMeta: state.kv?.meta ?? null, logo: lg?.dataUrl ?? null, logoMeta: lg?.meta ?? null, logoTone: lg?.meta?.tone ?? null, logoLight: lg?.meta?.tone === 'light' ? lg.dataUrl : null, fonts: { heading: fontId(), body: fontId() } });
-}
+function styleFor() { return normalizeStyle(baseStyleInput()); }
 async function runA() {
   const spec = SPECS[specId()]; const ctx = createContext(brief(), 'recruit');
   if (!ctx.core.client) return toast('고객사를 적어 주세요');
@@ -183,13 +174,66 @@ async function runA() {
 }
 $('runA').onclick = runA;
 
+/* ── A+AI(C) 트랙 — 그림 판단 1회 → 모양 묶음별 crop·프리셋 → 규칙 렌더러 ── */
+function baseStyleInput() {
+  const b = brand(); const colors = [b.primary ?? state.kv?.meta?.colors?.[0] ?? '#2456D6']; if (b.accent) colors.push(b.accent);
+  const lg = state.logo;
+  return { colors, keyVisual: state.kv?.dataUrl ?? null, kvMeta: state.kv?.meta ?? null, logo: lg?.dataUrl ?? null, logoMeta: lg?.meta ?? null, logoTone: lg?.meta?.tone ?? null, logoLight: lg?.meta?.tone === 'light' ? lg.dataUrl : null, fonts: { heading: fontId(), body: fontId() } };
+}
+async function runC() {
+  const br = brief(); if (!br.client) return toast('고객사를 적어 주세요'); if (!state.kv) return toast('키비주얼을 올려 주세요');
+  const model = $('cModelSel').value, effort = $('cEffortSel').value;
+  if (!confirm(`그림 판단 1회 — ${PRICES[model]?.label} (effort ${effort}), 보통 $0.01~0.03. 결과는 모양 묶음 5개 전부에 쓰입니다. 진행할까요?`)) return;
+  $('runC').disabled = true; $('cPv').innerHTML = '<div class="busy">AI 가 그림을 보는 중… (5~20초)</div>'; $('cChk').innerHTML = ''; $('cMeta').textContent = '';
+  const t0 = performance.now();
+  let res;
+  try { res = await requestAnalysis({ kv: { dataUrl: state.kv.apiDataUrl, meta: state.kv.meta }, logo: state.logo ? { dataUrl: state.logo.apiDataUrl, meta: state.logo.meta } : null, brief: br, brand: brand(), requests: $('requests').value, model, effort }); }
+  catch (e) { $('cPv').innerHTML = ''; $('cMeta').textContent = '실패: ' + e.message; $('runC').disabled = false; return toast('그림 판단 실패: ' + e.message, 6000); }
+  res.clientMs = performance.now() - t0;
+  await setAnalysis(res);
+  $('runC').disabled = false; toast(`그림 판단 완료 — ${fmtMs(res.ms)} · $${res.cost}`);
+}
+$('runC').onclick = runC;
+async function setAnalysis(res) {
+  const groupStyles = await buildGroupStyles(res.analysis, { keyVisual: state.kv.dataUrl, kvMeta: state.kv.meta, metaOf: kvMetaOf });
+  state.c = { res, groupStyles, specId: specId() };
+  await drawC();
+  $('cFixes').innerHTML = (res.fixes ?? []).map(s => `<li>고침: ${esc(s)}</li>`).join('') || '<li>고친 것 없음</li>';
+  $('cPrompt').textContent = res.prompt ? `[system]\n${res.prompt.system}\n\n[user]\n${res.prompt.user}` : '';
+}
+async function drawC() {
+  const C = state.c; if (!C) return; const spec = SPECS[specId()]; C.specId = spec.id;
+  const shape = shapeOfSpec(spec), g = C.res.analysis.groups?.[shape];
+  const t0 = performance.now();
+  let html; try { html = renderArtifact(spec.id, createContext(brief(), 'recruit'), normalizeStyle({ ...baseStyleInput(), ...aiStyleFor(C.groupStyles, spec) }), {}); } catch (e) { $('cMeta').textContent = 'A+AI 렌더 실패: ' + e.message; return; }
+  C.html = html; C.renderMs = performance.now() - t0;
+  $('cTitle').textContent = `${spec.w}×${spec.h} · ${FONTS[fontIdFor(spec)]?.label} · ${PRICES[C.res.model]?.label ?? C.res.model}`;
+  const f = await showPreview($('cPv'), html, spec);
+  C.checks = await checksOf(f, html, spec, C.groupStyles[shape]?.kvMeta ?? state.kv?.meta ?? null);
+  renderChecks($('cChk'), C.checks);
+  const u = C.res.usage, A = C.res.analysis;
+  $('cMeta').textContent = `판단 ${fmtMs(C.res.ms)} (API 1회) + 렌더 ${fmtMs(C.renderMs)} · 토큰 입력 ${u.input_tokens.toLocaleString()} / 출력 ${u.output_tokens.toLocaleString()} · 비용 추정 $${C.res.cost} · ${C.res.model} · effort ${C.res.effort}\n유형 ${A.kv.type ?? '자동'} · 분위기 ${A.kv.mood.tone} ${A.kv.mood.colors.join(' ')} · 이 규격(${shape}): ${g ? `${g.kvPlace}/${g.kvSize}/${g.textAlign}/${g.textAnchor} · 배경 ${g.bgFill}/${g.bgGrad}/${g.scrim} · crop ${[g.crop.x, g.crop.y, g.crop.w, g.crop.h].map(v => Math.round(v * 100) + '%').join(',')}` : '판단 없음'}\n근거: ${A.rationale || '–'}${g?.why ? `\n이 묶음: ${g.why}` : ''}`;
+  $('cGroups').innerHTML = `<table>${SHAPES.map(sh => { const x = A.groups?.[sh]; return `<tr><th>${esc(SHAPE_LABEL[sh])}${sh === shape ? ' ◀' : ''}</th><td>${x ? esc(`${x.kvPlace}·${x.kvSize}·글자 ${x.textAlign}/${x.textAnchor}·배경 ${x.bgFill}/${x.bgGrad}/${x.scrim} · crop ${Math.round(x.crop.w * 100)}×${Math.round(x.crop.h * 100)}%`) : '–'}</td><td>${esc(x?.why ?? '')}</td></tr>`; }).join('')}</table>`;
+}
+async function loadC(j, label = '') {
+  if (!j?.analysis) throw new Error('analysis 가 있는 판단 JSON 이어야 합니다');
+  if (!state.kv) throw new Error('키비주얼을 먼저 올리거나 샘플을 불러 주세요');
+  await setAnalysis({ analysis: j.analysis, fixes: j.fixes ?? [], usage: { input_tokens: 0, output_tokens: 0, ...(j.usage ?? {}) }, cost: j.cost ?? 0, calls: 1, ms: j.ms ?? 0, model: j.model ?? '(불러옴)', effort: j.effort ?? '–', prompt: j.prompt ?? null });
+  toast(`판단 JSON 불러옴${label ? ' — ' + label : ''}`);
+}
+$('cLoad').onclick = () => $('cLoadFile').click();
+$('cLoadFile').onchange = async () => { const f = $('cLoadFile').files[0]; if (!f) return; try { await loadC(JSON.parse(await f.text()), f.name); } catch (e) { toast(e.message, 5000); } };
+$('cPng').onclick = () => savePng('c');
+$('cHtml').onclick = () => state.c && navigator.clipboard.writeText(state.c.html).then(() => toast('A+AI HTML 복사'));
+$('cJson').onclick = () => state.c && downloadText(JSON.stringify({ analysis: state.c.res.analysis, fixes: state.c.res.fixes, usage: state.c.res.usage, cost: state.c.res.cost, model: state.c.res.model, effort: state.c.res.effort, ms: state.c.res.ms }, null, 2), `${state.caseLabel}_analysis.json`, 'application/json');
+
 /* ── B 트랙 ── */
 async function health() {
   try { const r = await fetch('/api/health'); state.server = await r.json(); }
   catch { state.server = null; }
   const s = state.server;
   $('srvSt').innerHTML = s ? (s.hasKey ? `서버 ✓ · 키 <b>${esc(s.keyFrom)}</b> · 기본 ${esc(s.model)}` : `서버 ✓ · <b style="color:#ffb4a8">키 없음</b> — server/.env 에 ANTHROPIC_API_KEY 를 넣고 다시 켜 주세요`) : `<b style="color:#ffb4a8">서버 없음</b> — <code>node server/server.mjs 4796</code> 으로 열어야 B 생성이 됩니다`;
-  $('runB').disabled = !(s && s.hasKey);
+  $('runB').disabled = !(s && s.hasKey); $('runC').disabled = !(s && s.hasKey);
 }
 async function runB() {
   const spec = SPECS[specId()]; const br = brief();
@@ -321,16 +365,18 @@ $('bJson').onclick = () => state.b && downloadText(JSON.stringify({ layout: stat
 const loadRec = () => { try { return JSON.parse(localStorage.getItem(LS_REC) || '[]'); } catch { return []; } };
 const saveRec = r => localStorage.setItem(LS_REC, JSON.stringify(r));
 function addRecord() {
-  if (!state.a && !state.b) return toast('먼저 A 또는 B 를 그려 주세요');
-  const A = state.a, B = state.b;
+  if (!state.a && !state.b && !state.c) return toast('먼저 A·A+AI·B 중 하나를 그려 주세요');
+  const A = state.a, B = state.b, C = state.c;
   const rec = {
-    at: new Date().toISOString(), case: state.caseLabel, spec: B?.specId ?? A?.specId, model: B ? `${PRICES[B.model]?.label ?? B.model} · ${B.effort}` : '–',
-    scores: { aQ: null, bQ: null, aR: null, bR: null }, note: '',
-    aChecks: A ? checkSummary(A.checks) : '–', bChecks: B ? checkSummary(B.checks) : '–',
-    aEdit: '', bEdit: B ? `${B.edits}회 · ${B.done ? fmtMs(B.editMs) : '미완료'}` : '–',
-    aMs: A ? fmtMs(A.ms) : '–', bMs: B ? `${fmtMs(B.res.ms)} (${B.res.calls}회)` : '–',
+    at: new Date().toISOString(), case: state.caseLabel, spec: B?.specId ?? C?.specId ?? A?.specId,
+    model: `${C ? `${PRICES[C.res.model]?.label ?? C.res.model} · ${C.res.effort}` : '–'} / ${B ? `${PRICES[B.model]?.label ?? B.model} · ${B.effort}` : '–'}`,
+    scores: { aQ: null, cQ: null, bQ: null, aR: null, cR: null, bR: null }, note: '',
+    aChecks: A ? checkSummary(A.checks) : '–', cChecks: C ? checkSummary(C.checks) : '–', bChecks: B ? checkSummary(B.checks) : '–',
+    aEdit: '', cEdit: '', bEdit: B ? `${B.edits}회 · ${B.done ? fmtMs(B.editMs) : '미완료'}` : '–',
+    aMs: A ? fmtMs(A.ms) : '–', cMs: C ? `${fmtMs(C.res.ms)} + ${fmtMs(C.renderMs)}` : '–', bMs: B ? `${fmtMs(B.res.ms)} (${B.res.calls}회)` : '–',
+    cUsage: C ? `입 ${C.res.usage.input_tokens.toLocaleString()} · 출 ${C.res.usage.output_tokens.toLocaleString()} · 1요청 · $${C.res.cost}` : '–',
     usage: B ? `입 ${B.res.usage.input_tokens.toLocaleString()} · 출 ${B.res.usage.output_tokens.toLocaleString()} · ${B.res.calls}요청 · $${B.res.cost}` : '–',
-    bFixes: B ? B.res.fixes.length : null,
+    bFixes: B ? B.res.fixes.length : null, cFixes: C ? (C.res.fixes ?? []).length : null,
   };
   const r = loadRec(); r.push(rec); saveRec(r); renderRecords(); toast('표에 추가 — 사람 평가 칸을 채워 주세요');
 }
@@ -339,16 +385,16 @@ function renderRecords() {
   const num = (i, k, v) => `<input type="number" min="1" max="5" data-i="${i}" data-k="${k}" value="${v ?? ''}">`;
   tb.innerHTML = r.map((x, i) => `<tr>
     <td>${i + 1}</td><td>${esc(x.case)}<br><span class="mini">${esc(x.at.slice(0, 16).replace('T', ' '))}</span></td><td>${esc(x.spec)}</td><td>${esc(x.model)}</td>
-    <td>${num(i, 'aQ', x.scores.aQ)} / ${num(i, 'bQ', x.scores.bQ)}</td><td>${num(i, 'aR', x.scores.aR)} / ${num(i, 'bR', x.scores.bR)}</td>
-    <td>A ${esc(x.aChecks)}<br>B ${esc(x.bChecks)}${x.bFixes != null ? `<br><span class="mini">서버 고침 ${x.bFixes}건</span>` : ''}</td>
-    <td><input type="text" data-i="${i}" data-k="aEdit" value="${esc(x.aEdit)}" placeholder="예: 3회 · 4분" style="min-width:90px"> / ${esc(x.bEdit)}</td>
-    <td>${esc(x.aMs)} / ${esc(x.bMs)}</td><td>${esc(x.usage)}</td>
+    <td>${num(i, 'aQ', x.scores.aQ)} / ${num(i, 'cQ', x.scores.cQ)} / ${num(i, 'bQ', x.scores.bQ)}</td><td>${num(i, 'aR', x.scores.aR)} / ${num(i, 'cR', x.scores.cR)} / ${num(i, 'bR', x.scores.bR)}</td>
+    <td>A ${esc(x.aChecks)}<br>A+AI ${esc(x.cChecks ?? '–')}${x.cFixes ? `<span class="mini"> (고침 ${x.cFixes})</span>` : ''}<br>B ${esc(x.bChecks)}${x.bFixes != null ? `<br><span class="mini">서버 고침 ${x.bFixes}건</span>` : ''}</td>
+    <td><input type="text" data-i="${i}" data-k="aEdit" value="${esc(x.aEdit)}" placeholder="A 예: 3회 · 4분" style="min-width:80px"> / <input type="text" data-i="${i}" data-k="cEdit" value="${esc(x.cEdit ?? '')}" placeholder="A+AI" style="min-width:70px"> / ${esc(x.bEdit)}</td>
+    <td>${esc(x.aMs)} / ${esc(x.cMs ?? '–')} / ${esc(x.bMs)}</td><td>${esc(x.cUsage ?? '–')} / ${esc(x.usage)}</td>
     <td><input type="text" data-i="${i}" data-k="note" value="${esc(x.note)}"></td><td><button class="sm" data-del="${i}">삭제</button></td></tr>`).join('') || '<tr><td colspan="12" class="mini">아직 기록이 없습니다.</td></tr>';
   tb.querySelectorAll('input').forEach(inp => inp.onchange = () => { const r = loadRec(); const x = r[+inp.dataset.i]; const k = inp.dataset.k; if (k in x.scores) x.scores[k] = inp.value === '' ? null : Number(inp.value); else x[k] = inp.value; saveRec(r); });
   tb.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const r = loadRec(); r.splice(+b.dataset.del, 1); saveRec(r); renderRecords(); });
 }
-const toMd = r => ['| # | 케이스 | 규격 | B 모델 | 디자인 품질 A/B | 요구 반영 A/B | 규정 준수 A | 규정 준수 B | 수정 A | 수정 B | 생성 A | 생성 B | API 사용량(B) | 메모 |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...r.map((x, i) => `| ${i + 1} | ${x.case} | ${x.spec} | ${x.model} | ${x.scores.aQ ?? '–'} / ${x.scores.bQ ?? '–'} | ${x.scores.aR ?? '–'} / ${x.scores.bR ?? '–'} | ${x.aChecks} | ${x.bChecks}${x.bFixes != null ? ` (서버 고침 ${x.bFixes})` : ''} | ${x.aEdit || '–'} | ${x.bEdit} | ${x.aMs} | ${x.bMs} | ${x.usage} | ${x.note} |`)].join('\n');
+const toMd = r => ['| # | 케이스 | 규격 | 모델(A+AI / B) | 디자인 품질 A/A+AI/B | 요구 반영 A/A+AI/B | 규정 준수 A | 규정 준수 A+AI | 규정 준수 B | 수정 A | 수정 A+AI | 수정 B | 생성 A | 생성 A+AI | 생성 B | API 사용량 A+AI | API 사용량 B | 메모 |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...r.map((x, i) => `| ${i + 1} | ${x.case} | ${x.spec} | ${x.model} | ${x.scores.aQ ?? '–'} / ${x.scores.cQ ?? '–'} / ${x.scores.bQ ?? '–'} | ${x.scores.aR ?? '–'} / ${x.scores.cR ?? '–'} / ${x.scores.bR ?? '–'} | ${x.aChecks} | ${x.cChecks ?? '–'} | ${x.bChecks}${x.bFixes != null ? ` (서버 고침 ${x.bFixes})` : ''} | ${x.aEdit || '–'} | ${x.cEdit || '–'} | ${x.bEdit} | ${x.aMs} | ${x.cMs ?? '–'} | ${x.bMs} | ${x.cUsage ?? '–'} | ${x.usage} | ${x.note} |`)].join('\n');
 $('recAdd').onclick = addRecord;
 $('recMd').onclick = () => navigator.clipboard.writeText(toMd(loadRec())).then(() => toast('Markdown 표 복사'));
 $('recJson').onclick = () => downloadText(JSON.stringify(loadRec(), null, 2), `ab-records_${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
@@ -357,4 +403,4 @@ renderRecords();
 health();
 
 // 테스트·콘솔에서 들여다볼 수 있게
-window.__ab = { state, runA, runB, loadB, setKv, validateLayout, renderLayout, buildFixed, SPECS };
+window.__ab = { state, runA, runB, runC, loadB, loadC, setKv, validateLayout, renderLayout, buildFixed, SPECS };
