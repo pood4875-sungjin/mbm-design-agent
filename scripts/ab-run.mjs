@@ -86,7 +86,7 @@ for (const id of CASES) {
         const rgba = new Uint8ClampedArray(Buffer.from(j.rgba, 'base64'));
         metaC = { ar: j.ar, px: j.px, edge: edgeColor(rgba, j.w, j.h), field: fieldFromImage(rgba, j.w, j.h), colors: extractPalette(rgba, 3) };
       }
-      const styleC = normalizeStyle({ colors: [S.primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }), logo: logoFile ? pathToFileURL(logoFile).href : null, logoMeta: c.logoMeta ?? null, logoTone: c.logoMeta?.tone ?? null, ...presetPatch(g, out.analysis) });
+      const styleC = normalizeStyle({ colors: [S.primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }, g), logo: logoFile ? pathToFileURL(logoFile).href : null, logoMeta: c.logoMeta ?? null, logoTone: c.logoMeta?.tone ?? null, ...presetPatch(g, out.analysis) });
       const tC = Date.now(); const htmlC = renderArtifact(SPEC, ctx, styleC, {}); const renderMs = Date.now() - tC;
       const fc = path.join(OUT, `${id}_${SPEC}_C.html`); writeFileSync(fc, doc(htmlC, spec.w, spec.h));
       const png = exportPng(fc, path.join(OUT, `${id}_${SPEC}_C.png`), spec.w, spec.h) ? `${id}_${SPEC}_C.png` : null;

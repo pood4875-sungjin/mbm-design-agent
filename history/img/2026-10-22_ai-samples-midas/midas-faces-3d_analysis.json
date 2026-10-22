@@ -3,46 +3,52 @@
   "kv": {
    "type": "illust-grad-bg",
    "subject": {
-    "x": 0.225,
+    "x": 0.229,
     "y": 0.37,
-    "w": 0.558,
-    "h": 0.531
+    "w": 0.554,
+    "h": 0.525
    },
    "keep": [
     {
-     "x": 0.392,
+     "x": 0.367,
+     "y": 0.151,
+     "w": 0.257,
+     "h": 0.333,
+     "label": "금액 카드"
+    },
+    {
+     "x": 0.679,
+     "y": 0.358,
+     "w": 0.221,
+     "h": 0.278,
+     "label": "하트 카드"
+    }
+   ],
+   "faces": [
+    {
+     "x": 0.393,
      "y": 0.37,
-     "w": 0.2,
-     "h": 0.321,
-     "label": "가운데 인물 얼굴"
+     "w": 0.196,
+     "h": 0.296
     },
     {
-     "x": 0.229,
-     "y": 0.519,
-     "w": 0.204,
-     "h": 0.272,
-     "label": "모자 쓴 인물 얼굴"
+     "x": 0.246,
+     "y": 0.521,
+     "w": 0.188,
+     "h": 0.265
     },
     {
-     "x": 0.575,
-     "y": 0.488,
+     "x": 0.571,
+     "y": 0.484,
      "w": 0.175,
-     "h": 0.259,
-     "label": "금발 인물 얼굴"
-    },
-    {
-     "x": 0.225,
-     "y": 0.642,
-     "w": 0.558,
-     "h": 0.259,
-     "label": "스마트폰 든 손"
+     "h": 0.259
     }
    ],
    "cutSafe": {
-    "top": 0.12,
-    "right": 0.08,
-    "bottom": 0.05,
-    "left": 0.08
+    "top": 0.1,
+    "right": 0.1,
+    "bottom": 0.08,
+    "left": 0.1
    },
    "mood": {
     "tone": "light",
@@ -52,7 +58,7 @@
      "#E1BAD5"
     ]
    },
-   "note": "파란 그라데이션 배경 위에 3D 캐릭터 세 명과 유리 카드가 떠 있는 일러스트. 배경이 위쪽 진한 파랑에서 아래쪽 연한 파랑으로 이어져 연장하기 쉽다."
+   "note": "푸른 그라데이션 배경 위에 3D 캐릭터 세 명이 폰을 보고 있고 유리 카드와 이모지가 주변에 떠 있다."
   },
   "groups": {
    "wide": {
@@ -62,93 +68,65 @@
      "w": 1,
      "h": 1
     },
+    "focus": {
+     "x": 0.229,
+     "y": 0.151,
+     "w": 0.671,
+     "h": 0.744
+    },
     "kvPlace": "right",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "center",
     "bgFill": "kv",
-    "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
-      "#78B9F4",
-      "#9CC8F8"
+      "#7DBAF4",
+      "#A9CFFA"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.38,
-     "y": 0.02,
-     "w": 0.64,
-     "h": 0.96
+     "x": 0.42,
+     "y": 0.05,
+     "w": 0.6,
+     "h": 0.9
     },
     "fade": {
-     "left": 0.4,
+     "left": 0.45,
      "right": 0,
      "top": 0.1,
      "bottom": 0.1
     },
-    "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
+    "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "tall": {
     "crop": {
-     "x": 0.195,
-     "y": 0,
-     "w": 0.619,
-     "h": 1
+     "x": 0.208,
+     "y": 0.136,
+     "w": 0.583,
+     "h": 0.864
+    },
+    "focus": {
+     "x": 0.229,
+     "y": 0.37,
+     "w": 0.554,
+     "h": 0.525
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
     "bgFill": "kv",
-    "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
-      "#74B7F5",
-      "#A0CBF8"
+      "#6CB6F6",
+      "#A9CFFA"
      ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": -0.05,
-     "y": 0.42,
-     "w": 1.1,
-     "h": 0.6
-    },
-    "fade": {
-     "left": 0.1,
-     "right": 0.1,
-     "top": 0.35,
-     "bottom": 0
-    },
-    "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
-   },
-   "square": {
-    "crop": {
-     "x": 0,
-     "y": 0.16,
-     "w": 1,
-     "h": 0.79
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "kv",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#74B7F5",
-      "#A0CBF8"
-     ],
-     "angle": 90,
+     "angle": 180,
      "text": "dark",
      "melt": 0.5
     },
@@ -156,44 +134,7 @@
      "x": -0.05,
      "y": 0.45,
      "w": 1.1,
-     "h": 0.58
-    },
-    "fade": {
-     "left": 0.1,
-     "right": 0.1,
-     "top": 0.35,
-     "bottom": 0
-    },
-    "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
-   },
-   "tower": {
-    "crop": {
-     "x": 0.208,
-     "y": 0.107,
-     "w": 0.583,
-     "h": 0.893
-    },
-    "kvPlace": "bottom",
-    "kvSize": "sm",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "kv",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#74B7F5",
-      "#A0CBF8"
-     ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": -0.1,
-     "y": 0.66,
-     "w": 1.2,
-     "h": 0.36
+     "h": 0.55
     },
     "fade": {
      "left": 0.1,
@@ -201,110 +142,213 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "세로 띠는 글자 공간이 필요해서 인물 중심으로 잘라 아래쪽에 작게 둔다."
+    "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
-   "strip": {
+   "square": {
     "crop": {
-     "x": 0.148,
-     "y": 0.358,
-     "w": 0.721,
-     "h": 0.556
+     "x": 0.125,
+     "y": 0.151,
+     "w": 0.857,
+     "h": 0.762
     },
-    "kvPlace": "right",
-    "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
+    "focus": {
+     "x": 0.229,
+     "y": 0.37,
+     "w": 0.554,
+     "h": 0.525
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
     "bgFill": "kv",
-    "bgGrad": "h",
     "scrim": "none",
     "field": {
      "colors": [
-      "#74B7F5",
-      "#9CC8F8"
+      "#6CB6F6",
+      "#A9CFFA"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.4,
+     "w": 1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "tower": {
+    "crop": {
+     "x": 0.246,
+     "y": 0,
+     "w": 0.5,
+     "h": 1
+    },
+    "focus": {
+     "x": 0.393,
+     "y": 0.37,
+     "w": 0.196,
+     "h": 0.407
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#6CB6F6",
+      "#A9CFFA"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.62,
+     "w": 0.9,
+     "h": 0.38
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "좁은 띠라 가운데 인물 하나의 얼굴과 폰만 좁혀 아래쪽에 둔다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "strip": {
+    "crop": {
+     "x": 0.185,
+     "y": 0.37,
+     "w": 0.646,
+     "h": 0.42
+    },
+    "focus": {
+     "x": 0.393,
+     "y": 0.37,
+     "w": 0.196,
+     "h": 0.37
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#6CB6F6",
+      "#9CCBF8"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.65,
-     "y": -0.1,
-     "w": 0.4,
-     "h": 1.25
+     "x": 0.62,
+     "y": 0,
+     "w": 0.38,
+     "h": 1
     },
     "fade": {
      "left": 0.4,
      "right": 0,
-     "top": 0.1,
-     "bottom": 0.1
+     "top": 0,
+     "bottom": 0
     },
-    "why": "가로 띠는 오른쪽 끝에 인물 얼굴만 작게 두고 왼쪽 글자 쪽을 녹인다."
+    "why": "가로 띠는 오른쪽 끝에 인물 얼굴들만 작게 두고 왼쪽을 녹여 글자 공간을 비운다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    }
   },
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "파란 그라데이션 배경의 3D 캐릭터 일러스트라 배경색을 이어 칠하고 가장자리를 녹여, 인물 얼굴과 스마트폰을 크게 살리면서 글자 쪽이 비지 않게 했다. 로고는 어두운 워드마크라 밝은 파랑 지면에서 잘 읽히며, 글자도 검정 계열로 대비를 맞췄다."
+  "rationale": "푸른 그라데이션 배경의 3D 캐릭터 그림이라 배경을 이어 칠하고 얼굴은 모든 모양에서 통째로 보존했다. 모양마다 그림 크기와 위치를 정하고 글자 쪽 변을 충분히 녹여 문구가 밝은 파랑 지면에서 읽히게 했다."
  },
  "fixes": [
   "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "square: crop 이 주인공·보존 요소를 잘라 넓힘",
   "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
   "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
   "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
  ],
  "usage": {
-  "input_tokens": 6337,
-  "output_tokens": 1868,
+  "input_tokens": 6183,
+  "output_tokens": 1785,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0,
- "ms": 16295,
+ "cost": 0.0302,
+ "ms": 12161,
  "model": "claude-sonnet-5-5",
  "raw": {
   "kv": {
    "type": "illust-grad-bg",
    "subject": {
-    "x": 0.225,
-    "y": 0.37,
-    "w": 0.558,
-    "h": 0.531
+    "x": 275,
+    "y": 300,
+    "w": 665,
+    "h": 425
    },
    "keep": [
     {
-     "x": 0.392,
-     "y": 0.37,
-     "w": 0.2,
-     "h": 0.321,
-     "label": "가운데 인물 얼굴"
+     "x": 440,
+     "y": 122,
+     "w": 308,
+     "h": 270,
+     "label": "금액 카드"
     },
     {
-     "x": 0.229,
-     "y": 0.519,
-     "w": 0.204,
-     "h": 0.272,
-     "label": "모자 쓴 인물 얼굴"
+     "x": 815,
+     "y": 290,
+     "w": 265,
+     "h": 225,
+     "label": "하트 카드"
+    }
+   ],
+   "faces": [
+    {
+     "x": 472,
+     "y": 300,
+     "w": 235,
+     "h": 240
     },
     {
-     "x": 0.575,
-     "y": 0.488,
-     "w": 0.175,
-     "h": 0.259,
-     "label": "금발 인물 얼굴"
+     "x": 295,
+     "y": 422,
+     "w": 225,
+     "h": 215
     },
     {
-     "x": 0.225,
-     "y": 0.642,
-     "w": 0.558,
-     "h": 0.259,
-     "label": "스마트폰 든 손"
+     "x": 685,
+     "y": 392,
+     "w": 210,
+     "h": 210
     }
    ],
    "cutSafe": {
-    "top": 0.12,
-    "right": 0.08,
-    "bottom": 0.05,
-    "left": 0.08
+    "top": 0.1,
+    "right": 0.1,
+    "bottom": 0.08,
+    "left": 0.1
    },
    "mood": {
     "tone": "light",
@@ -314,103 +358,74 @@
      "#E1BAD5"
     ]
    },
-   "note": "파란 그라데이션 배경 위에 3D 캐릭터 세 명과 유리 카드가 떠 있는 일러스트. 배경이 위쪽 진한 파랑에서 아래쪽 연한 파랑으로 이어져 연장하기 쉽다."
+   "note": "푸른 그라데이션 배경 위에 3D 캐릭터 세 명이 폰을 보고 있고 유리 카드와 이모지가 주변에 떠 있다."
   },
-  "groups": {
-   "wide": {
+  "groups": [
+   {
+    "shape": "wide",
     "crop": {
      "x": 0,
      "y": 0,
-     "w": 1,
-     "h": 1
+     "w": 1200,
+     "h": 810
+    },
+    "focus": {
+     "x": 275,
+     "y": 122,
+     "w": 805,
+     "h": 603
     },
     "kvPlace": "right",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "center",
     "bgFill": "kv",
-    "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
-      "#78B9F4",
-      "#9CC8F8"
+      "#7DBAF4",
+      "#A9CFFA"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.38,
-     "y": 0.02,
-     "w": 0.64,
-     "h": 0.96
+     "x": 0.42,
+     "y": 0.05,
+     "w": 0.6,
+     "h": 0.9
     },
     "fade": {
-     "left": 0.4,
+     "left": 0.45,
      "right": 0,
      "top": 0.1,
      "bottom": 0.1
     },
-    "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
+    "why": "가로형은 오른쪽에 크게 두고 왼쪽 변을 푸른 지면으로 녹여 글자 공간을 확보한다."
    },
-   "tall": {
+   {
+    "shape": "tall",
     "crop": {
-     "x": 0.083,
-     "y": 0.123,
-     "w": 0.833,
-     "h": 0.877
+     "x": 250,
+     "y": 280,
+     "w": 700,
+     "h": 460
+    },
+    "focus": {
+     "x": 275,
+     "y": 300,
+     "w": 665,
+     "h": 425
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
     "bgFill": "kv",
-    "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
-      "#74B7F5",
-      "#A0CBF8"
+      "#6CB6F6",
+      "#A9CFFA"
      ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": -0.05,
-     "y": 0.42,
-     "w": 1.1,
-     "h": 0.6
-    },
-    "fade": {
-     "left": 0.1,
-     "right": 0.1,
-     "top": 0.35,
-     "bottom": 0
-    },
-    "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
-   },
-   "square": {
-    "crop": {
-     "x": 0.125,
-     "y": 0.16,
-     "w": 0.75,
-     "h": 0.79
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "kv",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#74B7F5",
-      "#A0CBF8"
-     ],
-     "angle": 90,
+     "angle": 180,
      "text": "dark",
      "melt": 0.5
     },
@@ -418,44 +433,7 @@
      "x": -0.05,
      "y": 0.45,
      "w": 1.1,
-     "h": 0.58
-    },
-    "fade": {
-     "left": 0.1,
-     "right": 0.1,
-     "top": 0.35,
-     "bottom": 0
-    },
-    "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
-   },
-   "tower": {
-    "crop": {
-     "x": 0.208,
-     "y": 0.346,
-     "w": 0.583,
-     "h": 0.58
-    },
-    "kvPlace": "bottom",
-    "kvSize": "sm",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "kv",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#74B7F5",
-      "#A0CBF8"
-     ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": -0.1,
-     "y": 0.66,
-     "w": 1.2,
-     "h": 0.36
+     "h": 0.55
     },
     "fade": {
      "left": 0.1,
@@ -463,49 +441,135 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "세로 띠는 글자 공간이 필요해서 인물 중심으로 잘라 아래쪽에 작게 둔다."
+    "why": "세 얼굴을 통째로 넣어 아래에 크게 두고 위쪽 변을 녹여 글자가 위에 놓이게 한다."
    },
-   "strip": {
+   {
+    "shape": "square",
     "crop": {
-     "x": 0.217,
-     "y": 0.358,
-     "w": 0.583,
-     "h": 0.556
+     "x": 250,
+     "y": 240,
+     "w": 760,
+     "h": 500
     },
-    "kvPlace": "right",
-    "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
+    "focus": {
+     "x": 275,
+     "y": 300,
+     "w": 665,
+     "h": 425
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
     "bgFill": "kv",
-    "bgGrad": "h",
     "scrim": "none",
     "field": {
      "colors": [
-      "#74B7F5",
-      "#9CC8F8"
+      "#6CB6F6",
+      "#A9CFFA"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.4,
+     "w": 1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "정사각은 그림을 아래쪽에 넓게 두고 위는 지면으로 이어 글자 공간을 만든다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 470,
+     "y": 290,
+     "w": 250,
+     "h": 340
+    },
+    "focus": {
+     "x": 472,
+     "y": 300,
+     "w": 235,
+     "h": 330
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#6CB6F6",
+      "#A9CFFA"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.62,
+     "w": 0.9,
+     "h": 0.38
+    },
+    "fade": {
+     "left": 0.1,
+     "right": 0.1,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "좁은 띠라 가운데 인물 하나의 얼굴과 폰만 좁혀 아래쪽에 둔다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 290,
+     "y": 300,
+     "w": 640,
+     "h": 340
+    },
+    "focus": {
+     "x": 472,
+     "y": 300,
+     "w": 235,
+     "h": 300
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#6CB6F6",
+      "#9CCBF8"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.65,
-     "y": -0.1,
-     "w": 0.4,
-     "h": 1.25
+     "x": 0.62,
+     "y": 0,
+     "w": 0.38,
+     "h": 1
     },
     "fade": {
      "left": 0.4,
      "right": 0,
-     "top": 0.1,
-     "bottom": 0.1
+     "top": 0,
+     "bottom": 0
     },
-    "why": "가로 띠는 오른쪽 끝에 인물 얼굴만 작게 두고 왼쪽 글자 쪽을 녹인다."
+    "why": "가로 띠는 오른쪽 끝에 인물 얼굴들만 작게 두고 왼쪽을 녹여 글자 공간을 비운다."
    }
-  },
+  ],
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "파란 그라데이션 배경의 3D 캐릭터 일러스트라 배경색을 이어 칠하고 가장자리를 녹여, 인물 얼굴과 스마트폰을 크게 살리면서 글자 쪽이 비지 않게 했다. 로고는 어두운 워드마크라 밝은 파랑 지면에서 잘 읽히며, 글자도 검정 계열로 대비를 맞췄다."
+  "rationale": "푸른 그라데이션 배경의 3D 캐릭터 그림이라 배경을 이어 칠하고 얼굴은 모든 모양에서 통째로 보존했다. 모양마다 그림 크기와 위치를 정하고 글자 쪽 변을 충분히 녹여 문구가 밝은 파랑 지면에서 읽히게 했다."
  }
 }

@@ -6,82 +6,84 @@
     "x": 0.308,
     "y": 0.143,
     "w": 0.692,
-    "h": 0.667
+    "h": 0.857
    },
    "keep": [
     {
-     "x": 0.308,
+     "x": 0.108,
+     "y": 0.553,
+     "w": 0.267,
+     "h": 0.267,
+     "label": "노트북 화면"
+    }
+   ],
+   "faces": [
+    {
+     "x": 0.3,
      "y": 0.143,
-     "w": 0.3,
-     "h": 0.287,
-     "label": "서 있는 남성 얼굴"
+     "w": 0.167,
+     "h": 0.193
     },
     {
      "x": 0.392,
      "y": 0.373,
-     "w": 0.217,
-     "h": 0.22,
-     "label": "앉은 남성 얼굴"
+     "w": 0.208,
+     "h": 0.173
     },
     {
-     "x": 0.65,
-     "y": 0.407,
-     "w": 0.25,
-     "h": 0.28,
-     "label": "여성 얼굴"
-    },
-    {
-     "x": 0.1,
-     "y": 0.553,
-     "w": 0.275,
-     "h": 0.267,
-     "label": "노트북 화면"
+     "x": 0.663,
+     "y": 0.41,
+     "w": 0.2,
+     "h": 0.227
     }
    ],
    "cutSafe": {
     "top": 0.1,
     "right": 0.05,
-    "bottom": 0.1,
+    "bottom": 0.05,
     "left": 0.1
    },
    "mood": {
     "tone": "light",
     "colors": [
-     "#E9EBEC",
-     "#6F7560",
+     "#E8EAEC",
+     "#6F6A52",
      "#24363F"
     ]
    },
-   "note": "밝은 흰 벽 사무실에서 세 사람이 함께 화면을 보는 협업 장면이다. 왼쪽 가장자리에 흐린 전경 프레임이 있고 오른쪽 위는 빈 흰 벽이다."
+   "note": "밝은 사무실 사진. 세 사람이 노트북을 함께 보는 장면이며 왼쪽에 흐린 전경 기둥이 있고 배경 벽은 밝은 회색이다."
   },
   "groups": {
    "wide": {
     "crop": {
      "x": 0,
-     "y": 0.133,
+     "y": 0.143,
      "w": 1,
-     "h": 0.687
+     "h": 0.857
+    },
+    "focus": {
+     "x": 0.308,
+     "y": 0.143,
+     "w": 0.692,
+     "h": 0.4
     },
     "kvPlace": "right",
-    "kvSize": "md",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "kvSize": "lg",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#E6E8E9"
+      "#DADDDF",
+      "#E9EBED"
      ],
      "angle": 90,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.42,
+     "x": 0.533,
      "y": 0,
-     "w": 0.58,
+     "w": 0.467,
      "h": 1
     },
     "fade": {
@@ -90,36 +92,42 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
+    "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "tall": {
     "crop": {
-     "x": 0.083,
-     "y": 0.1,
-     "w": 0.917,
-     "h": 0.833
+     "x": 0.147,
+     "y": 0.127,
+     "w": 0.853,
+     "h": 0.873
+    },
+    "focus": {
+     "x": 0.308,
+     "y": 0.143,
+     "w": 0.692,
+     "h": 0.857
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#E6E8E9"
+      "#E4E7E9",
+      "#DADDDF"
      ],
      "angle": 180,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
      "x": 0,
-     "y": 0.38,
+     "y": 0.36,
      "w": 1,
-     "h": 0.62
+     "h": 0.64
     },
     "fade": {
      "left": 0,
@@ -127,36 +135,85 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 배치해 위쪽 경계를 녹인다. 얼굴이 로고 모서리를 피하도록 사진을 아래로 내렸다."
+    "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "square": {
     "crop": {
-     "x": 0,
-     "y": 0.143,
-     "w": 1,
-     "h": 0.677
+     "x": 0.108,
+     "y": 0,
+     "w": 0.892,
+     "h": 1
     },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "focus": {
+     "x": 0.308,
+     "y": 0.143,
+     "w": 0.692,
+     "h": 0.573
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#DDE0E1"
+      "#DADDDF",
+      "#E9EBED"
      ],
-     "angle": 180,
-     "text": "light",
+     "angle": 90,
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.291,
-     "y": 0.4,
-     "w": 0.709,
-     "h": 0.6
+     "x": 0.38,
+     "y": 0.131,
+     "w": 0.62,
+     "h": 0.869
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   },
+   "tower": {
+    "crop": {
+     "x": 0.3,
+     "y": 0,
+     "w": 0.563,
+     "h": 0.777
+    },
+    "focus": {
+     "x": 0.3,
+     "y": 0.143,
+     "w": 0.467,
+     "h": 0.433
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E7E9",
+      "#DADDDF"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.5,
+     "w": 1,
+     "h": 0.5
     },
     "fade": {
      "left": 0,
@@ -164,181 +221,163 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
-   },
-   "tower": {
-    "crop": {
-     "x": 0.1,
-     "y": 0,
-     "w": 0.9,
-     "h": 1
-    },
-    "kvPlace": "bottom",
-    "kvSize": "sm",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#24363F",
-      "#E2E4E5"
-     ],
-     "angle": 180,
-     "text": "light",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.55,
-     "w": 1,
-     "h": 0.45
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.45,
-     "bottom": 0
-    },
-    "why": "좁은 세로 띠는 글자를 위쪽에 쌓고 사진은 아래에 작게 둔다. 세 사람이 보이도록 crop을 얼굴 중심으로 좁혔다."
+    "why": "세로 띠는 수염 남자와 앉은 남자 두 명만 좁혀 아래쪽에 두고 위는 글자에 비운다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "strip": {
     "crop": {
      "x": 0,
      "y": 0.143,
      "w": 1,
-     "h": 0.677
+     "h": 0.494
+    },
+    "focus": {
+     "x": 0.392,
+     "y": 0.143,
+     "w": 0.467,
+     "h": 0.4
     },
     "kvPlace": "right",
     "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#C9CDCE"
+      "#DADDDF",
+      "#E9EBED"
      ],
      "angle": 90,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.803,
+     "x": 0.73,
      "y": 0,
-     "w": 0.197,
+     "w": 0.27,
      "h": 1
     },
     "fade": {
-     "left": 0.45,
+     "left": 0.5,
      "right": 0,
      "top": 0,
      "bottom": 0
     },
-    "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 왼쪽을 글자에 양보한다. 서 있는 남성과 앉은 남성의 얼굴 위주로 crop했다."
+    "why": "가로 띠는 글자 공간이 좁아 사람 상반신만 오른쪽 끝에 작게 두고 왼쪽을 벽 색으로 녹인다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    }
   },
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "밝은 사무실 협업 사진이라 세 사람의 얼굴을 모두 보존하고, 글자 쪽은 브랜드색 #24363F에서 사진의 흰 벽 톤으로 이어지게 녹였다. 로고는 어두운 워드마크라 위쪽 모서리에서 지면색과 대비되도록 규칙 엔진이 처리하게 맡긴다."
+  "rationale": "밝은 회색 벽 배경의 사진이라 지면을 같은 밝은 회색으로 이어 칠하고 어두운 글자로 가독성을 확보했다. 세 사람의 얼굴은 모든 모양에서 통째로 보존하고 좁은 모양에서는 핵심 인물만 크게 썼다."
  },
  "fixes": [
+  "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "wide: 그림 상자를 그림 비율에 맞춤",
+  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "square: crop 이 주인공·보존 요소를 잘라 넓힘",
   "square: 그림 상자를 그림 비율에 맞춤",
   "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
   "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
   "strip: 그림 상자를 그림 비율에 맞춤",
   "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
  ],
  "usage": {
-  "input_tokens": 7402,
-  "output_tokens": 1917,
+  "input_tokens": 7248,
+  "output_tokens": 1744,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0,
- "ms": 13361,
+ "cost": 0.0319,
+ "ms": 13148,
  "model": "claude-sonnet-5-5",
  "raw": {
   "kv": {
    "type": "photo-bright",
    "subject": {
-    "x": 0.308,
-    "y": 0.143,
-    "w": 0.692,
-    "h": 0.667
+    "x": 370,
+    "y": 215,
+    "w": 830,
+    "h": 1285
    },
    "keep": [
     {
-     "x": 0.308,
-     "y": 0.143,
-     "w": 0.3,
-     "h": 0.287,
-     "label": "서 있는 남성 얼굴"
-    },
-    {
-     "x": 0.392,
-     "y": 0.373,
-     "w": 0.217,
-     "h": 0.22,
-     "label": "앉은 남성 얼굴"
-    },
-    {
-     "x": 0.65,
-     "y": 0.407,
-     "w": 0.25,
-     "h": 0.28,
-     "label": "여성 얼굴"
-    },
-    {
-     "x": 0.1,
-     "y": 0.553,
-     "w": 0.275,
-     "h": 0.267,
+     "x": 130,
+     "y": 830,
+     "w": 320,
+     "h": 400,
      "label": "노트북 화면"
+    }
+   ],
+   "faces": [
+    {
+     "x": 360,
+     "y": 215,
+     "w": 200,
+     "h": 290
+    },
+    {
+     "x": 470,
+     "y": 560,
+     "w": 250,
+     "h": 260
+    },
+    {
+     "x": 795,
+     "y": 615,
+     "w": 240,
+     "h": 340
     }
    ],
    "cutSafe": {
     "top": 0.1,
     "right": 0.05,
-    "bottom": 0.1,
+    "bottom": 0.05,
     "left": 0.1
    },
    "mood": {
     "tone": "light",
     "colors": [
-     "#E9EBEC",
-     "#6F7560",
+     "#E8EAEC",
+     "#6F6A52",
      "#24363F"
     ]
    },
-   "note": "밝은 흰 벽 사무실에서 세 사람이 함께 화면을 보는 협업 장면이다. 왼쪽 가장자리에 흐린 전경 프레임이 있고 오른쪽 위는 빈 흰 벽이다."
+   "note": "밝은 사무실 사진. 세 사람이 노트북을 함께 보는 장면이며 왼쪽에 흐린 전경 기둥이 있고 배경 벽은 밝은 회색이다."
   },
-  "groups": {
-   "wide": {
+  "groups": [
+   {
+    "shape": "wide",
     "crop": {
      "x": 0,
-     "y": 0.133,
-     "w": 1,
-     "h": 0.687
+     "y": 150,
+     "w": 1200,
+     "h": 660
+    },
+    "focus": {
+     "x": 370,
+     "y": 215,
+     "w": 830,
+     "h": 600
     },
     "kvPlace": "right",
-    "kvSize": "md",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "kvSize": "lg",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#E6E8E9"
+      "#DADDDF",
+      "#E9EBED"
      ],
      "angle": 90,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
@@ -353,36 +392,40 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
+    "why": "가로형은 오른쪽에 세 사람이 모두 들어오도록 크게 두고 왼쪽은 밝은 벽 색으로 이어 글자 공간을 만든다."
    },
-   "tall": {
+   {
+    "shape": "tall",
     "crop": {
-     "x": 0.083,
-     "y": 0.1,
-     "w": 0.917,
-     "h": 0.833
+     "x": 330,
+     "y": 190,
+     "w": 870,
+     "h": 1310
+    },
+    "focus": {
+     "x": 370,
+     "y": 215,
+     "w": 830,
+     "h": 1285
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#E6E8E9"
+      "#E4E7E9",
+      "#DADDDF"
      ],
      "angle": 180,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
      "x": 0,
-     "y": 0.38,
+     "y": 0.36,
      "w": 1,
-     "h": 0.62
+     "h": 0.64
     },
     "fade": {
      "left": 0,
@@ -390,36 +433,81 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 배치해 위쪽 경계를 녹인다. 얼굴이 로고 모서리를 피하도록 사진을 아래로 내렸다."
+    "why": "세로형은 사람들을 아래쪽에 크게 놓고 위쪽 밝은 벽 색으로 글자 공간을 확보한다."
    },
-   "square": {
+   {
+    "shape": "square",
     "crop": {
-     "x": 0.083,
-     "y": 0.1,
-     "w": 0.917,
-     "h": 0.733
+     "x": 300,
+     "y": 190,
+     "w": 900,
+     "h": 900
+    },
+    "focus": {
+     "x": 370,
+     "y": 215,
+     "w": 830,
+     "h": 860
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#DADDDF",
+      "#E9EBED"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.38,
+     "y": 0,
+     "w": 0.62,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "정사각은 세 얼굴이 모두 들어가게 오른쪽에 크게 두고 왼쪽을 벽 색으로 녹인다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 360,
+     "y": 210,
+     "w": 560,
+     "h": 700
+    },
+    "focus": {
+     "x": 360,
+     "y": 215,
+     "w": 560,
+     "h": 650
     },
     "kvPlace": "bottom",
     "kvSize": "md",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#DDE0E1"
+      "#E4E7E9",
+      "#DADDDF"
      ],
      "angle": 180,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
      "x": 0,
-     "y": 0.4,
+     "y": 0.5,
      "w": 1,
-     "h": 0.6
+     "h": 0.5
     },
     "fade": {
      "left": 0,
@@ -427,66 +515,33 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
+    "why": "세로 띠는 수염 남자와 앉은 남자 두 명만 좁혀 아래쪽에 두고 위는 글자에 비운다."
    },
-   "tower": {
+   {
+    "shape": "strip",
     "crop": {
-     "x": 0.1,
-     "y": 0.133,
-     "w": 0.9,
-     "h": 0.733
+     "x": 360,
+     "y": 210,
+     "w": 840,
+     "h": 620
     },
-    "kvPlace": "bottom",
-    "kvSize": "sm",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#24363F",
-      "#E2E4E5"
-     ],
-     "angle": 180,
-     "text": "light",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.55,
-     "w": 1,
-     "h": 0.45
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.45,
-     "bottom": 0
-    },
-    "why": "좁은 세로 띠는 글자를 위쪽에 쌓고 사진은 아래에 작게 둔다. 세 사람이 보이도록 crop을 얼굴 중심으로 좁혔다."
-   },
-   "strip": {
-    "crop": {
-     "x": 0.1,
-     "y": 0.143,
-     "w": 0.9,
-     "h": 0.677
+    "focus": {
+     "x": 470,
+     "y": 215,
+     "w": 560,
+     "h": 600
     },
     "kvPlace": "right",
     "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#24363F",
-      "#C9CDCE"
+      "#DADDDF",
+      "#E9EBED"
      ],
      "angle": 90,
-     "text": "light",
+     "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
@@ -496,17 +551,17 @@
      "h": 1
     },
     "fade": {
-     "left": 0.45,
+     "left": 0.5,
      "right": 0,
      "top": 0,
      "bottom": 0
     },
-    "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 왼쪽을 글자에 양보한다. 서 있는 남성과 앉은 남성의 얼굴 위주로 crop했다."
+    "why": "가로 띠는 글자 공간이 좁아 사람 상반신만 오른쪽 끝에 작게 두고 왼쪽을 벽 색으로 녹인다."
    }
-  },
+  ],
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "밝은 사무실 협업 사진이라 세 사람의 얼굴을 모두 보존하고, 글자 쪽은 브랜드색 #24363F에서 사진의 흰 벽 톤으로 이어지게 녹였다. 로고는 어두운 워드마크라 위쪽 모서리에서 지면색과 대비되도록 규칙 엔진이 처리하게 맡긴다."
+  "rationale": "밝은 회색 벽 배경의 사진이라 지면을 같은 밝은 회색으로 이어 칠하고 어두운 글자로 가독성을 확보했다. 세 사람의 얼굴은 모든 모양에서 통째로 보존하고 좁은 모양에서는 핵심 인물만 크게 썼다."
  }
 }

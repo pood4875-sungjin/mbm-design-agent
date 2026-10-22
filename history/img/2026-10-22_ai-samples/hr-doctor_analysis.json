@@ -3,307 +3,68 @@
   "kv": {
    "type": "photo-bright",
    "subject": {
-    "x": 0.171,
+    "x": 0.464,
     "y": 0.213,
-    "w": 0.366,
-    "h": 0.522
+    "w": 0.391,
+    "h": 0.783
    },
    "keep": [
     {
      "x": 0.452,
      "y": 0.223,
-     "w": 0.269,
-     "h": 0.522,
+     "w": 0.244,
+     "h": 0.64,
      "label": "내민 손"
     }
    ],
+   "faces": [],
    "cutSafe": {
     "top": 0.1,
-    "right": 0.1,
+    "right": 0.2,
     "bottom": 0.05,
-    "left": 0.3
+    "left": 0.35
    },
    "mood": {
     "tone": "light",
     "colors": [
      "#C5CDE7",
-     "#E8ECF5",
-     "#D1AEB1"
+     "#D1AEB1",
+     "#A3706D"
     ]
    },
-   "note": "흰 가운 입은 인물이 악수를 청하는 밝은 사진. 손은 중앙 약간 왼쪽에 있고 왼쪽은 흐린 병원 배경이다."
+   "note": "흰 가운 의사가 악수를 청하는 손을 내민 클로즈업이다. 얼굴은 없고 손이 중심이며 왼쪽은 흐린 배경이다."
   },
   "groups": {
    "wide": {
     "crop": {
-     "x": 0.127,
+     "x": 0.259,
      "y": 0,
-     "w": 0.638,
+     "w": 0.741,
      "h": 1
     },
-    "kvPlace": "right",
-    "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
-     ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0.38,
-     "y": 0,
-     "w": 0.62,
-     "h": 1
-    },
-    "fade": {
-     "left": 0.45,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "손과 가운이 오른쪽에 오고 왼쪽은 밝은 지면으로 이어져 글자 공간이 된다."
-   },
-   "tall": {
-    "crop": {
-     "x": 0.171,
-     "y": 0,
-     "w": 0.55,
-     "h": 1
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
-     ],
-     "angle": 180,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.532,
-     "w": 1,
-     "h": 0.468
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.4,
-     "bottom": 0
-    },
-    "why": "글자는 위쪽에 두고 손이 있는 사진을 아래에 크게 깔아 위쪽 가장자리를 녹인다."
-   },
-   "square": {
-    "crop": {
-     "x": 0.058,
-     "y": 0,
-     "w": 0.887,
-     "h": 1
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
-     ],
-     "angle": 180,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.42,
-     "w": 1,
-     "h": 0.58
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.4,
-     "bottom": 0
-    },
-    "why": "정사각에서는 손을 하단 중앙에 두고 위쪽을 글자 영역으로 비운다."
-   },
-   "tower": {
-    "crop": {
-     "x": 0.171,
-     "y": 0,
-     "w": 0.55,
-     "h": 1
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
-     ],
-     "angle": 180,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.729,
-     "w": 1,
-     "h": 0.271
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.45,
-     "bottom": 0
-    },
-    "why": "좁고 긴 지면이라 손이 보이는 부분만 아래쪽에 두고 위는 글자에 내준다."
-   },
-   "strip": {
-    "crop": {
-     "x": 0.171,
+    "focus": {
+     "x": 0.452,
      "y": 0.213,
-     "w": 0.683,
-     "h": 0.532
-    },
-    "kvPlace": "right",
-    "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
-     ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0.62,
-     "y": 0,
-     "w": 0.38,
-     "h": 1
-    },
-    "fade": {
-     "left": 0.5,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "낮은 띠이므로 손만 오른쪽 끝에 작게 두고 나머지는 글자에 쓴다."
-   }
-  },
-  "logo": {
-   "kind": "none"
-  },
-  "rationale": "밝고 부드러운 병원 사진이라 지면을 사진의 연한 청회색으로 이어 칠해 자연스럽게 녹이고, 어두운 글자로 가독성을 확보했다. 내민 손이 핵심이므로 모든 모양에서 crop 안에 보존하고 글자 반대쪽에 크게 배치했다."
- },
- "fixes": [
-  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "tall: 그림 상자를 그림 비율에 맞춤",
-  "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "tower: 그림 상자를 그림 비율에 맞춤",
-  "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
- ],
- "usage": {
-  "input_tokens": 6399,
-  "output_tokens": 1646,
-  "cache_read_input_tokens": 0,
-  "cache_creation_input_tokens": 0
- },
- "cost": 0,
- "ms": 13262,
- "model": "claude-sonnet-5-5",
- "raw": {
-  "kv": {
-   "type": "photo-bright",
-   "subject": {
-    "x": 0.171,
-    "y": 0.213,
-    "w": 0.366,
-    "h": 0.522
-   },
-   "keep": [
-    {
-     "x": 0.452,
-     "y": 0.223,
-     "w": 0.269,
-     "h": 0.522,
-     "label": "내민 손"
-    }
-   ],
-   "cutSafe": {
-    "top": 0.1,
-    "right": 0.1,
-    "bottom": 0.05,
-    "left": 0.3
-   },
-   "mood": {
-    "tone": "light",
-    "colors": [
-     "#C5CDE7",
-     "#E8ECF5",
-     "#D1AEB1"
-    ]
-   },
-   "note": "흰 가운 입은 인물이 악수를 청하는 밝은 사진. 손은 중앙 약간 왼쪽에 있고 왼쪽은 흐린 병원 배경이다."
-  },
-  "groups": {
-   "wide": {
-    "crop": {
-     "x": 0.171,
-     "y": 0,
-     "w": 0.829,
-     "h": 1
+     "w": 0.415,
+     "h": 0.783
     },
     "kvPlace": "right",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
+      "#E4E8F4",
+      "#D3DAEE"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
     "kvBox": {
-     "x": 0.38,
+     "x": 0.28,
      "y": 0,
-     "w": 0.62,
+     "w": 0.72,
      "h": 1
     },
     "fade": {
@@ -312,26 +73,32 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "손과 가운이 오른쪽에 오고 왼쪽은 밝은 지면으로 이어져 글자 공간이 된다."
+    "why": "밝은 사진이라 왼쪽을 옅은 청회색으로 녹여 글자 공간을 만들고 손은 오른쪽 중앙에 둔다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "tall": {
     "crop": {
-     "x": 0.171,
+     "x": 0.372,
      "y": 0,
-     "w": 0.732,
+     "w": 0.429,
      "h": 1
+    },
+    "focus": {
+     "x": 0.452,
+     "y": 0.213,
+     "w": 0.269,
+     "h": 0.712
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
+      "#E4E8F4",
+      "#D3DAEE"
      ],
      "angle": 180,
      "text": "dark",
@@ -349,26 +116,32 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "글자는 위쪽에 두고 손이 있는 사진을 아래에 크게 깔아 위쪽 가장자리를 녹인다."
+    "why": "손과 가운 상체로 좁혀 아래쪽에 크게 두고 위쪽은 글자 자리로 녹인다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "square": {
     "crop": {
-     "x": 0.171,
-     "y": 0,
-     "w": 0.661,
-     "h": 1
+     "x": 0.225,
+     "y": 0.071,
+     "w": 0.771,
+     "h": 0.929
+    },
+    "focus": {
+     "x": 0.452,
+     "y": 0.213,
+     "w": 0.366,
+     "h": 0.759
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
+      "#E4E8F4",
+      "#D3DAEE"
      ],
      "angle": 180,
      "text": "dark",
@@ -376,9 +149,9 @@
     },
     "kvBox": {
      "x": 0,
-     "y": 0.42,
+     "y": 0.38,
      "w": 1,
-     "h": 0.58
+     "h": 0.62
     },
     "fade": {
      "left": 0,
@@ -386,26 +159,32 @@
      "top": 0.4,
      "bottom": 0
     },
-    "why": "정사각에서는 손을 하단 중앙에 두고 위쪽을 글자 영역으로 비운다."
+    "why": "손이 잘리지 않게 정사각으로 잘라 아래에 배치하고 위쪽에 글자를 둔다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "tower": {
     "crop": {
-     "x": 0.171,
+     "x": 0.415,
      "y": 0,
-     "w": 0.61,
+     "w": 0.342,
      "h": 1
+    },
+    "focus": {
+     "x": 0.452,
+     "y": 0.213,
+     "w": 0.244,
+     "h": 0.64
     },
     "kvPlace": "bottom",
     "kvSize": "md",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
+      "#E4E8F4",
+      "#D3DAEE"
      ],
      "angle": 180,
      "text": "dark",
@@ -423,26 +202,32 @@
      "top": 0.45,
      "bottom": 0
     },
-    "why": "좁고 긴 지면이라 손이 보이는 부분만 아래쪽에 두고 위는 글자에 내준다."
+    "why": "좁은 띠라 손 중심으로만 좁혀 아래쪽에 두고 위쪽 글자 공간을 확보한다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "strip": {
     "crop": {
-     "x": 0.171,
-     "y": 0.213,
-     "w": 0.683,
-     "h": 0.532
+     "x": 0.363,
+     "y": 0.223,
+     "w": 0.517,
+     "h": 0.441
+    },
+    "focus": {
+     "x": 0.452,
+     "y": 0.223,
+     "w": 0.244,
+     "h": 0.427
     },
     "kvPlace": "right",
     "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "bgFill": "kv",
     "scrim": "none",
     "field": {
      "colors": [
-      "#E8ECF5",
-      "#C5CDE7"
+      "#E4E8F4",
+      "#D3DAEE"
      ],
      "angle": 90,
      "text": "dark",
@@ -455,17 +240,284 @@
      "h": 1
     },
     "fade": {
-     "left": 0.5,
+     "left": 0.45,
      "right": 0,
      "top": 0,
      "bottom": 0
     },
-    "why": "낮은 띠이므로 손만 오른쪽 끝에 작게 두고 나머지는 글자에 쓴다."
+    "why": "가로 띠는 손 부분만 오른쪽 끝에 작게 두고 왼쪽은 글자용으로 녹인다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    }
   },
   "logo": {
    "kind": "none"
   },
-  "rationale": "밝고 부드러운 병원 사진이라 지면을 사진의 연한 청회색으로 이어 칠해 자연스럽게 녹이고, 어두운 글자로 가독성을 확보했다. 내민 손이 핵심이므로 모든 모양에서 crop 안에 보존하고 글자 반대쪽에 크게 배치했다."
+  "rationale": "얼굴 없이 내민 손이 핵심이라 모든 모양에서 손을 crop 중심에 두고 글자 쪽을 옅은 청회색 지면으로 녹였다. 환영과 협력의 인상을 살리려고 밝은 톤을 유지하고 글자는 어둡게 읽히게 했다."
+ },
+ "fixes": [
+  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 6245,
+  "output_tokens": 1671,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0292,
+ "ms": 11325,
+ "model": "claude-sonnet-5-5",
+ "raw": {
+  "kv": {
+   "type": "photo-bright",
+   "subject": {
+    "x": 1900,
+    "y": 450,
+    "w": 1600,
+    "h": 1650
+   },
+   "keep": [
+    {
+     "x": 1850,
+     "y": 470,
+     "w": 1000,
+     "h": 1350,
+     "label": "내민 손"
+    }
+   ],
+   "faces": [],
+   "cutSafe": {
+    "top": 0.1,
+    "right": 0.2,
+    "bottom": 0.05,
+    "left": 0.35
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#C5CDE7",
+     "#D1AEB1",
+     "#A3706D"
+    ]
+   },
+   "note": "흰 가운 의사가 악수를 청하는 손을 내민 클로즈업이다. 얼굴은 없고 손이 중심이며 왼쪽은 흐린 배경이다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 4096,
+     "h": 2108
+    },
+    "focus": {
+     "x": 1850,
+     "y": 450,
+     "w": 1700,
+     "h": 1650
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#D3DAEE"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.28,
+     "y": 0,
+     "w": 0.72,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.45,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "밝은 사진이라 왼쪽을 옅은 청회색으로 녹여 글자 공간을 만들고 손은 오른쪽 중앙에 둔다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 1500,
+     "y": 200,
+     "w": 2100,
+     "h": 1908
+    },
+    "focus": {
+     "x": 1850,
+     "y": 450,
+     "w": 1100,
+     "h": 1500
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#D3DAEE"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.4,
+     "w": 1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "손과 가운 상체로 좁혀 아래쪽에 크게 두고 위쪽은 글자 자리로 녹인다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 1400,
+     "y": 150,
+     "w": 2200,
+     "h": 1958
+    },
+    "focus": {
+     "x": 1850,
+     "y": 450,
+     "w": 1500,
+     "h": 1600
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#D3DAEE"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.38,
+     "w": 1,
+     "h": 0.62
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "손이 잘리지 않게 정사각으로 잘라 아래에 배치하고 위쪽에 글자를 둔다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 1700,
+     "y": 300,
+     "w": 1400,
+     "h": 1808
+    },
+    "focus": {
+     "x": 1850,
+     "y": 450,
+     "w": 1000,
+     "h": 1350
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#D3DAEE"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.5,
+     "w": 1,
+     "h": 0.5
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.45,
+     "bottom": 0
+    },
+    "why": "좁은 띠라 손 중심으로만 좁혀 아래쪽에 두고 위쪽 글자 공간을 확보한다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 1800,
+     "y": 500,
+     "w": 1500,
+     "h": 900
+    },
+    "focus": {
+     "x": 1850,
+     "y": 470,
+     "w": 1000,
+     "h": 900
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#D3DAEE"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.62,
+     "y": 0,
+     "w": 0.38,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.45,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로 띠는 손 부분만 오른쪽 끝에 작게 두고 왼쪽은 글자용으로 녹인다."
+   }
+  ],
+  "logo": {
+   "kind": "none"
+  },
+  "rationale": "얼굴 없이 내민 손이 핵심이라 모든 모양에서 손을 crop 중심에 두고 글자 쪽을 옅은 청회색 지면으로 녹였다. 환영과 협력의 인상을 살리려고 밝은 톤을 유지하고 글자는 어둡게 읽히게 했다."
  }
 }

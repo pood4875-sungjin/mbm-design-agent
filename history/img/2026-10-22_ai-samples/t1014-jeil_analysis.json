@@ -5,7 +5,7 @@
    "subject": {
     "x": 0.064,
     "y": 0,
-    "w": 0.896,
+    "w": 0.936,
     "h": 0.973
    },
    "keep": [
@@ -14,28 +14,59 @@
      "y": 0.114,
      "w": 0.44,
      "h": 0.549,
-     "label": "JEIL 입체 로고 문자"
-    },
-    {
-     "x": 0.352,
-     "y": 0.069,
-     "w": 0.096,
-     "h": 0.137,
-     "label": "JEIL 엠블럼"
+     "label": "JEIL 입체 로고 글자"
     },
     {
      "x": 0.616,
      "y": 0.366,
      "w": 0.184,
      "h": 0.183,
-     "label": "제일약품 트럭"
+     "label": "JEIL PHARMACEUTICAL 트럭"
+    }
+   ],
+   "faces": [
+    {
+     "x": 0.096,
+     "y": 0.554,
+     "w": 0.02,
+     "h": 0.027
+    },
+    {
+     "x": 0.15,
+     "y": 0.554,
+     "w": 0.02,
+     "h": 0.027
+    },
+    {
+     "x": 0.134,
+     "y": 0.757,
+     "w": 0.02,
+     "h": 0.027
+    },
+    {
+     "x": 0.453,
+     "y": 0.487,
+     "w": 0.02,
+     "h": 0.025
+    },
+    {
+     "x": 0.413,
+     "y": 0.622,
+     "w": 0.02,
+     "h": 0.025
+    },
+    {
+     "x": 0.635,
+     "y": 0.217,
+     "w": 0.02,
+     "h": 0.023
     }
    ],
    "cutSafe": {
-    "top": 0,
-    "right": 0.5,
-    "bottom": 0.5,
-    "left": 0.5
+    "top": 0.02,
+    "right": 0.02,
+    "bottom": 0.03,
+    "left": 0.08
    },
    "mood": {
     "tone": "light",
@@ -45,297 +76,39 @@
      "#B9E3F9"
     ]
    },
-   "note": "투명 배경 아이소메트릭 일러스트. 가장자리는 점 패턴이 옅게 퍼져 있어 잘라도 무방하나 JEIL 문자와 트럭은 보존."
+   "note": "투명 배경 아이소메트릭 일러스트로 JEIL 입체 글자와 공장 및 물류 장면이 있다. 왼쪽 아래 연구실부터 오른쪽 위 공장까지 대각선으로 퍼져 있다."
   },
   "groups": {
    "wide": {
     "crop": {
      "x": 0.064,
      "y": 0,
-     "w": 0.896,
+     "w": 0.936,
      "h": 1
     },
-    "kvPlace": "right",
-    "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#EAF4FB",
-      "#FFFFFF"
-     ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.48,
-     "y": 0.168,
-     "w": 0.52,
-     "h": 0.812
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "누끼이므로 fade 0, 오른쪽에 크게 두고 밝은 지면 위 어두운 글자로 가독성 확보."
-   },
-   "tall": {
-    "crop": {
+    "focus": {
      "x": 0.064,
      "y": 0,
-     "w": 0.896,
-     "h": 1
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFFFFF",
-      "#EAF4FB"
-     ],
-     "angle": 180,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": -0.05,
-     "y": 0.571,
-     "w": 1.1,
-     "h": 0.429
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "글자는 위쪽에, 그림은 아래에 폭 가득 크게 배치해 하단을 채움."
-   },
-   "square": {
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1,
-     "h": 0.973
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFFFFF",
-      "#EAF4FB"
-     ],
-     "angle": 180,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.251,
-     "y": 0.47,
-     "w": 0.779,
-     "h": 0.53
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "정사각에서는 글자를 위에 두고 일러스트를 하단 전폭으로 두어 균형을 맞춤."
-   },
-   "tower": {
-    "crop": {
-     "x": 0.064,
-     "y": 0,
-     "w": 0.896,
-     "h": 1
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFFFFF",
-      "#EAF4FB"
-     ],
-     "angle": 180,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": -0.1,
-     "y": 0.728,
-     "w": 1.2,
-     "h": 0.272
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "세로 띠라 폭이 좁아 그림을 아래쪽에 폭 넘치게 두고 글자는 위에 중앙 정렬."
-   },
-   "strip": {
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1,
+     "w": 0.936,
      "h": 0.973
     },
     "kvPlace": "right",
-    "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#EAF4FB",
-      "#FFFFFF"
-     ],
-     "angle": 90,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.755,
-     "y": 0,
-     "w": 0.245,
-     "h": 1
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "높이가 낮아 글자 공간을 확보하도록 그림을 오른쪽 끝에 작게 둠."
-   }
-  },
-  "logo": {
-   "kind": "combo"
-  },
-  "rationale": "투명 배경의 밝은 아이소메트릭 일러스트라 누끼로 쓰고 연한 파랑·흰 지면에 어두운 글자를 올려 JEIL 문자와 트럭을 모두 보존했다. 가로형은 오른쪽에 크게, 세로·정사각·띠는 아래 또는 끝에 배치해 글자 공간과 지면 균형을 맞췄다."
- },
- "fixes": [
-  "wide: 그림 상자를 그림 비율에 맞춤",
-  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "tall: 그림 상자를 그림 비율에 맞춤",
-  "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "square: 그림 상자를 그림 비율에 맞춤",
-  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "tower: 그림 상자를 그림 비율에 맞춤",
-  "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "strip: 그림 상자를 그림 비율에 맞춤",
-  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
- ],
- "usage": {
-  "input_tokens": 5918,
-  "output_tokens": 1726,
-  "cache_read_input_tokens": 0,
-  "cache_creation_input_tokens": 0
- },
- "cost": 0,
- "ms": 12759,
- "model": "claude-sonnet-5-5",
- "raw": {
-  "kv": {
-   "type": "cutout-scene",
-   "subject": {
-    "x": 0.064,
-    "y": 0,
-    "w": 0.896,
-    "h": 0.973
-   },
-   "keep": [
-    {
-     "x": 0.152,
-     "y": 0.114,
-     "w": 0.44,
-     "h": 0.549,
-     "label": "JEIL 입체 로고 문자"
-    },
-    {
-     "x": 0.352,
-     "y": 0.069,
-     "w": 0.096,
-     "h": 0.137,
-     "label": "JEIL 엠블럼"
-    },
-    {
-     "x": 0.616,
-     "y": 0.366,
-     "w": 0.184,
-     "h": 0.183,
-     "label": "제일약품 트럭"
-    }
-   ],
-   "cutSafe": {
-    "top": 0,
-    "right": 0.5,
-    "bottom": 0.5,
-    "left": 0.5
-   },
-   "mood": {
-    "tone": "light",
-    "colors": [
-     "#005D94",
-     "#27A7DC",
-     "#B9E3F9"
-    ]
-   },
-   "note": "투명 배경 아이소메트릭 일러스트. 가장자리는 점 패턴이 옅게 퍼져 있어 잘라도 무방하나 JEIL 문자와 트럭은 보존."
-  },
-  "groups": {
-   "wide": {
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1,
-     "h": 1
-    },
-    "kvPlace": "right",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "bgFill": "brand",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EAF4FB",
-      "#FFFFFF"
+      "#EAF5FC",
+      "#CFE6F7"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
-     "x": 0.48,
+     "x": 0.44,
      "y": 0.02,
-     "w": 0.52,
+     "w": 0.58,
      "h": 0.96
     },
     "fade": {
@@ -344,26 +117,32 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "누끼이므로 fade 0, 오른쪽에 크게 두고 밝은 지면 위 어두운 글자로 가독성 확보."
+    "why": "가로형은 장면 전체를 오른쪽에 크게 두고 왼쪽 약 45%를 밝은 지면으로 비워 글자를 얹는다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "tall": {
     "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1,
-     "h": 1
+     "x": 0.096,
+     "y": 0.069,
+     "w": 0.528,
+     "h": 0.904
+    },
+    "focus": {
+     "x": 0.152,
+     "y": 0.114,
+     "w": 0.44,
+     "h": 0.549
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "brand",
     "scrim": "none",
     "field": {
      "colors": [
-      "#FFFFFF",
-      "#EAF4FB"
+      "#EAF5FC",
+      "#CFE6F7"
      ],
      "angle": 180,
      "text": "dark",
@@ -371,9 +150,9 @@
     },
     "kvBox": {
      "x": -0.05,
-     "y": 0.5,
+     "y": 0.42,
      "w": 1.1,
-     "h": 0.5
+     "h": 0.6
     },
     "fade": {
      "left": 0,
@@ -381,7 +160,10 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "글자는 위쪽에, 그림은 아래에 폭 가득 크게 배치해 하단을 채움."
+    "why": "세로형은 JEIL 입체 글자와 주변 인물 중심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 공간으로 쓴다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "square": {
     "crop": {
@@ -390,27 +172,30 @@
      "w": 1,
      "h": 1
     },
+    "focus": {
+     "x": 0.064,
+     "y": 0,
+     "w": 0.936,
+     "h": 0.973
+    },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "left",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "brand",
     "scrim": "none",
     "field": {
      "colors": [
-      "#FFFFFF",
-      "#EAF4FB"
+      "#EAF5FC",
+      "#CFE6F7"
      ],
      "angle": 180,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
-     "x": -0.03,
-     "y": 0.47,
-     "w": 1.06,
-     "h": 0.53
+     "x": 0,
+     "y": 0.4,
+     "w": 1,
+     "h": 0.62
     },
     "fade": {
      "left": 0,
@@ -418,36 +203,42 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "정사각에서는 글자를 위에 두고 일러스트를 하단 전폭으로 두어 균형을 맞춤."
+    "why": "정사각은 장면 전체를 아래쪽에 가로로 넓게 두고 위쪽에 글자 공간을 확보한다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "tower": {
     "crop": {
-     "x": 0.064,
-     "y": 0,
-     "w": 0.896,
-     "h": 1
+     "x": 0.096,
+     "y": 0.092,
+     "w": 0.496,
+     "h": 0.881
+    },
+    "focus": {
+     "x": 0.152,
+     "y": 0.114,
+     "w": 0.44,
+     "h": 0.549
     },
     "kvPlace": "bottom",
     "kvSize": "md",
-    "textAlign": "center",
-    "textAnchor": "top",
-    "bgFill": "auto",
-    "bgGrad": "v",
+    "bgFill": "brand",
     "scrim": "none",
     "field": {
      "colors": [
-      "#FFFFFF",
-      "#EAF4FB"
+      "#EAF5FC",
+      "#CFE6F7"
      ],
      "angle": 180,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
-     "x": -0.1,
-     "y": 0.62,
-     "w": 1.2,
-     "h": 0.38
+     "x": -0.05,
+     "y": 0.6,
+     "w": 1.1,
+     "h": 0.4
     },
     "fade": {
      "left": 0,
@@ -455,36 +246,42 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "세로 띠라 폭이 좁아 그림을 아래쪽에 폭 넘치게 두고 글자는 위에 중앙 정렬."
+    "why": "세로 띠는 JEIL 글자 중심으로 좁혀 아래쪽에 두고 위쪽을 글자 공간으로 비운다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
    "strip": {
     "crop": {
-     "x": 0.064,
+     "x": 0.298,
      "y": 0,
-     "w": 0.896,
-     "h": 1
+     "w": 0.702,
+     "h": 0.595
+    },
+    "focus": {
+     "x": 0.616,
+     "y": 0.366,
+     "w": 0.184,
+     "h": 0.183
     },
     "kvPlace": "right",
     "kvSize": "sm",
-    "textAlign": "left",
-    "textAnchor": "center",
-    "bgFill": "auto",
-    "bgGrad": "h",
+    "bgFill": "brand",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EAF4FB",
-      "#FFFFFF"
+      "#EAF5FC",
+      "#CFE6F7"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
-     "x": 0.7,
-     "y": 0,
-     "w": 0.3,
-     "h": 1
+     "x": 0.74,
+     "y": 0.02,
+     "w": 0.27,
+     "h": 0.96
     },
     "fade": {
      "left": 0,
@@ -492,12 +289,321 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "높이가 낮아 글자 공간을 확보하도록 그림을 오른쪽 끝에 작게 둠."
+    "why": "가로 띠는 글자 공간이 좁아 장면 일부를 오른쪽 끝에 작게 두고 나머지를 글자에 쓴다.",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    }
   },
   "logo": {
    "kind": "combo"
   },
-  "rationale": "투명 배경의 밝은 아이소메트릭 일러스트라 누끼로 쓰고 연한 파랑·흰 지면에 어두운 글자를 올려 JEIL 문자와 트럭을 모두 보존했다. 가로형은 오른쪽에 크게, 세로·정사각·띠는 아래 또는 끝에 배치해 글자 공간과 지면 균형을 맞췄다."
+  "rationale": "투명 배경의 아이소메트릭 일러스트라 밝은 파랑 계열 지면에 이어 붙여 그림이 떠 보이지 않게 했고, 모양마다 JEIL 입체 글자와 장면을 크게 쓰되 글자 쪽은 비워 두었다. 좁은 모양은 JEIL 글자와 인물 중심으로 좁혀 얼굴이 잘리지 않게 했다."
+ },
+ "fixes": [
+  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "tower: 얼굴이 걸쳐 잘려 통째로 넣음",
+  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 5764,
+  "output_tokens": 1914,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0307,
+ "ms": 14713,
+ "model": "claude-sonnet-5-5",
+ "raw": {
+  "kv": {
+   "type": "cutout-scene",
+   "subject": {
+    "x": 40,
+    "y": 0,
+    "w": 585,
+    "h": 425
+   },
+   "keep": [
+    {
+     "x": 95,
+     "y": 50,
+     "w": 275,
+     "h": 240,
+     "label": "JEIL 입체 로고 글자"
+    },
+    {
+     "x": 385,
+     "y": 160,
+     "w": 115,
+     "h": 80,
+     "label": "JEIL PHARMACEUTICAL 트럭"
+    }
+   ],
+   "faces": [
+    {
+     "x": 60,
+     "y": 242,
+     "w": 10,
+     "h": 12
+    },
+    {
+     "x": 94,
+     "y": 242,
+     "w": 10,
+     "h": 12
+    },
+    {
+     "x": 84,
+     "y": 331,
+     "w": 10,
+     "h": 12
+    },
+    {
+     "x": 283,
+     "y": 213,
+     "w": 9,
+     "h": 11
+    },
+    {
+     "x": 258,
+     "y": 272,
+     "w": 10,
+     "h": 11
+    },
+    {
+     "x": 397,
+     "y": 95,
+     "w": 8,
+     "h": 10
+    }
+   ],
+   "cutSafe": {
+    "top": 0.02,
+    "right": 0.02,
+    "bottom": 0.03,
+    "left": 0.08
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#005D94",
+     "#27A7DC",
+     "#B9E3F9"
+    ]
+   },
+   "note": "투명 배경 아이소메트릭 일러스트로 JEIL 입체 글자와 공장 및 물류 장면이 있다. 왼쪽 아래 연구실부터 오른쪽 위 공장까지 대각선으로 퍼져 있다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 625,
+     "h": 437
+    },
+    "focus": {
+     "x": 40,
+     "y": 0,
+     "w": 585,
+     "h": 425
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#EAF5FC",
+      "#CFE6F7"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.44,
+     "y": 0.02,
+     "w": 0.58,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로형은 장면 전체를 오른쪽에 크게 두고 왼쪽 약 45%를 밝은 지면으로 비워 글자를 얹는다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 60,
+     "y": 30,
+     "w": 330,
+     "h": 395
+    },
+    "focus": {
+     "x": 95,
+     "y": 50,
+     "w": 275,
+     "h": 240
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#EAF5FC",
+      "#CFE6F7"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.42,
+     "w": 1.1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "세로형은 JEIL 입체 글자와 주변 인물 중심으로 좁혀 아래쪽에 크게 두고 위쪽을 글자 공간으로 쓴다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 20,
+     "y": 0,
+     "w": 605,
+     "h": 437
+    },
+    "focus": {
+     "x": 40,
+     "y": 0,
+     "w": 585,
+     "h": 425
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#EAF5FC",
+      "#CFE6F7"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.4,
+     "w": 1,
+     "h": 0.62
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "정사각은 장면 전체를 아래쪽에 가로로 넓게 두고 위쪽에 글자 공간을 확보한다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 70,
+     "y": 40,
+     "w": 300,
+     "h": 385
+    },
+    "focus": {
+     "x": 95,
+     "y": 50,
+     "w": 275,
+     "h": 240
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#EAF5FC",
+      "#CFE6F7"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.6,
+     "w": 1.1,
+     "h": 0.4
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "세로 띠는 JEIL 글자 중심으로 좁혀 아래쪽에 두고 위쪽을 글자 공간으로 비운다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 300,
+     "y": 0,
+     "w": 325,
+     "h": 260
+    },
+    "focus": {
+     "x": 385,
+     "y": 160,
+     "w": 115,
+     "h": 80
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#EAF5FC",
+      "#CFE6F7"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.74,
+     "y": 0.02,
+     "w": 0.27,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로 띠는 글자 공간이 좁아 장면 일부를 오른쪽 끝에 작게 두고 나머지를 글자에 쓴다."
+   }
+  ],
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "투명 배경의 아이소메트릭 일러스트라 밝은 파랑 계열 지면에 이어 붙여 그림이 떠 보이지 않게 했고, 모양마다 JEIL 입체 글자와 장면을 크게 쓰되 글자 쪽은 비워 두었다. 좁은 모양은 JEIL 글자와 인물 중심으로 좁혀 얼굴이 잘리지 않게 했다."
  }
 }

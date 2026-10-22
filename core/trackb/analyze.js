@@ -13,46 +13,48 @@ export const SHAPES = ['wide', 'tall', 'square', 'tower', 'strip'];
 export const REP_AR = { wide: 2, tall: 0.5, square: 1, tower: 0.29, strip: 6 };
 export const SHAPE_LABEL = { wide: '가로형(비율 ≥ 1.8)', tall: '세로형(1.2~2.5)', square: '정사각(0.8~1.2)', tower: '세로 띠(≥ 2.5)', strip: '가로 띠(높이 < 120px)' };
 const TYPE_IDS = kvTypeChoices().flatMap(t => [t.id, ...t.subs.map(s => s.id)]);
-const choice = key => ({ type: 'string', enum: Object.keys(PRESETS[key].choices) });
+// 선택지는 enum 대신 문자열 — enum 이 많으면 API 가 「compiled grammar is too large」로 거부한다(10-22 두 번). 값 검사는 validateAnalysis 가 한다
+const choice = () => ({ type: 'string' });
 const NUM = { type: 'number' }, STR = { type: 'string' };
 const obj = (properties, required = Object.keys(properties)) => ({ type: 'object', additionalProperties: false, required, properties });
 const box = obj({ x: NUM, y: NUM, w: NUM, h: NUM });
 
 export const ANALYSIS_SCHEMA = obj({
   kv: obj({
-    type: { type: 'string', enum: TYPE_IDS },
+    type: STR,
     subject: box,                                      // 주인공 상자 — 원본 픽셀(왼쪽 위 기준)
     keep: { type: 'array', items: obj({ x: NUM, y: NUM, w: NUM, h: NUM, label: STR }) },   // 반드시 보존(로고 마크·제품·얼굴…)
+    faces: { type: 'array', items: box },               // 10-22 사람·캐릭터 얼굴 상자(원본 픽셀) — 어떤 crop·상자에서도 걸쳐 잘리면 안 된다(통째로 넣거나 통째로 빼거나)
     cutSafe: obj({ top: NUM, right: NUM, bottom: NUM, left: NUM }),   // 각 변에서 잘라도 되는 몫(0~0.5, 원본 비율)
-    mood: obj({ tone: { type: 'string', enum: ['light', 'dark'] }, colors: { type: 'array', items: STR } }),
+    mood: obj({ tone: STR, colors: { type: 'array', items: STR } }),
     note: STR,
   }),
   // 모양 묶음 5개 — 배열(항목 하나에 shape 꼬리표). 묶음마다 객체를 복제하면 API 가 「스키마가 너무 크다」로 거부한다(10-22)
   groups: { type: 'array', items: obj({
-    shape: { type: 'string', enum: SHAPES },
+    shape: STR,
     crop: box,                                         // 이 모양에서 보일 부분 — 원본 픽셀
+    focus: box,                                        // 10-22 이 모양의 주인공(원본 픽셀) — 좁은 세로형·띠는 장면 전체가 아니라 핵심만(예: 확성기+두 사람)으로 좁혀 크게. 넓은 모양은 전체 주인공
     kvPlace: choice('kvPlace'), kvSize: choice('kvSize'),
-    textAlign: choice('textAlign'), textAnchor: choice('textAnchor'),
-    bgFill: choice('bgFill'), bgGrad: choice('bgGrad'), scrim: choice('scrim'),
+    bgFill: choice('bgFill'), scrim: choice('scrim'),   // 글자 정렬·세로 위치는 규칙(10-22), 그라데이션 방향은 field.angle
     // 10-22 사용자 「배경은 규칙 말고 AI 가 직접」: 지면 색 1~3개(#RRGGBB)·각도·글자 톤·녹임 길이. colors 가 비면 규칙(bgFill 프리셋)이 정한다
-    field: obj({ colors: { type: 'array', items: STR }, angle: NUM, text: { type: 'string', enum: ['auto', 'light', 'dark'] }, melt: NUM }),
+    field: obj({ colors: { type: 'array', items: STR }, angle: NUM, text: STR, melt: NUM }),
     // 10-22 사용자 「비중 정해 놓고 규칙대로 하는 느낌 — AI 가 직접」: 그림 상자(캔버스 몫 0~1, 지면 밖으로 흘려도 됨)·녹일 변(그림 상자 몫 0~0.6). w 가 0 이면 규칙 자리
     kvBox: box,
     fade: obj({ left: NUM, right: NUM, top: NUM, bottom: NUM }),
     why: STR,
   }) },
-  logo: obj({ kind: { type: 'string', enum: ['wordmark', 'symbol', 'combo', 'none'] } }),
+  logo: obj({ kind: STR }),   // wordmark | symbol | combo | none
   rationale: STR,
 });
 
 export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디렉터다. 키비주얼(과 로고)을 보고 「그림을 어떻게 쓸지」만 판단한다. 글자·타이포·로고 크기·검수는 규칙 엔진이 맡는다 — 네가 정하지 않는다.
 
 판단할 것:
-1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크·얼굴 등), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
-2. 모양 묶음 5개(wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·키비주얼 자리·크기·글자 정렬·글자 세로 위치·배경 방식·그라데이션·스크림. 값은 주어진 선택지 중에서만. 모르겠으면 auto.
+1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크 등), 사람·캐릭터 얼굴 상자 전부(faces — 머리카락·모자 포함, 원본 픽셀), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
+2. 모양 묶음 5개(shape 값은 wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·이 모양의 주인공(focus)·키비주얼 자리(kvPlace)·크기(kvSize)·배경 방식(bgFill)·스크림(scrim). 값은 주어진 선택지 문자열 중에서만, 모르겠으면 auto. 글자 정렬은 규칙이 정한다.
 3. 그림 상자(kvBox)를 네가 직접 정한다 — 캔버스 비율(0~1) {x,y,w,h}, 지면 밖으로 흘려도 된다(x<0, x+w>1). 이 모양에서 그림을 얼마나 크게, 어디에 둘지가 핵심 판단이다. 글자 덩어리는 kvPlace 반대쪽(오른쪽 그림이면 왼쪽 약 55%, 아래 그림이면 위쪽)에 놓이고 로고는 위쪽 모서리에 놓인다 — 주인공(얼굴·제품)은 글자 쪽과 위쪽 로고 모서리에 들어가지 않게. 그림 상자가 글자 쪽으로 넘어가도 되지만 그 변은 fade 로 녹여야 한다. fade 는 그림 상자 각 변을 녹이는 길이(상자 폭·높이의 0~0.6, 0 이면 안 녹임) — 글자 쪽을 향한 변은 0.3 이상. 누끼(투명 배경)는 fade 0. 그림을 크게 써서 지면이 비어 보이지 않게 하되, 겹치면 서버가 줄이거나 규칙 자리로 되돌린다. 모르겠으면 kvBox 의 w 를 0 으로.
 4. 지면(field)은 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
-원칙: 주인공과 보존 요소는 crop 안에. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
+원칙: 주인공과 보존 요소는 crop 안에. 모양마다 focus(이 모양의 주인공)를 정한다 — 가로형·정사각은 전체 주인공, 좁은 세로형(tall)·세로 띠(tower)·가로 띠(strip)는 장면 전체를 작게 넣지 말고 핵심만 좁혀(예: 확성기와 두 사람, 인물 한두 명의 상반신, 제품 하나) 크게 쓴다. 얼굴은 어떤 모양에서도 걸쳐 자르지 않는다 — crop 에 넣으면 통째로, 빼면 통째로. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
 
 export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}, requests = '' } = {}) {
   const [W, H] = kvMeta?.px ?? [0, 0];
@@ -63,12 +65,12 @@ export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}
   if (logoMeta) lines.push(`## 로고(두 번째 이미지): 비율 ${logoMeta.ar ? logoMeta.ar.toFixed(2) : '?'} · 톤 ${logoMeta.tone ?? '?'}`); else lines.push(`## 로고: 없음 → logo.kind = none`);
   lines.push(`## 모양 묶음과 선택지`);
   for (const s of SHAPES) lines.push(`- ${s}: ${SHAPE_LABEL[s]}`);
-  for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) lines.push(`- ${k}(${PRESETS[k].label}): ${Object.entries(PRESETS[k].choices).map(([v, l]) => `${v}=${l}`).join(' · ')}`);
+  for (const k of ['kvPlace', 'kvSize', 'bgFill', 'scrim']) lines.push(`- ${k}(${PRESETS[k].label}): ${Object.entries(PRESETS[k].choices).map(([v, l]) => `${v}=${l}`).join(' · ')}`);
   lines.push(`## 캠페인`);
   lines.push(`- 고객사 ${brief.client ?? '?'} · ${brief.hiringType ?? ''} · 메인 문구 2줄 + 접수 기간 1줄(+ 직무) 이 글자 쪽에 놓인다`);
   lines.push(`- 브랜드 색 ${[brand.primary, brand.accent].filter(Boolean).join(' ') || '없음'}`);
   lines.push(`- 고객사 요구: ${requests?.trim() || '없음'}`);
-  lines.push(`위를 보고 JSON 으로 답하라. rationale 은 한국어 두 문장.`);
+  lines.push(`위를 보고 JSON 으로 답하라. rationale 은 한국어 두 문장. type 은 위 유형 id 중 하나, mood.tone 은 light|dark, field.text 는 auto|light|dark, logo.kind 는 wordmark|symbol|combo|none.`);
   return lines.join('\n');
 }
 
@@ -100,7 +102,12 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
   const mood = kv.mood ?? {}; kv.mood = { tone: mood.tone === 'dark' ? 'dark' : 'light', colors: (Array.isArray(mood.colors) ? mood.colors : []).filter(c => HEX.test(c)).map(c => c.toUpperCase()).slice(0, 3) };
   kv.note = String(kv.note ?? '').slice(0, 300);
   // 반드시 보존 = 주인공 ∪ keep
+  kv.faces = (Array.isArray(kv.faces) ? kv.faces : []).slice(0, 12).map(f => fracBox(f, W, H)).filter(Boolean).filter(f => f.w * f.h > 0.0004);
   const must = kv.keep.reduce((u, k) => union(u, k), kv.subject);
+  const meets = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const NARROW = new Set(['tall', 'tower', 'strip']);
+  // 얼굴이 crop 에 걸쳐 있으면 통째로 넣는다(넣었다 뺐다 중 넣기 — 얼굴이 주인공 쪽이니까)
+  const faceWhole = c => { let x = c; for (let i = 0; i < 3; i++) { let changed = false; for (const f of kv.faces) if (meets(x, f) && !contains(x, f)) { x = union(x, f); changed = true; } if (!changed) break; } return x; };
   // 배열(shape 꼬리표) → 모양별 맵. 빠진 모양은 가장 가까운 것(없으면 빈 것)을 복사
   const list = Array.isArray(A.groups) ? A.groups : Object.entries(A.groups ?? {}).map(([shape, g]) => ({ ...g, shape }));
   const map = {}; for (const g of list) if (g && SHAPES.includes(g.shape) && !map[g.shape]) map[g.shape] = g;
@@ -109,11 +116,17 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
   A.groups = {};
   for (const s of SHAPES) {
     const g = A.groups[s] = map[s]; delete g.shape;
+    // 모양별 주인공(focus) — 좁은 모양만 좁힌 주인공을 지킨다(넓은 모양은 전체 주인공 ∪ 보존 요소). 겹치는 얼굴은 통째로 포함
+    let fc = fracBox(g.focus, W, H);
+    if (!fc || fc.w < 0.05 || fc.h < 0.05) fc = null;
+    let mustS = (NARROW.has(s) && fc) ? fc : must;
+    for (const f of kv.faces) if (meets(mustS, f)) mustS = union(mustS, f);
+    g.focus = fc ? { x: r3(fc.x), y: r3(fc.y), w: r3(fc.w), h: r3(fc.h) } : null;
     let crop = fracBox(g.crop, W, H) ?? { x: 0, y: 0, w: 1, h: 1 };
-    if (crop.w < 0.3 || crop.h < 0.3) { fixes.push(`${s}: crop 이 너무 작아(${r3(crop.w)}×${r3(crop.h)}) 원본 전체로`); crop = { x: 0, y: 0, w: 1, h: 1 }; }
-    if (!contains(crop, must)) { const u = union(crop, must); crop = { x: r3(u.x), y: r3(u.y), w: r3(u.w), h: r3(u.h) }; fixes.push(`${s}: crop 이 주인공·보존 요소를 잘라 넓힘`); }
+    if (crop.w < (NARROW.has(s) ? 0.15 : 0.3) || crop.h < (NARROW.has(s) ? 0.15 : 0.3)) { fixes.push(`${s}: crop 이 너무 작아(${r3(crop.w)}×${r3(crop.h)}) 원본 전체로`); crop = { x: 0, y: 0, w: 1, h: 1 }; }
+    if (!contains(crop, mustS)) { const u = union(crop, mustS); crop = { x: r3(u.x), y: r3(u.y), w: r3(u.w), h: r3(u.h) }; fixes.push(`${s}: crop 이 주인공·보존 요소를 잘라 넓힘`); }
     g.crop = crop;
-    for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) { if (!PRESETS[k].choices[g[k]]) { if (g[k] != null) fixes.push(`${s}.${k} 「${g[k]}」 선택지에 없음 → auto`); g[k] = 'auto'; } }
+    for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) { if (!PRESETS[k].choices[g[k]]) { if (g[k] != null && g[k] !== '') fixes.push(`${s}.${k} 「${g[k]}」 선택지에 없음 → auto`); g[k] = 'auto'; } }
     if (g.bgFill === 'custom') { g.bgFill = 'auto'; if (!g.field?.colors?.length) fixes.push(`${s}: 직접 색은 사람만 → auto`); }   // AI 가 지면 색(field)을 직접 줬으면 custom 은 그 뜻 — 조용히 auto
     const fd = g.field ?? {};
     const cols = (Array.isArray(fd.colors) ? fd.colors : []).filter(c => typeof c === 'string' && HEX.test(c)).map(c => c.toUpperCase()).slice(0, 3);
@@ -134,11 +147,11 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
         let c = { ...c0 };
         if (cropAR > boxAR) { const nh = Math.min(1, (c.w * W / boxAR) / H); const cy = c.y + c.h / 2; c.h = nh; c.y = clamp(cy - nh / 2, 0, 1 - nh); }
         else { const nw = Math.min(1, (c.h * H * boxAR) / W); const cx = c.x + c.w / 2; c.w = nw; c.x = clamp(cx - nw / 2, 0, 1 - nw); }
-        if (!contains(c, must)) { const u = union(c, must); c = { x: u.x, y: u.y, w: u.w, h: u.h }; }
+        if (!contains(c, mustS)) { const u = union(c, mustS); c = { x: u.x, y: u.y, w: u.w, h: u.h }; }
         // ② 넓히기로 모자라면 주인공·보존 요소 폭(높이)까지 좁힌다
         { const a1 = (c.w * W) / (c.h * H);
-          if (a1 > boxAR * 1.15) { const nw = Math.max(must.w, (c.h * H * boxAR) / W); const mx = must.x + must.w / 2; c.w = Math.min(c.w, nw); c.x = clamp(mx - c.w / 2, Math.max(0, must.x + must.w - c.w), Math.min(1 - c.w, must.x)); }
-          else if (a1 < boxAR / 1.15) { const nh = Math.max(must.h, (c.w * W / boxAR) / H); const my = must.y + must.h / 2; c.h = Math.min(c.h, nh); c.y = clamp(my - c.h / 2, Math.max(0, must.y + must.h - c.h), Math.min(1 - c.h, must.y)); } }
+          if (a1 > boxAR * 1.15) { const nw = Math.max(mustS.w, (c.h * H * boxAR) / W); const mx = mustS.x + mustS.w / 2; c.w = Math.min(c.w, nw); c.x = clamp(mx - c.w / 2, Math.max(0, mustS.x + mustS.w - c.w), Math.min(1 - c.w, mustS.x)); }
+          else if (a1 < boxAR / 1.15) { const nh = Math.max(mustS.h, (c.w * W / boxAR) / H); const my = mustS.y + mustS.h / 2; c.h = Math.min(c.h, nh); c.y = clamp(my - c.h / 2, Math.max(0, mustS.y + mustS.h - c.h), Math.min(1 - c.h, mustS.y)); } }
         c = { x: r3(c.x), y: r3(c.y), w: r3(c.w), h: r3(c.h) };
         const ar2 = (c.w * W) / (c.h * H);
         if (Math.abs(Math.log(ar2 / boxAR)) > Math.log(1.15)) {   // 원본 끝 — 상자를 그림 비율에 맞춘다(넓은 그림이면 높이를, 좁은 그림이면 폭을 줄임; 글자 쪽 변을 움직인다)
@@ -150,6 +163,7 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
         g.crop = c; fixes.push(`${s}: 보일 부분을 그림 상자 비율에 맞춰 넓힘`);
       }
     }
+    { const c2 = faceWhole(g.crop); if (c2 !== g.crop) { g.crop = { x: r3(c2.x), y: r3(c2.y), w: r3(c2.w), h: r3(c2.h) }; fixes.push(`${s}: 얼굴이 걸쳐 잘려 통째로 넣음`); } }
     const fa = g.fade ?? {}; const transparentKv = (kvMeta?.field?.opaque ?? 1) < 0.5;
     g.fade = Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, transparentKv ? 0 : r3(clamp(num(fa[k]), 0, 0.6))]));
     g.why = String(g.why ?? '').slice(0, 200);
@@ -180,8 +194,8 @@ export function presetPatch(group, analysis) {
 }
 
 // crop 뒤 좌표계에서의 주인공 상자(중심 기준 — 렌더러 kvMeta.field.focus 형식) · 없으면 null
-export function focusInCrop(analysis, crop) {
-  const s = analysis?.kv?.subject; if (!s || !crop) return null;
+export function focusInCrop(analysis, crop, group = null) {
+  const s = group?.focus ?? analysis?.kv?.subject; if (!s || !crop) return null;
   const x0 = Math.max(s.x, crop.x), y0 = Math.max(s.y, crop.y), x1 = Math.min(s.x + s.w, crop.x + crop.w), y1 = Math.min(s.y + s.h, crop.y + crop.h);
   if (x1 <= x0 || y1 <= y0) return null;
   const w = (x1 - x0) / crop.w, h = (y1 - y0) / crop.h;
@@ -189,11 +203,13 @@ export function focusInCrop(analysis, crop) {
 }
 
 // 판단을 입힌 kvMeta(사본) — 주인공 상자는 AI, 나머지 측정값은 그대로
-export function kvMetaWithAi(kvMeta, analysis, crop = { x: 0, y: 0, w: 1, h: 1 }) {
+export function kvMetaWithAi(kvMeta, analysis, crop = { x: 0, y: 0, w: 1, h: 1 }, group = null) {
   if (!kvMeta) return kvMeta;
-  const fo = focusInCrop(analysis, crop);
+  const fo = focusInCrop(analysis, crop, group);
+  // 얼굴 상자를 crop 좌표로(렌더러 aiBoxRender 가 걸쳐 잘림을 검사) — crop 과 안 겹치는 얼굴은 뺀다
+  const faces = (analysis?.kv?.faces ?? []).map(f => ({ x: (f.x - crop.x) / crop.w, y: (f.y - crop.y) / crop.h, w: f.w / crop.w, h: f.h / crop.h })).filter(f => f.x < 1 && f.y < 1 && f.x + f.w > 0 && f.y + f.h > 0).map(f => ({ x: r3(f.x), y: r3(f.y), w: r3(f.w), h: r3(f.h) }));
   const field = kvMeta.field ? { ...kvMeta.field, ...(fo ? { focus: fo } : {}) } : kvMeta.field;
-  return { ...kvMeta, field, ai: { type: analysis?.kv?.type ?? null, mood: analysis?.kv?.mood ?? null, cutSafe: analysis?.kv?.cutSafe ?? null, crop } };
+  return { ...kvMeta, field, ai: { type: analysis?.kv?.type ?? null, mood: analysis?.kv?.mood ?? null, cutSafe: analysis?.kv?.cutSafe ?? null, crop, faces } };
 }
 
 // 산출물 개별 스타일에 aiShape 가 있으면 캠페인 c.ai.groups[aiShape] 의 crop 사본·주인공 kvMeta 를 얹는다(사본은 캠페인에 모양별 5개만 — 산출물마다 복제하지 않는다).

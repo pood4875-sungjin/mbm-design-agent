@@ -42,7 +42,7 @@ export async function buildGroupStyles(analysis, { keyVisual, kvMeta, metaOf }) 
     const key = JSON.stringify(g.crop);
     if (!cache.has(key)) cache.set(key, (async () => { const kv = await cropKv(keyVisual, g.crop, { transparent }); const meta = kv === keyVisual ? kvMeta : await metaOf(kv); return { kv, meta }; })());
     const { kv, meta } = await cache.get(key);
-    out[s] = { keyVisual: kv, kvMeta: kvMetaWithAi(meta, analysis, g.crop), patch: presetPatch(g, analysis), crop: g.crop, why: g.why };
+    out[s] = { keyVisual: kv, kvMeta: kvMetaWithAi(meta, analysis, g.crop, g), patch: presetPatch(g, analysis), crop: g.crop, why: g.why };
   }
   return out;
 }

@@ -282,7 +282,10 @@ function aiBoxRender(ctx, style, spec) {
   })();
   // 주인공이 지면 밖으로 잘리는 몫 — 키울 때 15% 넘게 잘리면 안 쓴다
   const subjCut = html => { let worst = 0; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, S0 = fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p; const a = S0.w * S0.h; if (!(a > 0)) continue; const vis = Math.max(0, Math.min(S0.x + S0.w, W, o.clip.x + o.clip.w) - Math.max(S0.x, 0, o.clip.x)) * Math.max(0, Math.min(S0.y + S0.h, H, o.clip.y + o.clip.h) - Math.max(S0.y, 0, o.clip.y)); worst = Math.max(worst, 1 - vis / a); } return worst; };
-  const passes = html => { const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0; return { ok: ov <= thr && logoHit(html) <= 0.05, ov }; };
+  // 얼굴(kvMeta.ai.faces, crop 좌표) — 보이는 몫이 3~97% 면 걸쳐 잘린 것 → 그 후보 탈락(통째로 보이거나 통째로 빠져야 한다)
+  const faces = first.styleUsed.kvMeta?.ai?.faces ?? [];
+  const faceCut = html => { for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic; for (const f of faces) { const F = { x: p.x + f.x * p.w, y: p.y + f.y * p.h, w: f.w * p.w, h: f.h * p.h }; const a = F.w * F.h; if (!(a > 0)) continue; const vis = Math.max(0, Math.min(F.x + F.w, W, o.clip.x + o.clip.w) - Math.max(F.x, 0, o.clip.x)) * Math.max(0, Math.min(F.y + F.h, H, o.clip.y + o.clip.h) - Math.max(F.y, 0, o.clip.y)); const r = vis / a; if (r > 0.03 && r < 0.97) return true; } } return false; };
+  const passes = html => { const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0; return { ok: ov <= thr && logoHit(html) <= 0.05 && !faceCut(html), ov }; };
   for (const k of [1, 0.85, 0.7, ...(fitK && fitK < 0.7 ? [fitK] : [])]) {
     let html = build(k); const r = passes(html);
     if (r.ok) {

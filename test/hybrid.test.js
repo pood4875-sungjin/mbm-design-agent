@@ -12,10 +12,14 @@ const good = () => ({
   logo: { kind: 'none' }, rationale: '지구본을 오른쪽에.',
 });
 
-test('스키마 — 프리셋 키 7개와 모양 묶음 5개가 들어 있고 additionalProperties 없음', () => {
+test('스키마 — 모양 묶음 배열·프리셋 키·얼굴·모양별 주인공, enum 없이 작게(API 「grammar too large」 2회), additionalProperties 없음', () => {
   const g = ANALYSIS_SCHEMA.properties.groups;
-  assert.equal(g.type, 'array'); assert.deepEqual(g.items.properties.shape.enum, SHAPES);
-  for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) assert.ok(g.items.properties[k].enum.includes('auto'), k);
+  assert.equal(g.type, 'array');
+  for (const k of ['shape', 'crop', 'focus', 'kvPlace', 'kvSize', 'bgFill', 'scrim', 'field', 'kvBox', 'fade']) assert.ok(g.items.properties[k], k);
+  assert.ok(!g.items.properties.textAlign && !g.items.properties.textAnchor, '글자 정렬은 규칙');
+  assert.ok(ANALYSIS_SCHEMA.properties.kv.properties.faces);
+  assert.ok(!JSON.stringify(ANALYSIS_SCHEMA).includes('"enum"'), 'enum 없음');
+  assert.ok(JSON.stringify(ANALYSIS_SCHEMA).length < 4000);
   assert.equal(ANALYSIS_SCHEMA.additionalProperties, false);
   const p = analysisPrompt({ kvMeta: meta28, brief: { client: 'GS에너지' }, brand: { primary: '#326CD1' } });
   assert.ok(p.includes('736×980') && p.includes('kvPlace') && p.includes('GS에너지') && p.includes('illust-object'));
@@ -134,4 +138,41 @@ test('검증 — 세로형 상자에 가로로 넓은 crop 이면 원본에서 �
   const c = analysis.groups.tall.crop, ar = (c.w * 736) / (c.h * 980);
   assert.ok(Math.abs(ar - 1) < 0.15, `crop 비율 ${ar.toFixed(2)} ≈ 1`); assert.ok(c.h > 0.583, '위로 더 가져옴(하늘)');
   assert.ok(fixes.some(s => s.includes('tall: 보일 부분을 그림 상자 비율에')));
+});
+
+test('좁은 모양 주인공·얼굴 — tall/tower/strip 은 모양별 focus 로 좁혀 crop(넓은 모양은 전체 주인공), 걸친 얼굴은 통째로 넣는다(10-22 사용자 「확성기+두 사람, 얼굴은 안 잘리게」)', () => {
+  const A = good(); const G = Object.fromEntries(A.groups.map(g => [g.shape, g]));
+  A.kv.subject = { x: 40, y: 500, w: 660, h: 460 }; A.kv.keep = [];
+  A.kv.faces = [{ x: 120, y: 520, w: 70, h: 80 }, { x: 330, y: 540, w: 60, h: 70 }, { x: 560, y: 510, w: 70, h: 80 }];
+  for (const s of SHAPES) { G[s].kvBox = { x: 0, y: 0, w: 0, h: 0 }; G[s].focus = { x: 300, y: 500, w: 300, h: 460 }; G[s].crop = { x: 300, y: 480, w: 300, h: 500 }; }
+  const { analysis, fixes } = validateAnalysis(A, { kvMeta: meta28 });
+  const S = analysis.kv.subject, fx = 560 / 736;
+  // 좁은 모양: 좁힌 focus(x 300~600) 를 지키고 전체 주인공으로 넓히지 않는다 — 오른쪽 얼굴(560~630)이 걸쳐 있으니 통째로
+  const t = analysis.groups.tall.crop;
+  assert.ok(t.x > S.x + 0.05, `tall crop 은 전체 주인공(${S.x})보다 좁다: ${t.x}`);
+  assert.ok(t.x + t.w >= (560 + 70) / 736 - 1e-3, '걸친 얼굴은 통째로(주인공 단계에서 포함)'); void fixes;
+  // 넓은 모양: 전체 주인공을 지킨다
+  const w = analysis.groups.wide.crop; assert.ok(w.x <= S.x + 1e-3 && w.x + w.w >= S.x + S.w - 1e-3);
+  assert.equal(analysis.kv.faces.length, 3); assert.ok(analysis.groups.tall.focus.x > 0.4);
+  // kvMetaWithAi: 모양별 focus·얼굴을 crop 좌표로
+  const m = kvMetaWithAi(meta28, analysis, t, analysis.groups.tall);
+  assert.ok(m.field.focus.w < 1 && m.ai.faces.length >= 2, JSON.stringify(m.ai.faces));
+  assert.ok(m.ai.faces.every(f => f.x + f.w > 0 && f.x < 1));
+  void fx;
+});
+
+test('렌더러 — AI 상자가 얼굴을 걸쳐 자르면 그 후보는 탈락(줄이거나 규칙 자리)', async () => {
+  const { registerAll } = await import('../core/generate.js'); registerAll();
+  const { renderArtifact } = await import('../core/contract.js');
+  const { createContext } = await import('../core/context.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', deadline: '2025-07-02', season: '2025년' }, 'recruit');
+  const spec = 'kakao-display-pc-promo';
+  const kvMeta = { ...meta28, ai: { faces: [] } };
+  const okH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
+  assert.match(okH, /data-ad="1" data-ai-box="100:/);
+  // 상자 오른쪽 끝(지면 밖 60px)에 걸친 얼굴 — 그림 x 0.9~1.0 → 지면 1200 을 넘는 부분이 잘림
+  const cutMeta = { ...meta28, ai: { faces: [{ x: 0.88, y: 0.3, w: 0.12, h: 0.1 }] } };
+  const cutH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: cutMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
+  assert.doesNotMatch(cutH, /data-ad="1" data-ai-box="100:/, '얼굴이 걸친 원래 상자는 안 쓴다');
 });

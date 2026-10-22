@@ -113,7 +113,7 @@ for (const id of CASES) {
       if (!cropCache.has(key)) { const f = path.join(OUT, `${id}_${shape}_crop${path.extname(kvFile)}`); cropFile(kvFile, f, g.crop); cropCache.set(key, { file: f, meta: measureFile(f) }); }
       ({ file: kvC, meta: metaC } = cropCache.get(key));
     }
-    const styleC = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }), ...logoStyle, ...presetPatch(g, out.analysis) });
+    const styleC = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }, g), ...logoStyle, ...presetPatch(g, out.analysis) });
     const styleA = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvFile).href, kvMeta: meta, ...logoStyle });
     const cell = { spec: sid, title: spec.title, w: spec.w, h: spec.h, shape, group: g, stage: STAGE_OF[sid] ?? null };
     for (const [tr, st] of [['C', styleC], ...(flag('--no-a') ? [] : [['A', styleA]])]) {
