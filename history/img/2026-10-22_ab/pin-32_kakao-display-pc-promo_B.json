@@ -1,0 +1,235 @@
+{
+ "layout": {
+  "background": {
+   "base": {
+    "kind": "solid",
+    "colors": [
+     "#3A2012"
+    ],
+    "angle": 0
+   },
+   "shapes": [
+    {
+     "kind": "rect",
+     "x": 64,
+     "y": 118,
+     "w": 64,
+     "h": 6,
+     "color": "#C75420",
+     "opacity": 1,
+     "radius": 3,
+     "blur": 0
+    }
+   ]
+  },
+  "images": [
+   {
+    "id": "kv",
+    "x": 600,
+    "y": 0,
+    "w": 600,
+    "h": 600,
+    "crop": {
+     "x": 0.133,
+     "y": 0,
+     "w": 0.633,
+     "h": 1
+    },
+    "opacity": 1,
+    "fade": "left"
+   }
+  ],
+  "texts": [
+   {
+    "role": "main",
+    "text": "동서식품 대졸\n신입/경력사원 채용",
+    "x": 64,
+    "y": 150,
+    "w": 520,
+    "size": 56,
+    "weight": 700,
+    "color": "#FFFFFF",
+    "align": "left",
+    "lineHeight": 1.25,
+    "letterSpacing": -0.08
+   },
+   {
+    "role": "period",
+    "text": "9.28(월) - 10.12(월)",
+    "x": 64,
+    "y": 332,
+    "w": 520,
+    "size": 48,
+    "weight": 500,
+    "color": "#EDBE84",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": -0.08
+   }
+  ],
+  "rationale": "두 인물이 있는 소파 장면을 오른쪽 600px에 크게 두고, 왼쪽 가장자리를 사진의 짙은 갈색 그림자 톤 배경으로 녹여 인물 위에 글자가 겹치지 않게 했습니다. 48px 이상 규정과 3줄 권장에 맞춰 메인 2줄(흰색)과 접수기간 1줄(키비주얼의 따뜻한 베이지)만 남겼고, 브랜드 오렌지는 소파 색과 어울리는 짧은 강조 바로만 사용했습니다.",
+  "canvas": {
+   "w": 1200,
+   "h": 600
+  }
+ },
+ "fixed": {
+  "specId": "kakao-display-pc-promo",
+  "w": 1200,
+  "h": 600,
+  "safe": {
+   "top": 40,
+   "right": 40,
+   "bottom": 90,
+   "left": 40,
+   "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+   "note": "'상단 및 좌/우 40px, 하단 90px 영역에는 텍스트, 로고 및 주요 오브젝트를 배치하지 않는 것을 권장(하단에는 복잡한 요소도 사용하지 않는 것을 추가 권장)' — 권장 사항"
+  },
+  "fontSize": {
+   "min": 48,
+   "max": 164,
+   "source": "매체 규정"
+  },
+  "noticeMin": 24,
+  "maxLines": 3,
+  "textLimitNote": "'이미지 내 텍스트는 48px~164px' / 심의필·저작권 등 필수 문구는 24px 이상 권장 / '최대 3줄까지 구성하는 것을 권장' / '4가지 이상의 폰트 스타일과 컬러 사용 불가' / '분할 이미지 사용시 이미지 내 텍스트 미사용 권장'",
+  "font": {
+   "id": "Pretendard",
+   "family": "Pretendard",
+   "stack": "'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif",
+   "fixed": true,
+   "required": "Pretendard",
+   "note": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음."
+  },
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "requiredTexts": [
+   {
+    "role": "main",
+    "text": "동서식품",
+    "verbatim": false,
+    "why": "고객사 이름"
+   },
+   {
+    "role": "period",
+    "text": "9.28(월) - 10.12(월)",
+    "verbatim": false,
+    "why": "접수 기간(브리프 그대로)"
+   }
+  ],
+  "hasKv": true,
+  "hasLogo": false,
+  "kvAr": 1.5797101449275361,
+  "kvPx": [
+   1199,
+   759
+  ],
+  "logoAr": null,
+  "background": "'투명도 있는 이미지 사용 불가'(docx). 예시: 그라데이션 배경+CI(LX인터내셔널), 텍스트+오브젝트형(한국앤컴퍼니)",
+  "maxKB": 500,
+  "copy": {
+   "main": "동서식품 대졸 신입/경력사원 채용",
+   "sub": "동서식품의 새로운 인재를 찾습니다!",
+   "mainWide": "2026년 동서식품 대졸 신입/경력사원 채용",
+   "mainNarrow": "동서식품 2026년 대졸 신입/경력사원 채용",
+   "subNarrow": "동서식품의 새로운 인재를 찾습니다!",
+   "date": "9.28(월) - 10.12(월)",
+   "extra": "",
+   "advertiser": "동서식품",
+   "cta": "지원하기",
+   "notice": "",
+   "label": "접수기간",
+   "url": ""
+  }
+ },
+ "fixes": [
+  "키비주얼 crop 을 픽셀 → 비율로 환산"
+ ],
+ "unresolved": [],
+ "usage": {
+  "input_tokens": 4950,
+  "output_tokens": 2008,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.06,
+ "calls": 1,
+ "ms": 25054,
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "rationale": "두 인물이 있는 소파 장면을 오른쪽 600px에 크게 두고, 왼쪽 가장자리를 사진의 짙은 갈색 그림자 톤 배경으로 녹여 인물 위에 글자가 겹치지 않게 했습니다. 48px 이상 규정과 3줄 권장에 맞춰 메인 2줄(흰색)과 접수기간 1줄(키비주얼의 따뜻한 베이지)만 남겼고, 브랜드 오렌지는 소파 색과 어울리는 짧은 강조 바로만 사용했습니다.",
+ "raw": {
+  "background": {
+   "base": {
+    "kind": "solid",
+    "colors": [
+     "#3A2012"
+    ],
+    "angle": 0
+   },
+   "shapes": [
+    {
+     "kind": "rect",
+     "x": 64,
+     "y": 118,
+     "w": 64,
+     "h": 6,
+     "color": "#C75420",
+     "opacity": 1,
+     "radius": 3,
+     "blur": 0
+    }
+   ]
+  },
+  "images": [
+   {
+    "id": "kv",
+    "x": 600,
+    "y": 0,
+    "w": 600,
+    "h": 600,
+    "crop": {
+     "x": 160,
+     "y": 0,
+     "w": 759,
+     "h": 759
+    },
+    "opacity": 1,
+    "fade": "left"
+   }
+  ],
+  "texts": [
+   {
+    "role": "main",
+    "text": "동서식품 대졸\n신입/경력사원 채용",
+    "x": 64,
+    "y": 150,
+    "w": 520,
+    "size": 56,
+    "weight": 700,
+    "color": "#FFFFFF",
+    "align": "left",
+    "lineHeight": 1.25,
+    "letterSpacing": -1
+   },
+   {
+    "role": "period",
+    "text": "9.28(월) - 10.12(월)",
+    "x": 64,
+    "y": 332,
+    "w": 520,
+    "size": 48,
+    "weight": 500,
+    "color": "#EDBE84",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": -0.5
+   }
+  ],
+  "rationale": "두 인물이 있는 소파 장면을 오른쪽 600px에 크게 두고, 왼쪽 가장자리를 사진의 짙은 갈색 그림자 톤 배경으로 녹여 인물 위에 글자가 겹치지 않게 했습니다. 48px 이상 규정과 3줄 권장에 맞춰 메인 2줄(흰색)과 접수기간 1줄(키비주얼의 따뜻한 베이지)만 남겼고, 브랜드 오렌지는 소파 색과 어울리는 짧은 강조 바로만 사용했습니다."
+ }
+}

@@ -80,9 +80,9 @@ export function buildPrompt(fixed, { brief = {}, brand = {}, requests = '', kvMe
   if (fixed.maxKB) lines.push(`- 파일 용량 ${fixed.maxKB}KB 이하 (과한 그라데이션·블러는 용량을 키운다)`);
   lines.push('');
   lines.push(`## 그림`);
-  if (fixed.hasKv) lines.push(`- 키비주얼(첫 번째 이미지): 원본 ${fixed.kvPx ? `${fixed.kvPx[0]}×${fixed.kvPx[1]}px` : ''} 비율 ${fixed.kvAr ? fixed.kvAr.toFixed(3) : '?'}${kvTypeSummary ? ` · 유형 ${kvTypeSummary}` : ''}${kvMeta?.colors?.length ? ` · 대표색 ${kvMeta.colors.join(' ')}` : ''}${kvMeta?.edge ? ` · 가장자리색 ${kvMeta.edge}` : ''}. 왜곡 없이 crop 으로 보일 부분을 정한다(보이는 부분의 비율 = 상자 비율로 맞춰진다).`);
+  if (fixed.hasKv) lines.push(`- 키비주얼(첫 번째 이미지): 원본 ${fixed.kvPx ? `${fixed.kvPx[0]}×${fixed.kvPx[1]}px` : ''} 비율 ${fixed.kvAr ? fixed.kvAr.toFixed(3) : '?'}${kvTypeSummary ? ` · 유형 ${kvTypeSummary}` : ''}${kvMeta?.colors?.length ? ` · 대표색 ${kvMeta.colors.join(' ')}` : ''}${kvMeta?.edge ? ` · 가장자리색 ${kvMeta.edge}` : ''}. 왜곡 없이 crop 으로 보일 부분을 정한다 — crop 은 원본 픽셀 기준 {x,y,w,h}(0 ≤ x+w ≤ 원본 가로, 0 ≤ y+h ≤ 원본 세로). 보이는 부분의 비율은 상자 비율로 맞춰진다.`);
   else lines.push(`- 키비주얼 없음 — 글자와 배경 그래픽만으로 구성`);
-  if (fixed.hasLogo) lines.push(`- 로고(${fixed.hasKv ? '두 번째' : '첫 번째'} 이미지): 비율 ${fixed.logoAr ? fixed.logoAr.toFixed(3) : '?'}${logoMeta?.tone ? ` · 톤 ${logoMeta.tone === 'light' ? '흰색(밝은 로고 — 어두운 바탕 필요)' : '어두운/유색'}` : ''}. 원본 비율 그대로, 전체(crop 0,0,1,1), 안전영역 안.`);
+  if (fixed.hasLogo) lines.push(`- 로고(${fixed.hasKv ? '두 번째' : '첫 번째'} 이미지): 비율 ${fixed.logoAr ? fixed.logoAr.toFixed(3) : '?'}${logoMeta?.tone ? ` · 톤 ${logoMeta.tone === 'light' ? '흰색(밝은 로고 — 어두운 바탕 필요)' : '어두운/유색'}` : ''}. 원본 비율 그대로, 전체(crop 은 원본 전체), 안전영역 안.`);
   else lines.push(`- 로고 없음 — 로고 층을 만들지 않는다`);
   lines.push('');
   lines.push(`## 광고 문구 (이 글만 쓴다 — 역할별)`);

@@ -1,0 +1,263 @@
+{
+ "layout": {
+  "background": {
+   "base": {
+    "kind": "linear",
+    "colors": [
+     "#1D4AAE",
+     "#326CD1"
+    ],
+    "angle": 90
+   },
+   "shapes": [
+    {
+     "kind": "rect",
+     "x": 62,
+     "y": 312,
+     "w": 64,
+     "h": 6,
+     "color": "#6FC62D",
+     "opacity": 1,
+     "radius": 3,
+     "blur": 0
+    }
+   ]
+  },
+  "images": [
+   {
+    "id": "kv",
+    "x": 680,
+    "y": 0,
+    "w": 520,
+    "h": 600,
+    "crop": {
+     "x": 0,
+     "y": 0.134,
+     "w": 1,
+     "h": 0.866
+    },
+    "opacity": 1,
+    "fade": "left"
+   }
+  ],
+  "texts": [
+   {
+    "role": "season",
+    "text": "2025년",
+    "x": 60,
+    "y": 140,
+    "w": 620,
+    "size": 48,
+    "weight": 600,
+    "color": "#FFFFFF",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": 0
+   },
+   {
+    "role": "main",
+    "text": "GS에너지 신입 공채",
+    "x": 60,
+    "y": 204,
+    "w": 640,
+    "size": 72,
+    "weight": 700,
+    "color": "#FFFFFF",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": -0.08
+   },
+   {
+    "role": "period",
+    "text": "6.20(금) - 7.2(수) 17시",
+    "x": 60,
+    "y": 336,
+    "w": 620,
+    "size": 48,
+    "weight": 500,
+    "color": "#DCE8FF",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": 0
+   }
+  ],
+  "rationale": "하늘색과 이어지는 브랜드 블루 그라데이션 위 왼쪽에 시즌·메인·접수기간 3줄만 흰 계열로 쌓아 최소 글자 크기와 3줄 권장을 지키며 대비를 확보했고, 지구를 받친 손 키비주얼은 오른쪽에 통째로 보이게 crop하고 왼쪽을 녹여 배경과 자연스럽게 잇습니다. 키비주얼의 잔디색을 작은 구분선으로 가져와 메인과 기간 사이 위계를 정리했습니다.",
+  "canvas": {
+   "w": 1200,
+   "h": 600
+  }
+ },
+ "fixed": {
+  "specId": "kakao-display-pc-promo",
+  "w": 1200,
+  "h": 600,
+  "safe": {
+   "top": 40,
+   "right": 40,
+   "bottom": 90,
+   "left": 40,
+   "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx",
+   "note": "'상단 및 좌/우 40px, 하단 90px 영역에는 텍스트, 로고 및 주요 오브젝트를 배치하지 않는 것을 권장(하단에는 복잡한 요소도 사용하지 않는 것을 추가 권장)' — 권장 사항"
+  },
+  "fontSize": {
+   "min": 48,
+   "max": 164,
+   "source": "매체 규정"
+  },
+  "noticeMin": 24,
+  "maxLines": 3,
+  "textLimitNote": "'이미지 내 텍스트는 48px~164px' / 심의필·저작권 등 필수 문구는 24px 이상 권장 / '최대 3줄까지 구성하는 것을 권장' / '4가지 이상의 폰트 스타일과 컬러 사용 불가' / '분할 이미지 사용시 이미지 내 텍스트 미사용 권장'",
+  "font": {
+   "id": "Pretendard",
+   "family": "Pretendard",
+   "stack": "'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif",
+   "fixed": true,
+   "required": "Pretendard",
+   "note": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음."
+  },
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "requiredTexts": [
+   {
+    "role": "main",
+    "text": "GS에너지",
+    "verbatim": false,
+    "why": "고객사 이름"
+   },
+   {
+    "role": "period",
+    "text": "6.20(금) - 7.2(수) 17시",
+    "verbatim": false,
+    "why": "접수 기간(브리프 그대로)"
+   }
+  ],
+  "hasKv": true,
+  "hasLogo": false,
+  "kvAr": 0.7510204081632653,
+  "kvPx": [
+   736,
+   980
+  ],
+  "logoAr": null,
+  "background": "'투명도 있는 이미지 사용 불가'(docx). 예시: 그라데이션 배경+CI(LX인터내셔널), 텍스트+오브젝트형(한국앤컴퍼니)",
+  "maxKB": 500,
+  "copy": {
+   "main": "GS에너지 신입 공채",
+   "sub": "2025년",
+   "mainWide": "2025년 GS에너지 신입 공채",
+   "mainNarrow": "GS에너지 2025년 신입 공채",
+   "subNarrow": "2025년 GS에너지",
+   "date": "6.20(금) - 7.2(수) 17시",
+   "extra": "",
+   "advertiser": "GS에너지",
+   "cta": "지원하기",
+   "notice": "",
+   "label": "접수기간",
+   "url": ""
+  }
+ },
+ "fixes": [
+  "키비주얼 crop 을 픽셀 → 비율로 환산"
+ ],
+ "unresolved": [],
+ "usage": {
+  "input_tokens": 4585,
+  "output_tokens": 2215,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0626,
+ "calls": 1,
+ "ms": 25728,
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "rationale": "하늘색과 이어지는 브랜드 블루 그라데이션 위 왼쪽에 시즌·메인·접수기간 3줄만 흰 계열로 쌓아 최소 글자 크기와 3줄 권장을 지키며 대비를 확보했고, 지구를 받친 손 키비주얼은 오른쪽에 통째로 보이게 crop하고 왼쪽을 녹여 배경과 자연스럽게 잇습니다. 키비주얼의 잔디색을 작은 구분선으로 가져와 메인과 기간 사이 위계를 정리했습니다.",
+ "raw": {
+  "background": {
+   "base": {
+    "kind": "linear",
+    "colors": [
+     "#1D4AAE",
+     "#326CD1"
+    ],
+    "angle": 90
+   },
+   "shapes": [
+    {
+     "kind": "rect",
+     "x": 62,
+     "y": 312,
+     "w": 64,
+     "h": 6,
+     "color": "#6FC62D",
+     "opacity": 1,
+     "radius": 3,
+     "blur": 0
+    }
+   ]
+  },
+  "images": [
+   {
+    "id": "kv",
+    "x": 680,
+    "y": 0,
+    "w": 520,
+    "h": 600,
+    "crop": {
+     "x": 0,
+     "y": 131,
+     "w": 736,
+     "h": 849
+    },
+    "opacity": 1,
+    "fade": "left"
+   }
+  ],
+  "texts": [
+   {
+    "role": "season",
+    "text": "2025년",
+    "x": 60,
+    "y": 140,
+    "w": 620,
+    "size": 48,
+    "weight": 600,
+    "color": "#FFFFFF",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": 0
+   },
+   {
+    "role": "main",
+    "text": "GS에너지 신입 공채",
+    "x": 60,
+    "y": 204,
+    "w": 640,
+    "size": 72,
+    "weight": 700,
+    "color": "#FFFFFF",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": -1
+   },
+   {
+    "role": "period",
+    "text": "6.20(금) - 7.2(수) 17시",
+    "x": 60,
+    "y": 336,
+    "w": 620,
+    "size": 48,
+    "weight": 500,
+    "color": "#DCE8FF",
+    "align": "left",
+    "lineHeight": 1.2,
+    "letterSpacing": 0
+   }
+  ],
+  "rationale": "하늘색과 이어지는 브랜드 블루 그라데이션 위 왼쪽에 시즌·메인·접수기간 3줄만 흰 계열로 쌓아 최소 글자 크기와 3줄 권장을 지키며 대비를 확보했고, 지구를 받친 손 키비주얼은 오른쪽에 통째로 보이게 crop하고 왼쪽을 녹여 배경과 자연스럽게 잇습니다. 키비주얼의 잔디색을 작은 구분선으로 가져와 메인과 기간 사이 위계를 정리했습니다."
+ }
+}

@@ -72,6 +72,15 @@ test('검증 — 고정 조건 위반은 고친다: 안전영역 밖 글자·로
   assert.ok(r.fixes.length >= 6, r.fixes.join(' / '));
 });
 
+test('검증 — crop 이 원본 픽셀로 오면 비율로 환산한다(10-22 실제 응답)', () => {
+  const L = good(); L.images[0].crop = { x: 0, y: 30, w: 736, h: 883 };
+  const r = validateLayout(L, fixedK());
+  const c = r.layout.images[0].crop;
+  assert.ok(r.fixes.some(s => s.includes('픽셀 → 비율')));
+  assert.ok(c.w > 0.5 && c.h > 0.5 && c.x >= 0 && c.y >= 0, JSON.stringify(c));
+  assert.ok(Math.abs((c.w * meta28.ar) / c.h - 500 / 600) < 0.02, '상자 비율로 맞춤');
+});
+
 test('검증 — 고객사 이름·접수 기간이 없거나 로고 층이 빠지면 재요청 사유, 로고 파일이 없는데 로고 층이 있으면 지움', () => {
   const L = good(); L.texts[0].text = '신입 공채'; L.texts[1].text = '접수기간 6월'; L.images.splice(1, 1);
   const r = validateLayout(L, fixedK());

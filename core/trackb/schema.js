@@ -103,7 +103,9 @@ export function validateLayout(input, fixed) {
       o.opacity = 1;
     } else {
       if (!fixed.hasKv) { fix('키비주얼 파일이 없는데 그림 층이 있어 지움'); continue; }
-      const c = im.crop ?? {};
+      let c = { ...(im.crop ?? {}) };
+      // 모델이 crop 을 원본 픽셀로 주면(값 > 1) 비율로 바꾼다 — 10-22 첫 실행 둘 다 픽셀로 와서 5% 조각만 확대됐다
+      if (fixed.kvPx && ['x', 'y', 'w', 'h'].some(k => num(c[k]) > 1)) { const [W0, H0] = fixed.kvPx; c = { x: num(c.x) / W0, y: num(c.y) / H0, w: num(c.w, W0) / W0, h: num(c.h, H0) / H0 }; fix('키비주얼 crop 을 픽셀 → 비율로 환산'); }
       o.crop = { x: clamp(num(c.x), 0, 0.95), y: clamp(num(c.y), 0, 0.95), w: clamp(num(c.w, 1), 0.05, 1), h: clamp(num(c.h, 1), 0.05, 1) };
       if (o.crop.x + o.crop.w > 1) o.crop.w = 1 - o.crop.x;
       if (o.crop.y + o.crop.h > 1) o.crop.h = 1 - o.crop.y;
