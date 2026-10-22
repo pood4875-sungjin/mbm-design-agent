@@ -208,6 +208,10 @@ export function moodStops(style, e, f, K = CANON.kvMood) {
     return { stops: pair.stops.map(deep), angle: pair.angle, align, source: 'kv-mood-dark' };
   }
   // ③ 채도 있는 그라데이션 변(기아 라벤더→파랑 · GC 민트→파랑)
+  // 색상 차가 maxHueGap 을 넘는 두 변은 그라데이션이 아니라 다른 면 둘(하늘/잔디) — 이으면 두 색 지면이 되고 흰 글자 대비로 어둡혀져 탁해진다(10-22 pin-28)
+  const hueDeg = h => { const v = rgbToHsl(hexToRgb(h))[0]; return v <= 1 ? v * 360 : v; };   // palette.rgbToHsl 의 색상은 0~1 몫
+  const hueGap = (a, b) => { const d = Math.abs(hueDeg(a) - hueDeg(b)) % 360; return Math.min(d, 360 - d); };
+  if (K.maxHueGap != null && hueGap(pair.stops[0], pair.stops[1]) > K.maxHueGap) return null;
   if ((sat(pair.stops[0]) + sat(pair.stops[1])) / 2 >= K.minSat && pair.d >= K.minGrad) return { stops: pair.stops, angle: pair.angle, align, source: 'kv-mood' };
   return null;
 }

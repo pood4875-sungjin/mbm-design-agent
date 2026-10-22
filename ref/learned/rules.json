@@ -1,6 +1,6 @@
 {
  "note": "규칙 장부 — 한 규칙 = 한 줄. 사람용은 history/규칙장부.md(scripts/rules-ledger.mjs --md 로 표를 다시 만든다). 규칙을 넣거나 바꾸면 여기 한 줄 추가·수정 + 히스토리 기록.",
- "updated": "2026-10-21",
+ "updated": "2026-10-22",
  "rules": [
   {
    "status": "active",
@@ -4290,6 +4290,22 @@
    "since": "2026-10-21",
    "round": 74,
    "source": "history/2026-10-21_녹임_예산.md"
+  },
+  {
+   "id": "kv-mood-hue-gap",
+   "category": "지면 색",
+   "scope": "all (사진·바탕 있는 그림의 분위기 지면 kvMood ③)",
+   "status": "active",
+   "rule": "그림 위·아래(또는 왼·오른쪽) 변 색을 이어 분위기 그라데이션 지면을 깔 때, 두 변의 HSL 색상 차가 60°를 넘으면 그라데이션이 아니라 「다른 면 둘」(하늘/잔디·벽/바닥)로 보고 분위기 지면을 깔지 않는다 → 비주얼 우선 단색(kv-vivid-photo: 왼변·대표색 중 화사한 색 + 같은 색상 135° 살짝 어둡힘). 기아 라벤더→파랑(≈30°)·GC 민트→파랑(≈50°)은 그대로 잇는다",
+   "value": "CANON.kvMood.maxHueGap 60 (palette.rgbToHsl 색상 0~1 몫 → 도 단위로 환산)",
+   "where": "core/field.js moodStops · core/canon.js kvMood",
+   "evidence": [
+    "10-22 사용자 「뭔가 부자연스럽고 색도 자연스럽지 못해」 — pin-28 지구본 일러스트(위변 하늘 #2A65CF · 아랫변 잔디 #73BB2A, 색상 차 129°)로 GS에너지 20종: 파랑→초록 두 색 지면이 흰 글자 대비(vividWhite)로 남색 #1E4894 → 올리브 #4F811D 가 되어 그림(밝은 하늘·선명한 잔디)과 따로 놀았다",
+    "고친 뒤 단색 파랑 #2573D0→#1F60AD(kv-vivid-photo), 하늘 변이 지면에 그대로 이어진다. 케이스 144 중 달라진 것 2(pin-28·desk-28 — 같은 그림). 테스트 539"
+   ],
+   "since": "2026-10-22",
+   "round": 75,
+   "source": "history/2026-10-22_분위기_지면_색상차.md"
   }
  ]
 }
