@@ -240,6 +240,7 @@ function renderAdInner(ctx, style, spec) {
 //   가이드 검사: 글자 행 × 주인공 겹침(overlapRatio — 문턱은 overlapFix 와 같게 캐릭터·누끼 2% · 그 외 15%) + 주인공의 로고 칸 가림 ≤ 5%.
 //   넘으면 그림 상자를 글자 반대쪽 변을 붙잡고 0.85·0.7 로 줄여 다시 재고, 그래도 넘으면 null → 기존 규칙 파이프라인(겹침 교정·빈 지면 보정).
 //   틀 그림 칸이 고정인 매체(자소설·리멤버·잡다·에브리타임·캐치)·비즈보드·로고 전용·그림 층 없음은 건너뛴다(null).
+const AI_INNER_FADE = 0.22;   // 떠 있는 변의 최소 녹임(그림 상자 몫)
 function aiBoxRender(ctx, style, spec) {
   if (!aiEligible(spec)) return null;
   const first = renderOnce(ctx, style, spec);
@@ -252,72 +253,75 @@ function aiBoxRender(ctx, style, spec) {
   const f = first.styleUsed.kvMeta?.field ?? null, fo = f?.focus ?? profileFocus(f) ?? null;
   const transparent = (f?.opaque ?? 1) < 0.5;
   const rows = T.textBox?.rows ?? [];
-  const tc = rows.length ? { x: rows.reduce((a, r) => a + r.x + r.w / 2, 0) / rows.length, y: rows.reduce((a, r) => a + r.y + r.h / 2, 0) / rows.length } : { x: 0, y: 0 };
+  const tc = rows.length ? { x: rows.reduce((a, r) => a + r.x + r.w / 2, 0) / rows.length, y: rows.reduce((a, r) => a + r.y + r.h / 2, 0) / rows.length } : { x: W / 2, y: H / 2 };
   const logoM = first.html.match(/<div data-logo-slot="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
   const logoR = logoM ? { x: +logoM[1], y: +logoM[2], w: +logoM[3], h: +logoM[4] } : null;
   const OV = CANON.overlapFix, thr = OV.character;   // AI 상자는 엄하게(2%) — 규칙 자리보다 크게 쓰는 만큼 글자가 주인공에 닿으면 안 된다(10-22 네이버 1250 제목이 신호등 기둥에)
-  const build = (k, grow = 1, inside = false) => {
-    // 줄일 때(k<1): 글자 쪽 축만(가로로 떨어져 있으면 폭만, 세로면 높이만) — 글자 반대쪽 변을 붙잡고. 위아래 꽉 찬 사진에 빈 띠가 생기지 않게
-    // 키울 때(grow>1): 두 축 다 — 글자 반대쪽 변을 붙잡고, 다른 축은 가운데 기준(빈 지면 보정과 같은 뜻 — 그림이 커서 비어 보이지 않게)
-    const cx = (B.x + B.w / 2) * W, cy = (B.y + B.h / 2) * H;
-    const horiz = Math.abs(cx - tc.x) / W >= Math.abs(cy - tc.y) / H;
-    const bw = B.w * W * (horiz ? k : 1) * grow, bh = B.h * H * (horiz ? 1 : k) * grow;
-    let x = horiz ? (cx >= tc.x ? (B.x + B.w) * W - bw : B.x * W) : cx - bw / 2;
-    let y = horiz ? cy - bh / 2 : (cy >= tc.y ? (B.y + B.h) * H - bh : B.y * H);
-    // inside: 지면 밖으로 흘리지 않게 안쪽으로 당긴 후보(가장자리에 걸친 얼굴을 살리려고) — 상자가 지면보다 크면 그대로
-    if (inside) { if (bw <= W) x = Math.min(Math.max(x, 0), W - bw); if (bh <= H) y = Math.min(Math.max(y, 0), H - bh); }
-    const r1 = v => Math.round(v * 10) / 10;
-    const pos = fo ? `${Math.round(Math.min(100, Math.max(0, fo.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, fo.y * 100)))}%` : '50% 50%';
-    const sides = transparent ? [] : [['left', 'to right'], ['right', 'to left'], ['top', 'to bottom'], ['bottom', 'to top']].filter(([s0]) => (Fd[s0] ?? 0) >= 0.03).map(([s0, dir]) => meltGradient(dir, Math.round(Fd[s0] * 1000) / 10));
-    const mask = sides.length ? meltMaskList(sides) : '';
+  const r1 = v => Math.round(v * 10) / 10;
+  const pos = fo ? `${Math.round(Math.min(100, Math.max(0, fo.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, fo.y * 100)))}%` : '50% 50%';
+  // px 상자 하나로 그림 층을 바꾼 HTML — 지면 안쪽에 떠 있는 변은 늘 녹인다(누끼 제외, 10-22 r0 「밝은 사각 패널 경계」)
+  const buildBox = (bx, tag, fade = Fd) => {
+    const { x, y, w: bw, h: bh } = bx;
+    const inner = { left: x > 2, right: x + bw < W - 2, top: y > 2, bottom: y + bh < H - 2 };
+    const fadeOf = s0 => Math.max(fade[s0] ?? 0, inner[s0] ? AI_INNER_FADE : 0);
+    const sides = transparent ? [] : [['left', 'to right'], ['right', 'to left'], ['top', 'to bottom'], ['bottom', 'to top']].filter(([s0]) => fadeOf(s0) >= 0.03).map(([s0, dir]) => meltGradient(dir, Math.round(fadeOf(s0) * 1000) / 10));
     let st = main[2].replace(/(^|;)left:-?[\d.]+px/, `$1left:${r1(x)}px`).replace(/(^|;)top:-?[\d.]+px/, `$1top:${r1(y)}px`).replace(/(^|;)width:[\d.]+px/, `$1width:${r1(bw)}px`).replace(/(^|;)height:[\d.]+px/, `$1height:${r1(bh)}px`)
       .replace(/background:url\('([^']*)'\) [^;]*? no-repeat;/, (m0, u) => `background:url('${u}') ${pos}/${transparent ? 'contain' : 'cover'} no-repeat;`)
       .replace(/-webkit-mask-image:[^;]*;/g, '').replace(/(^|;)mask-image:[^;]*;/g, '$1').replace(/-webkit-mask-composite:[^;]*;/g, '').replace(/(^|;)mask-composite:[^;]*;/g, '$1').replace(/(^|;)transform:[^;]*;/g, '$1');
     if (!st.endsWith(';')) st += ';';
-    st += mask;
-    const rest = main[3].replace(/\sdata-melt(-[a-z]+)?="[^"]*"/g, '') + ` data-ai-box="${Math.round(k * 100)}"`;
+    st += sides.length ? meltMaskList(sides) : '';
+    const rest = main[3].replace(/\sdata-melt(-[a-z]+)?="[^"]*"/g, '') + ` data-ai-box="${tag}"`;
     return first.html.replace(main[0], `<div data-object="1"${main[1]} style="${st}"${rest}>`);
   };
-  const logoHit = html => {
-    if (!logoR || !(logoR.w > 0 && logoR.h > 0)) return 0;
-    let worst = 0;
-    for (const o of objectRects(html, first.styleUsed, spec)) {
-      const p = o.pic, S0 = fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p;
-      const x0 = Math.max(S0.x, o.clip.x, logoR.x), y0 = Math.max(S0.y, o.clip.y, logoR.y), x1 = Math.min(S0.x + S0.w, o.clip.x + o.clip.w, logoR.x + logoR.w), y1 = Math.min(S0.y + S0.h, o.clip.y + o.clip.h, logoR.y + logoR.h);
-      if (x1 > x0 && y1 > y0) worst = Math.max(worst, (x1 - x0) * (y1 - y0) / (logoR.w * logoR.h));
+  // ── 후보 ──
+  const cands = [];
+  const horizOf = bx => Math.abs(bx.x + bx.w / 2 - tc.x) / W >= Math.abs(bx.y + bx.h / 2 - tc.y) / H;
+  if (B) {
+    const A0 = { x: B.x * W, y: B.y * H, w: B.w * W, h: B.h * H }, hz = horizOf(A0), right = A0.x + A0.w / 2 >= tc.x, below = A0.y + A0.h / 2 >= tc.y;
+    const inside = bx => ({ ...bx, x: bx.w <= W ? Math.min(Math.max(bx.x, 0), W - bx.w) : bx.x, y: bx.h <= H ? Math.min(Math.max(bx.y, 0), H - bx.h) : bx.y });
+    // ① AI 상자 줄이기 — 글자 쪽 축만, 글자 반대쪽 변 고정
+    const shrink = k => hz ? { ...A0, w: A0.w * k, x: right ? A0.x + A0.w - A0.w * k : A0.x } : { ...A0, h: A0.h * k, y: below ? A0.y + A0.h - A0.h * k : A0.y };
+    const ks = [1, 0.85, 0.7];
+    if (rows.length) {   // 글자 덩어리 끝선(+2%)까지 깎기
+      const R = { x0: Math.min(...rows.map(r => r.x)), x1: Math.max(...rows.map(r => r.x + r.w)), y0: Math.min(...rows.map(r => r.y)), y1: Math.max(...rows.map(r => r.y + r.h)) };
+      const len = hz ? Math.abs((right ? A0.x + A0.w : A0.x) - (right ? R.x1 + W * 0.02 : R.x0 - W * 0.02)) : Math.abs((below ? A0.y + A0.h : A0.y) - (below ? R.y1 + H * 0.02 : R.y0 - H * 0.02));
+      const k = len / (hz ? A0.w : A0.h); if (k > 0.2 && k < 1) ks.push(k);
     }
-    return worst;
-  };
-  // 마지막 단계 fit: 글자 쪽 변을 글자 덩어리 끝선(+2%)까지 깎는다 — 그림 상자와 글자 행이 아예 안 겹치게. 남는 폭·높이가 25% 미만이면 포기
-  const fitK = (() => {
-    if (!rows.length) return null;
-    const cx = (B.x + B.w / 2) * W, cy = (B.y + B.h / 2) * H, horiz = Math.abs(cx - tc.x) / W >= Math.abs(cy - tc.y) / H;
-    const r0 = { x0: Math.min(...rows.map(r => r.x)), x1: Math.max(...rows.map(r => r.x + r.w)), y0: Math.min(...rows.map(r => r.y)), y1: Math.max(...rows.map(r => r.y + r.h)) };
-    if (horiz) { const far = cx >= tc.x ? (B.x + B.w) * W : B.x * W, near = cx >= tc.x ? r0.x1 + W * 0.02 : r0.x0 - W * 0.02; const len = Math.abs(far - near); return len >= W * 0.25 ? Math.min(1, len / (B.w * W)) : null; }
-    const far = cy >= tc.y ? (B.y + B.h) * H : B.y * H, near = cy >= tc.y ? r0.y1 + H * 0.02 : r0.y0 - H * 0.02; const len = Math.abs(far - near); return len >= H * 0.25 ? Math.min(1, len / (B.h * H)) : null;
-  })();
-  // 주인공이 지면 밖으로 잘리는 몫 — 키울 때 15% 넘게 잘리면 안 쓴다
-  const subjCut = html => { let worst = 0; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, S0 = fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p; const a = S0.w * S0.h; if (!(a > 0)) continue; const vis = Math.max(0, Math.min(S0.x + S0.w, W, o.clip.x + o.clip.w) - Math.max(S0.x, 0, o.clip.x)) * Math.max(0, Math.min(S0.y + S0.h, H, o.clip.y + o.clip.h) - Math.max(S0.y, 0, o.clip.y)); worst = Math.max(worst, 1 - vis / a); } return worst; };
-  // 얼굴(kvMeta.ai.faces, crop 좌표) — 보이는 몫이 3~97% 면 걸쳐 잘린 것 → 그 후보 탈락(통째로 보이거나 통째로 빠져야 한다)
-  const faces = first.styleUsed.kvMeta?.ai?.faces ?? [];
-  const faceCut = html => { for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic; for (const f of faces) { const F = { x: p.x + f.x * p.w, y: p.y + f.y * p.h, w: f.w * p.w, h: f.h * p.h }; const a = F.w * F.h; if (!(a > 0)) continue; const vis = Math.max(0, Math.min(F.x + F.w, W, o.clip.x + o.clip.w) - Math.max(F.x, 0, o.clip.x)) * Math.max(0, Math.min(F.y + F.h, H, o.clip.y + o.clip.h) - Math.max(F.y, 0, o.clip.y)); const r = vis / a; if (r > 0.03 && r < 0.97) return true; } } return false; };
-  const passes = html => { const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0; return { ok: ov <= thr && logoHit(html) <= 0.05 && !faceCut(html), ov }; };
-  const ks = [...new Set([1, 0.85, 0.7, ...(fitK ? [fitK] : [])])].sort((a, b) => b - a);
-  for (const [k, inside] of ks.flatMap(k => [[k, false], [k, true]])) {
-    let html = build(k, 1, inside); const r = passes(html);
-    if (r.ok) {
-      let mark = k === 1 ? 'aiBox.ok' : k === fitK ? 'aiBox.fit' : 'aiBox.shrink', ov = r.ov, gk = 1;
-      // 빈 지면 보정(CANON.emptyFix 와 같은 문턱): 글자 ∪ 주인공이 지면의 min 미만이면 1.2·1.45·1.7 배로 키워 통과하는 가장 큰 것
-      const C = CANON.emptyFix, c0 = C ? coverageOf(html, T, first.styleUsed, spec) : null;
-      if (k === 1 && c0 && c0.all < C.min) {
-        let cov = c0.all;
-        for (const gr of [1.2, 1.45, 1.7]) { const h2 = build(1, gr, inside), r2 = passes(h2); if (!r2.ok || subjCut(h2) > 0.15) break; const c2 = coverageOf(h2, T, first.styleUsed, spec); if (!c2 || c2.all <= cov + 0.005) break; html = h2; ov = r2.ov; gk = gr; cov = c2.all; if (cov >= C.min) break; }
-        if (gk > 1) mark = 'aiBox.grow';
-      }
-      return html.replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`).replace('<div data-ad="1"', `<div data-ad="1" data-ai-box="${Math.round(k * gk * 100)}:${Math.round(ov * 100)}"`);
-    }
+    for (const k of ks) { const bx = shrink(k); cands.push({ bx, tag: k === 1 ? 'ai' : `ai${Math.round(k * 100)}`, ai: true }); cands.push({ bx: inside(bx), tag: `ai${Math.round(k * 100)}in`, ai: true }); }
+    // ③ AI 상자 키우기 — 두 축, 글자 반대쪽 변 고정
+    for (const gr of [1.2, 1.45]) { const w = A0.w * gr, h = A0.h * gr; const bx = { w, h, x: hz ? (right ? A0.x + A0.w - w : A0.x) : A0.x + A0.w / 2 - w / 2, y: hz ? A0.y + A0.h / 2 - h / 2 : (below ? A0.y + A0.h - h : A0.y) }; cands.push({ bx, tag: `ai${Math.round(gr * 100)}`, ai: true }); cands.push({ bx: inside(bx), tag: `ai${Math.round(gr * 100)}in`, ai: true }); }
   }
-  return null;   // 규칙 자리로(호출자가 기존 파이프라인)
+  // ② 빈 공간 — 글자 덩어리(+3%)를 피한 오른쪽·아래·왼쪽·위 띠를 그림으로 채운다(지면 가장자리까지)
+  if (rows.length) {
+    const px = W * 0.03, py = H * 0.03;
+    const R = { x0: Math.min(...rows.map(r => r.x)) - px, x1: Math.max(...rows.map(r => r.x + r.w)) + px, y0: Math.min(...rows.map(r => r.y)) - py, y1: Math.max(...rows.map(r => r.y + r.h)) + py };
+    const regs = [{ x: R.x1, y: 0, w: W - R.x1, h: H, tag: 'free-r' }, { x: 0, y: R.y1, w: W, h: H - R.y1, tag: 'free-b' }, { x: 0, y: 0, w: R.x0, h: H, tag: 'free-l' }, { x: 0, y: 0, w: W, h: R.y0, tag: 'free-t' }];
+    for (const r of regs) if (r.w >= W * 0.22 && r.h >= H * 0.22) { cands.push({ bx: r, tag: r.tag, ai: false }); }
+  }
+  // ── 검사 ──
+  const projS = o => { const p = o.pic; return fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p; };
+  const visOf = (S0, o) => Math.max(0, Math.min(S0.x + S0.w, W, o.clip.x + o.clip.w) - Math.max(S0.x, 0, o.clip.x)) * Math.max(0, Math.min(S0.y + S0.h, H, o.clip.y + o.clip.h) - Math.max(S0.y, 0, o.clip.y));
+  const faces = first.styleUsed.kvMeta?.ai?.faces ?? [];
+  const judge = html => {
+    const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0; if (ov > thr) return null;
+    let subj = 0, cut = 0, lh = 0;
+    for (const o of objectRects(html, first.styleUsed, spec)) {
+      const S0 = projS(o), a = S0.w * S0.h; if (!(a > 0)) continue; const v = visOf(S0, o); subj = Math.max(subj, v); cut = Math.max(cut, 1 - v / a);
+      if (logoR && logoR.w > 0 && logoR.h > 0) { const x0 = Math.max(S0.x, o.clip.x, logoR.x), y0 = Math.max(S0.y, o.clip.y, logoR.y), x1 = Math.min(S0.x + S0.w, o.clip.x + o.clip.w, logoR.x + logoR.w), y1 = Math.min(S0.y + S0.h, o.clip.y + o.clip.h, logoR.y + logoR.h); if (x1 > x0 && y1 > y0) lh = Math.max(lh, (x1 - x0) * (y1 - y0) / (logoR.w * logoR.h)); }
+      for (const fc of faces) { const p = o.pic, Fb = { x: p.x + fc.x * p.w, y: p.y + fc.y * p.h, w: fc.w * p.w, h: fc.h * p.h }, fa = Fb.w * Fb.h; if (!(fa > 0)) continue; const r = visOf(Fb, o) / fa; if (r > 0.03 && r < 0.97) return null; }
+    }
+    if (lh > 0.05 || cut > 0.12) return null;
+    return { ov, subj };
+  };
+  let best = null;
+  for (const c of cands) {
+    const html = buildBox(c.bx, c.tag); const j = judge(html); if (!j) continue;
+    const score = j.subj / (W * H) * (c.ai ? 1.12 : 1);   // 주인공이 보이는 면적 — AI 상자에 가산점(같은 크기면 AI 판단)
+    if (!best || score > best.score) best = { html, score, c, ov: j.ov };
+  }
+  if (!best) return null;   // 규칙 자리로(호출자가 기존 파이프라인 — 원본 그림)
+  const mark = best.c.ai ? (best.c.tag === 'ai' ? 'aiBox.ok' : /^ai1[2-9]/.test(best.c.tag) ? 'aiBox.grow' : 'aiBox.shrink') : 'aiBox.free';
+  return best.html.replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`).replace('<div data-ad="1"', `<div data-ad="1" data-ai-box="${best.c.tag}:${Math.round(best.ov * 100)}"`);
 }
 // 빈 지면 보정 사다리(10-21 사용자 「이런 경우 키비주얼이 꽤 크게 들어가야 비어 보이지 않고 임팩트」):
 //   글자 행 ∪ 그림 주인공이 지면을 덮는 몫(coverageOf)이 CANON.emptyFix.min 미만이면 키비주얼 배율 steps 순으로 다시 그려(__fix.kvK — 편집 「키비주얼 크기」와 같은 자리, 틀 칸은 emptyFix.slot)
@@ -1254,7 +1258,7 @@ function renderAdBase(ctx, style, spec) {
   const mainFg = moldFg ?? (brandMain ? p.primary : (tc.main ?? defMain));
   if (!regulatedText) fired('textDefault');
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
-  const tight = !!field && field.contrast < 4.5;
+  const tight = !!field && (field.contrast < 4.5 || field.source === 'ai');   // AI 지면(10-22 루프 r1 「회색 보조 문구 대비 약함」 19건)은 보조 글자도 흐리게 안 함
   const subFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
   const detailFg = moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
   // 어두운 지면에는 흰색 로고. 없으면 원색 로고를 반전한다(워드마크는 괜찮고 컬러 로고는 뭉개진다 — 흰색 로고를 받는 게 맞다)
@@ -2257,9 +2261,20 @@ ${tplLogo}${kvWrap(tplObject)}
       const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? 1 : wrc(String(value)) } : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
       const rows0 = (ladder.details ?? []).filter(d => MR.detail.items.includes(d.label) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
-          const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : [d.value];
-          return cands.map(v => rowOf(d.label, v)).find(r => r.rows <= cap0) ?? rowOf(d.label, d.value);
+          // 그 밖의 항목(모집직무 등)도 칸에 안 들어가면 짧은 후보 — 괄호 속 설명을 빼고(「일반(사업, 재무 등), 보훈(사업/경영지원)」 → 「일반, 보훈」), 그래도 넘치면 앞 항목만(10-22 루프 r1: 네이버 1250 직무 줄 잘림 A·C 공통)
+          const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*[,·/]\s*/).filter(Boolean); return [s0, s1, ...items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ') + ' 외')].filter((x, i, a) => x && a.indexOf(x) === i); };
+          const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : shortOf(d.value);
+          const opts = cands.map(v => rowOf(d.label, v));
+          return { ...(opts.find(r => r.rows <= cap0) ?? opts[0]), _opts: opts };
         });
+      // 합계도 칸 안에(줄 사이 간격 몫 0.25줄씩) — 넘치면 가장 긴 행부터 다음 짧은 후보로(10-22 네이버 1250: 접수기간 1 + 직무 3 + 간격 > 4줄 칸)
+      { const gapRows = MR.detail.labelCol ? 0.25 : 0;   // 라벨 열 틀(네이버 DA)만 행 사이 간격(8px ≈ 0.25줄)이 있다 — 자소설·캐치는 간격 0
+        const total = () => rows0.reduce((a, r) => a + r.rows, 0) + Math.max(0, rows0.length - 1) * gapRows;
+        for (let guard = 0; guard < 8 && rows0.length && total() > cap0; guard++) {
+          const i = rows0.reduce((bi, r, j) => (r._opts.findIndex(o => o.value === r.value) < r._opts.length - 1 && (bi < 0 || r.rows > rows0[bi].rows) ? j : bi), -1); if (i < 0) break;
+          const r = rows0[i], k0 = r._opts.findIndex(o => o.value === r.value); rows0[i] = { ...r._opts[k0 + 1], _opts: r._opts };
+        } }
+      for (const r of rows0) delete r._opts;
       // 틀 상세 자리에 정보가 없으면 샘플 문구 자리표시(data-sample — 지어내지 않고 승인 전에 바꾼다, 10-15 저녁: 블라인드 게시글 「모집 직무를 입력하세요」)
       if (!rows0.length && ctx.kind === 'recruit' && SAMPLE_COPY?.detail && MR.detail.items.includes(SAMPLE_COPY.detail.label)) { sampleText.add(SAMPLE_COPY.detail.value); return [rowOf(SAMPLE_COPY.detail.label, SAMPLE_COPY.detail.value)]; }
       return rows0;

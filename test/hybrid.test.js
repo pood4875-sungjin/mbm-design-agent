@@ -112,18 +112,19 @@ test('AI 그림 상자 — 규칙 렌더 뒤 그림 층만 바꾸고(글자·로
   assert.equal(renderArtifact(spec, ctx, normalizeStyle({ ...base }), {}), plain); assert.ok(!plain.includes('data-ai-box'));
   const textOf = h => (h.match(/<div data-field="main"[^>]*>[^<]*/) ?? [''])[0];
   const ok = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
-  assert.match(ok, /data-ad="1" data-ai-box="100:\d+"/);
-  assert.match(ok, /<div data-object="1"[^>]*style="position:absolute;left:660px;top:0px;width:600px;height:600px/);
+  assert.match(ok, /data-ad="1" data-ai-box="(ai|free)[\w-]*:\d+"/);
+  const om = ok.match(/<div data-object="1"[^>]*style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
+  assert.ok(om && +om[3] * +om[4] >= 600 * 600 * 0.9, `뽑힌 상자가 AI 상자(600×600)보다 작지 않다: ${om?.slice(1).join(',')}`);
   assert.ok(ok.includes('mask-image:linear-gradient(to right'), '왼변 녹임');
   assert.equal(textOf(ok), textOf(plain), '글자는 규칙 그대로');
   const fit = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 1, h: 1 }, aiFade: { left: 0.3 } }), {});
-  assert.ok(fit.includes('aiBox.fit'), '글자를 덮는 상자 → 글자 끝선까지 깎음');
+  assert.ok(/aiBox\.(shrink|free)/.test(fit), '글자를 덮는 상자 → 깎은 후보나 빈 공간 후보');
   const L = +(fit.match(/<div data-object="1"[^>]*style="position:absolute;left:(-?[\d.]+)px/) ?? [])[1];
   assert.ok(L >= 600, `그림 왼변 ${L} 이 글자 덩어리 오른쪽(+2%) 뒤`);
   const under = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 0.5, h: 1 }, aiFade: {} }), {});
-  assert.ok(under.includes('aiBox.fit'), '글자 쪽 왼편 상자 → 글자 아래 띠로 깎임');
+  assert.ok(/aiBox\.(shrink|free)/.test(under), '글자 쪽 왼편 상자 → 깎이거나 빈 공간으로');
   const back = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0.06, y: 0.22, w: 0.45, h: 0.4 }, aiFade: {} }), {});
-  assert.ok(!back.includes('data-ai-box'), '글자 덩어리 한가운데 상자 → 남는 자리 < 25% → 규칙 자리');
+  assert.ok(!/data-ai-box="ai:/.test(back), '글자 덩어리 한가운데 AI 상자 그대로는 안 씀(빈 공간 후보나 규칙 자리)');
   const st = normalizeStyle({ ...base, aiKvBox: { x: 0.5, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.9, top: -1 } });
   assert.deepEqual(st.aiFade, { left: 0.6, right: 0, top: 0, bottom: 0 });
   assert.equal(normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 0, h: 1 } }).aiKvBox, undefined);
@@ -170,7 +171,7 @@ test('렌더러 — AI 상자가 얼굴을 걸쳐 자르면 그 후보는 탈락
   const spec = 'kakao-display-pc-promo';
   const kvMeta = { ...meta28, ai: { faces: [] } };
   const okH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
-  assert.match(okH, /data-ad="1" data-ai-box="100:/);
+  assert.match(okH, /data-ad="1" data-ai-box="(ai|free)[\w-]*:/);
   // 상자 오른쪽 끝(지면 밖 60px)에 걸친 얼굴 — 그림 x 0.9~1.0 → 지면 1200 을 넘는 부분이 잘림
   const cutMeta = { ...meta28, ai: { faces: [{ x: 0.88, y: 0.3, w: 0.12, h: 0.1 }] } };
   const cutH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: cutMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
