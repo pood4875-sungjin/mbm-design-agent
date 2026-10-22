@@ -1,197 +1,260 @@
 {
  "analysis": {
   "kv": {
-   "type": "photo-roomy",
+   "type": "photo",
    "subject": {
-    "x": 0.054,
-    "y": 0.059,
-    "w": 0.9,
-    "h": 0.941
+    "x": 0.059,
+    "y": 0.066,
+    "w": 0.891,
+    "h": 0.934
    },
    "keep": [
     {
-     "x": 0.054,
+     "x": 0.059,
      "y": 0.281,
-     "w": 0.234,
+     "w": 0.351,
      "h": 0.719,
-     "label": "왼쪽 여성 얼굴·상반신"
+     "label": "왼쪽 인물 얼굴·상반신"
     },
     {
      "x": 0.648,
      "y": 0.281,
      "w": 0.297,
      "h": 0.719,
-     "label": "오른쪽 여성 얼굴·상반신"
+     "label": "오른쪽 인물 얼굴·상반신"
     },
     {
      "x": 0.263,
      "y": 0.066,
      "w": 0.504,
      "h": 0.473,
-     "label": "모니터 인테리어 화면"
+     "label": "모니터 속 인테리어 화면"
     }
    ],
    "cutSafe": {
-    "top": 0.05,
-    "right": 0.1,
+    "top": 0.03,
+    "right": 0.04,
     "bottom": 0.05,
-    "left": 0.05
+    "left": 0.04
    },
    "mood": {
     "tone": "light",
     "colors": [
      "#A87045",
-     "#CDBEA0",
-     "#95C7EB"
+     "#95C7EB",
+     "#CDBEA0"
     ]
    },
-   "note": "따뜻한 베이지 우드 벽 배경의 사무실 사진. 두 여성과 모니터가 중심이고 양옆 벽면은 비어 있어 글자 공간으로 쓸 수 있다."
+   "note": "따뜻한 베이지 톤 벽의 사무실 사진. 두 인물이 모니터의 인테리어 화면을 보며 논의하는 장면으로 전체가 주인공이다."
   },
   "groups": {
    "wide": {
     "crop": {
      "x": 0,
-     "y": 0.03,
+     "y": 0.044,
      "w": 1,
-     "h": 0.97
+     "h": 0.956
     },
     "kvPlace": "right",
-    "kvSize": "md",
+    "kvSize": "lg",
     "textAlign": "left",
     "textAnchor": "center",
-    "bgFill": "kv",
+    "bgFill": "auto",
     "bgGrad": "h",
     "scrim": "low",
     "field": {
      "colors": [
-      "#B07A4E",
+      "#B98558",
       "#A87045"
      ],
      "angle": 90,
      "text": "light",
      "melt": 0.5
     },
-    "why": "사진을 오른쪽에 두고 왼쪽을 우드톤 지면으로 이어 글자를 흰색으로 얹는다."
+    "kvBox": {
+     "x": 0.36,
+     "y": 0,
+     "w": 0.68,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로로 넓어 오른쪽에 큰 사진을 두고 왼쪽을 벽 색으로 녹여 글자 공간을 만든다."
    },
    "tall": {
     "crop": {
-     "x": 0.054,
+     "x": 0.036,
      "y": 0.044,
-     "w": 0.9,
+     "w": 0.927,
      "h": 0.956
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
     "textAlign": "left",
     "textAnchor": "top",
-    "bgFill": "kv",
+    "bgFill": "auto",
     "bgGrad": "v",
     "scrim": "low",
     "field": {
      "colors": [
-      "#B07A4E",
+      "#B98558",
       "#A87045"
      ],
      "angle": 180,
      "text": "light",
      "melt": 0.5
     },
-    "why": "위쪽 벽 색으로 글자 영역을 만들고 사람과 모니터는 아래에 크게 둔다."
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.42,
+     "w": 1.1,
+     "h": 0.58
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 깔아 위쪽 변을 벽색으로 녹인다."
    },
    "square": {
     "crop": {
-     "x": 0.045,
+     "x": 0.036,
      "y": 0.044,
-     "w": 0.909,
+     "w": 0.927,
      "h": 0.956
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
     "textAlign": "left",
     "textAnchor": "top",
-    "bgFill": "kv",
+    "bgFill": "auto",
     "bgGrad": "v",
     "scrim": "low",
     "field": {
      "colors": [
-      "#B07A4E",
+      "#B98558",
       "#A87045"
      ],
      "angle": 180,
      "text": "light",
      "melt": 0.5
     },
-    "why": "두 인물과 모니터가 들어오도록 자르고 윗부분을 지면으로 쓴다."
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.4,
+     "w": 1.1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "why": "정사각은 위에 글자, 아래에 사진을 두어 두 인물이 모두 보이게 한다."
    },
    "tower": {
     "crop": {
      "x": 0.054,
-     "y": 0.059,
-     "w": 0.9,
-     "h": 0.941
+     "y": 0.066,
+     "w": 0.896,
+     "h": 0.934
     },
     "kvPlace": "bottom",
-    "kvSize": "lg",
-    "textAlign": "center",
+    "kvSize": "md",
+    "textAlign": "left",
     "textAnchor": "top",
-    "bgFill": "kv",
+    "bgFill": "auto",
     "bgGrad": "v",
-    "scrim": "low",
+    "scrim": "mid",
     "field": {
      "colors": [
-      "#B07A4E",
+      "#B98558",
       "#A87045"
      ],
      "angle": 180,
      "text": "light",
-     "melt": 0.6
+     "melt": 0.5
     },
-    "why": "좁고 긴 형태라 사진은 아래에 가로로 넣고 위쪽을 글자 공간으로 비운다."
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.6,
+     "w": 1.2,
+     "h": 0.4
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.45,
+     "bottom": 0
+    },
+    "why": "세로 띠는 폭이 좁아 사진을 하단에 가로로 넓게 두고 위쪽은 글자 공간으로 비운다."
    },
    "strip": {
     "crop": {
      "x": 0.054,
-     "y": 0.059,
-     "w": 0.9,
-     "h": 0.941
+     "y": 0.066,
+     "w": 0.896,
+     "h": 0.934
     },
     "kvPlace": "right",
     "kvSize": "sm",
     "textAlign": "left",
     "textAnchor": "center",
-    "bgFill": "kv",
+    "bgFill": "auto",
     "bgGrad": "h",
     "scrim": "mid",
     "field": {
      "colors": [
-      "#B07A4E",
+      "#B98558",
       "#A87045"
      ],
      "angle": 90,
      "text": "light",
-     "melt": 0.6
+     "melt": 0.55
     },
-    "why": "높이가 낮아 사진을 오른쪽 끝에 작게 두고 나머지를 글자에 쓴다."
+    "kvBox": {
+     "x": 0.5,
+     "y": 0,
+     "w": 0.55,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.45,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 두고 왼쪽 변을 녹여 글자를 앉힌다."
    }
   },
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "따뜻한 우드톤 벽이 넓게 비어 있어 사진의 벽 색을 이어 칠한 지면으로 글자 공간을 만들었다. 두 인물의 얼굴과 모니터 화면은 모든 crop 안에 보존했다."
+  "rationale": "두 인물과 모니터 화면이 모두 핵심이라 crop 안에 통째로 보존하고, 따뜻한 벽 색(#A87045 계열)을 지면에 이어 칠해 사진이 자연스럽게 글자 영역으로 녹아들게 했다. 글자는 사진 반대쪽에 흰 글자로 놓고, 로고는 어두운 톤이라 밝은 지면에서는 읽히지만 벽색이 짙은 곳에서는 규칙 엔진이 대비를 확인해야 한다."
  },
  "fixes": [
-  "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
-  "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "wide: 직접 색은 사람만 → auto",
+  "tall: 직접 색은 사람만 → auto",
+  "square: 직접 색은 사람만 → auto",
   "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-  "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+  "tower: 직접 색은 사람만 → auto",
+  "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "strip: 직접 색은 사람만 → auto"
  ],
  "usage": {
-  "input_tokens": 4931,
-  "output_tokens": 1376,
+  "input_tokens": 5693,
+  "output_tokens": 1803,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0236,
- "ms": 10971,
+ "cost": 0,
+ "ms": 11886,
  "model": "claude-sonnet-5-5"
 }

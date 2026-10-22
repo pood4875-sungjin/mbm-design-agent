@@ -1,41 +1,34 @@
 {
  "analysis": {
   "kv": {
-   "type": "cutout-scene",
+   "type": "illust-scene",
    "subject": {
-    "x": 0.032,
-    "y": 0.023,
-    "w": 0.936,
-    "h": 0.938
+    "x": 0.152,
+    "y": 0.011,
+    "w": 0.832,
+    "h": 0.961
    },
    "keep": [
     {
      "x": 0.152,
      "y": 0.137,
      "w": 0.432,
-     "h": 0.526,
-     "label": "JEIL 입체 로고 글자"
+     "h": 0.549,
+     "label": "JEIL 입체 로고 조형"
     },
     {
-     "x": 0.616,
-     "y": 0.366,
-     "w": 0.184,
+     "x": 0.608,
+     "y": 0.355,
+     "w": 0.192,
      "h": 0.206,
      "label": "트럭"
-    },
-    {
-     "x": 0.08,
-     "y": 0.686,
-     "w": 0.288,
-     "h": 0.252,
-     "label": "실험실 인물"
     }
    ],
    "cutSafe": {
-    "top": 0.02,
-    "right": 0.03,
-    "bottom": 0.02,
-    "left": 0.04
+    "top": 0.03,
+    "right": 0.02,
+    "bottom": 0.03,
+    "left": 0.08
    },
    "mood": {
     "tone": "light",
@@ -45,7 +38,7 @@
      "#B9E3F9"
     ]
    },
-   "note": "투명 배경의 아이소메트릭 일러스트 누끼로 가장자리가 흩어진 점 패턴이라 잘라내기보다 지면으로 녹이는 편이 좋다."
+   "note": "투명 배경의 아이소메트릭 일러스트로 가장자리에 점 패턴이 있다. 누끼처럼 쓰므로 fade 없이 배경을 브랜드색 계열로 칠한다."
   },
   "groups": {
    "wide": {
@@ -59,20 +52,31 @@
     "kvSize": "lg",
     "textAlign": "left",
     "textAnchor": "center",
-    "bgFill": "brand",
+    "bgFill": "auto",
     "bgGrad": "h",
     "scrim": "none",
     "field": {
      "colors": [
       "#005D94",
-      "#0A78B5",
-      "#B9E3F9"
+      "#0B7FBF"
      ],
      "angle": 90,
      "text": "light",
-     "melt": 0.5
+     "melt": 0.3
     },
-    "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+    "kvBox": {
+     "x": 0.5,
+     "y": 0.02,
+     "w": 0.5,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
    },
    "tall": {
     "crop": {
@@ -85,20 +89,31 @@
     "kvSize": "lg",
     "textAlign": "left",
     "textAnchor": "top",
-    "bgFill": "brand",
+    "bgFill": "auto",
     "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
       "#005D94",
-      "#27A7DC",
-      "#B9E3F9"
+      "#0B7FBF"
      ],
      "angle": 180,
      "text": "light",
-     "melt": 0.5
+     "melt": 0.3
     },
-    "why": "글자는 위쪽 짙은 브랜드색에 놓고 일러스트는 아래에 두어 밝은 색으로 자연스럽게 이어지게 한다."
+    "kvBox": {
+     "x": -0.02,
+     "y": 0.46,
+     "w": 1.04,
+     "h": 0.54
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "위쪽에 글자를 두고 아래쪽에 그림을 폭 가득 크게 깐다."
    },
    "square": {
     "crop": {
@@ -108,89 +123,129 @@
      "h": 1
     },
     "kvPlace": "bottom",
-    "kvSize": "md",
+    "kvSize": "lg",
     "textAlign": "left",
     "textAnchor": "top",
-    "bgFill": "brand",
+    "bgFill": "auto",
     "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
       "#005D94",
-      "#1B8CC6"
+      "#0B7FBF"
      ],
      "angle": 180,
      "text": "light",
-     "melt": 0.45
+     "melt": 0.3
     },
-    "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+    "kvBox": {
+     "x": 0,
+     "y": 0.45,
+     "w": 1,
+     "h": 0.55
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
    },
    "tower": {
     "crop": {
-     "x": 0.032,
-     "y": 0.023,
-     "w": 0.936,
-     "h": 0.938
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
     },
     "kvPlace": "bottom",
-    "kvSize": "sm",
+    "kvSize": "md",
     "textAlign": "center",
     "textAnchor": "top",
-    "bgFill": "brand",
+    "bgFill": "auto",
     "bgGrad": "v",
     "scrim": "none",
     "field": {
      "colors": [
       "#005D94",
-      "#27A7DC"
+      "#0B7FBF"
      ],
      "angle": 180,
      "text": "light",
-     "melt": 0.5
+     "melt": 0.3
     },
-    "why": "세로 띠는 글자 공간이 좁아 그림을 작게 아래에 두고 위쪽 전체를 글자에 쓴다."
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.68,
+     "w": 1.2,
+     "h": 0.32
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "세로 띠라 글자를 위에 몰고 그림은 아래쪽 하단에 가로로 놓는다."
    },
    "strip": {
     "crop": {
-     "x": 0.032,
-     "y": 0.023,
-     "w": 0.936,
-     "h": 0.938
+     "x": 0.152,
+     "y": 0.011,
+     "w": 0.832,
+     "h": 0.961
     },
     "kvPlace": "right",
     "kvSize": "sm",
     "textAlign": "left",
     "textAnchor": "center",
-    "bgFill": "brand",
+    "bgFill": "auto",
     "bgGrad": "h",
     "scrim": "none",
     "field": {
      "colors": [
       "#005D94",
-      "#0A78B5"
+      "#0B7FBF"
      ],
      "angle": 90,
      "text": "light",
-     "melt": 0.4
+     "melt": 0.3
     },
-    "why": "가로 띠는 높이가 낮아 JEIL 글자 중심으로 잘라 오른쪽 끝에 작게 두고 글자 공간을 확보한다."
+    "kvBox": {
+     "x": 0.74,
+     "y": -0.1,
+     "w": 0.26,
+     "h": 1.2
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로 띠는 글자 공간이 좁아 그림을 오른쪽 끝에 작게 둔다."
    }
   },
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "밝은 파랑 계열 아이소메트릭 누끼 일러스트라 브랜드색 #005D94와 그림 색을 이은 지면으로 녹여 글자 쪽을 짙게 만들어 흰 글자가 읽히게 했다. 로고는 짙은 파랑 워드마크라 어두운 지면에서는 대비 처리가 필요하며, 모양마다 일러스트를 한쪽에 두고 반대쪽을 글자 공간으로 비웠다."
+  "rationale": "투명 배경의 아이소메트릭 일러스트라 누끼처럼 취급해 브랜드 블루 계열 지면 위에 크게 올리고 fade는 쓰지 않았다. 글자는 그림 반대쪽에 두고, 어두운 로고는 파란 지면에서 대비를 확인해야 한다."
  },
  "fixes": [
-  "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+  "wide: 직접 색은 사람만 → auto",
+  "tall: 직접 색은 사람만 → auto",
+  "square: 직접 색은 사람만 → auto",
+  "tower: 직접 색은 사람만 → auto",
+  "strip: 직접 색은 사람만 → auto"
  ],
  "usage": {
-  "input_tokens": 4332,
-  "output_tokens": 1486,
+  "input_tokens": 5460,
+  "output_tokens": 1629,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
  "cost": 0,
- "ms": 11451,
+ "ms": 10577,
  "model": "claude-sonnet-5-5"
 }

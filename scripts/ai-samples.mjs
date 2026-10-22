@@ -121,6 +121,7 @@ for (const id of CASES) {
       const f = path.join(OUT, `${id}_${sid}_${tr}.html`); writeFileSync(f, doc(html, spec.w, spec.h));
       const png = exportPng(f, path.join(OUT, `${id}_${sid}_${tr}.png`), spec.w, spec.h);
       cell[tr] = { png: png ? path.basename(png) : null, html: path.basename(f) };
+      if (tr === 'C') { const m = html.match(/data-ad="1" data-ai-box="(\d+):/); cell.aiBox = !g?.kvBox?.w ? null : !m ? '규칙 자리(겹침)' : html.includes('aiBox.fit') ? '글자 끝선까지 깎음' : m[1] === '100' ? '그대로' : `${m[1]}% 로 줄임`; }
     }
     row.specs.push(cell);
     console.log(`  ${sid} ${shape} → C ${cell.C?.png ?? cell.C?.error} ${cell.A ? '· A ' + (cell.A.png ?? cell.A.error) : ''}`);
@@ -139,7 +140,8 @@ const BOX = 420;   // 칸의 긴 변
 const cellHtml = (r, s) => {
   const k = Math.min(1, BOX / Math.max(s.w, s.h)); const cw = Math.round(s.w * k), ch = Math.round(s.h * k);
   const g = s.group;
-  const line = g ? `${g.kvPlace}·${g.kvSize} / 글자 ${g.textAlign}·${g.textAnchor} / 배경 ${g.field?.colors?.length ? `AI ${g.field.colors.join('→')}${g.field.melt ? ` 녹임 ${Math.round(g.field.melt * 100)}%` : ''}` : g.bgFill}` : '';
+  const pc = v => Math.round(v * 100);
+  const line = g ? `그림 ${g.kvBox?.w > 0 ? `AI 상자 x${pc(g.kvBox.x)} y${pc(g.kvBox.y)} w${pc(g.kvBox.w)} h${pc(g.kvBox.h)}%${s.aiBox ? ` → ${s.aiBox}` : ''}` : `${g.kvPlace}·${g.kvSize}(규칙 자리)`} / 배경 ${g.field?.colors?.length ? `AI ${g.field.colors.join('→')}` : g.bgFill} / 글자 규칙` : '';
   return `<div class="cell"><div class="t">${esc(s.title)} <span>${s.w}×${s.h} · ${esc(SHAPE_LABEL[s.shape]?.split('(')[0] ?? s.shape)}</span></div>
   <div class="pic" style="width:${cw}px;height:${ch}px">${s.C?.png ? `<img class="c" src="${s.C.png}" width="${cw}" height="${ch}" alt="">` : `<div class="err">${esc(s.C?.error ?? '없음')}</div>`}</div>
   <div class="why">${esc(line)}${g?.why ? `<br><em>${esc(g.why)}</em>` : ''}</div></div>`;

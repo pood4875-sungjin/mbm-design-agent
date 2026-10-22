@@ -34,8 +34,13 @@ test('검증 — 픽셀 상자 → 비율, crop 이 주인공·보존 요소를 
   assert.deepEqual(analysis.groups.tall.crop, { x: 0, y: 0, w: 1, h: 1 });
   assert.equal(analysis.groups.square.kvPlace, 'auto'); assert.equal(analysis.groups.square.bgFill, 'auto');
   G.tower.field = { colors: ['#123456', 'blue', '#ABCDEF'], angle: 400, text: 'x', melt: 0.9 };
+  G.tower.kvBox = { x: 0.6, y: 0, w: 0.5, h: 1 }; G.tower.fade = { left: 0.8, right: 0, top: 0, bottom: 0 };
+  G.tall.kvBox = { x: 0, y: 0, w: 0.05, h: 0.5 };
+  G.square.kvBox = { x: 0, y: 0, w: 300, h: 200 };
   const { analysis: a2 } = validateAnalysis(A, { kvMeta: meta28 });
   assert.deepEqual(a2.groups.tower.field, { colors: ['#123456', '#ABCDEF'], angle: 360, text: 'auto', melt: 0.75 });
+  assert.deepEqual(a2.groups.tower.kvBox, { x: 0.6, y: 0, w: 0.5, h: 1 }); assert.equal(a2.groups.tower.fade.left, 0.6);
+  assert.equal(a2.groups.tall.kvBox.w, 0, '너무 작은 상자 → 규칙'); assert.equal(a2.groups.square.kvBox.w, 0, '픽셀 상자 → 규칙');
   assert.equal(analysis.logo.kind, 'none');
   assert.deepEqual(analysis.groups.strip.crop, analysis.groups.wide.crop, 'strip 은 wide 복사'); assert.ok(fixes.some(s => s.includes('strip 묶음')));
   assert.ok(fixes.length >= 5, fixes.join(' / '));
@@ -47,7 +52,7 @@ test('프리셋 조각 — auto 는 빼고, 유형 지정은 kvTypeOverride 로;
   const { analysis } = validateAnalysis(good(), { kvMeta: meta28 });
   const g = analysis.groups.wide; g.scrim = 'auto';
   const p = presetPatch(g, analysis);
-  assert.deepEqual(p, { kvPlace: 'right', kvSize: 'lg', textAlign: 'left', textAnchor: 'center', bgFill: 'kv', bgGrad: 'v', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#2A65CF', '#5A8FDD'], angle: 180, text: 'light', melt: 0.6 } }, textTone: 'light' });
+  assert.deepEqual(p, { kvPlace: 'right', kvSize: 'lg', bgFill: 'kv', bgGrad: 'v', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#2A65CF', '#5A8FDD'], angle: 180, text: 'light', melt: 0.6 } }, textTone: 'light' });
   for (const k of Object.keys(p)) if (!['kvTypeOverride', 'background', 'textTone'].includes(k)) assert.ok(PRESET_KEYS.includes(k), k);
   // 지면 색을 비우면 프리셋만 — 녹임 값만 있으면 melt 만
   const g2 = { ...g, field: { colors: [], angle: 0, text: 'auto', melt: 0.5 } }; assert.deepEqual(presetPatch(g2, analysis).background, { mode: 'auto', color: null, ai: { stops: [], angle: 180, text: null, melt: 0.5 } });
@@ -85,4 +90,33 @@ test('AI 지면 — normalizeStyle 이 background.ai 를 통과시키고 resolve
   assert.equal(meltOnly.background.ai.melt, 0.5); assert.notEqual(resolveField(meltOnly).source, 'ai');
   const bad = normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['nope'], angle: 0, text: null, melt: 0 } } });
   assert.equal(bad.background.ai, undefined);
+});
+
+test('AI 그림 상자 — 규칙 렌더 뒤 그림 층만 바꾸고(글자·로고 그대로), 글자와 겹치면 글자 쪽 축만 줄이고, 그래도 넘으면 규칙 자리; 상자 없으면 바이트 동일', async () => {
+  const { registerAll } = await import('../core/generate.js'); registerAll();
+  const { renderArtifact } = await import('../core/contract.js');
+  const { createContext } = await import('../core/context.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', deadline: '2025-07-02', season: '2025년' }, 'recruit');
+  const base = { colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: meta28 };
+  const spec = 'kakao-display-pc-promo';
+  const plain = renderArtifact(spec, ctx, normalizeStyle(base), {});
+  assert.equal(renderArtifact(spec, ctx, normalizeStyle({ ...base }), {}), plain); assert.ok(!plain.includes('data-ai-box'));
+  const textOf = h => (h.match(/<div data-field="main"[^>]*>[^<]*/) ?? [''])[0];
+  const ok = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
+  assert.match(ok, /data-ad="1" data-ai-box="100:\d+"/);
+  assert.match(ok, /<div data-object="1"[^>]*style="position:absolute;left:660px;top:0px;width:600px;height:600px/);
+  assert.ok(ok.includes('mask-image:linear-gradient(to right'), '왼변 녹임');
+  assert.equal(textOf(ok), textOf(plain), '글자는 규칙 그대로');
+  const fit = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 1, h: 1 }, aiFade: { left: 0.3 } }), {});
+  assert.ok(fit.includes('aiBox.fit'), '글자를 덮는 상자 → 글자 끝선까지 깎음');
+  const L = +(fit.match(/<div data-object="1"[^>]*style="position:absolute;left:(-?[\d.]+)px/) ?? [])[1];
+  assert.ok(L >= 600, `그림 왼변 ${L} 이 글자 덩어리 오른쪽(+2%) 뒤`);
+  const under = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 0.5, h: 1 }, aiFade: {} }), {});
+  assert.ok(under.includes('aiBox.fit'), '글자 쪽 왼편 상자 → 글자 아래 띠로 깎임');
+  const back = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0.06, y: 0.22, w: 0.45, h: 0.4 }, aiFade: {} }), {});
+  assert.ok(!back.includes('data-ai-box'), '글자 덩어리 한가운데 상자 → 남는 자리 < 25% → 규칙 자리');
+  const st = normalizeStyle({ ...base, aiKvBox: { x: 0.5, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.9, top: -1 } });
+  assert.deepEqual(st.aiFade, { left: 0.6, right: 0, top: 0, bottom: 0 });
+  assert.equal(normalizeStyle({ ...base, aiKvBox: { x: 0, y: 0, w: 0, h: 1 } }).aiKvBox, undefined);
 });

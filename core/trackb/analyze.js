@@ -34,6 +34,9 @@ export const ANALYSIS_SCHEMA = obj({
     bgFill: choice('bgFill'), bgGrad: choice('bgGrad'), scrim: choice('scrim'),
     // 10-22 사용자 「배경은 규칙 말고 AI 가 직접」: 지면 색 1~3개(#RRGGBB)·각도·글자 톤·녹임 길이. colors 가 비면 규칙(bgFill 프리셋)이 정한다
     field: obj({ colors: { type: 'array', items: STR }, angle: NUM, text: { type: 'string', enum: ['auto', 'light', 'dark'] }, melt: NUM }),
+    // 10-22 사용자 「비중 정해 놓고 규칙대로 하는 느낌 — AI 가 직접」: 그림 상자(캔버스 몫 0~1, 지면 밖으로 흘려도 됨)·녹일 변(그림 상자 몫 0~0.6). w 가 0 이면 규칙 자리
+    kvBox: box,
+    fade: obj({ left: NUM, right: NUM, top: NUM, bottom: NUM }),
     why: STR,
   }) },
   logo: obj({ kind: { type: 'string', enum: ['wordmark', 'symbol', 'combo', 'none'] } }),
@@ -45,7 +48,8 @@ export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디�
 판단할 것:
 1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크·얼굴 등), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
 2. 모양 묶음 5개(wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·키비주얼 자리·크기·글자 정렬·글자 세로 위치·배경 방식·그라데이션·스크림. 값은 주어진 선택지 중에서만. 모르겠으면 auto.
-3. 지면(field)은 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
+3. 그림 상자(kvBox)를 네가 직접 정한다 — 캔버스 비율(0~1) {x,y,w,h}, 지면 밖으로 흘려도 된다(x<0, x+w>1). 이 모양에서 그림을 얼마나 크게, 어디에 둘지가 핵심 판단이다. 글자 덩어리는 kvPlace 반대쪽(오른쪽 그림이면 왼쪽 약 55%, 아래 그림이면 위쪽)에 놓이고 로고는 위쪽 모서리에 놓인다 — 주인공(얼굴·제품)은 글자 쪽과 위쪽 로고 모서리에 들어가지 않게. 그림 상자가 글자 쪽으로 넘어가도 되지만 그 변은 fade 로 녹여야 한다. fade 는 그림 상자 각 변을 녹이는 길이(상자 폭·높이의 0~0.6, 0 이면 안 녹임) — 글자 쪽을 향한 변은 0.3 이상. 누끼(투명 배경)는 fade 0. 그림을 크게 써서 지면이 비어 보이지 않게 하되, 겹치면 서버가 줄이거나 규칙 자리로 되돌린다. 모르겠으면 kvBox 의 w 를 0 으로.
+4. 지면(field)은 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
 원칙: 주인공과 보존 요소는 crop 안에. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
 
 export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}, requests = '' } = {}) {
@@ -108,11 +112,20 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
     if (!contains(crop, must)) { const u = union(crop, must); crop = { x: r3(u.x), y: r3(u.y), w: r3(u.w), h: r3(u.h) }; fixes.push(`${s}: crop 이 주인공·보존 요소를 잘라 넓힘`); }
     g.crop = crop;
     for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) { if (!PRESETS[k].choices[g[k]]) { if (g[k] != null) fixes.push(`${s}.${k} 「${g[k]}」 선택지에 없음 → auto`); g[k] = 'auto'; } }
-    if (g.bgFill === 'custom') { g.bgFill = 'auto'; fixes.push(`${s}: 직접 색은 사람만 → auto`); }
+    if (g.bgFill === 'custom') { g.bgFill = 'auto'; if (!g.field?.colors?.length) fixes.push(`${s}: 직접 색은 사람만 → auto`); }   // AI 가 지면 색(field)을 직접 줬으면 custom 은 그 뜻 — 조용히 auto
     const fd = g.field ?? {};
     const cols = (Array.isArray(fd.colors) ? fd.colors : []).filter(c => typeof c === 'string' && HEX.test(c)).map(c => c.toUpperCase()).slice(0, 3);
     if (Array.isArray(fd.colors) && fd.colors.length && cols.length !== fd.colors.length) fixes.push(`${s}: 지면 색 중 #RRGGBB 아닌 값 버림`);
     g.field = { colors: cols, angle: r3(clamp(num(fd.angle, 180), 0, 360)), text: ['light', 'dark'].includes(fd.text) ? fd.text : 'auto', melt: fd.melt > 0 ? r3(clamp(num(fd.melt), 0.3, 0.75)) : 0 };
+    // 그림 상자 — 캔버스 몫. 너무 작거나(폭·높이 < 0.15) 값이 없으면 규칙 자리(w 0)
+    const kb = g.kvBox ?? {};
+    let K = { x: num(kb.x), y: num(kb.y), w: num(kb.w), h: num(kb.h) };
+    if (K.w > 1.6 || K.h > 1.6 || K.x > 1.6 || K.y > 1.6) { fixes.push(`${s}: 그림 상자가 캔버스 몫(0~1)이 아니라 규칙 자리로`); K = { x: 0, y: 0, w: 0, h: 0 }; }
+    if (K.w > 0 && (K.w < 0.15 || K.h < 0.15)) { fixes.push(`${s}: 그림 상자가 너무 작아(${r3(K.w)}×${r3(K.h)}) 규칙 자리로`); K = { x: 0, y: 0, w: 0, h: 0 }; }
+    if (K.w > 0) { K.w = clamp(K.w, 0.15, 1.4); K.h = clamp(K.h, 0.15, 1.4); K.x = clamp(K.x, -0.4, 1 - 0.1); K.y = clamp(K.y, -0.4, 1 - 0.1); }
+    g.kvBox = { x: r3(K.x), y: r3(K.y), w: r3(K.w), h: r3(K.h) };
+    const fa = g.fade ?? {}; const transparentKv = (kvMeta?.field?.opaque ?? 1) < 0.5;
+    g.fade = Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, transparentKv ? 0 : r3(clamp(num(fa[k]), 0, 0.6))]));
     g.why = String(g.why ?? '').slice(0, 200);
   }
   A.logo = { kind: hasLogo ? (['wordmark', 'symbol', 'combo'].includes(A.logo?.kind) ? A.logo.kind : 'combo') : 'none' };
@@ -128,8 +141,11 @@ export function shapeOfSpec(spec) { return shapeOf(spec.w, spec.h); }
 export function presetPatch(group, analysis) {
   if (!group) return {};
   const out = {};
-  for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) if (group[k] && group[k] !== 'auto') out[k] = group[k];
+  // 글자 정렬·세로 위치(textAlign·textAnchor)는 넘기지 않는다 — 타이포는 규칙(10-22 사용자 「타이포는 규칙」, 구글 300×600 가운데 틀에 왼쪽 정렬이 들어가 글자가 가장자리에 붙었다)
+  for (const k of ['kvPlace', 'kvSize', 'bgFill', 'bgGrad', 'scrim']) if (group[k] && group[k] !== 'auto') out[k] = group[k];
   if (analysis?.kv?.type) out.kvTypeOverride = analysis.kv.type;
+  // AI 그림 상자 — 렌더러 aiBoxRender 가 규칙 렌더 뒤 그림 층만 바꾸고 겹침·로고 가림을 다시 잰다(넘으면 축소 → 규칙 자리)
+  if (group.kvBox?.w > 0) { out.aiKvBox = { ...group.kvBox }; out.aiFade = { ...(group.fade ?? {}) }; }
   // AI 지면(있으면 bgFill/bgGrad 프리셋보다 앞) — 렌더러 규칙이 글자색 대비·녹임 상한을 다시 검사
   const fd = group.field;
   if (fd?.colors?.length) { out.background = { mode: 'auto', color: null, ai: { stops: fd.colors, angle: fd.angle ?? 180, text: fd.text !== 'auto' ? fd.text : null, melt: fd.melt ?? 0 } }; if (fd.text && fd.text !== 'auto') out.textTone = fd.text; }

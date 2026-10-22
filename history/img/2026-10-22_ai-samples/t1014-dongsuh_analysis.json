@@ -3,39 +3,39 @@
   "kv": {
    "type": "cutout-character",
    "subject": {
-    "x": 0.071,
+    "x": 0.226,
     "y": 0,
-    "w": 0.857,
-    "h": 0.552
+    "w": 0.5,
+    "h": 0.261
    },
    "keep": [
     {
-     "x": 0.405,
-     "y": 0.03,
+     "x": 0.321,
+     "y": 0,
      "w": 0.393,
      "h": 0.241,
-     "label": "얼굴과 머리"
+     "label": "얼굴·머리"
     },
     {
-     "x": 0.333,
+     "x": 0.321,
      "y": 0.13,
-     "w": 0.179,
-     "h": 0.13,
-     "label": "맥심 모카골드 스틱"
+     "w": 0.167,
+     "h": 0.1,
+     "label": "맥심 스틱 제품"
     },
     {
-     "x": 0.381,
-     "y": 0.241,
-     "w": 0.238,
-     "h": 0.11,
-     "label": "스틱을 쥔 두 손"
+     "x": 0.31,
+     "y": 0.201,
+     "w": 0.179,
+     "h": 0.1,
+     "label": "모은 손"
     }
    ],
    "cutSafe": {
     "top": 0,
-    "right": 0.5,
-    "bottom": 0.5,
-    "left": 0.5
+    "right": 0.05,
+    "bottom": 0.35,
+    "left": 0.05
    },
    "mood": {
     "tone": "light",
@@ -45,7 +45,7 @@
      "#FFC000"
     ]
    },
-   "note": "투명 배경 누끼 인물. 하반신(치마·다리)은 잘라도 되고 얼굴·스틱·손은 반드시 보존한다."
+   "note": "투명 배경 누끼 인물. 제품 스틱이 얼굴 옆에 있어 상반신 이상 보존. 세로로 매우 긴 이미지라 하단 치마는 잘라도 됨."
   },
   "groups": {
    "wide": {
@@ -53,7 +53,7 @@
      "x": 0,
      "y": 0,
      "w": 1,
-     "h": 0.552
+     "h": 0.652
     },
     "kvPlace": "right",
     "kvSize": "lg",
@@ -65,24 +65,36 @@
     "field": {
      "colors": [
       "#FFC000",
-      "#FFD34D"
+      "#FFD966"
      ],
      "angle": 90,
      "text": "dark",
      "melt": 0.4
     },
-    "why": "인물 상반신을 오른쪽에 크게 두고 왼쪽 노란 지면에 글자를 놓는다."
+    "kvBox": {
+     "x": 0.52,
+     "y": 0.02,
+     "w": 0.4,
+     "h": 1.3
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "상반신을 크게 오른쪽에 두고 하단은 지면 밖으로 흘려 얼굴과 제품을 살리고, 왼쪽은 글자 공간."
    },
    "tall": {
     "crop": {
      "x": 0,
      "y": 0,
      "w": 1,
-     "h": 0.752
+     "h": 1
     },
     "kvPlace": "bottom",
     "kvSize": "lg",
-    "textAlign": "center",
+    "textAlign": "left",
     "textAnchor": "top",
     "bgFill": "brand",
     "bgGrad": "v",
@@ -90,20 +102,32 @@
     "field": {
      "colors": [
       "#FFC000",
-      "#FFD34D"
+      "#FFE08A"
      ],
      "angle": 180,
      "text": "dark",
      "melt": 0.4
     },
-    "why": "인물을 아래에 두고 위쪽 노란 지면에 글자를 놓는다."
+    "kvBox": {
+     "x": 0.12,
+     "y": 0.38,
+     "w": 0.76,
+     "h": 0.7
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "인물 전신에 가깝게 아래쪽에 크게 두고 위쪽은 글자와 로고 공간으로 비움."
    },
    "square": {
     "crop": {
      "x": 0,
      "y": 0,
      "w": 1,
-     "h": 0.602
+     "h": 0.702
     },
     "kvPlace": "right",
     "kvSize": "md",
@@ -115,20 +139,32 @@
     "field": {
      "colors": [
       "#FFC000",
-      "#FFD34D"
+      "#FFD966"
      ],
      "angle": 90,
      "text": "dark",
-     "melt": 0.45
+     "melt": 0.4
     },
-    "why": "정사각에서는 인물을 오른쪽에 두고 왼쪽에 글자 공간을 확보한다."
+    "kvBox": {
+     "x": 0.5,
+     "y": 0.05,
+     "w": 0.46,
+     "h": 1.1
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "정사각에서는 오른쪽에 상반신 중심으로 배치하고 하단은 잘라 얼굴을 크게 보이게 함."
    },
    "tower": {
     "crop": {
      "x": 0,
      "y": 0,
      "w": 1,
-     "h": 0.652
+     "h": 1
     },
     "kvPlace": "bottom",
     "kvSize": "md",
@@ -140,54 +176,78 @@
     "field": {
      "colors": [
       "#FFC000",
-      "#FFD34D"
+      "#FFE08A"
      ],
      "angle": 180,
      "text": "dark",
-     "melt": 0.5
+     "melt": 0.4
     },
-    "why": "세로 띠는 인물 상반신을 아래에 두고 위쪽을 글자에 쓴다."
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.5,
+     "w": 0.9,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "세로 띠는 글자를 위쪽에 두고 인물 상반신을 하단에 꽉 차게 배치."
    },
    "strip": {
     "crop": {
      "x": 0,
      "y": 0,
      "w": 1,
-     "h": 1
+     "h": 0.351
     },
     "kvPlace": "right",
     "kvSize": "sm",
     "textAlign": "left",
     "textAnchor": "center",
     "bgFill": "brand",
-    "bgGrad": "h",
+    "bgGrad": "none",
     "scrim": "none",
     "field": {
      "colors": [
       "#FFC000"
      ],
-     "angle": 90,
+     "angle": 0,
      "text": "dark",
      "melt": 0.4
     },
-    "why": "가로 띠는 얼굴과 스틱이 보이는 부분만 잘라 오른쪽 끝에 작게 둔다."
+    "kvBox": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "why": "가로 띠는 높이가 낮아 얼굴과 제품만 오른쪽 끝에 작게 두고 글자 공간을 확보."
    }
   },
   "logo": {
    "kind": "combo"
   },
-  "rationale": "투명 배경 누끼 인물이라 얼굴·스틱·손이 담긴 상반신을 crop 안에 두고 하반신은 잘랐다. 브랜드 노란색 지면을 인물과 이어 칠하고 어두운 글자로 대비를 주어 읽기 쉽게 했다."
+  "rationale": "투명 배경의 인물 누끼이므로 얼굴과 맥심 스틱이 들어가는 상반신을 반드시 보존하고, 배경은 브랜드색 #FFC000으로 칠해 화사한 채용 분위기를 만들었다. 모양마다 그림을 글자 반대쪽에 크게 두고 하단 치마는 지면 밖으로 흘려 빈 공간 없이 글자와 로고 영역을 확보했다."
  },
  "fixes": [
-  "strip: crop 이 너무 작아(1×0.211) 원본 전체로"
+  "strip: 그림 상자가 캔버스 몫(0~1)이 아니라 규칙 자리로"
  ],
  "usage": {
-  "input_tokens": 6106,
-  "output_tokens": 1328,
+  "input_tokens": 6158,
+  "output_tokens": 1756,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0255,
- "ms": 10044,
+ "cost": 0,
+ "ms": 11446,
  "model": "claude-sonnet-5-5"
 }

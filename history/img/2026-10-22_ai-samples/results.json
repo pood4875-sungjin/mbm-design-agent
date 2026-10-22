@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T07:23:34.459Z",
+ "at": "2026-10-22T09:11:08.277Z",
  "specs": [
   "kakao-display-pc-promo",
   "google-gdn-580x400",
@@ -7,7 +7,7 @@
   "google-gdn-300x600",
   "google-gdn-300x1050"
  ],
- "totalCost": 0.1616,
+ "totalCost": 0.3438,
  "results": [
   {
    "id": "t1014-hanssem",
@@ -26,36 +26,46 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.03,
+       "y": 0.044,
        "w": 1,
-       "h": 0.97
+       "h": 0.956
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "low",
       "field": {
        "colors": [
-        "#B07A4E",
+        "#B98558",
         "#A87045"
        ],
        "angle": 90,
        "text": "light",
        "melt": 0.5
       },
-      "why": "사진을 오른쪽에 두고 왼쪽을 우드톤 지면으로 이어 글자를 흰색으로 얹는다."
+      "kvBox": {
+       "x": 0.36,
+       "y": 0,
+       "w": 0.68,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 큰 사진을 두고 왼쪽을 벽 색으로 녹여 글자 공간을 만든다."
      },
+     "stage": "2",
      "C": {
       "png": "t1014-hanssem_kakao-display-pc-promo_C.png",
       "html": "t1014-hanssem_kakao-display-pc-promo_C.html"
      },
-     "A": {
-      "png": "t1014-hanssem_kakao-display-pc-promo_A.png",
-      "html": "t1014-hanssem_kakao-display-pc-promo_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "google-gdn-580x400",
@@ -65,37 +75,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.045,
+       "x": 0.036,
        "y": 0.044,
-       "w": 0.909,
+       "w": 0.927,
        "h": 0.956
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "low",
       "field": {
        "colors": [
-        "#B07A4E",
+        "#B98558",
         "#A87045"
        ],
        "angle": 180,
        "text": "light",
        "melt": 0.5
       },
-      "why": "두 인물과 모니터가 들어오도록 자르고 윗부분을 지면으로 쓴다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.4,
+       "w": 1.1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두어 두 인물이 모두 보이게 한다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-hanssem_google-gdn-580x400_C.png",
       "html": "t1014-hanssem_google-gdn-580x400_C.html"
      },
-     "A": {
-      "png": "t1014-hanssem_google-gdn-580x400_A.png",
-      "html": "t1014-hanssem_google-gdn-580x400_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "instagram-feed-1080",
@@ -105,37 +125,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.045,
+       "x": 0.036,
        "y": 0.044,
-       "w": 0.909,
+       "w": 0.927,
        "h": 0.956
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "low",
       "field": {
        "colors": [
-        "#B07A4E",
+        "#B98558",
         "#A87045"
        ],
        "angle": 180,
        "text": "light",
        "melt": 0.5
       },
-      "why": "두 인물과 모니터가 들어오도록 자르고 윗부분을 지면으로 쓴다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.4,
+       "w": 1.1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두어 두 인물이 모두 보이게 한다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-hanssem_instagram-feed-1080_C.png",
       "html": "t1014-hanssem_instagram-feed-1080_C.html"
      },
-     "A": {
-      "png": "t1014-hanssem_instagram-feed-1080_A.png",
-      "html": "t1014-hanssem_instagram-feed-1080_A.html"
-     }
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "google-gdn-300x600",
@@ -145,37 +175,47 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0.054,
+       "x": 0.036,
        "y": 0.044,
-       "w": 0.9,
+       "w": 0.927,
        "h": 0.956
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "low",
       "field": {
        "colors": [
-        "#B07A4E",
+        "#B98558",
         "#A87045"
        ],
        "angle": 180,
        "text": "light",
        "melt": 0.5
       },
-      "why": "위쪽 벽 색으로 글자 영역을 만들고 사람과 모니터는 아래에 크게 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.42,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 깔아 위쪽 변을 벽색으로 녹인다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-hanssem_google-gdn-300x600_C.png",
       "html": "t1014-hanssem_google-gdn-300x600_C.html"
      },
-     "A": {
-      "png": "t1014-hanssem_google-gdn-300x600_A.png",
-      "html": "t1014-hanssem_google-gdn-300x600_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -186,54 +226,67 @@
      "group": {
       "crop": {
        "x": 0.054,
-       "y": 0.059,
-       "w": 0.9,
-       "h": 0.941
+       "y": 0.066,
+       "w": 0.896,
+       "h": 0.934
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
-      "scrim": "low",
+      "scrim": "mid",
       "field": {
        "colors": [
-        "#B07A4E",
+        "#B98558",
         "#A87045"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.6
+       "melt": 0.5
       },
-      "why": "좁고 긴 형태라 사진은 아래에 가로로 넣고 위쪽을 글자 공간으로 비운다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.6,
+       "w": 1.2,
+       "h": 0.4
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "세로 띠는 폭이 좁아 사진을 하단에 가로로 넓게 두고 위쪽은 글자 공간으로 비운다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-hanssem_google-gdn-300x1050_C.png",
       "html": "t1014-hanssem_google-gdn-300x1050_C.html"
      },
-     "A": {
-      "png": "t1014-hanssem_google-gdn-300x1050_A.png",
-      "html": "t1014-hanssem_google-gdn-300x1050_A.html"
-     }
+     "aiBox": "그대로"
     }
    ],
    "ai": {
-    "type": "photo-roomy",
-    "rationale": "따뜻한 우드톤 벽이 넓게 비어 있어 사진의 벽 색을 이어 칠한 지면으로 글자 공간을 만들었다. 두 인물의 얼굴과 모니터 화면은 모든 crop 안에 보존했다.",
-    "ms": 10971,
-    "cost": 0.0236,
+    "type": "photo",
+    "rationale": "두 인물과 모니터 화면이 모두 핵심이라 crop 안에 통째로 보존하고, 따뜻한 벽 색(#A87045 계열)을 지면에 이어 칠해 사진이 자연스럽게 글자 영역으로 녹아들게 했다. 글자는 사진 반대쪽에 흰 글자로 놓고, 로고는 어두운 톤이라 밝은 지면에서는 읽히지만 벽색이 짙은 곳에서는 규칙 엔진이 대비를 확인해야 한다.",
+    "ms": 11886,
+    "cost": 0,
     "usage": {
-     "input_tokens": 4931,
-     "output_tokens": 1376,
+     "input_tokens": 5693,
+     "output_tokens": 1803,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "wide: 직접 색은 사람만 → auto",
+     "tall: 직접 색은 사람만 → auto",
+     "square: 직접 색은 사람만 → auto",
      "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "tower: 직접 색은 사람만 → auto",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: 직접 색은 사람만 → auto"
     ]
    }
   },
@@ -253,37 +306,47 @@
      "shape": "wide",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.171,
        "y": 0,
-       "w": 1,
+       "w": 0.829,
        "h": 1
       },
       "kvPlace": "right",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E8F4",
+        "#E8ECF5",
         "#C5CDE7"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "손이 중앙 오른쪽에 있어 왼쪽의 흐린 배경을 글자 지면으로 쓴다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0,
+       "w": 0.62,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.45,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "손과 가운이 오른쪽에 오고 왼쪽은 밝은 지면으로 이어져 글자 공간이 된다."
      },
+     "stage": "2",
      "C": {
       "png": "hr-doctor_kakao-display-pc-promo_C.png",
       "html": "hr-doctor_kakao-display-pc-promo_C.html"
      },
-     "A": {
-      "png": "hr-doctor_kakao-display-pc-promo_A.png",
-      "html": "hr-doctor_kakao-display-pc-promo_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "google-gdn-580x400",
@@ -293,37 +356,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.305,
+       "x": 0.171,
        "y": 0,
-       "w": 0.515,
+       "w": 0.661,
        "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E8F4",
+        "#E8ECF5",
         "#C5CDE7"
        ],
        "angle": 180,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.5
       },
-      "why": "손이 중앙에 오는 정사각 크롭으로 하고 위쪽 밝은 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.42,
+       "w": 1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각에서는 손을 하단 중앙에 두고 위쪽을 글자 영역으로 비운다."
      },
+     "stage": "3",
      "C": {
       "png": "hr-doctor_google-gdn-580x400_C.png",
       "html": "hr-doctor_google-gdn-580x400_C.html"
      },
-     "A": {
-      "png": "hr-doctor_google-gdn-580x400_A.png",
-      "html": "hr-doctor_google-gdn-580x400_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "instagram-feed-1080",
@@ -333,37 +406,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.305,
+       "x": 0.171,
        "y": 0,
-       "w": 0.515,
+       "w": 0.661,
        "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E8F4",
+        "#E8ECF5",
         "#C5CDE7"
        ],
        "angle": 180,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.5
       },
-      "why": "손이 중앙에 오는 정사각 크롭으로 하고 위쪽 밝은 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.42,
+       "w": 1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각에서는 손을 하단 중앙에 두고 위쪽을 글자 영역으로 비운다."
      },
+     "stage": "3",
      "C": {
       "png": "hr-doctor_instagram-feed-1080_C.png",
       "html": "hr-doctor_instagram-feed-1080_C.html"
      },
-     "A": {
-      "png": "hr-doctor_instagram-feed-1080_A.png",
-      "html": "hr-doctor_instagram-feed-1080_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x600",
@@ -373,37 +456,47 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0.317,
+       "x": 0.171,
        "y": 0,
-       "w": 0.464,
+       "w": 0.732,
        "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E8F4",
+        "#E8ECF5",
         "#C5CDE7"
        ],
        "angle": 180,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.5
       },
-      "why": "손과 가운이 아래쪽에 오도록 하고 위쪽을 밝은 지면으로 비워 글자를 놓는다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "글자는 위쪽에 두고 손이 있는 사진을 아래에 크게 깔아 위쪽 가장자리를 녹인다."
      },
+     "stage": "3",
      "C": {
       "png": "hr-doctor_google-gdn-300x600_C.png",
       "html": "hr-doctor_google-gdn-300x600_C.html"
      },
-     "A": {
-      "png": "hr-doctor_google-gdn-300x600_A.png",
-      "html": "hr-doctor_google-gdn-300x600_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -413,53 +506,71 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.171,
        "y": 0,
-       "w": 1,
+       "w": 0.61,
        "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "md",
       "textAlign": "center",
       "textAnchor": "top",
-      "bgFill": "kv",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E8F4",
+        "#E8ECF5",
         "#C5CDE7"
        ],
        "angle": 180,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "좁은 세로 띠라 손 부분만 아래에 두고 위쪽을 지면으로 녹인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.5,
+       "w": 1,
+       "h": 0.5
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "좁고 긴 지면이라 손이 보이는 부분만 아래쪽에 두고 위는 글자에 내준다."
      },
+     "stage": "3",
      "C": {
       "png": "hr-doctor_google-gdn-300x1050_C.png",
       "html": "hr-doctor_google-gdn-300x1050_C.html"
      },
-     "A": {
-      "png": "hr-doctor_google-gdn-300x1050_A.png",
-      "html": "hr-doctor_google-gdn-300x1050_A.html"
-     }
+     "aiBox": "그대로"
     }
    ],
    "ai": {
     "type": "photo-bright",
-    "rationale": "밝은 병원 사진에서 내민 손이 핵심이라 모든 크롭에 손을 포함하고, 흐리고 밝은 배경색을 이어 글자 지면으로 만들었다. 글자는 모두 어두운 톤으로 대비를 주어 스크림 없이도 읽히게 했다.",
-    "ms": 9604,
-    "cost": 0.0247,
+    "rationale": "밝고 부드러운 병원 사진이라 지면을 사진의 연한 청회색으로 이어 칠해 자연스럽게 녹이고, 어두운 글자로 가독성을 확보했다. 내민 손이 핵심이므로 모든 모양에서 crop 안에 보존하고 글자 반대쪽에 크게 배치했다.",
+    "ms": 13262,
+    "cost": 0,
     "usage": {
-     "input_tokens": 5637,
-     "output_tokens": 1345,
+     "input_tokens": 6399,
+     "output_tokens": 1646,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "tower: crop 이 너무 작아(0.269×1) 원본 전체로",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "wide: 직접 색은 사람만 → auto",
+     "tall: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tall: 직접 색은 사람만 → auto",
+     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "square: 직접 색은 사람만 → auto",
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tower: 직접 색은 사람만 → auto",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: 직접 색은 사람만 → auto"
     ]
    }
   },
@@ -485,31 +596,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
-        "#0460AF",
-        "#0A7BC4"
+        "#EAF4FB",
+        "#FFFFFF"
        ],
        "angle": 90,
-       "text": "light",
-       "melt": 0.4
+       "text": "dark",
+       "melt": 0
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽에 브랜드색 지면으로 글자 공간을 확보한다."
+      "kvBox": {
+       "x": 0.48,
+       "y": 0.02,
+       "w": 0.52,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "누끼이므로 fade 0, 오른쪽에 크게 두고 밝은 지면 위 어두운 글자로 가독성 확보."
      },
+     "stage": "2",
      "C": {
       "png": "t1014-jeil_kakao-display-pc-promo_C.png",
       "html": "t1014-jeil_kakao-display-pc-promo_C.html"
      },
-     "A": {
-      "png": "t1014-jeil_kakao-display-pc-promo_A.png",
-      "html": "t1014-jeil_kakao-display-pc-promo_A.html"
-     }
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "google-gdn-580x400",
@@ -528,28 +649,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#0460AF",
-        "#1B86CB"
+        "#FFFFFF",
+        "#EAF4FB"
        ],
        "angle": 180,
-       "text": "light",
-       "melt": 0.5
+       "text": "dark",
+       "melt": 0
       },
-      "why": "정사각은 글자를 상단에 두고 그림을 하단에 배치해 균형을 맞춘다."
+      "kvBox": {
+       "x": -0.03,
+       "y": 0.47,
+       "w": 1.06,
+       "h": 0.53
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위에 두고 일러스트를 하단 전폭으로 두어 균형을 맞춤."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-jeil_google-gdn-580x400_C.png",
       "html": "t1014-jeil_google-gdn-580x400_C.html"
      },
-     "A": {
-      "png": "t1014-jeil_google-gdn-580x400_A.png",
-      "html": "t1014-jeil_google-gdn-580x400_A.html"
-     }
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "instagram-feed-1080",
@@ -568,28 +699,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#0460AF",
-        "#1B86CB"
+        "#FFFFFF",
+        "#EAF4FB"
        ],
        "angle": 180,
-       "text": "light",
-       "melt": 0.5
+       "text": "dark",
+       "melt": 0
       },
-      "why": "정사각은 글자를 상단에 두고 그림을 하단에 배치해 균형을 맞춘다."
+      "kvBox": {
+       "x": -0.03,
+       "y": 0.47,
+       "w": 1.06,
+       "h": 0.53
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위에 두고 일러스트를 하단 전폭으로 두어 균형을 맞춤."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-jeil_instagram-feed-1080_C.png",
       "html": "t1014-jeil_instagram-feed-1080_C.html"
      },
-     "A": {
-      "png": "t1014-jeil_instagram-feed-1080_A.png",
-      "html": "t1014-jeil_instagram-feed-1080_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x600",
@@ -608,29 +749,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#0460AF",
-        "#1B86CB",
-        "#B9E3F9"
+        "#FFFFFF",
+        "#EAF4FB"
        ],
        "angle": 180,
-       "text": "light",
-       "melt": 0.5
+       "text": "dark",
+       "melt": 0
       },
-      "why": "세로형은 위쪽에 글자를 두고 그림을 아래에 크게 놓아 하단을 밝은 색으로 녹인다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.5,
+       "w": 1.1,
+       "h": 0.5
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "글자는 위쪽에, 그림은 아래에 폭 가득 크게 배치해 하단을 채움."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-jeil_google-gdn-300x600_C.png",
       "html": "t1014-jeil_google-gdn-300x600_C.html"
      },
-     "A": {
-      "png": "t1014-jeil_google-gdn-300x600_A.png",
-      "html": "t1014-jeil_google-gdn-300x600_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -641,52 +791,66 @@
      "group": {
       "crop": {
        "x": 0.064,
-       "y": 0.018,
-       "w": 0.928,
-       "h": 0.961
+       "y": 0,
+       "w": 0.896,
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "md",
       "textAlign": "center",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#0460AF",
-        "#27A7DC"
+        "#FFFFFF",
+        "#EAF4FB"
        ],
        "angle": 180,
-       "text": "light",
-       "melt": 0.5
+       "text": "dark",
+       "melt": 0
       },
-      "why": "세로 띠는 폭이 좁아 JEIL 글자 중심으로 잘라 아래에 두고 위쪽을 글자 공간으로 쓴다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.62,
+       "w": 1.2,
+       "h": 0.38
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "세로 띠라 폭이 좁아 그림을 아래쪽에 폭 넘치게 두고 글자는 위에 중앙 정렬."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-jeil_google-gdn-300x1050_C.png",
       "html": "t1014-jeil_google-gdn-300x1050_C.html"
      },
-     "A": {
-      "png": "t1014-jeil_google-gdn-300x1050_A.png",
-      "html": "t1014-jeil_google-gdn-300x1050_A.html"
-     }
+     "aiBox": "그대로"
     }
    ],
    "ai": {
     "type": "cutout-scene",
-    "rationale": "투명 배경의 아이소메트릭 장면 일러스트라 JEIL 입체 글자와 트럭·연구 장면을 crop 안에 모두 보존하고, 브랜드 블루 지면으로 자연스럽게 이어 붙인다. 글자 쪽은 짙은 파랑 지면에 흰 글자로 대비를 확보하고, 로고는 파란 톤이라 어두운 지면에서는 반전 처리가 필요하므로 콤보형을 쓴다.",
-    "ms": 10781,
-    "cost": 0.0267,
+    "rationale": "투명 배경의 밝은 아이소메트릭 일러스트라 누끼로 쓰고 연한 파랑·흰 지면에 어두운 글자를 올려 JEIL 문자와 트럭을 모두 보존했다. 가로형은 오른쪽에 크게, 세로·정사각·띠는 아래 또는 끝에 배치해 글자 공간과 지면 균형을 맞췄다.",
+    "ms": 12759,
+    "cost": 0,
     "usage": {
-     "input_tokens": 5886,
-     "output_tokens": 1488,
+     "input_tokens": 5918,
+     "output_tokens": 1726,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "wide: 직접 색은 사람만 → auto",
+     "tall: 직접 색은 사람만 → auto",
+     "square: 직접 색은 사람만 → auto",
+     "tower: 직접 색은 사람만 → auto",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: 직접 색은 사람만 → auto"
     ]
    }
   },
@@ -709,7 +873,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.552
+       "h": 0.652
       },
       "kvPlace": "right",
       "kvSize": "lg",
@@ -721,22 +885,32 @@
       "field": {
        "colors": [
         "#FFC000",
-        "#FFD34D"
+        "#FFD966"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.4
       },
-      "why": "인물 상반신을 오른쪽에 크게 두고 왼쪽 노란 지면에 글자를 놓는다."
+      "kvBox": {
+       "x": 0.52,
+       "y": 0.02,
+       "w": 0.4,
+       "h": 1.3
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "상반신을 크게 오른쪽에 두고 하단은 지면 밖으로 흘려 얼굴과 제품을 살리고, 왼쪽은 글자 공간."
      },
+     "stage": "2",
      "C": {
       "png": "t1014-dongsuh_kakao-display-pc-promo_C.png",
       "html": "t1014-dongsuh_kakao-display-pc-promo_C.html"
      },
-     "A": {
-      "png": "t1014-dongsuh_kakao-display-pc-promo_A.png",
-      "html": "t1014-dongsuh_kakao-display-pc-promo_A.html"
-     }
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "google-gdn-580x400",
@@ -749,7 +923,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.602
+       "h": 0.702
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -761,22 +935,32 @@
       "field": {
        "colors": [
         "#FFC000",
-        "#FFD34D"
+        "#FFD966"
        ],
        "angle": 90,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.4
       },
-      "why": "정사각에서는 인물을 오른쪽에 두고 왼쪽에 글자 공간을 확보한다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.05,
+       "w": 0.46,
+       "h": 1.1
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 오른쪽에 상반신 중심으로 배치하고 하단은 잘라 얼굴을 크게 보이게 함."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-dongsuh_google-gdn-580x400_C.png",
       "html": "t1014-dongsuh_google-gdn-580x400_C.html"
      },
-     "A": {
-      "png": "t1014-dongsuh_google-gdn-580x400_A.png",
-      "html": "t1014-dongsuh_google-gdn-580x400_A.html"
-     }
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "instagram-feed-1080",
@@ -789,7 +973,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.602
+       "h": 0.702
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -801,22 +985,32 @@
       "field": {
        "colors": [
         "#FFC000",
-        "#FFD34D"
+        "#FFD966"
        ],
        "angle": 90,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.4
       },
-      "why": "정사각에서는 인물을 오른쪽에 두고 왼쪽에 글자 공간을 확보한다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.05,
+       "w": 0.46,
+       "h": 1.1
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 오른쪽에 상반신 중심으로 배치하고 하단은 잘라 얼굴을 크게 보이게 함."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-dongsuh_instagram-feed-1080_C.png",
       "html": "t1014-dongsuh_instagram-feed-1080_C.html"
      },
-     "A": {
-      "png": "t1014-dongsuh_instagram-feed-1080_A.png",
-      "html": "t1014-dongsuh_instagram-feed-1080_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "google-gdn-300x600",
@@ -829,11 +1023,11 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.752
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
-      "textAlign": "center",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "brand",
       "bgGrad": "v",
@@ -841,22 +1035,32 @@
       "field": {
        "colors": [
         "#FFC000",
-        "#FFD34D"
+        "#FFE08A"
        ],
        "angle": 180,
        "text": "dark",
        "melt": 0.4
       },
-      "why": "인물을 아래에 두고 위쪽 노란 지면에 글자를 놓는다."
+      "kvBox": {
+       "x": 0.12,
+       "y": 0.38,
+       "w": 0.76,
+       "h": 0.7
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "인물 전신에 가깝게 아래쪽에 크게 두고 위쪽은 글자와 로고 공간으로 비움."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-dongsuh_google-gdn-300x600_C.png",
       "html": "t1014-dongsuh_google-gdn-300x600_C.html"
      },
-     "A": {
-      "png": "t1014-dongsuh_google-gdn-300x600_A.png",
-      "html": "t1014-dongsuh_google-gdn-300x600_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -869,7 +1073,7 @@
        "x": 0,
        "y": 0,
        "w": 1,
-       "h": 0.652
+       "h": 1
       },
       "kvPlace": "bottom",
       "kvSize": "md",
@@ -881,37 +1085,47 @@
       "field": {
        "colors": [
         "#FFC000",
-        "#FFD34D"
+        "#FFE08A"
        ],
        "angle": 180,
        "text": "dark",
-       "melt": 0.5
+       "melt": 0.4
       },
-      "why": "세로 띠는 인물 상반신을 아래에 두고 위쪽을 글자에 쓴다."
+      "kvBox": {
+       "x": 0.05,
+       "y": 0.5,
+       "w": 0.9,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "세로 띠는 글자를 위쪽에 두고 인물 상반신을 하단에 꽉 차게 배치."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-dongsuh_google-gdn-300x1050_C.png",
       "html": "t1014-dongsuh_google-gdn-300x1050_C.html"
      },
-     "A": {
-      "png": "t1014-dongsuh_google-gdn-300x1050_A.png",
-      "html": "t1014-dongsuh_google-gdn-300x1050_A.html"
-     }
+     "aiBox": "그대로"
     }
    ],
    "ai": {
     "type": "cutout-character",
-    "rationale": "투명 배경 누끼 인물이라 얼굴·스틱·손이 담긴 상반신을 crop 안에 두고 하반신은 잘랐다. 브랜드 노란색 지면을 인물과 이어 칠하고 어두운 글자로 대비를 주어 읽기 쉽게 했다.",
-    "ms": 10044,
-    "cost": 0.0255,
+    "rationale": "투명 배경의 인물 누끼이므로 얼굴과 맥심 스틱이 들어가는 상반신을 반드시 보존하고, 배경은 브랜드색 #FFC000으로 칠해 화사한 채용 분위기를 만들었다. 모양마다 그림을 글자 반대쪽에 크게 두고 하단 치마는 지면 밖으로 흘려 빈 공간 없이 글자와 로고 영역을 확보했다.",
+    "ms": 11446,
+    "cost": 0,
     "usage": {
-     "input_tokens": 6106,
-     "output_tokens": 1328,
+     "input_tokens": 6158,
+     "output_tokens": 1756,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "strip: crop 이 너무 작아(1×0.211) 원본 전체로"
+     "strip: 그림 상자가 캔버스 몫(0~1)이 아니라 규칙 자리로"
     ]
    }
   },
@@ -932,9 +1146,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.546,
+       "y": 0.463,
        "w": 1,
-       "h": 0.454
+       "h": 0.537
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -945,23 +1159,32 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#C6F3FF",
-        "#D9F7FF"
+        "#C6F3FF"
        ],
-       "angle": 90,
+       "angle": 0,
        "text": "dark",
-       "melt": 0.5
+       "melt": 0.4
       },
-      "why": "그림을 오른쪽에 두고 왼쪽 하늘색 지면에 글자를 올리며, 하늘색이 자연스럽게 이어지도록 녹인다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0.05,
+       "w": 0.6,
+       "h": 0.95
+      },
+      "fade": {
+       "left": 0.35,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0
+      },
+      "why": "가로형은 장면을 오른쪽에 크게 두고 왼쪽은 하늘색 지면으로 이어 글자 공간을 확보한다."
      },
+     "stage": "2",
      "C": {
       "png": "t1014-gs2025_kakao-display-pc-promo_C.png",
       "html": "t1014-gs2025_kakao-display-pc-promo_C.html"
      },
-     "A": {
-      "png": "t1014-gs2025_kakao-display-pc-promo_A.png",
-      "html": "t1014-gs2025_kakao-display-pc-promo_A.html"
-     }
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "google-gdn-580x400",
@@ -972,9 +1195,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.463,
+       "y": 0.417,
        "w": 1,
-       "h": 0.537
+       "h": 0.583
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -985,23 +1208,32 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#C6F3FF",
-        "#D9F7FF"
+        "#C6F3FF"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.5
       },
-      "why": "위쪽 하늘에 글자를 두고 아래에 그림을 크게 배치해 균형을 맞춘다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.45,
+       "w": 1.04,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 글자를 위쪽 하늘 영역에 두고 인물과 메가폰이 있는 아래쪽을 크게 보여준다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-gs2025_google-gdn-580x400_C.png",
       "html": "t1014-gs2025_google-gdn-580x400_C.html"
      },
-     "A": {
-      "png": "t1014-gs2025_google-gdn-580x400_A.png",
-      "html": "t1014-gs2025_google-gdn-580x400_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "instagram-feed-1080",
@@ -1012,9 +1244,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.463,
+       "y": 0.417,
        "w": 1,
-       "h": 0.537
+       "h": 0.583
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -1025,23 +1257,32 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#C6F3FF",
-        "#D9F7FF"
+        "#C6F3FF"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.45
+       "melt": 0.5
       },
-      "why": "위쪽 하늘에 글자를 두고 아래에 그림을 크게 배치해 균형을 맞춘다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.45,
+       "w": 1.04,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 글자를 위쪽 하늘 영역에 두고 인물과 메가폰이 있는 아래쪽을 크게 보여준다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-gs2025_instagram-feed-1080_C.png",
       "html": "t1014-gs2025_instagram-feed-1080_C.html"
      },
-     "A": {
-      "png": "t1014-gs2025_instagram-feed-1080_A.png",
-      "html": "t1014-gs2025_instagram-feed-1080_A.html"
-     }
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1052,9 +1293,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.546,
+       "y": 0.417,
        "w": 1,
-       "h": 0.454
+       "h": 0.583
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
@@ -1065,23 +1306,32 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#C6F3FF",
-        "#DDF8FF"
+        "#C6F3FF"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "인물 무리를 아래에 두고 위쪽 하늘색 지면에 글자를 놓는다. 하늘 그라데이션을 위로 연장해 빈 느낌을 줄인다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.5,
+       "w": 1.04,
+       "h": 0.5
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로형은 위쪽 하늘색 지면에 글자를 놓고 장면을 아래에 가로로 넓게 깐다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-gs2025_google-gdn-300x600_C.png",
       "html": "t1014-gs2025_google-gdn-300x600_C.html"
      },
-     "A": {
-      "png": "t1014-gs2025_google-gdn-300x600_A.png",
-      "html": "t1014-gs2025_google-gdn-300x600_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -1092,12 +1342,12 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.583,
+       "y": 0.481,
        "w": 1,
-       "h": 0.417
+       "h": 0.519
       },
       "kvPlace": "bottom",
-      "kvSize": "sm",
+      "kvSize": "md",
       "textAlign": "center",
       "textAnchor": "top",
       "bgFill": "kv",
@@ -1105,39 +1355,48 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#C6F3FF",
-        "#E3F9FF"
+        "#C6F3FF"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.6
+       "melt": 0.5
       },
-      "why": "세로 띠는 폭이 좁으므로 그림을 아래에 작게 두고 위 전체를 글자 공간으로 쓴다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.68,
+       "w": 1.2,
+       "h": 0.32
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "세로 띠는 글자를 위에 두고 장면을 하단에 가로로 넣되 윗변을 크게 녹인다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-gs2025_google-gdn-300x1050_C.png",
       "html": "t1014-gs2025_google-gdn-300x1050_C.html"
      },
-     "A": {
-      "png": "t1014-gs2025_google-gdn-300x1050_A.png",
-      "html": "t1014-gs2025_google-gdn-300x1050_A.html"
-     }
+     "aiBox": "그대로"
     }
    ],
    "ai": {
     "type": "illust-grad-bg",
-    "rationale": "하늘색 바탕 위쪽이 넓게 비어 있고 인물과 확성기는 아래쪽에 모여 있어, 아래쪽을 crop해 그림으로 쓰고 하늘색을 연장한 지면에 글자를 올린다. 글자 톤은 밝은 지면에 맞춰 dark로 하고, 로고는 어두운 톤이라 밝은 지면에서 잘 읽힌다.",
-    "ms": 11002,
-    "cost": 0.0329,
+    "rationale": "위쪽 절반이 하늘색 단색이라 글자를 놓기 좋고, 메가폰과 인물이 모인 아래쪽을 crop으로 살려 지면을 하늘색으로 이어 칠했다. 로고는 어두운 톤이라 밝은 하늘색 배경에서 잘 읽히고 글자는 검정 계열로 맞췄다.",
+    "ms": 11570,
+    "cost": 0,
     "usage": {
-     "input_tokens": 8744,
-     "output_tokens": 1543,
+     "input_tokens": 8109,
+     "output_tokens": 1761,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
      "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 너무 작아(0.509×0.287) 원본 전체로"
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
     ]
    }
   },
@@ -1157,9 +1416,9 @@
      "shape": "wide",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.15,
        "y": 0,
-       "w": 1,
+       "w": 0.85,
        "h": 1
       },
       "kvPlace": "right",
@@ -1167,7 +1426,7 @@
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
@@ -1178,16 +1437,26 @@
        "text": "light",
        "melt": 0.5
       },
-      "why": "왼쪽 빈 남색 바탕에 글자를 놓고 칩은 오른쪽에 크게 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": -0.05,
+       "w": 0.66,
+       "h": 1.1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로로 넓어 칩을 오른쪽에 크게 두고 왼쪽을 어두운 바탕으로 녹여 글자 공간을 만든다."
      },
+     "stage": "2",
      "C": {
       "png": "t1014-lt-v2_kakao-display-pc-promo_C.png",
       "html": "t1014-lt-v2_kakao-display-pc-promo_C.html"
      },
-     "A": {
-      "png": "t1014-lt-v2_kakao-display-pc-promo_A.png",
-      "html": "t1014-lt-v2_kakao-display-pc-promo_A.html"
-     }
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "google-gdn-580x400",
@@ -1197,10 +1466,10 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.21,
+       "x": 0.225,
        "y": 0.075,
-       "w": 0.79,
-       "h": 0.825
+       "w": 0.625,
+       "h": 0.863
       },
       "kvPlace": "bottom",
       "kvSize": "md",
@@ -1212,22 +1481,32 @@
       "field": {
        "colors": [
         "#1B0950",
-        "#1A1070"
+        "#1A0C5E"
        ],
        "angle": 180,
        "text": "light",
        "melt": 0.5
       },
-      "why": "중앙 칩을 중심으로 자르고 위쪽을 지면으로 녹여 글자 공간을 만든다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.38,
+       "w": 1.1,
+       "h": 0.72
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 칩을 배치해 중앙 칩이 로고 모서리를 피하게 한다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-lt-v2_google-gdn-580x400_C.png",
       "html": "t1014-lt-v2_google-gdn-580x400_C.html"
      },
-     "A": {
-      "png": "t1014-lt-v2_google-gdn-580x400_A.png",
-      "html": "t1014-lt-v2_google-gdn-580x400_A.html"
-     }
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "instagram-feed-1080",
@@ -1237,10 +1516,10 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.21,
+       "x": 0.225,
        "y": 0.075,
-       "w": 0.79,
-       "h": 0.825
+       "w": 0.625,
+       "h": 0.863
       },
       "kvPlace": "bottom",
       "kvSize": "md",
@@ -1252,22 +1531,32 @@
       "field": {
        "colors": [
         "#1B0950",
-        "#1A1070"
+        "#1A0C5E"
        ],
        "angle": 180,
        "text": "light",
        "melt": 0.5
       },
-      "why": "중앙 칩을 중심으로 자르고 위쪽을 지면으로 녹여 글자 공간을 만든다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.38,
+       "w": 1.1,
+       "h": 0.72
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 칩을 배치해 중앙 칩이 로고 모서리를 피하게 한다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-lt-v2_instagram-feed-1080_C.png",
       "html": "t1014-lt-v2_instagram-feed-1080_C.html"
      },
-     "A": {
-      "png": "t1014-lt-v2_instagram-feed-1080_A.png",
-      "html": "t1014-lt-v2_instagram-feed-1080_A.html"
-     }
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1277,13 +1566,13 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0.2,
+       "x": 0.25,
        "y": 0.075,
-       "w": 0.8,
-       "h": 0.85
+       "w": 0.6,
+       "h": 0.825
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
@@ -1292,22 +1581,32 @@
       "field": {
        "colors": [
         "#1B0950",
-        "#1A1070"
+        "#1A0C5E"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "칩을 아래에 두고 위쪽 남색 지면에 글자를 올린다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.4,
+       "w": 1.2,
+       "h": 0.8
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "글자는 위쪽에 놓고 칩은 아래에 크게 두며 위쪽 변을 어둡게 녹인다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-lt-v2_google-gdn-300x600_C.png",
       "html": "t1014-lt-v2_google-gdn-300x600_C.html"
      },
-     "A": {
-      "png": "t1014-lt-v2_google-gdn-300x600_A.png",
-      "html": "t1014-lt-v2_google-gdn-300x600_A.html"
-     }
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -1317,10 +1616,10 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.21,
+       "x": 0.32,
        "y": 0.09,
-       "w": 0.79,
-       "h": 0.773
+       "w": 0.5,
+       "h": 0.735
       },
       "kvPlace": "bottom",
       "kvSize": "sm",
@@ -1332,39 +1631,49 @@
       "field": {
        "colors": [
         "#1B0950",
-        "#1A1070"
+        "#1A0C5E"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.6
+       "melt": 0.5
       },
-      "why": "좁은 세로 띠라 칩만 작게 아래에 두고 위는 글자에 쓴다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.55,
+       "w": 1.2,
+       "h": 0.5
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "세로 띠라 칩을 아래쪽에 작게 두고 위쪽 변을 녹여 글자 공간을 확보한다."
      },
+     "stage": "3",
      "C": {
       "png": "t1014-lt-v2_google-gdn-300x1050_C.png",
       "html": "t1014-lt-v2_google-gdn-300x1050_C.html"
      },
-     "A": {
-      "png": "t1014-lt-v2_google-gdn-300x1050_A.png",
-      "html": "t1014-lt-v2_google-gdn-300x1050_A.html"
-     }
+     "aiBox": "그대로"
     }
    ],
    "ai": {
     "type": "illust-grad-bg",
-    "rationale": "어두운 남색 그라데이션 바탕의 칩 일러스트라 바탕색을 지면으로 이어 칠하고, 칩은 오른쪽이나 아래로 보내 글자 공간을 확보했다. 로고는 흰색 글자라 어두운 지면에서 잘 읽히며, 글자 톤은 light로 통일했다.",
-    "ms": 9546,
-    "cost": 0.0282,
+    "rationale": "어두운 남보라 그라데이션 바탕의 칩 일러스트라 왼쪽 빈 바탕을 글자 공간으로 쓰고 칩은 반대쪽에 크게 배치했다. 지면은 그림 가장자리의 #1B0950 계열로 이어 칠해 경계를 녹이고 흰 글자로 대비를 확보했다.",
+    "ms": 14422,
+    "cost": 0,
     "usage": {
-     "input_tokens": 7397,
-     "output_tokens": 1339,
+     "input_tokens": 6965,
+     "output_tokens": 1678,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
      "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: 그림 상자가 캔버스 몫(0~1)이 아니라 규칙 자리로"
     ]
    }
   }

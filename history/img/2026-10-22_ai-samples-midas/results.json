@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T07:37:54.810Z",
+ "at": "2026-10-22T09:10:13.560Z",
  "specs": [
   "jasoseol-pc-premium-popup-pc",
   "jasoseol-pc-premium-jobpost-pc",
@@ -53,7 +53,7 @@
   "everytime-daily-message-profile",
   "blind-brand-logo"
  ],
- "totalCost": 0.0764,
+ "totalCost": 0.16899999999999998,
  "results": [
   {
    "id": "midas-faces-3d",
@@ -71,34 +71,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-pc-premium-popup-pc_C.png",
       "html": "midas-faces-3d_jasoseol-pc-premium-popup-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-premium-jobpost-pc",
@@ -108,34 +121,47 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.113,
-       "y": 0.151,
-       "w": 0.787,
-       "h": 0.763
+       "x": 0.208,
+       "y": 0.346,
+       "w": 0.583,
+       "h": 0.58
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "sm",
       "textAlign": "center",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.6
+       "melt": 0.5
       },
-      "why": "세로 띠는 캐릭터 세 명 위주로 잘라 아래에 두고 위쪽에 글자를 쌓는다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.66,
+       "w": 1.2,
+       "h": 0.36
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로 띠는 글자 공간이 필요해서 인물 중심으로 잘라 아래쪽에 작게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-pc-premium-jobpost-pc_C.png",
       "html": "midas-faces-3d_jasoseol-pc-premium-jobpost-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-standard-main-pc",
@@ -151,28 +177,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-pc-standard-main-pc_C.png",
       "html": "midas-faces-3d_jasoseol-pc-standard-main-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-standard-jobpost-pc",
@@ -182,34 +221,47 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.113,
-       "y": 0.151,
-       "w": 0.787,
-       "h": 0.763
+       "x": 0.208,
+       "y": 0.346,
+       "w": 0.583,
+       "h": 0.58
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "sm",
       "textAlign": "center",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.6
+       "melt": 0.5
       },
-      "why": "세로 띠는 캐릭터 세 명 위주로 잘라 아래에 두고 위쪽에 글자를 쌓는다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.66,
+       "w": 1.2,
+       "h": 0.36
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로 띠는 글자 공간이 필요해서 인물 중심으로 잘라 아래쪽에 작게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-pc-standard-jobpost-pc_C.png",
       "html": "midas-faces-3d_jasoseol-pc-standard-jobpost-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-premium-popup-mo",
@@ -222,31 +274,44 @@
        "x": 0.083,
        "y": 0.123,
        "w": 0.833,
-       "h": 0.864
+       "h": 0.877
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
-      "textAlign": "center",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "세로형은 그림을 아래에 두고 위쪽 연한 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.42,
+       "w": 1.1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-m-premium-popup-mo_C.png",
       "html": "midas-faces-3d_jasoseol-m-premium-popup-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-premium-chatlist-logo-mo",
@@ -256,34 +321,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-m-premium-chatlist-logo-mo_C.png",
       "html": "midas-faces-3d_jasoseol-m-premium-chatlist-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-standard-main-mo",
@@ -293,34 +371,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-m-standard-main-mo_C.png",
       "html": "midas-faces-3d_jasoseol-m-standard-main-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-standard-chatlist-logo-mo",
@@ -330,34 +421,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-m-standard-chatlist-logo-mo_C.png",
       "html": "midas-faces-3d_jasoseol-m-standard-chatlist-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-start-logo-mo",
@@ -373,28 +477,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-m-start-logo-mo_C.png",
       "html": "midas-faces-3d_jasoseol-m-start-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-start-image-mo",
@@ -404,34 +521,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-m-start-image-mo_C.png",
       "html": "midas-faces-3d_jasoseol-m-start-image-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-calendar-pc",
@@ -444,31 +574,44 @@
        "x": 0.083,
        "y": 0.123,
        "w": 0.833,
-       "h": 0.864
+       "h": 0.877
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
-      "textAlign": "center",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "세로형은 그림을 아래에 두고 위쪽 연한 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.42,
+       "w": 1.1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_jasoseol-pc-calendar-pc_C.png",
       "html": "midas-faces-3d_jasoseol-pc-calendar-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-top-pc",
@@ -484,28 +627,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-main-top-pc_C.png",
       "html": "midas-faces-3d_remember-main-top-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-top-mo",
@@ -521,28 +677,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-main-top-mo_C.png",
       "html": "midas-faces-3d_remember-main-top-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-mid-pc",
@@ -558,28 +727,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-main-mid-pc_C.png",
       "html": "midas-faces-3d_remember-main-mid-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-mid-mo",
@@ -595,28 +777,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-main-mid-mo_C.png",
       "html": "midas-faces-3d_remember-main-mid-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-top-pc",
@@ -632,28 +827,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-job-top-pc_C.png",
       "html": "midas-faces-3d_remember-job-top-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-top-mo",
@@ -669,28 +877,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-job-top-mo_C.png",
       "html": "midas-faces-3d_remember-job-top-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-side-pc",
@@ -706,28 +927,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-job-side-pc_C.png",
       "html": "midas-faces-3d_remember-job-side-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-side-mo",
@@ -743,28 +977,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_remember-job-side-mo_C.png",
       "html": "midas-faces-3d_remember-job-side-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-bizboard-mo",
@@ -780,28 +1027,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "1",
      "C": {
       "png": "midas-faces-3d_kakao-bizboard-mo_C.png",
       "html": "midas-faces-3d_kakao-bizboard-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-mobile-da-1250x560",
@@ -817,28 +1077,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_naver-gfa-mobile-da-1250x560_C.png",
       "html": "midas-faces-3d_naver-gfa-mobile-da-1250x560_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "everytime-community-board",
@@ -854,28 +1127,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_everytime-community-board_C.png",
       "html": "midas-faces-3d_everytime-community-board_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-banner",
@@ -891,28 +1177,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_everytime-home-banner_C.png",
       "html": "midas-faces-3d_everytime-home-banner_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-card-image",
@@ -922,34 +1221,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_everytime-home-card-image_C.png",
       "html": "midas-faces-3d_everytime-home-card-image_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "nap-dsp-band-320x50",
@@ -959,34 +1271,47 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0.113,
-       "y": 0.151,
-       "w": 0.787,
-       "h": 0.763
+       "x": 0.217,
+       "y": 0.358,
+       "w": 0.583,
+       "h": 0.556
       },
-      "kvPlace": "left",
+      "kvPlace": "right",
       "kvSize": "sm",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
-        "#7DB8F6",
-        "#8DC3F7"
+        "#74B7F5",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로 띠는 높이가 낮아 캐릭터를 왼쪽 끝에 작게 두고 오른쪽에 글자를 둔다."
+      "kvBox": {
+       "x": 0.65,
+       "y": -0.1,
+       "w": 0.4,
+       "h": 1.25
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로 띠는 오른쪽 끝에 인물 얼굴만 작게 두고 왼쪽 글자 쪽을 녹인다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_nap-dsp-band-320x50_C.png",
       "html": "midas-faces-3d_nap-dsp-band-320x50_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "nap-dsp-band-320x100",
@@ -996,34 +1321,47 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0.113,
-       "y": 0.151,
-       "w": 0.787,
-       "h": 0.763
+       "x": 0.217,
+       "y": 0.358,
+       "w": 0.583,
+       "h": 0.556
       },
-      "kvPlace": "left",
+      "kvPlace": "right",
       "kvSize": "sm",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
-        "#7DB8F6",
-        "#8DC3F7"
+        "#74B7F5",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로 띠는 높이가 낮아 캐릭터를 왼쪽 끝에 작게 두고 오른쪽에 글자를 둔다."
+      "kvBox": {
+       "x": 0.65,
+       "y": -0.1,
+       "w": 0.4,
+       "h": 1.25
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로 띠는 오른쪽 끝에 인물 얼굴만 작게 두고 왼쪽 글자 쪽을 녹인다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_nap-dsp-band-320x100_C.png",
       "html": "midas-faces-3d_nap-dsp-band-320x100_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "nap-dsp-full-300x250",
@@ -1033,34 +1371,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_nap-dsp-full-300x250_C.png",
       "html": "midas-faces-3d_nap-dsp-full-300x250_C.html"
-     }
+     },
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -1073,31 +1424,44 @@
        "x": 0.083,
        "y": 0.123,
        "w": 0.833,
-       "h": 0.864
+       "h": 0.877
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
-      "textAlign": "center",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "세로형은 그림을 아래에 두고 위쪽 연한 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.42,
+       "w": 1.1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_nap-dsp-full-320x480_C.png",
       "html": "midas-faces-3d_nap-dsp-full-320x480_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -1113,28 +1477,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "2",
      "C": {
       "png": "midas-faces-3d_kakao-display-pc-promo_C.png",
       "html": "midas-faces-3d_kakao-display-pc-promo_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "blind-feed-image",
@@ -1150,28 +1527,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_blind-feed-image_C.png",
       "html": "midas-faces-3d_blind-feed-image_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "blind-post-banner",
@@ -1187,28 +1577,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_blind-post-banner_C.png",
       "html": "midas-faces-3d_blind-post-banner_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-580x400",
@@ -1218,34 +1621,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_google-gdn-580x400_C.png",
       "html": "midas-faces-3d_google-gdn-580x400_C.html"
-     }
+     },
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "google-gdn-970x250",
@@ -1261,28 +1677,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_google-gdn-970x250_C.png",
       "html": "midas-faces-3d_google-gdn-970x250_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1295,31 +1724,44 @@
        "x": 0.083,
        "y": 0.123,
        "w": 0.833,
-       "h": 0.864
+       "h": 0.877
       },
       "kvPlace": "bottom",
       "kvSize": "lg",
-      "textAlign": "center",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "세로형은 그림을 아래에 두고 위쪽 연한 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.42,
+       "w": 1.1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "세로형은 아래쪽에 그림을 넓게 깔고 위쪽 글자 방향 변을 녹여 자연스럽게 잇는다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_google-gdn-300x600_C.png",
       "html": "midas-faces-3d_google-gdn-300x600_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -1329,34 +1771,47 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.113,
-       "y": 0.151,
-       "w": 0.787,
-       "h": 0.763
+       "x": 0.208,
+       "y": 0.346,
+       "w": 0.583,
+       "h": 0.58
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "sm",
       "textAlign": "center",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.6
+       "melt": 0.5
       },
-      "why": "세로 띠는 캐릭터 세 명 위주로 잘라 아래에 두고 위쪽에 글자를 쌓는다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.66,
+       "w": 1.2,
+       "h": 0.36
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로 띠는 글자 공간이 필요해서 인물 중심으로 잘라 아래쪽에 작게 둔다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_google-gdn-300x1050_C.png",
       "html": "midas-faces-3d_google-gdn-300x1050_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "jobda-main-pc",
@@ -1372,28 +1827,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_jobda-main-pc_C.png",
       "html": "midas-faces-3d_jobda-main-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jobda-main-mo",
@@ -1409,28 +1877,41 @@
        "h": 1
       },
       "kvPlace": "right",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#8DC3F7",
-        "#7DB8F6"
+        "#78B9F4",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로형은 그림을 오른쪽에 두고 왼쪽 빈 하늘색 지면에 글자를 둔다."
+      "kvBox": {
+       "x": 0.38,
+       "y": 0.02,
+       "w": 0.64,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로형은 오른쪽에 그림을 크게 두고 왼쪽 글자 쪽 변을 배경색으로 녹인다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_jobda-main-mo_C.png",
       "html": "midas-faces-3d_jobda-main-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "instagram-feed-1080",
@@ -1440,34 +1921,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_instagram-feed-1080_C.png",
       "html": "midas-faces-3d_instagram-feed-1080_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "daangn-native-feed-image",
@@ -1477,34 +1971,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "3",
      "C": {
       "png": "midas-faces-3d_daangn-native-feed-image_C.png",
       "html": "midas-faces-3d_daangn-native-feed-image_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "catch-center-object-pc",
@@ -1514,34 +2021,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_catch-center-object-pc_C.png",
       "html": "midas-faces-3d_catch-center-object-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-object-mo",
@@ -1551,34 +2071,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_catch-center-object-mo_C.png",
       "html": "midas-faces-3d_catch-center-object-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-logo-mo",
@@ -1588,34 +2121,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_catch-center-logo-mo_C.png",
       "html": "midas-faces-3d_catch-center-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-display-pc-profile",
@@ -1625,34 +2171,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_kakao-display-pc-profile_C.png",
       "html": "midas-faces-3d_kakao-display-pc-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-native-mo-342x228",
@@ -1662,34 +2221,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_naver-gfa-native-mo-342x228_C.png",
       "html": "midas-faces-3d_naver-gfa-native-mo-342x228_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-native-mo-profile-300",
@@ -1699,34 +2271,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_naver-gfa-native-mo-profile-300_C.png",
       "html": "midas-faces-3d_naver-gfa-native-mo-profile-300_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-community-native",
@@ -1736,34 +2321,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_everytime-community-native_C.png",
       "html": "midas-faces-3d_everytime-community-native_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-card-profile",
@@ -1773,34 +2371,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_everytime-home-card-profile_C.png",
       "html": "midas-faces-3d_everytime-home-card-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-contest-card",
@@ -1810,34 +2421,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_everytime-contest-card_C.png",
       "html": "midas-faces-3d_everytime-contest-card_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-search-keyword-thumb",
@@ -1847,34 +2471,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_everytime-search-keyword-thumb_C.png",
       "html": "midas-faces-3d_everytime-search-keyword-thumb_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-daily-message-profile",
@@ -1884,34 +2521,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0.108,
-       "y": 0.136,
-       "w": 0.8,
-       "h": 0.815
+       "x": 0.125,
+       "y": 0.16,
+       "w": 0.75,
+       "h": 0.79
       },
       "kvPlace": "bottom",
-      "kvSize": "lg",
-      "textAlign": "center",
+      "kvSize": "md",
+      "textAlign": "left",
       "textAnchor": "top",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#A9D0F8",
-        "#8DC3F7"
+        "#74B7F5",
+        "#A0CBF8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
-       "melt": 0.55
+       "melt": 0.5
       },
-      "why": "정사각은 글자를 위에, 캐릭터와 패널을 아래에 둔다."
+      "kvBox": {
+       "x": -0.05,
+       "y": 0.45,
+       "w": 1.1,
+       "h": 0.58
+      },
+      "fade": {
+       "left": 0.1,
+       "right": 0.1,
+       "top": 0.35,
+       "bottom": 0
+      },
+      "why": "정사각은 위쪽에 글자를 두고 아래에 인물이 모인 그림을 넓게 배치한다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_everytime-daily-message-profile_C.png",
       "html": "midas-faces-3d_everytime-daily-message-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "blind-brand-logo",
@@ -1921,51 +2571,61 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0.113,
-       "y": 0.151,
-       "w": 0.787,
-       "h": 0.763
+       "x": 0.217,
+       "y": 0.358,
+       "w": 0.583,
+       "h": 0.556
       },
-      "kvPlace": "left",
+      "kvPlace": "right",
       "kvSize": "sm",
       "textAlign": "left",
       "textAnchor": "center",
       "bgFill": "kv",
-      "bgGrad": "none",
+      "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
-        "#7DB8F6",
-        "#8DC3F7"
+        "#74B7F5",
+        "#9CC8F8"
        ],
        "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
-      "why": "가로 띠는 높이가 낮아 캐릭터를 왼쪽 끝에 작게 두고 오른쪽에 글자를 둔다."
+      "kvBox": {
+       "x": 0.65,
+       "y": -0.1,
+       "w": 0.4,
+       "h": 1.25
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0.1,
+       "bottom": 0.1
+      },
+      "why": "가로 띠는 오른쪽 끝에 인물 얼굴만 작게 두고 왼쪽 글자 쪽을 녹인다."
      },
      "stage": "4",
      "C": {
       "png": "midas-faces-3d_blind-brand-logo_C.png",
       "html": "midas-faces-3d_blind-brand-logo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     }
    ],
    "ai": {
     "type": "illust-grad-bg",
-    "rationale": "하늘색 그라데이션 배경의 3D 일러스트라 가장자리를 같은 계열 지면색으로 녹여 이어 붙이고, 세 캐릭터와 유리 패널은 crop 안에 보존했다. 밝은 파랑 지면에 어두운 글자와 남색 로고가 대비되도록 글자 톤을 dark로 잡았다.",
-    "ms": 10181,
+    "rationale": "파란 그라데이션 배경의 3D 캐릭터 일러스트라 배경색을 이어 칠하고 가장자리를 녹여, 인물 얼굴과 스마트폰을 크게 살리면서 글자 쪽이 비지 않게 했다. 로고는 어두운 워드마크라 밝은 파랑 지면에서 잘 읽히며, 글자도 검정 계열로 대비를 맞췄다.",
+    "ms": 16295,
     "cost": 0,
     "usage": {
-     "input_tokens": 5209,
-     "output_tokens": 1457,
+     "input_tokens": 6337,
+     "output_tokens": 1868,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
-    "fixes": [
-     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
-    ]
+    "fixes": []
    }
   },
   {
@@ -1990,28 +2650,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-pc-premium-popup-pc_C.png",
       "html": "midas-jeil-iso_jasoseol-pc-premium-popup-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-premium-jobpost-pc",
@@ -2021,34 +2694,47 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.032,
-       "y": 0.023,
-       "w": 0.936,
-       "h": 0.938
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "sm",
+      "kvSize": "md",
       "textAlign": "center",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "세로 띠는 글자 공간이 좁아 그림을 작게 아래에 두고 위쪽 전체를 글자에 쓴다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.68,
+       "w": 1.2,
+       "h": 0.32
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "세로 띠라 글자를 위에 몰고 그림은 아래쪽 하단에 가로로 놓는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-pc-premium-jobpost-pc_C.png",
       "html": "midas-jeil-iso_jasoseol-pc-premium-jobpost-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-standard-main-pc",
@@ -2067,26 +2753,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-pc-standard-main-pc_C.png",
       "html": "midas-jeil-iso_jasoseol-pc-standard-main-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-standard-jobpost-pc",
@@ -2096,34 +2794,47 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.032,
-       "y": 0.023,
-       "w": 0.936,
-       "h": 0.938
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "sm",
+      "kvSize": "md",
       "textAlign": "center",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "세로 띠는 글자 공간이 좁아 그림을 작게 아래에 두고 위쪽 전체를 글자에 쓴다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.68,
+       "w": 1.2,
+       "h": 0.32
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "세로 띠라 글자를 위에 몰고 그림은 아래쪽 하단에 가로로 놓는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-pc-standard-jobpost-pc_C.png",
       "html": "midas-jeil-iso_jasoseol-pc-standard-jobpost-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-premium-popup-mo",
@@ -2142,26 +2853,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "글자는 위쪽 짙은 브랜드색에 놓고 일러스트는 아래에 두어 밝은 색으로 자연스럽게 이어지게 한다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.46,
+       "w": 1.04,
+       "h": 0.54
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "위쪽에 글자를 두고 아래쪽에 그림을 폭 가득 크게 깐다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-m-premium-popup-mo_C.png",
       "html": "midas-jeil-iso_jasoseol-m-premium-popup-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-premium-chatlist-logo-mo",
@@ -2177,28 +2900,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-m-premium-chatlist-logo-mo_C.png",
       "html": "midas-jeil-iso_jasoseol-m-premium-chatlist-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-standard-main-mo",
@@ -2214,28 +2950,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-m-standard-main-mo_C.png",
       "html": "midas-jeil-iso_jasoseol-m-standard-main-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-standard-chatlist-logo-mo",
@@ -2251,28 +3000,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-m-standard-chatlist-logo-mo_C.png",
       "html": "midas-jeil-iso_jasoseol-m-standard-chatlist-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-start-logo-mo",
@@ -2291,26 +3053,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-m-start-logo-mo_C.png",
       "html": "midas-jeil-iso_jasoseol-m-start-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-start-image-mo",
@@ -2326,28 +3100,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-m-start-image-mo_C.png",
       "html": "midas-jeil-iso_jasoseol-m-start-image-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-calendar-pc",
@@ -2366,26 +3153,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "글자는 위쪽 짙은 브랜드색에 놓고 일러스트는 아래에 두어 밝은 색으로 자연스럽게 이어지게 한다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.46,
+       "w": 1.04,
+       "h": 0.54
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "위쪽에 글자를 두고 아래쪽에 그림을 폭 가득 크게 깐다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_jasoseol-pc-calendar-pc_C.png",
       "html": "midas-jeil-iso_jasoseol-pc-calendar-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-top-pc",
@@ -2404,26 +3203,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-main-top-pc_C.png",
       "html": "midas-jeil-iso_remember-main-top-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-top-mo",
@@ -2442,26 +3253,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-main-top-mo_C.png",
       "html": "midas-jeil-iso_remember-main-top-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-mid-pc",
@@ -2480,26 +3303,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-main-mid-pc_C.png",
       "html": "midas-jeil-iso_remember-main-mid-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-mid-mo",
@@ -2518,26 +3353,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-main-mid-mo_C.png",
       "html": "midas-jeil-iso_remember-main-mid-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-top-pc",
@@ -2556,26 +3403,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-job-top-pc_C.png",
       "html": "midas-jeil-iso_remember-job-top-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-top-mo",
@@ -2594,26 +3453,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-job-top-mo_C.png",
       "html": "midas-jeil-iso_remember-job-top-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-side-pc",
@@ -2632,26 +3503,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-job-side-pc_C.png",
       "html": "midas-jeil-iso_remember-job-side-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-side-mo",
@@ -2670,26 +3553,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_remember-job-side-mo_C.png",
       "html": "midas-jeil-iso_remember-job-side-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-bizboard-mo",
@@ -2708,26 +3603,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "1",
      "C": {
       "png": "midas-jeil-iso_kakao-bizboard-mo_C.png",
       "html": "midas-jeil-iso_kakao-bizboard-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-mobile-da-1250x560",
@@ -2746,26 +3653,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_naver-gfa-mobile-da-1250x560_C.png",
       "html": "midas-jeil-iso_naver-gfa-mobile-da-1250x560_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "everytime-community-board",
@@ -2784,26 +3703,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_everytime-community-board_C.png",
       "html": "midas-jeil-iso_everytime-community-board_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-banner",
@@ -2822,26 +3753,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_everytime-home-banner_C.png",
       "html": "midas-jeil-iso_everytime-home-banner_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-card-image",
@@ -2857,28 +3800,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_everytime-home-card-image_C.png",
       "html": "midas-jeil-iso_everytime-home-card-image_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "nap-dsp-band-320x50",
@@ -2888,34 +3844,47 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0.032,
-       "y": 0.023,
-       "w": 0.936,
-       "h": 0.938
+       "x": 0.152,
+       "y": 0.011,
+       "w": 0.832,
+       "h": 0.961
       },
       "kvPlace": "right",
       "kvSize": "sm",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.4
+       "melt": 0.3
       },
-      "why": "가로 띠는 높이가 낮아 JEIL 글자 중심으로 잘라 오른쪽 끝에 작게 두고 글자 공간을 확보한다."
+      "kvBox": {
+       "x": 0.74,
+       "y": -0.1,
+       "w": 0.26,
+       "h": 1.2
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로 띠는 글자 공간이 좁아 그림을 오른쪽 끝에 작게 둔다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_nap-dsp-band-320x50_C.png",
       "html": "midas-jeil-iso_nap-dsp-band-320x50_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "nap-dsp-band-320x100",
@@ -2925,34 +3894,47 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0.032,
-       "y": 0.023,
-       "w": 0.936,
-       "h": 0.938
+       "x": 0.152,
+       "y": 0.011,
+       "w": 0.832,
+       "h": 0.961
       },
       "kvPlace": "right",
       "kvSize": "sm",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.4
+       "melt": 0.3
       },
-      "why": "가로 띠는 높이가 낮아 JEIL 글자 중심으로 잘라 오른쪽 끝에 작게 두고 글자 공간을 확보한다."
+      "kvBox": {
+       "x": 0.74,
+       "y": -0.1,
+       "w": 0.26,
+       "h": 1.2
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로 띠는 글자 공간이 좁아 그림을 오른쪽 끝에 작게 둔다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_nap-dsp-band-320x100_C.png",
       "html": "midas-jeil-iso_nap-dsp-band-320x100_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "nap-dsp-full-300x250",
@@ -2968,28 +3950,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_nap-dsp-full-300x250_C.png",
       "html": "midas-jeil-iso_nap-dsp-full-300x250_C.html"
-     }
+     },
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -3008,26 +4003,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "글자는 위쪽 짙은 브랜드색에 놓고 일러스트는 아래에 두어 밝은 색으로 자연스럽게 이어지게 한다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.46,
+       "w": 1.04,
+       "h": 0.54
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "위쪽에 글자를 두고 아래쪽에 그림을 폭 가득 크게 깐다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_nap-dsp-full-320x480_C.png",
       "html": "midas-jeil-iso_nap-dsp-full-320x480_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -3046,26 +4053,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "2",
      "C": {
       "png": "midas-jeil-iso_kakao-display-pc-promo_C.png",
       "html": "midas-jeil-iso_kakao-display-pc-promo_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "blind-feed-image",
@@ -3084,26 +4103,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_blind-feed-image_C.png",
       "html": "midas-jeil-iso_blind-feed-image_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "blind-post-banner",
@@ -3122,26 +4153,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_blind-post-banner_C.png",
       "html": "midas-jeil-iso_blind-post-banner_C.html"
-     }
+     },
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "google-gdn-580x400",
@@ -3157,28 +4200,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_google-gdn-580x400_C.png",
       "html": "midas-jeil-iso_google-gdn-580x400_C.html"
-     }
+     },
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "google-gdn-970x250",
@@ -3197,26 +4253,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_google-gdn-970x250_C.png",
       "html": "midas-jeil-iso_google-gdn-970x250_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "google-gdn-300x600",
@@ -3235,26 +4303,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "글자는 위쪽 짙은 브랜드색에 놓고 일러스트는 아래에 두어 밝은 색으로 자연스럽게 이어지게 한다."
+      "kvBox": {
+       "x": -0.02,
+       "y": 0.46,
+       "w": 1.04,
+       "h": 0.54
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "위쪽에 글자를 두고 아래쪽에 그림을 폭 가득 크게 깐다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_google-gdn-300x600_C.png",
       "html": "midas-jeil-iso_google-gdn-300x600_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -3264,34 +4344,47 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0.032,
-       "y": 0.023,
-       "w": 0.936,
-       "h": 0.938
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "sm",
+      "kvSize": "md",
       "textAlign": "center",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#27A7DC"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "세로 띠는 글자 공간이 좁아 그림을 작게 아래에 두고 위쪽 전체를 글자에 쓴다."
+      "kvBox": {
+       "x": -0.1,
+       "y": 0.68,
+       "w": 1.2,
+       "h": 0.32
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "세로 띠라 글자를 위에 몰고 그림은 아래쪽 하단에 가로로 놓는다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_google-gdn-300x1050_C.png",
       "html": "midas-jeil-iso_google-gdn-300x1050_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "jobda-main-pc",
@@ -3310,26 +4403,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_jobda-main-pc_C.png",
       "html": "midas-jeil-iso_jobda-main-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jobda-main-mo",
@@ -3348,26 +4453,38 @@
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5",
-        "#B9E3F9"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.5
+       "melt": 0.3
       },
-      "why": "가로로 넓어 오른쪽에 일러스트를 크게 두고 왼쪽 브랜드색 지면에 흰 글자를 둔다."
+      "kvBox": {
+       "x": 0.5,
+       "y": 0.02,
+       "w": 0.5,
+       "h": 0.96
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로로 넓어 오른쪽에 크게 두고 왼쪽 절반을 글자 공간으로 비운다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_jobda-main-mo_C.png",
       "html": "midas-jeil-iso_jobda-main-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "instagram-feed-1080",
@@ -3383,28 +4500,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_instagram-feed-1080_C.png",
       "html": "midas-jeil-iso_instagram-feed-1080_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "daangn-native-feed-image",
@@ -3420,28 +4550,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "3",
      "C": {
       "png": "midas-jeil-iso_daangn-native-feed-image_C.png",
       "html": "midas-jeil-iso_daangn-native-feed-image_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "catch-center-object-pc",
@@ -3457,28 +4600,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_catch-center-object-pc_C.png",
       "html": "midas-jeil-iso_catch-center-object-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-object-mo",
@@ -3494,28 +4650,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_catch-center-object-mo_C.png",
       "html": "midas-jeil-iso_catch-center-object-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-logo-mo",
@@ -3531,28 +4700,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_catch-center-logo-mo_C.png",
       "html": "midas-jeil-iso_catch-center-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-display-pc-profile",
@@ -3568,28 +4750,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_kakao-display-pc-profile_C.png",
       "html": "midas-jeil-iso_kakao-display-pc-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-native-mo-342x228",
@@ -3605,28 +4800,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_naver-gfa-native-mo-342x228_C.png",
       "html": "midas-jeil-iso_naver-gfa-native-mo-342x228_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-native-mo-profile-300",
@@ -3642,28 +4850,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_naver-gfa-native-mo-profile-300_C.png",
       "html": "midas-jeil-iso_naver-gfa-native-mo-profile-300_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-community-native",
@@ -3679,28 +4900,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_everytime-community-native_C.png",
       "html": "midas-jeil-iso_everytime-community-native_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-card-profile",
@@ -3716,28 +4950,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_everytime-home-card-profile_C.png",
       "html": "midas-jeil-iso_everytime-home-card-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-contest-card",
@@ -3753,28 +5000,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_everytime-contest-card_C.png",
       "html": "midas-jeil-iso_everytime-contest-card_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-search-keyword-thumb",
@@ -3790,28 +5050,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_everytime-search-keyword-thumb_C.png",
       "html": "midas-jeil-iso_everytime-search-keyword-thumb_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-daily-message-profile",
@@ -3827,28 +5100,41 @@
        "h": 1
       },
       "kvPlace": "bottom",
-      "kvSize": "md",
+      "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#1B8CC6"
+        "#0B7FBF"
        ],
        "angle": 180,
        "text": "light",
-       "melt": 0.45
+       "melt": 0.3
       },
-      "why": "정사각에서는 위에 글자, 아래에 그림을 두어 둘 다 균형 있게 보이게 한다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.45,
+       "w": 1,
+       "h": 0.55
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "정사각에서는 글자를 위쪽에 두고 그림을 아래에 넓게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_everytime-daily-message-profile_C.png",
       "html": "midas-jeil-iso_everytime-daily-message-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "blind-brand-logo",
@@ -3858,49 +5144,66 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0.032,
-       "y": 0.023,
-       "w": 0.936,
-       "h": 0.938
+       "x": 0.152,
+       "y": 0.011,
+       "w": 0.832,
+       "h": 0.961
       },
       "kvPlace": "right",
       "kvSize": "sm",
       "textAlign": "left",
       "textAnchor": "center",
-      "bgFill": "brand",
+      "bgFill": "auto",
       "bgGrad": "h",
       "scrim": "none",
       "field": {
        "colors": [
         "#005D94",
-        "#0A78B5"
+        "#0B7FBF"
        ],
        "angle": 90,
        "text": "light",
-       "melt": 0.4
+       "melt": 0.3
       },
-      "why": "가로 띠는 높이가 낮아 JEIL 글자 중심으로 잘라 오른쪽 끝에 작게 두고 글자 공간을 확보한다."
+      "kvBox": {
+       "x": 0.74,
+       "y": -0.1,
+       "w": 0.26,
+       "h": 1.2
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로 띠는 글자 공간이 좁아 그림을 오른쪽 끝에 작게 둔다."
      },
      "stage": "4",
      "C": {
       "png": "midas-jeil-iso_blind-brand-logo_C.png",
       "html": "midas-jeil-iso_blind-brand-logo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     }
    ],
    "ai": {
-    "type": "cutout-scene",
-    "rationale": "밝은 파랑 계열 아이소메트릭 누끼 일러스트라 브랜드색 #005D94와 그림 색을 이은 지면으로 녹여 글자 쪽을 짙게 만들어 흰 글자가 읽히게 했다. 로고는 짙은 파랑 워드마크라 어두운 지면에서는 대비 처리가 필요하며, 모양마다 일러스트를 한쪽에 두고 반대쪽을 글자 공간으로 비웠다.",
-    "ms": 11451,
+    "type": "illust-scene",
+    "rationale": "투명 배경의 아이소메트릭 일러스트라 누끼처럼 취급해 브랜드 블루 계열 지면 위에 크게 올리고 fade는 쓰지 않았다. 글자는 그림 반대쪽에 두고, 어두운 로고는 파란 지면에서 대비를 확인해야 한다.",
+    "ms": 10577,
     "cost": 0,
     "usage": {
-     "input_tokens": 4332,
-     "output_tokens": 1486,
+     "input_tokens": 5460,
+     "output_tokens": 1629,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "wide: 직접 색은 사람만 → auto",
+     "tall: 직접 색은 사람만 → auto",
+     "square: 직접 색은 사람만 → auto",
+     "tower: 직접 색은 사람만 → auto",
+     "strip: 직접 색은 사람만 → auto"
     ]
    }
   },
@@ -3920,33 +5223,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-pc-premium-popup-pc_C.png",
       "html": "midas-team-photo_jasoseol-pc-premium-popup-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-premium-jobpost-pc",
@@ -3956,10 +5273,10 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.1,
        "y": 0.133,
-       "w": 1,
-       "h": 0.767
+       "w": 0.9,
+       "h": 0.733
       },
       "kvPlace": "bottom",
       "kvSize": "sm",
@@ -3970,20 +5287,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#C9CDD0"
+        "#24363F",
+        "#E2E4E5"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.55
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "세로 띠는 폭이 좁아 얼굴 셋만 아래에 작게 두고 위는 벽 색으로 녹여 글자 공간을 만든다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.55,
+       "w": 1,
+       "h": 0.45
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "좁은 세로 띠는 글자를 위쪽에 쌓고 사진은 아래에 작게 둔다. 세 사람이 보이도록 crop을 얼굴 중심으로 좁혔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-pc-premium-jobpost-pc_C.png",
       "html": "midas-team-photo_jasoseol-pc-premium-jobpost-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-standard-main-pc",
@@ -3994,9 +5324,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4007,20 +5337,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-pc-standard-main-pc_C.png",
       "html": "midas-team-photo_jasoseol-pc-standard-main-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-standard-jobpost-pc",
@@ -4030,10 +5373,10 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.1,
        "y": 0.133,
-       "w": 1,
-       "h": 0.767
+       "w": 0.9,
+       "h": 0.733
       },
       "kvPlace": "bottom",
       "kvSize": "sm",
@@ -4044,20 +5387,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#C9CDD0"
+        "#24363F",
+        "#E2E4E5"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.55
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "세로 띠는 폭이 좁아 얼굴 셋만 아래에 작게 두고 위는 벽 색으로 녹여 글자 공간을 만든다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.55,
+       "w": 1,
+       "h": 0.45
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "좁은 세로 띠는 글자를 위쪽에 쌓고 사진은 아래에 작게 둔다. 세 사람이 보이도록 crop을 얼굴 중심으로 좁혔다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-pc-standard-jobpost-pc_C.png",
       "html": "midas-team-photo_jasoseol-pc-standard-jobpost-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-premium-popup-mo",
@@ -4067,33 +5423,47 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.833
       },
-      "kvPlace": "bg",
+      "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "위쪽 흰 벽이 비어 있어 글자를 위에 두고 아래 인물은 그대로 보인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.38,
+       "w": 1,
+       "h": 0.62
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 배치해 위쪽 경계를 녹인다. 얼굴이 로고 모서리를 피하도록 사진을 아래로 내렸다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-m-premium-popup-mo_C.png",
       "html": "midas-team-photo_jasoseol-m-premium-popup-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-premium-chatlist-logo-mo",
@@ -4103,33 +5473,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-m-premium-chatlist-logo-mo_C.png",
       "html": "midas-team-photo_jasoseol-m-premium-chatlist-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-standard-main-mo",
@@ -4139,33 +5523,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-m-standard-main-mo_C.png",
       "html": "midas-team-photo_jasoseol-m-standard-main-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-standard-chatlist-logo-mo",
@@ -4175,33 +5573,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-m-standard-chatlist-logo-mo_C.png",
       "html": "midas-team-photo_jasoseol-m-standard-chatlist-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-start-logo-mo",
@@ -4212,9 +5624,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4225,20 +5637,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-m-start-logo-mo_C.png",
       "html": "midas-team-photo_jasoseol-m-start-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-m-start-image-mo",
@@ -4248,33 +5673,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-m-start-image-mo_C.png",
       "html": "midas-team-photo_jasoseol-m-start-image-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jasoseol-pc-calendar-pc",
@@ -4284,33 +5723,47 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.833
       },
-      "kvPlace": "bg",
+      "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "위쪽 흰 벽이 비어 있어 글자를 위에 두고 아래 인물은 그대로 보인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.38,
+       "w": 1,
+       "h": 0.62
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 배치해 위쪽 경계를 녹인다. 얼굴이 로고 모서리를 피하도록 사진을 아래로 내렸다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_jasoseol-pc-calendar-pc_C.png",
       "html": "midas-team-photo_jasoseol-pc-calendar-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-top-pc",
@@ -4321,9 +5774,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4334,20 +5787,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-main-top-pc_C.png",
       "html": "midas-team-photo_remember-main-top-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-top-mo",
@@ -4358,9 +5824,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4371,20 +5837,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-main-top-mo_C.png",
       "html": "midas-team-photo_remember-main-top-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-mid-pc",
@@ -4395,9 +5874,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4408,20 +5887,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-main-mid-pc_C.png",
       "html": "midas-team-photo_remember-main-mid-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-main-mid-mo",
@@ -4432,9 +5924,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4445,20 +5937,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-main-mid-mo_C.png",
       "html": "midas-team-photo_remember-main-mid-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-top-pc",
@@ -4469,9 +5974,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4482,20 +5987,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-job-top-pc_C.png",
       "html": "midas-team-photo_remember-job-top-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-top-mo",
@@ -4506,9 +6024,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4519,20 +6037,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-job-top-mo_C.png",
       "html": "midas-team-photo_remember-job-top-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-side-pc",
@@ -4543,9 +6074,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4556,20 +6087,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-job-side-pc_C.png",
       "html": "midas-team-photo_remember-job-side-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "remember-job-side-mo",
@@ -4580,9 +6124,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4593,20 +6137,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_remember-job-side-mo_C.png",
       "html": "midas-team-photo_remember-job-side-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-bizboard-mo",
@@ -4617,9 +6174,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4630,20 +6187,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "1",
      "C": {
       "png": "midas-team-photo_kakao-bizboard-mo_C.png",
       "html": "midas-team-photo_kakao-bizboard-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-mobile-da-1250x560",
@@ -4654,9 +6224,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4667,20 +6237,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_naver-gfa-mobile-da-1250x560_C.png",
       "html": "midas-team-photo_naver-gfa-mobile-da-1250x560_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "everytime-community-board",
@@ -4691,9 +6274,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4704,20 +6287,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_everytime-community-board_C.png",
       "html": "midas-team-photo_everytime-community-board_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-banner",
@@ -4728,9 +6324,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4741,20 +6337,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_everytime-home-banner_C.png",
       "html": "midas-team-photo_everytime-home-banner_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-card-image",
@@ -4764,33 +6373,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_everytime-home-card-image_C.png",
       "html": "midas-team-photo_everytime-home-card-image_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "nap-dsp-band-320x50",
@@ -4800,10 +6423,10 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.1,
+       "y": 0.143,
+       "w": 0.9,
+       "h": 0.677
       },
       "kvPlace": "right",
       "kvSize": "sm",
@@ -4814,20 +6437,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#D5D9DC"
+        "#24363F",
+        "#C9CDCE"
        ],
        "angle": 90,
-       "text": "dark",
-       "melt": 0.6
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 나머지는 흰 벽 색으로 채운다."
+      "kvBox": {
+       "x": 0.68,
+       "y": 0,
+       "w": 0.32,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.45,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 왼쪽을 글자에 양보한다. 서 있는 남성과 앉은 남성의 얼굴 위주로 crop했다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_nap-dsp-band-320x50_C.png",
       "html": "midas-team-photo_nap-dsp-band-320x50_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "nap-dsp-band-320x100",
@@ -4837,10 +6473,10 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.1,
+       "y": 0.143,
+       "w": 0.9,
+       "h": 0.677
       },
       "kvPlace": "right",
       "kvSize": "sm",
@@ -4851,20 +6487,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#D5D9DC"
+        "#24363F",
+        "#C9CDCE"
        ],
        "angle": 90,
-       "text": "dark",
-       "melt": 0.6
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 나머지는 흰 벽 색으로 채운다."
+      "kvBox": {
+       "x": 0.68,
+       "y": 0,
+       "w": 0.32,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.45,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 왼쪽을 글자에 양보한다. 서 있는 남성과 앉은 남성의 얼굴 위주로 crop했다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_nap-dsp-band-320x100_C.png",
       "html": "midas-team-photo_nap-dsp-band-320x100_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "nap-dsp-full-300x250",
@@ -4874,33 +6523,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_nap-dsp-full-300x250_C.png",
       "html": "midas-team-photo_nap-dsp-full-300x250_C.html"
-     }
+     },
+     "aiBox": "70% 로 줄임"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -4910,33 +6573,47 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.833
       },
-      "kvPlace": "bg",
+      "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "위쪽 흰 벽이 비어 있어 글자를 위에 두고 아래 인물은 그대로 보인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.38,
+       "w": 1,
+       "h": 0.62
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 배치해 위쪽 경계를 녹인다. 얼굴이 로고 모서리를 피하도록 사진을 아래로 내렸다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_nap-dsp-full-320x480_C.png",
       "html": "midas-team-photo_nap-dsp-full-320x480_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -4947,9 +6624,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4960,20 +6637,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "2",
      "C": {
       "png": "midas-team-photo_kakao-display-pc-promo_C.png",
       "html": "midas-team-photo_kakao-display-pc-promo_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "blind-feed-image",
@@ -4984,9 +6674,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -4997,20 +6687,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_blind-feed-image_C.png",
       "html": "midas-team-photo_blind-feed-image_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "blind-post-banner",
@@ -5021,9 +6724,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -5034,20 +6737,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_blind-post-banner_C.png",
       "html": "midas-team-photo_blind-post-banner_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "google-gdn-580x400",
@@ -5057,33 +6773,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_google-gdn-580x400_C.png",
       "html": "midas-team-photo_google-gdn-580x400_C.html"
-     }
+     },
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "google-gdn-970x250",
@@ -5094,9 +6824,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -5107,20 +6837,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_google-gdn-970x250_C.png",
       "html": "midas-team-photo_google-gdn-970x250_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "google-gdn-300x600",
@@ -5130,33 +6873,47 @@
      "shape": "tall",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.833
       },
-      "kvPlace": "bg",
+      "kvPlace": "bottom",
       "kvSize": "lg",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "위쪽 흰 벽이 비어 있어 글자를 위에 두고 아래 인물은 그대로 보인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.38,
+       "w": 1,
+       "h": 0.62
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "세로형은 위쪽에 글자를 두고 사진을 아래에 크게 배치해 위쪽 경계를 녹인다. 얼굴이 로고 모서리를 피하도록 사진을 아래로 내렸다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_google-gdn-300x600_C.png",
       "html": "midas-team-photo_google-gdn-300x600_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -5166,10 +6923,10 @@
      "shape": "tower",
      "group": {
       "crop": {
-       "x": 0,
+       "x": 0.1,
        "y": 0.133,
-       "w": 1,
-       "h": 0.767
+       "w": 0.9,
+       "h": 0.733
       },
       "kvPlace": "bottom",
       "kvSize": "sm",
@@ -5180,20 +6937,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#C9CDD0"
+        "#24363F",
+        "#E2E4E5"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.55
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "세로 띠는 폭이 좁아 얼굴 셋만 아래에 작게 두고 위는 벽 색으로 녹여 글자 공간을 만든다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.55,
+       "w": 1,
+       "h": 0.45
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.45,
+       "bottom": 0
+      },
+      "why": "좁은 세로 띠는 글자를 위쪽에 쌓고 사진은 아래에 작게 둔다. 세 사람이 보이도록 crop을 얼굴 중심으로 좁혔다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_google-gdn-300x1050_C.png",
       "html": "midas-team-photo_google-gdn-300x1050_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "jobda-main-pc",
@@ -5204,9 +6974,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -5217,20 +6987,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_jobda-main-pc_C.png",
       "html": "midas-team-photo_jobda-main-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "jobda-main-mo",
@@ -5241,9 +7024,9 @@
      "group": {
       "crop": {
        "x": 0,
-       "y": 0.1,
+       "y": 0.133,
        "w": 1,
-       "h": 0.776
+       "h": 0.687
       },
       "kvPlace": "right",
       "kvSize": "md",
@@ -5254,20 +7037,33 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#DADDE0"
+        "#24363F",
+        "#E6E8E9"
        ],
        "angle": 90,
-       "text": "dark",
+       "text": "light",
        "melt": 0.5
       },
-      "why": "가로로 자르면 얼굴 셋이 잘리기 쉬워 사진을 오른쪽에 두고, 왼쪽은 흰 벽 색으로 이어 글자를 올린다."
+      "kvBox": {
+       "x": 0.42,
+       "y": 0,
+       "w": 0.58,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.4,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로형은 오른쪽에 사진을 크게 두고 왼쪽을 브랜드색으로 녹여 글자 공간을 확보한다. 세 사람 얼굴이 모두 crop 안에 들어간다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_jobda-main-mo_C.png",
       "html": "midas-team-photo_jobda-main-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "instagram-feed-1080",
@@ -5277,33 +7073,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_instagram-feed-1080_C.png",
       "html": "midas-team-photo_instagram-feed-1080_C.html"
-     }
+     },
+     "aiBox": "85% 로 줄임"
     },
     {
      "spec": "daangn-native-feed-image",
@@ -5313,33 +7123,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "3",
      "C": {
       "png": "midas-team-photo_daangn-native-feed-image_C.png",
       "html": "midas-team-photo_daangn-native-feed-image_C.html"
-     }
+     },
+     "aiBox": "그대로"
     },
     {
      "spec": "catch-center-object-pc",
@@ -5349,33 +7173,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_catch-center-object-pc_C.png",
       "html": "midas-team-photo_catch-center-object-pc_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-object-mo",
@@ -5385,33 +7223,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_catch-center-object-mo_C.png",
       "html": "midas-team-photo_catch-center-object-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-logo-mo",
@@ -5421,33 +7273,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_catch-center-logo-mo_C.png",
       "html": "midas-team-photo_catch-center-logo-mo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-display-pc-profile",
@@ -5457,33 +7323,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_kakao-display-pc-profile_C.png",
       "html": "midas-team-photo_kakao-display-pc-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-native-mo-342x228",
@@ -5493,33 +7373,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_naver-gfa-native-mo-342x228_C.png",
       "html": "midas-team-photo_naver-gfa-native-mo-342x228_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "naver-gfa-native-mo-profile-300",
@@ -5529,33 +7423,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_naver-gfa-native-mo-profile-300_C.png",
       "html": "midas-team-photo_naver-gfa-native-mo-profile-300_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-community-native",
@@ -5565,33 +7473,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_everytime-community-native_C.png",
       "html": "midas-team-photo_everytime-community-native_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-home-card-profile",
@@ -5601,33 +7523,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_everytime-home-card-profile_C.png",
       "html": "midas-team-photo_everytime-home-card-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-contest-card",
@@ -5637,33 +7573,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_everytime-contest-card_C.png",
       "html": "midas-team-photo_everytime-contest-card_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-search-keyword-thumb",
@@ -5673,33 +7623,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_everytime-search-keyword-thumb_C.png",
       "html": "midas-team-photo_everytime-search-keyword-thumb_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "everytime-daily-message-profile",
@@ -5709,33 +7673,47 @@
      "shape": "square",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0.08,
-       "w": 1,
-       "h": 0.796
+       "x": 0.083,
+       "y": 0.1,
+       "w": 0.917,
+       "h": 0.733
       },
-      "kvPlace": "bg",
-      "kvSize": "lg",
+      "kvPlace": "bottom",
+      "kvSize": "md",
       "textAlign": "left",
       "textAnchor": "top",
-      "bgFill": "kv",
-      "bgGrad": "none",
+      "bgFill": "auto",
+      "bgGrad": "v",
       "scrim": "none",
       "field": {
        "colors": [
-        "#E6E8EA"
+        "#24363F",
+        "#DDE0E1"
        ],
        "angle": 180,
-       "text": "dark",
-       "melt": 0.4
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "정사각 크롭에서도 세 얼굴이 모두 들어가고 위쪽 벽에 글자가 놓인다."
+      "kvBox": {
+       "x": 0,
+       "y": 0.4,
+       "w": 1,
+       "h": 0.6
+      },
+      "fade": {
+       "left": 0,
+       "right": 0,
+       "top": 0.4,
+       "bottom": 0
+      },
+      "why": "정사각은 위에 글자, 아래에 사진을 두는 구성이 안정적이다. 위쪽 변을 지면으로 녹여 자연스럽게 잇는다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_everytime-daily-message-profile_C.png",
       "html": "midas-team-photo_everytime-daily-message-profile_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "blind-brand-logo",
@@ -5745,10 +7723,10 @@
      "shape": "strip",
      "group": {
       "crop": {
-       "x": 0,
-       "y": 0,
-       "w": 1,
-       "h": 1
+       "x": 0.1,
+       "y": 0.143,
+       "w": 0.9,
+       "h": 0.677
       },
       "kvPlace": "right",
       "kvSize": "sm",
@@ -5759,40 +7737,54 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E8EAEC",
-        "#D5D9DC"
+        "#24363F",
+        "#C9CDCE"
        ],
        "angle": 90,
-       "text": "dark",
-       "melt": 0.6
+       "text": "light",
+       "melt": 0.5
       },
-      "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 나머지는 흰 벽 색으로 채운다."
+      "kvBox": {
+       "x": 0.68,
+       "y": 0,
+       "w": 0.32,
+       "h": 1
+      },
+      "fade": {
+       "left": 0.45,
+       "right": 0,
+       "top": 0,
+       "bottom": 0
+      },
+      "why": "가로 띠는 높이가 낮아 사진을 오른쪽 끝에 작게 두고 왼쪽을 글자에 양보한다. 서 있는 남성과 앉은 남성의 얼굴 위주로 crop했다."
      },
      "stage": "4",
      "C": {
       "png": "midas-team-photo_blind-brand-logo_C.png",
       "html": "midas-team-photo_blind-brand-logo_C.html"
-     }
+     },
+     "aiBox": "규칙 자리(겹침)"
     }
    ],
    "ai": {
-    "type": "photo-roomy",
-    "rationale": "밝은 흰 벽 배경의 협업 사진이라 얼굴 셋과 노트북을 crop 안에 지키고, 빈 벽 쪽에 글자가 놓이도록 위치를 잡았다. 지면은 벽의 밝은 회백색으로 이어 붙여 자연스럽게 녹이고 글자는 어둡게 하여 파란 로고와도 잘 어울리게 했다.",
-    "ms": 11556,
+    "type": "photo-bright",
+    "rationale": "밝은 사무실 협업 사진이라 세 사람의 얼굴을 모두 보존하고, 글자 쪽은 브랜드색 #24363F에서 사진의 흰 벽 톤으로 이어지게 녹였다. 로고는 어두운 워드마크라 위쪽 모서리에서 지면색과 대비되도록 규칙 엔진이 처리하게 맡긴다.",
+    "ms": 13361,
     "cost": 0,
     "usage": {
-     "input_tokens": 6274,
-     "output_tokens": 1538,
+     "input_tokens": 7402,
+     "output_tokens": 1917,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
     "fixes": [
      "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
      "wide: 직접 색은 사람만 → auto",
-     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tall: 직접 색은 사람만 → auto",
+     "square: 직접 색은 사람만 → auto",
      "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
      "tower: 직접 색은 사람만 → auto",
-     "strip: crop 이 너무 작아(0.667×0.267) 원본 전체로",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
      "strip: 직접 색은 사람만 → auto"
     ]
    }

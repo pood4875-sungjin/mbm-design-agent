@@ -215,9 +215,79 @@ function fieldAlign(html, style, spec, tr) {
   return out.replace(/data-trace="[^"]*"/, `data-trace="${esc(JSON.stringify(tr))}"`);
 }
 export function renderAd(ctx, style, spec) {
+  if (style?.aiKvBox && !style.__fix) { const ai = aiBoxRender(ctx, style, spec); if (ai) return ai; }
   const first = renderOnce(ctx, style, spec);
   const fixed = overlapFix(ctx, style, spec, first);
   return fixed !== first.html ? fixed : emptyFix(ctx, style, spec, first);   // 겹침 교정이 손댄 그림은 이미 꽉 찬 그림 — 빈 지면 보정은 건너뛴다
+}
+// AI 그림 상자(10-22 하이브리드, 사용자 「비중 정해 놓고 규칙대로 하는 느낌 — AI 가 직접, 가이드는 지킨다는 근거하에」):
+//   규칙으로 한 번 그린 뒤(글자·로고·지면은 규칙 그대로) 그림 층(data-object) 하나만 AI 가 정한 상자(캔버스 몫)·녹일 변으로 바꾼다.
+//   가이드 검사: 글자 행 × 주인공 겹침(overlapRatio — 문턱은 overlapFix 와 같게 캐릭터·누끼 2% · 그 외 15%) + 주인공의 로고 칸 가림 ≤ 5%.
+//   넘으면 그림 상자를 글자 반대쪽 변을 붙잡고 0.85·0.7 로 줄여 다시 재고, 그래도 넘으면 null → 기존 규칙 파이프라인(겹침 교정·빈 지면 보정).
+//   틀 그림 칸이 고정인 매체(자소설·리멤버·잡다·에브리타임·캐치)·비즈보드·로고 전용·그림 층 없음은 건너뛴다(null).
+const AI_BOX_SKIP = new Set(['jasoseol', 'remember', 'jobda', 'everytime', 'catch']);
+function aiBoxRender(ctx, style, spec) {
+  if (AI_BOX_SKIP.has(spec.medium) || /bizboard/.test(spec.id ?? '')) return null;
+  const first = renderOnce(ctx, style, spec);
+  const T = first.tr, g = T?.gate; if (!g?.hasKv || g.logoOnly || g.transparent) return null;
+  const W = spec.w, H = spec.h, B = style.aiKvBox, Fd = style.aiFade ?? {};
+  const objs = [...first.html.matchAll(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g)].filter(m => !/data-kv-only/.test(m[1]) && !/inset:0/.test(m[2]));
+  if (!objs.length) return null;
+  const numOf = (st, k) => { const m = st.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)px')); return m ? parseFloat(m[1]) : 0; };
+  const main = objs.reduce((a, m) => (numOf(m[2], 'width') * numOf(m[2], 'height') > numOf(a[2], 'width') * numOf(a[2], 'height') ? m : a));
+  const f = first.styleUsed.kvMeta?.field ?? null, fo = f?.focus ?? profileFocus(f) ?? null;
+  const transparent = (f?.opaque ?? 1) < 0.5;
+  const rows = T.textBox?.rows ?? [];
+  const tc = rows.length ? { x: rows.reduce((a, r) => a + r.x + r.w / 2, 0) / rows.length, y: rows.reduce((a, r) => a + r.y + r.h / 2, 0) / rows.length } : { x: 0, y: 0 };
+  const logoM = first.html.match(/<div data-logo-slot="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
+  const logoR = logoM ? { x: +logoM[1], y: +logoM[2], w: +logoM[3], h: +logoM[4] } : null;
+  const OV = CANON.overlapFix, thr = (kvTypeOf(style.kvMeta)?.flags?.character || transparent) ? OV.character : OV.other;
+  const build = k => {
+    // 글자 쪽 축만 줄인다(가로로 떨어져 있으면 폭만, 세로면 높이만) — 글자 반대쪽 변을 붙잡고. 위아래 꽉 찬 사진에 빈 띠가 생기지 않게
+    const cx = (B.x + B.w / 2) * W, cy = (B.y + B.h / 2) * H;
+    const horiz = Math.abs(cx - tc.x) / W >= Math.abs(cy - tc.y) / H;
+    const bw = B.w * W * (horiz ? k : 1), bh = B.h * H * (horiz ? 1 : k);
+    const x = horiz ? (cx >= tc.x ? (B.x + B.w) * W - bw : B.x * W) : B.x * W;
+    const y = horiz ? B.y * H : (cy >= tc.y ? (B.y + B.h) * H - bh : B.y * H);
+    const r1 = v => Math.round(v * 10) / 10;
+    const pos = fo ? `${Math.round(Math.min(100, Math.max(0, fo.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, fo.y * 100)))}%` : '50% 50%';
+    const sides = transparent ? [] : [['left', 'to right'], ['right', 'to left'], ['top', 'to bottom'], ['bottom', 'to top']].filter(([s0]) => (Fd[s0] ?? 0) >= 0.03).map(([s0, dir]) => meltGradient(dir, Math.round(Fd[s0] * 1000) / 10));
+    const mask = sides.length ? meltMaskList(sides) : '';
+    let st = main[2].replace(/(^|;)left:-?[\d.]+px/, `$1left:${r1(x)}px`).replace(/(^|;)top:-?[\d.]+px/, `$1top:${r1(y)}px`).replace(/(^|;)width:[\d.]+px/, `$1width:${r1(bw)}px`).replace(/(^|;)height:[\d.]+px/, `$1height:${r1(bh)}px`)
+      .replace(/background:url\('([^']*)'\) [^;]*? no-repeat;/, (m0, u) => `background:url('${u}') ${pos}/${transparent ? 'contain' : 'cover'} no-repeat;`)
+      .replace(/-webkit-mask-image:[^;]*;/g, '').replace(/(^|;)mask-image:[^;]*;/g, '$1').replace(/-webkit-mask-composite:[^;]*;/g, '').replace(/(^|;)mask-composite:[^;]*;/g, '$1').replace(/(^|;)transform:[^;]*;/g, '$1');
+    if (!st.endsWith(';')) st += ';';
+    st += mask;
+    const rest = main[3].replace(/\sdata-melt(-[a-z]+)?="[^"]*"/g, '') + ` data-ai-box="${Math.round(k * 100)}"`;
+    return first.html.replace(main[0], `<div data-object="1"${main[1]} style="${st}"${rest}>`);
+  };
+  const logoHit = html => {
+    if (!logoR || !(logoR.w > 0 && logoR.h > 0)) return 0;
+    let worst = 0;
+    for (const o of objectRects(html, first.styleUsed, spec)) {
+      const p = o.pic, S0 = fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p;
+      const x0 = Math.max(S0.x, o.clip.x, logoR.x), y0 = Math.max(S0.y, o.clip.y, logoR.y), x1 = Math.min(S0.x + S0.w, o.clip.x + o.clip.w, logoR.x + logoR.w), y1 = Math.min(S0.y + S0.h, o.clip.y + o.clip.h, logoR.y + logoR.h);
+      if (x1 > x0 && y1 > y0) worst = Math.max(worst, (x1 - x0) * (y1 - y0) / (logoR.w * logoR.h));
+    }
+    return worst;
+  };
+  // 마지막 단계 fit: 글자 쪽 변을 글자 덩어리 끝선(+2%)까지 깎는다 — 그림 상자와 글자 행이 아예 안 겹치게. 남는 폭·높이가 25% 미만이면 포기
+  const fitK = (() => {
+    if (!rows.length) return null;
+    const cx = (B.x + B.w / 2) * W, cy = (B.y + B.h / 2) * H, horiz = Math.abs(cx - tc.x) / W >= Math.abs(cy - tc.y) / H;
+    const r0 = { x0: Math.min(...rows.map(r => r.x)), x1: Math.max(...rows.map(r => r.x + r.w)), y0: Math.min(...rows.map(r => r.y)), y1: Math.max(...rows.map(r => r.y + r.h)) };
+    if (horiz) { const far = cx >= tc.x ? (B.x + B.w) * W : B.x * W, near = cx >= tc.x ? r0.x1 + W * 0.02 : r0.x0 - W * 0.02; const len = Math.abs(far - near); return len >= W * 0.25 ? Math.min(1, len / (B.w * W)) : null; }
+    const far = cy >= tc.y ? (B.y + B.h) * H : B.y * H, near = cy >= tc.y ? r0.y1 + H * 0.02 : r0.y0 - H * 0.02; const len = Math.abs(far - near); return len >= H * 0.25 ? Math.min(1, len / (B.h * H)) : null;
+  })();
+  for (const k of [1, 0.85, 0.7, ...(fitK && fitK < 0.7 ? [fitK] : [])]) {
+    const html = build(k);
+    const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0, lh = logoHit(html);
+    if (ov <= thr && lh <= 0.05) {
+      const mark = k === 1 ? 'aiBox.ok' : k === fitK ? 'aiBox.fit' : 'aiBox.shrink';
+      return html.replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`).replace('<div data-ad="1"', `<div data-ad="1" data-ai-box="${Math.round(k * 100)}:${Math.round(ov * 100)}"`);
+    }
+  }
+  return null;   // 규칙 자리로(호출자가 기존 파이프라인)
 }
 // 빈 지면 보정 사다리(10-21 사용자 「이런 경우 키비주얼이 꽤 크게 들어가야 비어 보이지 않고 임팩트」):
 //   글자 행 ∪ 그림 주인공이 지면을 덮는 몫(coverageOf)이 CANON.emptyFix.min 미만이면 키비주얼 배율 steps 순으로 다시 그려(__fix.kvK — 편집 「키비주얼 크기」와 같은 자리, 틀 칸은 emptyFix.slot)
