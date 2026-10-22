@@ -250,23 +250,40 @@ function aiBoxRender(ctx, style, spec) {
   if (!objs.length) return null;
   const numOf = (st, k) => { const m = st.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)px')); return m ? parseFloat(m[1]) : 0; };
   const main = objs.reduce((a, m) => (numOf(m[2], 'width') * numOf(m[2], 'height') > numOf(a[2], 'width') * numOf(a[2], 'height') ? m : a));
-  const f = first.styleUsed.kvMeta?.field ?? null, fo = f?.focus ?? profileFocus(f) ?? null;
+  const f = first.styleUsed.kvMeta?.field ?? null, fo0 = f?.focus ?? profileFocus(f) ?? null;
   const transparent = (f?.opaque ?? 1) < 0.5;
+  // 핵심 상자(10-22 루프 r2: 사진 주인공 상자가 그림의 89%×93% → 어떤 배치도 겹침·잘림으로 탈락, 한샘 8규격 중 6개 규칙 자리):
+  //   주인공 상자가 그림의 35% 를 넘고 얼굴·보존 요소가 있으면, 겹침·잘림 검사는 얼굴·보존 요소를 넉넉히(얼굴 크기 40%) 감싼 상자로 — 넓은 주인공 상자는 점수에만
+  const AIm = first.styleUsed.kvMeta?.ai ?? {};
+  const coreOf = () => {
+    if (!fo0 || fo0.w * fo0.h <= 0.35) return null;
+    const parts = [...(AIm.faces ?? []).map(b => { const e = Math.max(b.w, b.h) * 0.4; return { x: b.x - e, y: b.y - e * 0.6, w: b.w + 2 * e, h: b.h + e * 1.6 }; }), ...(AIm.keep ?? [])];
+    if (!parts.length) return null;
+    let x0 = Math.min(...parts.map(b => b.x)), y0 = Math.min(...parts.map(b => b.y)), x1 = Math.max(...parts.map(b => b.x + b.w)), y1 = Math.max(...parts.map(b => b.y + b.h));
+    x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(1, x1); y1 = Math.min(1, y1); if (!(x1 > x0 && y1 > y0)) return null;
+    return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 };
+  };
+  const core = coreOf(), fo = core ?? fo0;
+  const styleJ = core ? { ...first.styleUsed, kvMeta: { ...first.styleUsed.kvMeta, field: { ...f, focus: core } } } : first.styleUsed;   // 겹침 검사는 핵심 상자로
   const rows = T.textBox?.rows ?? [];
   const tc = rows.length ? { x: rows.reduce((a, r) => a + r.x + r.w / 2, 0) / rows.length, y: rows.reduce((a, r) => a + r.y + r.h / 2, 0) / rows.length } : { x: W / 2, y: H / 2 };
   const logoM = first.html.match(/<div data-logo-slot="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
   const logoR = logoM ? { x: +logoM[1], y: +logoM[2], w: +logoM[3], h: +logoM[4] } : null;
   const OV = CANON.overlapFix, thr = OV.character;   // AI 상자는 엄하게(2%) — 규칙 자리보다 크게 쓰는 만큼 글자가 주인공에 닿으면 안 된다(10-22 네이버 1250 제목이 신호등 기둥에)
   const r1 = v => Math.round(v * 10) / 10;
-  const pos = fo ? `${Math.round(Math.min(100, Math.max(0, fo.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, fo.y * 100)))}%` : '50% 50%';
+  const pf = core ?? fo0, pos = pf ? `${Math.round(Math.min(100, Math.max(0, pf.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, pf.y * 100)))}%` : '50% 50%';   // 자를 때 핵심(얼굴) 쪽을 붙잡는다
   // px 상자 하나로 그림 층을 바꾼 HTML — 지면 안쪽에 떠 있는 변은 늘 녹인다(누끼 제외, 10-22 r0 「밝은 사각 패널 경계」)
-  const buildBox = (bx, tag, fade = Fd) => {
+  const kpx = first.styleUsed.kvMeta?.px, IW = kpx?.[0] ?? (first.styleUsed.kvMeta?.ar ?? 1) * 1000, IH = kpx?.[1] ?? 1000;
+  const buildBox = (bx, tag, fade = Fd, at = null, zoom = 1) => {
     const { x, y, w: bw, h: bh } = bx;
+    // at: 보여 줄 위치(배경 % — 얼굴 하나·끝 맞춤) · zoom: cover 보다 더 확대(사진을 더 크게, 디자이너식 타이트 크롭)
+    const posAt = at ? `${Math.round(Math.min(100, Math.max(0, at.x * 100)))}% ${Math.round(Math.min(100, Math.max(0, at.y * 100)))}%` : pos;
+    const k0 = transparent ? Math.min(bw / IW, bh / IH) : Math.max(bw / IW, bh / IH), sz = zoom === 1 ? (transparent ? 'contain' : 'cover') : `${r1(IW * k0 * zoom)}px ${r1(IH * k0 * zoom)}px`;
     const inner = { left: x > 2, right: x + bw < W - 2, top: y > 2, bottom: y + bh < H - 2 };
     const fadeOf = s0 => Math.max(fade[s0] ?? 0, inner[s0] ? AI_INNER_FADE : 0);
     const sides = transparent ? [] : [['left', 'to right'], ['right', 'to left'], ['top', 'to bottom'], ['bottom', 'to top']].filter(([s0]) => fadeOf(s0) >= 0.03).map(([s0, dir]) => meltGradient(dir, Math.round(fadeOf(s0) * 1000) / 10));
     let st = main[2].replace(/(^|;)left:-?[\d.]+px/, `$1left:${r1(x)}px`).replace(/(^|;)top:-?[\d.]+px/, `$1top:${r1(y)}px`).replace(/(^|;)width:[\d.]+px/, `$1width:${r1(bw)}px`).replace(/(^|;)height:[\d.]+px/, `$1height:${r1(bh)}px`)
-      .replace(/background:url\('([^']*)'\) [^;]*? no-repeat;/, (m0, u) => `background:url('${u}') ${pos}/${transparent ? 'contain' : 'cover'} no-repeat;`)
+      .replace(/background:url\('([^']*)'\) [^;]*? no-repeat;/, (m0, u) => `background:url('${u}') ${posAt}/${sz} no-repeat;`)
       .replace(/-webkit-mask-image:[^;]*;/g, '').replace(/(^|;)mask-image:[^;]*;/g, '$1').replace(/-webkit-mask-composite:[^;]*;/g, '').replace(/(^|;)mask-composite:[^;]*;/g, '$1').replace(/(^|;)transform:[^;]*;/g, '$1');
     if (!st.endsWith(';')) st += ';';
     st += sides.length ? meltMaskList(sides) : '';
@@ -302,23 +319,54 @@ function aiBoxRender(ctx, style, spec) {
   const projS = o => { const p = o.pic; return fo ? { x: p.x + (fo.x - fo.w / 2) * p.w, y: p.y + (fo.y - fo.h / 2) * p.h, w: fo.w * p.w, h: fo.h * p.h } : p; };
   const visOf = (S0, o) => Math.max(0, Math.min(S0.x + S0.w, W, o.clip.x + o.clip.w) - Math.max(S0.x, 0, o.clip.x)) * Math.max(0, Math.min(S0.y + S0.h, H, o.clip.y + o.clip.h) - Math.max(S0.y, 0, o.clip.y));
   const faces = first.styleUsed.kvMeta?.ai?.faces ?? [];
-  const judge = html => {
-    const ov = overlapRatio(html, T, first.styleUsed, spec) ?? 0; if (ov > thr) return null;
+  const dbg = typeof process !== 'undefined' && process.env?.AI_BOX_DEBUG ? [] : null;
+  // 부분 판정(핵심 상자 모드): 얼굴(40% 넉넉히)·보존 요소 하나하나가 통째로 보이거나 통째로 빠져야 하고, 하나 이상 보여야 하며, 보이는 것만 글자와 안 겹치면 된다 — 「왼쪽 사람은 빼고 오른쪽 사람을 크게」
+  const parts = core ? [...(AIm.faces ?? []).map(b => { const e = Math.max(b.w, b.h) * 0.4; return { x: b.x - e, y: b.y - e * 0.6, w: b.w + 2 * e, h: b.h + e * 1.6 }; }), ...(AIm.keep ?? [])] : [];
+  const judgeParts = (html, tag) => {
+    const inter = (A, Bx) => Math.max(0, Math.min(A.x + A.w, Bx.x + Bx.w) - Math.max(A.x, Bx.x)) * Math.max(0, Math.min(A.y + A.h, Bx.y + Bx.h) - Math.max(A.y, Bx.y));
+    let shown = 0, area = 0, lh = 0;
+    for (const o of objectRects(html, first.styleUsed, spec)) {
+      const p = o.pic;
+      for (const q of parts) {
+        const P = { x: p.x + q.x * p.w, y: p.y + q.y * p.h, w: q.w * p.w, h: q.h * p.h }, a = P.w * P.h; if (!(a > 0)) continue;
+        const v = visOf(P, o), rr = v / a;
+        if (rr > 0.05 && rr < 0.95) { dbg?.push(`${tag}: 핵심 걸침 ${Math.round(rr * 100)}%`); return null; }
+        if (rr >= 0.95) {
+          shown++; area += v;
+          for (const row of rows) { const ra = row.w * row.h; if (ra > 0 && inter(row, P) / ra > thr) { dbg?.push(`${tag}: 핵심이 글자와 겹침`); return null; } }
+          if (logoR && logoR.w > 0) lh = Math.max(lh, inter(P, logoR) / (logoR.w * logoR.h));
+        }
+      }
+    }
+    if (!shown) { dbg?.push(`${tag}: 핵심이 안 보임`); return null; }
+    if (lh > 0.05) { dbg?.push(`${tag}: 로고 가림 ${Math.round(lh * 100)}%`); return null; }
+    let wide = 0; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, S1 = { x: p.x + (fo0.x - fo0.w / 2) * p.w, y: p.y + (fo0.y - fo0.h / 2) * p.h, w: fo0.w * p.w, h: fo0.h * p.h }; wide = Math.max(wide, visOf(S1, o)); }
+    return { ov: 0, subj: area + 0.3 * wide };
+  };
+  const judge = (html, tag) => {
+    if (core) return judgeParts(html, tag);
+    const ov = overlapRatio(html, T, styleJ, spec) ?? 0; if (ov > thr) { dbg?.push(`${tag}: 겹침 ${Math.round(ov * 100)}%`); return null; }
     let subj = 0, cut = 0, lh = 0;
     for (const o of objectRects(html, first.styleUsed, spec)) {
       const S0 = projS(o), a = S0.w * S0.h; if (!(a > 0)) continue; const v = visOf(S0, o); subj = Math.max(subj, v); cut = Math.max(cut, 1 - v / a);
       if (logoR && logoR.w > 0 && logoR.h > 0) { const x0 = Math.max(S0.x, o.clip.x, logoR.x), y0 = Math.max(S0.y, o.clip.y, logoR.y), x1 = Math.min(S0.x + S0.w, o.clip.x + o.clip.w, logoR.x + logoR.w), y1 = Math.min(S0.y + S0.h, o.clip.y + o.clip.h, logoR.y + logoR.h); if (x1 > x0 && y1 > y0) lh = Math.max(lh, (x1 - x0) * (y1 - y0) / (logoR.w * logoR.h)); }
-      for (const fc of faces) { const p = o.pic, Fb = { x: p.x + fc.x * p.w, y: p.y + fc.y * p.h, w: fc.w * p.w, h: fc.h * p.h }, fa = Fb.w * Fb.h; if (!(fa > 0)) continue; const r = visOf(Fb, o) / fa; if (r > 0.03 && r < 0.97) return null; }
+      for (const fc of faces) { const p = o.pic, Fb = { x: p.x + fc.x * p.w, y: p.y + fc.y * p.h, w: fc.w * p.w, h: fc.h * p.h }, fa = Fb.w * Fb.h; if (!(fa > 0)) continue; const r = visOf(Fb, o) / fa; if (r > 0.03 && r < 0.97) { dbg?.push(`${tag}: 얼굴 ${Math.round(r * 100)}%`); return null; } }
     }
-    if (lh > 0.05 || cut > 0.12) return null;
+    if (lh > 0.05 || cut > 0.12) { dbg?.push(`${tag}: 로고 ${Math.round(lh * 100)}% 잘림 ${Math.round(cut * 100)}%`); return null; }
+    if (core && fo0) { let wide = 0; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, S1 = { x: p.x + (fo0.x - fo0.w / 2) * p.w, y: p.y + (fo0.y - fo0.h / 2) * p.h, w: fo0.w * p.w, h: fo0.h * p.h }; wide = Math.max(wide, visOf(S1, o)); } subj += 0.3 * wide; }
     return { ov, subj };
   };
   let best = null;
-  for (const c of cands) {
-    const html = buildBox(c.bx, c.tag); const j = judge(html); if (!j) continue;
+  // 보여 줄 위치 후보 — 기본(핵심·주인공 가운데) + 얼굴·보존 요소마다 + 네 끝 맞춤. 확대 1 · 1.3(사진·배경 그림만)
+  const ats = [null, ...parts.map(q => ({ x: Math.min(1, Math.max(0, q.x + q.w / 2)), y: Math.min(1, Math.max(0, q.y + q.h / 2)) })), { x: 0, y: 0.5 }, { x: 1, y: 0.5 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 }];
+  const zooms = transparent ? [1] : [1, 1.3];
+  const tries = cands.flatMap(c => ats.flatMap((at, ai) => zooms.map(z => ({ ...c, at, zoom: z, tag: c.tag + (ai ? `@${ai}` : '') + (z > 1 ? 'z' : '') }))));
+  for (const c of tries) {
+    const html = buildBox(c.bx, c.tag, Fd, c.at, c.zoom); const j = judge(html, c.tag); if (!j) continue;
     const score = j.subj / (W * H) * (c.ai ? 1.12 : 1);   // 주인공이 보이는 면적 — AI 상자에 가산점(같은 크기면 AI 판단)
     if (!best || score > best.score) best = { html, score, c, ov: j.ov };
   }
+  if (dbg) console.error(`[aiBox ${spec.id}] ${best ? '선택 ' + best.c.tag : '모두 탈락'} | ${dbg.join(' · ')}`);
   if (!best) return null;   // 규칙 자리로(호출자가 기존 파이프라인 — 원본 그림)
   const mark = best.c.ai ? (best.c.tag === 'ai' ? 'aiBox.ok' : /^ai1[2-9]/.test(best.c.tag) ? 'aiBox.grow' : 'aiBox.shrink') : 'aiBox.free';
   return best.html.replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`).replace('<div data-ad="1"', `<div data-ad="1" data-ai-box="${best.c.tag}:${Math.round(best.ov * 100)}"`);

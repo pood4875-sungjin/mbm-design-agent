@@ -112,7 +112,7 @@ test('AI 그림 상자 — 규칙 렌더 뒤 그림 층만 바꾸고(글자·로
   assert.equal(renderArtifact(spec, ctx, normalizeStyle({ ...base }), {}), plain); assert.ok(!plain.includes('data-ai-box'));
   const textOf = h => (h.match(/<div data-field="main"[^>]*>[^<]*/) ?? [''])[0];
   const ok = renderArtifact(spec, ctx, normalizeStyle({ ...base, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
-  assert.match(ok, /data-ad="1" data-ai-box="(ai|free)[\w-]*:\d+"/);
+  assert.match(ok, /data-ad="1" data-ai-box="(ai|free)[\w@-]*:\d+"/);
   const om = ok.match(/<div data-object="1"[^>]*style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px/);
   assert.ok(om && +om[3] * +om[4] >= 600 * 600 * 0.9, `뽑힌 상자가 AI 상자(600×600)보다 작지 않다: ${om?.slice(1).join(',')}`);
   assert.ok(ok.includes('mask-image:linear-gradient(to right'), '왼변 녹임');
@@ -171,7 +171,7 @@ test('렌더러 — AI 상자가 얼굴을 걸쳐 자르면 그 후보는 탈락
   const spec = 'kakao-display-pc-promo';
   const kvMeta = { ...meta28, ai: { faces: [] } };
   const okH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
-  assert.match(okH, /data-ad="1" data-ai-box="(ai|free)[\w-]*:/);
+  assert.match(okH, /data-ad="1" data-ai-box="(ai|free)[\w@-]*:/);
   // 상자 오른쪽 끝(지면 밖 60px)에 걸친 얼굴 — 그림 x 0.9~1.0 → 지면 1200 을 넘는 부분이 잘림
   const cutMeta = { ...meta28, ai: { faces: [{ x: 0.88, y: 0.3, w: 0.12, h: 0.1 }] } };
   const cutH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: cutMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});

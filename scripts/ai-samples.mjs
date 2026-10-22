@@ -125,7 +125,7 @@ for (const id of CASES) {
       const f = path.join(OUT, `${id}_${sid}_${tr}.html`); writeFileSync(f, doc(html, spec.w, spec.h));
       const png = exportPng(f, path.join(OUT, `${id}_${sid}_${tr}.png`), spec.w, spec.h);
       cell[tr] = { png: png ? path.basename(png) : null, html: path.basename(f) };
-      if (tr === 'C') { const m = html.match(/data-ad="1" data-ai-box="(\d+):/); cell.aiBox = !g?.kvBox?.w ? null : (['jasoseol', 'remember', 'jobda', 'everytime', 'catch'].includes(spec.medium) || /bizboard/.test(sid)) ? '틀 고정 매체 — 규칙 자리' : /logoOnly&quot;:true/.test(html) ? '로고 전용 — 규칙' : !m ? '규칙 자리(겹침)' : html.includes('aiBox.fit') ? '글자 끝선까지 깎음' : html.includes('aiBox.grow') ? `${m[1]}% 로 키움(빈 지면)` : m[1] === '100' ? '그대로' : `${m[1]}% 로 줄임`; }
+      if (tr === 'C') { const m = html.match(/data-ad="1" data-ai-box="([\w@-]+):/); cell.aiBox = !g?.kvBox?.w ? null : (['jasoseol', 'remember', 'jobda', 'everytime', 'catch'].includes(spec.medium) || /bizboard/.test(sid)) ? '틀 고정 매체 — 규칙 자리' : /logoOnly&quot;:true/.test(html) ? '로고 전용 — 규칙' : !m ? '규칙 자리(겹침)' : m[1].startsWith('free') ? '빈 공간에 맞춤' : html.includes('aiBox.grow') ? '키움(빈 지면)' : m[1] === 'ai' ? '그대로' : '줄임·당김'; }
     }
     row.specs.push(cell);
     console.log(`  ${sid} ${shape} → C ${cell.C?.png ?? cell.C?.error} ${cell.A ? '· A ' + (cell.A.png ?? cell.A.error) : ''}`);

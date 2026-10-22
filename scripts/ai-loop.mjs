@@ -62,7 +62,7 @@ function metrics(html, style, spec) {
   let kvVis = 0; for (const o of objectRects(html, style, spec)) kvVis = Math.max(kvVis, Math.max(0, o.clip.w) * Math.max(0, o.clip.h) / (W * H));
   const faces = style.kvMeta?.ai?.faces ?? []; let faceCut = 0;
   for (const o of objectRects(html, style, spec)) for (const f of faces) { const p = o.pic; const Fb = { x: p.x + f.x * p.w, y: p.y + f.y * p.h, w: f.w * p.w, h: f.h * p.h }; const a = Fb.w * Fb.h; if (!(a > 0)) continue; const vis = Math.max(0, Math.min(Fb.x + Fb.w, W, o.clip.x + o.clip.w) - Math.max(Fb.x, 0, o.clip.x)) * Math.max(0, Math.min(Fb.y + Fb.h, H, o.clip.y + o.clip.h) - Math.max(Fb.y, 0, o.clip.y)); const r = vis / a; if (r > 0.03 && r < 0.97) faceCut++; }
-  const ai = (html.match(/data-ad="1" data-ai-box="([\w-]+):/) ?? [])[1] ?? null;
+  const ai = (html.match(/data-ad="1" data-ai-box="([\w@-]+):/) ?? [])[1] ?? null;
   const rules = tr?.rules ?? [];
   return { kvArea: Math.round(kvVis * 100), subject: cov ? Math.round(cov.kv * 100) : null, filled: cov ? Math.round(cov.all * 100) : null, overlap: ov != null ? Math.round(ov * 1000) / 10 : null, faceCut, aiBox: ai ? (ai.startsWith('free') ? 'free' : rules.includes('aiBox.grow') ? 'grow' : ai === 'ai' ? 'ok' : 'shrink') : 'rule', contrast: tr?.field?.contrast ?? null, fieldSrc: tr?.field?.source ?? null };
 }

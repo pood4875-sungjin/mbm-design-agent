@@ -58,8 +58,8 @@ export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디�
 1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크 등), 사람·캐릭터 얼굴 상자 전부(faces — 머리카락·모자 포함, 원본 픽셀), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
 2. 모양 묶음 5개(shape 값은 wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·이 모양의 주인공(focus)·키비주얼 자리(kvPlace)·크기(kvSize)·배경 방식(bgFill)·스크림(scrim). 값은 주어진 선택지 문자열 중에서만, 모르겠으면 auto. 글자 정렬은 규칙이 정한다.
 3. 그림 상자(kvBox)를 네가 직접 정한다 — 캔버스 비율(0~1) {x,y,w,h}, 지면 밖으로 흘려도 된다(x<0, x+w>1). 이 모양에서 그림을 얼마나 크게, 어디에 둘지가 핵심 판단이다. 글자 덩어리는 kvPlace 반대쪽(오른쪽 그림이면 왼쪽 약 55%, 아래 그림이면 위쪽)에 놓이고 로고는 위쪽 모서리에 놓인다 — 주인공(얼굴·제품)은 글자 쪽과 위쪽 로고 모서리에 들어가지 않게. 그림 상자가 글자 쪽으로 넘어가도 되지만 그 변은 fade 로 녹여야 한다. fade 는 그림 상자 각 변을 녹이는 길이(상자 폭·높이의 0~0.6, 0 이면 안 녹임) — 글자 쪽을 향한 변은 0.3 이상. 누끼(투명 배경)는 fade 0. 그림을 크게 써서 지면이 비어 보이지 않게 하되, 겹치면 서버가 줄이거나 규칙 자리로 되돌린다. 모르겠으면 kvBox 의 w 를 0 으로.
-5. 배경 그래픽(shapes)을 모양마다 디자인한다 — 그림에서 뽑은 색으로 부드러운 원(ellipse)·둥근 띠(pill)·사각(rect). 큰 빈 지면이 생기는 모양(정사각·세로형·세로 띠)은 큰 빛 번짐 2~3개(opacity 0.3~0.6, blur 0.12~0.25, 지면의 30~80% 크기)로 지면을 채워 단조롭지 않게, 가로형·가로 띠는 1~2개. 좌표는 캔버스 몫(0~1, 지면 밖으로 흘려도 됨), opacity 0.1~0.7, blur 는 캔버스 짧은 변의 몫(0~0.3, 빛 번짐이면 0.1 이상). 목적: 그림의 바탕(하늘·그라데이션·빛)을 지면까지 자연스럽게 이어 지면이 단조롭지 않게, 그림이 지면에 붙어 보이게. 글자 덩어리 뒤는 차분하게(글자 대비를 해치지 않게). 장식을 위한 장식(아이콘·패턴·글자)은 넣지 않는다.
-4. 지면(field)은 캠페인 공통 하나다 — 모든 모양에 같은 colors·angle 을 준다(melt 만 모양별). 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
+5. 배경 그래픽(shapes)을 모양마다 디자인한다 — 그림에서 뽑은 색으로 부드러운 원(ellipse)·둥근 띠(pill)·사각(rect). 큰 빈 지면이 생기는 모양(정사각·세로형·세로 띠)은 큰 빛 번짐 2~3개(opacity 0.3~0.6, blur 0.12~0.25, 지면의 30~80% 크기)로 지면을 채워 단조롭지 않게, 가로형·가로 띠는 1~2개. 도형 색은 지면보다 확실히 밝거나 어둡게(명도 차 15~25%) — 지면과 거의 같은 색이면 안 보여서 의미가 없다. 좌표는 캔버스 몫(0~1, 지면 밖으로 흘려도 됨), opacity 0.1~0.7, blur 는 캔버스 짧은 변의 몫(0~0.3, 빛 번짐이면 0.1 이상). 목적: 그림의 바탕(하늘·그라데이션·빛)을 지면까지 자연스럽게 이어 지면이 단조롭지 않게, 그림이 지면에 붙어 보이게. 글자 덩어리 뒤는 차분하게(글자 대비를 해치지 않게). 장식을 위한 장식(아이콘·패턴·글자)은 넣지 않는다.
+4. 지면(field)은 캠페인 공통 하나다 — 모든 모양에 같은 colors·angle 을 준다(melt 만 모양별). 그림 바탕이 흰색·아주 밝은 색이 아니면 거의 흰 파스텔(밝기 90% 이상)은 쓰지 말고, 그림이나 브랜드에서 뽑은 존재감 있는 중간 톤 이상의 색으로(지면이 비어 보이지 않게 — 실제 광고 디자이너처럼). 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
 원칙: 주인공과 보존 요소는 crop 안에. 모양마다 focus(이 모양의 주인공)를 정한다 — 가로형·정사각은 전체 주인공, 좁은 세로형(tall)·세로 띠(tower)·가로 띠(strip)는 장면 전체를 작게 넣지 말고 핵심만 좁혀(예: 확성기와 두 사람, 인물 한두 명의 상반신, 제품 하나) 크게 쓴다. 얼굴은 어떤 모양에서도 걸쳐 자르지 않는다 — crop 에 넣으면 통째로, 빼면 통째로. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
 
 // structured output(스키마 강제)은 쓰지 않는다 — 판단 칸이 늘 때마다 API 가 「compiled grammar is too large」로 거부(10-22 세 번).
@@ -231,9 +231,13 @@ export function kvMetaWithAi(kvMeta, analysis, crop = { x: 0, y: 0, w: 1, h: 1 }
   if (!kvMeta) return kvMeta;
   const fo = focusInCrop(analysis, crop, group);
   // 얼굴 상자를 crop 좌표로(렌더러 aiBoxRender 가 걸쳐 잘림을 검사) — crop 과 안 겹치는 얼굴은 뺀다
-  const faces = (analysis?.kv?.faces ?? []).map(f => ({ x: (f.x - crop.x) / crop.w, y: (f.y - crop.y) / crop.h, w: f.w / crop.w, h: f.h / crop.h })).filter(f => f.x < 1 && f.y < 1 && f.x + f.w > 0 && f.y + f.h > 0).map(f => ({ x: r3(f.x), y: r3(f.y), w: r3(f.w), h: r3(f.h) }));
+  const toCrop = f => ({ x: (f.x - crop.x) / crop.w, y: (f.y - crop.y) / crop.h, w: f.w / crop.w, h: f.h / crop.h });
+  const inCrop = f => f.x < 1 && f.y < 1 && f.x + f.w > 0 && f.y + f.h > 0;
+  const R3 = f => ({ x: r3(f.x), y: r3(f.y), w: r3(f.w), h: r3(f.h) });
+  const faces = (analysis?.kv?.faces ?? []).map(toCrop).filter(inCrop).map(R3);
+  const keep = (analysis?.kv?.keep ?? []).map(toCrop).filter(inCrop).map(R3);   // 보존 요소(제품·로고 마크) — 렌더러 핵심 상자에 쓴다
   const field = kvMeta.field ? { ...kvMeta.field, ...(fo ? { focus: fo } : {}) } : kvMeta.field;
-  return { ...kvMeta, field, ai: { type: analysis?.kv?.type ?? null, mood: analysis?.kv?.mood ?? null, cutSafe: analysis?.kv?.cutSafe ?? null, crop, faces } };
+  return { ...kvMeta, field, ai: { type: analysis?.kv?.type ?? null, mood: analysis?.kv?.mood ?? null, cutSafe: analysis?.kv?.cutSafe ?? null, crop, faces, keep } };
 }
 
 // 산출물 개별 스타일에 aiShape 가 있으면 캠페인 c.ai.groups[aiShape] 의 crop 사본·주인공 kvMeta 를 얹는다(사본은 캠페인에 모양별 5개만 — 산출물마다 복제하지 않는다).
