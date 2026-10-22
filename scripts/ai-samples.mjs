@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // A+AI 샘플 갤러리 — 키비주얼 유형별 케이스 × 규격 몇 종을 A+AI(그림 판단 1회 → 규칙 렌더)로 그리고, 참고로 A(규칙만)도 작게. 한 장짜리 HTML.
-//   node scripts/ai-samples.mjs [--cases a,b,c] [--specs x,y] [--out history/img/<날짜>_ai-samples] [--no-a]
+//   node scripts/ai-samples.mjs [--cases a,b,c] [--specs x,y] [--out history/img/<날짜>_ai-samples] [--no-a]   (A PNG 는 참고용 파일로만 남고 갤러리엔 안 보인다)
 //   키: server/.env(ANTHROPIC_API_KEY). 케이스마다 판단 1회(Sonnet ≈ $0.025). PNG 는 macOS Chrome headless.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -134,7 +134,7 @@ const cellHtml = (r, s) => {
   const g = s.group;
   const line = g ? `${g.kvPlace}·${g.kvSize} / 글자 ${g.textAlign}·${g.textAnchor} / 배경 ${g.field?.colors?.length ? `AI ${g.field.colors.join('→')}${g.field.melt ? ` 녹임 ${Math.round(g.field.melt * 100)}%` : ''}` : g.bgFill}` : '';
   return `<div class="cell"><div class="t">${esc(s.title)} <span>${s.w}×${s.h} · ${esc(SHAPE_LABEL[s.shape]?.split('(')[0] ?? s.shape)}</span></div>
-  <div class="pic" style="width:${cw}px;height:${ch}px">${s.C?.png ? `<img class="c" src="${s.C.png}" width="${cw}" height="${ch}" alt="">` : `<div class="err">${esc(s.C?.error ?? '없음')}</div>`}${s.A?.png ? `<img class="a" src="${s.A.png}" width="${cw}" height="${ch}" alt="">` : ''}</div>
+  <div class="pic" style="width:${cw}px;height:${ch}px">${s.C?.png ? `<img class="c" src="${s.C.png}" width="${cw}" height="${ch}" alt="">` : `<div class="err">${esc(s.C?.error ?? '없음')}</div>`}</div>
   <div class="why">${esc(line)}${g?.why ? `<br><em>${esc(g.why)}</em>` : ''}</div></div>`;
 };
 const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>A+AI 샘플 — 키비주얼 유형별</title>
@@ -149,16 +149,12 @@ h2{font-size:16px;margin:28px 0 10px;padding-top:18px;border-top:1px solid #e3e5
 .grid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
 .cell .t{font-size:12px;color:#374151;margin-bottom:4px} .cell .t span{color:#9ca3af}
 .pic{position:relative;background:#eceef2;border-radius:6px;overflow:hidden}
-.pic img{display:block;position:absolute;left:0;top:0} .pic img.a{opacity:0;transition:opacity .15s} .pic:hover img.a{opacity:1}
-.pic::after{content:'hover = 규칙만(A)';position:absolute;right:6px;bottom:4px;font-size:10px;color:#fff;background:rgba(0,0,0,.45);padding:1px 6px;border-radius:999px;pointer-events:none}
+.pic img{display:block;position:absolute;left:0;top:0}
 .err{padding:10px;color:#d93025;font-size:12px}
 .why{font-size:11px;color:#6b7280;margin-top:4px;max-width:${BOX}px} .why em{font-style:normal;color:#9ca3af}
-.toggle{position:fixed;right:18px;top:18px;background:#111;color:#fff;border:0;border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer}
-body.showA .pic img.a{opacity:1} body.showA .pic::after{content:'규칙만(A)'}
 </style></head><body>
-<button class="toggle" onclick="document.body.classList.toggle('showA');this.textContent=document.body.classList.contains('showA')?'A+AI 보기':'규칙만(A) 보기'">규칙만(A) 보기</button>
 <h1>A+AI 샘플 — 키비주얼 유형별 ${results.length}케이스 × 규격 ${SPECS_SEL.length}종</h1>
-<div class="sub">${today} · AI 는 그림 판단만(케이스당 1회, Sonnet 5.5) · 그리기·타이포·로고·검수는 규칙 · 판단 비용 합계 $${totalCost.toFixed(3)} · 그림 위에 마우스를 올리면 규칙만(A) 결과</div>
+<div class="sub">${today} · AI 는 그림 판단만(케이스당 1회, Sonnet 5.5) · 그리기·타이포·로고·검수는 규칙 · 판단 비용 합계 $${totalCost.toFixed(3)}</div>
 ${groups.map(g => `<h2>${esc(g.label)}</h2>${g.rows.map(r => `<div class="case"><div class="head"><img src="${r.kv}" alt=""><div class="meta"><b>${esc(r.id)}${r.client ? ' · ' + esc(r.client) : ''}</b><br>장부 유형: ${esc(r.summary ?? r.type ?? '')}<br>${r.ai ? `AI 판단: ${esc(r.ai.type ?? '자동')} · ${Math.round(r.ai.ms / 1000)}초 · $${r.ai.cost}${r.ai.fixes?.length ? ` · 고침 ${r.ai.fixes.length}` : ''}<br><span style="color:#1c1f26">${esc(r.ai.rationale)}</span>` : `<span style="color:#d93025">${esc(r.error)}</span>`}</div></div><div class="grid">${r.specs.map(s => cellHtml(r, s)).join('')}</div></div>`).join('')}`).join('')}
 </body></html>`;
 writeFileSync(path.join(OUT, 'index.html'), html);
