@@ -34,7 +34,7 @@ export function renderLayout(layout, opts = {}) {
       const bw = im.w / c.w, bh = im.h / c.h;   // 원본 전체를 이 크기로 그리면 잘라 보일 부분이 상자를 꽉 채운다
       parts.push(`<div data-object="1" data-layer="kv" style="position:absolute;left:${px(im.x)};top:${px(im.y)};width:${px(im.w)};height:${px(im.h)};background:url('${esc(opts.kv)}') ${px(-c.x * bw)} ${px(-c.y * bh)}/${px(bw)} ${px(bh)} no-repeat;opacity:${im.opacity};overflow:hidden;${maskCss(im.fade)}"></div>`);
     } else if (im.id === 'logo' && opts.logo) {
-      parts.push(`<img data-logo="1" data-layer="logo" src="${esc(opts.logo)}" alt="" style="position:absolute;left:${px(im.x)};top:${px(im.y)};width:${px(im.w)};height:${px(im.h)};object-fit:contain;object-position:left top">`);
+      parts.push(`<img data-logo="1" data-layer="logo" src="${esc(opts.logo)}" alt="" style="position:absolute;left:${px(im.x)};top:${px(im.y)};width:${px(im.w)};height:${px(im.h)};object-fit:contain;object-position:left top" />`);
     }
   }
   for (const [i, t] of (layout.texts ?? []).entries()) {
