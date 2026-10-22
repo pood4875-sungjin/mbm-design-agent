@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // A+AI 샘플 갤러리 — 키비주얼 유형별 케이스 × 규격 몇 종을 A+AI(그림 판단 1회 → 규칙 렌더)로 그리고, 참고로 A(규칙만)도 작게. 한 장짜리 HTML.
-//   node scripts/ai-samples.mjs [--cases a,b,c] [--specs x,y] [--out history/img/<날짜>_ai-samples] [--no-a]   (A PNG 는 참고용 파일로만 남고 갤러리엔 안 보인다)
+//   node scripts/ai-samples.mjs [--cases a,b,c] [--specs x,y | --stages] [--out history/img/<날짜>_ai-samples] [--no-a]
+//   --stages: 추출 규격 전부를 차수(하·중·상·로고 — core/media/_extract.json stages)별로   (A PNG 는 참고용 파일로만 남고 갤러리엔 안 보인다)
 //   키: server/.env(ANTHROPIC_API_KEY). 케이스마다 판단 1회(Sonnet ≈ $0.025). PNG 는 macOS Chrome headless.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -22,7 +23,12 @@ const GROUPS = [
 ];
 const CASES_ALL = GROUPS.flatMap(g => g.ids);
 const CASES = opt('--cases') ? opt('--cases').split(',') : CASES_ALL;
-const SPECS_SEL = (opt('--specs') ?? 'kakao-display-pc-promo,google-gdn-580x400,instagram-feed-1080,google-gdn-300x600,google-gdn-300x1050').split(',');
+const { EXTRACT } = await import(pathToFileURL(path.join(ROOT, 'core/media.js')).href);
+const { STAGE_NAMES } = await import(pathToFileURL(path.join(ROOT, 'core/adspecs.js')).href);
+const STAGES = flag('--stages');
+const STAGE_OF = {}; for (const [k, ids] of Object.entries(EXTRACT.stages ?? {})) for (const id of ids) STAGE_OF[id] = k;
+const SPECS_SEL = STAGES ? Object.values(EXTRACT.stages).flat() : (opt('--specs') ?? 'kakao-display-pc-promo,google-gdn-580x400,instagram-feed-1080,google-gdn-300x600,google-gdn-300x1050').split(',');
+const TYPE_LABEL = { photo: '사진형', cutout: '오브젝트형(누끼)', illust: '비주얼형(일러스트·3D)', texture: '비주얼형(질감)' };
 
 const core = f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
 const { registerAll } = await core('generate.js'); registerAll();
@@ -82,7 +88,7 @@ for (const id of CASES) {
   const ctx = createContext(brief, 'recruit');
   const logoStyle = { logo: logoFile ? pathToFileURL(logoFile).href : null, logoMono: logoMono ? pathToFileURL(logoMono).href : null, logoLight: tone === 'light' && logoFile ? pathToFileURL(logoFile).href : null, logoTone: tone, logoMeta: c.logoMeta ?? null };
   copyFileSync(kvFile, path.join(OUT, `${id}_kv${path.extname(kvFile)}`));
-  const row = { id, group: GROUPS.find(g => g.ids.includes(id))?.label ?? '기타', type: c.type, summary: c.summary, client: brief.client, kv: `${id}_kv${path.extname(kvFile)}`, specs: [] };
+  const row = { id, group: GROUPS.find(g => g.ids.includes(id))?.label ?? TYPE_LABEL[c.type] ?? '기타', type: c.type, summary: c.summary, client: brief.client, kv: `${id}_kv${path.extname(kvFile)}`, specs: [] };
 
   // 판단 1회
   let out;
@@ -107,7 +113,7 @@ for (const id of CASES) {
     }
     const styleC = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }), ...logoStyle, ...presetPatch(g, out.analysis) });
     const styleA = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvFile).href, kvMeta: meta, ...logoStyle });
-    const cell = { spec: sid, title: spec.title, w: spec.w, h: spec.h, shape, group: g };
+    const cell = { spec: sid, title: spec.title, w: spec.w, h: spec.h, shape, group: g, stage: STAGE_OF[sid] ?? null };
     for (const [tr, st] of [['C', styleC], ...(flag('--no-a') ? [] : [['A', styleA]])]) {
       let html; try { html = renderArtifact(sid, ctx, st, {}); } catch (e) { cell[tr] = { error: e.message }; continue; }
       const f = path.join(OUT, `${id}_${sid}_${tr}.html`); writeFileSync(f, doc(html, spec.w, spec.h));
@@ -122,12 +128,11 @@ for (const id of CASES) {
 
 // 이전 결과 중 이번에 안 돌린 케이스는 그대로 둔다(묶음 판단 표시용 groups 는 analysis.json 에서 다시 읽음)
 if (prev?.results) for (const r of prev.results) if (!results.some(x => x.id === r.id)) { const aj = path.join(OUT, `${r.id}_analysis.json`); if (r.ai && existsSync(aj)) r.ai.groups = JSON.parse(readFileSync(aj, 'utf8')).analysis.groups; results.push(r); }
-results.sort((a, b) => CASES_ALL.indexOf(a.id) - CASES_ALL.indexOf(b.id));
+results.sort((a, b) => (CASES_ALL.indexOf(a.id) + 1 || 999) - (CASES_ALL.indexOf(b.id) + 1 || 999));
 
 // ── 갤러리 HTML ──
-const groups = GROUPS.map(g => ({ ...g, rows: results.filter(r => g.ids.includes(r.id)) })).filter(g => g.rows.length);
-const extra = results.filter(r => !GROUPS.some(g => g.ids.includes(r.id)));
-if (extra.length) groups.push({ label: '기타', rows: extra });
+const labels = [...new Set([...GROUPS.map(g => g.label), ...results.map(r => r.group)])];
+const groups = labels.map(label => ({ label, rows: results.filter(r => r.group === label) })).filter(g => g.rows.length);
 const BOX = 420;   // 칸의 긴 변
 const cellHtml = (r, s) => {
   const k = Math.min(1, BOX / Math.max(s.w, s.h)); const cw = Math.round(s.w * k), ch = Math.round(s.h * k);
@@ -151,11 +156,12 @@ h2{font-size:16px;margin:28px 0 10px;padding-top:18px;border-top:1px solid #e3e5
 .pic{position:relative;background:#eceef2;border-radius:6px;overflow:hidden}
 .pic img{display:block;position:absolute;left:0;top:0}
 .err{padding:10px;color:#d93025;font-size:12px}
+h3{font-size:13px;margin:16px 0 8px;color:#374151} h3 span{color:#9ca3af;font-weight:400}
 .why{font-size:11px;color:#6b7280;margin-top:4px;max-width:${BOX}px} .why em{font-style:normal;color:#9ca3af}
 </style></head><body>
-<h1>A+AI 샘플 — 키비주얼 유형별 ${results.length}케이스 × 규격 ${SPECS_SEL.length}종</h1>
+<h1>A+AI 샘플 — 키비주얼 유형별 ${results.length}케이스 × 규격 ${SPECS_SEL.length}종${STAGES ? '(차수별 전체)' : ''}</h1>
 <div class="sub">${today} · AI 는 그림 판단만(케이스당 1회, Sonnet 5.5) · 그리기·타이포·로고·검수는 규칙 · 판단 비용 합계 $${totalCost.toFixed(3)}</div>
-${groups.map(g => `<h2>${esc(g.label)}</h2>${g.rows.map(r => `<div class="case"><div class="head"><img src="${r.kv}" alt=""><div class="meta"><b>${esc(r.id)}${r.client ? ' · ' + esc(r.client) : ''}</b><br>장부 유형: ${esc(r.summary ?? r.type ?? '')}<br>${r.ai ? `AI 판단: ${esc(r.ai.type ?? '자동')} · ${Math.round(r.ai.ms / 1000)}초 · $${r.ai.cost}${r.ai.fixes?.length ? ` · 고침 ${r.ai.fixes.length}` : ''}<br><span style="color:#1c1f26">${esc(r.ai.rationale)}</span>` : `<span style="color:#d93025">${esc(r.error)}</span>`}</div></div><div class="grid">${r.specs.map(s => cellHtml(r, s)).join('')}</div></div>`).join('')}`).join('')}
+${groups.map(g => `<h2>${esc(g.label)}</h2>${g.rows.map(r => `<div class="case"><div class="head"><img src="${r.kv}" alt=""><div class="meta"><b>${esc(r.id)}${r.client ? ' · ' + esc(r.client) : ''}</b><br>장부 유형: ${esc(r.summary ?? r.type ?? '')}<br>${r.ai ? `AI 판단: ${esc(r.ai.type ?? '자동')} · ${Math.round(r.ai.ms / 1000)}초 · $${r.ai.cost}${r.ai.fixes?.length ? ` · 고침 ${r.ai.fixes.length}` : ''}<br><span style="color:#1c1f26">${esc(r.ai.rationale)}</span>` : `<span style="color:#d93025">${esc(r.error)}</span>`}</div></div>${STAGES ? Object.keys(STAGE_NAMES).map(k => { const cells = r.specs.filter(s => s.stage === k); return cells.length ? `<h3>${esc(STAGE_NAMES[k])} <span>${cells.length}종</span></h3><div class="grid">${cells.map(s => cellHtml(r, s)).join('')}</div>` : ''; }).join('') : `<div class="grid">${r.specs.map(s => cellHtml(r, s)).join('')}</div>`}</div>`).join('')}`).join('')}
 </body></html>`;
 writeFileSync(path.join(OUT, 'index.html'), html);
 writeFileSync(path.join(OUT, 'results.json'), JSON.stringify({ at: new Date().toISOString(), specs: SPECS_SEL, totalCost, results: results.map(r => ({ ...r, ai: r.ai ? { ...r.ai, groups: undefined } : undefined })) }, null, 1));

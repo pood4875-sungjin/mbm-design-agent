@@ -4137,6 +4137,108 @@
       "type": "photo",
       "summary": "밝은 사진 · 가장자리 그라데이션 · 세로형",
       "verdicts": []
+    },
+    {
+      "id": "midas-faces-3d",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "10-22 사용자 샘플 요청(MIDAS 로고)",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          362,
+          90
+        ],
+        "lum": 0.17,
+        "sat": 0.55,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#1428A0",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "마이다스",
+        "season": "2026",
+        "hiringType": "정규직 채용",
+        "role": "디자인"
+      },
+      "addedAt": "2026-10-22",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 37% · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-jeil-iso",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "10-22 사용자 샘플 요청(MIDAS 로고)",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          362,
+          90
+        ],
+        "lum": 0.17,
+        "sat": 0.55,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#1428A0",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "마이다스",
+        "season": "2026",
+        "hiringType": "정규직 채용",
+        "role": "디자인"
+      },
+      "addedAt": "2026-10-22",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "midas-team-photo",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "10-22 사용자 샘플 요청(MIDAS 로고)",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          362,
+          90
+        ],
+        "lum": 0.17,
+        "sat": 0.55,
+        "solid": 0.37,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#1428A0",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": {
+        "client": "마이다스",
+        "season": "2026",
+        "hiringType": "정규직 채용",
+        "role": "디자인"
+      },
+      "addedAt": "2026-10-22",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 정사각형",
+      "verdicts": []
     }
   ]
 }
