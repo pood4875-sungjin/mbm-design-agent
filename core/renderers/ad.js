@@ -1070,9 +1070,11 @@ function renderAdBase(ctx, style, spec) {
   // 우하단에 맞춰 넣는 이미지(자소설 팝업)는 지면 전체 높이에 걸치지 않는다 — 세로 그라데이션을 맞출 수 없으니 단색
   // 사진 전체형: 스크림 색은 브랜드색 — 흰 글자가 안 읽히는 밝은 브랜드색이면 어둡게 섞는다
   // 편집 「배경」: 브랜드색 · 키비주얼 배경 이어 칠하기(글자 쪽 변의 색) — 직접 고른 색과 같은 길(background.color)로. 그라데이션 방향은 단색/그라데이션 고정으로 바꿔 넣고 각도는 아래에서
-  if (ED?.bgFill === 'brand' && p.primary) style = { ...style, background: { ...(style.background ?? {}), color: String(p.primary).toUpperCase() } };
+  const aiField = style.background?.ai?.stops?.length ? style.background.ai : null;   // 10-22 AI 지면 — 프리셋 bgFill/bgGrad 보다 앞
+  if (aiField) { /* 지면은 field.js 가 background.ai 를 먼저 본다 */ }
+  else if (ED?.bgFill === 'brand' && p.primary) style = { ...style, background: { ...(style.background ?? {}), color: String(p.primary).toUpperCase() } };
   else if (ED?.bgFill === 'kv' && style.keyVisual) { const hx = style.kvMeta?.field?.edges?.[facing]?.hex ?? style.kvMeta?.colors?.[0] ?? null; if (hx) style = { ...style, background: { ...(style.background ?? {}), color: String(hx).toUpperCase() } }; }
-  if (ED?.bgGrad) style = { ...style, background: { ...(style.background ?? {}), mode: ED.bgGrad === 'none' ? 'solid' : 'gradient' } };
+  if (ED?.bgGrad && !aiField) style = { ...style, background: { ...(style.background ?? {}), mode: ED.bgGrad === 'none' ? 'solid' : 'gradient' } };
   const scrimBase = (() => { const b = style.background?.color ?? p.primary ?? '#2456D6'; return contrast(b, WHITE) >= 3 ? b : mix(b, BLACK, 0.55); })();
   // 로고 전용 규격(프로필·브랜드 로고 96~300px): 흰 바탕 + 원색 로고 — 「매체별 규격정리」 샘플 5/5(대원제약·코엑스·제일약품·LX인터내셔널·PTKOREA)와 10-14 t1014 제일약품 네이버 프로필 3/3(시안 1·2·최종).
   //   브랜드 지면 + 흰 단색 로고는 엠블럼 속 글자(JEIL)를 지워 흰 덩어리로 만들었다. 흰 로고만 있거나(톤 light) 배경색을 직접 골랐으면 예전대로
@@ -1950,7 +1952,7 @@ function renderAdBase(ctx, style, spec) {
   // 이미지의 그 변이 이미 지면색과 같으면(field.seamless) 녹이는 폭을 줄인다. 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
   const cutout = (style.kvMeta?.field?.opaque ?? 1) < 0.5;
   // 녹이는 폭: 지면과 같은 색으로 이어지면 18%, 아니면 32% — 짧고 직선적인 10%는 "급하게 끊긴" 느낌(10-06 사용자, 자소설 PC메인 왼쪽 열)
-  const fadePct = field?.seamless ? 18 : 32;
+  const fadePct = (style.background?.ai?.melt >= 0.3) ? Math.round(style.background.ai.melt * 100) : (field?.seamless ? 18 : 32);   // 10-22 AI 녹임 길이(0.3~0.75) — 규칙 최소값 자리에 들어가 색 거리로 더 길어질 수는 있어도 짧아지진 않는다
   // 10-12 CANON melt: 그림 변 색과 지면색(가장 먼 끝)이 멀수록 길게 — 밝은 그림 × 어두운 지면은 45~55%
   const edgeOf = k => style.kvMeta?.field?.edges?.[k]?.hex ?? null;
   const farFrom = hx => (hx && field?.stops?.length) ? field.stops.reduce((m, x) => colorDistance(hx, x) > colorDistance(hx, m) ? x : m) : null;

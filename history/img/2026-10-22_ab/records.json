@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T04:45:31.153Z",
+ "at": "2026-10-22T05:04:32.112Z",
  "spec": "kakao-display-pc-promo",
  "records": [
   {
@@ -21,22 +21,22 @@
    },
    "b": null,
    "c": {
-    "ms": 13502,
-    "renderMs": 1,
+    "ms": 15208,
+    "renderMs": 3,
     "usage": {
-     "input_tokens": 4342,
-     "output_tokens": 1254,
+     "input_tokens": 4837,
+     "output_tokens": 1556,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
-    "cost": 0.0212,
+    "cost": 0.0252,
     "model": "claude-sonnet-5-5",
     "effort": "medium",
     "fixes": [
      "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
      "square: crop 이 주인공·보존 요소를 잘라 넓힘",
      "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+     "strip: crop 이 너무 작아(0.598×0.245) 원본 전체로"
     ],
     "shape": "wide",
     "group": {
@@ -44,7 +44,7 @@
       "x": 0,
       "y": 0.153,
       "w": 1,
-      "h": 0.837
+      "h": 0.832
      },
      "kvPlace": "right",
      "kvSize": "md",
@@ -53,10 +53,19 @@
      "bgFill": "kv",
      "bgGrad": "h",
      "scrim": "none",
-     "why": "가로형은 전체 그림이 들어가지 않아 지구가 있는 상단 중심으로 자르고 오른쪽에 두며, 왼쪽 하늘색 영역에 글자를 둔다."
+     "field": {
+      "colors": [
+       "#2F66CB",
+       "#3F7AD6"
+      ],
+      "angle": 90,
+      "text": "light",
+      "melt": 0.5
+     },
+     "why": "가로형은 지구본을 오른쪽에 두고 왼쪽에 하늘색 지면을 이어 글자 공간을 만든다. 지구본이 잘리지 않도록 y 150부터 잘랐다."
     },
-    "type": "illust-object",
-    "rationale": "파란 하늘 배경의 3D 일러스트라 브랜드 파랑 #326CD1과 자연스럽게 이어지므로 배경을 그림에서 이어 칠하고, 지구와 두 손은 모든 crop에 보존한다. 글자는 비어 있는 하늘 쪽에 놓이도록 그림 위치를 모양마다 달리 정했고 띠 형태에서는 그림을 작게 줄였다.",
+    "type": "illust-grad-bg",
+    "rationale": "파란 하늘 그라데이션 위의 지구본과 손이 주인공이므로 모든 모양에서 이 부분을 crop 안에 보존하고 하늘색을 이어 칠해 글자 지면으로 쓴다. 브랜드색 #326CD1과 이어지는 파랑 계열 지면에 흰 글자를 두어 가독성과 일체감을 확보했다.",
     "png": "pin-28_kakao-display-pc-promo_C.png"
    }
   },
@@ -74,26 +83,25 @@
    },
    "primary": "#C75420",
    "a": {
-    "ms": 2,
+    "ms": 3,
     "png": "pin-32_kakao-display-pc-promo_A.png"
    },
    "b": null,
    "c": {
-    "ms": 10046,
+    "ms": 11498,
     "renderMs": 2,
     "usage": {
-     "input_tokens": 4606,
-     "output_tokens": 1284,
+     "input_tokens": 5101,
+     "output_tokens": 1493,
      "cache_read_input_tokens": 0,
      "cache_creation_input_tokens": 0
     },
-    "cost": 0.0221,
+    "cost": 0.0251,
     "model": "claude-sonnet-5-5",
     "effort": "medium",
     "fixes": [
-     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
      "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
-     "strip: crop 이 너무 작아(0.417×0.224) 원본 전체로"
+     "strip: crop 이 너무 작아(0.467×0.29) 원본 전체로"
     ],
     "shape": "wide",
     "group": {
@@ -103,17 +111,26 @@
       "w": 1,
       "h": 0.842
      },
-     "kvPlace": "bg",
+     "kvPlace": "right",
      "kvSize": "lg",
      "textAlign": "left",
      "textAnchor": "center",
      "bgFill": "kv",
      "bgGrad": "h",
-     "scrim": "mid",
-     "why": "넓은 가로형이라 사진을 전체 배경으로 깔고, 왼쪽 벽 빈 곳에 글자를 두며 인물은 중앙과 오른쪽에 둔다."
+     "scrim": "low",
+     "field": {
+      "colors": [
+       "#E8B67A",
+       "#D9A066"
+      ],
+      "angle": 90,
+      "text": "dark",
+      "melt": 0.5
+     },
+     "why": "왼쪽의 빈 우드 벽을 글자 쪽으로 쓰고 인물은 오른쪽에 둔다. 벽색으로 이어 칠해 자연스럽게 연결한다."
     },
-    "type": "photo",
-    "rationale": "따뜻한 나무 벽과 주황 소파가 브랜드색 #C75420과 잘 맞아, 사진을 살리면서 얼굴과 노트북은 모든 crop에 담았다. 글자는 왼쪽·위쪽의 비교적 빈 벽 쪽에 두고, 좁은 모양은 브랜드색 바탕으로 공간을 확보했다.",
+    "type": "photo-roomy",
+    "rationale": "따뜻한 우드 벽과 주황 소파가 브랜드색 #C75420과 맞아, 벽색을 이어 칠해 글자 자리를 만들고 두 인물의 얼굴과 노트북은 모든 crop 안에 보존한다. 형태마다 인물 위치에 따라 글자 방향을 반대쪽으로 잡았고, 좁은 형태에서는 키비주얼을 줄이거나 얼굴만 남긴다.",
     "png": "pin-32_kakao-display-pc-promo_C.png"
    }
   }

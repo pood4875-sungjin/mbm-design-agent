@@ -56,6 +56,8 @@ export function normalizeStyle(input = {}) {
     background: {
       mode: ['solid', 'gradient'].includes(input.background?.mode) ? input.background.mode : 'auto',
       color: HEX.test(input.background?.color ?? '') ? input.background.color.toUpperCase() : null,
+      // 10-22 하이브리드: AI 가 정한 지면 {stops:[#hex 1~3], angle, text:'light'|'dark'|null, melt:0|0.3~0.75} — 글자색 대비·녹임 상한은 렌더러 규칙이 그대로 검사한다
+      ...(input.background?.ai && Array.isArray(input.background.ai.stops) && input.background.ai.stops.every(c => HEX.test(c)) && (input.background.ai.stops.length || input.background.ai.melt > 0) ? { ai: { stops: input.background.ai.stops.slice(0, 3).map(c => c.toUpperCase()), angle: Number.isFinite(input.background.ai.angle) ? input.background.ai.angle : 180, text: ['light', 'dark'].includes(input.background.ai.text) ? input.background.ai.text : null, melt: Number.isFinite(input.background.ai.melt) ? input.background.ai.melt : 0 } } : {}),
     },
     // 상세 라벨 알약 톤 — 'tint'(기본: 밝은 지면 검정 7%·어두운 지면 흰 20%, 코엑스 카드 '모집분야') · 'brand'(브랜드색 채움, 구글 예시 일화·비씨) · 'plain'(알약 없이 굵은 글자). 10-06 사용자 "찐한 노랑 말고 진한 노랑/블랙 7%"
     chipTone: ['tint', 'brand', 'plain'].includes(input.chipTone) ? input.chipTone : 'tint',

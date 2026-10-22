@@ -2667,7 +2667,7 @@ function clearAiOverrides(c) {
   if (!c) return; c.ai = null;
   for (const a of c.artifacts ?? []) {
     const st = a.overrides?.style; if (!st?.aiShape) continue;
-    const next = { ...st }; delete next.aiShape; delete next.kvTypeOverride; for (const k of PRESET_KEYS) delete next[k];
+    const next = { ...st }; delete next.aiShape; delete next.kvTypeOverride; delete next.background; delete next.textTone; for (const k of PRESET_KEYS) delete next[k];
     a.overrides.style = next; a.status = 'draft'; a.gateOverride = null;
   }
 }

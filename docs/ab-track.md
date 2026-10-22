@@ -11,7 +11,7 @@ AI 는 **그림 판단만**(캠페인당 호출 1회), 그리기는 **규칙 렌
 | 타이포(크기·굵기·색·행간) | 규칙 | 매체 규정·굵기 위계·글자색 문턱·틀 값. 정렬·세로 위치만 AI 가 프리셋 중 고름 |
 | 로고 | 규칙 | 규정 매체는 틀 자리, 자유 매체는 규칙 크기·톤 |
 | 비주얼(어디를·얼마나·어느 쪽) | **AI** | 유형·주인공 상자·보존 요소·잘라도 되는 변 + 모양 묶음(wide·tall·square·tower·strip)마다 crop·위치·크기 |
-| 배경 | 규칙 + AI | 색은 규칙(kvHarmony·kv-vivid). 방식(채움/이어 칠하기/브랜드·그라데이션·스크림)만 AI 가 프리셋 중 고름. 장식 없음 |
+| 배경 | **AI** + 규칙 | AI 가 지면 색 1~3개·각도·글자 톤·녹임 길이를 직접(`field`). 비우면 프리셋(bgFill) → 규칙. 글자색 대비·그라데이션 접기·녹임 상한은 규칙이 검사. 장식 없음 |
 | 검수·게이트 | 규칙 | 그대로 |
 
 흐름: `POST /api/analyze`(`server/design.js analyzeKv`, Sonnet 5.5 medium) → `core/trackb/analyze.js`(스키마 `ANALYSIS_SCHEMA` · 검증 `validateAnalysis`: 픽셀→비율, crop 이 주인공·보존 요소를 자르면 넓힘, 선택지 밖은 auto) → `app/hybrid.js`(모양 묶음마다 crop 사본 + 측정 + 프리셋 조각) → `renderArtifact`(규칙). 비용 캠페인당 **$0.02(≈30원)**, 20종 전부 포함.

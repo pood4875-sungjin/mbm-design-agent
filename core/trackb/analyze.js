@@ -32,6 +32,8 @@ export const ANALYSIS_SCHEMA = obj({
     kvPlace: choice('kvPlace'), kvSize: choice('kvSize'),
     textAlign: choice('textAlign'), textAnchor: choice('textAnchor'),
     bgFill: choice('bgFill'), bgGrad: choice('bgGrad'), scrim: choice('scrim'),
+    // 10-22 사용자 「배경은 규칙 말고 AI 가 직접」: 지면 색 1~3개(#RRGGBB)·각도·글자 톤·녹임 길이. colors 가 비면 규칙(bgFill 프리셋)이 정한다
+    field: obj({ colors: { type: 'array', items: STR }, angle: NUM, text: { type: 'string', enum: ['auto', 'light', 'dark'] }, melt: NUM }),
     why: STR,
   }) },
   logo: obj({ kind: { type: 'string', enum: ['wordmark', 'symbol', 'combo', 'none'] } }),
@@ -43,6 +45,7 @@ export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디�
 판단할 것:
 1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크·얼굴 등), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
 2. 모양 묶음 5개(wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·키비주얼 자리·크기·글자 정렬·글자 세로 위치·배경 방식·그라데이션·스크림. 값은 주어진 선택지 중에서만. 모르겠으면 auto.
+3. 지면(field)은 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
 원칙: 주인공과 보존 요소는 crop 안에. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
 
 export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}, requests = '' } = {}) {
@@ -106,6 +109,10 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
     g.crop = crop;
     for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) { if (!PRESETS[k].choices[g[k]]) { if (g[k] != null) fixes.push(`${s}.${k} 「${g[k]}」 선택지에 없음 → auto`); g[k] = 'auto'; } }
     if (g.bgFill === 'custom') { g.bgFill = 'auto'; fixes.push(`${s}: 직접 색은 사람만 → auto`); }
+    const fd = g.field ?? {};
+    const cols = (Array.isArray(fd.colors) ? fd.colors : []).filter(c => typeof c === 'string' && HEX.test(c)).map(c => c.toUpperCase()).slice(0, 3);
+    if (Array.isArray(fd.colors) && fd.colors.length && cols.length !== fd.colors.length) fixes.push(`${s}: 지면 색 중 #RRGGBB 아닌 값 버림`);
+    g.field = { colors: cols, angle: r3(clamp(num(fd.angle, 180), 0, 360)), text: ['light', 'dark'].includes(fd.text) ? fd.text : 'auto', melt: fd.melt > 0 ? r3(clamp(num(fd.melt), 0.3, 0.75)) : 0 };
     g.why = String(g.why ?? '').slice(0, 200);
   }
   A.logo = { kind: hasLogo ? (['wordmark', 'symbol', 'combo'].includes(A.logo?.kind) ? A.logo.kind : 'combo') : 'none' };
@@ -123,6 +130,10 @@ export function presetPatch(group, analysis) {
   const out = {};
   for (const k of ['kvPlace', 'kvSize', 'textAlign', 'textAnchor', 'bgFill', 'bgGrad', 'scrim']) if (group[k] && group[k] !== 'auto') out[k] = group[k];
   if (analysis?.kv?.type) out.kvTypeOverride = analysis.kv.type;
+  // AI 지면(있으면 bgFill/bgGrad 프리셋보다 앞) — 렌더러 규칙이 글자색 대비·녹임 상한을 다시 검사
+  const fd = group.field;
+  if (fd?.colors?.length) { out.background = { mode: 'auto', color: null, ai: { stops: fd.colors, angle: fd.angle ?? 180, text: fd.text !== 'auto' ? fd.text : null, melt: fd.melt ?? 0 } }; if (fd.text && fd.text !== 'auto') out.textTone = fd.text; }
+  else if (fd?.melt) out.background = { mode: 'auto', color: null, ai: { stops: [], angle: 180, text: null, melt: fd.melt } };
   return out;
 }
 

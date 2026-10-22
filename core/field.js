@@ -89,7 +89,9 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // 대표색을 쓰면 그림의 흰 바탕이 상자처럼 드러나고, 오브젝트가 오른쪽인 규격과 아래인 규격의 지면색이 달라진다(구글 GDN 5규격은 지면색이 같다 28/28)
   const other = (hasBg && !flatEdge(e)) ? ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge) : null;
 
-  if (opt.color) { stops = [opt.color]; source = 'manual'; }
+  // 10-22 하이브리드: AI 가 정한 지면(background.ai) — 색·각도는 그대로, 글자색·그라데이션 접기·vividWhite 는 아래 규칙이 그대로 검사(대비 못 넘으면 규칙이 고친다)
+  if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 2); angle = opt.ai.angle ?? 180; source = 'ai'; }
+  else if (opt.color) { stops = [opt.color]; source = 'manual'; }
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°. 비주얼 우선(kv-vivid)보다 앞
   else if (style.colorsManual && p.primary) { stops = [p.primary, shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
   // 그림 변 지면(kv-edge): 규격(facing)과 무관하게 그림 네 변에서 한 번 정한다(edgeField, 10-20 캠페인 공통 지면). seamless 는 배치용(글자 쪽 변이 평평해 그 변을 기준으로 붙인다) — 색은 바꾸지 않는다
