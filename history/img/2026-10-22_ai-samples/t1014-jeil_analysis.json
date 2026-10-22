@@ -1,0 +1,196 @@
+{
+ "analysis": {
+  "kv": {
+   "type": "cutout-scene",
+   "subject": {
+    "x": 0.064,
+    "y": 0.018,
+    "w": 0.928,
+    "h": 0.961
+   },
+   "keep": [
+    {
+     "x": 0.152,
+     "y": 0.137,
+     "w": 0.44,
+     "h": 0.549,
+     "label": "JEIL 입체 글자와 로고 엠블럼"
+    },
+    {
+     "x": 0.616,
+     "y": 0.366,
+     "w": 0.184,
+     "h": 0.195,
+     "label": "제일약품 트럭"
+    },
+    {
+     "x": 0.168,
+     "y": 0.732,
+     "w": 0.208,
+     "h": 0.206,
+     "label": "연구 실험대"
+    }
+   ],
+   "cutSafe": {
+    "top": 0.02,
+    "right": 0.03,
+    "bottom": 0.02,
+    "left": 0.05
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#005D94",
+     "#27A7DC",
+     "#B9E3F9"
+    ]
+   },
+   "note": "투명 배경의 아이소메트릭 일러스트로 가장자리가 흐릿한 점 패턴으로 사라진다. 전체 구도가 대각선으로 흐르므로 크게 자르지 않는 편이 좋다."
+  },
+  "groups": {
+   "wide": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "brand",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#0460AF",
+      "#0A7BC4"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.4
+    },
+    "why": "가로형은 그림을 오른쪽에 두고 왼쪽에 브랜드색 지면으로 글자 공간을 확보한다."
+   },
+   "tall": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "brand",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#0460AF",
+      "#1B86CB",
+      "#B9E3F9"
+     ],
+     "angle": 180,
+     "text": "light",
+     "melt": 0.5
+    },
+    "why": "세로형은 위쪽에 글자를 두고 그림을 아래에 크게 놓아 하단을 밝은 색으로 녹인다."
+   },
+   "square": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "brand",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#0460AF",
+      "#1B86CB"
+     ],
+     "angle": 180,
+     "text": "light",
+     "melt": 0.5
+    },
+    "why": "정사각은 글자를 상단에 두고 그림을 하단에 배치해 균형을 맞춘다."
+   },
+   "tower": {
+    "crop": {
+     "x": 0.064,
+     "y": 0.018,
+     "w": 0.928,
+     "h": 0.961
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "textAlign": "center",
+    "textAnchor": "top",
+    "bgFill": "brand",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#0460AF",
+      "#27A7DC"
+     ],
+     "angle": 180,
+     "text": "light",
+     "melt": 0.5
+    },
+    "why": "세로 띠는 폭이 좁아 JEIL 글자 중심으로 잘라 아래에 두고 위쪽을 글자 공간으로 쓴다."
+   },
+   "strip": {
+    "crop": {
+     "x": 0.064,
+     "y": 0.018,
+     "w": 0.928,
+     "h": 0.961
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "brand",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#0460AF",
+      "#0A7BC4"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.4
+    },
+    "why": "가로 띠는 높이가 낮아 그림을 작게 오른쪽 끝에 두고 글자 공간을 최대한 확보한다."
+   }
+  },
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "투명 배경의 아이소메트릭 장면 일러스트라 JEIL 입체 글자와 트럭·연구 장면을 crop 안에 모두 보존하고, 브랜드 블루 지면으로 자연스럽게 이어 붙인다. 글자 쪽은 짙은 파랑 지면에 흰 글자로 대비를 확보하고, 로고는 파란 톤이라 어두운 지면에서는 반전 처리가 필요하므로 콤보형을 쓴다."
+ },
+ "fixes": [
+  "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 5886,
+  "output_tokens": 1488,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0267,
+ "ms": 10781,
+ "model": "claude-sonnet-5-5"
+}

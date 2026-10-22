@@ -1,0 +1,202 @@
+{
+ "analysis": {
+  "kv": {
+   "type": "illust-grad-bg",
+   "subject": {
+    "x": 0,
+    "y": 0.583,
+    "w": 1,
+    "h": 0.417
+   },
+   "keep": [
+    {
+     "x": 0.287,
+     "y": 0.602,
+     "w": 0.306,
+     "h": 0.259,
+     "label": "확성기"
+    },
+    {
+     "x": 0.102,
+     "y": 0.648,
+     "w": 0.157,
+     "h": 0.352,
+     "label": "왼쪽 인물"
+    },
+    {
+     "x": 0.569,
+     "y": 0.745,
+     "w": 0.13,
+     "h": 0.25,
+     "label": "노트북 인물"
+    },
+    {
+     "x": 0.741,
+     "y": 0.62,
+     "w": 0.194,
+     "h": 0.38,
+     "label": "손든 인물과 폰"
+    }
+   ],
+   "cutSafe": {
+    "top": 0.5,
+    "right": 0.02,
+    "bottom": 0,
+    "left": 0.02
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#C6F3FF",
+     "#139073",
+     "#F47555"
+    ]
+   },
+   "note": "하늘색 바탕의 윗부분이 크게 비어 있고 인물과 확성기는 아래쪽 40%에 모여 있다. 위쪽 하늘은 글자 자리로 쓰기 좋다."
+  },
+  "groups": {
+   "wide": {
+    "crop": {
+     "x": 0,
+     "y": 0.546,
+     "w": 1,
+     "h": 0.454
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#D9F7FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "why": "그림을 오른쪽에 두고 왼쪽 하늘색 지면에 글자를 올리며, 하늘색이 자연스럽게 이어지도록 녹인다."
+   },
+   "tall": {
+    "crop": {
+     "x": 0,
+     "y": 0.546,
+     "w": 1,
+     "h": 0.454
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#DDF8FF"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "why": "인물 무리를 아래에 두고 위쪽 하늘색 지면에 글자를 놓는다. 하늘 그라데이션을 위로 연장해 빈 느낌을 줄인다."
+   },
+   "square": {
+    "crop": {
+     "x": 0,
+     "y": 0.463,
+     "w": 1,
+     "h": 0.537
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#D9F7FF"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.45
+    },
+    "why": "위쪽 하늘에 글자를 두고 아래에 그림을 크게 배치해 균형을 맞춘다."
+   },
+   "tower": {
+    "crop": {
+     "x": 0,
+     "y": 0.583,
+     "w": 1,
+     "h": 0.417
+    },
+    "kvPlace": "bottom",
+    "kvSize": "sm",
+    "textAlign": "center",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#E3F9FF"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.6
+    },
+    "why": "세로 띠는 폭이 좁으므로 그림을 아래에 작게 두고 위 전체를 글자 공간으로 쓴다."
+   },
+   "strip": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#D9F7FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "why": "가로 띠는 높이가 낮으므로 확성기와 인물 일부만 오른쪽 끝에 작게 두고 나머지는 하늘색으로 채운다."
+   }
+  },
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "하늘색 바탕 위쪽이 넓게 비어 있고 인물과 확성기는 아래쪽에 모여 있어, 아래쪽을 crop해 그림으로 쓰고 하늘색을 연장한 지면에 글자를 올린다. 글자 톤은 밝은 지면에 맞춰 dark로 하고, 로고는 어두운 톤이라 밝은 지면에서 잘 읽힌다."
+ },
+ "fixes": [
+  "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "strip: crop 이 너무 작아(0.509×0.287) 원본 전체로"
+ ],
+ "usage": {
+  "input_tokens": 8744,
+  "output_tokens": 1543,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0329,
+ "ms": 11002,
+ "model": "claude-sonnet-5-5"
+}

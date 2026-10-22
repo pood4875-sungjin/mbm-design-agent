@@ -1,0 +1,181 @@
+{
+ "analysis": {
+  "kv": {
+   "type": "photo-bright",
+   "subject": {
+    "x": 0.354,
+    "y": 0.213,
+    "w": 0.244,
+    "h": 0.593
+   },
+   "keep": [
+    {
+     "x": 0.452,
+     "y": 0.223,
+     "w": 0.232,
+     "h": 0.593,
+     "label": "내민 손"
+    }
+   ],
+   "cutSafe": {
+    "top": 0.1,
+    "right": 0.2,
+    "bottom": 0.1,
+    "left": 0.35
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#C5CDE7",
+     "#D1AEB1",
+     "#A3706D"
+    ]
+   },
+   "note": "밝은 흰 가운 위에 손이 중앙에 있고 왼쪽은 흐린 병원 배경이라 글자를 놓기 좋다. 오른쪽은 가운이 이어진다."
+  },
+  "groups": {
+   "wide": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#C5CDE7"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "why": "손이 중앙 오른쪽에 있어 왼쪽의 흐린 배경을 글자 지면으로 쓴다."
+   },
+   "tall": {
+    "crop": {
+     "x": 0.317,
+     "y": 0,
+     "w": 0.464,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#C5CDE7"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.45
+    },
+    "why": "손과 가운이 아래쪽에 오도록 하고 위쪽을 밝은 지면으로 비워 글자를 놓는다."
+   },
+   "square": {
+    "crop": {
+     "x": 0.305,
+     "y": 0,
+     "w": 0.515,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "textAlign": "left",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#C5CDE7"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.45
+    },
+    "why": "손이 중앙에 오는 정사각 크롭으로 하고 위쪽 밝은 지면에 글자를 둔다."
+   },
+   "tower": {
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 1
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "textAlign": "center",
+    "textAnchor": "top",
+    "bgFill": "kv",
+    "bgGrad": "v",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#C5CDE7"
+     ],
+     "angle": 180,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "why": "좁은 세로 띠라 손 부분만 아래에 두고 위쪽을 지면으로 녹인다."
+   },
+   "strip": {
+    "crop": {
+     "x": 0.354,
+     "y": 0.213,
+     "w": 0.378,
+     "h": 0.603
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "textAlign": "left",
+    "textAnchor": "center",
+    "bgFill": "kv",
+    "bgGrad": "h",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#E4E8F4",
+      "#C5CDE7"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.6
+    },
+    "why": "가로 띠는 글자 공간이 좁아 손을 오른쪽 끝에 작게 두고 왼쪽을 지면으로 쓴다."
+   }
+  },
+  "logo": {
+   "kind": "none"
+  },
+  "rationale": "밝은 병원 사진에서 내민 손이 핵심이라 모든 크롭에 손을 포함하고, 흐리고 밝은 배경색을 이어 글자 지면으로 만들었다. 글자는 모두 어두운 톤으로 대비를 주어 스크림 없이도 읽히게 했다."
+ },
+ "fixes": [
+  "tower: crop 이 너무 작아(0.269×1) 원본 전체로",
+  "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 5637,
+  "output_tokens": 1345,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0247,
+ "ms": 9604,
+ "model": "claude-sonnet-5-5"
+}

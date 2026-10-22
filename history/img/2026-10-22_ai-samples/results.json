@@ -1,0 +1,1372 @@
+{
+ "at": "2026-10-22T07:23:34.459Z",
+ "specs": [
+  "kakao-display-pc-promo",
+  "google-gdn-580x400",
+  "instagram-feed-1080",
+  "google-gdn-300x600",
+  "google-gdn-300x1050"
+ ],
+ "totalCost": 0.1616,
+ "results": [
+  {
+   "id": "t1014-hanssem",
+   "group": "사진형",
+   "type": "photo",
+   "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 가로형",
+   "client": "한샘",
+   "kv": "t1014-hanssem_kv.png",
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "w": 1200,
+     "h": 600,
+     "shape": "wide",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0.03,
+       "w": 1,
+       "h": 0.97
+      },
+      "kvPlace": "right",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "kv",
+      "bgGrad": "h",
+      "scrim": "low",
+      "field": {
+       "colors": [
+        "#B07A4E",
+        "#A87045"
+       ],
+       "angle": 90,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "사진을 오른쪽에 두고 왼쪽을 우드톤 지면으로 이어 글자를 흰색으로 얹는다."
+     },
+     "C": {
+      "png": "t1014-hanssem_kakao-display-pc-promo_C.png",
+      "html": "t1014-hanssem_kakao-display-pc-promo_C.html"
+     },
+     "A": {
+      "png": "t1014-hanssem_kakao-display-pc-promo_A.png",
+      "html": "t1014-hanssem_kakao-display-pc-promo_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "w": 580,
+     "h": 400,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0.045,
+       "y": 0.044,
+       "w": 0.909,
+       "h": 0.956
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "low",
+      "field": {
+       "colors": [
+        "#B07A4E",
+        "#A87045"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "두 인물과 모니터가 들어오도록 자르고 윗부분을 지면으로 쓴다."
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-580x400_C.png",
+      "html": "t1014-hanssem_google-gdn-580x400_C.html"
+     },
+     "A": {
+      "png": "t1014-hanssem_google-gdn-580x400_A.png",
+      "html": "t1014-hanssem_google-gdn-580x400_A.html"
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "w": 1080,
+     "h": 1080,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0.045,
+       "y": 0.044,
+       "w": 0.909,
+       "h": 0.956
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "low",
+      "field": {
+       "colors": [
+        "#B07A4E",
+        "#A87045"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "두 인물과 모니터가 들어오도록 자르고 윗부분을 지면으로 쓴다."
+     },
+     "C": {
+      "png": "t1014-hanssem_instagram-feed-1080_C.png",
+      "html": "t1014-hanssem_instagram-feed-1080_C.html"
+     },
+     "A": {
+      "png": "t1014-hanssem_instagram-feed-1080_A.png",
+      "html": "t1014-hanssem_instagram-feed-1080_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "w": 300,
+     "h": 600,
+     "shape": "tall",
+     "group": {
+      "crop": {
+       "x": 0.054,
+       "y": 0.044,
+       "w": 0.9,
+       "h": 0.956
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "low",
+      "field": {
+       "colors": [
+        "#B07A4E",
+        "#A87045"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "위쪽 벽 색으로 글자 영역을 만들고 사람과 모니터는 아래에 크게 둔다."
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-300x600_C.png",
+      "html": "t1014-hanssem_google-gdn-300x600_C.html"
+     },
+     "A": {
+      "png": "t1014-hanssem_google-gdn-300x600_A.png",
+      "html": "t1014-hanssem_google-gdn-300x600_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "w": 300,
+     "h": 1050,
+     "shape": "tower",
+     "group": {
+      "crop": {
+       "x": 0.054,
+       "y": 0.059,
+       "w": 0.9,
+       "h": 0.941
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "low",
+      "field": {
+       "colors": [
+        "#B07A4E",
+        "#A87045"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.6
+      },
+      "why": "좁고 긴 형태라 사진은 아래에 가로로 넣고 위쪽을 글자 공간으로 비운다."
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-300x1050_C.png",
+      "html": "t1014-hanssem_google-gdn-300x1050_C.html"
+     },
+     "A": {
+      "png": "t1014-hanssem_google-gdn-300x1050_A.png",
+      "html": "t1014-hanssem_google-gdn-300x1050_A.html"
+     }
+    }
+   ],
+   "ai": {
+    "type": "photo-roomy",
+    "rationale": "따뜻한 우드톤 벽이 넓게 비어 있어 사진의 벽 색을 이어 칠한 지면으로 글자 공간을 만들었다. 두 인물의 얼굴과 모니터 화면은 모든 crop 안에 보존했다.",
+    "ms": 10971,
+    "cost": 0.0236,
+    "usage": {
+     "input_tokens": 4931,
+     "output_tokens": 1376,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "fixes": [
+     "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+    ]
+   }
+  },
+  {
+   "id": "hr-doctor",
+   "group": "사진형",
+   "type": "photo",
+   "summary": "인물 사진+밝은 사진 · 캐릭터(머리 보존) · 가장자리 그라데이션 · 가로형",
+   "client": "한진정보통신",
+   "kv": "hr-doctor_kv.png",
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "w": 1200,
+     "h": 600,
+     "shape": "wide",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "right",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "kv",
+      "bgGrad": "h",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#E4E8F4",
+        "#C5CDE7"
+       ],
+       "angle": 90,
+       "text": "dark",
+       "melt": 0.5
+      },
+      "why": "손이 중앙 오른쪽에 있어 왼쪽의 흐린 배경을 글자 지면으로 쓴다."
+     },
+     "C": {
+      "png": "hr-doctor_kakao-display-pc-promo_C.png",
+      "html": "hr-doctor_kakao-display-pc-promo_C.html"
+     },
+     "A": {
+      "png": "hr-doctor_kakao-display-pc-promo_A.png",
+      "html": "hr-doctor_kakao-display-pc-promo_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "w": 580,
+     "h": 400,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0.305,
+       "y": 0,
+       "w": 0.515,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#E4E8F4",
+        "#C5CDE7"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "손이 중앙에 오는 정사각 크롭으로 하고 위쪽 밝은 지면에 글자를 둔다."
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-580x400_C.png",
+      "html": "hr-doctor_google-gdn-580x400_C.html"
+     },
+     "A": {
+      "png": "hr-doctor_google-gdn-580x400_A.png",
+      "html": "hr-doctor_google-gdn-580x400_A.html"
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "w": 1080,
+     "h": 1080,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0.305,
+       "y": 0,
+       "w": 0.515,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#E4E8F4",
+        "#C5CDE7"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "손이 중앙에 오는 정사각 크롭으로 하고 위쪽 밝은 지면에 글자를 둔다."
+     },
+     "C": {
+      "png": "hr-doctor_instagram-feed-1080_C.png",
+      "html": "hr-doctor_instagram-feed-1080_C.html"
+     },
+     "A": {
+      "png": "hr-doctor_instagram-feed-1080_A.png",
+      "html": "hr-doctor_instagram-feed-1080_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "w": 300,
+     "h": 600,
+     "shape": "tall",
+     "group": {
+      "crop": {
+       "x": 0.317,
+       "y": 0,
+       "w": 0.464,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#E4E8F4",
+        "#C5CDE7"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "손과 가운이 아래쪽에 오도록 하고 위쪽을 밝은 지면으로 비워 글자를 놓는다."
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-300x600_C.png",
+      "html": "hr-doctor_google-gdn-300x600_C.html"
+     },
+     "A": {
+      "png": "hr-doctor_google-gdn-300x600_A.png",
+      "html": "hr-doctor_google-gdn-300x600_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "w": 300,
+     "h": 1050,
+     "shape": "tower",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "md",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#E4E8F4",
+        "#C5CDE7"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.5
+      },
+      "why": "좁은 세로 띠라 손 부분만 아래에 두고 위쪽을 지면으로 녹인다."
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-300x1050_C.png",
+      "html": "hr-doctor_google-gdn-300x1050_C.html"
+     },
+     "A": {
+      "png": "hr-doctor_google-gdn-300x1050_A.png",
+      "html": "hr-doctor_google-gdn-300x1050_A.html"
+     }
+    }
+   ],
+   "ai": {
+    "type": "photo-bright",
+    "rationale": "밝은 병원 사진에서 내민 손이 핵심이라 모든 크롭에 손을 포함하고, 흐리고 밝은 배경색을 이어 글자 지면으로 만들었다. 글자는 모두 어두운 톤으로 대비를 주어 스크림 없이도 읽히게 했다.",
+    "ms": 9604,
+    "cost": 0.0247,
+    "usage": {
+     "input_tokens": 5637,
+     "output_tokens": 1345,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "fixes": [
+     "tower: crop 이 너무 작아(0.269×1) 원본 전체로",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+    ]
+   }
+  },
+  {
+   "id": "t1014-jeil",
+   "group": "오브젝트형(누끼)",
+   "type": "cutout",
+   "summary": "단일 사물 누끼 · 가로형",
+   "client": "제일약품",
+   "kv": "t1014-jeil_kv.png",
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "w": 1200,
+     "h": 600,
+     "shape": "wide",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "right",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "brand",
+      "bgGrad": "h",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#0460AF",
+        "#0A7BC4"
+       ],
+       "angle": 90,
+       "text": "light",
+       "melt": 0.4
+      },
+      "why": "가로형은 그림을 오른쪽에 두고 왼쪽에 브랜드색 지면으로 글자 공간을 확보한다."
+     },
+     "C": {
+      "png": "t1014-jeil_kakao-display-pc-promo_C.png",
+      "html": "t1014-jeil_kakao-display-pc-promo_C.html"
+     },
+     "A": {
+      "png": "t1014-jeil_kakao-display-pc-promo_A.png",
+      "html": "t1014-jeil_kakao-display-pc-promo_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "w": 580,
+     "h": 400,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "brand",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#0460AF",
+        "#1B86CB"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "정사각은 글자를 상단에 두고 그림을 하단에 배치해 균형을 맞춘다."
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-580x400_C.png",
+      "html": "t1014-jeil_google-gdn-580x400_C.html"
+     },
+     "A": {
+      "png": "t1014-jeil_google-gdn-580x400_A.png",
+      "html": "t1014-jeil_google-gdn-580x400_A.html"
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "w": 1080,
+     "h": 1080,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "brand",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#0460AF",
+        "#1B86CB"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "정사각은 글자를 상단에 두고 그림을 하단에 배치해 균형을 맞춘다."
+     },
+     "C": {
+      "png": "t1014-jeil_instagram-feed-1080_C.png",
+      "html": "t1014-jeil_instagram-feed-1080_C.html"
+     },
+     "A": {
+      "png": "t1014-jeil_instagram-feed-1080_A.png",
+      "html": "t1014-jeil_instagram-feed-1080_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "w": 300,
+     "h": 600,
+     "shape": "tall",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "brand",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#0460AF",
+        "#1B86CB",
+        "#B9E3F9"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "세로형은 위쪽에 글자를 두고 그림을 아래에 크게 놓아 하단을 밝은 색으로 녹인다."
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-300x600_C.png",
+      "html": "t1014-jeil_google-gdn-300x600_C.html"
+     },
+     "A": {
+      "png": "t1014-jeil_google-gdn-300x600_A.png",
+      "html": "t1014-jeil_google-gdn-300x600_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "w": 300,
+     "h": 1050,
+     "shape": "tower",
+     "group": {
+      "crop": {
+       "x": 0.064,
+       "y": 0.018,
+       "w": 0.928,
+       "h": 0.961
+      },
+      "kvPlace": "bottom",
+      "kvSize": "md",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "brand",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#0460AF",
+        "#27A7DC"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "세로 띠는 폭이 좁아 JEIL 글자 중심으로 잘라 아래에 두고 위쪽을 글자 공간으로 쓴다."
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-300x1050_C.png",
+      "html": "t1014-jeil_google-gdn-300x1050_C.html"
+     },
+     "A": {
+      "png": "t1014-jeil_google-gdn-300x1050_A.png",
+      "html": "t1014-jeil_google-gdn-300x1050_A.html"
+     }
+    }
+   ],
+   "ai": {
+    "type": "cutout-scene",
+    "rationale": "투명 배경의 아이소메트릭 장면 일러스트라 JEIL 입체 글자와 트럭·연구 장면을 crop 안에 모두 보존하고, 브랜드 블루 지면으로 자연스럽게 이어 붙인다. 글자 쪽은 짙은 파랑 지면에 흰 글자로 대비를 확보하고, 로고는 파란 톤이라 어두운 지면에서는 반전 처리가 필요하므로 콤보형을 쓴다.",
+    "ms": 10781,
+    "cost": 0.0267,
+    "usage": {
+     "input_tokens": 5886,
+     "output_tokens": 1488,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "fixes": [
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+    ]
+   }
+  },
+  {
+   "id": "t1014-dongsuh",
+   "group": "오브젝트형(누끼)",
+   "type": "cutout",
+   "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+   "client": "동서식품",
+   "kv": "t1014-dongsuh_kv.png",
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "w": 1200,
+     "h": 600,
+     "shape": "wide",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 0.552
+      },
+      "kvPlace": "right",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "brand",
+      "bgGrad": "h",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#FFC000",
+        "#FFD34D"
+       ],
+       "angle": 90,
+       "text": "dark",
+       "melt": 0.4
+      },
+      "why": "인물 상반신을 오른쪽에 크게 두고 왼쪽 노란 지면에 글자를 놓는다."
+     },
+     "C": {
+      "png": "t1014-dongsuh_kakao-display-pc-promo_C.png",
+      "html": "t1014-dongsuh_kakao-display-pc-promo_C.html"
+     },
+     "A": {
+      "png": "t1014-dongsuh_kakao-display-pc-promo_A.png",
+      "html": "t1014-dongsuh_kakao-display-pc-promo_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "w": 580,
+     "h": 400,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 0.602
+      },
+      "kvPlace": "right",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "brand",
+      "bgGrad": "h",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#FFC000",
+        "#FFD34D"
+       ],
+       "angle": 90,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "정사각에서는 인물을 오른쪽에 두고 왼쪽에 글자 공간을 확보한다."
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-580x400_C.png",
+      "html": "t1014-dongsuh_google-gdn-580x400_C.html"
+     },
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-580x400_A.png",
+      "html": "t1014-dongsuh_google-gdn-580x400_A.html"
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "w": 1080,
+     "h": 1080,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 0.602
+      },
+      "kvPlace": "right",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "brand",
+      "bgGrad": "h",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#FFC000",
+        "#FFD34D"
+       ],
+       "angle": 90,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "정사각에서는 인물을 오른쪽에 두고 왼쪽에 글자 공간을 확보한다."
+     },
+     "C": {
+      "png": "t1014-dongsuh_instagram-feed-1080_C.png",
+      "html": "t1014-dongsuh_instagram-feed-1080_C.html"
+     },
+     "A": {
+      "png": "t1014-dongsuh_instagram-feed-1080_A.png",
+      "html": "t1014-dongsuh_instagram-feed-1080_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "w": 300,
+     "h": 600,
+     "shape": "tall",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 0.752
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "brand",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#FFC000",
+        "#FFD34D"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.4
+      },
+      "why": "인물을 아래에 두고 위쪽 노란 지면에 글자를 놓는다."
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-300x600_C.png",
+      "html": "t1014-dongsuh_google-gdn-300x600_C.html"
+     },
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-300x600_A.png",
+      "html": "t1014-dongsuh_google-gdn-300x600_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "w": 300,
+     "h": 1050,
+     "shape": "tower",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 0.652
+      },
+      "kvPlace": "bottom",
+      "kvSize": "md",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "brand",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#FFC000",
+        "#FFD34D"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.5
+      },
+      "why": "세로 띠는 인물 상반신을 아래에 두고 위쪽을 글자에 쓴다."
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-300x1050_C.png",
+      "html": "t1014-dongsuh_google-gdn-300x1050_C.html"
+     },
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-300x1050_A.png",
+      "html": "t1014-dongsuh_google-gdn-300x1050_A.html"
+     }
+    }
+   ],
+   "ai": {
+    "type": "cutout-character",
+    "rationale": "투명 배경 누끼 인물이라 얼굴·스틱·손이 담긴 상반신을 crop 안에 두고 하반신은 잘랐다. 브랜드 노란색 지면을 인물과 이어 칠하고 어두운 글자로 대비를 주어 읽기 쉽게 했다.",
+    "ms": 10044,
+    "cost": 0.0255,
+    "usage": {
+     "input_tokens": 6106,
+     "output_tokens": 1328,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "fixes": [
+     "strip: crop 이 너무 작아(1×0.211) 원본 전체로"
+    ]
+   }
+  },
+  {
+   "id": "t1014-gs2025",
+   "group": "비주얼형(일러스트·3D)",
+   "type": "illust",
+   "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 39% · 정사각형",
+   "client": "GS에너지",
+   "kv": "t1014-gs2025_kv.png",
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "w": 1200,
+     "h": 600,
+     "shape": "wide",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0.546,
+       "w": 1,
+       "h": 0.454
+      },
+      "kvPlace": "right",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "kv",
+      "bgGrad": "h",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#C6F3FF",
+        "#D9F7FF"
+       ],
+       "angle": 90,
+       "text": "dark",
+       "melt": 0.5
+      },
+      "why": "그림을 오른쪽에 두고 왼쪽 하늘색 지면에 글자를 올리며, 하늘색이 자연스럽게 이어지도록 녹인다."
+     },
+     "C": {
+      "png": "t1014-gs2025_kakao-display-pc-promo_C.png",
+      "html": "t1014-gs2025_kakao-display-pc-promo_C.html"
+     },
+     "A": {
+      "png": "t1014-gs2025_kakao-display-pc-promo_A.png",
+      "html": "t1014-gs2025_kakao-display-pc-promo_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "w": 580,
+     "h": 400,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0.463,
+       "w": 1,
+       "h": 0.537
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#C6F3FF",
+        "#D9F7FF"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "위쪽 하늘에 글자를 두고 아래에 그림을 크게 배치해 균형을 맞춘다."
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-580x400_C.png",
+      "html": "t1014-gs2025_google-gdn-580x400_C.html"
+     },
+     "A": {
+      "png": "t1014-gs2025_google-gdn-580x400_A.png",
+      "html": "t1014-gs2025_google-gdn-580x400_A.html"
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "w": 1080,
+     "h": 1080,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0.463,
+       "w": 1,
+       "h": 0.537
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#C6F3FF",
+        "#D9F7FF"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.45
+      },
+      "why": "위쪽 하늘에 글자를 두고 아래에 그림을 크게 배치해 균형을 맞춘다."
+     },
+     "C": {
+      "png": "t1014-gs2025_instagram-feed-1080_C.png",
+      "html": "t1014-gs2025_instagram-feed-1080_C.html"
+     },
+     "A": {
+      "png": "t1014-gs2025_instagram-feed-1080_A.png",
+      "html": "t1014-gs2025_instagram-feed-1080_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "w": 300,
+     "h": 600,
+     "shape": "tall",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0.546,
+       "w": 1,
+       "h": 0.454
+      },
+      "kvPlace": "bottom",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#C6F3FF",
+        "#DDF8FF"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.5
+      },
+      "why": "인물 무리를 아래에 두고 위쪽 하늘색 지면에 글자를 놓는다. 하늘 그라데이션을 위로 연장해 빈 느낌을 줄인다."
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-300x600_C.png",
+      "html": "t1014-gs2025_google-gdn-300x600_C.html"
+     },
+     "A": {
+      "png": "t1014-gs2025_google-gdn-300x600_A.png",
+      "html": "t1014-gs2025_google-gdn-300x600_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "w": 300,
+     "h": 1050,
+     "shape": "tower",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0.583,
+       "w": 1,
+       "h": 0.417
+      },
+      "kvPlace": "bottom",
+      "kvSize": "sm",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#C6F3FF",
+        "#E3F9FF"
+       ],
+       "angle": 180,
+       "text": "dark",
+       "melt": 0.6
+      },
+      "why": "세로 띠는 폭이 좁으므로 그림을 아래에 작게 두고 위 전체를 글자 공간으로 쓴다."
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-300x1050_C.png",
+      "html": "t1014-gs2025_google-gdn-300x1050_C.html"
+     },
+     "A": {
+      "png": "t1014-gs2025_google-gdn-300x1050_A.png",
+      "html": "t1014-gs2025_google-gdn-300x1050_A.html"
+     }
+    }
+   ],
+   "ai": {
+    "type": "illust-grad-bg",
+    "rationale": "하늘색 바탕 위쪽이 넓게 비어 있고 인물과 확성기는 아래쪽에 모여 있어, 아래쪽을 crop해 그림으로 쓰고 하늘색을 연장한 지면에 글자를 올린다. 글자 톤은 밝은 지면에 맞춰 dark로 하고, 로고는 어두운 톤이라 밝은 지면에서 잘 읽힌다.",
+    "ms": 11002,
+    "cost": 0.0329,
+    "usage": {
+     "input_tokens": 8744,
+     "output_tokens": 1543,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "fixes": [
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: crop 이 너무 작아(0.509×0.287) 원본 전체로"
+    ]
+   }
+  },
+  {
+   "id": "t1014-lt-v2",
+   "group": "비주얼형(일러스트·3D)",
+   "type": "illust",
+   "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+   "client": "LT소재",
+   "kv": "t1014-lt-v2_kv.jpg",
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "w": 1200,
+     "h": 600,
+     "shape": "wide",
+     "group": {
+      "crop": {
+       "x": 0,
+       "y": 0,
+       "w": 1,
+       "h": 1
+      },
+      "kvPlace": "right",
+      "kvSize": "lg",
+      "textAlign": "left",
+      "textAnchor": "center",
+      "bgFill": "kv",
+      "bgGrad": "none",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#1B0950",
+        "#150840"
+       ],
+       "angle": 90,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "왼쪽 빈 남색 바탕에 글자를 놓고 칩은 오른쪽에 크게 둔다."
+     },
+     "C": {
+      "png": "t1014-lt-v2_kakao-display-pc-promo_C.png",
+      "html": "t1014-lt-v2_kakao-display-pc-promo_C.html"
+     },
+     "A": {
+      "png": "t1014-lt-v2_kakao-display-pc-promo_A.png",
+      "html": "t1014-lt-v2_kakao-display-pc-promo_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "w": 580,
+     "h": 400,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0.21,
+       "y": 0.075,
+       "w": 0.79,
+       "h": 0.825
+      },
+      "kvPlace": "bottom",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#1B0950",
+        "#1A1070"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "중앙 칩을 중심으로 자르고 위쪽을 지면으로 녹여 글자 공간을 만든다."
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-580x400_C.png",
+      "html": "t1014-lt-v2_google-gdn-580x400_C.html"
+     },
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-580x400_A.png",
+      "html": "t1014-lt-v2_google-gdn-580x400_A.html"
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "w": 1080,
+     "h": 1080,
+     "shape": "square",
+     "group": {
+      "crop": {
+       "x": 0.21,
+       "y": 0.075,
+       "w": 0.79,
+       "h": 0.825
+      },
+      "kvPlace": "bottom",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#1B0950",
+        "#1A1070"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.5
+      },
+      "why": "중앙 칩을 중심으로 자르고 위쪽을 지면으로 녹여 글자 공간을 만든다."
+     },
+     "C": {
+      "png": "t1014-lt-v2_instagram-feed-1080_C.png",
+      "html": "t1014-lt-v2_instagram-feed-1080_C.html"
+     },
+     "A": {
+      "png": "t1014-lt-v2_instagram-feed-1080_A.png",
+      "html": "t1014-lt-v2_instagram-feed-1080_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "w": 300,
+     "h": 600,
+     "shape": "tall",
+     "group": {
+      "crop": {
+       "x": 0.2,
+       "y": 0.075,
+       "w": 0.8,
+       "h": 0.85
+      },
+      "kvPlace": "bottom",
+      "kvSize": "md",
+      "textAlign": "left",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#1B0950",
+        "#1A1070"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.55
+      },
+      "why": "칩을 아래에 두고 위쪽 남색 지면에 글자를 올린다."
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-300x600_C.png",
+      "html": "t1014-lt-v2_google-gdn-300x600_C.html"
+     },
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-300x600_A.png",
+      "html": "t1014-lt-v2_google-gdn-300x600_A.html"
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "w": 300,
+     "h": 1050,
+     "shape": "tower",
+     "group": {
+      "crop": {
+       "x": 0.21,
+       "y": 0.09,
+       "w": 0.79,
+       "h": 0.773
+      },
+      "kvPlace": "bottom",
+      "kvSize": "sm",
+      "textAlign": "center",
+      "textAnchor": "top",
+      "bgFill": "kv",
+      "bgGrad": "v",
+      "scrim": "none",
+      "field": {
+       "colors": [
+        "#1B0950",
+        "#1A1070"
+       ],
+       "angle": 180,
+       "text": "light",
+       "melt": 0.6
+      },
+      "why": "좁은 세로 띠라 칩만 작게 아래에 두고 위는 글자에 쓴다."
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-300x1050_C.png",
+      "html": "t1014-lt-v2_google-gdn-300x1050_C.html"
+     },
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-300x1050_A.png",
+      "html": "t1014-lt-v2_google-gdn-300x1050_A.html"
+     }
+    }
+   ],
+   "ai": {
+    "type": "illust-grad-bg",
+    "rationale": "어두운 남색 그라데이션 바탕의 칩 일러스트라 바탕색을 지면으로 이어 칠하고, 칩은 오른쪽이나 아래로 보내 글자 공간을 확보했다. 로고는 흰색 글자라 어두운 지면에서 잘 읽히며, 글자 톤은 light로 통일했다.",
+    "ms": 9546,
+    "cost": 0.0282,
+    "usage": {
+     "input_tokens": 7397,
+     "output_tokens": 1339,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "fixes": [
+     "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+     "strip: crop 이 주인공·보존 요소를 잘라 넓힘"
+    ]
+   }
+  }
+ ]
+}
