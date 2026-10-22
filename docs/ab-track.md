@@ -17,7 +17,7 @@ AI 는 **그림 판단만**(캠페인당 호출 1회), 그리기는 **규칙 렌
 흐름: `POST /api/analyze`(`server/design.js analyzeKv`, Sonnet 5.5 medium) → `core/trackb/analyze.js`(스키마 `ANALYSIS_SCHEMA` · 검증 `validateAnalysis`: 픽셀→비율, crop 이 주인공·보존 요소를 자르면 넓힘, 선택지 밖은 auto) → `app/hybrid.js`(모양 묶음마다 crop 사본 + 측정 + 프리셋 조각) → `renderArtifact`(규칙). 비용 캠페인당 **$0.02(≈30원)**, 20종 전부 포함.
 
 - 비교 화면: 「A+AI 그림 판단 (API 1회)」 버튼 → 가운데 열. 모양 묶음별 판단 표·고친 것·프롬프트는 접힘 칸. 판단 JSON 내려받기/불러오기.
-- 본 앱(`app/index.html`, B 서버로 열었을 때): 인스펙터 키비주얼 아래 「AI 그림 판단」 → 광고 규격 전부에 모양 묶음 값 적용(`overrides.style.aiShape` + 프리셋, crop 사본은 캠페인 `c.ai.groups` 에 모양별 5개만). 「AI 판단 해제」로 되돌림. Python 서버(4793)로 열면 버튼은 보이되 호출이 실패한다(서버 없음).
+- 본 앱 — **공개 페이지에서도**: 로컬 서버가 없으면 「AI 키 · 환경 설정」에 저장한 키(브라우저에만)로 직접 호출. 인스펙터 키비주얼 아래 「AI 그림 판단」 → 광고 규격 전부에 모양 묶음 값 적용(`overrides.style.aiShape` + 프리셋, crop 사본은 캠페인 `c.ai.groups` 에 모양별 5개만). 「AI 판단 해제」로 되돌림.
 - 헤드리스: `node scripts/ab-run.mjs pin-28 pin-32` 가 A · A+AI(C) · B 를 다 그린다(`--no-b`·`--no-c`·`--cmodel`·`--ceffort`).
 
 

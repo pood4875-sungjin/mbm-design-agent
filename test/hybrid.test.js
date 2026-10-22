@@ -176,3 +176,18 @@ test('렌더러 — AI 상자가 얼굴을 걸쳐 자르면 그 후보는 탈락
   const cutH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: cutMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
   assert.doesNotMatch(cutH, /data-ad="1" data-ai-box="100:/, '얼굴이 걸친 원래 상자는 안 쓴다');
 });
+
+test('공개 페이지 경로 — 서버 없으면 브라우저 직접 호출: 헤더(키·직접 호출 허용)·스키마·이미지·검증까지 서버와 같은 결과 모양(fetch 모의)', async () => {
+  const { analyzeDirect, hasServer } = await import('../app/hybrid.js');
+  assert.equal(await hasServer(async () => ({ ok: false, json: async () => ({}) })), false, 'Pages: /api/health 404 → 서버 없음');
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  let seen = null;
+  const fake = async (url, init) => { seen = { url, init, body: JSON.parse(init.body) }; return { ok: true, json: async () => ({ stop_reason: 'end_turn', usage: { input_tokens: 4000, output_tokens: 1200 }, content: [{ type: 'text', text: JSON.stringify(good()) }] }) }; };
+  const out = await analyzeDirect('sk-ant-test', { kv: { dataUrl: png, meta: meta28 }, brief: { client: 'GS에너지' }, brand: { primary: '#326CD1' } }, fake);
+  assert.equal(seen.url, 'https://api.anthropic.com/v1/messages');
+  assert.equal(seen.init.headers['x-api-key'], 'sk-ant-test'); assert.equal(seen.init.headers['anthropic-dangerous-direct-browser-access'], 'true');
+  assert.equal(seen.body.model, 'claude-sonnet-5-5'); assert.equal(seen.body.output_config.format.type, 'json_schema');
+  assert.equal(seen.body.messages[0].content[0].type, 'image'); assert.ok(seen.body.messages[0].content.at(-1).text.includes('GS에너지'));
+  assert.equal(out.via, 'browser'); assert.ok(out.analysis.groups.wide); assert.ok(out.cost > 0);
+  await assert.rejects(analyzeDirect('sk-ant-test', { kv: { dataUrl: png, meta: meta28 } }, async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'invalid x-api-key' } }) })), /HTTP 401 · invalid x-api-key/);
+});

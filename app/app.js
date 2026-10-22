@@ -2218,7 +2218,7 @@ function renderInspector() {
         <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
         <button class="btn" id="iKvClear" style="flex:1">제거</button></div>
       <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.01~0.03) 모양 묶음마다 보일 부분·자리·크기·배경 방식을 정합니다. 글자·타이포·검수는 규칙 그대로">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>
+        <button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
       <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>
@@ -2352,7 +2352,7 @@ function renderInspector() {
     // 하이브리드(10-22): AI 가 그림만 판단(캠페인당 1회) → 광고 규격마다 모양 묶음의 crop 사본·프리셋을 개별값(overrides.style)으로. 글자·타이포·검수는 규칙 그대로
     insp.querySelector('#iKvAi')?.addEventListener('click', async () => {
       const btn = insp.querySelector('#iKvAi');
-      if (!confirm('Claude 가 키비주얼을 한 번 봅니다(캠페인당 1회, 약 $0.01~0.03). 모양 묶음마다 보일 부분·자리·크기·배경 방식을 정하고, 광고 규격 전부에 적용합니다. 진행할까요?')) return;
+      if (!confirm('Claude 가 키비주얼을 한 번 봅니다(캠페인당 1회, 약 $0.02~0.03 — 30~40원). 모양 묶음마다 그림 자리·크기·지면을 정하고 광고 규격 전부에 적용합니다. 글자는 규칙 그대로. 진행할까요?')) return;
       btn.disabled = true; btn.textContent = '그림 보는 중…';
       try {
         const res = await requestAnalysis({ kv: { dataUrl: await apiCopy(c.style.keyVisual), meta: c.style.kvMeta }, logo: c.style.logo ? { dataUrl: await apiCopy(c.style.logo, true), meta: c.style.logoMeta } : null, brief: c.context.core, brand: { primary: c.style.palette?.primary ?? null }, requests: '' });
