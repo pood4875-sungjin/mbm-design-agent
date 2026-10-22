@@ -29,11 +29,11 @@
       "port": 4793
     },
     {
-      "name": "mbm-agent-b",
+      "name": "mbm-agent-ai",
       "runtimeExecutable": "bash",
       "runtimeArgs": [
         "-c",
-        "cd /Users/kimsungjin/mbm-design-agent-b && exec node server/server.mjs 4796"
+        "cd /Users/kimsungjin/mbm-design-agent && exec node server/server.mjs 4796"
       ],
       "port": 4796
     }

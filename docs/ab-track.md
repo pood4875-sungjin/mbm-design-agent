@@ -26,7 +26,7 @@ AI 는 **그림 판단만**(캠페인당 호출 1회), 그리기는 **규칙 렌
 | 방식 | 기존 규칙·템플릿 렌더러 `core/renderers/ad.js` + 매체 JSON `core/media/*.json` | Claude 가 키비주얼·로고·문구·고객사 요구·브랜드 색·매체 규격을 보고 **레이아웃 JSON** 을 설계 → 화면에서 그림 |
 | 비용 | 없음(브라우저 렌더) | API 호출(「B 생성」 버튼을 누를 때만) |
 | 키 | 없음 | 서버만 가짐(`server/.env` 또는 환경변수) — 저장소에 없음 |
-| 코드 위치 | main 그대로 | 브랜치 `track-b-ai-design` · 폴더 `~/mbm-design-agent-b` (git worktree) |
+| 코드 위치 | main | main(10-22 합침 — 처음엔 브랜치 `track-b-ai-design` · worktree `~/mbm-design-agent`) |
 
 ## 실행
 
@@ -36,19 +36,19 @@ cd ~/mbm-design-agent && python3 scripts/serve.py 4793
 ```
 → http://localhost:4793/app/
 
-B 트랙 + 비교 화면(worktree, 서버가 키를 가짐). 처음 한 번 SDK 설치:
+B·A+AI 트랙 + 비교 화면(서버가 키를 가짐). 처음 한 번 SDK 설치:
 ```bash
-cd ~/mbm-design-agent-b/server && npm install
+cd ~/mbm-design-agent/server && npm install
 ```
 키 넣기(둘 중 하나 — 둘 다 gitignore):
 ```bash
-cp ~/mbm-design-agent-b/server/.env.example ~/mbm-design-agent-b/server/.env
+cp ~/mbm-design-agent/server/.env.example ~/mbm-design-agent/server/.env
 ```
 (열어서 `ANTHROPIC_API_KEY=sk-ant-…` 로 바꾼다. 또는 `app/config.local.js` 의 `MBM_API_KEY` 를 그대로 읽는다.)
 
 서버 켜기:
 ```bash
-cd ~/mbm-design-agent-b && node server/server.mjs 4796
+cd ~/mbm-design-agent && node server/server.mjs 4796
 ```
 → http://localhost:4796/app/ab.html (포트 4791·4793·4794·4795 는 다른 작업이 쓰고 있어 4796)
 
@@ -56,13 +56,13 @@ cd ~/mbm-design-agent-b && node server/server.mjs 4796
 
 헤드리스로 케이스 비교(PNG·JSON 을 `history/img/<날짜>_ab/` 에):
 ```bash
-cd ~/mbm-design-agent-b && node scripts/ab-run.mjs pin-28 pin-32 --spec kakao-display-pc-promo
+cd ~/mbm-design-agent && node scripts/ab-run.mjs pin-28 pin-32 --spec kakao-display-pc-promo
 ```
 (키가 없으면 A 만 그린다. `--no-b` 로 B 를 끌 수 있고, `--model claude-sonnet-5-5 --effort medium` 으로 바꿀 수 있다.)
 
 테스트:
 ```bash
-cd ~/mbm-design-agent-b && node --test
+cd ~/mbm-design-agent && node --test
 ```
 
 ## B 트랙 구조
