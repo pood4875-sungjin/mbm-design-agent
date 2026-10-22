@@ -190,7 +190,7 @@
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0235,
+ "cost": 0,
  "ms": 11451,
  "model": "claude-sonnet-5-5"
 }

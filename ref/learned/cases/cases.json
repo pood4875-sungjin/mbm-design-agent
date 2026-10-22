@@ -4141,21 +4141,21 @@
     {
       "id": "midas-faces-3d",
       "kv": "kv.jpg",
-      "logo": "logo.png",
+      "logo": "logo-orig.png",
       "note": "10-22 사용자 샘플 요청(MIDAS 로고)",
       "primary": null,
       "logoMeta": {
         "px": [
-          362,
-          90
+          1043,
+          304
         ],
-        "lum": 0.17,
-        "sat": 0.55,
-        "solid": 0.37,
+        "lum": 0.06,
+        "sat": 0,
+        "solid": 0.56,
         "tone": "dark",
         "colors": [
           {
-            "hex": "#1428A0",
+            "hex": "#0F0F0F",
             "share": 1
           }
         ]
@@ -4175,21 +4175,21 @@
     {
       "id": "midas-jeil-iso",
       "kv": "kv.png",
-      "logo": "logo.png",
+      "logo": "logo-orig.png",
       "note": "10-22 사용자 샘플 요청(MIDAS 로고)",
       "primary": null,
       "logoMeta": {
         "px": [
-          362,
-          90
+          1043,
+          304
         ],
-        "lum": 0.17,
-        "sat": 0.55,
-        "solid": 0.37,
+        "lum": 0.06,
+        "sat": 0,
+        "solid": 0.56,
         "tone": "dark",
         "colors": [
           {
-            "hex": "#1428A0",
+            "hex": "#0F0F0F",
             "share": 1
           }
         ]
@@ -4209,21 +4209,21 @@
     {
       "id": "midas-team-photo",
       "kv": "kv.jpg",
-      "logo": "logo.png",
+      "logo": "logo-orig.png",
       "note": "10-22 사용자 샘플 요청(MIDAS 로고)",
       "primary": null,
       "logoMeta": {
         "px": [
-          362,
-          90
+          1043,
+          304
         ],
-        "lum": 0.17,
-        "sat": 0.55,
-        "solid": 0.37,
+        "lum": 0.06,
+        "sat": 0,
+        "solid": 0.56,
         "tone": "dark",
         "colors": [
           {
-            "hex": "#1428A0",
+            "hex": "#0F0F0F",
             "share": 1
           }
         ]

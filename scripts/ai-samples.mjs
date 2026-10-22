@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // A+AI 샘플 갤러리 — 키비주얼 유형별 케이스 × 규격 몇 종을 A+AI(그림 판단 1회 → 규칙 렌더)로 그리고, 참고로 A(규칙만)도 작게. 한 장짜리 HTML.
 //   node scripts/ai-samples.mjs [--cases a,b,c] [--specs x,y | --stages] [--out history/img/<날짜>_ai-samples] [--no-a]
-//   --stages: 추출 규격 전부를 차수(하·중·상·로고 — core/media/_extract.json stages)별로   (A PNG 는 참고용 파일로만 남고 갤러리엔 안 보인다)
+//   --stages: 추출 규격 전부를 차수(하·중·상·로고 — core/media/_extract.json stages)별로 · --reuse: 같은 out 폴더의 판단 JSON 재사용(API 호출 0)   (A PNG 는 참고용 파일로만 남고 갤러리엔 안 보인다)
 //   키: server/.env(ANTHROPIC_API_KEY). 케이스마다 판단 1회(Sonnet ≈ $0.025). PNG 는 macOS Chrome headless.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -90,10 +90,12 @@ for (const id of CASES) {
   copyFileSync(kvFile, path.join(OUT, `${id}_kv${path.extname(kvFile)}`));
   const row = { id, group: GROUPS.find(g => g.ids.includes(id))?.label ?? TYPE_LABEL[c.type] ?? '기타', type: c.type, summary: c.summary, client: brief.client, kv: `${id}_kv${path.extname(kvFile)}`, specs: [] };
 
-  // 판단 1회
+  // 판단 1회 — --reuse 면 OUT 의 <id>_analysis.json 을 다시 써서 API 를 안 부른다(로고·브리프만 바꿔 다시 그릴 때)
   let out;
+  const prevA = path.join(OUT, `${id}_analysis.json`);
   try {
-    out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopyFile(kvFile)), meta }, logo: logoFile ? { dataUrl: dataUrlOf(apiCopyFile(logoFile)), meta: c.logoMeta ?? null } : null, brief, brand: { primary }, requests: '' });
+    if (flag('--reuse') && existsSync(prevA)) { const j = JSON.parse(readFileSync(prevA, 'utf8')); out = { analysis: j.analysis, fixes: j.fixes ?? [], usage: j.usage ?? {}, cost: 0, ms: j.ms ?? 0, model: j.model }; }
+    else out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopyFile(kvFile)), meta }, logo: logoFile ? { dataUrl: dataUrlOf(apiCopyFile(logoFile)), meta: c.logoMeta ?? null } : null, brief, brand: { primary }, requests: '' });
   } catch (e) { console.log(`[${id}] 판단 실패: ${e.message}`); row.error = e.message; results.push(row); continue; }
   totalCost += out.cost;
   row.ai = { type: out.analysis.kv.type, rationale: out.analysis.rationale, ms: out.ms, cost: out.cost, usage: out.usage, fixes: out.fixes, groups: out.analysis.groups };
