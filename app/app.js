@@ -1790,11 +1790,10 @@ function layoutArtboard(opts = {}) {
     if (stage && stage !== lastStage) {   // 차수 머리글(하 · 1차 적용 …) — 차수가 바뀌는 줄 위에
       if (lastStage != null) y += 36;
       const sh = document.createElement('div'); sh.className = 'stagehead'; sh.style.left = '60px'; sh.style.top = (y - 126) + 'px';
-      const n = rows.filter(r => r.stage === stage).reduce((s0, r) => s0 + r.arts.length, 0);
-      sh.textContent = `${STAGE_NAMES[stage] ?? (stage === 5 ? '참고 규격' : `${stage}차`)} · ${n}종`; board.appendChild(sh);
+      sh.textContent = `${STAGE_NAMES[stage] ?? (stage === 5 ? '참고 규격' : `${stage}차`)} · ${countText(rows.filter(r => r.stage === stage).flatMap(r => r.arts))}`; board.appendChild(sh);
       lastStage = stage;
     }
-    const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${rowArts.length}종`; board.appendChild(head);
+    const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${countText(rowArts)}`; board.appendChild(head);
     {
       for (const a of rowArts) {
         const ch = a.channel;
@@ -1807,7 +1806,7 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname">${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge gate"></span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
+          <div class="flabel"><span class="fname"${a.channel === 'ad' && twinTitle(a.specId) ? ` title="${escH(twinTitle(a.specId))}"` : ''}>${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge gate"></span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
@@ -1838,19 +1837,26 @@ function specSize(spec, size = null) {
   if (spec.unit === 'mm') return `${spec.wmm}×${spec.hmm}mm`;
   return spec.w && spec.h ? `${spec.w}×${spec.h}` : '';
 }
+// 쌍둥이(같은 크기·틀이라 한 장만 그리고 추출 때 두 파일로 나가는 규격 — 자소설 프리미엄/표준 공고 160×600 · 채팅리스트 로고 300×180).
+//   그린 장 수와 나가는 파일 수가 다르다(10-22 사용자 「자소설 11·리멤버 8·비즈보드 1 = 20인데 캔버스는 18?」) — 머리글은 「9장 → 11종」, 카드 라벨에 「+ ○○ 같이 추출」
+const sharedTwins = specId => ((sharedTwins.map ??= new Map(adSpecGroups().map(g => [g.id, g.twins]))).get(specId) ?? []).filter(id => !(state.campaign?.adSpecIds ?? []).includes(id));
+const outCount = arts => arts.reduce((n, a) => n + 1 + (a.channel === 'ad' ? sharedTwins(a.specId).length : 0), 0);
+function countText(arts) { const n = arts.length, o = outCount(arts); return o > n ? `${n}장 → ${o}종` : `${n}종`; }
 // 같은 파일을 쓰는 다른 상품이 있으면 라벨에 밝힌다 — 한 장이 두 상품에 나간다는 걸 검수자가 알아야 한다
 function twinNote(specId) {
-  const twins = (twinNote.map ??= new Map(adSpecGroups().map(g => [g.id, g.twins]))).get(specId) ?? [];
-  const shared = twins.filter(id => !(state.campaign?.adSpecIds ?? []).includes(id));
+  const shared = sharedTwins(specId);
   return shared.length ? ` · 상품 ${shared.length + 1}곳 공용` : '';
 }
+const twinShort = id => String(SPECS[id]?.title ?? id).replace(/^[^·]*·\s*/, '').replace(/\s*\(.*\)\s*$/, '');   // 「자소설닷컴 · PC스탠다드패키지 - PC채용공고배너」 → 「PC스탠다드패키지 - PC채용공고배너」
+const twinTail = specId => { const n = sharedTwins(specId).length; return n ? ` · +${n} 같이 추출` : ''; };   // 160×600 같은 좁은 카드 위에서 라벨이 네 줄로 늘지 않게 짧게 — 어느 규격인지는 라벨 툴팁(twinTitle)
+const twinTitle = specId => { const shared = sharedTwins(specId); return shared.length ? `같은 파일로 같이 추출: ${shared.map(twinShort).join(' · ')}` : ''; };
 // 보드 카드 라벨은 매체 · 사이즈만(10-15 밤 사용자 「좌측은 매체와 사이즈 정도만」) — 배지(DRAFT·차단·디자인·가이드)는 CSS 로 숨긴다
 function boardLabel(a) {
   const spec = SPECS[a.specId];
   if (spec && a.channel === 'asset') return `${spec.mediumName ?? mediumName(spec.medium)} · 전달물 ${spec.asset?.item ?? ''} 파일`;
   if (!spec || a.channel !== 'ad') return artLabel(a);
   const sz = specSize(spec, a.size) || `${spec.w}×${spec.h}`;
-  return `${spec.mediumName ?? mediumName(spec.medium)} · ${sz}`;
+  return `${spec.mediumName ?? mediumName(spec.medium)} · ${sz}${twinTail(a.specId)}`;
 }
 function artLabel(a) {
   const spec = SPECS[a.specId];
