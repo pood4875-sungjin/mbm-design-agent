@@ -1,0 +1,366 @@
+{
+ "raw": {
+  "kv": {
+   "type": "illust-scene",
+   "subject": {
+    "x": 330,
+    "y": 1300,
+    "w": 1800,
+    "h": 860
+   },
+   "keep": [
+    {
+     "x": 630,
+     "y": 1300,
+     "w": 660,
+     "h": 700,
+     "label": "확성기"
+    }
+   ],
+   "faces": [
+    {
+     "x": 300,
+     "y": 1400,
+     "w": 110,
+     "h": 130
+    },
+    {
+     "x": 1370,
+     "y": 1610,
+     "w": 100,
+     "h": 120
+    },
+    {
+     "x": 1620,
+     "y": 1460,
+     "w": 130,
+     "h": 150
+    }
+   ],
+   "cutSafe": {
+    "top": 0.55,
+    "right": 0,
+    "bottom": 0,
+    "left": 0
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#C6F3FF",
+     "#139073",
+     "#F57556"
+    ]
+   },
+   "note": "하늘이 위 60%를 차지하고 인물과 확성기는 하단에 모여 있다. 하늘색 바탕은 지면으로 이어 쓰기 좋다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 1250,
+     "w": 2160,
+     "h": 910
+    },
+    "focus": {
+     "x": 280,
+     "y": 1300,
+     "w": 1800,
+     "h": 860
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#DDF8FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.38,
+     "y": 0.02,
+     "w": 0.64,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.1,
+      "w": 0.5,
+      "h": 0.8,
+      "color": "#FFFFFF",
+      "opacity": 0.4,
+      "blur": 0.2
+     }
+    ],
+    "why": "가로형은 장면 하단 전체를 오른쪽에 크게 두고 왼쪽을 하늘색으로 녹였다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 560,
+     "y": 1250,
+     "w": 1300,
+     "h": 910
+    },
+    "focus": {
+     "x": 600,
+     "y": 1300,
+     "w": 1250,
+     "h": 860
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#DDF8FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.55,
+     "w": 1.2,
+     "h": 0.45
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.1,
+      "w": 0.8,
+      "h": 0.4,
+      "color": "#FFFFFF",
+      "opacity": 0.4,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": 0.45,
+      "w": 0.6,
+      "h": 0.3,
+      "color": "#8FE3D0",
+      "opacity": 0.35,
+      "blur": 0.15
+     }
+    ],
+    "why": "세로형은 확성기와 두 인물만 좁혀 아래에 크게 두고 위는 글자 공간으로 비웠다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 0,
+     "y": 1000,
+     "w": 2160,
+     "h": 1160
+    },
+    "focus": {
+     "x": 280,
+     "y": 1300,
+     "w": 1800,
+     "h": 860
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#DDF8FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.5,
+     "w": 1,
+     "h": 0.5
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.05,
+      "y": 0.05,
+      "w": 0.7,
+      "h": 0.45,
+      "color": "#FFFFFF",
+      "opacity": 0.45,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.6,
+      "y": 0.3,
+      "w": 0.6,
+      "h": 0.4,
+      "color": "#8FE3D0",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "정사각은 장면을 아래쪽에 가로로 넓게 깔고 위 하늘 부분에 글자를 둔다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 1150,
+     "y": 1250,
+     "w": 1010,
+     "h": 910
+    },
+    "focus": {
+     "x": 1180,
+     "y": 1300,
+     "w": 900,
+     "h": 860
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#DDF8FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.68,
+     "w": 1.1,
+     "h": 0.32
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": -0.2,
+      "y": 0.1,
+      "w": 1.2,
+      "h": 0.3,
+      "color": "#FFFFFF",
+      "opacity": 0.4,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.4,
+      "w": 1,
+      "h": 0.25,
+      "color": "#8FE3D0",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "세로 띠는 앉은 사람과 손 든 인물만 좁혀 아래에 두었다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 0,
+     "y": 1250,
+     "w": 1100,
+     "h": 910
+    },
+    "focus": {
+     "x": 280,
+     "y": 1300,
+     "w": 800,
+     "h": 860
+    },
+    "kvPlace": "left",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#C6F3FF",
+      "#DDF8FF"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0,
+     "w": 0.25,
+     "h": 1
+    },
+    "fade": {
+     "left": 0,
+     "right": 0.4,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.3,
+      "y": -0.3,
+      "w": 0.5,
+      "h": 1.6,
+      "color": "#FFFFFF",
+      "opacity": 0.3,
+      "blur": 0.15
+     }
+    ],
+    "why": "가로 띠는 인물과 확성기 일부만 왼쪽 끝에 작게 두었다."
+   }
+  ],
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "하늘색 바탕이 넓고 인물과 확성기가 하단에 모여 있어, 하단 장면을 크게 쓰고 위쪽 하늘을 지면으로 이어 글자 공간으로 삼았다. 지면은 하늘색 계열 하나로 통일해 글자는 어둡게 두고 얼굴은 어느 모양에서도 자르지 않았다."
+ },
+ "usage": {
+  "input_tokens": 7755,
+  "output_tokens": 2287,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0384,
+ "at": "2026-10-22T12:13:29.834Z"
+}

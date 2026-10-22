@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T11:03:07.148Z",
+ "at": "2026-10-22T12:56:24.946Z",
  "specs": [
   "jasoseol-pc-premium-popup-pc",
   "jasoseol-pc-premium-jobpost-pc",
@@ -1258,7 +1258,7 @@
       "png": "midas-faces-3d_naver-gfa-mobile-da-1250x560_C.png",
       "html": "midas-faces-3d_naver-gfa-mobile-da-1250x560_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "everytime-community-board",
@@ -1486,7 +1486,7 @@
       "png": "midas-faces-3d_nap-dsp-band-320x50_C.png",
       "html": "midas-faces-3d_nap-dsp-band-320x50_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "nap-dsp-band-320x100",
@@ -1543,7 +1543,7 @@
       "png": "midas-faces-3d_nap-dsp-band-320x100_C.png",
       "html": "midas-faces-3d_nap-dsp-band-320x100_C.html"
      },
-     "aiBox": "규칙 자리(겹침)"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "nap-dsp-full-300x250",
@@ -1600,7 +1600,7 @@
       "png": "midas-faces-3d_nap-dsp-full-300x250_C.png",
       "html": "midas-faces-3d_nap-dsp-full-300x250_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -1657,7 +1657,7 @@
       "png": "midas-faces-3d_nap-dsp-full-320x480_C.png",
       "html": "midas-faces-3d_nap-dsp-full-320x480_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -1714,7 +1714,7 @@
       "png": "midas-faces-3d_kakao-display-pc-promo_C.png",
       "html": "midas-faces-3d_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "blind-feed-image",
@@ -1771,7 +1771,7 @@
       "png": "midas-faces-3d_blind-feed-image_C.png",
       "html": "midas-faces-3d_blind-feed-image_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "blind-post-banner",
@@ -1828,7 +1828,7 @@
       "png": "midas-faces-3d_blind-post-banner_C.png",
       "html": "midas-faces-3d_blind-post-banner_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "키움(빈 지면)"
     },
     {
      "spec": "google-gdn-580x400",
@@ -1942,7 +1942,7 @@
       "png": "midas-faces-3d_google-gdn-970x250_C.png",
       "html": "midas-faces-3d_google-gdn-970x250_C.html"
      },
-     "aiBox": "규칙 자리(겹침)"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1999,7 +1999,7 @@
       "png": "midas-faces-3d_google-gdn-300x600_C.png",
       "html": "midas-faces-3d_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -2056,7 +2056,7 @@
       "png": "midas-faces-3d_google-gdn-300x1050_C.png",
       "html": "midas-faces-3d_google-gdn-300x1050_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "jobda-main-pc",
@@ -2227,7 +2227,7 @@
       "png": "midas-faces-3d_instagram-feed-1080_C.png",
       "html": "midas-faces-3d_instagram-feed-1080_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "daangn-native-feed-image",
@@ -2284,7 +2284,7 @@
       "png": "midas-faces-3d_daangn-native-feed-image_C.png",
       "html": "midas-faces-3d_daangn-native-feed-image_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-object-pc",
@@ -4195,7 +4195,7 @@
       "png": "midas-jeil-iso_naver-gfa-mobile-da-1250x560_C.png",
       "html": "midas-jeil-iso_naver-gfa-mobile-da-1250x560_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "everytime-community-board",
@@ -4480,7 +4480,7 @@
       "png": "midas-jeil-iso_nap-dsp-band-320x100_C.png",
       "html": "midas-jeil-iso_nap-dsp-band-320x100_C.html"
      },
-     "aiBox": "145% 로 키움(빈 지면)"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "nap-dsp-full-300x250",
@@ -4537,7 +4537,7 @@
       "png": "midas-jeil-iso_nap-dsp-full-300x250_C.png",
       "html": "midas-jeil-iso_nap-dsp-full-300x250_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -4594,7 +4594,7 @@
       "png": "midas-jeil-iso_nap-dsp-full-320x480_C.png",
       "html": "midas-jeil-iso_nap-dsp-full-320x480_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -4651,7 +4651,7 @@
       "png": "midas-jeil-iso_kakao-display-pc-promo_C.png",
       "html": "midas-jeil-iso_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "blind-feed-image",
@@ -4708,7 +4708,7 @@
       "png": "midas-jeil-iso_blind-feed-image_C.png",
       "html": "midas-jeil-iso_blind-feed-image_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "blind-post-banner",
@@ -4765,7 +4765,7 @@
       "png": "midas-jeil-iso_blind-post-banner_C.png",
       "html": "midas-jeil-iso_blind-post-banner_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-580x400",
@@ -4822,7 +4822,7 @@
       "png": "midas-jeil-iso_google-gdn-580x400_C.png",
       "html": "midas-jeil-iso_google-gdn-580x400_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "google-gdn-970x250",
@@ -4879,7 +4879,7 @@
       "png": "midas-jeil-iso_google-gdn-970x250_C.png",
       "html": "midas-jeil-iso_google-gdn-970x250_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x600",
@@ -4936,7 +4936,7 @@
       "png": "midas-jeil-iso_google-gdn-300x600_C.png",
       "html": "midas-jeil-iso_google-gdn-300x600_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -7134,7 +7134,7 @@
       "png": "midas-team-photo_naver-gfa-mobile-da-1250x560_C.png",
       "html": "midas-team-photo_naver-gfa-mobile-da-1250x560_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "everytime-community-board",
@@ -7362,7 +7362,7 @@
       "png": "midas-team-photo_nap-dsp-band-320x50_C.png",
       "html": "midas-team-photo_nap-dsp-band-320x50_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "nap-dsp-band-320x100",
@@ -7476,7 +7476,7 @@
       "png": "midas-team-photo_nap-dsp-full-300x250_C.png",
       "html": "midas-team-photo_nap-dsp-full-300x250_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "nap-dsp-full-320x480",
@@ -7533,7 +7533,7 @@
       "png": "midas-team-photo_nap-dsp-full-320x480_C.png",
       "html": "midas-team-photo_nap-dsp-full-320x480_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -7590,7 +7590,7 @@
       "png": "midas-team-photo_kakao-display-pc-promo_C.png",
       "html": "midas-team-photo_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "blind-feed-image",
@@ -7647,7 +7647,7 @@
       "png": "midas-team-photo_blind-feed-image_C.png",
       "html": "midas-team-photo_blind-feed-image_C.html"
      },
-     "aiBox": "규칙 자리(겹침)"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "blind-post-banner",
@@ -7704,7 +7704,7 @@
       "png": "midas-team-photo_blind-post-banner_C.png",
       "html": "midas-team-photo_blind-post-banner_C.html"
      },
-     "aiBox": "규칙 자리(겹침)"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "google-gdn-580x400",
@@ -7875,7 +7875,7 @@
       "png": "midas-team-photo_google-gdn-300x600_C.png",
       "html": "midas-team-photo_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -7932,7 +7932,7 @@
       "png": "midas-team-photo_google-gdn-300x1050_C.png",
       "html": "midas-team-photo_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "jobda-main-pc",
@@ -8103,7 +8103,7 @@
       "png": "midas-team-photo_instagram-feed-1080_C.png",
       "html": "midas-team-photo_instagram-feed-1080_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "daangn-native-feed-image",
@@ -8160,7 +8160,7 @@
       "png": "midas-team-photo_daangn-native-feed-image_C.png",
       "html": "midas-team-photo_daangn-native-feed-image_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "catch-center-object-pc",

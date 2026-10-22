@@ -1,0 +1,391 @@
+{
+ "raw": {
+  "kv": {
+   "type": "cutout-scene",
+   "subject": {
+    "x": 40,
+    "y": 0,
+    "w": 585,
+    "h": 437
+   },
+   "keep": [
+    {
+     "x": 95,
+     "y": 60,
+     "w": 275,
+     "h": 225,
+     "label": "JEIL 3D 로고 조형"
+    },
+    {
+     "x": 385,
+     "y": 160,
+     "w": 115,
+     "h": 85,
+     "label": "JEIL 트럭"
+    }
+   ],
+   "faces": [
+    {
+     "x": 60,
+     "y": 242,
+     "w": 10,
+     "h": 12
+    },
+    {
+     "x": 95,
+     "y": 242,
+     "w": 10,
+     "h": 12
+    },
+    {
+     "x": 80,
+     "y": 330,
+     "w": 12,
+     "h": 12
+    },
+    {
+     "x": 283,
+     "y": 214,
+     "w": 9,
+     "h": 10
+    },
+    {
+     "x": 258,
+     "y": 272,
+     "w": 9,
+     "h": 10
+    },
+    {
+     "x": 397,
+     "y": 95,
+     "w": 8,
+     "h": 9
+    }
+   ],
+   "cutSafe": {
+    "top": 0.02,
+    "right": 0.02,
+    "bottom": 0.02,
+    "left": 0.05
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#005D94",
+     "#27A7DC",
+     "#B9E3F9"
+    ]
+   },
+   "note": "투명 배경의 아이소메트릭 일러스트. 흰 배경 위에서 밝고 깨끗한 제약 분위기."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 625,
+     "h": 437
+    },
+    "focus": {
+     "x": 95,
+     "y": 20,
+     "w": 500,
+     "h": 400
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "custom",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#F2F9FE",
+      "#D6ECFA"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": 0.45,
+     "y": 0.02,
+     "w": 0.58,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.55,
+      "y": 0.15,
+      "w": 0.5,
+      "h": 0.8,
+      "color": "#B9E3F9",
+      "opacity": 0.5,
+      "blur": 0.15
+     }
+    ],
+    "why": "가로형은 그림을 오른쪽에 크게 두고 글자는 왼쪽 밝은 지면에 둔다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 90,
+     "y": 50,
+     "w": 420,
+     "h": 300
+    },
+    "focus": {
+     "x": 95,
+     "y": 60,
+     "w": 275,
+     "h": 225
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "custom",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#F2F9FE",
+      "#D6ECFA"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.48,
+     "w": 1.1,
+     "h": 0.52
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.3,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.4,
+      "w": 0.9,
+      "h": 0.6,
+      "color": "#B9E3F9",
+      "opacity": 0.5,
+      "blur": 0.18
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": -0.1,
+      "w": 0.7,
+      "h": 0.4,
+      "color": "#27A7DC",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "세로형은 JEIL 조형을 중심으로 좁혀 아래에 크게 놓는다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 60,
+     "y": 20,
+     "w": 520,
+     "h": 400
+    },
+    "focus": {
+     "x": 95,
+     "y": 60,
+     "w": 400,
+     "h": 300
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "custom",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#F2F9FE",
+      "#D6ECFA"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.4,
+     "w": 1.1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.3,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.35,
+      "w": 1,
+      "h": 0.65,
+      "color": "#B9E3F9",
+      "opacity": 0.5,
+      "blur": 0.18
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.6,
+      "y": -0.1,
+      "w": 0.6,
+      "h": 0.4,
+      "color": "#27A7DC",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "정사각은 그림을 아래에 크게 두고 위쪽을 글자에 준다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 90,
+     "y": 50,
+     "w": 290,
+     "h": 240
+    },
+    "focus": {
+     "x": 95,
+     "y": 60,
+     "w": 275,
+     "h": 225
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "custom",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#F2F9FE",
+      "#D6ECFA"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.6,
+     "w": 1.2,
+     "h": 0.4
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.3,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": -0.1,
+      "y": 0.5,
+      "w": 1.2,
+      "h": 0.5,
+      "color": "#B9E3F9",
+      "opacity": 0.5,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.2,
+      "y": 0.05,
+      "w": 0.8,
+      "h": 0.3,
+      "color": "#27A7DC",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "세로 띠는 핵심 조형만 아래쪽에 두고 글자 공간을 확보한다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 90,
+     "y": 50,
+     "w": 420,
+     "h": 235
+    },
+    "focus": {
+     "x": 95,
+     "y": 60,
+     "w": 275,
+     "h": 225
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "custom",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#F2F9FE",
+      "#D6ECFA"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": 0.68,
+     "y": 0,
+     "w": 0.34,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.3,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.6,
+      "y": -0.2,
+      "w": 0.5,
+      "h": 1.4,
+      "color": "#B9E3F9",
+      "opacity": 0.5,
+      "blur": 0.12
+     }
+    ],
+    "why": "가로 띠는 그림을 오른쪽 끝에 작게 두어 글자 공간을 지킨다."
+   }
+  ],
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "투명 배경의 JEIL 3D 조형 일러스트라 밝은 파랑 지면에 이어 붙여 깨끗한 제약사 인상을 살렸다. 모양마다 조형 중심으로 크기와 위치를 달리해 글자 영역을 확보했다."
+ },
+ "usage": {
+  "input_tokens": 5564,
+  "output_tokens": 2304,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0342,
+ "at": "2026-10-22T12:09:19.025Z"
+}

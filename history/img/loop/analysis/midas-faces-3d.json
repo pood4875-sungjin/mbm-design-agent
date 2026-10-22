@@ -1,0 +1,376 @@
+{
+ "raw": {
+  "kv": {
+   "type": "illust-grad-bg",
+   "subject": {
+    "x": 270,
+    "y": 300,
+    "w": 670,
+    "h": 430
+   },
+   "keep": [
+    {
+     "x": 270,
+     "y": 300,
+     "w": 670,
+     "h": 430,
+     "label": "세 캐릭터와 스마트폰"
+    }
+   ],
+   "faces": [
+    {
+     "x": 470,
+     "y": 300,
+     "w": 240,
+     "h": 235
+    },
+    {
+     "x": 275,
+     "y": 422,
+     "w": 245,
+     "h": 215
+    },
+    {
+     "x": 685,
+     "y": 392,
+     "w": 210,
+     "h": 210
+    }
+   ],
+   "cutSafe": {
+    "top": 0.15,
+    "right": 0.1,
+    "bottom": 0.1,
+    "left": 0.1
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#6CB6F6",
+     "#A9CCF7",
+     "#E9E68E"
+    ]
+   },
+   "note": "파란 그라데이션 배경 위 3D 캐릭터 세 명. 배경이 부드러워 가장자리를 지면으로 녹이기 좋음."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 100,
+     "y": 100,
+     "w": 1000,
+     "h": 650
+    },
+    "focus": {
+     "x": 270,
+     "y": 300,
+     "w": 670,
+     "h": 430
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#7DBBF6",
+      "#A5CDF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.45,
+     "y": 0.02,
+     "w": 0.58,
+     "h": 0.96
+    },
+    "fade": {
+     "left": 0.45,
+     "right": 0,
+     "top": 0.1,
+     "bottom": 0.1
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.6,
+      "y": 0.2,
+      "w": 0.5,
+      "h": 0.8,
+      "color": "#E9E68E",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "캐릭터를 오른쪽에 두고 왼쪽을 지면과 이어 글자 공간 확보."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 270,
+     "y": 280,
+     "w": 670,
+     "h": 470
+    },
+    "focus": {
+     "x": 270,
+     "y": 300,
+     "w": 670,
+     "h": 430
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#7DBBF6",
+      "#A5CDF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.45,
+     "w": 1.1,
+     "h": 0.58
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.4,
+      "w": 0.8,
+      "h": 0.5,
+      "color": "#E9E68E",
+      "opacity": 0.35,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.2,
+      "y": 0,
+      "w": 0.7,
+      "h": 0.4,
+      "color": "#FFFFFF",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "세 캐릭터를 아래에 크게 배치하고 위쪽을 글자 자리로 비움."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 250,
+     "y": 280,
+     "w": 700,
+     "h": 470
+    },
+    "focus": {
+     "x": 270,
+     "y": 300,
+     "w": 670,
+     "h": 430
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#7DBBF6",
+      "#A5CDF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.42,
+     "w": 1.1,
+     "h": 0.62
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.2,
+      "y": 0.45,
+      "w": 0.7,
+      "h": 0.5,
+      "color": "#E9E68E",
+      "opacity": 0.35,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": -0.1,
+      "w": 0.7,
+      "h": 0.5,
+      "color": "#FFFFFF",
+      "opacity": 0.35,
+      "blur": 0.22
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.2,
+      "y": 0.2,
+      "w": 0.5,
+      "h": 0.5,
+      "color": "#E1BAD5",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "정사각은 아래 그림, 위 글자로 나누고 빛 번짐으로 빈 곳을 채움."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 480,
+     "y": 300,
+     "w": 420,
+     "h": 430
+    },
+    "focus": {
+     "x": 480,
+     "y": 300,
+     "w": 420,
+     "h": 430
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#7DBBF6",
+      "#A5CDF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.55,
+     "w": 1.2,
+     "h": 0.45
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.5,
+      "w": 1,
+      "h": 0.4,
+      "color": "#E9E68E",
+      "opacity": 0.3,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.2,
+      "y": -0.1,
+      "w": 0.9,
+      "h": 0.4,
+      "color": "#FFFFFF",
+      "opacity": 0.35,
+      "blur": 0.2
+     }
+    ],
+    "why": "세로 띠는 가운데 두 인물 중심으로 좁혀 아래에 둠."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 470,
+     "y": 300,
+     "w": 240,
+     "h": 240
+    },
+    "focus": {
+     "x": 470,
+     "y": 300,
+     "w": 240,
+     "h": 240
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#7DBBF6",
+      "#A5CDF8"
+     ],
+     "angle": 90,
+     "text": "dark",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.8,
+     "y": 0,
+     "w": 0.2,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.6,
+      "y": 0,
+      "w": 0.4,
+      "h": 1,
+      "color": "#FFFFFF",
+      "opacity": 0.3,
+      "blur": 0.15
+     }
+    ],
+    "why": "가로 띠는 가운데 캐릭터 얼굴만 오른쪽 끝에 작게 둠."
+   }
+  ],
+  "logo": {
+   "kind": "wordmark"
+  },
+  "rationale": "파란 그라데이션 배경의 3D 캐릭터 일러스트라 배경색을 지면으로 그대로 이어 캐릭터가 자연스럽게 떠 보이게 했다. 모양마다 얼굴을 온전히 보존하며 가로형은 오른쪽, 세로·정사각은 아래에 그림을 크게 두고 글자 공간을 확보했다."
+ },
+ "usage": {
+  "input_tokens": 5983,
+  "output_tokens": 2332,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0353,
+ "at": "2026-10-22T12:15:32.177Z"
+}

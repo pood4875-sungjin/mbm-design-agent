@@ -47,6 +47,7 @@ if (!KEY) { console.error('키 없음(server/.env)'); process.exit(1); }
 const D = await import(pathToFileURL(path.join(ROOT, 'server/design.js')).href);
 const C = await import(pathToFileURL(path.join(ROOT, 'server/critic.js')).href);
 const client = D.makeClient(KEY);
+let NO_API = flag('--no-api');   // 크레딧이 떨어지면 true — 판단은 캐시, 채점은 끄고 자동 수치만
 
 const py = (code, args) => execFileSync('python3', ['-c', code, ...args], { maxBuffer: 64 * 1024 * 1024 }).toString();
 const apiCopy = (file, dst) => { py(`import sys; from PIL import Image; im=Image.open(sys.argv[1]); im.thumbnail((1600,1600)); (im if sys.argv[2].endswith('.png') else im.convert('RGB')).save(sys.argv[2], quality=90)`, [file, dst]); return dst; };
@@ -55,7 +56,9 @@ const isFull = c => c.x <= 0.001 && c.y <= 0.001 && c.w >= 0.999 && c.h >= 0.999
 const traceOf = html => { const m = html.match(/data-trace="([^"]*)"/); if (!m) return null; try { return JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')); } catch { return null; } };
 
 // 자동 수치 — 그린 HTML 에서(렌더러와 같은 계산)
-function metrics(html, style, spec) {
+function metrics(html, style0, spec) {
+  // 규칙 자리로 돌아간 렌더(data-ai-box 없음)는 원본 그림으로 그렸다 — 원본 측정값으로 재야 한다(r4 얼굴 잘림 오탐)
+  const style = (!/data-ai-box="/.test(html) && style0.aiKvMetaOrig) ? { ...style0, kvMeta: style0.aiKvMetaOrig } : style0;
   const tr = traceOf(html); const W = spec.w, H = spec.h;
   const cov = tr ? coverageOf(html, tr, style, spec) : null;
   const ov = tr ? overlapRatio(html, tr, style, spec) : null;
@@ -81,11 +84,12 @@ for (const id of IDS) {
   // 판단(캐시)
   const cacheFile = path.join(CACHE, `${id}.json`);
   let analysis, fixes, judgeCost = 0;
-  if (!flag('--rejudge') && existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: meta, hasLogo: true })); }
+  if ((!flag('--rejudge') || NO_API) && existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: meta, hasLogo: true })); }
+  else if (NO_API) { console.log(`[${id}] 판단 캐시 없음 — API 꺼짐, 건너뜀`); continue; }
   else {
-    const out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopy(kvFile, path.join(TMP, `${id}_api${/\.png$/i.test(kvFile) ? '.png' : '.jpg'}`))), meta }, logo: { dataUrl: dataUrlOf(apiCopy(logoFile, path.join(TMP, `${id}_logo.png`))), meta: logoMeta }, brief, brand: { primary }, requests: '' });
-    writeFileSync(cacheFile, JSON.stringify({ raw: out.raw, usage: out.usage, cost: out.cost, at: new Date().toISOString() }, null, 1));
-    analysis = out.analysis; fixes = out.fixes; judgeCost = out.cost; report.cost.judge += out.cost;
+    let out; try { out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopy(kvFile, path.join(TMP, `${id}_api${/\.png$/i.test(kvFile) ? '.png' : '.jpg'}`))), meta }, logo: { dataUrl: dataUrlOf(apiCopy(logoFile, path.join(TMP, `${id}_logo.png`))), meta: logoMeta }, brief, brand: { primary }, requests: '' }); } catch (e) { if (/credit balance|billing/i.test(e.message)) { NO_API = true; console.log('API 크레딧 없음 — 이후 판단·채점은 캐시·자동 수치로'); } else console.log(`[${id}] 판단 실패: ${e.message}`); if (existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: meta, hasLogo: true })); } else continue; }
+    if (out) writeFileSync(cacheFile, JSON.stringify({ raw: out.raw, usage: out.usage, cost: out.cost, at: new Date().toISOString() }, null, 1));
+    if (out) { analysis = out.analysis; fixes = out.fixes; judgeCost = out.cost; report.cost.judge += out.cost; }
   }
   const row = { id, group, kvType: c.type, summary: c.summary, aiType: analysis.kv.type, rationale: analysis.rationale, fixes, judgeCost, specs: [] };
   const crops = new Map();
@@ -127,12 +131,12 @@ if sh.width>2400: sh=sh.resize((2400, int(sh.height*2400/sh.width)))
 sh.save(out, quality=85)
 `, [JSON.stringify(row.specs.map(s => ({ A: s.A.png, C: s.C.png, label: s.label }))), sheet, OUT]);
   row.sheet = path.basename(sheet);
-  if (!flag('--no-critic')) {
+  if (!flag('--no-critic') && !NO_API) {
     try {
       const kvThumb = path.join(TMP, `${id}_thumb.jpg`); py(`import sys; from PIL import Image; im=Image.open(sys.argv[1]).convert('RGB'); im.thumbnail((600,600)); im.save(sys.argv[2], quality=85)`, [kvFile, kvThumb]);
       const cr = await C.critiqueSheet(client, { sheetDataUrl: dataUrlOf(sheet), kvDataUrl: dataUrlOf(kvThumb), caseId: id, kvType: c.summary ?? c.type, specs: row.specs.map(s => s.label) });
       row.critic = cr; report.cost.critic += cr.cost ?? 0;
-    } catch (e) { row.critic = { error: e.message }; }
+    } catch (e) { row.critic = { error: e.message }; if (/credit balance|billing/i.test(e.message)) { NO_API = true; console.log('API 크레딧 없음 — 채점 끔'); } }
   }
   const sc = (row.critic?.specs ?? []).map(s => s.score).filter(Number.isFinite);
   console.log(`[${id}] ${group} · AI ${analysis.kv.type} · 채점 ${sc.length ? (sc.reduce((a, b) => a + b, 0) / sc.length).toFixed(2) : '–'} · better ${row.critic?.better ?? '–'} · ${row.specs.map(s => `${s.label}:${s.C.m.aiBox}`).join(' ')}`);
@@ -148,10 +152,12 @@ for (const r of report.cases) {
   if (r.critic?.better) byGroup[r.group].better[r.critic.better] = (byGroup[r.group].better[r.critic.better] ?? 0) + 1;
 }
 const allScores = report.cases.flatMap(r => (r.critic?.specs ?? []).map(s => s.score).filter(Number.isFinite));
+const autoOf = m => { let s = 3; if (m.aiBox === 'rule') s -= 1; if (m.kvArea < 20) s -= 0.5; if (m.kvArea >= 35) s += 0.5; if ((m.filled ?? 0) >= 45) s += 0.5; if (m.faceCut) s -= 1.5; if ((m.overlap ?? 0) > 2) s -= 1; return Math.max(1, Math.min(5, s)); };
+const autoScores = report.cases.flatMap(r => r.specs.map(s => autoOf(s.C.m)));
 const aiBox = {}; for (const r of report.cases) for (const s of r.specs) aiBox[s.C.m.aiBox] = (aiBox[s.C.m.aiBox] ?? 0) + 1;
-report.summary = { avgScore: avg(allScores), byGroup: Object.fromEntries(Object.entries(byGroup).map(([k, v]) => [k, { avg: avg(v.scores), better: v.better }])), issues: Object.entries(tally).sort((a, b) => b[1] - a[1]), aiBox, faceCut: report.cases.reduce((n, r) => n + r.specs.reduce((m, s) => m + s.C.m.faceCut, 0), 0), cost: Math.round((report.cost.judge + report.cost.critic) * 1000) / 1000 };
+report.summary = { autoScore: avg(autoScores), kvAreaAvg: avg(report.cases.flatMap(r => r.specs.map(s => s.C.m.kvArea))), avgScore: avg(allScores), byGroup: Object.fromEntries(Object.entries(byGroup).map(([k, v]) => [k, { avg: avg(v.scores), better: v.better }])), issues: Object.entries(tally).sort((a, b) => b[1] - a[1]), aiBox, faceCut: report.cases.reduce((n, r) => n + r.specs.reduce((m, s) => m + s.C.m.faceCut, 0), 0), cost: Math.round((report.cost.judge + report.cost.critic) * 1000) / 1000 };
 writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(report, null, 1));
-const md = [`# 라운드 ${ROUND} — ${report.at.slice(0, 16).replace('T', ' ')}`, '', `평균 점수(C, 1~5): **${report.summary.avgScore?.toFixed(2) ?? '–'}** · 비용 $${report.summary.cost} · 얼굴 잘림 ${report.summary.faceCut}`, '', '| 유형 | 평균 | A 나음 | C 나음 | 같음 |', '|---|---|---|---|---|',
+const md = [`# 라운드 ${ROUND} — ${report.at.slice(0, 16).replace('T', ' ')}`, '', `평균 점수(C, 1~5, Claude 채점): **${report.summary.avgScore?.toFixed(2) ?? '– (채점 없음)'}** · 자동 점수 ${report.summary.autoScore?.toFixed(2)} · 그림 면적 평균 ${report.summary.kvAreaAvg?.toFixed(0)}% · 비용 $${report.summary.cost} · 얼굴 잘림 ${report.summary.faceCut}`, '', '| 유형 | 평균 | A 나음 | C 나음 | 같음 |', '|---|---|---|---|---|',
   ...Object.entries(report.summary.byGroup).map(([k, v]) => `| ${k} | ${v.avg?.toFixed(2) ?? '–'} | ${v.better.A ?? 0} | ${v.better.C ?? 0} | ${v.better.same ?? 0} |`), '',
   `AI 상자 결과: ${Object.entries(aiBox).map(([k, v]) => `${k} ${v}`).join(' · ')}`, '', '## 문제 집계', ...report.summary.issues.map(([k, v]) => `- ${k} ${v}`), '', '## 케이스별 큰 문제',
   ...report.cases.map(r => `- **${r.id}**(${r.group}) ${r.critic?.better ? `· ${r.critic.better} 나음` : ''}: ${(r.critic?.top_issues ?? [r.critic?.error ?? '']).join(' / ')}`)].join('\n');

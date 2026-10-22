@@ -256,8 +256,8 @@ function aiBoxRender(ctx, style, spec) {
   //   주인공 상자가 그림의 35% 를 넘고 얼굴·보존 요소가 있으면, 겹침·잘림 검사는 얼굴·보존 요소를 넉넉히(얼굴 크기 40%) 감싼 상자로 — 넓은 주인공 상자는 점수에만
   const AIm = first.styleUsed.kvMeta?.ai ?? {};
   const coreOf = () => {
-    if (!fo0 || fo0.w * fo0.h <= 0.35) return null;
-    const parts = [...(AIm.faces ?? []).map(b => { const e = Math.max(b.w, b.h) * 0.4; return { x: b.x - e, y: b.y - e * 0.6, w: b.w + 2 * e, h: b.h + e * 1.6 }; }), ...(AIm.keep ?? [])];
+    if (transparent || !fo0 || fo0.w * fo0.h <= 0.35) return null;   // 누끼는 투명도 윤곽(열·행 프로필)이 정확하다 — AI 보존 상자가 실제보다 작아 글자가 아이콘에 닿던 것(10-22 r5 폴더 24~38%)
+    const parts = [...(AIm.faces ?? []).map(b => { const e = Math.max(b.w, b.h) * 0.4; return { x: b.x - e, y: b.y - b.h * 0.6, w: b.w + 2 * e, h: b.h * 1.6 + e }; }), ...(AIm.keep ?? [])];
     if (!parts.length) return null;
     let x0 = Math.min(...parts.map(b => b.x)), y0 = Math.min(...parts.map(b => b.y)), x1 = Math.max(...parts.map(b => b.x + b.w)), y1 = Math.max(...parts.map(b => b.y + b.h));
     x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(1, x1); y1 = Math.min(1, y1); if (!(x1 > x0 && y1 > y0)) return null;
@@ -313,6 +313,8 @@ function aiBoxRender(ctx, style, spec) {
     const px = W * 0.03, py = H * 0.03;
     const R = { x0: Math.min(...rows.map(r => r.x)) - px, x1: Math.max(...rows.map(r => r.x + r.w)) + px, y0: Math.min(...rows.map(r => r.y)) - py, y1: Math.max(...rows.map(r => r.y + r.h)) + py };
     const regs = [{ x: R.x1, y: 0, w: W - R.x1, h: H, tag: 'free-r' }, { x: 0, y: R.y1, w: W, h: H - R.y1, tag: 'free-b' }, { x: 0, y: 0, w: R.x0, h: H, tag: 'free-l' }, { x: 0, y: 0, w: W, h: R.y0, tag: 'free-t' }];
+    // 로고 칸을 피한 변형 — 로고가 그 띠 위쪽(또는 아래쪽)에 있으면 로고 아래(위)부터(10-22 루프: 정사각 오른쪽 띠가 로고 가림으로 탈락 → 인물이 아래 띠에 작게)
+    if (logoR) for (const r of [...regs]) { const ix = Math.min(r.x + r.w, logoR.x + logoR.w) - Math.max(r.x, logoR.x), iy = Math.min(r.y + r.h, logoR.y + logoR.h) - Math.max(r.y, logoR.y); if (ix > 0 && iy > 0) { const top = logoR.y + logoR.h / 2 < H / 2; const nr = top ? { ...r, y: logoR.y + logoR.h + H * 0.02, h: r.y + r.h - (logoR.y + logoR.h + H * 0.02), tag: r.tag + 'L' } : { ...r, h: logoR.y - H * 0.02 - r.y, tag: r.tag + 'L' }; if (nr.h > 0) regs.push(nr); } }
     for (const r of regs) if (r.w >= W * 0.22 && r.h >= H * 0.22) { cands.push({ bx: r, tag: r.tag, ai: false }); }
   }
   // ── 검사 ──
@@ -321,7 +323,9 @@ function aiBoxRender(ctx, style, spec) {
   const faces = first.styleUsed.kvMeta?.ai?.faces ?? [];
   const dbg = typeof process !== 'undefined' && process.env?.AI_BOX_DEBUG ? [] : null;
   // 부분 판정(핵심 상자 모드): 얼굴(40% 넉넉히)·보존 요소 하나하나가 통째로 보이거나 통째로 빠져야 하고, 하나 이상 보여야 하며, 보이는 것만 글자와 안 겹치면 된다 — 「왼쪽 사람은 빼고 오른쪽 사람을 크게」
-  const parts = core ? [...(AIm.faces ?? []).map(b => { const e = Math.max(b.w, b.h) * 0.4; return { x: b.x - e, y: b.y - e * 0.6, w: b.w + 2 * e, h: b.h + e * 1.6 }; }), ...(AIm.keep ?? [])] : [];
+  const clamp01 = b => { const x0 = Math.max(0, b.x), y0 = Math.max(0, b.y), x1 = Math.min(1, b.x + b.w), y1 = Math.min(1, b.y + b.h); return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) }; };   // 그림 밖으로 나간 몫은 버린다 — 머리가 그림 위 끝에 붙으면 넉넉한 상자가 영영 100% 안 보였다
+  // 얼굴은 위로 얼굴 높이 60%(머리카락·정수리 — 10-22 동서식품 카카오 정수리 잘림), face 표시는 정수리 검사용
+  const parts = core ? [...(AIm.faces ?? []).map(b => { const e = Math.max(b.w, b.h) * 0.4; return { ...clamp01({ x: b.x - e, y: b.y - b.h * 0.6, w: b.w + 2 * e, h: b.h * 1.6 + e }), face: true }; }), ...(AIm.keep ?? []).map(clamp01)].filter(b => b.w > 0 && b.h > 0) : [];
   const judgeParts = (html, tag) => {
     const inter = (A, Bx) => Math.max(0, Math.min(A.x + A.w, Bx.x + Bx.w) - Math.max(A.x, Bx.x)) * Math.max(0, Math.min(A.y + A.h, Bx.y + Bx.h) - Math.max(A.y, Bx.y));
     let shown = 0, area = 0, lh = 0;
@@ -332,6 +336,7 @@ function aiBoxRender(ctx, style, spec) {
         const v = visOf(P, o), rr = v / a;
         if (rr > 0.05 && rr < 0.95) { dbg?.push(`${tag}: 핵심 걸침 ${Math.round(rr * 100)}%`); return null; }
         if (rr >= 0.95) {
+          if (q.face && P.y < o.clip.y - 1) { dbg?.push(`${tag}: 정수리 잘림`); return null; }   // 얼굴은 위쪽(정수리) 변이 보여야 — 10-22 동서식품 카카오
           shown++; area += v;
           for (const row of rows) { const ra = row.w * row.h; if (ra > 0 && inter(row, P) / ra > thr) { dbg?.push(`${tag}: 핵심이 글자와 겹침`); return null; } }
           if (logoR && logoR.w > 0) lh = Math.max(lh, inter(P, logoR) / (logoR.w * logoR.h));
@@ -343,7 +348,11 @@ function aiBoxRender(ctx, style, spec) {
     let wide = 0; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, S1 = { x: p.x + (fo0.x - fo0.w / 2) * p.w, y: p.y + (fo0.y - fo0.h / 2) * p.h, w: fo0.w * p.w, h: fo0.h * p.h }; wide = Math.max(wide, visOf(S1, o)); }
     return { ov: 0, subj: area + 0.3 * wide };
   };
+  // 누끼 단면: 확대로 그림이 상자(보이는 창) 밖으로 넘친 변이 지면 안쪽에 있으면 칼로 자른 단면이 보인다 → 탈락. 지면 가장자리에서 끊기면 괜찮다
+  const hardCut = html => { if (!transparent) return false; for (const o of objectRects(html, first.styleUsed, spec)) { const p = o.pic, c = o.clip;
+    if ((p.x < c.x - 1 && c.x > 1) || (p.y < c.y - 1 && c.y > 1) || (p.x + p.w > c.x + c.w + 1 && c.x + c.w < W - 1) || (p.y + p.h > c.y + c.h + 1 && c.y + c.h < H - 1)) return true; } return false; };
   const judge = (html, tag) => {
+    if (hardCut(html)) { dbg?.push(`${tag}: 누끼 단면`); return null; }
     if (core) return judgeParts(html, tag);
     const ov = overlapRatio(html, T, styleJ, spec) ?? 0; if (ov > thr) { dbg?.push(`${tag}: 겹침 ${Math.round(ov * 100)}%`); return null; }
     let subj = 0, cut = 0, lh = 0;
@@ -359,8 +368,8 @@ function aiBoxRender(ctx, style, spec) {
   let best = null;
   // 보여 줄 위치 후보 — 기본(핵심·주인공 가운데) + 얼굴·보존 요소마다 + 네 끝 맞춤. 확대 1 · 1.3(사진·배경 그림만)
   const ats = [null, ...parts.map(q => ({ x: Math.min(1, Math.max(0, q.x + q.w / 2)), y: Math.min(1, Math.max(0, q.y + q.h / 2)) })), { x: 0, y: 0.5 }, { x: 1, y: 0.5 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 }];
-  const zooms = transparent ? [1] : [1, 1.3];
-  const tries = cands.flatMap(c => ats.flatMap((at, ai) => zooms.map(z => ({ ...c, at, zoom: z, tag: c.tag + (ai ? `@${ai}` : '') + (z > 1 ? 'z' : '') }))));
+  const zooms = transparent ? [1, 1.5, 2] : [1, 1.3];   // 누끼도 확대(허리에서 끊고 크게 — 10-22 루프 r2 동서식품 전신이 작게). 끊기는 쪽은 지면 가장자리여야(아래 judge)
+  const tries = cands.flatMap(c => ats.flatMap((at, ai) => zooms.map(z => ({ ...c, at, zoom: z, tag: c.tag + (ai ? `@${ai}` : '') + (z > 1 ? `z${Math.round(z * 10)}` : '') }))));
   for (const c of tries) {
     const html = buildBox(c.bx, c.tag, Fd, c.at, c.zoom); const j = judge(html, c.tag); if (!j) continue;
     const score = j.subj / (W * H) * (c.ai ? 1.12 : 1);   // 주인공이 보이는 면적 — AI 상자에 가산점(같은 크기면 AI 판단)
@@ -722,6 +731,7 @@ function cutFade(html, style, spec, tr = null) {
 function bustOf(style, spec) {
   const B = CANON.bust; const m = style?.kvMeta;
   if (!B || !style?.keyVisual || !m?.field || objectNeedOf(spec.rules ?? {}, m.field ?? null)) return null;
+  if (style.aiKvBox) return null;   // AI 그림 상자는 확대·위치로 상반신을 직접 정한다 — 상반신 자르기가 측정값을 바꾸면 AI 얼굴 좌표와 어긋나 얼굴이 잘렸다(10-22 동서식품 카카오)
   const t = kvTypeOf(m), ar = m.ar;
   if (!t || t.id !== 'cutout' || !t.flags.character || t.flags.group || !(ar > 0) || ar >= B.maxAr) return null;
   if (spec.w / spec.h < (B.minCanvasAr ?? 0)) return null;   // 세로로 긴 지면(300×1050·스토리·세로 띠·320×480 — 폭/높이 < 0.7)은 전신이 자리를 채운다. 상반신이면 빈 띠(10-14 desk-03-cut·hdot-speaker-b 300×1050, 동서식품 NAP 320×480 29%)

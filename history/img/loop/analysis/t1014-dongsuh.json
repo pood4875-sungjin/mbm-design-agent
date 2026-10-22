@@ -1,0 +1,354 @@
+{
+ "raw": {
+  "kv": {
+   "type": "cutout",
+   "subject": {
+    "x": 50,
+    "y": 0,
+    "w": 740,
+    "h": 1994
+   },
+   "keep": [
+    {
+     "x": 225,
+     "y": 205,
+     "w": 120,
+     "h": 190,
+     "label": "Maxim 커피 스틱"
+    }
+   ],
+   "faces": [
+    {
+     "x": 200,
+     "y": 0,
+     "w": 330,
+     "h": 420
+    }
+   ],
+   "cutSafe": {
+    "top": 0,
+    "right": 0.05,
+    "bottom": 0.3,
+    "left": 0.05
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#FFC000",
+     "#333D5F",
+     "#E8E4E0"
+    ]
+   },
+   "note": "투명 배경 누끼 인물이 Maxim 스틱을 들고 있음. 얼굴과 스틱은 상단에 있고 하체는 잘라도 됨."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 840,
+     "h": 1100
+    },
+    "focus": {
+     "x": 50,
+     "y": 0,
+     "w": 740,
+     "h": 1100
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#FFF4D1",
+      "#FFE08A"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.58,
+     "y": 0.02,
+     "w": 0.36,
+     "h": 1.1
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0.15
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": 0.1,
+      "w": 0.5,
+      "h": 0.9,
+      "color": "#FFC000",
+      "opacity": 0.4,
+      "blur": 0.15
+     }
+    ],
+    "why": "상반신을 오른쪽에 두고 글자는 왼쪽에 배치. 누끼라 fade 0."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 840,
+     "h": 1500
+    },
+    "focus": {
+     "x": 50,
+     "y": 0,
+     "w": 740,
+     "h": 1100
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#FFF4D1",
+      "#FFE08A"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.4,
+     "w": 0.9,
+     "h": 0.75
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.35,
+      "w": 0.9,
+      "h": 0.6,
+      "color": "#FFC000",
+      "opacity": 0.45,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.2,
+      "y": 0,
+      "w": 0.7,
+      "h": 0.4,
+      "color": "#FFFFFF",
+      "opacity": 0.4,
+      "blur": 0.15
+     }
+    ],
+    "why": "인물을 아래쪽에 크게 두고 글자는 위쪽에 둠."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 840,
+     "h": 1000
+    },
+    "focus": {
+     "x": 100,
+     "y": 0,
+     "w": 640,
+     "h": 1000
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#FFF4D1",
+      "#FFE08A"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.45,
+     "y": 0.05,
+     "w": 0.55,
+     "h": 1
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0.1
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.4,
+      "y": 0.1,
+      "w": 0.7,
+      "h": 0.8,
+      "color": "#FFC000",
+      "opacity": 0.45,
+      "blur": 0.18
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.2,
+      "y": 0.5,
+      "w": 0.6,
+      "h": 0.6,
+      "color": "#FFFFFF",
+      "opacity": 0.4,
+      "blur": 0.2
+     }
+    ],
+    "why": "오른쪽에 인물 상반신, 왼쪽 글자."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 100,
+     "y": 0,
+     "w": 640,
+     "h": 900
+    },
+    "focus": {
+     "x": 180,
+     "y": 0,
+     "w": 420,
+     "h": 700
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#FFF4D1",
+      "#FFE08A"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.5,
+     "w": 1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.45,
+      "w": 1,
+      "h": 0.4,
+      "color": "#FFC000",
+      "opacity": 0.5,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0,
+      "w": 0.8,
+      "h": 0.3,
+      "color": "#FFFFFF",
+      "opacity": 0.4,
+      "blur": 0.15
+     }
+    ],
+    "why": "좁은 띠라 얼굴과 스틱 위주로 아래에 크게 둠."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 100,
+     "y": 0,
+     "w": 640,
+     "h": 500
+    },
+    "focus": {
+     "x": 200,
+     "y": 0,
+     "w": 330,
+     "h": 420
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#FFF4D1",
+      "#FFE08A"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.75,
+     "y": -0.1,
+     "w": 0.2,
+     "h": 1.4
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.6,
+      "y": -0.2,
+      "w": 0.4,
+      "h": 1.4,
+      "color": "#FFC000",
+      "opacity": 0.4,
+      "blur": 0.2
+     }
+    ],
+    "why": "오른쪽 끝에 얼굴과 스틱만 작게 둠."
+   }
+  ],
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "투명 배경 누끼 인물이 Maxim 스틱을 든 이미지라 브랜드 노랑 계열 지면에 얼굴과 스틱을 중심으로 크게 배치했다. 글자 쪽에는 밝고 차분한 노랑 번짐을 두어 어두운 글자의 대비를 지켰다."
+ },
+ "usage": {
+  "input_tokens": 5804,
+  "output_tokens": 2129,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0329,
+ "at": "2026-10-22T12:08:14.251Z"
+}

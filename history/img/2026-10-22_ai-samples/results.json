@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T11:04:06.105Z",
+ "at": "2026-10-22T12:57:16.574Z",
  "specs": [
   "kakao-display-pc-promo",
   "google-gdn-580x400",
@@ -129,7 +129,7 @@
       "png": "t1014-hanssem_google-gdn-580x400_C.png",
       "html": "t1014-hanssem_google-gdn-580x400_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "규칙 자리(겹침)"
     },
     {
      "spec": "instagram-feed-1080",
@@ -186,7 +186,7 @@
       "png": "t1014-hanssem_instagram-feed-1080_C.png",
       "html": "t1014-hanssem_instagram-feed-1080_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x600",
@@ -243,7 +243,7 @@
       "png": "t1014-hanssem_google-gdn-300x600_C.png",
       "html": "t1014-hanssem_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -300,7 +300,7 @@
       "png": "t1014-hanssem_google-gdn-300x1050_C.png",
       "html": "t1014-hanssem_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "빈 공간에 맞춤"
     }
    ],
    "ai": {
@@ -388,7 +388,7 @@
       "png": "hr-doctor_kakao-display-pc-promo_C.png",
       "html": "hr-doctor_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-580x400",
@@ -445,7 +445,7 @@
       "png": "hr-doctor_google-gdn-580x400_C.png",
       "html": "hr-doctor_google-gdn-580x400_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "instagram-feed-1080",
@@ -502,7 +502,7 @@
       "png": "hr-doctor_instagram-feed-1080_C.png",
       "html": "hr-doctor_instagram-feed-1080_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x600",
@@ -559,7 +559,7 @@
       "png": "hr-doctor_google-gdn-300x600_C.png",
       "html": "hr-doctor_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -616,7 +616,7 @@
       "png": "hr-doctor_google-gdn-300x1050_C.png",
       "html": "hr-doctor_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "키움(빈 지면)"
     }
    ],
    "ai": {
@@ -703,7 +703,7 @@
       "png": "t1014-jeil_kakao-display-pc-promo_C.png",
       "html": "t1014-jeil_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-580x400",
@@ -760,7 +760,7 @@
       "png": "t1014-jeil_google-gdn-580x400_C.png",
       "html": "t1014-jeil_google-gdn-580x400_C.html"
      },
-     "aiBox": "70% 로 줄임"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "instagram-feed-1080",
@@ -817,7 +817,7 @@
       "png": "t1014-jeil_instagram-feed-1080_C.png",
       "html": "t1014-jeil_instagram-feed-1080_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x600",
@@ -931,7 +931,7 @@
       "png": "t1014-jeil_google-gdn-300x1050_C.png",
       "html": "t1014-jeil_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     }
    ],
    "ai": {
@@ -1073,7 +1073,7 @@
       "png": "t1014-dongsuh_google-gdn-580x400_C.png",
       "html": "t1014-dongsuh_google-gdn-580x400_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "instagram-feed-1080",
@@ -1130,7 +1130,7 @@
       "png": "t1014-dongsuh_instagram-feed-1080_C.png",
       "html": "t1014-dongsuh_instagram-feed-1080_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1187,7 +1187,7 @@
       "png": "t1014-dongsuh_google-gdn-300x600_C.png",
       "html": "t1014-dongsuh_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -1244,7 +1244,7 @@
       "png": "t1014-dongsuh_google-gdn-300x1050_C.png",
       "html": "t1014-dongsuh_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     }
    ],
    "ai": {
@@ -1331,7 +1331,7 @@
       "png": "t1014-gs2025_kakao-display-pc-promo_C.png",
       "html": "t1014-gs2025_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "규칙 자리(겹침)"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-580x400",
@@ -1388,7 +1388,7 @@
       "png": "t1014-gs2025_google-gdn-580x400_C.png",
       "html": "t1014-gs2025_google-gdn-580x400_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "빈 공간에 맞춤"
     },
     {
      "spec": "instagram-feed-1080",
@@ -1445,7 +1445,7 @@
       "png": "t1014-gs2025_instagram-feed-1080_C.png",
       "html": "t1014-gs2025_instagram-feed-1080_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1502,7 +1502,7 @@
       "png": "t1014-gs2025_google-gdn-300x600_C.png",
       "html": "t1014-gs2025_google-gdn-300x600_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -1559,7 +1559,7 @@
       "png": "t1014-gs2025_google-gdn-300x1050_C.png",
       "html": "t1014-gs2025_google-gdn-300x1050_C.html"
      },
-     "aiBox": "그대로"
+     "aiBox": "키움(빈 지면)"
     }
    ],
    "ai": {
@@ -1645,7 +1645,7 @@
       "png": "t1014-lt-v2_kakao-display-pc-promo_C.png",
       "html": "t1014-lt-v2_kakao-display-pc-promo_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "google-gdn-580x400",
@@ -1702,7 +1702,7 @@
       "png": "t1014-lt-v2_google-gdn-580x400_C.png",
       "html": "t1014-lt-v2_google-gdn-580x400_C.html"
      },
-     "aiBox": "글자 끝선까지 깎음"
+     "aiBox": "줄임·당김"
     },
     {
      "spec": "instagram-feed-1080",
@@ -1759,7 +1759,7 @@
       "png": "t1014-lt-v2_instagram-feed-1080_C.png",
       "html": "t1014-lt-v2_instagram-feed-1080_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x600",
@@ -1816,7 +1816,7 @@
       "png": "t1014-lt-v2_google-gdn-300x600_C.png",
       "html": "t1014-lt-v2_google-gdn-300x600_C.html"
      },
-     "aiBox": "120% 로 키움(빈 지면)"
+     "aiBox": "키움(빈 지면)"
     },
     {
      "spec": "google-gdn-300x1050",
@@ -1873,7 +1873,7 @@
       "png": "t1014-lt-v2_google-gdn-300x1050_C.png",
       "html": "t1014-lt-v2_google-gdn-300x1050_C.html"
      },
-     "aiBox": "120% 로 키움(빈 지면)"
+     "aiBox": "줄임·당김"
     }
    ],
    "ai": {

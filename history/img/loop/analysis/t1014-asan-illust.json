@@ -1,0 +1,364 @@
+{
+ "raw": {
+  "kv": {
+   "type": "illust-character",
+   "subject": {
+    "x": 0,
+    "y": 22,
+    "w": 1080,
+    "h": 497
+   },
+   "keep": [],
+   "faces": [
+    {
+     "x": 5,
+     "y": 95,
+     "w": 222,
+     "h": 160
+    },
+    {
+     "x": 322,
+     "y": 25,
+     "w": 140,
+     "h": 175
+    },
+    {
+     "x": 637,
+     "y": 38,
+     "w": 142,
+     "h": 180
+    },
+    {
+     "x": 922,
+     "y": 148,
+     "w": 160,
+     "h": 150
+    }
+   ],
+   "cutSafe": {
+    "top": 0.05,
+    "right": 0,
+    "bottom": 0.1,
+    "left": 0
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#3D61CE",
+     "#193868",
+     "#F99471"
+    ]
+   },
+   "note": "파란 단색 배경 위에 마스크를 쓴 의료진 네 명이 나란히 선 일러스트. 얼굴이 가로로 넓게 퍼져 있다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 1080,
+     "h": 519
+    },
+    "focus": {
+     "x": 0,
+     "y": 22,
+     "w": 1080,
+     "h": 497
+    },
+    "kvPlace": "right",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#3D61CE",
+      "#3358C8"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.38,
+     "y": 0,
+     "w": 0.64,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.1,
+      "w": 0.5,
+      "h": 0.8,
+      "color": "#5A72D2",
+      "opacity": 0.35,
+      "blur": 0.15
+     }
+    ],
+    "why": "그림을 오른쪽에 크게 두고 왼쪽 파란 지면으로 녹여 글자 공간을 확보한다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 240,
+     "y": 22,
+     "w": 640,
+     "h": 497
+    },
+    "focus": {
+     "x": 322,
+     "y": 25,
+     "w": 457,
+     "h": 494
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#3D61CE",
+      "#3358C8"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.5,
+     "w": 1.1,
+     "h": 0.5
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.35,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.1,
+      "w": 0.8,
+      "h": 0.4,
+      "color": "#5A72D2",
+      "opacity": 0.4,
+      "blur": 0.18
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.1,
+      "y": 0.4,
+      "w": 0.6,
+      "h": 0.3,
+      "color": "#193868",
+      "opacity": 0.3,
+      "blur": 0.15
+     }
+    ],
+    "why": "가운데 두 의사를 좁혀 아래쪽에 크게 놓고 위는 글자 자리로 둔다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 240,
+     "y": 22,
+     "w": 640,
+     "h": 497
+    },
+    "focus": {
+     "x": 322,
+     "y": 25,
+     "w": 457,
+     "h": 494
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#3D61CE",
+      "#3358C8"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.05,
+     "y": 0.45,
+     "w": 1.1,
+     "h": 0.55
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.35,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.05,
+      "w": 0.8,
+      "h": 0.5,
+      "color": "#5A72D2",
+      "opacity": 0.4,
+      "blur": 0.18
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": 0.3,
+      "w": 0.6,
+      "h": 0.4,
+      "color": "#193868",
+      "opacity": 0.3,
+      "blur": 0.15
+     }
+    ],
+    "why": "인물 두 명 중심으로 아래에 크게 배치하고 위쪽을 빛 번짐으로 채운다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 322,
+     "y": 25,
+     "w": 457,
+     "h": 494
+    },
+    "focus": {
+     "x": 322,
+     "y": 25,
+     "w": 457,
+     "h": 494
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#3D61CE",
+      "#3358C8"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": -0.1,
+     "y": 0.6,
+     "w": 1.2,
+     "h": 0.4
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.1,
+      "w": 1,
+      "h": 0.3,
+      "color": "#5A72D2",
+      "opacity": 0.45,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.2,
+      "y": 0.45,
+      "w": 0.8,
+      "h": 0.2,
+      "color": "#193868",
+      "opacity": 0.3,
+      "blur": 0.15
+     }
+    ],
+    "why": "세로 띠는 인물 두 명만 아래쪽에 두고 위쪽을 글자와 로고에 쓴다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 322,
+     "y": 25,
+     "w": 457,
+     "h": 250
+    },
+    "focus": {
+     "x": 322,
+     "y": 25,
+     "w": 457,
+     "h": 200
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#3D61CE",
+      "#3358C8"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.6,
+     "y": 0,
+     "w": 0.4,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.3,
+      "y": 0,
+      "w": 0.5,
+      "h": 1,
+      "color": "#5A72D2",
+      "opacity": 0.3,
+      "blur": 0.12
+     }
+    ],
+    "why": "가로 띠는 얼굴 두 개만 오른쪽 끝에 작게 두고 왼쪽을 글자에 준다."
+   }
+  ],
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "파란 단색 바탕의 의료진 일러스트라 바탕색을 지면으로 그대로 이어 그림이 자연스럽게 녹아들게 했다. 얼굴을 자르지 않도록 모양마다 인물 묶음을 좁혀 크게 쓰고 글자 쪽 변은 충분히 녹였다."
+ },
+ "usage": {
+  "input_tokens": 5966,
+  "output_tokens": 2219,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0341,
+ "at": "2026-10-22T12:17:38.198Z"
+}
