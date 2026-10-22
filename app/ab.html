@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A/B 비교 — 규칙 렌더러 vs AI 디자인</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--line:#e3e5ea;--ink:#1c1f26;--mute:#6b7280;--pri:#2456d6;--danger:#d93025;--ok:#1a7f37;--warn:#b45309}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif}
+  header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:#111;color:#fff}
+  header h1{font-size:15px;margin:0;font-weight:700}
+  header .st{font-size:12px;color:#cfd3dc}
+  header .st b{color:#fff}
+  #layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;padding:14px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .card h2{font-size:13px;margin:0 0 10px;letter-spacing:0}
+  .card h3{font-size:12px;margin:12px 0 6px;color:var(--mute)}
+  label.f{display:block;font-size:12px;color:var(--mute);margin:8px 0 2px}
+  input[type=text],input[type=number],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;background:#fff}
+  textarea{min-height:56px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;cursor:pointer}
+  button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+  button.pri:disabled{opacity:.5;cursor:not-allowed}
+  button.sm{padding:3px 8px;font-size:12px}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .up{display:flex;gap:10px;align-items:center}
+  .up .th{width:72px;height:54px;border:1px dashed var(--line);border-radius:8px;background:#fafafa center/contain no-repeat;flex:none}
+  .up small{color:var(--mute);display:block}
+  #cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+  .trk .pv{position:relative;width:100%;background:#eceef2;border-radius:8px;overflow:hidden;min-height:120px}
+  .trk .pv iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;display:block;background:#fff}
+  .trk .meta{font-size:12px;color:var(--mute);margin-top:8px;white-space:pre-wrap}
+  .chk{font-size:12px;margin-top:8px}
+  .chk .tag{display:inline-block;padding:1px 7px;border-radius:999px;background:#eef1f6;margin:2px 4px 2px 0}
+  .tag.ok{background:#e6f4ea;color:var(--ok)} .tag.warn{background:#fff4e5;color:var(--warn)} .tag.bad{background:#fde8e6;color:var(--danger)}
+  ul.fx{margin:6px 0 0 16px;padding:0;font-size:12px;color:var(--mute)}
+  #editor{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+  #editor .fields{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  #editor .fields .wide{grid-column:1/-1}
+  #editor label.f{margin:4px 0 1px;font-size:11px}
+  .mini{font-size:12px;color:var(--mute)}
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  th,td{border:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+  th{background:#f7f8fa;font-weight:600}
+  td input[type=number]{width:52px;padding:2px 4px}
+  td input[type=text]{min-width:120px;padding:2px 4px}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111;color:#fff;padding:9px 14px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:80vw}
+  .toast.on{opacity:1}
+  .busy{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,255,255,.7);font-size:13px;color:var(--mute)}
+  details summary{cursor:pointer;font-size:12px;color:var(--mute)}
+  pre{font-size:11px;white-space:pre-wrap;background:#f7f8fa;padding:8px;border-radius:8px;max-height:220px;overflow:auto}
+  @media (max-width:1100px){#layout{grid-template-columns:minmax(0,1fr)}#cmp{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>A/B 비교 — 규칙 렌더러(A) vs AI 디자인(B)</h1>
+  <span class="st" id="srvSt">서버 확인 중…</span>
+  <span style="flex:1"></span>
+  <a href="index.html" style="color:#cfd3dc;font-size:12px">← 앱으로</a>
+</header>
+<div id="layout">
+  <aside class="card" id="inputs">
+    <h2>입력 (A·B 같은 값)</h2>
+    <div class="btns" style="margin-top:0">
+      <button class="sm" id="sample28">샘플 pin-28 (GS에너지 · 지구본)</button>
+      <button class="sm" id="sample32">샘플 pin-32 (동서식품 · 소파 인물)</button>
+    </div>
+    <h3>그림</h3>
+    <div class="up"><div class="th" id="kvTh"></div><div><button class="sm" id="kvBtn">키비주얼 올리기</button><input type="file" id="kvFile" accept="image/*" hidden><small id="kvInfo">없음</small></div></div>
+    <div class="up" style="margin-top:8px"><div class="th" id="logoTh"></div><div><button class="sm" id="logoBtn">로고 올리기(선택)</button> <button class="sm" id="logoClr">지움</button><input type="file" id="logoFile" accept="image/*" hidden><small id="logoInfo">없음</small></div></div>
+    <h3>매체 규격</h3>
+    <select id="specSel"></select>
+    <div class="mini" id="specInfo"></div>
+    <h3>광고 문구 (브리프)</h3>
+    <div class="row"><div><label class="f">고객사</label><input type="text" id="f_client"></div><div><label class="f">채용 구분</label><input type="text" id="f_hiringType"></div></div>
+    <label class="f">모집 직무</label><input type="text" id="f_role">
+    <div class="row3"><div><label class="f">접수 시작</label><input type="text" id="f_startDate" placeholder="2025-06-20"></div><div><label class="f">지원 마감</label><input type="text" id="f_deadline" placeholder="2025-07-02"></div><div><label class="f">마감 시각</label><input type="text" id="f_deadlineTime" placeholder="17:00"></div></div>
+    <div class="row"><div><label class="f">시즌</label><input type="text" id="f_season" placeholder="2025년"></div><div><label class="f">공고 타이틀(선택)</label><input type="text" id="f_headline"></div></div>
+    <label class="f">슬로건</label><input type="text" id="f_slogan">
+    <label class="f">필수 고지 문구</label><input type="text" id="f_notice">
+    <h3>브랜드 · 고객사 요구</h3>
+    <div class="row"><div><label class="f">브랜드 주색</label><input type="text" id="b_primary" placeholder="#326CD1"></div><div><label class="f">강조색(선택)</label><input type="text" id="b_accent" placeholder="#FFB800"></div></div>
+    <label class="f">고객사 요구 (B 에만 전달 — A 는 규칙뿐)</label><textarea id="requests" placeholder="예: 지구본이 잘 보이게, 밝고 미래지향적인 느낌"></textarea>
+    <label class="f">캠페인 폰트 (규정 매체는 Pretendard 고정)</label><select id="fontSel"></select>
+    <h3>B 설정</h3>
+    <div class="row"><div><label class="f">모델</label><select id="modelSel"></select></div><div><label class="f">effort</label><select id="effortSel"><option>high</option><option>medium</option><option>low</option><option>xhigh</option></select></div></div>
+    <div class="btns">
+      <button id="runA">A 그리기 (무료)</button>
+      <button class="pri" id="runB" disabled>B 생성 (API 호출 · 유료)</button>
+    </div>
+    <div class="mini" style="margin-top:6px">B 는 「B 생성」을 누를 때만 API 를 부릅니다. 같은 입력으로 A·B 가 그려지면 아래 표에 기록하세요.</div>
+  </aside>
+
+  <main>
+    <div id="cmp">
+      <section class="card trk" id="trkA">
+        <h2>A · 규칙 렌더러 <span class="mini" id="aTitle"></span></h2>
+        <div class="pv" id="aPv"></div>
+        <div class="chk" id="aChk"></div>
+        <div class="meta" id="aMeta"></div>
+        <div class="btns"><button class="sm" id="aPng">PNG 저장</button><button class="sm" id="aHtml">HTML 복사</button></div>
+      </section>
+      <section class="card trk" id="trkB">
+        <h2>B · AI 디자인 <span class="mini" id="bTitle"></span></h2>
+        <div class="pv" id="bPv"></div>
+        <div class="chk" id="bChk"></div>
+        <div class="meta" id="bMeta"></div>
+        <details id="bFixWrap"><summary>서버가 고친 것 · 프롬프트</summary><ul class="fx" id="bFixes"></ul><pre id="bPrompt"></pre></details>
+        <div class="btns"><button class="sm" id="bPng">PNG 저장</button><button class="sm" id="bJson">레이아웃 JSON 내려받기</button><button class="sm" id="bHtml">HTML 복사</button><button class="sm" id="bLoad">B JSON 불러오기</button><input type="file" id="bLoadFile" accept=".json" hidden></div>
+        <div id="editor" hidden>
+          <h3 style="margin-top:0">층 편집 <span class="mini" id="editSt"></span> <button class="sm" id="editDone">수정 완료(시간 기록)</button></h3>
+          <div class="row"><select id="layerSel"></select><div class="btns" style="margin:0"><button class="sm" id="addText">글자 추가</button><button class="sm" id="addShape">도형 추가</button><button class="sm" id="delLayer">층 삭제</button></div></div>
+          <div class="fields" id="fields"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:14px">
+      <h2>비교 기록 <span class="mini">사람 평가 칸(품질·요구 반영 1~5)은 직접 적고, 나머지는 자동으로 채워집니다. 브라우저에 저장됩니다.</span></h2>
+      <div class="btns" style="margin:0 0 8px"><button class="pri sm" id="recAdd">지금 결과를 표에 추가</button><button class="sm" id="recMd">Markdown 표 복사</button><button class="sm" id="recJson">JSON 내려받기</button><button class="sm" id="recClear">표 비우기</button></div>
+      <div style="overflow:auto"><table id="recTbl"><thead><tr>
+        <th>#</th><th>케이스</th><th>규격</th><th>B 모델</th>
+        <th>디자인 품질<br>A / B (사람)</th><th>고객사 요구 반영<br>A / B (사람)</th>
+        <th>매체 규정 준수 (자동)<br>A / B</th><th>수정 시간<br>A (손으로) / B (자동 기록)</th>
+        <th>생성 시간<br>A / B</th><th>API 사용량 (B)</th><th>메모</th><th></th>
+      </tr></thead><tbody></tbody></table></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module" src="ab.js"></script>
+</body>
+</html>

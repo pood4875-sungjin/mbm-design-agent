@@ -1,0 +1,44 @@
+{
+ "at": "2026-10-22T04:01:05.321Z",
+ "spec": "kakao-display-pc-promo",
+ "records": [
+  {
+   "case": "pin-28",
+   "spec": "kakao-display-pc-promo",
+   "brief": {
+    "client": "GS에너지",
+    "hiringType": "신입 공채",
+    "role": "일반(사업, 재무 등), 보훈(사업/경영지원)",
+    "startDate": "2025-06-20",
+    "deadline": "2025-07-02",
+    "deadlineTime": "17:00",
+    "season": "2025년"
+   },
+   "primary": "#326CD1",
+   "a": {
+    "ms": 11,
+    "png": "pin-28_kakao-display-pc-promo_A.png"
+   },
+   "b": null
+  },
+  {
+   "case": "pin-32",
+   "spec": "kakao-display-pc-promo",
+   "brief": {
+    "client": "동서식품",
+    "hiringType": "대졸 신입/경력사원 채용",
+    "role": "(신입) 영업, 일반관리, 제조, 연구, 물류, 전산 / (경력) 연구(QA), 디자인",
+    "startDate": "2026-09-28",
+    "deadline": "2026-10-12",
+    "season": "2026년",
+    "slogan": "동서식품의 새로운 인재를 찾습니다!"
+   },
+   "primary": "#C75420",
+   "a": {
+    "ms": 2,
+    "png": "pin-32_kakao-display-pc-promo_A.png"
+   },
+   "b": null
+  }
+ ]
+}

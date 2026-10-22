@@ -1,0 +1,10 @@
+{
+  "name": "mbm-design-agent-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "B 트랙 로컬 서버 — Claude API 키를 서버가 들고 /api/design 을 낸다. 루트 package.json 은 의존성 0 유지(서버만 SDK 를 쓴다).",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0"
+  }
+}

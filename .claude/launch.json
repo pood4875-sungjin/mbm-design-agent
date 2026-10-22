@@ -27,6 +27,15 @@
         "cd /Users/kimsungjin/mbm-design-agent && exec python3 scripts/serve.py 4793"
       ],
       "port": 4793
+    },
+    {
+      "name": "mbm-agent-b",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/kimsungjin/mbm-design-agent-b && exec node server/server.mjs 4796"
+      ],
+      "port": 4796
     }
   ]
 }
