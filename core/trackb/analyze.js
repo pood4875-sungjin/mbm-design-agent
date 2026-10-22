@@ -9,6 +9,9 @@ import { shapeOf } from '../layouts.js';
 import { kvTypeChoices } from '../kvtypes.js';
 
 export const SHAPES = ['wide', 'tall', 'square', 'tower', 'strip'];
+// AI 판단을 안 받는 규격 — 틀 그림 칸이 고정인 매체(자소설·리멤버·잡다·에브리타임·캐치)·비즈보드. 렌더러 aiBoxRender 와 앱 적용·해석이 같은 목록을 쓴다
+export const AI_SKIP_MEDIA = new Set(['jasoseol', 'remember', 'jobda', 'everytime', 'catch']);
+export const aiEligible = spec => !!spec && !AI_SKIP_MEDIA.has(spec.medium) && !/bizboard/.test(spec.id ?? '');
 // 모양 묶음의 대표 캔버스 비율(가로÷세로) — 카카오 1200×600 · 구글 300×600 · 인스타 1080 · 구글 300×1050 · 띠 728×120 급
 export const REP_AR = { wide: 2, tall: 0.5, square: 1, tower: 0.29, strip: 6 };
 export const SHAPE_LABEL = { wide: '가로형(비율 ≥ 1.8)', tall: '세로형(1.2~2.5)', square: '정사각(0.8~1.2)', tower: '세로 띠(≥ 2.5)', strip: '가로 띠(높이 < 120px)' };
@@ -53,7 +56,7 @@ export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디�
 1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크 등), 사람·캐릭터 얼굴 상자 전부(faces — 머리카락·모자 포함, 원본 픽셀), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
 2. 모양 묶음 5개(shape 값은 wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·이 모양의 주인공(focus)·키비주얼 자리(kvPlace)·크기(kvSize)·배경 방식(bgFill)·스크림(scrim). 값은 주어진 선택지 문자열 중에서만, 모르겠으면 auto. 글자 정렬은 규칙이 정한다.
 3. 그림 상자(kvBox)를 네가 직접 정한다 — 캔버스 비율(0~1) {x,y,w,h}, 지면 밖으로 흘려도 된다(x<0, x+w>1). 이 모양에서 그림을 얼마나 크게, 어디에 둘지가 핵심 판단이다. 글자 덩어리는 kvPlace 반대쪽(오른쪽 그림이면 왼쪽 약 55%, 아래 그림이면 위쪽)에 놓이고 로고는 위쪽 모서리에 놓인다 — 주인공(얼굴·제품)은 글자 쪽과 위쪽 로고 모서리에 들어가지 않게. 그림 상자가 글자 쪽으로 넘어가도 되지만 그 변은 fade 로 녹여야 한다. fade 는 그림 상자 각 변을 녹이는 길이(상자 폭·높이의 0~0.6, 0 이면 안 녹임) — 글자 쪽을 향한 변은 0.3 이상. 누끼(투명 배경)는 fade 0. 그림을 크게 써서 지면이 비어 보이지 않게 하되, 겹치면 서버가 줄이거나 규칙 자리로 되돌린다. 모르겠으면 kvBox 의 w 를 0 으로.
-4. 지면(field)은 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
+4. 지면(field)은 캠페인 공통 하나다 — 모든 모양에 같은 colors·angle 을 준다(melt 만 모양별). 네가 직접 정한다 — 그림과 이어지는 색 1~3개(#RRGGBB, 그림의 바탕·가장자리 색에서 고르거나 브랜드색과 섞어서), 그라데이션 각도(두 색 이상일 때), 글자 톤(light=흰 글자·dark=검정 글자·auto), 그림 변을 지면으로 녹이는 길이 melt(그림 폭의 0.3~0.75, 0이면 규칙). 그림 바탕이 그라데이션이면 그 그라데이션을 그대로 연장하는 색을 고른다. 글자가 읽혀야 하니 글자 쪽 끝은 글자 톤과 대비가 나는 색으로. colors 를 비우면 배경 방식 프리셋(bgFill)으로 규칙이 정한다.
 원칙: 주인공과 보존 요소는 crop 안에. 모양마다 focus(이 모양의 주인공)를 정한다 — 가로형·정사각은 전체 주인공, 좁은 세로형(tall)·세로 띠(tower)·가로 띠(strip)는 장면 전체를 작게 넣지 말고 핵심만 좁혀(예: 확성기와 두 사람, 인물 한두 명의 상반신, 제품 하나) 크게 쓴다. 얼굴은 어떤 모양에서도 걸쳐 자르지 않는다 — crop 에 넣으면 통째로, 빼면 통째로. 글자가 놓일 쪽(키비주얼 반대쪽)이 비어 보이지 않게 자리를 정한다. 사진은 글자 쪽에 어두운 부분이 오면 스크림, 누끼는 배경을 그림에 이어 칠하기(kv) 또는 브랜드색. 세로 띠·가로 띠는 글자 공간이 좁으니 키비주얼을 작게 또는 한쪽 끝에. 좌표는 원본 픽셀, 왼쪽 위가 (0,0).`;
 
 export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}, requests = '' } = {}) {
@@ -168,6 +171,9 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
     g.fade = Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, transparentKv ? 0 : r3(clamp(num(fa[k]), 0, 0.6))]));
     g.why = String(g.why ?? '').slice(0, 200);
   }
+  // 지면은 캠페인 공통 하나(10-20 원칙 · 10-22 사용자 「배경도 색이 다르구」 — 가로형 베이지·세로형 초록으로 갈렸다): 가로형 → 정사각 → 나머지 순으로 색이 있는 묶음의 지면을 모두에 쓴다. 녹임 길이만 모양별
+  { const src = ['wide', 'square', 'tall', 'tower', 'strip'].map(k => A.groups[k]?.field).find(f => f?.colors?.length);
+    if (src) for (const k of SHAPES) { const f = A.groups[k].field; if (f.colors.join() !== src.colors.join() || f.angle !== src.angle) { A.groups[k].field = { ...f, colors: [...src.colors], angle: src.angle, text: src.text }; } } }
   A.logo = { kind: hasLogo ? (['wordmark', 'symbol', 'combo'].includes(A.logo?.kind) ? A.logo.kind : 'combo') : 'none' };
   A.rationale = String(A.rationale ?? '').slice(0, 400);
   return { analysis: A, fixes };
@@ -188,7 +194,8 @@ export function presetPatch(group, analysis) {
   if (group.kvBox?.w > 0) { out.aiKvBox = { ...group.kvBox }; out.aiFade = { ...(group.fade ?? {}) }; }
   // AI 지면(있으면 bgFill/bgGrad 프리셋보다 앞) — 렌더러 규칙이 글자색 대비·녹임 상한을 다시 검사
   const fd = group.field;
-  if (fd?.colors?.length) { out.background = { mode: 'auto', color: null, ai: { stops: fd.colors, angle: fd.angle ?? 180, text: fd.text !== 'auto' ? fd.text : null, melt: fd.melt ?? 0 } }; if (fd.text && fd.text !== 'auto') out.textTone = fd.text; }
+  // 글자색은 규칙(대비 계산) — AI 의 글자 톤은 넘기지 않는다(10-22 연한 초록에 흰 글자 강제)
+  if (fd?.colors?.length) out.background = { mode: 'auto', color: null, ai: { stops: fd.colors, angle: fd.angle ?? 180, text: null, melt: fd.melt ?? 0 } };
   else if (fd?.melt) out.background = { mode: 'auto', color: null, ai: { stops: [], angle: 180, text: null, melt: fd.melt } };
   return out;
 }
@@ -214,8 +221,24 @@ export function kvMetaWithAi(kvMeta, analysis, crop = { x: 0, y: 0, w: 1, h: 1 }
 
 // 산출물 개별 스타일에 aiShape 가 있으면 캠페인 c.ai.groups[aiShape] 의 crop 사본·주인공 kvMeta 를 얹는다(사본은 캠페인에 모양별 5개만 — 산출물마다 복제하지 않는다).
 // c.ai 가 없거나(해제) 그 모양이 없으면 그대로 — 프리셋 값은 남아 있어도 그림은 원본
-export function resolveAiStyle(campaign, style) {
+export function resolveAiStyle(campaign, style, spec = null) {
   const shape = style?.aiShape; if (!shape) return style;
-  const g = campaign?.ai?.groups?.[shape]; if (!g?.keyVisual) return style;
-  return { ...style, keyVisual: g.keyVisual, kvMeta: g.kvMeta ?? style.kvMeta };
+  const A = campaign?.ai?.analysis ?? null, G = campaign?.ai?.groups?.[shape] ?? null;
+  const out = { ...style };
+  // 예전에 저장된 AI 글자 톤(textTone) — 규칙이 정하게 걷어낸다(10-22). 사람이 따로 고른 값은 AI 값과 다를 때만 남는다
+  const aiTone = A?.groups?.[shape]?.field?.text;
+  if (out.textTone && (out.textTone === aiTone || out.textTone === G?.patch?.textTone)) delete out.textTone;
+  // 틀 고정 매체(자소설·리멤버·잡다·에브리타임·캐치)·비즈보드 — AI 값을 걷어내고 규칙 그대로(예전에 저장된 캠페인 포함)
+  if (spec && !aiEligible(spec)) {
+    delete out.aiShape; delete out.aiKvBox; delete out.aiFade;
+    if (out.background?.ai) { const { ai, ...rest } = out.background; out.background = rest; }
+    if (A?.kv?.type && out.kvTypeOverride === A.kv.type) delete out.kvTypeOverride;
+    for (const [k, v] of Object.entries(G?.patch ?? {})) if (PRESETS[k] && out[k] === v) delete out[k];
+    return out;
+  }
+  // 캠페인 공통 지면 — 예전에 모양마다 다르게 저장된 지면도 하나로(녹임 길이는 그 모양 값)
+  const cf = ['wide', 'square', 'tall', 'tower', 'strip'].map(k => A?.groups?.[k]?.field).find(f => f?.colors?.length);
+  if (cf && out.background?.ai) out.background = { ...out.background, ai: { ...out.background.ai, stops: [...cf.colors], angle: cf.angle ?? out.background.ai.angle, text: null } };
+  if (!G?.keyVisual) return out;
+  return { ...out, keyVisual: G.keyVisual, kvMeta: G.kvMeta ?? out.kvMeta, ...(out.aiKvBox ? { aiKvOrig: out.keyVisual, aiKvMetaOrig: out.kvMeta } : {}) };
 }

@@ -1,5 +1,5 @@
 {
- "at": "2026-10-22T09:41:31.245Z",
+ "at": "2026-10-22T10:27:44.672Z",
  "specs": [
   "jasoseol-pc-premium-popup-pc",
   "jasoseol-pc-premium-jobpost-pc",
@@ -88,10 +88,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -144,10 +144,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -256,10 +256,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -312,10 +312,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -368,10 +368,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -424,10 +424,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -480,10 +480,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -592,10 +592,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -648,10 +648,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -1376,10 +1376,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -1432,8 +1432,8 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
-        "#9CCBF8"
+        "#7DBAF4",
+        "#A9CFFA"
        ],
        "angle": 90,
        "text": "dark",
@@ -1488,8 +1488,8 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
-        "#9CCBF8"
+        "#7DBAF4",
+        "#A9CFFA"
        ],
        "angle": 90,
        "text": "dark",
@@ -1544,10 +1544,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -1600,10 +1600,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -1824,10 +1824,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -1936,10 +1936,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -1992,10 +1992,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2160,10 +2160,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2216,10 +2216,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2272,10 +2272,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2328,10 +2328,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2384,10 +2384,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2440,10 +2440,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2496,10 +2496,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2552,10 +2552,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2608,10 +2608,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2664,10 +2664,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2720,10 +2720,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2776,10 +2776,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2832,10 +2832,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
+        "#7DBAF4",
         "#A9CFFA"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -2888,8 +2888,8 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#6CB6F6",
-        "#9CCBF8"
+        "#7DBAF4",
+        "#A9CFFA"
        ],
        "angle": 90,
        "text": "dark",
@@ -2924,7 +2924,7 @@
     "type": "illust-grad-bg",
     "rationale": "푸른 그라데이션 배경의 3D 캐릭터 그림이라 배경을 이어 칠하고 얼굴은 모든 모양에서 통째로 보존했다. 모양마다 그림 크기와 위치를 정하고 글자 쪽 변을 충분히 녹여 문구가 밝은 파랑 지면에서 읽히게 했다.",
     "ms": 12161,
-    "cost": 0.0302,
+    "cost": 0,
     "usage": {
      "input_tokens": 6183,
      "output_tokens": 1785,
@@ -2977,7 +2977,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3033,7 +3033,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3145,7 +3145,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3201,7 +3201,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3257,7 +3257,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3313,7 +3313,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3369,7 +3369,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3481,7 +3481,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -3537,7 +3537,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4265,7 +4265,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4318,9 +4318,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#005D94"
+        "#005D94",
+        "#0A7CB8"
        ],
-       "angle": 0,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4373,9 +4374,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#005D94"
+        "#005D94",
+        "#0A7CB8"
        ],
-       "angle": 0,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4431,7 +4433,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4487,7 +4489,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4513,7 +4515,7 @@
       "png": "midas-jeil-iso_nap-dsp-full-320x480_C.png",
       "html": "midas-jeil-iso_nap-dsp-full-320x480_C.html"
      },
-     "aiBox": "85% 로 줄임"
+     "aiBox": "글자 끝선까지 깎음"
     },
     {
      "spec": "kakao-display-pc-promo",
@@ -4711,7 +4713,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4823,7 +4825,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -4879,7 +4881,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5047,7 +5049,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5103,7 +5105,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5159,7 +5161,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5215,7 +5217,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5271,7 +5273,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5327,7 +5329,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5383,7 +5385,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5439,7 +5441,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5495,7 +5497,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5551,7 +5553,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5607,7 +5609,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5663,7 +5665,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5719,7 +5721,7 @@
         "#005D94",
         "#0A7CB8"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5772,9 +5774,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#005D94"
+        "#005D94",
+        "#0A7CB8"
        ],
-       "angle": 0,
+       "angle": 90,
        "text": "light",
        "melt": 0
       },
@@ -5807,7 +5810,7 @@
     "type": "cutout-scene",
     "rationale": "투명 배경의 아이소메트릭 일러스트라 브랜드 파랑 지면 위에 누끼를 그대로 올리고 가장자리는 녹이지 않았다. 좁은 모양은 JEIL 입체 조형만 좁혀 크게 쓰고, 글자 영역은 반대쪽에 확보했다.",
     "ms": 14704,
-    "cost": 0.0281,
+    "cost": 0,
     "usage": {
      "input_tokens": 5306,
      "output_tokens": 1746,
@@ -5915,10 +5918,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -6027,10 +6030,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -6083,10 +6086,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -6419,10 +6422,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -7371,10 +7374,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -7707,10 +7710,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -7763,10 +7766,10 @@
       "scrim": "none",
       "field": {
        "colors": [
-        "#E4E7E9",
-        "#DADDDF"
+        "#DADDDF",
+        "#E9EBED"
        ],
-       "angle": 180,
+       "angle": 90,
        "text": "dark",
        "melt": 0.5
       },
@@ -8695,7 +8698,7 @@
     "type": "photo-bright",
     "rationale": "밝은 회색 벽 배경의 사진이라 지면을 같은 밝은 회색으로 이어 칠하고 어두운 글자로 가독성을 확보했다. 세 사람의 얼굴은 모든 모양에서 통째로 보존하고 좁은 모양에서는 핵심 인물만 크게 썼다.",
     "ms": 13148,
-    "cost": 0.0319,
+    "cost": 0,
     "usage": {
      "input_tokens": 7248,
      "output_tokens": 1744,

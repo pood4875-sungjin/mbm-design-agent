@@ -116,10 +116,10 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#E4E7E9",
-      "#DADDDF"
+      "#DADDDF",
+      "#E9EBED"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
@@ -202,10 +202,10 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#E4E7E9",
-      "#DADDDF"
+      "#DADDDF",
+      "#E9EBED"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
@@ -295,7 +295,7 @@
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0319,
+ "cost": 0,
  "ms": 13148,
  "model": "claude-sonnet-5-5",
  "raw": {

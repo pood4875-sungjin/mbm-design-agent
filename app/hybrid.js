@@ -1,6 +1,6 @@
 // 하이브리드(A+AI) — 브라우저 쪽: 서버의 그림 판단(/api/analyze) → 모양 묶음마다 키비주얼 crop 사본 + 측정 → 규격별 스타일 조각.
 //   그리기는 기존 규칙 렌더러(renderArtifact)가 한다. 비교 화면(app/ab.js)과 본 앱(app/app.js) 둘 다 이 모듈을 쓴다.
-import { SHAPES, groupFor, shapeOfSpec, presetPatch, kvMetaWithAi, ANALYSIS_SCHEMA, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis } from '../core/trackb/analyze.js';
+import { SHAPES, groupFor, shapeOfSpec, presetPatch, kvMetaWithAi, aiEligible, ANALYSIS_SCHEMA, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis } from '../core/trackb/analyze.js';
 import { estimateCost, sumUsage } from '../core/trackb/cost.js';
 import { getKey } from './llm.js';
 
@@ -87,14 +87,15 @@ export async function buildGroupStyles(analysis, { keyVisual, kvMeta, metaOf }) 
     const key = JSON.stringify(g.crop);
     if (!cache.has(key)) cache.set(key, (async () => { const kv = await cropKv(keyVisual, g.crop, { transparent }); const meta = kv === keyVisual ? kvMeta : await metaOf(kv); return { kv, meta }; })());
     const { kv, meta } = await cache.get(key);
-    out[s] = { keyVisual: kv, kvMeta: kvMetaWithAi(meta, analysis, g.crop, g), patch: presetPatch(g, analysis), crop: g.crop, why: g.why };
+    out[s] = { keyVisual: kv, kvMeta: kvMetaWithAi(meta, analysis, g.crop, g), patch: presetPatch(g, analysis), crop: g.crop, why: g.why, orig: keyVisual, origMeta: kvMeta };
   }
   return out;
 }
 
 // 규격 하나에 입힐 스타일 조각
 export function styleFor(groupStyles, spec) {
+  if (!aiEligible(spec)) return {};   // 틀 고정 매체·비즈보드는 규칙 그대로
   const gs = groupStyles?.[shapeOfSpec(spec)]; if (!gs) return {};
-  return { keyVisual: gs.keyVisual, kvMeta: gs.kvMeta, ...gs.patch };
+  return { keyVisual: gs.keyVisual, kvMeta: gs.kvMeta, ...gs.patch, ...(gs.patch?.aiKvBox ? { aiKvOrig: gs.orig, aiKvMetaOrig: gs.origMeta } : {}) };
 }
 export { groupFor, shapeOfSpec };

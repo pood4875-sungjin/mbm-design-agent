@@ -120,7 +120,7 @@
       "#B07A4E",
       "#A87045"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "light",
      "melt": 0.5
     },
@@ -163,7 +163,7 @@
       "#B07A4E",
       "#A87045"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "light",
      "melt": 0.5
     },
@@ -206,7 +206,7 @@
       "#B07A4E",
       "#A87045"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "light",
      "melt": 0.5
     },
@@ -291,7 +291,7 @@
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0275,
+ "cost": 0,
  "ms": 12108,
  "model": "claude-sonnet-5-5",
  "raw": {

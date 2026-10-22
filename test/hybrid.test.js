@@ -42,7 +42,7 @@ test('검증 — 픽셀 상자 → 비율, crop 이 주인공·보존 요소를 
   G.tall.kvBox = { x: 0, y: 0, w: 0.05, h: 0.5 };
   G.square.kvBox = { x: 0, y: 0, w: 300, h: 200 };
   const { analysis: a2 } = validateAnalysis(A, { kvMeta: meta28 });
-  assert.deepEqual(a2.groups.tower.field, { colors: ['#123456', '#ABCDEF'], angle: 360, text: 'auto', melt: 0.75 });
+  assert.deepEqual(a2.groups.tower.field, { colors: ['#2A65CF', '#5A8FDD'], angle: 180, text: 'light', melt: 0.75 }, '지면은 캠페인 공통(가로형 값) · 녹임만 모양별 · 잘못된 색은 버림');
   // 세로 띠 상자(0.5×1 → px 비율 0.145)에 원본 0.75 그림: 넓히기 불가 → 주인공 폭까지 좁히기 → 그래도 넓으면 상자를 그림 비율로(아래 변 고정)
   const tw = a2.groups.tower, twAR = (tw.crop.w * 736) / (tw.crop.h * 980), boxAR = (tw.kvBox.w / tw.kvBox.h) * 0.29;
   assert.ok(Math.abs(Math.log(twAR / boxAR)) < Math.log(1.2), `crop ${twAR.toFixed(3)} ≈ 상자 ${boxAR.toFixed(3)}`);
@@ -60,8 +60,8 @@ test('프리셋 조각 — auto 는 빼고, 유형 지정은 kvTypeOverride 로;
   const { analysis } = validateAnalysis(good(), { kvMeta: meta28 });
   const g = analysis.groups.wide; g.scrim = 'auto';
   const p = presetPatch(g, analysis);
-  assert.deepEqual(p, { kvPlace: 'right', kvSize: 'lg', bgFill: 'kv', bgGrad: 'v', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#2A65CF', '#5A8FDD'], angle: 180, text: 'light', melt: 0.6 } }, textTone: 'light' });
-  for (const k of Object.keys(p)) if (!['kvTypeOverride', 'background', 'textTone'].includes(k)) assert.ok(PRESET_KEYS.includes(k), k);
+  assert.deepEqual(p, { kvPlace: 'right', kvSize: 'lg', bgFill: 'kv', bgGrad: 'v', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#2A65CF', '#5A8FDD'], angle: 180, text: null, melt: 0.6 } } }, '글자 톤은 안 넘김(규칙)');
+  for (const k of Object.keys(p)) if (!['kvTypeOverride', 'background', 'aiKvBox', 'aiFade'].includes(k)) assert.ok(PRESET_KEYS.includes(k), k);
   // 지면 색을 비우면 프리셋만 — 녹임 값만 있으면 melt 만
   const g2 = { ...g, field: { colors: [], angle: 0, text: 'auto', melt: 0.5 } }; assert.deepEqual(presetPatch(g2, analysis).background, { mode: 'auto', color: null, ai: { stops: [], angle: 180, text: null, melt: 0.5 } });
   const g3 = { ...g, field: { colors: [], angle: 0, text: 'auto', melt: 0 } }; assert.equal(presetPatch(g3, analysis).background, undefined);
@@ -174,7 +174,8 @@ test('렌더러 — AI 상자가 얼굴을 걸쳐 자르면 그 후보는 탈락
   // 상자 오른쪽 끝(지면 밖 60px)에 걸친 얼굴 — 그림 x 0.9~1.0 → 지면 1200 을 넘는 부분이 잘림
   const cutMeta = { ...meta28, ai: { faces: [{ x: 0.88, y: 0.3, w: 0.12, h: 0.1 }] } };
   const cutH = renderArtifact(spec, ctx, normalizeStyle({ colors: ['#326CD1'], keyVisual: 'kv.jpg', kvMeta: cutMeta, aiKvBox: { x: 0.55, y: 0, w: 0.5, h: 1 }, aiFade: { left: 0.35 } }), {});
-  assert.doesNotMatch(cutH, /data-ad="1" data-ai-box="100:/, '얼굴이 걸친 원래 상자는 안 쓴다');
+  const m = cutH.match(/<div data-object="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px/);
+  assert.ok(m, 'AI 상자는 남는다'); assert.ok(+m[1] + +m[3] <= 1200 + 0.5, `지면 밖 흘림 없이 안쪽으로 당긴 후보(${m[1]}+${m[3]})`);
 });
 
 test('공개 페이지 경로 — 서버 없으면 브라우저 직접 호출: 헤더(키·직접 호출 허용)·스키마·이미지·검증까지 서버와 같은 결과 모양(fetch 모의)', async () => {
@@ -190,4 +191,23 @@ test('공개 페이지 경로 — 서버 없으면 브라우저 직접 호출: �
   assert.equal(seen.body.messages[0].content[0].type, 'image'); assert.ok(seen.body.messages[0].content.at(-1).text.includes('GS에너지'));
   assert.equal(out.via, 'browser'); assert.ok(out.analysis.groups.wide); assert.ok(out.cost > 0);
   await assert.rejects(analyzeDirect('sk-ant-test', { kv: { dataUrl: png, meta: meta28 } }, async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'invalid x-api-key' } }) })), /HTTP 401 · invalid x-api-key/);
+});
+
+test('캠페인 공통 지면·틀 고정 매체 제외·예전 캠페인 바로잡기(10-22 사용자 「텍스트 색도 이상」「배경도 색이 다르구」)', async () => {
+  const { resolveAiStyle, aiEligible } = await import('../core/trackb/analyze.js');
+  const A = good(); const G = Object.fromEntries(A.groups.map(g => [g.shape, g]));
+  G.tall.field = { colors: ['#4CAF50', '#2E7D32'], angle: 180, text: 'light', melt: 0.4 };   // 모양마다 다른 지면
+  const { analysis } = validateAnalysis(A, { kvMeta: meta28 });
+  assert.deepEqual(analysis.groups.tall.field.colors, analysis.groups.wide.field.colors, '세로형도 가로형과 같은 지면');
+  assert.equal(analysis.groups.tall.field.melt, 0.4, '녹임은 모양별');
+  assert.equal(aiEligible({ medium: 'jasoseol', id: 'jasoseol-pc-premium-popup-pc' }), false);
+  assert.equal(aiEligible({ medium: 'kakao', id: 'kakao-bizboard-mo' }), false);
+  assert.equal(aiEligible({ medium: 'kakao', id: 'kakao-display-pc-promo' }), true);
+  // 예전에 저장된 캠페인: 모양별 다른 지면 + AI 글자 톤 + 틀 매체에도 들어간 값
+  const old = { ai: { analysis: { kv: { type: 'illust-object' }, groups: { wide: { field: { colors: ['#C8B89A'], angle: 90, text: 'dark' } }, tall: { field: { colors: ['#4CAF50'], angle: 180, text: 'light' } } } }, groups: { tall: { keyVisual: 'crop.png', kvMeta: { ar: 1 }, patch: { kvPlace: 'bottom', textTone: 'light' } } } } };
+  const st = { aiShape: 'tall', kvPlace: 'bottom', textTone: 'light', kvTypeOverride: 'illust-object', background: { mode: 'auto', color: null, ai: { stops: ['#4CAF50'], angle: 180, text: 'light', melt: 0.4 } } };
+  const free = resolveAiStyle(old, st, { medium: 'google-gdn', id: 'google-gdn-300x600' });
+  assert.equal(free.textTone, undefined, 'AI 글자 톤 걷어냄'); assert.deepEqual(free.background.ai.stops, ['#C8B89A'], '공통 지면'); assert.equal(free.background.ai.melt, 0.4); assert.equal(free.keyVisual, 'crop.png');
+  const fixed = resolveAiStyle(old, st, { medium: 'jasoseol', id: 'jasoseol-pc-premium-popup-pc' });
+  assert.equal(fixed.background.ai, undefined); assert.equal(fixed.aiShape, undefined); assert.equal(fixed.kvPlace, undefined); assert.equal(fixed.kvTypeOverride, undefined); assert.equal(fixed.keyVisual, undefined, '그림도 원본');
 });

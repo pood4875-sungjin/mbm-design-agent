@@ -31,7 +31,7 @@ export function createEditor(E) {
   // E: { state, SPECS, frames, pushHistory, regen, refreshFrames, autosave, renderInspector, log, toast, select, artLabel, adEffCtx, logEvent }
   const S = E.state;
   const camp = () => S.campaign;
-  const effStyleOf = a => { const c = camp(); return a.overrides?.style && Object.keys(a.overrides.style).length ? resolveAiStyle(c, { ...c.style, ...a.overrides.style }) : c.style; };
+  const effStyleOf = a => { const c = camp(); return a.overrides?.style && Object.keys(a.overrides.style).length ? resolveAiStyle(c, { ...c.style, ...a.overrides.style }, E.SPECS[a.specId]) : c.style; };
   const specOf = a => E.SPECS[a.specId];
   const ads = () => (camp()?.artifacts ?? []).filter(a => a.channel === 'ad');
   const keyOf = a => a.key ?? a.specId;

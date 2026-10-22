@@ -36,7 +36,7 @@ const { SPECS, renderArtifact } = await core('contract.js');
 const { createContext } = await core('context.js');
 const { normalizeStyle } = await core('style.js');
 const F = await core('fonts.js');
-const { shapeOfSpec, presetPatch, kvMetaWithAi, SHAPE_LABEL, validateAnalysis } = await core('trackb/analyze.js');
+const { shapeOfSpec, presetPatch, kvMetaWithAi, SHAPE_LABEL, validateAnalysis, aiEligible } = await core('trackb/analyze.js');
 const { fieldFromImage, extractPalette, edgeColor } = await core('palette.js');
 const { exportPng } = await core('export.js');
 const FACES = F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pathToFileURL(path.join(ROOT, 'app')).href + '/')).join('');
@@ -113,7 +113,8 @@ for (const id of CASES) {
       if (!cropCache.has(key)) { const f = path.join(OUT, `${id}_${shape}_crop${path.extname(kvFile)}`); cropFile(kvFile, f, g.crop); cropCache.set(key, { file: f, meta: measureFile(f) }); }
       ({ file: kvC, meta: metaC } = cropCache.get(key));
     }
-    const styleC = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }, g), ...logoStyle, ...presetPatch(g, out.analysis) });
+    const elig = aiEligible(spec);   // 틀 고정 매체·비즈보드는 규칙 그대로(앱과 같게)
+    const styleC = elig ? normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvC).href, kvMeta: kvMetaWithAi(metaC, out.analysis, g?.crop ?? { x: 0, y: 0, w: 1, h: 1 }, g), ...logoStyle, ...presetPatch(g, out.analysis), aiKvOrig: pathToFileURL(kvFile).href, aiKvMetaOrig: meta }) : normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvFile).href, kvMeta: meta, ...logoStyle });
     const styleA = normalizeStyle({ colors: [primary], keyVisual: pathToFileURL(kvFile).href, kvMeta: meta, ...logoStyle });
     const cell = { spec: sid, title: spec.title, w: spec.w, h: spec.h, shape, group: g, stage: STAGE_OF[sid] ?? null };
     for (const [tr, st] of [['C', styleC], ...(flag('--no-a') ? [] : [['A', styleA]])]) {

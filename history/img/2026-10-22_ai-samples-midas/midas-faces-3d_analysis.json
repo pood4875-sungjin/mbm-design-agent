@@ -123,10 +123,10 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#6CB6F6",
+      "#7DBAF4",
       "#A9CFFA"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
@@ -166,10 +166,10 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#6CB6F6",
+      "#7DBAF4",
       "#A9CFFA"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
@@ -209,10 +209,10 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#6CB6F6",
+      "#7DBAF4",
       "#A9CFFA"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "dark",
      "melt": 0.5
     },
@@ -252,8 +252,8 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#6CB6F6",
-      "#9CCBF8"
+      "#7DBAF4",
+      "#A9CFFA"
      ],
      "angle": 90,
      "text": "dark",
@@ -296,7 +296,7 @@
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0302,
+ "cost": 0,
  "ms": 12161,
  "model": "claude-sonnet-5-5",
  "raw": {

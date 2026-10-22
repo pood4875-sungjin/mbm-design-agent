@@ -35,7 +35,7 @@ import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
-import { resolveAiStyle } from '../core/trackb/analyze.js';
+import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
 import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolder, deleteFolder, reorderFolder, moveFolderBy, moveCampaign,
   toggleFolder, folderOf, filterCampaigns, groupCampaigns, nameError, cleanName, displayName, logoSig, tileToneFor, containBox } from '../core/folders.js';
 
@@ -2361,7 +2361,7 @@ function renderInspector() {
         c.ai = { analysis: res.analysis, groups, fixes: res.fixes, usage: res.usage, cost: res.cost, model: res.model, effort: res.effort, ms: res.ms, at: new Date().toISOString() };
         let n = 0;
         for (const a of c.artifacts) {
-          if (a.channel !== 'ad') continue; const spec = SPECS[a.specId]; if (!spec) continue;
+          if (a.channel !== 'ad') continue; const spec = SPECS[a.specId]; if (!spec || !aiEligible(spec)) continue;   // 틀 고정 매체·비즈보드는 규칙 그대로
           const shape = shapeOfSpec(spec), g = groups[shape]; if (!g) continue;
           a.overrides = a.overrides ?? {}; a.overrides.style = { ...(a.overrides.style ?? {}), ...g.patch, aiShape: shape }; a.status = 'draft'; a.gateOverride = null; n++;
         }
@@ -2893,7 +2893,7 @@ function adRulesText(spec) {
 const adEffCtx = a => { const c = state.campaign; return { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } }; };
 const artRenderOpts = a => ({ variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size });   // renderArtifact 옵션 — generate.js 가 보드를 그릴 때와 같은 것(10-20)
 // 내보낼 때도 보드와 같은 스타일 — 산출물 개별 값(overrides.style: 알약 톤·프리셋)과 직접 수정(overrides.layout)을 얹는다(10-14 generate.js 와 같은 합성)
-const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? resolveAiStyle(c, { ...c.style, ...a.overrides.style }) : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
+const adEffStyle = a => { const c = state.campaign; let s = a.overrides?.style && Object.keys(a.overrides.style).length ? resolveAiStyle(c, { ...c.style, ...a.overrides.style }, SPECS[a.specId]) : c.style; if (a.overrides?.layout && Object.keys(a.overrides.layout).length) s = { ...s, manualLayout: a.overrides.layout }; return s; };
 // renderFit 은 renderAd 를 직접 부르므로 renderArtifact 가 spec 에 얹던 시안 번호·용도·화살표·규격을 여기서 같이 얹는다(보드·썸네일과 같은 출력, 10-20)
 function adSpecOf(a) {
   const o = artRenderOpts(a), spec = { ...SPECS[a.specId], variant: o.variant ?? 0, purpose: o.purpose ?? 'main', arrow: o.arrow ?? null };

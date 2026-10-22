@@ -35,7 +35,7 @@ export function normalizeStyle(input = {}) {
     // 키비주얼 유형 직접 지정(10-12 결정 5) — null = 자동. 유형 id(photo …) 또는 세분 유형 id(photo-portrait …). 렌더러·검수는 지정을 입힌 kvMeta 를 본다
     kvTypeOverride: isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null,
     // 10-22 하이브리드: AI 그림 상자(캔버스 몫)·녹일 변 — 없으면 키를 두지 않는다(기본 그림 바이트 동일)
-    ...(input.aiKvBox && [input.aiKvBox.x, input.aiKvBox.y, input.aiKvBox.w, input.aiKvBox.h].every(Number.isFinite) && input.aiKvBox.w > 0 && input.aiKvBox.h > 0 ? { aiKvBox: { x: input.aiKvBox.x, y: input.aiKvBox.y, w: input.aiKvBox.w, h: input.aiKvBox.h }, aiFade: Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, Math.max(0, Math.min(0.6, Number(input.aiFade?.[k]) || 0))])) } : {}),
+    ...(input.aiKvBox && [input.aiKvBox.x, input.aiKvBox.y, input.aiKvBox.w, input.aiKvBox.h].every(Number.isFinite) && input.aiKvBox.w > 0 && input.aiKvBox.h > 0 ? { aiKvBox: { x: input.aiKvBox.x, y: input.aiKvBox.y, w: input.aiKvBox.w, h: input.aiKvBox.h }, aiFade: Object.fromEntries(['left', 'right', 'top', 'bottom'].map(k => [k, Math.max(0, Math.min(0.6, Number(input.aiFade?.[k]) || 0))])), ...(input.aiKvOrig ? { aiKvOrig: input.aiKvOrig, aiKvMetaOrig: input.aiKvMetaOrig ?? null } : {}) } : {}),
     kvMeta: applyKvTypeOverride(input.kvMeta ?? null, isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null),                 // {ar, edge} — 비율 대응·여백 색   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
     // 사진 쓰임 — auto: 한쪽 칸에 넣고 지면으로 녹인다(한독) · full: 지면 전체에 깔고 글자 쪽에 스크림(코엑스·원광대병원·호반). 담당자가 고른다 — 자동으로 켜면 다른 유형과 충돌한다
     kvUse: ['full', 'part'].includes(input.kvUse) ? input.kvUse : 'auto',

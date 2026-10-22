@@ -98,9 +98,9 @@
     "field": {
      "colors": [
       "#1B0950",
-      "#1A0F6A"
+      "#1A0B58"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "light",
      "melt": 0.5
     },
@@ -141,9 +141,9 @@
     "field": {
      "colors": [
       "#1B0950",
-      "#1A0F6A"
+      "#1A0B58"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "light",
      "melt": 0.5
     },
@@ -184,9 +184,9 @@
     "field": {
      "colors": [
       "#1B0950",
-      "#1A0F6A"
+      "#1A0B58"
      ],
-     "angle": 180,
+     "angle": 90,
      "text": "light",
      "melt": 0.5
     },
@@ -268,7 +268,7 @@
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.03,
+ "cost": 0,
  "ms": 11090,
  "model": "claude-sonnet-5-5",
  "raw": {
