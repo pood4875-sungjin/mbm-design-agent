@@ -97,12 +97,12 @@ for (const id of CASES) {
   let out;
   const prevA = path.join(OUT, `${id}_analysis.json`);
   try {
-    if (flag('--reuse') && existsSync(prevA)) { const j = JSON.parse(readFileSync(prevA, 'utf8')); const v = validateAnalysis(j.raw ?? j.analysis, { kvMeta: meta, hasLogo: !!logoFile }); out = { analysis: v.analysis, fixes: v.fixes, usage: j.usage ?? {}, cost: 0, ms: j.ms ?? 0, model: j.model, raw: j.raw ?? j.analysis }; }   // 검증 규칙이 바뀌었으면 원 응답(raw)으로 다시 검증
+    if (flag('--reuse') && existsSync(prevA)) { const j = JSON.parse(readFileSync(prevA, 'utf8')); const v = validateAnalysis(j.raw ?? j.analysis, { kvMeta: j.sentPx ? { ...meta, px: j.sentPx } : meta, hasLogo: !!logoFile }); out = { analysis: v.analysis, fixes: v.fixes, usage: j.usage ?? {}, cost: 0, ms: j.ms ?? 0, model: j.model, raw: j.raw ?? j.analysis, sentPx: j.sentPx ?? null }; }   // 검증 규칙이 바뀌었으면 원 응답(raw)으로 다시 검증
     else out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopyFile(kvFile)), meta }, logo: logoFile ? { dataUrl: dataUrlOf(apiCopyFile(logoFile)), meta: c.logoMeta ?? null } : null, brief, brand: { primary }, requests: '' });
   } catch (e) { console.log(`[${id}] 판단 실패: ${e.message}`); row.error = e.message; results.push(row); continue; }
   totalCost += out.cost;
   row.ai = { type: out.analysis.kv.type, rationale: out.analysis.rationale, ms: out.ms, cost: out.cost, usage: out.usage, fixes: out.fixes, groups: out.analysis.groups };
-  writeFileSync(path.join(OUT, `${id}_analysis.json`), JSON.stringify({ analysis: out.analysis, fixes: out.fixes, usage: out.usage, cost: out.cost, ms: out.ms, model: out.model, raw: out.raw ?? null }, null, 1));
+  writeFileSync(path.join(OUT, `${id}_analysis.json`), JSON.stringify({ analysis: out.analysis, fixes: out.fixes, usage: out.usage, cost: out.cost, ms: out.ms, model: out.model, raw: out.raw ?? null, sentPx: out.sentPx ?? null }, null, 1));
   console.log(`[${id}] 판단 ${out.ms}ms · $${out.cost} · ${out.analysis.kv.type} · 고침 ${out.fixes.length}\n   ${out.analysis.rationale}`);
 
   const cropCache = new Map();

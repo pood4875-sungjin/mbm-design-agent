@@ -1,0 +1,5571 @@
+{
+ "round": "7",
+ "at": "2026-10-23T02:16:43.940Z",
+ "cases": [
+  {
+   "id": "t1014-hanssem",
+   "group": "사진",
+   "kvType": "photo",
+   "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 가로형",
+   "aiType": "photo",
+   "rationale": "따뜻한 우드톤 회의실 사진이라 지면을 같은 베이지 갈색 계열로 이어 칠해 그림이 지면에 자연스럽게 녹게 했다. 얼굴은 통째로 보존하고 글자는 그림 반대쪽에 놓이도록 모양마다 그림 위치와 크기를 정했다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tall: 그림 상자를 그림 비율에 맞춤",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0333,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-hanssem_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 29,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 29,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-hanssem_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 15,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 15,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-hanssem_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 23,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 23,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-hanssem_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 19,
+       "filled": 25,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 19,
+       "filled": 25,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-hanssem_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 31,
+       "filled": 44,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 51,
+       "subject": 35,
+       "filled": 49,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-hanssem_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 38,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 19,
+       "subject": 38,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-hanssem_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 31,
+       "filled": 46,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 31,
+       "filled": 46,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-hanssem_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 37,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.69,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "t1014-hanssem_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 20,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 3.5,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-hanssem_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "오른쪽 사진 영역이 좁아 모니터 귀퉁이와 노트북만 보이고 두 인물이 빠졌으므로, 사진 영역을 가로 45% 이상으로 넓히고 두 여성이 모두 들어오게 중앙 쪽으로 재크롭할 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "사진이 우하단에 작은 비네트로 떠 있어 지면 절반이 빈 갈색이므로, 사진을 높이 꽉 차게 키워 오른쪽 40%에 배치하고 텍스트 블록은 왼쪽으로 옮길 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "인물 두 명과 모니터가 잘 보이나 왼쪽 텍스트와 사진 사이 중앙 여백이 넓으므로, 사진을 약간 왼쪽으로 확장하거나 텍스트 크기를 키워 균형을 맞출 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "사진이 우하단에 작게 들어가 상단과 왼쪽이 비어 보이므로, 사진을 지면 하단 60% 폭으로 키우고 그라데이션 경계를 더 넓게 풀 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "하단 사진 구성은 좋으나 상단 헤드라인과 날짜·직무 글자가 정사각형 대비 작으므로 헤드라인을 1.3배 키우고 행간을 정리할 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "사진이 하단 띠로만 작게 들어가 중간이 비므로, 사진을 하단 50%까지 키워 오른쪽 여성 중심으로 세로 크롭하고 헤드라인을 크게 할 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "상단 텍스트가 너무 작아 읽히지 않고 세로 중간이 텅 비었으므로, 헤드라인을 2배 이상 키우고 사진을 하단 40%로 확대해 세로로 배치할 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "오른쪽 사진에서 오른쪽 여성이 잘리고 손 든 왼쪽 여성 일부만 보이므로, 모니터와 한 인물의 얼굴이 온전히 보이도록 크롭 중심을 조정할 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "가로 와이드(1200×600)에서 사진 영역을 우측 끝에 좁게 고정해 인물이 빠지고 모니터 조각만 남음 — 사진 폭 비율을 규격과 무관하게 고정한 규칙이 원인으로 추정",
+     "1250×560·580×400·세로형에서 사진을 비네트 처리한 작은 블록으로 축소해 단색 갈색 지면이 넓게 비어 보임 — 사진 스케일을 텍스트 영역 우선으로 줄인 탓",
+     "300×1050·300×600 세로형 텍스트가 지나치게 작아 판독 불가 — 가로형 텍스트 블록을 그대로 축소 적용한 것으로 추정"
+    ],
+    "usage": {
+     "input_tokens": 2379,
+     "output_tokens": 2070,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0509
+   }
+  },
+  {
+   "id": "hr-doctor",
+   "group": "사진",
+   "kvType": "photo",
+   "summary": "인물 사진+밝은 사진 · 캐릭터(머리 보존) · 가장자리 그라데이션 · 가로형",
+   "aiType": "photo-bright",
+   "rationale": "흰 가운과 내민 손이 주인공이라 손을 crop 안에 온전히 담고, 푸른 라벤더 톤 지면을 그림 바탕에서 이어 칠했다. 글자 쪽은 중간 톤 푸른 지면에 어두운 글자로 대비를 주고 큰 빛 번짐으로 단조로움을 줄였다.",
+   "fixes": [
+    "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0355,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "hr-doctor_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 31,
+       "filled": 48,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 70,
+       "subject": 36,
+       "filled": 53,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "hr-doctor_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 15,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 58,
+       "subject": 30,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "hr-doctor_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 5,
+       "subject": 21,
+       "filled": 37,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 21,
+       "filled": 37,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "hr-doctor_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 4,
+       "subject": 16,
+       "filled": 32,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 5,
+       "subject": 16,
+       "filled": 32,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "hr-doctor_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 27,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 48,
+       "subject": 20,
+       "filled": 40,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "hr-doctor_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 24,
+       "filled": 38,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 72,
+       "subject": 48,
+       "filled": 61,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "hr-doctor_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 35,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 35,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "hr-doctor_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 40,
+       "filled": 56,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.5,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "hr-doctor_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 43,
+       "subject": 30,
+       "filled": 46,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 7.77,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "hr-doctor_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "손이 화면 높이를 거의 꽉 채우고 손끝이 하단에 닿아 답답하니, 이미지를 10%가량 축소하고 위로 올려 손 아래에 여백을 확보할 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "손이 우측·하단 모서리에 걸려 잘리고 좌측 절반은 연보라 평면으로 비어 보이니, 손을 프레임 안쪽으로 15%가량 당겨 엄지와 손끝이 모두 보이게 하고 텍스트 블록을 좌측으로 붙여 균형을 맞출 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "손이 우측 하단에 작게 걸치고 손끝이 잘려 중앙~우측이 빈 연보라 면으로 남으니, 손을 1.5배 키워 세로 중앙에 두고 오른쪽 1/3 영역을 채울 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "손이 우하단 구석에서 하단에 잘려 존재감이 약하니, 손을 키워 우측 중앙으로 올리고 손끝까지 프레임 안에 넣을 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "busy",
+      "text": "ok",
+      "notes": "좌하단에 원본 배경의 주황·초록 흐림 오브젝트가 드러나 어수선하고 손은 하단에 잘리니, 손을 키워 하단 중앙에 온전히 배치하고 좌하단은 그라데이션으로 덮을 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "손이 하단을 잘 채우지만 손끝이 바닥에 닿으니, 이미지를 약간 위로 올려 손끝 아래에 숨 쉴 여백을 줄 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "본문 텍스트가 너무 작은 회색이라 읽히지 않고 중간이 텅 비었으니, 헤드라인과 일정을 2배 이상 키워 상단 1/3을 채우고 손을 확대해 하단 1/2을 차지하게 할 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "손이 우측 상단으로 치우쳐 손바닥 일부만 보이니, 손을 세로 중앙으로 내려 손 형태가 한눈에 읽히게 할 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "세로형·와이드 규격(970×250, 580×400, 300×1050, 1080×1080)에서 손이 작아지고 하단에서 잘림 — 키비주얼을 하단 앵커로 고정한 채 규격 비율과 무관하게 축소한 배치 로직 탓으로 추정",
+     "연보라 틴트 오버레이가 사진 전체를 덮어 지면이 단조롭고 비어 보임 — 가장자리 그라데이션 색을 배경 전면 채움에도 그대로 써서 사진의 깊이감이 죽은 것으로 추정",
+     "1080×1080 좌하단에 원본 배경 잡물이 노출되고 300×1050 본문은 너무 작아 판독 불가 — 정사각·극세로 규격에서 그라데이션 마스킹 범위와 최소 폰트 크기 규칙이 부족한 것으로 추정"
+    ],
+    "usage": {
+     "input_tokens": 2350,
+     "output_tokens": 2436,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0581
+   }
+  },
+  {
+   "id": "midas-team-photo",
+   "group": "사진",
+   "kvType": "photo",
+   "summary": "꽉 찬 사진 · 정사각형",
+   "aiType": "photo-bright",
+   "rationale": "밝은 사무실 협업 사진이라 얼굴은 통째로 보존하고 브랜드 남색 지면으로 자연스럽게 녹여 글자 대비를 확보한다. 모양마다 핵심 인물만 좁혀 크게 쓰고 글자 쪽 변은 fade로 처리한다.",
+   "fixes": [
+    "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "wide: 그림 상자를 그림 비율에 맞춤",
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 얼굴이 걸쳐 잘려 통째로 넣음",
+    "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0343,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "midas-team-photo_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 31,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 47,
+       "subject": 24,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "midas-team-photo_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 18,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 47,
+       "subject": 26,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "midas-team-photo_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 26,
+       "filled": 41,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 26,
+       "filled": 41,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "midas-team-photo_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 4,
+       "subject": 21,
+       "filled": 36,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 4,
+       "subject": 21,
+       "filled": 36,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "midas-team-photo_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 34,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 34,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "midas-team-photo_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 19,
+       "subject": 42,
+       "filled": 54,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 60,
+       "subject": 39,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "midas-team-photo_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 35,
+       "filled": 44,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 45,
+       "subject": 18,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "midas-team-photo_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 20,
+       "subject": 40,
+       "filled": 56,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.58,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-team-photo_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 19,
+       "subject": 40,
+       "filled": 56,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 12.54,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "midas-team-photo_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "세 인물과 노트북이 모두 살아 있고 글자와도 분리되어 있다. 다만 수염 남성의 정수리가 상단에 거의 붙으므로 사진을 5~8% 아래로 내려 머리 위 여백을 확보할 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "A의 떠 있는 사각 패치와 경계가 사라져 크게 개선됐다. 수염 남성의 뻗은 팔이 그라데이션 페이드에 묻혀 흐려지므로 페이드 시작점을 왼쪽으로 40px 정도 옮겨 팔 끝을 살릴 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "사진이 오른쪽 하단 띠로만 들어가 수염 남성 상반신만 보이고 나머지 두 사람은 정수리만 남았다. 사진을 높이 기준으로 확대해 오른쪽 40% 폭에 세 사람 얼굴이 모두 들어가도록 세로 중심을 얼굴 라인에 맞추고, 가운데 빈 단색 면을 줄일 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "사진이 우하단 구석에 작게 박혀 아래 두 인물의 얼굴이 하단에서 잘린다. 사진을 우측 절반 높이 전체로 키우고 앵커를 얼굴 영역(상단 60%)에 둘 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "정사각형인데 사진이 하단 1/3에만 있어 상단 단색 면이 넓게 비고, 인물들이 하단에서 잘린다. 세로형 원본을 화면 높이의 65% 이상으로 키워 하단 중앙에 배치하고 글자 블록과의 페이드를 길게 줄 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "하단에 세 인물과 노트북이 잘 들어갔다. 날짜와 직무 텍스트가 작으니 1~2pt 키우고 행간을 정리할 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "타이틀과 날짜 글자가 지면 대비 지나치게 작아 실사용 크기에서 읽히지 않고, 중간 단색 면도 길게 빈다. 글자를 폭 기준으로 최대한 키우고 사진을 하단 45%까지 확대할 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "작은 지면에서도 인물 얼굴이 보인다. 로고가 판독 불가 수준이니 빼거나 키우고, 날짜 글자를 한 단계 키울 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "970×250·580×400·1080×1080에서 사진이 우하단 구석의 작은 띠로만 배치되어 인물 얼굴이 하단에서 잘림 — 세로형 단체 사진을 지면 하단 앵커로 맞추고 얼굴 위치를 고려한 스케일·크롭을 하지 않은 것으로 추정",
+     "같은 규격들에서 단색 슬레이트 면이 넓게 남아 지면이 비어 보임 — 사진 확대 대신 배경 채움으로 비율을 해결한 결과",
+     "300×1050·320×100의 글자·로고가 판독 불가 수준으로 작음 — 레이아웃 비율을 그대로 축소하고 최소 글자 크기 규칙이 없는 것으로 추정"
+    ],
+    "usage": {
+     "input_tokens": 2454,
+     "output_tokens": 2420,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0582
+   }
+  },
+  {
+   "id": "t1014-asan-photo",
+   "group": "사진",
+   "kvType": "photo",
+   "summary": "현장·군중 사진(주인공 없음)+어두운 사진 · 어두운 바탕 · 전면 배경 · 가로형",
+   "aiType": "photo-dark",
+   "rationale": "보랏빛 새벽 하늘과 병원 야경이 어두운 톤이라 하늘색을 지면으로 이어 흰 글자가 읽히게 했다. 건물은 왼쪽이나 아래쪽에 두고 나머지는 하늘 그라데이션과 빛 번짐으로 채웠다.",
+   "fixes": [
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 그림 상자를 그림 비율에 맞춤",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 그림 상자를 그림 비율에 맞춤",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0325,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-asan-photo_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 31,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 31,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-asan-photo_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 18,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 18,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-asan-photo_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 26,
+       "filled": 40,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 5,
+       "subject": 26,
+       "filled": 40,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-asan-photo_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 5,
+       "subject": 21,
+       "filled": 36,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 4,
+       "subject": 21,
+       "filled": 36,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-asan-photo_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 32,
+       "filled": 49,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 32,
+       "filled": 49,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-asan-photo_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 27,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 51,
+       "subject": 50,
+       "filled": 63,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-asan-photo_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 35,
+       "filled": 50,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 38,
+       "filled": 52,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-asan-photo_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 40,
+       "filled": 59,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.55,
+       "fieldSrc": "kv-mood-dark"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-photo_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 57,
+       "subject": 46,
+       "filled": 65,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 13.93,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-asan-photo_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "오른쪽 아래 구석에 아파트와 불빛 조각만 남아 있다. 사진을 오른쪽 40% 폭까지 키우고 왼쪽 병원 건물이 보이게 크롭을 왼쪽으로 옮겨, 왼쪽 단색 남색 면적을 줄인다."
+     },
+     {
+      "spec": "1250×560",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "병원 건물이 화면 중앙 아래에 작고 흐리게 묻힌다. 사진을 오른쪽 절반 높이 전체로 키우고 상단 페이드를 약하게 줄여 야경이 살아나게 한다."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "건물과 야경이 오른쪽에 잘 들어왔다. 왼쪽 단색 면에 하늘 보라 톤을 아주 약하게 그라데이션으로 이어 주면 연결이 더 자연스럽다."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "사진이 오른쪽 아래 1/4에 갇혀 있다. 하단 전체 폭으로 사진을 깔고 높이를 40%까지 올려 건물이 또렷하게 보이게 한다."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "정사각 지면의 대부분이 단색 남색이라 비어 보인다. 사진을 하단 50%까지 키우고 건물을 왼쪽 아래에 앵커하며, 본문 글자 크기를 1.3배 이상 키운다."
+     },
+     {
+      "spec": "300×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "하단에 건물이 잘 보인다. 일정 텍스트가 작으니 날짜를 한 단계 키운다."
+     },
+     {
+      "spec": "300×1050",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "글자가 지나치게 작아 판독이 어렵고 중단부가 비어 있다. 제목과 날짜를 2배 가까이 키워 상단 1/3을 채우고, 사진을 위로 더 올린다."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "건물이 오른쪽에 잘 들어왔다. 날짜 글자가 작으니 한 단계 키우고 제목과의 줄간격을 줄인다."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "가로형·정사각 규격에서 사진이 오른쪽 아래 구석으로 밀려 단색 남색 면이 지면 대부분을 차지함 — 주인공 없는 풍경 사진을 장식 요소로 보고 최소 크기로 배치한 탓으로 추정",
+     "1200×600 등 일부 규격에서 병원 건물이 빠지고 아파트·불빛 조각만 남음 — 크롭 기준을 밝은 영역(불빛)에 맞춘 탓으로 추정",
+     "1080×1080·300×1050에서 본문 글자가 지면 대비 너무 작음 — 텍스트 스케일을 짧은 변 기준으로 고정한 규칙 탓으로 추정"
+    ],
+    "usage": {
+     "input_tokens": 2311,
+     "output_tokens": 2148,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0522
+   }
+  },
+  {
+   "id": "midas-cablebridge",
+   "group": "사진",
+   "kvType": "photo",
+   "summary": "여백 있는 사진(하늘·벽) · 주인공 41% · 덩어리 여럿 · 가로형",
+   "aiType": "photo-roomy",
+   "rationale": "넓은 하늘과 바다 위의 사장교를 핵심으로, 하늘색 계열 지면에 그림을 자연스럽게 녹여 이었다. 모양마다 다리 핵심만 좁혀 쓰고 글자 쪽은 지면색과 스크림으로 대비를 확보했다.",
+   "fixes": [
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0349,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "midas-cablebridge_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 29,
+       "filled": 40,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 29,
+       "filled": 40,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "midas-cablebridge_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 15,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 15,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "midas-cablebridge_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 21,
+       "filled": 33,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 69,
+       "subject": 50,
+       "filled": 61,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "midas-cablebridge_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 27,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 33,
+       "subject": 21,
+       "filled": 33,
+       "overlap": 1.7,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "midas-cablebridge_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 27,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 62,
+       "subject": 49,
+       "filled": 63,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "midas-cablebridge_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 20,
+       "subject": 35,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 21,
+       "subject": 35,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "midas-cablebridge_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 31,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 31,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "midas-cablebridge_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 23,
+       "subject": 36,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.51,
+       "fieldSrc": "kv-vivid-photo"
+      }
+     },
+     "C": {
+      "png": "midas-cablebridge_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 20,
+       "subject": 36,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.41,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "midas-cablebridge_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "오른쪽 끝에 주탑 하나의 일부와 교각만 걸려 어색합니다. 키비주얼을 30% 정도 키우고 왼쪽으로 당겨 주탑 2개와 응력 컬러 케이블이 온전히 보이게 하세요."
+     },
+     {
+      "spec": "1250×560",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "다리가 오른쪽 아래 구석에 작게 잘려 있고 나머지 2/3는 단색 회청색이라 비어 보입니다. 키비주얼을 지면 높이만큼 키워 오른쪽 절반에 배치하고, 본문 회색 텍스트는 진한 네이비(#1E2A3A 수준)로 바꾸세요."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "주탑 2개와 바다가 자연스럽게 이어져 가장 좋습니다. 다만 '~10.31(토)'의 회색이 바다 톤에 묻히니 한 단계 진하게 하고, 로고 아래 하늘 경계가 살짝 보이는 부분만 그라데이션으로 다듬으세요."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "주탑 상단과 다리 왼쪽이 잘린 채 구석에 몰려 있습니다. 키비주얼을 키우고 위로 올려 주탑 꼭대기가 보이게 하고, 날짜 텍스트 대비를 높이세요."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "다리가 하단 띠처럼만 보이고 위쪽 절반이 단색이라 비어 보입니다. 키비주얼을 지면 하단 55~60%까지 키워 주탑이 텍스트 블록 아래까지 올라오게 하고, 작은 직무·기간 텍스트는 키우면서 진한 색으로 바꾸세요."
+     },
+     {
+      "spec": "300×600",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "주탑 일부만 하단에 작게 걸려 있고 텍스트도 작고 흐립니다. 주탑 하나를 세로로 크게 크롭해 하단 절반을 채우고, 헤드라인은 최소 2배로 키워 진한 색으로 바꾸세요."
+     },
+     {
+      "spec": "300×1050",
+      "score": 1,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "텍스트가 판독 불가 수준으로 작고, 다리 조각도 하단 구석에만 있습니다. 헤드라인을 폭의 80%까지 키우고, 주탑 하나를 세로로 크롭해 하단 40%를 채우는 레이아웃으로 다시 짜세요."
+     },
+     {
+      "spec": "320×100",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "awkward",
+      "bg": "ok",
+      "text": "low_contrast",
+      "notes": "작은 지면인데 회색 텍스트가 회청색 배경에 묻힙니다. 헤드라인을 진한 네이비나 흰색으로 바꾸고, 다리는 주탑 하나와 컬러 케이블이 또렷이 보이도록 확대 크롭하세요."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "작은 규격과 세로형(300×600, 300×1050, 1080×1080)에서 텍스트가 너무 작고, 진회색 글자가 중간 톤 회청색 배경에 묻혀 안 읽힘. 원인 추정: 배경을 사진 바다색에 맞춰 톤을 낮췄지만 텍스트 색은 대비 검증 없이 고정한 것.",
+     "가로형 1개(970×250)를 빼면 키비주얼이 오른쪽 아래 구석으로 밀려 작게 잘리고 지면 대부분이 단색으로 비어 보임. 원인 추정: 주인공(41%) 기준 크롭 대신 원본 비율을 유지한 채 축소하고 구석에 앵커링한 것.",
+     "주탑 2개와 응력 컬러 케이블이라는 핵심 피사체가 대부분의 규격에서 잘려, 한 탑의 조각만 남음. 원인 추정: 덩어리가 여럿인 가로형 피사체를 하나의 바운딩 박스로 처리해 세로·정사각 지면에서 우선순위 크롭(주탑 1개)을 하지 않은 것."
+    ],
+    "usage": {
+     "input_tokens": 2369,
+     "output_tokens": 2347,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0564
+   }
+  },
+  {
+   "id": "t1014-dongsuh",
+   "group": "누끼",
+   "kvType": "cutout",
+   "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+   "aiType": "cutout",
+   "rationale": "투명 배경 인물 누끼라 동서식품의 브랜드 노랑 지면 위에 인물을 크게 얹고 그림 가장자리는 녹이지 않았다. 모양마다 글자 반대쪽에 인물을 두고 얼굴과 스틱이 잘리지 않게 했으며 빛 번짐으로 지면을 채웠다.",
+   "fixes": [
+    "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "wide: 그림 상자를 그림 비율에 맞춤",
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0344,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-dongsuh_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 19,
+       "filled": 33,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 27,
+       "subject": 11,
+       "filled": 24,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-dongsuh_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 5,
+       "filled": 23,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 31,
+       "subject": 13,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 12,
+       "subject": 9,
+       "filled": 18,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 27,
+       "subject": 11,
+       "filled": 20,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 33,
+       "subject": 21,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 17,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-dongsuh_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 10,
+       "filled": 33,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 13,
+       "filled": 37,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 55,
+       "subject": 21,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 51,
+       "subject": 43,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-dongsuh_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 14,
+       "filled": 32,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 50,
+       "subject": 36,
+       "filled": 53,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-dongsuh_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 19,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 10.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-dongsuh_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 58,
+       "subject": 16,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 12.79,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-dongsuh_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "인물이 가운데 쪽으로 붙어 오른쪽 여백이 남으니 인물을 오른쪽으로 약 60px 옮기고 높이를 5% 키우면 균형이 맞습니다. 좌상단 로고도 1.3배로 키워 주세요."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "텍스트 블록과 인물 사이 중앙이 비어 보이니 인물을 10% 키워 왼쪽으로 당기세요. 좌하단에 따로 떨어진 로고는 타이틀 위로 올려 정렬을 맞춰 주세요."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "인물을 가슴선에서 자른 것은 적절합니다. 다만 타이틀과 인물 사이 중앙 공백이 크니 인물을 왼쪽으로 약 80px 당기거나 타이틀 크기를 10% 키우세요."
+     },
+     {
+      "spec": "580×400",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "구성은 안정적입니다. 우상단 로고가 너무 작아 브랜드가 약하니 1.5배로 키우고 타이틀 상단선에 맞춰 정렬하세요."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "인물이 하단 1/3에 작게 깔려 노란 면이 비어 보입니다. 인물을 1.4배 키워 하단 절반 이상을 채우고, 직무 안내 문구는 2pt 이상 키워 가독성을 확보하세요."
+     },
+     {
+      "spec": "300×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "날짜 바로 아래에 머리가 붙어 답답하니 인물을 20px 내려 간격을 확보하세요. 로고는 키워 중앙 정렬로 바꾸세요."
+     },
+     {
+      "spec": "300×1050",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "low_contrast",
+      "notes": "폭이 좁은 지면에 직무 안내 본문까지 넣어 글자가 너무 작아 읽히지 않습니다. 본문을 빼고 타이틀과 날짜만 1.5배로 키우세요. 인물 머리와 텍스트 사이에도 여백을 더 두세요."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "정수리가 상단 끝에 거의 닿으니 인물을 5px 내리거나 3% 줄여 머리 위에 숨 쉴 공간을 주세요."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "1080×1080에서 인물이 하단에 작게 배치되어 노란 면이 단조롭게 비어 보임 — 정사각 규격에서 텍스트 블록에 높이를 먼저 할당하고 인물은 남은 영역에 맞춰 축소한 규칙 탓으로 추정",
+     "300×1050에서 직무 안내 본문까지 유지해 글자가 판독 불가 수준으로 작아짐 — 좁은 폭 규격에서 정보 위계(본문 생략)를 판단하지 않고 모든 텍스트 요소를 그대로 축소 배치한 것으로 추정",
+     "전 규격에서 로고가 지나치게 작고 위치가 규격마다 달라 브랜드 노출이 약함(1250×560은 좌하단으로 따로 떨어짐) — 로고 최소 크기 규칙과 정렬 기준이 없는 것으로 추정"
+    ],
+    "usage": {
+     "input_tokens": 2296,
+     "output_tokens": 2530,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0598
+   }
+  },
+  {
+   "id": "t1014-jeil",
+   "group": "누끼",
+   "kvType": "cutout",
+   "summary": "단일 사물 누끼 · 가로형",
+   "aiType": "cutout-scene",
+   "rationale": "브랜드 파랑 지면에 JEIL 3D 일러스트 누끼를 크게 얹어, 글자는 반대쪽에 두고 빛 번짐 도형으로 지면을 채운다. 모든 모양에 같은 파랑 그라데이션을 써 캠페인 일관성을 유지하고 얼굴은 자르지 않는다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 얼굴이 걸쳐 잘려 통째로 넣음",
+    "square: 그림 상자를 그림 비율에 맞춤",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0372,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-jeil_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 11,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 24,
+       "filled": 39,
+       "overlap": 1.7,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-jeil_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 14,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 26,
+       "filled": 40,
+       "overlap": 2,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-jeil_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 23,
+       "filled": 38,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 67,
+       "subject": 38,
+       "filled": 53,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-jeil_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 21,
+       "subject": 19,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 10,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-jeil_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 30,
+       "subject": 25,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 50,
+       "subject": 45,
+       "filled": 58,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-jeil_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 42,
+       "subject": 37,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 55,
+       "subject": 34,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-jeil_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 17,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 22,
+       "filled": 33,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-jeil_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 30,
+       "filled": 50,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.54,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-jeil_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 30,
+       "filled": 50,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 6.37,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-jeil_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "키비주얼 크기와 위치가 적절합니다. 오른쪽 트럭 끝이 가장자리에 붙어 있으니 키비주얼을 3~5% 왼쪽으로 옮겨 여백을 확보하세요."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "상단 JEIL 배지가 위 가장자리에 거의 닿아 있습니다. 키비주얼을 조금 내리거나 5% 축소해 상하 여백을 맞추세요."
+     },
+     {
+      "spec": "970×250",
+      "score": 3,
+      "kvWeight": "too_big",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "높이에 비해 키비주얼을 키워서 위 JEIL 배지와 공장, 아래 실험실 인물이 잘립니다. 높이 기준 90% 안으로 축소해 전체가 들어오게 하세요."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "키비주얼이 오른쪽 아래 구석에 작게 박혀 있고 아래 끝이 잘립니다. 오른쪽 하단 빈 영역을 채우도록 약 1.5배 키우고 바닥에서 띄우세요."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "키비주얼 아래 실험실 부분이 바닥에서 잘리고 'ETC 영업' 문구가 배지에 바짝 붙어 있습니다. 키비주얼을 약간 축소해 하단 여백을 두고 텍스트와 간격을 벌리세요."
+     },
+     {
+      "spec": "300×600",
+      "score": 3,
+      "kvWeight": "too_big",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "키비주얼이 폭을 넘어 오른쪽 공장과 트럭, 하단이 잘립니다. 폭 기준으로 맞춰 축소하고 JEIL 글자를 가운데 두세요."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "하단에 'JE' 조각만 남고 중간 지면이 비어 보입니다. 키비주얼 전체가 폭 안에 들어오게 축소해 중하단 중앙에 배치하고 텍스트 크기를 키우세요."
+     },
+     {
+      "spec": "320×100",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "JEIL 글자 윗부분과 오른쪽이 잘립니다. 높이에 맞춰 키비주얼을 축소해 글자 전체가 보이게 하세요."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "세로로 극단적인 규격(300×1050, 300×600)에서 키비주얼을 폭보다 크게 키워 주인공이 잘리거나 조각만 남음: 확대 비율을 높이 기준으로 잡고 폭 제한을 두지 않은 것으로 추정됨",
+     "가로로 낮은 배너(970×250, 320×100)에서 키비주얼이 위아래로 넘쳐 배지와 하단 인물이 잘림: 비중을 키우려다 안전 영역 검사를 빠뜨린 것으로 추정됨",
+     "580×400은 A와 같이 작은 구석 배치에 머물러 지면이 비어 보임: AI 판단이 이 규격에는 적용되지 않은 것으로 보임"
+    ],
+    "usage": {
+     "input_tokens": 2387,
+     "output_tokens": 2061,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0508
+   }
+  },
+  {
+   "id": "t1014-bionote-dog",
+   "group": "누끼",
+   "kvType": "cutout",
+   "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+   "aiType": "cutout-character",
+   "rationale": "투명 배경 강아지 누끼라 브랜드 블루 지면 위에 얼굴이 잘리지 않게 크게 올려 친근한 인상을 줍니다. 지면은 캠페인 공통 파랑 그라데이션에 밝은 빛 번짐을 더해 단조롭지 않게 했습니다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0364,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-bionote-dog_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 24,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 35,
+       "subject": 11,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-bionote-dog_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 12,
+       "subject": 8,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 35,
+       "subject": 11,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-bionote-dog_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 13,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 29,
+       "subject": 13,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-bionote-dog_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 9,
+       "filled": 25,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 19,
+       "subject": 7,
+       "filled": 22,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-bionote-dog_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 22,
+       "subject": 15,
+       "filled": 38,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 23,
+       "subject": 18,
+       "filled": 41,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-bionote-dog_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 52,
+       "subject": 26,
+       "filled": 38,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 68,
+       "subject": 49,
+       "filled": 61,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-bionote-dog_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 21,
+       "filled": 38,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 26,
+       "subject": 12,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-bionote-dog_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 25,
+       "filled": 44,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.76,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "t1014-bionote-dog_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 43,
+       "subject": 23,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 4.38,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-bionote-dog_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "개가 하단에서 앞발 일부가 잘리니 스케일을 5% 정도 줄이거나 위로 올려 앞발 끝까지 보이게 정리할 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 3,
+      "kvWeight": "too_big",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "overlap",
+      "notes": "헤드라인 '바이오노트' 끝이 개 귀에 닿으니 개를 오른쪽으로 40~60px 밀고 정수리 위 여백을 확보할 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "정수리가 상단에 거의 붙어 있으니 상단에 10px 이상 여백을 두도록 개를 살짝 내리거나 축소할 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "개가 우측 끝에 작게 붙어 몸이 잘리니 1.3배 키워 우하단에 앉히고 몸 전체가 보이게 배치할 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "본문 서브카피가 작아 모바일 가독성이 떨어지니 모집 직무 줄을 1.3배 키울 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "overlap",
+      "notes": "마감일 '~11.27(일)'이 개 정수리와 맞닿으니 개를 20px 내리거나 텍스트 블록을 위로 올려 간격을 띄울 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "개가 바닥에 작게 놓이고 중간이 텅 비었으니 개를 폭 가득 2배 키워 하단 40%를 채우고 텍스트도 키울 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "개 얼굴이 우측 상단에 바짝 붙으니 살짝 축소해 상하 여백을 균등하게 맞출 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "세로 극단 규격(300×1050)에서 키비주얼이 작은 고정 스케일로 바닥에 붙어 중간이 비어 보임. 극단 비율에 대한 확대 규칙이 없는 것으로 추정됨",
+     "1250×560·300×600에서 개를 키우면서 텍스트 안전 영역과의 충돌 검사가 빠져 헤드라인과 날짜가 개 머리에 닿음",
+     "580×400에서 개가 우측 가장자리에 작게 걸려 몸이 잘림. 확대 판단이 이 규격에만 적용되지 않은 것으로 보임"
+    ],
+    "usage": {
+     "input_tokens": 2363,
+     "output_tokens": 1665,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0428
+   }
+  },
+  {
+   "id": "abl-group",
+   "group": "누끼",
+   "kvType": "cutout",
+   "summary": "여러 오브젝트·캐릭터 떼+장면·건물 누끼(아이소메트릭) · 덩어리 여럿 · 가로형",
+   "aiType": "cutout-character",
+   "rationale": "밝은 캐릭터 누끼는 브랜드 파랑 지면 위에서 선명하게 살아나며, 모양마다 얼굴을 통째로 살리는 범위만 잘라 크게 쓴다. 배경에는 부드러운 빛 번짐만 더해 지면이 비어 보이지 않게 했다.",
+   "fixes": [
+    "wide: 그림 상자를 그림 비율에 맞춤",
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "square: 그림 상자를 그림 비율에 맞춤",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 얼굴이 걸쳐 잘려 통째로 넣음"
+   ],
+   "judgeCost": 0.0335,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "abl-group_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 6,
+       "filled": 23,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 24,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "abl-group_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 21,
+       "subject": 18,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 37,
+       "subject": 30,
+       "filled": 41,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "abl-group_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 21,
+       "subject": 19,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 55,
+       "subject": 36,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "abl-group_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 15,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 49,
+       "subject": 18,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "abl-group_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 19,
+       "subject": 17,
+       "filled": 37,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 33,
+       "subject": 12,
+       "filled": 32,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "abl-group_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 42,
+       "subject": 21,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 58,
+       "subject": 36,
+       "filled": 50,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "abl-group_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 8,
+       "filled": 23,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 55,
+       "subject": 53,
+       "filled": 68,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "abl-group_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 15,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.48,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "abl-group_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 16,
+       "filled": 33,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 4.01,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "abl-group_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "overlap",
+      "notes": "맨 왼쪽 노란 벌 더듬이가 날짜 '17시'에 닿습니다. 캐릭터 떼를 오른쪽 아래로 40px쯤 내리거나 90% 크기로 줄여 날짜 아래에 여백을 확보하세요."
+     },
+     {
+      "spec": "1250×560",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "overlap",
+      "notes": "노란 벌 머리와 더듬이가 '모집 직무 일반, 보훈' 줄 바로 아래에 붙어 답답합니다. 캐릭터 떼를 오른쪽으로 옮기고 살짝 줄여 텍스트 블록과 20px 이상 띄우세요. 하단 MIDAS 로고와 벌 사이 간격도 함께 넓히세요."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "비중과 배치는 좋습니다. 캐릭터 발끝이 하단에서 잘리므로 5~8% 축소해 발까지 보이게 하거나, 의도된 하단 블리드라면 모두 같은 높이로 잘리게 맞추세요."
+     },
+     {
+      "spec": "580×400",
+      "score": 2,
+      "kvWeight": "too_big",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "overlap",
+      "notes": "노란 벌 더듬이가 날짜 '6.20(금)'을 가리고, 오른쪽 파란 곰은 우측 끝에서 잘립니다. 캐릭터 떼를 80% 정도로 줄여 날짜 아래 영역에 넣고 곰 전체가 보이게 좌우를 재배치하세요."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "캐릭터가 하단에 작게 깔려 있어 화면 중앙이 비어 보입니다. 캐릭터 떼를 1.5배 이상 키워 하단 1/2를 채우고, 텍스트 블록과 시각적 균형을 맞추세요."
+     },
+     {
+      "spec": "300×600",
+      "score": 2,
+      "kvWeight": "ok",
+      "crop": "awkward",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "파란 곰과 병아리 위주의 조각만 보여 캐릭터 '떼'라는 정체성이 사라졌습니다. 떼를 2단으로 재배치하거나 대표 캐릭터 2~3마리(노란 벌·핑크 벌·곰)를 의도적으로 골라 온전한 모습으로 넣으세요."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "ok",
+      "crop": "awkward",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "하단에 곰과 병아리 조각만 있고 상단 텍스트는 너무 작아 읽히지 않습니다. 헤드라인을 2배 이상 키우고, 캐릭터를 세로로 쌓아 중하단 전체를 채우세요."
+     },
+     {
+      "spec": "320×100",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "핑크 벌·병아리·곰만 보이고 노란 벌 등 나머지는 잘렸습니다. 다섯 마리가 모두 보이게 축소해 우측에 일렬로 넣거나, 대표 캐릭터 3마리를 온전하게 골라 배치하세요."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "가로형 규격(1200×600, 1250×560, 580×400)에서 캐릭터를 키우면서 텍스트 하단과의 안전 여백 계산이 빠져 더듬이·머리가 날짜·카피와 겹침",
+     "세로형(300×600, 300×1050)은 가로로 긴 캐릭터 떼를 비율대로 크롭해 곰·병아리 조각만 남음. 떼를 재배치하거나 대표 캐릭터를 고르는 로직이 없음",
+     "1080×1080은 키비주얼 스케일을 폭 기준으로 잡아 정사각형에서 캐릭터가 너무 작고 중앙이 비어 보임"
+    ],
+    "usage": {
+     "input_tokens": 2267,
+     "output_tokens": 2066,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0504
+   }
+  },
+  {
+   "id": "midas-folder-blue",
+   "group": "누끼",
+   "kvType": "cutout",
+   "summary": "단일 사물 누끼 · 정사각형",
+   "aiType": "cutout-object",
+   "rationale": "투명 배경의 파란 3D 폴더 아이콘이라 누끼 오브젝트로 보고, 브랜드 블루 계열의 중간 톤 지면에 흰 글자를 올려 대비를 만들었다. 모양마다 폴더 핵심을 크게 쓰고 글자 쪽은 빛 번짐 도형으로 차분하게 채웠다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: 그림 상자를 그림 비율에 맞춤",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0368,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "midas-folder-blue_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 15,
+       "filled": 26,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 30,
+       "subject": 16,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "midas-folder-blue_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 13,
+       "subject": 11,
+       "filled": 23,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 36,
+       "subject": 29,
+       "filled": 41,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "midas-folder-blue_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 23,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 55,
+       "subject": 33,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "midas-folder-blue_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 20,
+       "subject": 16,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 6,
+       "filled": 17,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "midas-folder-blue_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 22,
+       "filled": 36,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 51,
+       "subject": 16,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "midas-folder-blue_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 42,
+       "subject": 36,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 50,
+       "subject": 40,
+       "filled": 49,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "midas-folder-blue_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 24,
+       "subject": 22,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 24,
+       "subject": 22,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "midas-folder-blue_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 32,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 6.44,
+       "fieldSrc": "kv-vivid"
+      }
+     },
+     "C": {
+      "png": "midas-folder-blue_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 40,
+       "subject": 32,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.75,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "midas-folder-blue_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "아이콘이 우측 가장자리에 붙어 있으니 오른쪽 여백을 40px 정도 확보하고, 크기를 10% 키워 카피와 무게를 맞출 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "타일 오른쪽 모서리가 프레임에 거의 닿으니 좌측으로 30px 옮겨 여백을 확보하고, 하단 로고와 본문 사이 빈 공간을 줄일 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "타일 위아래가 잘리는 것은 허용 범위이나 폴더 상단이 프레임에 바짝 붙어 있으니 아이콘을 5~10% 줄이고 세로 중앙에 맞출 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "awkward",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "타일이 우하단 모서리에서 잘려 조각처럼 보이니 아이콘을 프레임 안으로 끌어올려 타일 전체가 보이게 배치할 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 2,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "폴더 하단이 프레임 밖으로 잘리고 카피와 아이콘 사이 중앙이 비어 있으니 아이콘을 카피 아래 중앙에 전체가 보이도록 올리고 정사각 지면의 40% 크기로 키울 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 2,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "폴더가 하단·우측에서 잘리니 아이콘을 폭의 75% 크기로 가로 중앙에 두고 하단 여백 안에 전체가 들어오게 배치할 것(A처럼)."
+     },
+     {
+      "spec": "300×1050",
+      "score": 1,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "카피가 너무 작아 읽히지 않고 중간이 텅 비어 있으니 헤드라인을 폭에 맞춰 2~3배 키우고 아이콘을 폭의 80% 크기로 세로 중앙부에 배치할 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "날짜 글자가 모바일에서 작으니 한 단계 키우고, 아이콘 우측 여백을 조금 더 줄 것."
+     }
+    ],
+    "better": "same",
+    "top_issues": [
+     "정사각·세로형(1080×1080, 300×600)에서 C가 아이콘을 키우면서 하단 기준으로 앵커해 폴더 본체가 잘림. 확대율과 위치를 정할 때 '피사체 전체 보존' 제약이 빠진 것으로 추정됨.",
+     "300×1050이 A·C 모두 카피와 아이콘을 원본 비율로만 축소해 글자가 판독 불가하고 지면 중앙이 비어 있음. 극단적 세로비에 맞는 별도 레이아웃 규칙이 없는 것이 원인으로 보임.",
+     "가로형에서는 C가 키비주얼 비중과 배경 그라데이션을 개선했지만, 프레임 가장자리 여백(safe margin) 처리가 일관되지 않아 타일이 모서리에 붙거나 조각나 보임."
+    ],
+    "usage": {
+     "input_tokens": 2455,
+     "output_tokens": 2353,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0569
+   }
+  },
+  {
+   "id": "t1014-gs2025",
+   "group": "오브젝트·일러스트",
+   "kvType": "illust",
+   "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 39% · 정사각형",
+   "aiType": "illust-scene",
+   "rationale": "하늘색 단색 바탕에 인물과 확성기가 하단에 모여 있어서, 모든 모양에서 장면을 아래 또는 오른쪽에 두고 하늘색 지면으로 자연스럽게 녹이도록 했다. 글자 영역은 하늘색 그라데이션과 부드러운 빛 번짐으로 차분하게 채워 가독성과 단조로움 방지를 함께 노렸다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0398,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-gs2025_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 28,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 18,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-gs2025_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 16,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 55,
+       "subject": 28,
+       "filled": 40,
+       "overlap": 1.8,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-gs2025_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 24,
+       "filled": 39,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 47,
+       "filled": 62,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-gs2025_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 19,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 19,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-gs2025_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 10,
+       "subject": 31,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 56,
+       "subject": 38,
+       "filled": 58,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-gs2025_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 38,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 63,
+       "subject": 54,
+       "filled": 67,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-gs2025_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 28,
+       "subject": 31,
+       "filled": 46,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 31,
+       "filled": 46,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-gs2025_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 36,
+       "filled": 52,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.67,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-gs2025_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 36,
+       "subject": 26,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 17.67,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-gs2025_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "우하단 일러스트를 약 1.3배 키우고 오른쪽 끝에 붙여 우상단의 빈 하늘을 줄이세요. 폰 화면까지 보이도록 위로 올리면 오른쪽 절반이 채워집니다."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "반투명하게 흐려진 걷는 남자를 불투명하게 살리거나 아예 빼서 유령처럼 보이지 않게 하세요. 일러스트 전체를 약간 키워 하단 빈 곳을 채우세요."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "우상단 로고가 폰 프레임 위에 얹혀 있으니 로고를 좌상단으로 옮기거나 폰과 간격을 두세요. 걷는 남자와 '17시' 사이 여백도 조금 더 확보하세요."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "seam",
+      "text": "ok",
+      "notes": "오른쪽 진한 그라데이션 띠가 경계처럼 보이니 바탕색과 맞춰 없애세요. 인물 그룹을 1.3배 키워 하단 우측을 채우세요."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "상단 텍스트 블록이 지면 대비 작으니 제목을 1.3배 키우세요. 일러스트를 조금 위로 올려 중간 빈 하늘을 줄이세요."
+     },
+     {
+      "spec": "300×600",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "메가폰만 크게 남고 인물들이 오른쪽에서 잘립니다. 크롭 기준을 앉은 남자와 여자로 옮겨 인물이 화면 안에 들어오게 하세요."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "상단 텍스트가 너무 작아 읽히지 않으니 제목을 2배 이상 키우세요. 하단에 메가폰 조각만 남지 않도록 인물 그룹을 세로 중앙 하단에 크게 배치해 빈 중간을 채우세요."
+     },
+     {
+      "spec": "320×100",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "awkward",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "오른쪽에 잘린 메가폰만 보입니다. 메가폰과 앉은 남자가 함께 보이도록 크롭을 왼쪽으로 옮기거나 일러스트를 축소하세요."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "세로형(300×600, 300×1050)과 초소형(320×100)에서 크롭이 가장 큰 오브젝트인 메가폰에 맞춰져 인물이 잘리거나 빠짐. 크롭 앵커가 인물 그룹이 아닌 면적 기준으로 잡힌 것으로 추정됩니다.",
+     "가로형(1200×600, 580×400)에서 키비주얼이 우하단에 작게 들어가 지면 우상단이 비어 보임. 배경형이라 바탕 확장에 기대고 오브젝트를 키우지 않은 것으로 추정됩니다.",
+     "300×1050은 텍스트 스케일이 폭 기준으로만 계산돼 제목이 판독 불가 수준으로 작고 중간이 텅 빔. 세로 길이를 반영한 타이포 스케일 규칙이 없는 것으로 추정됩니다."
+    ],
+    "usage": {
+     "input_tokens": 2590,
+     "output_tokens": 2235,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0551
+   }
+  },
+  {
+   "id": "t1014-lt-v2",
+   "group": "오브젝트·일러스트",
+   "kvType": "illust",
+   "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+   "aiType": "illust-grad-bg",
+   "rationale": "짙은 남색 그라데이션 배경에 빛나는 칩이 있어 배경색을 지면으로 그대로 이어 칠하고 칩은 크게 쓴다. 칩 중심은 보존하고 글자 쪽은 어둡고 차분하게 비워 흰 글자 대비를 확보한다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0344,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-lt-v2_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 8,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 7,
+       "subject": 8,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-lt-v2_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 1,
+       "subject": 11,
+       "filled": 28,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 16,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 15,
+       "filled": 24,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 40,
+       "filled": 48,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 13,
+       "subject": 13,
+       "filled": 21,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 33,
+       "subject": 16,
+       "filled": 25,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-lt-v2_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 20,
+       "subject": 19,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 14,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 5,
+       "subject": 27,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 70,
+       "subject": 35,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-lt-v2_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 2,
+       "subject": 12,
+       "filled": 25,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 45,
+       "subject": 21,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-lt-v2_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 22,
+       "subject": 20,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 17.87,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-lt-v2_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 37,
+       "subject": 30,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 17.48,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-lt-v2_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "우하단 칩이 A와 같은 크기로 작아 오른쪽 절반이 비어 보이므로, 칩을 지면 높이의 80% 정도로 키워 오른쪽 40% 영역에 배치하세요."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "칩 오른쪽 끝이 지면 가장자리에 살짝 잘리니, 칩을 왼쪽으로 30~40px 당겨 칩 윤곽이 온전히 들어오게 하세요."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "우상단 로고가 밝은 회로선 위에 얹혀 존재감이 약하니, 로고 뒤를 어둡게 눌러 주거나 칩을 아래로 조금 내려 로고 주변을 비워 주세요."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "칩이 오른쪽 가장자리에 반쯤 잘려 조각만 보이므로, 칩을 축소하고 왼쪽으로 옮겨 칩 전체가 오른쪽 하단에 들어오게 하세요."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "칩 하단이 지면 밖으로 잘리니, 칩을 10% 정도 축소하거나 위로 올려 아래 꼭짓점까지 보이게 하세요."
+     },
+     {
+      "spec": "300×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "칩 좌우가 잘려 꽉 차 보이니, 칩을 살짝 줄여 양옆에 여백을 주고 텍스트 블록과의 간격을 확보하세요."
+     },
+     {
+      "spec": "300×1050",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "상단 텍스트가 너무 작고 중간이 비어 보이며 칩 좌우가 잘리니, 텍스트를 1.5배 키우고 칩은 폭에 맞게 축소해 중하단에 배치하세요."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "칩이 오른쪽 끝에 일부 잘리니, 칩을 약간 축소해 우측 여백 안에 완전히 넣으세요."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "1200×600은 키비주얼 비중 조정이 적용되지 않아 A처럼 칩이 작고 지면이 비어 보입니다. 이 규격만 축소 배치 규칙이 그대로 남은 것으로 추정됩니다.",
+     "580×400·1080×1080·300×1050에서 칩이 지면 가장자리에 잘립니다. 확대 후 가장자리 정렬로 크롭해 주인공이 잘린 것으로 추정됩니다.",
+     "300×1050은 텍스트가 지나치게 작고 중간 여백이 큽니다. 세로 초장형 레이아웃에서 텍스트 스케일 규칙이 부족한 것으로 추정됩니다."
+    ],
+    "usage": {
+     "input_tokens": 2420,
+     "output_tokens": 1986,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0494
+   }
+  },
+  {
+   "id": "midas-faces-3d",
+   "group": "오브젝트·일러스트",
+   "kvType": "illust",
+   "summary": "그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 37% · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+   "aiType": "illust-character",
+   "rationale": "하늘색 그라데이션 바탕의 3D 캐릭터 일러스트라 같은 파랑 계열 지면으로 이어 칠하고 인물 얼굴은 통째로 보존했다. 모양마다 인물 세 명을 크게 쓰고 글자 쪽은 녹여 대비를 확보했다.",
+   "fixes": [
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tall: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0343,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "midas-faces-3d_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 5,
+       "filled": 20,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 21,
+       "filled": 36,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "midas-faces-3d_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 4,
+       "subject": 6,
+       "filled": 15,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 22,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "midas-faces-3d_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 8,
+       "filled": 23,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 39,
+       "subject": 19,
+       "filled": 33,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "midas-faces-3d_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 12,
+       "subject": 8,
+       "filled": 22,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 10,
+       "subject": 8,
+       "filled": 22,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "midas-faces-3d_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 19,
+       "subject": 11,
+       "filled": 22,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 51,
+       "subject": 32,
+       "filled": 42,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "midas-faces-3d_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 19,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 0,
+       "subject": 19,
+       "filled": 31,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "midas-faces-3d_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 5,
+       "subject": 8,
+       "filled": 16,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 38,
+       "subject": 7,
+       "filled": 15,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "midas-faces-3d_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 29,
+       "subject": 18,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 2.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "midas-faces-3d_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 13,
+       "filled": 29,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 8.42,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "midas-faces-3d_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "상단 머니 카드 윗부분이 경계에 바짝 붙어 있으니 KV를 5% 정도 줄이고 아래로 내려 위쪽 여백을 확보할 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "하단 캐릭터의 폰 든 손이 프레임에 잘리므로 KV를 위로 30px 정도 올려 손까지 다 보이게 할 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 3,
+      "kvWeight": "too_big",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "높이를 꽉 채워 위 카드와 아래 폰·손이 잘리므로, KV를 높이의 85% 수준으로 줄여 머리부터 폰까지 다 보이게 하고 카드 일부만 살릴 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "KV가 우하단에 작게 박혀 오른쪽 중앙이 비어 보이므로, 텍스트 블록 오른쪽 영역 높이의 70%까지 KV를 키워 우측에 배치할 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "상단 텍스트와 하단 KV 사이 중앙이 비고 캐릭터 손이 하단에서 잘리므로, KV를 폭 80%로 키워 중앙 하단에 두고 텍스트를 한 단계 키울 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "텍스트가 너무 작아 읽기 어렵고 KV는 하단에서 잘리므로, 제목을 1.5배 키우고 KV를 폭 전체로 키워 하단 여백 안쪽에 올릴 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "글자와 KV가 모두 극소형이라 세로 중앙 600px이 비어 있으므로, 제목을 폭 기준으로 크게 키우고 KV를 폭 100%로 키워 중앙~하단에 배치할 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "KV가 우측에 적정하나 위쪽 카드가 조금 잘리므로, 캐릭터 3명 위주로 크롭해 얼굴을 조금 더 키울 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "세로·정사각 규격(1080×1080, 300×600, 300×1050)에서 KV가 하단에 작게 고정되어 중앙이 비어 보임 — 폭 기준 축소 규칙이 C에서도 그대로 적용되어 판단이 반영되지 않은 것으로 추정",
+     "970×250에서 KV를 높이에 꽉 맞춰 확대해 카드 상단과 폰·손이 잘림 — 높이 대비 피사체 bbox 여백 계산이 빠진 것으로 추정",
+     "소형 세로 규격의 텍스트가 최소 크기 하한 없이 축소되어 판독이 어려움"
+    ],
+    "usage": {
+     "input_tokens": 2446,
+     "output_tokens": 2070,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0512
+   }
+  },
+  {
+   "id": "pin-15",
+   "group": "오브젝트·일러스트",
+   "kvType": "illust",
+   "summary": "배경과 엮인 장면 일러스트·3D · 세로형",
+   "aiType": null,
+   "rationale": "파랑에서 분홍·살구로 이어지는 배경을 지면으로 그대로 연장해 신호등이 지면에 붙어 보이게 했다. 신호등은 글자 반대쪽에 크게 두고 모양마다 위치를 바꿔 글자 공간을 확보했다.",
+   "fixes": [
+    "유형 「cutout-object」 이 그림 투명도(1)와 안 맞아 → 자동",
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "strip: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0331,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "pin-15_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 24,
+       "filled": 41,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 34,
+       "subject": 26,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "pin-15_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 12,
+       "filled": 23,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 33,
+       "subject": 25,
+       "filled": 37,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "pin-15_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 19,
+       "filled": 34,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 24,
+       "subject": 15,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "pin-15_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 14,
+       "filled": 30,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 17,
+       "filled": 32,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "shrink",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "pin-15_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 10,
+       "subject": 23,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 23,
+       "filled": 43,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "pin-15_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 25,
+       "subject": 40,
+       "filled": 53,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 54,
+       "subject": 33,
+       "filled": 46,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "ok",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "pin-15_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 15,
+       "subject": 35,
+       "filled": 51,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 66,
+       "subject": 52,
+       "filled": 67,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "grow",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "pin-15_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 38,
+       "filled": 54,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.37,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "pin-15_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 38,
+       "filled": 54,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 4.85,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "pin-15_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "신호등 상단이 지면 위 끝에 붙어 답답하니 키비주얼을 5~8% 내려 위쪽 여백을 확보하고, 오른쪽 아래 핑크·피치 그라데이션이 파란 지면과 이어지는 경계를 조금 더 부드럽게 풀 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "보행 신호기 박스가 오른쪽 끝에서 잘리니 키비주얼을 왼쪽으로 약 80px 옮기거나 10% 줄여 하트 신호기 전체가 들어오게 할 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "아래쪽 신호기 박스가 하단에서 일부 잘리니 키비주얼을 약간 줄여 하트 박스까지 온전히 보이게 하고, MIDAS 로고와 기둥 사이 간격을 20px 이상 띄울 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "subject_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "기둥과 신호기가 오른쪽 끝에 띠처럼 몰려 반쯤 잘리니 키비주얼을 왼쪽으로 당겨 신호기 박스 전체가 보이게 하고, 타이틀과의 간격을 유지할 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "awkward",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "하단에 신호등 머리만 조금 보이고 위쪽 파란 면이 비어 보이니 키비주얼을 1.5배 이상 키워 신호등과 하트 신호기가 하단 절반을 채우도록 다시 배치할 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "하단 신호기 박스가 아래 끝에 붙어 있으니 키비주얼을 조금 올려 하트 박스 아래에 숨 쉴 여백을 줄 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "타이틀·기간 글자가 너무 작아 읽히지 않으니 타이틀을 최소 22px 이상으로 키우고, 중간의 빈 파란 면을 줄이도록 키비주얼을 위로 확대 배치할 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "신호등이 작아 형태만 보이니 보행 신호기 박스 쪽으로 크롭해 하트가 식별되게 확대할 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "1080×1080은 A와 마찬가지로 키비주얼이 하단에 작게 잘려 들어가 상단이 텅 빔(세로형 원본을 정사각형 하단 띠에 맞추는 규칙 배치가 그대로 남은 것으로 추정)",
+     "1250×560·580×400에서 보행 신호기가 오른쪽 끝에서 잘림(키비주얼을 우측 정렬로 키우면서 안전 여백을 계산하지 않은 것으로 추정)",
+     "300×1050의 글자가 판독 불가 수준으로 작음(가로폭 기준 텍스트 스케일링에 최소 크기 하한이 없는 것으로 추정)"
+    ],
+    "usage": {
+     "input_tokens": 2349,
+     "output_tokens": 2063,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0507
+   }
+  },
+  {
+   "id": "t1014-asan-illust",
+   "group": "오브젝트·일러스트",
+   "kvType": "illust",
+   "summary": "배경과 엮인 장면 일러스트·3D · 가로형",
+   "aiType": "illust-character",
+   "rationale": "파란 단색 배경의 일러스트라 같은 파랑으로 지면을 이어 칠하고, 그림을 크게 써서 지면이 비어 보이지 않게 했다. 좁은 모양에서는 가운데 두 의사만 골라 얼굴이 잘리지 않게 크게 보이도록 했다.",
+   "fixes": [
+    "wide: 그림 상자를 그림 비율에 맞춤",
+    "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+    "square: 그림 상자를 그림 비율에 맞춤",
+    "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+    "tower: 그림 상자를 그림 비율에 맞춤",
+    "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+   ],
+   "judgeCost": 0.0338,
+   "specs": [
+    {
+     "spec": "kakao-display-pc-promo",
+     "label": "1200×600",
+     "title": "카카오톡 · 카카오 디스플레이 광고 (PC) — 홍보이미지",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-asan-illust_kakao-display-pc-promo_A.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 30,
+       "filled": 44,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_kakao-display-pc-promo_C.png",
+      "m": {
+       "kvArea": 14,
+       "subject": 30,
+       "filled": 44,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "naver-gfa-mobile-da-1250x560",
+     "label": "1250×560",
+     "title": "네이버 GFA · 모바일 DA 이미지형 1250×560 (성과형: 네이버 메인·서비스 통합 / 보장형: 브랜딩DA·M통합DA)",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-asan-illust_naver-gfa-mobile-da-1250x560_A.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 16,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_naver-gfa-mobile-da-1250x560_C.png",
+      "m": {
+       "kvArea": 9,
+       "subject": 16,
+       "filled": 27,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-970x250",
+     "label": "970×250",
+     "title": "구글 GDN · GDN 고정 배너 970×250",
+     "shape": "wide",
+     "A": {
+      "png": "t1014-asan-illust_google-gdn-970x250_A.png",
+      "m": {
+       "kvArea": 8,
+       "subject": 25,
+       "filled": 40,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_google-gdn-970x250_C.png",
+      "m": {
+       "kvArea": 53,
+       "subject": 48,
+       "filled": 63,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "free",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-580x400",
+     "label": "580×400",
+     "title": "구글 GDN · GDN 고정 배너 580×400",
+     "shape": "square",
+     "A": {
+      "png": "t1014-asan-illust_google-gdn-580x400_A.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 20,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_google-gdn-580x400_C.png",
+      "m": {
+       "kvArea": 6,
+       "subject": 20,
+       "filled": 35,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "instagram-feed-1080",
+     "label": "1080×1080",
+     "title": "인스타그램 · 인스타그램 피드 (기본형 1080×1080)",
+     "shape": "square",
+     "A": {
+      "png": "t1014-asan-illust_instagram-feed-1080_A.png",
+      "m": {
+       "kvArea": 10,
+       "subject": 33,
+       "filled": 50,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_instagram-feed-1080_C.png",
+      "m": {
+       "kvArea": 10,
+       "subject": 33,
+       "filled": 50,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x600",
+     "label": "300×600",
+     "title": "구글 GDN · GDN 고정 배너 300×600",
+     "shape": "tall",
+     "A": {
+      "png": "t1014-asan-illust_google-gdn-300x600_A.png",
+      "m": {
+       "kvArea": 32,
+       "subject": 31,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_google-gdn-300x600_C.png",
+      "m": {
+       "kvArea": 16,
+       "subject": 31,
+       "filled": 45,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "google-gdn-300x1050",
+     "label": "300×1050",
+     "title": "구글 GDN · GDN 고정 배너 300×1050",
+     "shape": "tower",
+     "A": {
+      "png": "t1014-asan-illust_google-gdn-300x1050_A.png",
+      "m": {
+       "kvArea": 28,
+       "subject": 33,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_google-gdn-300x1050_C.png",
+      "m": {
+       "kvArea": 17,
+       "subject": 33,
+       "filled": 47,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    },
+    {
+     "spec": "nap-dsp-band-320x100",
+     "label": "320×100",
+     "title": "NAP DSP (나스미디어) · 띠배너 320×100",
+     "shape": "strip",
+     "A": {
+      "png": "t1014-asan-illust_nap-dsp-band-320x100_A.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 38,
+       "filled": 58,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.27,
+       "fieldSrc": "kv-edge"
+      }
+     },
+     "C": {
+      "png": "t1014-asan-illust_nap-dsp-band-320x100_C.png",
+      "m": {
+       "kvArea": 18,
+       "subject": 38,
+       "filled": 58,
+       "overlap": 0,
+       "faceCut": 0,
+       "aiBox": "rule",
+       "contrast": 5.53,
+       "fieldSrc": "ai"
+      }
+     }
+    }
+   ],
+   "sheet": "t1014-asan-illust_sheet.jpg",
+   "critic": {
+    "specs": [
+     {
+      "spec": "1200×600",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "face_cut",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "오른쪽 끝에 안경 쓴 의사의 반쪽 얼굴만 걸려 있다. 키비주얼을 1.5배쯤 키우고 왼쪽으로 당겨 오른쪽 40% 영역에 2~3명이 온전히 들어오게 배치할 것."
+     },
+     {
+      "spec": "1250×560",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "subject_cut",
+      "bg": "seam",
+      "text": "ok",
+      "notes": "인물 두 명이 하단 중앙에 작게 페이드돼 떠 있어 경계가 뿌옇게 보인다. 그룹 전체를 오른쪽 절반에 하단 정렬로 크게 넣고 텍스트는 왼쪽 컬럼으로 분리할 것."
+     },
+     {
+      "spec": "970×250",
+      "score": 4,
+      "kvWeight": "ok",
+      "crop": "ok",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "4인 구성이 잘 살아 있다. 다만 맨 왼쪽 여성이 반투명하게 흐려져 어색하니 페이드를 줄이거나 빼고, 오른쪽 끝 여성의 잘림을 피하도록 그룹을 5%쯤 왼쪽으로 옮길 것."
+     },
+     {
+      "spec": "580×400",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "우하단 인물이 아이콘 크기라 지면 절반이 빈 파랑이다. 인물 그룹을 2배쯤 키워 하단 전폭으로 깔고 텍스트는 상단 좌측에 유지할 것."
+     },
+     {
+      "spec": "1080×1080",
+      "score": 3,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "인물이 하단 1/3에만 작게 있고 텍스트 블록도 작아 중간이 비어 보인다. 인물을 키워 하단 45%까지 올리고 헤드라인 크기를 1.5배로 키울 것."
+     },
+     {
+      "spec": "300×600",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "ok",
+      "notes": "인물 4명이 바닥에 깨알처럼 붙어 있다. 1~2명만 크게 크롭해 하단 절반을 채우고 헤드라인을 키울 것."
+     },
+     {
+      "spec": "300×1050",
+      "score": 2,
+      "kvWeight": "too_small",
+      "crop": "ok",
+      "bg": "flat",
+      "text": "low_contrast",
+      "notes": "글자가 너무 작아 읽히지 않고 인물도 바닥에 작게 붙어 있다. 헤드라인을 최소 28px 이상으로 키우고 인물 1~2명을 세로로 크게 크롭해 하단 40%를 채울 것."
+     },
+     {
+      "spec": "320×100",
+      "score": 3,
+      "kvWeight": "ok",
+      "crop": "face_cut",
+      "bg": "ok",
+      "text": "ok",
+      "notes": "오른쪽 인물들이 가장자리와 상단에서 얼굴이 잘린다. 안경 쓴 의사 한 명의 얼굴이 온전히 보이도록 크롭 중심을 맞추고 조금 축소할 것."
+     }
+    ],
+    "better": "C",
+    "top_issues": [
+     "대부분 규격에서 키비주얼이 너무 작고 하단 구석에 몰려 지면이 비어 보인다. 원본 그룹 전체를 contain 방식으로 축소 배치해서 생긴 것으로 보이며, C도 970×250 말고는 A와 차이가 없다.",
+     "1200×600과 320×100에서 인물 얼굴이 가장자리에 반쪽만 걸린다. 크롭 기준이 인물 얼굴이 아니라 이미지 가장자리에 맞춰진 것으로 추정된다.",
+     "1250×560 등에서 인물을 페이드 마스크로 처리해 경계가 뿌옇다. 텍스트 대비를 확보하려고 넣은 그라디언트가 일러스트 자체를 흐리게 만든 것으로 보인다."
+    ],
+    "usage": {
+     "input_tokens": 2309,
+     "output_tokens": 2095,
+     "cache_read_input_tokens": 0,
+     "cache_creation_input_tokens": 0
+    },
+    "cost": 0.0511
+   }
+  }
+ ],
+ "cost": {
+  "judge": 0.5242,
+  "critic": 0.794
+ },
+ "summary": {
+  "autoScore": 2.95,
+  "kvAreaAvg": 34.175,
+  "avgScore": 3.175,
+  "byGroup": {
+   "사진": {
+    "avg": 3.125,
+    "better": {
+     "A": 0,
+     "C": 5,
+     "same": 0
+    }
+   },
+   "누끼": {
+    "avg": 3.2,
+    "better": {
+     "A": 0,
+     "C": 4,
+     "same": 1
+    }
+   },
+   "오브젝트·일러스트": {
+    "avg": 3.2,
+    "better": {
+     "A": 0,
+     "C": 5,
+     "same": 0
+    }
+   }
+  },
+  "issues": [
+   [
+    "bg:flat",
+    46
+   ],
+   [
+    "kvWeight:too_small",
+    45
+   ],
+   [
+    "crop:subject_cut",
+    34
+   ],
+   [
+    "text:low_contrast",
+    16
+   ],
+   [
+    "crop:awkward",
+    12
+   ],
+   [
+    "kvWeight:too_big",
+    5
+   ],
+   [
+    "text:overlap",
+    5
+   ],
+   [
+    "bg:seam",
+    2
+   ],
+   [
+    "crop:face_cut",
+    2
+   ],
+   [
+    "bg:busy",
+    1
+   ]
+  ],
+  "aiBox": {
+   "rule": 40,
+   "free": 14,
+   "shrink": 43,
+   "grow": 14,
+   "ok": 9
+  },
+  "faceCut": 0,
+  "cost": 1.318
+ }
+}

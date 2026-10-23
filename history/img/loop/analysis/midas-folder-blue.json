@@ -3,10 +3,10 @@
   "kv": {
    "type": "cutout-object",
    "subject": {
-    "x": 40,
+    "x": 35,
     "y": 40,
-    "w": 1190,
-    "h": 980
+    "w": 1195,
+    "h": 1000
    },
    "keep": [
     {
@@ -27,12 +27,12 @@
    "mood": {
     "tone": "light",
     "colors": [
-     "#A8B3CF",
      "#355BD4",
+     "#A8B3CF",
      "#6273A4"
     ]
    },
-   "note": "투명 배경 3D 폴더 아이콘. 회색빛 라벤더 판 위에 파란 폴더. 누끼라 fade 0."
+   "note": "투명 배경의 3D 폴더 아이콘 누끼. 기울어진 둥근 사각 플레이트 위에 파란 유리 폴더가 놓여 있다. 가장자리를 녹이지 말고 통째로 사용한다."
   },
   "groups": [
    {
@@ -44,22 +44,22 @@
      "h": 1047
     },
     "focus": {
-     "x": 40,
+     "x": 35,
      "y": 40,
-     "w": 1190,
-     "h": 980
+     "w": 1195,
+     "h": 1000
     },
     "kvPlace": "right",
     "kvSize": "md",
-    "bgFill": "brand",
+    "bgFill": "custom",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EEF2FB",
-      "#C9D6F2"
+      "#2A4FB8",
+      "#3F6FE0"
      ],
-     "angle": 135,
-     "text": "dark",
+     "angle": 120,
+     "text": "light",
      "melt": 0
     },
     "kvBox": {
@@ -78,15 +78,25 @@
      {
       "kind": "ellipse",
       "x": 0.5,
-      "y": 0.1,
+      "y": 0,
       "w": 0.6,
       "h": 0.9,
-      "color": "#6F8FE8",
-      "opacity": 0.35,
+      "color": "#6C93F0",
+      "opacity": 0.4,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.1,
+      "y": 0.5,
+      "w": 0.5,
+      "h": 0.8,
+      "color": "#1C3A8F",
+      "opacity": 0.4,
       "blur": 0.2
      }
     ],
-    "why": "누끼 아이콘을 오른쪽에 크게 두고 왼쪽 글자 영역은 밝고 차분하게 유지."
+    "why": "누끼 아이콘을 오른쪽에 크게 두고 왼쪽은 글자 공간으로 비운다."
    },
    {
     "shape": "tall",
@@ -103,22 +113,22 @@
      "h": 465
     },
     "kvPlace": "bottom",
-    "kvSize": "lg",
-    "bgFill": "brand",
+    "kvSize": "md",
+    "bgFill": "custom",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EEF2FB",
-      "#C9D6F2"
+      "#2A4FB8",
+      "#3F6FE0"
      ],
-     "angle": 135,
-     "text": "dark",
+     "angle": 120,
+     "text": "light",
      "melt": 0
     },
     "kvBox": {
-     "x": 0,
+     "x": 0.02,
      "y": 0.5,
-     "w": 1,
+     "w": 0.96,
      "h": 0.48
     },
     "fade": {
@@ -130,26 +140,26 @@
     "shapes": [
      {
       "kind": "ellipse",
-      "x": 0.1,
-      "y": 0.45,
+      "x": 0.2,
+      "y": 0.35,
       "w": 0.9,
-      "h": 0.55,
-      "color": "#6F8FE8",
-      "opacity": 0.4,
+      "h": 0.6,
+      "color": "#6C93F0",
+      "opacity": 0.45,
       "blur": 0.2
      },
      {
       "kind": "ellipse",
       "x": -0.2,
-      "y": 0,
-      "w": 0.7,
-      "h": 0.3,
-      "color": "#A8B3CF",
+      "y": -0.1,
+      "w": 0.8,
+      "h": 0.5,
+      "color": "#1C3A8F",
       "opacity": 0.4,
-      "blur": 0.18
+      "blur": 0.2
      }
     ],
-    "why": "글자는 위, 아이콘은 아래에 크게 배치."
+    "why": "아이콘을 아래에 크게 두고 위쪽을 글자 공간으로 쓴다."
    },
    {
     "shape": "square",
@@ -160,29 +170,29 @@
      "h": 1047
     },
     "focus": {
-     "x": 40,
+     "x": 35,
      "y": 40,
-     "w": 1190,
-     "h": 980
+     "w": 1195,
+     "h": 1000
     },
-    "kvPlace": "right",
+    "kvPlace": "bottom",
     "kvSize": "md",
-    "bgFill": "brand",
+    "bgFill": "custom",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EEF2FB",
-      "#C9D6F2"
+      "#2A4FB8",
+      "#3F6FE0"
      ],
-     "angle": 135,
-     "text": "dark",
+     "angle": 120,
+     "text": "light",
      "melt": 0
     },
     "kvBox": {
-     "x": 0.5,
-     "y": 0.3,
-     "w": 0.55,
-     "h": 0.55
+     "x": 0.1,
+     "y": 0.46,
+     "w": 0.8,
+     "h": 0.52
     },
     "fade": {
      "left": 0,
@@ -193,26 +203,36 @@
     "shapes": [
      {
       "kind": "ellipse",
-      "x": 0.4,
-      "y": 0.3,
+      "x": 0.15,
+      "y": 0.4,
       "w": 0.8,
-      "h": 0.7,
-      "color": "#6F8FE8",
+      "h": 0.6,
+      "color": "#6C93F0",
+      "opacity": 0.45,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.5,
+      "y": -0.15,
+      "w": 0.7,
+      "h": 0.5,
+      "color": "#1C3A8F",
       "opacity": 0.4,
       "blur": 0.2
      },
      {
       "kind": "ellipse",
       "x": -0.2,
-      "y": -0.1,
-      "w": 0.6,
-      "h": 0.4,
-      "color": "#A8B3CF",
-      "opacity": 0.35,
+      "y": 0.2,
+      "w": 0.5,
+      "h": 0.5,
+      "color": "#5B82E8",
+      "opacity": 0.3,
       "blur": 0.18
      }
     ],
-    "why": "오른쪽 아래로 크게 두어 빈 지면을 빛 번짐으로 채움."
+    "why": "정사각은 아래에 아이콘을 두고 위를 글자에 쓴다."
    },
    {
     "shape": "tower",
@@ -229,23 +249,23 @@
      "h": 465
     },
     "kvPlace": "bottom",
-    "kvSize": "md",
-    "bgFill": "brand",
+    "kvSize": "sm",
+    "bgFill": "custom",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EEF2FB",
-      "#C9D6F2"
+      "#2A4FB8",
+      "#3F6FE0"
      ],
-     "angle": 135,
-     "text": "dark",
+     "angle": 120,
+     "text": "light",
      "melt": 0
     },
     "kvBox": {
      "x": 0,
-     "y": 0.62,
+     "y": 0.66,
      "w": 1,
-     "h": 0.36
+     "h": 0.32
     },
     "fade": {
      "left": 0,
@@ -260,22 +280,22 @@
       "y": 0.55,
       "w": 1,
       "h": 0.4,
-      "color": "#6F8FE8",
-      "opacity": 0.4,
+      "color": "#6C93F0",
+      "opacity": 0.45,
       "blur": 0.2
      },
      {
       "kind": "ellipse",
-      "x": 0,
+      "x": -0.2,
       "y": 0,
       "w": 1,
-      "h": 0.3,
-      "color": "#A8B3CF",
-      "opacity": 0.35,
+      "h": 0.4,
+      "color": "#1C3A8F",
+      "opacity": 0.4,
       "blur": 0.2
      }
     ],
-    "why": "폴더 핵심만 좁혀 아래에 두고 위는 글자 공간."
+    "why": "세로 띠는 폴더만 좁혀 아래쪽에 두어 글자 공간을 확보한다."
    },
    {
     "shape": "strip",
@@ -293,21 +313,21 @@
     },
     "kvPlace": "right",
     "kvSize": "sm",
-    "bgFill": "brand",
+    "bgFill": "custom",
     "scrim": "none",
     "field": {
      "colors": [
-      "#EEF2FB",
-      "#C9D6F2"
+      "#2A4FB8",
+      "#3F6FE0"
      ],
-     "angle": 135,
-     "text": "dark",
+     "angle": 120,
+     "text": "light",
      "melt": 0
     },
     "kvBox": {
      "x": 0.8,
      "y": 0.05,
-     "w": 0.17,
+     "w": 0.18,
      "h": 0.9
     },
     "fade": {
@@ -319,29 +339,33 @@
     "shapes": [
      {
       "kind": "ellipse",
-      "x": 0.7,
-      "y": 0,
+      "x": 0.65,
+      "y": -0.2,
       "w": 0.4,
-      "h": 1,
-      "color": "#6F8FE8",
-      "opacity": 0.35,
-      "blur": 0.15
+      "h": 1.2,
+      "color": "#6C93F0",
+      "opacity": 0.4,
+      "blur": 0.2
      }
     ],
-    "why": "가로 띠는 폴더를 오른쪽 끝에 작게 둠."
+    "why": "가로 띠는 폴더를 오른쪽 끝에 작게 두고 글자 공간을 남긴다."
    }
   ],
   "logo": {
    "kind": "wordmark"
   },
-  "rationale": "투명 배경의 파란 3D 폴더 아이콘이라 자르지 않고 통째로 보존하며, 지면은 그림의 라벤더·파랑 톤을 이어 밝게 칠했다. 글자는 어두운 톤으로 읽히게 하고 모양별로 그림 위치와 빛 번짐을 달리해 지면을 채웠다."
+  "rationale": "투명 배경의 파란 3D 폴더 아이콘이라 통째로 보존하고 가장자리는 녹이지 않았다. 지면은 아이콘의 파란색과 이어지는 중간 톤 블루로 통일하고 빛 번짐으로 단조로움을 줄였다."
  },
+ "sentPx": [
+  1265,
+  1047
+ ],
  "usage": {
-  "input_tokens": 6485,
-  "output_tokens": 2137,
+  "input_tokens": 6794,
+  "output_tokens": 2298,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0343,
- "at": "2026-10-22T12:12:25.159Z"
+ "cost": 0.0366,
+ "at": "2026-10-23T03:43:10.675Z"
 }

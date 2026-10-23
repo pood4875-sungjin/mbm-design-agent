@@ -7,6 +7,8 @@
 import { PRESETS } from '../editlayout.js';
 import { shapeOf } from '../layouts.js';
 import { kvTypeChoices } from '../kvtypes.js';
+import { contrast, mix, BLACK, WHITE } from '../palette.js';
+import { CANON } from '../canon.js';
 
 export const SHAPES = ['wide', 'tall', 'square', 'tower', 'strip'];
 // AI 판단을 안 받는 규격 — 틀 그림 칸이 고정인 매체(자소설·리멤버·잡다·에브리타임·캐치)·비즈보드. 렌더러 aiBoxRender 와 앱 적용·해석이 같은 목록을 쓴다
@@ -55,7 +57,7 @@ export const ANALYSIS_SCHEMA = obj({
 export const ANALYSIS_SYSTEM = `너는 채용 광고 소재 제작의 아트디렉터다. 키비주얼(과 로고)을 보고 「그림을 어떻게 쓸지」만 판단한다. 글자·타이포·로고 크기·검수는 규칙 엔진이 맡는다 — 네가 정하지 않는다.
 
 판단할 것:
-1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크 등), 사람·캐릭터 얼굴 상자 전부(faces — 머리카락·모자 포함, 원본 픽셀), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
+1. 키비주얼 유형(주어진 id 중 하나), 주인공 상자(사람이면 얼굴·상반신 포함), 반드시 보존할 요소(제품·로고 마크·건물·탑 등 — 큰 덩어리 하나로 묶지 말고 알아볼 수 있는 가장 작은 단위로 하나씩: 사장교 주탑 2개면 2개, 제품 3개면 3개, 사람 여럿이면 사람마다. 그 하나만 보여도 장면이 읽히는 단위), 사람·캐릭터 얼굴 상자 전부(faces — 머리카락·모자 포함, 원본 픽셀), 각 변에서 잘라도 되는 몫, 분위기(밝/어둡 + 색 2~3개).
 2. 모양 묶음 5개(shape 값은 wide·tall·square·tower·strip — groups 배열에 shape 마다 한 항목, 빠짐없이 5개): 보일 부분(crop, 원본 픽셀)·이 모양의 주인공(focus)·키비주얼 자리(kvPlace)·크기(kvSize)·배경 방식(bgFill)·스크림(scrim). 값은 주어진 선택지 문자열 중에서만, 모르겠으면 auto. 글자 정렬은 규칙이 정한다.
 3. 그림 상자(kvBox)를 네가 직접 정한다 — 캔버스 비율(0~1) {x,y,w,h}, 지면 밖으로 흘려도 된다(x<0, x+w>1). 이 모양에서 그림을 얼마나 크게, 어디에 둘지가 핵심 판단이다. 글자 덩어리는 kvPlace 반대쪽(오른쪽 그림이면 왼쪽 약 55%, 아래 그림이면 위쪽)에 놓이고 로고는 위쪽 모서리에 놓인다 — 주인공(얼굴·제품)은 글자 쪽과 위쪽 로고 모서리에 들어가지 않게. 그림 상자가 글자 쪽으로 넘어가도 되지만 그 변은 fade 로 녹여야 한다. fade 는 그림 상자 각 변을 녹이는 길이(상자 폭·높이의 0~0.6, 0 이면 안 녹임) — 글자 쪽을 향한 변은 0.3 이상. 누끼(투명 배경)는 fade 0. 그림을 크게 써서 지면이 비어 보이지 않게 하되, 겹치면 서버가 줄이거나 규칙 자리로 되돌린다. 모르겠으면 kvBox 의 w 를 0 으로.
 5. 배경 그래픽(shapes)을 모양마다 디자인한다 — 그림에서 뽑은 색으로 부드러운 원(ellipse)·둥근 띠(pill)·사각(rect). 큰 빈 지면이 생기는 모양(정사각·세로형·세로 띠)은 큰 빛 번짐 2~3개(opacity 0.3~0.6, blur 0.12~0.25, 지면의 30~80% 크기)로 지면을 채워 단조롭지 않게, 가로형·가로 띠는 1~2개. 도형 색은 지면보다 확실히 밝거나 어둡게(명도 차 15~25%) — 지면과 거의 같은 색이면 안 보여서 의미가 없다. 좌표는 캔버스 몫(0~1, 지면 밖으로 흘려도 됨), opacity 0.1~0.7, blur 는 캔버스 짧은 변의 몫(0~0.3, 빛 번짐이면 0.1 이상). 목적: 그림의 바탕(하늘·그라데이션·빛)을 지면까지 자연스럽게 이어 지면이 단조롭지 않게, 그림이 지면에 붙어 보이게. 글자 덩어리 뒤는 차분하게(글자 대비를 해치지 않게). 장식을 위한 장식(아이콘·패턴·글자)은 넣지 않는다.
@@ -69,6 +71,25 @@ export function parseAnalysisText(text) {
   let t = String(text ?? '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
   const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b <= a) throw new Error('응답에 JSON 이 없습니다: ' + t.slice(0, 120));
   return JSON.parse(t.slice(a, b + 1));
+}
+// 보낸 그림의 실제 픽셀 크기(PNG IHDR · JPEG SOF) — 10-23: 판단용 사본은 긴 변 1600 으로 줄여 보내는데 프롬프트는 원본 크기(2160)를 알려 줘,
+//   모델이 어떤 때는 원본 좌표·어떤 때는 본 그림 좌표로 답했다(GS r9 얼굴·크롭이 0.74배로 왼쪽 위로 밀림). 프롬프트·검증 둘 다 보낸 그림 크기로 맞춘다
+export function dataUrlDims(dataUrl) {
+  const m = /^data:image\/(png|jpeg|jpg);base64,(.+)$/.exec(String(dataUrl ?? '').trim()); if (!m) return null;
+  const b64 = m[2].slice(0, 400000);
+  let bin; try { bin = typeof atob === 'function' ? atob(b64.slice(0, b64.length - (b64.length % 4))) : Buffer.from(b64, 'base64').toString('latin1'); } catch { return null; }
+  const at = i => bin.charCodeAt(i) & 255, u16 = i => (at(i) << 8) | at(i + 1), u32 = i => ((at(i) << 24) >>> 0) + (at(i + 1) << 16) + (at(i + 2) << 8) + at(i + 3);
+  if (m[1] === 'png') return bin.length >= 24 ? { w: u32(16), h: u32(20) } : null;
+  let i = 2; while (i + 9 < bin.length) { if (at(i) !== 0xFF) { i++; continue; } const mk = at(i + 1); if (mk >= 0xC0 && mk <= 0xCF && ![0xC4, 0xC8, 0xCC].includes(mk)) return { w: u16(i + 7), h: u16(i + 5) }; if (mk === 0xD8 || mk === 0x01 || (mk >= 0xD0 && mk <= 0xD7)) { i += 2; continue; } i += 2 + u16(i + 2); }
+  return null;
+}
+export function metaForSent(meta, dataUrl) { const d = dataUrlDims(dataUrl); return d && d.w > 0 && d.h > 0 ? { ...(meta ?? {}), px: [d.w, d.h] } : meta; }
+
+// 그림 판단 응답은 kv 와 모양 묶음(groups)이 둘 다 있어야 쓴다 — 10-23 r8 GS 가 kv 만 오고 groups 가 빠져 8규격 전부 규칙 자리로 떨어졌다(형식이 깨진 것과 같게 다시 묻는다)
+export function parseAnalysisFull(text) {
+  const raw = parseAnalysisText(text);
+  if (!raw?.kv || !Array.isArray(raw.groups) || !raw.groups.length) throw new Error('응답에 kv·groups 가 다 없습니다');
+  return raw;
 }
 export function analysisPrompt({ kvMeta, logoMeta = null, brief = {}, brand = {}, requests = '' } = {}) {
   const [W, H] = kvMeta?.px ?? [0, 0];
@@ -189,6 +210,13 @@ export function validateAnalysis(raw, { kvMeta, hasLogo = false } = {}) {
   }
   // 지면은 캠페인 공통 하나(10-20 원칙 · 10-22 사용자 「배경도 색이 다르구」 — 가로형 베이지·세로형 초록으로 갈렸다): 가로형 → 정사각 → 나머지 순으로 색이 있는 묶음의 지면을 모두에 쓴다. 녹임 길이만 모양별
   { const src = ['wide', 'square', 'tall', 'tower', 'strip'].map(k => A.groups[k]?.field).find(f => f?.colors?.length);
+    // 글자 쪽 끝 대비(10-23 r8 채점: 중간 톤 지면 — 연보라·청회색 하늘 — 위 글자가 흰색이든 검정이든 흐림 25건): 글자 쪽 정지점만, AI 가 정한 글자 톤(없으면 밝기로)과 4.5:1 이 될 때까지 같은 색을 조금씩 어둡게/밝게.
+    //   캠페인 공통 지면에서 한 번만 고치니 규격마다 색이 갈리지 않는다. 색상은 그대로 — 「AI 가 정한 색」을 가이드(대비) 안으로 들이는 최소 보정
+    if (src) { const a0 = ((src.angle % 360) + 360) % 360, si = src.colors.length > 1 && !(a0 >= 45 && a0 <= 225) ? src.colors.length - 1 : 0, side = src.colors[si];
+      const lum = h => { const v = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(c => c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+      const tone = src.text === 'light' || src.text === 'dark' ? src.text : (lum(side) >= (CANON.textOn?.darkIfLum ?? 0.45) ? 'dark' : 'light'), T = tone === 'light' ? WHITE : BLACK;
+      if (contrast(side, T) < 4.5) { let t = 0, c = side; while (contrast(c, T) < 4.5 && t < 0.7) { t += 0.04; c = mix(side, tone === 'light' ? BLACK : WHITE, t); } src.colors = src.colors.map((x, i) => i === si ? c.toUpperCase() : x); fixes.push(`지면 글자 쪽 색 ${side} → ${c.toUpperCase()}(${tone === 'light' ? '흰' : '검정'} 글자 4.5:1)`); }
+      src.text = tone; }
     if (src) for (const k of SHAPES) { const f = A.groups[k].field; if (f.colors.join() !== src.colors.join() || f.angle !== src.angle) { A.groups[k].field = { ...f, colors: [...src.colors], angle: src.angle, text: src.text }; } } }
   A.logo = { kind: hasLogo ? (['wordmark', 'symbol', 'combo'].includes(A.logo?.kind) ? A.logo.kind : 'combo') : 'none' };
   A.rationale = String(A.rationale ?? '').slice(0, 400);

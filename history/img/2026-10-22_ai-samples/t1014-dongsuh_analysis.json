@@ -3,32 +3,39 @@
   "kv": {
    "type": "cutout",
    "subject": {
-    "x": 0.06,
+    "x": 0.074,
     "y": 0,
-    "w": 0.893,
+    "w": 0.831,
     "h": 1
    },
    "keep": [
     {
-     "x": 0.321,
-     "y": 0.321,
-     "w": 0.179,
-     "h": 0.211,
-     "label": "맥심 커피스틱"
+     "x": 0.334,
+     "y": 0.131,
+     "w": 0.178,
+     "h": 0.116,
+     "label": "맥심 스틱 제품"
+    },
+    {
+     "x": 0.289,
+     "y": 0,
+     "w": 0.608,
+     "h": 0.263,
+     "label": "인물 얼굴·머리"
     }
    ],
    "faces": [
     {
-     "x": 0.393,
-     "y": 0.09,
-     "w": 0.357,
-     "h": 0.191
+     "x": 0.297,
+     "y": 0,
+     "w": 0.593,
+     "h": 0.263
     }
    ],
    "cutSafe": {
     "top": 0,
     "right": 0.05,
-    "bottom": 0.25,
+    "bottom": 0.3,
     "left": 0.05
    },
    "mood": {
@@ -36,10 +43,10 @@
     "colors": [
      "#FFC000",
      "#333D5F",
-     "#F2F2F2"
+     "#FFFFFF"
     ]
    },
-   "note": "투명 배경 누끼 전신 인물. 얼굴과 커피스틱은 상단에 있고 하단 치마는 잘라도 무방하다."
+   "note": "투명 배경 누끼, 흰 셔츠에 네이비 스커트의 인물이 노란 맥심 스틱을 들고 있다."
   },
   "groups": {
    "wide": {
@@ -50,10 +57,10 @@
      "h": 1
     },
     "focus": {
-     "x": 0.06,
+     "x": 0.074,
      "y": 0,
-     "w": 0.893,
-     "h": 0.552
+     "w": 0.831,
+     "h": 0.563
     },
     "kvPlace": "right",
     "kvSize": "lg",
@@ -61,105 +68,16 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#FFC000",
-      "#FFD65C"
+      "#FFC000"
      ],
      "angle": 135,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
-     "x": 0.645,
-     "y": 0.04,
-     "w": 0.295,
-     "h": 1.4
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "가로형은 상반신을 크게 오른쪽에 두고 글자는 왼쪽 노란 지면에 놓는다.",
-    "textAlign": "auto",
-    "textAnchor": "auto",
-    "bgGrad": "auto",
-    "shapes": []
-   },
-   "tall": {
-    "crop": {
-     "x": 0,
+     "x": 0.646,
      "y": 0,
-     "w": 1,
-     "h": 0.752
-    },
-    "focus": {
-     "x": 0.06,
-     "y": 0,
-     "w": 0.893,
-     "h": 0.752
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFC000",
-      "#FFD65C"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.05,
-     "y": 0.42,
-     "w": 0.9,
-     "h": 0.75
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "세로형은 인물을 아래쪽에 크게 두고 위쪽에 글자 공간을 확보한다.",
-    "textAlign": "auto",
-    "textAnchor": "auto",
-    "bgGrad": "auto",
-    "shapes": []
-   },
-   "square": {
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1,
-     "h": 1
-    },
-    "focus": {
-     "x": 0.06,
-     "y": 0,
-     "w": 0.893,
-     "h": 0.652
-    },
-    "kvPlace": "right",
-    "kvSize": "lg",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFC000",
-      "#FFD65C"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.5,
-     "y": 0.05,
-     "w": 0.48,
+     "w": 0.274,
      "h": 1.3
     },
     "fade": {
@@ -168,179 +86,62 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "정사각은 인물 상반신을 오른쪽에 크게 두고 왼쪽에 글자를 놓는다.",
+    "shapes": [],
+    "why": "x",
     "textAlign": "auto",
     "textAnchor": "auto",
-    "bgGrad": "auto",
-    "shapes": []
+    "bgGrad": "auto"
    },
-   "tower": {
+   "tall": {
+    "focus": null,
     "crop": {
-     "x": 0.06,
-     "y": 0,
-     "w": 0.893,
-     "h": 0.778
-    },
-    "focus": {
-     "x": 0.179,
-     "y": 0,
-     "w": 0.714,
-     "h": 0.502
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFC000",
-      "#FFD65C"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
      "x": 0,
-     "y": 0.55,
-     "w": 1,
-     "h": 0.6
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "세로 띠는 얼굴과 스틱 중심의 상반신만 하단에 두고 위쪽을 글자에 준다.",
-    "textAlign": "auto",
-    "textAnchor": "auto",
-    "bgGrad": "auto",
-    "shapes": []
-   },
-   "strip": {
-    "crop": {
-     "x": 0.095,
-     "y": 0.05,
-     "w": 0.836,
-     "h": 0.326
-    },
-    "focus": {
-     "x": 0.298,
-     "y": 0.075,
-     "w": 0.476,
-     "h": 0.251
-    },
-    "kvPlace": "right",
-    "kvSize": "sm",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFC000",
-      "#FFD65C"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.8,
      "y": 0,
-     "w": 0.18,
+     "w": 1,
      "h": 1
     },
+    "kvPlace": "auto",
+    "kvSize": "auto",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgFill": "auto",
+    "bgGrad": "auto",
+    "scrim": "auto",
+    "field": {
+     "colors": [
+      "#FFC000"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0
+    },
+    "shapes": [],
     "fade": {
      "left": 0,
      "right": 0,
      "top": 0,
      "bottom": 0
     },
-    "why": "가로 띠는 얼굴과 스틱만 좁혀 오른쪽 끝에 작게 둔다.",
-    "textAlign": "auto",
-    "textAnchor": "auto",
-    "bgGrad": "auto",
-    "shapes": []
-   }
-  },
-  "logo": {
-   "kind": "combo"
-  },
-  "rationale": "투명 배경 누끼 인물이라 브랜드 노란색 지면 위에 얼굴과 맥심 스틱이 있는 상반신을 크게 올리고 페이드 없이 사용한다. 글자는 반대쪽에 놓여 어두운 글자 톤으로 노란 배경에서 잘 읽히며, 얼굴은 모든 모양에서 통째로 보존한다."
- },
- "fixes": [
-  "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
-  "wide: 그림 상자를 그림 비율에 맞춤",
-  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "square: crop 이 주인공·보존 요소를 잘라 넓힘",
-  "tower: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
-  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
- ],
- "usage": {
-  "input_tokens": 6004,
-  "output_tokens": 1621,
-  "cache_read_input_tokens": 0,
-  "cache_creation_input_tokens": 0
- },
- "cost": 0,
- "ms": 10644,
- "model": "claude-sonnet-5-5",
- "raw": {
-  "kv": {
-   "type": "cutout",
-   "subject": {
-    "x": 50,
-    "y": 0,
-    "w": 750,
-    "h": 1994
+    "why": ""
    },
-   "keep": [
-    {
-     "x": 270,
-     "y": 640,
-     "w": 150,
-     "h": 420,
-     "label": "맥심 커피스틱"
-    }
-   ],
-   "faces": [
-    {
-     "x": 330,
-     "y": 180,
-     "w": 300,
-     "h": 380
-    }
-   ],
-   "cutSafe": {
-    "top": 0,
-    "right": 0.05,
-    "bottom": 0.25,
-    "left": 0.05
-   },
-   "mood": {
-    "tone": "light",
-    "colors": [
-     "#FFC000",
-     "#333D5F",
-     "#F2F2F2"
-    ]
-   },
-   "note": "투명 배경 누끼 전신 인물. 얼굴과 커피스틱은 상단에 있고 하단 치마는 잘라도 무방하다."
-  },
-  "groups": [
-   {
-    "shape": "wide",
+   "square": {
     "crop": {
-     "x": 0,
+     "x": 0.074,
      "y": 0,
-     "w": 840,
-     "h": 1100
+     "w": 0.831,
+     "h": 1
     },
     "focus": {
-     "x": 50,
+     "x": 0.074,
      "y": 0,
-     "w": 750,
-     "h": 1100
+     "w": 0.831,
+     "h": 0.563
     },
     "kvPlace": "right",
     "kvSize": "lg",
@@ -348,8 +149,7 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#FFC000",
-      "#FFD65C"
+      "#FFC000"
      ],
      "angle": 135,
      "text": "dark",
@@ -357,90 +157,8 @@
     },
     "kvBox": {
      "x": 0.52,
-     "y": 0.04,
-     "w": 0.42,
-     "h": 1.5
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "가로형은 상반신을 크게 오른쪽에 두고 글자는 왼쪽 노란 지면에 놓는다."
-   },
-   {
-    "shape": "tall",
-    "crop": {
-     "x": 0,
      "y": 0,
-     "w": 840,
-     "h": 1500
-    },
-    "focus": {
-     "x": 50,
-     "y": 0,
-     "w": 750,
-     "h": 1500
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFC000",
-      "#FFD65C"
-     ],
-     "angle": 160,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.05,
-     "y": 0.42,
-     "w": 0.9,
-     "h": 0.75
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "why": "세로형은 인물을 아래쪽에 크게 두고 위쪽에 글자 공간을 확보한다."
-   },
-   {
-    "shape": "square",
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 840,
-     "h": 1300
-    },
-    "focus": {
-     "x": 50,
-     "y": 0,
-     "w": 750,
-     "h": 1300
-    },
-    "kvPlace": "right",
-    "kvSize": "lg",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#FFC000",
-      "#FFD65C"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.5,
-     "y": 0.05,
-     "w": 0.48,
+     "w": 0.4,
      "h": 1.3
     },
     "fade": {
@@ -449,79 +167,80 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "정사각은 인물 상반신을 오른쪽에 크게 두고 왼쪽에 글자를 놓는다."
+    "shapes": [],
+    "why": "x",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
    },
-   {
-    "shape": "tower",
+   "tower": {
+    "focus": null,
     "crop": {
-     "x": 50,
+     "x": 0,
      "y": 0,
-     "w": 750,
-     "h": 1000
+     "w": 1,
+     "h": 1
     },
-    "focus": {
-     "x": 150,
-     "y": 0,
-     "w": 600,
-     "h": 1000
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "bgFill": "brand",
-    "scrim": "none",
+    "kvPlace": "auto",
+    "kvSize": "auto",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgFill": "auto",
+    "bgGrad": "auto",
+    "scrim": "auto",
     "field": {
      "colors": [
       "#FFC000"
      ],
-     "angle": 0,
+     "angle": 135,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
      "x": 0,
-     "y": 0.55,
-     "w": 1,
-     "h": 0.6
+     "y": 0,
+     "w": 0,
+     "h": 0
     },
+    "shapes": [],
     "fade": {
      "left": 0,
      "right": 0,
      "top": 0,
      "bottom": 0
     },
-    "why": "세로 띠는 얼굴과 스틱 중심의 상반신만 하단에 두고 위쪽을 글자에 준다."
+    "why": ""
    },
-   {
-    "shape": "strip",
+   "strip": {
     "crop": {
-     "x": 150,
-     "y": 100,
-     "w": 560,
-     "h": 650
+     "x": 0,
+     "y": 0,
+     "w": 1,
+     "h": 0.563
     },
     "focus": {
-     "x": 250,
-     "y": 150,
-     "w": 400,
-     "h": 500
+     "x": 0.074,
+     "y": 0,
+     "w": 0.831,
+     "h": 0.563
     },
     "kvPlace": "right",
-    "kvSize": "sm",
+    "kvSize": "lg",
     "bgFill": "brand",
     "scrim": "none",
     "field": {
      "colors": [
       "#FFC000"
      ],
-     "angle": 0,
+     "angle": 135,
      "text": "dark",
      "melt": 0
     },
     "kvBox": {
-     "x": 0.8,
+     "x": 0.758,
      "y": 0,
-     "w": 0.18,
-     "h": 1
+     "w": 0.162,
+     "h": 1.3
     },
     "fade": {
      "left": 0,
@@ -529,12 +248,143 @@
      "top": 0,
      "bottom": 0
     },
-    "why": "가로 띠는 얼굴과 스틱만 좁혀 오른쪽 끝에 작게 둔다."
+    "shapes": [],
+    "why": "x",
+    "textAlign": "auto",
+    "textAnchor": "auto",
+    "bgGrad": "auto"
+   }
+  },
+  "logo": {
+   "kind": "combo"
+  },
+  "rationale": "x"
+ },
+ "fixes": [
+  "tall 묶음이 없어 빈 값",
+  "square 묶음이 없어 wide 값을 복사",
+  "tower 묶음이 없어 tall 값을 복사",
+  "strip 묶음이 없어 wide 값을 복사",
+  "wide: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "wide: 지면 색 중 #RRGGBB 아닌 값 버림",
+  "wide: 그림 상자를 그림 비율에 맞춤",
+  "wide: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "square: crop 이 주인공·보존 요소를 잘라 넓힘",
+  "square: 지면 색 중 #RRGGBB 아닌 값 버림",
+  "square: 보일 부분을 그림 상자 비율에 맞춰 넓힘",
+  "strip: 지면 색 중 #RRGGBB 아닌 값 버림",
+  "strip: 그림 상자를 그림 비율에 맞춤",
+  "strip: 보일 부분을 그림 상자 비율에 맞춰 넓힘"
+ ],
+ "usage": {
+  "input_tokens": 6113,
+  "output_tokens": 515,
+  "cache_read_input_tokens": 0,
+  "cache_creation_input_tokens": 0
+ },
+ "cost": 0.0174,
+ "ms": 5242,
+ "model": "claude-sonnet-5-5",
+ "raw": {
+  "kv": {
+   "type": "cutout",
+   "subject": {
+    "x": 50,
+    "y": 0,
+    "w": 560,
+    "h": 1600
+   },
+   "keep": [
+    {
+     "x": 225,
+     "y": 210,
+     "w": 120,
+     "h": 185,
+     "label": "맥심 스틱 제품"
+    },
+    {
+     "x": 195,
+     "y": 0,
+     "w": 410,
+     "h": 420,
+     "label": "인물 얼굴·머리"
+    }
+   ],
+   "faces": [
+    {
+     "x": 200,
+     "y": 0,
+     "w": 400,
+     "h": 420
+    }
+   ],
+   "cutSafe": {
+    "top": 0,
+    "right": 0.05,
+    "bottom": 0.3,
+    "left": 0.05
+   },
+   "mood": {
+    "tone": "light",
+    "colors": [
+     "#FFC000",
+     "#333D5F",
+     "#FFFFFF"
+    ]
+   },
+   "note": "투명 배경 누끼, 흰 셔츠에 네이비 스커트의 인물이 노란 맥심 스틱을 들고 있다."
+  },
+  "groups": [
+   {
+    "shape": "wide",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 674,
+     "h": 900
+    },
+    "focus": {
+     "x": 50,
+     "y": 0,
+     "w": 560,
+     "h": 900
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#FFC000",
+      "#FFD saturated"
+     ],
+     "angle": 135,
+     "text": "dark",
+     "melt": 0
+    },
+    "kvBox": {
+     "x": 0.52,
+     "y": 0,
+     "w": 0.4,
+     "h": 1.3
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [],
+    "why": "x"
    }
   ],
   "logo": {
    "kind": "combo"
   },
-  "rationale": "투명 배경 누끼 인물이라 브랜드 노란색 지면 위에 얼굴과 맥심 스틱이 있는 상반신을 크게 올리고 페이드 없이 사용한다. 글자는 반대쪽에 놓여 어두운 글자 톤으로 노란 배경에서 잘 읽히며, 얼굴은 모든 모양에서 통째로 보존한다."
- }
+  "rationale": "x"
+ },
+ "sentPx": [
+  674,
+  1600
+ ]
 }

@@ -84,11 +84,11 @@ for (const id of IDS) {
   // 판단(캐시)
   const cacheFile = path.join(CACHE, `${id}.json`);
   let analysis, fixes, judgeCost = 0;
-  if ((!flag('--rejudge') || NO_API) && existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: meta, hasLogo: true })); }
+  if ((!flag('--rejudge') || NO_API) && existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: j.sentPx ? { ...meta, px: j.sentPx } : meta, hasLogo: true })); }
   else if (NO_API) { console.log(`[${id}] 판단 캐시 없음 — API 꺼짐, 건너뜀`); continue; }
   else {
-    let out; try { out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopy(kvFile, path.join(TMP, `${id}_api${/\.png$/i.test(kvFile) ? '.png' : '.jpg'}`))), meta }, logo: { dataUrl: dataUrlOf(apiCopy(logoFile, path.join(TMP, `${id}_logo.png`))), meta: logoMeta }, brief, brand: { primary }, requests: '' }); } catch (e) { if (/credit balance|billing/i.test(e.message)) { NO_API = true; console.log('API 크레딧 없음 — 이후 판단·채점은 캐시·자동 수치로'); } else console.log(`[${id}] 판단 실패: ${e.message}`); if (existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: meta, hasLogo: true })); } else continue; }
-    if (out) writeFileSync(cacheFile, JSON.stringify({ raw: out.raw, usage: out.usage, cost: out.cost, at: new Date().toISOString() }, null, 1));
+    let out; try { out = await D.analyzeKv(client, { kv: { dataUrl: dataUrlOf(apiCopy(kvFile, path.join(TMP, `${id}_api${/\.png$/i.test(kvFile) ? '.png' : '.jpg'}`))), meta }, logo: { dataUrl: dataUrlOf(apiCopy(logoFile, path.join(TMP, `${id}_logo.png`))), meta: logoMeta }, brief, brand: { primary }, requests: '' }); } catch (e) { if (/credit balance|billing/i.test(e.message)) { NO_API = true; console.log('API 크레딧 없음 — 이후 판단·채점은 캐시·자동 수치로'); } else console.log(`[${id}] 판단 실패: ${e.message}`); if (existsSync(cacheFile)) { const j = JSON.parse(readFileSync(cacheFile, 'utf8')); ({ analysis, fixes } = validateAnalysis(j.raw, { kvMeta: j.sentPx ? { ...meta, px: j.sentPx } : meta, hasLogo: true })); } else continue; }
+    if (out) writeFileSync(cacheFile, JSON.stringify({ raw: out.raw, sentPx: out.sentPx ?? null, usage: out.usage, cost: out.cost, at: new Date().toISOString() }, null, 1));
     if (out) { analysis = out.analysis; fixes = out.fixes; judgeCost = out.cost; report.cost.judge += out.cost; }
   }
   const row = { id, group, kvType: c.type, summary: c.summary, aiType: analysis.kv.type, rationale: analysis.rationale, fixes, judgeCost, specs: [] };

@@ -175,7 +175,11 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     // 글자가 놓이는 쪽 지면색으로 잰다 — 글자는 대개 왼쪽·위: 각도 45~225°(→·↓ 방향)면 시작색, 아니면 끝색. 가장 밝은 끝으로 재면 진한 파랑 위에 검정이 나왔다(10-22 신호등)
     const a0 = ((angle % 360) + 360) % 360, side = stops.length > 1 ? (a0 >= 45 && a0 <= 225 ? stops[0] : stops[stops.length - 1]) : stops[0];
     const cw = contrast(side, WHITE), cb = contrast(side, BLACK), want = opt.ai.text === 'light' ? WHITE : opt.ai.text === 'dark' ? BLACK : null;
-    text = (want && contrast(side, want) >= 3) ? want : cw >= 3 ? WHITE : cb >= 3 ? BLACK : (cw >= cb ? WHITE : BLACK);
+    // 10-23 r7: 규칙 지면과 같은 원칙(CANON.textOn — 사용자 「이 수준이면 화이트」) — 글자 쪽 지면이 파스텔·흰 계열일 때만 검정, 중간 밝기 색면은 흰색. 대비만 보면 중간 청회색(사장교) 위에 진회색 글자가 나와 흐릿했다
+    const lightSide = relLum(side) >= (CANON.textOn?.darkIfLum ?? 0.55);
+    // AI 톤은 4.5:1(작은 글자 기준)을 넘을 때 따른다 — 분석 검증(validateAnalysis)이 글자 쪽 색을 그 톤에 4.5:1 로 맞춰 둔다
+    text = (want && contrast(side, want) >= 4.5) ? want : lightSide ? BLACK : WHITE;
+    void cw; void cb;
     const css0 = stops.length > 1 ? `linear-gradient(${angle}deg,${stops.map((c0, i) => `${c0} ${Math.round(100 * i / (stops.length - 1))}%`).join(',')})` : stops[0];
     return { stops, angle, css: css0, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(contrast(side, text) * 100) / 100, ...(align && stops.length > 1 ? { align } : {}) };
   }

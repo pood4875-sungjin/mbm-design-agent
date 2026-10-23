@@ -228,9 +228,11 @@ test('AI 배경 — 도형은 그림·글자 뒤(뿌리 맨 앞)에 그대로, �
   assert.ok(h.includes('linear-gradient(180deg,#3D7BFF 0%,#9EC3FF 50%,#FFD1E0 100%)'), 'AI 지면 3색 그대로');
   const j = renderArtifact('jasoseol-pc-premium-popup-pc', ctx, normalizeStyle(base), {});
   assert.ok(!j.includes('data-ai-shape'), '틀 고정 매체엔 안 넣음');
-  // 지면색 보존: 중간 밝기 파랑에 흰 글자가 3:1 못 넘어도 색은 그대로 — 검정 글자
+  // 지면색 보존: 중간 밝기 파랑에 흰 글자가 3:1 못 넘어도 색은 그대로 — 글자는 규칙 지면과 같은 원칙(CANON.textOn, 10-23)으로 흰색
   const f = resolveField(normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['#6FA8FF', '#A8CCFF'], angle: 180, text: null, melt: 0 } } }));
-  assert.deepEqual(f.stops, ['#6FA8FF', '#A8CCFF']); assert.equal(f.source, 'ai'); assert.equal(f.text, '#000000');
+  assert.deepEqual(f.stops, ['#6FA8FF', '#A8CCFF']); assert.equal(f.source, 'ai'); assert.equal(f.text, '#FFFFFF');
+  const fl = resolveField(normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['#DCE8FF', '#F4F8FF'], angle: 180, text: null, melt: 0 } } }));
+  assert.equal(fl.text, '#000000', '파스텔 지면은 검정');
 });
 
 test('AI 지면 글자색 — 글자 쪽 끝(시작색) 대비로 고르고, AI 톤은 3:1 넘을 때만 따른다(10-22 진한 파랑에 검정)', async () => {
@@ -240,4 +242,15 @@ test('AI 지면 글자색 — 글자 쪽 끝(시작색) 대비로 고르고, AI 
   assert.equal(f.text, '#FFFFFF', '왼쪽(글자 쪽) #1265FF 흰 글자'); assert.deepEqual(f.stops, ['#1265FF', '#7FABFE']);
   const g = resolveField(normalizeStyle({ colors: ['#326CD1'], background: { ai: { stops: ['#E8F4FF', '#1265FF'], angle: 90, text: 'light', melt: 0 } } }));
   assert.equal(g.text, '#000000', '글자 쪽이 밝으면 AI 가 흰색이라 해도 검정');
+});
+
+test('보낸 그림 크기(10-23) — 판단 프롬프트·검증은 줄인 사본의 픽셀 크기로(원본 크기를 알려 주면 좌표 기준이 갈린다)', async () => {
+  const { dataUrlDims, metaForSent } = await import('../core/trackb/analyze.js');
+  const { readFileSync } = await import('node:fs');
+  const png = 'data:image/png;base64,' + readFileSync(new URL('../ref/learned/cases/t1014-hanssem/kv.png', import.meta.url)).toString('base64');
+  assert.deepEqual(dataUrlDims(png), { w: 1111, h: 677 });
+  const jpg = 'data:image/jpeg;base64,' + readFileSync(new URL('../ref/learned/cases/desk-01/kv.jpg', import.meta.url)).toString('base64');
+  assert.deepEqual(dataUrlDims(jpg), { w: 812, h: 812 });
+  assert.deepEqual(metaForSent({ px: [2160, 2160], ar: 1 }, png).px, [1111, 677]);
+  assert.equal(dataUrlDims('data:text/plain;base64,AAAA'), null);
 });

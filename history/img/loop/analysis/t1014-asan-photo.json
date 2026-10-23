@@ -5,16 +5,31 @@
    "subject": {
     "x": 0,
     "y": 0,
-    "w": 370,
+    "w": 365,
     "h": 392
    },
-   "keep": [],
+   "keep": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 280,
+     "h": 392,
+     "label": "병원 본관 건물(왼쪽 고층동)"
+    },
+    {
+     "x": 280,
+     "y": 193,
+     "w": 82,
+     "h": 150,
+     "label": "병원 별관 타워"
+    }
+   ],
    "faces": [],
    "cutSafe": {
-    "top": 0.1,
-    "right": 0.4,
-    "bottom": 0.1,
-    "left": 0.1
+    "top": 0.05,
+    "right": 0.45,
+    "bottom": 0.05,
+    "left": 0
    },
    "mood": {
     "tone": "dark",
@@ -24,7 +39,7 @@
      "#787BEC"
     ]
    },
-   "note": "보랏빛 새벽 하늘 아래 병원 건물과 야경을 담은 사진. 왼쪽에 건물, 오른쪽은 비교적 빈 하늘."
+   "note": "보랏빛 새벽 도시 야경. 왼쪽에 병원 건물, 오른쪽은 하늘과 도시 불빛이라 글자를 얹기 좋다."
   },
   "groups": [
    {
@@ -38,240 +53,8 @@
     "focus": {
      "x": 0,
      "y": 0,
-     "w": 370,
+     "w": 365,
      "h": 392
-    },
-    "kvPlace": "bg",
-    "kvSize": "lg",
-    "bgFill": "kv",
-    "scrim": "low",
-    "field": {
-     "colors": [
-      "#272659",
-      "#4C4697"
-     ],
-     "angle": 90,
-     "text": "light",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0,
-     "w": 1,
-     "h": 1
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "shapes": [
-     {
-      "kind": "ellipse",
-      "x": 0.5,
-      "y": 0.05,
-      "w": 0.5,
-      "h": 0.6,
-      "color": "#787BEC",
-      "opacity": 0.3,
-      "blur": 0.2
-     }
-    ],
-    "why": "가로형은 사진 전체를 배경으로 쓰고 글자는 오른쪽 하늘 영역에 놓는다."
-   },
-   {
-    "shape": "tall",
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 520,
-     "h": 392
-    },
-    "focus": {
-     "x": 0,
-     "y": 0,
-     "w": 370,
-     "h": 392
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "bgFill": "kv",
-    "scrim": "low",
-    "field": {
-     "colors": [
-      "#272659",
-      "#4C4697"
-     ],
-     "angle": 90,
-     "text": "light",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.4,
-     "w": 1,
-     "h": 0.6
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.4,
-     "bottom": 0
-    },
-    "shapes": [
-     {
-      "kind": "ellipse",
-      "x": 0.2,
-      "y": 0.05,
-      "w": 0.8,
-      "h": 0.4,
-      "color": "#4C4697",
-      "opacity": 0.4,
-      "blur": 0.2
-     }
-    ],
-    "why": "건물과 야경을 아래에 크게 두고 위쪽 글자 영역은 그라데이션으로 이어 준다."
-   },
-   {
-    "shape": "square",
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 440,
-     "h": 392
-    },
-    "focus": {
-     "x": 0,
-     "y": 0,
-     "w": 370,
-     "h": 392
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "bgFill": "kv",
-    "scrim": "low",
-    "field": {
-     "colors": [
-      "#272659",
-      "#4C4697"
-     ],
-     "angle": 90,
-     "text": "light",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.38,
-     "w": 1,
-     "h": 0.62
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.4,
-     "bottom": 0
-    },
-    "shapes": [
-     {
-      "kind": "ellipse",
-      "x": 0.3,
-      "y": 0,
-      "w": 0.8,
-      "h": 0.5,
-      "color": "#787BEC",
-      "opacity": 0.35,
-      "blur": 0.22
-     },
-     {
-      "kind": "ellipse",
-      "x": -0.2,
-      "y": 0.3,
-      "w": 0.6,
-      "h": 0.5,
-      "color": "#4C4697",
-      "opacity": 0.4,
-      "blur": 0.2
-     }
-    ],
-    "why": "정사각은 사진을 아래에 두고 위쪽을 빛 번짐으로 채운다."
-   },
-   {
-    "shape": "tower",
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 300,
-     "h": 392
-    },
-    "focus": {
-     "x": 0,
-     "y": 60,
-     "w": 300,
-     "h": 332
-    },
-    "kvPlace": "bottom",
-    "kvSize": "md",
-    "bgFill": "kv",
-    "scrim": "low",
-    "field": {
-     "colors": [
-      "#272659",
-      "#4C4697"
-     ],
-     "angle": 90,
-     "text": "light",
-     "melt": 0.5
-    },
-    "kvBox": {
-     "x": 0,
-     "y": 0.6,
-     "w": 1,
-     "h": 0.4
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0.45,
-     "bottom": 0
-    },
-    "shapes": [
-     {
-      "kind": "ellipse",
-      "x": 0,
-      "y": 0.1,
-      "w": 1,
-      "h": 0.4,
-      "color": "#4C4697",
-      "opacity": 0.4,
-      "blur": 0.2
-     },
-     {
-      "kind": "ellipse",
-      "x": 0.3,
-      "y": 0.45,
-      "w": 0.8,
-      "h": 0.3,
-      "color": "#787BEC",
-      "opacity": 0.3,
-      "blur": 0.18
-     }
-    ],
-    "why": "세로 띠는 건물 일부만 아래쪽에 작게 쓰고 글자 공간을 확보한다."
-   },
-   {
-    "shape": "strip",
-    "crop": {
-     "x": 0,
-     "y": 120,
-     "w": 900,
-     "h": 200
-    },
-    "focus": {
-     "x": 0,
-     "y": 120,
-     "w": 900,
-     "h": 200
     },
     "kvPlace": "bg",
     "kvSize": "lg",
@@ -302,28 +85,264 @@
      {
       "kind": "ellipse",
       "x": 0.5,
-      "y": 0,
-      "w": 0.5,
-      "h": 1,
+      "y": -0.1,
+      "w": 0.6,
+      "h": 0.7,
       "color": "#787BEC",
-      "opacity": 0.25,
+      "opacity": 0.3,
       "blur": 0.2
      }
     ],
-    "why": "가로 띠는 하늘과 도시 경계를 배경으로 깔고 스크림으로 글자 대비를 높인다."
+    "why": "야경 전체를 배경으로 쓰고 건물은 왼쪽에 둔다. 글자는 오른쪽 하늘 쪽에 놓는다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 365,
+     "h": 392
+    },
+    "focus": {
+     "x": 0,
+     "y": 0,
+     "w": 365,
+     "h": 392
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "mid",
+    "field": {
+     "colors": [
+      "#272659",
+      "#4C4697"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.4,
+     "w": 1,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.2,
+      "y": 0.3,
+      "w": 0.8,
+      "h": 0.5,
+      "color": "#787BEC",
+      "opacity": 0.35,
+      "blur": 0.2
+     }
+    ],
+    "why": "건물을 아래쪽에 크게 두고 윗부분은 지면 색으로 녹여 글자 자리를 만든다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 392,
+     "h": 392
+    },
+    "focus": {
+     "x": 0,
+     "y": 0,
+     "w": 365,
+     "h": 392
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "kv",
+    "scrim": "mid",
+    "field": {
+     "colors": [
+      "#272659",
+      "#4C4697"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.38,
+     "w": 1,
+     "h": 0.62
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.4,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.4,
+      "y": 0,
+      "w": 0.8,
+      "h": 0.6,
+      "color": "#787BEC",
+      "opacity": 0.35,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.1,
+      "y": 0.5,
+      "w": 0.6,
+      "h": 0.5,
+      "color": "#4C4697",
+      "opacity": 0.4,
+      "blur": 0.18
+     }
+    ],
+    "why": "정사각에서는 건물 중심으로 잘라 아래에 두고 위는 빛 번짐으로 채운다."
+   },
+   {
+    "shape": "tower",
+    "crop": {
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 392
+    },
+    "focus": {
+     "x": 0,
+     "y": 60,
+     "w": 300,
+     "h": 332
+    },
+    "kvPlace": "bottom",
+    "kvSize": "md",
+    "bgFill": "kv",
+    "scrim": "mid",
+    "field": {
+     "colors": [
+      "#272659",
+      "#4C4697"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0,
+     "y": 0.55,
+     "w": 1,
+     "h": 0.45
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0.45,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0,
+      "y": 0.1,
+      "w": 1,
+      "h": 0.4,
+      "color": "#787BEC",
+      "opacity": 0.35,
+      "blur": 0.22
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.6,
+      "w": 0.9,
+      "h": 0.4,
+      "color": "#4C4697",
+      "opacity": 0.4,
+      "blur": 0.2
+     }
+    ],
+    "why": "좁은 세로 띠라 건물만 아래쪽에 두고 위쪽은 글자 공간으로 비운다."
+   },
+   {
+    "shape": "strip",
+    "crop": {
+     "x": 0,
+     "y": 120,
+     "w": 900,
+     "h": 200
+    },
+    "focus": {
+     "x": 0,
+     "y": 120,
+     "w": 365,
+     "h": 200
+    },
+    "kvPlace": "right",
+    "kvSize": "sm",
+    "bgFill": "kv",
+    "scrim": "mid",
+    "field": {
+     "colors": [
+      "#272659",
+      "#4C4697"
+     ],
+     "angle": 90,
+     "text": "light",
+     "melt": 0.5
+    },
+    "kvBox": {
+     "x": 0.55,
+     "y": 0,
+     "w": 0.45,
+     "h": 1
+    },
+    "fade": {
+     "left": 0.4,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.4,
+      "y": -0.3,
+      "w": 0.4,
+      "h": 1,
+      "color": "#787BEC",
+      "opacity": 0.3,
+      "blur": 0.2
+     }
+    ],
+    "why": "가로 띠는 그림을 오른쪽 끝에 작게 두고 왼쪽 변을 녹여 글자 공간을 확보한다."
    }
   ],
   "logo": {
-   "kind": "wordmark"
+   "kind": "combo"
   },
-  "rationale": "보랏빛 새벽 야경 사진이라 어두운 남보라 지면과 자연스럽게 이어 붙이고 건물이 있는 왼쪽을 살렸다. 글자는 비교적 비어 있는 하늘 쪽에 두어 대비와 가독성을 확보한다."
+  "rationale": "보랏빛 새벽 야경의 병원 건물을 주인공으로 삼아 보존하고, 지면은 그림의 남색~보라 그라데이션을 이어 쓴다. 모양마다 건물이 잘리지 않게 크기와 위치를 조정하고 글자 쪽은 녹이거나 스크림으로 대비를 확보한다."
  },
+ "sentPx": [
+  900,
+  392
+ ],
  "usage": {
-  "input_tokens": 5875,
-  "output_tokens": 1999,
+  "input_tokens": 5992,
+  "output_tokens": 2137,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0317,
- "at": "2026-10-22T12:25:09.114Z"
+ "cost": 0.0334,
+ "at": "2026-10-23T03:36:47.261Z"
 }

@@ -16,6 +16,10 @@ AI 는 **그림 판단만**(캠페인당 호출 1회), 그리기는 **규칙 렌
 
 structured output 은 안 쓴다(스키마가 커지면 「compiled grammar is too large」) — 프롬프트에 형식을 싣고 `parseAnalysisText` + `validateAnalysis`.
 
+좌표는 **보낸 그림 크기** 기준이다(10-23). 판단용 사본은 긴 변 1600 으로 줄여 보내므로, 프롬프트와 검증은 `metaForSent`(PNG·JPEG 머리에서 읽은 실제 픽셀)로 맞춘다. 원본 크기를 알려 주면 모델이 좌표계를 섞는다. 응답에 kv·groups 가 다 없으면 `parseAnalysisFull` 이 다시 묻는다.
+
+검증 루프: `node scripts/ai-loop.mjs --round N [--rejudge] [--no-critic] [--cases a,b]` → `history/img/loop/rN/`, 요약 `node scripts/loop-index.mjs --first r7` → `history/img/loop/index.html`. 배치 후보가 왜 떨어지는지는 `AI_BOX_DEBUG=1` 로 본다.
+
 흐름: `POST /api/analyze`(`server/design.js analyzeKv`, Sonnet 5.5 medium) → `core/trackb/analyze.js`(스키마 `ANALYSIS_SCHEMA` · 검증 `validateAnalysis`: 픽셀→비율, crop 이 주인공·보존 요소를 자르면 넓힘, 선택지 밖은 auto) → `app/hybrid.js`(모양 묶음마다 crop 사본 + 측정 + 프리셋 조각) → `renderArtifact`(규칙). 비용 캠페인당 **$0.02(≈30원)**, 20종 전부 포함.
 
 - 비교 화면: 「A+AI 그림 판단 (API 1회)」 버튼 → 가운데 열. 모양 묶음별 판단 표·고친 것·프롬프트는 접힘 칸. 판단 JSON 내려받기/불러오기.

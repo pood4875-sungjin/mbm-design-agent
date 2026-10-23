@@ -1,20 +1,27 @@
 {
  "raw": {
   "kv": {
-   "type": "cutout-object",
+   "type": "cutout-character",
    "subject": {
-    "x": 50,
+    "x": 45,
     "y": 45,
     "w": 850,
-    "h": 1860
+    "h": 1520
    },
    "keep": [
     {
-     "x": 50,
+     "x": 55,
      "y": 45,
-     "w": 590,
-     "h": 470,
-     "label": "강아지 얼굴"
+     "w": 585,
+     "h": 450,
+     "label": "골든리트리버 얼굴"
+    },
+    {
+     "x": 45,
+     "y": 430,
+     "w": 850,
+     "h": 1135,
+     "label": "앉은 몸통과 앞발"
     }
    ],
    "faces": [
@@ -22,24 +29,24 @@
      "x": 55,
      "y": 45,
      "w": 585,
-     "h": 470
+     "h": 450
     }
    ],
    "cutSafe": {
-    "top": 0.01,
-    "right": 0.03,
-    "bottom": 0.01,
-    "left": 0.03
+    "top": 0.02,
+    "right": 0.04,
+    "bottom": 0.02,
+    "left": 0.04
    },
    "mood": {
     "tone": "light",
     "colors": [
      "#D2BEA1",
      "#A08A69",
-     "#1E72F6"
+     "#685337"
     ]
    },
-   "note": "투명 배경 누끼 골든 리트리버. 얼굴이 상단에 있어 상단 로고 모서리를 피해야 함."
+   "note": "투명 배경 누끼 강아지. 따뜻한 베이지 톤이므로 브랜드 블루 계열 지면과 보색 대비로 살린다."
   },
   "groups": [
    {
@@ -47,14 +54,14 @@
     "crop": {
      "x": 0,
      "y": 0,
-     "w": 1148,
-     "h": 1946
+     "w": 944,
+     "h": 1600
     },
     "focus": {
-     "x": 50,
+     "x": 55,
      "y": 45,
-     "w": 850,
-     "h": 1860
+     "w": 840,
+     "h": 1520
     },
     "kvPlace": "right",
     "kvSize": "lg",
@@ -62,134 +69,18 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#EAF1FE",
-      "#C9DCFB"
+      "#1E72F6",
+      "#154FB5"
      ],
      "angle": 135,
-     "text": "dark",
-     "melt": 0
+     "text": "light",
+     "melt": 0.3
     },
     "kvBox": {
-     "x": 0.58,
-     "y": 0.14,
-     "w": 0.3,
-     "h": 0.86
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "shapes": [
-     {
-      "kind": "ellipse",
-      "x": 0.55,
-      "y": 0.1,
-      "w": 0.5,
-      "h": 0.9,
-      "color": "#FFFFFF",
-      "opacity": 0.5,
-      "blur": 0.2
-     }
-    ],
-    "why": "가로형은 오른쪽에 강아지를 크게 두고 왼쪽을 글자 공간으로 비운다."
-   },
-   {
-    "shape": "tall",
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1148,
-     "h": 1946
-    },
-    "focus": {
-     "x": 50,
-     "y": 45,
-     "w": 850,
-     "h": 1000
-    },
-    "kvPlace": "bottom",
-    "kvSize": "lg",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#EAF1FE",
-      "#C9DCFB"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.12,
-     "y": 0.42,
-     "w": 0.76,
-     "h": 0.62
-    },
-    "fade": {
-     "left": 0,
-     "right": 0,
-     "top": 0,
-     "bottom": 0
-    },
-    "shapes": [
-     {
-      "kind": "ellipse",
-      "x": 0.1,
-      "y": 0.4,
-      "w": 0.8,
-      "h": 0.6,
-      "color": "#FFFFFF",
-      "opacity": 0.5,
-      "blur": 0.2
-     },
-     {
-      "kind": "ellipse",
-      "x": -0.2,
-      "y": 0.6,
-      "w": 0.6,
-      "h": 0.4,
-      "color": "#1E72F6",
-      "opacity": 0.3,
-      "blur": 0.2
-     }
-    ],
-    "why": "세로형은 아래쪽에 강아지를 크게 두고 위쪽을 글자 공간으로 쓴다."
-   },
-   {
-    "shape": "square",
-    "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1148,
-     "h": 1946
-    },
-    "focus": {
-     "x": 50,
-     "y": 45,
-     "w": 850,
-     "h": 1860
-    },
-    "kvPlace": "right",
-    "kvSize": "lg",
-    "bgFill": "brand",
-    "scrim": "none",
-    "field": {
-     "colors": [
-      "#EAF1FE",
-      "#C9DCFB"
-     ],
-     "angle": 135,
-     "text": "dark",
-     "melt": 0
-    },
-    "kvBox": {
-     "x": 0.55,
-     "y": 0.12,
-     "w": 0.5,
-     "h": 0.88
+     "x": 0.56,
+     "y": 0.06,
+     "w": 0.4,
+     "h": 1
     },
     "fade": {
      "left": 0,
@@ -202,9 +93,9 @@
       "kind": "ellipse",
       "x": 0.5,
       "y": 0.1,
-      "w": 0.6,
+      "w": 0.5,
       "h": 0.9,
-      "color": "#FFFFFF",
+      "color": "#6BA4FF",
       "opacity": 0.5,
       "blur": 0.2
      },
@@ -212,28 +103,164 @@
       "kind": "ellipse",
       "x": -0.1,
       "y": 0.6,
-      "w": 0.5,
-      "h": 0.5,
-      "color": "#1E72F6",
-      "opacity": 0.3,
+      "w": 0.4,
+      "h": 0.7,
+      "color": "#0E3A8C",
+      "opacity": 0.4,
       "blur": 0.2
      }
     ],
-    "why": "정사각은 오른쪽에 강아지를 크게 둔다."
+    "why": "가로형은 강아지 전체를 오른쪽에 크게 두고 왼쪽 글자 영역은 차분한 블루로 둔다."
+   },
+   {
+    "shape": "tall",
+    "crop": {
+     "x": 45,
+     "y": 45,
+     "w": 850,
+     "h": 1100
+    },
+    "focus": {
+     "x": 55,
+     "y": 45,
+     "w": 585,
+     "h": 450
+    },
+    "kvPlace": "bottom",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1E72F6",
+      "#154FB5"
+     ],
+     "angle": 135,
+     "text": "light",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": 0.05,
+     "y": 0.42,
+     "w": 0.9,
+     "h": 0.6
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": 0.4,
+      "w": 0.9,
+      "h": 0.6,
+      "color": "#6BA4FF",
+      "opacity": 0.5,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.2,
+      "y": -0.1,
+      "w": 0.7,
+      "h": 0.4,
+      "color": "#0E3A8C",
+      "opacity": 0.35,
+      "blur": 0.2
+     }
+    ],
+    "why": "세로형은 얼굴과 상체 위주로 좁혀 아래쪽에 크게 놓고 위쪽을 글자 자리로 비운다."
+   },
+   {
+    "shape": "square",
+    "crop": {
+     "x": 45,
+     "y": 45,
+     "w": 850,
+     "h": 1100
+    },
+    "focus": {
+     "x": 55,
+     "y": 45,
+     "w": 585,
+     "h": 450
+    },
+    "kvPlace": "right",
+    "kvSize": "lg",
+    "bgFill": "brand",
+    "scrim": "none",
+    "field": {
+     "colors": [
+      "#1E72F6",
+      "#154FB5"
+     ],
+     "angle": 135,
+     "text": "light",
+     "melt": 0.3
+    },
+    "kvBox": {
+     "x": 0.5,
+     "y": 0.12,
+     "w": 0.52,
+     "h": 0.9
+    },
+    "fade": {
+     "left": 0,
+     "right": 0,
+     "top": 0,
+     "bottom": 0
+    },
+    "shapes": [
+     {
+      "kind": "ellipse",
+      "x": 0.4,
+      "y": 0.1,
+      "w": 0.7,
+      "h": 0.8,
+      "color": "#6BA4FF",
+      "opacity": 0.5,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": -0.15,
+      "y": 0.5,
+      "w": 0.6,
+      "h": 0.7,
+      "color": "#0E3A8C",
+      "opacity": 0.4,
+      "blur": 0.2
+     },
+     {
+      "kind": "ellipse",
+      "x": 0.1,
+      "y": -0.1,
+      "w": 0.5,
+      "h": 0.4,
+      "color": "#4D8DF8",
+      "opacity": 0.35,
+      "blur": 0.15
+     }
+    ],
+    "why": "정사각은 상체를 오른쪽에 크게 두고 빛 번짐으로 빈 지면을 채운다."
    },
    {
     "shape": "tower",
     "crop": {
-     "x": 0,
-     "y": 0,
-     "w": 1148,
-     "h": 1000
+     "x": 55,
+     "y": 45,
+     "w": 585,
+     "h": 450
     },
     "focus": {
-     "x": 50,
+     "x": 55,
      "y": 45,
-     "w": 850,
-     "h": 1000
+     "w": 585,
+     "h": 450
     },
     "kvPlace": "bottom",
     "kvSize": "md",
@@ -241,18 +268,18 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#EAF1FE",
-      "#C9DCFB"
+      "#1E72F6",
+      "#154FB5"
      ],
      "angle": 135,
-     "text": "dark",
-     "melt": 0
+     "text": "light",
+     "melt": 0.3
     },
     "kvBox": {
-     "x": 0.05,
-     "y": 0.55,
-     "w": 0.9,
-     "h": 0.45
+     "x": 0,
+     "y": 0.6,
+     "w": 1,
+     "h": 0.4
     },
     "fade": {
      "left": 0,
@@ -266,37 +293,37 @@
       "x": 0,
       "y": 0.5,
       "w": 1,
-      "h": 0.5,
-      "color": "#FFFFFF",
+      "h": 0.4,
+      "color": "#6BA4FF",
       "opacity": 0.5,
       "blur": 0.2
      },
      {
       "kind": "ellipse",
-      "x": 0.1,
-      "y": 0.2,
-      "w": 0.8,
+      "x": 0,
+      "y": 0,
+      "w": 1,
       "h": 0.3,
-      "color": "#1E72F6",
-      "opacity": 0.3,
+      "color": "#0E3A8C",
+      "opacity": 0.4,
       "blur": 0.2
      }
     ],
-    "why": "세로 띠는 하단에 얼굴과 상반신만 크게 둔다."
+    "why": "세로 띠는 얼굴만 하단에 넣고 위쪽을 글자 자리로 둔다."
    },
    {
     "shape": "strip",
     "crop": {
-     "x": 50,
+     "x": 55,
      "y": 45,
-     "w": 850,
-     "h": 600
+     "w": 585,
+     "h": 450
     },
     "focus": {
-     "x": 50,
+     "x": 55,
      "y": 45,
-     "w": 590,
-     "h": 470
+     "w": 585,
+     "h": 450
     },
     "kvPlace": "right",
     "kvSize": "sm",
@@ -304,17 +331,17 @@
     "scrim": "none",
     "field": {
      "colors": [
-      "#EAF1FE",
-      "#C9DCFB"
+      "#1E72F6",
+      "#154FB5"
      ],
      "angle": 135,
-     "text": "dark",
-     "melt": 0
+     "text": "light",
+     "melt": 0.3
     },
     "kvBox": {
-     "x": 0.8,
-     "y": 0,
-     "w": 0.18,
+     "x": 0.78,
+     "y": 0.02,
+     "w": 0.2,
      "h": 1
     },
     "fade": {
@@ -326,29 +353,33 @@
     "shapes": [
      {
       "kind": "ellipse",
-      "x": 0.7,
+      "x": 0.65,
       "y": -0.2,
       "w": 0.4,
       "h": 1.4,
-      "color": "#FFFFFF",
-      "opacity": 0.4,
-      "blur": 0.15
+      "color": "#6BA4FF",
+      "opacity": 0.45,
+      "blur": 0.2
      }
     ],
-    "why": "가로 띠는 얼굴만 오른쪽 끝에 작게 둔다."
+    "why": "가로 띠는 얼굴만 오른쪽 끝에 작게 두고 글자 공간을 확보한다."
    }
   ],
   "logo": {
    "kind": "combo"
   },
-  "rationale": "투명 배경의 강아지 누끼라 밝은 브랜드 블루 계열 지면 위에 그대로 올리고 fade 없이 둔다. 모양별로 강아지를 오른쪽이나 아래에 크게 두어 글자 공간을 확보하고 얼굴은 온전히 보존한다."
+  "rationale": "투명 배경 골든리트리버 누끼를 브랜드 블루 지면 위에 따뜻한 베이지와 보색 대비로 올려 친근하고 시선을 끄는 채용 광고로 만든다. 모양마다 얼굴을 통째로 살리고 글자 쪽을 비워 가독성을 확보한다."
  },
+ "sentPx": [
+  944,
+  1600
+ ],
  "usage": {
-  "input_tokens": 7251,
-  "output_tokens": 2131,
+  "input_tokens": 7559,
+  "output_tokens": 2369,
   "cache_read_input_tokens": 0,
   "cache_creation_input_tokens": 0
  },
- "cost": 0.0358,
- "at": "2026-10-22T12:10:17.397Z"
+ "cost": 0.0388,
+ "at": "2026-10-23T03:41:00.534Z"
 }
