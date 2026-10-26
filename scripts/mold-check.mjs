@@ -44,7 +44,7 @@ for (const [id, v] of Object.entries(M.specs)) {
     if (r && !f) { add(`${roleName[role]} 줄`, '있음', '없음', (role === 'sub' || role === 'detail' || role === 'date') ? null : false, '문구 없음'); continue; }
     if (!r && f) { add(`${roleName[role]} 줄`, '없음', '있음', false); continue; }
     const fs = f.fs, lh = parseFloat(f.lh) || fs * 1.2;
-    const yFig = (r.chip || r.box === 'line') ? r1(f.y) : r1(f.y + (lh - fs * 1.2) / 2);   // Figma 글상자 top 으로 환산(날짜 알약 행은 칩 상자 top 이 곧 y · box:'line' 행은 줄 상자 top 이 곧 y)
+    const yFig = r.chip ? r1(f.y) : r1(f.y + (lh - fs * 1.2) / 2);   // Figma 글상자 top 으로 환산(날짜 알약 행은 칩 상자 top 이 곧 y)
     const stdY = used[role]?.y ?? r.y;            // 틀 y(메인 줄 수·서브 줄 수 따라 움직이는 줄은 렌더러가 쓴 값)
     const stdX = r.x != null ? r.x : mold.x;   // 행별 글상자 x(구글 ABL: 날짜 47·상세 127·세로형 메인 61 — 10-15 저녁)
     add(`${roleName[role]} x`, stdX, f.x, near(f.x, stdX));

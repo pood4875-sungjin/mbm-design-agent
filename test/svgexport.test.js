@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   escXml, splitTopLevel, parseColor, hexOf, paintAttrs, parseGradient, cssAngle, gradientLine, resolveStops,
-  bgPosition, bgSize, bgPlacement, groupLines, layerName, uniqueId, roundRect, clampRadii, gradientDef, svgFrame,
+  bgPosition, bgSize, bgPlacement, groupLines, layerName, uniqueId, roundRect, clampRadii, gradientDef, svgFrame, figmaBaseline,
 } from '../core/svgexport.js';
 
 const near = (a, b, eps = 0.01) => assert.ok(Math.abs(a - b) <= eps, `${a} ≈ ${b}`);
@@ -155,4 +155,13 @@ test('gradientDef: 선형은 절대 좌표, 마스크용은 흰색 + 알파, 방
 test('svgFrame: 제출 배수 — width/height 는 제출 크기, viewBox 는 캔버스', () => {
   assert.equal(svgFrame(580, 400), 'width="580" height="400" viewBox="0 0 580 400"');
   assert.equal(svgFrame(540, 540, 1080, 1080), 'width="1080" height="1080" viewBox="0 0 540 540"');
+});
+
+test('figmaBaseline: Figma 글상자(1.2em)는 줄 상자 가운데 — 줄 간격이 넓어도 렌더 글자 위치와 같다(10-26 리멤버·자소설 달력)', () => {
+  // 리멤버 공고 상세 상단 MO: 48px · 줄 간격 79 · 틀 y 70.1 → 렌더 줄 상자 top 59.4, Pretendard content 상자 57px 은 줄 상자 가운데(top 70.4)
+  near(figmaBaseline({ top: 70.4, h: 57, lh: 79, fs: 48 }) - 48, 70.1, 0.05);
+  // 줄 간격 = 1.2em 이면 예전(줄 상자 top + 1.0em)과 같다 — Kakao Big Sans content 1.48em 도 줄 상자 기준
+  near(figmaBaseline({ top: 100 - (1.48 - 1.2) * 20 / 2, h: 1.48 * 20, lh: 24, fs: 20 }), 100 + 20, 0.01);
+  // line-height 를 못 읽으면 content 상자 top 기준
+  near(figmaBaseline({ top: 10, h: 12, lh: NaN, fs: 10 }), 20, 0.01);
 });

@@ -2302,8 +2302,7 @@ ${tplLogo}${kvWrap(tplObject)}
     // 틀 글자 칸이 오른쪽 그림 열 밑으로 들어가면(잡다 MO 글자 20+260 > 그림 칸 226 — 10-20 종합 점수표 ④ text-over-subject 16~18% × 11케이스) 글자 줄은 그림 칸 앞 8px 에서 접는다 — 칸의 x·y·px 는 템플릿 그대로, 폭만 그림 앞에서 멈춤(장부 mold-text-stop-at-image)
     if (tImage && imgRightCol && hasKv && sx + colW > tImage.x && tImage.x - 8 - sx >= Math.round(colW * 0.6)) { colW = tImage.x - 8 - sx; fired('templateMold.textStopAtImage'); }   // 실제로 겹칠 때만(잡다 PC 는 글자 530 < 그림 537 — 그대로)
     const pxOf = r => Math.round(r.px * k * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)), pitchOf = r => Math.round((r.pitch ?? r.px * 1.2) * k * 100) / 100;
-    // 알약 행(날짜 칩)은 칩 상자 top 이 곧 y · box:'line' 행은 y 가 줄 상자 top(Figma 고정 행간 글상자 — 10-26 자소설 PC달력 메인 「위 패딩 39px」, 글자 상자로 보고 (pitch − 1.2em)/2 만큼 올려 36 이 되던 것)
-    const topOf = r => (r.chip || r.box === 'line') ? Math.round(r.y * k * 10) / 10 : Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;
+    const topOf = r => r.chip ? Math.round(r.y * k * 10) / 10 : Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;   // 알약 행(날짜 칩)은 칩 상자 top 이 곧 y
     const blocks = []; const used = {};
     // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
     const rowX = r => r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA: 정렬 프리셋(10-19) — 칸은 그대로, 칸 안 text-align 만 */
