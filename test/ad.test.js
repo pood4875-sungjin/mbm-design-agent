@@ -354,3 +354,12 @@ test('네이버 네이티브 썸네일 342×228 은 비주얼만 — 키비주�
   const noKv = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=' }, specs['naver-gfa-native-mo-342x228']);
   assert.match(noKv, /data-object="logo"/); assert.doesNotMatch(noKv, /data-field="main"/);
 });
+
+test('자소설 PC달력배너 메인 위 패딩 39px(2배) — 틀 행 box:"line" 은 y 가 줄 상자 top(10-26)', () => {
+  const spec = specs['jasoseol-pc-calendar-pc'];
+  assert.equal(spec.rules.safeArea.measuredFromTemplate.mold.rows.main.box, 'line');
+  const html = renderAd(ctx, style, spec);
+  const col = html.match(/data-text-col="1" style="position:absolute;left:[\d.]+px;top:([\d.]+)px/), m = html.match(/<div data-field="main"[^>]*style="position:absolute;left:[\d.]+px;top:([\d.]+)px/);
+  assert.ok(col && m, '글자 칸 · 메인 행');
+  assert.equal((Number(col[1]) + Number(m[1])) * 2, 39, '메인 줄 상자 top = 39(2배) — 예전엔 글자 상자로 보고 (pitch − 1.2em)/2 올려 36');
+});

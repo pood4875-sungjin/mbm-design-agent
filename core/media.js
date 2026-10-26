@@ -1811,7 +1811,9 @@ export const MEDIA = [
               "w": 260,
               "rows": {
                 "main": {
-                  "y": 38.9,
+                  "y": 39,
+                  "box": "line",
+                  "boxNote": "10-26 사용자 「위 패딩 39px」 — y 는 줄 상자 top(Figma 고정 행간 글상자)",
                   "px": 40,
                   "weight": 700,
                   "pitch": 53.9,
