@@ -67,14 +67,14 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
   assert.doesNotMatch(html, /data-scrim/);
 });
 
-test('채용공고 160×600 틀 — 샘플 6개: 서브 16/700 y81.9 · 메인 24/700 y117.5(서브 2줄이면 141) 간격 34 · 상세 13 라벨 줄 + 값 줄, 블록 y = 마지막 메인 줄 + 57.5 · 로고 칸 130×30@15,23 가운데 · 그림 칸 160×200@0,400', () => {
+test('채용공고 160×600 틀 — 샘플 6개: 서브 16/700 y81.9 · 메인 24/700 y141 고정(서브 줄 수 무관, 10-26) 간격 34 · 상세 13 라벨 줄 + 값 줄, 블록 y = 마지막 메인 줄 + 57.5 · 로고 칸 130×30@15,23 가운데 · 그림 칸 160×200@0,400', () => {
   for (const id of ['jasoseol-pc-premium-jobpost-pc', 'jasoseol-pc-standard-jobpost-pc']) {
     const html = renderAd(ctx, glass, specs[id]);
     const tr = traceOf(html), R = tr.mold.rows;
     assert.equal(tr.mode, 'templateMold', id);
-    assert.equal(R.sub.y, 81.9); assert.equal(R.main.y, 117.5); assert.equal(tr.mold.mainN, 3, '마이다스 / 대규모 / 공개채용');
+    assert.equal(R.sub.y, 81.9); assert.equal(R.main.y, 141, '10-26 사용자 「서브 줄 수와 상관없이 템플릿 자리(141)」'); assert.equal(tr.mold.mainN, 3, '마이다스 / 대규모 / 공개채용');
     assert.match(html, /<img data-logo="1"[^>]*height:25px/, '로고 면적 상한 2,200px²: MIDAS(3.4:1) → 86×25');
-    assert.equal(Math.round(R.detail.y * 10) / 10, Math.round((117.5 + 2 * 34.1 + 57.5) * 10) / 10, '상세 = 마지막 메인 줄 + 57.5');
+    assert.equal(Math.round(R.detail.y * 10) / 10, Math.round((141 + 2 * 34.1 + 57.5) * 10) / 10, '상세 = 마지막 메인 줄 + 57.5');
     assert.match(html, /<b style="font-weight:700">모집일정<\/b><\/div><div>9\.22\(월\) - 10\.12\(일\)<\/div>/, '라벨 줄 + 값 줄');
     assert.doesNotMatch(detailOf(html), /고용형태/);
     assert.match(html, /data-logo-slot="1" style="position:absolute;left:15px;top:23px;width:130px;height:30px;[^"]*justify-content:center/);
