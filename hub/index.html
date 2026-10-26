@@ -5,26 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI 디자인 스튜디오 목업</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="fui/ui2.css">
 <link rel="stylesheet" href="mock.css">
 </head>
-<body>
-<!-- 목업: 피그마 데스크톱 UI(탭 바 · 왼쪽 패널 · 캔버스 · 오른쪽 Design 패널 · 아래 툴바)를 레퍼런스로 홈 → 광고 소재 흐름만. 실제 도구와 연결하지 않는다 -->
-<header class="tabbar">
-  <button class="tb-home" id="homeTab" aria-label="홈" title="홈">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg>
-  </button>
-  <div class="tb-tabs" id="tabs" role="tablist" aria-label="작업 탭"></div>
-  <button class="tb-new" id="newTab" aria-label="새 탭" title="새 탭">
-    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-  </button>
+<body class="f-root">
+<!-- 목업: 피그마 UI2 키트(컨시어지 파일 「ui」 페이지)의 컴포넌트로 홈 → 광고 소재 흐름만. 실제 도구와 연결하지 않는다.
+     탭스트립(38 · #222) › 툴바(40 · #2C2C2C) › 사이드바 240 | 캔버스 Silver | 사이드바 240 -->
+<header class="f-tabstrip" id="tabstrip">
+  <div class="f-tl" aria-hidden="true"><i></i><i></i><i></i></div>
+  <button class="f-tab-home" id="homeTab" aria-label="홈" title="홈"></button>
+  <div class="f-tabs" id="tabs" role="tablist" aria-label="작업 탭"></div>
+  <button class="f-tab-new" id="newTab" aria-label="새 탭" title="새 탭"></button>
   <div class="grow"></div>
-  <button class="tb-btn" id="historyBtn" aria-haspopup="dialog" aria-expanded="false">작업 내역</button>
-  <button class="tb-btn" id="settingsBtn" aria-haspopup="dialog" aria-expanded="false">설정</button>
+  <button class="tabbtn" id="historyBtn" aria-haspopup="menu" aria-expanded="false">작업 내역</button>
+  <button class="tabbtn" id="settingsBtn" aria-haspopup="menu" aria-expanded="false">설정</button>
 </header>
 <main id="views"></main>
-<div class="pop" id="pop" role="dialog" hidden></div>
+<div class="pop f-menu" id="pop" role="menu" hidden></div>
 <div class="dim" id="modal" hidden><div class="modal" role="dialog" aria-modal="true" id="modalBox"></div></div>
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="toast f-bell" id="toast" role="status" aria-live="polite" hidden></div>
 <script type="module" src="mock.js"></script>
 </body>
 </html>
