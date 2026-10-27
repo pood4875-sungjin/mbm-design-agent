@@ -135,13 +135,25 @@ export function collectColors(nodes) {
 const K = 'studio.';
 export const loadIndex = () => { try { return JSON.parse(localStorage.getItem(K + 'index')) ?? []; } catch { return []; } };
 const saveIndex = idx => { try { localStorage.setItem(K + 'index', JSON.stringify(idx)); } catch { /* 공간 없음 */ } };
+// 올린 그림(dataURL)은 규격 51개가 같은 src 를 들고 있으니 저장할 땐 한 번만 쓰고(@kv · @logo) 읽을 때 되돌린다
+export function serialize(doc) {
+  const kv = doc.kvSrc, lg = doc.logoSrc;
+  return JSON.stringify(doc, (k, v) => { if (k === 'kvSrc' || k === 'logoSrc') return v; if (typeof v === 'string' && v.length > 200) { if (kv && v === kv) return '@kv'; if (lg && v === lg) return '@logo'; } return v; });
+}
+export function hydrate(doc) {
+  if (!doc) return doc;
+  for (const p of doc.pages ?? []) walk(p.children, n => { for (const f of n.fills ?? []) if (f.type === 'image') { if (f.src === '@kv') f.src = doc.kvSrc; else if (f.src === '@logo') f.src = doc.logoSrc; } });
+  return doc;
+}
 export function saveDoc(doc, thumb) {
   doc.updatedAt = Date.now();
-  try { localStorage.setItem(K + 'doc.' + doc.id, JSON.stringify(doc)); } catch (e) { console.warn('저장 실패(용량)', e); return false; }
+  try { localStorage.setItem(K + 'doc.' + doc.id, serialize(doc)); } catch (e) { console.warn('저장 실패(용량)', e); return false; }
   const idx = loadIndex().filter(x => x.id !== doc.id); idx.unshift({ id: doc.id, name: doc.name, tool: doc.tool, ex: doc.ex, updatedAt: doc.updatedAt, thumb: thumb ?? loadIndex().find(x => x.id === doc.id)?.thumb ?? null, frames: pageOf(doc).children.length });
   saveIndex(idx.slice(0, 40)); return true;
 }
-export function loadDoc(id) { try { const d = JSON.parse(localStorage.getItem(K + 'doc.' + id)); if (d) d.pageId ??= d.pages[0].id; return d; } catch { return null; } }
+export function loadDoc(id) { try { const d = hydrate(JSON.parse(localStorage.getItem(K + 'doc.' + id))); if (d) d.pageId ??= d.pages[0].id; return d; } catch { return null; } }
+// 로고 바꾸기: 「로고」 이미지 레이어 전부
+export function replaceLogo(doc, src) { for (const p of doc.pages) walk(p.children, n => { if (n.type === 'image' && n.name === '로고') for (const f of n.fills) if (f.type === 'image') f.src = src; }); doc.logoSrc = src; }
 export function deleteDoc(id) { localStorage.removeItem(K + 'doc.' + id); saveIndex(loadIndex().filter(x => x.id !== id)); }
 export function renameDocIndex(doc) { const idx = loadIndex(); const it = idx.find(x => x.id === doc.id); if (it) { it.name = doc.name; saveIndex(idx); } }
 
