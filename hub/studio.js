@@ -31,7 +31,7 @@ const keyOf = f => JSON.stringify(f, (k, v) => typeof v === 'string' && v.length
 async function thumbOf(f, px) { const k = keyOf(f) + px; const c = thumbs.get(f.id); if (c && c.k === k) return c.url; const url = await thumbnail(f, px); thumbs.set(f.id, { k, url }); return url; }
 
 // ── 상태 ──
-const S = { tool: 'ad', doc: null, sel: null, big: false, ed: null, undo: [], redo: [], snap: null, saveT: null, zipSel: new Set(), keyH: null, ro: null,
+const S = { tool: 'ad', doc: null, sel: null, big: false, ed: null, undo: [], redo: [], snap: null, saveT: null, zipSel: new Set(), keyH: null, ro: null, gen: null,
   draft: { prompt: '', att: [], kvSrc: null, logoSrc: null, exId: null, fields: {}, src: {}, media: new Set(MEDIA), scenes: '' } };
 const resetDraft = () => { S.draft = { prompt: '', att: [], kvSrc: null, logoSrc: null, exId: null, fields: {}, src: {}, media: new Set(MEDIA), scenes: '' }; };
 
@@ -40,7 +40,7 @@ function go(h) { location.hash = h; }
 function route() {
   const h = location.hash || '#/'; const [, a, b] = h.split('/');
   closeModal(); document.querySelectorAll('.preview').forEach(p => p.remove()); leaveBig(); if (S.keyH) { document.removeEventListener('keydown', S.keyH); S.keyH = null; }
-  if (S.doc && !(['ad', 'elev'].includes(a) && b === S.doc.id)) { saveWithThumb(S.doc); S.doc = null; S.sel = null; S.zipSel.clear(); }
+  if (S.doc && !(['ad', 'elev'].includes(a) && b === S.doc.id)) { saveWithThumb(S.doc); S.doc = null; S.sel = null; S.zipSel.clear(); S.gen = null; }
   window.scrollTo(0, 0);
   if (a === 'ad' || a === 'elev') return renderWorkspace(a === 'ad' ? 'ad' : 'elevator', b);
   if (a === 'mine') return renderHome(true);
@@ -118,7 +118,7 @@ function renderLeft() {
       <div class="theme"><span class="small t2" style="margin-right:2px">색</span>${[['auto', '그림에서 자동', `linear-gradient(135deg,${pal.accent},${pal.bg})`], ['light', '밝게', mix(pal.accent, '#FFFFFF', .85)], ['dark', '진하게', mix(pal.accent, '#000000', .72)], ['white', '흰 바탕', '#FFFFFF']].map(([k, l, c]) => `<button class="sw" data-theme="${k}" title="${l}" aria-label="${l}"><i style="background:${c}"></i></button>`).join('')}<span style="width:6px"></span><label class="row small t2" style="gap:4px" title="지면">지면<input type="color" class="sw" data-c="bg" value="${pal.bg}"></label><label class="row small t2" style="gap:4px" title="글자">글자<input type="color" class="sw" data-c="fg" value="${pal.fg}"></label><label class="row small t2" style="gap:4px" title="포인트">포인트<input type="color" class="sw" data-c="accent" value="${pal.accent}"></label></div>
       <div class="row"><span class="small t2">글꼴</span><select class="in" data-font style="height:34px;font-size:13px">${FONTS.map(([k]) => `<option value="${k}" ${(doc.font ?? 'Pretendard') === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
       ${isElev ? '' : `<div class="small t2" style="margin-top:4px">배치</div><div class="presets">${PRESETS.map(([k, l]) => `<button data-preset-all="${k}" title="${l}"><svg viewBox="0 0 64 44">${presetIcon(k)}</svg>${l}</button>`).join('')}</div>`}</div>` : ''}`;
-  el.scrollTop = sc;
+  el.scrollTop = sc; if (S.gen && !S.gen.started) for (const k of S.gen.readKeys) { const i = el.querySelector(`[data-f="${k}"]`); if (i) i.value = ''; }
   // 말로 적기 · 붙이기
   const ta = el.querySelector('[data-prompt]'); ta.oninput = () => { if (isElev) { if (doc) doc.scenes = ta.value; else d.scenes = ta.value; } else { if (doc) doc.prompt = ta.value; else d.prompt = ta.value; } ta.style.height = 'auto'; ta.style.height = Math.min(200, ta.scrollHeight) + 'px'; };
   ta.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); el.querySelector('[data-read]').click(); } };
@@ -154,11 +154,36 @@ function afterFields() { const doc = S.doc; applyFieldsToText(doc); for (const f
 function refreshAll() { if (S.ed) { rebindBig(); S.ed.render(); S.ed.select(S.ed.sel.filter(x => findNode(S.ed.page, x)), { silent: true }); } rethumbAll(); renderRight(); }
 function presetIcon(k) { return { auto: '<rect x="4" y="4" width="56" height="36" rx="3" fill="#E8F0FF"/><rect x="8" y="10" width="22" height="5" rx="1" fill="#2F6FE6"/><rect x="8" y="18" width="16" height="3" rx="1" fill="#9AA1AC"/><rect x="32" y="16" width="26" height="22" rx="2" fill="#B9CCF5"/>', left: '<rect x="4" y="4" width="56" height="36" rx="3" fill="#E8F0FF"/><rect x="8" y="16" width="20" height="5" rx="1" fill="#2F6FE6"/><rect x="8" y="24" width="14" height="3" rx="1" fill="#9AA1AC"/><rect x="32" y="4" width="28" height="36" rx="2" fill="#B9CCF5"/>', top: '<rect x="4" y="4" width="56" height="36" rx="3" fill="#E8F0FF"/><rect x="8" y="9" width="28" height="5" rx="1" fill="#2F6FE6"/><rect x="8" y="17" width="18" height="3" rx="1" fill="#9AA1AC"/><rect x="4" y="24" width="56" height="16" rx="2" fill="#B9CCF5"/>', overlay: '<rect x="4" y="4" width="56" height="36" rx="3" fill="#7F9BD8"/><rect x="18" y="17" width="28" height="5" rx="1" fill="#fff"/><rect x="24" y="25" width="16" height="3" rx="1" fill="#E8F0FF"/>' }[k]; }
 
-// 만들기
-function showLoading(title) {
-  C().innerHTML = `<div class="card loadbox"><img src="assets/midas-logo.png" alt="" width="80" style="opacity:.9"><h2 class="sec" style="margin-top:16px">${esc(title)}</h2><div class="bar"><i data-prog></i></div><p class="t2" data-note>준비 중…</p></div>`;
-  const bar = C().querySelector('[data-prog]'), note = C().querySelector('[data-note]'); const steps = [[.15, '내용을 읽는 중…'], [.4, '그림 색을 뽑는 중…'], [.7, '규격마다 그리는 중…'], [.9, '가이드로 검수하는 중…'], [1, '거의 다 됐어요']]; let i = 0;
-  return new Promise(res => { const tick = () => { if (!bar.isConnected) return res(); const [p, m] = steps[i]; bar.style.width = p * 100 + '%'; note.textContent = m; if (++i < steps.length) setTimeout(tick, 260); else setTimeout(res, 200); }; setTimeout(tick, 80); });
+// 만들기 — 피그마 메이크처럼 흘러나오기: ① 왼쪽 칸에 읽은 값이 타이핑되고 ② 가운데에 규격 뼈대가 먼저 깔린 뒤 ③ 하나씩 그려져 들어온다(runGen)
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function startGen(doc, route, opts) { S.gen = { doc, done: 0, fast: matchMedia('(prefers-reduced-motion: reduce)').matches, started: false, readKeys: [], pal: null, ...opts }; S.doc = doc; S.sel = null; S.zipSel.clear(); S.undo = []; S.redo = []; S.snap = serialize(doc); go(route); }
+async function runGen() {
+  const g = S.gen; if (!g || g.started) return; g.started = true; const doc = g.doc; const el = C(); const isElev = S.tool === 'elevator';
+  const alive = () => S.gen === g && el.isConnected; const wait = ms => sleep(g.fast ? 0 : ms);
+  const log = (html, live) => { const box = el.querySelector('[data-glog]'); if (!box) return; box.querySelector('.live')?.classList.remove('live'); box.insertAdjacentHTML('beforeend', `<div class="gl${live ? ' live' : ''}"><i></i><span>${html}</span></div>`); while (box.children.length > 6) box.firstElementChild.remove(); };
+  app.querySelector('.ws')?.classList.add('gen'); const st = top.querySelector('[data-state]'); if (st) st.textContent = '그리는 중…';
+  // ① 읽은 값 → 왼쪽 칸에 타이핑
+  if (g.readKeys.length) {
+    log('말에서 읽는 중…', true);
+    for (const k of g.readKeys) { if (!alive()) return; const inp = L().querySelector(`[data-f="${k}"]`); if (!inp) continue; const v = doc.fields[k] ?? ''; inp.classList.add('typing'); inp.value = '';
+      if (inp.type === 'date') { await wait(220); inp.value = v; } else { const step = Math.max(12, Math.min(28, 320 / Math.max(1, v.length))); for (let i = 1; i <= v.length; i++) { if (!alive()) return; inp.value = v.slice(0, i); if (!g.fast) await sleep(step); } }
+      inp.classList.remove('typing'); inp.classList.add('flash'); await wait(70); }
+    log(`말에서 읽었어요 · ${g.readKeys.map(k => FIELDS.find(x => x[0] === k)?.[1] ?? k).join(' · ')}`);
+  }
+  // ② 색
+  if (g.pal) { log(`그림에서 색을 뽑았어요 · 지면<i class="sw" style="background:${g.pal.bg}"></i>글자<i class="sw" style="background:${g.pal.fg}"></i>포인트<i class="sw" style="background:${g.pal.accent}"></i>`); await wait(220); }
+  // ③ 규격 하나씩(썸네일이 준비되는 대로, 최소 90ms 간격)
+  const frames = pageOf(doc).children; const cnt = el.querySelector('[data-gcount]'); let curMedia = null, mediaN = 0;
+  for (const f of frames) { if (!alive()) return; const m = f.media ?? '기타';
+    if (!isElev && m !== curMedia) { if (curMedia) log(`${curMedia} ${mediaN}종 ✓`); curMedia = m; mediaN = 0; log(`${m} 그리는 중…`, true); }
+    const t0 = performance.now(); const url = await thumbOf(f, 520); if (!alive()) return;
+    const card = el.querySelector(`.fcard[data-f="${f.id}"]`); if (card) { card.querySelector('.pv').innerHTML = `<img alt="${esc(f.name)}" data-th="${f.id}" src="${url}" style="${f.w >= f.h ? 'width:100%' : 'height:100%'}">`; card.classList.remove('sk'); card.classList.add('in'); }
+    g.done++; mediaN++; if (cnt) cnt.textContent = `${g.done} / ${frames.length}`; if (isElev) log(`${f.name} ✓`);
+    const left = (isElev ? 160 : 90) - (performance.now() - t0); if (left > 0) await wait(left); }
+  if (curMedia) log(`${curMedia} ${mediaN}종 ✓`);
+  const bad = frames.filter(f => checkFrame(f).length).length; log(bad ? `다 그렸어요 · 확인 필요 ${bad}건` : '다 그렸어요 · 검수 통과'); await wait(500);
+  if (!alive()) return; S.gen = null; app.querySelector('.ws')?.classList.remove('gen'); await saveWithThumb(doc); if (st) st.textContent = '저장됨'; renderLeft(); renderCenter();
+  toast(isElev ? `장면 ${frames.length}개를 그렸어요` : `규격 ${frames.length}개를 그렸어요 · 누르면 오른쪽에서 고쳐요`);
 }
 async function makeAd() {
   const d = S.draft; const got = readPrompt(d.prompt); for (const k of Object.keys(got)) if (got[k] && d.src[k] !== 'user' && !d.fields[k]) { d.fields[k] = got[k]; d.src[k] = 'read'; }
@@ -167,20 +192,20 @@ async function makeAd() {
   if (!(f.client?.trim() && f.hire?.trim())) { renderLeft(); const miss = f.client?.trim() ? 'hire' : 'client'; L().querySelector(`[data-f="${miss}"]`)?.focus(); return toast(`${miss === 'client' ? '고객사' : '채용 구분'}를 적어 주세요 — 말에서 못 읽었어요`); }
   if (!d.media.size) return toast('매체를 하나는 고르세요');
   const exId = d.exId ?? 'gs-illust'; const specIds = SPECS.filter(s => d.media.has(s.media)).map(s => s.id);
-  const wait = showLoading(`${f.client} ${f.hire} · ${specIds.length}종을 그리는 중`);
+  const rb = L().querySelector('[data-read]'); if (rb) { rb.disabled = true; rb.innerHTML = `${I.spark} 읽는 중…`; }
   const doc = newDoc({ exId, fields: f, prompt: d.prompt, specIds, name: `${f.client} ${f.hire}` }); doc.src = { ...d.src };
   if (d.kvSrc) await replaceKv(doc, d.kvSrc, true); else { const p = await paletteFromImage(kvImg(exById(exId))); if (p && !d.exId) applyPalette(doc, p); }
   if (d.logoSrc) replaceLogo(doc, d.logoSrc); setTextColorAll(doc, palOf(doc).fg); fixContrast(doc);
-  await wait; await saveWithThumb(doc); resetDraft(); S.doc = doc; S.undo = []; S.redo = []; S.snap = serialize(doc); go('#/ad/' + doc.id); toast(`규격 ${pageOf(doc).children.length}개를 그렸어요 · 누르면 오른쪽에서 고쳐요`);
+  const readKeys = ['client', 'hire', 'start', 'end', 'role', ...FIELDS.map(x => x[0])].filter((k, i, a) => a.indexOf(k) === i && d.src[k] === 'read' && f[k]);
+  resetDraft(); startGen(doc, '#/ad/' + doc.id, { readKeys, pal: palOf(doc) });
 }
 const sceneLines = s => String(s ?? '').split('\n').map(x => x.trim()).filter(Boolean);
 async function makeElev() {
   const d = S.draft; const lines = sceneLines(d.scenes); if (!lines.length) { L().querySelector('[data-prompt]').focus(); return toast('장면을 한 줄 이상 적어 주세요'); }
-  const wait = showLoading(`장면 ${lines.length}개를 그리는 중`);
   const exId = d.exId ?? 'midas-3d'; const doc = newDoc({ exId, specIds: [], name: lines[0].split('|')[0].trim() || '엘리베이터 콘텐츠' }); doc.tool = 'elevator'; doc.scenes = d.scenes; doc.prompt = '';
   if (d.kvSrc) { doc.kvSrc = d.kvSrc; const p = await paletteFromImage(d.kvSrc); if (p) applyPalette(doc, p); } if (d.logoSrc) doc.logoSrc = d.logoSrc;
   pageOf(doc).children = lines.map((l, i) => buildScene(l, i, doc)); layoutBoard(pageOf(doc).children); fixContrast(doc);
-  await wait; await saveWithThumb(doc); resetDraft(); S.doc = doc; S.undo = []; S.redo = []; S.snap = serialize(doc); go('#/elev/' + doc.id); toast(`장면 ${lines.length}개를 그렸어요`);
+  resetDraft(); startGen(doc, '#/elev/' + doc.id, { pal: d.kvSrc ? palOf(doc) : null });
 }
 function rebuildScenes() { const doc = S.doc; const lines = sceneLines(doc.scenes); if (!lines.length) return toast('장면을 한 줄 이상 적어 주세요'); const page = pageOf(doc); const old = page.children; page.children = lines.map((l, i) => { const prev = old[i]; const nf = buildScene(l, i, doc); if (prev) { nf.id = prev.id; const pk = prev.children.find(c => c.name === '키비주얼'), nk = nf.children.find(c => c.name === '키비주얼'); if (pk && nk) nk.fills[0].src = pk.fills[0].src; } return nf; }); layoutBoard(page.children); fixContrast(doc); if (S.sel && !page.children.find(f => f.id === S.sel)) S.sel = null; commit(); renderCenter(); renderRight(); toast(`장면 ${lines.length}개를 다시 그렸어요`); }
 
@@ -189,8 +214,14 @@ function renderCenter() {
   const el = C(); const doc = S.doc; const isElev = S.tool === 'elevator';
   if (!doc) { el.innerHTML = `<div class="cempty"><div class="box"><span class="ico">${I[isElev ? 'elev' : 'ad']}</span><b>${isElev ? '왼쪽에 장면을 적으면 여기 생겨요' : '왼쪽에 적거나 붙이면 여기 생겨요'}</b><span>${isElev ? '한 줄에 한 장면. 그림을 올리면 색도 맞춰요.' : '회사 이름과 채용 구분만 있으면 고른 매체 규격을 전부 그려요. 만든 뒤 하나를 누르면 오른쪽에서 고칠 수 있어요.'}</span>${isElev ? '' : '<a class="btn sm ghost" href="#/ad/__demo" data-demo>예시로 먼저 보기</a>'}</div></div>`; const dm = el.querySelector('[data-demo]'); if (dm) dm.onclick = e => { e.preventDefault(); const ex = exById('gs-illust'); S.draft.fields = { ...ex.fields }; S.draft.src = Object.fromEntries(Object.keys(ex.fields).map(k => [k, 'read'])); S.draft.prompt = ex.prompt; S.draft.exId = ex.id; makeAd(); }; return; }
   if (S.big) return;
-  const page = pageOf(doc); const frames = page.children; const issues = new Map(frames.map(f => [f.id, checkFrame(f)])); const bad = [...issues.values()].filter(x => x.length).length;
+  const page = pageOf(doc); const frames = page.children;
   const groups = new Map(); for (const f of frames) { const m = f.media ?? '기타'; if (!groups.has(m)) groups.set(m, []); groups.get(m).push(f); }
+  if (S.gen && S.gen.doc === doc) {
+    el.innerHTML = `<div class="cphead"><span class="spin" aria-hidden="true"></span><h2>${isElev ? '장면을 그리는 중' : '규격을 그리는 중'}</h2><span class="tag grey" data-gcount>0 / ${frames.length}</span><span class="grow"></span><button class="btn sm ghost" data-gskip>기다리지 않고 다 보기</button></div><div class="genlog" data-glog aria-live="polite"></div>
+      ${[...groups].map(([m, list]) => `<div class="mediasec"><h3>${esc(m)}<span class="tag grey">${list.length}</span></h3><div class="fgrid${isElev ? ' wide' : ''}">${list.map(f => `<div class="card fcard sk" data-f="${f.id}"><div class="pv"><span class="skb" style="aspect-ratio:${f.w}/${f.h};${f.w >= f.h ? 'width:100%' : 'height:100%'}"></span></div><div class="bd"><span class="grow"><span class="nm">${esc(f.name)}</span><small>${f.w} × ${f.h}</small></span></div></div>`).join('')}</div></div>`).join('')}`;
+    el.querySelector('[data-gskip]').onclick = e => { S.gen.fast = true; e.currentTarget.disabled = true; }; runGen(); return;
+  }
+  const issues = new Map(frames.map(f => [f.id, checkFrame(f)])); const bad = [...issues.values()].filter(x => x.length).length;
   const sc = el.scrollTop;
   el.innerHTML = `<div class="cphead"><h2>${isElev ? '장면' : '결과'}</h2><span class="tag grey">${frames.length}${isElev ? '장면' : '규격'}</span>${bad ? `<span class="tag warn" title="글자 겹침 · 대비 · 크기 검수">확인 필요 ${bad}</span>` : '<span class="tag ok">검수 통과</span>'}<span class="grow"></span><span class="t3 small">한 번 누르면 오른쪽에서 고치고, 두 번 누르면 크게 봐요</span></div>
     ${[...groups].map(([m, list]) => `<div class="mediasec"><h3>${esc(m)}<span class="tag grey">${list.length}</span><span class="grow"></span><button class="btn sm ghost" data-zip-media="${esc(m)}">${I.dl} ${esc(m)}만 ZIP</button></h3><div class="fgrid${isElev ? ' wide' : ''}">${list.map(f => { const iss = issues.get(f.id); return `<div class="card fcard" data-f="${f.id}" aria-selected="${S.sel === f.id}" tabindex="0"><input type="checkbox" class="chk" data-chk="${f.id}" ${S.zipSel.has(f.id) ? 'checked' : ''} aria-label="${esc(f.name)} 선택">${iss.length ? `<span class="tag warn flag" title="${esc(iss.map(i => i.msg).join('\n'))}">확인 ${iss.length}</span>` : ''}<div class="pv"><img alt="${esc(f.name)}" data-th="${f.id}" style="${f.w >= f.h ? 'width:100%' : 'height:100%'}"></div><button class="ib bigb" data-big="${f.id}" title="크게 보기 · 끌어서 편집">${I.big}</button><div class="bd"><span class="grow"><span class="nm" title="${esc(f.name)}">${esc(f.name)}</span><small>${f.w} × ${f.h}</small></span></div></div>`; }).join('')}</div></div>`).join('')}

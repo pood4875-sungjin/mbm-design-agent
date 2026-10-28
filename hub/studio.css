@@ -139,8 +139,25 @@ h2.sec { font-size: 19px; letter-spacing: -.01em; font-weight: 700; }
 .selbar { position: sticky; bottom: 12px; z-index: 5; display: flex; justify-content: center; pointer-events: none; }
 .selbar > div { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; background: var(--tx); color: #fff; border-radius: 14px; box-shadow: var(--sh2); font-weight: 600; font-size: 13px; }
 .selbar .btn { height: 34px; border-color: transparent; } .selbar .btn.ghost { color: #fff; } .selbar .btn.ghost:hover { background: rgba(255, 255, 255, .12); }
-.loadbox { max-width: 460px; margin: 60px auto; text-align: center; padding: 36px; }
-.loadbox .bar { height: 8px; border-radius: 4px; background: var(--hov); overflow: hidden; margin: 20px 0 10px; } .loadbox .bar i { display: block; height: 100%; width: 0; background: var(--p); transition: width .3s; }
+/* 생성 흐름(흘러나오기): 왼쪽 칸 타이핑 · 진행 로그 · 뼈대 카드 반짝임 · 하나씩 톡 들어오기 */
+.ws.gen .lp .sec { pointer-events: none; }
+.frow .in.typing { border-color: var(--p); box-shadow: 0 0 0 3px rgba(47, 111, 230, .16); }
+.frow .in.flash { animation: flash .7s ease-out; }
+@keyframes flash { from { background: var(--sel); } }
+.spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--ln2); border-top-color: var(--p); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.genlog { display: flex; flex-direction: column; gap: 5px; margin: -6px 0 20px; font-size: 13px; color: var(--tx2); }
+.genlog .gl { display: flex; align-items: center; gap: 9px; animation: up .25s ease-out; } .genlog .gl i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex: none; }
+.genlog .gl.live { color: var(--tx); font-weight: 600; } .genlog .gl.live i { background: var(--p); animation: pulse 1s infinite; }
+.genlog .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, .12); vertical-align: -2px; margin: 0 6px 0 4px; }
+@keyframes pulse { 50% { opacity: .25; } }
+@keyframes up { from { opacity: 0; transform: translateY(4px); } }
+.fcard.sk { cursor: default; pointer-events: none; } .fcard.sk .bd { color: var(--tx3); }
+.fcard.sk .skb { display: block; max-width: 100%; max-height: 100%; border-radius: 4px; background: linear-gradient(90deg, #E1E4EA 25%, #F3F5F8 50%, #E1E4EA 75%); background-size: 200% 100%; animation: shimmer 1.3s linear infinite; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.fcard.in .pv img { animation: pop .42s cubic-bezier(.2, .9, .3, 1.15); }
+@keyframes pop { from { opacity: 0; transform: scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .fcard.in .pv img, .genlog .gl, .frow .in.flash, .fcard.sk .skb { animation: none; } }
 
 /* 크게 보기(한 규격 편집) */
 .bighead { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
