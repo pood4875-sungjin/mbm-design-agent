@@ -276,4 +276,4 @@ else if (h === '#loading') { const t = { id: 't' + uid(), tool: 'ad', stage: 'lo
 else if (h.startsWith('#board')) { const m = /#board=?([\w-]*)(?:&sel=(\d+))?/.exec(h); createAndOpen({ exId: m?.[1] || 'gs-illust' }); if (m?.[2]) { const wait = () => { const t = tabs[tabs.length - 1]; if (!t?.ed) return setTimeout(wait, 200); const f = t.ed.page.children[0]; const n = f.children[+m[2]] ?? f; t.ed.zoom = .6; t.ed.applyZoom(); t.ed.select([n.id]); t.ed.zoomTo([f.id]); }; wait(); } }
 else if (h.startsWith('#doc=')) { const m = /#doc=([\w-]+)(?:&f=([\w-]+))?/.exec(h); openDoc(m[1]); if (m[2]) { const wait = () => { const t = tabs.find(x => x.doc?.id === m[1]); if (!t?.ed) return setTimeout(wait, 150); setTimeout(() => { if (findNode(t.ed.page, m[2])) { t.ed.select([m[2]]); t.ed.zoomTo([m[2]]); } }, 80); }; wait(); } }   // mountEditor 의 fit() 다음에
 // 쉬운 모드(웹사이트형)로: 열린 문서가 있으면 그 문서의 결과 화면으로
-$('easyBtn').onclick = () => { const t = tabs.find(x => x.id === active); location.href = t?.doc ? `easy.html#/doc/${t.doc.id}` : 'easy.html'; };
+$('easyBtn').onclick = () => { const t = tabs.find(x => x.id === active); location.href = t?.doc ? `./#/ad/${t.doc.id}` : './'; };
