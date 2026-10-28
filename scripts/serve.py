@@ -42,7 +42,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         # /v/<아무 값>/app/app.js → /app/app.js
         # 앱은 열릴 때마다 새 값으로 모듈을 부른다(app/index.html). 주소가 매번 달라 브라우저가 쌓아 둔 옛 사본이 쓰일 수 없다.
-        return super().translate_path(re.sub(r'^/v/[^/]+/', '/', path))
+        p = super().translate_path(re.sub(r'^/v/[^/]+/', '/', path))
+        # 확장자 없는 주소(/hub/easy)는 같은 이름의 .html 로 — npx serve 가 남긴 리다이렉트 캐시로 들어와도 열리게
+        base = p.split('?')[0]
+        if not os.path.exists(base) and '.' not in os.path.basename(base) and os.path.isfile(base + '.html'):
+            return base + '.html'
+        return p
 
     def end_headers(self):
         # Clear-Site-Data 로 캐시를 비우는 방법은 쓰지 않는다 — 브라우저가 캐시를 다 지울 때까지 페이지를 붙들어 화면이 멈춘다(2026-10-02 실제로 났다).
