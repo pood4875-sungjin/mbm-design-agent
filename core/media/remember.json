@@ -130,6 +130,8 @@
       "#F7F7F0",
       "#E8E7E0"
     ],
+    "blockDeltaE": 1,
+    "blockNote": "10-28 컨시어지 #4(박진화): 금지색과 「같은 색」만 차단 — CIE76 ΔE ≤ 1(사람 눈에 구분 안 되는 차이, 예 #FDFDFD·#FF5212). 그 밖의 근접색(채널당 ±12 안, core/canon.js CANON.bgBanned.tol)은 경고(bg-banned-near)로 낮춘다 — 리멤버 측 「#FFFFFF 가 아닌 흰색 근접색은 사용 가능하나 지양」, 브랜드색이면 허용, #FAFAFA(ΔE 1.7) 통과 사례. 경고 문구에 「그라데이션/썸네일형으로 바꾸면 통과 가능」 안내. 검사: core/lint.js",
     "recommended": "흰 글씨 → 분홍 영역, 검정 글씨 → 파랑 영역 (HSB 피커 도식, 수치 범위 미기재)",
     "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8"
   },

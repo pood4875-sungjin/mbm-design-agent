@@ -92,7 +92,8 @@ test('copy ladder picks the longest phrasing that fits the medium character limi
   const long = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', hiringType: '신입/경력사원', location: '서울', deadline: '2026-10-31', applyUrl: 'x' }, 'recruit');
   const html = renderAd(long, style, specs['kakao-bizboard-mo']);
   // "/" 뒤의 U+2060은 줄바꿈 방지용 단어 결합자(6자까지) · 7자 이상 낱말은 U+200B 줄바꿈 자리(10-14 t1014 — 좁은 칸에서 낱말 속이 끊기지 않게)
-  assert.match(html, /data-field="main"[^>]*>신입\/[\u2060\u200B]?경력사원 채용</);
+  // 10-28: 긴 회사명 지키기(mainKeepClient) + 카카오 비즈보드 「메인에 광고주 노출 필수」(kakao.json mainMustIncludeClient) — 고객사 포함 「한진정보통신 채용」(11자 ≤ 15)이 「신입/경력사원 채용」보다 먼저
+  assert.match(html, /data-field="main"[^>]*>한진정보통신 채용</);
   // 규정이 없는 매체는 첫 칸(가장 긴 표현)을 그대로 쓴다. 구글은 시즌이 메인 첫머리 — 적지 않았으면 마감일에서 유추한 시즌(10-06 "정보 없는 건 임의로 넣어야지")
   const free = renderAd(long, style, specs['google-gdn-300x600']);   // 10-16: 구글 300×600 은 템플릿 64:1090 틀 — 메인 2줄 칸(232px, Bold 42), 서브 칸 1줄 223px(안 들어가면 비움)
   assert.match(free, /data-field="main"[^>]*>[^<]+(<br\/>[^<]+){0,3}</, '메인 ≤4줄'); assert.doesNotMatch(free, /data-field="main"[^>]*>[^<]*<br\/>[^<]*<br\/>/);

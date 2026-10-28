@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { checkKv, checkLogo, kvGuideText, logoGuideText, INPUT_GUIDE } from '../core/inputcheck.js';
 import { INPUT_SPEC } from '../core/input-spec.js';
 
-test('입력 스펙 집계: 51규격 행 · 권장 숫자는 가장 큰 칸에서 나온다(10-19)', () => {
-  assert.equal(INPUT_SPEC.rows.length, 51);
+test('입력 스펙 집계: 48규격 행(10-28 추출 48) · 권장 숫자는 가장 큰 칸에서 나온다(10-19)', () => {
+  assert.equal(INPUT_SPEC.rows.length, 48);
   const kvMax = Math.max(...INPUT_SPEC.rows.filter(r => r.kv).map(r => Math.max(r.kv.w, r.kv.h)));
   assert.ok(INPUT_GUIDE.kv.minLongEdge >= kvMax && INPUT_GUIDE.kv.recommendLongEdge >= kvMax * 1.5, `${kvMax} → ${JSON.stringify(INPUT_GUIDE.kv)}`);
   const logoMax = Math.max(...INPUT_SPEC.rows.filter(r => r.logo?.w).map(r => r.logo.w), 500);

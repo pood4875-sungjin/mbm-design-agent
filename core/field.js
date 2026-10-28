@@ -352,6 +352,9 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   const fw = Math.max(1, (x1 - x0) * iw), fh = Math.max(1, (y1 - y0) * ih);
   let s = Math.max(bw / fw, bh / fh);
   if (px) s = Math.min(s, Math.max(s0, maxUp));
+  // 보일 부분(CANON.kvCrop.minVisible, 10-28 컨시어지 #2 김혜원 「세로형(리멤버 사이드)에서 KV 가 일부만 크롭」): 주인공 상자와 자리의 비율이 어긋나면 한 축을 덮는 배율이 다른 축의 주인공을 잘라낸다(일화 사옥 띠 2.36:1 → 1.17:1 칸에 폭 50% 만).
+  //   주인공 상자의 minVisible(60%) 은 보이도록 배율을 낮춘다(s ≤ 양 축 다 들어가는 배율 ÷ minVisible) — 통째 배율(s0) 아래로는 안 간다. 작은 주인공(그림 일부)은 비율이 맞으면 그대로 당긴다
+  const MV = CANON.kvCrop?.minVisible; if (MV > 0) s = Math.max(s0, Math.min(s, Math.min(bw / fw, bh / fh) / MV));
   if (sMul !== 1) s = Math.max(s0, s * sMul);   // 배율을 낮춰 자리에 바탕 여유를 둔다(띠 윗줄을 바탕에서 끊기 위해) — 통째 배율 아래로는 안 간다
   if (s / s0 < minGain) return null;
   const cx = (x0 + x1) / 2 * iw * s, cy = (y0 + y1) / 2 * ih * s;

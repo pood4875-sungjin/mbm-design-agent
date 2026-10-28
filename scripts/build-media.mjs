@@ -78,6 +78,13 @@ for (const m of media) for (const s of m.specs ?? []) {
   seen.set(s.id, m.id);
   // 추출 규격인가 — 목록에 있으면 true, 아니면 false(참고 규격). 목록에만 있고 JSON 에 없는 id 는 아래서 막는다
   s.extract = EXTRACT_SET.has(s.id);
+  // 규격 단위 fonts(10-28): { required: "Pretendard" | false | null }. core/fonts.js fontRuleOf 가 spec.fonts 를 매체 fonts 보다 먼저 읽는다 —
+  //   false 는 「매체 required 를 이 규격에서 끈다」(카카오 PC디스플레이), null 은 매체 값으로 떨어진다. 다른 꼴은 여기서 막는다.
+  if (s.fonts != null) {
+    const r = s.fonts.required;
+    if (!(r === null || r === false || typeof r === "string")) throw new Error(`${s.id}: spec.fonts.required 는 문자열·false·null 중 하나여야 한다`);
+  }
+  if (s.mainMustIncludeClient != null && typeof s.mainMustIncludeClient !== "boolean") throw new Error(`${s.id}: mainMustIncludeClient 는 true/false`);
 }
 for (const id of EXTRACT_SET) if (!seen.has(id)) throw new Error(`_extract.json: 규격 "${id}"가 매체 JSON 에 없다`);
 for (const id of extractCfg.order) if (!byId.has(id)) throw new Error(`_extract.json order: 매체 "${id}"의 JSON이 없다`);

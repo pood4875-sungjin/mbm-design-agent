@@ -13,6 +13,7 @@
 //   logoCount,            화면에 실제로 그려진 로고 수 (null=측정 못 함)
 //   bgColors,             바탕 샘플색 hex 목록 — 글자·로고·그림 상자를 피한 점 (null=측정 못 함)
 //   assetPx: [w,h],       전달물(spec.asset) 원본 파일 픽셀 (null=측정 못 함)
+//   client,               캠페인 고객사명(광고주) — 메인카피 광고주 노출 검사(spec.mainMustIncludeClient)에 쓴다. 없으면 ctx.core.client, 둘 다 없으면 측정 못 한 것
 // }
 // 측정 못 한 값(null)은 위반이 아니다 — "모름"과 "틀림"을 섞으면 검사기를 못 믿게 된다.
 //
@@ -20,6 +21,7 @@
 
 import { limitsByRole, countChars, inImage } from './adfields.js';
 import { CANON } from './canon.js';
+import { fontRuleOf } from './fonts.js';
 
 const norm = c => String(c ?? '').trim().toLowerCase().replace(/^#?/, '#');
 const fmtNorm = f => ({ jpeg: 'jpg' })[String(f ?? '').toLowerCase()] ?? String(f ?? '').toLowerCase();
@@ -32,7 +34,27 @@ export function submitSize(spec) {
   };
 }
 
-export function lintArtifact({ spec, medium, measure }) {
+// 색 차 — CIE76 ΔE(Lab). 배경 금지색이 「같은 색」인지(ΔE ≤ 1, 사람 눈에 구분 안 됨) 가르는 데만 쓴다
+const rgbOfHex = hx => {
+  let h = norm(hx); if (/^#[0-9a-f]{3}$/i.test(h)) h = '#' + [...h.slice(1)].map(c => c + c).join('');
+  return /^#[0-9a-f]{6}$/i.test(h) ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : null;
+};
+const labOf = ([r, g, b]) => {
+  const lin = c => { c /= 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; };
+  const R = lin(r), G = lin(g), B = lin(b);
+  const f = v => v > 0.008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116;
+  const x = f((R * 0.4124 + G * 0.3576 + B * 0.1805) / 0.95047), y = f(R * 0.2126 + G * 0.7152 + B * 0.0722), z = f((R * 0.0193 + G * 0.1192 + B * 0.9505) / 1.08883);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+};
+export function deltaE(a, b) {
+  const A = rgbOfHex(a), B = rgbOfHex(b); if (!A || !B) return null;
+  const la = labOf(A), lb = labOf(B);
+  return Math.hypot(la[0] - lb[0], la[1] - lb[1], la[2] - lb[2]);
+}
+// 고객사명 비교용 — 띄어쓰기·보이지 않는 줄바꿈 문자·법인 표기(주식회사·(주)·㈜)를 지우고 소문자로
+const squashName = s => String(s ?? '').replace(/[\u2060\u200B\u00AD]/g, '').replace(/주식회사|\(주\)|㈜/g, '').replace(/\s+/g, '').toLowerCase();
+
+export function lintArtifact({ spec, medium, measure, ctx = null }) {
   const issues = [];
   const block = (code, msg, role) => issues.push({ level: 'block', code, msg, role });
   const warn = (code, msg, role) => issues.push({ level: 'warn', code, msg, role });
@@ -81,6 +103,16 @@ export function lintArtifact({ spec, medium, measure }) {
       block('lines', `${t.role} ${t.lines}줄 — 최대 ${slot.lines}줄`, t.role);
     }
   }
+  // 메인카피 광고주 노출(카카오 비즈보드 — spec.mainMustIncludeClient, 10-28 컨시어지 #5): 메인 텍스트에 고객사명이 없으면 차단.
+  //   고객사명은 measure.client → ctx.core.client 순. 둘 다 없으면 측정 못 한 것(위반 아님). 메인 글자 자체가 없으면 그것도 여기서는 안 본다(줄 수·잘림 검사 몫)
+  const client = measure.client ?? ctx?.core?.client ?? null;
+  if (spec.mainMustIncludeClient && client) {
+    const mains = (measure.texts ?? []).filter(t => t.role === 'main' && t.text != null);
+    const c = squashName(client);
+    if (mains.length && c && !mains.some(t => squashName(t.text).includes(c))) {
+      block('main-client', `메인카피에 광고주 「${client}」 없음 — 이 규격은 메인문구에 광고주(고객사명) 노출 필수`, 'main');
+    }
+  }
   // 잘림: 렌더러가 줄 수 제한으로 문구를 말줄임했다 — 규격보다 문구가 길다는 뜻이라 그대로 내보내면 안 된다
   for (const t of measure.texts ?? []) {
     if (t.truncated) block('overflow', `${t.role} 문구가 지면에 다 들어가지 않아 잘림`, t.role);
@@ -107,10 +139,11 @@ export function lintArtifact({ spec, medium, measure }) {
     if (cols.length > 1) block('text-colors-uniform', `글자색 ${cols.length}가지(${cols.map(c => c.toUpperCase()).join(' · ')}) — 이 매체는 모든 문구 한 색`);
   }
 
-  // ── 글꼴
-  if (medium?.fonts?.required && measure.fontFamily != null
-      && !measure.fontFamily.toLowerCase().includes(medium.fonts.required.toLowerCase())) {
-    warn('font', `글꼴 ${measure.fontFamily} — 규정 ${medium.fonts.required}`);
+  // ── 글꼴 — 규격 fonts 가 매체 fonts 를 덮는다(core/fonts.js fontRuleOf: 카카오 비즈보드 Pretendard 고정 · PC디스플레이 spec.fonts.required:false = 자유, 10-28)
+  const fontRule = fontRuleOf(medium, spec);
+  if (fontRule.fixed && measure.fontFamily != null
+      && !measure.fontFamily.toLowerCase().includes(String(fontRule.required).toLowerCase())) {
+    warn('font', `글꼴 ${measure.fontFamily} — 규정 ${fontRule.required}`);
   }
 
   // ── 안전영역 (숫자로 적힌 경우만; 메모만 있으면 검사 안 함 — 추측 금지)
@@ -137,19 +170,23 @@ export function lintArtifact({ spec, medium, measure }) {
     }
   }
 
-  // 배경 금지색(리멤버 PDF p.8: 흰·검·브랜드 주황·근접 흰 2색) — 측정한 바탕 샘플색이 금지색과 채널당 ±CANON.bgBanned.tol 안이면 차단.
+  // 배경 금지색(리멤버 PDF p.8: 흰·검·브랜드 주황·근접 흰 2색) — 측정한 바탕 샘플색을 금지색과 견준다.
+  //   「같은 색」(CIE76 ΔE ≤ medium.backgroundColors.blockDeltaE, 기본 1 — 사람 눈에 구분 안 됨)만 차단(bg-banned).
+  //   그 밖의 근접색(채널당 ±CANON.bgBanned.tol 안)은 경고(bg-banned-near) — 10-28 컨시어지 #4(박진화): 리멤버 측 「#FFFFFF 가 아닌 흰색 근접색은 사용 가능하나 지양」,
+  //   브랜드색이면 허용, #FAFAFA(ΔE 1.7) 통과 사례. 전엔 ±12 전부 차단이라 브랜드색·근접 흰색이 미승인으로 막혔다.
   //   bgColors 는 앱이 글자·로고·그림 상자를 피한 지점에서 뽑은 hex 목록. null 이면 측정 못 한 것(위반 아님). 6자리(3자리는 확장) hex 가 아니면 「측정 못 함」처럼 무시.
-  const rgb = hx => {
-    let h = norm(hx); if (/^#[0-9a-f]{3}$/i.test(h)) h = '#' + [...h.slice(1)].map(c => c + c).join('');
-    return /^#[0-9a-f]{6}$/i.test(h) ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : null;
-  };
-  const banned = (medium?.backgroundColors?.banned ?? []).map(b => ({ hex: norm(b), rgb: rgb(b) })).filter(b => b.rgb);
+  const banned = (medium?.backgroundColors?.banned ?? []).map(b => ({ hex: norm(b), rgb: rgbOfHex(b) })).filter(b => b.rgb);
   if (banned.length && Array.isArray(measure.bgColors)) {
+    const sameTol = medium?.backgroundColors?.blockDeltaE ?? 1;
+    let near = null;
     for (const c of measure.bgColors) {
-      const cv = rgb(c); if (!cv) continue;
+      const cv = rgbOfHex(c); if (!cv) continue;
+      const same = banned.find(b => deltaE(c, b.hex) <= sameTol);
+      if (same) { block('bg-banned', `배경색 ${norm(c).toUpperCase()} — 매체 금지색 ${same.hex.toUpperCase()}(같은 색, ΔE ${deltaE(c, same.hex).toFixed(1)})`); near = null; break; }
       const hit = banned.find(b => b.rgb.every((v, i) => Math.abs(v - cv[i]) <= CANON.bgBanned.tol));
-      if (hit) { block('bg-banned', `배경색 ${norm(c).toUpperCase()} — 매체 금지색 ${hit.hex.toUpperCase()}(근접)`); break; }
+      if (hit && !near) near = { c, hit };
     }
+    if (near) warn('bg-banned-near', `배경색 ${norm(near.c).toUpperCase()} — 매체 금지색 ${near.hit.hex.toUpperCase()}에 가까움(지양). 브랜드색이면 허용 · 그라데이션/썸네일형으로 바꾸면 통과 가능`);
   }
 
   // 로고 개수(자소설 PDF: 1개 / 보드: 필요시 2개 · M스탠다드 메인·PC달력·리멤버 전 규격: 로고 불가)

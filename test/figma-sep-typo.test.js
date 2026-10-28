@@ -83,7 +83,7 @@ test('A7 혼자 선 날짜 줄은 라벨 없이(디자이너 12/12) — 상세 �
     assert.match(html, /data-field="(date|sub)"[^>]*>9\.22\(월\) - 10\.12\(일\)</, id);
   }
   // 10-12 매체별 규격정리: 자소설 PC메인배너(1200×280)는 템플릿 구조(서브 = 시즌·슬로건, 상세 = 채용일정·모집직무 — 현대케피코 408:37780)라 날짜가 상세 목록 안에 라벨과 함께 선다
-  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-pc-standard-main-pc'])), /채용일정 :<\/b> 9\.22/);   // 10-15 틀: 라벨은 샘플 실측 「채용일정 :」(현대케피코 28:1002), 굵은 라벨에 콜론까지
+  assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-pc-standard-main-pc'])), /모집일정 :<\/b> 9\.22/);   // 10-15 틀: 라벨은 샘플 실측 「채용일정 :」(현대케피코 28:1002) → 10-28 사용자 결정(컨시어지 #10) 자소설 전 규격 「모집일정 :」 통일, 굵은 라벨에 콜론까지
   assert.match(detailOf(renderAd(ctx, style, specs['jasoseol-m-premium-popup-mo'])), /모집일정 :<\/b> 9\.22/);   // 10-15 틀: 「모집일정 :」
 });
 

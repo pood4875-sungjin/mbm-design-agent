@@ -421,6 +421,30 @@
   .frame.gen .flabel{color:var(--gen1)}
   #artboard .flabel .badge{display:none!important}   /* 10-15 밤: 보드 카드는 매체 · 사이즈만 */
   #artboard .flabel .badge.gate:not(:empty){display:inline-block!important}   /* 10-20: 게이트 한 단어만 예외 — 규격·디자인·샘플 배지 다섯을 하나로 합친 것 */
+  .badge.fit{background:var(--amber-soft);color:var(--amber);cursor:help}
+  /* 레퍼런스(참고용, 10-28) — 인테이크 칸·인스펙터 카드 */
+  .kvthumb.ref{border-style:dotted}
+  .kvthumb .refn{font-size:13px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:var(--r-pill)}
+  .refnote{font-size:11.5px;color:var(--sub);line-height:1.55;margin:8px 0 2px}
+  .reflist{display:inline-flex;flex-wrap:wrap;gap:6px;vertical-align:middle;margin-left:6px}
+  .reflist.insp{display:flex;margin:0}
+  .refi{position:relative;width:48px;height:48px;border-radius:6px;background:var(--soft) center/cover no-repeat;border:1px solid var(--line);flex:none}
+  .refo{position:absolute;inset:0;background:transparent;border:0;cursor:zoom-in;border-radius:6px}
+  .refx{position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;border:0;background:var(--ink);color:var(--on-ink,#fff);font-size:12px;line-height:18px;padding:0;cursor:pointer}
+  .refadd{width:48px;height:48px;border-radius:6px;border:1px dashed var(--accent-line);background:transparent;color:var(--sub);font-size:20px;cursor:pointer}
+  /* 레이아웃 가이드 오버레이(10-28) — 틀 칸을 소재 위에 반투명으로. 보기용, 내보내기·검사 무관 */
+  .gov{position:absolute;inset:0;pointer-events:none;z-index:3}
+  .gb{position:absolute;box-sizing:border-box;border:1.5px dashed;border-radius:2px}
+  .gb i{position:absolute;left:-1.5px;top:-1.5px;transform:translateY(-100%);font-style:normal;font-size:9px;font-weight:700;line-height:1;color:#fff;padding:2px 4px;border-radius:2px 2px 0 0;white-space:nowrap}
+  .gb-text{border-color:#2563EB;background:rgba(37,99,235,.22)}.gb-text i{background:#2563EB}
+  .gb-logo{border-color:#16A34A;background:rgba(22,163,74,.25)}.gb-logo i{background:#16A34A}
+  .gb-image{border-color:#EA580C;background:rgba(234,88,12,.2)}.gb-image i{background:#EA580C}
+  .gb-safe{border-color:#DC2626;background:transparent}.gb-safe i{background:#DC2626;top:auto;bottom:-1.5px;transform:translateY(100%);border-radius:0 0 2px 2px}
+  .gswitch{display:inline-flex!important;align-items:center;gap:6px;font-size:12px;white-space:nowrap;margin:0!important;color:var(--ink)!important}
+  .glegend{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:11px;margin-top:6px}
+  .gl{display:inline-flex;align-items:center;gap:4px}.gl::before{content:"";width:10px;height:10px;border-radius:2px;border:1.5px dashed}
+  .gl-text::before{border-color:#2563EB;background:rgba(37,99,235,.3)}.gl-logo::before{border-color:#16A34A;background:rgba(22,163,74,.3)}.gl-image::before{border-color:#EA580C;background:rgba(234,88,12,.3)}.gl-safe::before{border-color:#DC2626}
+  #artboard .flabel .badge.fit:not(:empty){display:inline-block!important}   /* 10-28: 용량 맞춤(품질 단계·재양자화·단색 배경으로 상한 아래) — 내보내기 결과를 미리 알린다 */
   .rowhead{position:absolute;white-space:nowrap;font-size:14px;font-weight:800;color:var(--ink,#111);letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line,#ddd);pointer-events:none}
   .stagehead{position:absolute;white-space:nowrap;font-size:14px;font-weight:800;color:var(--ink,#111);letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line,#ddd);pointer-events:none;font-weight:800;font-size:15px;color:var(--ink,#111);letter-spacing:-.01em}
   .frame.done .fbody{animation:pop .5s ease-out}

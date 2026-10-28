@@ -5,7 +5,7 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
-import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES } from '../core/adspecs.js';
+import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
@@ -82,6 +82,7 @@ const ED = createEditor({
   state, SPECS, frames, logEvent,
   pushHistory: (...x) => pushHistory(...x), regen: (...x) => regen(...x), refreshFrames: (...x) => refreshFrames(...x), autosave: () => autosave(),
   renderInspector: () => renderInspector(), log: t => log(t), toast: t => toast(t), select: k => select(k), artLabel: a => artLabel(a), adEffCtx: a => adEffCtx(a),
+  onGuide: a => gateBadge(a),   // 가이드 검수(틀 ✗) 결과가 승인 게이트에 바로 반영되게
 });
 
 /* ═══ helpers ═══ */
@@ -750,7 +751,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null,
+    bgMode: 'auto', bgColor: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -1293,7 +1294,7 @@ function slotStyle() {
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
     <div class="styleRow">
-      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())}" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
+      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())} — 소재에 그려지는 그림만. 공고문·전 시안 같은 참고 이미지는 「레퍼런스(참고용)」 칸에" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo" id="logoThumb" title="${escH(logoGuideText())}" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
@@ -1301,6 +1302,8 @@ function slotStyle() {
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo" id="objThumb" title="배경 없는 오브젝트(투명 PNG). 알바몬 스플래시·에브리타임 보드·NAP 비즈보드·캐치 센터처럼 누끼가 필요한 자리에만 씁니다 — 키비주얼은 배경으로 그대로" style="${it.object ? `background-image:url(${it.object})` : ''}">${it.object ? '' : '오브젝트 누끼<br>(선택)'}</div>
         <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
+      <div><div class="kvthumb logo ref" id="refThumb" title="레퍼런스(참고용): 공고문·전 시안·무드 이미지. 저장해서 카드에 썸네일로만 보여 주고, 소재 렌더·AI 그림 판단에는 쓰지 않습니다 — 키비주얼 칸에 넣으면 소재에 그려져요" style="${it.references?.[0] ? `background-image:url(${it.references[0]})` : ''}">${it.references?.length ? `<b class="refn">${it.references.length}장</b>` : '레퍼런스<br>(참고용 · 렌더 안 씀)'}</div>
+        <input type="file" id="refFile" accept="image/*" multiple style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
         <label>브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="palette">
@@ -1315,6 +1318,7 @@ function slotStyle() {
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
+    <div class="refnote">공고문·전 시안 같은 <b>참고 이미지는 「레퍼런스(참고용)」</b>에 올려 주세요 — 키비주얼 칸은 소재에 그려지는 그림(사진·일러스트·누끼)만 받습니다.${it.references?.length ? ` <span class="reflist">${it.references.map((r, i) => `<span class="refi" style="background-image:url(${r})"><button type="button" class="refx" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 빼기">×</button></span>`).join('')}</span>` : ''}</div>
     <div class="sfoot2"><span class="smsg" id="stMsg" role="status"></span><button class="btn pri" id="stOk" ${(it.kv && it.logo) ? '' : 'disabled aria-disabled="true"'}>이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
@@ -1384,6 +1388,16 @@ function slotStyle() {
     if (it.logoNote) say(`로고를 손질했어요 — ${it.logoNote}. 투명 여백을 잘라내야 칸 높이만큼 크게 보입니다.`);
   });
   bindUpload($('logoLightThumb'), $('logoLightFile'), async d => { d = (await prepLogo(d)).dataUrl; it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
+  // 레퍼런스(참고용, 10-28) — 여러 장, 긴 변 1200px 로 줄여 저장. 렌더·AI 에는 안 간다
+  $('refThumb').onclick = () => $('refFile').click();
+  $('refFile').onchange = async () => {
+    const files = [...$('refFile').files]; if (!files.length) return;
+    const added = await readReferenceFiles(files, 8 - (it.references?.length ?? 0));
+    it.references = [...(it.references ?? []), ...added];
+    slotStyle();
+    say(added.length ? `레퍼런스 ${added.length}장을 참고용으로 저장했어요 — 소재에는 그리지 않고 카드에서만 볼 수 있어요.${files.length > added.length ? ' (최대 8장)' : ''}` : '레퍼런스를 읽지 못했어요.');
+  };
+  $('slot').querySelectorAll('.refx').forEach(b => b.onclick = e => { e.stopPropagation(); it.references = it.references.filter((_, i) => i !== +b.dataset.ref); slotStyle(); });
   // 오브젝트 누끼 — 누끼가 필요한 자리에만 쓴다. 배경이 있는 그림이면 그 자리에 못 쓰니 바로 알려 준다
   bindUpload($('objThumb'), $('objFile'), async d => {
     d = await prepKv(d);
@@ -1522,6 +1536,22 @@ function inputSpecHtml(kvCheck, logoCheck) {
 }
 async function kvCheckOf(orig, meta) { const T = kvTypeOf(meta); return checkKv((await imgSize(orig)) ?? meta?.px ?? null, T?.type?.id ?? meta?.field?.kind ?? null); }
 async function logoCheckOf(orig, { changed = null, tone = null } = {}) { return checkLogo(await imgSize(orig), { transparent: changed == null ? null : !changed, tone }); }
+// 레퍼런스 파일 읽기(10-28) — 긴 변 1200px 로 줄인 JPEG/PNG data URL. 실패한 파일은 건너뛴다
+async function readReferenceFiles(files, limit = 8) {
+  const out = [];
+  for (const f of files.slice(0, Math.max(0, limit))) {
+    try {
+      const d = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+      const img = await loadImage(d); if (!img) continue;
+      const k = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
+      if (k >= 1) { out.push(d); continue; }
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+      const g = cv.getContext('2d'); g.drawImage(img, 0, 0, cv.width, cv.height);
+      out.push(/png|gif|webp/.test(f.type) ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.85));
+    } catch {}
+  }
+  return out;
+}
 function bindUpload(thumb, file, set) {
   thumb.onclick = () => file.click();
   file.onchange = () => {
@@ -1688,6 +1718,7 @@ function buildAndGenerate() {
     logoMeta: it.logoMeta ?? null,
     object: it.object ?? null,
     objectMeta: it.objectMeta ?? null,
+    references: it.references ?? [],   // 참고용(10-28) — 렌더 안 씀
     mode: it.mode,
     background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
     kvUse: it.kvUse ?? 'auto',
@@ -1808,7 +1839,7 @@ function layoutArtboard(opts = {}) {
         frame.className = 'frame';
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
-          <div class="flabel"><span class="fname"${a.channel === 'ad' && twinTitle(a.specId) ? ` title="${escH(twinTitle(a.specId))}"` : ''}>${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge gate"></span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span></div>
+          <div class="flabel"><span class="fname"${a.channel === 'ad' && twinTitle(a.specId) ? ` title="${escH(twinTitle(a.specId))}"` : ''}>${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge gate"></span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span><span class="badge fit" style="display:none" title=""></span></div>
           <div class="fbody" style="width:${w}px;height:${h}px">
             <iframe width="${nw}" height="${nh}" style="transform:scale(${ds})"></iframe>
             <div class="hit"></div>
@@ -1818,7 +1849,7 @@ function layoutArtboard(opts = {}) {
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
         board.appendChild(frame);
-        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), label: frame.querySelector('.fname') });
+        frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
         lintBadge(a);
         x += w + 70;
@@ -1830,6 +1861,7 @@ function layoutArtboard(opts = {}) {
     state.boardW = Math.max(state.boardW ?? 0, x);
   }
   state.boardH = y;
+  refreshGuideOverlays();   // 프레임을 새로 깔았으니 레이아웃 가이드도 다시(10-28)
 }
 const PURPOSE_SHORT = { main: '', way: '방향', agenda: '프로그램', reception: '등록데스크' };
 // 규격 이름 — 배너가 5종에서 14종으로 늘었고 포토부스·포토월이 채널을 공유한다.
@@ -1853,6 +1885,61 @@ const twinShort = id => String(SPECS[id]?.title ?? id).replace(/^[^·]*·\s*/, '
 const twinTail = specId => { const n = sharedTwins(specId).length; return n ? ` · +${n} 같이 추출` : ''; };   // 160×600 같은 좁은 카드 위에서 라벨이 네 줄로 늘지 않게 짧게 — 어느 규격인지는 라벨 툴팁(twinTitle)
 const twinTitle = specId => { const shared = sharedTwins(specId); return shared.length ? `같은 파일로 같이 추출: ${shared.map(twinShort).join(' · ')}` : ''; };
 // 보드 카드 라벨은 매체 · 사이즈만(10-15 밤 사용자 「좌측은 매체와 사이즈 정도만」) — 배지(DRAFT·차단·디자인·가이드)는 CSS 로 숨긴다
+/* ═══ 레이아웃 가이드 오버레이(10-28 담당자 「프로그램 내 레이아웃 가이드」) ═══
+   가이드가 명확한 매체(자소설·카카오·리멤버·에브리타임 …)의 틀(core/media.js spec.rules.safeArea.measuredFromTemplate.mold: 글자 칸·로고 칸·그림 칸)과
+   safeArea 여백을 소재 위에 반투명 칸으로 그린다. 보기용 — 렌더·검사에는 영향 없음. 틀도 여백 수치도 없는 매체는 토글을 숨긴다 */
+const GUIDE_ROLE = { sub: '서브', main: '메인', detail: '상세', date: '날짜', cta: 'CTA', extra: '부가' };
+function guideBoxesOf(spec) {
+  const sa = spec?.rules?.safeArea; if (!sa) return [];
+  const mold = sa.measuredFromTemplate?.mold ?? null;
+  const out = [];
+  if (mold?.rows) for (const [role, row] of Object.entries(mold.rows)) {
+    if (!row || !Number.isFinite(row.y)) continue;
+    const x = row.x ?? mold.x ?? 0, w = row.w ?? mold.w ?? spec.w - x;
+    const h = (row.pitch ?? (row.px ? row.px * 1.25 : 24)) * (row.lines ?? 1);
+    out.push({ kind: 'text', label: `${GUIDE_ROLE[role] ?? role}${row.px ? ` ${row.px}px` : ''}${(row.lines ?? 1) > 1 ? ` ×${row.lines}` : ''}`, x, y: row.y, w, h });
+  }
+  if (mold?.logo && Number.isFinite(mold.logo.x) && mold.logo.w > 0) out.push({ kind: 'logo', label: '로고 칸', x: mold.logo.x, y: mold.logo.y, w: mold.logo.w, h: mold.logo.h });
+  if (mold?.image && Number.isFinite(mold.image.x) && mold.image.w > 0) out.push({ kind: 'image', label: '그림 칸', x: mold.image.x, y: mold.image.y, w: mold.image.w, h: mold.image.h });
+  const ins = ['top', 'right', 'bottom', 'left'].map(k => Number.isFinite(sa[k]) ? sa[k] : null);
+  if (ins.some(v => v != null) && spec.w && spec.h) { const [t, r, b, l] = ins.map(v => v ?? 0); out.push({ kind: 'safe', label: `안전 영역 ${[t, r, b, l].join('/')}`, x: l, y: t, w: spec.w - l - r, h: spec.h - t - b }); }
+  return out;
+}
+const hasGuide = a => a?.channel === 'ad' && guideBoxesOf(SPECS[a.specId]).length > 0;
+function loadGuideOv() { try { const v = JSON.parse(localStorage.getItem('mbm-guide-ov') || 'null'); if (v && typeof v === 'object') return { on: !!v.on, alpha: Math.min(1, Math.max(0.1, +v.alpha || 0.55)) }; } catch {} return { on: false, alpha: 0.55 }; }
+state.guideOv = loadGuideOv();
+function setGuideOv(patch) { state.guideOv = { ...state.guideOv, ...patch }; try { localStorage.setItem('mbm-guide-ov', JSON.stringify(state.guideOv)); } catch {} refreshGuideOverlays(); }
+function guideOverlay(a) {
+  const f = frames.get(a.key ?? a.specId); if (!f) return;
+  const body = f.frame.querySelector('.fbody'); body.querySelector('.gov')?.remove();
+  if (!state.guideOv.on || !hasGuide(a)) return;
+  const spec = effSpec(a); const ds = body.clientWidth / spec.w;
+  const el = document.createElement('div'); el.className = 'gov'; el.style.opacity = String(state.guideOv.alpha); el.setAttribute('aria-hidden', 'true');
+  for (const b of guideBoxesOf(spec)) {
+    const d = document.createElement('div'); d.className = `gb gb-${b.kind}`;
+    d.style.cssText = `left:${b.x * ds}px;top:${b.y * ds}px;width:${Math.max(2, b.w * ds)}px;height:${Math.max(2, b.h * ds)}px`;
+    d.innerHTML = `<i>${escH(b.label)}</i>`; el.appendChild(d);
+  }
+  body.appendChild(el);
+}
+function refreshGuideOverlays() { for (const a of state.campaign?.artifacts ?? []) if (a.channel === 'ad') guideOverlay(a); }
+function guideOvHtml(a) {
+  if (!hasGuide(a)) return '';
+  const g = state.guideOv, spec = SPECS[a.specId], boxes = guideBoxesOf(spec);
+  const kinds = [...new Set(boxes.map(b => b.kind))];
+  const legend = { text: '글자 칸', logo: '로고 칸', image: '그림 칸', safe: '안전 영역' };
+  return `<label>레이아웃 가이드 <span style="opacity:.55">${escH(spec.mediumName)} 틀 · 보기용</span></label>
+    <div class="row" style="align-items:center;gap:8px">
+      <label class="gswitch"><input type="checkbox" id="iGuideOv" ${g.on ? 'checked' : ''}> 가이드 켜기</label>
+      <input type="range" id="iGuideAlpha" min="10" max="100" value="${Math.round(g.alpha * 100)}" aria-label="가이드 투명도" style="flex:1" ${g.on ? '' : 'disabled'}><span id="iGuideAlphaV" style="font-size:11px;color:var(--sub);width:34px;text-align:right">${Math.round(g.alpha * 100)}%</span>
+    </div>
+    <div class="glegend">${kinds.map(k => `<span class="gl gl-${k}">${legend[k]}</span>`).join('')}<span style="color:var(--sub)">전 소재에 같이 켜져요 · 내보내기에는 안 들어가요</span></div>`;
+}
+function bindGuideOv(insp) {
+  const cb = insp.querySelector('#iGuideOv'), rg = insp.querySelector('#iGuideAlpha'), v = insp.querySelector('#iGuideAlphaV');
+  if (cb) cb.onchange = () => { setGuideOv({ on: cb.checked }); if (rg) rg.disabled = !cb.checked; log(`레이아웃 가이드 ${cb.checked ? '켬' : '끔'}`); };
+  if (rg) rg.oninput = () => { if (v) v.textContent = `${rg.value}%`; setGuideOv({ alpha: +rg.value / 100 }); };
+}
 function boardLabel(a) {
   const spec = SPECS[a.specId];
   if (spec && a.channel === 'asset') return `${spec.mediumName ?? mediumName(spec.medium)} · 전달물 ${spec.asset?.item ?? ''} 파일`;
@@ -1881,7 +1968,7 @@ function refreshFrames(only = null) {
     f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
-    if (a.channel === 'ad') { a.lint = null; a.design = undefined; a.guide = null; ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·디자인·가이드)은 무효 — 다시 잰다(design undefined = 검수 전 → 게이트 pending)
+    if (a.channel === 'ad') { a.lint = null; a.design = undefined; a.guide = null; a.fitNote = null; fitBadge(a); ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·디자인·가이드)은 무효 — 다시 잰다(design undefined = 검수 전 → 게이트 pending)
     if (a.channel === 'asset') a.lint = null;   // 전달물도 로고·이미지를 바꾸면 다시 잰다
     lintBadge(a);
   }
@@ -1890,6 +1977,12 @@ function refreshFrames(only = null) {
 
 /* ═══ 규격 검사 (매체 광고) ═══
    그린 뒤 실제로 재서 판정한다(불변식 ⑥ — 위반은 조용히 넘기지 않는다). 측정은 래스터까지 하므로 비동기·순차. */
+// 「용량 맞춤」 배지(10-28) — 용량 상한을 넘겨 품질 단계·재양자화·단색 배경으로 맞춘 소재. 내보내기도 같은 단계로 나간다
+function fitBadge(a) {
+  const f = frames.get(a.key ?? a.specId); if (!f?.fit) return;
+  const on = a.channel === 'ad' && !!a.fitNote;
+  f.fit.textContent = on ? '용량 맞춤' : ''; f.fit.title = on ? `용량 맞춤: ${a.fitNote} — 내보내기도 이 단계로` : ''; f.fit.style.display = on ? '' : 'none';
+}
 function lintBadge(a) {
   const f = frames.get(a.key ?? a.specId);
   if (!f?.lint) return;
@@ -1929,7 +2022,7 @@ function gateOf(a) {
   if (a.channel === 'ad' && a.design === undefined) { a.gate = { state: 'pending', reasons: ['디자인 검수 전'] }; return a.gate; }   // iframe onload 전엔 「승인 가능」이 잠깐 뜨지 않게
   const samples = (() => { try { return f?.iframe?.contentDocument?.querySelectorAll('[data-sample]').length ?? 0; } catch { return 0; } })();
   // design 은 adcheck 의 warnings 전체(level info 인 low-res·low-res-logo 포함) — 프레임 「디자인 n」 배지는 info 를 세지 않지만 게이트는 흐린 키비주얼도 「검수 필요」로 둔다(출고 불가 사유)
-  a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples });
+  a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples, guide: a.guide?.rows ?? null });   // 틀 규격(자소설)은 가이드 검수 ✗ 도 차단 — Notion 컨시어지 2026-10-28 #9
   return a.gate;
 }
 function gateBadge(a) {
@@ -1975,17 +2068,29 @@ async function lintAds() {
     if (a.channel === 'asset') {   // 전달물: 원본 파일의 가로·포맷만 본다(렌더 측정 없음)
       const isLogo = (spec.rules.asset ?? spec.asset)?.item === '로고';
       const src = isLogo ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual);
-      const px = src ? await new Promise(r => { const i = new Image(); i.onload = () => r([i.naturalWidth, i.naturalHeight]); i.onerror = () => r(null); i.src = src; }) : null;   // 실제 내보내는 원본을 직접 잰다(assetFileOf 와 같은 기준)
+      const im = src ? await loadImage(src) : null; const px = im ? [im.naturalWidth, im.naturalHeight] : null;   // 실제 내보내는 원본을 직접 잰다(assetFileOf 와 같은 기준)
       if (run !== lintRun) return;
       const fmt = src ? (src.match(/^data:image\/(png|jpe?g|svg\+xml|webp|gif)/)?.[1] ?? null) : null;
       a.lint = lintArtifact({ spec: { ...spec.rules, asset: spec.rules.asset ?? spec.asset, format: spec.format }, medium: spec.mediumRules, measure: { assetPx: px ?? null, format: fmt === 'jpeg' ? 'jpg' : fmt === 'svg+xml' ? 'svg' : fmt } });
+      // 이미지 전달물의 알파(10-28 담당자 「배경 없는 오브젝트는 미승인」) — 앱 쪽 검사: 투명 몫이 크면 경고 + 내보낼 때 지면색 배경 합성(assetFileOf). 합성 포맷은 JPG 라 규정(PNG/JPG) 안
+      if (!isLogo && im) { try { const r = alphaRatioOf(im); if (r != null && r > ASSET_ALPHA_MAX) { a.lint.issues.push({ level: 'warn', code: 'asset-alpha', msg: `배경 없는 이미지(투명 ${Math.round(r * 100)}%) — 매체는 배경 있는 이미지만 승인. 내보낼 때 캠페인 지면색으로 배경을 합성합니다` }); if (a.lint.level === 'pass') a.lint.level = 'warn'; } } catch {} }
       lintBadge(a);
       if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
       continue;
     }
     try {
       const m = await measureArtifact(a.html, spec);
-      a.lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m });
+      a.lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m, ctx: adEffCtx(a) });   // ctx: 고객사명 — 카카오 비즈보드 「메인에 광고주 노출 필수」 검사(core/lint.js main-client, 10-28)
+      a.fitNote = null;
+      // 용량 상한 초과(10-28 담당자 「사이트 내 용량 수정」): 내보내기와 같은 사다리(app/adfit.js)로 줄여 보고, 맞으면 그 판정으로 — 차단 대신 「용량 맞춤」 배지
+      if (a.lint.issues.some(i => i.code === 'weight')) {
+        const face = await exportFaceCss(artifactFontId(a));
+        const fit = await renderFit(adEffCtx(a), adEffStyle(a), adSpecOf(a), h => embedFont(h, face, BUNDLED_MARK));
+        if (run !== lintRun) return;
+        if (fit.fitted && !fit.lint.issues.some(i => i.code === 'weight')) { a.lint = fit.lint; a.fitNote = `${fit.fitted.label} · ${(fit.fitted.bytes / 1024).toFixed(0)}KB (상한 ${spec.maxKB}KB)`; }
+        else a.fitNote = null;
+      }
+      fitBadge(a);
     } catch (e) {
       a.lint = { level: 'warn', issues: [{ level: 'warn', code: 'measure', msg: `측정 실패: ${e.message}` }] };
     }
@@ -2237,6 +2342,14 @@ function renderInspector() {
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       ${ED.alignCampaignHtml()}
       </section>
+      <section class="isec">
+      <h3>레퍼런스 <span class="mode">참고용 · 렌더 안 씀</span></h3>
+      <div class="hint">공고문·전 시안·무드 이미지. 저장해서 여기서만 보고, 소재 렌더와 AI 그림 판단에는 넘기지 않아요. 소재에 그려질 그림은 위 키비주얼 칸에.</div>
+      <div class="reflist insp">${(c.style.references ?? []).map((r, i) => `<span class="refi" style="background-image:url(${r})" title="레퍼런스 ${i + 1} — 클릭하면 크게"><button type="button" class="refo" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 크게"></button><button type="button" class="refx" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 빼기">×</button></span>`).join('')}
+        ${(c.style.references?.length ?? 0) < 8 ? '<button type="button" class="refadd" id="iRefAdd" aria-label="레퍼런스 추가">+</button>' : ''}</div>
+      <input type="file" id="iRefFile" accept="image/*" multiple style="display:none">
+      </section>
+      ${c.kind !== undefined && (c.media?.length || c.adSpecIds?.length) ? mediaAddHtml(c) : ''}
       <div id="inspNote"></div>`;
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
@@ -2409,6 +2522,13 @@ function renderInspector() {
       renderInspector();
     });
     insp.querySelector('#iAdd')?.addEventListener('click', () => addArtifactModal());   // 10-15 밤: 인스펙터 간소화로 버튼 없음(상단 메뉴·모달은 그대로)
+    // 레퍼런스(참고용, 10-28) — 저장만 바꾼다(렌더에 안 쓰니 다시 그리지 않는다)
+    const refIn = insp.querySelector('#iRefFile');
+    insp.querySelector('#iRefAdd')?.addEventListener('click', () => refIn.click());
+    if (refIn) refIn.onchange = async () => { const added = await readReferenceFiles([...refIn.files], 8 - (c.style.references?.length ?? 0)); if (!added.length) return; c.style = { ...c.style, references: [...(c.style.references ?? []), ...added] }; autosave(); renderInspector(); log(`레퍼런스 ${added.length}장 저장(참고용)`); toast(`레퍼런스 ${added.length}장 — 참고용으로만 저장, 소재에는 그리지 않아요`); };
+    insp.querySelectorAll('.reflist .refx').forEach(b => b.onclick = () => { c.style = { ...c.style, references: (c.style.references ?? []).filter((_, i) => i !== +b.dataset.ref) }; autosave(); renderInspector(); });
+    insp.querySelectorAll('.reflist .refo').forEach(b => b.onclick = () => { const r = c.style.references?.[+b.dataset.ref]; if (r) openHtml(`<body style="margin:0;background:#222;display:grid;place-items:center;min-height:100vh"><img src="${r}" style="max-width:100%;max-height:100vh"></body>`); });
+    bindMediaAdd(insp, c);
     ED.bindPresetCampaign(insp, restyle);
     ED.bindAlignCampaign(insp, restyle);   // 글자 정렬 세그먼트(10-19)
     return;
@@ -2459,9 +2579,11 @@ function renderInspector() {
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
       <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
       ${ED.alignArtifactHtml(a)}
+      ${guideOvHtml(a)}
 ` : ''}
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
     <section class="isec">
+    ${a.channel === 'asset' ? `<label>전달물 검사 <span style="opacity:.55">원본 가로·포맷·배경(10-28)</span></label><div id="inspLint" style="margin-bottom:8px">${lintHtml(a)}</div>` : ''}
     ${(a.channel === 'ad' || a.channel === 'asset') ? `<label>승인</label><div id="iGate" style="margin-bottom:8px">${gateHtml(a)}</div>
     <button class="btn" id="iApprove" style="width:100%;margin-bottom:8px">${a.status === 'approved' ? '승인 취소' : '이 소재 승인'}</button>` : ''}
     <div class="row">
@@ -2534,7 +2656,7 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 라벨 알약 ${v ? CHIP_LABEL[v] : '공통 따름'}`);
   });
-  if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); }
+  if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); bindGuideOv(insp); }
   // 레이아웃 안(10-20): 썸네일은 그 안의 프리셋으로 다시 그린 html 을 작은 iframe 에 — 안은 캠페인 공통 스타일 + 안 프리셋(산출물 개별 편집값은 안 섞는다)
   if (a.channel === 'ad' && (a.variants?.length ?? 0) > 1) {
     const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec), k = Math.min(106 / nw, 66 / nh);
@@ -2634,7 +2756,7 @@ function renderInspector() {
     };
   }
   insp.querySelector('#iOpen').onclick = () => openHtml(a.html);
-  insp.querySelector('#iExp').onclick = () => { if (gateOf(a)?.state === 'blocked') { toast(a.channel === 'asset' ? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다' : '규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용, 차단만 막는다
+  insp.querySelector('#iExp').onclick = () => { if (gateOf(a)?.state === 'blocked' && a.channel !== 'ad') { toast(a.channel === 'asset' ? (a.assetNote ?? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다') : '규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용. 차단 매체 소재는 이미지 전달만 막고 수정용 SVG 는 연다(10-28)
   // 산출물 하나 승인 — ready 는 바로, review·draft 는 사유를 적어야(사례 기록의 입력), blocked 는 불가
   const approveBtn = insp.querySelector('#iApprove');
   if (approveBtn) approveBtn.onclick = () => {
@@ -2687,6 +2809,7 @@ function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false
     logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
     object: c.style.object ?? null,
     objectMeta: c.style.objectMeta ?? null,
+    references: c.style.references ?? [],   // 참고용(10-28) — 색·글꼴을 바꿔도 남는다
     mode: c.style.mode,
     background: c.style.background,
     kvUse: c.style.kvUse,
@@ -2770,6 +2893,7 @@ function addArtifacts(picks) {
   layoutArtboard();
   select(null);
   fitZoom();
+  scheduleLint();   // 새로 깔린 소재의 규격 검사 — layoutArtboard 는 검사를 돌리지 않는다(10-28 매체 추가 생성에서 「검사 중」에 머물던 것)
 }
 
 // 고를 수 있는 것 = 모든 규격 × (사이니지면 용도). 이미 있는 것은 체크·잠금으로 보여 준다 —
@@ -2791,6 +2915,36 @@ function adGroups(have) {
   }).join('');
 }
 
+// 매체 추가 생성(10-28 담당자 한희하) — 생성 뒤 같은 캠페인에 매체를 더 고르면 그 매체의 추출 규격만 더 만든다. 기존 소재·편집값·승인은 그대로(addArtifacts → regen 은 있는 산출물을 다시 만들지 않고 overrides 를 유지)
+function mediaAddHtml(c) {
+  const have = new Set(c.media ?? []);
+  const nOf = id => extractSpecGroups([id]).reduce((n, g) => n + 1 + (g.twins?.length ?? 0), 0);
+  const cands = pickableMedia(c.kind ?? 'event').filter(id => !have.has(id) && nOf(id) > 0);   // 추출 규격이 없는 매체(참고 규격뿐)는 「+ 산출물 추가」로
+  return `<section class="isec" id="inspMediaAdd">
+    <h3>매체 추가 생성 <span class="mode">같은 캠페인</span></h3>
+    <div class="hint">지금 캠페인에 매체를 더 고르면 그 매체의 추출 규격만 추가로 만들어요 — 이미 만든 소재·편집값·승인은 그대로입니다. 있는 매체의 규격 하나를 더하려면 「+ 산출물 추가」.</div>
+    ${cands.length ? `<div class="mcards" id="iMediaCards">${cands.map(id => `<button type="button" class="mcard" data-m="${id}" aria-pressed="false"><span class="mc-ck" aria-hidden="true"></span><b>${escH(mediumName(id))}</b><small>소재 ${nOf(id)}종</small></button>`).join('')}</div>
+    <div class="row"><button class="btn pri" id="iMediaAddGo" style="flex:1">추가 생성</button><button class="btn" id="iAddSpec" style="flex:1">+ 산출물 추가</button></div>` : `<div style="font-size:12px;color:var(--sub)">고를 수 있는 매체를 전부 썼어요.</div><button class="btn" id="iAddSpec" style="width:100%">+ 산출물 추가</button>`}
+    </section>`;
+}
+function bindMediaAdd(insp, c) {
+  insp.querySelectorAll('#iMediaCards .mcard').forEach(b => b.onclick = () => { const on = !b.classList.contains('on'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  insp.querySelector('#iAddSpec')?.addEventListener('click', () => addArtifactModal());
+  insp.querySelector('#iMediaAddGo')?.addEventListener('click', () => {
+    const ids = [...insp.querySelectorAll('#iMediaCards .mcard.on')].map(b => b.dataset.m);
+    if (!ids.length) { toast('추가할 매체를 고르세요'); return; }
+    const picks = ids.flatMap(id => extractSpecGroups([id]).map(g => ({ specId: g.id, purpose: 'main', arrow: null }))).filter(p => SPECS[p.specId]);
+    if (!picks.length) { toast('그릴 수 있는 추출 규격이 없어요'); return; }
+    const before = c.artifacts.length;
+    pushHistory(`매체 추가 생성 ${ids.map(mediumName).join('·')}`);
+    addArtifacts(picks);
+    const n = c.artifacts.length - before;
+    logEvent(c, 'media_added', { media: ids, count: n });
+    log(`매체 추가 생성: ${ids.map(mediumName).join(', ')} — 소재 ${n}장 추가(기존 ${before}장 그대로)`);
+    toast(`${ids.map(mediumName).join('·')} 소재 ${n}장 추가 — 기존 소재는 그대로`);
+    renderInspector();
+  });
+}
 function addArtifactModal() {
   const c = state.campaign;
   const have = new Set(c.artifacts.map(a => a.key ?? a.specId));
@@ -2852,34 +3006,54 @@ function addArtifactModal() {
 }
 
 /* ═══ 내보내기 ═══ */
-// 매체 소재 파일명 — 담당자가 매체사에 그대로 넘긴다: 고객사_직무_매체_치수_v회차.확장자
+// 매체 소재 파일명 — 담당자가 매체사에 그대로 넘긴다(10-28 담당자 실제 양식): 기업명_매체_상품명_배너이름_WxH.확장자 (core/adspecs.js adFileNameOf). 회차는 ZIP 폴더명(v회차)
 // 전달물 파일 — 올린 원본(style.logoOrig/kvOrig, 없으면 손질본). 원본 가로가 규정 최소 폭(로고 500 · 이미지 720)보다 작으면 그 폭으로 확대해서 넘긴다(비율 유지, PNG 알파 유지 — 10-16 사용자 「저 크기에 꽉 차야」). 없으면 null
+// 전달 이미지(자소설 M시작배너 ② 이미지 720px↑)의 투명 몫 — 배경 없는 누끼(알파 PNG)는 매체가 미승인(10-28 담당자). 이 비율을 넘으면 캠페인 지면색으로 배경을 합성해 보낸다
+const ASSET_ALPHA_MAX = 0.02;
+function alphaRatioOf(img) {
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height; if (!w || !h) return null;
+  const k = Math.min(1, 256 / Math.max(w, h)), cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(w * k)); cv.height = Math.max(1, Math.round(h * k));
+  const g = cv.getContext('2d'); g.drawImage(img, 0, 0, cv.width, cv.height);
+  const d = g.getImageData(0, 0, cv.width, cv.height).data; let t = 0;
+  for (let i = 3; i < d.length; i += 4) if (d[i] < 250) t++;
+  return t / (d.length / 4);
+}
+const loadImage = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+// 전달물 배경 — 캠페인 지면(core/field.js resolveField: 직접 고른 색 → 키비주얼 가장자리 → 브랜드색). 그라데이션이면 위→아래
+function assetBgOf(c) { try { const f = resolveField(c.style, { facing: 'left' }); return (f?.stops?.length ? f.stops : null) ?? [c.style.palette?.primary ?? '#FFFFFF']; } catch { return [c.style.palette?.primary ?? '#FFFFFF']; } }
 async function assetFileOf(a) {
   const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item, minW = spec?.asset?.minW ?? 0;
+  a.assetNote = null;
   if (a.lint?.level === 'block') return null;   // 사유는 a.lint — 알림은 호출처가 한다   // 규정 폭 미달 원본은 늘려 보내지 않는다(10-20 출고규정)
   const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;
-  const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
-  const core = c.context.core; const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
-  const base = [...who, clean(spec.mediumName), 'M시작배너', item === '로고' ? '로고' : '이미지', `v${c.context.version}`].filter(Boolean).join('_');
+  const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 40);
+  const core = c.context.core; const who = [clean(c.kind === 'recruit' ? core.client : core.name)];   // 10-28 파일명 양식: 기업명_매체_상품_파일(직무·회차 없음)
+  const base = [...who, clean(spec.mediumName), 'M시작배너패키지', item === '로고' ? '로고파일' : '이미지파일'].filter(Boolean).join('_');
   const toBytes = (dataUrl) => { const m = dataUrl.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null; const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const data = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i); return { data, mime: m[1] }; };
-  const img = new Image(); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = src; }).catch(() => null);
-  const w0 = img.naturalWidth || 0, h0 = img.naturalHeight || 0;
-  if (w0 && minW && w0 < minW) {   // 확대
-    const k = minW / w0, cv = document.createElement('canvas'); cv.width = minW; cv.height = Math.max(1, Math.round(h0 * k));
-    const g = cv.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, cv.width, cv.height);
-    const png = item === '로고' || /png|svg|webp|gif/.test(src.slice(5, 20));   // 로고와 알파 가능 포맷은 PNG, 사진(JPEG)은 JPEG 0.92
-    const out = png ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.92);
-    const b = toBytes(out); return { name: `${base}.${png ? 'png' : 'jpg'}`, data: b.data, mime: b.mime, scaled: [w0, cv.width] };
+  const img = await loadImage(src);
+  const w0 = img?.naturalWidth || 0, h0 = img?.naturalHeight || 0;
+  // 이미지 전달물: 알파가 큰 원본(누끼)은 지면색 배경을 합성한다(10-28 담당자 「배경 입힌 이미지로 만들거나 미승인 알림」). 로고는 투명 PNG 가 규정이라 그대로
+  let alpha = null; if (item !== '로고' && img) { try { alpha = alphaRatioOf(img); } catch { alpha = null; } }
+  const needBg = alpha != null && alpha > ASSET_ALPHA_MAX;
+  if (item !== '로고' && !img) { a.assetNote = '이미지 원본을 읽지 못해 배경 합성 여부를 확인할 수 없어요 — PNG/JPG 로 다시 올려 주세요'; return null; }
+  if (w0 && ((minW && w0 < minW) || needBg)) {   // 확대 · 배경 합성
+    const k = minW && w0 < minW ? minW / w0 : 1, cv = document.createElement('canvas'); cv.width = Math.round(w0 * k); cv.height = Math.max(1, Math.round(h0 * k));
+    const g = cv.getContext('2d');
+    const bg = needBg ? assetBgOf(c) : null;
+    if (bg) { if (bg.length > 1) { const gr = g.createLinearGradient(0, 0, 0, cv.height); bg.forEach((col, i) => gr.addColorStop(i / (bg.length - 1), col)); g.fillStyle = gr; } else g.fillStyle = bg[0]; g.fillRect(0, 0, cv.width, cv.height); }
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, cv.width, cv.height);
+    const png = !bg && (item === '로고' || /png|svg|webp|gif/.test(src.slice(5, 20)));   // 배경을 깔았으면 알파가 없으니 JPG(규정 PNG/JPG) — 로고와 알파 가능 포맷은 PNG, 사진(JPEG)은 JPEG 0.92
+    let out; try { out = png ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.92); } catch { a.assetNote = '배경을 합성할 수 없는 원본이에요(캔버스 변환 실패) — 배경 있는 PNG/JPG 를 올려 주세요'; return null; }
+    const b = toBytes(out); return { name: `${base}.${png ? 'png' : 'jpg'}`, data: b.data, mime: b.mime, scaled: k > 1 ? [w0, cv.width] : null, composited: bg ? { ratio: alpha, bg } : null };
   }
   const b = toBytes(src); if (!b) return null;
   const ext = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' })[b.mime] ?? 'png';
-  return { name: `${base}.${ext}`, data: b.data, mime: b.mime, scaled: null };
+  return { name: `${base}.${ext}`, data: b.data, mime: b.mime, scaled: null, composited: null };
 }
+const assetCompositeText = f => f?.composited ? `배경 없는 누끼(투명 ${Math.round(f.composited.ratio * 100)}%)라 캠페인 지면색 ${f.composited.bg.join('→')} 배경을 합성해 넣었어요 — 배경 있는 원본을 올리면 그대로 나갑니다` : null;
 function adFileName(a, fmt) {
   const c = state.campaign, core = c.context.core, spec = SPECS[a.specId];
-  const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 24);
-  const who = c.kind === 'recruit' ? [clean(core.client), clean(core.role)] : [clean(core.name)];
-  return `${[...who, clean(spec.mediumName), `${spec.submitW}x${spec.submitH}`, `v${c.context.version}`].filter(Boolean).join('_')}.${fmt}`;
+  return adFileNameOf({ client: c.kind === 'recruit' ? core.client : core.name, mediumName: spec.mediumName, spec, ext: fmt });
 }
 function adRulesText(spec) {
   const r = spec.rules ?? {};
@@ -2932,13 +3106,15 @@ async function doAdExport(a) {
     const [{ fit, name }] = await exportAdFiles([a]);
     if (fit.lint.level === 'block') { toast(`규격 차단 — ${fit.lint.issues[0]?.msg ?? ''}`); return; }
     download(fit.measure.blob, name);
-    log(`내보내기: ${name}${fit.attempts.length > 1 ? ` (${fit.attempts.map(x => x.label).join('→')})` : ''}`);
+    const kb = (fit.measure.bytes / 1024).toFixed(0);
+    log(`내보내기: ${name} · ${kb}KB${fit.attempts.length > 1 ? ` (${fit.attempts.map(x => x.label).join('→')})` : ''}`);
+    if (fit.fitted) toast(`용량 맞춤 — ${fit.fitted.label}, ${kb}KB${SPECS[a.specId]?.maxKB ? ` (상한 ${SPECS[a.specId].maxKB}KB)` : ''}`);
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
 // SVG(Figma 편집용) — 용량 맞춤(단색 배경·JPG) 전의 원래 디자인을 옮긴다. Figma 에서 고친 뒤 디자이너가 다시 뽑기 때문이다.
 // 글자는 살아 있는 텍스트(Pretendard), 그림·로고는 따로 레이어, 지면·그라데이션·녹임은 벡터(core/svgexport.js)
-const SVG_NOTE = 'SVG(Figma 편집용): 글자는 텍스트, 키비주얼·로고는 따로 레이어로 들어갑니다. Figma에 같은 이름의 폰트(Pretendard, 또는 고른 무료 폰트)가 설치되어 있어야 글자가 그대로 보입니다.';
+const SVG_NOTE = 'SVG(Figma 편집용): 작업 크기(1배, 캔버스 그대로)로 나가고 매체 제출 배수(2배)는 PNG/JPG 에만 적용됩니다. 글자는 텍스트, 키비주얼·로고는 따로 레이어로 들어갑니다. Figma에 같은 이름의 폰트(Pretendard, 또는 고른 무료 폰트)가 설치되어 있어야 글자가 그대로 보입니다.';
 // 내보내기 창 폰트 줄 — 「폰트 고정 매체: 자소설닷컴·카카오톡 (Pretendard) · 나머지: 나눔스퀘어」
 function exportFontLine(ads) {
   const c = state.campaign;
@@ -2990,7 +3166,7 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
   try {
     const files = await exportAdFiles(ads, { allVariants });
     const blocked = files.filter(f => f.fit.lint.level === 'block');
-    if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — ZIP에서 제외됨`); }
+    if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 이미지는 ZIP 에서 제외${withSvg && includeUnapproved ? ' (수정용 SVG 는 미승인_검토용/svg/ 에)' : withSvg ? ' (「미승인도 포함」을 켜면 수정용 SVG 는 들어가요)' : ''}`); }
     const entries = [];
     for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
       const pre = unapprovedKey.has(f.a?.key ?? f.a?.specId ?? f.spec.id) ? '미승인_검토용/' : '';
@@ -2999,7 +3175,7 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
     const assetBlocked = assets.filter(a => a.lint?.level === 'block').length;
     if (assetBlocked) toast(`전달물 차단 ${assetBlocked}건 — ZIP에서 제외됨`);
-    for (const a of assets.filter(a => a.lint?.level !== 'block')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${a.status !== 'approved' ? '미승인_검토용/' : ''}${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } } }
+    for (const a of assets.filter(a => a.lint?.level !== 'block')) { const f = await assetFileOf(a); if (f) { entries.push({ name: `${a.status !== 'approved' ? '미승인_검토용/' : ''}${SPECS[a.specId].mediumName}/${f.name}`, data: f.data }); if (f.scaled) { log(`전달물 ${f.name}: 원본 가로 ${f.scaled[0]}px → ${f.scaled[1]}px 확대`); toast(`${SPECS[a.specId].asset?.item} 원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 더 큰 파일을 올리면 그대로 나갑니다`); } if (f.composited) { log(`전달물 ${f.name}: 투명 ${Math.round(f.composited.ratio * 100)}% → 지면색 ${f.composited.bg.join('→')} 배경 합성`); toast(assetCompositeText(f)); } } else if (a.assetNote) toast(`전달물 차단 — ${a.assetNote}`); }
     // 전달 시트(10-16 캐치 중앙배너·네이버 썸네일·에브리타임 288): 글자를 매체가 웹폰트로 올리는 규격은 문구·배경 Hex 를 txt 로 — 이미지에는 글자가 없다
     const sheet = {}; const hexOf = {};
     const traceOf = a => { try { return JSON.parse(a.html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
@@ -3018,34 +3194,43 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
     }
     if (!entries.length) { toast('내보낼 소재가 없어요'); return; }
     const rasterN = entries.length, svgFallbacks = new Set();
+    let svgBlocked = 0;
     if (withSvg) {
-      // 래스터와 같은 이름 규칙으로 svg/ 폴더에 — 차단된 소재는 래스터처럼 뺀다
+      // 래스터와 같은 이름 규칙으로 svg/ 폴더에. 차단된 소재는 이미지(매체 전달)에서는 빠지지만, 「미승인도 포함(검토용)」이면 수정용 SVG 는 「미승인_검토용/svg/」에 넣는다(10-28 담당자 「미승인이어도 2차 수정용 추출 허용」)
       const enc = new TextEncoder(), cache = new Map();
-      for (const f of files.filter(f => f.fit.lint.level !== 'block' && (f.variant == null || f.variant === currentVariantIndex(f.a)))) {   // SVG 는 선택안만
+      for (const f of files.filter(f => (f.fit.lint.level !== 'block' || includeUnapproved) && (f.variant == null || f.variant === currentVariantIndex(f.a)))) {   // SVG 는 선택안만
         const r = await adSvgOf(f.a, cache);
         r.fallbacks.forEach(x => svgFallbacks.add(x));
-        entries.push({ name: `svg/${r.name}`, data: enc.encode(r.svg) });
+        const isBlocked = f.fit.lint.level === 'block'; if (isBlocked) svgBlocked++;
+        const pre = (isBlocked || unapprovedKey.has(f.a?.key ?? f.a?.specId ?? f.spec.id)) ? '미승인_검토용/' : '';
+        entries.push({ name: `${pre}svg/${r.name}`, data: enc.encode(r.svg) });
       }
+      if (svgBlocked) toast(`차단 소재 ${svgBlocked}장은 수정용 SVG 만 「미승인_검토용/svg/」에 — 이미지 매체 전달은 막혀 있어요`);
     }
-    const zip = buildZip(entries);
+    const vdir = `v${c.context.version}/`;   // 회차는 파일명이 아니라 폴더로(10-28 파일명 양식)
+    const zip = buildZip(entries.map(e => ({ ...e, name: vdir + e.name })));
     download(new Blob([zip], { type: 'application/zip' }), `${c.id}_매체소재${withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
-    log(`내보내기: 매체 소재 ZIP ${rasterN}장${withSvg ? ` + SVG ${entries.length - rasterN}장` : ''} (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})${svgFallbacks.size ? ` · SVG 대체: ${[...svgFallbacks].join(' / ')}` : ''}`);
+    const fittedN = files.filter(f => f.fit.fitted).length;
+    log(`내보내기: 매체 소재 ZIP ${rasterN}장${withSvg ? ` + SVG ${entries.length - rasterN}장` : ''} (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})${svgFallbacks.size ? ` · SVG 대체: ${[...svgFallbacks].join(' / ')}` : ''}${fittedN ? ` · 용량 맞춤 ${fittedN}장: ${files.filter(f => f.fit.fitted).map(f => `${f.name} ${f.fit.fitted.label} ${(f.fit.fitted.bytes / 1024).toFixed(0)}KB`).join(' / ')}` : ''}`);
+    if (fittedN) toast(`용량 맞춤 ${fittedN}장 — 품질 단계·단색 배경으로 상한 아래로 (로그에 장별 용량)`);
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
 function exportAdModal(a) {
   const spec = SPECS[a.specId];
+  const blocked = gateOf(a)?.state === 'blocked';   // 차단 소재: 이미지(매체 전달)는 막고 수정용 SVG 만(10-28 담당자 「미승인이어도 2차 수정용 추출」)
   modal({
     title: `${artLabel(a)} 내보내기`,
-    desc: '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
-    body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b></div>
+    desc: blocked ? '규정 차단 소재 — 이미지(매체 전달)는 내보내지 않고, 고치기 위한 SVG(Figma 편집용)만 뽑을 수 있어요.' : '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
+    body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b> · SVG 는 작업 크기 ${spec.w}×${spec.h}(1배)${a.fitNote ? `<br>용량 맞춤: ${escH(a.fitNote)}` : ''}</div>
       <div style="margin-top:10px">${lintHtml(a)}</div>
+      ${blocked ? '<div style="font-size:12px;color:var(--danger);line-height:1.6;margin-top:8px">차단 사유를 고친 뒤 다시 검사하면 이미지 내보내기가 열립니다. SVG 는 수정용 — 매체에 그대로 전달하지 마세요.</div>' : ''}
       <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">${exportFontLine([a])}</div>
       <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${SVG_NOTE}</div>`,
     actions: [
       { label: '닫기' },
-      { label: 'SVG (Figma 편집용)', fn: () => { doAdSvg(a); return false; } },
-      { label: '다운로드', pri: true, fn: () => { doAdExport(a); return false; } },
+      { label: blocked ? 'SVG (수정용)' : 'SVG (Figma 편집용)', pri: blocked, fn: () => { doAdSvg(a); return false; } },
+      ...(blocked ? [] : [{ label: '다운로드', pri: true, fn: () => { doAdExport(a); return false; } }]),
     ],
   });
 }
@@ -3053,7 +3238,7 @@ function exportAdModal(a) {
 function exportArtifactModal(a) {
   const spec = effSpec(a);
   const kk = a.key ?? a.specId;
-  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(a.lint?.level === 'block' ? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다' : `${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); }); return; }
+  if (spec.channel === 'asset') { assetFileOf(a).then(f => { if (!f) { toast(a.assetNote ? `전달물 차단 — ${a.assetNote}` : a.lint?.level === 'block' ? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다' : `${spec.asset?.item} 파일이 없어요 — 먼저 올려 주세요`); return; } download(new Blob([f.data], { type: f.mime }), f.name); log(`내보내기: 전달물 ${f.name}${f.scaled ? ` (가로 ${f.scaled[0]}→${f.scaled[1]}px 확대)` : ''}${f.composited ? ` (지면색 배경 합성)` : ''}`); if (f.scaled) toast(`원본이 가로 ${f.scaled[0]}px 로 작아 ${f.scaled[1]}px 로 늘려 넣었어요 — 가로 ${f.scaled[1]}px 이상 파일을 올리면 그대로 나갑니다`); if (f.composited) toast(assetCompositeText(f)); }); return; }
   if (spec.channel === 'ad') return exportAdModal(a);
   if (spec.channel === 'banner' || spec.channel === 'gwthumb') {
     modal({
@@ -3145,7 +3330,7 @@ function exportAllModal() {
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">${exportFontLine(ads)}</div>` : ''}
       ${ads.some(x => (x.variants?.length ?? 0) > 1) ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
-      ${ads.length > adsOk.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expUnapproved"> 미승인도 포함(검토용) — 미승인 ${ads.length - adsOk.length}장을 「미승인_검토용/」 폴더에 같이 (매체 전달은 승인분만)</label>` : ''}
+      ${ads.length > adsOk.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expUnapproved"> 미승인도 포함(검토용) — 미승인 ${ads.length - adsOk.length}장을 「미승인_검토용/」 폴더에 같이 (매체 전달은 승인분만 · 차단 소재는 「ZIP + SVG」일 때 수정용 SVG 만)</label>` : ''}
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
@@ -3279,7 +3464,7 @@ const LOG_LABEL = {
   propagation_run: '일괄 반영', style_changed: '스타일 변경', size_changed: '규격 변경',
   variation_cycled: '시안 변경', roster_loaded: '명단 적용', artifact_approved: '승인', artifact_unapproved: '승인 취소',
   campaign_reopened: '다시 열기', artifact_added: '산출물 추가', artifact_removed: '산출물 제거',
-  variant_selected: '레이아웃 안 선택',
+  variant_selected: '레이아웃 안 선택', media_added: '매체 추가 생성',
 };
 
 // 저장된 캠페인의 로고를 한 번 손질한다(누끼·여백 트림) — 트림 기능 전에 올린 로고가 작게 보이는 것을 고친다. 바뀐 게 없으면 표시만 남긴다

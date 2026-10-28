@@ -1,6 +1,6 @@
 {
  "summary": {
-  "generatedAt": "2026-10-19",
+  "generatedAt": "2026-10-28",
   "kvMax": {
    "w": 1200,
    "h": 680,
@@ -421,6 +421,22 @@
    "kvMode": "칸 고정"
   },
   {
+   "id": "google-gdn-930x180",
+   "medium": "google-gdn",
+   "outW": 930,
+   "outH": 180,
+   "kv": {
+    "w": 208,
+    "h": 139
+   },
+   "logo": {
+    "w": 67,
+    "h": 12
+   },
+   "kind": "ad",
+   "kvMode": "칸 고정"
+  },
+  {
    "id": "nap-dsp-band-320x50",
    "medium": "nap-dsp",
    "outW": 640,
@@ -490,7 +506,7 @@
    "outW": 1080,
    "outH": 1080,
    "kv": {
-    "w": 786,
+    "w": 818,
     "h": 493
    },
    "logo": {
@@ -598,19 +614,6 @@
    "kvMode": "자유 배치"
   },
   {
-   "id": "everytime-community-native",
-   "medium": "everytime",
-   "outW": 288,
-   "outH": 288,
-   "kv": null,
-   "logo": {
-    "w": null,
-    "h": 16
-   },
-   "kind": "visualOnly",
-   "kvMode": "비주얼만"
-  },
-  {
    "id": "everytime-home-banner",
    "medium": "everytime",
    "outW": 640,
@@ -654,45 +657,6 @@
    },
    "kind": "ad",
    "kvMode": "칸 고정"
-  },
-  {
-   "id": "everytime-contest-card",
-   "medium": "everytime",
-   "outW": 288,
-   "outH": 288,
-   "kv": null,
-   "logo": {
-    "w": null,
-    "h": 16
-   },
-   "kind": "visualOnly",
-   "kvMode": "비주얼만"
-  },
-  {
-   "id": "everytime-search-keyword-thumb",
-   "medium": "everytime",
-   "outW": 288,
-   "outH": 288,
-   "kv": null,
-   "logo": {
-    "w": null,
-    "h": 16
-   },
-   "kind": "visualOnly",
-   "kvMode": "비주얼만"
-  },
-  {
-   "id": "everytime-daily-message-profile",
-   "medium": "everytime",
-   "outW": 120,
-   "outH": 120,
-   "kv": null,
-   "logo": {
-    "w": null,
-    "h": 60
-   },
-   "kind": "ad",
-   "kvMode": "자유 배치"
   },
   {
    "id": "blind-brand-logo",

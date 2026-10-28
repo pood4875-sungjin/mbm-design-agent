@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { adSpecEntries, registerAdSpecs } from '../core/adspecs.js';
+import { adSpecEntries, registerAdSpecs, adFileNameOf } from '../core/adspecs.js';
 import { adSpecGroups } from '../core/adspecs.js';
 import { SPECS } from '../core/contract.js';
 import { MEDIA, EXTRACT, specOf } from '../core/media.js';
@@ -81,4 +81,22 @@ test('규격 등급 grade 가 추출 엔트리마다 A/B/C 로 배선되고, EXT
   const entries = Object.values(adSpecEntries()).filter(e => e.extract === true || ex.extract.includes(e.id));
   assert.ok(entries.length > 0);
   for (const e of entries) assert.ok(['A', 'B', 'C'].includes(e.grade), `${e.id}: grade 가 A/B/C 가 아니다 (${e.grade})`);
+});
+
+// 파일명(10-28 담당자 양식) — 기업명_매체_상품명_배너이름_WxH, 직무·회차 없음
+test('adFileNameOf: 기업명_매체_상품명_배너이름_WxH — 괄호 설명 제거, 플랫폼은 이름에 없을 때만, 치수는 제출 크기', () => {
+  const E = adSpecEntries();
+  assert.equal(adFileNameOf({ client: '드라마앤컴퍼니', mediumName: '리멤버', spec: E['remember-main-top-pc'] }), '드라마앤컴퍼니_리멤버_메인상단배너_PC_2240x360.png');
+  assert.equal(adFileNameOf({ client: '세아제강', mediumName: '자소설닷컴', spec: E['jasoseol-pc-premium-popup-pc'], ext: 'png' }), '세아제강_자소설닷컴_PC프리미엄패키지_PC팝업배너_1100x800.png', '상품명 - 배너이름, 치수는 2배 제출 크기');
+  assert.equal(adFileNameOf({ client: 'A/B 주식회사', mediumName: '카카오톡', spec: E['kakao-bizboard-mo'], ext: 'jpg' }), 'AB_주식회사_카카오톡_카카오비즈보드_MO_1029x258.jpg', '파일명 금지 문자 제거, 띄어쓰기는 _ · 괄호 속 플랫폼은 괄호를 벗겨 한 번만');
+  assert.equal(adFileNameOf({ client: '동서식품', mediumName: '에브리타임', spec: E['everytime-community-board'] }), '동서식품_에브리타임_커뮤니티보드_APP_1029x258.png');
+  assert.ok(!adFileNameOf({ client: 'X', mediumName: 'Y', spec: E['remember-main-top-pc'] }).includes('_v'), '회차는 파일명이 아니라 ZIP 폴더명');
+});
+test('adFileNameOf: 매체 JSON fileName 양식(NAP DSP 「기업명_띠배너_320*50(640*100)」)이 있으면 그것 우선 — 기업명만 바꾸고 * 와 괄호는 파일명에 쓸 수 있게', () => {
+  const E = adSpecEntries();
+  const band = Object.values(E).find(e => e.rules?.fileName);
+  assert.ok(band, 'NAP DSP 띠배너에 fileName 이 있어야 한다');
+  const n = adFileNameOf({ client: '한진정보통신', mediumName: 'NAP DSP', spec: band, ext: 'png' });
+  assert.match(n, /^한진정보통신_띠배너_320x50_640x100\.png$|^한진정보통신_띠배너_320x100\.png$|^한진정보통신_전면배너_300_250\.png$/);
+  assert.ok(!/[*()]/.test(n), '파일명에 * 괄호 없음');
 });

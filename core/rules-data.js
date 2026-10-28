@@ -1,7 +1,7 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: ref/learned/rules.json, 빌드: node scripts/build-rules.mjs
-// 장부 갱신 2026-10-22 · 가이드 검수 짝 58건
+// 장부 갱신 2026-10-28 · 가이드 검수 짝 62건
 export const RULES_DATA = {
- "updated": "2026-10-22",
+ "updated": "2026-10-28",
  "rules": [
   {
    "id": "cutout-contain",
@@ -408,6 +408,34 @@ export const RULES_DATA = {
    "value": "그림 비율 < 0.6 · 보이는 몫 55% · 머리 위 숨 3% · 폭 ≤ 상자 × 0.8 · 지면 폭/높이 ≥ 0.7 · 안쪽 상자는 72%부터 녹임",
    "where": "core/renderers/ad.js:187",
    "status": "single-evidence"
+  },
+  {
+   "id": "mold-text-rows",
+   "rule": "틀 규격 글자 실측 대조 — 역할(서브·메인·상세·날짜)마다 글상자 첫 줄 top(서브·메인 줄 수 조합 bySubLines·byMainLines·afterMain)·칸 x·글자 px·굵기(상세 라벨 굵기 포함)를 틀 수치와 ±2px 로 견준다",
+   "value": "MOLD_TOL 2px · mold.<role>.y/x/px/weight 16규칙 level block",
+   "where": "core/guidecheck.js (MOLD_RULES moldRoleRules)",
+   "status": "active"
+  },
+  {
+   "id": "mold-logo-box",
+   "rule": "틀 로고 칸 실측 대조 — 로고 상자가 틀 로고 칸 안(±2px) · 면적 상한(maxArea ×1.05) 이하",
+   "value": "mold.logo.box level block",
+   "where": "core/guidecheck.js (moldBoxRules)",
+   "status": "active"
+  },
+  {
+   "id": "mold-image-box",
+   "rule": "틀 그림 칸 실측 대조 — 아래 띠 칸은 그림 위 경계 y 이상 + 글자 마지막 줄 아래, 왼쪽 열 칸은 오른 경계, 모서리 칸은 네 변(±2px)",
+   "value": "mold.image.box level block",
+   "where": "core/guidecheck.js (moldBoxRules)",
+   "status": "active"
+  },
+  {
+   "id": "mold-measured-gate",
+   "rule": "틀 규격(mold 있는 규격)에서 틀 실측 대조(mold.*)가 ✗ 면 승인 게이트가 차단(blocked) — 규정 위반과 같다. 앱은 approvalGate 에 guide 줄 목록(a.guide.rows)을 넘겨야 한다",
+   "value": "approvalGate({ guide }) → level block ✗ → blocked",
+   "where": "core/gate.js (approvalGate guide)",
+   "status": "active"
   }
  ]
 };

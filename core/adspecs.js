@@ -100,3 +100,29 @@ export function adSpecGroups(media = null, { extractOnly = false } = {}) {
 
 // 추출 규격만 — 앱 기본 선택·전체 내보내기·케이스 라운드의 기본 범위
 export function extractSpecGroups(media = null) { return adSpecGroups(media, { extractOnly: true }); }
+
+// 매체 소재 파일명(10-28 담당자 한희하 실제 양식) — `(기업명)_(매체)_상품명(상품 내 배너이름/사이즈규격)`
+//   예) 드라마앤컴퍼니_리멤버_메인상단배너_PC_2240x360 · 세아제강_자소설닷컴_PC프리미엄패키지_PC팝업배너_1100x800
+//   · 상품명/배너이름은 규격 이름(spec.rules.name)에서 — 「PC프리미엄패키지 - PC팝업배너」는 「 - 」 앞이 상품, 뒤가 배너. 괄호 설명(「(Mobile/APP)」·「(PDF 명칭: …)」)은 뺀다
+//   · 플랫폼(PC/MO)은 배너이름에 이미 들어 있지 않을 때만 붙인다(리멤버 「메인 상단 배너 (PC)」→ 메인상단배너_PC)
+//   · 치수는 제출 크기(exportScale 반영 — 매체가 받는 파일 그대로)
+//   · 매체 JSON 에 fileName(NAP DSP 「기업명_띠배너_320*50(640*100)」)이 있으면 그 양식 우선 — 「기업명」만 바꿔 넣고 파일명에 못 쓰는 문자(*·괄호)는 정리
+//   · 직무·회차는 넣지 않는다 — 회차는 ZIP 폴더명(v회차)으로
+export function adFileNameOf({ client, mediumName, spec, ext = 'png' }) {
+  const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+  const compact = v => String(v ?? '').replace(/\([^)]*\)/g, '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '').slice(0, 40);   // 이름 조각: 괄호 설명 제거 + 띄어쓰기 없이
+  const W = spec?.submitW ?? spec?.w, H = spec?.submitH ?? spec?.h;
+  const size = W && H ? `${W}x${H}` : null;
+  const tpl = spec?.rules?.fileName ?? spec?.fileName ?? null;
+  if (tpl) {
+    const body = String(tpl).replace(/기업명/g, clean(client) || '기업명').replace(/\*/g, 'x').replace(/\s*\(([^)]*)\)/g, '_$1').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+    return `${body}.${ext}`;
+  }
+  const name = String(spec?.rules?.name ?? spec?.title ?? spec?.id ?? '');
+  const i = name.indexOf(' - ');
+  const product = i > 0 ? compact(name.slice(0, i)) : null;
+  const banner = compact(i > 0 ? name.slice(i + 3) : name).replace(/^[—–-]+/, '');
+  const platform = String(spec?.platform ?? spec?.rules?.platform ?? '').toUpperCase();
+  const plat = platform && !new RegExp(`(^|[^A-Z])${platform}([^A-Z]|$)`).test(banner.toUpperCase()) ? platform : null;
+  return `${[clean(client), clean(mediumName), product, banner, plat, size].filter(Boolean).join('_')}.${ext}`;
+}

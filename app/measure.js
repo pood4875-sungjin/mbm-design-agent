@@ -64,7 +64,7 @@ export async function measureArtifact(html, spec, opts = {}) {
   const format = opts.format ?? (spec.format?.[0] ?? 'png');
   const submitW = spec.submitW ?? spec.w * (spec.exportScale ?? 1);
   const scale = submitW / spec.w;
-  const { canvas, blob } = await rasterizeCanvas(html, spec.w, spec.h, scale, format === 'jpeg' ? 'jpg' : format, opts.quality ?? 0.92);
+  const { canvas, blob } = await rasterizeCanvas(html, spec.w, spec.h, scale, format === 'jpeg' ? 'jpg' : format, opts.quality ?? 0.92, opts.quantize ?? null);   // quantize: PNG 재양자화(용량 맞춤, 10-28)
   // 바탕 샘플색: 캔버스 9점(3×3 격자, 가장자리 6%) 중 글자·로고·그림 상자에 안 걸리는 점의 색. 알파 < 255 면 뺀다(투명 PNG)
   const bgColors = (() => {
     try {

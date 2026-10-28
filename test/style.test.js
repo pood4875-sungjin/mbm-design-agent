@@ -373,3 +373,13 @@ test('kvTypeOf: 누끼·질감·사진·배경 있는 일러스트(캐릭터·�
   assert.match(kvTypeSummary({ ar: 1.5, field: { opaque: 1, kind: 'photo', flatEdges: 0 } }), /사진/);
   assert.equal(kvTypeOf({ ar: 1.5, field: { opaque: 1, kind: 'photo', flatEdges: 0, lum: 0.3, focus: { x: 0.5, y: 0.5, w: 0.5, h: 0.5 } } }).subs.map(x => x.id).join(','), 'photo-dark,photo-roomy');   // 어두운 + 여백
 });
+
+// 10-28 레퍼런스(참고용) 칸 — 저장만 하고 렌더에는 안 쓴다. 그림이 아닌 값·9장째는 버린다
+test('normalizeStyle keeps references (data URL images only, max 8) and defaults to []', () => {
+  assert.deepEqual(normalizeStyle({ colors: ['#FF5500'] }).references, []);
+  const refs = Array.from({ length: 10 }, (_, i) => `data:image/png;base64,${i}`);
+  const s = normalizeStyle({ colors: ['#FF5500'], references: [...refs, 'not-an-image', 42, 'assets/x.png'] });
+  assert.equal(s.references.length, 8);
+  assert.ok(s.references.every(r => r.startsWith('data:image/')));
+  assert.equal(s.keyVisual, null, '레퍼런스는 키비주얼이 아니다');
+});

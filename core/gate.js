@@ -8,9 +8,12 @@
 export const REVIEW_CODES = new Set(['text-over-subject', 'logo-covered', 'text-clipped', 'low-res', 'low-res-logo', 'chip-overflow', 'design-failed']);   // design-failed: 검수 자체가 실패 → 사람이 본다
 export const STATE_LABEL = { blocked: '차단', pending: '검사 중', review: '검수 필요', ready: '승인 가능', draft: '초안' };
 
-export function approvalGate({ grade, lint, design, samples = 0 }) {
+// guide: 가이드 검수(core/guidecheck.js evaluate) 줄 목록 — 틀 규격(templateMold)의 level 'block' 규칙(mold.*: 글자 칸 x·줄 y·크기·굵기·로고 칸·그림 칸 ±2px)이 ✗ 면 규정 위반과 같이 차단(10-28 컨시어지 #9 자소설 「규정 미준수 소재 검수 승인 오류」, 장부 mold-measured-gate)
+export function approvalGate({ grade, lint, design, samples = 0, guide = null }) {
   const reasons = [];
   if (lint?.level === 'block') { for (const i of lint.issues ?? []) if (i.level === 'block') reasons.push(`규정: ${i.msg ?? i.code}`); return { state: 'blocked', reasons }; }
+  const moldFails = (Array.isArray(guide) ? guide : guide?.rows ?? []).filter(r => r?.level === 'block' && r.ok === false);
+  if (moldFails.length) { for (const r of moldFails) reasons.push(`틀: ${r.name ?? r.id}${r.actual != null ? ` — ${r.actual}` : ''}`); return { state: 'blocked', reasons }; }
   if (!lint) return { state: 'pending', reasons: ['규격 검사 전'] };
   const warns = (design?.warnings ?? []).filter(w => REVIEW_CODES.has(w.code));
   for (const w of warns) reasons.push(`디자인: ${w.msg ?? w.code}`);

@@ -152,9 +152,10 @@ test('gradientDef: 선형은 절대 좌표, 마스크용은 흰색 + 알파, 방
   assert.match(r, /<radialGradient id="r1" gradientUnits="userSpaceOnUse" cx="100" cy="100" r="100" gradientTransform="translate\(100 100\) scale\(1 0.5\) translate\(-100 -100\)">/);
 });
 
-test('svgFrame: 제출 배수 — width/height 는 제출 크기, viewBox 는 캔버스', () => {
+test('svgFrame: SVG 는 작업 크기(1배) — 제출 배수(exportScale 2)를 줘도 width/height·viewBox 전부 캔버스 크기(10-28 사용자 결정, 자소설 550×400 ×2 → SVG 550×400)', () => {
   assert.equal(svgFrame(580, 400), 'width="580" height="400" viewBox="0 0 580 400"');
-  assert.equal(svgFrame(540, 540, 1080, 1080), 'width="1080" height="1080" viewBox="0 0 540 540"');
+  assert.equal(svgFrame(540, 540, 1080, 1080), 'width="540" height="540" viewBox="0 0 540 540"');
+  assert.equal(svgFrame(550, 400, 1100, 800), 'width="550" height="400" viewBox="0 0 550 400"');
 });
 
 test('figmaBaseline: Figma 글상자(1.2em)는 줄 상자 가운데 — 줄 간격이 넓어도 렌더 글자 위치와 같다(10-26 리멤버·자소설 달력)', () => {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lintArtifact } from '../core/lint.js';
+import { lintArtifact, deltaE } from '../core/lint.js';
 
 // 검사기는 순수 함수다. 측정(픽셀·바이트·글자·색)은 앱이 하고, 여기서는 규칙과 비교만 한다.
 // 그래야 Node 테스트에서 매체 규칙 하나하나를 고정할 수 있다.
@@ -113,25 +113,61 @@ test('an unmeasured value never fails — null means "could not measure", not "w
   assert.equal(r.level, 'pass');
 });
 
-test('banned background colours (medium.backgroundColors.banned) block when a sampled background pixel is within tolerance; unmeasured bgColors never fail', () => {
+test('banned background colours (medium.backgroundColors.banned): only the SAME colour (ΔE ≤ 1) blocks; a near colour only warns (10-28 리멤버 #4); unmeasured bgColors never fail', () => {
   const med = { ...medium, backgroundColors: { banned: ['#FFFFFF', '#000000', '#FF5414', '#F7F7F0', '#E8E7E0'] } };
   const r1 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#1E8BFF', '#1C7FE6'] } });
   assert.deepEqual(codes(r1), []);
-  const r2 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#1E8BFF', '#FF5212'] } });   // 브랜드 주황 ±2
+  const r2 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#1E8BFF', '#FF5212'] } });   // 브랜드 주황 ±2 = ΔE 0.9, 같은 색
   assert.deepEqual(codes(r2), ['bg-banned']); assert.equal(r2.level, 'block');
+  assert.match(r2.issues[0].msg, /같은 색/);
+  // #FAFAFA(ΔE 1.7) — 리멤버 담당자 통과 사례: 경고로 낮추고 그라데이션/썸네일형 안내
+  const r4 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#FAFAFA'] } });
+  assert.deepEqual(codes(r4), ['bg-banned-near']); assert.equal(r4.level, 'warn');
+  assert.match(r4.issues[0].msg, /브랜드색이면 허용/); assert.match(r4.issues[0].msg, /그라데이션\/썸네일형/);
+  // 같은 색이 하나라도 있으면 차단이 경고를 이긴다(경고는 한 번만)
+  const r5 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#FAFAFA', '#FDFDFD', '#F5F5F5'] } });
+  assert.deepEqual(codes(r5), ['bg-banned']);
+  assert.deepEqual(codes(lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: ['#FAFAFA', '#F5F5F5'] } })), ['bg-banned-near']);
   const r3 = lintArtifact({ spec, medium: med, measure: { ...ok, bgColors: null } });
   assert.deepEqual(codes(r3), []);
   // 금지색이 없는 매체는 검사하지 않는다
   assert.deepEqual(codes(lintArtifact({ spec, medium, measure: { ...ok, bgColors: ['#FFFFFF'] } })), []);
+  // 매체가 「같은 색」 폭을 적으면 그 값(blockDeltaE)
+  const loose = { ...medium, backgroundColors: { banned: ['#FFFFFF'], blockDeltaE: 2 } };
+  assert.deepEqual(codes(lintArtifact({ spec, medium: loose, measure: { ...ok, bgColors: ['#FAFAFA'] } })), ['bg-banned']);
 });
 
-test('bg-banned boundary: ±12 per channel blocks, 13 passes; 3-digit hex is expanded; malformed colours are ignored, never a silent pass-as-violation', () => {
+test('bg-banned boundary: ΔE ≤ 1 blocks, ±12 per channel warns, 13 passes; 3-digit hex is expanded; malformed colours are ignored, never a silent pass-as-violation', () => {
   const med = { ...medium, backgroundColors: { banned: ['#FF5414', '#FFFFFF', '#'] } };
   const run = bgColors => codes(lintArtifact({ spec, medium: med, measure: { ...ok, bgColors } }));
-  assert.deepEqual(run(['#FF6014']), ['bg-banned']);          // +12
+  assert.deepEqual(run(['#FF6014']), ['bg-banned-near']);     // +12 → 경고
   assert.deepEqual(run(['#FF6114']), []);                      // +13
+  assert.deepEqual(run(['#FDFDFD']), ['bg-banned']);           // ΔE 0.7 → 같은 색
   assert.deepEqual(run(['#fff']), ['bg-banned']);              // #fff → #FFFFFF
   assert.deepEqual(run(['rgb(1,2,3)', '#12345', '']), []);     // 비정상 입력은 무시
+  assert.ok(deltaE('#FAFAFA', '#FFFFFF') > 1 && deltaE('#FAFAFA', '#FFFFFF') < 2 && deltaE('#FF5212', '#FF5414') < 1 && deltaE('zz', '#000') === null);
+});
+
+test('font rule is spec-aware: spec.fonts.required false frees a regulated medium (카카오 PC디스플레이), a string fixes it (비즈보드)', () => {
+  const kakao = { ...medium, fonts: { required: 'Pretendard' } };
+  const m = { ...ok, fontFamily: 'Noto Sans KR' };
+  assert.deepEqual(codes(lintArtifact({ spec, medium: kakao, measure: m })), ['font']);
+  assert.deepEqual(codes(lintArtifact({ spec: { ...spec, fonts: { required: false } }, medium: kakao, measure: m })), []);
+  assert.deepEqual(codes(lintArtifact({ spec: { ...spec, fonts: { required: null } }, medium: kakao, measure: m })), ['font']);   // null 은 매체로 떨어진다
+  assert.deepEqual(codes(lintArtifact({ spec: { ...spec, fonts: { required: 'NanumSquare' } }, medium, measure: m })), ['font']);
+});
+
+test('main-client: spec.mainMustIncludeClient blocks when the main copy lacks the advertiser (카카오 비즈보드); no client → unmeasured; 법인 표기·띄어쓰기는 무시', () => {
+  const s = { ...spec, mainMustIncludeClient: true };
+  const main = text => ({ ...ok, texts: [{ ...ok.texts[0], text }] });
+  assert.deepEqual(codes(lintArtifact({ spec: s, medium, measure: { ...main('한진정보통신 신입 채용'), client: '한진정보통신' } })), []);
+  const r = lintArtifact({ spec: s, medium, measure: { ...main('신입 채용'), client: '한진정보통신' } });
+  assert.deepEqual(codes(r), ['main-client']); assert.equal(r.level, 'block'); assert.equal(r.issues[0].role, 'main');
+  assert.deepEqual(codes(lintArtifact({ spec: s, medium, measure: { ...main('한진 정보통신 채용'), client: '주식회사 한진정보통신' } })), []);
+  assert.deepEqual(codes(lintArtifact({ spec: s, medium, measure: { ...main('(주)한진정보통신 채용'), client: '한진정보통신' } })), []);
+  assert.deepEqual(codes(lintArtifact({ spec: s, medium, measure: main('신입 채용'), ctx: { core: { client: '한진정보통신' } } })), ['main-client']);   // ctx 로도 받는다
+  assert.deepEqual(codes(lintArtifact({ spec: s, medium, measure: main('신입 채용') })), []);   // 고객사 모름 = 측정 못 함
+  assert.deepEqual(codes(lintArtifact({ spec, medium, measure: { ...main('신입 채용'), client: '한진정보통신' } })), []);   // 플래그 없는 규격은 안 본다
 });
 
 test('logo count: spec.logo.count 0 forbids any logo (block); count 1 allows up to medium.logoMaxCount (default 1, 자소설 보드 2) and more is a block', () => {

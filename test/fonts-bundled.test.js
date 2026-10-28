@@ -74,6 +74,14 @@ test('medium rule: 자소설·카카오·리멤버 fix Pretendard; others are fr
     assert.equal(effectiveFontId(mediumOf(id), 'NanumSquare'), 'NanumSquare', id);
   }
   assert.match(fontRuleOf(mediumOf('naver-gfa')).recommended, /나눔고딕/);
+  // 10-28 컨시어지 #12: 카카오는 비즈보드만 Pretendard 고정, PC디스플레이는 규격 fonts.required:false 로 자유 — spec 이 매체를 덮는다
+  const kakao = mediumOf('kakao'), kspec = id => kakao.specs.find(s => s.id === id);
+  assert.ok(fontRuleOf(kakao, kspec('kakao-bizboard-mo')).fixed && fontRuleOf(kakao, kspec('kakao-bizboard-mo')).required === 'Pretendard');
+  for (const id of ['kakao-display-pc-promo', 'kakao-display-pc-profile']) {
+    assert.equal(fontRuleOf(kakao, kspec(id)).fixed, false, id);
+    assert.equal(effectiveFontId(kakao, 'NanumSquare', kspec(id)), 'NanumSquare', id);
+  }
+  assert.equal(effectiveFontId(kakao, 'NanumSquare', kspec('kakao-bizboard-mo')), 'Pretendard');
   assert.equal(fontIdOfName('나눔고딕'), 'NanumGothic');
   assert.equal(fontIdOfName('Kakao Big Sans'), 'KakaoBigSans');
   // allowed 배열(아직 매체 JSON 에 없음)이 생기면 카탈로그에 있는 첫 폰트를 쓴다 — 값은 읽기만

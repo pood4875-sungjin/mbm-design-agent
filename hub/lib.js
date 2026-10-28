@@ -2,6 +2,7 @@
 import { exById, kvImg, pageOf, node, solid, clamp, paletteFromImage, applyPalette, setTextColorAll, buildFrame, SPECS, imageFill, LOGO_IMG, layoutBoard, walk } from './doc.js';
 import { wrapText, renderFrame, framePng, download, safe } from './export.js';
 import { fileToDataUrl } from './panel.js';
+import { extractRecruit } from '../core/brief.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.round(m / 60)}시간 전` : `${Math.round(m / 1440)}일 전`; };
@@ -27,17 +28,18 @@ export const I = {
 };
 
 // ── 말로 적은 글 → 칸(규칙 파서. 읽은 값은 틀릴 수 있어 점선으로 보인다) ──
+//   10-28: 앱과 같은 파서(core/brief.js extractRecruit)를 쓴다 — 담당자 사례 4건(피에스케이·한미글로벌·인천국제공항보안·현대오일터미널)이 두 입구에서 같게 읽힌다. 칸 이름만 허브식(hire·start·end·place·type)으로 옮긴다
 export function readPrompt(v) {
+  const r = extractRecruit(v ?? '');
   const out = {};
-  const co = /([가-힣A-Za-z0-9&·]+(?:에너지|아이티|전자|건설|그룹|은행|증권|화재|생명|카드|식품|제약|물산|중공업|항공|통신|테크|소프트|시스템|바이오|홀딩스|주식회사|㈜))/.exec(v); if (co) out.client = co[1].replace(/^주식회사|㈜/, '');
-  const hi = /(신입|경력|인턴|수시|상시|전환형|체험형)\s*(공채|채용|모집)?/.exec(v); if (hi) out.hire = hi[1] + ' ' + (hi[2] ?? '채용');
-  const yr = (/(20\d{2})/.exec(v) ?? [])[1] ?? String(new Date().getFullYear());
-  const ds = [...v.matchAll(/(?:(20\d{2})[.\-/년\s]*)?(\d{1,2})\s*(?:월|\.|-|\/)\s*(\d{1,2})\s*일?/g)].map(m => `${m[1] ?? yr}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`).filter(d => /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(d));
-  if (ds[0]) out.start = ds[0]; if (ds[1]) out.end = ds[1];
-  const ro = /(?:직무|직군|부문|분야)\s*[:은는]?\s*([^.。\n]+?)(?:\s*(?:을|를|로|으로|이며|이고|,|$))/.exec(v); if (ro) out.role = ro[1].trim();
-  const pl = /(서울|판교|부산|대전|대구|광주|인천|세종|수원|성남|용인|울산|창원|제주)[가-힣]*/.exec(v); if (pl) out.place = pl[0];
-  const se = /(20\d{2})\s*년?\s*(상반기|하반기)?/.exec(v); if (se) out.season = se[1] + (se[2] ? ' ' + se[2] : '년');
-  const ty = /(정규직|계약직|인턴십|파견직)/.exec(v); if (ty) out.type = ty[1];
+  if (r.client) out.client = r.client;
+  if (r.hiringType) out.hire = /채용|공채|모집/.test(r.hiringType) ? r.hiringType : `${r.hiringType} 채용`;   // 허브 메인 글자 = 고객사 줄 + 채용 구분 줄(doc.js) — 「채용」 낱말까지
+  if (r.startDate) out.start = r.startDate;
+  if (r.deadline) out.end = r.deadline;
+  if (r.role) out.role = r.role;
+  if (r.location) out.place = r.location;
+  if (r.season) out.season = r.season;
+  if (r.employType) out.type = r.employType;
   return out;
 }
 

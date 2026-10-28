@@ -435,6 +435,7 @@ export function createEditor(E) {
     const rows = guideEvaluate(C, RULESET);
     a.guide = { rows, at: Date.now() };
     guideBadge(a);
+    try { E.onGuide?.(a); } catch {}   // 앱 게이트 배지 갱신(틀 ✗ → 차단)
     if (S.selected === keyOf(a)) { const box = document.getElementById('inspGuide'); if (box) { box.outerHTML = guideSectionHtml(a); bindGuideSection(document.getElementById('inspector'), a); } }
   }
   const sumOf = a => a.guide?.rows ? guideSummary(a.guide.rows, a.guideSkips ?? {}) : null;

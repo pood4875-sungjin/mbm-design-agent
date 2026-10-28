@@ -94,7 +94,7 @@ test('PC메인 1200×280 틀 — 현대케피코 28:1002: 서브 22/500 y43 · �
   assert.deepEqual([R.sub.y, R.sub.px, R.sub.weight, R.main.y, R.main.px, R.main.pitch], [43, 22, 500, 81, 32, 43]);
   assert.equal(tr.mold.mainN, 2); assert.equal(R.detail.y, 195); assert.equal(R.detail.lines, 2);
   assert.match(tr.copy.main, /^마이다스\n대규모 공개채용$/);
-  assert.match(html, /<b style="font-weight:700">채용일정 :<\/b> 9\.22/, 'PC메인 상세 라벨 Bold, 값 Regular — 케피코 보드 2784 세그먼트 실측(10-15 저녁 정정)');
+  assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22/, 'PC메인 상세 라벨 Bold, 값 Regular — 케피코 보드 2784 세그먼트 실측(10-15 저녁 정정) · 라벨은 10-28 「모집일정 :」 통일(컨시어지 #10)');
   assert.doesNotMatch(html, /data-mold-field/, '10-15 저녁: 지면은 전체(디자인 가이드) — 왼쪽 350 상자에 가두지 않는다(「배경 컬러 자연스럽게 이어져야지」)');
   assert.equal(tr.field.text, '#FFFFFF', '유리 누끼 → 어두운 지면(가이드)'); assert.match(tagOf(html, 'main'), /color:#FFFFFF/);
   assert.match(html, /data-object="1" style="position:absolute;left:0px;top:0px;width:350px;height:280px;/);
@@ -125,7 +125,7 @@ test('M메인 750×500 틀 — 템플릿 1:8625·FITI 1:10459: 서브 28/700 (43
   assert.deepEqual([R.sub.y, R.sub.px, R.main.y, R.main.px, R.main.pitch, R.detail.px, R.detail.pitch], [166.5, 28, 219.9, 40, 60.5, 24, 40]);
   assert.equal(tr.mold.mainN, 2);
   assert.ok(R.detail.y >= 372.5 && R.detail.y <= 412.5 + 0.1, '메인 2줄 → 372.5/412.3(≈412.5) 줄, 아래부터: ' + R.detail.y);
-  assert.match(html, /<b style="font-weight:700">접수기간 ㅣ<\/b> 9\.22/);
+  assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22/);   // FITI 샘플 「접수기간 ㅣ」 → 10-28 자소설 전 규격 「모집일정 :」 통일(컨시어지 #10)
   assert.doesNotMatch(html, /data-logo/, '로고 없음(규정)');
   // 10-15 밤: 모서리에 닿는 틀 그림 칸은 이전 가이드대로 단일 누끼를 우하단 블리드(templateMold.slotBleed) — 주요 칸 (376,160) 왼쪽·위 경계는 지키고 템플릿 「최대 칸」(338,0) 412×500 안에서 키운다
   assert.match(html, /data-object="1"( data-bleed="1")? style="position:absolute;left:(37[6-9]|3[89]\d|[4-9]\d\d)px;top:(1[6-9]\d|[2-9]\d\d)px;width:\d+px;height:\d+px;[^"]*(right bottom\/contain|--kv-bleed:1)/, '주요 칸 안 누끼 contain 또는 우하단 블리드');

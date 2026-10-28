@@ -44,6 +44,9 @@ export function normalizeStyle(input = {}) {
     // 오브젝트 누끼(선택) — 투명 PNG 필수 자리·상자 자리에만 쓰는 두 번째 그림. 키비주얼은 배경 노릇을 그대로 한다(2026-10-06)
     object: input.object ?? null,
     objectMeta: input.objectMeta ?? null,
+    // 레퍼런스(참고용, 10-28 담당자 「키비주얼 등록과 전체 디자인 레퍼런스 등록 분리」) — 공고문·전 시안·무드 이미지. 저장·카드 썸네일만, 렌더러·A+AI 판단에는 절대 넘기지 않는다
+    //   (공고문을 키비주얼 칸에 넣고 누끼를 오브젝트에 넣으면 일부 소재가 공고문을 키비주얼로 그리던 문제의 분리 칸). data URL 만, 최대 8장
+    references: Array.isArray(input.references) ? input.references.filter(r => typeof r === 'string' && /^data:image\//.test(r)).slice(0, 8) : [],
     mode,
     palette: buildPalette({
       primary: colors[0] ?? '#2456D6',

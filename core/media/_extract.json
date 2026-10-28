@@ -1,5 +1,5 @@
 {
-  "note": "추출 규격 목록 — 이미지로 뽑아 전달하는 규격(extract:true)과 참고용으로만 두는 규격을 가른다. 사용자가 Figma 「컨시어지」 보드에 매체마다 적은 수(자소설 11(8 + M시작배너패키지 전달물 2 + PC달력, 10-16)·리멤버 8·잡다 2·캐치 3(중앙배너 PC·MO 이미지 + MO 로고, 10-16)·구글 4·NAP 4·인스타 1·카카오 3·네이버 3·에브리타임 8·블라인드 3·당근 1 = 47)를 규격 id로 옮긴 것. 매체 순서도 보드 순서. 규칙 값은 여기서 바꾸지 않는다 — 어떤 규격을 뽑는지만 정한다. build-media.mjs 가 각 spec 에 extract 를 붙이고 EXTRACT 로 내보낸다.",
+  "note": "추출 규격 목록 — 이미지로 뽑아 전달하는 규격(extract:true)과 참고용으로만 두는 규격을 가른다. 사용자가 Figma 「컨시어지」 보드에 매체마다 적은 수(자소설 11(8 + M시작배너패키지 전달물 2 + PC달력, 10-16)·리멤버 8·잡다 2·캐치 3(중앙배너 PC·MO 이미지 + MO 로고, 10-16)·구글 5(10-28 930×180 추가)·NAP 4·인스타 1·카카오 3·네이버 3·에브리타임 4 id(담당자 5종 = 커뮤니티보드 썸네일형/오브젝트형 2 + 홈배너 + 프로필 160 + 카드 720, 10-28)·블라인드 3·당근 1 = 48)를 규격 id로 옮긴 것. 매체 순서도 보드 순서. 규칙 값은 여기서 바꾸지 않는다 — 어떤 규격을 뽑는지만 정한다. build-media.mjs 가 각 spec 에 extract 를 붙이고 EXTRACT 로 내보낸다.",
   "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 컨시어지 보드 (2026-10-14 읽음) — 매체별 수 메모 31:4248·31:4247·31:4246·31:4245·31:4249·31:4253·31:4257·31:4261·31:4266·31:4270·31:4271, 당근은 보드 수 메모 없음(사용자 지시 1종)",
   "order": [
     "jasoseol",
@@ -20,12 +20,12 @@
     "remember": 8,
     "jobda": 2,
     "catch": 3,
-    "google-gdn": 4,
+    "google-gdn": 5,
     "nap-dsp": 4,
     "instagram": 1,
     "kakao": 3,
     "naver-gfa": 3,
-    "everytime": 8,
+    "everytime": 4,
     "blind": 3,
     "daangn": 1
   },
@@ -58,6 +58,7 @@
     "google-gdn-970x250",
     "google-gdn-300x600",
     "google-gdn-300x1050",
+    "google-gdn-930x180",
     "nap-dsp-band-320x50",
     "nap-dsp-band-320x100",
     "nap-dsp-full-300x250",
@@ -70,13 +71,9 @@
     "naver-gfa-native-mo-342x228",
     "naver-gfa-native-mo-profile-300",
     "everytime-community-board",
-    "everytime-community-native",
     "everytime-home-banner",
     "everytime-home-card-profile",
     "everytime-home-card-image",
-    "everytime-contest-card",
-    "everytime-search-keyword-thumb",
-    "everytime-daily-message-profile",
     "blind-brand-logo",
     "blind-feed-image",
     "blind-post-banner",
@@ -91,7 +88,9 @@
     "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고",
     "10-16 사용자: 자소설은 10 = 패키지 5 × 2. 5번 M시작배너패키지(시작·서브)는 자소설 내부 제작이라 전달물 2개(로고 파일 500px↑ · 이미지 파일 720px↑)로 목록에 넣는다(렌더 없음, assetOnly). PC달력 164×233 은 패키지 밖이라 그대로 제외",
     "10-16 사용자(가이드 「6. PC달력배너」 제시): PC달력 164×233(제출 328×466)도 상품 — 추출 목록에 넣는다. 자소설 11, 총 50",
-    "10-16 사용자(캐치 중앙배너 가이드 제시 「결국 이미지랑 로고 이미지만 주면 되는 건가」→「응 그렇게」): 캐치 = 중앙배너 PC 515×315 BG 이미지(투명 누끼, 글자 X) · MO 622×380 BG 이미지(배경색 포함, 글자 X) · MO 로고 160×160. 글자(서브 20·메인 17·날짜/키워드 30자)와 배경 Hex 는 캐치가 웹폰트로 올리므로 전달 시트로. 메인 대형 배너 이미지형 1256×295·702×428 은 참고 규격으로"
+    "10-16 사용자(캐치 중앙배너 가이드 제시 「결국 이미지랑 로고 이미지만 주면 되는 건가」→「응 그렇게」): 캐치 = 중앙배너 PC 515×315 BG 이미지(투명 누끼, 글자 X) · MO 622×380 BG 이미지(배경색 포함, 글자 X) · MO 로고 160×160. 글자(서브 20·메인 17·날짜/키워드 30자)와 배경 Hex 는 캐치가 웹폰트로 올리므로 전달 시트로. 메인 대형 배너 이미지형 1256×295·702×428 은 참고 규격으로",
+    "10-28 컨시어지 #18(한희하): 구글 GDN 「현재 4종 + 930×180 사이즈 추가」 — google-gdn-930x180(이미 매체 JSON 에 있던 참고 규격)을 추출로. 구글 5, 3차(상)",
+    "10-28 컨시어지 #19(한희하): 에브리타임 8규격 전부 추출이라 288×288 3종 중복·로고 160/120 2종이 나옴 → 담당자 기준 5종만: 커뮤니티보드 1029×258(썸네일형/오브젝트형 — 규격 id 하나, 그림 유형별 2종) · 홈배너 640×200 · 홈카드 프로필 160×160 + 카드 이미지 720×480. 커뮤니티 네이티브 288·공모전 카드 288·검색키워드 썸네일 288·데일리 메시지 프로필 120 은 참고(extract:false). 추출 id 4 = 담당자 5종. 총 48"
   ],
   "board": {
     "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
@@ -350,13 +349,9 @@
     "catch-center-logo-mo": "B",
     "daangn-native-feed-image": "C",
     "everytime-community-board": "A",
-    "everytime-community-native": "B",
     "everytime-home-banner": "A",
     "everytime-home-card-profile": "B",
     "everytime-home-card-image": "A",
-    "everytime-contest-card": "B",
-    "everytime-search-keyword-thumb": "B",
-    "everytime-daily-message-profile": "B",
     "google-gdn-580x400": "A",
     "google-gdn-970x250": "A",
     "google-gdn-300x600": "A",
@@ -392,10 +387,11 @@
     "remember-job-top-pc": "A",
     "remember-job-top-mo": "A",
     "remember-job-side-pc": "A",
-    "remember-job-side-mo": "A"
+    "remember-job-side-mo": "A",
+    "google-gdn-930x180": "A"
   },
-  "gradesNote": "A = 규정 틀(칸·글자·크기 고정, 에이전트가 끝까지) · B = 로고·비주얼만(입력 스펙만 맞으면 자동) · C = 자유 배치(초안, 디자이너 수정 전제). 10-19 회의: A 중 자소설·리멤버부터 100% 대체. docs/plans/2026-10-20-운영모델_재설계.md §3. 로고·프로필 규격은 visualOnly 플래그가 없어 grades 에 직접 B 로 적음(10-20). 자소설 로고 3종(chatlist-logo 2·start-logo)은 11월 100% 대상이라 A 유지 — 로고·프로필 B 6규격 = blind-brand-logo · catch-center-logo-mo · everytime-home-card-profile · everytime-daily-message-profile · kakao-display-pc-profile · naver-gfa-native-mo-profile-300",
-  "stagesNote": "난이도·적용 차수(10-21 사용자 표): 하·1차 = 자소설 11·리멤버 8·카카오 비즈보드 1 = 20(11월 100% 자동화) / 중·2차 = 네이버 GFA DA 1·에브리타임 3·NAP DSP 4·카카오 PC 디스플레이 1 = 9(11월 준비 → 12월) / 상·3차 = 블라인드 2·구글 GDN 4·잡다 2·인스타 1·당근 1 = 10(연내 사례 분석) / 4 = 표에 없는 로고·프로필·썸네일(B등급 9) + 캐치 3. 캔버스·매체 고르기 순서가 이 차수를 따른다(10-21 사용자 「난이도 하를 제일 위에」). 차수 안 순서는 표에 적힌 매체 순",
+  "gradesNote": "A = 규정 틀(칸·글자·크기 고정, 에이전트가 끝까지) · B = 로고·비주얼만(입력 스펙만 맞으면 자동) · C = 자유 배치(초안, 디자이너 수정 전제). 10-19 회의: A 중 자소설·리멤버부터 100% 대체. docs/plans/2026-10-20-운영모델_재설계.md §3. 로고·프로필 규격은 visualOnly 플래그가 없어 grades 에 직접 B 로 적음(10-20). 자소설 로고 3종(chatlist-logo 2·start-logo)은 11월 100% 대상이라 A 유지 — 로고·프로필 B 6규격 = blind-brand-logo · catch-center-logo-mo · everytime-home-card-profile · everytime-daily-message-profile · kakao-display-pc-profile · naver-gfa-native-mo-profile-300 10-28: 에브리타임 288 3종·데일리 120 은 참고 규격이 됐다(grades 에서 뺌 — 추출 밖 id 는 두지 않는다) · google-gdn-930x180 A 추가",
+  "stagesNote": "난이도·적용 차수(10-21 사용자 표): 하·1차 = 자소설 11·리멤버 8·카카오 비즈보드 1 = 20(11월 100% 자동화) / 중·2차 = 네이버 GFA DA 1·에브리타임 3·NAP DSP 4·카카오 PC 디스플레이 1 = 9(11월 준비 → 12월) / 상·3차 = 블라인드 2·구글 GDN 5(10-28 930×180)·잡다 2·인스타 1·당근 1 = 11(연내 사례 분석) / 4 = 표에 없는 로고·프로필·썸네일(B등급 5 — 10-28 에브리타임 288 3종·데일리 120 은 참고로 빠짐) + 캐치 3. 캔버스·매체 고르기 순서가 이 차수를 따른다(10-21 사용자 「난이도 하를 제일 위에」). 차수 안 순서는 표에 적힌 매체 순",
   "stageNames": {
     "1": "하 · 1차 적용",
     "2": "중 · 2차 적용",
@@ -443,6 +439,7 @@
       "google-gdn-970x250",
       "google-gdn-300x600",
       "google-gdn-300x1050",
+      "google-gdn-930x180",
       "jobda-main-pc",
       "jobda-main-mo",
       "instagram-feed-1080",
@@ -455,11 +452,7 @@
       "kakao-display-pc-profile",
       "naver-gfa-native-mo-342x228",
       "naver-gfa-native-mo-profile-300",
-      "everytime-community-native",
       "everytime-home-card-profile",
-      "everytime-contest-card",
-      "everytime-search-keyword-thumb",
-      "everytime-daily-message-profile",
       "blind-brand-logo"
     ]
   }

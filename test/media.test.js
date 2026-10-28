@@ -99,3 +99,27 @@ test('every extracted spec has a grade A/B/C in _extract.json (A = 규정 틀, B
     assert.equal(ex.grades[id], 'A', `${id}: 자소설·리멤버는 등급 A`);
   }
 });
+
+test('10-28 컨시어지 매체 규칙 데이터 — 리멤버 금지색 같은 색 폭 · 카카오 비즈보드 광고주 필수·두줄형 · PC디스플레이 폰트 해제 · 에브리타임 참고 규격 사유', () => {
+  const byId = Object.fromEntries(media.map(m => [m.id, m]));
+  const spec = (mid, id) => byId[mid].specs.find(s => s.id === id);
+  // 리멤버: 금지 5색은 그대로, 「같은 색」 폭이 적혀 있고 그 밖은 경고
+  assert.deepEqual(byId.remember.backgroundColors.banned, ['#FFFFFF', '#000000', '#FF5414', '#F7F7F0', '#E8E7E0']);
+  assert.equal(byId.remember.backgroundColors.blockDeltaE, 1);
+  assert.match(byId.remember.backgroundColors.blockNote, /경고|warn/);
+  // 카카오 비즈보드: 메인에 광고주 필수(플래그 + 글자수 표 행) · 메인 두줄형 허용 · 규격 fonts Pretendard
+  const biz = spec('kakao', 'kakao-bizboard-mo');
+  assert.equal(biz.mainMustIncludeClient, true);
+  assert.equal(biz.textLimits.find(t => t.field === '메인카피').mustIncludeClient, true);
+  assert.equal(biz.textLimits.find(t => t.field === '메인카피').lines, 2);
+  assert.equal(biz.mainTwoLine?.allowed, true); assert.equal(biz.mainTwoLine?.lines, 2);
+  assert.equal(biz.fonts?.required, 'Pretendard');
+  // 카카오 PC디스플레이: 규격이 매체 폰트 규정을 끈다(false — null 은 매체로 떨어지므로 안 됨)
+  for (const id of ['kakao-display-pc-promo', 'kakao-display-pc-profile']) assert.strictEqual(spec('kakao', id).fonts?.required, false, id);
+  assert.equal(byId.kakao.fonts.required, 'Pretendard');
+  // 에브리타임: 참고로 돌린 4규격에 사유, 커뮤니티보드 2종 셈
+  for (const id of ['everytime-community-native', 'everytime-contest-card', 'everytime-search-keyword-thumb', 'everytime-daily-message-profile']) assert.match(spec('everytime', id).extractNote ?? '', /5종/, id);
+  assert.deepEqual(spec('everytime', 'everytime-community-board').extractVariants.names, ['썸네일형', '오브젝트형']);
+  // 구글 930×180: 추가 사이즈로 확정된 이유가 적혀 있다
+  assert.match(spec('google-gdn', 'google-gdn-930x180').note, /10-28/);
+});

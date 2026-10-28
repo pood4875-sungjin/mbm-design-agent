@@ -84,6 +84,8 @@ export function limitsByRole(limits = []) {
 // 글자 "수"가 아니라 매체 계산법(countChars)으로 센다. 렌더러가 사다리에서 문구를 고를 때 쓴다.
 export function estimateLines(text, perLine, mode = 'all-1') {
   if (!(perLine > 0)) return 1;
+  // 적어 둔 줄바꿈(\n)은 그 자리에서 반드시 끊긴다 — 줄마다 따로 세어 더한다(「회사명\n채용」을 한 줄로 보던 오판, 10-28)
+  if (String(text ?? '').includes('\n')) return String(text).split('\n').reduce((n, t) => n + estimateLines(t, perLine, mode), 0);
   let lines = 1, cur = 0;
   for (const word of String(text ?? '').split(/\s+/).filter(Boolean)) {
     const n = countChars(word, mode);

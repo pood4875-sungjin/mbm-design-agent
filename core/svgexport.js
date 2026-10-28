@@ -303,10 +303,10 @@ export function gradientDef(g, id, box, { forMask = false } = {}) {
   return `<radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${round(ccx)}" cy="${round(ccy)}" r="${round(rx)}"${tf}${spread}>${stopTags(st)}</radialGradient>`;
 }
 
-// 출력 크기(제출 픽셀) — exportScale > 1 이면 width/height 는 제출 크기, viewBox 는 캔버스
-export function svgFrame(w, h, submitW, submitH) {
-  const W = submitW ?? w, H = submitH ?? h;
-  return `width="${round(W)}" height="${round(H)}" viewBox="0 0 ${round(w)} ${round(h)}"`;
+// 출력 크기 — SVG(편집용)는 작업 크기(캔버스 w×h, 1배). 제출 배수(exportScale 2)는 PNG/JPG 추출에만 쓴다.
+//   10-28 담당자 「SVG 추출 시 프레임 사이즈가 2배 추출 기준」 → 사용자 결정: SVG 는 작업 크기. submitW/H 는 호환용으로 받되 쓰지 않는다
+export function svgFrame(w, h, submitW = null, submitH = null) {   // eslint-disable-line no-unused-vars
+  return `width="${round(w)}" height="${round(h)}" viewBox="0 0 ${round(w)} ${round(h)}"`;
 }
 
 /* ═══ 브라우저: DOM → SVG ═══ */
@@ -704,7 +704,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
 
   const body = await paint(root, { x: 0, y: 0, w: W, h: H }, true);
   const comment = [
-    `MBM 디자인 에이전트 — ${title || root.dataset.spec || ''} ${W}×${H}${submitW && submitW !== W ? ` (제출 ${submitW}×${submitH})` : ''}`,
+    `MBM 디자인 에이전트 — ${title || root.dataset.spec || ''} ${W}×${H} (작업 크기 1배)${submitW && submitW !== W ? ` · 매체 제출은 PNG/JPG ${submitW}×${submitH}` : ''}`,
     '글자는 살아 있는 텍스트입니다. Figma 에서 Pretendard 폰트가 설치되어 있어야 글자가 그대로 보입니다.',
     fallbacks.length ? `래스터·근사로 대신한 것: ${fallbacks.join(' / ')}` : '래스터로 대신한 효과 없음',
   ].map(s => s.replace(/--/g, '—')).join('\n  ');

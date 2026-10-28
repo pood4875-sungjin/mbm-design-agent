@@ -8,13 +8,22 @@ import { checklist8, ITEMS } from '../core/checklist8.js';
 
 // 추출 47규격 — 사용자 「컨시어지」 보드 목록(core/media/_extract.json). 매체마다 수가 정해져 있고 그 밖은 참고 규격이다.
 
-const COUNTS = { jasoseol: 11, remember: 8, jobda: 2, catch: 3, 'google-gdn': 4, 'nap-dsp': 4, instagram: 1, kakao: 3, 'naver-gfa': 3, everytime: 8, blind: 3, daangn: 1 };
+// 10-28 컨시어지: 구글 4 → 5(930×180 추가, #18) · 에브리타임 8 → 4 id(담당자 5종 = 커뮤니티보드 썸네일형/오브젝트형 2 + 홈배너 + 프로필 160 + 카드 720, #19)
+const COUNTS = { jasoseol: 11, remember: 8, jobda: 2, catch: 3, 'google-gdn': 5, 'nap-dsp': 4, instagram: 1, kakao: 3, 'naver-gfa': 3, everytime: 4, blind: 3, daangn: 1 };
 const ORDER = ['jasoseol', 'remember', 'jobda', 'catch', 'google-gdn', 'nap-dsp', 'instagram', 'kakao', 'naver-gfa', 'everytime', 'blind', 'daangn'];
 
-test('exactly 51 specs are extract:true, with the per-medium counts from the board (10-16: 자소설 11 · 캐치 3 = 중앙배너 PC·MO 이미지 + MO 로고)', () => {
+test('exactly 48 specs are extract:true, with the per-medium counts from the board (10-16: 자소설 11 · 캐치 3 / 10-28: 구글 5 · 에브리타임 4)', () => {
   const all = MEDIA.flatMap(m => (m.specs ?? []).map(s => ({ ...s, medium: m.id })));
   const ex = all.filter(s => s.extract === true);
-  assert.equal(ex.length, 51, `추출 규격은 51이어야 한다 (지금 ${ex.length})`);
+  assert.equal(ex.length, 48, `추출 규격은 48이어야 한다 (지금 ${ex.length})`);
+  // 10-28 담당자 기준: 에브리타임은 5종(id 4)만, 288 3종·데일리 120 은 참고 / 구글 930×180 은 추출
+  for (const id of ['everytime-community-board', 'everytime-home-banner', 'everytime-home-card-profile', 'everytime-home-card-image', 'google-gdn-930x180']) assert.ok(ex.some(s => s.id === id), `${id}: 추출이어야 한다`);
+  for (const id of ['everytime-community-native', 'everytime-contest-card', 'everytime-search-keyword-thumb', 'everytime-daily-message-profile']) {
+    const s = all.find(x => x.id === id);
+    assert.equal(s.extract, false, `${id}: 참고 규격이어야 한다`);
+    assert.match(String(s.extractNote ?? ''), /10-28/, `${id}: 참고로 돌린 이유(extractNote)가 있어야 한다`);
+  }
+  assert.equal(all.find(x => x.id === 'everytime-community-board').extractVariants?.count, 2, '커뮤니티보드 = 썸네일형/오브젝트형 2종(담당자 5종 셈)');
   for (const [mid, n] of Object.entries(COUNTS)) assert.equal(ex.filter(s => s.medium === mid).length, n, `${mid}: 추출 ${n}개여야 한다`);
   for (const s of all) assert.equal(typeof s.extract, 'boolean', `${s.id}: extract 는 true/false 여야 한다`);
   // 생성 파일의 EXTRACT 와 원본 _extract.json 이 같다
@@ -51,7 +60,8 @@ test('extractSpecGroups covers all 49 (twins folded, 전달물 2 제외), adSpec
     const stages = groups.map(g => specStage(g.id));
     assert.deepEqual(stages, [...stages].sort((a, b) => a - b));
   }
-  assert.deepEqual(Object.values(EXTRACT.stages).map(l => l.length), [20, 9, 10, 12], '하 20 · 중 9 · 상 10 · 보조 12');
+  assert.deepEqual(Object.values(EXTRACT.stages).map(l => l.length), [20, 9, 11, 8], '하 20 · 중 9 · 상 11(10-28 구글 930×180) · 보조 8(10-28 에브리타임 288 3종·데일리 120 은 참고)');
+  assert.equal(specStage('google-gdn-930x180'), 3); assert.equal(specStage('everytime-contest-card'), 5);
   assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 1).map(g => g.medium))], ['jasoseol', 'remember', 'kakao']);
   assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 2).map(g => g.medium))], ['naver-gfa', 'everytime', 'nap-dsp', 'kakao']);
   assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 3).map(g => g.medium))], ['blind', 'google-gdn', 'jobda', 'instagram', 'daangn']);

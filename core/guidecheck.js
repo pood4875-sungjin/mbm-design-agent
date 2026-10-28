@@ -362,6 +362,72 @@ export const RULES = [
 ];
 
 // 사람이 봐야 하는 규칙 — 숫자로 못 재는 것. 표 끝에 「–」로 붙여 둔다(✓ 라고 하지 않는다)
+// ── 틀(templateMold) 실측 대조(10-28 컨시어지 #9 자소설 「규정 미준수 소재 검수 승인 오류」) ──
+// docs/jasoseol-mold.md 의 틀 수치(글자 칸 x · 줄 y · 크기 · 굵기 · 로고 칸 · 그림 칸, 서브 1·2줄 × 메인 줄 수 조합)를 core/media/*.json mold 에서 읽어 실측(guidemeasure texts.box·fs·fw·logo.box·objects)과 ±2px 로 견준다.
+// level 'block' — 틀 규격(mold 있는 규격)에서 어긋나면 core/gate.js 승인을 막는다(장부 mold-measured-gate).
+export const MOLD_TOL = 2;
+const moldOf = C => C.rules?.safeArea?.measuredFromTemplate?.mold ?? null;
+// 템플릿 프레임이 캔버스와 다른 배율이면(자소설 PC달력 328×466 → 164×233) 그 비율(core/renderers/ad.js templateScale 과 같은 식)
+const moldK = C => { const src = `${C.rules?.safeArea?.measuredFromTemplate?.frame ?? ''} ${C.rules?.fontSizes?.unit ?? ''}`; const m = src.match(/(\d{2,4})\s*[×x*]\s*(\d{2,4})/); if (!m) return 1; const fw = Number(m[1]); return fw > 0 && fw !== C.spec.w ? C.spec.w / fw : 1; };
+const moldText = (C, role) => textsOf(C).find(t => t.role === role && t.box) ?? null;
+// 실측 글상자 → 첫 줄 글리프 상자 top(Figma 글상자 top 과 같은 기준: 행간 pitch 가운데 px×1.2 상자)
+const glyphTop = t => t.box.y + Math.max(0, ((t.lh ?? t.fs * 1.2) - t.fs * 1.2) / 2);
+const rowsMeasured = t => Math.max(1, Array.isArray(t.lines) ? t.lines.length : 1);
+// 역할별 기대 y — 서브 줄 수(bySubLines)·메인 줄 수(byMainLines)·메인 아래 간격(afterMain) 조합(채용공고 서브 1·2줄 × 메인 1~4줄, PC메인 메인 1·2줄 × 상세)
+const moldRowY = (C, role, k) => {
+  const M = moldOf(C); const r = M?.rows?.[role]; if (!r) return null;
+  const subN = (() => { const t = moldText(C, 'sub'); return t ? rowsMeasured(t) : 0; })();
+  const main = moldText(C, 'main'); const mainN = main ? rowsMeasured(main) : 1;
+  const mr = M.rows.main ?? {}; const mainRow = { ...mr, ...(mr.bySubLines?.[String(subN)] ?? {}) };
+  if (role === 'main') return mainRow.y != null ? mainRow.y * k : null;
+  const rr = { ...r, ...(r.byMainLines?.[String(mainN)] ?? {}) };
+  if (rr.y != null) return rr.y * k;
+  if (rr.afterMain != null) { const mainTop = main ? glyphTop(main) : (mainRow.y ?? 0) * k; const pitch = (mainRow.pitch ?? mainRow.px * 1.2) * k; return mainTop + (mainN - 1) * pitch + rr.afterMain * k; }
+  return null;
+};
+const MOLD_ROLES = ['sub', 'main', 'detail', 'date'];
+const moldRoleRules = MOLD_ROLES.flatMap(role => [
+  { id: `mold.${role}.y`, group: '틀', name: `틀 ${role} 줄 y`, source: 'media.mold.rows', level: 'block',
+    text: '틀 글상자 top(docs/*-mold.md, Figma 실측)과 ±2px — 서브·메인 줄 수 조합(bySubLines·byMainLines·afterMain)대로',
+    when: C => isMold(C) && !!moldOf(C)?.rows?.[role] && !!moldText(C, role),
+    eval: C => { const k = moldK(C); const exp = moldRowY(C, role, k); const t = moldText(C, role); const act = glyphTop(t); return { expect: exp == null ? '—' : px(exp), actual: px(act), ok: exp == null ? null : Math.abs(act - exp) <= MOLD_TOL, note: exp == null ? '틀에 y 없음' : `차이 ${num(act - exp, 1)}px` }; } },
+  { id: `mold.${role}.x`, group: '틀', name: `틀 ${role} 칸 x`, source: 'media.mold.x', level: 'block',
+    text: '틀 글자 칸 왼쪽 x(docs/*-mold.md 「글자 왼쪽 패딩」)와 ±2px — 가운데 정렬 틀은 칸 안 위치만',
+    when: C => isMold(C) && !!moldOf(C)?.rows?.[role] && !!moldText(C, role) && (moldOf(C).align ?? 'left') === 'left' && (moldOf(C).rows[role].align ?? 'left') === 'left' && !manualOf(C, 'text') && !C.trace?.align,
+    eval: C => { const k = moldK(C); const M = moldOf(C); const exp = (M.rows[role].x ?? M.x) * k; const t = moldText(C, role); const act = t.box.x; return { expect: px(exp), actual: px(act), ok: Math.abs(act - exp) <= MOLD_TOL, note: `차이 ${num(act - exp, 1)}px` }; } },
+  { id: `mold.${role}.px`, group: '틀', name: `틀 ${role} 글자 크기`, source: 'media.mold.rows.px', level: 'block',
+    text: '틀 글자 크기(docs/*-mold.md 서체 px)와 ±2px — 줄인 메인(templateMold.mainShrink)도 어긋남으로 본다',
+    when: C => isMold(C) && moldOf(C)?.rows?.[role]?.px != null && !!moldText(C, role),
+    eval: C => { const k = moldK(C); const exp = moldOf(C).rows[role].px * k; const t = moldText(C, role); return { expect: px(exp), actual: px(t.fs), ok: Math.abs(t.fs - exp) <= MOLD_TOL, note: (C.trace?.rules ?? []).includes('templateMold.mainShrink') && role === 'main' ? '렌더러가 긴 문구를 줄였다(mainShrink)' : '' }; } },
+  { id: `mold.${role}.weight`, group: '틀', name: `틀 ${role} 굵기`, source: 'media.mold.rows.weight', level: 'block',
+    text: '틀 굵기(docs/*-mold.md — 상세는 라벨 Bold·값 Regular)와 같다',
+    when: C => isMold(C) && moldOf(C)?.rows?.[role]?.weight != null && !!moldText(C, role),
+    eval: C => { const r = moldOf(C).rows[role]; const t = moldText(C, role); const fw = Number(t.fw); const okV = fw === Number(r.weight); const lw = r.labelWeight != null ? (t.bolds ?? []).filter(b => !b.chip).map(b => Number(b.fw)) : []; const okL = !lw.length || lw.every(v => v === Number(r.labelWeight)); return { expect: `${r.weight}${r.labelWeight != null ? ` · 라벨 ${r.labelWeight}` : ''}`, actual: `${fw}${lw.length ? ` · 라벨 ${[...new Set(lw)].join('/')}` : ''}`, ok: okV && okL, note: '' }; } },
+]);
+const moldBoxRules = [
+  { id: 'mold.logo.box', group: '틀', name: '틀 로고 칸', source: 'media.mold.logo', level: 'block',
+    text: '로고는 틀 로고 칸 안(docs/*-mold.md 로고 칸 x·y·w·h, ±2px) · 면적 상한(maxArea) 이하',
+    when: C => isMold(C) && !!moldOf(C)?.logo?.w && !!C.m?.logo?.box && !manualOf(C, 'logo'),
+    eval: C => { const k = moldK(C); const L = moldOf(C).logo; const b = C.m.logo.box; const cell = { x: L.x * k, y: L.y * k, w: L.w * k, h: L.h * k }; const inside = b.x >= cell.x - MOLD_TOL && b.y >= cell.y - MOLD_TOL && b.x + b.w <= cell.x + cell.w + MOLD_TOL && b.y + b.h <= cell.y + cell.h + MOLD_TOL; const area = b.w * b.h, cap = L.maxArea != null ? L.maxArea * k * k : null; const areaOk = cap == null || area <= cap * 1.05;
+      return { expect: `칸 (${num(cell.x, 0)},${num(cell.y, 0)}) ${num(cell.w, 0)}×${num(cell.h, 0)}${cap != null ? ` · ≤ ${num(cap, 0)}px²` : ''}`, actual: `(${b.x},${b.y}) ${b.w}×${b.h} · ${num(area, 0)}px²`, ok: inside && areaOk, note: !inside ? '로고가 칸 밖' : !areaOk ? '로고 면적 상한 초과' : '' }; } },
+  { id: 'mold.image.box', group: '틀', name: '틀 그림 칸', source: 'media.mold.image', level: 'block',
+    text: '그림은 틀 그림 칸 위쪽 경계 아래(docs/*-mold.md 그림 칸 y, ±2px) · 글자 마지막 줄 아래 침범 금지',
+    when: C => isMold(C) && moldOf(C)?.image?.y != null && !!obj0(C)?.clip && !C.trace?.gate?.logoOnly,
+    eval: C => { const k = moldK(C); const I = moldOf(C).image; const o = obj0(C); const vis = o.clip; const top = I.y * k; const left = I.x * k, right = (I.x + I.w) * k;
+      // 왼쪽 열 칸(PC메인 350×280)은 오른쪽 경계, 아래 띠 칸(채용공고·달력·M팝업)은 위 경계, 모서리 칸(팝업)은 네 변
+      const band = I.x === 0 && I.w >= C.spec.w / k - 1; const col = I.y === 0 && I.h >= C.spec.h / k - 1;
+      const texts = textsOf(C).filter(t => t.ink?.h > 0); const lastText = texts.length ? Math.max(...texts.map(t => t.ink.y + t.ink.h)) : null;
+      const okTop = col || vis.y >= top - MOLD_TOL; const okRight = band || vis.x + vis.w <= right + MOLD_TOL; const okLeft = band || vis.x >= left - MOLD_TOL;
+      const okText = band && lastText != null ? vis.y >= lastText - MOLD_TOL : true;
+      return { expect: band ? `위 경계 y ≥ ${num(top, 0)} · 글자 마지막 줄(${lastText == null ? '—' : num(lastText, 0)}) 아래` : col ? `오른 경계 x ≤ ${num(right, 0)}` : `칸 (${num(left, 0)},${num(top, 0)}) ${num(I.w * k, 0)}×${num(I.h * k, 0)}`, actual: `보이는 그림 (${num(vis.x, 0)},${num(vis.y, 0)}) ${num(vis.w, 0)}×${num(vis.h, 0)}`, ok: okTop && okRight && okLeft && okText, note: !okTop ? '그림이 칸 위로 올라옴' : !okText ? '그림이 글자 마지막 줄을 침범' : (!okRight || !okLeft) ? '그림이 칸 옆으로 나감' : '' }; } },
+];
+export const MOLD_RULES = [...moldRoleRules, ...moldBoxRules];
+RULES.push(...MOLD_RULES);
+// 승인 게이트용 — 틀 규칙(level block) 중 ✗ 인 줄
+// 틀 ✗ 로 승인을 막는 매체 — Notion 컨시어지 2026-10-28 #9(자소설 규정 미준수 승인 통과). 다른 틀 매체(구글·리멤버 등)는 경고까지만(긴 기업명 줄임이 곧 차단이 되지 않게)
+export const MOLD_BLOCK_MEDIA = new Set(['jasoseol']);
+export const blockingRows = rows => (rows ?? []).filter(r => r.level === 'block' && r.ok === false);
+
 export const HUMAN_RULES = [
   { id: 'human.typeFit', group: '사람 판정', name: '유형 판정이 그림과 맞는가', text: '유형(누끼·질감·사진·일러스트)·세분 유형이 그림과 맞아야 이후 배치가 맞는다 — 틀리면 cases.mjs type 으로 지정' },
   { id: 'human.seam', group: '사람 판정', name: '이음매가 눈에 띄는가', text: '녹임 길이·곡선 수치가 맞아도 「뚝 끊긴 느낌」은 눈으로' },
@@ -383,6 +449,7 @@ export const RULES_JSON_MAP = {
   'mainFloor.square': ['main-floor-square'], 'guide.mainPx': ['google-main-px'], 'guide.detailPx': ['google-main-px'], 'guide.subPx': ['google-main-px'], 'main.lines': ['main-overflow'], 'contrast.main': ['text-black-or-white'], 'contrast.small': ['text-black-or-white'], 'hierarchy': ['layout-shape-sizes'],
   'logoCap': ['logo-cap'], 'logo.tone': ['logo-mono', 'logo-clash', 'logo-tile'], 'wideLogo': ['wide-logo'], 'guide.logo.h': ['logo-google'],
   'check.textOverSubject': ['check-text-over-subject'], 'check.emptyBand': ['check-empty-band'], 'check.logoCovered': ['check-logo-covered'], 'check.hardCut': ['check-hard-cut'], 'check.textClipped': ['check-text-clipped'], 'check.chipOverflow': ['check-pill-overflow'], 'maxUpscale': ['max-upscale'],
+  ...Object.fromEntries(['sub', 'main', 'detail', 'date'].flatMap(r => [[`mold.${r}.y`, ['mold-text-rows', 'mold-measured-gate']], [`mold.${r}.x`, ['mold-text-rows', 'mold-measured-gate']], [`mold.${r}.px`, ['mold-text-rows', 'mold-measured-gate']], [`mold.${r}.weight`, ['mold-text-rows', 'mold-measured-gate']]])), 'mold.logo.box': ['mold-logo-box', 'mold-measured-gate'], 'mold.image.box': ['mold-image-box', 'mold-measured-gate'],
   'place.textZone': ['place-text-zone'], 'place.textAlign': ['place-text-align'], 'place.logoSlot': ['place-logo-slot'], 'place.manualDrift': ['place-manual-drift'], 'place.recommendedMargin': ['place-recommended-margin'],
 };
 // rules.json(규칙 장부)이 있으면 짝지은 항목의 rule·value 로 가이드 문장을, where 로 출처를 덮는다. 모양이 달라도(배열·{rules:[]}·{id: text}) 깨지지 않게 느슨히 읽는다
@@ -406,7 +473,7 @@ export function evaluate(C, rules = RULES) {
     let on = false; try { on = !!r.when(C); } catch { on = false; }
     if (!on) continue;
     let res; try { res = r.eval(C); } catch (e) { res = { expect: '—', actual: '평가 실패: ' + (e?.message ?? e), ok: null }; }
-    rows.push({ id: r.id, group: r.group, name: r.name, source: r.source, text: r.text, fromRulesJson: !!r.fromRulesJson, ...(r.level ? { level: r.level } : {}), ...res, verdict: res.ok === true ? '✓' : res.ok === false ? '✗' : '–' });
+    rows.push({ id: r.id, group: r.group, name: r.name, source: r.source, text: r.text, fromRulesJson: !!r.fromRulesJson, ...(r.level ? { level: r.level === 'block' && !MOLD_BLOCK_MEDIA.has(C.spec?.medium) ? 'warn' : r.level } : {}), ...res, verdict: res.ok === true ? '✓' : res.ok === false ? '✗' : '–' });
   }
   for (const h of HUMAN_RULES) rows.push({ ...h, expect: '—', actual: '측정 불가 — 사람 판정', ok: null, verdict: '–' });
   return rows;

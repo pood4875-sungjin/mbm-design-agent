@@ -33,7 +33,7 @@ test('자소설 PC메인배너 1200×280: 템플릿 구조 — 서브(시즌) �
   assert.match(textOf(html, 'main'), /^현대케피코/);
   assert.doesNotMatch(textOf(html, 'main'), /2026/, '시즌은 서브에만');
   assert.match(textOf(html, 'main'), /신입채용/, '회사 / 채용구분 두 줄(10-15 틀)');
-  assert.match(html, /채용일정 :<\/b> 1\.24\(토\) - 2\.1\(일\)/);   // 10-15 틀: 라벨 「채용일정 :」(28:1002)
+  assert.match(html, /모집일정 :<\/b> 1\.24\(토\) - 2\.1\(일\)/);   // 10-15 틀: 라벨 「채용일정 :」(28:1002) → 10-28 「모집일정 :」 통일(컨시어지 #10)
   assert.match(html, /모집직무 :<\/b> 생산기술/);
   assert.ok(html.indexOf('data-field="sub"') < html.indexOf('data-field="main"'), '서브가 메인 위');
 });

@@ -15,13 +15,16 @@ const meta28 = JSON.parse(readFileSync(new URL('../ref/learned/cases/pin-28/meta
 const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', role: '일반(사업, 재무 등)', deadline: '2025-07-02', startDate: '2025-06-20', season: '2025년', deadlineTime: '17:00', notice: '자세한 내용은 홈페이지 참고' }, 'recruit');
 const kakao = SPECS['kakao-display-pc-promo'], gdn = SPECS['google-gdn-580x400'];
 
-test('고정 조건 — 카카오 PC 는 매체 JSON 값(1200×600 · 안전영역 40/40/90/40 · 글자 48~164 · 3줄 · Pretendard 고정), 구글 580 은 권장값(여백 4% · 폰트 캠페인 선택)', () => {
-  const f = buildFixed(kakao, { ctx, kvMeta: meta28, hasKv: true, hasLogo: false });
+test('고정 조건 — 카카오 PC 는 매체 JSON 값(1200×600 · 안전영역 40/40/90/40 · 글자 48~164 · 3줄 · 폰트는 캠페인 선택(10-28: PC디스플레이 규격 fonts.required false, 비즈보드만 Pretendard 고정)), 구글 580 은 권장값(여백 4% · 폰트 캠페인 선택)', () => {
+  const f = buildFixed(kakao, { ctx, fontId: 'Pretendard', kvMeta: meta28, hasKv: true, hasLogo: false });
   assert.equal(f.w, 1200); assert.equal(f.h, 600);
   assert.deepEqual([f.safe.top, f.safe.right, f.safe.bottom, f.safe.left], [40, 40, 90, 40]);
   assert.deepEqual([f.fontSize.min, f.fontSize.max, f.maxLines, f.noticeMin], [48, 164, 3, 24]);
-  assert.equal(f.font.family, 'Pretendard'); assert.equal(f.font.fixed, true);
+  assert.equal(f.font.family, 'Pretendard'); assert.equal(f.font.fixed, false, '10-28 컨시어지 #12: PC디스플레이는 폰트 자유');
   assert.deepEqual(f.weights, [400, 500, 600, 700], '묶은 Pretendard 굵기만');
+  assert.equal(buildFixed(kakao, { ctx, fontId: 'KakaoBigSans', hasKv: true }).font.family, 'Kakao Big Sans', '고른 폰트가 그대로');
+  const biz = buildFixed(SPECS['kakao-bizboard-mo'], { ctx, fontId: 'KakaoBigSans', hasKv: true });
+  assert.equal(biz.font.family, 'Pretendard'); assert.equal(biz.font.fixed, true, '비즈보드는 여전히 Pretendard 고정');
   assert.deepEqual(f.requiredTexts.map(r => r.text), ['GS에너지', '6.20(금) - 7.2(수) 17시', '자세한 내용은 홈페이지 참고']);
   const g = buildFixed(gdn, { ctx, fontId: 'KakaoBigSans', hasKv: true });
   assert.deepEqual([g.safe.top, g.safe.left], [16, 16]); assert.equal(g.font.fixed, false); assert.equal(g.font.family, 'Kakao Big Sans');
@@ -29,15 +32,15 @@ test('고정 조건 — 카카오 PC 는 매체 JSON 값(1200×600 · 안전영�
 });
 
 test('프롬프트 — 고정 조건·문구·브랜드·요구가 들어가고 문구는 A 트랙 사다리와 같다', () => {
-  const f = buildFixed(kakao, { ctx, kvMeta: meta28, hasKv: true, hasLogo: true, logoMeta: { ar: 2.5, tone: 'light' } });
+  const f = buildFixed(kakao, { ctx, fontId: 'Pretendard', kvMeta: meta28, hasKv: true, hasLogo: true, logoMeta: { ar: 2.5, tone: 'light' } });
   const p = buildPrompt(f, { brief: ctx.core, brand: { primary: '#326CD1' }, requests: '지구본이 잘 보이게', kvMeta: meta28, logoMeta: { ar: 2.5, tone: 'light' } });
-  for (const s of ['1200×600', '위 40 · 오른쪽 40 · 아래 90 · 왼쪽 40', '48~164px', 'Pretendard (매체 지정', 'GS에너지 신입 공채', '6.20(금) - 7.2(수) 17시', '#326CD1', '지구본이 잘 보이게', '흰색(밝은 로고', '자세한 내용은 홈페이지 참고']) assert.ok(p.includes(s), s);
+  for (const s of ['1200×600', '위 40 · 오른쪽 40 · 아래 90 · 왼쪽 40', '48~164px', 'Pretendard (캠페인 선택', 'GS에너지 신입 공채', '6.20(금) - 7.2(수) 17시', '#326CD1', '지구본이 잘 보이게', '흰색(밝은 로고', '자세한 내용은 홈페이지 참고']) assert.ok(p.includes(s), s);
   assert.ok(retryPrompt(['x']).includes('- x'));
   assert.equal(LAYOUT_SCHEMA.additionalProperties, false);
   assert.ok(LAYOUT_SCHEMA.required.includes('texts'));
 });
 
-const fixedK = () => buildFixed(kakao, { ctx, kvMeta: meta28, hasKv: true, hasLogo: true, logoMeta: { ar: 3 } });
+const fixedK = () => buildFixed(kakao, { ctx, fontId: 'Pretendard', kvMeta: meta28, hasKv: true, hasLogo: true, logoMeta: { ar: 3 } });   // 10-28: PC디스플레이 폰트 자유 → 굵기 400~700 검증용으로 Pretendard 를 고른다
 const good = () => ({
   background: { base: { kind: 'linear', colors: ['#1E4FBF', '#0B2A6E'], angle: 135 }, shapes: [{ kind: 'ellipse', x: 700, y: -100, w: 600, h: 600, color: '#FFFFFF', opacity: 0.08, radius: 0, blur: 40 }] },
   images: [{ id: 'kv', x: 700, y: 0, w: 500, h: 600, crop: { x: 0.05, y: 0.1, w: 0.888, h: 0.8 }, opacity: 1, fade: 'left' }, { id: 'logo', x: 60, y: 50, w: 150, h: 50, crop: { x: 0, y: 0, w: 1, h: 1 }, opacity: 1, fade: 'none' }],

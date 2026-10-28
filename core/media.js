@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 15 · 규격 91(추출 51) · 확인필요 111 · 충돌 43 · 반려사례 12
+// 매체 15 · 규격 91(추출 48) · 확인필요 112 · 충돌 43 · 반려사례 12
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 0/24 프레임
 
@@ -471,6 +471,20 @@ export const MEDIA = [
               "subPrefer": "season",
               "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
               "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "clientLen": {
+                "mainMax": 6,
+                "subRanges": [
+                  [
+                    7,
+                    8
+                  ],
+                  [
+                    10,
+                    15
+                  ]
+                ],
+                "note": "기업명 글자수 기준(10-28 컨시어지 #1 한희하 제안, 사용자 결정): 6자 이하 메인 「회사 / 채용구분」 · 7~8자·10~15자 기업명은 서브 줄로(메인은 채용구분만) · 9자·16자 이상은 기업명 생략(로고가 대신). 글자수는 띄어쓰기·기호 포함 그대로 센다(「한미글로벌&터너앤타운젠드코리아」 16)"
+              },
               "docRef": "docs/jasoseol-mold.md ②"
             }
           }
@@ -683,7 +697,8 @@ export const MEDIA = [
                 }
               },
               "labels": {
-                "period": "채용일정"
+                "period": "모집일정",
+                "note": "10-28 사용자 결정(컨시어지 #10 텍스트 통일): 캠페인 안 모든 자소설 규격 라벨·기호를 「모집일정 : 」「모집직무 : 」로 통일 — 샘플 실측(케피코 28:1002)은 「채용일정 :」이었다"
               },
               "logo": {
                 "x": 1006.5,
@@ -919,6 +934,20 @@ export const MEDIA = [
               "subPrefer": "season",
               "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
               "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
+              "clientLen": {
+                "mainMax": 6,
+                "subRanges": [
+                  [
+                    7,
+                    8
+                  ],
+                  [
+                    10,
+                    15
+                  ]
+                ],
+                "note": "기업명 글자수 기준(10-28 컨시어지 #1 한희하 제안, 사용자 결정): 6자 이하 메인 「회사 / 채용구분」 · 7~8자·10~15자 기업명은 서브 줄로(메인은 채용구분만) · 9자·16자 이상은 기업명 생략(로고가 대신). 글자수는 띄어쓰기·기호 포함 그대로 센다(「한미글로벌&터너앤타운젠드코리아」 16)"
+              },
               "docRef": "docs/jasoseol-mold.md ②"
             }
           }
@@ -1402,7 +1431,8 @@ export const MEDIA = [
                   "pitch": 40,
                   "lines": 3,
                   "labelRow": false,
-                  "labelSep": " ㅣ",
+                  "labelSep": " :",
+                  "labelSepNote": "10-28 사용자 결정(컨시어지 #10): 자소설 전 규격 「라벨 : 값」으로 통일 — FITI 1:10459 샘플은 「ㅣ」",
                   "byMainLines": {
                     "2": {
                       "y": 372.5,
@@ -1418,6 +1448,10 @@ export const MEDIA = [
                 }
               },
               "subPrefer": "season",
+              "labels": {
+                "period": "모집일정",
+                "note": "10-28 사용자 결정(컨시어지 #10 텍스트 통일): 자소설 전 규격 「모집일정 : 」「모집직무 : 」"
+              },
               "image": {
                 "x": 376,
                 "y": 160,
@@ -2158,6 +2192,8 @@ export const MEDIA = [
         "#F7F7F0",
         "#E8E7E0"
       ],
+      "blockDeltaE": 1,
+      "blockNote": "10-28 컨시어지 #4(박진화): 금지색과 「같은 색」만 차단 — CIE76 ΔE ≤ 1(사람 눈에 구분 안 되는 차이, 예 #FDFDFD·#FF5212). 그 밖의 근접색(채널당 ±12 안, core/canon.js CANON.bgBanned.tol)은 경고(bg-banned-near)로 낮춘다 — 리멤버 측 「#FFFFFF 가 아닌 흰색 근접색은 사용 가능하나 지양」, 브랜드색이면 허용, #FAFAFA(ΔE 1.7) 통과 사례. 경고 문구에 「그라데이션/썸네일형으로 바꾸면 통과 가능」 안내. 검사: core/lint.js",
       "recommended": "흰 글씨 → 분홍 영역, 검정 글씨 → 파랑 영역 (HSB 피커 도식, 수치 범위 미기재)",
       "source": "pdf:리멤버 배너 상품 제작 가이드_ver.2408.pdf p.8"
     },
@@ -5353,7 +5389,7 @@ export const MEDIA = [
       },
       {
         "id": "google-gdn-930x180",
-        "name": "GDN 배너 930×180 (고정 사이즈 외 — 예시에만 존재)",
+        "name": "GDN 배너 930×180 (고정 4사이즈 외 추가 — 10-28 담당자 요청)",
         "platform": "공통",
         "w": 930,
         "h": 180,
@@ -5463,7 +5499,7 @@ export const MEDIA = [
         ],
         "source": "figma:구글GDN01(소재 제작 규정) text 414:1867 / figma:구글GDN02(제작가이드&예시) frame 9:868 / 414:2045 / 9:746 / 418:2595 / png:구글 가이드.png (adguide/구글, pngs/guide1.png)",
         "confidence": "확인필요",
-        "note": "보드 고정 4사이즈 목록(414:1867)에 없음. 보드 공통사항 4 '제작이 정말 어려운 경우 상의 후에 다른 사이즈로도 제작이 가능함'(414:2043) + 매체 허용 목록(png)에 있음. 예시 3개 고객사는 300×1050 대신 930×180을 제작했음(프레임 관찰) — 대체 규격으로 써도 되는지 담당자 확인 필요.",
+        "note": "보드 고정 4사이즈 목록(414:1867)에 없음. 보드 공통사항 4 '제작이 정말 어려운 경우 상의 후에 다른 사이즈로도 제작이 가능함'(414:2043) + 매체 허용 목록(png)에 있음. 예시 3개 고객사는 300×1050 대신 930×180을 제작했음(프레임 관찰) — 대체 규격으로 써도 되는지 담당자 확인 필요. → 10-28 컨시어지 #18(한희하) 「현재 4종 + 930×180 사이즈 추가」: 5번째 추출 규격으로 확정(core/media/_extract.json).",
         "sampleText": {
           "measuredFromSamples": {
             "n": 2,
@@ -5514,7 +5550,7 @@ export const MEDIA = [
           }
         },
         "frame": "guide",
-        "extract": false
+        "extract": true
       }
     ],
     "exportWorkflow": {
@@ -7445,6 +7481,7 @@ export const MEDIA = [
     },
     "fonts": {
       "required": "Pretendard",
+      "scope": "비즈보드(MO)·CPT 만. PC디스플레이(홍보이미지·프로필)는 규격 fonts.required:false 로 해제 — core/fonts.js fontRuleOf 가 spec.fonts 를 매체보다 먼저 읽는다(10-28 컨시어지 #12, 담당자 「PC디스플레이는 폰트 규정 없음」). 매체 값은 비즈보드 규정 매체 판정(mr.fonts.required)을 위해 남긴다",
       "note": "비즈보드: 메인카피 Bold / 서브·부가정보·카피형 CTA Regular. '기울기, 왜곡, 자간, 장평 등 글꼴 스타일 변경 불가'. 크기: 메인·서브 51~39pt(가이드) — PSD 레이어는 48pt·39pt, 부가정보 18pt 고정, 카피형 CTA 26pt 고정. 디스플레이(PC)는 폰트 지정 없음. 보드에는 폰트 언급 없음.",
       "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 4 / pdf:카카오 규정 완화 가이드.pdf p.10, p.12, p.15"
     },
@@ -7452,6 +7489,19 @@ export const MEDIA = [
       {
         "id": "kakao-bizboard-mo",
         "name": "카카오 비즈보드 (MO)",
+        "fonts": {
+          "required": "Pretendard",
+          "note": "규격 단위 명시(10-28): 비즈보드만 Pretendard 고정(메인 Bold · 서브/부가/카피형 CTA Regular). 매체 fonts 와 같은 값",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.10, p.12, p.15"
+        },
+        "mainMustIncludeClient": true,
+        "mainMustIncludeClientNote": "메인카피에 광고주(고객사명) 노출 필수 — 고정값. 완화 가이드 「광고주체 표기: 카피나 오브젝트에 광고주체 표기 필수(ex '카카오게임 10주년 기념 인형 기획전')」 + 10-28 컨시어지 #5(카카오 담당자 「MO 비즈보드 메인문구에 광고주 노출 필수가 안 지켜짐」). 검사: core/lint.js main-client(측정값 client 가 있을 때 메인 텍스트에 고객사명이 없으면 block). 렌더: ad.js 메인 사다리가 이 플래그를 읽어 고객사명을 뺀 후보를 내지 않는다",
+        "mainTwoLine": {
+          "allowed": true,
+          "lines": 2,
+          "note": "새 가이드 「메인문구 두줄형」 — 메인카피 2줄 변형 허용(10-28 컨시어지 #5). 두줄형일 때 줄 간격·서브 자리·글자 크기 수치는 새 가이드 미입수 — 확인 필요(임시: 틀 pitch 62 로 2줄, 서브는 아래로). 렌더 플래그: spec.mainTwoLine.allowed(ad.js 가 읽음), 검사: textLimits 메인카피 lines 2",
+          "source": "docs/concierge-requests-2026-10-28.md #5 / figma:카카오톡01 frame 421:5460 템플릿 「메인문구를 입력하세요.」 ×2(메인문구 2줄 자리)"
+        },
         "platform": "MO",
         "tool": "포토샵",
         "w": 1029,
@@ -7557,7 +7607,9 @@ export const MEDIA = [
           {
             "field": "메인카피",
             "maxChars": 15,
-            "lines": 1,
+            "lines": 2,
+            "mustIncludeClient": true,
+            "linesNote": "10-28: 새 가이드 「메인문구 두줄형」으로 최대 2줄(기본 1줄, spec.mainTwoLine). 전엔 1줄",
             "note": "docx: '메인은 최대 15자 이하 *공백포함', '47pt 기준 15글자, 50pt 기준 13글자 정도 사용 가능'. 완화 가이드 p.12: 최대 1줄, Pretendard Bold #4C4C4C 51~39pt. PSD 자리표시 글자 수: 오브젝트·썸네일형 13자 / 텍스트형 18자 / 블러·멀티·마스킹형 12자.",
             "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 4 / pdf:카카오 규정 완화 가이드.pdf p.12",
             "confidence": "확정"
@@ -7770,6 +7822,11 @@ export const MEDIA = [
       {
         "id": "kakao-display-pc-promo",
         "name": "카카오 디스플레이 광고 (PC) — 홍보이미지",
+        "fonts": {
+          "required": false,
+          "note": "PC디스플레이는 폰트 규정 없음 — 매체 fonts.required(Pretendard, 비즈보드용)를 이 규격에서 해제. false = 「규격이 매체 required 를 끈다」(core/fonts.js fontRuleOf: spec.fonts.required ?? medium.fonts.required — null 이면 매체로 떨어지므로 false 로 적는다). 10-28 컨시어지 #12",
+          "source": "docs/concierge-requests-2026-10-28.md #12 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx (디스플레이 폰트 지정 없음)"
+        },
         "platform": "PC",
         "tool": "피그마",
         "w": 1200,
@@ -7940,6 +7997,11 @@ export const MEDIA = [
       {
         "id": "kakao-display-pc-profile",
         "name": "카카오 디스플레이 광고 (PC) — 프로필이미지",
+        "fonts": {
+          "required": false,
+          "note": "PC디스플레이는 폰트 규정 없음(홍보이미지와 같음) — 10-28 컨시어지 #12",
+          "source": "docs/concierge-requests-2026-10-28.md #12"
+        },
         "platform": "PC",
         "tool": "피그마",
         "w": 300,
@@ -9032,6 +9094,14 @@ export const MEDIA = [
       {
         "id": "everytime-community-board",
         "name": "커뮤니티 보드",
+        "extractVariants": {
+          "count": 2,
+          "names": [
+            "썸네일형",
+            "오브젝트형"
+          ],
+          "note": "10-28 담당자 5종 셈에서 커뮤니티보드는 썸네일형/오브젝트형 2종 — 규격 id 는 하나(그림 유형에 따라 objectBox 가 누끼 오브젝트/배경 있는 그림을 가른다). 추출 id 4 = 담당자 5종"
+        },
         "platform": "APP",
         "w": 1029,
         "h": 258,
@@ -9232,6 +9302,7 @@ export const MEDIA = [
       {
         "id": "everytime-community-native",
         "name": "커뮤니티 네이티브 (썸네일 이미지)",
+        "extractNote": "참고 규격(추출 안 함, 10-28 컨시어지 #19 담당자 한희하): 에브리타임 전달은 5종 — 커뮤니티보드 1029×258(썸네일형/오브젝트형) · 홈배너 640×200 · 홈카드 프로필 160×160 + 카드 이미지 720×480. 288×288 3종 중복 지적",
         "platform": "APP",
         "w": 288,
         "h": 288,
@@ -9298,7 +9369,7 @@ export const MEDIA = [
         "visualOnly": true,
         "visualOnlyNote": "10-16 검토: 템플릿 288 프레임은 빈 이미지 칸, 글자(제목·설명·광고주명·뱃지)는 전부 이미지 밖 입력란 → 이미지는 키비주얼만(네이버 썸네일과 같은 그리기)",
         "frame": "rules",
-        "extract": true
+        "extract": false
       },
       {
         "id": "everytime-home-banner",
@@ -9772,6 +9843,7 @@ export const MEDIA = [
       {
         "id": "everytime-contest-card",
         "name": "공모전·대외활동·채용 정보 — 카드 이미지",
+        "extractNote": "참고 규격(추출 안 함, 10-28 컨시어지 #19 담당자 한희하): 에브리타임 전달은 5종 — 커뮤니티보드 1029×258(썸네일형/오브젝트형) · 홈배너 640×200 · 홈카드 프로필 160×160 + 카드 이미지 720×480. 288×288 3종 중복 지적",
         "platform": "APP",
         "w": 288,
         "h": 288,
@@ -9830,11 +9902,12 @@ export const MEDIA = [
         "visualOnly": true,
         "visualOnlyNote": "10-16 검토: 템플릿 288 프레임은 빈 이미지 칸, 글자(제목·설명·광고주명·뱃지)는 전부 이미지 밖 입력란 → 이미지는 키비주얼만(네이버 썸네일과 같은 그리기)",
         "frame": "rules",
-        "extract": true
+        "extract": false
       },
       {
         "id": "everytime-search-keyword-thumb",
         "name": "검색 키워드 — 썸네일 이미지",
+        "extractNote": "참고 규격(추출 안 함, 10-28 컨시어지 #19 담당자 한희하): 에브리타임 전달은 5종 — 커뮤니티보드 1029×258(썸네일형/오브젝트형) · 홈배너 640×200 · 홈카드 프로필 160×160 + 카드 이미지 720×480. 288×288 3종 중복 지적",
         "platform": "APP",
         "w": 288,
         "h": 288,
@@ -9901,11 +9974,12 @@ export const MEDIA = [
         "visualOnly": true,
         "visualOnlyNote": "10-16 검토: 템플릿 288 프레임은 빈 이미지 칸, 글자(제목·설명·광고주명·뱃지)는 전부 이미지 밖 입력란 → 이미지는 키비주얼만(네이버 썸네일과 같은 그리기)",
         "frame": "rules",
-        "extract": true
+        "extract": false
       },
       {
         "id": "everytime-daily-message-profile",
         "name": "데일리 메시지 — 프로필 이미지",
+        "extractNote": "참고 규격(추출 안 함, 10-28 컨시어지 #19 담당자 한희하): 에브리타임 전달은 5종 — 커뮤니티보드 1029×258(썸네일형/오브젝트형) · 홈배너 640×200 · 홈카드 프로필 160×160 + 카드 이미지 720×480. 로고 160/120 2종 중복 지적 — 160 프로필만 전달",
         "platform": "APP",
         "w": 120,
         "h": 120,
@@ -9958,7 +10032,7 @@ export const MEDIA = [
         "confidence": "확정",
         "note": "용량 제한 미기재 → maxKB null",
         "frame": "rules",
-        "extract": true
+        "extract": false
       }
     ],
     "rejections": [
@@ -10064,7 +10138,8 @@ export const MEDIA = [
       "platform=APP은 PDF의 다크/라이트 모드·앱 설치 문구를 근거로 정한 값. PC웹 노출 여부는 명시 없음",
       "커뮤니티 보드 투명 PNG가 노출되는 배경 #F3F3F3 / #DCDCDC가 라이트/다크 모드별인지 명시 없음",
       "홈 카드 프로필(160×160)·데일리 메시지(120×120) 용량 제한 자료 없음",
-      "26년7월 PDF의 스플래시·하단팝업·홈 아이콘·검색 동영상은 보드 범위 밖이라 specs에서 제외함"
+      "26년7월 PDF의 스플래시·하단팝업·홈 아이콘·검색 동영상은 보드 범위 밖이라 specs에서 제외함",
+      "10-28 컨시어지 #19 담당자 「문구가 들어가지 않음」: 추출 3규격(커뮤니티보드 메인+날짜 · 홈배너 메인+「모집기간: 값」 · 홈카드 서브+메인+「모집분야」+직무)은 틀 글자가 들어가는 것을 Node 렌더로 확인(10-28). 글자가 없는 것은 288 3종·데일리 120(visualOnly — 제목·설명·광고주명·뱃지가 이미지 밖 입력란)과 프로필 160(로고 전용)이라 규정대로. 담당자가 본 소재가 어느 규격인지 확인 필요 — 288 3종은 10-28 부터 추출 안 함"
     ],
     "guide": {
       "note": "에브리타임 커뮤니티보드 실측 — 메인 자간 0%(Figma 9월 공채 1151:4743 ExtraBold 45 자간 0). canon.js 위에 이 키만 덮는다",
@@ -12243,7 +12318,7 @@ export const MEDIA = [
 
 export const MEDIA_GROUPS = ["채용포털","디지털","커뮤니티","기타"];
 
-// 추출 규격 — 이미지로 뽑아 전달하는 규격 51개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
+// 추출 규격 — 이미지로 뽑아 전달하는 규격 48개(사용자 「컨시어지」 보드 목록)와 매체 순서. 나머지는 참고 규격.
 export const EXTRACT = {
   "order": [
     "jasoseol",
@@ -12264,12 +12339,12 @@ export const EXTRACT = {
     "remember": 8,
     "jobda": 2,
     "catch": 3,
-    "google-gdn": 4,
+    "google-gdn": 5,
     "nap-dsp": 4,
     "instagram": 1,
     "kakao": 3,
     "naver-gfa": 3,
-    "everytime": 8,
+    "everytime": 4,
     "blind": 3,
     "daangn": 1
   },
@@ -12302,6 +12377,7 @@ export const EXTRACT = {
     "google-gdn-970x250",
     "google-gdn-300x600",
     "google-gdn-300x1050",
+    "google-gdn-930x180",
     "nap-dsp-band-320x50",
     "nap-dsp-band-320x100",
     "nap-dsp-full-300x250",
@@ -12314,13 +12390,9 @@ export const EXTRACT = {
     "naver-gfa-native-mo-342x228",
     "naver-gfa-native-mo-profile-300",
     "everytime-community-board",
-    "everytime-community-native",
     "everytime-home-banner",
     "everytime-home-card-profile",
     "everytime-home-card-image",
-    "everytime-contest-card",
-    "everytime-search-keyword-thumb",
-    "everytime-daily-message-profile",
     "blind-brand-logo",
     "blind-feed-image",
     "blind-post-banner",
@@ -12335,13 +12407,9 @@ export const EXTRACT = {
     "catch-center-logo-mo": "B",
     "daangn-native-feed-image": "C",
     "everytime-community-board": "A",
-    "everytime-community-native": "B",
     "everytime-home-banner": "A",
     "everytime-home-card-profile": "B",
     "everytime-home-card-image": "A",
-    "everytime-contest-card": "B",
-    "everytime-search-keyword-thumb": "B",
-    "everytime-daily-message-profile": "B",
     "google-gdn-580x400": "A",
     "google-gdn-970x250": "A",
     "google-gdn-300x600": "A",
@@ -12377,7 +12445,8 @@ export const EXTRACT = {
     "remember-job-top-pc": "A",
     "remember-job-top-mo": "A",
     "remember-job-side-pc": "A",
-    "remember-job-side-mo": "A"
+    "remember-job-side-mo": "A",
+    "google-gdn-930x180": "A"
   },
   "stages": {
     "1": [
@@ -12420,6 +12489,7 @@ export const EXTRACT = {
       "google-gdn-970x250",
       "google-gdn-300x600",
       "google-gdn-300x1050",
+      "google-gdn-930x180",
       "jobda-main-pc",
       "jobda-main-mo",
       "instagram-feed-1080",
@@ -12432,11 +12502,7 @@ export const EXTRACT = {
       "kakao-display-pc-profile",
       "naver-gfa-native-mo-342x228",
       "naver-gfa-native-mo-profile-300",
-      "everytime-community-native",
       "everytime-home-card-profile",
-      "everytime-contest-card",
-      "everytime-search-keyword-thumb",
-      "everytime-daily-message-profile",
       "blind-brand-logo"
     ]
   },
@@ -12456,7 +12522,9 @@ export const EXTRACT = {
     "당근 1 = 네이티브 피드 광고 이미지 유형 200×200 (보드 프레임 1:59). 포맷·용량은 보드에 없어 당근비즈니스 공식 제작 가이드(JPG/PNG · 10MB · 최소 200×200)로 채움 — confidence 「보드」. 카탈로그 상품 광고는 참고",
     "10-16 사용자: 자소설은 10 = 패키지 5 × 2. 5번 M시작배너패키지(시작·서브)는 자소설 내부 제작이라 전달물 2개(로고 파일 500px↑ · 이미지 파일 720px↑)로 목록에 넣는다(렌더 없음, assetOnly). PC달력 164×233 은 패키지 밖이라 그대로 제외",
     "10-16 사용자(가이드 「6. PC달력배너」 제시): PC달력 164×233(제출 328×466)도 상품 — 추출 목록에 넣는다. 자소설 11, 총 50",
-    "10-16 사용자(캐치 중앙배너 가이드 제시 「결국 이미지랑 로고 이미지만 주면 되는 건가」→「응 그렇게」): 캐치 = 중앙배너 PC 515×315 BG 이미지(투명 누끼, 글자 X) · MO 622×380 BG 이미지(배경색 포함, 글자 X) · MO 로고 160×160. 글자(서브 20·메인 17·날짜/키워드 30자)와 배경 Hex 는 캐치가 웹폰트로 올리므로 전달 시트로. 메인 대형 배너 이미지형 1256×295·702×428 은 참고 규격으로"
+    "10-16 사용자(캐치 중앙배너 가이드 제시 「결국 이미지랑 로고 이미지만 주면 되는 건가」→「응 그렇게」): 캐치 = 중앙배너 PC 515×315 BG 이미지(투명 누끼, 글자 X) · MO 622×380 BG 이미지(배경색 포함, 글자 X) · MO 로고 160×160. 글자(서브 20·메인 17·날짜/키워드 30자)와 배경 Hex 는 캐치가 웹폰트로 올리므로 전달 시트로. 메인 대형 배너 이미지형 1256×295·702×428 은 참고 규격으로",
+    "10-28 컨시어지 #18(한희하): 구글 GDN 「현재 4종 + 930×180 사이즈 추가」 — google-gdn-930x180(이미 매체 JSON 에 있던 참고 규격)을 추출로. 구글 5, 3차(상)",
+    "10-28 컨시어지 #19(한희하): 에브리타임 8규격 전부 추출이라 288×288 3종 중복·로고 160/120 2종이 나옴 → 담당자 기준 5종만: 커뮤니티보드 1029×258(썸네일형/오브젝트형 — 규격 id 하나, 그림 유형별 2종) · 홈배너 640×200 · 홈카드 프로필 160×160 + 카드 이미지 720×480. 커뮤니티 네이티브 288·공모전 카드 288·검색키워드 썸네일 288·데일리 메시지 프로필 120 은 참고(extract:false). 추출 id 4 = 담당자 5종. 총 48"
   ],
   "board": {
     "note": "보드 매체 칸마다 사용자가 적은 8항목 체크리스트(31:4250 류) 원문과, 매체 칸 위 추출 메모(용량·포맷). 값이 없는 칸은 null(미기입). 규칙 값이 아니라 「자유인가 정해진 것인가」의 판정 근거 — 매체 JSON 값을 여기서 바꾸지 않는다. docs/spec-matrix.md 와 core/checklist8.js 가 읽는다.",
@@ -13010,4 +13078,4 @@ export function specOf(specId) {
   return null;
 }
 
-export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":51,"needsReview":111,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
+export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":48,"needsReview":112,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
