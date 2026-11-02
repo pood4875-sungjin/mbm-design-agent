@@ -69,7 +69,7 @@ export function createEditor(E) {
   };
 
   /* ── ① 프리셋 — 캠페인 일괄 ── */
-  function presetCampaignHtml() {
+  function presetCampaignHtml(keys = PRESET_KEYS) {
     const c = camp(); const list = ads();
     if (!list.length) return '';
     const traces = list.map(a => ({ a, t: autoTrace(a) }));
@@ -84,13 +84,11 @@ export function createEditor(E) {
         ${k === 'bgFill' ? `<div class="bgrow" style="margin-top:6px"><label class="bgpick"><input type="color" id="pBgColor" value="${escH(c.style.background?.color ?? c.style.palette?.primary ?? '#2456D6')}" aria-label="배경 직접 색">직접 색 고르기</label></div>` : ''}
         ${why ? `<div class="pwhy">적용 안 됨(자동 유지): ${escH(why)}</div>` : ''}</div>`;
     };
-    return `<section class="isec" id="inspPreset"><h3>배치 · 배경 <span class="mode">전 규격</span></h3>
-      <div class="hint">고르면 전 규격에 적용 — 매체 템플릿 칸·오브젝트 상자·투명 지면처럼 매체 규정이 정한 자리는 자동 그대로입니다. 산출물을 고르면 개별로 바꿀 수 있어요.</div>
-      ${PRESET_KEYS.map(ctl).join('')}</section>`;
+    return `<div class="inspPreset">${keys.map(ctl).join('')}</div>`;
   }
   function bindPresetCampaign(insp, restyle) {
     const c = camp();
-    insp.querySelectorAll('#inspPreset [data-pk]').forEach(b => b.onclick = () => {
+    insp.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
       const k = b.dataset.pk, v = b.dataset.pv;
       if (shownValue(c.style, k) === v && v !== 'custom') return;
       const patch = { [k]: v };
@@ -99,14 +97,14 @@ export function createEditor(E) {
       if (k === 'bgFill') patch.background = { ...c.style.background, color: v === 'custom' ? (c.style.background?.color ?? c.style.palette?.primary ?? null) : null };
       restyle(patch, `${PRESETS[k].label} ${PRESETS[k].choices[v]}`);
       E.renderInspector();
-      insp.querySelector(`#inspPreset [data-pk="${k}"][data-pv="${v}"]`)?.focus();
+      document.getElementById('inspector')?.querySelector(`[data-pk="${k}"][data-pv="${v}"]`)?.focus();
     });
     const pc = insp.querySelector('#pBgColor');
     if (pc) pc.onchange = () => { restyle({ bgFill: 'custom', background: { ...c.style.background, color: pc.value.toUpperCase() } }, '배경 직접 색'); E.renderInspector(); };
   }
 
   /* ── ① 프리셋 — 산출물 개별(공통 따름 + 선택지) ── */
-  function presetArtifactHtml(a) {
+  function presetArtifactHtml(a, keys = PRESET_KEYS, id = 'inspPresetA') {
     const c = camp(); const t = autoTrace(a), now = traceOfHtml(a.html);
     const ov = a.overrides?.style ?? {};
     const ctl = k => {
@@ -118,12 +116,12 @@ export function createEditor(E) {
       const note = (k === 'kvPlace' && now?.edit?.place && !now.edit.place.ok) ? `지금 값 「${PRESETS.kvPlace.choices[now.edit.place.want]}」은 이 규격에서 안 됨 — ${now.edit.place.why ?? ''}` : '';
       return `<div class="pctl" role="group" aria-labelledby="pa-${k}"><div class="plab" id="pa-${k}">${PRESETS[k].label} <span class="pauto">자동: ${escH(autoLabel(k, t) || '—')}${camp0 !== 'auto' ? ` · 공통: ${escH(label(k, camp0))}` : ''}</span></div>
         <div class="pseg"><button data-ak="${k}" data-av="" class="${!own ? 'on' : ''}" aria-pressed="${!own}">공통 따름</button>${opts.map(v => { const d = dis.find(([x]) => x === v); return `<button data-ak="${k}" data-av="${v}" class="${own === v ? 'on' : ''}" aria-pressed="${own === v}"${d ? ` disabled aria-disabled="true" title="${escH(d[1].why)}"` : ` title="${escH(PRESETS[k].choices[v])}"`}>${escH(label(k, v))}</button>`; }).join('')}</div>
-        ${dis.length ? `<div class="pwhy">못 고름: ${dis.map(([v, r]) => `${escH(label(k, v))} — ${escH(r.why)}`).join(' · ')}</div>` : ''}${note ? `<div class="pwhy warn">${escH(note)}</div>` : ''}${applied && !note ? '' : ''}</div>`;
+        ${dis.length ? `<div class="pwhy">못 고름: ${[...dis.reduce((m, [v, r]) => m.set(r.why, [...(m.get(r.why) ?? []), label(k, v)]), new Map())].map(([why, ls]) => `${escH(ls.join('·'))} — ${escH(why)}`).join(' / ')}</div>` : ''}${note ? `<div class="pwhy warn">${escH(note)}</div>` : ''}${applied && !note ? '' : ''}</div>`;
     };
-    return `<section class="isec" id="inspPresetA"><h3>배치 · 배경 <span class="mode">이 산출물만</span></h3>${PRESET_KEYS.map(ctl).join('')}</section>`;
+    return `<div class="inspPreset" id="${id}">${keys.map(ctl).join('')}</div>`;
   }
   function bindPresetArtifact(insp, a) {
-    insp.querySelectorAll('#inspPresetA [data-ak]').forEach(b => b.onclick = () => {
+    insp.querySelectorAll('[data-ak]').forEach(b => b.onclick = () => {
       const k = b.dataset.ak, v = b.dataset.av || null;
       if ((a.overrides.style?.[k] ?? null) === v) return;
       E.pushHistory(`${E.artLabel(a)} ${PRESETS[k].label} 개별`);
@@ -133,7 +131,7 @@ export function createEditor(E) {
       a.overrides.style = st; a.status = 'draft';
       E.logEvent(camp(), 'manual_edit', { specId: a.specId, style: k });
       E.regen(); E.autosave(); E.refreshFrames(keyOf(a)); E.renderInspector();
-      document.querySelector(`#inspPresetA [data-ak="${k}"][data-av="${v ?? ''}"]`)?.focus();
+      document.querySelector(`#inspector [data-ak="${k}"][data-av="${v ?? ''}"]`)?.focus();
       E.log(`${a.specId} ${PRESETS[k].label} ${v ? PRESETS[k].choices[v] : '공통 따름'}`);
     });
   }

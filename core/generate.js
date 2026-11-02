@@ -14,6 +14,7 @@ import { renderPhotobooth } from './renderers/photobooth.js';
 import { renderAd } from './renderers/ad.js';
 import { renderAsset } from './renderers/asset.js';
 import { registerAdSpecs } from './adspecs.js';
+import { applyElementEdits } from './elementedit.js';
 import { resolveAiStyle } from './trackb/analyze.js';
 import { variantCandidates } from './variants.js';
 
@@ -118,6 +119,8 @@ export function generateArtifacts(campaign) {
       program: artifact.program ?? campaign.program ?? null,
       topics: artifact.topics ?? campaign.topics ?? null,
     });
+    // 프레임 안 요소 하나의 직접 편집(11-02, core/elementedit.js) — 그려진 html 위에 마지막으로. 안 썸네일·자동 추적에는 안 섞인다
+    if (artifact.overrides?.elements) artifact.html = applyElementEdits(artifact.html, artifact.overrides.elements, SPECS[item.specId]);
     artifact.contextVersion = campaign.context.version;
     logEvent(campaign, 'artifact_generated', { key });
   }

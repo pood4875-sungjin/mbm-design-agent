@@ -82,6 +82,7 @@
   .beta{font-size:10.5px;font-weight:700;border:1.5px solid var(--ink);border-radius:var(--r-pill);padding:2px 8px}
   .spacer{flex:1}
   .hbtn{display:inline-flex;align-items:center;gap:6px;height:34px;border:1px solid var(--glass-line);background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border-radius:var(--r-pill);padding:0 14px;font-size:13px;font-weight:600;box-shadow:var(--glass-shadow);color:var(--ink)}
+  .hbtn{white-space:nowrap;flex:none}
   .hbtn:hover{background:var(--panel)}
   .hbtn.icon{width:34px;padding:0;justify-content:center}
   .hbtn.pri{background:var(--grad);border-color:transparent;color:var(--on-ink)}
@@ -454,10 +455,15 @@
   .bigbtn:disabled{opacity:.35;cursor:default}
 
   /* ═══ work (아트보드) ═══ */
-  #work{position:absolute;inset:0;display:none;--dock:0px}
-  #viewport{position:absolute;inset:62px 0 0 0;overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
+  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:256px;--rw:288px;--ruler-bg:var(--panel)}
+  #work.noL{--lw:0px} #work.noR{--rw:0px}
+  #work.noL #leftPanel,#work.noR #inspector{display:none}
+  #viewport{position:absolute;inset:52px var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
   #viewport.panning{cursor:grabbing}
   #artboard{position:absolute;left:0;top:0;transform-origin:0 0}
+  #rulerT,#rulerL{position:absolute;pointer-events:none;z-index:4;display:block}
+  #rulerT{left:20px;top:0;right:0;width:calc(100% - 20px);height:20px}
+  #rulerL{left:0;top:20px;bottom:0;width:20px;height:calc(100% - 20px)}
   .frame{position:absolute}
   /* 프레임 라벨 — 프레임 폭 안에서만 산다.
      전에는 nowrap이라 160×600 같은 좁은 규격에서 옆 프레임 라벨과 겹쳤다. 라벨을 fbody 위에 절대 배치하고
@@ -548,7 +554,7 @@
 
   /* ─ 하단 플로팅 바 — 왼쪽 로그 알약 · 가운데 지시 입력 알약 · 오른쪽 되돌리기/줌/도움말 알약. 전부 유리 ─ */
   .glassPill{background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);border-radius:var(--r-pill)}
-  #boardCtl{position:absolute;right:calc(12px + 296px + 16px);bottom:calc(16px + var(--dock));display:flex;gap:8px;z-index:11}   /* 10-20 사용자 「이거도 겹치지 않게」 — 넓은 화면에선 우측 인스펙터(296px) 왼쪽에 */
+  #boardCtl{position:absolute;right:calc(var(--rw) + 16px);bottom:calc(16px + var(--dock));display:flex;gap:8px;z-index:11}   /* 10-20 사용자 「이거도 겹치지 않게」 — 넓은 화면에선 우측 인스펙터(296px) 왼쪽에 */
   .ctlGrp{display:flex;align-items:center;gap:2px;padding:4px;
     background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);border-radius:var(--r-pill)}
   .ctlGrp button{border:0;background:none;width:34px;height:34px;font-size:15px;font-weight:700;line-height:1;border-radius:var(--r-pill);color:var(--ctl-ink);display:inline-flex;align-items:center;justify-content:center}
@@ -560,7 +566,7 @@
   .cbg-sw{width:18px;height:18px;border-radius:50%;border:1px solid var(--glass-line);background:var(--canvas-bg,var(--panel-bg));box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
   #zoomPct{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--ctl-ink);padding:0 4px;min-width:46px;font-variant-numeric:tabular-nums}
 
-  #helpPop{position:absolute;right:calc(12px + 296px + 16px);bottom:calc(68px + var(--dock));width:280px;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-md);box-shadow:var(--glass-shadow);padding:14px 16px;z-index:12;display:none}
+  #helpPop{position:absolute;right:calc(var(--rw) + 16px);bottom:calc(68px + var(--dock));width:280px;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-md);box-shadow:var(--glass-shadow);padding:14px 16px;z-index:12;display:none}
   #helpPop.open{display:block}
   #helpPop h4{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:10px}
   #helpPop dl{display:grid;grid-template-columns:auto 1fr;gap:7px 10px;font-size:12px;color:var(--sub);line-height:1.5;align-items:center}
@@ -568,10 +574,48 @@
   #helpPop .hnote{font-size:11.5px;color:var(--sub);line-height:1.55;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 
   /* ─ 우측 편집 패널 — 유리 판, 안쪽은 흰 카드(.isec)로 쌓는다. 라벨은 작게 회색, 입력은 둥근 연회색 ─ */
-  #inspector{position:absolute;right:12px;top:62px;width:296px;max-height:calc(100% - 100px);background:var(--glass);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-lg);box-shadow:var(--glass-shadow);overflow-y:auto;padding:10px;z-index:10;display:flex;flex-direction:column;gap:8px}
-  #inspector:empty{display:none}
-  .isec{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:14px}
-  .isec + .isec{margin-top:0}
+  /* 3단(11-02 사용자 「좌측 내용 · 우측 비주얼·배경·폰트·정렬·컬러」, hub/fui/ui3.css 패널) — 캔버스를 덮지 않는 붙박이 패널. 섹션은 선으로 나눈다 */
+  #inspector,#leftPanel{position:absolute;top:52px;bottom:0;background:var(--panel);overflow-y:auto;z-index:10;scrollbar-width:thin}
+  #inspector{right:0;width:var(--rw);border-left:1px solid var(--line)}
+  #leftPanel{left:0;width:var(--lw);border-right:1px solid var(--line)}
+  #leftPanel .lhead{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+  #leftPanel .lhead b{font-size:13px;line-height:1.35;word-break:keep-all}
+  #leftPanel .lhead span{font-size:11px;color:var(--sub)}
+  .isec{padding:12px 16px;border-bottom:1px solid var(--line)}
+  .isec:last-child{border-bottom:0}
+  .scope{position:sticky;top:0;z-index:2;background:var(--panel);padding:8px 16px 8px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+  .rtabs{display:flex;gap:2px;margin:0 -6px}
+  .rtabs button{border:0;background:none;padding:4px 8px;border-radius:5px;font-size:12px;font-weight:600;color:var(--sub)}
+  .rtabs button.on{color:var(--ink);background:var(--soft)}
+  .scope-crumb{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;color:var(--sub);min-height:20px}
+  .scope-crumb span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ovr{display:inline-flex;align-items:center;gap:2px;flex:none;margin-left:auto;height:20px;padding:0 4px 0 6px;border:0;border-radius:5px;background:color-mix(in srgb,var(--focus) 14%,transparent);color:var(--ink);font-size:10.5px;font-weight:600}
+  .ovr:hover{background:color-mix(in srgb,var(--focus) 24%,transparent)}
+  .ovr svg{width:14px;height:14px}
+  .layers{display:flex;flex-direction:column;gap:1px;margin:0 -6px}
+  .layer{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px;border:0;border-radius:5px;background:none;font-size:11.5px;color:var(--ink);text-align:left;width:calc(100% + 0px)}
+  .layer:hover{background:var(--soft)}
+  .layer span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .layer em{font-style:normal;font-size:8px;color:var(--focus)}
+  .layer-k{width:10px;height:10px;border-radius:2px;flex:none;background:var(--focus)}
+  .layer-logo{background:#17a673}.layer-kv{background:#e0571f}
+  #leftPanel h3{font-size:12.5px;color:var(--ink);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  #leftPanel .mode{font-size:10.5px;background:var(--accent-soft);color:var(--accent);border-radius:var(--r-pill);padding:2px 8px;font-weight:700}
+  #leftPanel label{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--sub);margin:10px 0 4px;min-height:16px}
+  #leftPanel input[type=text],#leftPanel textarea{width:100%;border:1px solid transparent;background:var(--soft);color:var(--ink);box-sizing:border-box;border-radius:5px;font-size:11px;padding:0 8px;height:32px}
+  #leftPanel textarea{height:auto;min-height:64px;padding:8px;line-height:16px;resize:vertical}
+  #leftPanel input[type=text]:focus-visible,#leftPanel textarea:focus-visible{border-color:var(--focus);outline:none;background:var(--card)}
+  #leftPanel .btn{min-height:32px;padding:0 12px;border-radius:5px;font-size:11px;font-weight:500}
+  /* 프레임 안 요소 선택(app/elselect.js) — 테두리·핸들은 확대율과 상관없이 같은 굵기 */
+  .esel{position:absolute;pointer-events:auto;padding:0;background:transparent;border:0;outline:calc(1.5px / var(--z,1)) solid var(--focus);cursor:move;touch-action:none}
+  .esel:focus-visible{outline:calc(2.5px / var(--z,1)) solid var(--focus);outline-offset:calc(1px / var(--z,1))}
+  .esel.oob{outline-color:var(--danger)}
+  .esel-tag{position:absolute;left:0;bottom:100%;transform:scale(calc(1 / var(--z,1)));transform-origin:0 100%;margin-bottom:2px;padding:1px 5px;border-radius:3px;background:var(--focus);color:#fff;font-size:10px;font-weight:600;line-height:14px;white-space:nowrap;pointer-events:none}
+  .esel.oob .esel-tag{background:var(--danger)}
+  .egrip{position:absolute;width:8px;height:8px;background:#fff;border:1.5px solid var(--focus);border-radius:1px;box-sizing:border-box;transform:scale(calc(1 / var(--z,1)))}
+  .egrip::before{content:"";position:absolute;inset:-5px}
+  .egrip-tl{left:-4px;top:-4px;cursor:nwse-resize}.egrip-tr{right:-4px;top:-4px;cursor:nesw-resize}.egrip-bl{left:-4px;bottom:-4px;cursor:nesw-resize}.egrip-br{right:-4px;bottom:-4px;cursor:nwse-resize}
+  .ehov{position:absolute;outline:calc(1px / var(--z,1)) solid var(--focus);pointer-events:none}
   #inspector h3{font-size:12.5px;color:var(--ink);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;line-height:1.4}
   #inspector h3 + .hint{margin-top:2px}
   #inspector .mode{font-size:10.5px;background:var(--accent-soft);color:var(--accent);border-radius:var(--r-pill);padding:2px 8px;font-weight:700;flex:none}
@@ -587,7 +631,7 @@
   #inspector .vthumb-box{display:block;width:106px;height:66px;border-radius:4px;background:var(--soft);overflow:hidden;position:relative}
   #inspector .vthumb-box iframe{position:absolute;left:0;top:0;transform-origin:0 0;border:0;pointer-events:none}
   #inspector .vthumb-lab{display:block;font-size:10.5px;line-height:1.3;color:var(--ink);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #inspector .row{display:flex;gap:6px;margin-top:4px}
+  #inspector .row{display:flex;gap:6px;margin-top:6px}
   #inspector .row .btn{flex:1}
   #inspector .kvthumb{border-color:var(--accent-line)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--card);font-size:12.5px;font-weight:600;color:var(--ink)}
@@ -622,12 +666,8 @@
      ≤1024: 우측 패널이 캔버스를 덮지 않도록 아래로 내려 가로로 눕힌다(두 열) — 플로팅 바는 그 위로 올라간다. */
   @media (max-width:1180px){ #cmdBar{width:min(560px,36%)} }
   @media (max-width:1024px){
-    #work{--dock:38%}
-    #viewport{inset:62px 0 var(--dock) 0}
-    #inspector{left:12px;right:12px;top:auto;bottom:12px;width:auto;max-height:calc(var(--dock) - 24px);display:grid;grid-template-columns:1fr 1fr;align-content:start}
-    #boardCtl,#helpPop{right:16px}
-    #inspector:empty{display:none}
-    #inspNote{grid-column:1 / -1}
+    #work{--lw:232px;--rw:256px}
+    #work.noL{--lw:0px} #work.noR{--rw:0px}
     #sidebar{width:260px}
   }
   @media (max-width:900px){
@@ -638,10 +678,18 @@
   }
   @media (max-width:768px){
     header{gap:6px;padding:0 10px}
-    .logo{font-size:15px}
+    .logo{display:none}
+    .wsmenu{min-width:0;flex:0 1 auto}
+    .wsmenu summary.hbtn{flex:0 1 auto;min-width:0;max-width:100%}
     #sidebar{width:230px}
     #hero{padding:0 20px}
-    #inspector{grid-template-columns:1fr}
+    /* 폰 폭 — 오른쪽 패널은 아래 칸으로, 왼쪽 패널은 캔버스 위에 덮어 연다 */
+    #work{--dock:42%;--rw:0px}
+    #work.noR{--dock:0px}
+    #inspector{left:0;right:0;width:auto;top:auto;bottom:0;height:var(--dock);border-left:0;border-top:1px solid var(--line)}
+    #leftPanel{width:min(280px,86vw);box-shadow:var(--glass-shadow)}
+    #work{--lw:0px}
+    #work:not(.noL) #viewport{left:0}
   }
   /* 폰 폭 — 홈을 위아래로 쌓는다(브리프 입력 먼저, 내 캠페인 목록은 아래 전체 폭). 옆으로 두면 둘 다 글자가 세로로 부서진다 */
   @media (max-width:560px){
@@ -706,11 +754,11 @@
   /* 프리셋 — 좁은 인스펙터(296px)에 선택지 4~5개: 줄바꿈되는 칩 */
   .pctl{margin-top:12px}
   .pctl:first-of-type{margin-top:6px}
-  .plab{font-size:11.5px;color:var(--ink);font-weight:700;display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline}
+  .plab{font-size:11px;color:var(--ink);font-weight:600;display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline}
   .pauto{font-weight:400;color:var(--sub);font-size:11px}
   .pseg{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-  .pseg button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r-pill);padding:5px 10px;font-size:11.5px;font-weight:600;line-height:1.2}
-  .pseg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .pseg button{border:1px solid transparent;background:var(--soft);color:var(--ink);border-radius:5px;padding:5px 8px;font-size:11px;font-weight:500;line-height:1.2}
+  .pseg button.on{border-color:var(--accent-line);background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.06)}
   .pseg button:disabled{opacity:.42;cursor:not-allowed;text-decoration:line-through}
   .pseg sup{font-size:9px;margin-left:2px;color:var(--amber)}
   .pwhy{font-size:11px;color:var(--sub);line-height:1.5;margin-top:4px}
@@ -833,8 +881,12 @@
   </div>
 
   <div id="work">
-    <div id="viewport"><div id="artboard"></div></div>
-    <aside id="inspector"></aside>
+    <aside id="leftPanel" aria-label="내용">
+      <div class="lhead"><b id="lName"></b><span id="lStat"></span></div>
+      <div id="leftBody"></div>
+    </aside>
+    <div id="viewport"><div id="artboard"></div><canvas id="rulerT" aria-hidden="true"></canvas><canvas id="rulerL" aria-hidden="true"></canvas></div>
+    <aside id="inspector" aria-label="디자인"></aside>
     <div id="boardCtl">
       <div class="ctlGrp">
         <button id="hUndo" aria-label="되돌리기" disabled><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button id="hRedo" aria-label="다시하기" disabled><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
@@ -843,6 +895,9 @@
         <button id="zOut" aria-label="축소"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div id="zoomPct">100%</div><button id="zIn" aria-label="확대"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><button id="zFit" title="전체 보기" aria-label="전체 보기"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
       <div class="ctlGrp" title="캔버스 배경색"><label class="cbg" aria-label="캔버스 배경색"><input type="color" id="canvasBg" value="#f6f7f9"><span class="cbg-sw" id="canvasBgSw"></span></label><button id="canvasBgReset" aria-label="배경색 기본으로" title="기본으로">↺</button></div>
+      <div class="ctlGrp">
+        <button id="lToggle" aria-label="왼쪽 패널 접기" title="왼쪽 패널 접기" aria-pressed="false"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/></svg></button><button id="rToggle" aria-label="오른쪽 패널 접기" title="오른쪽 패널 접기" aria-pressed="false"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M15 5v14"/></svg></button>
+      </div>
       <div class="ctlGrp">
         <button id="helpBtn" title="단축키 · 조작법" aria-label="단축키 · 조작법" aria-expanded="false">?</button>
       </div>
