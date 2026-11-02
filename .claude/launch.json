@@ -42,7 +42,7 @@
       "runtimeExecutable": "bash",
       "runtimeArgs": [
         "-c",
-        "cd /Users/kimsungjin/guide-collector && exec node server.js"
+        "cd /Users/kimsungjin/mbm-design-agent/tools/guide-collector && exec node server.js"
       ],
       "port": 4173
     }

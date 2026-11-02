@@ -1,0 +1,23 @@
+{
+  "name": "recruit-design-guide-tracker",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "국내 채용 사이트·광고 매체의 디자인 가이드(이미지 규격)를 수집하고 변경을 감지하는 테스트 도구",
+  "scripts": {
+    "start": "node server.js",
+    "collect": "node cli.js run",
+    "status": "node cli.js status",
+    "specs": "node cli.js specs",
+    "pack": "node scripts/pack.mjs",
+    "agent:install": "./scripts/agent.sh install",
+    "agent:uninstall": "./scripts/agent.sh uninstall",
+    "agent:status": "./scripts/agent.sh status"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "guide-collector": "cli.js"
+  }
+}

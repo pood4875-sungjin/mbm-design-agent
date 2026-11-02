@@ -1,0 +1,277 @@
+[
+  {
+    "id": "jasoseol",
+    "name": "자소설닷컴",
+    "group": "채용포털",
+    "required": true,
+    "type": "crawl",
+    "url": "https://jasoseol.com/business/notices",
+    "base": "https://jasoseol.com/",
+    "match": "/?business/notices/\\d+",
+    "seeds": [
+      "https://jasoseol.com/business/notices/{1..60}"
+    ],
+    "keywords": "이미지|배너|썸네일|로고|사이즈|해상도|\\d\\s*px|MB",
+    "maxPages": 120,
+    "note": "기업서비스 공지(/business/notices)에 공고 이미지 규격이 올라옵니다. 공지 번호를 1~60번까지 훑습니다."
+  },
+  {
+    "id": "remember",
+    "name": "리멤버",
+    "group": "채용포털",
+    "required": true,
+    "type": "page",
+    "url": "https://hr.rememberapp.co.kr/",
+    "note": "채용솔루션 소개 페이지만 공개돼 있고 소재 규격 문서는 공개돼 있지 않습니다. 영업 담당자에게 받은 규격을 수동으로 등록하세요."
+  },
+  {
+    "id": "remember-ads",
+    "name": "리멤버 타깃광고",
+    "group": "채용포털",
+    "required": true,
+    "type": "page",
+    "url": "https://market.rememberapp.co.kr/targetads",
+    "note": "리멤버 광고 상품 페이지. 상품 구성이 바뀌는지 감시하는 용도입니다."
+  },
+  {
+    "id": "jobda",
+    "name": "잡다 (JOBDA)",
+    "group": "채용포털",
+    "required": true,
+    "type": "page",
+    "url": "https://www.jobda.im/",
+    "ignore": "^\\[이미지\\]",
+    "note": "공개된 기업용 소재 가이드 페이지를 찾지 못했습니다(biz/help 서브도메인 없음). 내부 가이드 URL이 있으면 '소스 추가'로 넣어주세요."
+  },
+  {
+    "id": "catch",
+    "name": "캐치 · 채용상품 안내",
+    "group": "채용포털",
+    "required": true,
+    "type": "page",
+    "url": "https://apply.catch.co.kr/main/productInfo",
+    "render": "chrome",
+    "note": "JS로만 그려지는 페이지라 Chrome 렌더링으로 수집합니다. 상품 소개 위주이고 픽셀 규격은 없습니다."
+  },
+  {
+    "id": "catch-faq",
+    "name": "캐치 · 기업 고객센터 FAQ",
+    "group": "채용포털",
+    "required": true,
+    "type": "page",
+    "url": "https://www.catch.co.kr/Customer/CustomerUseGuide?MCode=17"
+  },
+  {
+    "id": "meta-ig-feed",
+    "name": "인스타그램 · 피드 이미지 광고",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-feed",
+    "note": "일반 요청은 400으로 막히고, Chrome 렌더링으로는 수집됩니다.",
+    "ignore": "\\scross$"
+  },
+  {
+    "id": "meta-ig-story",
+    "name": "인스타그램 · 스토리 이미지 광고",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://www.facebook.com/business/ads-guide/update/image/instagram-story",
+    "ignore": "\\scross$"
+  },
+  {
+    "id": "google-display",
+    "name": "구글 GDN · 반응형 디스플레이 크기",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://support.google.com/google-ads/answer/7031480?hl=ko",
+    "note": "규격이 이미지 대체 텍스트(alt)에 적혀 있어서 alt까지 읽습니다."
+  },
+  {
+    "id": "kakao-moment",
+    "name": "카카오톡 · 카카오모먼트 제작 가이드",
+    "group": "디지털",
+    "type": "crawl",
+    "url": "https://kakaobusiness.gitbook.io/main/~gitbook/site-index",
+    "base": "https://kakaobusiness.gitbook.io/",
+    "match": "/main/ad/[^\"\\s]*contents?-guide",
+    "keywords": "\\d\\s*px|사이즈|비율|해상도",
+    "maxPages": 60,
+    "note": "카카오비즈니스 공식 GitBook. 사이트 인덱스(~gitbook/site-index)에서 비즈보드·디스플레이·동영상·메시지 등 '제작 가이드' 글만 골라 읽습니다."
+  },
+  {
+    "id": "kakao-dsp",
+    "name": "카카오톡 · 외부DSP 비즈보드",
+    "group": "디지털",
+    "type": "crawl",
+    "url": "https://kakaobusiness.gitbook.io/dsp/~gitbook/site-index",
+    "base": "https://kakaobusiness.gitbook.io/",
+    "match": "/dsp/[^\"\\s]+",
+    "keywords": "\\d\\s*px|\\d+\\s*[x×]\\s*\\d+|사이즈",
+    "maxPages": 40,
+    "note": "외부DSP(나스미디어 등)로 집행하는 비즈보드 심사·제작 가이드."
+  },
+  {
+    "id": "naver-gfa",
+    "name": "네이버 GFA · 광고주센터 FAQ",
+    "group": "디지털",
+    "type": "crawl",
+    "url": "https://ads.naver.com/help/faq",
+    "base": "https://ads.naver.com/",
+    "follow": "/help/faq\\?categorySeq=(?:957|958|959)",
+    "match": "/help/faq/\\d+",
+    "keywords": "소재|이미지|배너|사이즈|\\d\\s*px",
+    "maxPages": 120,
+    "note": "네이버 광고주센터 공식 FAQ(광고 상품·등록·검토). 지면별 픽셀 규격은 GFA 관리자 화면 안에 있고 공개 페이지엔 일부만 있습니다.",
+    "titleFrom": "heading",
+    "ignore": "^#\\s"
+  },
+  {
+    "id": "naver-gfa-ampm",
+    "name": "네이버 GFA · 지면별 소재 px 정리",
+    "group": "디지털",
+    "secondary": true,
+    "type": "page",
+    "url": "https://inside.ampm.co.kr/insight/13354",
+    "note": "광고대행사(AMPM) 정리 글입니다. 공식 문서가 아니라서 참고용이고, 이 글이 갱신되는지 감시합니다."
+  },
+  {
+    "id": "nap-dsp",
+    "name": "NAP DSP · 나스미디어 매체소개서",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://www.nasmedia.co.kr/%EB%82%98%EC%8A%A4%EB%A6%AC%ED%8F%AC%ED%8A%B8/%EB%AF%B8%EB%94%94%EC%96%B4-%EC%95%84%EC%B9%B4%EC%9D%B4%EB%B8%8C/",
+    "trackLinks": "https://www\\.nasmedia\\.co\\.kr/wp-content/uploads/[^\"'\\s]*[nN][aA][pP][^\"'\\s]*\\.pdf",
+    "note": "소재 규격은 PDF 매체소개서(napdsp_매체상품소개서_YYYYMM.pdf)에만 있고, 그 PDF는 이미지라 텍스트로 못 읽습니다. 대신 자료실의 NAP 소개서 파일 목록을 감시해서 새 버전이 올라오면 변경으로 잡습니다."
+  },
+  {
+    "id": "nap-platform",
+    "name": "NAP · 나스미디어 애드플랫폼",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://www.nasmedia.co.kr/%EC%82%AC%EC%97%85%EC%98%81%EC%97%AD/ad-platform/",
+    "trackLinks": "https://www\\.nasmedia\\.co\\.kr/wp-content/uploads/[^\"'\\s]+\\.pdf",
+    "note": "NAP 통합소개서 PDF 링크가 걸린 페이지. 파일 버전이 바뀌는지 감시합니다."
+  },
+  {
+    "id": "google-responsive",
+    "name": "구글 GDN · 반응형 디스플레이 권장사항",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://support.google.com/google-ads/answer/9823397?hl=ko"
+  },
+  {
+    "id": "linkedin-image",
+    "name": "LinkedIn · 단일 이미지 광고",
+    "group": "디지털",
+    "type": "page",
+    "url": "https://www.linkedin.com/help/lms/answer/a426534"
+  },
+  {
+    "id": "everytime",
+    "name": "에브리타임",
+    "group": "커뮤니티",
+    "type": "page",
+    "url": "https://www.everytime.kr/",
+    "note": "앱 위주 SPA라 공개된 광고·소재 안내 페이지가 없습니다. 광고 문의로 받은 규격을 직접 등록하세요."
+  },
+  {
+    "id": "everytime-ampm",
+    "name": "에브리타임 · 광고상품 (대행사)",
+    "group": "커뮤니티",
+    "secondary": true,
+    "type": "page",
+    "url": "https://inside.ampm.co.kr/item/81",
+    "note": "광고대행사(AMPM)의 상품 소개. 지면 구성은 나오지만 픽셀 규격은 없습니다."
+  },
+  {
+    "id": "blind-kr",
+    "name": "블라인드 · 광고 문의 (공식)",
+    "group": "커뮤니티",
+    "type": "page",
+    "url": "https://www.teamblind.com/kr/ad-inquiry",
+    "trackLinks": "https://(?:static\\.teamblind\\.com/[^\"'\\s<>]+\\.pdf|drive\\.google\\.com/file/d/[\\w-]+|[\\w-]+\\.notion\\.site/[^\"'\\s<>]+)",
+    "note": "블라인드 공식 국문 광고 페이지. 매체소개서 PDF·제작 가이드(드라이브)·노션 링크가 걸려 있어서, 링크가 바뀌면(새 소개서 등) 변경으로 잡습니다."
+  },
+  {
+    "id": "blind-notion",
+    "name": "블라인드 · 광고 노션 (공식)",
+    "group": "커뮤니티",
+    "type": "notion",
+    "subpages": true,
+    "url": "https://maddening-expert-59b.notion.site/Blind-AD-822f3ccc1cfd411abfdd217e0b938dc2",
+    "note": "블라인드가 운영하는 공식 노션. 상품별 하위 페이지 14개를 읽고, 상품 이미지는 OCR로 읽습니다. 첨부된 소개서 파일명(…_2026_3Q.pdf)이 바뀌면 새 버전으로 잡힙니다. 픽셀 규격이 담긴 '국문 제작 가이드'는 구글 드라이브에서 다운로드가 막혀 있어 읽지 않습니다."
+  },
+  {
+    "id": "blind-kit",
+    "name": "블라인드 · 국문 매체소개서 PDF (공식)",
+    "group": "커뮤니티",
+    "type": "pdf",
+    "url": "https://static.teamblind.com/img/www_kr/ad/files/%EA%B5%AD%EB%AC%B8+%EB%A7%A4%EC%B2%B4%EC%86%8C%EA%B0%9C%EC%84%9C.pdf",
+    "note": "공식 매체소개서(38쪽). 글자는 제목뿐이고 나머지는 이미지라 OCR로 읽습니다. 상품·단가 위주이고 픽셀 규격은 없습니다."
+  },
+  {
+    "id": "blind-spec-ampm",
+    "name": "블라인드 · 소재 규격 (대행사)",
+    "group": "커뮤니티",
+    "secondary": true,
+    "type": "page",
+    "url": "https://inside.ampm.co.kr/insight/9368",
+    "note": "공개된 곳 중 픽셀 규격이 글자로 있는 유일한 자료(로고 96×96·50KB, 피드 이미지 1200×628·100KB, 댓글 배너 1250×560). 대행사 자료라 공식 제작 가이드와 다를 수 있습니다."
+  },
+  {
+    "id": "daangn",
+    "name": "당근 · 비즈니스 소재 가이드",
+    "group": "커뮤니티",
+    "type": "crawl",
+    "url": "https://businessdaangn.gitbook.io/business.daangn/~gitbook/site-index",
+    "base": "https://businessdaangn.gitbook.io/",
+    "match": "/business\\.daangn/ads-[a-z]+/[^\"\\s]+",
+    "keywords": "소재|\\d\\s*px|사이즈|비율|해상도",
+    "maxPages": 80,
+    "note": "당근비즈니스 공식 GitBook. 간편모드·전문가모드 광고 문서 중 소재 관련 글을 읽습니다."
+  },
+  {
+    "id": "ninehire",
+    "name": "나인하이어 (잡코리아)",
+    "group": "ATS",
+    "type": "crawl",
+    "url": "https://guide.ninehire.com/ko/",
+    "follow": "https://guide.ninehire.com/ko/collections/\\d+[^\"'\\s<>#?]*",
+    "match": "https://guide.ninehire.com/ko/articles/\\d+[^\"'\\s<>#?]*",
+    "keywords": "이미지|배너|썸네일|로고|사이즈|해상도|커버|\\d\\s*px",
+    "maxPages": 400,
+    "note": "Intercom 도움말 센터. 서버 렌더링이라 잘 수집되고 글마다 수정일이 표시됩니다."
+  },
+  {
+    "id": "greeting",
+    "name": "그리팅",
+    "group": "ATS",
+    "type": "crawl",
+    "url": "https://guide.greetinghr.com/ko/categories/2-%EC%B1%84%EC%9A%A9-%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80Homepage-%EA%B0%80%EC%9D%B4%EB%93%9C-f784bc79",
+    "base": "https://guide.greetinghr.com/ko/",
+    "match": "(?:/ko/)?articles/[^\"'\\\\\\s<>#?]+",
+    "keywords": "배너|썸네일|로고|사이즈|해상도|커버|\\d\\s*px",
+    "maxPages": 200,
+    "note": "채널톡 문서. 글 목록이 페이지 데이터에 들어 있어서 링크를 정규식으로 뽑습니다."
+  },
+  {
+    "id": "saramin",
+    "name": "사람인 고객센터",
+    "group": "기타 참고",
+    "type": "crawl",
+    "url": "https://www.saramin.co.kr/zf_user/help/help-word/main",
+    "base": "https://www.saramin.co.kr/zf_user/help/",
+    "match": "help-word/view\\?idx=\\d+",
+    "keywords": "이미지|배너|썸네일|로고|사이즈|해상도|\\d\\s*px",
+    "maxPages": 60,
+    "ignore": "챗봇|궁금한 점|최근 활동|게요\\."
+  },
+  {
+    "id": "wanted",
+    "name": "원티드 기업 고객센터",
+    "group": "기타 참고",
+    "type": "page",
+    "url": "https://help.wanted.co.kr/hc/ko",
+    "note": "Zendesk + Cloudflare 차단."
+  }
+]

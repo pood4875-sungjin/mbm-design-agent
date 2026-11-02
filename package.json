@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "self-block": "node scripts/self-block.mjs"
+    "self-block": "node scripts/self-block.mjs",
+    "guide-diff": "node scripts/guide-diff.mjs"
   }
 }

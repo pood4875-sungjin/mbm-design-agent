@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>채용 소재 가이드 트래커</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="appbar">
+  <div class="appbar-inner">
+    <div class="brand">
+      <div class="brand-mark">G</div>
+      <div>
+        <h1>채용 소재 가이드 트래커</h1>
+        <p>채용포털·광고 매체의 이미지 규격을 모으고, 바뀌면 알려줍니다</p>
+      </div>
+    </div>
+    <button id="scheduleChip" class="schedule-chip" title="자동 수집 설정"></button>
+    <span id="lastRun" class="muted" style="font-size:12.5px"></span>
+    <button id="runAll" class="btn primary">지금 전체 수집</button>
+  </div>
+  <div id="progress" class="progress hidden"><div class="bar"></div></div>
+  <div id="progressText" class="progress-text hidden"></div>
+</header>
+
+<div class="page">
+  <div id="alert"></div>
+  <section id="stats" class="stats"></section>
+
+  <nav class="tabs">
+    <button data-tab="sources" class="active">매체</button>
+    <button data-tab="specs">규격 모아보기</button>
+    <button data-tab="events">변경 이력<span id="evCount" class="count"></span></button>
+    <button data-tab="runs">수집 기록</button>
+    <button data-tab="add">소스 추가</button>
+  </nav>
+
+  <section id="tab-sources" class="tab">
+    <div class="split">
+      <aside class="sidebar">
+        <div class="sidebar-search"><input id="srcSearch" placeholder="매체 검색"></div>
+        <div id="sourceList"></div>
+      </aside>
+      <div id="sourceDetail" class="detail"></div>
+    </div>
+  </section>
+
+  <section id="tab-specs" class="tab hidden">
+    <div class="filters">
+      <select id="fGroup"><option value="">모든 분류</option></select>
+      <select id="fKind">
+        <option value="">모든 항목</option>
+        <option value="size">사이즈</option><option value="width">가로·세로</option><option value="ratio">비율</option>
+        <option value="filesize">용량</option><option value="format">포맷</option><option value="limit">최소·최대</option>
+      </select>
+      <input id="fText" placeholder="검색 (예: 1080, 배너, 인스타)">
+      <label class="check"><input type="checkbox" id="fRequired"> 필수 매체만</label>
+      <label class="check"><input type="checkbox" id="fOfficial"> 공식 자료만</label>
+      <button id="exportCsv" class="btn sm">CSV</button>
+      <button id="exportJson" class="btn sm">JSON</button>
+    </div>
+    <div class="card table-wrap"><table id="specTable"></table></div>
+  </section>
+
+  <section id="tab-events" class="tab hidden"><div id="eventList" class="timeline"></div></section>
+
+  <section id="tab-runs" class="tab hidden"><div class="card table-wrap"><table id="runTable"></table></div></section>
+
+  <section id="tab-add" class="tab hidden">
+    <form id="addForm" class="card card-body form">
+      <h3 style="margin:0">감시할 페이지 추가</h3>
+      <p class="muted" style="margin:0">영업 담당자에게 받은 가이드 URL, 공개 노션 페이지, PDF 주소, 공지 글 등을 넣으면 같은 방식으로 규격을 뽑고 변경을 감시합니다. 주소를 보고 웹페이지·노션·PDF를 알아서 구분해요.</p>
+      <label>이름 <input name="name" placeholder="예: 잡다 기업 소재 가이드"></label>
+      <label>URL <input name="url" required placeholder="https://"></label>
+      <label>분류
+        <select name="group"><option>채용포털</option><option>디지털</option><option>커뮤니티</option><option>기타</option></select>
+      </label>
+      <div><button class="btn primary">추가하고 바로 수집</button></div>
+      <p id="addMsg" class="muted" style="margin:0"></p>
+    </form>
+  </section>
+</div>
+
+<div id="modal" class="modal hidden"><div class="modal-body" id="modalBody"></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
