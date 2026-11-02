@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><title>레시피 비교</title><style>body{margin:0;padding:16px;background:#333;color:#ffc;font:12px sans-serif}.r{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap}.c b{display:block;margin-bottom:4px}.b{overflow:hidden;position:relative}iframe{border:0;transform-origin:0 0;position:absolute;left:0;top:0}</style></head><body><div id="o"></div>
+<script type="module">
+// 시안 레시피 눈 검수 시트. /scripts/lib/recipe-sheet.html?case=t1014-gs2025&specs=google-gdn-580x400,instagram-feed-1080&client=GS에너지
+import { renderArtifact } from '/core/contract.js';
+import { recipeStyles } from '/core/recipes.js';
+import { registerAll } from '/core/generate.js';
+import { createContext } from '/core/context.js';
+import { normalizeStyle } from '/core/style.js';
+import { adSpecEntries } from '/core/adspecs.js';
+import { fontIds, isBundledFont, localFaceCss } from '/core/fonts.js';
+registerAll();
+const q = new URLSearchParams(location.search), id = q.get('case');
+const FACES = fontIds().filter(isBundledFont).map(i => localFaceCss(i)).join('');
+const toData = async u => { const r = await fetch(u); if (!r.ok) return null; const b = await r.blob(); return new Promise(k => { const f = new FileReader(); f.onload = () => k(f.result); f.readAsDataURL(b); }); };
+const led = (await (await fetch('/ref/learned/cases/cases.json')).json()).cases.find(x => x.id === id);
+const base = `/ref/learned/cases/${id}/`;
+const meta = await (await fetch(base + 'meta.json')).json();
+const kv = await toData(base + (led.kv ?? 'kv.png')), logo = led.logo ? await toData(base + led.logo) : null;
+const style = normalizeStyle({ keyVisual: kv, kvMeta: meta.kv ?? meta, logo, logoMeta: meta.logo ?? null, logoTone: meta.logo?.tone, colors: [led.primary ?? '#1428A0'], fonts: { heading: 'KakaoBigSans', body: 'KakaoBigSans' } });
+const ctx = createContext({ client: q.get('client') ?? 'GS에너지', hiringType: q.get('hire') ?? '신입사원 공채', role: q.get('role') ?? '일반(사업, 재무 등), 보훈(사업/경영지원)', season: q.get('season') ?? '2026년', startDate: '2026-06-20', deadline: '2026-07-02' }, 'recruit');
+const specs = adSpecEntries(), H = +(q.get('h') ?? 300);
+for (const sid of (q.get('specs') ?? '').split(',')) {
+  const spec = specs[sid]; if (!spec) continue;
+  const row = document.createElement('div'); row.className = 'r'; document.getElementById('o').append(row);
+  for (const st of [{}, ...recipeStyles(spec, style.kvMeta, true)]) {
+    const k = Math.min(H / spec.h, 480 / spec.w), c = document.createElement('div'); c.className = 'c';
+    c.innerHTML = `<b>${sid} · ${st.recipe ?? '기본안'}</b><div class="b" style="width:${spec.w * k}px;height:${spec.h * k}px"><iframe width="${spec.w}" height="${spec.h}" style="transform:scale(${k})"></iframe></div>`;
+    c.querySelector('iframe').srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0}${FACES}</style></head><body>${renderArtifact(sid, ctx, { ...style, ...st }, {})}</body></html>`;
+    row.append(c);
+  }
+}
+document.title = '완료';
+</script></body></html>

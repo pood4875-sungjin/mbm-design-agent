@@ -7,6 +7,7 @@
 import { renderArtifact } from './contract.js';
 import { adSpecEntries } from './adspecs.js';
 import { CANON } from './canon.js';
+import { RECIPES, recipeStyles } from './recipes.js';
 
 export const CANDIDATE_ORDER = [
   {}, { kvPlace: 'left' }, { kvPlace: 'bottom' }, { textAlign: 'center' }, { kvPlace: 'bg' }, { kvSize: 'lg' }, { bgFill: 'brand' },
@@ -24,20 +25,23 @@ export function variantCountFor(spec) {
   if (spec.grade === 'C') return V.free;
   return V.default;
 }
-const labelOf = st => { if (!Object.keys(st).length) return '기본안'; const L = { kvPlace: { left: '키비주얼 왼쪽', bottom: '키비주얼 아래', bg: '전체 배경', right: '키비주얼 오른쪽' }, textAlign: { center: '가운데 정렬', right: '오른쪽 정렬', left: '왼쪽 정렬' }, kvSize: { lg: '키비주얼 크게', sm: '키비주얼 작게' }, bgFill: { brand: '브랜드색 지면' }, textTone: { light: '흰 글자', dark: '검은 글자' } }; return Object.entries(st).map(([k, v]) => L[k]?.[v] ?? `${k} ${v}`).join(' · '); };
+const labelOf = st => { if (!Object.keys(st).length) return '기본안'; if (RECIPES[st.recipe]) return RECIPES[st.recipe].label; const L = { kvPlace: { left: '키비주얼 왼쪽', bottom: '키비주얼 아래', bg: '전체 배경', right: '키비주얼 오른쪽' }, textAlign: { center: '가운데 정렬', right: '오른쪽 정렬', left: '왼쪽 정렬' }, kvSize: { lg: '키비주얼 크게', sm: '키비주얼 작게' }, bgFill: { brand: '브랜드색 지면' }, textTone: { light: '흰 글자', dark: '검은 글자' } }; return Object.entries(st).map(([k, v]) => L[k]?.[v] ?? `${k} ${v}`).join(' · '); };
 // opts 는 renderArtifact 로 그대로(purpose·size…). opts.stats = {} 를 주면 { rendered, tried } 를 채운다(인스펙터·로그용)
 export function variantCandidates(specId, ctx, style, opts = {}) {
   const { stats, ...ropts } = opts;
   const spec = adSpecEntries()[specId]; if (!spec) return [];
   const want = variantCountFor(spec); const V = CANON.variants ?? {};
   const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual;
-  for (const cand of CANDIDATE_ORDER) {
+  // 첫 안은 기본안, 그다음 키비주얼 유형에 맞는 레시피, 모자라면 기존 프리셋 후보(11-02)
+  const order = [{}, ...recipeStyles(spec, style?.kvMeta, hasKv), ...CANDIDATE_ORDER.slice(1)];
+  for (const cand of order) {
     if (out.length >= want || rendered >= (V.maxRender ?? 14)) break;
     if (!hasKv && Object.keys(cand).some(k => KV_KEYS.has(k))) continue;
     const st = { ...style, ...cand };
     let html; try { html = renderArtifact(specId, ctx, st, ropts); rendered++; } catch { continue; }
     const tr = traceOf(html); if (!tr) continue;
     const keys = Object.keys(cand);
+    if (cand.recipe && !/data-field="main"/.test(html)) continue;   // 글자 없는 규격에는 레시피가 뜻이 없다
     if (keys.length) {   // 기본안은 거르지 않는다
       const ignored = (tr.edit?.ignored ?? []).filter(Boolean).map(String);
       if (keys.some(k => ignored.some(x => x.startsWith(k + '(')))) continue;                 // 통째로 무시 — 「키(사유)」만. 「키.부분(사유)」는 틀 칸 메모

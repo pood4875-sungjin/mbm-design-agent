@@ -31,6 +31,7 @@ import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
 import { editOf, transformCss, KV_SIZE_K, SCRIM_A, GRAD_ANGLE, placeAvail } from '../editlayout.js';
 import { kvTypeOf } from '../kvtypes.js';
+import { recipeActive } from '../recipes.js';
 import { textAlignOf, alignLockOf, ALIGN_KV_PLACE, ALIGN_JUSTIFY, alignMoldSlots, alignObjectHtml, flipLR } from '../alignrule.js';   // 글자 정렬 프리셋(10-19) — 잠금·거울 계산은 저쪽, 여기는 훅만
 
 const mmdd = d => String(d ?? '').replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2');
@@ -1036,7 +1037,10 @@ function renderAdBase(ctx, style, spec) {
   const tScale = templateScale(rules, w);
   // 템플릿 틀(10-15 templateMold, 사용자 「구멍 뚫린 틀」): 매체 샘플을 그대로 틀로 쓰는 규격(자소설 — rules.safeArea.measuredFromTemplate.mold).
   //   글자 칸(x·줄 y·크기·굵기·색)·로고 칸·그림 칸·지면 처리가 고정이고 캠페인마다 배경색·키비주얼·문구만 바뀐다. 일반 배치(CANON 행간·블리드·로고 상한·유리/채도 지면·스크림·프리셋)는 돌리지 않는다
-  const tpl0 = rules.safeArea?.measuredFromTemplate ?? null;
+  // 시안 레시피(11-02): 틀 대신 자유 배치로 그린다. 규정 매체·잡다·띠는 recipeActive 가 막아 틀 그대로
+  const recipe = recipeActive(spec, style) ? style.recipe : null;
+  if (recipe) fired('recipe.' + recipe);
+  const tpl0 = recipe ? null : (rules.safeArea?.measuredFromTemplate ?? null);
   const mold = tpl0?.mold ?? null;
   if (mold?.rows) for (const r of ['sub', 'main', 'detail']) { const ln = mold.rows[r]?.lines; if (slots[r] && ln) slots[r] = { ...slots[r], lines: Math.min(slots[r].lines ?? ln, ln) }; }   // 틀의 줄 수가 규정보다 적으면(채용공고 서브 1줄) 틀대로
   if (mold) { if (!mold.rows?.date) delete slots.date; delete slots.label; }   // 틀에는 날짜 줄·라벨 칩이 따로 없다(달력은 마감일 줄이 틀) — 날짜는 상세 첫 항목(「모집일정」)으로(세아제강 28:124·28:333)
@@ -1121,6 +1125,14 @@ function renderAdBase(ctx, style, spec) {
   if (((useRef && L.shape === 'wide') || mold?.seasonMain) && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain && !tplCopy) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];   /* mold.seasonMain: 정사각 틀도 시즌 포함 메인(인스타 1080 수정본 10-16 「2024 ABL생명 / 신입사원 공개채용」) */
   if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.seasonInMain && !reqDate && !tplCopy && !mold) {   // reqDate: 날짜 줄이 따로 있다 — 서브는 슬로건 · 틀(mold)은 서브 = 시즌/슬로건, 날짜는 상세·날짜 줄(캐치 이미지형 1:5765)
     ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
+  }
+  // 레시피 문구: 메인 = 기업명 / 채용구분 두 줄, 위 작은 문구 = 시즌뿐(자유 매체 소재 35~63% 가 이 구조). 시스템이 지어낸 슬로건은 쓰지 않는다
+  if (recipe) {
+    const cl = String(core.client ?? '').trim(), hr = hireFor(core), ss = String(core.season ?? '').trim();
+    const mains = [hr && cl ? `${cl}\n${hr}` : null, hr && cl ? `${cl} ${hr}` : null, cl || null, hr || null].filter(Boolean);
+    if (mains.length) { ladder.main = mains; for (const k of ['mainNarrow', 'mainWide']) if (ladder[k]) ladder[k] = mains; }
+    const subs = ss ? [ss] : [];
+    ladder.sub = subs; if (ladder.subNarrow) ladder.subNarrow = subs;
   }
   let copy = Object.fromEntries(Object.keys(ladder).filter(k => !['details', 'mainNarrow', 'subNarrow', 'mainWide'].includes(k)).map(r => [r, pickIn(r, null)]));
 
@@ -1704,7 +1716,8 @@ function renderAdBase(ctx, style, spec) {
   if (strip) titleMax = Math.min(titleMax, Math.round(innerH * 0.5));
   // 가이드의 메인 글자 px 띠(구글 24~40: 규격이 작아져도 글자를 비례로 줄이지 않는다 — '글자 크고 굵게')
   if (guide?.mainPx?.max) titleMax = Math.min(titleMax, guide.mainPx.max);
-  if (sampleMainPx) titleMax = sampleMainPx;   // 디자이너 샘플의 메인 크기(규격마다 중앙값 — 잡다 28·NAP 320×480 38·블라인드 66→띠 56) — 10-12 매체별 규격정리
+  if (sampleMainPx && !recipe) titleMax = sampleMainPx;   // 디자이너 샘플의 메인 크기(규격마다 중앙값 — 잡다 28·NAP 320×480 38·블라인드 66→띠 56) — 10-12 매체별 규격정리
+  if (recipe) titleMax = Math.max(titleMax, Math.round(0.09 * Math.sqrt(w * h)));   // 메인 중앙값 실측: GDN 580 43 · 970 45 · 300×600 41 · 300×1050 46 ≈ √(폭×높이)의 9%
   titleMax = Math.max(14, Math.min(titleMax, Math.floor(textW / (useRef ? 3 : 5))));
   // 매체가 밝힌 글자 크기 띠(블라인드 게시글 textLimits fontSizeRange 32~56 — 이미지 안 글자 전부): 메인 상한·하한, 보조 글자도 그 띠 안으로(sizesAt)
   if (fsRange?.max != null) titleMax = Math.min(titleMax, fsRange.max);
@@ -1861,6 +1874,8 @@ function renderAdBase(ctx, style, spec) {
   const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : 0);
   // 한 행 흐름(구글 970 칩 2개가 한 줄)이면 줄 사이 숨은 높이에 안 들어간다 — 더하면 메인 예산이 줄어 두 줄 시즌이 떨어진다(동부 970 회귀)
   const rowFlowNow = () => useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
+  // 임팩트형은 큰 제목 + 일정만(GS에너지·YG). 모집직무 등은 정보형·강조형에 남는다
+  if (recipe === 'impact') { const keep = detailLines.filter(d => d.label === '접수기간'); detailLines.length = 0; detailLines.push(...keep); }
   const detailBlockH = z => {
     const lineH = Math.round(z.dFs * dLine);
     // 태그 쌓기: 항목마다 알약 한 줄(알약 글자 .86 × 줄높이 1.5 + 아래 숨 .5) + 값 줄 — 글줄 수로만 세면 15%쯤 모자라 글자가 눌려 잘린다(인스타 스토리 1080×1920 여우)
@@ -2176,6 +2191,16 @@ function renderAdBase(ctx, style, spec) {
     const pick = withClient.find(c => !said(c) && (slots.sub?.maxChars == null || countChars(c, counting) <= slots.sub.maxChars) && textWidth(c) * z.subFs <= textW * 0.96 * subRows);
     if (pick) copy.sub = pick;
   }
+  if (recipe) {
+    // 줄 수를 문구에 맞춘다: 낱말이 접히는 긴 기업명까지 세어 칸에 들 때까지 글자를 줄이고, 그래도 넘으면 기업명만
+    const W0 = Math.max(1, Math.max(textW, mainW ?? 0)), rowsAt = (t, fs) => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * 1.05 * fs / W0)), 0);
+    const fit = t => { for (let fs = mainFs; fs >= floorMain; fs--) if (rowsAt(t, fs) * fs * mainLine <= titleBudget) return fs; return 0; };
+    const cl = String(core.client ?? '').trim();
+    let fs1 = fit(copy.main);
+    if (!fs1 && cl && copy.main !== cl) { copy.main = cl; fs1 = fit(cl); fired('recipe.clientOnly'); }
+    if (fs1) { mainFs = fs1; mainLines = rowsAt(copy.main, fs1); }
+    const hr = hireFor(core); if (hr && !copy.main.replace(/\n/g, ' ').includes(hr) && (slots.sub?.maxChars == null || countChars(hr, counting) <= slots.sub.maxChars)) copy.sub = hr;   // 칸이 좁아 메인이 기업명뿐이면 채용구분은 작은 문구로
+  }
   const showSub = want.sub && !!copy.sub;
   const noticeFs = want.notice ? Math.max(8, Math.floor(fitFontSize(copy.notice, textW * 0.92, z.noticeFs * line * noticeLines, Math.min(z.noticeFs, Math.floor(innerW / 14)), 8, line))) : 0;
 
@@ -2237,9 +2262,18 @@ function renderAdBase(ctx, style, spec) {
   // 단, 8자 넘는 덩어리("비씨월드제약/헬스케어")는 빗금 뒤에서 끊어도 된다 — 예시도 거기서 줄을 바꾼다
   // 메인 두 톤 강조(옵션, B1) — 스타일이 강조색(style.accent)을 직접 줬을 때만. 색을 짐작하지 않는다(palette.accent는 자동 생성이라 쓰지 않는다).
   // 지면 모든 정지점에서 4.5:1 이상이어야 켜고, 매체 guide가 끄면(자소설 단색 3/3) 끈다. 칠하는 말 = 채용구분(「대규모 공개채용」) — 메인이 그 말뿐이면 두 톤이 아니므로 안 칠한다
-  const accentHex = /^#[0-9A-Fa-f]{6}$/.test(style.accent ?? '') ? style.accent : null;
+  // 강조형 레시피: 브랜드색을 지면에 맞게 밝히거나 어둡혀 4.5:1 에 닿을 때만 쓴다. 못 닿거나 메인 글자색과 구분이 안 되면 끈다
+  const recipeAccent = (() => {
+    if (recipe !== 'accent' || !field?.stops?.length || !p.primary) return null;
+    const worst = c => Math.min(...field.stops.map(st => contrast(st, c)));
+    const toward = fgIsDark ? '#000000' : '#FFFFFF';
+    let c = p.primary, k = 0;
+    while (worst(c) < 4.5 && k < 8) { c = mix(c, toward, 0.15); k++; }
+    return worst(c) >= 4.5 && contrast(c, mainFg) >= 1.3 ? c : null;
+  })();
+  const accentHex = /^#[0-9A-Fa-f]{6}$/.test(style.accent ?? '') ? style.accent : recipeAccent;
   const accentPhrase = (() => {
-    if (!accentHex || guide?.mainAccent === false || !field || ctx.kind !== 'recruit' || tc.main) return null;
+    if (!accentHex || (guide?.mainAccent === false && !recipe) || !field || ctx.kind !== 'recruit' || tc.main) return null;
     if (Math.min(...field.stops.map(st => contrast(st, accentHex))) < 4.5) return null;
     const ph = hireFor(core);
     const flat = String(copy.main).replace(/\n/g, ' ');
@@ -2263,22 +2297,48 @@ function renderAdBase(ctx, style, spec) {
   const narrowLine = (textW / Math.max(1, mainFs)) < 7.5;
   // 기업명이 한 줄 폭보다 길면 묶지 않는다 — 묶으면 띄어쓰기에서 못 끊고 「주식회|사」처럼 낱말 속에서 잘린다(11-02 실제 ZIP 현대오일터미널 주식회사)
   const nb = (t, orphan = true, lineChars = null) => { const s0 = (lineChars && clientKeep && [...clientKeep].length > lineChars ? String(t ?? '') : keepClient(t)).replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, ([...w].length > 6 && narrowLine) ? '$1\u200B' : '$1\u2060')); const s1 = lineChars ? softBreakLong(s0, lineChars) : s0; return orphan && /\S \S/.test(s1) ? glue(s1) : s1; };   // lineChars: 한 줄 글자수 — 넘는 낱말은 음절 덩어리 사이에 줄바꿈 자리(10-28 긴 기업명)
+  // 레시피 메인 줄 수 확정: T 가 실제로 끊는 자리(띄어쓰기·음절 덩어리)대로 세어 마지막 줄이 잘리지 않게 한다
+  if (recipe) {
+    const W0 = Math.max(1, Math.max(textW, mainW ?? 0));
+    const rowsOf = fs => String(copy.main).split('\n').reduce((n, l) => {
+      let rows = 1, cur = 0;
+      for (const tk of nb(l, false, Math.floor(W0 / (fs * 0.95))).split(/[ \u200B]/).filter(Boolean)) { const w = textWidth(tk) * fs * 1.04, sp = cur ? fs * 0.28 : 0; if (cur && cur + sp + w > W0) { rows++; cur = w; } else cur += sp + w; }
+      return n + rows;
+    }, 0);
+    let fs = mainFs; while (fs > floorMain && rowsOf(fs) * fs * mainLine > titleBudget) fs--;
+    mainFs = fs; mainLines = rowsOf(fs);
+  }
   // 메인 자간(CANON tracking): 메인 글자 28px 이상이면 −2.5%em. 매체 guide가 0으로 끄면(자소설·에브리타임 템플릿 실측 0%) 없음
   const trackMain = fs => { const tk = guide?.tracking ?? {}; const v = tk.main ?? 0; return v && fs >= (tk.mainMinPx ?? 28) ? `letter-spacing:${v}em;` : ''; };
   // 역할별 굵기(core/canon.js weights · 매체 guide.weights가 이김) — 메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400. 어두운 지면 14px 미만은 500 하한(weightOf)
   const fwOf = (role, fs = null) => weightOf(role, { medium: mr, fs, darkField: !fgIsDark });
   const sampleAttr = t => (sampleText.size && [...sampleText].some(x => String(t ?? '').includes(x))) ? ' data-sample="1"' : '';
   const T = (role, text, fs0, weight, color, extraCss = '', lines = 1, lh = line, fs = Math.round(fs0 * (style.roleScale?.[role] ?? 1))) =>
-    `<div data-field="${role}"${sampleAttr(text)} style="flex:none;font-size:${fs}px;line-height:${lh};font-weight:${weight};${role === 'main' ? trackMain(fs) : ''}color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => role === 'main' ? accentMain(esc(nb(t, false, Math.floor(Math.max(textW, mainW ?? 0) / (fs * 0.95))))) : esc(nb(t, true, Math.floor(textW / (fs * 0.95))))).join('<br/>')}</div>`;   // flex:none — 세로 예산이 몇 px 모자라도 글줄이 눌려 잘리지 않는다(인스타 스토리 '잘림' 차단)
-  // 날짜·라벨은 꾸미지 않은 한 줄 글자다 — 테두리 알약을 두르지 않는다
+    `<div data-field="${role}"${sampleAttr(text)} style="flex:none;font-size:${fs}px;line-height:${lh};font-weight:${weight};${role === 'main' ? trackMain(fs) : ''}color:${color};text-align:${align};${WRAP};${clamp(lines)};${extraCss}">${String(text).split('\n').map(t => role === 'main' ? contrastMain(accentMain(esc(nb(t, false, Math.floor(Math.max(textW, mainW ?? 0) / (fs * 0.95)))))) : esc(nb(t, true, Math.floor(textW / (fs * 0.95))))).join('<br/>')}</div>`;   // flex:none — 세로 예산이 몇 px 모자라도 글줄이 눌려 잘리지 않는다(인스타 스토리 '잘림' 차단)
+  // 임팩트형: 기업명 굵게 + 나머지 가늘게(GS에너지 / 신입사원 공채). 메인에 기업명이 없으면 대비를 만들지 않는다
+  const impactClient = (() => { const cl = String(core.client ?? '').trim(); return recipe === 'impact' && cl && String(copy.main).replace(/\n/g, ' ').includes(cl) && String(copy.main).trim() !== cl ? cl : null; })();
+  const weightSpan = (kind, html) => html ? `<span data-weight-part="${kind}" style="font-weight:${kind === 'strong' ? 800 : 400}">${html}</span>` : '';
+  const contrastMain = html => {
+    if (!impactClient) return html;
+    const ph = [impactClient, keepClient(impactClient)].map(esc).find(x => html.includes(x));
+    if (!ph) return weightSpan('light', html);
+    const at = html.indexOf(ph);
+    return weightSpan('light', html.slice(0, at)) + weightSpan('strong', ph) + weightSpan('light', html.slice(at + ph.length));
+  };
+  // 날짜·라벨은 기본이 꾸미지 않은 한 줄 글자다. 강조형만 날짜 알약(자유 매체 16~22%)
   const plain = (role, text, fs) =>
     `<span data-field="${role}"${sampleAttr(text)} style="display:inline-block;font-size:${fs}px;line-height:${line};font-weight:${fwOf(role === 'date' ? 'date' : 'tag', fs)};color:${subFg};white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
+  const datePill = (text, fs) => {
+    const bg = fgIsDark ? (accentHex ?? p.primary ?? '#000000') : 'rgba(255,255,255,.18)';
+    const fg = fgIsDark ? (contrast(bg, WHITE) >= contrast(bg, BLACK) ? WHITE : BLACK) : '#FFFFFF';
+    return `<span data-field="date"${sampleAttr(text)} style="display:inline-block;box-sizing:border-box;font-size:${fs}px;line-height:${line};font-weight:${fwOf('date', fs)};color:${fg};background:${bg};padding:${Math.round(fs * 0.28)}px ${Math.round(fs * 0.9)}px;border-radius:999px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${esc(text)}</span>`;
+  };
   const ctaChip = () => `<span data-field="cta" style="display:inline-block;background:${mainFg};color:${fgIsDark ? '#FFFFFF' : p.primary};font-size:${z.ctaFs}px;line-height:${line};font-weight:${fwOf('cta', z.ctaFs)};padding:${Math.round(z.ctaFs * 0.6)}px ${Math.round(z.ctaFs * 1.1)}px;border-radius:6px;white-space:nowrap">${esc(copy.cta)}</span>`;
   // 상세 블록 — 한 요소로 묶어 검사기가 총 글자수·총 줄 수를 본다. 라벨은 굵게, 값은 가늘게(세아제강·한독).
   const lw = fwOf('detailLabel', z.dFs);   // 라벨 700 + 값 400(자소설 3/3) — 예전엔 가로형 레퍼런스(detailLabelBold:false)에서 라벨도 400이라 강약이 없었다
   // 라벨 칩(구글 템플릿 '문구입력', 예시 24/28: 일화 레드 pill·비씨월드 네이비 pill·ABL 흰 pill) — 밝은 지면엔 브랜드색 칩에 흰 글자, 어두운 지면엔 흰 칩에 지면색 글자
-  const chipTone = style.chipTone ?? 'tint';
-  const chip = (guide?.detailLabels === 'chip' || stackTags) && chipTone !== 'plain';   // 'plain'은 알약 없이 굵은 라벨만
+  const chipTone = style.chipTone ?? (recipe === 'info' ? 'brand' : recipe === 'impact' ? 'plain' : 'tint');
+  const chip = (guide?.detailLabels === 'chip' || stackTags || recipe === 'info') && chipTone !== 'plain';   // 'plain'은 알약 없이 굵은 라벨만
   // 알약 톤(style.chipTone, 캠페인 일괄·산출물 개별 모두 가능)
   //   tint(기본): 밝은 지면엔 검정 7% — 지면이 한 톤 짙어진 알약(노랑 지면이면 '진한 노랑') + 지면 위에서 4.5:1이 되게 어둡힌 브랜드색 글자.
   //               어두운 지면엔 흰 20% + 흰 글자(보드 1-884 코엑스 카드 '모집분야'). 10-06 사용자 "찐한 노랑 말고… 블랙 오퍼시티 7%"
@@ -2308,8 +2368,11 @@ function renderAdBase(ctx, style, spec) {
   const detailRow = useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
   // 쌓기 값: 항목은 ㅣ로 잇고(참고 예시처럼 띄어쓰기 없이) 줄은 ㅣ 뒤에서만 끊는다 — 항목 안의 '/'(전시/컨벤션)에서 끊기면 "전시/ / 컨벤션"이 된다
   const fmtVal = v => stackTags ? String(v).split(/\s*,\s*/).filter(Boolean).map(it => it.replace(/\//g, '\u2060/\u2060')).join('ㅣ\u200B') : String(v);
-  const detailBlock = () => detailLines.length
-    ? `<div data-field="detail"${detailLines.some(d => sampleText.has(d.value)) ? ' data-sample="1"' : ''} style="font-size:${z.dFs}px;font-weight:${fwOf('detailValue', z.dFs)};line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP};text-wrap:pretty${detailW > textW ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:${chipRowGap(z)}px ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map((d, i) =>
+  // 강조형: 접수기간은 상세 줄 대신 메인 아래 날짜 알약으로(SPC·ABL·코엑스)
+  const pillLine = recipe === 'accent' && !want.date ? detailLines.find(d => d.label === '접수기간') ?? null : null;
+  const shownDetails = pillLine ? detailLines.filter(d => d !== pillLine) : detailLines;
+  const detailBlock = () => shownDetails.length
+    ? `<div data-field="detail"${shownDetails.some(d => sampleText.has(d.value)) ? ' data-sample="1"' : ''} style="font-size:${z.dFs}px;font-weight:${fwOf('detailValue', z.dFs)};line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP};text-wrap:pretty${detailW > textW && !recipe ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:${chipRowGap(z)}px ${Math.round(z.dFs * 1.2)}px` : ''}">${shownDetails.map((d, i) =>
         `<div${!detailRow && i > 0 && chipRowGap(z) ? ` style="margin-top:${chipRowGap(z)}px"` : ''}>${label(d)}${esc(nb(fmtVal(d.value)))}</div>`).join('')}</div>` : '';
   // 로고 폭 상한(CANON logoCap): 메인 글자 크기 × 2.4, 그리고 캔버스 폭의 12%(폭 320 이하 세로 띠는 25%) — 높이 기준(logoH)만 두면 가로로 긴 워드마크(3.4:1)가 메인보다 커 보인다
   // (Figma 9월 공채: 디자이너 로고 폭 ÷ 메인 px 1.3~2.4, 우리 인스타 4.5·자소설 팝업 3.8). 템플릿 로고 칸 안에서도 이 폭을 넘지 않는다
@@ -2462,7 +2525,8 @@ function renderAdBase(ctx, style, spec) {
     // 라벨이 「모집직무 : …」(접수기간이 없을 때의 대체)인데 상세 줄에 모집직무가 또 있으면 빼다 — 같은 줄이 두 번 나왔다(10-14 t1014 한진정보통신 NAP 320×480)
     const dupLabel = /^모집직무/.test(String(copy.label ?? '')) && detailLines.some(d => d.label === '모집직무');
     if (want.label && copy.label && !dupLabel) parts.push(plain('label', copy.label, z.smallFs));   // 라벨 칩이 날짜 앞(「접수기간 9/4(금) ~ 9/13(일)」) — 샘플 잡다·NAP·구글 모두 라벨 → 값
-    if (want.date) parts.push(plain('date', copy.date, z.smallFs));
+    if (want.date) parts.push(recipe === 'accent' ? datePill(copy.date, z.smallFs) : recipe === 'info' && chip ? `<span>${label({ label: labelOf('접수기간'), inline: true })}${plain('date', copy.date, z.smallFs)}</span>` : plain('date', copy.date, z.smallFs));
+    if (pillLine) parts.push(datePill(pillLine.value, z.smallFs));
     if (!parts.length) return '';
     return `<div style="display:flex;flex-wrap:wrap;gap:2px 12px;justify-content:${align === 'center' ? 'center' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
   };

@@ -482,7 +482,8 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     if (!lines.length) return '';
     // line-clamp 로 잘렸으면 마지막 보이는 줄 끝에 말줄임표(브라우저가 그리는 …, DOM 글자가 아니다)
     const ecs = win.getComputedStyle(el);
-    if ((ecs.webkitLineClamp && ecs.webkitLineClamp !== 'none') && el.scrollHeight > el.clientHeight + 2) {
+    // 글꼴 위아래 여유로 몇 px 넘는 건 잘린 게 아니다 — 실제로 줄이 잘리면 반 줄 넘게 차이 난다(11-02 레시피 「신입사원 공채…」)
+    if ((ecs.webkitLineClamp && ecs.webkitLineClamp !== 'none') && el.scrollHeight > el.clientHeight + Math.max(2, (parseFloat(ecs.lineHeight) || 0) * 0.5)) {
       const last = lines[lines.length - 1].runs.at(-1); last.text = last.text.replace(/\s*$/, '') + '…';
       note('줄 수 제한(line-clamp)으로 잘린 글자 — 끝에 「…」를 붙여 같은 모양으로');
     }

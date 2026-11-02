@@ -147,13 +147,14 @@ test('캠페인 스타일이 바뀌어 안 목록이 달라지면 선택은 번�
   c.adSpecIds = ['albamon-pc-main-board'];
   generateArtifacts(c);
   const a = c.artifacts[0];
-  const idx = a.variants.findIndex(v => v.style.kvPlace === 'left');
-  assert.ok(idx > 0, '알바몬 보드는 키비주얼 왼쪽 안이 선다');
+  const idx = a.variants.findIndex(v => v.style.kvPlace);
+  assert.ok(idx > 0, '알바몬 보드는 위치 안이 선다');
+  const picked = a.variants[idx].style;
   a.variantSel = idx;
   // ① 색만 바뀜 — 같은 묶음이 목록에 남아 있으면 선택 유지(번호가 바뀌어도 묶음이 같다)
   c.style = normalizeStyle({ colors: ['#0A7B3E'], keyVisual: PNG, kvMeta });
   generateArtifacts(c);
-  assert.deepEqual(a.variants[a.variantSel].style, { kvPlace: 'left' }, '같은 프리셋 묶음 유지');
+  assert.deepEqual(a.variants[a.variantSel].style, picked, '같은 프리셋 묶음 유지');
   // ② 키비주얼이 없어져 위치 안이 빠짐 — 묶음이 사라지면 기본안
   c.style = normalizeStyle({ colors: ['#0A7B3E'] });
   generateArtifacts(c);

@@ -30,7 +30,7 @@ const led = JSON.parse(readFileSync(path.join(ROOT, 'ref/learned/cases/cases.jso
 const ids = (opt('--cases') ?? CASE_DEFAULT.join(',')).split(',');
 const cases = ids.map(id => { const c = led.find(x => x.id === id); const meta = JSON.parse(readFileSync(path.join(ROOT, 'ref/learned/cases', id, 'meta.json'), 'utf8')); return { id, kvUrl: `/ref/learned/cases/${id}/${c.kv}`, logoUrl: c.logo ? `/ref/learned/cases/${id}/${c.logo}` : null, tone: c.logoMeta?.tone ?? 'dark', logoMeta: c.logoMeta ?? null, meta, colors: [c.primary ?? meta.colors?.[0] ?? '#0A3D91', meta.colors?.[1] ?? '#11095F', meta.colors?.[2] ?? '#B56705'] }; });
 const briefs = (opt('--briefs') ?? Object.keys(BRIEFS).join(',')).split(',').map(id => ({ id, fields: BRIEFS[id] }));
-const job = { cases, briefs, specs: opt('--specs')?.split(',') ?? null };
+const job = { cases, briefs, specs: opt('--specs')?.split(',') ?? null, recipes: argv.includes('--recipes') };   // --recipes: 기본안 대신 시안 레시피 전수
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.css': 'text/css', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.otf': 'font/otf' };
 const rows = []; let chrome; const started = Date.now();
 const finish = code => {

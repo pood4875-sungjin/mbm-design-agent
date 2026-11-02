@@ -100,7 +100,7 @@ export const CANON = {
   textOn: { darkIfLum: 0.45 },   // .45: 연보라 #C7AEFF(.49)·복숭아는 검정, 중간 파랑 #6AA7F2(.37)·주황 #F07020(.37)·초록 #2EBA56(.38)은 흰색
   // 레이아웃 안(10-20 2단계 「여러 레이아웃 생성 → 선택 → 추출」): 안 = 편집 프리셋 조합. 규정 매체(fonts.required)는 1(정답 하나), 등급 C(자유)는 free, 그 외 default.
   //   후보는 CANDIDATE_ORDER 순서로 렌더해 프리셋이 안 먹거나(ignored) 겹침 교정이 실패하거나 그림이 같으면 버린다 — 「많이」가 아니라 「쓸 수 있는 안만」
-  variants: { regulated: 1, default: 3, free: 5, maxRender: 14 },
+  variants: { regulated: 1, default: 3, free: 3, maxRender: 14 },
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7
   // 누끼는 명확할 때만(10-12 사용자 「명확할 때만 누끼, 웬만하면 배경 분위기도 살려」 desk-37·desk-03) — 바탕 색감(chroma 평균) < chromaMax 이고
   //   그라데이션 세기 < gradMax 이면(흰·연회색·무채 단색) 딴다. 넘으면 원본이 주 KV(scripts/kv-cutout.py --auto, cases.mjs bgpalette 가 같은 수치)

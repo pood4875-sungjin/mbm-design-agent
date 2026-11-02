@@ -2,6 +2,7 @@
 <script type="module">
 // 「생성 직후 차단 0건」 전수 — 앱과 같은 코드(render → measureArtifact → lintArtifact → 틀 가이드 → approvalGate)를 브라우저에서 돌린다. scripts/self-block.mjs 가 띄운다.
 import { renderArtifact } from '/core/contract.js';
+import { recipeStyles } from '/core/recipes.js';
 import { registerAll } from '/core/generate.js';
 import { createContext } from '/core/context.js';
 import { normalizeStyle } from '/core/style.js';
@@ -30,14 +31,14 @@ for (const c of job.cases) {
   const G = await kvGrid(kv).catch(() => null);
   for (const b of job.briefs) {
     const ctx = createContext(b.fields, 'recruit');
-    for (const g of groups) {
-      const spec = g.entry, row = { case: c.id, brief: b.id, spec: g.id, medium: spec.medium, grade: spec.grade ?? null };
+    for (const g of groups) for (const rst of (job.recipes ? recipeStyles(g.entry, c.meta, true) : [null])) {
+      const spec = g.entry, row = { case: c.id, brief: b.id, spec: g.id, medium: spec.medium, grade: spec.grade ?? null, recipe: rst?.recipe ?? null };
       try {
         if (spec.asset || spec.rules?.asset) { row.skip = 'asset'; await post('/row', row); continue; }
-        const html = renderArtifact(g.id, ctx, style, {});
+        const html = renderArtifact(g.id, ctx, rst ? { ...style, ...rst } : style, {});
         const m = await measureArtifact(html, spec);
         let lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m, ctx });
-        if (lint.issues.some(i => i.code === 'weight')) { try { const fit = await renderFit(ctx, style, spec, h => h); if (fit.fitted && !fit.lint.issues.some(i => i.code === 'weight')) { lint = fit.lint; row.fit = fit.fitted.label; } } catch (e) { row.fitErr = String(e.message); } }
+        if (lint.issues.some(i => i.code === 'weight')) { try { const fit = await renderFit(ctx, rst ? { ...style, ...rst } : style, spec, h => h); if (fit.fitted && !fit.lint.issues.some(i => i.code === 'weight')) { lint = fit.lint; row.fit = fit.fitted.label; } } catch (e) { row.fitErr = String(e.message); } }
         // 틀 가이드(자소설) · 디자인 검수 — 앱과 같은 iframe 측정
         const ifr = document.createElement('iframe'); ifr.style.cssText = `position:fixed;left:-30000px;top:0;width:${spec.w}px;height:${spec.h}px;border:0`;
         ifr.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"><style>html,body{margin:0}${FACES}</style></head><body>${html}</body></html>`;
