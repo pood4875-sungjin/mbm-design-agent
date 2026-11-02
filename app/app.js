@@ -8,7 +8,7 @@ import { MEDIA } from '../core/media.js';
 import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
-import { FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
+import { textColorLocked, FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
 import { extractPalette, rolesFromKeyVisual, rolesFromSources, analyzeRegion, buildPalette, TEXT_ZONES, edgeColor, fieldFromImage, colorDistance } from '../core/palette.js';
 import { objectNeedOf, needsCutout } from '../core/adfields.js';
 import { resolveField } from '../core/field.js';
@@ -48,7 +48,7 @@ import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolde
 const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };
 const TONE_LABEL = { auto: '자동', dark: '다크', light: '라이트' };
 // 글자색 규정 매체(렌더러 regulatedText 와 같은 판정): 규격 textColors.main(카카오·NAP 비즈보드) 또는 규정 매체(fonts.required — 자소설·리멤버·카카오). 직접 글자색(textColor)은 여기선 안 먹는다(11-02)
-const textColorRegulated = spec => !!(spec?.rules?.textColors?.main || spec?.mediumRules?.fonts?.required);   // 글자색 톤(style.textTone, 10-19)   // 상세 라벨 알약 톤(style.chipTone)
+const textColorRegulated = spec => textColorLocked(spec?.mediumRules, spec?.rules);   // 글자색 톤(style.textTone, 10-19)   // 상세 라벨 알약 톤(style.chipTone)
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
@@ -2375,9 +2375,9 @@ function renderInspector() {
       <input type="file" id="iLogoFile" accept="image/*" style="display:none">
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
-      <label>글자색 <span style="opacity:.6">· 규정 매체(자소설·리멤버·카카오)는 규정대로</span></label>
+      <label>글자색 <span style="opacity:.6">· 색이 정해진 매체(리멤버·카카오 비즈보드)는 규정대로</span></label>
       <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
-      <div class="bgrow" id="iTextColorRow"><label class="bgpick"><input type="color" id="iTextColor" value="${c.style.textColor ?? '#333333'}">직접</label><span style="font-size:11px;color:var(--sub);flex:1;line-height:1.4">${c.style.textColor ? `지정 ${c.style.textColor} — 규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 제외` : '색 하나로 지정(규정 매체 제외) · 지면 대비 3:1 미만이면 검수 경고'}</span>${c.style.textColor ? `<button class="btn" id="iTextColorReset">되돌리기</button>` : ''}</div>
+      <div class="bgrow" id="iTextColorRow"><label class="bgpick"><input type="color" id="iTextColor" value="${c.style.textColor ?? '#333333'}">직접</label><span style="font-size:11px;color:var(--sub);flex:1;line-height:1.4">${c.style.textColor ? `지정 ${c.style.textColor} — 색이 정해진 매체(리멤버·카카오 비즈보드·NAP 비즈보드)는 제외` : '색 하나로 지정(규정 매체 제외) · 지면 대비 3:1 미만이면 검수 경고'}</span>${c.style.textColor ? `<button class="btn" id="iTextColorReset">되돌리기</button>` : ''}</div>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>

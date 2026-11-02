@@ -20,7 +20,7 @@
 // 절대배치는 템플릿이 좌표를 정한 로고 칸·이미지 영역에만 쓴다 — 글자는 그 영역을 피한 흐름 배치다.
 
 import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
-import { fontStack, fontRuleOf } from '../fonts.js';
+import { fontStack, fontRuleOf, textColorLocked } from '../fonts.js';
 import { adSpecEntries } from '../adspecs.js';   // 캠페인 공통 메인(리멤버 PC·MO 동일) — 같은 매체 규격을 한 번씩 돌려 본다(런타임에만 부른다: contract.js 와 순환)
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
@@ -1491,17 +1491,18 @@ function renderAdBase(ctx, style, spec) {
   const defSub = fgIsDark ? `rgba(${hexToRgb(TD.light).join(',')},${TD.subOpacity})` : `rgba(${hexToRgb(TD.dark).join(',')},${TD.subOpacity})`;
   // 사람이 직접 고른 글자색(style.textColor hex, 11-02 컨시어지 박진화 「브랜드컬러 외 폰트 색상 지정」) — 규정 없는 매체(regulatedText 아님)에서만 메인·서브·상세·날짜를 그 색으로.
   //   라벨 알약(chipTone)·로고 흰/원색 판정(fgIsDark)은 그대로. 규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 무시하고 trace 에 textColor.ignored. 지면과 대비 3:1 미만이면 textColor.lowContrast(차단 아님 — 검수는 core/lint.js text-contrast 경고)
-  const customFg = (!regulatedText && typeof style.textColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(style.textColor)) ? style.textColor.toUpperCase() : null;
+  const colorLocked = textColorLocked(mr, rules);
+  const customFg = (!colorLocked && typeof style.textColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(style.textColor)) ? style.textColor.toUpperCase() : null;
   const mainFg = customFg ?? moldFg ?? (brandMain ? p.primary : (tc.main ?? defMain));
   if (!regulatedText) fired('textDefault');
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
   const tight = !!field && (field.contrast < 4.5 || field.source === 'ai');   // AI 지면(10-22 루프 r1 「회색 보조 문구 대비 약함」 19건)은 보조 글자도 흐리게 안 함
-  const customSub = customFg ? (tight ? customFg : `rgba(${hexToRgb(customFg).join(',')},${TD.subOpacity})`) : null;   // 지정 색도 서브·상세는 같은 색 70%(빠듯하면 그대로)
+  const customSub = customFg ? ((tight || mr.textColors?.uniform) ? customFg /* 자소설 「모든 문구 한 색」 */ : `rgba(${hexToRgb(customFg).join(',')},${TD.subOpacity})`) : null;   // 지정 색도 서브·상세는 같은 색 70%(빠듯하면 그대로)
   const subFg = customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
   const detailFg = customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
   const textColorTr = (() => {
     if (typeof style.textColor !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(style.textColor)) return null;
-    if (regulatedText) { fired('textColor.ignored'); return { hex: style.textColor.toUpperCase(), applied: false, contrast: null }; }
+    if (colorLocked) { fired('textColor.ignored'); return { hex: style.textColor.toUpperCase(), applied: false, contrast: null }; }
     fired('textColor');
     const bgs = moldOnBg ? [mold.bg] : (field?.stops ?? []);
     const cr = bgs.length ? Math.round(Math.min(...bgs.map(s => contrast(s, customFg))) * 100) / 100 : null;

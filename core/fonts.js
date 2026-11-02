@@ -185,6 +185,12 @@ export function fontIdOfName(name) {
   return FAMILY_ALIAS[k] ?? null;
 }
 
+// 글자색이 정해진 규격인가(11-02 노션 N5 「가이드에 폰트 색상이 지정된 매체 외에는」): 규격 textColors.main(카카오·NAP 비즈보드) 또는 매체 textColors.main(리멤버 흑/백).
+//   폰트 고정과 다르다 — 자소설은 Pretendard 고정이지만 색은 「한 색으로 통일」만, 카카오 PC디스플레이는 색 지정 없음. 매체 값에 「비즈보드 전용」이 적힌 카카오는 규격 값만 본다
+export function textColorLocked(medium, spec = null) {
+  if (spec?.textColors?.main) return true;
+  const m = medium?.textColors; return !!(m?.main && !/전용/.test(String(m.note ?? '')));
+}
 export function fontRuleOf(medium, spec = null) {
   const mf = medium?.fonts ?? null, sf = spec?.fonts ?? null;
   const required = sf?.required ?? mf?.required ?? null;

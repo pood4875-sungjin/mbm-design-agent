@@ -39,7 +39,7 @@ test('규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 지정
   const { renderArtifact, ctx } = await setup();
   const st = normalizeStyle({ ...base, textColor: '#FFD200' });
   const plain = normalizeStyle({ ...base });
-  for (const id of ['jasoseol-pc-premium-popup-pc', 'remember-main-top-pc', 'kakao-bizboard-mo', 'nap-dsp-bizboard-1029x258']) {
+  for (const id of ['remember-main-top-pc', 'kakao-bizboard-mo', 'nap-dsp-bizboard-1029x258']) {   // 11-02: 색이 정해진 규격만 잠금 — 자소설·카카오 PC 는 아래 테스트
     const h = renderArtifact(id, ctx, st, {});
     const t = trace(h), t0 = trace(renderArtifact(id, ctx, plain, {}));
     assert.notEqual(t.text.mainFg, '#FFD200', id + ' 규정 매체는 무시');
@@ -65,4 +65,11 @@ test('대비 경고 — 지면과 3:1 미만이면 trace textColor.lowContrast �
   assert.equal(L.level, 'warn', '차단 아님');
   assert.ok(!lintArtifact({ spec, medium: {}, measure: { texts: [], bgColors: ['#1428A0'], textColor: '#FFD200' } }).issues.some(i => i.code === 'text-contrast'), '대비 충분하면 없음');
   assert.ok(!lintArtifact({ spec, medium: {}, measure: { texts: [], bgColors: ['#1428A0'] } }).issues.some(i => i.code === 'text-contrast'), '지정 색 없으면 검사 안 함');
+});
+
+test('N5 폰트 고정 ≠ 색 고정: 자소설(한 색 통일)·카카오 PC디스플레이는 직접 고른 색이 먹는다 — 자소설은 서브·상세까지 같은 색(70% 없음)', () => {
+  const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', deadline: '2026-10-31' }, 'recruit');
+  const st = normalizeStyle({ ...base, textColor: '#C2185B' });
+  for (const id of ['jasoseol-pc-premium-popup-pc', 'kakao-display-pc-promo']) { const t = trace(renderArtifact(id, ctx, st, {})); assert.equal(t.text.mainFg, '#C2185B', id); assert.ok(t.rules.includes('textColor'), id); }
+  const j = trace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, st, {})); assert.equal(j.text.subFg, '#C2185B'); assert.equal(j.text.detailFg, '#C2185B');
 });
