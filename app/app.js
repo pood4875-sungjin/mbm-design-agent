@@ -761,7 +761,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, bgGradient: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
+    bgMode: 'auto', bgColor: null, bgGradient: null, kvVariants: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -1313,6 +1313,7 @@ function slotStyle() {
     <div class="styleRow">
       <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())} — 누끼·사진·일러스트 어느 것이든 한 칸에. 누끼(투명 PNG)면 오브젝트형 가이드, 배경 있는 그림이면 썸네일/풀이미지형으로 자동 판정합니다. 공고문·전 시안 같은 참고 이미지는 「레퍼런스(참고용)」 칸에" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수 · 누끼도 여기)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
+      ${[['wide', '가로형', '폭이 긴 규격(가로 띠·배너)에 쓸 그림 — 없으면 기본 키비주얼'], ['tall', '세로형', '세로로 긴 규격(세로 배너·스토리)에 쓸 그림 — 없으면 기본 키비주얼']].map(([k, n, t]) => { const v = it.kvVariants?.[k]; return it.kv ? `<div><div class="kvthumb logo" id="kvV-${k}" title="${t}" style="${v ? `background-image:url(${v.keyVisual})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="kvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-kvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}</div>` : ''; }).join('')}
       <div><div class="kvthumb logo" id="logoThumb" title="${escH(logoGuideText())}" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
@@ -1362,6 +1363,8 @@ function slotStyle() {
   renderDpi();
   // 보여 줄 영역 지정(11-02): 썸네일 위에서 끌어 지정 — it.kvMeta.manual 에 저장(캠페인으로 넘어간다)
   if (it.kv && it.kvMeta) mountKvFocus($('kvThumb'), { kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), onChange: m => { it.kvMeta = withManual(it.kvMeta, m); reslotStyle(); $('kvThumb')?.querySelector('.kvfocus')?.focus({ preventScroll: true }); } });
+  for (const k of ['wide', 'tall']) if ($(`kvV-${k}`)) bindUpload($(`kvV-${k}`), $(`kvV-${k}File`), async d => { const kd = await prepKv(d); const { meta } = await analyzeKeyVisual(kd); it.kvVariants = { ...(it.kvVariants ?? {}), [k]: { keyVisual: kd, kvMeta: meta } }; reslotStyle(); toast(`${k === 'wide' ? '가로' : '세로'}로 긴 규격에 이 그림을 써요`); });
+  document.querySelectorAll('#slot [data-kvvdel]').forEach(b => b.onclick = () => { const { [b.dataset.kvvdel]: _, ...rest } = it.kvVariants ?? {}; it.kvVariants = rest; reslotStyle(); });
   bindUpload($('kvThumb'), $('kvFile'), async d => {
     it.kvOrig = d;   // 원본(전달물용, 10-16)
     d = await prepKv(d);
@@ -1730,6 +1733,7 @@ function buildAndGenerate() {
   ctx = updateContext(ctx, { channelFields: extraPatch });
   const style = normalizeStyle({
     keyVisual: it.kv,
+    kvVariants: it.kvVariants ?? null,
     colorsManual: !!it.colorsManual,   // 손으로 고른 색 → 지면도 그 색(10-19)
     kvOrig: it.kvOrig ?? null, logoOrig: it.logoOrig ?? null,   // 전달물은 원본 파일 그대로(10-16)
     kvReadability: it.kvReadability,
@@ -2097,7 +2101,10 @@ async function lintAds() {
       const im = src ? await loadImage(src) : null; const px = im ? [im.naturalWidth, im.naturalHeight] : null;   // 실제 내보내는 원본을 직접 잰다(assetFileOf 와 같은 기준)
       if (run !== lintRun) return;
       const fmt = src ? (src.match(/^data:image\/(png|jpe?g|svg\+xml|webp|gif)/)?.[1] ?? null) : null;
-      a.lint = lintArtifact({ spec: { ...spec.rules, asset: spec.rules.asset ?? spec.asset, format: spec.format }, medium: spec.mediumRules, measure: { assetPx: px ?? null, format: fmt === 'jpeg' ? 'jpg' : fmt === 'svg+xml' ? 'svg' : fmt } });
+      // 규정 폭의 절반 이상이면 내보낼 때 규정 폭으로 늘린다(assetFileOf) — 판정도 나가는 파일 기준, 흐려질 수 있다는 건 경고로. 그보다 작으면 차단(더 큰 원본 필요). 화면은 「늘려 씁니다」라는데 검수는 막던 것(11-02 전수)
+      const assetMin = (spec.rules.asset ?? spec.asset)?.minW ?? 0, upscaled = !!(px && assetMin && px[0] < assetMin && px[0] >= assetMin * 0.5);
+      a.lint = lintArtifact({ spec: { ...spec.rules, asset: spec.rules.asset ?? spec.asset, format: spec.format }, medium: spec.mediumRules, measure: { assetPx: upscaled ? [assetMin, px[1]] : (px ?? null), format: fmt === 'jpeg' ? 'jpg' : fmt === 'svg+xml' ? 'svg' : fmt } });
+      if (upscaled) { a.lint.issues.push({ level: 'warn', code: 'asset-upscaled', msg: `원본 가로 ${px[0]}px → 규정 ${assetMin}px 로 늘려 내보내요. 더 선명하게 하려면 큰 원본을 올려 주세요` }); if (a.lint.level === 'pass') a.lint.level = 'warn'; }
       // 이미지 전달물의 알파(10-28 담당자 「배경 없는 오브젝트는 미승인」) — 앱 쪽 검사: 투명 몫이 크면 경고 + 내보낼 때 지면색 배경 합성(assetFileOf). 합성 포맷은 JPG 라 규정(PNG/JPG) 안
       if (!isLogo && im) { try { const r = alphaRatioOf(im); if (r != null && r > ASSET_ALPHA_MAX) { a.lint.issues.push({ level: 'warn', code: 'asset-alpha', msg: `배경 없는 이미지(투명 ${Math.round(r * 100)}%) — 매체는 배경 있는 이미지만 승인. 내보낼 때 캠페인 지면색으로 배경을 합성합니다` }); if (a.lint.level === 'pass') a.lint.level = 'warn'; } } catch {} }
       lintBadge(a);
@@ -2298,7 +2305,7 @@ $('helpPop').innerHTML = `
     <dt><kbd>⤢</kbd></dt><dd>전체 보기로 맞춤</dd>
     <dt><kbd>클릭</kbd></dt><dd>산출물 = 개별 편집<br>빈 곳 = 전체 일괄</dd>
   </dl>
-  <div class="hnote">아래 입력창에 "장소 킨텍스로 변경"처럼 적으면 전 산출물에 한 번에 반영됩니다.</div>`;
+`;
 $('helpBtn').onclick = e => { e.stopPropagation(); toggleHelp(); };
 // 팝오버는 가볍게 — 바깥을 건드리면 닫힌다(모달처럼 확인 버튼을 요구하지 않는다)
 document.addEventListener('pointerdown', e => {
@@ -2349,6 +2356,7 @@ function renderInspector() {
       <label>키비주얼</label>
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
+      ${c.style.keyVisual ? `<div class="kvvrow">${[['wide', '가로형'], ['tall', '세로형']].map(([k, n]) => { const v = c.style.kvVariants?.[k]; return `<div class="kvthumb logo" id="iKvV-${k}" title="${k === 'wide' ? '폭이 긴' : '세로로 긴'} 규격에 쓸 그림 — 없으면 기본 키비주얼" style="${v ? `background-image:url(${v.keyVisual})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="iKvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-ikvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}`; }).join('')}</div>` : ''}
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
@@ -2466,6 +2474,8 @@ function renderInspector() {
     { const kb = insp.querySelector('#iKvSpec'), lb = insp.querySelector('#iLogoSpec');
       if (kb) { kb.textContent = kvGuideText(); if (c.style.keyVisual) kvCheckOf(c.style.kvOrig ?? c.style.keyVisual, c.style.kvMeta).then(ck => { if (ck.level !== 'na') { kb.textContent = ck.text; kb.style.color = CHECK_TONE[ck.level]; } }); }
       if (lb) { lb.textContent = logoGuideText(); if (c.style.logo) logoCheckOf(c.style.logoOrig ?? c.style.logo, { tone: c.style.logoTone }).then(ck => { if (ck.level !== 'na') { lb.textContent = ck.text; lb.style.color = CHECK_TONE[ck.level]; } }); } }
+    for (const k of ['wide', 'tall']) { const th = insp.querySelector(`#iKvV-${k}`), inp = insp.querySelector(`#iKvV-${k}File`); if (th && inp) bindUpload(th, inp, async d => { const kd = await prepKv(d); const { meta } = await analyzeKeyVisual(kd); restyle({ kvVariants: { ...(c.style.kvVariants ?? {}), [k]: { keyVisual: kd, kvMeta: meta } } }, `${k === 'wide' ? '가로형' : '세로형'} 키비주얼`); renderInspector(); toast('맞는 모양의 규격을 다시 그렸어요'); }); }
+    insp.querySelectorAll('[data-ikvvdel]').forEach(b => b.onclick = () => { const { [b.dataset.ikvvdel]: _, ...rest } = c.style.kvVariants ?? {}; restyle({ kvVariants: rest }, '키비주얼 모양 빼기'); renderInspector(); });
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
     // 보여 줄 영역 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
@@ -3083,7 +3093,7 @@ function assetBgOf(c) { try { const f = resolveField(c.style, { facing: 'left' }
 async function assetFileOf(a) {
   const c = state.campaign, spec = SPECS[a.specId], item = spec?.asset?.item, minW = spec?.asset?.minW ?? 0;
   a.assetNote = null;
-  if (a.lint?.level === 'block') return null;   // 사유는 a.lint — 알림은 호출처가 한다   // 규정 폭 미달 원본은 늘려 보내지 않는다(10-20 출고규정)
+  if (a.lint?.level === 'block') return null;   // 사유는 a.lint — 알림은 호출처가 한다   // 규정 폭 절반 미만 원본은 늘려 보내지 않는다
   const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 40);
   const core = c.context.core; const who = [clean(c.kind === 'recruit' ? core.client : core.name)];   // 10-28 파일명 양식: 기업명_매체_상품_파일(직무·회차 없음)
@@ -3374,7 +3384,7 @@ function exportAllModal() {
   const c = state.campaign;
   const banners = c.artifacts.filter(a => a.channel === 'banner' || a.channel === 'gwthumb');
   const htmls = c.artifacts.filter(a => ['edm', 'landing'].includes(a.channel));
-  const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner', 'gwthumb', 'ad'].includes(a.channel));
+  const prints = (c.artifacts.filter(a => !['edm', 'landing', 'banner', 'gwthumb', 'ad'].includes(a.channel))).filter(a => a.channel !== 'asset');   // 전달물은 ZIP 으로 나간다 — 인쇄 PDF 가 아니다(11-02)
   const ads = c.artifacts.filter(a => a.channel === 'ad');
   const adsOk = ads.filter(a => a.status === 'approved');
   const picked = SEL.selected(); const pickedN = picked ? ads.filter(a => picked.has(a.key ?? a.specId)).length : 0;   // 선택하기(11-02) — 선택이 있으면 그것만이 기본

@@ -32,6 +32,8 @@ export function normalizeStyle(input = {}) {
   const mode = MODES[input.mode] ? input.mode : 'light';
   return {
     keyVisual: input.keyVisual ?? null,
+    // 규격 모양별 키비주얼(11-02 Notion N4 「기본·가로·세로 3가지 첨부 → 소재별 사이즈에 맞는 그림 자동 적용」) — { wide?:{keyVisual,kvMeta}, tall?:{…} }. 없으면 기본 그림 하나
+    ...(input.kvVariants && (input.kvVariants.wide?.keyVisual || input.kvVariants.tall?.keyVisual) ? { kvVariants: input.kvVariants } : {}),
     kvReadability: input.kvReadability ?? null,
     // 키비주얼 유형 직접 지정(10-12 결정 5) — null = 자동. 유형 id(photo …) 또는 세분 유형 id(photo-portrait …). 렌더러·검수는 지정을 입힌 kvMeta 를 본다
     kvTypeOverride: isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null,

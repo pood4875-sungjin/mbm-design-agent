@@ -214,7 +214,13 @@ function renderOnce(ctx, style, spec) {
   const bust = bustOf(style, spec);
   const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
   const used = bust ? { ...style, kvMeta: bust.meta } : style;
-  return { html: cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), tr: LAST_TR, styleUsed: used };
+  return { html: logoCap(cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), style), tr: LAST_TR, styleUsed: used };
+}
+// 로고는 원본 높이의 1.5배까지만 키운다 — 작은 원본을 프로필·로고 규격에 꽉 채우면 흐려진다(11-02 전수: low-res-logo 70장). 그 위로는 칸 안에서 그 크기로 둔다
+function logoCap(html, style) {
+  const H = style?.logoMeta?.px?.[1]; if (!(H > 0)) return html;
+  const cap = Math.floor(H * 1.5);
+  return html.replace(/(<img data-logo="1"[^>]*?style="[^"]*?)height:(\d+)px/g, (m, head, n) => (+n > cap ? `${head}height:${cap}px` : m));
 }
 // 직접 지정한 보여 줄 영역(kvMeta.manual.region, 왼쪽 위 기준 그림 몫 0~1) — 그린 뒤 그림 칸마다 영역이 칸에 맞게 배율·위치를 다시 건다. 규격별 배치 경로(덮기·통째로·당겨 채우기·상반신)와 상관없이 한 자리에서 정해 어느 규격에서나 반영된다.
 //   칸은 그대로(틀 규격 그림 칸 규정을 안 건드린다). 바탕 있는 그림은 칸을 다 덮는 배율 아래로 안 내려가 빈틈이 없다 — 칸과 영역 비율이 크게 다르면 영역 일부가 칸 밖으로 나갈 수 있다. 누끼는 빈틈이 괜찮으니 영역이 늘 다 들어온다. 잘린 변은 뒤이어 cutFade 가 녹인다
@@ -297,7 +303,16 @@ export function withAiShapes(html, style, spec) {
   const divs = S.map((sh, i) => `<div data-ai-shape="${i}" aria-hidden="true" style="position:absolute;left:${r1(sh.x * W)}px;top:${r1(sh.y * H)}px;width:${r1(sh.w * W)}px;height:${r1(sh.h * H)}px;background:${sh.color};opacity:${sh.opacity};border-radius:${sh.kind === 'rect' ? '0' : sh.kind === 'pill' ? '9999px' : '50%'};${sh.blur ? `filter:blur(${r1(sh.blur * m)}px);` : ''}pointer-events:none"></div>`).join('');
   return html.replace(/(<div data-ad="1"[^>]*>)/, `$1${divs}`);
 }
+// 규격 모양에 맞는 키비주얼 고르기(N4): 가로로 긴 지면(폭/높이 ≥ 1.6)은 가로형, 세로로 긴 지면(≤ .8)은 세로형, 없으면 기본. 그림 바꿈과 함께 AI 조각은 쓰지 않는다(다른 그림의 판단이라)
+export function pickKvVariant(style, spec) {
+  const V = style?.kvVariants; if (!V || !(spec?.w > 0 && spec?.h > 0)) return style;
+  const ar = spec.w / spec.h, v = ar >= 1.6 ? V.wide : ar <= 0.8 ? V.tall : null;
+  if (!v?.keyVisual) return style;
+  const { aiKvBox, aiFade, aiKvOrig, aiKvMetaOrig, ...rest } = style;
+  return { ...rest, keyVisual: v.keyVisual, kvMeta: v.kvMeta ?? rest.kvMeta };
+}
 export function renderAd(ctx, style, spec) {
+  style = pickKvVariant(style, spec);
   return withAiShapes(renderAdInner(ctx, style, spec), style, spec);
 }
 function renderAdInner(ctx, style, spec) {
@@ -1558,7 +1573,7 @@ function renderAdBase(ctx, style, spec) {
     if (hasKv) {
       const photo = kvKind ? kvKind !== 'cutout' : (style.kvMeta?.field?.opaque ?? 1) >= 0.5;   // 누끼는 종류가 정해졌으면 무조건 contain(10-16 오후 사용자: 로켓 누끼가 cover 로 잘림)
       const img = photo
-        ? `<div data-object="1" data-kv-only="1" style="position:absolute;inset:0;background:url('${esc(style.keyVisual)}') center/cover no-repeat"></div>`
+        ? `<div data-object="1" data-kv-only="1" style="position:absolute;inset:0;background:url('${esc(style.keyVisual)}') ${coverPos(style, w, h, { fallback: 'center' }).pos}/cover no-repeat"></div>`   /* 가운데 고정이면 아래쪽 주인공이 잘렸다 — 주인공 기준(11-02 전수 · Notion #2) */
         : `<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.07)}px;top:${Math.round(h * 0.08)}px;width:${Math.round(w * 0.86)}px;height:${Math.round(h * 0.84)}px;background:url('${esc(style.keyVisual)}') center/contain no-repeat"></div>`;
       return `${open('padding:0')}${img}</div>`;
     }

@@ -4684,6 +4684,96 @@
    "since": "2026-11-02",
    "round": 76,
    "source": "history/2026-11-02_그라데이션_영역지정.md"
+  },
+  {
+   "id": "overflow-hidden-line",
+   "category": "자동 검사",
+   "scope": "all",
+   "status": "active",
+   "rule": "글자 잘림은 숨은 줄이 있을 때(줄 높이 절반 초과로 넘침)와 한 줄 고정 글자가 옆으로 넘칠 때만 잡는다. 글꼴 위아래 여백으로 생긴 scrollHeight 차이는 잘림이 아니다",
+   "value": "scrollHeight−clientHeight > max(2, lh×.5)",
+   "where": "app/measure.js · scripts/lib/lint-extra.mjs",
+   "evidence": [
+    "11-02 전수 1,320장: 잘림 차단 516건이 전부 Kakao Big Sans 오탐"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
+  },
+  {
+   "id": "text-height-glyph",
+   "category": "자동 검사",
+   "scope": "all",
+   "status": "active",
+   "rule": "매체 「텍스트 높이」 규정(네이버 22~52px)은 글꼴 크기가 아니라 글자 높이로 잰다",
+   "value": "CANON.hangulInk .92",
+   "where": "core/lint.js",
+   "evidence": [
+    "네이버 PDF p.6 · 틀 56px 은 글자 높이 51.5 — 늘 차단이던 것"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
+  },
+  {
+   "id": "logo-inset",
+   "category": "매체 규정",
+   "scope": "all",
+   "status": "active",
+   "rule": "로고 여백이 글자 여백과 다른 규격은 safeArea.logoInset 으로 따로 잰다",
+   "value": "everytime-home-card-image 30",
+   "where": "core/lint.js · core/media/everytime.json",
+   "evidence": [
+    "규정 「로고 상하좌우 30 · 글자 좌우 50」"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
+  },
+  {
+   "id": "main-char-guard",
+   "category": "타이포",
+   "scope": "all",
+   "status": "active",
+   "rule": "틀 메인·서브는 줄 수 사다리 뒤에 규격 글자수를 한 번 더 본다: 들어가는 후보 → 고객사만 · 일정 고지는 「공고별 상이」로. 두줄형은 줄마다 센다",
+   "value": "templateMold.charLimit",
+   "where": "core/renderers/ad.js · core/lint.js",
+   "evidence": [
+    "11-02 전수 chars 35건"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
+  },
+  {
+   "id": "client-to-sub-18",
+   "category": "타이포",
+   "scope": "all",
+   "status": "active",
+   "rule": "자소설 160×600 기업명은 7~18자면 서브 줄로 올린다. 19자 이상만 생략",
+   "value": "mold.clientLen.subRanges [[7,18]]",
+   "where": "core/media/jasoseol.json",
+   "evidence": [
+    "노션 #1 은 9자·16자 생략을 오류로 적었다"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
+  },
+  {
+   "id": "logo-cap",
+   "category": "로고",
+   "scope": "all",
+   "status": "active",
+   "rule": "로고는 원본 높이의 1.5배까지만 그린다",
+   "value": "logoCap",
+   "where": "core/renderers/ad.js",
+   "evidence": [
+    "11-02 전수 low-res-logo 120건"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
   }
  ]
 }

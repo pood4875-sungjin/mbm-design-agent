@@ -89,3 +89,15 @@ test('⑥ 영역이 없으면 지금과 똑같다 · AI 그림 상자보다 사�
   const dr = dragRegion('draw', null, { x: 0.8, y: 0.8 }, { x: 0.2, y: 0.3 }); assert.deepEqual(dr, { x: 0.2, y: 0.3, w: 0.6, h: 0.5 });
   const se = dragRegion('se', REG, { x: 0, y: 0 }, { x: 0.71, y: 0.11 }); assert.ok(se.w >= 0.049 && se.h >= 0.049, JSON.stringify(se));
 });
+
+test('⑦ 규격 모양별 키비주얼(N4): 가로로 긴 규격은 가로형, 세로로 긴 규격은 세로형, 그 밖은 기본 · 없으면 기본', async () => {
+  const { pickKvVariant } = await import('../core/renderers/ad.js');
+  const W = 'data:image/png;base64,V0lERQ==', T = 'data:image/png;base64,VEFMTA==';
+  const st = normalizeStyle({ colors: ['#123456'], keyVisual: PNG, kvMeta: META, kvVariants: { wide: { keyVisual: W, kvMeta: META }, tall: { keyVisual: T, kvMeta: META } } });
+  assert.equal(pickKvVariant(st, { w: 2240, h: 360 }).keyVisual, W);
+  assert.equal(pickKvVariant(st, { w: 160, h: 600 }).keyVisual, T);
+  assert.equal(pickKvVariant(st, { w: 1200, h: 1000 }).keyVisual, PNG);
+  assert.equal(pickKvVariant(normalizeStyle({ keyVisual: PNG, kvMeta: META }), { w: 2240, h: 360 }).keyVisual, PNG);
+  const sp = adSpecGroups().find(g => g.id === 'remember-main-top-pc').entry;
+  assert.ok(renderAd(CTX, st, sp).includes(W), '소재에 실제로 가로형');
+});

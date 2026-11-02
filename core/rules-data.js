@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: ref/learned/rules.json, 빌드: node scripts/build-rules.mjs
-// 장부 갱신 2026-11-02 · 가이드 검수 짝 62건
+// 장부 갱신 2026-11-02 · 가이드 검수 짝 63건
 export const RULES_DATA = {
  "updated": "2026-11-02",
  "rules": [
@@ -435,6 +435,13 @@ export const RULES_DATA = {
    "rule": "틀 규격(mold 있는 규격)에서 틀 실측 대조(mold.*)가 ✗ 면 승인 게이트가 차단(blocked) — 규정 위반과 같다. 앱은 approvalGate 에 guide 줄 목록(a.guide.rows)을 넘겨야 한다",
    "value": "approvalGate({ guide }) → level block ✗ → blocked",
    "where": "core/gate.js (approvalGate guide)",
+   "status": "active"
+  },
+  {
+   "id": "logo-cap",
+   "rule": "로고는 원본 높이의 1.5배까지만 그린다",
+   "value": "logoCap",
+   "where": "core/renderers/ad.js",
    "status": "active"
   }
  ]

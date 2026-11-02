@@ -47,15 +47,15 @@ test('#1 (a) 음절 덩어리 — syllableChunks 고른 길이 · softBreakLong 
   assert.equal(estimateLines('세아제강\n신입/경력사원 채용', 15), 2);
 });
 
-test('#1 (b) 자소설 PC채용공고 160×600 기업명 글자수 기준(mold.clientLen): 6자 이하 메인 두 줄 · 7~8·10~15자 서브로 · 9·16자↑ 생략(로고가 대신)', () => {
+test('#1 (b) 자소설 PC채용공고 160×600 기업명 글자수 기준(mold.clientLen): 6자 이하 메인 두 줄 · 7~18자 서브로 — 노션 원문은 9자·16자 생략을 오류로 적었다(11-02 전수조사)', () => {
   const sp = specs['jasoseol-pc-premium-jobpost-pc'];
   assert.deepEqual(specOf('jasoseol-pc-standard-jobpost-pc').safeArea.measuredFromTemplate.mold.clientLen, sp.rules.safeArea.measuredFromTemplate.mold.clientLen);
   const run = client => { const h = renderAd(ctxOf({ client, hiringType: '신입/경력 채용', role: '영업', deadline: '2026-11-20', season: '2026 하반기' }), style, sp); return { main: fieldOf(h, 'main'), sub: fieldOf(h, 'sub'), rules: rulesOf(h) }; };
   const r4 = run('세아제강'); assert.equal(r4.main, '세아제강\n신입/경력 채용'); assert.equal(r4.sub, '2026 하반기');
   const r8 = run('인천국제공항보안'); assert.equal(r8.main, '신입/경력 채용'); assert.ok(r8.sub.includes('인천국제공항보안'), r8.sub); assert.ok(r8.rules.includes('templateMold.clientToSub'));
-  const r9 = run('인천국제공항보안공'); assert.equal(r9.main, '신입/경력 채용'); assert.ok(!r9.sub.includes('인천국제공항보안공')); assert.ok(r9.rules.includes('templateMold.clientDropped'));
+  const r9 = run('인천국제공항보안공'); assert.equal(r9.main, '신입/경력 채용'); assert.ok(r9.sub.includes('인천국제공항보안공'), r9.sub);
   const r12 = run('현대오일터미널 주식회사'); assert.equal(r12.main, '신입/경력 채용'); assert.ok(r12.sub.includes('현대오일터미널'), r12.sub);
-  const r16 = run('한미글로벌&터너앤타운젠드코리아'); assert.equal(r16.main, '신입/경력 채용'); assert.equal(r16.sub, '2026 하반기'); assert.ok(r16.rules.includes('templateMold.clientDropped'));
+  const r16 = run('한미글로벌&터너앤타운젠드코리아'); assert.equal(r16.main, '신입/경력 채용'); assert.ok(r16.sub.replace(/\u200b/g, '').includes('한미글로벌&터너앤타운젠드코리아'), r16.sub);
 });
 
 test('#1 (d) 채용 구분이 비면 「채용」을 지어 넣지 않는다 — 「현대오일터미널 주식회사」 그대로, 직무도 「생산전문직」(채용 없이). 고용형태가 있으면 「정규직 채용」은 그대로', () => {
