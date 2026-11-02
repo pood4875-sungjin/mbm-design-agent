@@ -20,7 +20,7 @@ test('샘플 4개 전부 채용으로 읽히고 필수 4가지(고객사·채용
 test('GS에너지 — 시즌 2025년 · 신입 공채 · 6.20(금)~7.2(수) 17시 · 모집분야', () => {
   const r = extractRecruit(SAMPLES[0], NOW);
   assert.equal(r.client, 'GS에너지'); assert.equal(r.season, '2025년'); assert.equal(r.hiringType, '신입 공채');
-  assert.equal(r.startDate, '2027-06-20'); assert.equal(r.deadline, '2027-07-02'); assert.equal(r.deadlineTime, '17:00');   // 지난 날짜는 내년으로(앞날의 일)
+  assert.equal(r.startDate, '2025-06-20'); assert.equal(r.deadline, '2025-07-02'); assert.equal(r.deadlineTime, '17:00');   // 11-02: 시즌 연도(2025년)가 있으면 그 해 — 요일 (금)·(수)도 2025 에 맞는다(전엔 「지난 날짜는 내년」으로 2027 → 소재 요일 틀어짐)
   assert.equal(r.role, '일반(사업, 재무 등), 보훈(사업/경영지원)');
   assert.deepEqual(detectMedia(SAMPLES[0]), ['jasoseol', 'instagram', 'blind']);
 });
@@ -44,7 +44,7 @@ test('제일약품 — 「ETC 영업 채용(전국)」: 채용 구분 = 직무 �
   const r = extractRecruit(SAMPLES[3], NOW);
   assert.equal(r.client, '제일약품'); assert.equal(r.season, '2026년'); assert.equal(r.role, 'ETC 영업');
   assert.equal(r.hiringType, 'ETC 영업 채용(전국)'); assert.equal(r.location, '전국');
-  assert.equal(r.deadline, '2027-01-18'); assert.equal(r.deadlineTime, '23:59'); assert.equal(r.startDate, undefined);
+  assert.equal(r.deadline, '2026-01-18');   // 시즌 2026년 + (일) 요일 일치(11-02) assert.equal(r.deadlineTime, '23:59'); assert.equal(r.startDate, undefined);
 });
 
 test('공고 본문을 붙여 넣어도 같은 값 — 레퍼런스 꼴 여러 줄(ABL생명·LT소재)', () => {
@@ -53,6 +53,6 @@ test('공고 본문을 붙여 넣어도 같은 값 — 레퍼런스 꼴 여러 �
   assert.equal(abl.role, '영업마케팅, 상품/계리/리스크, 경영지원, IT, 보험지원');
   const lt = extractRecruit('2026년 LT소재 경력 및 신입사원 채용. 6/22(월)~7/1(수) 23:59. 모집직무: 연구직, 영업직, 사무직\n* 작성 예정', NOW);
   assert.equal(lt.client, 'LT소재'); assert.equal(lt.season, '2026년'); assert.equal(lt.hiringType, '경력 및 신입사원');
-  assert.equal(lt.startDate, '2027-06-22'); assert.equal(lt.deadline, '2027-07-01'); assert.equal(lt.deadlineTime, '23:59');
+  assert.equal(lt.startDate, '2026-06-22'); assert.equal(lt.deadline, '2026-07-01');   // 시즌 2026년 · (월)(수) 일치(11-02) assert.equal(lt.deadlineTime, '23:59');
   assert.equal(lt.role, '연구직, 영업직, 사무직'); assert.equal(lt.notice, '* 작성 예정');
 });

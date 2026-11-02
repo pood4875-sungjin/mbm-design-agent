@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AX 디자인 에이전트 노하우</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mute:#6b6b6b;--line:#e5e5e5}
+@media (prefers-color-scheme:dark){:root{--bg:#161616;--fg:#ececec;--mute:#9a9a9a;--line:#2e2e2e;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;font-size:16px;line-height:1.7}
+.wrap{max-width:720px;margin:0 auto;padding:56px 20px 80px}
+h1{font-size:1.75rem;line-height:1.3;margin:0 0 8px;font-weight:700}
+h2{font-size:1.2rem;margin:48px 0 12px;padding-top:16px;border-top:1px solid var(--line);font-weight:700}
+h3{font-size:1rem;margin:24px 0 4px;font-weight:600}
+p{margin:8px 0}
+.sub{color:var(--mute);font-size:.9rem;margin:0 0 24px}
+.meta{color:var(--mute);font-size:.9rem;margin:16px 0}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+li p{margin:2px 0}
+a{color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--mute)}
+a:hover{text-decoration-color:currentColor}
+pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:transparent;border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0;line-height:1.6}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem;margin:10px 0}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--mute);font-size:.82rem}
+td:first-child{white-space:nowrap}
+.tbl{overflow-x:auto}
+.now{font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>AX 마케팅 디자인 에이전트 — 만든 방법과 노하우</h1>
+<p class="sub">공유용 · 2026-10-30 · 김성진</p>
+
+<p>채용 정보 한 줄과 키비주얼 한 장을 넣으면 자소설닷컴·카카오·리멤버·에브리타임·구글 등 매체 규격에 맞춰 광고 소재를 한 번에 만들어 주는 에이전트입니다. 컨시어지 조직이 실제 캠페인에 쓰고 있고, 매주 월요일 정기 미팅에서 사용 현황을 보고 요청을 받아 고도화합니다.</p>
+
+<p class="meta">
+원본 앱 <a href="https://pood4875-sungjin.github.io/mbm-design-agent/app/">/app/</a> ·
+홈페이지형 작업 화면 <a href="https://pood4875-sungjin.github.io/mbm-design-agent/hub/">/hub/</a> ·
+피그마형 편집기 <a href="https://pood4875-sungjin.github.io/mbm-design-agent/hub/pro.html">/hub/pro.html</a><br>
+매체 15 · 규격 90(전달 48) · 디자인 규칙 약 200 · 자동 테스트 582 · 커밋 330+ (8월~)
+</p>
+
+<h2>1. 무엇을 하는 도구인가</h2>
+<p><b>입력</b> 채용 정보(회사·채용 구분·접수 기간·직무), 키비주얼, 로고와 브랜드색<br>
+<b>출력</b> 매체별 광고 이미지(PNG/JPG)와 수정용 SVG. 파일명·용량·규격은 매체 제출 양식대로</p>
+<p><b>원칙</b></p>
+<ul>
+<li>정보는 시스템이, 표현은 디자이너가. 글자·로고·매체 규정은 규칙으로 고정하고 그림 배치와 배경만 AI가 판단</li>
+<li>비어 있는 정보는 추측해서 채우지 않음. 회사명이 없으면 물어봄</li>
+<li>내보내기 전에 사람이 승인. 규정 위반은 「차단」, 승인분만 ZIP으로</li>
+</ul>
+
+<h2>2. 어떻게 만들었나 — 노하우 6가지</h2>
+<p>Claude Code(터미널에서 코드를 읽고 고치는 AI)와 8월부터 만들었습니다. 기술보다 「AI에게 무엇을 기준으로 주느냐」가 결과를 갈랐습니다.</p>
+
+<h3>① 매체 규정을 문서가 아니라 데이터로</h3>
+<p>매체별 가이드(크기, 글자 수, 로고 유무, 금지 배경색, 폰트)를 PDF로 두지 않고 매체마다 JSON 파일 하나로 만들었습니다. 렌더러·검수기·가이드 문서가 모두 이 파일을 읽습니다. 규정이 바뀌면 한 곳만 고칩니다.</p>
+
+<h3>② 기준은 말이 아니라 샘플 실측으로</h3>
+<p>「패딩 좀 더 줘」로는 끝이 없었습니다. 담당 디자이너의 피그마 소재를 규격마다 실측(글자 위치·크기·굵기·로고 칸·그림 칸)해 「구멍 뚫린 틀」로 만들었습니다. 배경색·키비주얼·글자만 바뀌고 나머지는 틀 그대로. 틀과 ±2px 벗어나면 승인이 막힙니다.</p>
+
+<h3>③ 깨지는 그림을 모아 케이스 장부로</h3>
+<p>실제 키비주얼 107장을 전 규격에 넣어 깨지는 곳(얼굴 잘림, 글자 겹침, 지면색 어색)을 찾아 규칙으로 만들고 다시 전부 돌려 회귀를 봅니다. 57라운드 반복해 경고 190개를 수십 개로 줄였습니다.</p>
+
+<h3>④ AI가 맥락을 잃지 않게 히스토리 폴더를</h3>
+<p>작업이 끝날 때마다 날짜별 기록과 브리핑(지금 어디, 정해야 할 것)을 남기고, AI는 새 작업 시작 때 이 폴더부터 읽습니다. 다른 계정·다른 날에 이어 받아도 바로 이어집니다. 규칙마다 「누가 언제 왜」 근거를 붙였습니다.</p>
+
+<h3>⑤ 반복 작업은 스킬로</h3>
+<p>키비주얼 검수, 누끼, 로고 정리, 피그마 비교, 히스토리 기록, 배포처럼 매번 같은 순서로 하는 일은 한 단어 명령(스킬 13개)으로 묶었습니다.</p>
+
+<h3>⑥ 고칠 때마다 테스트를</h3>
+<p>담당자 요청 하나를 반영하면 그 사례를 테스트로 남깁니다(현재 582건). 다음에 다른 걸 고쳐도 이전 요청이 다시 깨지지 않습니다.</p>
+
+<h2>3. 작업 프로세스</h2>
+<ol>
+<li><b>요청 모으기</b> — 컨시어지 조직이 Notion 「컨시어지 요청 리스트」에 적고, 매주 월요일 미팅에서 사용 현황과 함께 훑음 (최근 10-28 한 번에 19건)</li>
+<li><b>코드와 대조</b> — 요청마다 걸리는 곳과 상태(고침 / 규칙만 / 새 기능 / 결정 필요 / 이미 됨)를 표로. 결정 필요한 건 먼저 물음</li>
+<li><b>갈래별 반영</b> — 매체 규칙 · 렌더러 · 앱 · 문장 파서로 나눠 동시에. 요청마다 테스트 추가</li>
+<li><b>전수 검사</b> — 자동 테스트 전부 + 케이스 장부 재실행. 앱 띄워 콘솔 오류 0 확인</li>
+<li><b>기록</b> — 날짜별 기록, 브리핑, 규칙 장부 갱신</li>
+<li><b>푸시 = 배포</b> — main에 올리면 GitHub Pages에 바로 반영</li>
+</ol>
+
+<h2>4. 요청 방식</h2>
+<h3>개선 요청(Notion)에 넣으면 좋은 것</h3>
+<div class="tbl"><table>
+<tr><th>항목</th><th>내용</th><th>왜</th></tr>
+<tr><td>매체 · 규격</td><td>「자소설닷컴 PC 채용공고 160×600」처럼 규격까지</td><td>규격마다 규칙이 다름</td></tr>
+<tr><td>지금 결과</td><td>문제가 보이는 결과 이미지</td><td>같은 조건으로 재현해야 고침</td></tr>
+<tr><td>기준 샘플</td><td>디자이너가 만든 정답(피그마 링크·이미지)</td><td>실측해서 틀로 만듦</td></tr>
+<tr><td>원하는 기준</td><td>「6자까지 OK, 7자부터 서브로」처럼 숫자로</td><td>그대로 규칙·테스트가 됨</td></tr>
+<tr><td>우선순위</td><td>상 / 중 / 하</td><td>여러 건일 때 순서</td></tr>
+</table></div>
+<p><b>좋은 예</b> 「리멤버 1005×360에서 PC와 MO 메인 문구가 달라요. 규정상 같아야 합니다. (결과 이미지 2장 첨부)」<br>
+<b>아쉬운 예</b> 「글씨가 좀 이상해요」 — 어느 매체·규격인지, 무엇과 비교해 이상한지 없어 재현부터 막힘</p>
+
+<h3>앱 첫 화면에 공고 적는 법</h3>
+<p>첫 화면 문장은 AI 추측이 아니라 적힌 글자만 읽는 규칙으로 칸을 채웁니다. 아래 순서를 지키면 빠짐없이 읽히고, 읽은 값은 칸에 보이니 틀리면 바로 고치면 됩니다.</p>
+<pre>[시즌] 고객사 채용구분 채용. 접수시작 ~ 마감 [시각]. 모집분야: 직무1, 직무2. 매체1, 매체2</pre>
+<pre>GS에너지 2025년 신입 공채. 접수 6.20(금)~7.2(수) 17시.
+모집분야 일반(사업, 재무 등), 보훈(사업/경영지원). 자소설닷컴, 인스타그램, 블라인드.</pre>
+<ul>
+<li>고객사는 맨 앞(시즌 뒤), 띄어쓰기 없이 한 덩어리. 「주식회사」「(주)」 붙여도 됨</li>
+<li>기간은 「시작 ~ 마감」 또는 「…까지」. 시각은 날짜 뒤에</li>
+<li>직무는 「모집분야:」 뒤에 쉼표로</li>
+<li>공고문 파일(txt·PDF·docx) 첨부해도 같은 규칙으로 읽음</li>
+</ul>
+
+<h2>5. 지금 어디까지</h2>
+<div class="tbl"><table>
+<tr><td>08-10</td><td>뼈대. 캠페인 정보 → 배너 3종 렌더, 설계 문서</td></tr>
+<tr><td>09-28</td><td>매체 가이드 15개를 데이터로. 자소설 샘플 수준까지</td></tr>
+<tr><td>10-06</td><td>실제 키비주얼로 전 규격 검증 시작. 키비주얼 유형 분류, 자동 검수기, 케이스 장부</td></tr>
+<tr><td>10-14</td><td>피그마 가이드 파일, SVG 내보내기, 무료 폰트 탑재</td></tr>
+<tr><td>10-15</td><td>「구멍 뚫린 틀」 전수. 자소설 10규격 + 리멤버·잡다·에브리타임·캐치·GDN·NAP</td></tr>
+<tr><td>10-20</td><td>출고 규정·승인 게이트. 규격 등급 A/B/C, 차단/검수 필요/승인 가능</td></tr>
+<tr><td>10-22</td><td>하이브리드 A+AI. 그림 판단만 AI(캠페인당 약 30원), 글자·로고는 규칙</td></tr>
+<tr><td>10-26</td><td>통합 홈, 피그마형 편집기, 홈페이지형 작업 화면</td></tr>
+<tr class="now"><td>10-28</td><td>컨시어지 요청 19건 전체 반영 · 배포 ← 지금</td></tr>
+</table></div>
+<ul>
+<li>① 매체 규정 데이터화 — 완료(15매체 · 90규격)</li>
+<li>② 디자인 규칙 다듬기 — 진행 중. 키비주얼을 바꿔 가며 깨지는 곳을 규칙화하는 루프</li>
+<li>③ 실사용 피드백 반영 — 진행 중. 매주 월요일 미팅 + Notion 요청 리스트</li>
+<li>④ 사람 판정으로 검수 기준 보강 — 시트 준비, 누적은 시작 전</li>
+</ul>
+<p><b>다음</b> 결정 대기 3건(자소설 라벨 통일, SVG 1배, 긴 기업명 기준) 확인 → 카카오 비즈보드 두줄형 수치 입수 → 홈페이지형 작업 화면에 앱 기능 8개 이식</p>
+
+<p class="meta">정본: <code>history/00_브리핑.md</code> · 요청 대조표 <code>docs/concierge-requests-2026-10-28.md</code> · 문장 형식 <code>docs/message-format.md</code></p>
+
+</div>
+</body>
+</html>

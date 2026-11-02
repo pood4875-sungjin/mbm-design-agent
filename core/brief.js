@@ -5,7 +5,8 @@
 const pad2 = n => String(n).padStart(2, '0');
 // 날짜 읽기 — 2026-10-31 · 2026.10.31 · 2026년 10월 31일 · 10월 31일 · 10/31. 읽지 못하면 null(추측하지 않는다).
 // 연도가 없으면 올해로 읽되, 그 날이 이미 지났으면 내년이다 — 마감도 행사도 앞날의 일이다.
-export function normDate(s, now = new Date()) {
+//   yearHint(11-02): 문장에 시즌 연도(「2025년 신입 공채」)가 있으면 연도 없는 날짜는 그 해다 — 올해/내년 추정이 「6.20(금)」을 2027로 읽어 요일이 틀어지던 것(GS에너지 샘플)
+export function normDate(s, now = new Date(), yearHint = null) {
   const t = String(s ?? '').replace(/\s?\([월화수목금토일]\)/g, '').trim();   // 10-21: 「6.20(금)」의 요일 괄호
   let y, mo, d;
   let m = t.match(/(\d{4})\s?[-./년]\s?(\d{1,2})\s?[-./월]\s?(\d{1,2})/);
@@ -14,8 +15,11 @@ export function normDate(s, now = new Date()) {
     m = t.match(/(\d{1,2})\s?월\s?(\d{1,2})\s?일?/) ?? t.match(/^~?\s?(\d{1,2})\s?[./]\s?(\d{1,2})\.?$/);
     if (!m) return null;
     mo = +m[1]; d = +m[2];
-    y = now.getFullYear();
-    if (new Date(y, mo - 1, d, 23, 59, 59) < now) y += 1;
+    if (yearHint) y = yearHint;
+    else { y = now.getFullYear(); if (new Date(y, mo - 1, d, 23, 59, 59) < now) y += 1; }
+    // 요일 괄호 「(금)」가 있으면 그 요일이 맞는 해를 고른다(시즌 연도 → 올해 → 내년 → 작년 순) — 연도 추정이 틀리면 소재의 요일이 틀어진다
+    const wd = String(s ?? '').match(/\(([월화수목금토일])\)/)?.[1];
+    if (wd) { const W = '일월화수목금토'; const cands = [...new Set([y, yearHint, now.getFullYear(), now.getFullYear() + 1, now.getFullYear() - 1].filter(v => v))]; const hit = cands.find(v => W[new Date(v, mo - 1, d).getDay()] === wd); if (hit) y = hit; }
   }
   const dt = new Date(y, mo - 1, d);
   if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
@@ -83,9 +87,10 @@ export function extractRecruit(text, now = new Date()) {
   // 10-28 피에스케이 「2026년 10월 27일 00:00~2026년 12월 31일 23:50」 — 시작 날짜 뒤에 시각이 붙어도 기간이다
   const range = dates.slice(0, -1).map((d, i) => [d, dates[i + 1]]).find(([a, b]) => /^\s*(?:\d{1,2}(?::\d{2})?\s?시?)?\s*(~|-|–|—|부터|에서)\s*$/.test(t.slice(a.end, b.at)));
   const pick = marked ?? (range ? range[1] : dates.length === 1 ? dates[0] : null);
-  const iso = pick && normDate(pick.s, now);
+  const yearHint = (() => { const sm = t.match(SEASON); const y = sm && sm[1].match(/^(19|20)\d{2}/)?.[0]; return y ? +y : null; })();   // 시즌 연도 → 연도 없는 날짜의 해(11-02)
+  const iso = pick && normDate(pick.s, now, yearHint);
   if (iso) out.deadline = iso;
-  let iso0 = range && normDate(range[0].s, now);
+  let iso0 = range && normDate(range[0].s, now, yearHint);
   // 연도 없는 기간 「9/28~10/12」: 날짜마다 따로 올해/내년을 고르면 시작이 마감 뒤로 갈 수 있다 — 시작은 마감보다 앞이어야 하므로 한 해 당긴다
   if (iso0 && iso && iso0 > iso) iso0 = `${+iso0.slice(0, 4) - 1}${iso0.slice(4)}`;
   if (iso0 && iso) out.startDate = iso0;

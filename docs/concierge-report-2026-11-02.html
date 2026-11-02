@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컨시어지 요청 검증 보고 11-02</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mute:#6b6b6b;--line:#e5e5e5;--ok:#1d7a4a;--warn:#b4600e;--hold:#6b6b6b}
+@media (prefers-color-scheme:dark){:root{--bg:#161616;--fg:#ececec;--mute:#9a9a9a;--line:#2e2e2e;--ok:#5fcf8f;--warn:#f0a64a;--hold:#9a9a9a;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;font-size:15px;line-height:1.65}
+.wrap{max-width:1100px;margin:0 auto;padding:48px 20px 80px}
+h1{font-size:1.6rem;margin:0 0 6px}
+h2{font-size:1.2rem;margin:44px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+h3{font-size:1rem;margin:22px 0 6px}
+p{margin:8px 0}
+.sub{color:var(--mute);font-size:.9rem;margin:0 0 20px}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:10px 0}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--mute);font-size:.8rem;white-space:nowrap}
+td:first-child{white-space:nowrap;color:var(--mute)}
+.tbl{overflow-x:auto}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84em}
+.s{white-space:nowrap;font-weight:600}
+.ok{color:var(--ok)} .pt{color:var(--warn)} .hd{color:var(--hold)}
+ul,ol{padding-left:22px;margin:6px 0} li{margin:4px 0}
+.sum{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 4px;font-size:.95rem}
+.sum b{font-size:1.3rem;font-variant-numeric:tabular-nums;margin-right:4px}
+.note{color:var(--mute);font-size:.88rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>컨시어지 요청 31건 — 반영·검증 보고</h1>
+<p class="sub">2026-11-02 · Notion 「마케팅 에이전트 대시보드」 세 표(요청 13 · 개발중 6 · 개발 완료 12) 전부, 하위 링크 포함 읽음 · 검증은 실제 렌더·lint·헤드리스 브라우저·테스트로 돌림(에이전트 2개) · 코드 기준 main ed5a8f8 + 11-02 작업분(미커밋)</p>
+
+<div class="sum">
+  <span><b>31</b>항목</span>
+  <span class="ok"><b>24</b>통과</span>
+  <span class="pt"><b>3</b>일부(결정 필요)</span>
+  <span class="hd"><b>4</b>보류·대기</span>
+  <span><b>607</b>자동 테스트 통과(실패 0)</span>
+</div>
+<p class="note">체크 뜻 — <span class="ok">✓ 통과</span>: 돌려서 확인 · <span class="pt">△ 일부</span>: 되지만 결정·수치 필요 · <span class="hd">○ 보류</span>: 담당자 자료 대기 또는 범위 결정 전</p>
+
+<h2>1. 요청 리스트 13 (새 항목, 10-29~30 등록)</h2>
+<div class="tbl"><table>
+<tr><th>#</th><th>항목 (생성자·중요도)</th><th>요청 요약</th><th>어떻게 반영했나</th><th>검증 — 무엇을 돌려 무엇이 나왔나</th><th>체크</th></tr>
+<tr><td>N1</td><td>[공통] 오브젝트 형 가이드라인 적용 오류 (한희하·상)</td><td>누끼만 올려도 되게, 누끼면 오브젝트형 가이드(리멤버·에브리타임·비즈보드), 가로 누끼 잘림 최소화</td><td>키비주얼 칸 하나로(누끼/풀이미지 자동 판정, 오브젝트 누끼 칸 숨김) · 리멤버 6규격에 오브젝트형 칸 <code>mold.imageCutout</code>(844×284 · 346×304 · 880×192 · 412×252) · 틀 그림 칸의 누끼는 블리드 없이 통째로</td><td>렌더: 리멤버 top-pc/top-mo/mid-pc 그림 층 = 1316,38 844×284 / 605,28 346×304 / 1303,24 880×192 center/contain, 블리드 속성 없음 · 자소설 PC팝업·GDN 580 블리드 없음 · 앱에서 누끼 업로드 → 같은 결과</td><td class="s ok">✓</td></tr>
+<tr><td>N2</td><td>[공통] SVG 파일 내 이미지 전체 화질 개선 (박진화·상)</td><td>SVG 내보내기 시 그림 화질 저하</td><td>SVG 안 그림 조각 긴 변 상한 1,600 → 3,600px, 표시 3배까지(원본 초과 없음), JPEG 0.95 (<code>core/svgexport.js</code>)</td><td>SVG 생성: 1200×280 소재 전체 cover(원본 4000px) → <code>&lt;image&gt;</code> 3600×840(전 상한이면 1600×373) · 자소설 PC메인 KV 칸 1155×840(3배)</td><td class="s ok">✓ <span class="note">(원본이 작으면 원본 그대로 — 화질 향상은 원본까지)</span></td></tr>
+<tr><td>N3</td><td>[공통] 색상 스타일 설정 (한희하·중)</td><td>단색 불가·항상 그라데이션, 보조색 바꿔도 변화 없음 → 단색/그라데이션 분리, 1차 AI 추출</td><td>배경 컨트롤(자동/단색/그라데이션 + 지면색 직접)이 만들어져 있었지만 화면에 안 붙어 있던 것을 인테이크·인스펙터에 연결 · 그라데이션 고정 + 손으로 고른 색이면 두 번째 색 = 보조색</td><td>resolveField: gradient → [#1E4FD8, #E55927] · solid → 1색 · 인스펙터 「단색」 클릭 → GDN 소재 지면 단색, 미리보기 단색</td><td class="s ok">✓</td></tr>
+<tr><td>N4</td><td>[공통] 키비주얼 첨부 개수 제한 (한희하·중)</td><td>기본/가로/세로 여러 장 첨부, 잘리면 안 되는 곳 지정, 항상 중앙 배치 문제</td><td>썸네일 위 「주인공으로 읽은 곳」 상자 표시(확인 장치) + 클릭 = 포인트, 드래그 = 잘리면 안 되는 곳 (<code>app/kvfocus.js</code>, <code>kvMeta.manual</code>) → 크롭 기준으로 씀 · 사진 cover 에서도 주인공 60% 보이게</td><td>헤드리스: 오버레이 「주인공으로 읽은 곳(어림)」 보임 → 클릭 후 「직접 지정」·<code>kvMeta.manual.focus {x:.8,y:.3}</code> 저장·소재 다시 그려짐</td><td class="s pt">△ <span class="note">여러 장 첨부는 미착수</span></td></tr>
+<tr><td>N5</td><td>[공통] 브랜드컬러 외 폰트 색상 지정 (박진화·중)</td><td>규정 매체 외 글자색 직접 지정</td><td><code>style.textColor</code>(캠페인 공통·산출물 개별) — 자유 매체만, 규정 매체(자소설 11·리멤버 8·카카오 3·NAP 비즈보드) 잠금 · 지면 대비 3:1 미만 경고</td><td>헤드리스: #FFD200 지정 → 구글 소재 메인 #FFFFFF→#FFD200, 리멤버 그대로, 리멤버 인스펙터 「매체 규정 색 고정」 비활성</td><td class="s ok">✓</td></tr>
+<tr><td>N6</td><td>[공통] 피그마 연동 / 사이트 내부 편집 (박진화·중)</td><td>생성과 동시에 피그마에 파일 자동 생성, 또는 사이트 피그마화</td><td>미착수 — 지금은 SVG 내보내기 → 피그마 불러오기, 사이트 편집은 hub/pro.html 피그마형 편집기</td><td>Figma API 호출 코드 없음(확인)</td><td class="s hd">○ 범위 결정</td></tr>
+<tr><td>N7</td><td>[공통] 선택한 소재만 추출 (박진화·중)</td><td>「선택하기」 버튼, 클릭/드래그 다중 선택, 매체 그룹 선택 → ZIP/SVG</td><td>상단 「선택하기」 토글 · 카드 클릭 / 빈 곳 드래그 상자 / 매체 머리글 전체 / Space+드래그 화면 이동 · 내보내기 「선택한 소재만(n장)」 (<code>app/select.js</code>)</td><td>헤드리스: 3장 선택 → 「3장 선택」 표시 · 모달 「내보내기 — 선택 3장」 · ZIP+SVG 받은 파일 PNG 3 + SVG 3</td><td class="s ok">✓</td></tr>
+<tr><td>N8</td><td>[공통] 키비주얼 이미지 필수 업로드 (한희하·중)</td><td>누끼 단독 업로드 가능(둘 중 하나), 풀이미지→썸네일/풀이미지형, 누끼→오브젝트형</td><td>N1 과 같음(사용자 결정: 키비주얼 한 통로, 알아서 판단)</td><td>빈 칸 라벨 「키비주얼 (필수 · 누끼도 여기)」 · 오브젝트 누끼 칸 숨김 · 누끼만으로 17장 생성</td><td class="s ok">✓</td></tr>
+<tr><td>N9</td><td>[자소설닷컴] PC팝업배너 이미지 영역 수정 (박진화·중)</td><td>이미지 영역을 기존 자소설 가이드와 동일하게</td><td>550×400 그림 칸을 샘플 칸(293,187 249×183) → 공식 가이드 칸(240,184 310×216)</td><td>렌더: 사진 그림 층 240,184 310×216 · 틀 테스트 갱신</td><td class="s ok">✓</td></tr>
+<tr><td>N10</td><td>[자소설닷컴] PC채용공고배너 오류 (박진화·중)</td><td>서브 2줄형 고정(1줄이면 유동 안 됨), 모집직무 길면 「~외」 — 6줄까지 다 넣고 넘치면 「~등」</td><td>피그마 6유형 틀(30:1056~30:1712) 실측 → 서브 줄 수(1·2) × 메인 줄 수(2·3·4) 조합별 자리(서브 1줄이면 메인 117.5, 2줄이면 141 · 메인 간격 34 · 상세 = 마지막 메인 줄 + 57) 데이터로 적용(10-26 「141 고정」 대체) · 상세 줄임 접미 「~외」→「~등」 · 6행 한도는 이미 있음</td><td>6유형 전부 실제 문구로 렌더 → 피그마 실측과 최대 1.0px 차 · 피그마 스크린샷과 나란히 눈 확인 · 테스트 7조합</td><td class="s ok">✓</td></tr>
+<tr><td>N11</td><td>[자소설닷컴] PC메인배너 서브문구 SVG 폰트 오류 (박진화·중)</td><td>SVG 서브가 Regular 로 저장(화면은 Medium)</td><td>코드는 Medium(500) 그대로 냄 — 수정 없음, 테스트로 고정</td><td>실제 SVG 생성: <code>&lt;text font-size="22" font-weight="500"&gt;</code> · 렌더 font-weight 500</td><td class="s ok">✓ <span class="note">담당자 SVG 원본·Figma Pretendard Medium 설치 확인</span></td></tr>
+<tr><td>N12</td><td>[에브리타임] 문구/사이즈 오류 (한희하·보류)</td><td>5종 재설정(10-28 #19 와 같음)</td><td>10-28 반영됨(추출 5종) — 오늘 변경 없음</td><td>—</td><td class="s hd">○ 노션 보류</td></tr>
+<tr><td>N13</td><td>[NAPDSP] 새로운 가이드라인 제작 (한희하·보류)</td><td>7건(302×50 · 320×100 1/2줄 · 320×250 2/3줄 · 320×480 2/3줄), 피그마로 전달 예정</td><td>대기 — 피그마 파일 오면 틀 실측·적용</td><td>—</td><td class="s hd">○ 자료 대기</td></tr>
+</table></div>
+
+<h2>2. 개발중 6 (10-28 반영분, 노션 「반영중」) — 재검증</h2>
+<div class="tbl"><table>
+<tr><th>#</th><th>항목</th><th>요청 요약</th><th>어떻게 반영했나 (10-28 + 11-02 보강)</th><th>검증</th><th>체크</th></tr>
+<tr><td>#9</td><td>[자소설닷컴] 규정 미준수 소재 검수 승인 오류 (박진화·상)</td><td>규정 벗어난 소재가 승인 통과(PC메인·PC채용공고), 채용공고 레이아웃 6가지 학습</td><td>10-28 틀 실측 검사 18규칙 → 게이트. 11-02: 게이트 새던 곳 2 막음 — 틀 측정(비동기) 끝나기 전 「승인 가능」 → <code>pending</code>, 측정 실패 → <code>review</code>(<code>core/gate.js needsGuide</code>) · 6유형은 N10 과 함께 적용 중</td><td>approvalGate: guide 없음→pending · 오류→review · 어긋남(y +10px)→blocked · 정상→ready · 조합 5종 13규칙 전부 ✓</td><td class="s ok">✓ <span class="note">(6유형 틀 적용 완료)</span></td></tr>
+<tr><td>#8</td><td>[메세지 작성] 초기화면 (한희하·상)</td><td>4문장 중 3문장이 고객사·기간 등 빈칸</td><td>10-28 파서 <code>core/brief.js</code>. 11-02: 4문장 전부 정상 확인 — 담당자가 본 빈칸은 10-28 이전 파서 결과와 글자까지 일치(화면 캐시). AI 켜졌을 때 파서 값을 LLM 이 덮던 틈 막음</td><td>파서 + 앱 브리프 카드: 피에스케이·한미글로벌&·인천국제공항보안·현대오일터미널 주식회사 전부 고객사·채용구분·시작·마감·시각·직무 정상</td><td class="s ok">✓ <span class="note">담당자: 공개 주소 Shift+새로고침</span></td></tr>
+<tr><td>#6</td><td>[자소설닷컴] M시작배너 이미지 검수 기준 (박진화·상)</td><td>배경 없는 오브젝트는 배경 입혀 만들거나 미승인</td><td>10-28 전달물 검사: 알파 있으면 캠페인 지면색으로 합성 JPG, 인스펙터 「전달물 검사」 경고</td><td>헤드리스: 누끼 전달물 → 「배경 없는 이미지(투명 54%) — 지면색으로 배경을 합성합니다」</td><td class="s ok">✓</td></tr>
+<tr><td>#1</td><td>[공통] 문구 오류 (한희하·상)</td><td>띄어쓰기 없는 긴 글자 생략(GDN 전체·자소설 세로 1줄·달력·잡다 MO), 자동 「채용」 제거, 160×600 기준 6/7~8/9/10~15/16자</td><td>10-28 사다리 보강. 11-02: 원인 추가 — 틀 줄 수 어림이 한글 폭을 1em(실제 .87)으로 재서 6자도 음절로 끊김 → 글꼴별 폭 표 · 달력 8자 한 줄 축소 · 카카오 16자 두줄형(기업명/구분)</td><td>렌더 6/8/10/16자 × 8규격: 160×600 6자 2줄 끊김 없음 · 7~8·10~15자 서브로 · 9·16자 생략(담당자 기준) · GDN 전체 생략 재현 안 됨 · 비즈보드 16자 두줄형 · 「채용」 자동 삽입 0건</td><td class="s pt">△ <span class="note">달력 164×233 은 10자↑ 음절 끊김(틀 폭 한계, 매체 규정 6자) · 카카오 두줄형 수치 임시</span></td></tr>
+<tr><td>#2</td><td>[공통] 소재 이미지 적용 오류 (김혜원·상)</td><td>세로형(리멤버)에서 일부만 크롭, 자소설 그라데이션 어색</td><td>10-28 주인공 당김 60% + 녹임 캡. 11-02: cover 경로에 보일 부분 규칙이 없던 것 → <code>coverFit</code>(주인공 60% 보이게 배율↓) · 이미 잘린 주인공 녹임 캡 30% · 양쪽 끊김 녹임 합 ≤ 60%</td><td>세로 사진 × 리멤버 사이드 MO 보임 40→60%(배율 .673) · 자소설 M팝업 46→60%, 양옆 녹임 30/30 · 이음새 색 전부 자연스러움(전/후 PNG)</td><td class="s ok">✓ <span class="note">300×600 띠 「보일 기준」(상자 vs 캔버스) 결정</span></td></tr>
+<tr><td>#14</td><td>[추가 희망] 사이트 내 용량 수정 (박진화·하)</td><td>용량 초과 미통과 시 사이트에서 다운그레이드</td><td>10-28 <code>renderFit</code> 사다리(JPG 품질 → PNG 양자화 → 단색 배경), 카드 「용량 맞춤」 배지 — 코드 변경 없음</td><td>3000×2000 KV: 알바몬 big 47.4KB ≤ 50 · board 104KB → 단색 배경 19.8KB ≤ 30 · 리멤버 PNG 1220→562KB ≤ 600</td><td class="s pt">△ <span class="note">hub 작업 화면 내보내기·전달물 채널엔 미적용 — 담당자가 hub 로 뽑았으면 안 걸림</span></td></tr>
+</table></div>
+
+<h2>3. 개발 완료 12 (10-28 반영분, 노션 「반영완료」) — 실검증</h2>
+<div class="tbl"><table>
+<tr><th>#</th><th>항목</th><th>어떻게 반영했나</th><th>검증</th><th>체크</th></tr>
+<tr><td>#7</td><td>승인 차단 소재 SVG 내보내기</td><td>「미승인도 포함」 ZIP 에 <code>미승인_검토용/svg/</code>, 인스펙터 「SVG (수정용)」</td><td>헤드리스 ZIP+SVG: <code>v2/미승인_검토용/svg/</code> 23 SVG — 차단 소재는 PNG 없이 SVG 만</td><td class="s ok">✓</td></tr>
+<tr><td>#5</td><td>[카카오] 메인 문구 광고주 노출</td><td>비즈보드 메인에 고객사 필수(<code>mainMustIncludeClient</code>), lint <code>main-client</code> 차단, 두줄형</td><td>렌더 3사례 메인에 고객사 포함(16자는 두줄형) · 고객사 빠진 측정 → block</td><td class="s ok">✓</td></tr>
+<tr><td>#4</td><td>[리멤버] 배경색 규정</td><td>같은 색(ΔE≤1)만 차단, 근접색은 경고</td><td>lint: #FAFAFA → warn · #FFFFFF/#FDFDFD/#FF5414 → block · 브랜드색 통과</td><td class="s ok">✓</td></tr>
+<tr><td>#3</td><td>[리멤버] PC-모바일 메인문구 통일</td><td>리멤버 전 규격 메인 한 벌</td><td>렌더 8규격 × 2사례 메인 전부 동일</td><td class="s ok">✓</td></tr>
+<tr><td>#13</td><td>파일명 수정</td><td><code>기업명_매체_상품명_배너이름_WxH</code></td><td>실제 ZIP: <code>세아제강_자소설닷컴_PC프리미엄패키지_PC팝업배너_1100x800.png</code></td><td class="s ok">✓ <span class="note">「×」「—」 특수문자 ASCII 통일 여부</span></td></tr>
+<tr><td>#12</td><td>[카카오] PC디스플레이 폰트 규정</td><td>비즈보드만 Pretendard 고정, 디스플레이 자유</td><td>디스플레이 2규격 fixed false · Kakao Big Sans 그대로 · 폰트 경고 없음 / 비즈보드는 강제+경고</td><td class="s ok">✓</td></tr>
+<tr><td>#11</td><td>[자소설닷컴] SVG 추출 프레임 사이즈</td><td>SVG 는 작업 크기 1배, PNG 만 2배</td><td>ZIP 안 SVG <code>width="550" height="400" viewBox="0 0 550 400"</code>, PNG 1100×800</td><td class="s ok">✓ <span class="note">SVG 파일명은 제출 크기(_1100x800) — 이름 기준 결정</span></td></tr>
+<tr><td>#10</td><td>[자소설닷컴] 텍스트 통일</td><td>전 규격 「모집일정 : 」「모집직무 : 」</td><td>렌더 9규격 라벨 전부 「모집일정 :」(160×600 은 라벨 줄) · 「채용일정」·「ㅣ」 0건 — 노션 EX 는 10-28 이전 캡처</td><td class="s ok">✓</td></tr>
+<tr><td>#17</td><td>프로그램 내 레이아웃 가이드</td><td>인스펙터 토글 + 투명도, 틀 칸·안전영역 오버레이</td><td>헤드리스 토글: 오버레이 0 → 22(서브/메인/상세/로고/그림 칸), 투명도 조절, 끄면 0</td><td class="s ok">✓</td></tr>
+<tr><td>#16</td><td>키비주얼 외 레퍼런스 이미지</td><td>「레퍼런스(참고용 · 렌더 안 씀)」 칸, 인스펙터 카드</td><td>헤드리스 업로드 → 「1장」, 인스펙터 카드 1장, 소재엔 안 그려짐</td><td class="s ok">✓</td></tr>
+<tr><td>#15</td><td>매체 추가 생성</td><td>캠페인 인스펙터 「매체 추가 생성」</td><td>헤드리스 GDN 추가: 프레임 20 → 25, 「구글 GDN 소재 5장 추가 — 기존 소재는 그대로」</td><td class="s ok">✓</td></tr>
+<tr><td>#18</td><td>[구글(GDN)] 사이즈 추가 930×180</td><td>추출 목록에 추가</td><td>930x180 extract true · 구글 추출 5종 · ZIP 에 930x180.svg</td><td class="s ok">✓</td></tr>
+</table></div>
+
+<h3>오늘 사용자가 캡처로 지적한 것(노션 외)</h3>
+<ul>
+<li>카카오 비즈보드 「차단」 3사유 — 서브(기간) 20자 &gt; 16자 → 시각 떼기·「~」·요일 떼기 사다리 · 템플릿 글자 상자 x46 vs 안전영역 48 → 틀 규격 2.5px 허용 · 연도 없는 날짜가 2027 로 읽혀 요일 틀어짐 → 시즌 연도 + 요일 일치. 검증: 서브 「6.20(금) - 7.2(수)」 14자, safe-area 없음, 2025-06-20/07-02 <span class="ok">✓</span></li>
+<li>비즈보드 「하나증권 채용연계형 인턴십」(14자)이 「하나증권 채용」으로 줄던 것 → 회사명+실제 채용구분 품은 문구를 줄여서 먼저 <span class="ok">✓</span></li>
+</ul>
+
+<h2>4. 앞으로 할 것</h2>
+<h3>지금 돌아가는 중</h3>
+<ul>
+<li><b>생성 직후 차단 0건</b> — 사용자 원칙 「우리 규칙으로 만든 소재가 우리 검수에 걸리면 안 된다」. 추출 48규격 × 케이스 전수로 차단 코드 모아 생성 단계에서 맞추게 고치는 중(검증 중 구글 GDN 3종·카카오 홍보이미지 차단 발견)</li>
+</ul>
+<h3>사용자·담당자 결정 필요</h3>
+<ol>
+<li>모집직무 줄임 — 6행까지 다 넣고 넘치면 「~등」으로 바꿈. 6행 넘을 때 글자 크기를 줄여서라도 더 넣을지</li>
+<li>카카오 비즈보드 두줄형 줄 간격·크기(지금 임시 31/38px)와 메인 15자 한도(16자 기업명은 두줄형이어도 글자수 차단) — 매체 새 가이드 수치</li>
+<li>자소설 달력 164×233 기업명 10자↑ — 매체 규정(행당 6자) 안에서 음절 끊김 허용 vs 서브로 이동</li>
+<li>300×600 처럼 상자가 캔버스 밖으로 나가는 띠의 「보일 부분」 기준(상자 vs 캔버스)</li>
+<li>파일명 특수문자(×·—) ASCII 통일 여부 · SVG 파일명을 작업 크기로 바꿀지</li>
+<li>N6 피그마 자동 연동 범위(토큰·서버 필요) — 할지 말지</li>
+</ol>
+<h3>남은 구현</h3>
+<ul>
+<li>N4 키비주얼 여러 장(기본/가로/세로) 첨부 → 규격 비율별 자동 선택</li>
+<li>#14 용량 사다리를 hub 작업 화면 내보내기·전달물 채널에도</li>
+<li>N13 NAPDSP 7건 — 피그마 파일 받으면 틀 실측·적용</li>
+<li>직접 지정한 주인공(manual focus)을 누끼 블리드 배치·AI 모양별 override 에도 적용</li>
+</ul>
+<h3>담당자에게 전할 말</h3>
+<ul>
+<li>공개 주소(https://pood4875-sungjin.github.io/mbm-design-agent/app/) Shift+새로고침 후 다시 생성 — 초기화면·텍스트 통일 캡처는 10-28 이전 화면</li>
+<li>SVG 서브 Regular 건: 문제의 SVG 파일 원본과 Figma 에 Pretendard Medium 설치 여부 확인</li>
+<li>용량: hub(새 작업 화면)로 내보내면 아직 용량 맞춤이 안 걸림 — 앱(app/)에서 내보내기</li>
+</ul>
+
+<p class="note">근거 파일: docs/concierge-requests-2026-11-02.md · docs/concierge-requests-2026-10-28.md · history/2026-11-02_컨시어지_2차_13건_개발중_6건_재검증.md · 검증 원시 데이터 scratchpad verify-done/result.json · verify-new/result.json</p>
+</div>
+</body>
+</html>

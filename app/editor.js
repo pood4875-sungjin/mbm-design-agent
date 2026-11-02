@@ -414,7 +414,7 @@ export function createEditor(E) {
   const gridOf = url => { if (!url) return Promise.resolve(null); if (!grids.has(url)) grids.set(url, kvGrid(url)); return grids.get(url); };
   let queue = Promise.resolve();
   function guideCheck(a) {
-    queue = queue.then(() => runGuide(a)).catch(() => {});
+    queue = queue.then(() => runGuide(a)).catch(e => { a.guide = { error: String(e?.message ?? e), rows: [] }; guideBadge(a); try { E.onGuide?.(a); } catch {} });   // 측정이 터져도 조용히 null 로 두지 않는다 — 틀 규격 게이트가 pending 에 갇히지 않게 「측정 실패」로(11-02)
     return queue;
   }
   async function runGuide(a) {
@@ -428,7 +428,7 @@ export function createEditor(E) {
     const G = await gridOf(objectVisual ? st.object : st.keyVisual);
     if (a.html !== html || !doc.querySelector('[data-ad]')) return;   // 그 사이 다시 그려졌다
     const m = measureGuideDoc(doc, { kvMeta: meta ?? null, G });
-    if (m.error) { a.guide = { error: m.error, rows: [] }; guideBadge(a); return; }
+    if (m.error) { a.guide = { error: m.error, rows: [] }; guideBadge(a); try { E.onGuide?.(a); } catch {} return; }   // 측정 실패도 게이트에(틀 규격 → review)
     const spec = specOf(a);
     const ctx = E.adEffCtx(a);
     const C = guideContext({ spec, trace: m.trace, m, meta: meta ?? null, kt: kvTypeOf(meta), guide: guideFor(spec.mediumRules ?? {}), shape: shapeOf(spec.w, spec.h), logoMeta: st.logoMeta ?? null, primary: st.palette?.primary ?? null, kind: c.kind ?? 'recruit', hasDate: !!(ctx.core?.deadline || ctx.core?.date) });

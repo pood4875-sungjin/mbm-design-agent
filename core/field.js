@@ -93,7 +93,8 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
   else if (opt.color) { stops = [opt.color]; source = 'manual'; }
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°. 비주얼 우선(kv-vivid)보다 앞
-  else if (style.colorsManual && p.primary) { stops = [p.primary, shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
+  //   11-02 담당자 「보조색을 바꿔도 변화 없음」: 그라데이션을 고정(mode gradient)했으면 두 번째 색은 보조색(secondary) — 자동(auto)·단색은 전처럼 주색 하나로
+  else if (style.colorsManual && p.primary) { const sec = opt.mode === 'gradient' && p.secondary && p.secondary.toUpperCase() !== p.primary.toUpperCase() ? p.secondary : null; stops = [p.primary, sec ?? shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
   // 그림 변 지면(kv-edge): 규격(facing)과 무관하게 그림 네 변에서 한 번 정한다(edgeField, 10-20 캠페인 공통 지면). seamless 는 배치용(글자 쪽 변이 평평해 그 변을 기준으로 붙인다) — 색은 바꾸지 않는다
   else if (hasBg && (flatEdge(e) || other)) { const ef = edgeField(f, { flatEdge }); stops = ef.stops; angle = ef.angle; align = ef.align; source = 'kv-edge'; seamless = flatEdge(e); }
   // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변(10-20: facing 변이 아니라 그림 축으로 — 캠페인 공통)
@@ -335,6 +336,25 @@ export function meltMask2(pctX, pctY) {
   return `-webkit-mask-image:${g};-webkit-mask-composite:source-in;mask-image:${g};mask-composite:intersect;`;
 }
 
+// 사람이 직접 찍은 주인공·보존 상자(11-02 컨시어지 한희하 「어느 사이즈를 넣어도 중앙 중심으로 배치 · 잘리면 안 되는 곳을 지정」 — app/kvfocus.js).
+//   field.manual = { focus: {x,y,w,h} 가운데 기준(클릭 = 점, 크기는 자동 상자 또는 50%) | null, keep: {x,y,w,h} 왼쪽 위 기준(드래그) | null }
+//   manual 이 있으면 자동 판정 대신 그 상자를 focus 로 쓴다(source:'manual') · keep 은 subjectCrop·coverPos 가 「잘리지 않게」 배율·위치를 제한한다. 세 입구(profileFocus·coverPos·subjectCrop) 첫 줄에서 부른다
+export function effectiveField(f) {
+  const m = f?.manual; if (!m || (!m.focus && !m.keep)) return f;
+  const auto = f.focus ?? null, k = m.keep ?? null;
+  const base = { parts: 1, others: [], density: auto?.density ?? 0.6, source: 'manual' };
+  let focus = auto;
+  if (m.focus) focus = { ...base, x: m.focus.x, y: m.focus.y, w: m.focus.w ?? auto?.w ?? 0.5, h: m.focus.h ?? auto?.h ?? 0.5 };
+  else if (k && !auto) focus = { ...base, x: k.x + k.w / 2, y: k.y + k.h / 2, w: k.w, h: k.h };   // 주인공을 모를 때만 보존 상자가 주인공 — 알면 자동 주인공은 그대로, keep 은 제한만
+  return { ...f, focus, keep: k && k.w > 0 && k.h > 0 ? k : null };
+}
+// 보존 상자가 창 안에 들어오게 오프셋을 조인다 — o: 지금 오프셋(px, ≤0) · lo/hi: 그림이 창을 덮는 오프셋 범위 · k0/k1: 보존 상자 변(그림 px). 상자가 창보다 크면 상자 가운데를 창 가운데에
+function keepClamp(o, lo, hi, k0, k1, box) {
+  const a = Math.max(lo, box - k1), b = Math.min(hi, -k0);
+  if (a <= b) return Math.round(Math.min(b, Math.max(a, o)));
+  return Math.round(Math.min(hi, Math.max(lo, box / 2 - (k0 + k1) / 2)));
+}
+
 // 주인공으로 채우기 — 오브젝트 자리는 그림 전체가 아니라 그림의 주인공(focus 상자)으로 채운다.
 // 바탕이 넓은 3D·일러스트(주인공이 그림의 절반)를 통째로 자리에 맞추면 자리에는 바탕만 크게 보이고 주인공은 작다(10-06 사용자: "꽉 안 채워져서 나오고… 비주얼 옆에 화이트").
 // 보드 예시는 주인공이 자리를 거의 다 쓴다(한미글로벌 3D·세아제강 일러스트·동부 3D). 그래서 주인공 상자(+숨 쉴 여백 8%)가 자리를 덮도록 배율을 올리고, 주인공 가운데가 자리 가운데에 오게 한다.
@@ -342,7 +362,7 @@ export function meltMask2(pctX, pctY) {
 //   · 원본 픽셀보다 25% 넘게 키우지 않는다(흐려진다). 단 자리는 덮어야 하니 s0 아래로는 안 내려간다
 //   · 사진(주인공을 못 찾음)·누끼(배경 없음)는 해당 없다
 export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGain = 1.25, sMul = 1 } = {}) {
-  const f = style.kvMeta?.field, focus = f?.focus, ar = style.kvMeta?.ar;
+  const f = effectiveField(style.kvMeta?.field), focus = f?.focus, ar = style.kvMeta?.ar, keep = f?.keep ?? null;
   if (!focus || !ar || (f?.opaque ?? 1) < 0.5 || !(bw > 0 && bh > 0)) return null;
   const px = style.kvMeta?.px;
   const iw = px?.[0] ?? Math.round(ar * 1000), ih = px?.[1] ?? 1000;
@@ -356,6 +376,7 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   //   주인공 상자의 minVisible(60%) 은 보이도록 배율을 낮춘다(s ≤ 양 축 다 들어가는 배율 ÷ minVisible) — 통째 배율(s0) 아래로는 안 간다. 작은 주인공(그림 일부)은 비율이 맞으면 그대로 당긴다
   const MV = CANON.kvCrop?.minVisible; if (MV > 0) s = Math.max(s0, Math.min(s, Math.min(bw / fw, bh / fh) / MV));
   if (sMul !== 1) s = Math.max(s0, s * sMul);   // 배율을 낮춰 자리에 바탕 여유를 둔다(띠 윗줄을 바탕에서 끊기 위해) — 통째 배율 아래로는 안 간다
+  if (keep) s = Math.max(s0, Math.min(s, bw / (keep.w * iw), bh / (keep.h * ih)));   // 보존 상자(손 지정)가 통째로 들어가는 배율까지만 — 통째 배율 아래로는 안 간다
   if (s / s0 < minGain) return null;
   const cx = (x0 + x1) / 2 * iw * s, cy = (y0 + y1) / 2 * ih * s;
   // 주인공이 그림의 변에 닿아 있으면(바닥에 선 오브젝트·오른쪽에 붙은 오브젝트) 그 변을 자리의 변에 맞춘다 — 가운데 맞춤은 발을 자른다.
@@ -365,9 +386,11 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   const oy0 = Math.round(focus.y + focus.h / 2 >= 0.97 ? bh - ih * s : Math.min(0, Math.max(bh - ih * s, bh / 2 - cy)));
   // 가운데 맞춤이 머리 위(주인공 상자 윗변+숨)를 자리 폭의 2% 넘게 자르면 머리를 지킨다 — 귀가 잘린 채 윗변에서 녹는 여우(10-06 "뚝 끊은 면")
   const headCut = oy0 + y0 * ih * s < -bh * 0.02;
-  const oy = (lossV > 0.3 || headCut) ? Math.round(Math.min(0, Math.max(bh - ih * s, -(y0 * ih * s) + bh * 0.04))) : oy0;
-  return { size: `${Math.round(iw * s)}px auto`, pos: `${ox}px ${oy}px`, ox, oy, iw, ih, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
-    top: Math.round(-oy / (ih * s) * 1000) / 1000, left: Math.round(-ox / (iw * s) * 1000) / 1000 };   // 자리의 윗변·왼변이 그림의 어느 높이·폭에 걸리는가(0~1)
+  let oy = (lossV > 0.3 || headCut) ? Math.round(Math.min(0, Math.max(bh - ih * s, -(y0 * ih * s) + bh * 0.04))) : oy0;
+  let oxK = ox;
+  if (keep) { oxK = keepClamp(ox, bw - iw * s, 0, keep.x * iw * s, (keep.x + keep.w) * iw * s, bw); oy = keepClamp(oy, bh - ih * s, 0, keep.y * ih * s, (keep.y + keep.h) * ih * s, bh); }   // 보존 상자는 창 안에
+  return { ...(keep ? { keep: true } : {}), size: `${Math.round(iw * s)}px auto`, pos: `${oxK}px ${oy}px`, ox: oxK, oy, iw, ih, scale: Math.round(s * 1000) / 1000, gain: Math.round(s / s0 * 100) / 100,
+    top: Math.round(-oy / (ih * s) * 1000) / 1000, left: Math.round(-oxK / (iw * s) * 1000) / 1000 };   // 자리의 윗변·왼변이 그림의 어느 높이·폭에 걸리는가(0~1)
 }
 // 배경형 그림 — 그림을 지면 전체에 깔고(cover) 비어 있는 자리(room, palette.js roomOf)에 글자를 둔다.
 // 레퍼런스(삼정KPMG 보라 배경·GC녹십자·마이다스·삼성 3D 호)는 그림이 곧 지면이다 — 잘라서 한쪽에 붙이고 녹이면(뿌연 번짐) AI 티가 난다(10-06 사용자).
@@ -443,6 +466,7 @@ export function joinField(field, jc, side = 'bottom') {
 // 주인공 상자를 못 찾은 그림(focus null — 바탕이 그라데이션이라 덩어리를 못 가른 3D·일러스트)은 줄·열 프로필에서 바탕이 아닌(bg < 0.5) 줄·열을 묶어 어림한다.
 // 10-12 desk-15(한국산업단지공단 신호등, 세로 그림): focus 가 없어 아래 띠를 「위 맞춤」으로 덮었더니 1080에서 파란 하늘만 보였다(그림이 없는 듯)
 export function profileFocus(f) {
+  f = effectiveField(f);
   if (!f || f.focus || (f.opaque ?? 1) < 0.5) return f?.focus ?? null;
   const span = prof => { if (!prof?.length) return null; const idx = prof.map((r, i) => (r && (r.bg ?? 1) < 0.5) ? i : -1).filter(i => i >= 0); if (!idx.length || idx.length === prof.length && false) return null; if (!idx.length) return null; const a = idx[0] / prof.length, b = (idx[idx.length - 1] + 1) / prof.length; return [a, b]; };
   const ry = span(f.rows), rx = span(f.cols);
@@ -452,7 +476,7 @@ export function profileFocus(f) {
   return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, derived: true };
 }
 export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fallback = 'center', headroom = 0.04 } = {}) {
-  const ar = style.kvMeta?.ar, focus = profileFocus(style.kvMeta?.field);
+  const ar = style.kvMeta?.ar, focus = profileFocus(style.kvMeta?.field), keep = effectiveField(style.kvMeta?.field)?.keep ?? null;
   const join = side === 'right' ? 'left center' : 'center top';
   if (!ar) return { pos: seamless ? join : fallback, joinFrac: 0, trueEdge: seamless };
   const imgH = Math.max(bh, bw / ar), imgW = imgH * ar;
@@ -462,16 +486,35 @@ export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fal
     const px = seamless && side === 'right' ? 0 : 0.5, py = seamless && side !== 'right' ? 0 : (fallback === 'center bottom' ? 1 : 0.5);
     return { pos: seamless ? join : fallback, joinFrac: side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? py * (imgH - bh) / imgH : 0), trueEdge: seamless };
   }
-  const px = at(bw, imgW, focus.x);
+  let px = at(bw, imgW, focus.x);
   let py = at(bh, imgH, focus.y), oyPx = null;
   const lossV = imgH > bh + 0.5 ? 1 - Math.min(1, bh / (focus.h * imgH)) : 0;
   // 가운데 맞춤이 주인공 윗변(머리)을 자리 높이의 2% 넘게 자르면 머리를 지키고 아래를 자른다 — 숨은 머리 위 4%
   const headCut = imgH > bh + 0.5 && (-(py * (imgH - bh)) + (focus.y - focus.h / 2) * imgH) < -bh * 0.02;
   if (lossV > 0.3 || headCut || headroom > 0.04) oyPx = Math.round(Math.min(0, Math.max(bh - imgH, -(focus.y - focus.h / 2) * imgH + bh * headroom)));   // 머리 위 숨 4%(모서리 상자 덮기는 위 글자에 닿지 않게 더)
+  if (keep) {   // 보존 상자(손 지정)는 창 안에 — 가로는 %, 세로는 px 오프셋으로 조인다
+    if (imgW > bw + 0.5) { const ox = keepClamp(-px * (imgW - bw), bw - imgW, 0, keep.x * imgW, (keep.x + keep.w) * imgW, bw); px = Math.min(1, Math.max(0, -ox / (imgW - bw))); }
+    if (imgH > bh + 0.5) oyPx = keepClamp(oyPx ?? -py * (imgH - bh), bh - imgH, 0, keep.y * imgH, (keep.y + keep.h) * imgH, bh);
+  }
   const pos = oyPx != null ? `${Math.round(px * 100)}% ${oyPx}px` : `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
   const trueEdge = seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (oyPx == null && (py === 0 || imgH <= bh + 0.5)));
   const joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? (oyPx != null ? -oyPx / imgH : py * (imgH - bh) / imgH) : 0);
-  return { pos, joinFrac, trueEdge };
+  return { pos, joinFrac, trueEdge, fit: coverFit(focus, bw, bh, imgW, imgH) };
+}
+// 보일 부분(CANON.kvCrop.minVisible, 11-02 컨시어지 #2 재현): cover 는 한 축이 넘쳐 잘린다 — 그 축에서 주인공 상자(focus)가 minVisible(60%) 미만만 보이면(세로 그림 0.67 → 리멤버 사이드 열 2:1 에 40%, 자소설 M팝업 아래 띠 46%)
+//   주인공 60% 가 보이는 배율(k < 1)로 낮춘다. 그림이 통째로 들어가는 배율(contain) 아래로는 안 간다. 그림이 상자보다 작아지는 축은 호출자가 상자를 그림 크기로 줄여 지면 변 쪽에 붙인다 —
+//   그러면 글자 쪽 변 녹임(meltMask)·안쪽 변 끊김 녹임(ad.js cutFade)이 그림 변에서 시작한다. 주인공이 그림 거의 전부(whole 이상 — 상자를 못 찾은 사진)면 자를 게 없으니 해당 없음
+//   돌려주는 값: null(그대로 cover) | { k: 통째 배율 대비, dw, dh: 낮춘 그림 px, vis: cover 였다면 보였을 몫 }
+export function coverFit(focus, bw, bh, imgW, imgH) {
+  const K = CANON.kvCrop; const MV = K?.minVisible ?? 0;
+  if (!(MV > 0) || !focus || !(bw > 0 && bh > 0)) return null;
+  if (focus.w * focus.h >= (K.whole ?? 0.95)) return null;
+  const cropV = imgH > bh + 0.5, cropH = imgW > bw + 0.5;
+  const subjLen = cropV ? focus.h * imgH : cropH ? focus.w * imgW : 0, boxLen = cropV ? bh : bw;
+  if (!(subjLen > 0) || boxLen / subjLen >= MV) return null;
+  const k = Math.max(boxLen / (subjLen * MV), Math.min(bw / imgW, bh / imgH));
+  if (k >= 0.995) return null;
+  return { k: Math.round(k * 1000) / 1000, dw: Math.round(imgW * k), dh: Math.round(imgH * k), vis: Math.round(boxLen / subjLen * 100) / 100 };
 }
 
 // 자리 안에서 그림을 어떻게 놓는가 — 통째로(cover)·주인공으로 당겨서(crop)·누끼는 맞춰서(contain).
@@ -484,9 +527,11 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
   // 잘라 채울 때 어디를 보여 줄 것인가 — 그림의 주인공(focus)이 자리 한가운데 오게 한다. 모르면 가운데.
   // 이미지의 글자 쪽 변이 자리의 변에 그대로 닿으면(trueEdge) 지면과 색이 같아 이음매가 없다.
   const ar = style.kvMeta?.ar, focus = style.kvMeta?.field?.focus;
-  let pos = field?.seamless ? join : 'center', trueEdge = !!field?.seamless, joinFrac = 0;
+  let pos = field?.seamless ? join : 'center', trueEdge = !!field?.seamless, joinFrac = 0, fit = null;
   if (!cutout && ar) {
-    const c = coverPos(style, bw, bh, { seamless: !!field?.seamless, side });
+    let c = coverPos(style, bw, bh, { seamless: !!field?.seamless, side });
+    // 보일 부분(coverFit): cover 가 주인공을 60% 미만만 보이면 상자를 그림 크기로 줄여(한 축) 다시 놓는다 — 주인공 당김(subjectCrop)이 있으면 그쪽이 우선이라 아래에서 덮어쓴다
+    if (c.fit) { const fw = Math.min(bw, c.fit.dw), fh = Math.min(bh, c.fit.dh); fit = { w: fw, h: fh, k: c.fit.k, vis: c.fit.vis }; c = coverPos(style, fw, fh, { seamless: !!field?.seamless, side }); }
     pos = c.pos; trueEdge = c.trueEdge; joinFrac = c.joinFrac;
   }
   // 주인공이 그림의 일부면 주인공으로 자리를 채운다 — 그러면 자리의 글자 쪽 변은 그림 한가운데라 지면과 같은 색이 아니다(녹인다)
@@ -528,7 +573,7 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
   // 그림을 줄여 머리~턱이 띠 높이의 94%에 들게 하고 오른쪽에 붙인다 — 왼변·윗변을 녹인다(kvLayer). 머리는 절대 자르지 않는다(10-12 결정 반영·남은 문제)
   if (!cutout && side === 'bottom' && !placed) { const pf = portraitFit(style, bw, bh); if (pf) placed = pf; }
   if (placed) { trueEdge = false; joinFrac = side === 'right' ? placed.left : placed.top; }
-  return { cutout, bw, bh, far, pos, trueEdge, crop: placed, joinFrac: Math.round(joinFrac * 1000) / 1000 };
+  return { cutout, bw, bh, far, pos, trueEdge, crop: placed, joinFrac: Math.round(joinFrac * 1000) / 1000, fit: placed ? null : fit };
 }
 
 // 인물 사진을 아래 띠에 넣을 때 머리~턱(사람 상자 윗변 → 가장 큰 얼굴 아래 + 얼굴 높이 25%)이 폭 맞춤으로 안 들어가면 줄여서 오른쪽에 붙인다.
@@ -570,7 +615,7 @@ const arKvOf = style => style.kvMeta?.ar ?? null;
 // 배경을 딴 이미지는 자르지 않고 맞춰 넣는다.
 export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0, melt = true, top = 0, bleedMax = 1.3, cutLeft = null }) {
   const url = String(style.keyVisual).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const { cutout, bw, bh, far, pos, trueEdge, crop, joinFrac } = kvPlacement(style, field, { side, w, h, size, edgePad, inset, top });
+  const { cutout, bw, bh, far, pos, trueEdge, crop, joinFrac, fit } = kvPlacement(style, field, { side, w, h, size, edgePad, inset, top });
   const hh = side === 'right' ? h - top : h;
   // 맞닿는 변이 평평하지 않으면(사진) 더 넓게 녹인다 — 리멤버 예시 사진은 지면 폭의 30% 남짓이 그라데이션. 주인공으로 당긴 자리는 그림 한가운데가 변이다
   const joinFlat = crop ? false : style.kvMeta?.field?.edges?.[side === 'right' ? 'left' : 'top']?.flat;
@@ -626,6 +671,10 @@ export function kvLayer(style, field, { side, w, h, size, edgePad = 0, inset = 0
     const pw = crop.portrait.w, mk = melt ? (pw < w - 1 ? meltMask2(meltLength(lHex, lFar, 30), 22) : meltMask('to bottom', 22)) : '';
     return `<div data-object="1" style="position:absolute;right:0;bottom:0;width:${pw}px;height:${size + edgePad}px;${fill}${mk}--kv-portrait:1"${mk ? ` data-melt="${pw < w - 1 ? meltLength(lHex, lFar, 30) : 22}" data-melt-dir="${pw < w - 1 ? 'to right' : 'to bottom'}" data-melt-top="22"` : ''}></div>`;
   }
+  // 보일 부분(coverFit): 상자를 그림 크기로 줄여 지면 변 쪽에 붙인다 — 오른쪽 열은 오른쪽·아래, 아래 띠는 바닥 가운데(좁아진 양옆은 cutFade 가 녹인다)
+  const fitData = fit ? ` data-kv-fit="${fit.k}" data-kv-fit-vis="${fit.vis}"` : '';
+  if (fit && side === 'right') return `<div data-object="1" style="position:absolute;top:${top + (hh - fit.h)}px;right:${inset}px;width:${fit.w}px;height:${fit.h}px;${fill}${mask}${cutMask}"${meltData}${fitData}${cutMask ? ` data-cut-melt="${cutFadePct(bleedCut)}" data-bleed-cut="${Math.round(bleedCut * 100) / 100}"` : ''}></div>`;
+  if (fit && side === 'bottom') return `<div data-object="1" style="position:absolute;left:${Math.round((w - fit.w) / 2)}px;bottom:0;width:${fit.w}px;height:${fit.h}px;${fill}${mask}"${meltData}${fitData}></div>`;
   return side === 'right'
     ? `<div data-object="1" style="position:absolute;top:${top ? top + 'px' : 0};right:${inset}px;width:${size + edgePad - inset}px;height:${hh}px;${fill}${mask}${cutMask}"${meltData}${cutMask ? ` data-cut-melt="${cutFadePct(bleedCut)}" data-bleed-cut="${Math.round(bleedCut * 100) / 100}"` : ''}></div>`
     : `<div data-object="1" style="position:absolute;left:0;bottom:0;width:${w}px;height:${size + edgePad}px;${fill}${mask}"${meltData}></div>`;

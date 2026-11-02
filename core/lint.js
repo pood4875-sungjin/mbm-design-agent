@@ -22,6 +22,7 @@
 import { limitsByRole, countChars, inImage } from './adfields.js';
 import { CANON } from './canon.js';
 import { fontRuleOf } from './fonts.js';
+import { contrast } from './palette.js';
 
 const norm = c => String(c ?? '').trim().toLowerCase().replace(/^#?/, '#');
 const fmtNorm = f => ({ jpeg: 'jpg' })[String(f ?? '').toLowerCase()] ?? String(f ?? '').toLowerCase();
@@ -139,6 +140,17 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
     if (cols.length > 1) block('text-colors-uniform', `글자색 ${cols.length}가지(${cols.map(c => c.toUpperCase()).join(' · ')}) — 이 매체는 모든 문구 한 색`);
   }
 
+  // ── 직접 고른 글자색(style.textColor, 11-02 컨시어지) — 앱이 유효 스타일 값을 measure.textColor 로 넘긴다(규정 매체는 렌더러가 무시하므로 앱도 안 넘김).
+  //    바탕 샘플색(bgColors) 중 가장 낮은 대비가 3:1 미만이면 경고(차단 아님 — 사람이 고른 색이라 넘길 수 있다)
+  const tcx = measure.textColor;
+  if (typeof tcx === 'string' && /^#[0-9a-f]{6}$/i.test(tcx) && Array.isArray(measure.bgColors)) {
+    const bgs = measure.bgColors.filter(b => /^#[0-9a-f]{6}$/i.test(String(b ?? '')));
+    if (bgs.length) {
+      const worst = Math.min(...bgs.map(b => contrast(b, tcx)));
+      if (worst < 3) warn('text-contrast', `지정 글자색 ${tcx.toUpperCase()} — 지면과 대비 ${worst.toFixed(1)}:1 (3:1 미만, 읽기 어려움). 글자색을 바꾸거나 되돌리기`);
+    }
+  }
+
   // ── 글꼴 — 규격 fonts 가 매체 fonts 를 덮는다(core/fonts.js fontRuleOf: 카카오 비즈보드 Pretendard 고정 · PC디스플레이 spec.fonts.required:false = 자유, 10-28)
   const fontRule = fontRuleOf(medium, spec);
   if (fontRule.fixed && measure.fontFamily != null
@@ -151,9 +163,11 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
   if (sa && ['top', 'right', 'bottom', 'left'].some(k => typeof sa[k] === 'number') && spec.w && spec.h) {
     const box = { x0: sa.left ?? 0, y0: sa.top ?? 0, x1: spec.w - (sa.right ?? 0), y1: spec.h - (sa.bottom ?? 0) };
     const items = [...(measure.texts ?? []).map(t => ({ role: t.role, bbox: t.bbox })), ...(measure.logo ? [{ role: 'logo', bbox: measure.logo.bbox }] : [])];
+    // 공식 템플릿 실측 틀(measuredFromTemplate.mold)은 템플릿 자체가 안전영역과 1~2px 어긋날 수 있다(카카오 비즈보드 글자 상자 x46 vs 안전영역 48) — 틀 규격은 2.5px 까지 봐준다(11-02, 사용자 「이건 왜 차단?」)
+    const tol = sa.measuredFromTemplate?.mold ? 2.5 : 0.5;
     for (const it of items) {
       const b = it.bbox; if (!b) continue;
-      if (b.x < box.x0 - 0.5 || b.y < box.y0 - 0.5 || b.x + b.w > box.x1 + 0.5 || b.y + b.h > box.y1 + 0.5) {
+      if (b.x < box.x0 - tol || b.y < box.y0 - tol || b.x + b.w > box.x1 + tol || b.y + b.h > box.y1 + tol) {
         block('safe-area', `${it.role} 상자가 안전영역(상${sa.top ?? 0}·하${sa.bottom ?? 0}·좌${sa.left ?? 0}·우${sa.right ?? 0}px)을 벗어남`, it.role);
       }
     }

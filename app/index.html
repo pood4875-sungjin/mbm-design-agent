@@ -414,6 +414,15 @@
   .fbody{position:relative;background:#fff;box-shadow:0 0 0 1px rgba(16,24,40,.06), 0 2px 10px rgba(16,24,40,.08);border-radius:6px;overflow:hidden}
   /* 선택 테두리는 소재에 딱 붙인다 — 3px 띄우면 소재 둘레에 여백이 있는 것처럼 보인다(10-06) */
   .frame.sel .fbody{outline:2.5px solid var(--accent);outline-offset:-1px}
+  /* 선택하기(11-02 박진화 「선택한 소재만 추출」, app/select.js) — 고른 카드는 보라 테두리 + 체크, 빈 곳 드래그는 선택 상자, 매체 머리글은 눌러서 매체 전체 */
+  .frame.picked .fbody{outline:3px solid #6D5CF5;outline-offset:-1px;box-shadow:0 0 0 4px rgba(109,92,245,.22)}
+  .frame.picked .flabel::before{content:"✓";display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#6D5CF5;color:#fff;font-size:11px;font-weight:800}
+  #viewport.selecting{cursor:crosshair}
+  #viewport.selecting .rowhead{pointer-events:auto;cursor:pointer}
+  #viewport.selecting .rowhead:hover{color:#6D5CF5;border-bottom-color:#6D5CF5}
+  .selbox{position:absolute;border:1.5px solid #6D5CF5;background:rgba(109,92,245,.12);pointer-events:none;z-index:5}
+  header .hbtn#selectMode.on{background:#6D5CF5;border-color:transparent;color:#fff}
+  header .hbtn#selectClear{height:28px;padding:0 10px;font-size:12px}
   .fbody iframe{border:0;transform-origin:0 0;pointer-events:none;background:#fff;display:block}
   .frame.gen .fbody{background:linear-gradient(105deg,#f5f5fb 28%,var(--gen-soft) 46%,#eef3ff 58%,#f5f5fb 72%);background-size:300% 100%;animation:shim 1.4s linear infinite;box-shadow:0 0 0 1.5px rgba(109,92,245,.35), 0 0 26px rgba(109,92,245,.22)}
   .frame.gen .fbody::after{content:"";position:absolute;inset:-2px;border-radius:8px;padding:2px;background:var(--gen);background-size:220% 100%;animation:flow 2.2s linear infinite;
@@ -661,6 +670,25 @@
   .ghuman{display:flex;flex-direction:column;gap:6px;margin-top:6px}
   .ghuman label{display:flex!important;gap:6px;align-items:flex-start;margin:0!important;color:var(--ink)!important;line-height:1.45}
   .ghuman input{margin-top:2px;flex:none}
+  /* 키비주얼 주인공 확인·직접 지정(11-02, app/kvfocus.js) — 썸네일 위 반투명 네모 */
+  .kvthumb{position:relative}
+  .kvthumb.hasfocus{overflow:hidden;cursor:crosshair}
+  .scard .kvthumb.hasfocus{width:200px;height:130px}
+  .kvfocus{position:absolute;touch-action:none;user-select:none;outline:none}
+  .kvfocus:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+  .kvbox{position:absolute;box-sizing:border-box;pointer-events:none;border:1.5px dashed rgba(255,255,255,.95);background:rgba(37,99,235,.18);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+  .kvbox.manual{border-style:solid;background:rgba(37,99,235,.26)}
+  .kvbox.keep{border:1.5px solid #22C55E;background:rgba(34,197,94,.2)}
+  .kvbox.aikeep{border:1px dotted #22C55E;background:transparent}
+  .kvbox.face{border:1px solid #F59E0B;background:transparent}
+  .kvbox i{position:absolute;left:0;top:-1px;transform:translateY(-100%);font-style:normal;font-size:9px;line-height:1.3;padding:1px 4px;background:rgba(0,0,0,.6);color:#fff;white-space:nowrap;border-radius:3px}
+  .kvbox.keep i,.kvbox.aikeep i{top:0;transform:none}
+  .kvbox.face i{display:none}
+  .kvdot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #2563EB,0 0 0 3px rgba(0,0,0,.4);pointer-events:none}
+  .kvtag{position:absolute;left:0;right:0;bottom:0;font-size:9.5px;line-height:1.3;padding:2px 5px;background:rgba(0,0,0,.58);color:#fff;text-align:left;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kvauto,.kvrep{position:absolute;top:3px;font:600 9.5px/1 inherit;font-family:inherit;padding:3px 6px;border-radius:999px;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
+  .kvauto{right:3px}.kvrep{left:3px}
+  .kvauto:hover,.kvrep:hover{background:rgba(0,0,0,.85)}
 </style>
 </head>
 <body data-view="home">
@@ -673,6 +701,8 @@
   </details>
   <button class="hbtn icon" id="newBtn" aria-label="새 캠페인 시작" title="새 캠페인 시작"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   <div class="spacer"></div>
+  <button class="hbtn" id="selectClear" style="display:none" title="선택 모두 해제">모두 해제</button>
+  <button class="hbtn" id="selectMode" style="display:none" aria-pressed="false" title="소재를 여러 장 골라 그것만 내보내기">선택하기</button>
   <button class="hbtn" id="exportAll" style="display:none">내보내기</button>
   <button class="hbtn pri" id="approveAll" style="display:none">전체 승인</button>
   <button class="hbtn icon" id="keyBtn" aria-label="AI 키 · 환경 설정" title="AI 키 · 환경 설정"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button>

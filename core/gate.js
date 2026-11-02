@@ -9,12 +9,17 @@ export const REVIEW_CODES = new Set(['text-over-subject', 'logo-covered', 'text-
 export const STATE_LABEL = { blocked: '차단', pending: '검사 중', review: '검수 필요', ready: '승인 가능', draft: '초안' };
 
 // guide: 가이드 검수(core/guidecheck.js evaluate) 줄 목록 — 틀 규격(templateMold)의 level 'block' 규칙(mold.*: 글자 칸 x·줄 y·크기·굵기·로고 칸·그림 칸 ±2px)이 ✗ 면 규정 위반과 같이 차단(10-28 컨시어지 #9 자소설 「규정 미준수 소재 검수 승인 오류」, 장부 mold-measured-gate)
-export function approvalGate({ grade, lint, design, samples = 0, guide = null }) {
+// needsGuide: 틀 규격(자소설 mold)처럼 가이드 실측이 승인의 전제인 소재 — 측정 전(guide null)이면 pending, 측정 실패(guide.error)면 review(확신 없으면 내보내지 않는다).
+//   11-02 컨시어지 「규정 미준수 소재 검수 승인 오류」 재조사: 디자인 검수(동기)와 가이드 측정(비동기 큐) 사이에 guide 가 null 이라 ready 가 먼저 떠 승인 버튼·「통과분 승인」이 열렸다(장부 mold-measured-gate).
+export function approvalGate({ grade, lint, design, samples = 0, guide = null, needsGuide = false }) {
   const reasons = [];
   if (lint?.level === 'block') { for (const i of lint.issues ?? []) if (i.level === 'block') reasons.push(`규정: ${i.msg ?? i.code}`); return { state: 'blocked', reasons }; }
-  const moldFails = (Array.isArray(guide) ? guide : guide?.rows ?? []).filter(r => r?.level === 'block' && r.ok === false);
+  const guideRows = Array.isArray(guide) ? guide : guide?.rows ?? null;
+  const moldFails = (guideRows ?? []).filter(r => r?.level === 'block' && r.ok === false);
   if (moldFails.length) { for (const r of moldFails) reasons.push(`틀: ${r.name ?? r.id}${r.actual != null ? ` — ${r.actual}` : ''}`); return { state: 'blocked', reasons }; }
   if (!lint) return { state: 'pending', reasons: ['규격 검사 전'] };
+  if (needsGuide && !Array.isArray(guide) && guide?.error) reasons.push(`틀 측정 실패 — 사람이 확인(${String(guide.error).slice(0, 60)})`);
+  else if (needsGuide && !guideRows) return { state: 'pending', reasons: ['틀(가이드) 검수 전'] };
   const warns = (design?.warnings ?? []).filter(w => REVIEW_CODES.has(w.code));
   for (const w of warns) reasons.push(`디자인: ${w.msg ?? w.code}`);
   if (samples > 0) reasons.push(`샘플 문구 ${samples}곳 — 실제 정보로 바꿔야 함`);

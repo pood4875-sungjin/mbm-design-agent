@@ -328,8 +328,9 @@ const loadImg = (src, cache) => {
 };
 const urlOf = layer => layer.match(/^url\(\s*["']?([\s\S]*?)["']?\s*\)$/)?.[1] ?? null;
 
+export const SVG_IMG_MAX_PX = 3600;   // SVG 안 그림 조각의 긴 변 상한(px)
 // 캔버스에 그려 data URI — 알파가 전부 255 면 JPEG(가볍다), 아니면 PNG
-function canvasUri(cv, quality = 0.9) {
+function canvasUri(cv, quality = 0.95) {
   const g = cv.getContext('2d');
   let opaque = true;
   try {
@@ -340,8 +341,9 @@ function canvasUri(cv, quality = 0.9) {
 }
 
 // 그림 층 하나를 잘라·줄여 data URI 로. place = 그림 전체가 놓일 자리, clip = 보이는 칸(절대 좌표)
-// 보이는 부분 + 칸의 10% 여유만 담는다(Figma 에서 조금 옮길 수 있게), 해상도는 표시 크기의 2배까지
-async function imageLayer(im, place, clip, { filter = null, maxScale = 2, bound = null } = {}) {
+// 보이는 부분 + 칸의 10% 여유만 담는다(Figma 에서 조금 옮길 수 있게), 해상도는 표시 크기의 3배까지(원본 픽셀을 넘지는 않는다)
+//   11-02 담당자: 「SVG 로 내보내면 그림 화질이 떨어진다 — 피그마에서 같은 원본으로 바꾸면 개선」. 전엔 긴 변 1,600px 에서 멈춰 2400×560 메인배너 그림이 1배 남짓이었다 → 긴 변 3,600px·JPEG 0.95
+async function imageLayer(im, place, clip, { filter = null, maxScale = 3, bound = null } = {}) {
   const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
   const mx = clip.w * 0.1, my = clip.h * 0.1;
   // 여유는 캔버스(bound) 안에서만 — 캔버스 밖은 아무도 안 본다
@@ -352,8 +354,8 @@ async function imageLayer(im, place, clip, { filter = null, maxScale = 2, bound 
   const kx = iw / place.w, ky = ih / place.h;
   const sx = (vx0 - place.x) * kx, sy = (vy0 - place.y) * ky, sw = (vx1 - vx0) * kx, sh = (vy1 - vy0) * ky;
   const dispW = vx1 - vx0, dispH = vy1 - vy0;
-  // 큰 그림은 배율을 낮춘다 — 긴 변 1600px 안팎에서 멈춰 파일이 수 MB 로 불지 않게(표시 크기 1배 밑으로는 안 내린다)
-  maxScale = Math.min(maxScale, Math.max(1, 1600 / Math.max(dispW, dispH)));
+  // 큰 그림은 배율을 낮춘다 — 긴 변 SVG_IMG_MAX_PX(3,600) 에서 멈춰 파일이 수십 MB 로 불지 않게(표시 크기 1배 밑으로는 안 내린다). outW/outH 는 min(원본 조각 픽셀, …) 이라 원본보다 키워 저장하진 않는다
+  maxScale = Math.min(maxScale, Math.max(1, SVG_IMG_MAX_PX / Math.max(dispW, dispH)));
   const outW = Math.max(1, Math.round(Math.min(sw, dispW * maxScale))), outH = Math.max(1, Math.round(Math.min(sh, dispH * maxScale)));
   const cv = document.createElement('canvas'); cv.width = outW; cv.height = outH;
   const g = cv.getContext('2d');

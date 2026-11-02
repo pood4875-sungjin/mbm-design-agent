@@ -94,7 +94,7 @@ test('#9 자소설 틀 실측 게이트 — guidecheck mold.* 18규칙(level blo
   const rules = specs['jasoseol-pc-premium-jobpost-pc'].rules;
   const texts = (dy = 0, px = 24, fw = '700') => [
     { role: 'sub', box: { x: 15, y: 81.9 - (22.6 - 16 * 1.2) / 2, w: 130, h: 22.6 }, fs: 16, fw: '700', lh: 22.6, lines: ['2026 하반기'], bolds: [] },
-    { role: 'main', box: { x: 15, y: 141 + dy - (34.1 - px * 1.2) / 2, w: 130, h: 68.2 }, fs: px, fw, lh: 34.1, lines: ['세아제강', '신입/경력사원 채용'], bolds: [] },
+    { role: 'main', box: { x: 15, y: 117.5 + dy - (34 - px * 1.2) / 2, w: 130, h: 68 }, fs: px, fw, lh: 34, lines: ['세아제강', '신입/경력사원 채용'], bolds: [] },   // 서브 1줄 → 메인 117.5(11-02 6유형 30:1712, 예전 10-26 「141 고정」 대체)
   ];
   const C = (t, extra = {}) => ({ spec: { id: 'jasoseol-pc-premium-jobpost-pc', w: 160, h: 600, shape: 'tower', medium: 'jasoseol' }, guide: {}, mr: {}, rules, trace: { mode: 'templateMold', rules: [] }, m: { texts: t, logo: { box: { x: 26, y: 29, w: 107, h: 17 } }, objects: [{ clip: { x: 0, y: 405, w: 160, h: 195 } }], ...extra }, meta: null, kt: null });
   const ok = evaluate(C(texts()), MOLD_RULES); assert.ok(ok.length >= 10); assert.equal(blockingRows(ok).length, 0, JSON.stringify(blockingRows(ok)));
@@ -123,4 +123,29 @@ test('#2 소재 이미지 — 주인공 당김은 주인공 상자의 60% 가 �
   const h = renderAd(ctxOf(PSK), photo, specs['jasoseol-pc-premium-popup-pc']);
   const melt = Number(h.match(/data-object="1"[^>]*data-melt="([\d.]+)"/)?.[1]);
   assert.ok(Number.isFinite(melt) && melt <= 40, `왼변 녹임 ${melt}% — 주인공(칸 가운데)을 덮지 않는다`);
+});
+
+test('#1 (e) 11-02 재현 — 기업명 길이별 기대값(담당자 아직 「개발중」): 글자 폭을 글꼴 실측(Pretendard 한글 .864em)으로 재서 6자가 음절로 끊기지 않고, 10자 GDN 이 한 줄 더·29px 로 떨어지지 않으며, 카카오 비즈보드 15·16자는 두줄형(1줄 기업명 / 2줄 채용구분)으로 광고주를 지킨다', () => {
+  const mainTag = html => html.match(/<div data-field="main"[^>]*>[\s\S]*?<\/div>/)?.[0] ?? '';
+  const fsOf = html => Number(mainTag(html).match(/font-size:([\d.]+)px/)?.[1]);
+  const run = (id, client, extra = {}) => { const h = renderAd(ctxOf({ client, hiringType: '신입/경력 채용', role: '영업', deadline: '2026-11-20', season: '2026 하반기', ...extra }), style, specs[id]); return { h, main: fieldOf(h, 'main'), sub: fieldOf(h, 'sub'), rules: rulesOf(h), fs: fsOf(h) }; };
+  // 자소설 160×600: 6자 「한진정보통신」 = 6 × 24 × .864 = 124px ≤ 130 → 틀 24px 두 줄 그대로, 낱말 안 줄바꿈 자리(U+200B) 없음(전엔 「한진정|보통신」 4줄)
+  const j6 = run('jasoseol-pc-premium-jobpost-pc', '한진정보통신');
+  assert.equal(j6.main, '한진정보통신\n신입/경력 채용'); assert.equal(j6.fs, 24); assert.doesNotMatch(mainTag(j6.h), /​/); assert.ok(!j6.rules.includes('templateMold.clientToSub'));
+  // 구글 GDN 580·970: 10자 「인천국제공항보안공사」 = 10 × 43 × .9(Kakao Big Sans) = 387 ≤ 420 → 43px 두 줄(전엔 「…공사 / 2026 하반기 신입/경력 채용」 29px 한 줄 더)
+  for (const id of ['google-gdn-580x400', 'google-gdn-970x250']) { const g = run(id, '인천국제공항보안공사'); assert.equal(g.main, '인천국제공항보안공사\n신입/경력 채용', id); assert.equal(g.fs, 43, id); assert.ok(!g.rules.includes('templateMold.mainExtraLine'), id); }
+  // 카카오 비즈보드(메인에 광고주 필수, 두줄형 허용): 15·16자는 .85 로도 한 줄에 안 들어가 → 두줄형 「기업명 / 신입/경력 채용」, 서브 줄 위(sub.y 144 − main.y 68 = 76px)를 둘로 나눠 31px/38px — 수치는 가이드 미입수 임시(trace templateMold.mainTwoLineClient). 전엔 「신입/경력 채용」만(lint main-client 차단)
+  for (const cl of ['한미글로벌터너앤타운젠드코리아', '한미글로벌&터너앤타운젠드코리아']) {
+    const k = run('kakao-bizboard-mo', cl);
+    assert.equal(k.main, `${cl}\n신입/경력 채용`, cl); assert.ok(k.rules.includes('templateMold.mainTwoLineClient') && k.rules.includes('templateMold.mainExtraLine'), k.rules.join(','));
+    assert.match(mainTag(k.h), /font-size:31px;line-height:38px/); assert.doesNotMatch(mainTag(k.h), /​/, '16자도 한 줄(610px)에 들어가 음절 줄바꿈 자리 없음');
+  }
+  // 카카오 12자 이하는 전과 같이 한 줄(「현대오일터미널 주식회사 채용」·「한진정보통신 신입/경력 채용」)
+  assert.equal(run('kakao-bizboard-mo', '한진정보통신').main, '한진정보통신 신입/경력 채용'); assert.ok(!run('kakao-bizboard-mo', '현대오일터미널 주식회사').rules.includes('templateMold.mainTwoLineClient'));
+  // 자소설 달력 164×233: 8자 「인천국제공항보안」 8 × 20 × .87 = 139 > 130 → 음절로 끊기 전에 글자를 .9(18px) 로 줄여 한 줄(templateMold.clientOneLine)
+  const c8 = run('jasoseol-pc-calendar-pc', '인천국제공항보안'); assert.equal(c8.main, '인천국제공항보안\n신입/경력 채용'); assert.equal(c8.fs, 18); assert.ok(c8.rules.includes('templateMold.clientOneLine')); assert.doesNotMatch(mainTag(c8.h), /​/);
+  // 잡다 MO·리멤버 MO·달력: 16자 기업명이 메인에 남는다(생략은 마지막)
+  for (const id of ['jobda-main-mo', 'remember-main-top-mo', 'jasoseol-pc-calendar-pc']) assert.ok(run(id, '한미글로벌&터너앤타운젠드코리아').main.includes('한미글로벌&터너앤타운젠드코리아'), id);
+  // 채용 구분이 비면 「채용」을 지어 넣지 않는다 — 16자 기업명에서도(카카오 두줄형·잡다·GDN)
+  for (const id of ['kakao-bizboard-mo', 'jobda-main-mo', 'google-gdn-580x400']) { const r = run(id, '한미글로벌&터너앤타운젠드코리아', { hiringType: '', role: '' }); assert.doesNotMatch(r.main, /채용/, id); assert.ok(r.main.includes('한미글로벌&터너앤타운젠드코리아'), id); }
 });

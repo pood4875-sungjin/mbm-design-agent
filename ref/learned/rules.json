@@ -1,6 +1,6 @@
 {
  "note": "규칙 장부 — 한 규칙 = 한 줄. 사람용은 history/규칙장부.md(scripts/rules-ledger.mjs --md 로 표를 다시 만든다). 규칙을 넣거나 바꾸면 여기 한 줄 추가·수정 + 히스토리 기록.",
- "updated": "2026-10-28",
+ "updated": "2026-11-02",
  "rules": [
   {
    "status": "active",
@@ -4600,7 +4600,7 @@
    "id": "melt-subject-cap",
    "category": "이음·녹임",
    "scope": "all",
-   "rule": "녹임이 주인공(kvMeta focus 상자)을 덮지 않게 — 녹임 끝은 주인공 쪽으로 주인공 길이의 25%까지만, 캡은 상자의 15% 아래로는 안 내려간다. meltFix 가 길이를 늘인 뒤 이 캡으로 자른다(덮어 자른 좁은 칸: 리멤버 썸네일 열·자소설 아래 띠·팝업 모서리 칸)",
+   "rule": "녹임이 주인공(kvMeta focus 상자)을 덮지 않게 — 녹임 끝은 주인공 쪽으로 주인공 길이의 25%까지만, 캡은 상자의 15% 아래로는 안 내려간다. meltFix 가 길이를 늘인 뒤 이 캡으로 자른다(덮어 자른 좁은 칸: 리멤버 썸네일 열·자소설 아래 띠·팝업 모서리 칸) · 그 변에서 이미 잘린 주인공은 캡 없음이 아니라 melt.min(30%) 캡(11-02: hr-doctor × 리멤버 사이드 PC 왼변 8% 잘림이 L55 로 반이 뿌옇던 것 → L30)",
    "value": "CANON.melt.subject { intrude 0.25, min 0.15 } · 추적 meltFix.subject · data-melt-fix seam subject",
    "where": "core/canon.js (melt.subject)",
    "where_also": [
@@ -4630,6 +4630,26 @@
     "재현: ilhwa-photo remember-job-side-pc 452px/235px 칸(1.9배, 주인공 폭 50% 보임) → 1.4배 60%"
    ],
    "since": "2026-10-28",
+   "round": null,
+   "source": "docs/concierge-requests-2026-10-28.md",
+   "status": "active"
+  },
+  {
+   "id": "kv-cover-min-visible",
+   "category": "자르기·블리드",
+   "scope": "all",
+   "rule": "통째 덮기(cover)에서도 보일 부분 60% — 넘치는 축에서 주인공 상자(focus)가 60% 미만만 보이면 60% 가 보이는 배율로 낮추고(통째로 들어가는 contain 아래로는 안 감) 상자를 그림 크기로 줄여 지면 변 쪽에 붙인다(오른쪽 열: 오른쪽·아래 / 왼쪽 열: 왼쪽·아래 / 아래 띠: 바닥 가운데 / 모서리 칸: 칸의 오른쪽·아래). 글자 쪽 녹임은 그림 변에서 시작하고 띠의 좁아진 양옆은 cutFade 가 녹인다(같은 축 두 끊김 녹임 합 ≤ 60%). 주인공이 그림의 95% 이상(상자를 못 찾은 사진)은 해당 없음",
+   "value": "CANON.kvCrop { minVisible 0.6, whole 0.95 } · field.js coverFit → kvPlacement.fit / ad.js fitCover(열·띠·모서리 칸) · 추적 templateMold.slotFit · data-kv-fit / data-kv-fit-vis",
+   "where": "core/field.js (coverFit·coverPos·kvPlacement·kvLayer)",
+   "where_also": [
+    "core/renderers/ad.js (fitCover·colFit·slotFit·cutFade 같은 축 예산)",
+    "core/canon.js (kvCrop.whole)"
+   ],
+   "evidence": [
+    "Notion 컨시어지 2026-10-28 #2 김혜원 「세로형(리멤버)에서 KV 가 일부만 크롭 · 자소설 그라데이션 어색」 — 11-02 재현: 10-28 의 minVisible 은 주인공 당김(subjectCrop)만 막았고 cover 경로(주인공이 큰 그림)는 그대로였다",
+    "재현 desk-16(세로 0.67, 주인공 85×82%): 리멤버 사이드 MO 열 556×276 주인공 40% → 60%(상자 374) · 자소설 M팝업 띠 600×336 46% → 60%(455 폭, 양옆 L52/R52 → 30/30) · 자소설 PC팝업 칸 310×216 57% → 60%"
+   ],
+   "since": "2026-11-02",
    "round": null,
    "source": "docs/concierge-requests-2026-10-28.md",
    "status": "active"

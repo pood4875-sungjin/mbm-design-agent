@@ -37,7 +37,8 @@ test('사진 상자의 안쪽 변만 녹인다 — 네이버 DA 사진 칸 오�
 test('제외 — 둥근 상자(카카오 썸네일) · 템플릿 여백 변(자소설 PC팝업 8/30) · 칸 안 contain 누끼(자소설 160×600·네이버 DA)', () => {
   assert.equal(fadeOf(renderAd(ctx, photo, specs['kakao-display-pc-promo'])), null, '카카오 둥근 상자');
   // 10-21 사용자 「또 끊김」: 템플릿 여백 변(자소설 팝업 오른쪽 8·아래 30)도 cover 로 자른 사진·바탕 그림은 녹인다 — 칸은 지면 안쪽 그대로. 누끼 contain 은 안 잘리니 그대로 없음
-  const jp = fadeOf(renderAd(ctx, photo, specs['jasoseol-pc-premium-popup-pc'])); assert.ok(jp && /R\d+/.test(jp) && /B\d+/.test(jp), '자소설 팝업 사진 칸 오른쪽·아래: ' + jp);
+  // 11-02 담당자: 자소설 PC팝업 그림 칸을 공식 가이드 칸(240,184 310×216 — 오른쪽·아래 변에 닿음)으로 → 여백 변이 없어져 cutFade 대신 글자 쪽(왼쪽·위) 녹임(meltMask2)
+  { const hj = renderAd(ctx, photo, specs['jasoseol-pc-premium-popup-pc']); assert.equal(fadeOf(hj), null, '자소설 팝업: 여백 변 없음 → cutFade 없음'); assert.match(hj, /data-object="1"[^>]*data-melt="\d+" data-melt-dir="to right" data-melt-top="\d+"/, '글자 쪽 왼쪽·위 녹임'); }
   assert.equal(fadeOf(renderAd(ctx, cut, specs['jasoseol-pc-premium-popup-pc'])), null, '자소설 팝업 누끼 contain 은 안 잘림');
   assert.equal(fadeOf(renderAd(ctx, cut, specs['jasoseol-pc-premium-jobpost-pc'])), null, '160×600 contain');
   assert.equal(fadeOf(renderAd(ctx, cut, specs['naver-gfa-mobile-da-1250x560'])), null, '네이버 누끼 contain');
@@ -48,10 +49,10 @@ test('녹임 예산(10-21 사용자 「너무 조금 보여… 좌·하단」): 
   // 밝은 속색 사진 × 갈색 지면: 색 차로 왼쪽·위 녹임이 55% 까지 늘고, 여백 변도 55% 까지 늘던 조합
   const bright = normalizeStyle({ colors: ['#B5571B'], keyVisual: PNG, kvMeta: { ar: 1.5, px: [1500, 1000], colors: ['#F4E7D6', '#8FB7E0', '#6B4A2E'], field: { kind: 'photo', opaque: 1, lum: 0.6, sat: 0.3, edges: { left: { hex: '#6B4A2E' }, top: { hex: '#6B4A2E' }, right: { hex: '#6B4A2E' }, bottom: { hex: '#6B4A2E' } }, quadrants: { tl: '#F4E7D6', tr: '#8FB7E0', bl: '#F4E7D6', br: '#8FB7E0' } } } });
   const h = renderAd(ctx, { ...bright, __fix: {} }, specs['jasoseol-pc-premium-popup-pc']);
-  const f = fadeOf(h); assert.ok(f && /R28\b/.test(f) && /B28\b/.test(f), '여백 변 28 고정: ' + f);
+  const f = fadeOf(h); assert.equal(f, null, '11-02: 공식 칸은 변에 닿아 여백 변(insetFixed) 규칙이 안 걸린다 — 밝은 속색이어도 cutFade 없음: ' + f);
   const melt = +(h.match(/data-object="1"[^>]*data-melt="([\d.]+)"/) ?? [])[1], top = +(h.match(/data-object="1"[^>]*data-melt-top="([\d.]+)"/) ?? [])[1];
   const limit = Math.round((1 - CANON.cutFade.keep) * 100);
-  assert.ok(melt + 28 <= limit + 0.5 && top + 28 <= limit + 0.5, `왼 ${melt}+28 · 위 ${top}+28 ≤ ${limit}`);
+  assert.ok(melt <= 55.5 && top <= 55.5, `왼 ${melt} · 위 ${top} ≤ 55 (11-02: 여백 변 없음 — 한쪽만 녹이는 칸이라 예산(keep) 밖, 녹임 상한만)`);
   assert.ok(melt >= CANON.melt.min * 100 - 0.5, '글자 쪽 녹임은 바닥(30%) 아래로는 안 줄인다: ' + melt);
   if (/data-fade-budget=/.test(h)) assert.match(h, /data-fade-budget="[LT]\d+(\.\d+)?→\d+/);
   // 한쪽만 녹이는 칸은 그대로 — 구글 580 모서리 칸 왼·위 녹임(오른쪽·아래는 지면 변)

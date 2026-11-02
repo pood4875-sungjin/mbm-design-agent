@@ -217,7 +217,16 @@
               "note": "썸네일형 칸(이미지 988×360 + 왼쪽 그라데이션). 오브젝트형(844×284)·풀이미지형은 기존 가이드 선택지"
             },
             "docSection": "①",
-            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+            "imageCutout": {
+              "x": 1316,
+              "y": 38,
+              "w": 844,
+              "h": 284,
+              "fit": "contain",
+              "anchor": "center",
+              "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. PSD 오브젝트 가이드 x1314 y36 848×288 안 가운데, PDF p.12 오브젝트형 844×284"
+            }
           }
         }
       },
@@ -330,7 +339,16 @@
               "note": "썸네일형 칸. 오브젝트형 칸 (605,28) 346×304 은 이 안"
             },
             "docSection": "②",
-            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+            "imageCutout": {
+              "x": 605,
+              "y": 28,
+              "w": 346,
+              "h": 304,
+              "fit": "contain",
+              "anchor": "center",
+              "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. Figma 1:6422 오브젝트 칸 605,28 346×304 · PDF p.13"
+            }
           }
         }
       },
@@ -458,7 +476,16 @@
               "note": "썸네일형 칸"
             },
             "docSection": "③",
-            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+            "imageCutout": {
+              "x": 1303,
+              "y": 24,
+              "w": 880,
+              "h": 192,
+              "fit": "contain",
+              "anchor": "center",
+              "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. PSD 오브젝트 가이드 x1301 y23 883×194 안 가운데, PDF p.17 오브젝트형 880×192"
+            }
           }
         }
       },
@@ -576,7 +603,16 @@
               "note": "썸네일형 칸. 오브젝트형 칸 (604.7,28) 346×304 은 이 안"
             },
             "docSection": "④",
-            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+            "imageCutout": {
+              "x": 605,
+              "y": 28,
+              "w": 346,
+              "h": 304,
+              "fit": "contain",
+              "anchor": "center",
+              "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. Figma 오브젝트 칸 (604.7,28) 346×304 · PDF p.18"
+            }
           }
         }
       },
@@ -702,7 +738,16 @@
               "note": "썸네일형 칸(템플릿은 썸네일형만)"
             },
             "docSection": "⑤",
-            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+            "imageCutout": {
+              "x": 1303,
+              "y": 24,
+              "w": 880,
+              "h": 192,
+              "fit": "contain",
+              "anchor": "center",
+              "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. PDF p.22 오브젝트형 880×192 — 메인 중간 배너와 같은 자리(PSD 없음)"
+            }
           }
         }
       },
@@ -961,7 +1006,16 @@
               "note": "썸네일형 칸(규정 썸네일형만)"
             },
             "docSection": "⑦",
-            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+            "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+            "imageCutout": {
+              "x": 689,
+              "y": 12,
+              "w": 412,
+              "h": 252,
+              "fit": "contain",
+              "anchor": "center",
+              "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. PDF p.23 오브젝트형 412×252 — 썸네일 칸(665,0 460×276) 가운데(위치 자료 없음)"
+            }
           }
         }
       },

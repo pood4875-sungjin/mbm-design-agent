@@ -36,6 +36,15 @@
         "cd /Users/kimsungjin/mbm-design-agent && exec node server/server.mjs 4796"
       ],
       "port": 4796
+    },
+    {
+      "name": "guide-collector",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/kimsungjin/guide-collector && exec node server.js"
+      ],
+      "port": 4173
     }
   ]
 }

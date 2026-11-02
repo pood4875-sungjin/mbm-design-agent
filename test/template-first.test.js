@@ -63,18 +63,18 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
   assert.match(html, /<img data-logo="1"[^>]*max-width:100%/); assert.doesNotMatch(html, /max-width:min\(100%/, '로고 상한 없음(칸이 크기)');
   // 그림: 칸(293,187 249×183)의 위치·범위만 틀 — 처리는 디자인 가이드(모서리 상자: 누끼 contain 우하단, 바탕 있는 그림 cover + 녹임). 칸 밖으로 나가지 않는다
   const ob = html.match(/data-object="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px;[^"]*right bottom\/(contain|auto \d+px)/);   // auto Npx = 겹침 교정 사다리가 칸 안에서 누끼를 줄인 것(10-19 overlapFix — 긴 직무 값이 칸 밑으로 흘러 21%→11%)
-  assert.ok(ob && +ob[1] >= 293 && +ob[2] >= 187 && +ob[1] + +ob[3] <= 542 && +ob[2] + +ob[4] <= 370, 'KV 는 그림 칸 안(블리드 없음): ' + (ob && ob[0]));
+  assert.ok(ob && +ob[1] >= 240 && +ob[2] >= 184 && +ob[1] + +ob[3] <= 550 && +ob[2] + +ob[4] <= 400, 'KV 는 그림 칸 안(블리드 없음, 11-02 담당자: 공식 가이드 칸 240,184 310×216): ' + (ob && ob[0]));
   assert.doesNotMatch(html, /data-scrim/);
 });
 
-test('채용공고 160×600 틀 — 샘플 6개: 서브 16/700 y81.9 · 메인 24/700 y141 고정(서브 줄 수 무관, 10-26) 간격 34 · 상세 13 라벨 줄 + 값 줄, 블록 y = 마지막 메인 줄 + 57.5 · 로고 칸 130×30@15,23 가운데 · 그림 칸 160×200@0,400', () => {
+test('채용공고 160×600 틀 — 담당자 6유형(11-02, 컨시어지 30:1056~1712): 서브 16/700 y81.9 · 메인 24/700 y = 서브 1줄 117.5 / 2줄 141, 간격 34 · 상세 13 라벨 줄 + 값 줄, 블록 y = 마지막 메인 줄 + 57 · 로고 칸 130×30@15,23 가운데 · 그림 칸 160×200@0,400', () => {
   for (const id of ['jasoseol-pc-premium-jobpost-pc', 'jasoseol-pc-standard-jobpost-pc']) {
     const html = renderAd(ctx, glass, specs[id]);
     const tr = traceOf(html), R = tr.mold.rows;
     assert.equal(tr.mode, 'templateMold', id);
-    assert.equal(R.sub.y, 81.9); assert.equal(R.main.y, 141, '10-26 사용자 「서브 줄 수와 상관없이 템플릿 자리(141)」'); assert.equal(tr.mold.mainN, 3, '마이다스 / 대규모 / 공개채용');
+    assert.equal(R.sub.y, 81.9); assert.equal(tr.mold.subN, 1, '「2025 하반기」 서브 1줄'); assert.equal(R.main.y, 117.5, '서브 1줄 → 메인 117.5(11-02 6유형 30:1588, 10-26 「141 고정」 대체)'); assert.equal(R.main.pitch, 34); assert.equal(tr.mold.mainN, 3, '마이다스 / 대규모 / 공개채용');
     assert.match(html, /<img data-logo="1"[^>]*height:25px/, '로고 면적 상한 2,200px²: MIDAS(3.4:1) → 86×25');
-    assert.equal(Math.round(R.detail.y * 10) / 10, Math.round((141 + 2 * 34.1 + 57.5) * 10) / 10, '상세 = 마지막 메인 줄 + 57.5');
+    assert.equal(Math.round(R.detail.y * 10) / 10, Math.round((117.5 + 2 * 34 + 57) * 10) / 10, '상세 = 마지막 메인 줄 + 57 (30:1588 실측 242.8)');
     assert.match(html, /<b style="font-weight:700">모집일정<\/b><\/div><div>9\.22\(월\) - 10\.12\(일\)<\/div>/, '라벨 줄 + 값 줄');
     assert.doesNotMatch(detailOf(html), /고용형태/);
     assert.match(html, /data-logo-slot="1" style="position:absolute;left:15px;top:23px;width:130px;height:30px;[^"]*justify-content:center/);
@@ -82,10 +82,10 @@ test('채용공고 160×600 틀 — 샘플 6개: 서브 16/700 y81.9 · 메인 2
     assert.match(html, /data-object="1" style="position:absolute;left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/contain/, '누끼 = 칸 160×200 안 contain');
     assert.ok(!tr.rules.includes('templateMold.bandBleed'));
   }
-  // 서브 2줄이면 메인 첫 줄 y141
+  // 서브 2줄이면 메인 첫 줄 y141(30:1331)
   const long = createContext({ ...fields, season: '2025년 하반기 정기 공개채용 시즌' }, 'recruit');
   const tr2 = traceOf(renderAd(long, glass, specs['jasoseol-pc-premium-jobpost-pc']));
-  if (tr2.copy.sub === '2025년 하반기 정기 공개채용 시즌') assert.equal(tr2.mold.rows.main.y, 141);
+  if (tr2.copy.sub === '2025년 하반기 정기 공개채용 시즌') { assert.equal(tr2.mold.subN, 2); assert.equal(tr2.mold.rows.main.y, 141); }
 });
 
 test('PC메인 1200×280 틀 — 현대케피코 28:1002: 서브 22/500 y43 · 메인 32/700 y81 간격 43(회사 / 채용구분 두 줄) · 상세 18 y195 2행(메인 2줄) · 라벨 「채용일정 :」 · 왼쪽 350×280 에만 브랜드 지면 + KV, 바탕 흰색 · 로고 칸 163.5×44.9@1006.5,30 우측', () => {
@@ -127,8 +127,9 @@ test('M메인 750×500 틀 — 템플릿 1:8625·FITI 1:10459: 서브 28/700 (43
   assert.ok(R.detail.y >= 372.5 && R.detail.y <= 412.5 + 0.1, '메인 2줄 → 372.5/412.3(≈412.5) 줄, 아래부터: ' + R.detail.y);
   assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22/);   // FITI 샘플 「접수기간 ㅣ」 → 10-28 자소설 전 규격 「모집일정 :」 통일(컨시어지 #10)
   assert.doesNotMatch(html, /data-logo/, '로고 없음(규정)');
-  // 10-15 밤: 모서리에 닿는 틀 그림 칸은 이전 가이드대로 단일 누끼를 우하단 블리드(templateMold.slotBleed) — 주요 칸 (376,160) 왼쪽·위 경계는 지키고 템플릿 「최대 칸」(338,0) 412×500 안에서 키운다
-  assert.match(html, /data-object="1"( data-bleed="1")? style="position:absolute;left:(37[6-9]|3[89]\d|[4-9]\d\d)px;top:(1[6-9]\d|[2-9]\d\d)px;width:\d+px;height:\d+px;[^"]*(right bottom\/contain|--kv-bleed:1)/, '주요 칸 안 누끼 contain 또는 우하단 블리드');
+  // 11-02 담당자 「누끼 잘림 최소화」: 틀 그림 칸의 누끼는 블리드 없이 칸 안에 통째로(contain, 우하단) — 10-15 밤의 모서리 칸 블리드(templateMold.slotBleed)는 꺼짐. 겹침 교정이 줄이면 auto Npx
+  assert.match(html, /data-object="1" style="position:absolute;left:(37[6-9]|3[89]\d|[4-9]\d\d)px;top:(1[6-9]\d|[2-9]\d\d)px;width:\d+px;height:\d+px;[^"]*right bottom\/(contain|auto \d+px)/, '주요 칸 안 누끼 contain(블리드 없음)');
+  assert.doesNotMatch(html, /data-bleed="1"|--kv-bleed:1/, '틀 칸 누끼 블리드 없음(11-02)');
 });
 
 test('PC달력 164×233 틀(2배 328×466 실측 ×0.5) — 메인 20/700 x26 y19.5 간격 26.9 최대 4줄 · 마감일 16/400 = 마지막 메인 줄 + 29.65 「~10/12」 · 서브·상세·로고 없음 · 그림 칸 164×80@0,153', () => {
@@ -187,9 +188,12 @@ test('리멤버 메인 상단 PC 2240×360 틀 — 1:6404: 메인 48/600 (81.4,1
   assert.match(html, /data-text-col="1" style="position:absolute;left:81px;top:103px;width:996px/);
   assert.match(html, /<b style="font-weight:400">모집기간 :<\/b> 9\.22\(월\) - 10\.12\(일\)/);
   assert.doesNotMatch(html, /data-logo/);
-  assert.match(html, /data-object="1" style="position:absolute;left:1\d{3}px;top:0px;width:\d+px;height:360px;/, '10-15 밤: KV 는 글자 상자를 피한 오른쪽 열(자유 배치)');
-  assert.equal(tr.place.imgCol, 'right', '오른쪽 이미지 열(imgRightCol)');
-  assert.match(html, /data-object="1" style="[^"]*right bottom\/contain/, '누끼는 열 바닥·오른쪽 변에 붙인다(10-19 kv-gap-audit: 10-15 저녁 「열 안 누끼 center bottom」 은 오른쪽에 22~92px 애매한 틈 → 사용자 「여백 애매하게 생기지 않도록 싹」으로 right bottom)');
+  // 11-02 담당자: 누끼 키비주얼은 썸네일 칸(오른쪽 열)·자유 자리 대신 매체 오브젝트형 칸(PDF p.12 844×284, PSD 가이드 1314,36 안 가운데 → 1316,38)에 통째로 contain·가운데·블리드 없음(mold.imageCutout → templateMold.cutoutZone)
+  assert.match(html, /data-object="1" style="position:absolute;left:1316px;top:38px;width:844px;height:284px;[^"]*center\/contain/, '누끼 → 오브젝트형 칸 844×284@1316,38 center/contain');
+  assert.ok(tr.rules.includes('templateMold.cutoutZone'));
+  assert.equal(tr.place.imgCol, 'corner', '오브젝트형 칸은 변에 안 닿는 상자(corner)');
+  // 사진(배경 있는 그림)은 전처럼 썸네일 칸 쪽 오른쪽 열(자유 배치)
+  { const hp = renderAd(ctx, normalizeStyle({ ...glass, kvMeta: { ...RING, field: { ...RING.field, opaque: 1, kind: 'photo' } } }), specs['remember-main-top-pc']); assert.match(hp, /data-object="1" style="position:absolute;left:1\d{3}px;top:0px;width:\d+px;height:360px;/, '사진은 오른쪽 열(자유 배치) 그대로'); }
   const PHOTO = { ar: 1.5, px: [1500, 1000], field: { kind: 'photo', opaque: 1, lum: 0.5, sat: 0.3, semi: 0, focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.8, parts: 1, others: [], density: 0.5 }, cols: col([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]), rows: col([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]) } };
   const ph = renderAd(ctx, normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: PHOTO }), specs['remember-main-top-pc']);
   assert.match(ph, /data-object="1" style="position:absolute;left:1\d{3}px;top:0px;width:\d+px;height:360px;[^"]*data-melt-dir="to right"|data-melt-dir="to right"/, '바탕 있는 그림은 글자 쪽(왼쪽 변)으로 녹인다 — 왼쪽 열의 거울');
@@ -254,7 +258,7 @@ test('에브리타임 틀 — 커뮤니티보드 1:771(메인 45 y79 · 날짜 3
   assert.match(hc, /data-logo-slot="1" style="position:absolute;left:530px;top:30px;width:160px;height:40px;[^"]*justify-content:flex-end/);
   const ob = hc.match(/data-object="1"(?: data-bleed="1")? style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);   // 10-15 밤: 모서리 칸 누끼는 블리드(data-bleed) 허용 — 칸의 왼쪽·위 경계만 지킨다
   assert.ok(ob && +ob[1] >= 329 && +ob[1] + +ob[3] <= 730 && +ob[2] + +ob[4] <= 486, '누끼는 글자 상자를 피한 칸(오른쪽 열·모서리, 10-15 밤 자유 배치) 안: ' + (ob && ob[0]));
-  { const ti = t3.place.tImage; assert.ok(ti.x >= 329 && ti.x + ti.w <= 720 && ti.y + ti.h <= 486, `KV 는 글자 상자를 피한 칸(오른쪽 열 또는 모서리, 10-15 밤 자유 배치): ${JSON.stringify(ti)}`); }
+  { const ti = t3.place.tImage; assert.ok(ti.x >= 329 && ti.x + ti.w <= 730 && ti.y + ti.h <= 486, `KV 는 글자 상자를 피한 칸(오른쪽 열 또는 모서리, 10-15 밤 자유 배치): ${JSON.stringify(ti)}`); }
 });
 
 test('캐치 이미지형 틀 — PC 1:5765(서브 20 y56 · 타이틀 40 y93 1줄 · 기타문구 19 y164 간격 24.5 3줄 접수기간·모집직무 · 그림 칸 393×295@863,0) · MO 1:5782(서브 22 y87 · 타이틀 42 y129 간격 67 2줄 · 기타 24 y296 간격 44 · 그림 칸 전체) — 굵기·색은 틀 없음(FREE), 서브는 슬로건(가로형 날짜→서브 규칙 안 탐)', () => {
@@ -304,7 +308,7 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
   assert.match(renderAd(ctx, normalizeStyle({ ...glass, fonts: { heading: 'Paperlogy', body: 'Paperlogy' } }), specs['google-gdn-580x400']), /font-family:'Paperlogy'/, '사용자가 고른 글꼴(Paperlogy)이 구글 틀에 들어간다');
   assert.match(h580, /data-field="date"[^>]*font-size:22px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 평문 22(상자 없음)');
   assert.match(h580, /data-logo-slot="1" style="position:absolute;left:427px;top:24px;width:127px;height:25px;[^"]*justify-content:flex-end/, 'CI (427,24) 127×25 우상단');
-  { const ti = t580.place.tImage; assert.ok(ti && Math.abs(ti.x - 297) <= 2 && ti.y === 229 && Math.abs(ti.w - 283) <= 2 && ti.y + ti.h <= 400 && ti.x + ti.w >= 578, '그림 칸 (297,229) 283×178 오른쪽 아래(누끼 비율 맞춤 ±): ' + JSON.stringify(ti)); }
+  { const ti = t580.place.tImage; assert.ok(ti && Math.abs(ti.x - 297) <= 2 && ti.y === 229 && Math.abs(ti.w - 283) <= 2 && ti.y + ti.h <= 407 && ti.x + ti.w >= 578, '그림 칸 (297,229) 283×178 오른쪽 아래(누끼 비율 맞춤 ±, 아랫변 407 = 템플릿 칸 그대로 — 11-02 블리드 없음): ' + JSON.stringify(ti)); }
   assert.doesNotMatch(h580, /data-band="1"/); assert.doesNotMatch(h580, /data-field="(sub|tags)"/);
   const h970 = renderAd(ctx, glass, specs['google-gdn-970x250']); const t970 = traceOf(h970);
   assert.deepEqual([t970.mold.rows.main.px, t970.mold.rows.main.lines, t970.mold.rows.main.y, t970.mold.rows.date.px], [43, 2, 52, 22]);
@@ -346,7 +350,7 @@ test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 
   assert.deepEqual([t250.mold.rows.main.y, t250.mold.rows.main.px, t250.mold.rows.main.pitch, t250.mold.rows.date?.y, t250.mold.rows.detail], [43.8, 27, 35, 121.8, undefined]);
   assert.doesNotMatch(h250, /data-field="detail"/, '300×250 수정본: 모집분야 줄 없음');
   assert.match(h250, /data-field="date"[^>]*font-size:12px;[^>]*>9\.22/, '300×250 날짜 평문(알약 제거 10-16)'); assert.doesNotMatch(h250, /data-chip="1"/);
-  { const ob = h250.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 158 && Math.abs(+ob[2] - 161) <= 1 && +ob[3] === 142 && Math.abs(+ob[4] - 89) <= 1, '키비주얼 칸 (158,161) 142×89(블리드 반올림 ±1): ' + (ob && ob[0])); }
+  { const ob = h250.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 158 && Math.abs(+ob[2] - 167) <= 1 && +ob[3] === 142 && Math.abs(+ob[4] - 83) <= 1, '키비주얼 칸 (158,167) 142×83 — 칸 안 contain 우하단(11-02 블리드 없음, 10-16 블리드 때는 161/89): ' + (ob && ob[0])); }
   const h480 = renderAd(ctx, glass, specs['nap-dsp-full-320x480']); const t480 = traceOf(h480);
   assert.equal(t480.place.zone.align, 'center');
   assert.match(h480, /data-field="main"[^>]*font-size:34px;line-height:44px;font-weight:700;[^"]*text-align:center/);
@@ -355,7 +359,7 @@ test('NAP-DSP 틀(HS화성 디자이너 샘플 77:497·518·541·567, 사용자 
   assert.deepEqual([t480.mold.rows.date?.y, t480.mold.rows.detail?.y], [160.2, 197.2]);
   if (t480.rules.includes('templateMold.accentClient')) assert.match(h480, /<span data-accent="1" style="color:#[0-9A-Fa-f]{6}">마이다스<\/span>/, '회사명 강조색');
   const h970 = renderAd(ctx, glass, specs['nap-dsp-pc-970x90']);
-  assert.match(h970, /data-field="main"[^>]*font-size:24px;[^"]*font-weight:700/); assert.match(h970, /data-field="detail"[^>]*style="position:absolute;left:31px;[^"]*font-size:15px/);
+  assert.match(h970, /data-field="main"[^>]*font-size:2[04]px;[^"]*font-weight:700/, '틀 24 — 11-02 글자 폭 실측(Kakao Big Sans 한글 .894em) 뒤엔 「마이다스 대규모 공개채용」이 .85(20px) 로 들어가 kkSelf(정보 많은 문구를 작게)가 잡는다'); assert.match(h970, /data-field="detail"[^>]*style="position:absolute;left:31px;[^"]*font-size:15px/);
   assert.notEqual(traceOf(renderAd(ctx, glass, specs['nap-dsp-bizboard-1029x258'])).mode, 'templateMold', '비즈보드는 썸네일 규정 그대로(틀 없음)');
 });
 
@@ -378,7 +382,7 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.match(hp, /data-field="date"[^>]*style="position:absolute;left:0px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '게시글 날짜 줄 라벨 없이 · x 80 = 메인과 좌정렬(사용자 수정본 135:961)');
   assert.match(hp, /data-field="detail"[^>]*style="position:absolute;left:0px;/, '게시글 상세 x 80');
   assert.match(hp, /data-logo-slot="1" style="position:absolute;left:980px;top:50px;width:220px;height:44px;[^"]*align-items:flex-start;justify-content:flex-end/, '로고 오른쪽 위 (980,50) 220×44');
-  { const ob = hp.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 852 && +ob[2] === 281 && +ob[3] === 398 && +ob[4] === 279, '키비주얼 칸 (852,281) 398×279 오른쪽 아래: ' + (ob && ob[0])); }
+  { const ob = hp.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] === 852 && +ob[2] === 327 && +ob[3] === 398 && +ob[4] === 233, '키비주얼 칸 (852,327) 398×233 — 칸 (852,281) 398×279 안 contain 우하단(11-02 블리드 없음): ' + (ob && ob[0])); }
   assert.notEqual(traceOf(renderAd(ctx, glass, specs['naver-gfa-native-mo-342x228'])).mode, 'templateMold', 'naver-gfa-native-mo-342x228');   // 10-16 카카오 비즈보드는 틀 생김(아래 테스트) · 인스타 1080 도 틀 생김(사용자 수정본, 바로 아래)
   // 10-16 인스타 피드 1080 틀 — 사용자 수정본 135:1185: 글자 (89,131) 폭 934 가운데 정렬 · 메인 Bold 72 행간 94 2줄 · 날짜 Regular 43(afterMain 108) · 모집직무 값만 Bold 43 · 로고 (835,45) 195×39 오른쪽 위 · 키비주얼 칸 (262,587) 786×493(kv slot) → 10-19 사용자 「우측에 여백 생기는 거 수정」: 폭 818(x+w = 1080, 오른 여백 32 → 0) · bleed false(누끼 contain 우하단 맞춤, 블리드 없음)
   const hi = renderAd(ctx, glass, specs['instagram-feed-1080']); const ti = traceOf(hi);

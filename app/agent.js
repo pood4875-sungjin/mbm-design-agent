@@ -131,11 +131,14 @@ export async function agentTurn({ state, history, userText }) {
   return normalize(out, state);
 }
 
-function normalize(out, state) {
+// 11-02: 브리프가 정해지기 전(briefDone 아님)에는 규칙 파서(core/brief.js)가 읽어 둔 값을 AI 답이 덮지 않는다 — scriptedTurn 과 같은 규칙.
+//   담당자 첫 화면 4문장(피에스케이·인천국제공항보안·현대오일터미널…)은 파서가 맞게 읽는데, AI 키가 켜진 상태에서 AI 가 「피에스케이 2026년」처럼 다르게 읽으면 카드 값이 바뀌던 틈
+export function normalize(out, state) {
   const patch = out.patch ?? {};
   const kind = KINDS[patch.kind] ? patch.kind : (state.kind ?? 'event');
   const fields = {};
-  for (const k of KINDS[kind].fields) if (patch.fields?.[k]) fields[k] = String(patch.fields[k]).trim();
+  const had = state.fields ?? {};
+  for (const k of KINDS[kind].fields) if (patch.fields?.[k] && (state.briefDone || !had[k])) fields[k] = String(patch.fields[k]).trim();
   const channels = (patch.channels ?? []).filter(c => CHANNELS.includes(c));
   const media = (patch.media ?? []).filter(id => MEDIA_IDS.includes(id));
   const style = {};

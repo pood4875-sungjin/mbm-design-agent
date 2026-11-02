@@ -74,7 +74,7 @@ export const CANON = {
   //     보이는 변이 그림 변이 아니고(frac > edgeTol) 걸린 열·행이 바탕 줄(bg ≥ bgQuiet)도 아니면 그림 속 색(걸린 줄 + 대표색 dominant 개 + 그 변 쪽 사분면 색) 중 지면과 가장 먼 색으로 길이를 잰다. 그린 뒤 후처리(ad.js meltFix)라 모든 배치 경로에 같이 걸린다 — 짧아지는 쪽으로는 안 바꾼다
   //   subject(10-28 컨시어지 #2 김혜원 「세로형(리멤버 사이드)에서 KV 가 일부만 보임 · 자소설 그라데이션이 KV 와 배경을 못 이음」): 녹임이 주인공(kvMeta focus 상자)을 덮지 않게 — 주인공 쪽으로 intrude(주인공 길이의 25%)까지만 들어가고, 그 캡은 min(상자의 15%) 아래로는 안 내려간다.
   //     meltFix(ad.js 후처리)가 길이를 늘인 뒤 이 캡으로 자른다 — 덮어 자른 좁은 칸(리멤버 썸네일 열·자소설 아래 띠)에서 녹임이 그림의 반을 먹어 「일부만 보이던」 것(장부 melt-subject-cap)
-  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6, bridgeMinLum: 0.55, seamInside: { edgeTol: 0.02, bgQuiet: 0.85, dominant: 3 }, subject: { intrude: 0.25, min: 0.15, maxShare: 0.8 } },   // maxShare: 주인공이 그림의 80% 이상이면(꽉 찬 사진) 캡 없음 · 그 변에서 이미 잘린 주인공도 캡 없음(잘린 자리는 긴 녹임이 가린다)
+  melt: { min: 0.30, max: 0.55, fullAt: 0.45, ease: 'smoothstep', stops: 7, bridgeFrom: 0.35, bridgeMax: 0.6, bridgeMinLum: 0.55, seamInside: { edgeTol: 0.02, bgQuiet: 0.85, dominant: 3 }, subject: { intrude: 0.25, min: 0.15, maxShare: 0.8 } },   // maxShare: 주인공이 그림의 80% 이상이면(꽉 찬 사진) 캡 없음 · 그 변에서 이미 잘린 주인공은 melt.min(30%)으로 캡(11-02 재현: 캡 없이 55% 면 리멤버 사이드 열의 사람 사진 반이 뿌옇다 — 잘린 자리는 30% 로도 가려진다)
   // 질감 전체 깔기에서 글자 아래가 어지러우면(형태 가장자리가 뚜렷) 글자 쪽에서 지면 자기 색 스크림을 깐다 — 「아주 살짝」이 기본, 어지러울수록 진하게.
   //   10-12 desk-23 제주항공(알약 가장자리 뚜렷 「비주얼이랑 텍스트 너무 겹쳐」) · desk-02 대한항공(「글씨 영역 쪽만 아주 살짝 오퍼」).
   //   busy = max((texture.spread − spreadMin) / (spreadFull − spreadMin), texture.sharp / sharpFull) 를 0~1로 · busyMin 미만이면 스크림 없음(hdot-wave 0.01·hdot-purple3d 0.08은 그대로, desk-02 0.10부터)
@@ -126,7 +126,8 @@ export const CANON = {
   //     한쪽만 녹이는 칸(구글 580 모서리 칸 왼 55%·인스타 1080 틀 칸 위 55%)은 예산 안이라 그대로
   cutFade: { base: 8, k: 2, min: 10, max: 36, photo: 28, minGap: 2, insetFixed: true, keep: 0.4 },
   // 주인공 당김(field.js subjectCrop) 보일 부분(10-28 컨시어지 #2 김혜원): 주인공 상자의 60% 는 보여야 한다 — 리멤버 사이드 235×200 칸에 일화 사옥(주인공 띠 2.36:1)을 1.9배 당겨 주인공 폭 50% 만 보이던 것 → 1.4배 60%(장부 kv-crop-min-visible). 비율이 맞는 작은 주인공은 그대로 당긴다
-  kvCrop: { minVisible: 0.6 },
+  //   whole(11-02 재현): 주인공 상자가 그림의 95% 이상이면(상자를 못 찾은 사진 — focus 1×1) 보일 부분 규칙 해당 없음. cover 경로(field.js coverFit — 리멤버 사이드 열·자소설 M팝업 아래 띠·틀 그림 칸)도 같은 60%: 미만이면 배율을 낮추고 상자를 그림 크기로 줄여 지면 변에 붙인다(장부 kv-cover-min-visible)
+  kvCrop: { minVisible: 0.6, whole: 0.95 },
   // 겹침 교정 사다리(10-19 사용자 「키비주얼과 텍스트가 겹쳐서 텍스트가 안 보일 땐 텍스트를 줄이던지 띄어쓰던지 키비주얼 위치를 조정」): 글자 행 × 주인공 상자 겹침이 문턱(검수와 같음: 캐릭터·인물 2%, 그 외 15%)을 넘으면
   //   ① 글자 배율 textSteps(바닥 textFloor, 규정 매체 틀은 textFloorRegulated) ② 메인 두 줄 ③ 키비주얼 배율 kvSteps 순으로 다시 그려 처음 문턱 아래를 쓴다
   overlapFix: { character: 0.02, other: 0.15, textSteps: [0.92, 0.84, 0.75], textFloor: 0.75, textFloorRegulated: 0.85, kvSteps: [0.85, 0.7], cellOpaque: 0.3 },

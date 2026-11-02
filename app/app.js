@@ -19,6 +19,7 @@ import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, sp
 import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { propagate } from '../core/propagate.js';
 import { approvalGate, STATE_LABEL } from '../core/gate.js';
+import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
 import { htmlHash } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
@@ -34,13 +35,17 @@ import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { PRESET_KEYS } from '../core/editlayout.js';
-import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
+import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
+import { createSelect, pickForExport } from './select.js';   // 11-02 선택하기(컨시어지 박진화 「선택한 소재만 추출」) — 카드·드래그·매체 머리글로 골라 그것만 ZIP
+import { mountKvFocus, withManual } from './kvfocus.js';   // 11-02 주인공 확인·직접 지정(컨시어지 한희하) — 썸네일 위 네모, 클릭/드래그   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
 import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
 import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolder, deleteFolder, reorderFolder, moveFolderBy, moveCampaign,
   toggleFolder, folderOf, filterCampaigns, groupCampaigns, nameError, cleanName, displayName, logoSig, tileToneFor, containBox } from '../core/folders.js';
 
 const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };
-const TONE_LABEL = { auto: '자동', dark: '다크', light: '라이트' };   // 글자색 톤(style.textTone, 10-19)   // 상세 라벨 알약 톤(style.chipTone)
+const TONE_LABEL = { auto: '자동', dark: '다크', light: '라이트' };
+// 글자색 규정 매체(렌더러 regulatedText 와 같은 판정): 규격 textColors.main(카카오·NAP 비즈보드) 또는 규정 매체(fonts.required — 자소설·리멤버·카카오). 직접 글자색(textColor)은 여기선 안 먹는다(11-02)
+const textColorRegulated = spec => !!(spec?.rules?.textColors?.main || spec?.mediumRules?.fonts?.required);   // 글자색 톤(style.textTone, 10-19)   // 상세 라벨 알약 톤(style.chipTone)
 const FIELD_LABEL = {
   name: '행사명', date: '일시', venue: '장소', audience: '대상', cta: 'CTA',
   senderName: '발신자명', subject: '메일 제목', formFields: '등록 폼 항목', printSize: '인쇄 규격',
@@ -77,6 +82,8 @@ const state = {
 };
 const $ = id => document.getElementById(id);
 const frames = new Map();  // artifact.key → {frame, iframe, badge, label}
+// 선택하기(11-02, app/select.js) — 선택은 세션만(저장 안 함). 켜져 있으면 카드 클릭·빈 곳 드래그가 선택이 되고, 내보내기 모달에 「선택한 소재만」이 뜬다
+const SEL = createSelect({ state, frames, $ });
 // 편집 고도화·가이드 검수(10-14, app/editor.js) — 프리셋·직접 수정 손잡이·가이드 검수. 아래 함수들은 늦게 정의되는 것도 있어 화살표로 감싸 넘긴다
 const ED = createEditor({
   state, SPECS, frames, logEvent,
@@ -101,6 +108,7 @@ function show(view) {
   $('campPill').style.display = view === 'work' ? 'block' : 'none';
   $('approveAll').style.display = view === 'work' ? 'block' : 'none';
   $('exportAll').style.display = view === 'work' ? 'block' : 'none';
+  $('selectMode').style.display = view === 'work' ? 'block' : 'none'; if (view !== 'work') SEL.setOn(false);   // 선택하기는 작업 화면에서만 · 나가면 해제
   if (view === 'home') renderSidebar();
 }
 function openHtml(html) {
@@ -1285,7 +1293,7 @@ function kvDiagnosis(it, meta) {
     : f?.room ? '배경을 품은 그림이에요 — 비율이 비슷한 규격엔 통째로 깔고 빈 자리에 글자, 띠에는 주인공만 당겨 넣어요.'
     : '배경을 품은 그림이에요 — 주인공을 당겨 자리를 채우고 가장자리 색을 지면으로 써요.';
   const slots = objectSlotsText(it, f);
-  const tail = slots && !it.object ? ` ${slots}은 배경 없는 오브젝트가 필요한 자리라 지금 그림으론 글자만 나가요 — 옆의 '오브젝트 누끼'를 올리면 거기에만 씁니다.` : '';
+  const tail = slots && !it.object ? ` ${slots}은 배경 없는 오브젝트가 필요한 자리라 지금 그림으론 글자만 나가요 — 누끼(투명 PNG)를 키비주얼로 올리면 거기도 그려져요.` : '';
   say(how + tail);
 }
 function slotStyle() {
@@ -1294,13 +1302,14 @@ function slotStyle() {
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
     <div class="styleRow">
-      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())} — 소재에 그려지는 그림만. 공고문·전 시안 같은 참고 이미지는 「레퍼런스(참고용)」 칸에" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수)'}</div>
+      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())} — 누끼·사진·일러스트 어느 것이든 한 칸에. 누끼(투명 PNG)면 오브젝트형 가이드, 배경 있는 그림이면 썸네일/풀이미지형으로 자동 판정합니다. 공고문·전 시안 같은 참고 이미지는 「레퍼런스(참고용)」 칸에" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수 · 누끼도 여기)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo" id="logoThumb" title="${escH(logoGuideText())}" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
         <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
-      <div><div class="kvthumb logo" id="objThumb" title="배경 없는 오브젝트(투명 PNG). 알바몬 스플래시·에브리타임 보드·NAP 비즈보드·캐치 센터처럼 누끼가 필요한 자리에만 씁니다 — 키비주얼은 배경으로 그대로" style="${it.object ? `background-image:url(${it.object})` : ''}">${it.object ? '' : '오브젝트 누끼<br>(선택)'}</div>
+      <!-- 오브젝트 누끼 칸은 숨김(11-02 사용자: 키비주얼은 한 통로, 누끼인지 풀이미지인지는 알아서 판단). 데이터(it.object)·렌더 경로는 그대로 두고 입구만 닫는다 -->
+      <div hidden><div class="kvthumb logo" id="objThumb" style="${it.object ? `background-image:url(${it.object})` : ''}"></div>
         <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
       <div><div class="kvthumb logo ref" id="refThumb" title="레퍼런스(참고용): 공고문·전 시안·무드 이미지. 저장해서 카드에 썸네일로만 보여 주고, 소재 렌더·AI 그림 판단에는 쓰지 않습니다 — 키비주얼 칸에 넣으면 소재에 그려져요" style="${it.references?.[0] ? `background-image:url(${it.references[0]})` : ''}">${it.references?.length ? `<b class="refn">${it.references.length}장</b>` : '레퍼런스<br>(참고용 · 렌더 안 씀)'}</div>
         <input type="file" id="refFile" accept="image/*" multiple style="display:none"></div>
@@ -1312,6 +1321,7 @@ function slotStyle() {
           <span class="sw"><input type="color" class="swatch" id="c3" value="${it.colors[2]}"><small>포인트</small></span>
         </div>
         <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+        <div style="margin-top:10px">${bgControlHtml({ ...adStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: !!it.colorsManual }, 'bg')}</div>
         <label style="margin-top:10px">폰트</label>
         <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${fontOptions(it.font)}</select>
         <button class="lnk" id="fontUp" style="margin-top:4px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
@@ -1325,7 +1335,7 @@ function slotStyle() {
   $('fontUp').onclick = () => $('fontFile').click();
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
-  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; });
+  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; $(id).onchange = () => slotStyle(); });   // 고르고 나면 배경 미리보기도 따라간다(11-02)
   $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; slotStyle(); });
   if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
@@ -1339,6 +1349,8 @@ function slotStyle() {
   document.querySelectorAll('#slot [data-fc]').forEach(b => b.onclick = () => { it.bgColor = b.dataset.fc; slotStyle(); });
   renderSuggests();
   renderDpi();
+  // 주인공 확인·직접 지정(11-02): 판정된 주인공 상자를 썸네일 위에 — 클릭 = 가운데, 드래그 = 잘리면 안 되는 곳. it.kvMeta.manual 에 저장(캠페인으로 넘어간다)
+  if (it.kv && it.kvMeta) mountKvFocus($('kvThumb'), { kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), onChange: m => { it.kvMeta = withManual(it.kvMeta, m); slotStyle(); $('kvThumb')?.querySelector('.kvfocus')?.focus(); } });
   bindUpload($('kvThumb'), $('kvFile'), async d => {
     it.kvOrig = d;   // 원본(전달물용, 10-16)
     d = await prepKv(d);
@@ -1826,7 +1838,7 @@ function layoutArtboard(opts = {}) {
       sh.textContent = `${STAGE_NAMES[stage] ?? (stage === 5 ? '참고 규격' : `${stage}차`)} · ${countText(rows.filter(r => r.stage === stage).flatMap(r => r.arts))}`; board.appendChild(sh);
       lastStage = stage;
     }
-    const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${countText(rowArts)}`; board.appendChild(head);
+    const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${countText(rowArts)}`; head.onclick = () => SEL.toggleGroup(rowArts.map(a => a.key ?? a.specId)); board.appendChild(head);   // 선택 모드에서 매체 머리글 = 그 매체 전체 토글
     {
       for (const a of rowArts) {
         const ch = a.channel;
@@ -1847,7 +1859,7 @@ function layoutArtboard(opts = {}) {
         const iframe = frame.querySelector('iframe');
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
-        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); select(a.key ?? a.specId); };
+        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } select(a.key ?? a.specId); };
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
@@ -1861,6 +1873,7 @@ function layoutArtboard(opts = {}) {
     state.boardW = Math.max(state.boardW ?? 0, x);
   }
   state.boardH = y;
+  SEL.paint();   // 프레임을 새로 깔았으니 선택 테두리도 다시
   refreshGuideOverlays();   // 프레임을 새로 깔았으니 레이아웃 가이드도 다시(10-28)
 }
 const PURPOSE_SHORT = { main: '', way: '방향', agenda: '프로그램', reception: '등록데스크' };
@@ -2022,7 +2035,9 @@ function gateOf(a) {
   if (a.channel === 'ad' && a.design === undefined) { a.gate = { state: 'pending', reasons: ['디자인 검수 전'] }; return a.gate; }   // iframe onload 전엔 「승인 가능」이 잠깐 뜨지 않게
   const samples = (() => { try { return f?.iframe?.contentDocument?.querySelectorAll('[data-sample]').length ?? 0; } catch { return 0; } })();
   // design 은 adcheck 의 warnings 전체(level info 인 low-res·low-res-logo 포함) — 프레임 「디자인 n」 배지는 info 를 세지 않지만 게이트는 흐린 키비주얼도 「검수 필요」로 둔다(출고 불가 사유)
-  a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples, guide: a.guide?.rows ?? null });   // 틀 규격(자소설)은 가이드 검수 ✗ 도 차단 — Notion 컨시어지 2026-10-28 #9
+  // 틀 규격(자소설)은 가이드 검수 ✗ 도 차단 — Notion 컨시어지 2026-10-28 #9. 측정이 아직이면(가이드 큐는 비동기) ready 대신 pending, 측정 실패면 review — 11-02 재조사(가이드 측정 전에 「승인 가능」이 먼저 떴다)
+  const needsGuide = a.channel === 'ad' && !!spec?.rules?.safeArea?.measuredFromTemplate?.mold && MOLD_BLOCK_MEDIA.has(spec?.medium);
+  a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples, guide: a.guide ?? null, needsGuide });
   return a.gate;
 }
 function gateBadge(a) {
@@ -2080,7 +2095,8 @@ async function lintAds() {
     }
     try {
       const m = await measureArtifact(a.html, spec);
-      a.lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m, ctx: adEffCtx(a) });   // ctx: 고객사명 — 카카오 비즈보드 「메인에 광고주 노출 필수」 검사(core/lint.js main-client, 10-28)
+      const tcEff = textColorRegulated(spec) ? null : (a.overrides.style?.textColor ?? c.style.textColor ?? null);   // 직접 고른 글자색(11-02) — 지면 대비 검수(core/lint.js text-contrast)
+      a.lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: tcEff ? { ...m, textColor: tcEff } : m, ctx: adEffCtx(a) });   // ctx: 고객사명 — 카카오 비즈보드 「메인에 광고주 노출 필수」 검사(core/lint.js main-client, 10-28)
       a.fitNote = null;
       // 용량 상한 초과(10-28 담당자 「사이트 내 용량 수정」): 내보내기와 같은 사다리(app/adfit.js)로 줄여 보고, 맞으면 그 판정으로 — 차단 대신 「용량 맞춤」 배지
       if (a.lint.issues.some(i => i.code === 'weight')) {
@@ -2130,17 +2146,20 @@ $('zFit').onclick = fitZoom;
   const vp = $('viewport');
   let panning = false, sx = 0, sy = 0;
   vp.addEventListener('pointerdown', e => {
+    if (SEL.pointerDown(e)) return;   // 선택 모드: 빈 곳 드래그 = 선택 상자(Space 누르면 화면 이동)
     if (e.target.closest('.hit')) return;
     panning = true; sx = e.clientX - state.panX; sy = e.clientY - state.panY;
     vp.classList.add('panning'); vp.setPointerCapture(e.pointerId);
     if (!e.target.closest('.frame')) select(null);
   });
   vp.addEventListener('pointermove', e => {
+    if (SEL.pointerMove(e)) return;
     if (!panning) return;
     state.panX = e.clientX - sx; state.panY = e.clientY - sy;
     applyTransform();
   });
-  vp.addEventListener('pointerup', () => { panning = false; vp.classList.remove('panning'); });
+  vp.addEventListener('pointerup', () => { SEL.pointerUp(); panning = false; vp.classList.remove('panning'); });
+  SEL.bind();
   vp.addEventListener('wheel', e => {
     e.preventDefault();
     const r = vp.getBoundingClientRect();
@@ -2315,8 +2334,9 @@ function renderInspector() {
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor2" value="${c.style.palette.secondary}"><small style="font-size:10px;color:var(--sub)">보조</small></span>
         <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor3" value="${c.style.palette.accent}"><small style="font-size:10px;color:var(--sub)">포인트</small></span>
       </div>
+      <div style="margin-top:8px">${bgControlHtml(c.style, 'iBg')}</div>
       <label>키비주얼</label>
-      <div class="kvthumb" id="iKv" style="width:100%;height:76px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
+      <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
@@ -2336,6 +2356,7 @@ function renderInspector() {
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       <label>글자색 <span style="opacity:.6">· 규정 매체(자소설·리멤버·카카오)는 규정대로</span></label>
       <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
+      <div class="bgrow" id="iTextColorRow"><label class="bgpick"><input type="color" id="iTextColor" value="${c.style.textColor ?? '#333333'}">직접</label><span style="font-size:11px;color:var(--sub);flex:1;line-height:1.4">${c.style.textColor ? `지정 ${c.style.textColor} — 규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 제외` : '색 하나로 지정(규정 매체 제외) · 지면 대비 3:1 미만이면 검수 경고'}</span>${c.style.textColor ? `<button class="btn" id="iTextColorReset">되돌리기</button>` : ''}</div>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
@@ -2393,6 +2414,9 @@ function renderInspector() {
     insp.querySelectorAll('#iChipSeg button').forEach(b => b.onclick = () => { if ((c.style.chipTone ?? 'tint') === b.dataset.ct) return; restyle({ chipTone: b.dataset.ct }, `라벨 알약 ${CHIP_LABEL[b.dataset.ct]}`); renderInspector(); });
     // 글자색 톤 — 일괄(10-19). 'auto' 지면 밝기 / 'dark' #333 / 'light' 흰. 규정 매체·산출물 개별값은 그대로
     insp.querySelectorAll('#iToneSeg button').forEach(b => b.onclick = () => { if ((c.style.textTone ?? 'auto') === b.dataset.tt) return; restyle({ textTone: b.dataset.tt }, `글자색 ${TONE_LABEL[b.dataset.tt]}`); renderInspector(); });
+    // 글자색 직접 지정(style.textColor, 11-02 컨시어지 「브랜드컬러 외 폰트 색상」) — 일괄. 규정 매체는 렌더러가 무시(textColor.ignored). 되돌리기 = null(톤대로)
+    const tcIn = insp.querySelector('#iTextColor'); if (tcIn) tcIn.onchange = () => { const v = tcIn.value.toUpperCase(); if ((c.style.textColor ?? null) === v) return; restyle({ textColor: v }, `글자색 직접 ${v}`); renderInspector(); };
+    const tcRs = insp.querySelector('#iTextColorReset'); if (tcRs) tcRs.onclick = () => { restyle({ textColor: null }, '글자색 직접 지정 해제'); renderInspector(); };
     insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
     const dpiBox = insp.querySelector('#iDpi');
@@ -2431,6 +2455,12 @@ function renderInspector() {
       if (lb) { lb.textContent = logoGuideText(); if (c.style.logo) logoCheckOf(c.style.logoOrig ?? c.style.logo, { tone: c.style.logoTone }).then(ck => { if (ck.level !== 'na') { lb.textContent = ck.text; lb.style.color = CHECK_TONE[ck.level]; } }); } }
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
+    // 주인공 확인·직접 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
+    if (c.style.keyVisual && c.style.kvMeta) mountKvFocus(insp.querySelector('#iKv'), { kvMeta: c.style.kvMeta, onChange: m => {
+      restyle({ kvMeta: withManual(c.style.kvMeta, m) }, m ? (m.keep && !m.focus ? '잘리면 안 되는 곳 지정' : '주인공 직접 지정') : '주인공 자동 판정');
+      renderInspector(); insp.querySelector('#iKv .kvfocus')?.focus();
+      toast(m ? (m.keep ? '잘리면 안 되는 곳을 지키며 다시 그렸어요' : '찍은 곳을 주인공으로 다시 그렸어요') : '자동 판정으로 다시 그렸어요');
+    } });
     kvIn.onchange = () => {
       const f = kvIn.files[0]; if (!f) return;
       const r = new FileReader();
@@ -2574,7 +2604,8 @@ function renderInspector() {
     ${a.channel === 'ad' ? `
       ${artifactFontHtml(a, c)}
       ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
-      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>` : ''}
+      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
+      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; return `<div class="bgrow" id="iTextColorOvRow" style="${reg ? 'opacity:.6' : ''}"><label class="bgpick"><input type="color" id="iTextColorOv" value="${ov ?? c.style.textColor ?? '#333333'}" ${reg ? 'disabled' : ''}>직접</label><span style="font-size:11px;color:var(--sub);flex:1;line-height:1.4">${reg ? '매체 규정 색 고정 — 직접 지정 불가' : ov ? `이 산출물 ${ov}` : c.style.textColor ? `공통 ${c.style.textColor} 따름` : '이 산출물만 색 하나로'}</span>${ov ? `<button class="btn" id="iTextColorOvReset">되돌리기</button>` : ''}</div>`; })()}` : ''}
       ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
       <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
@@ -2626,6 +2657,20 @@ function renderInspector() {
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 폰트 ${v ? FONTS[v]?.label ?? v : '공통 따름'}`);
   };
+  // 글자색 직접 지정 — 이 산출물만(overrides.style.textColor, 11-02). 되돌리기 = 공통(c.style.textColor)대로. 규정 매체는 입력이 비활성
+  const setTextColorOv = (v, label) => {
+    if ((a.overrides.style?.textColor ?? null) === v) return;
+    pushHistory(`${artLabel(a)} 글자색 개별 편집`);
+    const st = { ...(a.overrides.style ?? {}) };
+    if (v) st.textColor = v; else delete st.textColor;
+    a.overrides.style = st; a.status = 'draft'; a.gateOverride = null;
+    logEvent(c, 'manual_edit', { specId: a.specId, style: 'textColor' });
+    regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+    $('inspNote').textContent = '이 산출물만 반영됨';
+    log(`${a.specId} 글자색 ${label}`);
+  };
+  const tcOv = insp.querySelector('#iTextColorOv'); if (tcOv && !tcOv.disabled) tcOv.onchange = () => setTextColorOv(tcOv.value.toUpperCase(), `직접 ${tcOv.value.toUpperCase()}`);
+  const tcOvRs = insp.querySelector('#iTextColorOvReset'); if (tcOvRs) tcOvRs.onclick = () => setTextColorOv(null, '직접 지정 해제(공통 따름)');
   // 글자색 톤 — 이 산출물만(overrides.style.textTone, 10-19). 비우면 공통
   insp.querySelectorAll('#iToneOv button').forEach(b => b.onclick = () => {
     const v = b.dataset.tto || null;
@@ -2806,6 +2851,7 @@ function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false
     logoMeta: c.style.logoMeta ?? null,   // 10-12: 빠져 있어 색·글꼴만 바꿔도 세로 로고 크기·타일 로고 반전 규칙이 풀렸다
     colorsManual: !!c.style.colorsManual,   // 손으로 고친 색(10-19) — 지면이 주색을 따라간다
     textTone: c.style.textTone ?? 'auto',   // 글자색 톤(10-19)
+    textColor: c.style.textColor ?? null,   // 직접 고른 글자색(11-02) — 색·글꼴만 바꿔도 남는다
     logoOrig: c.style.logoOrig ?? null, kvOrig: c.style.kvOrig ?? null,   // 전달물 원본(10-16)
     object: c.style.object ?? null,
     objectMeta: c.style.objectMeta ?? null,
@@ -3149,18 +3195,16 @@ async function doAdSvg(a) {
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
-async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false } = {}) {
+async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false, only = null } = {}) {   // only: Set<키> — 선택한 소재만(11-02)
   const c = state.campaign;
   // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로.
   // 「미승인도 포함(검토용)」(10-21 사용자 「전체 선택했는데 1단계 산출물만 추출됨」 — 2·3단계는 게이트가 검수 필요라 승인분만 ZIP 에 들어갔다)을 켜면 차단 아닌 미승인도 「미승인_검토용/」 폴더로 함께
-  const all = c.artifacts.filter(a => a.channel === 'ad');
-  const approved = all.filter(a => a.status === 'approved');
-  const ads = includeUnapproved ? all : approved;
+  const { all, approved, ads, assets } = pickForExport(c.artifacts, { only, includeUnapproved });   // app/select.js — only 가 있으면 선택한 소재(전달물 포함)만
+  if (only && !all.length) { toast('선택한 소재 중 매체 소재가 없어요'); return; }
   if (!ads.length) { toast(`승인된 매체 소재가 없어요 — 먼저 승인하거나 「미승인도 포함」을 켜세요(미승인 ${all.length}장)`); return; }
   if (!includeUnapproved && ads.length < all.length) toast(`승인분 ${ads.length}장만 ZIP 에 — 미승인 ${all.length - ads.length}장 제외(「미승인도 포함」으로 검토용 묶음 가능)`);
   if (includeUnapproved && approved.length < all.length) toast(`미승인 ${all.length - approved.length}장은 「미승인_검토용/」 폴더에 — 매체 전달은 승인분만`);
   const unapprovedKey = new Set(ads.filter(a => a.status !== 'approved').map(a => a.key ?? a.specId));
-  const assets = c.artifacts.filter(a => a.channel === 'asset' && (includeUnapproved || a.status === 'approved'));   // 전달물도 승인분만(검토용이면 같이)
   const renderN = allVariants ? ads.reduce((n, a) => n + ((a.variants?.length ?? 0) > 1 ? a.variants.length : 1), 0) : ads.length;
   toast(`매체 소재 ${ads.length}장${allVariants ? `(안 포함 ${renderN}장)` : ''} 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
   try {
@@ -3320,8 +3364,11 @@ function exportAllModal() {
   const prints = c.artifacts.filter(a => !['edm', 'landing', 'banner', 'gwthumb', 'ad'].includes(a.channel));
   const ads = c.artifacts.filter(a => a.channel === 'ad');
   const adsOk = ads.filter(a => a.status === 'approved');
+  const picked = SEL.selected(); const pickedN = picked ? ads.filter(a => picked.has(a.key ?? a.specId)).length : 0;   // 선택하기(11-02) — 선택이 있으면 그것만이 기본
+  const onlyOf = () => (pickedN && document.getElementById('expOnly')?.checked) ? picked : null;
+  const zipOpts = () => ({ allVariants: !!document.getElementById('expAllVariants')?.checked, includeUnapproved: !!document.getElementById('expUnapproved')?.checked, only: onlyOf() });
   modal({
-    title: '전체 내보내기',
+    title: pickedN ? `내보내기 — 선택 ${pickedN}장` : '전체 내보내기',
     desc: '온라인은 파일로 즉시, 인쇄물은 산출물별 PDF 저장으로 진행합니다. 매체 소재는 매체별 폴더로 묶은 ZIP.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.8">
       ${ads.length ? `· 매체 소재 ZIP — ${[...new Set(adsOk.map(a => SPECS[a.specId].mediumName))].join(', ') || '승인분 없음'} (<b>승인 ${adsOk.length}장</b> / 전체 ${ads.length}장${ads.length > adsOk.length ? ` · 미승인 ${ads.length - adsOk.length}장 제외` : ''})<br>` : ''}
@@ -3329,13 +3376,14 @@ function exportAllModal() {
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">${exportFontLine(ads)}</div>` : ''}
+      ${pickedN ? `<label style="display:block;font-size:12px;margin-top:8px;font-weight:700"><input type="checkbox" id="expOnly" checked> 선택한 소재만(${pickedN}장) — 보드에서 고른 소재만 ZIP 에 (끄면 전체)</label>` : ''}
       ${ads.some(x => (x.variants?.length ?? 0) > 1) ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
       ${ads.length > adsOk.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expUnapproved"> 미승인도 포함(검토용) — 미승인 ${ads.length - adsOk.length}장을 「미승인_검토용/」 폴더에 같이 (매체 전달은 승인분만 · 차단 소재는 「ZIP + SVG」일 때 수정용 SVG 만)</label>` : ''}
       ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(a.html, `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
-      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true, { allVariants: !!document.getElementById('expAllVariants')?.checked, includeUnapproved: !!document.getElementById('expUnapproved')?.checked }); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(false, { allVariants: !!document.getElementById('expAllVariants')?.checked, includeUnapproved: !!document.getElementById('expUnapproved')?.checked }); return false; } }] : []),
+      ...(ads.length ? [{ label: 'ZIP + SVG', fn: () => { exportAdZip(true, zipOpts()); return false; } }, { label: '매체 소재 ZIP', pri: true, fn: () => { exportAdZip(false, zipOpts()); return false; } }] : []),
       { label: '배너 PNG 2x 일괄', pri: !ads.length, fn: () => { batchBanners(banners); return false; } },
     ],
   });
