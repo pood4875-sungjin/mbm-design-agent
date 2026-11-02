@@ -84,13 +84,12 @@ test('잡다 PC 메인 배너: 라벨 칩 + 날짜가 메인 위(5/5), 메인 28
   assert.equal(px(html, 'main'), 28);
 });
 
-test('샘플 문구: 마감일·직무가 비어 있으면 자리를 두고 샘플 문구를 넣되 data-sample 로 표시한다 — 지어내지 않는다', () => {
+test('정보가 없으면 그 줄을 뺀다(11-02) — 자리표시를 찍지 않는다 · 있으면 나온다', () => {
   const bare = createContext({ client: '안랩', hiringType: '신입 채용' }, 'recruit');
-  const html = renderAd(bare, style, specs['blind-post-banner']);   // 10-15 저녁: 틀(블라인드 게시글)에서도 날짜·상세 자리에 샘플 문구 자리표시(data-sample)
-  assert.match(html, /data-field="date" data-sample="1"[^>]*>0\/00\(월\) ~ 0\/00\(일\)</);
-  assert.match(html, /data-field="detail" data-sample="1"/);
-  // 실제 정보가 있으면 샘플 표시가 없다
-  assert.doesNotMatch(renderAd(ahnlab, style, specs['blind-post-banner']), /data-sample/);
+  const html = renderAd(bare, style, specs['blind-post-banner']);
+  assert.doesNotMatch(html, /data-sample|0\/00|입력하세요/);
+  assert.doesNotMatch(html, /data-field="date"/); assert.doesNotMatch(html, /data-field="detail"/);
+  assert.match(renderAd(ahnlab, style, specs['blind-post-banner']), /data-field="detail"/);
 });
 
 test('인스타 피드 1080: 틀(사용자 수정본 10-16) — 메인 Bold 72 행간 94 2줄 가운데(y131) · 날짜 Regular 43 · 모집직무 값만 Bold 43 — 회사·채용구분을 「세방그룹 채용」으로 줄이지 않는다', () => {   // 10-16 전: 자유 배치 메인 90px(짧은 변 8.3%, 샘플 9/9 중앙값) — 사용자 수정본 틀 135:1185 가 생겨 72 Bold 로

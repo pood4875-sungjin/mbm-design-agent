@@ -984,8 +984,7 @@ function renderAdBase(ctx, style, spec) {
   // 샘플 실측(매체 JSON spec.sampleText — 디자이너 샘플이 보여 주는 역할·줄·px): 규정 표에 없는 역할을 더한다(NAP 띠배너 날짜 2/4·전면 상세 3/4, 잡다 PC 라벨).
   //   같은 역할을 규정이 정했으면 규정이 이긴다. 역할이 있는 프레임이 절반 이상일 때만. 글자 크기는 statedFontSizes 뒤에서 같은 우선순위로 쓴다 (10-12 매체별 규격정리 86프레임·29규격)
   const sampleRoles = rules.sampleText?.measuredFromSamples?.roles ?? null;
-  // 실제 정보가 비어 있으면(마감일·직무 없음) 자리는 두고 「샘플 문구」를 넣어 샘플 밀도를 맞춘다 — 지어낸 사실이 아니라 자리표시(data-sample="1", 앱이 배지로 알려 디자이너가 승인 전에 바꾼다)
-  const SAMPLE_COPY = { date: '0/00(월) ~ 0/00(일)', detail: { label: '모집직무', value: '모집 직무를 입력하세요' } };
+  // 정보가 없으면 그 줄을 뺀다(11-02 사용자 「모집일정이나 뭐 하나 없을 수도 있는 건데」). 전엔 「0/00(월) ~ 0/00(일)」「모집 직무를 입력하세요」 자리표시를 찍어 소재가 검수 필요로 빠졌다
   const sampleText = new Set();
   // 매체가 총 줄 수를 정한 규격(combined·reqDate — 에브리타임 홈 카드 5줄·블라인드 4줄)은 그 예산이 규칙이라 더하지 않는다. 라벨 칩은 매체 규정으로만(샘플의 라벨 줄은 상세 블록 안의 라벨 줄이다).
   // 아이브로(sub)는 과반(> 0.5)일 때만, 얇은 띠(strip)엔 넣지 않는다 — NAP 320×100 아이브로 2/4 가 띠를 넘쳐 잘렸다
@@ -1001,11 +1000,7 @@ function renderAdBase(ctx, style, spec) {
       if ((r === 'sub' || h < 120) && sr.share <= 0.5) continue;
       if (r === 'sub' && h < 120) continue;
       const has = ladder[r]?.length || (r === 'detail' && ladder.details?.length);
-      if (!has) {
-        if (r === 'date') { ladder.date = [SAMPLE_COPY.date]; sampleText.add(SAMPLE_COPY.date); }
-        else if (r === 'detail') { ladder.details = [...(ladder.details ?? []), { ...SAMPLE_COPY.detail }]; sampleText.add(SAMPLE_COPY.detail.value); }
-        else continue;
-      }
+      if (!has) continue;
       // 상세는 라벨 줄 몫을 하나 더 둔다(NAP 320×480 안랩: 「모집부문」 칩 줄 + 값 2줄 — 값 줄 수만 세면 긴 직무 목록이 통째로 빠진다)
       slots[r] = { lines: Math.max(1, Math.round(sr.lines)) + (r === 'detail' && sampleRoles.label ? 1 : 0), maxChars: null, sample: true };
     }
@@ -2582,6 +2577,8 @@ ${tplLogo}${kvWrap(tplObject)}
       if (mx != null && copy.main && !twoOk && whole(copy.main) > mx) { const cl = String(ctx.core?.client ?? '').trim(); const c = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? []), cl].find(x => x && (!cl || String(x).includes(cl)) && whole(x) <= mx); if (c) { copy.main = c; fired('templateMold.charLimit'); } }
       const sx0 = limitsByRole((rules.textLimits ?? []).filter(inImage)).sub?.maxChars ?? null;
       if (sx0 != null && copy.sub && whole(copy.sub) > sx0) { copy.sub = /상이/.test(copy.sub) && whole('공고별 상이') <= sx0 ? '공고별 상이' : ''; fired('templateMold.charLimit'); } }
+    // 메인에 이미 고객사가 있으면 서브에 또 쓰지 않는다(「GS에너지 신입 공채」 위에 「GS에너지 채용」, 11-02)
+    { const cl = String(ctx.core?.client ?? '').trim(); if (cl && copy.sub && MR.sub?.content !== 'period' && String(copy.main).includes(cl) && String(copy.sub).replace(/\u00a0/g, ' ').includes(cl)) copy.sub = (ladder.sub ?? []).find(c => c && !String(c).includes(cl)) ?? ''; }
     const mainPxUsed = mainShrink < 1 ? Math.round(MR.main.px * k * mainShrink * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)) : mainPx;
     const moldMainChars = Math.floor(Math.max(1, colW) / (mainPxUsed * HANGUL_ADV));   // 틀 메인 한 줄 글자수 어림(긴 기업명 음절 줄바꿈 자리용) — 한글 실측 폭(0.95 로 세면 「한진정보통신」 6자에도 줄바꿈 자리가 들어갔다, 11-02)
     // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
@@ -2634,8 +2631,6 @@ ${tplLogo}${kvWrap(tplObject)}
           const r = rows0[i], k0 = r._opts.findIndex(o => o.value === r.value); rows0[i] = { ...r._opts[k0 + 1], _opts: r._opts };
         } }
       for (const r of rows0) delete r._opts;
-      // 틀 상세 자리에 정보가 없으면 샘플 문구 자리표시(data-sample — 지어내지 않고 승인 전에 바꾼다, 10-15 저녁: 블라인드 게시글 「모집 직무를 입력하세요」)
-      if (!rows0.length && ctx.kind === 'recruit' && SAMPLE_COPY?.detail && MR.detail.items.includes(SAMPLE_COPY.detail.label)) { sampleText.add(SAMPLE_COPY.detail.value); return [rowOf(SAMPLE_COPY.detail.label, SAMPLE_COPY.detail.value)]; }
       return rows0;
     })();
     if (MR.detail && moldDetailSrc.length) {
@@ -2677,7 +2672,6 @@ ${tplLogo}${kvWrap(tplObject)}
     if (MR.date && mR && (copy.date || ctx.core?.deadline || ctx.kind === 'recruit')) {   // 달력 마감일 줄(1:8706~8776): 마지막 메인 줄 y + 59.3, Regular 32(2배), 「~5/26」(0 없이). 이 줄만 색이 달라도 된다 — 지금은 같은 색
       const dl = String(ctx.core?.deadline ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
       let txt = (MR.date.format === '~M/D' && dl) ? `~${+dl[2]}/${+dl[3]}` : (copy.date || '');
-      if (!txt && !ctx.core?.deadline && SAMPLE_COPY?.date) { txt = SAMPLE_COPY.date; sampleText.add(txt); }   // 틀 날짜 자리 샘플 문구 자리표시(data-sample)
       // 틀 날짜 칸이 좁으면(구글 ABL 580 날짜 158px 1줄) 짧은 날짜 후보(「~10.31(토)」 — ladder.date)로(10-15 저녁)
       if (txt && MR.date.lines && rowsIn(txt, MR.date) > MR.date.lines) { const alt = [...new Set([txt, ...(ladder.date ?? [])])].find(c => rowsIn(c, MR.date) <= MR.date.lines); if (alt) txt = alt; }
       // 날짜 알약(mold.rows.date.chip — NAP HS화성 샘플: 브랜드색 바탕 radius 200 · 흰 글자 Bold 10/12 · 안쪽 8 · 높이 24/26, 10-15 밤): 폭은 글자대로(hug), 어두운 지면이면 흰 바탕 + 브랜드색 글자

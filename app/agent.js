@@ -17,7 +17,7 @@ import { MEDIA } from '../core/media.js';
 export const PHASES = ['target', 'style', 'draft'];
 export const PHASE_LABEL = { target: '만들 것', style: '스타일', draft: '초안 생성' };
 // 이것 없이는 소재의 큰 글자를 쓸 수 없다 — 브리프에 없으면 이것만 대화로 묻는다. 나머지(마감·근무지…)는 없으면 그 줄을 빼고 그린다.
-export const ESSENTIAL = { recruit: ['client', 'hiringType', 'role'], event: ['name'] };   // 10-21: 메인 글자 = 고객사 + 채용 구분(레퍼런스 13/13), 상세 = 모집직무 — 없으면 묻는다. 마감은 필수지만 묻지 않는다(한진처럼 「공고별 상이」인 공고가 있다)
+export const ESSENTIAL = { recruit: ['client'], event: ['name'] };   // 11-02 사용자 「모집일정이나 뭐 하나 없을 수도 있는 건데」: 막는 건 고객사뿐, 나머지는 없으면 그 줄이 빠진다    // 10-21: 메인 글자 = 고객사 + 채용 구분(레퍼런스 13/13), 상세 = 모집직무 — 없으면 묻는다. 마감은 필수지만 묻지 않는다(한진처럼 「공고별 상이」인 공고가 있다)
 export const ASK = { client: '어느 회사 채용인가요?', hiringType: '채용 구분은 무엇인가요? (예: 신입 공채 · 경력직 채용 · 대졸 신입/경력사원 채용)', role: '모집하는 직무는 무엇인가요?', name: '행사 이름이 무엇인가요?' };
 export const TRACKS = { online: '온라인 광고', offline: '오프라인 인쇄물' };
 

@@ -24,7 +24,7 @@ test('required fields follow the campaign kind', () => {
 
 test('the flow has three phases and only asks for what the big text needs', () => {
   assert.deepEqual(PHASES, ['target', 'style', 'draft']);
-  assert.deepEqual(ESSENTIAL, { recruit: ['client', 'hiringType', 'role'], event: ['name'] });   // 10-21: 메인 = 고객사 + 채용 구분
+  assert.deepEqual(ESSENTIAL, { recruit: ['client'], event: ['name'] });   // 10-21: 메인 = 고객사 + 채용 구분
   for (const f of [...ESSENTIAL.recruit, ...ESSENTIAL.event]) assert.ok(ASK[f], `${f}: 없을 때 물을 말이 있다`);
 });
 

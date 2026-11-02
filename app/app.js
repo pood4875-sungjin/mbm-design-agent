@@ -1097,13 +1097,13 @@ function afterWhere() {
   slotBrief();
 }
 // 읽은 내용 카드 — 필수 칸(채용: 고객사·채용 구분·모집 직무·지원 마감 / 행사: 행사명) + 접힌 선택 칸.
-// 「다음」을 막는 건 ESSENTIAL(고객사·채용 구분·직무)뿐 — 마감은 필수 표시만 하고 비워 둘 수 있다(한진처럼 「공고별 상이」인 공고). 날짜 칸은 떠날 때 YYYY-MM-DD 로 정리한다
+// 「다음」을 막는 건 ESSENTIAL(고객사)뿐 — 채용 구분·직무·마감은 비워 둘 수 있고 그 줄이 소재에서 빠진다(11-02). 날짜 칸은 떠날 때 YYYY-MM-DD 로 정리한다
 const BRIEF_FIELDS = {
   recruit: { must: ['client', 'hiringType', 'role', 'deadline'], more: ['startDate', 'season', 'slogan', 'notice', 'employType', 'location'] },   // 마감 시각은 칸으로 안 받는다(10-21 사용자 「마감 시각까진 필요 없을 것 같음」) — 공고에 「17시」「23:59」가 있으면 파서가 읽어 날짜 뒤에 붙인다
   event: { must: ['name'], more: ['date', 'venue', 'audience', 'cta'] },
 };
 const BRIEF_HINT = {
-  client: '예: 한진정보통신', hiringType: '예: 신입사원 공개채용 · 경력직 채용', role: '예: 클라우드 플랫폼 엔지니어', deadline: 'YYYY-MM-DD — 「공고별 상이」면 비워 두세요',
+  client: '예: 한진정보통신', hiringType: '예: 신입사원 공개채용 · 경력직 채용', role: '예: 클라우드 플랫폼 엔지니어', deadline: 'YYYY-MM-DD — 없으면 비워 두세요',
   startDate: 'YYYY-MM-DD', season: '예: 2026 하반기', slogan: '큰 글자 위 한 줄', notice: '예: 공고별 상이', employType: '예: 정규직', location: '예: 서울 여의도',
   name: '예: 2026 AX 세미나', date: 'YYYY-MM-DD', venue: '예: 코엑스 그랜드볼룸', audience: '예: 재직자', cta: '예: 사전등록',
 };
@@ -1116,13 +1116,14 @@ function slotBrief() {
   const row = (id, req) => `<div class="f ${WIDE_FIELDS.includes(id) ? 'wide' : ''}"><label for="bf-${id}">${escH(FIELD_LABEL[id] ?? id)}${req ? ' <span class="req">*</span>' : ''}</label><input type="text" id="bf-${id}" data-f="${id}" class="${need.includes(id) && !f[id] ? 'miss' : ''}" value="${escH(f[id] ?? '')}" placeholder="${escH(BRIEF_HINT[id] ?? '')}" autocomplete="off"></div>`;
   const got = more.filter(id => f[id]).length;
   const box = slot(`<div class="card2 bcard"><h4>브리프에서 읽은 내용</h4>
-    <div class="bf">${must.map(id => row(id, true)).join('')}</div>
+    <div class="bf">${must.map(id => row(id, need.includes(id))).join('')}</div>
     <details class="bmore" ${got ? 'open' : ''}><summary>선택 항목 ${more.length}개${got ? ` · ${got}개 읽음` : ''}</summary><div class="bf">${more.map(id => row(id, false)).join('')}</div></details>
     <div class="sfoot2"><span class="smsg" id="bMsg" role="status"></span><button type="button" class="btn" id="bBack">이전</button><button type="button" class="btn pri" id="bOk">다음</button></div></div>`);
   const missing = () => need.filter(id => !f[id]);
   const foot = () => {
     const miss = missing(), el = $('bMsg');
-    el.textContent = miss.length ? `${miss.map(id => FIELD_LABEL[id]).join('·')} 필요` : it.kind === 'recruit' && !f.deadline ? '마감 없이 진행 — 지면에 날짜 줄이 빠져요' : '';
+    const opt = must.filter(id => !need.includes(id) && !f[id]);   // 비어도 된다 — 그 줄이 소재에서 빠진다
+    el.textContent = miss.length ? `${miss.map(id => FIELD_LABEL[id]).join('·')} 필요` : opt.length ? `${opt.map(id => FIELD_LABEL[id]).join('·')} 없이 진행 — 그 줄은 소재에서 빠져요` : '';
     el.className = `smsg${miss.length ? ' bad' : ''}`;
   };
   box.querySelectorAll('input[data-f]').forEach(inp => {
