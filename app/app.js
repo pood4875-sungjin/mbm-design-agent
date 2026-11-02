@@ -26,6 +26,8 @@ import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
+import { gradientEditorHtml, bindGradientEditor } from './gradedit.js';
+import { gradientFrom, normGradient } from '../core/gradient.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
 import { htmlToSvg } from '../core/svgexport.js';
@@ -759,7 +761,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
+    bgMode: 'auto', bgColor: null, bgGradient: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -1249,7 +1251,9 @@ function kvTypeControlHtml(meta, override, id) {
 }
 
 // 지면(배경) 조절 — 밝게/어둡게를 고르지 않는다. 키비주얼에서 읽은 색을 보여 주고, 단색·그라데이션 고정과 직접 고르기만 둔다.
-const FIELD_SRC = { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', 'kv-full': '배경형 — 그림을 통째로 깔고 빈 자리에 글자', 'kv-texture': '질감 — 그라데이션을 통째로 깔고 글자만', manual: '직접 고른 색' };
+const FIELD_SRC = { 'manual-gradient': '직접 설정한 그라데이션', 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', 'kv-full': '배경형 — 그림을 통째로 깔고 빈 자리에 글자', 'kv-texture': '질감 — 그라데이션을 통째로 깔고 글자만', manual: '직접 고른 색' };
+// 그라데이션 편집 시작값 — 저장한 값, 없으면 지금 자동으로 잡힌 지면색(노션 N3 「1차는 AI 자동 추출 색상」, 그다음 사람이 고침). 자동이 단색이면 같은 색상의 두 끝
+const editGradientOf = (st, f) => normGradient(st.background?.gradient) ?? gradientFrom(f.stops, f.angle || 180);
 function bgControlHtml(styleLike, id) {
   const f = resolveField(styleLike, { facing: 'left' });
   const mode = styleLike.background?.mode ?? 'auto';
@@ -1269,8 +1273,10 @@ function bgControlHtml(styleLike, id) {
       <div class="vseg" id="${id}Seg">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
     ${cands.length ? `<div class="bgrow" style="flex-wrap:wrap;gap:6px"><span style="font-size:12px;color:var(--sub);white-space:nowrap">${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
       `<button class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
-    <div class="bgrow"><label class="bgpick"><input type="color" id="${id}Color" value="${f.stops[0]}">직접 고르기</label>
-      ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`;
+    ${mode === 'gradient' && !full
+      ? `${gradientEditorHtml(editGradientOf(styleLike, f), id)}${styleLike.background?.gradient ? `<div class="bgrow"><button class="lnk" id="${id}GradReset">자동 색으로 되돌리기</button></div>` : ''}`
+      : `<div class="bgrow"><label class="bgpick"><input type="color" id="${id}Color" value="${f.stops[0]}">직접 고르기</label>
+      ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`}`;
 }
 
 // 고른 소재 중 지금 키비주얼로는 그림이 빠지고 오브젝트 누끼가 필요한 자리 — "알바몬·에브리타임 3곳"
@@ -1296,9 +1302,12 @@ function kvDiagnosis(it, meta) {
   const tail = slots && !it.object ? ` ${slots}은 배경 없는 오브젝트가 필요한 자리라 지금 그림으론 글자만 나가요 — 누끼(투명 PNG)를 키비주얼로 올리면 거기도 그려져요.` : '';
   say(how + tail);
 }
+// 값을 바꿔 카드를 다시 그려도 보던 자리를 잃지 않게(카드 안 스크롤 유지)
+function reslotStyle() { const t = $('slot').querySelector('.card2')?.scrollTop ?? 0; slotStyle(); const c = $('slot').querySelector('.card2'); if (c) c.scrollTop = t; }
 function slotStyle() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
+  const bgStyle = { ...adStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: !!it.colorsManual, background: { ...adStyle.background, gradient: it.bgGradient ?? null } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
     <div class="styleRow">
@@ -1321,7 +1330,7 @@ function slotStyle() {
           <span class="sw"><input type="color" class="swatch" id="c3" value="${it.colors[2]}"><small>포인트</small></span>
         </div>
         <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
-        <div style="margin-top:10px">${bgControlHtml({ ...adStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: !!it.colorsManual }, 'bg')}</div>
+        <div style="margin-top:10px">${bgControlHtml(bgStyle, 'bg')}</div>
         <label style="margin-top:10px">폰트</label>
         <select id="fontSel" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">${fontOptions(it.font)}</select>
         <button class="lnk" id="fontUp" style="margin-top:4px">폰트 파일 첨부 (woff2 · ttf · otf)</button>
@@ -1336,9 +1345,11 @@ function slotStyle() {
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
   ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; $(id).onchange = () => slotStyle(); });   // 고르고 나면 배경 미리보기도 따라간다(11-02)
-  $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; slotStyle(); });
+  $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; reslotStyle(); });
   if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
+  if ($('bgGrad')) bindGradientEditor($('bgGrad'), editGradientOf(bgStyle, resolveField(bgStyle, { facing: 'left' })), { id: 'bg', onChange: g => { it.bgGradient = g; reslotStyle(); }, onPreview: css => { const p = $('slot').querySelector('.bgprev'); if (p) p.style.background = css; } });
+  if ($('bgGradReset')) $('bgGradReset').onclick = () => { it.bgGradient = null; reslotStyle(); };
   $('bgUse')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.kvUse = b.dataset.u; slotStyle(); });
   if ($('kvTypeSel')) $('kvTypeSel').onchange = () => {
     const v = $('kvTypeSel').value; it.kvTypeOverride = v === 'auto' ? null : v;
@@ -1349,8 +1360,8 @@ function slotStyle() {
   document.querySelectorAll('#slot [data-fc]').forEach(b => b.onclick = () => { it.bgColor = b.dataset.fc; slotStyle(); });
   renderSuggests();
   renderDpi();
-  // 주인공 확인·직접 지정(11-02): 판정된 주인공 상자를 썸네일 위에 — 클릭 = 가운데, 드래그 = 잘리면 안 되는 곳. it.kvMeta.manual 에 저장(캠페인으로 넘어간다)
-  if (it.kv && it.kvMeta) mountKvFocus($('kvThumb'), { kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), onChange: m => { it.kvMeta = withManual(it.kvMeta, m); slotStyle(); $('kvThumb')?.querySelector('.kvfocus')?.focus(); } });
+  // 보여 줄 영역 지정(11-02): 썸네일 위에서 끌어 지정 — it.kvMeta.manual 에 저장(캠페인으로 넘어간다)
+  if (it.kv && it.kvMeta) mountKvFocus($('kvThumb'), { kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), onChange: m => { it.kvMeta = withManual(it.kvMeta, m); reslotStyle(); $('kvThumb')?.querySelector('.kvfocus')?.focus({ preventScroll: true }); } });
   bindUpload($('kvThumb'), $('kvFile'), async d => {
     it.kvOrig = d;   // 원본(전달물용, 10-16)
     d = await prepKv(d);
@@ -1732,7 +1743,7 @@ function buildAndGenerate() {
     objectMeta: it.objectMeta ?? null,
     references: it.references ?? [],   // 참고용(10-28) — 렌더 안 씀
     mode: it.mode,
-    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null },
+    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null, gradient: it.bgGradient ?? null },
     kvUse: it.kvUse ?? 'auto',
     kvTypeOverride: it.kvTypeOverride ?? null,
     colors: it.colors,
@@ -2402,6 +2413,8 @@ function renderInspector() {
     const bgIn = insp.querySelector('#iBgColor');
     if (bgIn) bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기');
     insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
+    if (insp.querySelector('#iBgGrad')) { const f0 = resolveField(c.style, { facing: 'left' }); bindGradientEditor(insp.querySelector('#iBgGrad'), editGradientOf(c.style, f0), { id: 'iBg', onChange: g => setBg({ gradient: g }, '그라데이션 직접 설정'), onPreview: css => { const p = insp.querySelector('.bgprev'); if (p) p.style.background = css; } }); }
+    insp.querySelector('#iBgGradReset')?.addEventListener('click', () => setBg({ gradient: null }, '그라데이션 자동으로'));
     insp.querySelector('#iKvType')?.addEventListener('change', e => {
       const v = e.target.value === 'auto' ? null : e.target.value;
       restyle({ kvTypeOverride: v }, v ? '키비주얼 유형 지정' : '키비주얼 유형 자동');
@@ -2455,11 +2468,11 @@ function renderInspector() {
       if (lb) { lb.textContent = logoGuideText(); if (c.style.logo) logoCheckOf(c.style.logoOrig ?? c.style.logo, { tone: c.style.logoTone }).then(ck => { if (ck.level !== 'na') { lb.textContent = ck.text; lb.style.color = CHECK_TONE[ck.level]; } }); } }
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
-    // 주인공 확인·직접 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
+    // 보여 줄 영역 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
     if (c.style.keyVisual && c.style.kvMeta) mountKvFocus(insp.querySelector('#iKv'), { kvMeta: c.style.kvMeta, onChange: m => {
-      restyle({ kvMeta: withManual(c.style.kvMeta, m) }, m ? (m.keep && !m.focus ? '잘리면 안 되는 곳 지정' : '주인공 직접 지정') : '주인공 자동 판정');
+      restyle({ kvMeta: withManual(c.style.kvMeta, m) }, m ? '키비주얼 보여 줄 영역 지정' : '키비주얼 영역 자동');
       renderInspector(); insp.querySelector('#iKv .kvfocus')?.focus();
-      toast(m ? (m.keep ? '잘리면 안 되는 곳을 지키며 다시 그렸어요' : '찍은 곳을 주인공으로 다시 그렸어요') : '자동 판정으로 다시 그렸어요');
+      toast(m ? '지정한 영역으로 모든 규격을 다시 그렸어요' : '자동 판정으로 다시 그렸어요');
     } });
     kvIn.onchange = () => {
       const f = kvIn.files[0]; if (!f) return;

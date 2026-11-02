@@ -4,6 +4,7 @@ import { FONTS } from './fonts.js';
 import { buildPalette, MODES } from './palette.js';
 import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
 import { PRESETS, PRESET_KEYS } from './editlayout.js';
+import { normGradient } from './gradient.js';
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
@@ -63,6 +64,8 @@ export function normalizeStyle(input = {}) {
     background: {
       mode: ['solid', 'gradient'].includes(input.background?.mode) ? input.background.mode : 'auto',
       color: HEX.test(input.background?.color ?? '') ? input.background.color.toUpperCase() : null,
+      // 직접 그라데이션(11-02 N3, 피그마식 편집기 app/gradedit.js) — mode 'gradient' 일 때만 쓴다. 단색으로 바꿨다 돌아와도 남아 있게 값은 지우지 않는다
+      ...(normGradient(input.background?.gradient) ? { gradient: normGradient(input.background.gradient) } : {}),
       // 10-22 하이브리드: AI 가 정한 지면 {stops:[#hex 1~3], angle, text:'light'|'dark'|null, melt:0|0.3~0.75} — 글자색 대비·녹임 상한은 렌더러 규칙이 그대로 검사한다
       ...(input.background?.ai && Array.isArray(input.background.ai.stops) && input.background.ai.stops.every(c => HEX.test(c)) && (input.background.ai.stops.length || input.background.ai.melt > 0) ? { ai: { stops: input.background.ai.stops.slice(0, 3).map(c => c.toUpperCase()), angle: Number.isFinite(input.background.ai.angle) ? input.background.ai.angle : 180, text: ['light', 'dark'].includes(input.background.ai.text) ? input.background.ai.text : null, melt: Number.isFinite(input.background.ai.melt) ? input.background.ai.melt : 0 } } : {}),
     },

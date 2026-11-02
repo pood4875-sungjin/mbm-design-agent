@@ -10,6 +10,7 @@
 // 사람이 덮어쓸 수 있는 것은 둘뿐이다: 색을 직접 고르기(background.color), 단색/그라데이션 고정(background.mode).
 
 import { mix, colorDistance, contrast, shiftHue, hexToRgb, rgbToHsl, rgbToHex, hslToRgb, BLACK, WHITE } from './palette.js';
+import { normGradient, gradientCss } from './gradient.js';
 import { CANON } from './canon.js';
 import { kvTypeOf } from './kvtypes.js';
 
@@ -90,7 +91,10 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const other = (hasBg && !flatEdge(e)) ? ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge) : null;
 
   // 10-22 하이브리드: AI 가 정한 지면(background.ai) — 색·각도는 그대로, 글자색·그라데이션 접기·vividWhite 는 아래 규칙이 그대로 검사(대비 못 넘으면 규칙이 고친다)
-  if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
+  // 직접 그라데이션(11-02 N3 · 사용자 「피그마와 동일한」) — 사람이 정지점까지 정한 값이 AI·규칙보다 먼저. mode 'gradient' 일 때만(단색으로 돌리면 값은 두고 안 쓴다)
+  const manualGrad = opt.mode === 'gradient' ? normGradient(opt.gradient) : null;
+  if (manualGrad) { stops = manualGrad.stops.map(s => s.color); angle = manualGrad.angle; source = 'manual-gradient'; }
+  else if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
   else if (opt.color) { stops = [opt.color]; source = 'manual'; }
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 같은 색상을 조금 어둡힌 그라데이션 135°. 비주얼 우선(kv-vivid)보다 앞
   //   11-02 담당자 「보조색을 바꿔도 변화 없음」: 그라데이션을 고정(mode gradient)했으면 두 번째 색은 보조색(secondary) — 자동(auto)·단색은 전처럼 주색 하나로
@@ -161,7 +165,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   const mid = () => stops.length > 1 ? mix(stops[0], stops[1], 0.5) : stops[0];
   // 그라데이션 변을 단색으로 접으면(우하단 상자·단색 전용 규격) 그림의 변과 지면이 더는 같은 색이 아니다 — 이음매를 녹여야 한다
   if (mode === 'solid' || (mode === 'auto' && !far)) { if (far) { seamless = false; if (mode === 'solid') deviation = solidOnly ? 'solid-only' : 'mode-solid'; } stops = [mid()]; align = null; }   // 단색 전용 규정(에브리타임 홈배너 「동일한 단색 배경만」)이 그라데이션을 접으면 그 규격만 캠페인 지면에서 벗어난다 — 기록
-  else if (mode === 'gradient' && !far) { const b = mid(); stops = [shiftHue(b, 0, 0.05, 0), shiftHue(b, 0, -0.05, 0)]; angle = 180; }
+  else if (mode === 'gradient' && !far && source !== 'manual-gradient') { const b = mid(); stops = [shiftHue(b, 0, 0.05, 0), shiftHue(b, 0, -0.05, 0)]; angle = 180; }
 
   // 글자색 — 그라데이션의 두 끝 모두에서 읽혀야 한다. 큰 글자 기준 대비 3:1(WCAG)을 못 넘으면 그라데이션을 접는다.
   // 색이 있는 지면에는 흰 글자가 먼저다(실제 소재의 관례) — 흰색이 큰 글자 기준 3:1을 넘으면 흰색, 못 넘는 밝은 지면에서만 검정.
@@ -184,6 +188,12 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     const css0 = stops.length > 1 ? `linear-gradient(${angle}deg,${stops.map((c0, i) => `${c0} ${Math.round(100 * i / (stops.length - 1))}%`).join(',')})` : stops[0];
     return { stops, angle, css: css0, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(contrast(side, text) * 100) / 100, ...(align && stops.length > 1 ? { align } : {}) };
   }
+  // 직접 그라데이션: 색·위치·각도를 고치지 않는다(접기·명도 내리기 없음) — 글자색만 글자 쪽 색으로 고른다. 단색 전용 규격(solidOnly)은 위에서 접혀 아래 일반 길로 간다
+  if (source === 'manual-gradient' && stops.length > 1) {
+    const a0 = ((angle % 360) + 360) % 360, side = manualGrad.type === 'radial' ? stops[stops.length - 1] : (a0 >= 45 && a0 <= 225 ? stops[0] : stops[stops.length - 1]);
+    const tx = relLum(side) >= (CANON.textOn?.darkIfLum ?? 0.55) ? BLACK : WHITE;
+    return { stops, angle, css: gradientCss(manualGrad), text: tx, source, seamless: false, gradient: true, gradientType: manualGrad.type, contrast: Math.round(contrast(side, tx) * 100) / 100 };
+  }
   if (stops.length > 1 && text === BLACK && worst(BLACK) < 3) { stops = [mid()]; text = pick(); }   // 검정 글자 그라데이션만 접는다 — 흰 글자는 아래 vividWhite 가 명도를 내려 3:1 을 맞춘다(손 지정 색은 그대로, 10-20)
   // 10-20 종합 점수표(① contrast.main 354 · contrast.small 369 — 11케이스 × 자소설·구글 틀, 연보라 #9CA1FE→#C4D3FE 흰 글자 1.49:1): 두 끝의 밝기 판정이 갈리는 그라데이션(한 끝 색 지면 → 흰, 한 끝 파스텔 → 검정)은
   //   흰 글자가 밝은 끝에서 읽히지 않고 검정은 어두운 끝에서 읽히지 않는다 — 10-20 edgeField.gradientReadable 원칙(「한 끝 채도 지면·한 끝 연한 색이면 단색」)대로 색 쪽(어두운) 끝 단색으로 접고 다시 고른다. 손 지정(manual) 지면은 그대로
@@ -192,7 +202,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   }
   // 채도 높은 지면엔 흰 글자(CANON vividWhite, 10-12 desk-12) — 같은 색상으로 명도만 조금 내려 흰 큰 글자 3:1, 되면 작은 글자 4.5:1까지
   let dim = null;
-  const vv = vividWhite(stops, { manual: !!opt.color || source === 'palette-manual' });
+  const vv = vividWhite(stops, { manual: !!opt.color || source === 'palette-manual' || source === 'manual-gradient' });
   if (vv && (text === BLACK || worst(WHITE) < 3)) {   // 10-20: 흰 글자로 정해졌어도 큰 글자 3:1 이 안 되면 같은 색상으로 명도만 내린다
     // 그림 변이 곧 지면(kv-edge) — 그림도 같은 비율로 어둡혀 이음매를 지킨다(CANON vividWhite.dimKv). 단 그림 속 흰 주인공이 회색으로 죽으면 안 된다:
     //   어둡힘이 dimMin 보다 세면 그림은 dimMin 까지만, 남는 차이는 녹임이 잇는다(seamless 해제 → CANON melt 길이)

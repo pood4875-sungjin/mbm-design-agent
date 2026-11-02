@@ -214,7 +214,50 @@ function renderOnce(ctx, style, spec) {
   const bust = bustOf(style, spec);
   const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
   const used = bust ? { ...style, kvMeta: bust.meta } : style;
-  return { html: cutFade(meltFix(fieldAlign(html, used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), tr: LAST_TR, styleUsed: used };
+  return { html: cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), tr: LAST_TR, styleUsed: used };
+}
+// 직접 지정한 보여 줄 영역(kvMeta.manual.region, 왼쪽 위 기준 그림 몫 0~1) — 그린 뒤 그림 칸마다 영역이 칸에 맞게 배율·위치를 다시 건다. 규격별 배치 경로(덮기·통째로·당겨 채우기·상반신)와 상관없이 한 자리에서 정해 어느 규격에서나 반영된다.
+//   칸은 그대로(틀 규격 그림 칸 규정을 안 건드린다). 바탕 있는 그림은 칸을 다 덮는 배율 아래로 안 내려가 빈틈이 없다 — 칸과 영역 비율이 크게 다르면 영역 일부가 칸 밖으로 나갈 수 있다. 누끼는 빈틈이 괜찮으니 영역이 늘 다 들어온다. 잘린 변은 뒤이어 cutFade 가 녹인다
+function regionFit(html, style, spec, tr) {
+  const R = style?.kvMeta?.manual?.region; if (!R || !(R.w > 0 && R.h > 0) || !style.keyVisual) return html;
+  const px = style.kvMeta?.px, ar0 = style.kvMeta?.ar, iw = px?.[0] ?? (ar0 ? ar0 * 1000 : null), ih = px?.[1] ?? (iw ? 1000 : null); if (!(iw > 0 && ih > 0)) return html;
+  const W = spec.w, H = spec.h, opaque = (style.kvMeta?.field?.opaque ?? 1) >= 0.5, m = 1 + 2 * (CANON.kvRegion?.margin ?? 0.04), rd = v => Math.round(v * 10) / 10;
+  const num = (s, k) => { const x = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return x ? parseFloat(x[1]) : null; };
+  const kvUrl = esc(style.keyVisual);
+  // 칸 bw×bh 에 영역을 맞춘 배율·위치. 덮기(cover=true): 칸을 다 덮는 배율 아래로 안 내려간다
+  const fit = (bw, bh, cover) => {
+    let s = Math.min(bw / (R.w * iw * m), bh / (R.h * ih * m));
+    if (cover) s = Math.max(s, bw / iw, bh / ih);
+    const dw = iw * s, dh = ih * s;
+    let ox = bw / 2 - (R.x + R.w / 2) * dw, oy = bh / 2 - (R.y + R.h / 2) * dh;
+    if (cover) { ox = Math.min(0, Math.max(bw - dw, ox)); oy = Math.min(0, Math.max(bh - dh, oy)); }
+    return { dw, dh, ox, oy };
+  };
+  const bgOf = (u, f) => `url('${u}') ${rd(f.ox)}px ${rd(f.oy)}px/${rd(f.dw)}px ${rd(f.dh)}px no-repeat`;
+  let hit = false;
+  // 지면 전체가 그림인 규격(배경형·질감) — 뿌리 배경에 그림이 깔린다. 덮기만(글자 뒤 빈틈이 없어야 한다). 앞의 스크림 그라데이션은 그대로
+  let out = html.replace(/(<div data-ad="1"[^>]*? style="[^"]*?)url\('([^']*)'\) [^,;"]*? no-repeat(?:,url\('[^']*'\) [^,;"]*? no-repeat)*/, (all, head, u) => { if (u !== kvUrl) return all; hit = true; return head + bgOf(u, fit(W, H, true)); });
+  out = out.replace(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g, (all, attrs, st, rest) => {
+    const b = st.match(/background:url\('([^']*)'\) [^;"]*?\/[^;"]*? no-repeat;?/); if (!b || b[1] !== kvUrl) return all;   // 오브젝트 누끼는 다른 그림
+    const full = /inset:0/.test(st);
+    let bw = full ? W : num(st, 'width'), bh = full ? H : num(st, 'height'); if (!(bw > 0 && bh > 0)) return all;
+    let st2 = st, f = fit(bw, bh, opaque);
+    // 칸이 영역보다 훨씬 납작·길쭉해서 덮기로는 영역이 잘리면(리멤버 2240×240 띠) 영역을 다 보이는 배율로 그리고 칸을 그림만큼 줄인다 — 글자에서 먼 쪽 변은 그대로. 틀 칸 규정으로 막히는 자소설·지면 전체 그림은 덮기 그대로
+    const fw = fit(bw, bh, false);
+    if (opaque && !full && spec.medium !== 'jasoseol' && f.dw > fw.dw + 0.5 && (fw.dw < bw - 0.5 || fw.dh < bh - 0.5)) {
+      const nw = Math.min(bw, fw.dw), nh = Math.min(bh, fw.dh), l0 = num(st, 'left'), t0 = num(st, 'top');
+      if (l0 != null && t0 != null) {
+        const nl = l0 + bw / 2 >= W / 2 ? l0 + bw - nw : l0, nt = t0 + bh / 2 >= H / 2 ? t0 + bh - nh : t0;
+        st2 = st2.replace(/(^|;)left:-?[\d.]+px/, `$1left:${rd(nl)}px`).replace(/(^|;)top:-?[\d.]+px/, `$1top:${rd(nt)}px`).replace(/(^|;)width:-?[\d.]+px/, `$1width:${rd(nw)}px`).replace(/(^|;)height:-?[\d.]+px/, `$1height:${rd(nh)}px`);
+        bw = nw; bh = nh; f = fit(bw, bh, true);
+      }
+    }
+    hit = true;
+    return `<div data-object="1"${attrs} style="${st2.replace(b[0], `background:${bgOf(b[1], f)};`)}"${rest} data-kv-region="1">`;
+  });
+  if (!hit) return html;
+  if (tr?.rules && !tr.rules.includes('kvRegion')) tr.rules.unshift('kvRegion');
+  return out.replace('&quot;rules&quot;:[', '&quot;rules&quot;:[&quot;kvRegion&quot;,');
 }
 // 지면 그라데이션을 그림 자리에 맞춘다(10-20 사용자 「배경색 일관되지 않게 나오는 것도 문제」 + 이음 전수 감사 bg-box·seam-far kv-edge 367변):
 //   캠페인 공통 지면(core/field.js edgeField·moodStops — 그림 네 변에서 한 번 정한 그라데이션, field.align { axis v|h, at [두 끝 색이 그림 길이의 어느 몫인가] })을
@@ -258,6 +301,9 @@ export function renderAd(ctx, style, spec) {
   return withAiShapes(renderAdInner(ctx, style, spec), style, spec);
 }
 function renderAdInner(ctx, style, spec) {
+  // 사람이 영역을 지정했으면 AI 그림 상자보다 먼저 — AI 가 잘라 만든 조각이 아니라 원본 그림 좌표라 원본으로 돌린다(지정값은 그대로 지닌다)
+  const region0 = style?.kvMeta?.manual?.region ?? null;
+  if (style?.aiKvBox && region0) { const { aiKvBox, aiFade, aiKvOrig, aiKvMetaOrig, ...rest } = style; const M0 = aiKvMetaOrig ?? rest.kvMeta; style = { ...rest, keyVisual: aiKvOrig ?? rest.keyVisual, kvMeta: { ...M0, manual: rest.kvMeta.manual, ...(M0.field ? { field: { ...M0.field, manual: rest.kvMeta.manual } } : {}) } }; }
   if (style?.aiKvBox && !style.__fix) {
     const ai = aiBoxRender(ctx, style, spec); if (ai) return ai;
     // AI 상자가 가이드 검사를 못 넘으면 규칙 자리 — 그림은 AI 가 그 모양용으로 자른 조각이 아니라 원본(규칙 칸에 조각이 들어가면 확성기만 크게, 10-22 GS 카카오)

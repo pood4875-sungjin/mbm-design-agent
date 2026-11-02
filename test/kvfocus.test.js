@@ -51,3 +51,41 @@ test('③ coverPos 도 keep 을 창 안에 둔다 · normalizeStyle(유형 지�
   const px = pct(c.pos) / 100, imgW = 1200, left = px * (imgW - 300) / imgW, right = left + 300 / imgW;
   assert.ok(left <= keep.x + 1e-3 && right >= keep.x + keep.w - 1e-3, `keep 이 창 안 ${c.pos} [${left.toFixed(3)}, ${right.toFixed(3)}]`);
 });
+
+// ── 보여 줄 영역(사용자 「차라리 누르면 영역 지정을 내가 할 수 있게」) — 렌더 마지막에 모든 그림 칸에 맞춘다
+import { renderAd } from '../core/renderers/ad.js';
+import { adSpecGroups } from '../core/adspecs.js';
+import { createContext } from '../core/context.js';
+const regionMeta = (kv, region) => { const manual = { region, focus: { x: region.x + region.w / 2, y: region.y + region.h / 2, w: region.w, h: region.h }, keep: region }; return { ...kv, manual, field: { ...kv.field, manual } }; };
+const CTX = createContext({ client: 'GS에너지', hiringType: '신입 공채', role: '영업', deadline: '2026-11-30' }, 'recruit');
+const REG = { x: 0.7, y: 0.1, w: 0.25, h: 0.3 };
+const groups = adSpecGroups().filter(g => g.entry.extract && !(g.entry.asset || g.entry.rules?.asset));
+const layers = h => [...h.matchAll(/<div data-object="1"[^>]*>/g)].map(m => m[0]);
+
+test('④ 영역을 지정하면 그림이 있는 모든 규격에 표시(data-kv-region)·규칙(kvRegion)이 붙는다 — 바탕 있는 그림 · 누끼 모두', () => {
+  const CUT = { ar: 0.5, px: [500, 1000], colors: ['#1E3A8A'], field: { kind: 'cutout', opaque: 0.1, lum: 0.5, sat: 0.4, focus: { x: 0.5, y: 0.5, w: 0.8, h: 0.9, parts: 1, others: [], density: 0.5 } } };
+  for (const kv of [META, CUT]) {
+    const st = styleOf(regionMeta(kv, REG)); let drawn = 0;
+    for (const g of groups) { const h = renderAd(CTX, st, g.entry); if (!h.includes(`url('${PNG}')`)) continue; drawn++; assert.match(h, /kvRegion/, `${kv.field.kind} ${g.id}`); }
+    assert.ok(drawn >= 20, `그림 있는 규격 ${drawn}`);
+  }
+});
+test('⑤ 누끼는 칸 안에 영역이 통째로 · 바탕 있는 그림은 칸을 다 덮어 빈틈이 없다 · 비슷한 비율 칸에선 영역이 다 보인다', () => {
+  const sp = adSpecGroups().find(g => g.id === 'kakao-display-pc-promo').entry;
+  const h = renderAd(CTX, styleOf(regionMeta(META, REG)), sp);
+  const st = layers(h).find(x => /data-kv-region/.test(x)), w = +st.match(/width:([\d.]+)px/)[1], hh = +st.match(/height:([\d.]+)px/)[1];
+  const b = st.match(/ (-?[\d.]+)px (-?[\d.]+)px\/([\d.]+)px ([\d.]+)px no-repeat/); const [ox, oy, dw, dh] = b.slice(1).map(Number);
+  assert.ok(ox <= 0 && oy <= 0 && ox + dw >= w - 0.2 && oy + dh >= hh - 0.2, '칸을 덮는다');
+  const left = -ox / dw, right = (w - ox) / dw, top = -oy / dh, bottom = (hh - oy) / dh;
+  assert.ok(left <= REG.x + 1e-3 && right >= REG.x + REG.w - 1e-3 && top <= REG.y + 1e-3 && bottom >= REG.y + REG.h - 1e-3, JSON.stringify({ left, right, top, bottom }));
+});
+test('⑥ 영역이 없으면 지금과 똑같다 · AI 그림 상자보다 사람 지정이 먼저 · 끌기 계산은 그림 안에 머문다', async () => {
+  const sp = adSpecGroups().find(g => g.id === 'kakao-display-pc-promo').entry;
+  assert.ok(!/data-kv-region/.test(renderAd(CTX, styleOf(META), sp)));
+  const { withManual: wm, dragRegion } = await import('../app/kvfocus.js');
+  assert.deepEqual(wm(META, { region: REG }).manual.keep, REG);
+  assert.equal(wm(wm(META, { region: REG }), null).manual, undefined);
+  const mv = dragRegion('move', REG, { x: 0, y: 0 }, { x: 0.5, y: 0.9 }); assert.equal(mv.x, 0.75); assert.equal(mv.y, 0.7);
+  const dr = dragRegion('draw', null, { x: 0.8, y: 0.8 }, { x: 0.2, y: 0.3 }); assert.deepEqual(dr, { x: 0.2, y: 0.3, w: 0.6, h: 0.5 });
+  const se = dragRegion('se', REG, { x: 0, y: 0 }, { x: 0.71, y: 0.11 }); assert.ok(se.w >= 0.049 && se.h >= 0.049, JSON.stringify(se));
+});
