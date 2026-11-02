@@ -38,12 +38,11 @@ test('틀 그림 칸의 누끼는 블리드 없이 칸 안에 통째로(자소�
   }
 });
 
-test('카카오 비즈보드 서브(접수기간) 16자 상한: 「6.20(금) - 7.2(수) 17시」 20자 → 시각 떼고 「~」로 붙여 들어간다(mold.periodShort)', () => {
-  const html = renderAd(ctx, normalizeStyle({ colors: ['#1E4FD8'], logo: PNG, logoTone: 'dark' }), specs['kakao-bizboard-mo']); const tr = traceOf(html);
-  assert.ok(tr.rules.includes('mold.periodShort'));
+test('카카오 비즈보드 960×300 서브: 글자수 규정이 없다(공식 최대 526px) — 접수기간이 그대로 38pt 한 줄 · 고지 문구가 길어도 잘리지 않게', () => {
+  const html = renderAd(ctx, normalizeStyle({ colors: ['#1E4FD8'], logo: PNG, logoTone: 'dark' }), specs['kakao-bizboard-mo']);
   const sub = html.match(/data-field="sub"[^>]*>([^<]*)</)?.[1];
-  assert.ok(sub && [...sub.replace(/\s/g, '')].length <= 16, '서브 16자 이하: ' + sub);
-  assert.doesNotMatch(sub, /17시/, '시각 떼기');
+  assert.ok(sub && /17시/.test(sub), '시각까지: ' + sub);
+  assert.match(html, /data-field="sub"[^>]*font-size:38px/);
 });
 
 test('카카오 비즈보드 안전영역 48px vs 템플릿 글자 상자 x46 — 틀 규격은 2.5px 봐준다(safe-area 차단 아님)', () => {

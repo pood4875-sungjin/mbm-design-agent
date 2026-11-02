@@ -19,7 +19,7 @@ const attrs = html => [...html.matchAll(/\s(data-[a-z-]+)(?=[\s>])/g)].map(m => 
 test('the shell is exactly the spec canvas and is marked for measurement', () => {
   const spec = specs['kakao-bizboard-mo'];
   const html = renderAd(ctx, style, spec);
-  assert.match(html, /width:1029px;height:258px/);
+  assert.match(html, /width:960px;height:300px/);
   assert.match(html, /data-ad="1"/);
   assert.match(html, /data-spec="kakao-bizboard-mo"/);
 });
@@ -34,8 +34,8 @@ test('markup is XML-safe — rasterization goes through SVG foreignObject', () =
 
 test('medium text colors are applied exactly where the medium defines them (kakao/NAP bizboard)', () => {
   const html = renderAd(ctx, style, specs['kakao-bizboard-mo']);
-  assert.match(html, /data-field="main"[^>]*color:#4C4C4C/i);
-  assert.match(html, /data-field="sub"[^>]*color:#(555555|777777)/i);
+  assert.match(html, /data-field="main"[^>]*color:#191919/i);   // 960×300 공식(11-02)
+  assert.match(html, /data-field="sub"[^>]*color:#696969/i);
 });
 
 test('a transparent-background spec renders no fill and says so', () => {
@@ -223,7 +223,7 @@ test('template measurements taken on a 2x frame are scaled to the 1x canvas (자
   assert.match(html, /data-text-col="1" style="position:absolute;left:26px/, '10-15 틀: 글자 왼쪽 패딩 52(2배) → 26');
   assert.match(html, /data-field="main"[^>]*font-size:20px/);
   // 환산할 것이 없는 규격은 1
-  assert.equal(templateScale(specs['kakao-bizboard-mo'].rules, 1029), 1);
+  assert.equal(templateScale(specs['kakao-bizboard-mo'].rules, 960), 1);
 });
 
 /* ── 자소설 실제 소재의 위계: 로고 칸 → 서브(시즌) → 메인 → 상세("라벨 : 값") → 이미지 띠 ── */

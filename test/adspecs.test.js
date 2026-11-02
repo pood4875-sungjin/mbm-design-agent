@@ -37,8 +37,8 @@ test('submit size follows the medium: jasoseol exports at 2x, kakao bizboard at 
   assert.equal(pop.w, 550); assert.equal(pop.h, 400);
   assert.equal(pop.submitW, 1100); assert.equal(pop.submitH, 800);
   const biz = e['kakao-bizboard-mo'];
-  assert.equal(biz.w, 1029); assert.equal(biz.h, 258);
-  assert.equal(biz.submitW, 1029); assert.equal(biz.submitH, 258);
+  assert.equal(biz.w, 960); assert.equal(biz.h, 300);
+  assert.equal(biz.submitW, 960); assert.equal(biz.submitH, 300);
 });
 
 test('registerAdSpecs merges into SPECS without touching the event specs', () => {
@@ -88,7 +88,7 @@ test('adFileNameOf: 기업명_매체_상품명_배너이름_WxH — 괄호 설�
   const E = adSpecEntries();
   assert.equal(adFileNameOf({ client: '드라마앤컴퍼니', mediumName: '리멤버', spec: E['remember-main-top-pc'] }), '드라마앤컴퍼니_리멤버_메인상단배너_PC_2240x360.png');
   assert.equal(adFileNameOf({ client: '세아제강', mediumName: '자소설닷컴', spec: E['jasoseol-pc-premium-popup-pc'], ext: 'png' }), '세아제강_자소설닷컴_PC프리미엄패키지_PC팝업배너_1100x800.png', '상품명 - 배너이름, 치수는 2배 제출 크기');
-  assert.equal(adFileNameOf({ client: 'A/B 주식회사', mediumName: '카카오톡', spec: E['kakao-bizboard-mo'], ext: 'jpg' }), 'AB_주식회사_카카오톡_카카오비즈보드_MO_1029x258.jpg', '파일명 금지 문자 제거, 띄어쓰기는 _ · 괄호 속 플랫폼은 괄호를 벗겨 한 번만');
+  assert.equal(adFileNameOf({ client: 'A/B 주식회사', mediumName: '카카오톡', spec: E['kakao-bizboard-mo'], ext: 'jpg' }), 'AB_주식회사_카카오톡_카카오비즈보드_MO_960x300.jpg', '파일명 금지 문자 제거, 띄어쓰기는 _ · 괄호 속 플랫폼은 괄호를 벗겨 한 번만');
   assert.equal(adFileNameOf({ client: '동서식품', mediumName: '에브리타임', spec: E['everytime-community-board'] }), '동서식품_에브리타임_커뮤니티보드_APP_1029x258.png');
   assert.ok(!adFileNameOf({ client: 'X', mediumName: 'Y', spec: E['remember-main-top-pc'] }).includes('_v'), '회차는 파일명이 아니라 ZIP 폴더명');
 });

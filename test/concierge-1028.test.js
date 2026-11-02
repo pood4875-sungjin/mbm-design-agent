@@ -136,9 +136,9 @@ test('#1 (e) 11-02 재현 — 기업명 길이별 기대값(담당자 아직 「
   for (const id of ['google-gdn-580x400', 'google-gdn-970x250']) { const g = run(id, '인천국제공항보안공사'); assert.equal(g.main, '인천국제공항보안공사\n신입/경력 채용', id); assert.equal(g.fs, 43, id); assert.ok(!g.rules.includes('templateMold.mainExtraLine'), id); }
   // 카카오 비즈보드(메인에 광고주 필수, 두줄형 허용): 15·16자는 .85 로도 한 줄에 안 들어가 → 두줄형 「기업명 / 신입/경력 채용」, 서브 줄 위(sub.y 144 − main.y 68 = 76px)를 둘로 나눠 31px/38px — 수치는 가이드 미입수 임시(trace templateMold.mainTwoLineClient). 전엔 「신입/경력 채용」만(lint main-client 차단)
   for (const cl of ['한미글로벌터너앤타운젠드코리아', '한미글로벌&터너앤타운젠드코리아']) {
-    const k = run('kakao-bizboard-mo', cl);
-    assert.equal(k.main, `${cl}\n신입/경력 채용`, cl); assert.ok(k.rules.includes('templateMold.mainTwoLineClient') && k.rules.includes('templateMold.mainExtraLine'), k.rules.join(','));
-    assert.match(mainTag(k.h), /font-size:31px;line-height:38px/); assert.doesNotMatch(mainTag(k.h), /​/, '16자도 한 줄(610px)에 들어가 음절 줄바꿈 자리 없음');
+    const k = run('kakao-bizboard-mo', cl);   // 960×300(11-02 공식): 두줄형 43pt 행간 54 고정 — 15·16자 기업명은 526px 한 줄에 안 들어가 기업명만 두 줄로
+    assert.equal(k.main, cl, cl); assert.ok(k.rules.includes('templateMold.mainExtraLine'), k.rules.join(','));
+    assert.match(mainTag(k.h), /font-size:43px;line-height:54px/);
   }
   // 카카오 12자 이하는 전과 같이 한 줄(「현대오일터미널 주식회사 채용」·「한진정보통신 신입/경력 채용」)
   assert.equal(run('kakao-bizboard-mo', '한진정보통신').main, '한진정보통신 신입/경력 채용'); assert.ok(!run('kakao-bizboard-mo', '현대오일터미널 주식회사').rules.includes('templateMold.mainTwoLineClient'));

@@ -378,7 +378,7 @@ const moldRowY = (C, role, k) => {
   const M = moldOf(C); const r = M?.rows?.[role]; if (!r) return null;
   const subN = (() => { const t = moldText(C, 'sub'); return t ? rowsMeasured(t) : 0; })();
   const main = moldText(C, 'main'); const mainN = main ? rowsMeasured(main) : 1;
-  const mr = M.rows.main ?? {}; const mainRow = { ...mr, ...(mr.bySubLines?.[String(subN)] ?? {}) };
+  const mr = M.rows.main ?? {}; const mainRow = { ...mr, ...(mr.bySubLines?.[String(subN)] ?? {}), ...(mainN >= 2 && mr.twoLineY != null ? { y: mr.twoLineY } : {}) };
   if (role === 'main') return mainRow.y != null ? mainRow.y * k : null;
   const rr = { ...r, ...(r.byMainLines?.[String(mainN)] ?? {}) };
   // 아래부터 채우는 상세(자소설 M메인 「상세 입력 시 하단부터」): 쓴 줄이 적으면 빈 줄만큼 내려간 자리가 맞다 — 렌더러와 같은 셈(11-02 전수 mold.detail.y 24건 오탐)

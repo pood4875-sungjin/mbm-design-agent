@@ -4774,6 +4774,21 @@
    "since": "2026-11-02",
    "round": 76,
    "source": "history/2026-11-02_차단0_컨시어지_전수조사.md"
+  },
+  {
+   "id": "bizboard-960",
+   "category": "매체 규정",
+   "scope": "kakao-bizboard-mo",
+   "status": "active",
+   "rule": "카카오 비즈보드는 960×300. 메인 Pretendard Bold 46 #191919(두줄형 43 행간 54) · 서브 Regular 38 #696969 · 카피 최대 526px · 썸네일 320×222 r18 · 오브젝트 314×300. 글자수 규정은 없다. 위치 x·y 는 공식 수치가 없어 어림(폭 합 878 → 좌우 41)",
+   "value": "mold.positionsEstimated true · 구규격은 kakao-bizboard-1029-legacy(참고)",
+   "where": "core/media/kakao.json · docs/kakao-mold.md",
+   "evidence": [
+    "공식 가이드 「1029x258 → 960x300, 기존 사이즈는 10월 20일부터 신규 등록·수정 불가」(guide-collector 수집, 2026-11-02 읽음)"
+   ],
+   "since": "2026-11-02",
+   "round": 76,
+   "source": "history/2026-11-02_비즈보드_960.md"
   }
  ]
 }

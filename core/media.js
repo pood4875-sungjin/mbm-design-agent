@@ -1,5 +1,5 @@
 // 생성 파일 — 직접 고치지 말 것. 원본: core/media/*.json, 빌드: node scripts/build-media.mjs
-// 매체 15 · 규격 91(추출 48) · 확인필요 112 · 충돌 43 · 반려사례 12
+// 매체 15 · 규격 92(추출 48) · 확인필요 113 · 충돌 43 · 반려사례 12
 // 출처: [SK추진실] 광고소재제작가이드_260918.zip + Figma "매체별 규격정리" 보드 (2026-09-28 추출)
 // 보드 검수 0/24 프레임
 
@@ -7552,6 +7552,208 @@ export const MEDIA = [
         "mainTwoLine": {
           "allowed": true,
           "lines": 2,
+          "px": 43,
+          "pitch": 54,
+          "note": "공식 2-2 메인카피 두줄형: Pretendard Bold 43pt 행간 54px · 서브 38pt. 두 줄 각각 최소 240px",
+          "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)"
+        },
+        "platform": "MO",
+        "tool": "포토샵",
+        "w": 960,
+        "h": 300,
+        "exportScale": 1,
+        "format": [
+          "png"
+        ],
+        "formatNote": "공식 가이드: PNG-24, 배경이 투명한 이미지, 박스는 시스템이 구현",
+        "maxKB": 300,
+        "dpi": 72,
+        "bitDepth": 24,
+        "background": "투명 — 공식 가이드 「배경이 투명한 이미지로 제작, 박스는 시스템에서 구현」(바탕 회색 #f3f3f3 은 시스템)",
+        "safeArea": {
+          "note": "공식 가이드에 카피 여백 수치는 없다. 카피 최대 526 + 간격 32 + 썸네일 320 = 878 → 남는 82 를 좌우 41 로 나눈 값",
+          "top": null,
+          "right": 41,
+          "bottom": null,
+          "left": 41,
+          "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+          "measuredFromTemplate": {
+            "mold": {
+              "measuredAt": "2026-11-02",
+              "positionsEstimated": true,
+              "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+              "note": "글자 크기·색·행간·칸 크기 = 공식 값. x·y 는 어림: 공식 폭 합 878 을 지면 가운데로 두면 좌우 41, 글자 덩어리 세로 가운데(메인 46/57 + 간격 14 + 서브 38/47). 두줄형 43/54 + 간격 14 + 서브. 1029×258 틀(사용자 10-16 「타이틀·서브 너무 붙어 있음」)의 간격 비례를 따랐다. PSD 받으면 교체",
+              "x": 41,
+              "w": 526,
+              "kv": "slot",
+              "font": "Pretendard",
+              "rows": {
+                "main": {
+                  "y": 91,
+                  "px": 46,
+                  "pitch": 57,
+                  "weight": 700,
+                  "lines": 1,
+                  "x": 41,
+                  "w": 526,
+                  "color": "#191919",
+                  "twoLineY": 65.5,
+                  "note": "한 줄 y91 · 두 줄 y65.5"
+                },
+                "sub": {
+                  "y": 162,
+                  "px": 38,
+                  "pitch": 47,
+                  "weight": 400,
+                  "lines": 1,
+                  "x": 41,
+                  "w": 526,
+                  "color": "#696969",
+                  "content": "period",
+                  "sep": " ",
+                  "byMainLines": {
+                    "2": {
+                      "y": 187.5
+                    }
+                  },
+                  "note": "둘째 줄 글감 = 접수기간 날짜만, 라벨 없이(보드 샘플 12/12)"
+                }
+              },
+              "image": {
+                "x": 599,
+                "y": 39,
+                "w": 320,
+                "h": 222,
+                "radius": 18,
+                "note": "공식 썸네일 320×222 r18",
+                "edgeInset": {
+                  "right": 41,
+                  "bottom": 39
+                }
+              },
+              "imageCutout": {
+                "x": 603,
+                "y": 0,
+                "w": 314,
+                "h": 300,
+                "fit": "contain",
+                "anchor": "center",
+                "note": "공식 오브젝트 314×300 — 누끼는 좌우가 잘리면 안 된다"
+              },
+              "logo": null,
+              "color": "#191919",
+              "colorDark": "#FFFFFF",
+              "docRef": "docs/kakao-mold.md",
+              "labels": {
+                "period": "",
+                "note": "날짜 줄 라벨 없음"
+              }
+            }
+          }
+        },
+        "textColors": {
+          "main": "#191919",
+          "sub": [
+            "#696969"
+          ],
+          "extra": "#949494",
+          "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)"
+        },
+        "textLimits": [
+          {
+            "field": "메인카피",
+            "maxChars": null,
+            "lines": 2,
+            "mustIncludeClient": true,
+            "minPx": 240,
+            "maxPx": 526,
+            "note": "공식: Pretendard Bold 46pt #191919(두줄형 43pt), 크기 변경 불가. 글자수 규정 없음 — 폭 최소 240·최대 526px",
+            "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+            "confidence": "확정"
+          },
+          {
+            "field": "서브카피",
+            "maxChars": null,
+            "lines": 1,
+            "maxPx": 526,
+            "note": "공식: Pretendard Regular 38pt #696969, 크기 변경 불가",
+            "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+            "confidence": "확정"
+          },
+          {
+            "field": "부가정보",
+            "maxChars": null,
+            "lines": 2,
+            "maxPx": 526,
+            "note": "공식: Pretendard Regular 22pt #949494, 2줄이면 행간 27px",
+            "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+            "confidence": "확정"
+          },
+          {
+            "field": "카피 전체 줄 수",
+            "maxChars": null,
+            "lines": 4,
+            "note": "공식: 3줄 권장, 부가정보·앱다운로드 사용 시 최대 4줄",
+            "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+            "confidence": "확정"
+          }
+        ],
+        "logo": {
+          "count": null,
+          "w": null,
+          "h": null,
+          "hRange": [
+            35,
+            45
+          ],
+          "note": "로고 자체는 필수 아님 — '광고주체 표기 필수'(카피나 오브젝트에 광고주 표기, docx 2·완화 가이드 p.2). 워드마크/로고로 메인카피 대체 시: 높이 45~35px, 한 줄, 카피와 혼합 불가, 텍스트형 로고만(docx 8 '*기존 사례- 다스'), 세로형·프로모션 로고·심볼 불가, 오브젝트/썸네일 없이 단독 사용 불가(p.22~23). 카피형 CTA 영역 로고: 주요 요소 높이 20px, 최대 38px(p.15). PSD 오브젝트형 가이드 레이어 '광고주체 142x48 (겹침 없이 사용)'(x48,y16).",
+          "source": "docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx 2, 8 / pdf:카카오 규정 완화 가이드.pdf p.15, p.22, p.23 / psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01_banner_template_object.psd"
+        },
+        "layoutNotes": [
+          "공식: 카피-오브젝트 최소 간격 오브젝트형 34 · 썸네일형 32",
+          "공식: 우상단 66×174 는 AD·AI 활용 마크 자리 — 주요 오브젝트 피하기 권장",
+          "공식: 좌측형은 우측 170px 이상 비면 꺾쇠 필수. 우리 틀은 그림이 오른쪽인 우측형",
+          "공식: 썸네일은 영역을 모두 채우고 테두리 불가, 회색 #f3f3f3 과 비슷한 색 피하기"
+        ],
+        "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
+        "confidence": "확인필요",
+        "note": "2026-10-20 부터 1029×258 은 신규 등록·수정 불가(공식 가이드). 크기·용량·포맷·글자 크기·색·행간·칸 크기는 공식 가이드 값. 글자·칸의 x·y 위치는 가이드에 숫자가 없어 어림 — PSD 대조 전까지 확인 필요(mold.positionsEstimated).",
+        "objectBox": {
+          "note": "공식 2-6: 썸네일 320×222 r18 · 오브젝트 314×300(PSD 직접 제작 388×300) · 오브젝트는 좌우 크롭 불가, 상하 크롭은 불가피할 때만. 위치는 어림(공식 폭 합으로 좌우 41·43, 세로 가운데)",
+          "thumbnail": {
+            "x": 599,
+            "y": 39,
+            "w": 320,
+            "h": 222,
+            "radius": 18,
+            "gap": 32,
+            "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)"
+          },
+          "cutout": {
+            "x": 603,
+            "y": 0,
+            "w": 314,
+            "h": 300,
+            "gap": 34,
+            "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)"
+          }
+        },
+        "frame": "off",
+        "extract": true
+      },
+      {
+        "id": "kakao-bizboard-1029-legacy",
+        "name": "카카오 비즈보드 (MO) 1029×258 — 구규격, 2026-10-20 부터 등록 불가",
+        "fonts": {
+          "required": "Pretendard",
+          "note": "규격 단위 명시(10-28): 비즈보드만 Pretendard 고정(메인 Bold · 서브/부가/카피형 CTA Regular). 매체 fonts 와 같은 값",
+          "source": "pdf:카카오 규정 완화 가이드.pdf p.10, p.12, p.15"
+        },
+        "mainMustIncludeClient": true,
+        "mainMustIncludeClientNote": "메인카피에 광고주(고객사명) 노출 필수 — 고정값. 완화 가이드 「광고주체 표기: 카피나 오브젝트에 광고주체 표기 필수(ex '카카오게임 10주년 기념 인형 기획전')」 + 10-28 컨시어지 #5(카카오 담당자 「MO 비즈보드 메인문구에 광고주 노출 필수가 안 지켜짐」). 검사: core/lint.js main-client(측정값 client 가 있을 때 메인 텍스트에 고객사명이 없으면 block). 렌더: ad.js 메인 사다리가 이 플래그를 읽어 고객사명을 뺀 후보를 내지 않는다",
+        "mainTwoLine": {
+          "allowed": true,
+          "lines": 2,
           "note": "새 가이드 「메인문구 두줄형」 — 메인카피 2줄 변형 허용(10-28 컨시어지 #5). 두줄형일 때 줄 간격·서브 자리·글자 크기 수치는 새 가이드 미입수 — 확인 필요(임시: 틀 pitch 62 로 2줄, 서브는 아래로). 렌더 플래그: spec.mainTwoLine.allowed(ad.js 가 읽음), 검사: textLimits 메인카피 lines 2",
           "source": "docs/concierge-requests-2026-10-28.md #5 / figma:카카오톡01 frame 421:5460 템플릿 「메인문구를 입력하세요.」 ×2(메인문구 2줄 자리)"
         },
@@ -7848,7 +8050,7 @@ export const MEDIA = [
         ],
         "source": "figma:카카오톡01(소재 제작 규정/제작가이드&예시) text 421:5440~5452·421:5470, frame 421:5460 / figma:카카오톡 섹션 상단 메모 text 421:5472 / docx:2026 카카오 규정 정리 파일(가이드 링크 포함).docx / pdf:카카오 규정 완화 가이드.pdf / psd:카카오 비즈보드 왼쪽 정렬 PSD파일/01~06 / psd:카카오 비즈보드 (썸네일-박스형-오른쪽) 가이드 PSD 파일.psd",
         "confidence": "확정",
-        "note": "사이즈·포맷(투명 PNG)·용량 300KB·72DPI·32bit·텍스트 색은 보드·메모·docx 일치. 72DPI·32bit(알파 포함 PNG)는 파일 메타로 자동 검사 가능.",
+        "note": "공식 가이드: 10월 20일부터 신규 등록·수정 불가. 참고용으로만 남김. 사이즈·포맷(투명 PNG)·용량 300KB·72DPI·32bit·텍스트 색은 보드·메모·docx 일치. 72DPI·32bit(알파 포함 PNG)는 파일 메타로 자동 검사 가능.",
         "objectBox": {
           "note": "배경이 있는 그림(사진·배경 있는 일러스트)은 썸네일 상자에, 누끼는 오브젝트 영역에. 그림이 상하 여백 없이 영역 전체를 채우면 심사보류(썸네일 가이드 '단, 상하 여백 없이 이미지로 영역 전체를 채우는 것은 불가').",
           "thumbnail": {
@@ -7870,7 +8072,7 @@ export const MEDIA = [
           }
         },
         "frame": "rules",
-        "extract": true
+        "extract": false
       },
       {
         "id": "kakao-display-pc-promo",
@@ -8336,6 +8538,7 @@ export const MEDIA = [
       }
     ],
     "needsReview": [
+      "비즈보드 960×300 글자·칸의 x·y 위치는 공식 가이드에 숫자가 없어 어림(mold.positionsEstimated) — 공식 PSD(외부DSP_카카오 비즈보드 PSD 템플릿 및 폰트 파일.zip) 또는 승인된 소재로 대조 필요",
       "공식 gitbook 가이드(비즈보드·디스플레이) 원문을 열람하지 않음 — docx 요약과 완화 가이드 pdf만 반영.",
       "CPT 3종(배경 1290×258 / 오브젝트 315×258 / 텍스트 1029×258): 포맷·용량·제출 방식이 어느 자료에도 없음, 3개 파일로 나눠 제출하는지도 확인 필요.",
       "서브카피 글자수: docx 원문 '상세는 16자 이하' — '상세'가 서브카피를 뜻하는지 확인.",
@@ -13132,4 +13335,4 @@ export function specOf(specId) {
   return null;
 }
 
-export const MEDIA_COUNTS = {"media":15,"specs":91,"extract":48,"needsReview":112,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};
+export const MEDIA_COUNTS = {"media":15,"specs":92,"extract":48,"needsReview":113,"conflicts":43,"rejections":12,"frames":24,"framesDone":0};

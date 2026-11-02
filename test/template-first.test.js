@@ -397,7 +397,7 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 262, y: 587, w: 818, h: 493 });   // 10-19: 786 → 818 (오른쪽 가장자리까지)
   assert.deepEqual(ti.place.tImage, { x: 262, y: 587, w: 818, h: 493 }); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)'); assert.ok(!ti.rules.includes('templateMold.slotBleed'), '인스타는 모서리 칸이어도 블리드 없음(image.bleed false)');
   { const ob = hi.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] + +ob[3] === 1080 && +ob[2] + +ob[4] === 1080, '키비주얼 그림 오른쪽·바닥 맞닿음(10-19 우측 여백 0): ' + (ob && ob[0])); }
-  const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [68, 50, 62, 700, 144, 43, 400], '카카오 비즈보드 틀 64:3325: 메인 Bold 50 y68 · 서브 Regular 43 y144(17px 띔)'); assert.deepEqual(tk.place.tImage, { x: 663, y: 36, w: 313, h: 185, radius: 10 });
+  const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [91, 46, 57, 700, 162, 38, 400], '카카오 비즈보드 960×300 공식: 메인 Bold 46 · 서브 Regular 38'); assert.deepEqual(tk.place.tImage, { x: 599, y: 39, w: 320, h: 222, radius: 18 });
 });
 
 test('카카오 PC디스플레이 1200×600 틀 — 한국앤컴퍼니 샘플(421:5491 픽셀 실측): 로고 왼쪽 위 (78,57) 127×50 · 메인 ExtraBold 72 2줄 y131 행간 88 · 날짜 Bold 52 y337 라벨 없이 · 키비주얼은 칸 고정 없이 기존 가이드(10-16)', () => {
@@ -413,7 +413,7 @@ test('카카오 PC디스플레이 1200×600 틀 — 한국앤컴퍼니 샘플(42
 
 test('카카오 비즈보드 둥근 그림 칸(r10): 사진·바탕 있는 그림은 칸을 채우고 모서리를 둥글게, 누끼는 contain 그대로 (10-16 사용자 「라운드 넣거나 누끼면 툭」)', () => {
   const photo = renderAd(ctx, { ...glass, kvMeta: { ar: 1.5, px: [600, 400], field: { kind: 'photo', opaque: 1 } } }, specs['kakao-bizboard-mo']);
-  assert.match(photo, /data-slot-round="1"[^>]*border-radius:10px;background:url\('[^']*'\) [^;]*\/cover/, '사진: 칸 cover + r10');
+  assert.match(photo, /data-slot-round="1"[^>]*border-radius:18px;background:url\('[^']*'\) [^;]*\/cover/, '사진: 칸 cover + r18(공식 960×300)');
   assert.doesNotMatch(photo, /data-slot-round="1"[^>]*data-melt=/, '둥근 칸은 녹임 없음');
   const cut = renderAd(ctx, { ...glass, kvMeta: { ar: 1.5, px: [600, 400], field: { kind: 'cutout', opaque: 0.2 } } }, specs['kakao-bizboard-mo']);
   assert.doesNotMatch(cut, /data-slot-round="1"/, '누끼: 둥근 칸 아님');
