@@ -37,8 +37,8 @@ export async function measureDom(html, spec) {
       fontPx,
       color: toHex(cs.color),
       bbox: { x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height },
-      // line-clamp로 잘린 글자가 있으면 scrollHeight가 보이는 높이보다 크다
-      truncated: el.scrollHeight > el.clientHeight + 2,   // 한글 글리프가 줄상자를 1~2px 넘는 건 잘림이 아니다
+      // 잘림 = 숨은 줄이 있거나(줄 하나 몫의 절반 넘게 넘침) 한 줄 고정 글자가 옆으로 넘침. 글꼴 위아래 여백이 큰 Kakao Big Sans 는 줄이 멀쩡해도 scrollHeight 가 글자 크기 .13em 더 크다(11-02 전수: 516건이 전부 이 오탐 — 사용자 「이유가 이상한 것」)
+      truncated: el.scrollHeight - el.clientHeight > Math.max(2, lh * 0.5) || (cs.whiteSpace === 'nowrap' && el.scrollWidth > el.clientWidth + 2),
     };
   });
   const logoEl = root.querySelector('[data-logo]');

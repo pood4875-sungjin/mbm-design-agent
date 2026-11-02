@@ -1562,6 +1562,12 @@ function renderAdBase(ctx, style, spec) {
         : `<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.07)}px;top:${Math.round(h * 0.08)}px;width:${Math.round(w * 0.86)}px;height:${Math.round(h * 0.84)}px;background:url('${esc(style.keyVisual)}') center/contain no-repeat"></div>`;
       return `${open('padding:0')}${img}</div>`;
     }
+    // 로고를 못 넣는 규격(캐치 PC 중앙배너 logo.count 0)은 로고로 대신하지 않는다 — 그림의 주인공을 네 변을 녹여 투명 지면 위에(배경은 매체가 Hex 로 깐다). 11-02 전수: 바탕 있는 그림마다 logo-forbidden 차단이었다
+    if (rules.logo?.count === 0 && style.keyVisual) {
+      const bw0 = Math.round(w * 0.86), bh0 = Math.round(h * 0.84), c0 = coverPos(style, bw0, bh0, { fallback: 'center' });
+      fired('visualOnly.kvMelt');
+      return `${open('padding:0')}<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.07)}px;top:${Math.round(h * 0.08)}px;width:${bw0}px;height:${bh0}px;background:url('${esc(style.keyVisual)}') ${c0.pos}/cover no-repeat;${meltMaskList([meltGradient('to right', 16), meltGradient('to left', 16), meltGradient('to bottom', 16), meltGradient('to top', 16)])}"></div></div>`;
+    }
     const side = Math.min(innerW, innerH);
     const mark = style.logo
       ? `<div data-object="logo" style="display:flex;align-items:center;justify-content:center"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="display:block;height:${Math.round(side * 0.5)}px;width:auto;max-width:${Math.round(innerW * 0.7)}px;object-fit:contain;${logoFilter}"/></div>`
@@ -2487,8 +2493,9 @@ ${tplLogo}${kvWrap(tplObject)}
     //   글꼴마다 다르다(app/fonts 700 hmtx 실측: Pretendard .864 · SUIT .874 · Paperlogy .88 · Kakao Big Sans .894 · Kakao Small Sans .92 · 나눔 .91~.95 · Gmarket .962 · Freesentation .77) — 이 렌더의 첫 글꼴(매체 required > 스타일 heading)로 고르고 조금 여유를 둔다. 모르는 글꼴은 .97
     const HANGUL_ADV = (() => { const f = String(family).toLowerCase(); const T = [['pretendard', 0.87], ['suit', 0.88], ['paperlogy', 0.89], ['kakao big', 0.9], ['freesentation', 0.8], ['kakao small', 0.93], ['nanum', 0.95], ['a2z', 0.94]]; return (T.find(([n]) => f.indexOf(n) >= 0 && f.indexOf(n) < 24) ?? [null, 0.97])[1]; })();
     const moldW = s => { const t = String(s ?? ''); return textWidth(t) - (1 - HANGUL_ADV) * [...t].filter(ch => /[\u1100-\u11FF\uAC00-\uD7AF]/.test(ch)).length; };
-    const wrapRows = (t, px, width) => String(t).split('\n').reduce((n, line) => { let rows = 1, cur = 0; for (const wd of line.split(/\s+/).filter(Boolean)) { const ww = moldW(wd) * px; if (cur > 0 && cur + 0.35 * px + ww > width) { rows++; cur = ww; } else cur = cur > 0 ? cur + 0.35 * px + ww : ww; if (ww > width) rows += Math.ceil(ww / width) - 1; } return n + rows; }, 0);
-    const rowsOfMain = t => wrapRows(t, mainPx, Math.max(1, colW));
+    const wrapRows = (t, px, width, soft = false) => String(t).split('\n').reduce((n, line) => { let rows = 1, cur = 0; for (const wd of line.split(/\s+/).filter(Boolean)) { (soft ? wd.split(/\u200b|(?<=[\/∙·&])/) : wd.split('\u200b')).filter(Boolean).forEach((part, pi) => { const gap = pi > 0 ? 0 : 0.27 * px, ww = moldW(part) * px; if (cur > 0 && cur + gap + ww > width * (soft ? 1.02 : 1)) { rows++; cur = ww; } else cur = cur > 0 ? cur + gap + ww : ww; if (ww > width) rows += Math.ceil(ww / width) - 1; }); } return n + rows; }, 0);   // \u200b(softBreakLong 이 넣은 줄바꿈 자리)도 끊긴다 — 못 끊는 낱말로 세면 줄 수를 넘겨 재서 상세·날짜 줄이 틀 자리보다 아래로 밀렸다(11-02 전수: 자소설 채용공고·달력 mold.*.y)
+    const mainColW = MR.main?.w != null ? Math.round(MR.main.w * k) : colW;   // 메인 칸 폭이 따로 있으면(네이버 DA 552 vs 글자 칸 740) 그 폭으로 — 넓은 칸으로 재면 긴 기업명이 잘렸다(11-02 전수)
+    const rowsOfMain = t => wrapRows(t, mainPx, Math.max(1, mainColW));
     let mainShrink = 1;   // 틀 메인 글자 배율(1 = 템플릿 px 그대로)
     let mainExtraLine = false;   // 틀 줄 수 + 1 줄을 같은 상자 높이에(글자·행간을 lines/(lines+1) 로) — 긴 기업명이 생략되느니 한 줄 더(10-28 컨시어지 #1, 「생략은 마지막」)
     let mainExtraPitch = null;   // 한 줄 더일 때 줄 간격(템플릿 단위) — 두줄형(카카오 비즈보드)은 서브 줄 위까지를 둘로 나눈다. null 이면 pitch × lines/(lines+1)
@@ -2506,7 +2513,7 @@ ${tplLogo}${kvWrap(tplObject)}
     if (MR.main?.lines && (rowsOfMain(copy.main) > MR.main.lines || needClMain)) {
       const cands = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])];
       const floor = CANON.overlapFix?.textFloorRegulated ?? 0.85;
-      const rowsAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, colW));
+      const rowsAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, mainColW));
       const cl0 = ctx.kind === 'recruit' ? String(ctx.core?.client ?? '').trim() : '';
       const hasCl = c => !cl0 || String(c).includes(cl0);
       // 긴 기업명(「한미글로벌&터너앤타운젠드코리아」 16자)이 통째로 빠지지 않게 — 회사명 품은 후보를 먼저: ① 틀 줄 수에 그대로 ② 글자를 바닥(.85)까지 줄여서 ③ 한 줄 더(상자 높이 안에서 글자·행간 축소) ④ 그다음에야 회사명 없는 후보(장부 mold-main-keep-client, 10-28 컨시어지 #1 한희하)
@@ -2547,16 +2554,22 @@ ${tplLogo}${kvWrap(tplObject)}
           // 어떤 후보도 틀 줄 수에 안 들어가면(긴 회사명 「한국산업단지공단」 — 10-20 종합 점수표 ④ text-clipped 리멤버·카카오·네이버 DA 셋째 줄 잘림) 글자를 규정 매체 바닥(CANON.overlapFix.textFloorRegulated .85)까지 줄여 가며 들어가는 첫 후보로,
           //   그래도 안 되면 줄 수가 가장 적은 후보 — 잘린 채로는 그리지 않는다(장부 mold-main-fit)
           let hit2 = null;
-          for (const kk of [0.95, 0.9, floor]) { const c = [copy.main, ...cands].find(c => rowsAt(c, kk) <= MR.main.lines); if (c) { hit2 = { c, kk }; break; } }
+          for (const kk of [0.95, 0.9, floor]) { const c = [copy.main, ...cands, cl0].filter(Boolean).find(c => rowsAt(c, kk) <= MR.main.lines); if (c) { hit2 = { c, kk }; break; } }
           if (!hit2) { const best = [copy.main, ...cands].map(c => ({ c, n: rowsAt(c, floor) })).sort((x, y) => x.n - y.n)[0]; hit2 = { c: best.c, kk: floor }; }
           copy.main = hit2.c; mainShrink = hit2.kk; fired('templateMold.mainShrink');
         }
       }
     }
+    // 규격 글자수 안전장치(11-02 전수 chars 35건): 틀 사다리는 줄 수만 봐서 전체 글자수를 넘길 수 있다(NAP 20자·잡다 24자·비즈보드 15자) — 검수와 같은 셈(글자 전체)으로 넘으면 들어가는 후보 → 고객사만. 서브도 넘으면 일정 고지는 줄이고 그 밖은 뺀다
+    { const whole = t => countChars(String(t).replace(/[\n\u200b]/g, ''), counting), mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null;
+      const twoOk = String(copy.main).includes('\n') && rules.mainTwoLine && String(copy.main).split('\n').every(l => whole(l) <= mx);   // 두줄형(카카오 비즈보드)은 줄마다 센다
+      if (mx != null && copy.main && !twoOk && whole(copy.main) > mx) { const cl = String(ctx.core?.client ?? '').trim(); const c = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? []), cl].find(x => x && (!cl || String(x).includes(cl)) && whole(x) <= mx); if (c) { copy.main = c; fired('templateMold.charLimit'); } }
+      const sx0 = limitsByRole((rules.textLimits ?? []).filter(inImage)).sub?.maxChars ?? null;
+      if (sx0 != null && copy.sub && whole(copy.sub) > sx0) { copy.sub = /상이/.test(copy.sub) && whole('공고별 상이') <= sx0 ? '공고별 상이' : ''; fired('templateMold.charLimit'); } }
     const mainPxUsed = mainShrink < 1 ? Math.round(MR.main.px * k * mainShrink * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)) : mainPx;
     const moldMainChars = Math.floor(Math.max(1, colW) / (mainPxUsed * HANGUL_ADV));   // 틀 메인 한 줄 글자수 어림(긴 기업명 음절 줄바꿈 자리용) — 한글 실측 폭(0.95 로 세면 「한진정보통신」 6자에도 줄바꿈 자리가 들어갔다, 11-02)
     // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
-    const mainN = Math.max(1, Math.min((MR.main?.lines ?? 2) + (mainExtraLine ? 1 : 0), wrapRows(copy.main, mainPxUsed, Math.max(1, colW))));
+    const mainN = Math.max(1, Math.min((MR.main?.lines ?? 2) + (mainExtraLine ? 1 : 0), wrapRows(copy.main, mainPxUsed, Math.max(1, mainColW), true)));   // 그린 뒤 실제 줄 수 어림은 빗금·& 뒤도 끊긴다(softBreakLong) — 후보 고르기(rowsOfMain)는 그대로
     const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
     // 틀의 서브 줄이 접수기간이면(mold.rows.sub.content 'period' — 잡다 PC 템플릿 1:6026 「서브문구」 자리에 샘플 8/8 「모집기간 날짜」) 시즌·슬로건 대신 「라벨 날짜」 한 줄(라벨·날짜 같은 굵기, 셀트리온 1:6223)
     if (MR.sub?.content === 'period') copy.sub = (copy.date || ctx.core?.deadline) ? `${labelOf('접수기간')}${MR.sub.sep ?? ' '}${copy.date || ''}`.trim() : '';
@@ -2567,6 +2580,7 @@ ${tplLogo}${kvWrap(tplObject)}
       let dt = copy.date || '';
       for (const f of steps) { dt = f(dt); if (countChars((lab + dt).trim()) <= by.sub.maxChars) break; }
       copy.sub = (lab + dt).trim(); fired('mold.periodShort');
+      if (countChars(copy.sub) > by.sub.maxChars) copy.sub = /상이/.test(copy.sub) ? (lab + '공고별 상이').trim() : '';   // 일정 고지 문구(「* 채용 일정은 공고별 상이합니다.」 19자)는 사다리로 안 줄어든다(11-02 전수)
     }   // 날짜가 없으면 서브 줄 없음(틀의 서브 = 접수기간). 구분자는 틀이 정한다(네이버 한국콜마 64:4793 「모집 기간 | …」)
     const showSubM = MR.sub?.content === 'period' ? !!copy.sub : showSub;
     // 틀 서브 줄 수 한도(구글 ABL 580 서브 1줄 297px): 넘기면 사다리의 들어가는 첫 후보(시즌 등)로 — 칸은 max-height 로 잘리므로 반 토막 대신 짧은 말(10-15 저녁)

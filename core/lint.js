@@ -98,7 +98,8 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
     if (!slot) continue;
     if (slot.maxChars != null && t.text != null) {
       const n = countChars(t.text, counting);
-      if (n > slot.maxChars) block('chars', `${t.role} ${n}자 — 최대 ${slot.maxChars}자`, t.role);
+      const twoLine = t.role === 'main' && spec.mainTwoLine && (t.lines ?? 1) >= 2;   // 두줄형 메인(카카오 비즈보드)은 줄마다 한도 — 합으로 세면 두줄형이 늘 걸린다(11-02 전수)
+      if (n > slot.maxChars * (twoLine ? 2 : 1)) block('chars', `${t.role} ${n}자 — 최대 ${slot.maxChars}자`, t.role);
     }
     if (slot.lines != null && t.lines != null && t.lines > slot.lines) {
       block('lines', `${t.role} ${t.lines}줄 — 최대 ${slot.lines}줄`, t.role);
@@ -163,11 +164,13 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
   if (sa && ['top', 'right', 'bottom', 'left'].some(k => typeof sa[k] === 'number') && spec.w && spec.h) {
     const box = { x0: sa.left ?? 0, y0: sa.top ?? 0, x1: spec.w - (sa.right ?? 0), y1: spec.h - (sa.bottom ?? 0) };
     const items = [...(measure.texts ?? []).map(t => ({ role: t.role, bbox: t.bbox })), ...(measure.logo ? [{ role: 'logo', bbox: measure.logo.bbox }] : [])];
+    const lg = typeof sa.logoInset === 'number' ? sa.logoInset : null;   // 로고 여백이 글자와 다른 규격(에브리타임 홈카드 「로고 상하좌우 30 · 글자 좌우 50」) — 글자 여백으로 로고를 재면 틀 칸(우 30)이 늘 걸렸다(11-02 전수)
     // 공식 템플릿 실측 틀(measuredFromTemplate.mold)은 템플릿 자체가 안전영역과 1~2px 어긋날 수 있다(카카오 비즈보드 글자 상자 x46 vs 안전영역 48) — 틀 규격은 2.5px 까지 봐준다(11-02, 사용자 「이건 왜 차단?」)
     const tol = sa.measuredFromTemplate?.mold ? 2.5 : 0.5;
     for (const it of items) {
       const b = it.bbox; if (!b) continue;
-      if (b.x < box.x0 - tol || b.y < box.y0 - tol || b.x + b.w > box.x1 + tol || b.y + b.h > box.y1 + tol) {
+      const B0 = it.role === 'logo' && lg != null ? { x0: lg, y0: lg, x1: spec.w - lg, y1: spec.h - lg } : box;
+      if (b.x < B0.x0 - tol || b.y < B0.y0 - tol || b.x + b.w > B0.x1 + tol || b.y + b.h > B0.y1 + tol) {
         block('safe-area', `${it.role} 상자가 안전영역(상${sa.top ?? 0}·하${sa.bottom ?? 0}·좌${sa.left ?? 0}·우${sa.right ?? 0}px)을 벗어남`, it.role);
       }
     }
@@ -178,8 +181,10 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
   if (th && (th.min != null || th.max != null)) {
     for (const t of measure.texts ?? []) {
       if (t.fontPx == null || t.role === 'notice') continue;
-      if ((th.min != null && t.fontPx < th.min) || (th.max != null && t.fontPx > th.max)) {
-        block('text-height', `${t.role} 글자 ${t.fontPx}px — 규정 ${th.min ?? '?'}~${th.max ?? '?'}px`, t.role);
+      // 규정은 「텍스트 높이」(네이버 PDF p.6)다. 글꼴 크기가 아니라 글자 자체의 높이 — 한글은 글꼴 크기의 CANON.hangulInk(.92). 글꼴 크기로 재면 56px(글자 높이 51.5)이 늘 걸렸다(11-02 전수)
+      const hPx = Math.round(t.fontPx * (CANON.hangulInk ?? 0.92) * 10) / 10;
+      if ((th.min != null && hPx < th.min) || (th.max != null && hPx > th.max)) {
+        block('text-height', `${t.role} 글자 높이 ${hPx}px(글꼴 ${t.fontPx}px) — 규정 ${th.min ?? '?'}~${th.max ?? '?'}px`, t.role);
       }
     }
   }

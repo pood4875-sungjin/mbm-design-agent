@@ -91,7 +91,9 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
   if (logoR) {
     const pct = Math.max(0, ...subjects.map(o => inter(logoR, o.s) / area(logoR)));
     metrics.logoCovered = Math.round(pct * 100);
-    if (pct > 0.05) push('logo-covered', `주인공이 로고를 ${Math.round(pct * 100)}% 가림`);
+    // 그림이 로고 위에 칠해질 때만 가림이다 — 틀 칸(구글 930×180 샘플: CI 가 그림 칸 위)처럼 로고가 위면 안 가린다(11-02 전수 오탐 20건)
+    const onTop = logoEl && (() => { const pick = n => { for (let e = n; e && e !== root; e = e.parentElement) { const z = parseInt(getComputedStyle(e).zIndex, 10); if (Number.isFinite(z) && z > 0) return true; } return false; }; return pick(logoEl); })();
+    if (pct > 0.05 && !onTop) push('logo-covered', `주인공이 로고를 ${Math.round(pct * 100)}% 가림`);
   }
 
   // 3. 뚝 끊긴 변 — 주인공이 상자 변에서 잘리는데 그 변이 지면 안쪽이고 녹임이 없다
@@ -143,7 +145,7 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
     // 누끼는 1.5배(CANON maxUpscale.cutout, 10-12 desk-37-cut 계단) — 가장자리가 계단져 바탕 있는 그림보다 먼저 티가 난다
     if (up > (cutoutKv ? 1.55 : 2)) push('low-res', `키비주얼을 원본(${kpx[0]}×${kpx[1]})의 ${metrics.kvUpscale}배로 키움 — 흐림`, 'info');
   }
-  if (logoEl?.naturalHeight > 0 && logoR?.h > logoEl.naturalHeight * 1.05) push('low-res-logo', `로고를 원본 높이(${logoEl.naturalHeight}px)보다 크게 그림(${Math.round(logoR.h)}px)`, 'info');
+  if (logoEl?.naturalHeight > 0 && logoR?.h > logoEl.naturalHeight * 1.5) push('low-res-logo',   /* 1.5배까지는 눈에 안 띈다(키비주얼 기준 2배·누끼 1.55배와 같은 자리, 11-02 전수 120건). 올릴 때 입력 판정이 이미 안내한다 */ `로고를 원본 높이(${logoEl.naturalHeight}px)보다 크게 그림(${Math.round(logoR.h)}px)`, 'info');
 
   // 8. 이음매(10-12 desk-15·GC녹십자·midas-cards-orange 「뚝 끊기는 느낌」)
   const rgbHex = str => { const m = String(str).match(/rgba?\(([^)]+)\)/g) ?? []; return m.map(x => x.match(/[\d.]+/g).slice(0, 4).map(Number)).filter(v => v.length < 4 || v[3] > 0.5).map(v => v.slice(0, 3)); };
