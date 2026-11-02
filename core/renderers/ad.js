@@ -1493,13 +1493,17 @@ function renderAdBase(ctx, style, spec) {
   //   라벨 알약(chipTone)·로고 흰/원색 판정(fgIsDark)은 그대로. 규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 무시하고 trace 에 textColor.ignored. 지면과 대비 3:1 미만이면 textColor.lowContrast(차단 아님 — 검수는 core/lint.js text-contrast 경고)
   const colorLocked = textColorLocked(mr, rules);
   const customFg = (!colorLocked && typeof style.textColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(style.textColor)) ? style.textColor.toUpperCase() : null;
-  const mainFg = customFg ?? moldFg ?? (brandMain ? p.primary : (tc.main ?? defMain));
+  // 글자별 색(style.roleColors {main,sub,detail} — N6 「개별 폰트 색상」): 색이 정해진 규격은 잠금, 「모든 문구 한 색」 매체(자소설)는 한 칸을 전 문구에
+  const HEXC = /^#[0-9A-Fa-f]{6}$/, rc0 = (!colorLocked && style.roleColors) || null;
+  const rcUni = rc0 && mr.textColors?.uniform ? [rc0.main, rc0.sub, rc0.detail].find(x => HEXC.test(x ?? '')) ?? null : null;
+  const rcOf = k => rcUni ?? (rc0 && HEXC.test(rc0[k] ?? '') ? rc0[k].toUpperCase() : null);
+  const mainFg = rcOf('main') ?? customFg ?? moldFg ?? (brandMain ? p.primary : (tc.main ?? defMain));
   if (!regulatedText) fired('textDefault');
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
   const tight = !!field && (field.contrast < 4.5 || field.source === 'ai');   // AI 지면(10-22 루프 r1 「회색 보조 문구 대비 약함」 19건)은 보조 글자도 흐리게 안 함
   const customSub = customFg ? ((tight || mr.textColors?.uniform) ? customFg /* 자소설 「모든 문구 한 색」 */ : `rgba(${hexToRgb(customFg).join(',')},${TD.subOpacity})`) : null;   // 지정 색도 서브·상세는 같은 색 70%(빠듯하면 그대로)
-  const subFg = customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
-  const detailFg = customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
+  const subFg = rcOf('sub') ?? customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
+  const detailFg = rcOf('detail') ?? customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : tight ? mainFg : defSub);
   const textColorTr = (() => {
     if (typeof style.textColor !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(style.textColor)) return null;
     if (colorLocked) { fired('textColor.ignored'); return { hex: style.textColor.toUpperCase(), applied: false, contrast: null }; }
