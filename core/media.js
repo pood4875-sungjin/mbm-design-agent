@@ -2954,7 +2954,16 @@ export const MEDIA = [
                 "note": "썸네일형 칸"
               },
               "docSection": "⑥",
-              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
+              "imageCutout": {
+                "x": 689,
+                "y": 12,
+                "w": 412,
+                "h": 252,
+                "fit": "contain",
+                "anchor": "center",
+                "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. PDF p.23 오브젝트형 412×252 — 썸네일 칸(665,0 460×276) 가운데(위치 자료 없음)"
+              }
             }
           }
         },
@@ -3079,16 +3088,7 @@ export const MEDIA = [
                 "note": "썸네일형 칸(규정 썸네일형만)"
               },
               "docSection": "⑦",
-              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다",
-              "imageCutout": {
-                "x": 689,
-                "y": 12,
-                "w": 412,
-                "h": 252,
-                "fit": "contain",
-                "anchor": "center",
-                "note": "오브젝트형 칸 — 누끼(투명 PNG) 키비주얼일 때 썸네일 칸 대신 이 칸에 통째로(contain, 가운데, 블리드 없음). 11-02 담당자 「누끼 입력 시 그라데이션 썸네일이 아니라 오브젝트형 영역에」. PDF p.23 오브젝트형 412×252 — 썸네일 칸(665,0 460×276) 가운데(위치 자료 없음)"
-              }
+              "widthNote": "글자 칸 폭 w = 매체 텍스트 영역(PDF·PSD textArea) — 넘치면 줄 수 한도(max-height)로 잘리고 매체 규정 lint(scripts/cases-lint.mjs 글자수·줄 수)가 잡는다"
             }
           }
         },

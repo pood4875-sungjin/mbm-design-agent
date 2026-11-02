@@ -20,7 +20,7 @@ const cut = normalizeStyle({ colors: ['#1E4FD8'], keyVisual: PNG, kvMeta: CUT, l
 const traceOf = html => JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"'));
 
 test('리멤버 누끼 → 오브젝트형 칸(mold.imageCutout) 6규격: 칸 그대로 center/contain · 블리드 없음 · 썸네일 열 아님', () => {
-  const Z = { 'remember-main-top-pc': [1316, 38, 844, 284], 'remember-main-top-mo': [605, 28, 346, 304], 'remember-main-mid-pc': [1303, 24, 880, 192], 'remember-main-mid-mo': [605, 28, 346, 304], 'remember-job-top-pc': [1303, 24, 880, 192], 'remember-job-side-pc': [689, 12, 412, 252] };
+  const Z = { 'remember-main-top-pc': [1316, 38, 844, 284], 'remember-main-top-mo': [605, 28, 346, 304], 'remember-main-mid-pc': [1303, 24, 880, 192], 'remember-main-mid-mo': [605, 28, 346, 304], 'remember-job-top-pc': [1303, 24, 880, 192], 'remember-job-top-mo': [689, 12, 412, 252] };
   for (const [id, [x, y, w, h]] of Object.entries(Z)) {
     const html = renderAd(ctx, cut, specs[id]); const tr = traceOf(html);
     assert.ok(tr.rules.includes('templateMold.cutoutZone'), id);

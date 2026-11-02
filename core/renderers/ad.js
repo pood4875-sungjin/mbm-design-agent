@@ -2606,7 +2606,7 @@ ${tplLogo}${kvWrap(tplObject)}
     // 기업명이 메인·서브 어디에도 없으면(「신입 채용」만 — 노션 #1 「표기 생략」) 메인을 기업명으로 — 글자수·줄 수에 들어가는 한 채용구분보다 기업명이 먼저(11-02 실제 ZIP 에브리타임·NAP)
     { const cl = ctx.kind === 'recruit' ? String(ctx.core?.client ?? '').trim() : '', txt = t => String(t ?? '').replace(/[\u00a0\u200b\u2060]/g, ' ');
       if (cl && MR.main?.px != null && !txt(copy.main).includes(cl) && !txt(copy.sub).includes(cl) && !rules.visualOnly && !spec.visualOnly && !mold.clientLen) {
-        const mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null, rowsK = kk => wrapRows(cl, Math.round(MR.main.px * k * kk), Math.max(1, mainColW), true), lim = slots.main?.lines ?? MR.main.lines ?? 1, kks = spec.medium === 'jasoseol' ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85], kk = kks.find(v => rowsK(v) <= lim);
+        const mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null, rowsK = kk => wrapRows(cl, Math.round(MR.main.px * k * kk), Math.max(1, mainColW) * 0.95, true), lim = MR.main.lines ?? 1, kks = spec.medium === 'jasoseol' ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85], kk = kks.find(v => rowsK(v) <= lim);
         if ((mx == null || countChars(cl, counting) <= mx) && kk) { copy.main = cl; mainShrink = kk; mainExtraLine = false; fired('templateMold.clientFirst'); }
       } }
     // 마지막 확인: 실제로는 빗금·& 뒤에서도 끊겨 줄 수 상한을 넘기면(「한미글로벌& / 터너앤타운젠드코리아 / 채용」 3줄, 상한 2 — NAP·잡다 MO) 규정 밖 줄임이 아닌 곳은 바닥(.85)까지 줄이고, 그래도 넘으면 기업명만
