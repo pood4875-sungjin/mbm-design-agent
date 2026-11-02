@@ -27,6 +27,7 @@ import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detec
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
 import { gradientEditorHtml, bindGradientEditor } from './gradedit.js';
+import { showProgress, ProgressCancelled } from './progress.js';
 import { gradientFrom, normGradient } from '../core/gradient.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
@@ -3156,14 +3157,16 @@ async function exportAdFiles(ads, opts = {}) {
     const post = h => embedFont(h, face, BUNDLED_MARK);
     const variants = (opts.allVariants && (a.variants?.length ?? 0) > 1) ? a.variants : null;
     if (!variants) {
-      const fit = await renderFit(eff, adEffStyle(a), spec, post);   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
+      await opts.progress?.step(boardLabel(a));
+      const fit = await renderFit(eff, adEffStyle(a), spec, post); opts.progress?.tick();   // 용량이 넘치면 규칙 안에서 다시 뽑는다(단색 배경 → JPG 품질)
       out.push({ a, spec, fit, name: adFileName(a, fit.measure.format === 'jpeg' ? 'jpg' : fit.measure.format) });
       continue;
     }
     const sel = currentVariantIndex(a);
     for (const [i, v] of variants.entries()) {
       const styleV = i === sel ? adEffStyle(a) : { ...c.style, ...v.style };
-      const fitV = await renderFit(eff, styleV, spec, post);
+      await opts.progress?.step(`${boardLabel(a)} · 안 ${i + 1}`);
+      const fitV = await renderFit(eff, styleV, spec, post); opts.progress?.tick();
       const base = adFileName(a, fitV.measure.format === 'jpeg' ? 'jpg' : fitV.measure.format);
       out.push({ a, spec, fit: fitV, variant: i, variantLabel: v.label, name: base.replace(/(\.[a-z]+)$/, `__안${i + 1}$1`) });
     }
@@ -3230,9 +3233,12 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
   if (includeUnapproved && approved.length < all.length) toast(`미승인 ${all.length - approved.length}장은 「미승인_검토용/」 폴더에 — 매체 전달은 승인분만`);
   const unapprovedKey = new Set(ads.filter(a => a.status !== 'approved').map(a => a.key ?? a.specId));
   const renderN = allVariants ? ads.reduce((n, a) => n + ((a.variants?.length ?? 0) > 1 ? a.variants.length : 1), 0) : ads.length;
-  toast(`매체 소재 ${ads.length}장${allVariants ? `(안 포함 ${renderN}장)` : ''} 생성 중…${withSvg ? ' (+ SVG)' : ''}`);
+  if (exportAdZip.running) return;   // 두 번 눌러도 한 번만
+  exportAdZip.running = true;
+  const modalBtns = [...document.querySelectorAll('#modalBtns button')]; modalBtns.forEach(b => { b.disabled = true; });
+  const P = showProgress({ title: '소재 이미지 만드는 중', total: renderN });
   try {
-    const files = await exportAdFiles(ads, { allVariants });
+    const files = await exportAdFiles(ads, { allVariants, progress: P });
     const blocked = files.filter(f => f.fit.lint.level === 'block');
     if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 이미지는 ZIP 에서 제외${withSvg && includeUnapproved ? ' (수정용 SVG 는 미승인_검토용/svg/ 에)' : withSvg ? ' (「미승인도 포함」을 켜면 수정용 SVG 는 들어가요)' : ''}`); }
     const entries = [];
@@ -3266,8 +3272,11 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
     if (withSvg) {
       // 래스터와 같은 이름 규칙으로 svg/ 폴더에. 차단된 소재는 이미지(매체 전달)에서는 빠지지만, 「미승인도 포함(검토용)」이면 수정용 SVG 는 「미승인_검토용/svg/」에 넣는다(10-28 담당자 「미승인이어도 2차 수정용 추출 허용」)
       const enc = new TextEncoder(), cache = new Map();
-      for (const f of files.filter(f => (f.fit.lint.level !== 'block' || includeUnapproved) && (f.variant == null || f.variant === currentVariantIndex(f.a)))) {   // SVG 는 선택안만
-        const r = await adSvgOf(f.a, cache);
+      const svgTargets = files.filter(f => (f.fit.lint.level !== 'block' || includeUnapproved) && (f.variant == null || f.variant === currentVariantIndex(f.a)));   // SVG 는 선택안만
+      P.phase('SVG(피그마 편집용) 만드는 중'); P.grow(svgTargets.length);
+      for (const f of svgTargets) {
+        await P.step(boardLabel(f.a));
+        const r = await adSvgOf(f.a, cache); P.tick();
         r.fallbacks.forEach(x => svgFallbacks.add(x));
         const isBlocked = f.fit.lint.level === 'block'; if (isBlocked) svgBlocked++;
         const pre = (isBlocked || unapprovedKey.has(f.a?.key ?? f.a?.specId ?? f.spec.id)) ? '미승인_검토용/' : '';
@@ -3275,14 +3284,19 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
       }
       if (svgBlocked) toast(`차단 소재 ${svgBlocked}장은 수정용 SVG 만 「미승인_검토용/svg/」에 — 이미지 매체 전달은 막혀 있어요`);
     }
+    P.phase('ZIP 으로 묶는 중'); await P.step('거의 다 됐어요');
     const vdir = `v${c.context.version}/`;   // 회차는 파일명이 아니라 폴더로(10-28 파일명 양식)
     const zip = buildZip(entries.map(e => ({ ...e, name: vdir + e.name })));
     download(new Blob([zip], { type: 'application/zip' }), `${c.id}_매체소재${withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
     const fittedN = files.filter(f => f.fit.fitted).length;
     log(`내보내기: 매체 소재 ZIP ${rasterN}장${withSvg ? ` + SVG ${entries.length - rasterN}장` : ''} (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})${svgFallbacks.size ? ` · SVG 대체: ${[...svgFallbacks].join(' / ')}` : ''}${fittedN ? ` · 용량 맞춤 ${fittedN}장: ${files.filter(f => f.fit.fitted).map(f => `${f.name} ${f.fit.fitted.label} ${(f.fit.fitted.bytes / 1024).toFixed(0)}KB`).join(' / ')}` : ''}`);
     if (fittedN) toast(`용량 맞춤 ${fittedN}장 — 품질 단계·단색 배경으로 상한 아래로 (로그에 장별 용량)`);
+    P.done(`완료 — ${entries.length}개 파일을 ZIP 으로 저장했어요`);
     closeModal();
-  } catch (e) { toast(`실패: ${e.message}`); }
+  } catch (e) {
+    P.close();
+    if (e instanceof ProgressCancelled) toast('내보내기를 취소했어요'); else toast(`실패: ${e.message}`);
+  } finally { exportAdZip.running = false; modalBtns.forEach(b => { b.disabled = false; }); }
 }
 function exportAdModal(a) {
   const spec = SPECS[a.specId];

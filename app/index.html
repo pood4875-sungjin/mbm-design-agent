@@ -718,6 +718,18 @@
   #modal label input[type=checkbox]{flex:none;width:15px;height:15px;margin:2px 0 0;padding:0}
   #modal button{white-space:nowrap}
   #modalBtns{flex-wrap:wrap;justify-content:flex-end}
+  /* 진행 표시(app/progress.js) — 모달 위, 화면 아래 가운데 */
+  #progressBox{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);width:min(440px,calc(100vw - 32px));z-index:9999;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:0 12px 40px rgba(0,0,0,.22);padding:14px 16px}
+  #progressBox .ptop{display:flex;align-items:center;gap:10px;font-size:13.5px}
+  #progressBox .ptop b{flex:1;min-width:0;font-weight:700}
+  #progressBox .pn{font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+  #progressBox .pcancel{border:0;background:none;font-size:12.5px;font-weight:600;color:var(--sub);cursor:pointer;padding:2px 4px}
+  #progressBox .pcancel:hover{color:var(--ink)}
+  #progressBox .pbar{height:6px;border-radius:3px;background:var(--soft);overflow:hidden;margin-top:10px}
+  #progressBox .pbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .2s ease}
+  #progressBox .plabel{font-size:12px;color:var(--sub);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #progressBox.ok .pbar i{background:var(--good,#16a34a)}
+  @media (prefers-reduced-motion:reduce){#progressBox .pbar i{transition:none}}
   .kvvrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
   .kvvrow .kvthumb{width:72px;height:52px;font-size:10.5px}
   .kvregion{position:absolute;box-sizing:border-box;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 0 999px rgba(0,0,0,.42);cursor:move}
