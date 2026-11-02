@@ -81,6 +81,7 @@ export function normalizeStyle(input = {}) {
     colorsManual: !!input.colorsManual,
     textTone: ['dark', 'light'].includes(input.textTone) ? input.textTone : 'auto',
     ...(input.roleColors && typeof input.roleColors === 'object' ? { roleColors: Object.fromEntries(['main', 'sub', 'detail'].filter(k => HEX.test(input.roleColors[k] ?? '')).map(k => [k, input.roleColors[k].toUpperCase()])) } : {}),   // 글자별 색(N6)
+    ...(input.roleScale && typeof input.roleScale === 'object' ? { roleScale: Object.fromEntries(['main', 'sub', 'detail'].filter(k => Number.isFinite(input.roleScale[k]) && input.roleScale[k] !== 1).map(k => [k, Math.min(1.6, Math.max(0.6, input.roleScale[k]))])) } : {}),   // 글자별 크기 배율(N6)
     textColor: HEX.test(input.textColor ?? '') ? input.textColor.toUpperCase() : null,   // 직접 고른 글자색(11-02 컨시어지 「브랜드컬러 외 폰트 색상 지정」) — 규정 없는 매체에서만 렌더러가 쓴다(core/renderers/ad.js customFg). null = 톤(textTone)대로   // 글자색 톤(10-19 사용자 「폰트 컬러 다크/라이트 선택」) — 규정 없는 매체에서 'dark' = #333 글자 · 'light' = 흰 글자. 'auto' 는 지면 밝기로   // 사람이 색 자리를 손으로 고쳤다(10-19) — 지면이 주색을 따라간다(core/field.js palette-manual)
     logoMono: input.logoMono ?? null,     // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다

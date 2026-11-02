@@ -1877,7 +1877,7 @@ function layoutArtboard(opts = {}) {
         const iframe = frame.querySelector('iframe');
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
-        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } select(a.key ?? a.specId); };
+        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } textRoleFocus = textRoleAt(a, e); select(a.key ?? a.specId); if (textRoleFocus) setTimeout(() => $('inspector')?.querySelector(`.frole[data-role="${textRoleFocus}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60); };
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
@@ -2382,6 +2382,30 @@ function currentVariantIndex(a) {
   });
   return best;
 }
+// 글자별 편집(N6 「개별 폰트 색상 및 사이즈」, 11-02 사용자 「해당 프레임 선택해서 컬러 바꿀 수 있게」): 캔버스에서 글자를 누르면 그 줄이 여기서 열린다. 색이 정해진 규격은 색 잠금, 글자 크기가 규정인 규격(자소설·비즈보드)은 크기 잠금
+const TEXT_ROLES = [['main', '메인'], ['sub', '서브'], ['detail', '상세']];
+let textRoleFocus = null;
+const sizeLockedOf = spec => spec.medium === 'jasoseol' || !!(spec.rules?.mainTwoLine ?? spec.mainTwoLine);
+function textRolesOf(a) { const f = frames.get(a.key ?? a.specId), doc = f?.iframe?.contentDocument; const have = doc ? new Set([...doc.querySelectorAll('[data-field]')].map(e => e.dataset.field)) : null; return TEXT_ROLES.filter(([k]) => !have || have.has(k)); }
+function textRolesHtml(a, spec) {
+  if (a.channel !== 'ad') return '';
+  const roles = textRolesOf(a); if (!roles.length) return '';
+  const reg = textColorRegulated(spec), lockSize = sizeLockedOf(spec), cs = a.overrides.style?.roleColors ?? {}, ss = a.overrides.style?.roleScale ?? {};
+  return `<label>글자별 편집 <span style="opacity:.55">캔버스에서 글자를 누르면 그 줄로</span></label><div class="fstack" id="iRoles">${roles.map(([k, n]) => { const pct = Math.round((ss[k] ?? 1) * 100); return `<div class="frole${textRoleFocus === k ? ' on' : ''}" data-role="${k}"><div class="flab sub"><span>${n}</span>${(cs[k] || ss[k]) ? iconBtn('swap', `${n} 되돌리기`, `data-rr="${k}"`) : ''}</div>${colorRowHtml({ id: `iRC-${k}`, value: cs[k] ?? '#333333', label: `${n} 글자색`, tail: cs[k] ? '' : '자동', idle: !cs[k], disabled: reg })}${lockSize ? '' : `<div class="fline" style="margin-top:4px"><button type="button" class="btn" data-rs="${k}" data-d="-5" aria-label="${n} 작게">−</button><span style="min-width:44px;text-align:center;font-size:12px">${pct}%</span><button type="button" class="btn" data-rs="${k}" data-d="5" aria-label="${n} 크게">+</button></div>`}</div>`; }).join('')}</div><div class="fnote">${[reg ? '이 규격은 글자색이 규정으로 정해져 있어요' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색이에요' : '', lockSize ? '이 규격은 글자 크기가 규정으로 정해져 있어요' : ''].filter(Boolean).join(' · ') || '이 산출물만 바뀌어요'}</div>`;
+}
+function bindTextRoles(insp, a, c) {
+  const box = insp.querySelector('#iRoles'); if (!box) return;
+  const save = (patch, label) => { pushHistory(`${artLabel(a)} 글자별 편집`); a.overrides.style = patch; a.status = 'draft'; a.gateOverride = null; logEvent(c, 'manual_edit', { specId: a.specId, style: label }); regen(c, a.key ?? a.specId); autosave(); refreshFrames(a.key ?? a.specId); renderInspector(); };
+  for (const [k] of TEXT_ROLES) {
+    const inp = box.querySelector(`#iRC-${k}`); if (!inp || inp.disabled) continue;
+    inp.oninput = () => liveStyle(c, null, { only: a.key ?? a.specId, ov: { roleColors: { ...(a.overrides.style?.roleColors ?? {}), [k]: inp.value.toUpperCase() } } });
+    inp.onchange = () => save({ ...(a.overrides.style ?? {}), roleColors: { ...(a.overrides.style?.roleColors ?? {}), [k]: inp.value.toUpperCase() } }, 'roleColors');
+  }
+  box.querySelectorAll('[data-rs]').forEach(b => b.onclick = () => { const k = b.dataset.rs, cur = a.overrides.style?.roleScale?.[k] ?? 1, v = Math.round(Math.min(1.6, Math.max(0.6, cur + +b.dataset.d / 100)) * 100) / 100; save({ ...(a.overrides.style ?? {}), roleScale: { ...(a.overrides.style?.roleScale ?? {}), [k]: v } }, 'roleScale'); });
+  box.querySelectorAll('[data-rr]').forEach(b => b.onclick = () => { const k = b.dataset.rr, st = { ...(a.overrides.style ?? {}) }; for (const key of ['roleColors', 'roleScale']) if (st[key]) { const o = { ...st[key] }; delete o[k]; if (Object.keys(o).length) st[key] = o; else delete st[key]; } save(st, 'roleReset'); });
+}
+// 캔버스 클릭 → 누른 자리의 글자 줄(iframe 문서 좌표로 환산)
+function textRoleAt(a, e) { const f = frames.get(a.key ?? a.specId), ifr = f?.iframe, doc = ifr?.contentDocument; if (!doc) return null; const r = ifr.getBoundingClientRect(), k = r.width / (ifr.offsetWidth || r.width), x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k; let hit = null; for (const el of doc.querySelectorAll('[data-field]')) { const b = el.getBoundingClientRect(); if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom && TEXT_ROLES.some(([n]) => n === el.dataset.field)) hit = el.dataset.field; } return hit; }
 function renderInspector() { renderInspectorBody(); wireFui($('inspector')); }
 function renderInspectorBody() {
   const insp = $('inspector');
@@ -2674,6 +2698,7 @@ function renderInspectorBody() {
       ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
       <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}" aria-pressed="${(a.overrides.style?.textTone ?? '') === k}">${v}</button>`).join('')}</div>
       ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 산출물만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 산출물 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div><div class="fnote">${reg ? '매체 규정 색 고정 — 직접 지정 불가' : ov ? '이 산출물만 이 색' : c.style.textColor ? '공통 색 따름' : '이 산출물만 색 하나로'}</div>`; })()}` : ''}
+      ${textRolesHtml(a, spec)}
       ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
       <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
@@ -2738,6 +2763,7 @@ function renderInspectorBody() {
     log(`${a.specId} 글자색 ${label}`);
   };
   const tcOv = insp.querySelector('#iTextColorOv'); if (tcOv && !tcOv.disabled) { tcOv.oninput = () => liveStyle(c, null, { only: a.key ?? a.specId, ov: { textColor: tcOv.value.toUpperCase() } }); tcOv.onchange = () => setTextColorOv(tcOv.value.toUpperCase(), `직접 ${tcOv.value.toUpperCase()}`); }
+  bindTextRoles(insp, a, c);
   const tcOvRs = insp.querySelector('#iTextColorOvReset'); if (tcOvRs) tcOvRs.onclick = () => setTextColorOv(null, '직접 지정 해제(공통 따름)');
   // 글자색 톤 — 이 산출물만(overrides.style.textTone, 10-19). 비우면 공통
   insp.querySelectorAll('#iToneOv button').forEach(b => b.onclick = () => {
@@ -3462,7 +3488,7 @@ function exportAllModal() {
     title: pickedN ? `내보내기 — 선택 ${pickedN}장` : '전체 내보내기',
     desc: '온라인은 파일로 즉시, 인쇄물은 산출물별 PDF 저장으로 진행합니다. 매체 소재는 매체별 폴더로 묶은 ZIP.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.8">
-      ${ads.length ? `· 매체 소재 ZIP — ${[...new Set(adsOk.map(a => SPECS[a.specId].mediumName))].join(', ') || '승인분 없음'} (<b>승인 ${adsOk.length}장</b> / 전체 ${ads.length}장${ads.length > adsOk.length ? ` · 미승인 ${ads.length - adsOk.length}장 제외` : ''})<br>` : ''}
+      ${ads.length ? (pickedN ? `· 매체 소재 ZIP — 선택한 ${pickedN}장(승인 ${ads.filter(a => picked.has(a.key ?? a.specId) && a.status === 'approved').length}장)<br>` : `· 매체 소재 ZIP — ${[...new Set(adsOk.map(a => SPECS[a.specId].mediumName))].join(', ') || '승인분 없음'} (<b>승인 ${adsOk.length}장</b> / 전체 ${ads.length}장${ads.length > adsOk.length ? ` · 미승인 ${ads.length - adsOk.length}장 제외` : ''})<br>`) : ''}
       · 온라인 HTML — ${htmls.map(a => a.specId).join(', ') || '없음'}<br>
       · 배너 PNG 2x — ${banners.map(a => a.specId).join(', ') || '없음'}<br>
       · 인쇄 PDF — ${prints.map(a => artLabel(a)).join(', ') || '없음'} <span style="opacity:.7">(각각 인쇄 대화상자)</span></div>
