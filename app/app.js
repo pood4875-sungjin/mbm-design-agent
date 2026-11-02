@@ -1268,7 +1268,7 @@ function bgControlHtml(styleLike, id) {
   const cands = kind === 'photo' ? [...new Set([styleLike.palette?.primary, ...(styleLike.kvMeta?.colors ?? []).slice(0, 3), ...(full ? [] : ['#FFFFFF'])].filter(Boolean).map(c => c.toUpperCase()))] : [];
   const candLabel = (c, i) => i === 0 ? '로고색' : c === '#FFFFFF' ? '흰색' : '사진색';
   const prev = full ? (styleLike.background?.color ?? styleLike.palette?.primary ?? f.css) : f.css;
-  return `<label>배경 <span style="color:var(--sub)">· ${full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source] ?? ''}</span></label>
+  return `<label>배경${(full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source]) ? ` <span style="color:var(--sub)">· ${full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source]}</span>` : ''}</label>
     ${kind === 'photo' ? `<div class="bgrow"><span style="font-size:12px;color:var(--sub);white-space:nowrap">사진 쓰임</span>
       <div class="vseg" id="${id}Use">${[['auto', '한쪽에 넣고 녹임'], ['full', '전체에 깔고 스크림']].map(([k, v]) => `<button data-u="${k}" class="${use === k ? 'on' : ''}" aria-pressed="${use === k}">${v}</button>`).join('')}</div></div>` : ''}
     <div class="bgrow"><span class="bgprev" style="background:${prev}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
@@ -3108,11 +3108,15 @@ async function assetFileOf(a) {
   const needBg = alpha != null && alpha > ASSET_ALPHA_MAX;
   if (item !== '로고' && !img) { a.assetNote = '이미지 원본을 읽지 못해 배경 합성 여부를 확인할 수 없어요 — PNG/JPG 로 다시 올려 주세요'; return null; }
   if (w0 && ((minW && w0 < minW) || needBg)) {   // 확대 · 배경 합성
-    const k = minW && w0 < minW ? minW / w0 : 1, cv = document.createElement('canvas'); cv.width = Math.round(w0 * k); cv.height = Math.max(1, Math.round(h0 * k));
+    // 배경 합성은 카드 비율(720×405)에 누끼를 안쪽에 앉힌 완성 이미지 — 담당자 예시(제주항공·KT&G)는 칸을 꽉 채운 그림이다. 누끼 크기 그대로 깔면 723×274 처럼 가늘고 잘려 보인다(노션 #6)
+    const AR = (spec.w && spec.h) ? spec.w / spec.h : 16 / 9;
+    const cw = needBg ? Math.round(Math.max(minW || 720, Math.min(1920, Math.max(w0 / 0.8, (h0 / 0.82) * AR)))) : 0, ch = needBg ? Math.round(cw / AR) : 0;
+    const k = !needBg && minW && w0 < minW ? minW / w0 : 1, cv = document.createElement('canvas'); cv.width = needBg ? cw : Math.round(w0 * k); cv.height = needBg ? ch : Math.max(1, Math.round(h0 * k));
     const g = cv.getContext('2d');
     const bg = needBg ? assetBgOf(c) : null;
     if (bg) { if (bg.length > 1) { const gr = g.createLinearGradient(0, 0, 0, cv.height); bg.forEach((col, i) => gr.addColorStop(i / (bg.length - 1), col)); g.fillStyle = gr; } else g.fillStyle = bg[0]; g.fillRect(0, 0, cv.width, cv.height); }
-    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, cv.width, cv.height);
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    if (needBg) { const f = Math.min(cw * 0.8 / w0, ch * 0.82 / h0), dw = w0 * f, dh = h0 * f; g.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh); } else g.drawImage(img, 0, 0, cv.width, cv.height);
     const png = !bg && (item === '로고' || /png|svg|webp|gif/.test(src.slice(5, 20)));   // 배경을 깔았으면 알파가 없으니 JPG(규정 PNG/JPG) — 로고와 알파 가능 포맷은 PNG, 사진(JPEG)은 JPEG 0.92
     let out; try { out = png ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.92); } catch { a.assetNote = '배경을 합성할 수 없는 원본이에요(캔버스 변환 실패) — 배경 있는 PNG/JPG 를 올려 주세요'; return null; }
     const b = toBytes(out); return { name: `${base}.${png ? 'png' : 'jpg'}`, data: b.data, mime: b.mime, scaled: k > 1 ? [w0, cv.width] : null, composited: bg ? { ratio: alpha, bg } : null };
@@ -3210,8 +3214,10 @@ function artifactFontHtml(a, c) {
 async function adSvgOf(a, imgCache) {
   const spec = SPECS[a.specId];
   const html = renderArtifact(a.specId, adEffCtx(a), adEffStyle(a), artRenderOpts(a));   // 보드와 같은 옵션(시안 번호·용도·화살표·규격) — renderAd 직접 호출은 variant 를 잃었다
-  const r = await htmlToSvg(html, spec, { imgCache, title: adFileName(a, 'svg').replace(/\.svg$/, '') });
-  return { ...r, name: adFileName(a, 'svg') };
+  // SVG 파일 이름의 치수는 프레임 크기(작업 1배) — 제출 2배로 적으면 「…1100x800.svg」를 열었는데 550×400 이라 혼란(노션 SVG 프레임)
+  const c0 = state.campaign, core0 = c0.context.core, svgName = adFileNameOf({ client: c0.kind === 'recruit' ? core0.client : core0.name, mediumName: spec.mediumName, spec: { ...spec, submitW: spec.w, submitH: spec.h }, ext: 'svg' });
+  const r = await htmlToSvg(html, spec, { imgCache, title: svgName.replace(/\.svg$/, '') });
+  return { ...r, name: svgName };
 }
 async function doAdSvg(a) {
   toast('SVG 만드는 중…');
@@ -3287,7 +3293,7 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
     P.phase('ZIP 으로 묶는 중'); await P.step('거의 다 됐어요');
     const vdir = `v${c.context.version}/`;   // 회차는 파일명이 아니라 폴더로(10-28 파일명 양식)
     const zip = buildZip(entries.map(e => ({ ...e, name: vdir + e.name })));
-    download(new Blob([zip], { type: 'application/zip' }), `${c.id}_매체소재${withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
+    download(new Blob([zip], { type: 'application/zip' }), `${String((c.kind === 'recruit' ? c.context.core.client : c.context.core.name) ?? c.id).replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 40)}_매체소재${withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
     const fittedN = files.filter(f => f.fit.fitted).length;
     log(`내보내기: 매체 소재 ZIP ${rasterN}장${withSvg ? ` + SVG ${entries.length - rasterN}장` : ''} (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})${svgFallbacks.size ? ` · SVG 대체: ${[...svgFallbacks].join(' / ')}` : ''}${fittedN ? ` · 용량 맞춤 ${fittedN}장: ${files.filter(f => f.fit.fitted).map(f => `${f.name} ${f.fit.fitted.label} ${(f.fit.fitted.bytes / 1024).toFixed(0)}KB`).join(' / ')}` : ''}`);
     if (fittedN) toast(`용량 맞춤 ${fittedN}장 — 품질 단계·단색 배경으로 상한 아래로 (로그에 장별 용량)`);

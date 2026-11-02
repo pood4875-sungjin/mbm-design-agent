@@ -2603,6 +2603,12 @@ ${tplLogo}${kvWrap(tplObject)}
     { const cl = String(ctx.core?.client ?? '').trim(); if (cl && copy.sub && MR.sub?.content !== 'period' && String(copy.main).includes(cl) && String(copy.sub).replace(/\u00a0/g, ' ').includes(cl)) copy.sub = (ladder.sub ?? []).find(c => c && !String(c).includes(cl)) ?? ''; }
     // 서브에 올린 기업명의 한 낱말이 칸보다 살짝 넓으면 허용 오차(±2px) 안에서 줄여 두 줄에 맞춘다 — 「터너앤타운젠드코리아」 10자 16px ≈ 138 > 130(자소설 160×600, 세 줄이면 메인이 밀려 차단)
     if (MR.sub?.px != null && copy.sub) { const subW = MR.sub.w != null ? MR.sub.w * k : colW, longest = Math.max(...String(copy.sub).split(/\s+|(?<=[\/∙·&])/).filter(Boolean).map(moldW)), px0 = MR.sub.px * k, fit = subW / Math.max(.01, longest); if (longest * px0 > subW && fit >= px0 - 2) { MR.sub = { ...MR.sub, px: Math.floor(fit * 2) / 2 / k }; fired('templateMold.subFit'); } }
+    // 기업명이 메인·서브 어디에도 없으면(「신입 채용」만 — 노션 #1 「표기 생략」) 메인을 기업명으로 — 글자수·줄 수에 들어가는 한 채용구분보다 기업명이 먼저(11-02 실제 ZIP 에브리타임·NAP)
+    { const cl = ctx.kind === 'recruit' ? String(ctx.core?.client ?? '').trim() : '', txt = t => String(t ?? '').replace(/[\u00a0\u200b\u2060]/g, ' ');
+      if (cl && MR.main?.px != null && !txt(copy.main).includes(cl) && !txt(copy.sub).includes(cl) && !rules.visualOnly && !spec.visualOnly && !mold.clientLen) {
+        const mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null, rowsK = kk => wrapRows(cl, Math.round(MR.main.px * k * kk), Math.max(1, mainColW), true), lim = slots.main?.lines ?? MR.main.lines ?? 1, kks = spec.medium === 'jasoseol' ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85], kk = kks.find(v => rowsK(v) <= lim);
+        if ((mx == null || countChars(cl, counting) <= mx) && kk) { copy.main = cl; mainShrink = kk; mainExtraLine = false; fired('templateMold.clientFirst'); }
+      } }
     // 마지막 확인: 실제로는 빗금·& 뒤에서도 끊겨 줄 수 상한을 넘기면(「한미글로벌& / 터너앤타운젠드코리아 / 채용」 3줄, 상한 2 — NAP·잡다 MO) 규정 밖 줄임이 아닌 곳은 바닥(.85)까지 줄이고, 그래도 넘으면 기업명만
     if (MR.main?.px != null && slots.main?.lines != null && spec.medium !== 'jasoseol' && !(rules.mainTwoLine ?? spec.mainTwoLine) && MR.main.lines) {
       const lim = slots.main.lines, softAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, mainColW) * 0.95, true), floor0 = CANON.overlapFix?.textFloorRegulated ?? 0.85;

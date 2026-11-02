@@ -121,7 +121,8 @@ export function adFileNameOf({ client, mediumName, spec, ext = 'png' }) {
   const name = String(spec?.rules?.name ?? spec?.title ?? spec?.id ?? '');
   const i = name.indexOf(' - ');
   const product = i > 0 ? compact(name.slice(0, i)) : null;
-  const banner = compact(i > 0 ? name.slice(i + 3) : name).replace(/^[—–-]+/, '');
+  // 이름 속 치수(「GDN 고정 배너 580×400」)는 맨 뒤 size 와 겹치니 뺀다 · 줄표는 구분자로(11-02 실제 ZIP)
+  const banner = compact((i > 0 ? name.slice(i + 3) : name).replace(/\s*\d+\s*[×x*]\s*\d+/g, '')).replace(/^[—–-]+/, '').replace(/[—–]+/g, '_');
   const platform = String(spec?.platform ?? spec?.rules?.platform ?? '').toUpperCase();
   const plat = platform && !new RegExp(`(^|[^A-Z])${platform}([^A-Z]|$)`).test(banner.toUpperCase()) ? platform : null;
   return `${[clean(client), clean(mediumName), product, banner, plat, size].filter(Boolean).join('_')}.${ext}`;
