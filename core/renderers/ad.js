@@ -86,7 +86,7 @@ export function copyLadder(ctx) {
       : [c.headline, named ? hire : null, clientHire];
     return {
       main: uniq([c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
-      sub: uniq([c.headline ? subFull : null, slogan, season, slogan0, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.employType, '채용 공고']),
+      sub: uniq([c.headline ? subFull : null, slogan, season, slogan0, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.employType]),   // 입력에 없는 「채용 공고」를 서브로 지어 넣지 않는다(11-02)
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
       mainWide: uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),
       mainNarrow: uniq([...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),
