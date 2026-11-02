@@ -27,6 +27,9 @@ import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detec
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
 import { gradientEditorHtml, bindGradientEditor } from './gradedit.js';
+import { morphDoc, createLiveScheduler } from './live.js';   // 11-02 끄는 동안 실시간 미리보기
+import { asEventContext } from '../core/context.js';
+import { colorRowHtml, iconBtn, numField, wireFui } from './fui.js';   // 11-02 피그마 UI3 식 컨트롤(hub/panel.js 에서 옮김)
 import { gradientFrom, normGradient } from '../core/gradient.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
@@ -1246,7 +1249,7 @@ function kvTypeControlHtml(meta, override, id) {
   const opt = (v, label) => `<option value="${v}"${(override ?? 'auto') === v ? ' selected' : ''}>${label}</option>`;
   const groups = kvTypeChoices().map(t => `<optgroup label="${t.name}">${opt(t.id, `${t.name} — 세분 자동`)}${t.subs.map(st => opt(st.id, st.name)).join('')}</optgroup>`).join('');
   return `<label for="${id}">키비주얼 유형 <span style="color:var(--sub);font-weight:400">· ${override ? '직접 지정' : `자동: ${autoName}`}</span></label>
-    <select id="${id}" aria-describedby="${id}Help" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:4px">${opt('auto', `자동 (지금: ${autoName})`)}${groups}</select>
+    <select id="${id}" aria-describedby="${id}Help" class="fsel" style="margin-bottom:4px">${opt('auto', `자동 (지금: ${autoName})`)}${groups}</select>
     <div id="${id}Help" style="font-size:11.5px;color:var(--sub);margin-bottom:10px">자동 판정이 틀렸을 때만 고르세요 — 놓는 법·지면·글자 규칙이 그 유형으로 바뀝니다.</div>`;
 }
 
@@ -1266,17 +1269,18 @@ function bgControlHtml(styleLike, id) {
   const cands = kind === 'photo' ? [...new Set([styleLike.palette?.primary, ...(styleLike.kvMeta?.colors ?? []).slice(0, 3), ...(full ? [] : ['#FFFFFF'])].filter(Boolean).map(c => c.toUpperCase()))] : [];
   const candLabel = (c, i) => i === 0 ? '로고색' : c === '#FFFFFF' ? '흰색' : '사진색';
   const prev = full ? (styleLike.background?.color ?? styleLike.palette?.primary ?? f.css) : f.css;
-  return `<label>배경 <span style="color:var(--sub)">· ${full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source] ?? ''}</span></label>
-    ${kind === 'photo' ? `<div class="bgrow"><span style="font-size:12px;color:var(--sub);white-space:nowrap">사진 쓰임</span>
-      <div class="vseg" id="${id}Use">${[['auto', '한쪽에 넣고 녹임'], ['full', '전체에 깔고 스크림']].map(([k, v]) => `<button data-u="${k}" class="${use === k ? 'on' : ''}" aria-pressed="${use === k}">${v}</button>`).join('')}</div></div>` : ''}
-    <div class="bgrow"><span class="bgprev" style="background:${prev}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
-      <div class="vseg" id="${id}Seg">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
-    ${cands.length ? `<div class="bgrow" style="flex-wrap:wrap;gap:6px"><span style="font-size:12px;color:var(--sub);white-space:nowrap">${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
-      `<button class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
-    ${mode === 'gradient' && !full
-      ? `${gradientEditorHtml(editGradientOf(styleLike, f), id)}${styleLike.background?.gradient ? `<div class="bgrow"><button class="lnk" id="${id}GradReset">자동 색으로 되돌리기</button></div>` : ''}`
-      : `<div class="bgrow"><label class="bgpick"><input type="color" id="${id}Color" value="${f.stops[0]}">직접 고르기</label>
-      ${styleLike.background?.color ? `<button class="lnk" id="${id}Reset">키비주얼 색으로 되돌리기</button>` : ''}</div>`}`;
+  const grad = mode === 'gradient' && !full;
+  const reset = grad ? (styleLike.background?.gradient ? iconBtn('swap', '자동 색으로 되돌리기', `id="${id}GradReset"`) : '')
+    : (styleLike.background?.color ? iconBtn('swap', '키비주얼 색으로 되돌리기', `id="${id}Reset"`) : '');
+  // 피그마 채움 행처럼: 머리(이름 · 되돌리기) → 칩 + 종류 세그먼트 → 색 행 또는 그라데이션 편집기
+  return `<div class="fbg"><div class="flab"><span>배경 <em>· ${full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source] ?? ''}</em></span>${reset}</div>
+    ${kind === 'photo' ? `<div class="flab sub"><span>사진 쓰임</span></div>
+      <div class="fseg" id="${id}Use" role="group" aria-label="사진 쓰임">${[['auto', '한쪽에 넣고 녹임'], ['full', '전체에 깔고 스크림']].map(([k, v]) => `<button type="button" data-u="${k}" class="${use === k ? 'on' : ''}" aria-pressed="${use === k}">${v}</button>`).join('')}</div>` : ''}
+    <div class="fline"><span class="bgprev" style="background:${prev}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
+      <div class="fseg" id="${id}Seg" role="group" aria-label="배경 방식">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button type="button" data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
+    ${cands.length ? `<div class="fchips"><span>${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
+      `<button type="button" class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
+    ${grad ? gradientEditorHtml(editGradientOf(styleLike, f), id) : colorRowHtml({ id: `${id}Color`, value: f.stops[0], label: '배경 색' })}</div>`;
 }
 
 // 고른 소재 중 지금 키비주얼로는 그림이 빠지고 오브젝트 누끼가 필요한 자리 — "알바몬·에브리타임 3곳"
@@ -1304,7 +1308,8 @@ function kvDiagnosis(it, meta) {
 }
 // 값을 바꿔 카드를 다시 그려도 보던 자리를 잃지 않게(카드 안 스크롤 유지)
 function reslotStyle() { const t = $('slot').querySelector('.card2')?.scrollTop ?? 0; slotStyle(); const c = $('slot').querySelector('.card2'); if (c) c.scrollTop = t; }
-function slotStyle() {
+function slotStyle() { slotStyleBody(); wireFui($('slot')); }
+function slotStyleBody() {
   const it = state.intake;
   const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
   const bgStyle = { ...adStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: !!it.colorsManual, background: { ...adStyle.background, gradient: it.bgGradient ?? null } };
@@ -1325,11 +1330,7 @@ function slotStyle() {
         <input type="file" id="refFile" accept="image/*" multiple style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
         <label>브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
-        <div class="palette">
-          <span class="sw"><input type="color" class="swatch" id="c1" value="${it.colors[0]}"><small>주색</small></span>
-          <span class="sw"><input type="color" class="swatch" id="c2" value="${it.colors[1]}"><small>보조</small></span>
-          <span class="sw"><input type="color" class="swatch" id="c3" value="${it.colors[2]}"><small>포인트</small></span>
-        </div>
+        <div class="fstack">${[['c1', '주색'], ['c2', '보조'], ['c3', '포인트']].map(([k, n], i) => colorRowHtml({ id: k, value: it.colors[i], label: n, tail: n })).join('')}</div>
         <div id="suggests" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
         <div style="margin-top:10px">${bgControlHtml(bgStyle, 'bg')}</div>
         <label style="margin-top:10px">폰트</label>
@@ -1987,13 +1988,56 @@ function artLabel(a) {
 function presetsFor(a) { return SIZE_PRESETS[a.specId] ?? SIZE_PRESETS[a.channel] ?? []; }
 function badgeText(s) { return { draft: 'DRAFT', approved: '승인됨', needsReview: '확인 필요' }[s] ?? s; }
 
+/* 실시간 미리보기(11-02) — 끄는 동안(인스펙터 색·각도·정지점·영역)은 보이는 프레임의 문서에 달라진 곳만 입힌다(app/live.js).
+   campaign 은 그대로라 되돌리기·저장·승인 게이트·측정 큐가 돌지 않고, 놓으면 restyleWith 가 정식으로 한 번(softly 로 깜빡임 없이) 다시 그린다.
+   renderInspector 도 부르지 않는다 — 인스펙터 스크롤·포커스·끌던 손잡이가 그대로. */
+function liveRender(a, style, ov) {   // core/generate.js 의 html 줄과 같은 입력 — 안 후보(variantCandidates)만 뺀다(놓을 때 정식으로)
+  const c = state.campaign;
+  const o = { ...(a.overrides?.style ?? {}), ...(ov ?? {}) };
+  let st = Object.keys(o).length ? resolveAiStyle({ ...c, style }, { ...style, ...o }, SPECS[a.specId]) : style;
+  if (a.overrides?.layout && Object.keys(a.overrides.layout).length) st = { ...st, manualLayout: a.overrides.layout };
+  const eff = { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } };
+  const adLike = a.channel === 'ad' || a.channel === 'gwthumb';
+  const html = renderArtifact(a.specId, adLike ? eff : asEventContext(eff), st, { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size, roster: c.roster ?? null, dest: a.dest ?? null, program: a.program ?? c.program ?? null, topics: a.topics ?? c.topics ?? null });
+  const face = customFontCss(style?.fonts?.heading);
+  return face ? embedFont(html, face) : html;
+}
+function visibleFrames(only) {
+  const vp = $('viewport')?.getBoundingClientRect(); if (!vp) return [];
+  const out = [];
+  for (const a of state.campaign?.artifacts ?? []) {
+    const k = a.key ?? a.specId; if (only && k !== only) continue;
+    const f = frames.get(k); if (!f) continue;
+    const r = f.frame.getBoundingClientRect();
+    if (r.right < vp.left || r.left > vp.right || r.bottom < vp.top || r.top > vp.bottom) continue;
+    out.push({ key: k, apply: v => { if (v.only && v.only !== k) return; performance.mark('live-a'); morphDoc(f.iframe.contentDocument, previewDoc(liveRender(a, v.style, v.ov), artifactFontId(a))); performance.measure('live-frame', 'live-a'); } });
+  }
+  return out;
+}
+const LIVE = createLiveScheduler({ list: () => visibleFrames(null), onTick: (ms, n) => { performance.measure('live-tick', { start: performance.now() - ms, end: performance.now(), detail: { n } }); } });
+// 인스펙터 입력마다 — patch 를 입힌 스타일로 다시 그려 보여 준다(campaign 은 그대로)
+function liveStyle(c, patch, opts = {}) {
+  const style = opts.ov ? c.style : nextStyle(c, patch, opts);
+  LIVE.push({ style, only: opts.only ?? null, ov: opts.ov ?? null });
+  if (!opts.ov && !opts.keepPrev) { const p = $('inspector')?.querySelector('.bgprev'); if (p) try { p.style.background = resolveField(style, { facing: 'left' }).css; } catch {} }
+}
+let softNext = false;   // 끌기를 놓을 때의 정식 재렌더 — srcdoc 대신 문서에 입혀 깜빡임을 없앤다
+function softly(fn) { softNext = true; try { fn(); } finally { softNext = false; } }
+function liveRevert() {   // 끌다 취소 — 저장된 그림으로
+  LIVE.stop();
+  for (const a of state.campaign?.artifacts ?? []) { const f = frames.get(a.key ?? a.specId); if (f && a.html) morphDoc(f.iframe.contentDocument, previewDoc(a.html, artifactFontId(a))); }
+}
+
 function refreshFrames(only = null) {
+  LIVE.stop();   // 정식 재렌더가 왔다 — 끄는 중 미리보기는 끝
   for (const a of state.campaign.artifacts) {
     const k = a.key ?? a.specId;
     if (only && k !== only) continue;
     const f = frames.get(k);
     if (!f) continue;
-    f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
+    const soft = softNext && morphDoc(f.iframe.contentDocument, previewDoc(a.html, artifactFontId(a)));
+    if (!soft) f.iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
+    else setTimeout(() => f.iframe.onload?.(), 0);   // srcdoc 가 아니라 load 가 안 온다 — 디자인·가이드 검수를 같은 길로(판정 무효화 뒤)
     f.badge.className = 'badge ' + a.status;
     f.badge.textContent = badgeText(a.status);
     if (a.channel === 'ad') { a.lint = null; a.design = undefined; a.guide = null; a.fitNote = null; fitBadge(a); ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·디자인·가이드)은 무효 — 다시 잰다(design undefined = 검수 전 → 게이트 pending)
@@ -2090,6 +2134,7 @@ function lintHtml(a) {
 }
 let lintRun = 0;
 async function lintAds() {
+  if (LIVE.active) { scheduleLint(); return; }   // 끄는 동안은 측정하지 않는다 — 놓은 뒤 한 번
   const c = state.campaign; if (!c) return;
   const run = ++lintRun;
   for (const a of c.artifacts.filter(a => (a.channel === 'ad' || a.channel === 'asset') && !a.lint)) {
@@ -2335,7 +2380,8 @@ function currentVariantIndex(a) {
   });
   return best;
 }
-function renderInspector() {
+function renderInspector() { renderInspectorBody(); wireFui($('inspector')); }
+function renderInspectorBody() {
   const insp = $('inspector');
   const c = state.campaign;
   if (!state.selected) {
@@ -2347,11 +2393,7 @@ function renderInspector() {
       <section class="isec">
       <h3>스타일</h3>
       <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
-      <div style="display:flex;gap:10px">
-        <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor1" value="${c.style.palette.primary}"><small style="font-size:10px;color:var(--sub)">주색</small></span>
-        <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor2" value="${c.style.palette.secondary}"><small style="font-size:10px;color:var(--sub)">보조</small></span>
-        <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><input type="color" class="swatch" id="iColor3" value="${c.style.palette.accent}"><small style="font-size:10px;color:var(--sub)">포인트</small></span>
-      </div>
+      <div class="fstack">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => colorRowHtml({ id: k, value: v, label: n, tail: n })).join('')}</div>
       <div style="margin-top:8px">${bgControlHtml(c.style, 'iBg')}</div>
       <label>키비주얼</label>
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
@@ -2375,7 +2417,8 @@ function renderInspector() {
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       <label>글자색 <span style="opacity:.6">· 규정 매체(자소설·리멤버·카카오)는 규정대로</span></label>
       <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
-      <div class="bgrow" id="iTextColorRow"><label class="bgpick"><input type="color" id="iTextColor" value="${c.style.textColor ?? '#333333'}">직접</label><span style="font-size:11px;color:var(--sub);flex:1;line-height:1.4">${c.style.textColor ? `지정 ${c.style.textColor} — 규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 제외` : '색 하나로 지정(규정 매체 제외) · 지면 대비 3:1 미만이면 검수 경고'}</span>${c.style.textColor ? `<button class="btn" id="iTextColorReset">되돌리기</button>` : ''}</div>
+      <div class="fstack" id="iTextColorRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자색 직접', tail: c.style.textColor ? '' : '직접', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '글자색 직접 지정 되돌리기', 'id="iTextColorReset"') : '' })}</div>
+      <div class="fnote">${c.style.textColor ? '규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 제외' : '색 하나로 지정(규정 매체 제외) · 지면 대비 3:1 미만이면 검수 경고'}</div>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
@@ -2410,18 +2453,20 @@ function renderInspector() {
     });
     // 컬러피커는 드래그하는 내내 값이 흐른다 — 한 번의 색 고르기가 되돌리기 한 걸음이 되도록 묶는다
     const styleChange = debounce(() => restyle({}, '스타일 변경', true), 350);
-    const colorEdit = debounce(() => restyle({ colorsManual: true }, '색 직접 변경', true), 350);   // 10-19: 손으로 고른 색은 지면(그라데이션)까지 따라간다
-    insp.querySelector('#iColor1').oninput = colorEdit;
-    insp.querySelector('#iColor2').oninput = colorEdit;
-    insp.querySelector('#iColor3').oninput = colorEdit;
+    // 끄는 동안 보드가 따라오고(liveStyle), 피커를 놓을 때 한 번 정식으로 — 되돌리기도 그 한 걸음(10-19: 손으로 고른 색은 지면까지 따라간다)
+    const curColors = () => ['#iColor1', '#iColor2', '#iColor3'].map(k => insp.querySelector(k).value.toUpperCase());
+    for (const k of ['#iColor1', '#iColor2', '#iColor3']) {
+      insp.querySelector(k).oninput = () => liveStyle(c, { colorsManual: true }, { colors: curColors() });
+      insp.querySelector(k).onchange = () => softly(() => restyle({ colorsManual: true }, '색 직접 변경'));
+    }
     insp.querySelector('#iFont').onchange = () => styleChange();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
-    const setBg = (patch, label) => { restyle({ background: { ...c.style.background, ...patch } }, label); renderInspector(); };
+    const setBg = (patch, label) => { softly(() => restyle({ background: { ...c.style.background, ...patch } }, label)); renderInspector(); };
     insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
     const bgIn = insp.querySelector('#iBgColor');
-    if (bgIn) bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기');
+    if (bgIn) { bgIn.oninput = () => liveStyle(c, { background: { ...c.style.background, color: bgIn.value.toUpperCase() } }, { colors: curColors() }); bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기'); }
     insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
-    if (insp.querySelector('#iBgGrad')) { const f0 = resolveField(c.style, { facing: 'left' }); bindGradientEditor(insp.querySelector('#iBgGrad'), editGradientOf(c.style, f0), { id: 'iBg', onChange: g => setBg({ gradient: g }, '그라데이션 직접 설정'), onPreview: css => { const p = insp.querySelector('.bgprev'); if (p) p.style.background = css; } }); }
+    if (insp.querySelector('#iBgGrad')) { const f0 = resolveField(c.style, { facing: 'left' }); bindGradientEditor(insp.querySelector('#iBgGrad'), editGradientOf(c.style, f0), { id: 'iBg', onChange: g => setBg({ gradient: g }, '그라데이션 직접 설정'), onLive: g => liveStyle(c, { background: { ...c.style.background, gradient: g } }, { colors: curColors(), keepPrev: true }), onPreview: css => { const p = insp.querySelector('.bgprev'); if (p) p.style.background = css; } }); }
     insp.querySelector('#iBgGradReset')?.addEventListener('click', () => setBg({ gradient: null }, '그라데이션 자동으로'));
     insp.querySelector('#iKvType')?.addEventListener('change', e => {
       const v = e.target.value === 'auto' ? null : e.target.value;
@@ -2436,7 +2481,7 @@ function renderInspector() {
     // 글자색 톤 — 일괄(10-19). 'auto' 지면 밝기 / 'dark' #333 / 'light' 흰. 규정 매체·산출물 개별값은 그대로
     insp.querySelectorAll('#iToneSeg button').forEach(b => b.onclick = () => { if ((c.style.textTone ?? 'auto') === b.dataset.tt) return; restyle({ textTone: b.dataset.tt }, `글자색 ${TONE_LABEL[b.dataset.tt]}`); renderInspector(); });
     // 글자색 직접 지정(style.textColor, 11-02 컨시어지 「브랜드컬러 외 폰트 색상」) — 일괄. 규정 매체는 렌더러가 무시(textColor.ignored). 되돌리기 = null(톤대로)
-    const tcIn = insp.querySelector('#iTextColor'); if (tcIn) tcIn.onchange = () => { const v = tcIn.value.toUpperCase(); if ((c.style.textColor ?? null) === v) return; restyle({ textColor: v }, `글자색 직접 ${v}`); renderInspector(); };
+    const tcIn = insp.querySelector('#iTextColor'); if (tcIn) { tcIn.oninput = () => liveStyle(c, { textColor: tcIn.value.toUpperCase() }, { colors: curColors(), keepPrev: true }); tcIn.onchange = () => { const v = tcIn.value.toUpperCase(); if ((c.style.textColor ?? null) === v) { liveRevert(); return; } softly(() => restyle({ textColor: v }, `글자색 직접 ${v}`)); renderInspector(); }; }
     const tcRs = insp.querySelector('#iTextColorReset'); if (tcRs) tcRs.onclick = () => { restyle({ textColor: null }, '글자색 직접 지정 해제'); renderInspector(); };
     insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
@@ -2479,8 +2524,8 @@ function renderInspector() {
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
     // 보여 줄 영역 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
-    if (c.style.keyVisual && c.style.kvMeta) mountKvFocus(insp.querySelector('#iKv'), { kvMeta: c.style.kvMeta, onChange: m => {
-      restyle({ kvMeta: withManual(c.style.kvMeta, m) }, m ? '키비주얼 보여 줄 영역 지정' : '키비주얼 영역 자동');
+    if (c.style.keyVisual && c.style.kvMeta) mountKvFocus(insp.querySelector('#iKv'), { kvMeta: c.style.kvMeta, onLive: region => liveStyle(c, { kvMeta: withManual(c.style.kvMeta, { region }) }, { colors: curColors(), keepPrev: true }), onLiveCancel: liveRevert, onChange: m => {
+      softly(() => restyle({ kvMeta: withManual(c.style.kvMeta, m) }, m ? '키비주얼 보여 줄 영역 지정' : '키비주얼 영역 자동'));
       renderInspector(); insp.querySelector('#iKv .kvfocus')?.focus();
       toast(m ? '지정한 영역으로 모든 규격을 다시 그렸어요' : '자동 판정으로 다시 그렸어요');
     } });
@@ -2603,7 +2648,7 @@ function renderInspector() {
     </section>
     ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '<section class="isec">' : ''}
     ${(nVar > 1 && a.channel !== 'ad') ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
-      `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
+      `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}" aria-pressed="${(a.variant ?? 0) === i}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
     ${a.channel === 'badge' ? `
       <label>참석자 명단 <span style="opacity:.6">${(c.roster ?? []).length}명</span></label>
       <textarea id="iRoster" placeholder="엑셀에서 복사해 붙여넣기\n이름\t소속\t직급" style="width:100%;min-height:76px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
@@ -2617,9 +2662,7 @@ function renderInspector() {
       <select id="iSize">${presets.map(pr =>
         `<option value="${pr.wmm}x${pr.hmm}" ${spec.wmm === pr.wmm && spec.hmm === pr.hmm ? 'selected' : ''}>${pr.label}</option>`).join('')}
         <option value="custom" ${!presets.some(pr => pr.wmm === spec.wmm && pr.hmm === spec.hmm) ? 'selected' : ''}>직접 입력…</option></select>
-      <div style="display:flex;gap:6px;margin-top:6px">
-        <input type="text" id="iW" value="${spec.wmm}" style="width:50%"><input type="text" id="iH" value="${spec.hmm}" style="width:50%">
-      </div>
+      <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iW', value: spec.wmm, label: '가로(mm)', prefix: 'W' })}${numField({ id: 'iH', value: spec.hmm, label: '세로(mm)', prefix: 'H' })}</div>
       <div style="font-size:11px;color:var(--sub);margin-top:8px;line-height:1.6">
         용지 ${spec.wmm + spec.bleed * 2}×${spec.hmm + spec.bleed * 2}mm (블리드 ${spec.bleed}mm)<br>
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
@@ -2627,8 +2670,8 @@ function renderInspector() {
     ${a.channel === 'ad' ? `
       ${artifactFontHtml(a, c)}
       ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
-      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
-      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; return `<div class="bgrow" id="iTextColorOvRow" style="${reg ? 'opacity:.6' : ''}"><label class="bgpick"><input type="color" id="iTextColorOv" value="${ov ?? c.style.textColor ?? '#333333'}" ${reg ? 'disabled' : ''}>직접</label><span style="font-size:11px;color:var(--sub);flex:1;line-height:1.4">${reg ? '매체 규정 색 고정 — 직접 지정 불가' : ov ? `이 산출물 ${ov}` : c.style.textColor ? `공통 ${c.style.textColor} 따름` : '이 산출물만 색 하나로'}</span>${ov ? `<button class="btn" id="iTextColorOvReset">되돌리기</button>` : ''}</div>`; })()}` : ''}
+      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}" aria-pressed="${(a.overrides.style?.textTone ?? '') === k}">${v}</button>`).join('')}</div>
+      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 산출물만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 산출물 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div><div class="fnote">${reg ? '매체 규정 색 고정 — 직접 지정 불가' : ov ? '이 산출물만 이 색' : c.style.textColor ? '공통 색 따름' : '이 산출물만 색 하나로'}</div>`; })()}` : ''}
       ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
       <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
@@ -2688,11 +2731,11 @@ function renderInspector() {
     if (v) st.textColor = v; else delete st.textColor;
     a.overrides.style = st; a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId, style: 'textColor' });
-    regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+    regen(c); autosave(); softly(() => refreshFrames(a.specId)); renderInspector();
     $('inspNote').textContent = '이 산출물만 반영됨';
     log(`${a.specId} 글자색 ${label}`);
   };
-  const tcOv = insp.querySelector('#iTextColorOv'); if (tcOv && !tcOv.disabled) tcOv.onchange = () => setTextColorOv(tcOv.value.toUpperCase(), `직접 ${tcOv.value.toUpperCase()}`);
+  const tcOv = insp.querySelector('#iTextColorOv'); if (tcOv && !tcOv.disabled) { tcOv.oninput = () => liveStyle(c, null, { only: a.key ?? a.specId, ov: { textColor: tcOv.value.toUpperCase() } }); tcOv.onchange = () => setTextColorOv(tcOv.value.toUpperCase(), `직접 ${tcOv.value.toUpperCase()}`); }
   const tcOvRs = insp.querySelector('#iTextColorOvReset'); if (tcOvRs) tcOvRs.onclick = () => setTextColorOv(null, '직접 지정 해제(공통 따름)');
   // 글자색 톤 — 이 산출물만(overrides.style.textTone, 10-19). 비우면 공통
   insp.querySelectorAll('#iToneOv button').forEach(b => b.onclick = () => {
@@ -2863,7 +2906,17 @@ function clearAiOverrides(c) {
 }
 function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false, { colors, fonts } = {}) {
   pushHistory(label, coalesce);
-  c.style = normalizeStyle({
+  c.style = nextStyle(c, patch, { colors, fonts });
+  logEvent(c, 'style_changed', {});
+  regen(c);
+  autosave();
+  refreshFrames();
+  const n = $('inspNote'); if (n) n.textContent = '스타일 전체 반영됨';
+  log('스타일 변경 → 전체 재생성');
+}
+// 지금 스타일 + patch → 새 스타일(저장하지 않음) — 정식 재렌더와 실시간 미리보기가 같은 값을 쓴다
+function nextStyle(c, patch = {}, { colors, fonts } = {}) {
+  return normalizeStyle({
     keyVisual: c.style.keyVisual,
     kvReadability: c.style.kvReadability,
     kvMeta: c.style.kvMeta,
@@ -2890,12 +2943,6 @@ function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false
     mood: c.style.mood,
     ...patch,
   });
-  logEvent(c, 'style_changed', {});
-  regen(c);
-  autosave();
-  refreshFrames();
-  const n = $('inspNote'); if (n) n.textContent = '스타일 전체 반영됨';
-  log('스타일 변경 → 전체 재생성');
 }
 
 /* ═══ 산출물 추가 · 제거 ═══

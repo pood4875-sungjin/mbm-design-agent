@@ -16,6 +16,7 @@ import { kvTypeOf } from '../core/kvtypes.js';
 import { renderArtifact } from '../core/contract.js';
 import { ALIGN_CHOICES, alignLockOf, lockedSummary } from '../core/alignrule.js';
 import { resolveAiStyle } from '../core/trackb/analyze.js';
+import { ic } from './fui.js';
 
 // 직접 수정(끌어 옮기기) 손잡이·섹션은 숨긴다(10-19 사용자 「텍스트 이동하는 기능은 빼도 되는데 정렬만 바꿀 수 있게」) — 데이터(overrides.layout)·렌더 훅은 남겨 기존 캠페인이 깨지지 않게
 const MANUAL_EDIT_UI = false;
@@ -26,6 +27,8 @@ const PART_LABEL = { kv: '키비주얼', text: '글자 덩어리', logo: '로고
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const SHORT = { bgFill: { kv: 'KV 이어 칠하기' } };   // 좁은 인스펙터에서 줄임 — 전체 이름은 title
 const label = (k, v) => SHORT[k]?.[v] ?? PRESETS[k].choices[v];
+const ALIGN_ICON = { left: 'ta-l', center: 'ta-c', right: 'ta-r' };   // 정렬 세그먼트는 hub 패널처럼 아이콘 — 이름은 aria-label·title 로
+const alignFace = k => ALIGN_ICON[k] ? ic(ALIGN_ICON[k]) : escH(ALIGN_CHOICES[k]);
 
 export function createEditor(E) {
   // E: { state, SPECS, frames, pushHistory, regen, refreshFrames, autosave, renderInspector, log, toast, select, artLabel, adEffCtx, logEvent }
@@ -141,7 +144,7 @@ export function createEditor(E) {
     const cur = c.style.textAlign ?? 'auto';
     const lock = lockedSummary(list.map(a => specOf(a)).filter(Boolean));
     return `<label>글자 정렬 <span style="opacity:.6">· 키비주얼·로고 자리가 따라감</span></label>
-      <div class="vseg" id="iAlignSeg" role="group" aria-label="글자 정렬">${Object.entries(ALIGN_CHOICES).map(([k, v]) => `<button data-al="${k}" class="${cur === k ? 'on' : ''}" aria-pressed="${cur === k}" title="${escH(v)}">${escH(v)}</button>`).join('')}</div>
+      <div class="vseg" id="iAlignSeg" role="group" aria-label="글자 정렬">${Object.entries(ALIGN_CHOICES).map(([k, v]) => `<button type="button" data-al="${k}" class="${cur === k ? 'on' : ''}" aria-pressed="${cur === k}" title="${escH(v)}" aria-label="${escH(v)}">${alignFace(k)}</button>`).join('')}</div>
       <div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">왼쪽 → 키비주얼 오른쪽 · 오른쪽 → 왼쪽(거울) · 가운데 → 아래 띠${lock.n ? `<br>${lock.n}개 규격은 규정으로 잠김 — ${escH(lock.reasons.map(([r, n]) => `${r} ${n}`).join(' · '))}` : ''}</div>`;
   }
   function bindAlignCampaign(insp, restyle) {
@@ -160,7 +163,7 @@ export function createEditor(E) {
     const t = autoTrace(a);
     if (L.locked) return `<label>글자 정렬</label><div style="font-size:11.5px;color:var(--sub);line-height:1.5">잠김 — ${escH(L.why)}</div>`;
     return `<label>글자 정렬 <span style="opacity:.6">공통: ${escH(ALIGN_CHOICES[camp0] ?? camp0)}${camp0 === 'auto' && autoLabel('textAlign', t) ? `(${escH(autoLabel('textAlign', t))})` : ''}</span></label>
-      <div class="vseg" id="iAlignOv" role="group" aria-label="글자 정렬(이 산출물만)"><button data-alo="" class="${!own ? 'on' : ''}" aria-pressed="${!own}">공통 따름</button>${Object.entries(ALIGN_CHOICES).filter(([k]) => k !== 'auto').map(([k, v]) => `<button data-alo="${k}" class="${own === k ? 'on' : ''}" aria-pressed="${own === k}" title="${escH(v)}">${escH(v)}</button>`).join('')}</div>`;
+      <div class="vseg" id="iAlignOv" role="group" aria-label="글자 정렬(이 산출물만)"><button data-alo="" class="${!own ? 'on' : ''}" aria-pressed="${!own}">공통 따름</button>${Object.entries(ALIGN_CHOICES).filter(([k]) => k !== 'auto').map(([k, v]) => `<button type="button" data-alo="${k}" class="${own === k ? 'on' : ''}" aria-pressed="${own === k}" title="${escH(v)}" aria-label="${escH(v)}">${alignFace(k)}</button>`).join('')}</div>`;
   }
   function bindAlignArtifact(insp, a) {
     insp.querySelectorAll('#iAlignOv [data-alo]').forEach(b => b.onclick = () => {
