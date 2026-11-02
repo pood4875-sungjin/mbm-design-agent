@@ -86,7 +86,8 @@ function normalizeFrame(fr) {
   }
   const lg = fr.lg && fr.lg[0] >= -2 && fr.lg[1] >= -2 && fr.lg[0] + fr.lg[2] <= W + 2 && fr.lg[1] + fr.lg[3] <= H + 2 && fr.lg[2] < W * 0.4 && fr.lg[3] < H * 0.2 && fr.lg[3] >= H * 0.015 ? fr.lg : null;
   const bgDark = (() => { const b = fr.bg; const h = Array.isArray(b) ? b[0] : b?.s?.[0]?.[1]; return h ? lumOf(h) < 0.45 : false; })();
-  return { w: W, h: H, id: fr.id, full, slot: { x: slot0[0], y: slot0[1], w: slot0[2], h: slot0[3], r: fr.im[0].r ?? 0 }, logo: lg ? { x: lg[0], y: lg[1], w: lg[2], h: lg[3] } : null, rows: rows.sort((a, b) => a.y - b.y), font: fontId(lead.font), bgDark };
+  const tone = lumOf(lead.color ?? '#000000') > 0.6 ? 'dark' : 'light';   // 글자가 밝으면 어두운 지면 시안, 글자가 어두우면 밝은 지면 시안
+  return { w: W, h: H, id: fr.id, tone, full, slot: { x: slot0[0], y: slot0[1], w: slot0[2], h: slot0[3], r: fr.im[0].r ?? 0 }, logo: lg ? { x: lg[0], y: lg[1], w: lg[2], h: lg[3] } : null, rows: rows.sort((a, b) => a.y - b.y), font: fontId(lead.font), bgDark };
 }
 
 // 이름 규칙: 비주얼 쓰임 + 타이포 특징. 사람이 고를 때 보는 이름

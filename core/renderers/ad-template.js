@@ -51,8 +51,11 @@ export function renderTemplate(ctx, style, spec) {
   const slot = { x: fr.slot.x * sx, y: fr.slot.y * sy, w: fr.slot.w * sx, h: fr.slot.h * sy };
   const facing = fr.visual === 'right' ? 'left' : fr.visual === 'left' ? 'right' : fr.visual === 'bottom' ? 'top' : fr.visual === 'top' ? 'bottom' : 'left';
   const field = resolveField(style, { facing }) ?? {};
-  const stops = field.stops?.length ? field.stops : [style.palette?.primary ?? '#1428A0'];
-  const fieldCss = field.css ?? `linear-gradient(180deg,${stops[0]},${stops[stops.length - 1]})`;
+  const stops0 = field.stops?.length ? field.stops : [style.palette?.primary ?? '#1428A0'];
+  // 지면 톤은 시안을 따른다: 밝은 지면 시안이면 같은 색을 옅게 풀어 쓴다(글자는 어둡게). 배경 그림을 만들지 않고 톤으로 느낌을 낸다
+  const lightTone = !fr.full && fr.tone === 'light' && contrast(stops0[0], '#FFFFFF') > 2.2;
+  const stops = lightTone ? stops0.map((c, i) => mix(c, '#FFFFFF', i === 0 ? 0.9 : 0.84)) : stops0;
+  const fieldCss = lightTone ? `linear-gradient(180deg,${stops[0]},${stops[stops.length - 1]})` : (field.css ?? `linear-gradient(180deg,${stops[0]},${stops[stops.length - 1]})`);
   const edge = stops[0];
 
   // 글자색: 지면 전체에서 대비가 나는 쪽
@@ -111,7 +114,7 @@ export function renderTemplate(ctx, style, spec) {
   const colRows = fr.rows.filter(r => r.role !== 'label');
   const mainRow0 = fr.rows.find(r => r.role === 'main');
   const spread = f0 => { const v = colRows.map(f0); return Math.max(...v) - Math.min(...v); };
-  const frameAlign = colRows.length < 2 ? mainRow0.al : (spread(r => r.x + r.w / 2) + 4 < spread(r => r.x) ? 'center' : mainRow0.al === 'right' && spread(r => r.x + r.w) < spread(r => r.x) ? 'right' : 'left');
+  const frameAlign = mainRow0.al === 'left' ? 'left' : colRows.length < 2 ? mainRow0.al : (mainRow0.al === 'center' && spread(r => r.x + r.w / 2) + 4 < spread(r => r.x)) ? 'center' : mainRow0.al === 'right' && spread(r => r.x + r.w) < spread(r => r.x) ? 'right' : 'left';
   const baseEdge = frameAlign === 'center' ? (mainRow0.x + mainRow0.w / 2) * sx : frameAlign === 'right' ? (mainRow0.x + mainRow0.w) * sx : Math.min(...colRows.map(r => r.x)) * sx;
   const bpTop = Math.min(...colRows.map(r => (r.y - (r.lines ?? 1) * r.fs * 0.625) * sy));
   const bpBot = Math.max(...colRows.map(r => (r.y + (r.lines ?? 1) * r.fs * 0.625) * sy));

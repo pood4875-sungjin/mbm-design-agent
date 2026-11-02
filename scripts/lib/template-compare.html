@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>청사진 비교</title><style>body{margin:0;padding:14px;background:#333;color:#ffc;font:12px sans-serif}.g{display:flex;flex-wrap:wrap;gap:16px}.p{display:flex;gap:6px;align-items:flex-start}.p b{display:block;margin-bottom:3px}.b{overflow:hidden;position:relative}iframe{border:0;transform-origin:0 0;position:absolute;left:0;top:0}img{display:block}</style></head><body><div class="g" id="o"></div>
+<script type="module">
+// 청사진(피그마 원본) ↔ 같은 시안 틀로 그린 소재. ?case=t1014-dongsuh&client=동서식품&pairs=시안id__규격id,...
+import { renderArtifact } from '/core/contract.js';
+import { familyStyle, familyById, frameFor } from '/core/recipes.js';
+import { registerAll } from '/core/generate.js';
+import { createContext } from '/core/context.js';
+import { normalizeStyle } from '/core/style.js';
+import { adSpecEntries } from '/core/adspecs.js';
+import { fontIds, isBundledFont, localFaceCss } from '/core/fonts.js';
+registerAll();
+const q = new URLSearchParams(location.search), id = q.get('case');
+const FACES = fontIds().filter(isBundledFont).map(i => localFaceCss(i)).join('');
+const toData = async u => { const r = await fetch(u); if (!r.ok) return null; const b = await r.blob(); return new Promise(k => { const f = new FileReader(); f.onload = () => k(f.result); f.readAsDataURL(b); }); };
+const led = (await (await fetch('/ref/learned/cases/cases.json')).json()).cases.find(x => x.id === id);
+const base = `/ref/learned/cases/${id}/`, meta = await (await fetch(base + 'meta.json')).json();
+const style = normalizeStyle({ keyVisual: await toData(base + (led.kv ?? 'kv.png')), kvMeta: meta.kv ?? meta, logo: led.logo ? await toData(base + led.logo) : null, logoMeta: led.logoMeta ?? null, logoTone: led.logoMeta?.tone, colors: [led.primary ?? '#1428A0'], fonts: { heading: 'KakaoBigSans', body: 'KakaoBigSans' } });
+const ctx = createContext({ client: q.get('client') ?? 'GS에너지', hiringType: q.get('hire') ?? '신입사원 공채', role: q.get('role') ?? '영업, 재무, 인사', season: '2026년', startDate: '2026-06-20', deadline: '2026-07-02' }, 'recruit');
+const specs = adSpecEntries(), H = +(q.get('h') ?? 230);
+for (const pr of (q.get('pairs') ?? '').split(',')) {
+  const [fid, sid] = pr.split('__'), spec = specs[sid], f = familyById(fid); if (!spec || !f) continue;
+  const k = Math.min(H / spec.h, 440 / spec.w), p = document.createElement('div'); p.className = 'p';
+  p.innerHTML = `<div><b>청사진 ${frameFor(f, spec).id}</b><img src="/ref/learned/figma-1102/bp/${pr}.png" style="width:${spec.w * k}px;height:${spec.h * k}px"></div><div><b>${frameFor(f, spec).name}</b><div class="b" style="width:${spec.w * k}px;height:${spec.h * k}px"><iframe width="${spec.w}" height="${spec.h}" style="transform:scale(${k})"></iframe></div></div>`;
+  p.querySelector('iframe').srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0}${FACES}</style></head><body>${renderArtifact(sid, ctx, { ...style, ...familyStyle(f) }, {})}</body></html>`;
+  document.getElementById('o').append(p);
+}
+document.title = '완료';
+</script></body></html>
