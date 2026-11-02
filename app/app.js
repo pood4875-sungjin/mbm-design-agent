@@ -30,7 +30,7 @@ import { gradientEditorHtml, bindGradientEditor } from './gradedit.js';
 import { showProgress, ProgressCancelled } from './progress.js';
 import { morphDoc, createLiveScheduler } from './live.js';   // 11-02 끄는 동안 실시간 미리보기
 import { asEventContext } from '../core/context.js';
-import { colorRowHtml, iconBtn, numField, wireFui } from './fui.js';   // 11-02 피그마 UI3 식 컨트롤(hub/panel.js 에서 옮김)
+import { colorRowHtml, iconBtn, numField, wireFui, ic } from './fui.js';   // 11-02 피그마 UI3 식 컨트롤(hub/panel.js 에서 옮김)
 import { gradientFrom, normGradient } from '../core/gradient.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
@@ -40,6 +40,9 @@ import { assessForSpecs } from '../core/imagequality.js';
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
+import { createElementSelect } from './elselect.js';   // 11-02 프레임 안 요소 고르기
+import { createRuler } from './ruler.js';
+import { applyElementEdits, elementFontIds, elementName, parseElementId, withElementEdit, STYLE_ROLES, WEIGHTS } from '../core/elementedit.js';
 import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
 import { createSelect, pickForExport } from './select.js';   // 11-02 선택하기(컨시어지 박진화 「선택한 소재만 추출」) — 카드·드래그·매체 머리글로 골라 그것만 ZIP
@@ -97,6 +100,14 @@ const ED = createEditor({
   renderInspector: () => renderInspector(), log: t => log(t), toast: t => toast(t), select: k => select(k), artLabel: a => artLabel(a), adEffCtx: a => adEffCtx(a),
   onGuide: a => gateBadge(a),   // 가이드 검수(틀 ✗) 결과가 승인 게이트에 바로 반영되게
 });
+const EL = createElementSelect({
+  frames, keyOf: a => a.key ?? a.specId, specOf: a => SPECS[a.specId], zoom: () => state.zoom, partsOf: a => ED.partsOf(a),
+  commit: (a, patch, label, coalesce) => elCommit(a, patch, label, coalesce),
+  live: (a, x) => LIVE.push({ style: state.campaign.style, only: a.key ?? a.specId, ...x }),
+  liveText: (a, id, k) => textScaleLive(a, id, k), commitTextScale: (a, id, k) => textScaleCommit(a, id, k),
+  pick: (a, id) => select(a.key ?? a.specId, id), up: a => select(a.key ?? a.specId), locks: (a, id) => elLocks(a, id),
+});
+const RULER = createRuler({ top: $('rulerT'), left: $('rulerL'), view: () => state, range: () => { const f = state.selected && frames.get(state.selected); if (!f) return null; const b = f.frame.querySelector('.fbody'); return { x: f.frame.offsetLeft, y: f.frame.offsetTop, w: b.clientWidth, h: b.clientHeight }; } });
 
 /* ═══ helpers ═══ */
 function toast(t) {
@@ -156,7 +167,8 @@ function embedFont(html, face, mark = CUSTOM_MARK) {
 // fontId(10-14): 묶은 무료 폰트는 상대 경로 @font-face 를 같이 넣는다 — srcdoc 문서는 부모의 base URL 을 물려받아 app/fonts/… 가 그대로 열린다.
 function previewDoc(html, fontId = null) {
   if (!html || /^\s*(<!doctype|<html)/i.test(html)) return html;
-  const face = fontId && isBundledFont(fontId) ? `<style>${localFaceCss(fontId)}</style>` : '';
+  const elFonts = html.includes('data-el-font="') ? [...new Set([...html.matchAll(/data-el-font="([^"]+)"/g)].map(m => m[1]))] : [];   // 요소 하나에 고른 글꼴(11-02)
+  const face = [...new Set([fontId, ...elFonts])].filter(Boolean).map(id => isBundledFont(id) ? `<style>${localFaceCss(id)}</style>` : customFontCss(id) ? `<style>${customFontCss(id)}</style>` : '').join('');
   return `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>${face}</head><body>${html}</body></html>`;
 }
 // 산출물이 실제로 쓰는 폰트 id — 매체가 고정하면(자소설·카카오·리멤버 Pretendard) 그 폰트, 아니면 캠페인(또는 산출물 개별) 폰트
@@ -169,8 +181,8 @@ function artifactFontId(a, c = state.campaign) {
 /* 내보내기용 폰트 바이트 — SVG foreignObject(raster.js)는 바깥 파일을 못 받으니 묶은 폰트는 dataURL 로 넣는다(커스텀 폰트와 같은 길).
    기본 Pretendard 는 예전처럼 설치된 폰트에 맡긴다(산출물마다 1.1MB 를 더 싣지 않게). 한 번 읽은 폰트는 세션 동안 캐시. */
 const fontBytesCache = new Map();
-async function exportFaceCss(fontId) {
-  if (!fontId || !isBundledFont(fontId) || fontId === DEFAULT_FONT) return '';
+async function exportFaceCss(fontId, force = false) {
+  if (!fontId || !isBundledFont(fontId) || (fontId === DEFAULT_FONT && !force)) return '';
   if (!fontBytesCache.has(fontId)) {
     fontBytesCache.set(fontId, (async () => {
       const urls = {};
@@ -185,6 +197,8 @@ async function exportFaceCss(fontId) {
   }
   return fontBytesCache.get(fontId);
 }
+// 요소 하나에 고른 글꼴(11-02) — 산출물 글꼴과 다르니 바이트를 따로 싣는다
+async function elementFaceCss(a) { let out = ''; for (const id of elementFontIds(a.overrides?.elements)) out += customFontCss(id) || await exportFaceCss(id, true); return out; }
 async function withExportFont(html, fontId) { return embedFont(html, await exportFaceCss(fontId), BUNDLED_MARK); }
 
 /* ═══ 폰트 파일 업로드 ═══
@@ -1805,7 +1819,8 @@ function enterWork(opts = {}) {
   show('work');
   $('campPill').textContent = campaignName(state.campaign.context);
   $('logBody').innerHTML = ''; $('logCount').textContent = '';
-  state.selected = null;
+  state.selected = null; state.elSel = null; EL.hide();
+  document.getElementById('work').classList.toggle('noL', innerWidth <= 1024);   // 좁은 창은 왼쪽 패널 접고 시작(토글로 연다)
   resetHistory();       // 캠페인이 바뀌면 이전 캠페인의 되돌리기 이력은 의미가 없다
   toggleHelp(false);
   layoutArtboard({ blank: !!opts.staged });
@@ -1877,7 +1892,8 @@ function layoutArtboard(opts = {}) {
         const iframe = frame.querySelector('iframe');
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
-        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } textRoleFocus = textRoleAt(a, e); select(a.key ?? a.specId); if (textRoleFocus) setTimeout(() => $('inspector')?.querySelector(`.frole[data-role="${textRoleFocus}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60); };
+        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } const k = a.key ?? a.specId; if (a.channel !== 'ad') { select(k); return; } if (state.selected !== k && !(e.metaKey || e.ctrlKey)) { select(k); return; } textRoleFocus = textRoleAt(a, e); select(k, EL.at(a, e)); };   // 한 번 = 프레임, 고른 프레임 안에서 한 번 더(또는 ⌘/Ctrl) = 그 자리 요소
+        { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = () => zoomToFrame(a.key ?? a.specId); }
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
@@ -1993,14 +2009,15 @@ function badgeText(s) { return { draft: 'DRAFT', approved: '승인됨', needsRev
 /* 실시간 미리보기(11-02) — 끄는 동안(인스펙터 색·각도·정지점·영역)은 보이는 프레임의 문서에 달라진 곳만 입힌다(app/live.js).
    campaign 은 그대로라 되돌리기·저장·승인 게이트·측정 큐가 돌지 않고, 놓으면 restyleWith 가 정식으로 한 번(softly 로 깜빡임 없이) 다시 그린다.
    renderInspector 도 부르지 않는다 — 인스펙터 스크롤·포커스·끌던 손잡이가 그대로. */
-function liveRender(a, style, ov) {   // core/generate.js 의 html 줄과 같은 입력 — 안 후보(variantCandidates)만 뺀다(놓을 때 정식으로)
+function liveRender(a, style, ov, x = {}) {   // core/generate.js 의 html 줄과 같은 입력 — 안 후보(variantCandidates)만 뺀다(놓을 때 정식으로)
   const c = state.campaign;
   const o = { ...(a.overrides?.style ?? {}), ...(ov ?? {}) };
   let st = Object.keys(o).length ? resolveAiStyle({ ...c, style }, { ...style, ...o }, SPECS[a.specId]) : style;
-  if (a.overrides?.layout && Object.keys(a.overrides.layout).length) st = { ...st, manualLayout: a.overrides.layout };
+  const layout = 'layout' in x ? x.layout : a.overrides?.layout, elements = 'elements' in x ? x.elements : a.overrides?.elements;
+  if (layout && Object.keys(layout).length) st = { ...st, manualLayout: layout };
   const eff = { ...c.context, core: { ...c.context.core, ...(a.overrides?.core ?? {}) } };
   const adLike = a.channel === 'ad' || a.channel === 'gwthumb';
-  const html = renderArtifact(a.specId, adLike ? eff : asEventContext(eff), st, { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size, roster: c.roster ?? null, dest: a.dest ?? null, program: a.program ?? c.program ?? null, topics: a.topics ?? c.topics ?? null });
+  const html = applyElementEdits(renderArtifact(a.specId, adLike ? eff : asEventContext(eff), st, { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size, roster: c.roster ?? null, dest: a.dest ?? null, program: a.program ?? c.program ?? null, topics: a.topics ?? c.topics ?? null }), elements, SPECS[a.specId]);
   const face = customFontCss(style?.fonts?.heading);
   return face ? embedFont(html, face) : html;
 }
@@ -2012,7 +2029,7 @@ function visibleFrames(only) {
     const f = frames.get(k); if (!f) continue;
     const r = f.frame.getBoundingClientRect();
     if (r.right < vp.left || r.left > vp.right || r.bottom < vp.top || r.top > vp.bottom) continue;
-    out.push({ key: k, apply: v => { if (v.only && v.only !== k) return; performance.mark('live-a'); morphDoc(f.iframe.contentDocument, previewDoc(liveRender(a, v.style, v.ov), artifactFontId(a))); performance.measure('live-frame', 'live-a'); } });
+    out.push({ key: k, apply: v => { if (v.only && v.only !== k) return; performance.mark('live-a'); morphDoc(f.iframe.contentDocument, previewDoc(liveRender(a, v.style, v.ov, v), artifactFontId(a))); performance.measure('live-frame', 'live-a'); } });
   }
   return out;
 }
@@ -2077,6 +2094,7 @@ function designCheck(a) {
   // 샘플 문구(data-sample — 마감일·직무가 비어 있어 샘플 밀도를 맞추려 넣은 자리표시) 배지: 승인 전에 디자이너가 실제 정보로 바꾼다(10-12 매체별 규격정리)
   try { const n = f.iframe.contentDocument.querySelectorAll('[data-sample]').length; if (f.sample) { f.sample.style.display = n ? '' : 'none'; f.sample.textContent = n ? `샘플 문구 ${n}` : ''; f.sample.title = n ? '비어 있는 정보 자리에 넣은 샘플 문구 — 승인 전에 실제 정보로 바꾸세요' : ''; } } catch {}
   if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
+  if (state.selected === (a.key ?? a.specId) && state.elSel) { EL.show(a, state.elSel); if (!$('inspector').contains(document.activeElement)) renderInspector(); }   // 다시 그려진 뒤 선택 테두리·패널 수치를 새 자리에
   ED.afterRender(a);   // 같은 모양 옮기기 경계 맞춤 → 직접 수정 손잡이 → 가이드 검수(10-14)
 }
 const designWarnings = a => (a.design?.warnings ?? []).filter(w => w.level !== 'info');
@@ -2124,6 +2142,7 @@ function statusBadges(only = null) {
     f.badge.className = 'badge ' + a.status; f.badge.textContent = badgeText(a.status);
     gateBadge(a);
   }
+  const st = $('lStat'); if (st) st.textContent = campaignStat();
 }
 function lintHtml(a) {
   const L = a.lint;
@@ -2186,7 +2205,9 @@ const scheduleLint = debounce(() => lintAds(), 400);
 /* zoom · pan */
 function applyTransform() {
   $('artboard').style.transform = `translate(${state.panX}px,${state.panY}px) scale(${state.zoom})`;
+  $('artboard').style.setProperty('--z', state.zoom);   // 선택 테두리·핸들을 화면 크기 그대로
   $('zoomPct').textContent = Math.round(state.zoom * 100) + '%';
+  RULER?.draw();
 }
 function setZoom(z, cx, cy) {
   z = Math.min(8, Math.max(0.05, z));   // 인쇄물 실측 확인엔 800%까지 필요하다
@@ -2199,14 +2220,31 @@ function setZoom(z, cx, cy) {
 }
 function fitZoom() {
   const vp = $('viewport').getBoundingClientRect();
-  const z = Math.min((vp.width - 320) / (state.boardW || 1000), (vp.height - 80) / (state.boardH || 800), 1);
+  const z = Math.min((vp.width - 44) / (state.boardW || 1000), (vp.height - 60) / (state.boardH || 800), 1);   // 패널은 캔버스 밖이라 뺄 것이 눈금자·여백뿐
   state.zoom = Math.max(0.08, z);
-  state.panX = 20; state.panY = 10;
+  state.panX = 28; state.panY = 28 + 26 * state.zoom;   // 차수 머리글이 눈금자 밑으로 안 들어가게
   applyTransform();
 }
 $('zIn').onclick = () => setZoom(state.zoom * 1.25);
 $('zOut').onclick = () => setZoom(state.zoom / 1.25);
 $('zFit').onclick = fitZoom;
+// 프레임 하나로 확대(두 번 누르기·Shift+2) — 전체 보기 25% 에선 글자 한 줄을 집기 어렵다
+function zoomToFrame(k) {
+  const f = frames.get(k); if (!f) return;
+  const vp = $('viewport').getBoundingClientRect(), b = f.frame.querySelector('.fbody'), bw = b.clientWidth, bh = b.clientHeight;
+  state.zoom = Math.min(8, Math.max(0.05, Math.min((vp.width - 120) / bw, (vp.height - 160) / bh)));
+  state.panX = (vp.width - bw * state.zoom) / 2 - f.frame.offsetLeft * state.zoom;
+  state.panY = (vp.height - bh * state.zoom) / 2 - f.frame.offsetTop * state.zoom;
+  applyTransform();
+}
+// 패널 접기(피그마 ⌘\ 자리) — 캔버스를 넓게. 접어도 값은 그대로
+for (const [id, cls] of [['lToggle', 'noL'], ['rToggle', 'noR']]) $(id).onclick = () => { const w = $('work'); w.classList.toggle(cls); $(id).setAttribute('aria-pressed', String(w.classList.contains(cls))); RULER?.draw(); };
+document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전체
+  if (e.key === '@' && e.shiftKey && state.selected && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName ?? '') && $('work').style.display !== 'none') { zoomToFrame(state.selected); return; }
+  if (e.key !== 'Escape' || !state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex') return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName ?? '') || SEL.on) return;
+  if (state.elSel) select(state.selected); else if (state.selected) select(null);
+});
 {
   const vp = $('viewport');
   let panning = false, sx = 0, sy = 0;
@@ -2350,7 +2388,10 @@ $('helpPop').innerHTML = `
     <dt><kbd>휠</kbd></dt><dd>확대 · 축소 (5~800%)</dd>
     <dt><kbd>드래그</kbd></dt><dd>화면 이동</dd>
     <dt><kbd>⤢</kbd></dt><dd>전체 보기로 맞춤</dd>
-    <dt><kbd>클릭</kbd></dt><dd>산출물 = 개별 편집<br>빈 곳 = 전체 일괄</dd>
+    <dt><kbd>클릭</kbd></dt><dd>소재 = 이 소재만<br>고른 소재 안 = 이 요소만<br>빈 곳 = 전체 일괄</dd>
+    <dt><kbd>두 번</kbd></dt><dd>그 소재로 확대(Shift+2)</dd>
+    <dt><kbd>Esc</kbd></dt><dd>요소 → 소재 → 전체</dd>
+    <dt><kbd>화살표</kbd></dt><dd>고른 요소 1px · Shift 10px</dd>
   </dl>
 `;
 $('helpBtn').onclick = e => { e.stopPropagation(); toggleHelp(); };
@@ -2363,13 +2404,17 @@ document.addEventListener('pointerdown', e => {
 });
 
 /* ═══ 선택 · 인스펙터 ═══ */
-function select(specId) {
-  state.selected = specId;
+function select(specId, elId = null) {
+  state.selected = specId; state.elSel = specId ? elId : null;
+  textRoleFocus = state.elSel ? parseElementId(state.elSel).role : null;
   for (const [id, f] of frames) f.frame.classList.toggle('sel', id === specId);
   renderInspector();
   // 직접 수정 손잡이 — 매체 광고 하나를 골랐을 때만(10-14)
   const sa = specId ? state.campaign?.artifacts.find(x => (x.key ?? x.specId) === specId) : null;
   if (sa?.channel === 'ad') ED.showOverlay(sa); else { state.editFocus = null; ED.hideOverlay(); }
+  EL.hover(sa ?? null, null);
+  if (sa?.channel === 'ad' && state.elSel) { EL.show(sa, state.elSel); EL.focus(); } else EL.hide();
+  RULER?.draw();
 }
 
 // 지금 산출물이 어느 레이아웃 안에 서 있나 — variantSel 인덱스가 아니라 overrides.style 과 안 style 의 일치로 판정(10-20).
@@ -2385,13 +2430,234 @@ function currentVariantIndex(a) {
 // 글자별 편집(N6 「개별 폰트 색상 및 사이즈」, 11-02 사용자 「해당 프레임 선택해서 컬러 바꿀 수 있게」): 캔버스에서 글자를 누르면 그 줄이 여기서 열린다. 색이 정해진 규격은 색 잠금, 글자 크기가 규정인 규격(자소설·비즈보드)은 크기 잠금
 const TEXT_ROLES = [['main', '메인'], ['sub', '서브'], ['detail', '상세']];
 let textRoleFocus = null;
+/* ═══ 왼쪽 내용 패널(11-02 사용자 「좌측이 내용 관련」, hub/panel.js 입력 탭) — 브리프 칸 · 프롬프트. 프레임을 고르면 같은 칸이 「이 소재만」으로 바뀐다 ═══ */
+function campaignStat(c = state.campaign) {
+  const list = (c?.artifacts ?? []).filter(x => x.channel === 'ad' || x.channel === 'asset'), n = list.length || (c?.artifacts?.length ?? 0);
+  const done = (list.length ? list : c?.artifacts ?? []).filter(x => x.status === 'approved').length;
+  return `${done && done === n ? '승인 완료' : '초안'} · 검수 완료 ${done}/${n}`;
+}
+function renderLeft() {
+  const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
+  $('lName').textContent = campaignName(c.context); $('lStat').textContent = campaignStat(c);
+  const a = state.selected ? c.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null;
+  const sig = state.selected ?? '';
+  if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
+  body.dataset.sig = sig;
+  const fields = campaignFields(c);
+  body.innerHTML = `<section class="isec"><h3>브리프 <span class="mode">${a ? '이 소재만' : '전체 일괄'}</span></h3>
+    ${fields.map(f => a
+      ? `<label>${FIELD_LABEL[f]}${a.overrides.core?.[f] ? ` ${iconBtn('swap', `${FIELD_LABEL[f]} 일괄값으로 되돌리기`, `data-lreset="${f}"`)}` : ''}</label><input type="text" data-f="${f}" value="${escH(a.overrides.core?.[f] ?? '')}" placeholder="${escH(c.context.core[f] ?? FIELD_HINT[f] ?? '')}">`
+      : `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(c.context.core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`).join('')}
+    <button class="btn" id="lApply" style="width:100%;margin-top:10px">글자에 반영</button>
+    <div id="lNote" class="fnote" role="status"></div>
+    </section>
+    <section class="isec"><h3>프롬프트</h3>
+    <textarea id="lPrompt" rows="3" aria-label="변경 지시"></textarea>
+    <button class="btn" id="lPromptGo" style="width:100%;margin-top:6px">적용</button>
+    </section>`;
+  const note = t => { const n = $('lNote'); if (n) n.textContent = t; };
+  const commit = i => {
+    const f = i.dataset.f, v = i.value.trim();
+    if (a) {
+      const o = { ...(a.overrides.core ?? {}) };
+      if ((o[f] ?? '') === v) return;
+      if (v && v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
+      pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 개별 편집`, true);
+      a.overrides.core = o; a.status = 'draft'; a.gateOverride = null;
+      logEvent(c, 'manual_edit', { specId: a.specId });
+      regen(c); autosave(); refreshFrames(a.key ?? a.specId);
+      note('이 소재만 반영됨');
+      log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
+      return;
+    }
+    if (v === (c.context.core[f] ?? '')) return;
+    pushHistory(`${FIELD_LABEL[f]} 일괄 변경`);
+    const { impacted, conflicts } = propagate(c, { [f]: v });
+    regen(c);   // propagate 는 공통 스타일로만 다시 그린다 — 개별값·요소 편집이 빠지지 않게 정식으로 한 번 더
+    refreshFrames();
+    $('lName').textContent = campaignName(c.context);
+    note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}건은 개별 편집값 유지(확인 필요)` : `${impacted.length}종 즉시 반영됨`);
+    log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+    autosave();
+  };
+  body.querySelectorAll('input[data-f]').forEach(i => { i.oninput = debounce(() => commit(i), 450); });
+  $('lApply').onclick = () => body.querySelectorAll('input[data-f]').forEach(commit);
+  body.querySelectorAll('[data-lreset]').forEach(b => b.onclick = () => { const f = b.dataset.lreset, o = { ...(a.overrides.core ?? {}) }; delete o[f]; pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 일괄값으로`); a.overrides.core = o; a.status = 'draft'; a.gateOverride = null; regen(c); autosave(); refreshFrames(a.key ?? a.specId); body.dataset.sig = '!'; renderLeft(); });
+  const pr = $('lPrompt'), go = () => { const t = pr.value.trim(); if (t) { pr.value = ''; onCommand(t); } };
+  $('lPromptGo').onclick = go;
+  pr.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); go(); } };
+  wireFui(body);
+}
+
+/* ═══ 오른쪽 패널 범위(11-02 사용자 「개별과 일괄도 잘 정리」) — 전체 일괄 / 이 소재만 / 이 요소만. 지금 범위를 맨 위에 ═══ */
+const OV_GROUP = { visual: ['kvPlace', 'kvSize', 'scrim'], bg: ['bgFill', 'bgGrad', 'background'], color: ['palette'], text: ['fonts', 'textTone', 'textColor', 'textAlign', 'textAnchor', 'roleColors', 'roleScale'] };
+const OV_KEYS = Object.values(OV_GROUP).flat();
+const ownStyleKeys = a => Object.keys(a?.overrides?.style ?? {}).filter(k => OV_KEYS.includes(k));
+function ownCount(a) { return ownStyleKeys(a).length + Object.keys(a?.overrides?.layout ?? {}).length + Object.keys(a?.overrides?.elements ?? {}).length; }
+// 이 묶음에 개별값이 있으면 표시 + 눌러서 일괄값으로
+function ovBtn(a, group) {
+  const n = OV_GROUP[group].filter(k => a.overrides?.style?.[k] != null).length; if (!n) return '';
+  return `<button type="button" class="ovr" data-ovr="${group}" title="일괄값으로 되돌리기" aria-label="개별값 ${n}개 — 일괄값으로 되돌리기">개별 ${ic('swap')}</button>`;
+}
+function scopeHtml(a) {
+  const elOn = !!(a && state.elSel && EL.find(a, state.elSel));
+  const scope = !a ? 'all' : elOn ? 'el' : 'art';
+  const own = a ? ownCount(a) : 0;
+  const crumb = !a ? `${(state.campaign?.artifacts ?? []).length}종` : elOn ? `${escH(artLabel(a))} › ${escH(elementName(state.elSel))}` : escH(artLabel(a));
+  return `<div class="scope">
+    <div class="rtabs" role="tablist" aria-label="패널">${[['design', '디자인'], ['review', '검수']].map(([k, n]) => `<button type="button" role="tab" data-rtab="${k}" aria-selected="${(state.rightTab ?? 'design') === k}" class="${(state.rightTab ?? 'design') === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="fseg" id="iScope" role="group" aria-label="편집 범위">${[['all', '전체 일괄'], ['art', '이 소재만'], ['el', '이 요소만']].map(([k, n]) => `<button type="button" data-scope="${k}" class="${scope === k ? 'on' : ''}" aria-pressed="${scope === k}" ${(k === 'art' && !a) || (k === 'el' && !elOn) ? 'disabled' : ''}>${n}</button>`).join('')}</div>
+    <div class="scope-crumb"><span>${crumb}</span>${a && own ? `<button type="button" class="ovr" data-ovrall="1" title="이 소재의 개별값을 모두 지우고 일괄값으로" aria-label="개별값 ${own}개 모두 일괄값으로 되돌리기">개별 ${own} ${ic('swap')}</button>` : ''}</div>
+  </div>`;
+}
+function bindScope(insp, a, c) {
+  insp.querySelectorAll('[data-rtab]').forEach(b => b.onclick = () => { state.rightTab = b.dataset.rtab; renderInspector(); insp.querySelector(`[data-rtab="${b.dataset.rtab}"]`)?.focus(); });
+  insp.querySelectorAll('[data-scope]').forEach(b => b.onclick = () => { if (b.dataset.scope === 'all') select(null); else if (b.dataset.scope === 'art') select(state.selected); });
+  if (!a) return;
+  const resetKeys = (keys, label, also = {}) => {
+    pushHistory(`${artLabel(a)} ${label}`);
+    const st = { ...(a.overrides.style ?? {}) }; for (const k of keys) delete st[k]; a.overrides.style = st;
+    if (also.layout) delete a.overrides.layout;
+    if (also.elements) delete a.overrides.elements;
+    a.status = 'draft'; a.gateOverride = null;
+    logEvent(c, 'manual_edit', { specId: a.specId, style: 'reset' });
+    state.elSel = null; regen(c); autosave(); softly(() => refreshFrames(a.key ?? a.specId)); EL.hide(); renderInspector();
+  };
+  insp.querySelectorAll('[data-ovr]').forEach(b => b.onclick = () => resetKeys(OV_GROUP[b.dataset.ovr], '일괄값으로'));
+  insp.querySelector('[data-ovrall]')?.addEventListener('click', () => resetKeys(OV_KEYS, '개별값 전부 일괄값으로', { layout: true, elements: true }));
+  insp.querySelectorAll('[data-elpick]').forEach(b => b.onclick = () => select(a.key ?? a.specId, b.dataset.elpick));
+  insp.querySelectorAll('[data-goall]').forEach(b => b.onclick = () => { select(null); $('secVisual')?.scrollIntoView({ block: 'start' }); });
+}
+// 프레임 안 요소 목록(hub 레이어 패널) — 키보드로도 고를 수 있게. 개별값이 있으면 점
+function layerListHtml(a) {
+  const items = EL.list(a); if (!items.length) return '';
+  const st = a.overrides.style ?? {}, ed = a.overrides.elements ?? {}, lay = a.overrides.layout ?? {};
+  const own = it => !!(ed[it.id] || (it.kind === 'text' && (st.roleColors?.[it.id] || st.roleScale?.[it.id])) || (it.kind !== 'text' && lay[it.kind]));
+  return `<section class="isec"><h3>요소</h3><div class="layers">${items.map(it => `<button type="button" class="layer" data-elpick="${escH(it.id)}"><i class="layer-k layer-${it.kind}" aria-hidden="true"></i><span>${escH(elementName(it.id))}</span>${own(it) ? '<em title="개별값 있음" aria-label="개별값 있음">●</em>' : ''}</button>`).join('')}</div></section>`;
+}
+const hexOfCss = v => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(v ?? ''); return m ? '#' + [m[1], m[2], m[3]].map(x => (+x).toString(16).padStart(2, '0')).join('').toUpperCase() : '#333333'; };
+function elLocks(a, id) {
+  const spec = SPECS[a.specId], { role } = parseElementId(id);
+  if (role === 'kv' || role === 'logo') return {};
+  return { color: textColorRegulated(spec), size: sizeLockedOf(spec), font: fontRuleOf(spec?.mediumRules, spec?.rules).fixed };
+}
+const isStyleRole = id => { const { role, n } = parseElementId(id); return !n && STYLE_ROLES.includes(role); };
+// 요소 하나의 값 패널 — 위치 · 크기 · 글꼴 · 굵기 · 정렬 · 색
+function elementPanelHtml(a, spec, id) {
+  const it = EL.find(a, id), c = state.campaign, locks = elLocks(a, id), { role } = parseElementId(id);
+  const box = it.box, r1 = v => Math.round(v * 10) / 10;
+  const ed = a.overrides.elements?.[id] ?? {}, st = a.overrides.style ?? {};
+  const own = !!(a.overrides.elements?.[id] || (isStyleRole(id) && (st.roleColors?.[role] || st.roleScale?.[role])) || a.overrides.layout?.[role]);
+  const head = `<h3>${escH(elementName(id))} ${own ? `<button type="button" class="ovr" id="iElReset" title="일괄값으로 되돌리기" aria-label="${escH(elementName(id))} 일괄값으로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>`;
+  const posRow = `<div class="fgrid2">${numField({ id: 'iElX', value: r1(box.x), label: 'X 위치', prefix: 'X' })}${numField({ id: 'iElY', value: r1(box.y), label: 'Y 위치', prefix: 'Y' })}</div>`;
+  if (it.kind !== 'text') {
+    const P = ED.partsOf(a), why = !P?.[it.kind] ? P?.why?.[it.kind] : null;
+    return `<section class="isec">${head}
+      ${posRow}
+      <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비', prefix: 'W' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이', prefix: 'H' })}</div>
+      ${why ? '<div class="fnote">틀이 정한 칸 · 옮기면 검수에 걸릴 수 있어요</div>' : ''}
+      </section>
+      ${it.kind === 'kv' ? `<section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}
+      <button class="btn" data-goall="kv" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button></section>` : `<section class="isec"><button class="btn" data-goall="logo" style="width:100%">로고 바꾸기</button></section>`}`;
+  }
+  const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el);
+  const px = Math.round(parseFloat(cs.fontSize) * 10) / 10, w = +cs.fontWeight || 400, curColor = (isStyleRole(id) ? st.roleColors?.[role] : ed.color) ?? hexOfCss(cs.color);
+  const al = ed.align ?? (['left', 'center', 'right'].includes(cs.textAlign) ? cs.textAlign : 'left');
+  const fontRule = fontRuleOf(spec?.mediumRules, spec?.rules);
+  return `<section class="isec">${head}
+    ${posRow}
+    <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비(글자에 맞춤)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이(글자에 맞춤)', prefix: 'H', attrs: 'disabled' })}</div>
+    </section>
+    <section class="isec"><h3>글자</h3>
+    ${locks.font ? `<label>글꼴</label><div class="fnote">이 매체는 ${escH(fontRule.required)} 고정</div>` : `<label for="iElFont">글꼴</label><select id="iElFont"><option value="" ${ed.font ? '' : 'selected'}>공통 따름</option>${fontOptions(ed.font ?? '')}</select>`}
+    <div class="fgrid2" style="margin-top:6px">
+      <div><label for="iElWeight">굵기</label><select id="iElWeight">${WEIGHTS.map(v => `<option value="${v}" ${v === w ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div><label for="iElSize">크기</label>${numField({ id: 'iElSize', value: px, label: '글자 크기', unit: 'px', attrs: locks.size ? 'disabled' : '' })}</div>
+    </div>
+    <label>정렬</label>
+    <div class="vseg" id="iElAlign" role="group" aria-label="정렬">${[['left', 'ta-l', '왼쪽'], ['center', 'ta-c', '가운데'], ['right', 'ta-r', '오른쪽']].map(([k, icn, n]) => `<button type="button" data-ela="${k}" class="${al === k ? 'on' : ''}" aria-pressed="${al === k}" aria-label="${n}" title="${n}">${ic(icn)}</button>`).join('')}</div>
+    <label>색</label>
+    <div class="fstack">${colorRowHtml({ id: 'iElColor', value: curColor, label: `${elementName(id)} 색`, disabled: locks.color })}</div>
+    ${(() => { const notes = [locks.color ? '글자색이 규정으로 정해진 규격' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색' : '', locks.size ? '글자 크기가 규정으로 정해진 규격' : ''].filter(Boolean); return notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''; })()}
+    </section>`;
+}
+function elCommit(a, patch, label, coalesce = false) {
+  const c = state.campaign, k = a.key ?? a.specId, focusId = $('inspector').contains(document.activeElement) ? document.activeElement.id : null;
+  pushHistory(`${artLabel(a)} ${label}`, coalesce);
+  if ('elements' in patch) { if (patch.elements) a.overrides.elements = patch.elements; else delete a.overrides.elements; }
+  if ('layout' in patch) { if (patch.layout) a.overrides.layout = patch.layout; else delete a.overrides.layout; }
+  if (patch.style) a.overrides.style = patch.style;
+  a.status = 'draft'; a.gateOverride = null;
+  logEvent(c, 'manual_edit', { specId: a.specId, element: state.elSel ?? null });
+  regen(c); autosave(); softly(() => refreshFrames(k));
+  renderInspector();
+  if (state.elSel && state.selected === k) EL.show(a, state.elSel);
+  if (focusId) $(focusId)?.focus();   // 패널 칸에서 고쳤으면 그 칸에 그대로(Tab 흐름이 끊기지 않게)
+  ED.editedBadge(a);
+  log(`${a.specId} ${label}`);
+}
+// 글자 크기 배율 — 메인·서브·상세는 roleScale(렌더러가 줄바꿈까지 다시 잡는다), 그 밖은 요소 편집
+function textScaleCommit(a, id, k) {
+  if (elLocks(a, id).size) return;
+  const { role } = parseElementId(id);
+  if (isStyleRole(id)) {
+    const cur = a.overrides.style?.roleScale?.[role] ?? 1, v = Math.round(Math.min(1.6, Math.max(0.6, cur * k)) * 100) / 100;
+    const rs = { ...(a.overrides.style?.roleScale ?? {}) }; if (v === 1) delete rs[role]; else rs[role] = v;
+    const st = { ...(a.overrides.style ?? {}), roleScale: rs }; if (!Object.keys(rs).length) delete st.roleScale;
+    elCommit(a, { style: st }, `${elementName(id)} 크기`);
+  } else elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { scale: (a.overrides.elements?.[id]?.scale ?? 1) * k }) }, `${elementName(id)} 크기`);
+}
+function textScaleLive(a, id, k) {
+  const key = a.key ?? a.specId, { role } = parseElementId(id);
+  if (isStyleRole(id)) { const cur = a.overrides.style?.roleScale?.[role] ?? 1; LIVE.push({ style: state.campaign.style, only: key, ov: { roleScale: { ...(a.overrides.style?.roleScale ?? {}), [role]: Math.round(Math.min(1.6, Math.max(0.6, cur * k)) * 100) / 100 } } }); }
+  else LIVE.push({ style: state.campaign.style, only: key, elements: withElementEdit(a.overrides.elements, id, { scale: (a.overrides.elements?.[id]?.scale ?? 1) * k }) });
+}
+function bindElementPanel(insp, a, c, spec, id) {
+  const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
+  const q = s => insp.querySelector(s);
+  const edit = (patch, label) => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, patch) }, `${elementName(id)} ${label}`);
+  for (const [sel, set] of [['#iElX', v => EL.setXY(a, id, v, null)], ['#iElY', v => EL.setXY(a, id, null, v)], ['#iElW', v => EL.setSize(a, id, v, null)], ['#iElH', v => EL.setSize(a, id, null, v)]]) {
+    const n = q(sel); if (n && !n.disabled) n.addEventListener('change', () => { const v = parseFloat(n.value); if (Number.isFinite(v)) set(v); });
+  }
+  const fnt = q('#iElFont'); if (fnt) fnt.onchange = () => edit({ font: fnt.value || null }, '글꼴');
+  const wgt = q('#iElWeight'); if (wgt) wgt.onchange = () => edit({ weight: +wgt.value }, '굵기');
+  const sz = q('#iElSize'); if (sz && !sz.disabled) { const px0 = parseFloat(sz.value); sz.addEventListener('change', () => { const v = parseFloat(sz.value); if (v > 0 && v !== px0) textScaleCommit(a, id, v / px0); }); }
+  insp.querySelectorAll('#iElAlign [data-ela]').forEach(b => b.onclick = () => { edit({ align: b.dataset.ela }, '정렬'); q(`#iElAlign [data-ela="${b.dataset.ela}"]`)?.focus(); });
+  const col = q('#iElColor');
+  if (col && !col.disabled) {
+    const ov = v => styled ? { roleColors: { ...(a.overrides.style?.roleColors ?? {}), [role]: v } } : null;
+    col.oninput = () => { const v = col.value.toUpperCase(); if (styled) LIVE.push({ style: c.style, only: key, ov: ov(v) }); else LIVE.push({ style: c.style, only: key, elements: withElementEdit(a.overrides.elements, id, { color: v }) }); };
+    col.onchange = () => { const v = col.value.toUpperCase(); if (styled) elCommit(a, { style: { ...(a.overrides.style ?? {}), ...ov(v) } }, `${elementName(id)} 색`); else edit({ color: v }, '색'); };
+  }
+  q('#iElReset')?.addEventListener('click', () => {
+    const st = { ...(a.overrides.style ?? {}) };
+    for (const k of ['roleColors', 'roleScale']) if (styled && st[k]) { const o = { ...st[k] }; delete o[role]; if (Object.keys(o).length) st[k] = o; else delete st[k]; }
+    const L = { ...(a.overrides.layout ?? {}) }; if (role === 'kv' || role === 'logo') delete L[role];
+    const E0 = { ...(a.overrides.elements ?? {}) }; delete E0[id];
+    elCommit(a, { style: st, layout: Object.keys(L).length ? L : null, elements: Object.keys(E0).length ? E0 : null }, `${elementName(id)} 일괄값으로`);
+  });
+}
+// 이 소재만: 배경색 · 컬러(끄는 동안 이 프레임만 실시간, 놓으면 한 걸음)
+function bindArtifactStyle(insp, a, c) {
+  const key = a.key ?? a.specId;
+  const save = (patch, label) => { const st = { ...(a.overrides.style ?? {}), ...patch }; elCommit(a, { style: st }, label); };
+  const bg = insp.querySelector('#iBgOv');
+  if (bg) { const pv = v => ({ bgFill: 'custom', background: { ...(c.style.background ?? {}), mode: 'solid', color: v } }); bg.oninput = () => LIVE.push({ style: c.style, only: key, ov: pv(bg.value.toUpperCase()) }); bg.onchange = () => save(pv(bg.value.toUpperCase()), '배경색'); }
+  for (const k of ['primary', 'secondary', 'accent']) {
+    const n = insp.querySelector(`#iPalOv-${k}`); if (!n) continue;
+    const pv = v => ({ palette: { ...c.style.palette, ...(a.overrides.style?.palette ?? {}), [k]: v } });
+    n.oninput = () => LIVE.push({ style: c.style, only: key, ov: pv(n.value.toUpperCase()) });
+    n.onchange = () => save(pv(n.value.toUpperCase()), '컬러');
+  }
+}
+
 const sizeLockedOf = spec => spec.medium === 'jasoseol' || !!(spec.rules?.mainTwoLine ?? spec.mainTwoLine);
 function textRolesOf(a) { const f = frames.get(a.key ?? a.specId), doc = f?.iframe?.contentDocument; const have = doc ? new Set([...doc.querySelectorAll('[data-field]')].map(e => e.dataset.field)) : null; return TEXT_ROLES.filter(([k]) => !have || have.has(k)); }
 function textRolesHtml(a, spec) {
   if (a.channel !== 'ad') return '';
   const roles = textRolesOf(a); if (!roles.length) return '';
   const reg = textColorRegulated(spec), lockSize = sizeLockedOf(spec), cs = a.overrides.style?.roleColors ?? {}, ss = a.overrides.style?.roleScale ?? {};
-  return `<label>글자별 편집 <span style="opacity:.55">캔버스에서 글자를 누르면 그 줄로</span></label><div class="fstack" id="iRoles">${roles.map(([k, n]) => { const pct = Math.round((ss[k] ?? 1) * 100); return `<div class="frole${textRoleFocus === k ? ' on' : ''}" data-role="${k}"><div class="flab sub"><span>${n}</span>${(cs[k] || ss[k]) ? iconBtn('swap', `${n} 되돌리기`, `data-rr="${k}"`) : ''}</div>${colorRowHtml({ id: `iRC-${k}`, value: cs[k] ?? '#333333', label: `${n} 글자색`, tail: cs[k] ? '' : '자동', idle: !cs[k], disabled: reg })}${lockSize ? '' : `<div class="fline" style="margin-top:4px"><button type="button" class="btn" data-rs="${k}" data-d="-5" aria-label="${n} 작게">−</button><span style="min-width:44px;text-align:center;font-size:12px">${pct}%</span><button type="button" class="btn" data-rs="${k}" data-d="5" aria-label="${n} 크게">+</button></div>`}</div>`; }).join('')}</div><div class="fnote">${[reg ? '이 규격은 글자색이 규정으로 정해져 있어요' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색이에요' : '', lockSize ? '이 규격은 글자 크기가 규정으로 정해져 있어요' : ''].filter(Boolean).join(' · ') || '이 산출물만 바뀌어요'}</div>`;
+  return `<label>글자별 편집</label><div class="fstack" id="iRoles">${roles.map(([k, n]) => { const pct = Math.round((ss[k] ?? 1) * 100); return `<div class="frole${textRoleFocus === k ? ' on' : ''}" data-role="${k}"><div class="flab sub"><span>${n}</span>${(cs[k] || ss[k]) ? iconBtn('swap', `${n} 되돌리기`, `data-rr="${k}"`) : ''}</div>${colorRowHtml({ id: `iRC-${k}`, value: cs[k] ?? '#333333', label: `${n} 글자색`, tail: cs[k] ? '' : '자동', idle: !cs[k], disabled: reg })}${lockSize ? '' : `<div class="fline" style="margin-top:4px"><button type="button" class="btn" data-rs="${k}" data-d="-5" aria-label="${n} 작게">−</button><span style="min-width:44px;text-align:center;font-size:12px">${pct}%</span><button type="button" class="btn" data-rs="${k}" data-d="5" aria-label="${n} 크게">+</button></div>`}</div>`; }).join('')}</div><div class="fnote">${[reg ? '이 규격은 글자색이 규정으로 정해져 있어요' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색이에요' : '', lockSize ? '이 규격은 글자 크기가 규정으로 정해져 있어요' : ''].filter(Boolean).join(' · ') || '이 산출물만 바뀌어요'}</div>`;
 }
 function bindTextRoles(insp, a, c) {
   const box = insp.querySelector('#iRoles'); if (!box) return;
@@ -2406,33 +2672,30 @@ function bindTextRoles(insp, a, c) {
 }
 // 캔버스 클릭 → 누른 자리의 글자 줄(iframe 문서 좌표로 환산)
 function textRoleAt(a, e) { const f = frames.get(a.key ?? a.specId), ifr = f?.iframe, doc = ifr?.contentDocument; if (!doc) return null; const r = ifr.getBoundingClientRect(), k = r.width / (ifr.offsetWidth || r.width), x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k; let hit = null; for (const el of doc.querySelectorAll('[data-field]')) { const b = el.getBoundingClientRect(); if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom && TEXT_ROLES.some(([n]) => n === el.dataset.field)) hit = el.dataset.field; } return hit; }
-function renderInspector() { renderInspectorBody(); wireFui($('inspector')); }
+function renderInspector() { renderLeft(); renderInspectorBody(); wireFui($('inspector')); }
 function renderInspectorBody() {
   const insp = $('inspector');
   const c = state.campaign;
   if (!state.selected) {
-    insp.innerHTML = `
-      <section class="isec">
-      <h3>캠페인 <span class="mode">전체 일괄</span></h3>
-      ${campaignFields(c).map(f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${c.context.core[f] ?? ''}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`).join('')}
-      </section>
-      <section class="isec">
-      <h3>스타일</h3>
-      <label>브랜드 컬러 ${c.style.keyVisual ? '<span style="opacity:.6">· 키비주얼에서 배치</span>' : ''}</label>
-      <div class="fstack">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => colorRowHtml({ id: k, value: v, label: n, tail: n })).join('')}</div>
-      <div style="margin-top:8px">${bgControlHtml(c.style, 'iBg')}</div>
-      <label>키비주얼</label>
+    const scopeTop = scopeHtml(null);
+    const sumA = ED.approveSummary();
+    const adsN = c.artifacts.filter(x => x.channel === 'ad' || x.channel === 'asset');
+    insp.innerHTML = `${scopeTop}
+      <div id="paneDesign" role="tabpanel" aria-label="디자인"${state.rightTab === 'review' ? ' hidden' : ''}>
+      <section class="isec" id="secVisual">
+      <h3>비주얼</h3>
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${c.style.keyVisual})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
       ${c.style.keyVisual ? `<div class="kvvrow">${[['wide', '가로형'], ['tall', '세로형']].map(([k, n]) => { const v = c.style.kvVariants?.[k]; return `<div class="kvthumb logo" id="iKvV-${k}" title="${k === 'wide' ? '폭이 긴' : '세로로 긴'} 규격에 쓸 그림 — 없으면 기본 키비주얼" style="${v ? `background-image:url(${v.keyVisual})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="iKvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-ikvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}`; }).join('')}</div>` : ''}
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn" id="iKvColors" style="flex:1">색 다시 뽑기</button>
+        <button class="btn" id="iKvColors" style="flex:1">색 다시 맞춤</button>
         <button class="btn" id="iKvClear" style="flex:1">제거</button></div>
       <div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
+      ${ED.presetCampaignHtml(['kvPlace', 'kvSize', 'scrim'])}
       <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>
       <div style="display:flex;gap:6px">
         <div class="kvthumb logo" id="iLogo" style="flex:1;height:44px;${c.style.logo ? `background-image:url(${c.style.logo})` : ''}">${c.style.logo ? '' : '원색 로고'}</div>
@@ -2441,38 +2704,43 @@ function renderInspectorBody() {
       <input type="file" id="iLogoFile" accept="image/*" style="display:none">
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
-      <label>글자색 <span style="opacity:.6">· 색이 정해진 매체(리멤버·카카오 비즈보드)는 규정대로</span></label>
-      <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
-      <div class="fstack" id="iTextColorRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자색 직접', tail: c.style.textColor ? '' : '직접', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '글자색 직접 지정 되돌리기', 'id="iTextColorReset"') : '' })}</div>
-      <div class="fnote">${c.style.textColor ? '색이 정해진 매체(리멤버·카카오 비즈보드·NAP 비즈보드)는 제외' : '색 하나로 지정(색이 정해진 매체 제외) · 지면 대비 3:1 미만이면 검수 경고'}</div>
+      </section>
+      <section class="isec"><h3>배경</h3>${bgControlHtml(c.style, 'iBg')}</section>
+      <section class="isec">
+      <h3>컬러</h3>
+      <div class="fstack">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => colorRowHtml({ id: k, value: v, label: n, tail: n })).join('')}</div>
+      </section>
+      <section class="isec">
+      <h3>글자</h3>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
+      <label>글자색</label>
+      <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
+      <div class="fstack" id="iTextColorRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자색 직접', tail: c.style.textColor ? '' : '직접', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '글자색 직접 지정 되돌리기', 'id="iTextColorReset"') : '' })}</div>
+      <div class="fnote">색이 정해진 매체(리멤버·카카오 비즈보드·NAP 비즈보드)는 제외</div>
       ${ED.alignCampaignHtml()}
+      ${ED.presetCampaignHtml(['textAnchor'])}
       </section>
       <section class="isec">
-      <h3>레퍼런스 <span class="mode">참고용 · 렌더 안 씀</span></h3>
-      <div class="hint">공고문·전 시안·무드 이미지. 저장해서 여기서만 보고, 소재 렌더와 AI 그림 판단에는 넘기지 않아요. 소재에 그려질 그림은 위 키비주얼 칸에.</div>
+      <h3>레퍼런스 <span class="mode">참고용</span></h3>
       <div class="reflist insp">${(c.style.references ?? []).map((r, i) => `<span class="refi" style="background-image:url(${r})" title="레퍼런스 ${i + 1} — 클릭하면 크게"><button type="button" class="refo" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 크게"></button><button type="button" class="refx" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 빼기">×</button></span>`).join('')}
         ${(c.style.references?.length ?? 0) < 8 ? '<button type="button" class="refadd" id="iRefAdd" aria-label="레퍼런스 추가">+</button>' : ''}</div>
       <input type="file" id="iRefFile" accept="image/*" multiple style="display:none">
       </section>
       ${c.kind !== undefined && (c.media?.length || c.adSpecIds?.length) ? mediaAddHtml(c) : ''}
+      </div>
+      <div id="paneReview" role="tabpanel" aria-label="검수"${state.rightTab === 'review' ? '' : ' hidden'}>
+      <section class="isec"><h3>검수 <span class="mode">승인 ${adsN.filter(x => x.status === 'approved').length}/${adsN.length}</span></h3>
+        <div class="fnote">가이드 ✗ ${sumA.fail}${sumA.pending ? ` · 재는 중 ${sumA.pending}` : ''}</div>
+        ${sumA.top.length ? `<ul class="gok-list">${sumA.top.map(([n, k]) => `<li>${escH(n)} <span>${k}</span></li>`).join('')}</ul>` : ''}
+        <button class="btn" id="iApproveAll" style="width:100%;margin-top:8px">전체 승인</button>
+      </section></div>
       <div id="inspNote"></div>`;
+    bindScope(insp, null, c);
+    insp.querySelector('#iApproveAll').onclick = () => $('approveAll').click();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
-    insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
-      const f = i.dataset.f, v = i.value.trim();
-      if (v === (c.context.core[f] ?? '')) return;
-      pushHistory(`${FIELD_LABEL[f]} 일괄 변경`);
-      const { impacted, conflicts } = propagate(c, { [f]: v });
-      refreshFrames();
-      $('inspNote').textContent = conflicts.length
-        ? `${impacted.length}종 반영 · ${conflicts.length}건은 개별 편집값 유지(확인 필요)`
-        : `${impacted.length}종 즉시 반영됨`;
-      log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
-      autosave();
-    }, 450));
     const restyle = (patch = {}, label = '스타일 변경', coalesce = false) => restyleWith(c, patch, label, coalesce, {
       colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
       fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
@@ -2665,14 +2933,36 @@ function renderInspectorBody() {
   const isPrint = spec.unit === 'mm';
   const presets = presetsFor(a);
   // 섹션마다 .isec(흰 카드)로 묶는다 — 인스펙터는 유리 판이라 안쪽을 카드로 쌓아야 층이 읽힌다
-  insp.innerHTML = `
-    <section class="isec">
-    <h3>${artLabel(a)} <span class="mode">개별 편집</span></h3>
-    ${campaignFields(c).map(f => `
-      <label>${FIELD_LABEL[f]} <span style="opacity:.55">공통: ${c.context.core[f] ?? '—'}</span></label>
-      <input type="text" data-f="${f}" value="${a.overrides.core?.[f] ?? ''}" placeholder="${escH(c.context.core[f] ?? FIELD_HINT[f] ?? '')}">`).join('')}
+  const scopeTop = scopeHtml(a);
+  const designSections = state.elSel && a.channel === 'ad' && EL.find(a, state.elSel) ? elementPanelHtml(a, spec, state.elSel) : `
+    ${(a.channel === 'ad' && (a.variants?.length ?? 0) > 1) ? `<section class="isec isec-var">
+      <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
+      <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
+      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button></div>
+    </section>` : ''}
+    ${a.channel === 'ad' ? `${layerListHtml(a)}
+    <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
+      ${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}
+      <button class="btn" data-goall="kv" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button>
     </section>
-    ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '<section class="isec">' : ''}
+    <section class="isec"><h3>배경 ${ovBtn(a, 'bg')}</h3>
+      ${ED.presetArtifactHtml(a, ['bgFill', 'bgGrad'], 'inspPresetB')}
+      <div class="fstack" style="margin-top:8px">${colorRowHtml({ id: 'iBgOv', value: a.overrides.style?.background?.color ?? c.style.background?.color ?? c.style.palette.primary, label: '이 소재 배경색', tail: a.overrides.style?.background?.color ? '' : '직접', idle: !a.overrides.style?.background?.color })}</div>
+    </section>
+    <section class="isec"><h3>컬러 ${ovBtn(a, 'color')}</h3>
+      <div class="fstack">${[['primary', '주색'], ['secondary', '보조'], ['accent', '포인트']].map(([k, n]) => colorRowHtml({ id: `iPalOv-${k}`, value: a.overrides.style?.palette?.[k] ?? c.style.palette[k], label: `이 소재 ${n}`, tail: n, idle: !a.overrides.style?.palette })).join('')}</div>
+    </section>
+    <section class="isec"><h3>글자 ${ovBtn(a, 'text')}</h3>
+      ${artifactFontHtml(a, c)}
+      <label>글자색</label>
+      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}" aria-pressed="${(a.overrides.style?.textTone ?? '') === k}">${v}</button>`).join('')}</div>
+      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 소재만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 소재 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div>${reg ? '<div class="fnote">매체 규정 색 고정 — 직접 지정 불가</div>' : ''}`; })()}
+      ${ED.alignArtifactHtml(a)}
+      ${ED.presetArtifactHtml(a, ['textAnchor'], 'inspPresetT')}
+      ${textRolesHtml(a, spec)}
+    </section>
+    <section class="isec"><h3>가이드</h3>${guideOvHtml(a) || '<div class="fnote">이 규격은 틀 가이드가 없어요</div>'}</section>` : ''}
+    ${(nVar > 1 && a.channel !== 'ad') || a.channel === 'badge' || isPrint ? `<section class="isec">
     ${(nVar > 1 && a.channel !== 'ad') ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
       `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}" aria-pressed="${(a.variant ?? 0) === i}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
     ${a.channel === 'badge' ? `
@@ -2692,24 +2982,18 @@ function renderInspectorBody() {
       <div style="font-size:11px;color:var(--sub);margin-top:8px;line-height:1.6">
         용지 ${spec.wmm + spec.bleed * 2}×${spec.hmm + spec.bleed * 2}mm (블리드 ${spec.bleed}mm)<br>
         메인 ${c.style.palette.primary} ≈ ${cmykText(c.style.palette.primary)}
-      </div>` : ''}
-    ${a.channel === 'ad' ? `
-      ${artifactFontHtml(a, c)}
-      ${a.channel === 'ad' ? `<label>글자색 <span style="opacity:.55">이 산출물만 · 비우면 공통(${TONE_LABEL[c.style.textTone ?? 'auto']})</span></label>
-      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}" aria-pressed="${(a.overrides.style?.textTone ?? '') === k}">${v}</button>`).join('')}</div>
-      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 산출물만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 산출물 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div><div class="fnote">${reg ? '매체 규정 색 고정 — 직접 지정 불가' : ov ? '이 산출물만 이 색' : c.style.textColor ? '공통 색 따름' : '이 산출물만 색 하나로'}</div>`; })()}` : ''}
-      ${textRolesHtml(a, spec)}
-      ${(a.variants?.length ?? 0) > 1 ? `<label>레이아웃 안 <span style="opacity:.55">${a.variants.length}안 · 고르면 이 산출물만, 「이 안으로 전부」는 캠페인 일괄</span></label>
-      <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
-      <div class="row" style="margin-top:6px"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button><span style="font-size:11px;color:var(--sub);margin-left:8px">같은 방향(위치·정렬·크기·배경·글자색)을 쓸 수 있는 규격 전부에</span></div>` : ''}
-      ${ED.alignArtifactHtml(a)}
-      ${guideOvHtml(a)}
-` : ''}
-    ${(nVar > 1 || a.channel === 'badge' || isPrint || a.channel === 'ad') ? '</section>' : ''}
-    <section class="isec">
-    ${a.channel === 'asset' ? `<label>전달물 검사 <span style="opacity:.55">원본 가로·포맷·배경(10-28)</span></label><div id="inspLint" style="margin-bottom:8px">${lintHtml(a)}</div>` : ''}
-    ${(a.channel === 'ad' || a.channel === 'asset') ? `<label>승인</label><div id="iGate" style="margin-bottom:8px">${gateHtml(a)}</div>
-    <button class="btn" id="iApprove" style="width:100%;margin-bottom:8px">${a.status === 'approved' ? '승인 취소' : '이 소재 승인'}</button>` : ''}
+      </div>` : ''}</section>` : ''}`;
+  insp.innerHTML = `${scopeTop}
+    <div id="paneDesign" role="tabpanel" aria-label="디자인"${state.rightTab === 'review' ? ' hidden' : ''}>${designSections}</div>
+    <div id="paneReview" role="tabpanel" aria-label="검수"${state.rightTab === 'review' ? '' : ' hidden'}>
+      <section class="isec">
+      ${a.channel === 'asset' ? `<label>전달물 검사 <span style="opacity:.55">원본 가로·포맷·배경(10-28)</span></label><div id="inspLint" style="margin-bottom:8px">${lintHtml(a)}</div>` : ''}
+      ${(a.channel === 'ad' || a.channel === 'asset') ? `<label>승인</label><div id="iGate" style="margin-bottom:8px">${gateHtml(a)}</div>
+      <button class="btn" id="iApprove" style="width:100%">${a.status === 'approved' ? '승인 취소' : '이 소재 승인'}</button>` : ''}
+      </section>
+      ${a.channel === 'ad' ? ED.guideSectionHtml(a) : ''}
+    </div>
+    <section class="isec isec-foot">
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
       <button class="btn pri" id="iExp">내보내기</button>
@@ -2718,20 +3002,9 @@ function renderInspectorBody() {
     <button class="btn danger" id="iDel" style="width:100%;margin-top:6px">이 산출물 빼기</button>
     </section>
     <div id="inspNote"></div>`;
-  insp.querySelectorAll('input[data-f]').forEach(i => i.oninput = debounce(() => {
-    const f = i.dataset.f, v = i.value.trim();
-    const o = { ...(a.overrides.core ?? {}) };
-    if (v && v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
-    pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 개별 편집`, true);
-    a.overrides.core = o;
-    a.status = 'draft'; a.gateOverride = null;
-    logEvent(c, 'manual_edit', { specId: a.specId });
-    regen(c);
-    autosave();
-    refreshFrames(a.specId);
-    $('inspNote').textContent = '이 산출물만 반영됨';
-    log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
-  }, 450));
+  bindScope(insp, a, c);
+  if (a.channel === 'ad' && state.elSel) bindElementPanel(insp, a, c, spec, state.elSel);
+  if (a.channel === 'ad') bindArtifactStyle(insp, a, c);
   // 폰트 — 이 산출물만(overrides.style.fonts). 매체가 고정한 규격엔 선택 칸이 없다(artifactFontHtml)
   const fontOv = insp.querySelector('#iFontOv');
   if (fontOv) fontOv.onchange = () => {
@@ -2797,7 +3070,7 @@ function renderInspectorBody() {
   });
   if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); bindGuideOv(insp); }
   // 레이아웃 안(10-20): 썸네일은 그 안의 프리셋으로 다시 그린 html 을 작은 iframe 에 — 안은 캠페인 공통 스타일 + 안 프리셋(산출물 개별 편집값은 안 섞는다)
-  if (a.channel === 'ad' && (a.variants?.length ?? 0) > 1) {
+  if (a.channel === 'ad' && (a.variants?.length ?? 0) > 1 && insp.querySelector('#iVariants')) {
     const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec), k = Math.min(106 / nw, 66 / nh);
     for (const box of insp.querySelectorAll('.vthumb-box')) {
       const v = a.variants[+box.dataset.vi]; if (!v) continue;
@@ -3237,8 +3510,8 @@ async function exportAdFiles(ads, opts = {}) {
   for (const a of ads) {
     const spec = adSpecOf(a);
     const eff = adEffCtx(a);
-    const face = await exportFaceCss(artifactFontId(a));   // 묶은 무료 폰트면 바이트째(10-14) — 래스터가 바깥 파일을 못 받는다
-    const post = h => embedFont(h, face, BUNDLED_MARK);
+    const face = await exportFaceCss(artifactFontId(a)) + await elementFaceCss(a);   // 묶은 무료 폰트면 바이트째(10-14) — 래스터가 바깥 파일을 못 받는다
+    const post0 = h => embedFont(h, face, BUNDLED_MARK), post = h => post0(applyElementEdits(h, a.overrides?.elements, spec));   // 요소 편집(11-02)은 고른 안에만
     const variants = (opts.allVariants && (a.variants?.length ?? 0) > 1) ? a.variants : null;
     if (!variants) {
       await opts.progress?.step(boardLabel(a));
@@ -3250,7 +3523,7 @@ async function exportAdFiles(ads, opts = {}) {
     for (const [i, v] of variants.entries()) {
       const styleV = i === sel ? adEffStyle(a) : { ...c.style, ...v.style };
       await opts.progress?.step(`${boardLabel(a)} · 안 ${i + 1}`);
-      const fitV = await renderFit(eff, styleV, spec, post); opts.progress?.tick();
+      const fitV = await renderFit(eff, styleV, spec, i === sel ? post : post0); opts.progress?.tick();
       const base = adFileName(a, fitV.measure.format === 'jpeg' ? 'jpg' : fitV.measure.format);
       out.push({ a, spec, fit: fitV, variant: i, variantLabel: v.label, name: base.replace(/(\.[a-z]+)$/, `__안${i + 1}$1`) });
     }
@@ -3293,7 +3566,7 @@ function artifactFontHtml(a, c) {
 }
 async function adSvgOf(a, imgCache) {
   const spec = SPECS[a.specId];
-  const html = renderArtifact(a.specId, adEffCtx(a), adEffStyle(a), artRenderOpts(a));   // 보드와 같은 옵션(시안 번호·용도·화살표·규격) — renderAd 직접 호출은 variant 를 잃었다
+  const html = applyElementEdits(renderArtifact(a.specId, adEffCtx(a), adEffStyle(a), artRenderOpts(a)), a.overrides?.elements, spec);   // 보드와 같은 옵션(시안 번호·용도·화살표·규격) — renderAd 직접 호출은 variant 를 잃었다
   // SVG 파일 이름의 치수는 프레임 크기(작업 1배) — 제출 2배로 적으면 「…1100x800.svg」를 열었는데 550×400 이라 혼란(노션 SVG 프레임)
   const c0 = state.campaign, core0 = c0.context.core, svgName = adFileNameOf({ client: c0.kind === 'recruit' ? core0.client : core0.name, mediumName: spec.mediumName, spec: { ...spec, submitW: spec.w, submitH: spec.h }, ext: 'svg' });
   const r = await htmlToSvg(html, spec, { imgCache, title: svgName.replace(/\.svg$/, '') });
