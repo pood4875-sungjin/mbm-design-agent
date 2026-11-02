@@ -2,7 +2,9 @@
 <script type="module">
 // 「생성 직후 차단 0건」 전수 — 앱과 같은 코드(render → measureArtifact → lintArtifact → 틀 가이드 → approvalGate)를 브라우저에서 돌린다. scripts/self-block.mjs 가 띄운다.
 import { renderArtifact } from '/core/contract.js';
-import { recipeStyles } from '/core/recipes.js';
+import { familiesFor, familyStyle, familyById, frameFor } from '/core/recipes.js';
+import { templateQuality, measureTemplateDoc } from '/core/tplquality.js';
+import { TEMPLATE_NORMS } from '/core/template-norms.js';
 import { registerAll } from '/core/generate.js';
 import { createContext } from '/core/context.js';
 import { normalizeStyle } from '/core/style.js';
@@ -31,11 +33,12 @@ for (const c of job.cases) {
   const G = await kvGrid(kv).catch(() => null);
   for (const b of job.briefs) {
     const ctx = createContext(b.fields, 'recruit');
-    for (const g of groups) for (const rst of (job.recipes ? recipeStyles(g.entry, c.meta, true) : [null])) {
-      const spec = g.entry, row = { case: c.id, brief: b.id, spec: g.id, medium: spec.medium, grade: spec.grade ?? null, recipe: rst?.recipe ?? null };
+    for (const g of groups) for (const rst of (job.recipes ? familiesFor(g.entry, c.meta, true, b.id, { all: true }).map(familyStyle) : [null])) {
+      const spec = g.entry, row = { case: c.id, brief: b.id, spec: g.id, medium: spec.medium, grade: spec.grade ?? null, recipe: rst?.tpl ?? null };
       try {
         if (spec.asset || spec.rules?.asset) { row.skip = 'asset'; await post('/row', row); continue; }
         const html = renderArtifact(g.id, ctx, rst ? { ...style, ...rst } : style, {});
+        if (rst) { const ov = /&quot;overlap&quot;:([\d.]+)/.exec(html); if ((ov && +ov[1] >= 0.08) || /&quot;unfit&quot;:true/.test(html)) { row.skip = 'overlap'; await post('/row', row); continue; } }
         const m = await measureArtifact(html, spec);
         let lint = lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m, ctx });
         if (lint.issues.some(i => i.code === 'weight')) { try { const fit = await renderFit(ctx, rst ? { ...style, ...rst } : style, spec, h => h); if (fit.fitted && !fit.lint.issues.some(i => i.code === 'weight')) { lint = fit.lint; row.fit = fit.fitted.label; } } catch (e) { row.fitErr = String(e.message); } }
@@ -51,6 +54,7 @@ for (const c of job.cases) {
           if (gm.error) guide = { error: gm.error, rows: [] };
           else guide = { rows: evaluate(guideContext({ spec, trace: gm.trace, m: gm, meta: c.meta, kt: kvTypeOf(c.meta), guide: guideFor(spec.mediumRules ?? {}), shape: shapeOf(spec.w, spec.h), logoMeta: c.logoMeta, primary: style.palette?.primary ?? null, kind: 'recruit', hasDate: !!ctx.core?.deadline }), rulesetOf ? RULES : RULES) };
         }
+        if (rst) { try { const d = measureTemplateDoc(doc), tr = JSON.parse(doc.querySelector('[data-ad]').dataset.trace); row.quality = templateQuality(d.rects, { W: d.W, H: d.H, frame: frameFor(familyById(rst.tpl), spec), sx: tr.tpl.sx, sy: tr.tpl.sy, sf: tr.tpl.sf, logo: d.logo, align: tr.tpl.align, safeL: +spec.rules?.safeArea?.left || 0, norm: TEMPLATE_NORMS[g.id] ?? null }); row.frame = tr.tpl.frame; } catch (e) { row.quality = { ok: false, fails: [{ code: 'quality-error', msg: String(e.message).slice(0, 80) }], m: {} }; } }
         const samples = doc.querySelectorAll('[data-sample]').length;
         let design; try { design = checkAdDoc(doc, { kvMeta: c.meta }) ?? { warnings: [] }; } catch (e) { design = { warnings: [{ code: 'design-failed', msg: String(e.message) }] }; }
         const gate = approvalGate({ grade: spec.grade ?? null, lint, design, samples, guide, needsGuide });

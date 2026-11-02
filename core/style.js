@@ -4,7 +4,6 @@ import { FONTS } from './fonts.js';
 import { buildPalette, MODES } from './palette.js';
 import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
 import { PRESETS, PRESET_KEYS } from './editlayout.js';
-import { RECIPES } from './recipes.js';
 import { normGradient } from './gradient.js';
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
@@ -81,7 +80,7 @@ export function normalizeStyle(input = {}) {
     ...Object.fromEntries(PRESET_KEYS.filter(k => input[k] && input[k] !== 'auto' && PRESETS[k].choices[input[k]]).map(k => [k, input[k]])),
     colorsManual: !!input.colorsManual,
     textTone: ['dark', 'light'].includes(input.textTone) ? input.textTone : 'auto',
-    ...(RECIPES[input.recipe] ? { recipe: input.recipe } : {}),
+    ...(typeof input.tpl === 'string' && input.tpl ? { tpl: input.tpl } : {}),
     ...(input.roleColors && typeof input.roleColors === 'object' ? { roleColors: Object.fromEntries(['main', 'sub', 'detail'].filter(k => HEX.test(input.roleColors[k] ?? '')).map(k => [k, input.roleColors[k].toUpperCase()])) } : {}),   // 글자별 색(N6)
     ...(input.roleScale && typeof input.roleScale === 'object' ? { roleScale: Object.fromEntries(['main', 'sub', 'detail'].filter(k => Number.isFinite(input.roleScale[k]) && input.roleScale[k] !== 1).map(k => [k, Math.min(1.6, Math.max(0.6, input.roleScale[k]))])) } : {}),   // 글자별 크기 배율(N6)
     textColor: HEX.test(input.textColor ?? '') ? input.textColor.toUpperCase() : null,   // 직접 고른 글자색(11-02 컨시어지 「브랜드컬러 외 폰트 색상 지정」) — 규정 없는 매체에서만 렌더러가 쓴다(core/renderers/ad.js customFg). null = 톤(textTone)대로   // 글자색 톤(10-19 사용자 「폰트 컬러 다크/라이트 선택」) — 규정 없는 매체에서 'dark' = #333 글자 · 'light' = 흰 글자. 'auto' 는 지면 밝기로   // 사람이 색 자리를 손으로 고쳤다(10-19) — 지면이 주색을 따라간다(core/field.js palette-manual)

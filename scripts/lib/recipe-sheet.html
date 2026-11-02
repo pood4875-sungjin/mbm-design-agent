@@ -2,7 +2,7 @@
 <script type="module">
 // 시안 레시피 눈 검수 시트. /scripts/lib/recipe-sheet.html?case=t1014-gs2025&specs=google-gdn-580x400,instagram-feed-1080&client=GS에너지
 import { renderArtifact } from '/core/contract.js';
-import { recipeStyles } from '/core/recipes.js';
+import { familiesFor, familyStyle, familyById, frameFor } from '/core/recipes.js';
 import { registerAll } from '/core/generate.js';
 import { createContext } from '/core/context.js';
 import { normalizeStyle } from '/core/style.js';
@@ -22,9 +22,9 @@ const specs = adSpecEntries(), H = +(q.get('h') ?? 300);
 for (const sid of (q.get('specs') ?? '').split(',')) {
   const spec = specs[sid]; if (!spec) continue;
   const row = document.createElement('div'); row.className = 'r'; document.getElementById('o').append(row);
-  for (const st of [{}, ...recipeStyles(spec, style.kvMeta, true)]) {
+  for (const st of [{}, ...familiesFor(spec, style.kvMeta, true, ctx.core.client, { all: q.get('all') === '1' }).map(familyStyle)]) {
     const k = Math.min(H / spec.h, 480 / spec.w), c = document.createElement('div'); c.className = 'c';
-    c.innerHTML = `<b>${sid} · ${st.recipe ?? '기본안'}</b><div class="b" style="width:${spec.w * k}px;height:${spec.h * k}px"><iframe width="${spec.w}" height="${spec.h}" style="transform:scale(${k})"></iframe></div>`;
+    c.innerHTML = `<b>${sid} · ${st.tpl ? frameFor(familyById(st.tpl), spec).name : '기본안'}</b><div class="b" style="width:${spec.w * k}px;height:${spec.h * k}px"><iframe width="${spec.w}" height="${spec.h}" style="transform:scale(${k})"></iframe></div>`;
     c.querySelector('iframe').srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0}${FACES}</style></head><body>${renderArtifact(sid, ctx, { ...style, ...st }, {})}</body></html>`;
     row.append(c);
   }

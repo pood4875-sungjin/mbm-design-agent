@@ -133,7 +133,7 @@ test('광고 산출물은 생성될 때 레이아웃 안(variants)을 갖고, �
   g.variantSel = 1; g.overrides.style = { ...(g.overrides.style ?? {}), ...g.variants[1].style };
   generateArtifacts(c);
   assert.equal(g.variantSel, 1);
-  for (const [k, v] of Object.entries(g.variants[1].style)) assert.equal(g.overrides.style[k], v);
+  for (const [k, v] of Object.entries(g.variants[1].style)) assert.deepEqual(g.overrides.style[k], v);
   assert.ok(g.html.includes('data-trace'));
 });
 

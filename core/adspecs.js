@@ -125,5 +125,10 @@ export function adFileNameOf({ client, mediumName, spec, ext = 'png' }) {
   const banner = compact((i > 0 ? name.slice(i + 3) : name).replace(/\s*\d+\s*[×x*]\s*\d+/g, '')).replace(/^[—–-]+/, '').replace(/[—–]+/g, '_');
   const platform = String(spec?.platform ?? spec?.rules?.platform ?? '').toUpperCase();
   const plat = platform && !new RegExp(`(^|[^A-Z])${platform}([^A-Z]|$)`).test(banner.toUpperCase()) ? platform : null;
-  return `${[clean(client), clean(mediumName), product, banner, plat, size].filter(Boolean).join('_')}.${ext}`;
+  // 사람이 만든 파일 양식(노션 파일명 수정): 기업명_매체_상품명 (배너이름) · 상품이 없으면 기업명_GDN_(580_400)
+  const short = String(mediumName ?? '').replace(/닷컴$/, '').replace(/^구글\s*GDN$/i, 'GDN').replace(/\s*\(.*\)$/, '');
+  const sizeTag = W && H ? `(${W}_${H})` : null;
+  const banner2 = [banner, plat].filter(Boolean).join('_');
+  const tail = product ? `${product} (${banner2})` : /GDN/i.test(short) ? sizeTag : [banner2, sizeTag].filter(Boolean).join(' ');
+  return `${[clean(client), clean(short), tail].filter(Boolean).join('_')}.${ext}`;
 }

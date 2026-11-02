@@ -20,7 +20,7 @@ import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/g
 import { propagate } from '../core/propagate.js';
 import { approvalGate, STATE_LABEL } from '../core/gate.js';
 import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
-import { htmlHash } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
+import { htmlHash, templateChoices } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
 import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
@@ -2435,7 +2435,7 @@ function currentVariantIndex(a) {
   const st = a?.overrides?.style ?? {}; let best = 0, bestN = 0;
   (a?.variants ?? []).forEach((v, i) => {
     const keys = Object.keys(v.style ?? {}); if (!keys.length) return;
-    if (keys.every(k => st[k] === v.style[k]) && keys.length > bestN) { best = i; bestN = keys.length; }
+    if (keys.every(k => JSON.stringify(st[k]) === JSON.stringify(v.style[k])) && keys.length > bestN) { best = i; bestN = keys.length; }
   });
   return best;
 }
@@ -2950,7 +2950,8 @@ function renderInspectorBody() {
     ${(a.channel === 'ad' && (a.variants?.length ?? 0) > 1) ? `<section class="isec isec-var">
       <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
-      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button></div>
+      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}</div>
+      <div class="vrow" id="iTplGrid" style="flex-wrap:wrap"></div>
     </section>` : ''}
     ${a.channel === 'ad' ? `${layerListHtml(a)}
     <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
@@ -3088,8 +3089,33 @@ function renderInspectorBody() {
       const v = a.variants[+box.dataset.vi]; if (!v) continue;
       let html = ''; try { html = renderArtifact(a.specId, adEffCtx(a), { ...c.style, ...v.style }, artRenderOpts(a)); } catch {}   // 보드와 같은 옵션(시안 번호·용도·화살표·규격)
       if (!html) continue;
-      const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(html, artifactFontId(a)); box.appendChild(f);
+      const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(html, v.style?.fonts?.heading ?? artifactFontId(a)); box.appendChild(f);
     }
+    // 시안 더 보기(11-02): 자동 안 말고 이 규격·키비주얼에 맞는 시안 전부에서 고른다
+    const moreBtn = $('iTplMore'), moreBox = $('iTplGrid');
+    if (moreBtn && moreBox) moreBtn.onclick = () => {
+      if (moreBox.childElementCount) { moreBox.replaceChildren(); moreBtn.setAttribute('aria-expanded', 'false'); return; }
+      moreBtn.setAttribute('aria-expanded', 'true');
+      for (const ch of templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a))) {
+        const b = document.createElement('button'); b.className = 'vthumb'; b.title = ch.label;
+        const bx = document.createElement('span'); bx.className = 'vthumb-box';
+        const lb = document.createElement('span'); lb.className = 'vthumb-lab'; lb.textContent = ch.label;
+        const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(ch.html, ch.style.fonts?.heading ?? artifactFontId(a));
+        bx.append(f); b.append(bx, lb);
+        b.onclick = () => {
+          pushHistory(`${artLabel(a)} 시안 고르기`);
+          const prev = a.variants[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, ch.style);
+          a.overrides.style = st;
+          let i = a.variants.findIndex(v => v.style?.tpl === ch.style.tpl);
+          if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '' }); i = a.variants.length - 1; }
+          a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
+          logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl, label: ch.label });
+          regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+          log(`${a.specId} 시안 ${ch.label}`);
+        };
+        moreBox.append(b);
+      }
+    };
     insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
       const cur = currentVariantIndex(a), i = +b.dataset.vi; if (i === cur) return;
       pushHistory(`${artLabel(a)} 레이아웃 안 ${i + 1}`);

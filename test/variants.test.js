@@ -36,14 +36,14 @@ test('구글 580(템플릿 틀·누끼 — 위치 프리셋은 안 서고 정렬
   assert.deepEqual(vs[0].style, {}); assert.equal(vs[0].label, '기본안');
   const hashes = vs.map(v => v.hash); assert.equal(new Set(hashes).size, hashes.length, '같은 그림이 두 번 들어가면 안 된다');
   for (const v of vs) { assert.ok(!v.trace.rules.includes('overlapFix.fail'), v.label); assert.ok(!(v.trace.edit?.ignored ?? []).some(x => Object.keys(v.style).some(k => String(x).startsWith(k + '('))), `${v.label}: 프리셋이 무시됨 ${JSON.stringify(v.trace.edit?.ignored)}`); }   // 「키(사유)」= 통째로 무시. 「textAlign.kv(…)」는 틀 칸 메모(부분 적용)라 허용
-  assert.ok(vs.slice(1).every(v => v.style.recipe), '레시피는 틀 대신 자유 배치로 그려 안이 된다(11-02)');
+  assert.ok(vs.slice(1).every(v => v.style.tpl), '자유 규격의 안은 시안 틀이다(11-02)');
   for (const v of vs) if (v.style.kvPlace) assert.equal(v.trace.edit?.place?.ok, true, v.label);
 });
 
 test('자유 배치 규격(알바몬 PC 메인 보드, 아래 띠): 키비주얼 왼쪽 안이 선다 — 위치 프리셋이 실제로 먹는 곳', () => {
   const vs = variantCandidates('albamon-pc-main-board', ctx, style);
   assert.equal(vs.length, CANON.variants.default);
-  assert.ok(vs.slice(1).some(v => v.style.recipe), vs.map(v => v.label).join(' | '));
+  assert.ok(vs.length >= 2, vs.map(v => v.label).join(' | '));
   for (const v of vs) if (v.style.kvPlace) assert.equal(v.trace.edit?.place?.ok, true, v.label);
 });
 

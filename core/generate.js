@@ -17,6 +17,8 @@ import { registerAdSpecs } from './adspecs.js';
 import { applyElementEdits } from './elementedit.js';
 import { resolveAiStyle } from './trackb/analyze.js';
 import { variantCandidates } from './variants.js';
+import { familyById, frameFor } from './recipes.js';
+const vsLabel = (st, spec) => { const f = familyById(st.tpl); return f ? (frameFor(f, spec)?.name ?? f.name) : null; };
 
 export function registerAll() {
   _clearRenderers();
@@ -106,7 +108,9 @@ export function generateArtifacts(campaign) {
       const vs = variantCandidates(item.specId, effContext, campaign.style, { variant: artifact.variant ?? 0 });
       artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
       const i = prevStyle ? artifact.variants.findIndex(v => JSON.stringify(v.style) === JSON.stringify(prevStyle)) : -1;
-      artifact.variantSel = i >= 0 ? i : 0;
+      // 「다른 시안 보기」에서 고른 시안은 자동 안 목록에 없어도 선택을 유지한다
+      if (i < 0 && prevStyle?.tpl) { artifact.variants.push({ id: artifact.variants.length, label: artifact.variants.length ? (vsLabel(prevStyle, SPECS[item.specId]) ?? '시안') : '시안', style: prevStyle, hash: '' }); artifact.variantSel = artifact.variants.length - 1; }
+      else artifact.variantSel = i >= 0 ? i : 0;
     }
     artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), effStyle, {
       variant: artifact.variant ?? 0,
