@@ -67,15 +67,15 @@ test('대비 경고 — 지면과 3:1 미만이면 trace textColor.lowContrast �
   assert.ok(!lintArtifact({ spec, medium: {}, measure: { texts: [], bgColors: ['#1428A0'] } }).issues.some(i => i.code === 'text-contrast'), '지정 색 없으면 검사 안 함');
 });
 
-test('N5 폰트 고정 ≠ 색 고정: 자소설(한 색 통일)·카카오 PC디스플레이는 직접 고른 색이 먹는다 — 자소설은 서브·상세까지 같은 색(70% 없음)', () => {
-  const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', deadline: '2026-10-31' }, 'recruit');
+test('N5 폰트 고정 ≠ 색 고정: 자소설(한 색 통일)·카카오 PC디스플레이는 직접 고른 색이 먹는다 — 자소설은 서브·상세까지 같은 색(70% 없음)', async () => {
+  const { ctx, renderArtifact } = await setup();
   const st = normalizeStyle({ ...base, textColor: '#C2185B' });
   for (const id of ['jasoseol-pc-premium-popup-pc', 'kakao-display-pc-promo']) { const t = trace(renderArtifact(id, ctx, st, {})); assert.equal(t.text.mainFg, '#C2185B', id); assert.ok(t.rules.includes('textColor'), id); }
   const j = trace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, st, {})); assert.equal(j.text.subFg, '#C2185B'); assert.equal(j.text.detailFg, '#C2185B');
 });
 
-test('글자별 색(roleColors): 구글은 메인·날짜 따로 · 자소설은 한 색 규정대로 전 문구 · 리멤버·비즈보드는 잠금', () => {
-  const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', deadline: '2026-10-31' }, 'recruit');
+test('글자별 색(roleColors): 구글은 메인·날짜 따로 · 자소설은 한 색 규정대로 전 문구 · 리멤버·비즈보드는 잠금', async () => {
+  const { ctx, renderArtifact } = await setup();
   const st = normalizeStyle({ ...base, roleColors: { main: '#C2185B', sub: '#112233' } });
   const g = trace(renderArtifact('google-gdn-580x400', ctx, st, {})); assert.equal(g.text.mainFg, '#C2185B'); assert.equal(g.text.subFg, '#112233');
   const j = trace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, st, {})); assert.equal(j.text.mainFg, '#C2185B'); assert.equal(j.text.subFg, '#C2185B'); assert.equal(j.text.detailFg, '#C2185B');
