@@ -21,6 +21,9 @@ export const BRIEFS = {
   noStart: { client: 'GS에너지', hiringType: '신입 공채', role: '영업, 재무', deadline: '2026-07-02' },
   onlyClient: { client: 'GS에너지', hiringType: '신입 공채' },
   noHiring: { client: 'GS에너지', role: '영업, 재무', startDate: '2026-06-20', deadline: '2026-07-02' },
+  // 실제 ZIP 시험에서 차단이 나온 조합(11-02) — 16자 붙여 쓴 기업명 + 직무 13개
+  hanmi: { client: '한미글로벌&터너앤타운젠드코리아', hiringType: '신입', role: 'PM 건설 사업 관리, 영업, 일반관리, 제조, 연구, 물류, 전산, 재무회계, 인사총무, 품질관리, 디자인, 구매, 안전보건', season: '2026년 하반기', startDate: '2026-10-26', deadline: '2026-11-08' },
+  oilterm: { client: '현대오일터미널 주식회사', hiringType: '생산전문직 채용', role: '생산전문직', season: '2026년 하반기', startDate: '2026-10-28', deadline: '2026-11-08' },
 };
 const CASE_DEFAULT = ['t1014-gs2025', 't1014-lt', 't1014-dongsuh', 'desk-16', 'desk-13-cut', 'midas-facets'];
 const led = JSON.parse(readFileSync(path.join(ROOT, 'ref/learned/cases/cases.json'), 'utf8')).cases;

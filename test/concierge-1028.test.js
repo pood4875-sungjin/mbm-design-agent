@@ -31,9 +31,9 @@ test('#1 긴 기업명 — 띄어쓰기 없는 16자 「한미글로벌&터너�
     const main = fieldOf(renderAd(ctx, style, specs[id]), 'main');
     assert.ok(main.includes('한미글로벌&터너앤타운젠드코리아'), `${id}: 메인에 기업명 — 「${main}」`);
   }
-  // GDN 300×600 2줄 틀: 기업명 + 채용구분(한 줄 더 · 줄임) — 채용구분까지 남는다
+  // GDN 300×600 줄 수 상한 2: 기업명이 두 줄을 다 쓰면 채용구분은 뺀다 — 세 줄이면 lint lines 차단(11-02 실제 ZIP)
   const g = renderAd(ctx, style, specs['google-gdn-300x600']);
-  assert.match(fieldOf(g, 'main'), /신입\/경력 채용/); assert.ok(rulesOf(g).includes('templateMold.mainExtraLine') || rulesOf(g).includes('templateMold.mainShrink'));
+  assert.equal(fieldOf(g, 'main'), '한미글로벌&터너앤타운젠드코리아'); assert.ok(rulesOf(g).includes('templateMold.mainShrink') || !/<br/.test(g.match(/data-field="main"[\s\S]*?<\/div>/)[0]));
   // 음절 줄바꿈 자리(U+200B)가 긴 낱말 안에 — & 뒤가 먼저
   assert.match(g, /한미글로벌&amp;\u200B터너앤타운/, '& 뒤 줄바꿈 자리(U+200B)');
 });
@@ -140,8 +140,8 @@ test('#1 (e) 11-02 재현 — 기업명 길이별 기대값(담당자 아직 「
     assert.equal(k.main, cl, cl); assert.ok(k.rules.includes('templateMold.mainExtraLine'), k.rules.join(','));
     assert.match(mainTag(k.h), /font-size:43px;line-height:54px/);
   }
-  // 카카오 12자 이하는 전과 같이 한 줄(「현대오일터미널 주식회사 채용」·「한진정보통신 신입/경력 채용」)
-  assert.equal(run('kakao-bizboard-mo', '한진정보통신').main, '한진정보통신 신입/경력 채용'); assert.ok(!run('kakao-bizboard-mo', '현대오일터미널 주식회사').rules.includes('templateMold.mainTwoLineClient'));
+  // 카카오: 46pt 한 줄에 들어가면 한 줄, 아니면 공식 두줄형 — 글자를 줄이지 않는다
+  assert.equal(run('kakao-bizboard-mo', '한진정보통신').main, '한진정보통신 신입/경력 채용'); assert.ok(run('kakao-bizboard-mo', '현대오일터미널 주식회사').rules.includes('templateMold.mainTwoLineClient'), '46pt 로 526px 를 넘으면 줄이지 않고 공식 두줄형(11-02)');
   // 자소설 달력 164×233: 8자 「인천국제공항보안」 8 × 20 × .87 = 139 > 130 → 음절로 끊기 전에 글자를 .9(18px) 로 줄여 한 줄(templateMold.clientOneLine)
   const c8 = run('jasoseol-pc-calendar-pc', '인천국제공항보안'); assert.equal(c8.main, '인천국제공항보안\n신입/경력 채용'); assert.equal(c8.fs, 18); assert.ok(c8.rules.includes('templateMold.clientOneLine')); assert.doesNotMatch(mainTag(c8.h), /​/);
   // 잡다 MO·리멤버 MO·달력: 16자 기업명이 메인에 남는다(생략은 마지막)
