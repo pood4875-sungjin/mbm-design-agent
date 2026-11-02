@@ -30,8 +30,8 @@ export function dragRegion(mode, from, s, p) {
 }
 
 // 썸네일(background-image 로 그림을 보여 주는 칸)에 오버레이를 붙인다. 다시 부르면 이전 오버레이를 갈아 끼운다.
-//   opts.kvMeta: 지금 kvMeta(유형 지정 입힌 것) · opts.onChange(manual|null) · opts.readOnly
-export function mountKvFocus(thumb, { kvMeta, onChange, readOnly = false } = {}) {
+//   opts.kvMeta: 지금 kvMeta(유형 지정 입힌 것) · opts.onChange(manual|null) · opts.readOnly · opts.onLive(region): 끄는 동안 보드 미리보기 · opts.onLiveCancel: 취소
+export function mountKvFocus(thumb, { kvMeta, onChange, onLive, onLiveCancel, readOnly = false } = {}) {
   if (!thumb) return null;
   thumb.querySelector('.kvfocus')?.remove();
   const ar = kvMeta?.ar;
@@ -100,6 +100,7 @@ export function mountKvFocus(thumb, { kvMeta, onChange, readOnly = false } = {})
     st.moved = true; st.cur = r;
     if (!regionEl || !regionEl.isConnected) { region = r; draw(); }
     regionEl.style.cssText = boxCss(r);
+    if (r.w >= MIN && r.h >= MIN) onLive?.(r);
   };
   const end = e => {
     if (!st) return;
@@ -107,11 +108,11 @@ export function mountKvFocus(thumb, { kvMeta, onChange, readOnly = false } = {})
     const { moved, cur, from } = st; st = null;
     try { ov.releasePointerCapture(e.pointerId); } catch {}
     if (!moved) return;   // 그냥 누른 건 아무것도 안 바꾼다
-    if (!(cur.w >= MIN && cur.h >= MIN)) { region = from; draw(); return; }
+    if (!(cur.w >= MIN && cur.h >= MIN)) { region = from; draw(); onLiveCancel?.(); return; }
     region = cur; onChange?.({ region: cur });
   };
   ov.onpointerup = end;
-  ov.onpointercancel = () => { if (st) { region = st.from; st = null; draw(); } };
+  ov.onpointercancel = () => { if (st) { const m = st.moved; region = st.from; st = null; draw(); if (m) onLiveCancel?.(); } };
   ov.onclick = e => e.stopPropagation();   // 썸네일의 파일 열기(onclick)를 막는다 — 교체는 아래 「교체」로
   ov.onkeydown = e => {
     const step = e.shiftKey ? 0.1 : 0.02;

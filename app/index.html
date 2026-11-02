@@ -355,54 +355,98 @@
   .styleRow{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
   .kvthumb.logo{background-size:contain;background-color:var(--soft)}
   .kvthumb{width:190px;height:120px;border-radius:var(--r-sm);background:var(--soft) center/cover no-repeat;border:1px dashed var(--accent-line);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:12px;cursor:pointer;flex:none;text-align:center}
-  .palette{display:flex;gap:10px;align-items:flex-start}
-  .palette .sw{display:flex;flex-direction:column;align-items:center;gap:3px}
-  .palette .sw small{font-size:10.5px;color:var(--sub)}
   .vseg{display:flex;gap:5px}
   .vseg button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:var(--r-xs);padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--ink)}
   .vseg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
   .vseg button:disabled{opacity:.42;cursor:not-allowed}
   .bgrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
-  .bgprev{width:64px;height:36px;border-radius:9px;border:1px solid var(--line);flex:none}
-  .bgrow .vseg{flex:1;min-width:180px}
-  .bgrow .vseg button{white-space:nowrap;padding:8px 10px}
-  .scard .bgprev{width:44px}
-  /* 피그마식 그라데이션 편집기(app/gradedit.js) — 종류 · 각도 · 막대 + 손잡이 · 정지점 목록 */
-  .gedit{margin-top:10px;display:flex;flex-direction:column;gap:10px}
-  .gtop{display:flex;align-items:center;gap:4px}
-  .gtop .gtype{flex:1}
-  .gicon{width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:var(--r-xs);background:transparent;color:var(--ink);cursor:pointer}
-  .gicon:hover:not(:disabled){background:var(--soft)}
-  .gicon:disabled{opacity:.3;cursor:not-allowed}
-  .gicon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-  .grot{display:flex;align-items:center;gap:10px}
-  .gdial{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);position:relative;cursor:grab;flex:none;touch-action:none}
+  /* ── 피그마 UI3 편집 컨트롤(11-02, hub/fui/ui3.css 치수를 앱 토큰으로) ─ 부품은 app/fui.js · 인스펙터와 인테이크 배경 칸만.
+     hub --bg2→--soft · --border2→--accent-line · --blue→--focus · 입력 r5 · 안쪽 r4 · 높이 32 · 글자 11. 전역 태그 규칙(#inspector input·label, .f input)을 이기려고 :is(#inspector,*) 로 특이도를 올린다 */
+  .fbg{display:flex;flex-direction:column;gap:6px}
+  .scard .fbg,.scard .fstack{max-width:320px}
+  .flab{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:24px;font-size:11px;color:var(--ink);font-weight:600;line-height:1.35}
+  .flab em{font-style:normal;font-weight:400;color:var(--sub)}
+  .flab.sub{font-weight:400;color:var(--sub);min-height:16px}
+  .fline{display:flex;align-items:center;gap:8px}
+  .fline .fseg{flex:1;min-width:0}
+  .bgprev{width:24px;height:24px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--line);flex:none}
+  .fseg,#inspector .vseg{display:flex;gap:2px;padding:2px;height:32px;margin:0;background:var(--soft);border-radius:5px;box-sizing:border-box}
+  .fseg button,#inspector .vseg button{flex:1;min-width:28px;display:grid;place-items:center;padding:0 6px;border:0;border-radius:4px;background:transparent;font-size:11px;font-weight:500;color:var(--ink);white-space:nowrap;cursor:pointer}
+  .fseg button:hover:not(.on),#inspector .vseg button:hover:not(.on){background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  .fseg button.on,#inspector .vseg button.on{background:var(--card);color:var(--ink);border:0;box-shadow:0 0 0 1px var(--accent-line),0 1px 2px rgba(0,0,0,.06)}
+  .fseg button:disabled,#inspector .vseg button:disabled{opacity:.42;cursor:not-allowed}
+  .fseg button:focus-visible,#inspector .vseg button:focus-visible,.fib:focus-visible{outline-offset:-2px}
+  .fib{width:24px;height:24px;flex:none;display:grid;place-items:center;padding:0;border:0;border-radius:5px;background:transparent;color:var(--sub);cursor:pointer}
+  .fib:hover:not(:disabled){background:var(--soft);color:var(--ink)}
+  .fib:disabled{opacity:.35;cursor:not-allowed}
+  .fstack{display:flex;flex-direction:column;gap:4px}
+  .fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .fcrow{display:flex;align-items:center;gap:4px;min-width:0}
+  .fcrow.off{opacity:.5}
+  .fcin{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;background:var(--soft);border:1px solid transparent;border-radius:5px;box-sizing:border-box}
+  .fcin:hover{border-color:var(--accent-line)}
+  .fcin:focus-within{border-color:var(--focus);background:var(--card)}
+  .fcrow.idle .fsw i{opacity:.35}
+  .fsw{position:relative;width:16px;height:16px;flex:none;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+  .fsw i{position:absolute;inset:0;display:block;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+  :is(#inspector,*) .fsw input[type=color]{position:absolute;inset:-4px;width:200%;height:200%;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
+  .fcin:has(.fsw input:focus-visible){outline:2px solid var(--focus);outline-offset:-2px}
+  :is(#inspector,*) .fcin input.fhex{flex:1;width:100%;min-width:0;height:auto;padding:0;border:0;border-radius:0;background:none;outline:0;font-size:11px;color:var(--ink);text-transform:uppercase;font-variant-numeric:tabular-nums}
+  .fcin input.fhex::placeholder{color:var(--sub);opacity:.75}
+  .fcin .ft{flex:none;font-size:11px;color:var(--sub)}
+  .fnote{margin-top:4px;font-size:11px;line-height:1.45;color:var(--sub)}
+  .fin{position:relative;display:flex;align-items:center;min-width:0}
+  :is(#inspector,*) .fin input.fnum{width:100%;height:32px;padding:0 8px;border:1px solid transparent;border-radius:5px;background:var(--soft);font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;box-sizing:border-box}
+  :is(#inspector,*) .fin.unit input.fnum{padding-right:20px}
+  :is(#inspector,*) .fin.pre input.fnum{padding-left:24px}
+  .fin input.fnum:hover{border-color:var(--accent-line)}
+  :is(#inspector,*) .fin input.fnum:focus-visible{outline:0;border-color:var(--focus);background:var(--card)}
+  .fin .u{position:absolute;right:7px;font-size:11px;color:var(--sub);pointer-events:none}
+  .fin .k{position:absolute;left:8px;width:12px;text-align:center;font-size:11px;color:var(--sub);pointer-events:none}
+  .fsel,#inspector select{width:100%;height:32px;padding:0 24px 0 8px;border:1px solid transparent;border-radius:5px;font-size:11px;color:var(--ink);box-sizing:border-box;-webkit-appearance:none;appearance:none;background:var(--soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none'%3E%3Cpath d='M5 6.5l3 3 3-3' stroke='%23858585'/%3E%3C/svg%3E") no-repeat right 6px center}
+  .fsel:hover,#inspector select:hover{border-color:var(--accent-line)}
+  .fsel:focus-visible,#inspector select:focus-visible{outline:0;border-color:var(--focus);box-shadow:inset 0 0 0 1px var(--focus)}
+  .fchips{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:11px;color:var(--sub)}
+  .fchips > span{margin-right:4px}
+  .fchips .sugg{height:24px;padding:0 6px 0 4px;border-radius:5px;background:var(--soft);border-color:transparent;color:var(--ink)}
+  .fchips .sugg:hover{border-color:var(--accent-line)}
+  /* 인스펙터의 나머지 입력·버튼·슬라이더 — 같은 치수로 */
+  #inspector label{font-size:11px;margin:10px 0 4px}
+  #inspector input[type=text],#inspector textarea{padding:0 8px;height:32px;border-radius:5px;font-size:11px}
+  #inspector textarea{height:auto;min-height:64px;padding:8px;line-height:16px}
+  #inspector input[type=text]:not(.fhex,.fnum):hover,#inspector textarea:hover{border-color:var(--accent-line)}
+  #inspector input[type=text]:not(.fhex,.fnum):focus-visible,#inspector textarea:focus-visible{background:var(--card);box-shadow:inset 0 0 0 1px var(--focus)}
+  #inspector .btn{min-height:32px;padding:0 12px;border-radius:5px;font-size:11px;font-weight:500}
+  #inspector .btn.sm{min-height:24px;padding:0 8px}
+  #inspector input[type=range]{-webkit-appearance:none;appearance:none;height:4px;margin:0;border-radius:2px;background:var(--line)}
+  #inspector input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.2)}
+  #inspector input[type=range]:disabled{opacity:.4}
+  /* 그라데이션 편집기(app/gradedit.js) — 종류 · 각도 / 막대 · 손잡이 / 정지점 행 */
+  .gedit{display:flex;flex-direction:column;gap:6px;--fsel-bg:color-mix(in srgb,var(--focus) 14%,transparent)}
+  .gtop{display:grid;grid-template-columns:1fr 64px 24px 24px;gap:4px;align-items:center}
+  .gtop.radial{grid-template-columns:1fr 24px}
+  :is(#inspector,*) .gang input.fnum{padding-left:24px}
+  .gdial{position:absolute;left:5px;top:50%;width:16px;height:16px;margin-top:-8px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--sub);cursor:grab;touch-action:none;z-index:1}
   .gdial i{position:absolute;inset:0;display:block}
-  .gdial i::after{content:"";position:absolute;left:50%;top:3px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:var(--ink)}
-  .gnum,.gpos{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--sub)}
-  .gedit input[type=number]{width:46px;padding:5px 6px;border:1px solid var(--line);border-radius:var(--r-xs);background:var(--soft);font-size:12px;color:var(--ink);text-align:right;-moz-appearance:textfield}
-  .gedit input[type=number]::-webkit-inner-spin-button{display:none}
-  .gedit em{font-style:normal;font-size:11px;color:var(--sub)}
-  .gbar{position:relative;height:20px;border-radius:5px;margin:14px 8px 0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);cursor:copy;touch-action:none}
-  .gpin{position:absolute;top:-14px;width:18px;height:18px;margin-left:-9px;padding:0;border:2px solid #fff;border-radius:4px;background:var(--c);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);cursor:grab;touch-action:none}
-  .gpin::after{content:"";position:absolute;left:50%;bottom:-7px;width:2px;height:5px;margin-left:-1px;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.35)}
-  .gpin.on{box-shadow:0 0 0 2px var(--accent),0 1px 3px rgba(0,0,0,.25)}
+  .gdial i::after{content:"";position:absolute;left:50%;top:2px;width:1.5px;height:6px;margin-left:-.75px;border-radius:1px;background:var(--ink)}
+  .gdial:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .gbar{position:relative;height:16px;margin:22px 8px 2px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);cursor:copy;touch-action:none}
+  .gpin{position:absolute;top:-20px;width:16px;height:16px;margin-left:-8px;padding:0;border:2px solid #fff;border-radius:4px;background:var(--c);box-shadow:0 0 0 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);cursor:grab;touch-action:none}
+  .gpin::before{content:"";position:absolute;inset:-5px -3px -6px}   /* 누르기 쉬운 자리 — 보이는 건 16 */
+  .gpin::after{content:"";position:absolute;left:50%;top:14px;width:1.5px;height:6px;margin-left:-.75px;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.35)}
+  .gpin.on{box-shadow:0 0 0 2px var(--focus),0 1px 2px rgba(0,0,0,.2);z-index:1}
   .gpin:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-  .ghead{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:-6px}
-  .glist{display:flex;flex-direction:column;gap:2px}
-  .grow2{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:var(--r-xs)}
-  .grow2.on{background:var(--soft)}
-  .gswatch{width:24px;height:24px;flex:none;border-radius:5px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);overflow:hidden;cursor:pointer;position:relative}
-  .gswatch input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0}
-  .gedit .ghex{flex:1;min-width:0;width:70px;padding:5px 6px;border:1px solid transparent;border-radius:var(--r-xs);background:transparent;font-size:12px;color:var(--ink);text-transform:uppercase;font-variant-numeric:tabular-nums}
-  .gedit .ghex:hover,.gedit .ghex:focus{border-color:var(--line);background:var(--card)}
+  .ghead{display:flex;align-items:center;justify-content:space-between;min-height:24px;font-size:11px;font-weight:600;color:var(--ink)}
+  .gstops{display:flex;flex-direction:column;gap:2px;margin:0 -4px}
+  .gstop{display:grid;grid-template-columns:56px 1fr 24px;gap:4px;align-items:center;padding:2px 4px;border-radius:5px}
+  .gstop.on{background:var(--fsel-bg)}
+  .gstop.on .fin input.fnum,.gstop.on .fcin{background:var(--card)}
   .bgpick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);cursor:pointer}
   .bgpick input{width:24px;height:24px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
   .sgrp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
   .sgrp small{font-size:10.5px;color:var(--sub);font-weight:700}
   .sugg{border:1px solid var(--line);border-radius:var(--r-pill);padding:4px 6px 4px 4px;display:flex;align-items:center;gap:6px;font-size:11px;background:var(--card)}
   .sugg i{width:16px;height:16px;border-radius:4px;display:inline-block}
-  .swatch{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);padding:0;cursor:pointer;background:none}
   .sheet select{padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-xs);font-size:13.5px}
   .sheetFoot{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:20px}
   .sheetFoot .note{font-size:12.5px;color:var(--sub)}
@@ -530,14 +574,10 @@
   #inspector h3 + .hint{margin-top:2px}
   #inspector .mode{font-size:10.5px;background:var(--accent-soft);color:var(--accent);border-radius:var(--r-pill);padding:2px 8px;font-weight:700;flex:none}
   #inspector .hint{font-size:11.5px;color:var(--sub);line-height:1.55;margin-bottom:10px}
-  #inspector label{display:block;font-size:11.5px;color:var(--sub);margin:10px 0 4px}
+  #inspector label{display:block;color:var(--sub)}
   #inspector .isec > label:first-child,#inspector .isec > h3 + label{margin-top:4px}
-  #inspector input[type=text],#inspector textarea{width:100%;padding:8px 10px;border:1px solid transparent;border-radius:var(--r-xs);font-size:13px;background:var(--soft);color:var(--ink)}
+  #inspector input[type=text],#inspector textarea{width:100%;border:1px solid transparent;background:var(--soft);color:var(--ink);box-sizing:border-box}
   #inspector input[type=text]:focus-visible,#inspector textarea:focus-visible{border-color:var(--focus);outline:none}
-  #inspector select{width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--r-xs);font-size:13px;background:var(--soft);color:var(--ink)}
-  #inspector .vseg{display:flex;gap:5px;margin-top:4px}
-  #inspector .vseg button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:var(--r-xs);padding:7px 0;font-size:12px;font-weight:600}
-  #inspector .vseg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
   /* 레이아웃 안 썸네일(10-20 2단계) */
   #inspector .vrow{display:flex;gap:8px;overflow-x:auto;padding:4px 0;margin-top:4px}
   #inspector .vthumb{flex:0 0 auto;width:116px;border:1px solid var(--line);border-radius:var(--r-xs);background:var(--card);padding:4px;text-align:left;cursor:pointer;color:var(--ink)}
