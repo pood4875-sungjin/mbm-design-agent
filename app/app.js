@@ -47,6 +47,8 @@ import { mountKvFocus, withManual } from './kvfocus.js';   // 11-02 주인공 �
 import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
 import { FOLDERS_LS, NONE, NONE_LABEL, migrateFolders, createFolder, renameFolder, deleteFolder, reorderFolder, moveFolderBy, moveCampaign,
   toggleFolder, folderOf, filterCampaigns, groupCampaigns, nameError, cleanName, displayName, logoSig, tileToneFor, containBox } from '../core/folders.js';
+import { createCampStore, isQuotaError } from '../core/campstore.js';
+import { openCampBackend, legacyStore } from './campdb.js';
 
 const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };
 const TONE_LABEL = { auto: '자동', dark: '다크', light: '라이트' };
@@ -397,8 +399,16 @@ function initHome() {
 function refreshAiChip() { const el = $('aiChip'); if (el) el.textContent = LLM.hasKey() ? `AI 해석 켜짐 · ${LLM.maskKey()}` : 'AI 해석 꺼짐 — 규칙 파서'; }
 
 /* ═══ 자산 검색 사이드바 ═══ */
-function loadStore() { try { return JSON.parse(localStorage.getItem(STORE_LS) || '[]'); } catch { return []; } }
-function saveStore(list) { localStorage.setItem(STORE_LS, JSON.stringify(list)); }
+// 내 캠페인 저장 — 11-02 사용자 「데이터 5개 이상 안되던데?」: localStorage 한 키(약 5MB)에서 IndexedDB 로(core/campstore.js · app/campdb.js).
+// loadStore 는 가벼운 기록(큰 그림 자리엔 참조만)을 돌려준다 — 그림이 필요하면 campStore.hydrate.
+const campStore = createCampStore({
+  open: () => openCampBackend(STORE_LS),
+  legacy: legacyStore(STORE_LS),
+  channel: typeof BroadcastChannel === 'function' ? new BroadcastChannel('mbm-campaigns') : null,
+  onChange: () => renderSidebar(side.query),
+});
+function loadStore() { return campStore.list(); }
+window.__mbmCampStore = campStore;   // index.html 작업공간 메뉴가 목록을 읽는다
 function parseQuery(q) {
   const cond = {};
   const y = q.match(/20\d{2}/); if (y) cond.year = y[0];
@@ -422,7 +432,7 @@ const IC = {
 };
 function loadFolders(list = loadStore()) {
   let raw = null; try { raw = JSON.parse(localStorage.getItem(FOLDERS_LS) || 'null'); } catch {}
-  return migrateFolders(raw, list.map(c => c.id));
+  return migrateFolders(raw, campStore.isReady() ? list.map(c => c.id) : null);   // 목록을 읽기 전엔 폴더 배정을 솎지 않는다
 }
 function saveFolders(st) { try { localStorage.setItem(FOLDERS_LS, JSON.stringify(st)); return true; } catch { toast('저장 공간 부족 — 폴더 저장 실패'); return false; } }
 // 폴더 연산 한 번 = 저장 + 다시 그리기 + (선택) 알림 + 포커스 되돌리기(다시 그리면 눌렀던 버튼이 새 노드가 된다)
@@ -441,7 +451,7 @@ const csel = id => `.citem[data-id="${CSS.escape(id)}"] .copen`;
 function thumbHtml(c) {
   const t = c.logoThumb, logo = c.style?.logo;
   const who = c.context?.core?.client || displayName(c);
-  if (logo && t?.src && t.sig === logoSig(logo)) return `<div class="thumb ltile ${t.tile === 'dark' ? 'dark' : 'light'}"><img src="${t.src}" alt="${escH(who)} 로고" width="40" height="40"></div>`;
+  if (logo && t?.src) return `<div class="thumb ltile ${t.tile === 'dark' ? 'dark' : 'light'}"><img src="${t.src}" alt="${escH(who)} 로고" width="40" height="40"></div>`;
   const initial = displayName(c).replace(/[^A-Za-z가-힣0-9]/g, '').slice(0, 2) || 'MB';
   return `<div class="thumb" style="background:${escH(c.style?.palette?.primary ?? '#5f6368')}" aria-hidden="true">${escH(initial)}</div>`;
 }
@@ -461,15 +471,16 @@ async function makeLogoThumb(c) {
 }
 async function fillLogoThumbs(list) {
   if (side.thumbJob) return;
-  const need = list.filter(c => c.style?.logo && c.logoThumb?.sig !== logoSig(c.style.logo));
+  const need = list.filter(c => c.style?.logo && !c.logoThumb);   // 로고가 바뀌면 저장(saveCampaignToStore)이 옛 썸네일을 버린다
   if (!need.length) return;
   side.thumbJob = true;
   try {
     for (const c of need) {
-      const t = await makeLogoThumb(c).catch(() => null); if (!t) continue;
-      const store = loadStore(), rec = store.find(x => x.id === c.id); if (!rec) continue;
-      rec.logoThumb = t;
-      try { saveStore(store); } catch { continue; }
+      const full = await campStore.hydrate(c.id).catch(() => null); if (!full) continue;
+      const t = await makeLogoThumb(full.rec).catch(() => null); if (!t) continue;
+      const cur = campStore.get(c.id); if (!cur) continue;
+      const rec = { ...cur, logoThumb: t };
+      campStore.put(rec);   // 참조만 든 기록이라 그림은 다시 쓰지 않는다. 실패해도 다음 목록 때 다시 만든다
       for (const n of document.querySelectorAll(`.citem[data-id="${CSS.escape(c.id)}"] .thumb`)) n.outerHTML = thumbHtml(rec);
     }
   } finally { side.thumbJob = false; }
@@ -486,7 +497,7 @@ function campRow(c, st, { showFolder = false, draggable = true } = {}) {
         <span>${fname ? `<em class="cf-info">${IC.folder}${escH(fname)}</em>` : ''}${escH(c.context?.core?.date ?? '')} · ${c.artifacts?.length ?? 0}종${edits ? ` · 수정 ${edits}회` : ''}</span></span></button>
       <span class="badge ${c.status === 'approved' ? 'approved' : 'draft'}">${c.status === 'approved' ? '승인' : '작업 중'}</span>
       <button type="button" class="cmove" aria-label="${escH(name)} — 폴더로 이동" title="폴더로 이동">${IC.move}</button>`;
-  d.querySelector('.copen').onclick = () => openStored(c);
+  d.querySelector('.copen').onclick = () => openSavedCampaign(c.id);
   d.querySelector('.cmove').onclick = e => openMoveModal(c, e.currentTarget);
   if (draggable) {
     d.draggable = true;
@@ -547,6 +558,7 @@ function moveCampaignTo(cid, fid) {
 
 function renderSidebar(query = '') {
   side.query = query;
+  if (!campStore.isReady()) { $('campEmpty').style.display = 'none'; return; }   // 아직 못 읽었는데 「없음」을 보이지 않는다 — 읽으면 다시 그린다
   const cond = query ? parseQuery(query) : {};
   const chips = $('qchips'); chips.innerHTML = '';
   if (query) for (const [k, v] of Object.entries(cond)) {
@@ -3621,14 +3633,47 @@ function saveCampaignToStore() {
     })),
     log: c.log,
   };
-  const all = loadStore(), prevThumb = all.find(x => x.id === c.id)?.logoThumb;
+  const prevThumb = campStore.get(c.id)?.logoThumb;
   if (prevThumb && prevThumb.sig === logoSig(c.style?.logo)) snapshot.logoThumb = prevThumb;   // 목록 로고 썸네일(renderSidebar) — 로고가 그대로면 이어 쓴다
-  const list = all.filter(x => x.id !== c.id);
-  list.push(snapshot);
-  try { saveStore(list); } catch {
-    snapshot.style = { ...snapshot.style, keyVisual: null };
-    try { saveStore(list); } catch { toast('저장 공간 부족 — 저장 실패'); }
+  // 11-02: 공간이 모자랄 때 키비주얼을 몰래 빼고 저장하던 동작을 없앴다 — 실패는 실패로 알린다
+  return campStore.put(snapshot).then(r => { if (r.ok) saveFail.shown = false; else notifySaveFailed(r.error); return r; });
+}
+
+// 저장 실패 알림 — 자동 저장이 0.6초마다 돌아도 실패가 이어지는 동안 창은 한 번만, 그 뒤는 짧은 알림
+const saveFail = { shown: false };
+function notifySaveFailed(error) {
+  console.warn('캠페인 저장 실패', error);
+  log(`저장 실패: ${error?.name ?? ''} ${error?.message ?? ''}`.trim());
+  if (saveFail.shown) { toast('아직 저장되지 않았어요 — JSON 으로 내려받아 두세요'); return; }
+  saveFail.shown = true;
+  modal({
+    title: '캠페인을 저장하지 못했어요',
+    desc: (isQuotaError(error) ? '이 브라우저의 저장 공간이 모자라요. 디스크 공간을 비우면 다시 저장돼요. ' : '브라우저 저장소가 쓰기를 거절했어요(사생활 보호 창이거나 저장소가 꺼져 있을 수 있어요). ')
+      + '지금 화면의 작업은 그대로 있지만, 이 탭을 닫으면 마지막 저장 뒤의 변경이 사라져요.',
+    body: '',
+    actions: [
+      { label: '닫기' },
+      { label: '이 캠페인 JSON 내려받기', pri: true, fn: () => { if (state.campaign) downloadText(JSON.stringify(state.campaign), `${String(state.campaign.id).replace(/[^\w가-힣-]/g, '_')}.json`, 'application/json'); } },
+    ],
+  });
+}
+function reportStoreNotices() {
+  for (const n of campStore.takeNotices()) {
+    if (n.type === 'migrated') log(`저장 공간 옮김: 캠페인 ${n.moved}개를 IndexedDB 로`);
+    else if (n.type === 'no-idb') { log('IndexedDB 를 쓸 수 없어 localStorage 로 저장'); toast('이 브라우저 환경에선 저장 공간이 작아요(약 5MB) — 일반 창을 권해요'); }
+    else if (n.type === 'legacy-corrupt') { console.warn('옛 캠페인 저장 값이 망가져 옮기지 못했어요 — 지우지 않고 그대로 둡니다'); log('옛 캠페인 저장 값을 읽지 못해 그대로 뒀어요'); toast('예전 캠페인 저장 값을 읽지 못했어요 — 지우지 않고 그대로 뒀어요'); }
+    else if (n.type === 'migrate-failed') { console.warn('캠페인 옮기기 실패', n); log(`저장 공간 옮기기 미완료(${n.moved ?? '?'}/${n.total ?? '?'}) — 원본을 지우지 않았고 다음 실행 때 다시 시도`); toast('예전 캠페인을 다 옮기지 못했어요 — 원본은 그대로 있어요'); }
   }
+}
+window.addEventListener('beforeunload', e => { if (campStore.hasUnsaved()) { e.preventDefault(); e.returnValue = ''; } });   // 저장 중이거나 실패한 게 있으면 닫기 전에 묻는다
+
+// 목록에서 열기 — 가벼운 기록에 그림을 다시 끼워서 연다
+async function openSavedCampaign(id) {
+  let h = null;
+  try { h = await campStore.hydrate(id); } catch (e) { console.warn(e); toast('캠페인을 열지 못했어요 — 저장소를 읽지 못했어요'); return; }
+  if (!h) { toast('캠페인을 찾지 못했어요'); return; }
+  openStored(h.rec);
+  if (h.missing.length) toast(`저장된 그림 ${h.missing.length}개를 찾지 못했어요 — 다시 올려 주세요`);
 }
 
 const LOG_LABEL = {
@@ -3690,8 +3735,11 @@ $('keyBtn').onclick = () => {
       { label: '지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('키 삭제됨'); } },
       { label: '연결 테스트', fn: () => { runKeyTest(); return false; } },
       { label: '캠페인 JSON 내보내기', fn: () => {   // 레이아웃 안 선택 집계(scripts/variant-stats.mjs)·사례 기록의 입구
-        const raw = localStorage.getItem(STORE_LS); if (!raw) { toast('저장된 캠페인이 없어요'); return false; }
-        downloadText(raw, 'mbm-campaigns.json', 'application/json'); log('내보내기: mbm-campaigns.json'); return false;
+        campStore.exportParts().then(({ parts, count }) => {
+          if (!count) { toast('저장된 캠페인이 없어요'); return; }
+          download(new Blob(parts, { type: 'application/json' }), 'mbm-campaigns.json'); log(`내보내기: mbm-campaigns.json (${count}개)`);
+        }).catch(e => { console.warn(e); toast('내보내기 실패 — 저장소를 읽지 못했어요'); });
+        return false;
       } },
       { label: '저장', pri: true, fn: () => { LLM.setKey($('modalBody').querySelector('#keyIn').value); refreshAiChip(); toast('키 저장됨'); } },
     ],
@@ -3732,3 +3780,5 @@ $('logHead').onclick = () => $('logCard').classList.toggle('open');
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다
 initHome();
 show('home');
+// 저장소를 다 읽으면(옛 localStorage 값 옮기기 포함) 목록을 그린다. 앱 시작은 붙들지 않는다
+campStore.ready.then(() => { renderSidebar(side.query); reportStoreNotices(); }, e => { console.warn(e); toast('저장된 캠페인을 읽지 못했어요'); });

@@ -1,6 +1,6 @@
 // 내 캠페인 폴더 — 순수 데이터 연산(브라우저·node 공용, DOM 없음).
 // 저장: localStorage 'mbm-folders' = { v, folders:[{id,name,open}], assign:{캠페인id: 폴더id}, noneOpen }
-//   캠페인 스냅샷('mbm-campaigns')은 손대지 않는다 — 스냅샷은 저장할 때마다 새로 쓰이므로 폴더 정보를 거기 두면 지워진다.
+//   캠페인 스냅샷(core/campstore.js — IndexedDB)은 손대지 않는다 — 스냅샷은 저장할 때마다 새로 쓰이므로 폴더 정보를 거기 두면 지워진다.
 //   폴더 저장소가 없거나(첫 실행·옛 데이터) 망가졌으면 모든 캠페인이 「폴더 없음」에 그대로 놓인다.
 
 export const FOLDERS_LS = 'mbm-folders';

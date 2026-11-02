@@ -882,7 +882,7 @@
     // 2) ‹ 뒤로 · ＋ 새 캠페인 → 홈 이동(#homeBtn과 같은 길). 새 캠페인은 브리프 입력창에 커서까지 둔다.
     $('backBtn').onclick = function () { $('homeBtn').click(); };
     $('newBtn').onclick = function () { $('homeBtn').click(); $('briefText').focus(); };
-    // 3) 작업공간 메뉴 — 저장된 캠페인(localStorage 'mbm-campaigns' = app.js STORE_LS)을 읽어 목록을 만들고,
+    // 3) 작업공간 메뉴 — 저장된 캠페인(app.js 가 연 저장소 window.__mbmCampStore)을 읽어 목록을 만들고,
     //    고르면 홈 목록(#campList .citem)의 같은 항목을 눌러 연다. 홈 목록이 쓰는 이름 규칙(core.name ?? id)을 그대로 따른다.
     var menu = $('wsMenu'), list = $('wsList');
     function nameOf(c) { var k = (c.context && c.context.core) || {}; return k.name || [k.client, k.role].filter(Boolean).join(' ') || c.id; }
@@ -908,7 +908,7 @@
     menu.addEventListener('toggle', function () {
       if (!menu.open) return;
       var saved = [], fst = null;
-      try { saved = JSON.parse(localStorage.getItem('mbm-campaigns') || '[]'); } catch (e) {}
+      try { saved = window.__mbmCampStore ? window.__mbmCampStore.list() : []; } catch (e) {}
       try { fst = JSON.parse(localStorage.getItem('mbm-folders') || 'null'); } catch (e) {}
       saved.sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
       list.innerHTML = '';
