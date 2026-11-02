@@ -4789,6 +4789,11 @@
    "since": "2026-11-02",
    "round": 76,
    "source": "history/2026-11-02_비즈보드_960.md"
-  }
- ]
+  },
+    {"id": "mold-px-strict", "category": "매체 규정", "scope": "자소설·카카오 비즈보드", "status": "active", "rule": "글자 크기가 규정인 틀(자소설 틀·비즈보드 46/43pt)은 ±2px 밖으로 줄이지 않는다. 넘치면 기업명을 서브 줄로 올리고 메인은 채용구분만(서브 칸이 없거나 안 들어가면 공식 두줄형)", "value": "strictPx · moveClientToSub · kkOk", "where": "core/renderers/ad.js", "evidence": ["담당자 노션 컨시어지 31건 재검수 — 실제 ZIP 시험(2026-11-02)"], "since": "2026-11-02", "round": 76, "source": "history/2026-11-02_실제ZIP_재검수.md"},
+    {"id": "mold-client-first", "category": "매체 규정", "scope": "틀 규격 전체", "status": "active", "rule": "기업명이 메인·서브 어디에도 없으면 칸·글자수에 들어가는 한 메인을 기업명으로 한다. 틀 줄 수 상한을 넘으면 줄이고, 그래도 넘으면 기업명만", "value": "templateMold.clientFirst", "where": "core/renderers/ad.js", "evidence": ["담당자 노션 컨시어지 31건 재검수 — 실제 ZIP 시험(2026-11-02)"], "since": "2026-11-02", "round": 76, "source": "history/2026-11-02_실제ZIP_재검수.md"},
+    {"id": "client-keep-fit", "category": "타이포", "scope": "전 규격", "status": "active", "rule": "짧은 기업명 묶기(줄바꿈 금지)는 한 줄 폭에 들어갈 때만 — 못 들어가면 띄어쓰기에서 끊는다", "value": "nb lineChars", "where": "core/renderers/ad.js", "evidence": ["담당자 노션 컨시어지 31건 재검수 — 실제 ZIP 시험(2026-11-02)"], "since": "2026-11-02", "round": 76, "source": "history/2026-11-02_실제ZIP_재검수.md"},
+    {"id": "kv-variant-full", "category": "자르기·블리드", "scope": "자소설 제외", "status": "active", "rule": "가로형·세로형으로 따로 올린 그림의 비율이 규격과 1.5배 안이면 풀이미지로 쓴다(누끼 제외)", "value": "pickKvVariant kvFullForce", "where": "core/renderers/ad.js", "evidence": ["노션 N4 「확장형을 올려도 이미지 영역 안에서만 적용」"], "since": "2026-11-02", "round": 76, "source": "history/2026-11-02_실제ZIP_재검수.md"},
+    {"id": "asset-bg-composite", "category": "매체 규정", "scope": "자소설 M시작배너 이미지 파일", "status": "active", "rule": "배경 없는 이미지는 카드 비율(720×405) 안에 지면색을 깔고 가운데 앉혀 JPG 로 낸다", "value": "assetFileOf", "where": "app/app.js", "evidence": ["노션 #6 M시작배너 예시 — 칸을 꽉 채운 이미지"], "since": "2026-11-02", "round": 76, "source": "history/2026-11-02_실제ZIP_재검수.md"}
+  ]
 }

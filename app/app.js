@@ -2932,11 +2932,18 @@ function clearAiOverrides(c) {
     a.overrides.style = next; a.status = 'draft'; a.gateOverride = null;
   }
 }
+// 승인 뒤 모습이 바뀌면 승인을 푼다 — 안 그러면 사람이 본 적 없는 그림이 「승인됨」으로 ZIP 에 나간다(11-02 실제 시험: 키비주얼 교체 뒤에도 승인됨)
+function regenKeepingGate(c) {
+  const before = new Map(c.artifacts.map(a => [a, a.html]));
+  regen(c);
+  let n = 0; for (const a of c.artifacts) if (a.status === 'approved' && a.html !== before.get(a)) { a.status = 'draft'; a.gateOverride = null; n++; }
+  if (n) toast(`모습이 바뀐 ${n}장은 승인을 풀었어요 — 다시 확인해 주세요`);
+}
 function restyleWith(c, patch = {}, label = '스타일 변경', coalesce = false, { colors, fonts } = {}) {
   pushHistory(label, coalesce);
   c.style = nextStyle(c, patch, { colors, fonts });
   logEvent(c, 'style_changed', {});
-  regen(c);
+  regenKeepingGate(c);
   autosave();
   refreshFrames();
   const n = $('inspNote'); if (n) n.textContent = '스타일 전체 반영됨';

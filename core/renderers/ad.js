@@ -309,7 +309,9 @@ export function pickKvVariant(style, spec) {
   const ar = spec.w / spec.h, v = ar >= 1.6 ? V.wide : ar <= 0.8 ? V.tall : null;
   if (!v?.keyVisual) return style;
   const { aiKvBox, aiFade, aiKvOrig, aiKvMetaOrig, ...rest } = style;
-  return { ...rest, keyVisual: v.keyVisual, kvMeta: v.kvMeta ?? rest.kvMeta };
+  // 규격 비율에 맞춰 올린 확장 이미지는 풀이미지로 — 칸 안에 작게 넣으면 확장한 뜻이 사라진다(노션 N4 「가로/세로 확장형을 올려도 이미지 영역 안에서만」). 직접 지정한 쓰임(kvUse)이 있으면 그대로, 배경 없는 누끼는 제외
+  const vm = v.kvMeta ?? rest.kvMeta, var0 = vm?.ar ? Math.max(vm.ar / ar, ar / vm.ar) : 9, fullOk = var0 <= 1.5 && (vm?.field?.opaque ?? 1) >= 0.5 && (rest.kvUse ?? 'auto') === 'auto' && spec.medium !== 'jasoseol';   // 자소설은 그림 칸이 규정
+  return { ...rest, keyVisual: v.keyVisual, kvMeta: vm, ...(fullOk ? { kvUse: 'full', kvFullForce: true } : {}) };
 }
 export function renderAd(ctx, style, spec) {
   style = pickKvVariant(style, spec);
@@ -1184,6 +1186,7 @@ function renderAdBase(ctx, style, spec) {
   // 정렬 프리셋(10-19) — 틀 규격: 글자 칸은 그대로, 그림 칸·로고 칸만 거울(오른쪽: w−x−폭 · 가운데: 가로 가운데). 틀 좌표 데이터는 손대지 않고 렌더 값만(core/alignrule.js alignMoldSlots)
   const AM = (TA && mold) ? alignMoldSlots({ mold, w, h, k: tScale, tImage, tLogo, align: TA, free: moldFreeKv }) : null;
   if (AM) { tImage = AM.tImage; tLogo = AM.tLogo; }
+  if (style.kvFullForce) tImage = null;   // 규격 비율에 맞춘 확장 이미지 = 풀이미지(pickKvVariant)
   const tText = mold?.x != null ? { x: Math.round(mold.x * tScale), w: Math.round((mold.w ?? (w - mold.x)) * tScale) } : tpl?.textColumn ? { x: Math.round(tpl.textColumn.x * tScale), w: Math.round(tpl.textColumn.w * tScale) } : null;
   const allowLogo = !(rules.logo && rules.logo.count === 0);   // M스탠다드·PC달력배너: 로고 삽입 불가
   // 투명 배경 필수 규격(알바몬 스플래시)에 바탕을 품은 그림을 넣으면 네모가 뜬다 — 누끼만 그린다. 바탕 있는 그림은 이 규격에선 생략(로고·글자만)
@@ -2802,6 +2805,8 @@ ${tplLogo}
   const subLh = useRef ? L.subLine : line;
   if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   if (guide?.dateAbove) parts.push(metaRow().replace(/margin-top:\d+px/, `margin-bottom:${Math.max(8, Math.round(z.smallFs * 0.5))}px`));   // 잡다: 라벨 칩 + 날짜가 메인 위(샘플 PC 5/5 · MO 4/5, 10-12 매체별 규격정리)
+  // 줄 수 안에 안 들어가면(16자 붙임 기업명 + 채용구분, 당근 200×200) 잘린 채 그리지 않고 기업명만
+  { const softRows = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * 0.9 * mainFs / Math.max(1, Math.max(textW, mainW ?? 0)))), 0), cl = String(core.client ?? '').trim(); if (cl && String(copy.main).includes(cl) && String(copy.main).trim() !== cl && softRows(copy.main) > mainLines && softRows(cl) <= mainLines) { copy.main = cl; fired('mainClientOnly'); } }
   parts.push(T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, (useRef ? 'text-wrap:balance' : '') + (mainW > textW ? `;width:${mainW}px;max-width:none` : ''), mainLines, mainLine));
   if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan', z.subFs), subFg, `margin-top:${useRef ? subGap(z) : 6}px${subW > textW ? `;width:${subW}px;max-width:none` : ''}`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   if (!guide?.dateAbove) parts.push(metaRow());

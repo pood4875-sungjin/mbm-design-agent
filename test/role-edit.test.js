@@ -22,3 +22,11 @@ test('roleColors: 규정 없는 규격은 그 색, 비즈보드는 잠금', () =
   assert.match(tag(renderAd(createContext(f, 'recruit'), st, S['google-gdn-580x400']), 'main'), /color:#AA0011/);
   assert.doesNotMatch(tag(renderAd(createContext(f, 'recruit'), st, S['kakao-bizboard-mo']), 'main'), /#AA0011/);
 });
+test('가로형 키비주얼: 규격 비율과 가까우면 풀이미지, 멀면 그대로(N4)', async () => {
+  const { pickKvVariant } = await import('../core/renderers/ad.js');
+  const wide = { keyVisual: 'data:x', kvMeta: { ar: 5, field: { opaque: 1 } } };
+  const st = { keyVisual: 'data:y', kvMeta: { ar: 1 }, kvVariants: { wide } };
+  assert.equal(pickKvVariant(st, { w: 2240, h: 360 }).kvUse, 'full');
+  assert.equal(pickKvVariant(st, { w: 1200, h: 600 }).kvUse, undefined);
+  assert.equal(pickKvVariant({ ...st, kvVariants: { wide: { ...wide, kvMeta: { ar: 5, field: { opaque: .2 } } } } }, { w: 2240, h: 360 }).kvUse, undefined, '누끼는 풀이미지 아님');
+});
