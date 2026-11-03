@@ -1,7 +1,8 @@
 // core/renderers/ad-template.js — 시안 틀 렌더러. 피그마 시안의 칸(글자·뱃지·이미지·로고)에 캠페인 내용을 채운다.
 //   배경은 키비주얼에서 뽑은 지면(resolveField), 색은 역할(fg·accent)로만 받는다. 내용이 없는 칸은 비우고 아래 줄을 끌어올린다.
 import { esc, textWidth } from './banner.js';
-import { fontStack } from '../fonts.js';
+import { fontStack, textColorLocked } from '../fonts.js';
+import { TEMPLATE_NORMS } from '../template-norms.js';
 import { resolveField, coverPos } from '../field.js';
 import { contrast, mix } from '../palette.js';
 import { kvTypeOf } from '../kvtypes.js';
@@ -48,27 +49,37 @@ export function renderTemplate(ctx, style, spec) {
   const sa = rules.safeArea ?? {}, saL = +sa.left || 0, saR = +sa.right || 0, saT = +sa.top || 0, saB = +sa.bottom || 0;
   // 키비주얼 칸. 비율이 달라도 칸은 규격 안에 남긴다
   const kvMeta = style.kvMeta, hasKv = !!style.keyVisual, kind = kvTypeOf(kvMeta)?.id ?? null, cutout = kind === 'cutout';
+  // 편집 프리셋(일괄): 위치·크기·스크림
+  const frFull = style.kvPlace === 'bg' ? true : ['right', 'left', 'bottom'].includes(style.kvPlace) ? false : fr.full;
+  const frVisual = ['right', 'left', 'bottom'].includes(style.kvPlace) ? style.kvPlace : fr.visual;
+  const kvK = { sm: 0.8, md: 1, lg: 1.2 }[style.kvSize] ?? 1;
   const slot = { x: fr.slot.x * sx, y: fr.slot.y * sy, w: fr.slot.w * sx, h: fr.slot.h * sy };
-  const facing = fr.visual === 'right' ? 'left' : fr.visual === 'left' ? 'right' : fr.visual === 'bottom' ? 'top' : fr.visual === 'top' ? 'bottom' : 'left';
+  const facing = frVisual === 'right' ? 'left' : frVisual === 'left' ? 'right' : frVisual === 'bottom' ? 'top' : frVisual === 'top' ? 'bottom' : 'left';
   const field = resolveField(style, { facing }) ?? {};
   const stops0 = field.stops?.length ? field.stops : [style.palette?.primary ?? '#1428A0'];
   // 지면 톤은 시안을 따른다: 밝은 지면 시안이면 같은 색을 옅게 풀어 쓴다(글자는 어둡게). 배경 그림을 만들지 않고 톤으로 느낌을 낸다
-  const lightTone = !fr.full && fr.tone === 'light' && contrast(stops0[0], '#FFFFFF') > 2.2;
+  const lightTone = !frFull && fr.tone === 'light' && cutout && contrast(stops0[0], '#FFFFFF') > 2.2;   // 배경 있는 그림은 그림 색으로 잇는다(옅게 풀면 이음이 탁해진다)
   const stops = lightTone ? stops0.map((c, i) => mix(c, '#FFFFFF', i === 0 ? 0.9 : 0.84)) : stops0;
   const fieldCss = lightTone ? `linear-gradient(180deg,${stops[0]},${stops[stops.length - 1]})` : (field.css ?? `linear-gradient(180deg,${stops[0]},${stops[stops.length - 1]})`);
   const edge = stops[0];
 
   // 글자색: 지면 전체에서 대비가 나는 쪽
   const worst = c => Math.min(...stops.map(s => contrast(s, c)));
-  const fg = worst(WHITE) >= worst(DARK) ? WHITE : DARK;
-  const fgIsDark = fg === DARK;
+  const colorLocked = textColorLocked(spec.mediumRules, rules);
+  const toneFg = !colorLocked && style.textTone === 'light' ? WHITE : !colorLocked && style.textTone === 'dark' ? DARK : null;
+  const baseFg = toneFg ?? (worst(WHITE) >= worst(DARK) ? WHITE : DARK);
+  const fgIsDark = baseFg === DARK;
+  const HEX = /^#[0-9A-Fa-f]{6}$/;
+  const customFg = !colorLocked && HEX.test(style.textColor ?? '') ? style.textColor.toUpperCase() : null;
+  const fg = customFg ?? baseFg;
+  const rcOf = k => (!colorLocked && HEX.test(style.roleColors?.[k] ?? '') ? style.roleColors[k].toUpperCase() : null);
   const accent = (() => {
     const p = style.palette?.primary; if (!p) return null;
     const toward = fgIsDark ? '#000000' : '#FFFFFF';
     let c = p, k = 0; while (worst(c) < 4.5 && k < 8) { c = mix(c, toward, 0.15); k++; }
     return worst(c) >= 4.5 && contrast(c, fg) >= 1.3 ? c : null;
   })();
-  const roleColor = r => (r === 'accent' && accent ? accent : fg);
+  const roleColor = r => (r === 'accent' && accent && !customFg ? accent : fg);
   const badgeFill = r => (r === 'accent' ? (accent ?? fg) : fg);
   const onFill = c => (contrast(c, WHITE) >= contrast(c, DARK) ? WHITE : DARK);
 
@@ -76,12 +87,9 @@ export function renderTemplate(ctx, style, spec) {
   const layers = [];
   if (hasKv) {
     const url = esc(style.keyVisual);
-    if (fr.full) {
+    if (frFull) {
       const c = coverPos(style, W, H, {});
       layers.push(`<div data-object="1" data-kv-only="1" style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;background:url('${url}') ${c.pos}/cover no-repeat"></div>`);
-      const main = fr.rows.find(r => r.role === 'main');
-      const dir = main.al === 'center' ? (main.y < fr.h / 2 ? 'to bottom' : 'to top') : main.al === 'right' ? 'to left' : 'to right';
-      layers.push(`<div data-scrim="1" style="position:absolute;inset:0;background:linear-gradient(${dir},${edge} 8%,${mix(edge, edge, 0)}cc 38%,${edge}00 72%)"></div>`);
     }
   }
 
@@ -106,9 +114,9 @@ export function renderTemplate(ctx, style, spec) {
   // 글자가 쓸 수 있는 가로 범위: 칸 시안은 그림 쪽으로 넘어가지 않게
   const edgePad = Math.round(Math.min(W, H) * 0.05);
   const safeL = Math.max(edgePad, saL), safeR = W - Math.max(edgePad, saR), safeT = Math.max(edgePad * 0.8, saT), safeB = H - Math.max(edgePad, saB);
-  const textRight = Math.min(safeR, (!fr.full && fr.visual === 'right') ? Math.max(W * 0.45, slot.x + slot.w * 0.08) : W);
-  const textLeft = Math.max(safeL, (!fr.full && fr.visual === 'left') ? Math.min(W * 0.55, slot.x + slot.w * 0.92) : 0);
-  const textBottom = Math.min(safeB, (!fr.full && fr.visual === 'bottom' && !cutout) ? Math.max(H * 0.5, slot.y + slot.h * 0.2) : H);
+  const textRight = Math.min(safeR, (!frFull && frVisual === 'right') ? Math.max(W * 0.45, slot.x + slot.w * 0.08) : W);
+  const textLeft = Math.max(safeL, (!frFull && frVisual === 'left') ? Math.min(W * 0.55, slot.x + slot.w * 0.92) : 0);
+  const textBottom = Math.min(safeB, (!frFull && frVisual === 'bottom' && !cutout) ? Math.max(H * 0.5, slot.y + slot.h * 0.2) : H);
 
   // 정렬은 시안 하나에 하나. 피그마의 글상자 정렬값 대신 글자 칸이 실제로 어디에 맞춰 있는지로 판단한다
   const colRows = fr.rows.filter(r => r.role !== 'label');
@@ -126,7 +134,8 @@ export function renderTemplate(ctx, style, spec) {
       const isMain = r.role === 'main';
       let text = textOf(r); if (!text) continue;
       const floor = isMain ? Math.max(limits?.min ?? 0, r.fs * sf * 0.6) : Math.max(limits?.min ?? 0, Math.round(Math.sqrt(W * H) * 0.03), 11);
-      let fs = Math.max(floor, clampFs(r.fs * sf * k));
+      const rs = style.roleScale?.[{ season: 'sub', date: 'date', role: 'detail' }[r.role] ?? 'main'] ?? 1;
+      let fs = Math.max(floor, clampFs(r.fs * sf * k * rs));
       const al0 = frameAlign;
       let anchor = baseEdge;
       const avail = textRight - textLeft, minW = Math.min(avail, W * 0.45);   // 칸이 좁아져 글자가 세로로 서지 않게 기준선을 안쪽으로 민다
@@ -143,6 +152,15 @@ export function renderTemplate(ctx, style, spec) {
       if (isMain && client && hire && (wrapRows(text, floor, bw - labelW) > maxRows || (mainRule?.maxChars != null && text.split('\n').some(l => [...l.replace(/\s/g, '')].length > mainRule.maxChars)))) text = client;
       let rows = wrapRows(text, fs, bw - labelW);
       while (fs > floor && rows > maxRows) { fs -= 1; rows = wrapRows(text, fs, bw - labelW); }
+      // 제목은 시안 글상자 폭까지 키운다(짧은 문구가 작고 듬성해 보이지 않게). 통과 소재 상위선 + 시안의 1.35배까지
+      if (isMain && rows === parts0.length && k === 1) {
+        const line = Math.max(...text.split('\n').map(l => KO(l, fs)));
+        const norm = TEMPLATE_NORMS[spec.id], cap = Math.min(fs * 1.35, norm ? norm.main[2] * 1.12 * Math.sqrt(W * H) : Infinity);
+        let up = Math.min(cap, fs * Math.min(r.w * sx, bw - labelW) * 0.96 / Math.max(1, line));
+        up = clampFs(up);
+        while (up > fs && wrapRows(text, up, bw - labelW) > rows) up -= 1;
+        if (up > fs) fs = up;
+      }
       fs = Math.round(fs);
       const lh = isMain ? 1.2 : 1.32;
       const padY = r.badge && (r.badge.fill || r.badge.stroke) ? Math.round(fs * 0.3) : 0;
@@ -168,7 +186,7 @@ export function renderTemplate(ctx, style, spec) {
   for (let k = 0.94; end > textBottom && k >= 0.6; k -= 0.06) { plan = planAt(k); end = placeAll(plan, 0.3); }
   // 내용이 줄어도 글자 덩어리는 청사진의 자리: 세로 가운데를 맞춘다(그림이 아래인 시안은 위 기준 그대로)
   const recenter = () => {
-    if (!plan.length || fr.visual === 'bottom') return;
+    if (!plan.length || frVisual === 'bottom') return;
     const t = plan[0].top, b = plan[plan.length - 1].top + plan[plan.length - 1].blockH;
     const dy = Math.max(safeT - t, Math.min(textBottom - b, (bpTop + bpBot) / 2 - (t + b) / 2));
     for (const p of plan) p.top += dy;
@@ -180,11 +198,12 @@ export function renderTemplate(ctx, style, spec) {
   recenter();
   for (const p of plan) {
     const { r, text, fs, lh, bw, left0, anchor, rows, top, lfs, padY } = p;
-    const color = roleColor(r.color), al = frameAlign;
+    const fieldKey = r.role === 'main' ? 'main' : r.role === 'season' ? 'sub' : r.role === 'date' ? 'date' : 'detail';
+    const color = rcOf(fieldKey) ?? roleColor(r.color), al = frameAlign;
     const mainHtml = () => {
       if (!(client && hire) || text === client) return esc(text).replace(/\n/g, '<br/>');
       const span = (t, on) => {
-        if (emph?.kind === 'color' && emph.on === on && accent) return `<span data-accent="1" style="color:${accent}">${esc(t)}</span>`;
+        if (emph?.kind === 'color' && emph.on === on && accent && !customFg && !rcOf('main')) return `<span data-accent="1" style="color:${accent}">${esc(t)}</span>`;
         if (emph?.kind === 'weight') return `<span data-weight-part="${on}" style="font-weight:${on === 'client' ? emph.client : emph.hire}">${esc(t)}</span>`;
         return esc(t);
       };
@@ -207,22 +226,45 @@ export function renderTemplate(ctx, style, spec) {
     parts.push(`<div style="display:flex;max-width:100%;${dir};${parts.length ? `margin-top:${p.gap ?? 0}px` : ''}">${labelHtml}${value}</div>`);
     rowsOut.push({ role: dataField, px: fs, rows });
   }
+  let kvPx = null;
+  // 전면 그림: 글자 덩어리 뒤만 지면색으로 덮고 글자 밖에서 풀어 준다(그림 가운데까지 탁하게 덮지 않는다)
+  if (hasKv && frFull && style.scrim !== 'none') {
+    const t0 = plan[0].top, t1 = plan[plan.length - 1].top + plan[plan.length - 1].blockH;
+    const a0 = { low: 0.45, mid: 0.65, high: 0.85 }[style.scrim] ?? 0.86, hx = Math.round(a0 * 255).toString(16).padStart(2, '0'), fade = H * 0.2;
+    const fromTop = (t0 + t1) / 2 < H / 2;
+    const near = fromTop ? t1 : H - t0, stop = Math.round(near / H * 100), end = Math.min(100, Math.round((near + fade) / H * 100));
+    layers.push(`<div data-scrim="1" style="position:absolute;inset:0;background:linear-gradient(${fromTop ? 'to bottom' : 'to top'},${edge}${hx} 0%,${edge}${hx} ${stop}%,${edge}00 ${end}%)"></div>`);
+  }
   // 키비주얼: 시안 칸에 가두지 않고 글자 옆 남는 자리를 채운다(디자이너 소재의 주인공 크기). 누끼는 그대로, 배경 있는 그림은 글자 쪽 변을 녹인다
-  if (hasKv && !fr.full) {
+  if (hasKv && !frFull) {
     const tw0 = p => Math.min(p.bw, KO(p.text.split('\n').sort((a, b) => b.length - a.length)[0], p.fs) * 1.04);
     const tR = Math.max(...plan.map(p => (frameAlign === 'center' ? p.anchor + tw0(p) / 2 : frameAlign === 'right' ? p.anchor : p.left0 + tw0(p))));
     const tL = Math.min(...plan.map(p => (frameAlign === 'center' ? p.anchor - tw0(p) / 2 : frameAlign === 'right' ? p.anchor - tw0(p) : p.left0)));
     const tT = plan[0].top, tB = plan[plan.length - 1].top + plan[plan.length - 1].blockH;
     const gapX = Math.min(W, H) * 0.04, person = !!kvTypeOf(kvMeta)?.flags?.character, inset = (!cutout || person) ? 0 : Math.round(Math.min(W, H) * 0.04);
     const url = esc(style.keyVisual);
-    const v = fr.visual;
-    let b0;
+    const v = frVisual;
+    let b0, kvPx0;
     if (cutout) {
-      if (v === 'right') b0 = { x: Math.min(tR + gapX, W * 0.72), y: inset, r: W - inset, b: H - inset, pos: 'right bottom' };
-      else if (v === 'left') b0 = { x: inset, y: inset, r: Math.max(tL - gapX, W * 0.28), b: H - inset, pos: 'left bottom' };
-      else if (v === 'top') b0 = { x: inset, y: inset, r: W - inset, b: Math.max(tT - gapX, H * 0.25), pos: 'center top' };
-      else b0 = { x: inset, y: Math.min(tB + gapX, H * 0.75), r: W - inset, b: H - inset, pos: frameAlign === 'left' ? 'right bottom' : 'center bottom' };
-      layers.push(`<div data-object="1" style="position:absolute;left:${Math.round(b0.x)}px;top:${Math.round(b0.y)}px;width:${Math.round(b0.r - b0.x)}px;height:${Math.round(b0.b - b0.y)}px;background:url('${url}') ${b0.pos}/contain no-repeat"></div>`);
+      const ar = kvMeta?.ar ?? 1, flags = kvTypeOf(kvMeta)?.flags ?? {};
+      // 후보 자리 중 그림이 가장 크게 들어가는 곳. 세로로 긴 그림은 글자 아래 빈칸이 아니라 글자 옆 전체 높이를 쓴다
+      const boxes = [];
+      if (v === 'right' || (v === 'bottom' && frameAlign === 'left')) boxes.push({ x: Math.min(tR + gapX, W * 0.72), y: inset, r: W - inset, b: H - inset, ax: 'right' });
+      if (v === 'left' || (v === 'bottom' && frameAlign === 'right')) boxes.push({ x: inset, y: inset, r: Math.max(tL - gapX, W * 0.28), b: H - inset, ax: 'left' });
+      if (v === 'top') boxes.push({ x: inset, y: inset, r: W - inset, b: Math.max(tT - gapX, H * 0.25), ax: 'center', top: true });
+      if (v === 'bottom') boxes.push({ x: inset, y: Math.min(tB + gapX, H * 0.75), r: W - inset, b: H - inset, ax: frameAlign === 'left' ? 'right' : 'center' });
+      const fit = q => { const w = q.r - q.x, h = q.b - q.y, c = Math.min(w / ar, h); return c * c * ar; };
+      b0 = boxes.reduce((p, q) => (fit(q) > fit(p) ? q : p));
+      // 사람은 아래로, 단일 사물은 오른쪽·아래로 흘려 크게 쓴다(디자이너 소재의 크기). 여러 덩어리·아이소는 자르지 않는다
+      const bw0 = b0.r - b0.x, bh0 = b0.b - b0.y;
+      let ih = Math.min(bw0 / ar, bh0);
+      const cut = person ? (b0.ax !== 'center' && !b0.top && b0.y > H * 0.2 ? 0.45 : 0.35) : flags.single && ih * ih * ar < W * H * 0.22 ? 0.25 : 0;
+      if (cut && !b0.top) ih = Math.min(bw0 / ar, bh0 / (1 - cut));
+      ih *= kvK; const iw = ih * ar;
+      const ix = b0.ax === 'right' ? b0.r - iw : b0.ax === 'left' ? b0.x : b0.x + (bw0 - iw) / 2;
+      const iy = b0.top ? b0.y : (person ? Math.max(b0.y, H - ih * (1 - cut)) : b0.b - ih);   // 사람은 머리를 남기고 발을 자른다
+      kvPx0 = { x: ix, y: iy, w: iw, h: ih }; kvPx = kvPx0;
+      layers.push(`<div data-object="1" style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;background:url('${url}') ${Math.round(ix)}px ${Math.round(iy)}px/${Math.round(iw)}px ${Math.round(ih)}px no-repeat"></div>`);
     } else {
       // 녹이는 구간은 글자 끝에서 시작한다. 길이는 시안 실측: 이미지의 가로 45%·세로 30%(이음 측정 중앙값 .28~.94 중 그림이 보이는 쪽)
       if (v === 'right') b0 = { x: Math.max(0, Math.min(tR - W * 0.04, W * 0.6)), y: 0, r: W, b: H };
@@ -248,7 +290,7 @@ export function renderTemplate(ctx, style, spec) {
     const estTw = p => Math.min(p.bw, KO(p.text.split('\n').sort((a, b) => b.length - a.length)[0], p.fs) * 1.04);
     const touches = (x, y) => plan.some(p => { const tw = estTw(p), x0 = frameAlign === 'center' ? p.anchor - tw / 2 : frameAlign === 'right' ? p.anchor - tw : p.left0; const m = Math.min(W, H) * 0.03; return x < x0 + tw + m && x + lw > x0 - m && y < p.top + p.blockH + m && y + lh > p.top - m; });
     // 로고가 주인공 위에 얹히지 않게: 누끼가 차지하는 자리도 피한다
-    const kvRect = (() => { if (!(hasKv && cutout && !fr.full && kvMeta?.ar)) return null; const k = Math.min(slot.w / kvMeta.ar, slot.h), iw = k * kvMeta.ar; const right = fr.visual === 'right' || (fr.visual === 'bottom' && frameAlign === 'left'); const x = right ? slot.x + slot.w - iw : fr.visual === 'left' ? slot.x : slot.x + (slot.w - iw) / 2; const y = fr.visual === 'top' ? slot.y : slot.y + slot.h - k; return { x, y, w: iw, h: k }; })();
+    const kvRect = kvPx;
     const onKv = (x, y) => kvRect && x < kvRect.x + kvRect.w && x + lw > kvRect.x && y < kvRect.y + kvRect.h && y + lh > kvRect.y;
     const firstX = fr.logo && fr.logo.x + fr.logo.w / 2 < fr.w * 0.4 ? 1 : fr.logo && Math.abs(fr.logo.x + fr.logo.w / 2 - fr.w / 2) < fr.w * 0.1 ? 2 : 0;
     const firstY = fr.logo && fr.logo.y + fr.logo.h / 2 > fr.h * 0.6 ? 1 : 0;
@@ -260,26 +302,27 @@ export function renderTemplate(ctx, style, spec) {
   }
   // 그림이 칸을 채우는가 · 글자와 그림 사이가 텅 비는가(세로 인물을 넓은 칸에 넣는 경우 등) — 안 맞으면 후보에서 뺀다
   const kvMisfit = (() => {
-    const ar = kvMeta?.ar; if (!hasKv || !ar || fr.full) return false;
+    const ar = kvMeta?.ar; if (!hasKv || !ar || frFull) return false;
     if (!cutout && (Math.min(W, slot.x + slot.w) - Math.max(0, slot.x)) * (Math.min(H, slot.y + slot.h) - Math.max(0, slot.y)) / (W * H) < 0.18) return true;
     const x0 = Math.max(0, slot.x), y0 = Math.max(0, slot.y), bw = Math.min(W, slot.x + slot.w) - x0, bh = Math.min(H, slot.y + slot.h) - y0;
     if (!cutout) return false;
-    const k = Math.min(bw / ar, bh), iw = k * ar, ih = k;
-    // 주인공이 지면의 14%보다 작으면 비어 보인다
-    if ((iw * ih) / (W * H) < 0.14 && ih < H * 0.8) return true;
+    if (!kvPx) return false;
+    const iw = kvPx.w, ih = Math.min(H, kvPx.y + kvPx.h) - Math.max(0, kvPx.y);
+    // 주인공이 작으면 지면이 빈다. 통과 소재 그림 칸 하위선(.17~.29)보다 조금 아래까지 허용, 세로 인물은 폭 때문에 낮게
+    if ((Math.min(W, kvPx.x + iw) - Math.max(0, kvPx.x)) * ih / (W * H) < (kvTypeOf(kvMeta)?.flags?.character ? 0.1 : 0.15)) return true;
     const textR = Math.max(...plan.map(p => { const tw = Math.min(p.bw, KO(p.text.split('\n').sort((a, b) => b.length - a.length)[0], p.fs)); return frameAlign === 'center' ? p.anchor + tw / 2 : frameAlign === 'right' ? p.anchor : p.left0 + tw; }));
     const textB = plan[plan.length - 1].top + plan[plan.length - 1].blockH;
-    if (fr.visual === 'right' && (x0 + bw - iw) - textR > W * 0.18) return true;
-    if (fr.visual === 'bottom' && (y0 + bh - ih) - textB > H * 0.16) return true;
+    if (frVisual === 'right' && kvPx.x - textR > W * 0.22) return true;
+    if (frVisual === 'bottom' && kvPx.y > textB && kvPx.y - textB > H * 0.16) return true;
     return false;
   })();
   // 글자가 주인공 위에 얼마나 얹히는지 — 고르기 후보에서 거르는 값
   const overlap = (() => {
     const fc = kvMeta?.field?.focus, ar = kvMeta?.ar;
     if (!hasKv || !fc || !ar) return 0;
-    const box = fr.full ? { x: 0, y: 0, w: W, h: H } : { x: Math.max(0, slot.x), y: Math.max(0, slot.y), w: Math.min(W, slot.x + slot.w) - Math.max(0, slot.x), h: Math.min(H, slot.y + slot.h) - Math.max(0, slot.y) };
-    const k = (cutout && !fr.full) ? Math.min(box.w / ar, box.h) : Math.max(box.w / ar, box.h);
-    const iw = k * ar, ih = k, ox = box.x + (box.w - iw) / 2, oy = box.y + (box.h - ih) / 2;
+    const box = frFull ? { x: 0, y: 0, w: W, h: H } : { x: Math.max(0, slot.x), y: Math.max(0, slot.y), w: Math.min(W, slot.x + slot.w) - Math.max(0, slot.x), h: Math.min(H, slot.y + slot.h) - Math.max(0, slot.y) };
+    const k = (cutout && !frFull) ? Math.min(box.w / ar, box.h) : Math.max(box.w / ar, box.h);
+    const iw = kvPx ? kvPx.w : k * ar, ih = kvPx ? kvPx.h : k, ox = kvPx ? kvPx.x : box.x + (box.w - iw) / 2, oy = kvPx ? kvPx.y : box.y + (box.h - ih) / 2;
     const S = { x0: ox + (fc.x - fc.w / 2) * iw, x1: ox + (fc.x + fc.w / 2) * iw, y0: oy + (fc.y - fc.h / 2) * ih, y1: oy + (fc.y + fc.h / 2) * ih };
     let worst = 0;
     for (const p of plan) {

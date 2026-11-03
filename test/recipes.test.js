@@ -37,10 +37,11 @@ test('규정 매체에 tpl 을 줘도 그림이 그대로다', () => {
   assert.equal(noTrace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, { ...st, tpl }, {})), noTrace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, st, {})));
 });
 
-test('중·상 자유 규격은 고를 시안이 여러 개다', () => {
+test('중·상 자유 규격은 비주얼 유형마다 고를 시안이 여러 개다', () => {
   for (const id of ['google-gdn-580x400', 'google-gdn-970x250', 'google-gdn-300x600', 'google-gdn-300x1050', 'instagram-feed-1080', 'blind-post-banner', 'blind-feed-image', 'naver-gfa-mobile-da-1250x560', 'nap-dsp-full-300x250', 'nap-dsp-full-320x480']) {
-    assert.ok(familiesFor(specs[id], PHOTO).length >= 3, `${id} 사진 ${familiesFor(specs[id], PHOTO).length}`);
-    assert.ok(familiesFor(specs[id], CUT).length >= 3, `${id} 누끼 ${familiesFor(specs[id], CUT).length}`);
+    const need = id === 'blind-post-banner' ? 2 : 3;   // 블라인드 게시글은 시안 수가 적다(합격 2~3)
+    assert.ok(familiesFor(specs[id], PHOTO).length >= need, `${id} 사진 ${familiesFor(specs[id], PHOTO).length}`);
+    assert.ok(familiesFor(specs[id], CUT).length >= need, `${id} 누끼 ${familiesFor(specs[id], CUT).length}`);
   }
 });
 
@@ -86,6 +87,14 @@ test('빈 정보는 칸을 그리지 않는다', () => {
 test('시안의 강조 방식이 렌더에 들어간다', () => {
   const col = TEMPLATE_FAMILIES.find(f => { const fr = frameFor(f, specs['google-gdn-580x400']); return fr && !fr.full && fr.rows.find(r => r.role === 'main').emph?.kind === 'color'; });
   assert.match(renderArtifact('google-gdn-580x400', ctx, { ...styleOf(CUT), ...familyStyle(col) }, {}), /data-accent="1"/);
+});
+
+test('시안 틀이 편집 글자색·글자별 색·크기를 따른다', () => {
+  const f = familiesFor(specs['google-gdn-580x400'], CUT)[0], base = { ...styleOf(CUT), ...familyStyle(f) };
+  assert.match(renderArtifact('google-gdn-580x400', ctx, { ...base, textColor: '#FF0000' }, {}), /data-field="main"[^>]*color:#FF0000/);
+  assert.match(renderArtifact('google-gdn-580x400', ctx, { ...base, textColor: '#FF0000', roleColors: { main: '#00AA00' } }, {}), /data-field="main"[^>]*color:#00AA00/, '글자별 색이 일괄 색보다 앞선다');
+  const px = h => +/data-field="main"[^>]*font-size:(\d+)px/.exec(h)[1];
+  assert.ok(px(renderArtifact('google-gdn-580x400', ctx, { ...base, roleScale: { main: 0.8 } }, {})) < px(renderArtifact('google-gdn-580x400', ctx, base, {})));
 });
 
 test('style.tpl 이 정규화를 통과한다', () => {

@@ -701,6 +701,21 @@
 
   /* ═══ modal · toast ═══ */
   #overlay{position:fixed;inset:0;background:rgba(16,18,22,.32);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:40}
+  #tplPicker{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.5)}
+  #tplPicker .tp-panel{display:flex;flex-direction:column;width:min(1320px,100%);height:min(900px,100%);background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+  #tplPicker .tp-head{display:flex;align-items:center;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  #tplPicker h3{font-size:16px;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #tplPicker .tp-n{font-size:12.5px;color:var(--sub);margin-right:auto;white-space:nowrap}
+  #tplPicker .tp-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--tp-w)),var(--tp-w)));gap:20px 16px;justify-content:center;align-content:start;padding:18px}
+  #tplPicker .tp-card{display:flex;flex-direction:column;gap:8px;padding:0;background:none;border:0;color:inherit;text-align:left;cursor:pointer;font:inherit;max-width:100%}
+  #tplPicker .tp-box{display:block;overflow:hidden;position:relative;background:var(--soft);border-radius:6px;outline:1px solid var(--line);max-width:100%}
+  #tplPicker .tp-box iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;pointer-events:none}
+  #tplPicker .tp-card:hover .tp-box{outline:2px solid var(--focus)}
+  #tplPicker .tp-card:focus-visible{outline:none}
+  #tplPicker .tp-card:focus-visible .tp-box{outline:3px solid var(--focus);outline-offset:2px}
+  #tplPicker .tp-card.on .tp-box{outline:3px solid var(--focus)}
+  #tplPicker .tp-lab{font-size:12.5px;line-height:1.4}
+  @media (max-width:640px){#tplPicker{padding:0}#tplPicker .tp-panel{height:100%}}
   #modal{width:min(440px,92vw);background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-xl);box-shadow:0 24px 60px -12px rgba(16,24,40,.35);padding:22px}
   #modal h3{font-size:16px;margin-bottom:4px}
   #modal p{font-size:12.5px;color:var(--sub);margin-bottom:12px;line-height:1.55}

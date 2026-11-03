@@ -37,7 +37,7 @@ import { buildZip } from './zip.js';
 import { htmlToSvg } from '../core/svgexport.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
-import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA } from '../core/logo.js';
+import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA, whitenLogo as whitenLogoRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { createElementSelect } from './elselect.js';   // 11-02 프레임 안 요소 고르기
@@ -54,7 +54,7 @@ import { createCampStore, isQuotaError } from '../core/campstore.js';
 import { openCampBackend, legacyStore } from './campdb.js';
 
 const CHIP_LABEL = { tint: '은은한 틴트', brand: '브랜드 채움', plain: '글자만' };
-const TONE_LABEL = { auto: '자동', dark: '다크', light: '라이트' };
+const TONE_LABEL = { auto: '기본', dark: '검정', light: '흰색' };
 // 글자색 규정 매체(렌더러 regulatedText 와 같은 판정): 규격 textColors.main(카카오·NAP 비즈보드) 또는 규정 매체(fonts.required — 자소설·리멤버·카카오). 직접 글자색(textColor)은 여기선 안 먹는다(11-02)
 const textColorRegulated = spec => textColorLocked(spec?.mediumRules, spec?.rules);   // 글자색 톤(style.textTone, 10-19)   // 상세 라벨 알약 톤(style.chipTone)
 const FIELD_LABEL = {
@@ -309,6 +309,29 @@ function modal({ title, desc, body, actions, wide = false }) {
     btns.appendChild(b);
   }
   $('overlay').style.display = 'flex';
+}
+// 시안 고르기 창(11-03 사용자 「작아서 안 보임, 모달로」). 그림은 보이는 칸부터 그린다(시안마다 키비주얼을 통째로 담아 무겁다)
+function openTplPicker({ title, choices, nw, nh, current, docOf, onPick, returnTo }) {
+  const wide = nw / nh > 1.5, cardW = wide ? 420 : 280, k = Math.min(cardW / nw, 360 / nh);
+  const root = document.createElement('div'); root.id = 'tplPicker';
+  root.innerHTML = `<div class="tp-panel" role="dialog" aria-modal="true" aria-labelledby="tpTitle"><div class="tp-head"><h3 id="tpTitle">${escH(title)}</h3><span class="tp-n">${choices.length}개</span><button class="btn" id="tpClose">닫기</button></div><div class="tp-grid" style="--tp-w:${Math.round(nw * k)}px"></div></div>`;
+  const grid = root.querySelector('.tp-grid');
+  const close = () => { io.disconnect(); root.remove(); document.removeEventListener('keydown', onKey, true); returnTo?.focus?.(); };
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) { const f = e.target; f.srcdoc = docOf(choices[+f.dataset.i]); io.unobserve(f); } }, { root: grid, rootMargin: '300px' });
+  choices.forEach((ch, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tp-card'; const on = ch.style.tpl === current; if (on) { b.classList.add('on'); b.setAttribute('aria-current', 'true'); }
+    const bx = document.createElement('span'); bx.className = 'tp-box'; bx.style.cssText = `width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px`;
+    const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.dataset.i = i; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.style.transform = `scale(${k})`;
+    const lb = document.createElement('span'); lb.className = 'tp-lab'; lb.textContent = on ? `${ch.label} · 지금 안` : ch.label;
+    bx.append(f); b.append(bx, lb); b.onclick = () => { close(); onPick(ch); }; grid.append(b); io.observe(f);
+  });
+  const onKey = e => {
+    if (e.key === 'Escape') { e.stopPropagation(); close(); return; }
+    if (e.key === 'Tab') { const fs = [...root.querySelectorAll('button')], a0 = fs[0], z = fs[fs.length - 1]; if (e.shiftKey && document.activeElement === a0) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a0.focus(); } }
+  };
+  document.addEventListener('keydown', onKey, true);
+  root.onclick = e => { if (e.target === root) close(); };
+  document.body.append(root); root.querySelector('#tpClose').onclick = close; root.querySelector('#tpClose').focus();
 }
 function closeModal() { $('overlay').style.display = 'none'; }
 $('overlay').onclick = e => { if (e.target === $('overlay')) closeModal(); };
@@ -1350,7 +1373,7 @@ function slotStyleBody() {
       <div><div class="kvthumb logo" id="logoThumb" title="${escH(logoGuideText())}" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
         <input type="file" id="logoFile" accept="image/*" style="display:none"></div>
       <div><div class="kvthumb logo dark" id="logoLightThumb" title="어두운 지면(브랜드색 배경)에 올라갈 흰색 로고. 없으면 원색 로고를 반전해서 씁니다 — 컬러 로고는 뭉개집니다" style="${it.logoLight ? `background-image:url(${it.logoLight})` : ''}">${it.logoLight ? '' : '흰색 로고<br>(다크용)'}</div>
-        <input type="file" id="logoLightFile" accept="image/*" style="display:none"></div>
+        <input type="file" id="logoLightFile" accept="image/*" style="display:none">${it.logo ? `<button class="btn" id="logoMakeWhite" style="width:100%;margin-top:4px;font-size:11px">흰색으로 만들기</button>` : ''}</div>
       <!-- 오브젝트 누끼 칸은 숨김(11-02 사용자: 키비주얼은 한 통로, 누끼인지 풀이미지인지는 알아서 판단). 데이터(it.object)·렌더 경로는 그대로 두고 입구만 닫는다 -->
       <div hidden><div class="kvthumb logo" id="objThumb" style="${it.object ? `background-image:url(${it.object})` : ''}"></div>
         <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
@@ -1442,6 +1465,7 @@ function slotStyleBody() {
     if (it.logoTone === 'light' && !it.logoLightManual) say('흰색 로고네요 — 지면을 어두운 브랜드색으로 갑니다. 원색 로고도 올리면 밝은 지면도 쓸 수 있어요.');
     if (it.logoNote) say(`로고를 손질했어요 — ${it.logoNote}. 투명 여백을 잘라내야 칸 높이만큼 크게 보입니다.`);
   });
+  if ($('logoMakeWhite')) $('logoMakeWhite').onclick = async () => { const w = await makeWhiteLogo(it.logo, it.logoMono).catch(() => null); if (!w) { toast(WHITE_LOGO_FAIL); return; } it.logoLight = w; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' ? 'light' : 'both'; slotStyle(); };
   bindUpload($('logoLightThumb'), $('logoLightFile'), async d => { d = (await prepLogo(d)).dataUrl; it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
   // 레퍼런스(참고용, 10-28) — 여러 장, 긴 변 1200px 로 줄여 저장. 렌더·AI 에는 안 간다
   $('refThumb').onclick = () => $('refFile').click();
@@ -1691,6 +1715,18 @@ async function prepLogo(dataUrl) {
   try { if (mono) { const t = await trimLogo(mono); if (t) mono = t.dataUrl; } } catch { mono = null; }
   return { dataUrl: src, monoDataUrl: mono, note: notes.join(' · '), changed: src !== dataUrl };
 }
+// 원색 로고로 흰색 로고 만들기(11-03 사용자). 글자 속까지 지운 사본이 있으면 그것을 칠한다. 상자째 로고라 흰 사각형이 되면 null
+async function makeWhiteLogo(dataUrl, monoUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = monoUrl ?? dataUrl; });
+  const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+  const id = g.getImageData(0, 0, cv.width, cv.height), w = whitenLogoRGBA(id.data);
+  if (!w) return null;
+  id.data.set(w); g.putImageData(id, 0, 0);
+  return cv.toDataURL('image/png');
+}
+const WHITE_LOGO_FAIL = '로고에 투명 배경이 없어 흰색으로 만들 수 없습니다. 투명 PNG 를 올려 주세요';
 async function logoToneOf(dataUrl) {
   const img = new Image();
   await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
@@ -2707,7 +2743,6 @@ function renderInspectorBody() {
         <button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
-      ${ED.presetCampaignHtml(['kvPlace', 'kvSize', 'scrim'])}
       <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>
       <div style="display:flex;gap:6px">
         <div class="kvthumb logo" id="iLogo" style="flex:1;height:44px;${c.style.logo ? `background-image:url(${c.style.logo})` : ''}">${c.style.logo ? '' : '원색 로고'}</div>
@@ -2715,6 +2750,7 @@ function renderInspectorBody() {
       </div>
       <input type="file" id="iLogoFile" accept="image/*" style="display:none">
       <input type="file" id="iLogoLightFile" accept="image/*" style="display:none">
+      ${c.style.logo ? `<button class="btn" id="iLogoMakeWhite" style="width:100%;margin-top:6px">원색 로고로 흰색 로고 만들기</button>` : ''}
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       </section>
       <section class="isec"><h3>배경</h3>${bgControlHtml(c.style, 'iBg')}</section>
@@ -2729,9 +2765,9 @@ function renderInspectorBody() {
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       <label>글자색</label>
-      <div class="vseg" id="iToneSeg">${[['auto', '자동'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tt="${k}" class="${(c.style.textTone ?? 'auto') === k ? 'on' : ''}" aria-pressed="${(c.style.textTone ?? 'auto') === k}">${v}</button>`).join('')}</div>
+      <div class="vseg" id="iToneSeg">${[['auto', '기본'], ['light', '흰색'], ['dark', '검정']].map(([k, v]) => { const on = !c.style.textColor && (c.style.textTone ?? 'auto') === k; return `<button data-tt="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}">${v}</button>`; }).join('')}</div>
       <div class="fstack" id="iTextColorRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자색 직접', tail: c.style.textColor ? '' : '직접', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '글자색 직접 지정 되돌리기', 'id="iTextColorReset"') : '' })}</div>
-      <div class="fnote">색이 정해진 매체(리멤버·카카오 비즈보드·NAP 비즈보드)는 제외</div>
+      <div class="fnote">기본은 지면에 맞춰 흰색이나 검정입니다. 글자마다 바꾸려면 소재를 고른 뒤 글자별 편집에서 바꿉니다. 색이 정해진 매체(리멤버·카카오 비즈보드·NAP 비즈보드)는 제외</div>
       ${ED.alignCampaignHtml()}
       ${ED.presetCampaignHtml(['textAnchor'])}
       </section>
@@ -2785,9 +2821,9 @@ function renderInspectorBody() {
     // 라벨 알약 톤 — 일괄. 산출물에 개별 값이 있으면 그 산출물은 그대로(overrides.style)
     insp.querySelectorAll('#iChipSeg button').forEach(b => b.onclick = () => { if ((c.style.chipTone ?? 'tint') === b.dataset.ct) return; restyle({ chipTone: b.dataset.ct }, `라벨 알약 ${CHIP_LABEL[b.dataset.ct]}`); renderInspector(); });
     // 글자색 톤 — 일괄(10-19). 'auto' 지면 밝기 / 'dark' #333 / 'light' 흰. 규정 매체·산출물 개별값은 그대로
-    insp.querySelectorAll('#iToneSeg button').forEach(b => b.onclick = () => { if ((c.style.textTone ?? 'auto') === b.dataset.tt) return; restyle({ textTone: b.dataset.tt }, `글자색 ${TONE_LABEL[b.dataset.tt]}`); renderInspector(); });
+    insp.querySelectorAll('#iToneSeg button').forEach(b => b.onclick = () => { if (!c.style.textColor && (c.style.textTone ?? 'auto') === b.dataset.tt) return; restyle({ textTone: b.dataset.tt, textColor: null }, `글자색 ${TONE_LABEL[b.dataset.tt]}`); renderInspector(); });
     // 글자색 직접 지정(style.textColor, 11-02 컨시어지 「브랜드컬러 외 폰트 색상」) — 일괄. 규정 매체는 렌더러가 무시(textColor.ignored). 되돌리기 = null(톤대로)
-    const tcIn = insp.querySelector('#iTextColor'); if (tcIn) { tcIn.oninput = () => liveStyle(c, { textColor: tcIn.value.toUpperCase() }, { colors: curColors(), keepPrev: true }); tcIn.onchange = () => { const v = tcIn.value.toUpperCase(); if ((c.style.textColor ?? null) === v) { liveRevert(); return; } softly(() => restyle({ textColor: v }, `글자색 직접 ${v}`)); renderInspector(); }; }
+    const tcIn = insp.querySelector('#iTextColor'); if (tcIn) { tcIn.oninput = () => liveStyle(c, { textColor: tcIn.value.toUpperCase() }, { colors: curColors(), keepPrev: true }); tcIn.onchange = () => { const v = tcIn.value.toUpperCase(); if ((c.style.textColor ?? null) === v) { liveRevert(); return; } softly(() => restyle({ textColor: v, textTone: 'auto' }, `글자색 직접 ${v}`)); renderInspector(); }; }
     const tcRs = insp.querySelector('#iTextColorReset'); if (tcRs) tcRs.onclick = () => { restyle({ textColor: null }, '글자색 직접 지정 해제'); renderInspector(); };
     insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
@@ -2918,6 +2954,7 @@ function renderInspectorBody() {
         r.readAsDataURL(f);
       };
     }
+    const mkW = insp.querySelector('#iLogoMakeWhite'); if (mkW) mkW.onclick = async () => { const w = await makeWhiteLogo(c.style.logo, c.style.logoMono).catch(() => null); if (!w) { toast(WHITE_LOGO_FAIL); return; } restyle({ logoLight: w, logoTone: c.style.logoTone === 'light' ? 'light' : 'both' }, '흰색 로고 만들기'); renderInspector(); };
     // 폰트 파일 첨부 — 카탈로그에 끼운 뒤 그 폰트로 전체 재생성
     const fontIn = insp.querySelector('#iFontFile');
     insp.querySelector('#iFontUp').onclick = () => fontIn.click();
@@ -2951,7 +2988,6 @@ function renderInspectorBody() {
       <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
       <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}</div>
-      <div class="vrow" id="iTplGrid" style="flex-wrap:wrap"></div>
     </section>` : ''}
     ${a.channel === 'ad' ? `${layerListHtml(a)}
     <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
@@ -2968,7 +3004,7 @@ function renderInspectorBody() {
     <section class="isec"><h3>글자 ${ovBtn(a, 'text')}</h3>
       ${artifactFontHtml(a, c)}
       <label>글자색</label>
-      <div class="vseg" id="iToneOv">${[['', '공통'], ['dark', '다크'], ['light', '라이트']].map(([k, v]) => `<button data-tto="${k}" class="${(a.overrides.style?.textTone ?? '') === k ? 'on' : ''}" aria-pressed="${(a.overrides.style?.textTone ?? '') === k}">${v}</button>`).join('')}</div>
+      <div class="vseg" id="iToneOv">${[['', '공통'], ['light', '흰색'], ['dark', '검정']].map(([k, v]) => { const on = !a.overrides.style?.textColor && (a.overrides.style?.textTone ?? '') === k; return `<button data-tto="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}">${v}</button>`; }).join('')}</div>
       ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 소재만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 소재 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div>${reg ? '<div class="fnote">매체 규정 색 고정 — 직접 지정 불가</div>' : ''}`; })()}
       ${ED.alignArtifactHtml(a)}
       ${ED.presetArtifactHtml(a, ['textAnchor'], 'inspPresetT')}
@@ -3041,7 +3077,7 @@ function renderInspectorBody() {
     if ((a.overrides.style?.textColor ?? null) === v) return;
     pushHistory(`${artLabel(a)} 글자색 개별 편집`);
     const st = { ...(a.overrides.style ?? {}) };
-    if (v) st.textColor = v; else delete st.textColor;
+    if (v) { st.textColor = v; delete st.textTone; } else delete st.textColor;
     a.overrides.style = st; a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId, style: 'textColor' });
     regen(c); autosave(); softly(() => refreshFrames(a.specId)); renderInspector();
@@ -3054,9 +3090,10 @@ function renderInspectorBody() {
   // 글자색 톤 — 이 산출물만(overrides.style.textTone, 10-19). 비우면 공통
   insp.querySelectorAll('#iToneOv button').forEach(b => b.onclick = () => {
     const v = b.dataset.tto || null;
-    if ((a.overrides.style?.textTone ?? null) === v) return;
+    if (!a.overrides.style?.textColor && (a.overrides.style?.textTone ?? null) === v) return;
     pushHistory(`${artLabel(a)} 글자색 개별 편집`);
     const st = { ...(a.overrides.style ?? {}) };
+    delete st.textColor;
     if (v) st.textTone = v; else delete st.textTone;
     a.overrides.style = st; a.status = 'draft'; a.gateOverride = null;
     logEvent(c, 'manual_edit', { specId: a.specId, style: 'textTone' });
@@ -3092,30 +3129,24 @@ function renderInspectorBody() {
       const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(html, v.style?.fonts?.heading ?? artifactFontId(a)); box.appendChild(f);
     }
     // 시안 더 보기(11-02): 자동 안 말고 이 규격·키비주얼에 맞는 시안 전부에서 고른다
-    const moreBtn = $('iTplMore'), moreBox = $('iTplGrid');
-    if (moreBtn && moreBox) moreBtn.onclick = () => {
-      if (moreBox.childElementCount) { moreBox.replaceChildren(); moreBtn.setAttribute('aria-expanded', 'false'); return; }
-      moreBtn.setAttribute('aria-expanded', 'true');
-      for (const ch of templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a))) {
-        const b = document.createElement('button'); b.className = 'vthumb'; b.title = ch.label;
-        const bx = document.createElement('span'); bx.className = 'vthumb-box';
-        const lb = document.createElement('span'); lb.className = 'vthumb-lab'; lb.textContent = ch.label;
-        const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(ch.html, ch.style.fonts?.heading ?? artifactFontId(a));
-        bx.append(f); b.append(bx, lb);
-        b.onclick = () => {
-          pushHistory(`${artLabel(a)} 시안 고르기`);
-          const prev = a.variants[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, ch.style);
-          a.overrides.style = st;
-          let i = a.variants.findIndex(v => v.style?.tpl === ch.style.tpl);
-          if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '' }); i = a.variants.length - 1; }
-          a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
-          logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl, label: ch.label });
-          regen(c); autosave(); refreshFrames(a.specId); renderInspector();
-          log(`${a.specId} 시안 ${ch.label}`);
-        };
-        moreBox.append(b);
-      }
-    };
+    const moreBtn = $('iTplMore');
+    if (moreBtn) moreBtn.onclick = () => openTplPicker({
+      title: `다른 시안 · ${artLabel(a)}`, nw, nh, returnTo: moreBtn,
+      current: a.variants[currentVariantIndex(a)]?.style?.tpl ?? null,
+      choices: templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a)),
+      docOf: ch => previewDoc(ch.html, ch.style.fonts?.heading ?? artifactFontId(a)),
+      onPick: ch => {
+        pushHistory(`${artLabel(a)} 시안 고르기`);
+        const prev = a.variants[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, ch.style);
+        a.overrides.style = st;
+        let i = a.variants.findIndex(v => v.style?.tpl === ch.style.tpl);
+        if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '' }); i = a.variants.length - 1; }
+        a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
+        logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl, label: ch.label });
+        regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+        log(`${a.specId} 시안 ${ch.label}`);
+      },
+    });
     insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
       const cur = currentVariantIndex(a), i = +b.dataset.vi; if (i === cur) return;
       pushHistory(`${artLabel(a)} 레이아웃 안 ${i + 1}`);

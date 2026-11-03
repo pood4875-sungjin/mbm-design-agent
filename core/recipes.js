@@ -45,13 +45,16 @@ const hashOf = s => { let h = 2166136261; for (const ch of String(s ?? '')) h = 
 
 // 규격에 쓸 수 있는 시안 전부(고르기용). 사진·질감은 전면 먼저, 누끼·일러스트는 칸 시안 먼저.
 //   같은 묶음 안 순서는 seed(기업명)로 돌려 캠페인마다 다른 시안이 앞에 온다. 한 캠페인 안에서는 규격이 달라도 같은 순서
+// 합격선·순위는 비주얼 유형별로 잰다: 인물 누끼 · 그 밖의 누끼 · 일러스트 · 사진 · 질감
+export const kvKeyOf = kvMeta => { const k = kvKindOf(kvMeta); return k === 'cutout' && kvTypeOf(kvMeta)?.flags?.character ? 'person' : (k ?? 'none'); };
+
 export function familiesFor(spec, kvMeta, hasKv = !!kvMeta, seed = '', { all = false } = {}) {
   if (!recipeEligible(spec)) return [];
-  const kind = kvKindOf(kvMeta), wantFull = kind === 'photo' || kind === 'texture', h = hashOf(seed);
+  const key = kvKeyOf(kvMeta), kind = kvKindOf(kvMeta), wantFull = kind === 'photo' || kind === 'texture', h = hashOf(seed);
   const rank = f => (frameFor(f, spec).full === wantFull ? 0 : 1);
-  return TEMPLATE_FAMILIES.filter(f => frameFor(f, spec) && familyFits(f, kvMeta, hasKv, spec) && (all || TEMPLATE_PASS.has(`${f.id}|${spec.id}`)))
-    .map(f => ({ f, k: (hashOf(f.id) ^ h) >>> 0 }))
-    .sort((a, b) => rank(a.f) - rank(b.f) || a.k - b.k)
+  return TEMPLATE_FAMILIES.filter(f => frameFor(f, spec) && familyFits(f, kvMeta, hasKv, spec) && (all || TEMPLATE_PASS.has(`${f.id}|${spec.id}|${key}`)))
+    .map(f => ({ f, k: (hashOf(f.id) ^ h) >>> 0, q: Math.round((TEMPLATE_PASS.get(`${f.id}|${spec.id}|${key}`) ?? 0) * 5) }))   // 점수 5단계 안에서만 캠페인마다 순서가 바뀐다
+    .sort((a, b) => rank(a.f) - rank(b.f) || b.q - a.q || a.k - b.k)
     .map(x => x.f);
 }
 

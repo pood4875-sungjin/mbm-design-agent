@@ -4239,6 +4239,1301 @@
       "type": "photo",
       "summary": "꽉 찬 사진 · 정사각형",
       "verdicts": []
+    },
+    {
+      "id": "fig-01",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "photo",
+      "summary": "밝은 사진 · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-02",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "반사·유리·크롬 누끼+단일 사물 누끼 · 어두운 지면 우선 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-03",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "photo",
+      "summary": "밝은 사진 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-04",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-05",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-06",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-07",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼+장면·건물 누끼(아이소메트릭) · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-08",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-09",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-10",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 23% · 캐릭터(머리 보존) · 덩어리 여럿 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-11",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 23% · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-12",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼 · 주인공 26% · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-13",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼 · 주인공 32% · 덩어리 여럿 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-14",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 26% · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-15",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "반사·유리·크롬 누끼+단일 사물 누끼 · 어두운 지면 우선 · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-16",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-17",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-18",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 2% · 덩어리 여럿 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-19",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼+장면·건물 누끼(아이소메트릭) · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-20",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-21",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 35% · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-22",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "photo",
+      "summary": "여백 있는 사진(하늘·벽) · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-23",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-24",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-25",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-26",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 38% · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-27",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-28",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-29",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "여러 오브젝트·캐릭터 떼 · 주인공 26% · 덩어리 여럿 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-30",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-31",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "photo",
+      "summary": "꽉 찬 사진 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-32",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-33",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-34",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+그라데이션 바탕 일러스트·3D · 캐릭터(머리 보존) · 가장자리 그라데이션 · 어두운 바탕 · 세로형",
+      "verdicts": []
+    },
+    {
+      "id": "fig-35",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          283,
+          80
+        ],
+        "lum": 0.88,
+        "sat": 0,
+        "solid": 0.46,
+        "tone": "light",
+        "colors": [
+          {
+            "hex": "#FFFFFF",
+            "share": 0.87
+          },
+          {
+            "hex": "#010101",
+            "share": 0.11
+          },
+          {
+            "hex": "#373737",
+            "share": 0.01
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-03",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 15% · 덩어리 여럿 · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+      "verdicts": []
     }
   ]
 }
