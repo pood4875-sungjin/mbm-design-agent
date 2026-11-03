@@ -16,7 +16,10 @@ import { kvTypeOf } from '../core/kvtypes.js';
 import { renderArtifact } from '../core/contract.js';
 import { ALIGN_CHOICES, alignLockOf, lockedSummary } from '../core/alignrule.js';
 import { resolveAiStyle } from '../core/trackb/analyze.js';
+import { kvOptionsFor, kvOptionsNote } from '../core/editopts.js';
 import { ic } from './fui.js';
+
+const KV_KEYS = ['kvPlace', 'kvSize', 'scrim'];   // 11-03 소재 패널에서 먹는 선택지만 보이는 컨트롤(core/editopts.js)
 
 // 직접 수정(끌어 옮기기) 손잡이·섹션은 숨긴다(10-19 사용자 「텍스트 이동하는 기능은 빼도 되는데 정렬만 바꿀 수 있게」) — 데이터(overrides.layout)·렌더 훅은 남겨 기존 캠페인이 깨지지 않게
 const MANUAL_EDIT_UI = false;
@@ -107,18 +110,28 @@ export function createEditor(E) {
   function presetArtifactHtml(a, keys = PRESET_KEYS, id = 'inspPresetA') {
     const c = camp(); const t = autoTrace(a), now = traceOfHtml(a.html);
     const ov = a.overrides?.style ?? {};
+    // 11-03 키비주얼 위치·크기·스크림은 이 소재(규격·시안 틀·그림 유형)에서 실제로 먹는 선택지만(core/editopts.js — 렌더러와 같은 가름 + 실제로 그려 비교). 안 먹는 컨트롤은 숨기고 한 줄로 말한다
+    const KO = keys.some(k => KV_KEYS.includes(k)) ? kvOptionsFor({ spec: specOf(a), style: effStyleOf(a), trace: t, render: st => renderArtifact(a.specId, E.adEffCtx(a), st, { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size }) }) : null;
+    const kvOk = (k, v) => v === 'auto' || (k === 'kvPlace' ? KO.place.includes(v) : k === 'kvSize' ? KO.scale : KO.scrim);
+    const hiddenKv = [];
     const ctl = k => {
       const own = ov[k] ?? null;
       const camp0 = shownValue(c.style, k);
-      const opts = Object.keys(PRESETS[k].choices);
-      const dis = opts.map(v => [v, availOf(k, a, v, t)]).filter(([, r]) => !r.ok);
+      const kvCtl = !!KO && KV_KEYS.includes(k);
+      if (kvCtl && !own && !(k === 'kvPlace' ? KO.place.length : kvOk(k, 'x'))) { hiddenKv.push(k); return ''; }
+      const opts = Object.keys(PRESETS[k].choices).filter(v => !kvCtl || kvOk(k, v) || v === own);
+      const dis = opts.map(v => [v, kvCtl ? (kvOk(k, v) ? { ok: true } : { ok: false, why: KO.whyOf[k] || '이 소재에선 결과가 안 바뀜' }) : availOf(k, a, v, t)]).filter(([, r]) => !r.ok);
       const applied = now?.edit?.presets?.[k];
       const note = (k === 'kvPlace' && now?.edit?.place && !now.edit.place.ok) ? `지금 값 「${PRESETS.kvPlace.choices[now.edit.place.want]}」은 이 규격에서 안 됨 — ${now.edit.place.why ?? ''}` : '';
       return `<div class="pctl" role="group" aria-labelledby="pa-${k}"><div class="plab" id="pa-${k}">${PRESETS[k].label} <span class="pauto">자동: ${escH(autoLabel(k, t) || '—')}${camp0 !== 'auto' ? ` · 공통: ${escH(label(k, camp0))}` : ''}</span></div>
         <div class="pseg"><button data-ak="${k}" data-av="" class="${!own ? 'on' : ''}" aria-pressed="${!own}">공통 따름</button>${opts.map(v => { const d = dis.find(([x]) => x === v); return `<button data-ak="${k}" data-av="${v}" class="${own === v ? 'on' : ''}" aria-pressed="${own === v}"${d ? ` disabled aria-disabled="true" title="${escH(d[1].why)}"` : ` title="${escH(PRESETS[k].choices[v])}"`}>${escH(label(k, v))}</button>`; }).join('')}</div>
         ${dis.length ? `<div class="pwhy">못 고름: ${[...dis.reduce((m, [v, r]) => m.set(r.why, [...(m.get(r.why) ?? []), label(k, v)]), new Map())].map(([why, ls]) => `${escH(ls.join('·'))} — ${escH(why)}`).join(' / ')}</div>` : ''}${note ? `<div class="pwhy warn">${escH(note)}</div>` : ''}${applied && !note ? '' : ''}</div>`;
     };
-    return `<div class="inspPreset" id="${id}">${keys.map(ctl).join('')}</div>`;
+    const body = keys.map(ctl).join('');
+    const hiddenNote = !hiddenKv.length ? '' : hiddenKv.length === KV_KEYS.filter(k => keys.includes(k)).length
+      ? `<div class="pwhy">${escH(kvOptionsNote(KO))}</div>`
+      : `<div class="pwhy">${escH(hiddenKv.map(k => PRESETS[k].label).join('·'))} — 이 소재에선 안 먹음${(() => { const w = [...new Set(hiddenKv.map(k => KO.whyOf[k]).filter(Boolean))]; return w.length ? ': ' + escH(w.join(' / ')) : ''; })()}</div>`;
+    return `<div class="inspPreset" id="${id}">${body}${hiddenNote}</div>`;
   }
   function bindPresetArtifact(insp, a) {
     insp.querySelectorAll('[data-ak]').forEach(b => b.onclick = () => {

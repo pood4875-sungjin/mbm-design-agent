@@ -1,0 +1,290 @@
+jasoseol-pc-premium-popup-pc 550x400	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-popup-pc 550x400	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-popup-pc 550x400	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-popup-pc 550x400	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-popup-pc 550x400	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-jobpost-pc 160x600	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-jobpost-pc 160x600	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-jobpost-pc 160x600	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-jobpost-pc 160x600	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-premium-jobpost-pc 160x600	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-main-pc 1200x280	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-main-pc 1200x280	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-main-pc 1200x280	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-main-pc 1200x280	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-main-pc 1200x280	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-jobpost-pc 160x600	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-jobpost-pc 160x600	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-jobpost-pc 160x600	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-jobpost-pc 160x600	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-standard-jobpost-pc 160x600	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-premium-popup-mo 600x880	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-premium-popup-mo 600x880	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-premium-popup-mo 600x880	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-premium-popup-mo 600x880	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-premium-popup-mo 600x880	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-premium-chatlist-logo-mo 300x180	cutout	base	null	-
+jasoseol-m-premium-chatlist-logo-mo 300x180	person	base	null	-
+jasoseol-m-premium-chatlist-logo-mo 300x180	photo	base	null	-
+jasoseol-m-premium-chatlist-logo-mo 300x180	illust	base	null	-
+jasoseol-m-premium-chatlist-logo-mo 300x180	texture	base	null	-
+jasoseol-m-standard-main-mo 750x500	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-standard-main-mo 750x500	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-standard-main-mo 750x500	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-standard-main-mo 750x500	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-standard-main-mo 750x500	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-m-standard-chatlist-logo-mo 300x180	cutout	base	null	-
+jasoseol-m-standard-chatlist-logo-mo 300x180	person	base	null	-
+jasoseol-m-standard-chatlist-logo-mo 300x180	photo	base	null	-
+jasoseol-m-standard-chatlist-logo-mo 300x180	illust	base	null	-
+jasoseol-m-standard-chatlist-logo-mo 300x180	texture	base	null	-
+jasoseol-m-start-logo-mo 600x300	cutout	base	asset	-
+jasoseol-m-start-logo-mo 600x300	person	base	asset	-
+jasoseol-m-start-logo-mo 600x300	photo	base	asset	-
+jasoseol-m-start-logo-mo 600x300	illust	base	asset	-
+jasoseol-m-start-logo-mo 600x300	texture	base	asset	-
+jasoseol-m-start-image-mo 720x405	cutout	base	asset	-
+jasoseol-m-start-image-mo 720x405	person	base	asset	-
+jasoseol-m-start-image-mo 720x405	photo	base	asset	-
+jasoseol-m-start-image-mo 720x405	illust	base	asset	-
+jasoseol-m-start-image-mo 720x405	texture	base	asset	-
+jasoseol-pc-calendar-pc 164x233	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-calendar-pc 164x233	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-calendar-pc 164x233	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-calendar-pc 164x233	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jasoseol-pc-calendar-pc 164x233	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-pc 2240x360	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-pc 2240x360	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-pc 2240x360	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-pc 2240x360	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-pc 2240x360	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-mo 1005x360	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-mo 1005x360	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-mo 1005x360	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-mo 1005x360	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-top-mo 1005x360	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-pc 2240x240	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-pc 2240x240	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-pc 2240x240	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-pc 2240x240	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-pc 2240x240	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-mo 1005x360	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-mo 1005x360	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-mo 1005x360	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-mo 1005x360	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-main-mid-mo 1005x360	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-pc 2240x240	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-pc 2240x240	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-pc 2240x240	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-pc 2240x240	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-pc 2240x240	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-mo 1125x276	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-mo 1125x276	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-mo 1125x276	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-mo 1125x276	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-top-mo 1125x276	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-pc 530x200	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-pc 530x200	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-pc 530x200	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-pc 530x200	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-pc 530x200	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-mo 1125x276	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-mo 1125x276	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-mo 1125x276	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-mo 1125x276	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+remember-job-side-mo 1125x276	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-pc 792x240	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-pc 792x240	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-pc 792x240	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-pc 792x240	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-pc 792x240	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-mo 343x160	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-mo 343x160	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-mo 343x160	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-mo 343x160	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+jobda-main-mo 343x160	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+catch-center-object-pc 515x315	cutout	base	null	-
+catch-center-object-pc 515x315	person	base	null	-
+catch-center-object-pc 515x315	photo	base	null	-
+catch-center-object-pc 515x315	illust	base	null	-
+catch-center-object-pc 515x315	texture	base	null	-
+catch-center-object-mo 622x380	cutout	base	null	-
+catch-center-object-mo 622x380	person	base	null	-
+catch-center-object-mo 622x380	photo	base	null	kvPlace:bg=other
+catch-center-object-mo 622x380	illust	base	null	kvPlace:bg=other
+catch-center-object-mo 622x380	texture	base	null	kvPlace:right=other kvPlace:bottom=other kvPlace:left=other
+catch-center-logo-mo 160x160	cutout	base	null	-
+catch-center-logo-mo 160x160	person	base	null	-
+catch-center-logo-mo 160x160	photo	base	null	-
+catch-center-logo-mo 160x160	illust	base	null	-
+catch-center-logo-mo 160x160	texture	base	null	-
+google-gdn-580x400 580x400	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-580x400 580x400	cutout	tpl(gdn2-19919-152)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-580x400 580x400	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-580x400 580x400	person	tpl(gdn-22271-2967)	null	kvPlace:bottom=other kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-580x400 580x400	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-580x400 580x400	photo	tpl(gdn-22141-2278)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-580x400 580x400	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-580x400 580x400	illust	tpl(gdn2-20879-2335)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj
+google-gdn-580x400 580x400	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-580x400 580x400	texture	tpl(gdn2-18846-138)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-970x250 970x250	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-970x250 970x250	cutout	tpl(gdn2-19919-152)	null	kvPlace:bottom=other kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-970x250 970x250	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-970x250 970x250	person	tpl(gdn2-19919-152)	null	kvPlace:bottom=other kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-970x250 970x250	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-970x250 970x250	photo	tpl(gdn2-18846-138)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-970x250 970x250	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-970x250 970x250	illust	tpl(gdn-21444-1715)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj
+google-gdn-970x250 970x250	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-970x250 970x250	texture	tpl(gdn2-18846-138)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-300x600 300x600	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x600 300x600	cutout	tpl(gdn-22271-2967)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-300x600 300x600	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x600 300x600	person	tpl(gdn2-17281-11580)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-300x600 300x600	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x600 300x600	photo	tpl(gdn-22141-2278)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-300x600 300x600	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x600 300x600	illust	tpl(gdn-22111-1029)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj
+google-gdn-300x600 300x600	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x600 300x600	texture	tpl(gdn2-18358-5602)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-300x1050 300x1050	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x1050 300x1050	cutout	tpl(gdn2-18336-3247)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-300x1050 300x1050	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x1050 300x1050	person	tpl(gdn2-18336-3247)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+google-gdn-300x1050 300x1050	photo	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x1050 300x1050	photo	tpl(gdn2-18846-138)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-300x1050 300x1050	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x1050 300x1050	illust	tpl(gdn-22141-2278)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj
+google-gdn-300x1050 300x1050	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-300x1050 300x1050	texture	tpl(gdn2-18846-138)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+google-gdn-930x180 930x180	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-930x180 930x180	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-930x180 930x180	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-930x180 930x180	illust	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+google-gdn-930x180 930x180	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x50 320x50	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x50 320x50	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x50 320x50	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x50 320x50	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x50 320x50	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x100 320x100	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x100 320x100	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x100 320x100	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x100 320x100	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-band-320x100 320x100	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-300x250 300x250	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-300x250 300x250	cutout	tpl(ig2-22451-7828)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+nap-dsp-full-300x250 300x250	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-300x250 300x250	person	tpl(gdn-21444-1715)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+nap-dsp-full-300x250 300x250	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-300x250 300x250	photo	tpl(ig2-19008-8414)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+nap-dsp-full-300x250 300x250	illust	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-300x250 300x250	illust	tpl(ig2-21947-553)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj
+nap-dsp-full-300x250 300x250	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-300x250 300x250	texture	tpl(napgfa-22774-706)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+nap-dsp-full-320x480 320x480	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-320x480 320x480	cutout	tpl(gdn-21444-1715)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+nap-dsp-full-320x480 320x480	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-320x480 320x480	person	tpl(gdn-21444-1715)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+nap-dsp-full-320x480 320x480	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-320x480 320x480	photo	tpl(gdn-22141-2278)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+nap-dsp-full-320x480 320x480	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-320x480 320x480	illust	tpl(gdn-22111-1029)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj
+nap-dsp-full-320x480 320x480	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+nap-dsp-full-320x480 320x480	texture	tpl(gdn2-18846-138)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+instagram-feed-1080 1080x1080	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+instagram-feed-1080 1080x1080	cutout	tpl(ig-22360-1824)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+instagram-feed-1080 1080x1080	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+instagram-feed-1080 1080x1080	person	tpl(ig-22360-1824)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+instagram-feed-1080 1080x1080	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+instagram-feed-1080 1080x1080	photo	tpl(ig2-19155-8602)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+instagram-feed-1080 1080x1080	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+instagram-feed-1080 1080x1080	illust	tpl(ig2-21947-553)	null	kvPlace:right=obj kvPlace:bg=obj kvPlace:left=obj
+instagram-feed-1080 1080x1080	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+instagram-feed-1080 1080x1080	texture	tpl(ig-22334-2848)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+kakao-bizboard-mo 960x300	cutout	base	templateMold	-
+kakao-bizboard-mo 960x300	person	base	templateMold	-
+kakao-bizboard-mo 960x300	photo	base	templateMold	-
+kakao-bizboard-mo 960x300	illust	base	templateMold	-
+kakao-bizboard-mo 960x300	texture	base	templateMold	-
+kakao-display-pc-promo 1200x600	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+kakao-display-pc-promo 1200x600	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+kakao-display-pc-promo 1200x600	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+kakao-display-pc-promo 1200x600	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+kakao-display-pc-promo 1200x600	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+kakao-display-pc-profile 300x300	cutout	base	null	-
+kakao-display-pc-profile 300x300	person	base	null	-
+kakao-display-pc-profile 300x300	photo	base	null	-
+kakao-display-pc-profile 300x300	illust	base	null	-
+kakao-display-pc-profile 300x300	texture	base	null	-
+naver-gfa-mobile-da-1250x560 1250x560	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+naver-gfa-mobile-da-1250x560 1250x560	cutout	tpl(napgfa-19580-8434)	null	kvPlace:bottom=other kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+naver-gfa-mobile-da-1250x560 1250x560	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+naver-gfa-mobile-da-1250x560 1250x560	person	tpl(blind-21896-244)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+naver-gfa-mobile-da-1250x560 1250x560	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+naver-gfa-mobile-da-1250x560 1250x560	photo	tpl(napgfa-22145-2861)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+naver-gfa-mobile-da-1250x560 1250x560	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+naver-gfa-mobile-da-1250x560 1250x560	illust	tpl(napgfa-19580-8434)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj
+naver-gfa-mobile-da-1250x560 1250x560	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+naver-gfa-mobile-da-1250x560 1250x560	texture	tpl(napgfa-15852-133)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+naver-gfa-native-mo-342x228 342x228	cutout	base	null	-
+naver-gfa-native-mo-342x228 342x228	person	base	null	-
+naver-gfa-native-mo-342x228 342x228	photo	base	null	kvPlace:bg=other
+naver-gfa-native-mo-342x228 342x228	illust	base	null	kvPlace:bg=other
+naver-gfa-native-mo-342x228 342x228	texture	base	null	-
+naver-gfa-native-mo-profile-300 300x300	cutout	base	null	-
+naver-gfa-native-mo-profile-300 300x300	person	base	null	-
+naver-gfa-native-mo-profile-300 300x300	photo	base	null	-
+naver-gfa-native-mo-profile-300 300x300	illust	base	null	-
+naver-gfa-native-mo-profile-300 300x300	texture	base	null	-
+everytime-community-board 1029x258	cutout	base	templateMold	-
+everytime-community-board 1029x258	person	base	templateMold	-
+everytime-community-board 1029x258	photo	base	templateMold	-
+everytime-community-board 1029x258	illust	base	templateMold	-
+everytime-community-board 1029x258	texture	base	templateMold	-
+everytime-home-banner 640x200	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-banner 640x200	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-banner 640x200	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-banner 640x200	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-banner 640x200	texture	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-card-profile 160x160	cutout	base	null	-
+everytime-home-card-profile 160x160	person	base	null	-
+everytime-home-card-profile 160x160	photo	base	null	-
+everytime-home-card-profile 160x160	illust	base	null	-
+everytime-home-card-profile 160x160	texture	base	null	-
+everytime-home-card-image 720x480	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-card-image 720x480	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-card-image 720x480	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-card-image 720x480	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+everytime-home-card-image 720x480	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-brand-logo 96x96	cutout	base	null	-
+blind-brand-logo 96x96	person	base	null	-
+blind-brand-logo 96x96	photo	base	null	-
+blind-brand-logo 96x96	illust	base	null	-
+blind-brand-logo 96x96	texture	base	null	-
+blind-feed-image 1200x628	cutout	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-feed-image 1200x628	cutout	tpl(gdn2-19919-152)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvSize:sm=obj kvSize:lg=obj
+blind-feed-image 1200x628	person	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-feed-image 1200x628	person	tpl(blind-22095-1112)	null	kvPlace:bottom=other kvPlace:bg=obj kvPlace:left=obj kvSize:sm=obj kvSize:lg=obj
+blind-feed-image 1200x628	photo	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-feed-image 1200x628	photo	tpl(gdn-22141-2278)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+blind-feed-image 1200x628	illust	base	templateMold	scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-feed-image 1200x628	illust	tpl(gdn-22218-2367)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj
+blind-feed-image 1200x628	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-feed-image 1200x628	texture	tpl(gdn-22577-574)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+blind-post-banner 1250x560	cutout	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-post-banner 1250x560	cutout	tpl(blind-20569-240)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvSize:sm=obj kvSize:lg=obj
+blind-post-banner 1250x560	person	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-post-banner 1250x560	person	tpl(blind-20569-240)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:bg=obj kvSize:sm=obj kvSize:lg=obj
+blind-post-banner 1250x560	photo	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-post-banner 1250x560	photo	tpl(napgfa-22145-2861)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+blind-post-banner 1250x560	illust	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-post-banner 1250x560	illust	tpl(blind-22095-1112)	null	kvPlace:bottom=obj kvPlace:bg=obj kvPlace:left=obj
+blind-post-banner 1250x560	texture	base	templateMold	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+blind-post-banner 1250x560	texture	tpl(napgfa-15852-133)	null	kvPlace:right=obj kvPlace:bottom=obj kvPlace:left=obj scrim:none=scrim scrim:low=other scrim:mid=other scrim:high=other
+daangn-native-feed-image 200x200	cutout	base	null	kvSize:sm=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+daangn-native-feed-image 200x200	person	base	null	kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+daangn-native-feed-image 200x200	photo	base	null	kvPlace:bg=obj kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+daangn-native-feed-image 200x200	illust	base	null	kvPlace:bg=obj kvSize:sm=obj kvSize:lg=obj scrim:low=scrim scrim:mid=scrim scrim:high=scrim
+daangn-native-feed-image 200x200	texture	base	null	scrim:low=scrim scrim:mid=scrim scrim:high=scrim

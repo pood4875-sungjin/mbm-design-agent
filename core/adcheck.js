@@ -119,8 +119,10 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
   const logoOnly = root.hasAttribute('data-logo-only');   // 프로필·로고 규격은 로고 하나가 가운데 — 빈 띠가 정상
   const templated = root.hasAttribute('data-template');   // 매체 템플릿이 글자 칸·그림 칸을 고정한 규격(자소설 달력·채용공고배너) — 빈 띠는 틀의 문제라 참고로만
   // 작은 누끼를 원본 1.5배에서 멈춰(CANON maxUpscale, --kv-capped) 생긴 빈 띠는 그림 탓(원본이 작다) — 참고로만(10-12 dongbu_illust 285px · dongsuh-model 174px)
-  const capped = objs.some(o => /--kv-capped:\s*1/.test(o.el.getAttribute('style') || ''));
-  if (frame.h >= 150 && !bgKv && !logoOnly && texts.length && gap / frame.h > 0.28) push('empty-band', `아무것도 없는 띠가 지면 높이의 ${Math.round(gap / frame.h * 100)}%${capped ? ' (작은 누끼를 1.5배에서 멈춤 — 큰 원본 필요)' : ''}`, (kvUse === 'none' || templated || capped) ? 'info' : 'warn');
+  const cappedEl = objs.find(o => /--kv-capped:\s*1/.test(o.el.getAttribute('style') || ''))?.el ?? null, capped = !!cappedEl;
+  const needW = +(cappedEl?.getAttribute('data-kv-need') ?? 0);   // 시안 틀이 멈춘 자리에서 원래 쓰려던 폭(11-03 ad-template kvCap)
+  const cappedNote = capped ? ` (작은 누끼를 1.5배에서 멈춤 — ${needW && kvMeta?.px?.[0] ? `원본 ${kvMeta.px[0]}px → 필요 ${needW}px, ${Math.round(needW / kvMeta.px[0] * 10) / 10}배` : '큰 원본 필요'})` : '';
+  if (frame.h >= 150 && !bgKv && !logoOnly && texts.length && gap / frame.h > 0.28) push('empty-band', `아무것도 없는 띠가 지면 높이의 ${Math.round(gap / frame.h * 100)}%${cappedNote}`, (kvUse === 'none' || templated || capped) ? 'info' : 'warn');
 
   // 5. 글자 잘림
   for (const t of texts) {
@@ -143,7 +145,7 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
     if (kvUse === 'bg' || kvUse === 'full') up = Math.max(up, Math.max(frame.w / kpx[0], frame.h / kpx[1]));
     metrics.kvUpscale = Math.round(up * 10) / 10;
     // 누끼는 1.5배(CANON maxUpscale.cutout, 10-12 desk-37-cut 계단) — 가장자리가 계단져 바탕 있는 그림보다 먼저 티가 난다
-    if (up > (cutoutKv ? 1.55 : 2)) push('low-res', `키비주얼을 원본(${kpx[0]}×${kpx[1]})의 ${metrics.kvUpscale}배로 키움 — 흐림`, 'info');
+    if (up > (cutoutKv ? 1.55 : 2)) push('low-res', `키비주얼 원본 ${kpx[0]}×${kpx[1]}px → 필요 ${Math.round(kpx[0] * up)}×${Math.round(kpx[1] * up)}px, ${metrics.kvUpscale}배로 키움 — 흐림`, 'info');
   }
   if (logoEl?.naturalHeight > 0 && logoR?.h > logoEl.naturalHeight * 1.5) push('low-res-logo',   /* 1.5배까지는 눈에 안 띈다(키비주얼 기준 2배·누끼 1.55배와 같은 자리, 11-02 전수 120건). 올릴 때 입력 판정이 이미 안내한다 */ `로고를 원본 높이(${logoEl.naturalHeight}px)보다 크게 그림(${Math.round(logoR.h)}px)`, 'info');
 

@@ -45,6 +45,9 @@ import { createRuler } from './ruler.js';
 import { applyElementEdits, elementFontIds, elementName, parseElementId, withElementEdit, STYLE_ROLES, WEIGHTS } from '../core/elementedit.js';
 import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
+import { getKey as aiGetKey } from './llm.js';
+// 11-03 사용자 결정: 「AI 그림 판단」 버튼은 AI 키가 있을 때만(기본 숨김) — 시안 틀은 이 값을 안 읽어 기본안에만 효과
+const aiKeyReady = () => { try { return !!aiGetKey(); } catch { return false; } };
 import { createSelect, pickForExport } from './select.js';   // 11-02 선택하기(컨시어지 박진화 「선택한 소재만 추출」) — 카드·드래그·매체 머리글로 골라 그것만 ZIP
 import { mountKvFocus, withManual } from './kvfocus.js';   // 11-02 주인공 확인·직접 지정(컨시어지 한희하) — 썸네일 위 네모, 클릭/드래그   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
 import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
@@ -2740,7 +2743,7 @@ function renderInspectorBody() {
         <button class="btn" id="iKvColors" style="flex:1">색 다시 맞춤</button>
         <button class="btn" id="iKvClear" style="flex:1">제거</button></div>
       <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>
+        ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 기본안에만 효과(시안 틀은 이 값을 안 읽음). 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
       <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>

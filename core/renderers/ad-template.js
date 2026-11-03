@@ -3,10 +3,11 @@
 import { esc, textWidth } from './banner.js';
 import { fontStack, textColorLocked } from '../fonts.js';
 import { TEMPLATE_NORMS } from '../template-norms.js';
-import { resolveField, coverPos } from '../field.js';
+import { resolveField, coverPos, cutoutCapW } from '../field.js';
 import { contrast, mix } from '../palette.js';
-import { kvTypeOf } from '../kvtypes.js';
+import { kvTypeOf, massBand } from '../kvtypes.js';
 import { familyById, frameFor } from '../recipes.js';
+import { KV_SIZE_K } from '../editlayout.js';
 
 const WHITE = '#FFFFFF', DARK = '#1A1A1A';
 const KO = (t, fs) => textWidth(t) * fs;
@@ -25,6 +26,13 @@ function wrapRows(text, fs, W) {
     rows += n;
   }
   return rows;
+}
+
+// 편집 프리셋이 시안 칸을 바꾸는 방식 — 위치: 'bg' 면 전면, 옆·아래면 그 쪽 칸(시안의 full·visual 을 덮어씀). core/editopts.js 가 같은 판정을 쓴다(소재 패널에 먹는 선택지만)
+export const TEMPLATE_SIDES = ['right', 'left', 'bottom'];
+export function templateKvMode(style, fr) {
+  const p = style?.kvPlace;
+  return { full: p === 'bg' ? true : TEMPLATE_SIDES.includes(p) ? false : !!fr.full, visual: TEMPLATE_SIDES.includes(p) ? p : fr.visual };
 }
 
 export function renderTemplate(ctx, style, spec) {
@@ -50,9 +58,8 @@ export function renderTemplate(ctx, style, spec) {
   // 키비주얼 칸. 비율이 달라도 칸은 규격 안에 남긴다
   const kvMeta = style.kvMeta, hasKv = !!style.keyVisual, kind = kvTypeOf(kvMeta)?.id ?? null, cutout = kind === 'cutout';
   // 편집 프리셋(일괄): 위치·크기·스크림
-  const frFull = style.kvPlace === 'bg' ? true : ['right', 'left', 'bottom'].includes(style.kvPlace) ? false : fr.full;
-  const frVisual = ['right', 'left', 'bottom'].includes(style.kvPlace) ? style.kvPlace : fr.visual;
-  const kvK = { sm: 0.8, md: 1, lg: 1.2 }[style.kvSize] ?? 1;
+  const { full: frFull, visual: frVisual } = templateKvMode(style, fr);
+  const kvK = KV_SIZE_K[style.kvSize] ?? 1;
   const slot = { x: fr.slot.x * sx, y: fr.slot.y * sy, w: fr.slot.w * sx, h: fr.slot.h * sy };
   const facing = frVisual === 'right' ? 'left' : frVisual === 'left' ? 'right' : frVisual === 'bottom' ? 'top' : frVisual === 'top' ? 'bottom' : 'left';
   const field = resolveField(style, { facing }) ?? {};
@@ -226,7 +233,7 @@ export function renderTemplate(ctx, style, spec) {
     parts.push(`<div style="display:flex;max-width:100%;${dir};${parts.length ? `margin-top:${p.gap ?? 0}px` : ''}">${labelHtml}${value}</div>`);
     rowsOut.push({ role: dataField, px: fs, rows });
   }
-  let kvPx = null;
+  let kvPx = null, kvCap = null;   // kvCap: 작은 누끼를 원본 1.5배에서 멈춘 기록(trace.tpl.kvCap)
   // 전면 그림: 글자 덩어리 뒤만 지면색으로 덮고 글자 밖에서 풀어 준다(그림 가운데까지 탁하게 덮지 않는다)
   if (hasKv && frFull && style.scrim !== 'none') {
     const t0 = plan[0].top, t1 = plan[plan.length - 1].top + plan[plan.length - 1].blockH;
@@ -253,6 +260,12 @@ export function renderTemplate(ctx, style, spec) {
       if (v === 'left' || (v === 'bottom' && frameAlign === 'right')) boxes.push({ x: inset, y: inset, r: Math.max(tL - gapX, W * 0.28), b: H - inset, ax: 'left' });
       if (v === 'top') boxes.push({ x: inset, y: inset, r: W - inset, b: Math.max(tT - gapX, H * 0.25), ax: 'center', top: true });
       if (v === 'bottom') boxes.push({ x: inset, y: Math.min(tB + gapX, H * 0.75), r: W - inset, b: H - inset, ax: frameAlign === 'left' ? 'right' : 'center' });
+      // 가로형 떼·아이소(왼쪽 정렬 시안): 제목 아래·짧은 줄(일정·직무) 오른쪽의 ㄱ자 빈 칸 — 통과 소재 떼 세트(22111 fig-13 580×400)가 제목 밑 우하단 63%×55%에 둔 자리. 오른쪽 열만 쓰면 폭 때문에 작아진다
+      const herd0 = !person && (flags.group || flags.multi) && ar > 1.3, mainIdx = plan.findIndex(p => p.r.role === 'main');
+      if (herd0 && frameAlign === 'left' && (v === 'right' || v === 'bottom') && mainIdx >= 0 && mainIdx < plan.length - 1) {
+        const below = plan.slice(mainIdx + 1), bR = Math.max(...below.map(p => p.left0 + tw0(p))), mB = plan[mainIdx].top + plan[mainIdx].blockH;
+        boxes.push({ x: Math.min(bR + gapX, W * 0.72), y: Math.min(mB + gapX, H * 0.6), r: W - inset, b: H - inset, ax: 'right', ell: true });
+      }
       const fit = q => { const w = q.r - q.x, h = q.b - q.y, c = Math.min(w / ar, h); return c * c * ar; };
       b0 = boxes.reduce((p, q) => (fit(q) > fit(p) ? q : p));
       // 사람은 아래로, 단일 사물은 오른쪽·아래로 흘려 크게 쓴다(디자이너 소재의 크기). 여러 덩어리·아이소는 자르지 않는다
@@ -260,11 +273,22 @@ export function renderTemplate(ctx, style, spec) {
       let ih = Math.min(bw0 / ar, bh0);
       const cut = person ? (b0.ax !== 'center' && !b0.top && b0.y > H * 0.2 ? 0.45 : 0.35) : flags.single && ih * ih * ar < W * H * 0.22 ? 0.25 : 0;
       if (cut && !b0.top) ih = Math.min(bw0 / ar, bh0 / (1 - cut));
-      ih *= kvK; const iw = ih * ar;
-      const ix = b0.ax === 'right' ? b0.r - iw : b0.ax === 'left' ? b0.x : b0.x + (bw0 - iw) / 2;
-      const iy = b0.top ? b0.y : (person ? Math.max(b0.y, H - ih * (1 - cut)) : b0.b - ih);   // 사람은 머리를 남기고 발을 자른다
+      // 가로형 떼·아이소(자르지 않는 누끼)는 글자 아래 남는 높이를 다 쓴다 — 폭이 넘치면 좌우로 12%까지 블리드, 위쪽 성긴 칸(더듬이·머리끝, 불투명 폭 < 최대 15%)은 글자 틈까지만 올라온다.
+      // 맞춰 넣기(contain)만 하면 바닥에 얇은 띠로 들어가 위가 텅 빈다(11-03 fig-07 시트 15~25%). 목표는 통과 소재 떼 세트(22111 fig-13) 그림 칸 29~34%
+      const herd = herd0, mb = herd ? massBand(kvMeta?.field?.rows, 0.15) : { top: 0, bottom: 1 };
+      if (herd && !b0.top) {
+        const span = Math.max(0.3, mb.bottom - mb.top), floor0 = b0.ell ? b0.y : b0.ax === 'center' || v === 'bottom' ? tB : b0.y;   // 그림 윗변은 글자 아래(성긴 칸이 글자를 덮지 않게)
+        ih = Math.min(bw0 * 1.12 / ar, bh0 / span, (b0.b - floor0) / Math.max(0.5, mb.bottom));
+      }
+      ih *= kvK;
+      // 작은 누끼는 원본의 1.5배(CANON maxUpscale.cutout, 기본안 field.js cutoutCapW 와 같은 선)에서 멈춘다 — 인물 크롭 확대로 174px 그림을 3~4배 키우던 것(11-03 dongsuh-model 전수 97건 전부 1.6배 이상). 넘는 만큼은 그림 탓: 필요 px 를 남겨 검수가 알린다
+      const capW = cutoutCapW(style);
+      if (ih * ar > capW) { kvCap = { need: Math.round(ih * ar), max: capW, k: Math.round(ih * ar / kvMeta.px[0] * 10) / 10 }; ih = capW / ar; }
+      const iw = ih * ar;
+      const ix = b0.ax === 'right' ? b0.r - Math.min(iw, bw0) : b0.ax === 'left' ? b0.x : b0.x + (bw0 - iw) / 2;   // 블리드는 오른쪽·좌우 바깥으로만(글자 쪽으로는 안 넘친다)
+      const iy = b0.top ? b0.y : (person ? Math.max(b0.y, H - ih * (1 - cut)) : herd ? b0.b - ih * mb.bottom : b0.b - ih);   // 사람은 머리를 남기고 발을 자른다. 떼는 덩어리 바닥을 칸 바닥에
       kvPx0 = { x: ix, y: iy, w: iw, h: ih }; kvPx = kvPx0;
-      layers.push(`<div data-object="1" style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;background:url('${url}') ${Math.round(ix)}px ${Math.round(iy)}px/${Math.round(iw)}px ${Math.round(ih)}px no-repeat"></div>`);
+      layers.push(`<div data-object="1"${kvCap ? ` data-kv-need="${kvCap.need}"` : ''} style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;background:url('${url}') ${Math.round(ix)}px ${Math.round(iy)}px/${Math.round(iw)}px ${Math.round(ih)}px no-repeat${kvCap ? ';--kv-capped:1' : ''}"></div>`);
     } else {
       // 녹이는 구간은 글자 끝에서 시작한다. 길이는 시안 실측: 이미지의 가로 45%·세로 30%(이음 측정 중앙값 .28~.94 중 그림이 보이는 쪽)
       if (v === 'right') b0 = { x: Math.max(0, Math.min(tR - W * 0.04, W * 0.6)), y: 0, r: W, b: H };
@@ -307,9 +331,10 @@ export function renderTemplate(ctx, style, spec) {
     const x0 = Math.max(0, slot.x), y0 = Math.max(0, slot.y), bw = Math.min(W, slot.x + slot.w) - x0, bh = Math.min(H, slot.y + slot.h) - y0;
     if (!cutout) return false;
     if (!kvPx) return false;
+    const kt = kvTypeOf(kvMeta)?.flags ?? {}, herd = !kt.character && (kt.group || kt.multi) && ar > 1.3;
     const iw = kvPx.w, ih = Math.min(H, kvPx.y + kvPx.h) - Math.max(0, kvPx.y);
-    // 주인공이 작으면 지면이 빈다. 통과 소재 그림 칸 하위선(.17~.29)보다 조금 아래까지 허용, 세로 인물은 폭 때문에 낮게
-    if ((Math.min(W, kvPx.x + iw) - Math.max(0, kvPx.x)) * ih / (W * H) < (kvTypeOf(kvMeta)?.flags?.character ? 0.1 : 0.15)) return true;
+    // 주인공이 작으면 지면이 빈다. 통과 소재 그림 칸 하위선(.17~.29)보다 조금 아래까지 허용, 세로 인물은 폭 때문에 낮게. 가로형 떼·아이소는 통과 소재 떼 세트(22111 fig-13 그림 칸 .29~.34)에 맞춰 25% — 얇은 띠로 들어간 안은 후보에서 뺀다(11-03)
+    if ((Math.min(W, kvPx.x + iw) - Math.max(0, kvPx.x)) * ih / (W * H) < (kt.character ? 0.1 : herd ? 0.25 : 0.15)) return true;
     const textR = Math.max(...plan.map(p => { const tw = Math.min(p.bw, KO(p.text.split('\n').sort((a, b) => b.length - a.length)[0], p.fs)); return frameAlign === 'center' ? p.anchor + tw / 2 : frameAlign === 'right' ? p.anchor : p.left0 + tw; }));
     const textB = plan[plan.length - 1].top + plan[plan.length - 1].blockH;
     if (frVisual === 'right' && kvPx.x - textR > W * 0.22) return true;
@@ -339,7 +364,7 @@ export function renderTemplate(ctx, style, spec) {
   const typeWeak = mainP && (mainP.fs < mainP.r.fs * sf * 0.72 || plan.some(p => p !== mainP && p.fs > mainP.fs * 0.88));   // 제목 위계가 무너진 조합
   const unfit = typeWeak || (mainRule?.lines != null && mainPlan && mainPlan.rows > mainRule.lines) || plan.some(p => limits?.min && p.fs < limits.min) || end > H - 2 || kvMisfit || logoFail;
   const m = rowsOut.find(x => x.role === 'main');
-  const trace = { v: 1, rules: [`tpl.${family.id}`], tpl: { id: family.id, name: family.name, frame: fr.id, overlap, unfit: !!unfit, align: frameAlign, sx, sy, sf }, fonts: { main: { px: m?.px ?? 0, lines: m?.rows ?? 0, weight: fr.rows.find(r => r.role === 'main')?.wt ?? 700 } }, copy: { main: mainFull, sub: season || null, date: dateText || null, details: roleText ? ['모집직무'] : [] }, field: { stops } };
+  const trace = { v: 1, rules: [`tpl.${family.id}`], tpl: { id: family.id, name: family.name, frame: fr.id, overlap, unfit: !!unfit, align: frameAlign, sx, sy, sf, ...(kvCap ? { kvCap } : {}) }, fonts: { main: { px: m?.px ?? 0, lines: m?.rows ?? 0, weight: fr.rows.find(r => r.role === 'main')?.wt ?? 700 } }, copy: { main: mainFull, sub: season || null, date: dateText || null, details: roleText ? ['모집직무'] : [] }, field: { stops } };
   const tr = esc(JSON.stringify(trace)).replace(/"/g, '&quot;');
   return `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="0" data-field-source="${esc(field.source ?? 'none')}" data-trace="${tr}" style="position:relative;width:${W}px;height:${H}px;overflow:hidden;box-sizing:border-box;background:${fieldCss};font-family:${family0};color:${fg}">
 ${layers.join('\n')}

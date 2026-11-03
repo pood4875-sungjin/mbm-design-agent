@@ -122,6 +122,20 @@ const dist = (a, b) => {
   return Math.sqrt(((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) / 3) / 255;
 };
 
+// 행 투명 프로필(rows, 누끼 32칸)의 머리 꼭대기 — 위 두 칸의 불투명 폭 / 가장 넓은 칸. 사람·캐릭터는 머리가 둥글어 0.00~0.14(동서 모델·연사·여우·강아지),
+// 세로로 긴 사물(상자·병·기둥)은 윗면이 평평해 0.35~0.57(taihan 상자 fig-17 0.50, 스타디움 0.57, 책 0.35). 프로필이 없으면 null(판정에 안 씀).
+export function headApex(rows) {
+  if (!rows?.length || rows.length < 8) return null;
+  const op = rows.map(r => 1 - (r?.bg ?? 1)), mx = Math.max(...op), mn = Math.min(...op);
+  return mx > 0 && mx - mn >= 0.2 ? Math.round((op[0] + op[1]) / 2 / mx * 100) / 100 : null;   // 폭 변화가 없는 프로필(합성 측정값·균일한 띠)은 모양 정보가 없다 → null
+}
+// 행 프로필에서 덩어리가 실제로 차지하는 띠(위·아래 끝 비율) — 불투명 폭이 최대의 k(기본 25%) 미만인 성긴 칸(더듬이·한 캐릭터의 머리끝)은 뺀다. 떼 누끼는 위가 성글어 상자 높이보다 눈에 보이는 키가 작다(fig-07 위 28%)
+export function massBand(rows, k = 0.25) {
+  if (!rows?.length || rows.length < 8) return { top: 0, bottom: 1 };
+  const op = rows.map(r => 1 - (r?.bg ?? 1)), mx = Math.max(...op); if (!(mx > 0)) return { top: 0, bottom: 1 };
+  let a = 0, b = op.length; while (a < b && op[a] < mx * k) a++; while (b > a && op[b - 1] < mx * k) b--;
+  return { top: a / op.length, bottom: b / op.length };
+}
 // 열 투명 프로필(cols)의 봉우리 수 — 틈 열(투명 ≥ 75%)로 갈린 불투명 덩어리(최소 투명 < 60%)가 몇 개인가.
 // 캐릭터끼리 맞닿아 연결 성분(parts)이 하나로 잡히는 떼(ABL)를 가른다. 가장자리 빈 열은 세지 않는다.
 export function colHumps(cols) {
@@ -155,7 +169,7 @@ export function kvTypeOf(kvMeta) {
     // 바탕 있는 그림은 주인공 상자가 바탕 일부를 품을 수 있어(삼성 3D 호) 예전대로 그림 비율로
     // 누끼는 상자 밀도도 본다(10-09 figma-dg): 사람·캐릭터 0.59~0.72(연사 둘·동서 모델·여우) — 별표 3D 0.48(팔이 뻗은 사물)·폴더·책 0.79~0.92(네모난 사물)는 캐릭터가 아니다
     // 사진은 인물 상자(Apple Vision 인물 분리, palette.js personFocus)로 잡은 주인공일 때만 인물 — 색 덩어리는 사람인지 모른다(10-12 hr-doctor·AI 간호사)
-    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 : ar < 1.05)),
+    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 && !((headApex(f.rows) ?? 0) >= 0.3) : ar < 1.05)),   // 머리 꼭대기가 평평·넓으면(윗 두 칸 ≥ 최대 폭 30%) 세로 사물이지 사람이 아니다(11-03 fig-17 taihan 상자 0.50 vs 사람 ≤ 0.14)
     group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2) || crowdTop)),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
     // 장면 판정용 「덩어리 여럿」 — 연결 성분이 둘 이상이거나 열 봉우리 둘 이상(덩어리 하나에 속이 빈 고리는 아니다)
     multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 맞닿은 사람 떼(crowdTop)는 장면이 아니라 떼 — 장면의 「누끼 위 빈 곳까지 글자 겹침 허용」을 받으면 머리 위로 상세가 올라갔다(10-14 ABL 580×400·300×250)
