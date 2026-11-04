@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>시안 생성 구조 리뷰</title>
+<title>결과물 생성 구조 리뷰</title>
 <style>
 :root{--ink:#1b1b1b;--sub:#5d5d5d;--line:#e2e0da;--bg:#f6f5f1;--card:#fff;--soft:#efede7;--accent:#1f4fd6;--ok:#1f7a4d;--warn:#a5520f;--bad:#b3261e;--ai:#6a3fd0}
 *{box-sizing:border-box}
@@ -23,9 +23,10 @@ p{margin:6px 0}
 ul,ol{margin:6px 0 10px;padding-left:22px}li{margin:3px 0}
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--soft);border-radius:4px;padding:1px 5px}
 pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;background:#1e1e1e;color:#eaeaea;border-radius:10px;padding:14px 16px;overflow-x:auto;margin:10px 0}
+pre .c{color:#9fb3c8}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:12px 0}
 .answer{border-left:5px solid var(--accent)}
-.answer b.big{font-size:18px;display:block;margin-bottom:4px}
+.answer b.big{font-size:18px;display:block;margin-bottom:6px}
 table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14.5px;margin:10px 0}
 th{text-align:left;background:var(--soft);padding:8px 11px;border-bottom:1px solid var(--line)}
 td{padding:8px 11px;border-bottom:1px solid #efede7;vertical-align:top}
@@ -35,318 +36,292 @@ tr:last-child td{border-bottom:0}
 .tag.rule{background:#e9f0ff;border-color:#c9d8ff;color:#1d3f9e}
 .tag.data{background:#e8f5ee;border-color:#c4e3d1;color:#1f6a43}
 .tag.ai{background:#f1ebff;border-color:#dccfff;color:var(--ai)}
-.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
-.flow div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5}
-.flow b{display:block;font-size:14.5px;margin-bottom:2px}
-.flow.f4{grid-template-columns:repeat(4,1fr)}
-.flow .who{display:block;margin-top:6px}
+.tag.human{background:#fff3e2;border-color:#f0d6ad;color:#8a4b00}
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:14px 0}
+.pipe div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:13px;line-height:1.5}
+.pipe b{display:block;font-size:14px;margin-bottom:3px}
+.pipe .ai{border:2px solid var(--ai);background:#faf7ff}
+.layers{display:grid;gap:6px;margin:14px 0}
+.layers div{display:grid;grid-template-columns:150px 1fr 230px;gap:12px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px}
+.layers b{font-size:15px}
+.layers code{font-size:12.5px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:12px 0}
+.steps li{counter-increment:s;position:relative;padding:10px 14px 10px 50px;background:var(--card);border:1px solid var(--line);border-radius:10px;margin:6px 0;font-size:14.5px}
+.steps li::before{content:counter(s);position:absolute;left:14px;top:10px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.steps li .where{display:block;color:var(--sub);font-size:13px;margin-top:2px}
 .ok{color:var(--ok);font-weight:700}.warn{color:var(--warn);font-weight:700}.bad{color:var(--bad);font-weight:700}
 .note{background:#fff8ec;border:1px solid #f0dcb8;border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0}
 .foot{margin-top:48px;font-size:13px;color:var(--sub)}
-@media (max-width:820px){.flow,.flow.f4{grid-template-columns:1fr 1fr}nav.toc ol{columns:1}}
-@media (max-width:520px){main{padding:24px 16px 72px}.cover{padding:22px 18px}.cover h1{font-size:23px}.flow,.flow.f4{grid-template-columns:1fr}}
-@media print{body{background:#fff}nav.toc{display:none}section,.card,table,pre{break-inside:avoid}}
+@media (max-width:820px){.pipe{grid-template-columns:repeat(3,1fr)}.layers div{grid-template-columns:1fr}nav.toc ol{columns:1}}
+@media (max-width:520px){main{padding:24px 16px 72px}.cover{padding:22px 18px}.cover h1{font-size:23px}.pipe{grid-template-columns:1fr 1fr}}
+@media print{body{background:#fff}nav.toc{display:none}section,.card,table,pre,.layers div,.steps li{break-inside:avoid}}
 </style>
 </head>
 <body>
 <main>
 
 <div class="cover">
-  <h1>시안 생성 구조 리뷰<br>피그마 소재를 어떻게 「배웠고」, 시안은 무엇으로 만들어지나</h1>
-  <p>Campaign Agent · AX-003 · 리뷰용 · 2026-11-04 정리 · 김성진</p>
-  <p>코드 기준: <code style="background:rgba(255,255,255,.15);color:#fff">~/mbm-design-agent</code> main <code style="background:rgba(255,255,255,.15);color:#fff">65d5743</code> + 미커밋 작업(7장 참고)</p>
+  <h1>결과물 생성 구조 리뷰<br>어떤 기준과 규칙으로 소재가 만들어지나</h1>
+  <p>Campaign Agent · AX-003 · 2026-11-05 리뷰용 · 김성진</p>
+  <p>코드: <code style="background:rgba(255,255,255,.15);color:#fff">~/mbm-design-agent</code> (11-04 기준)</p>
 </div>
 
 <nav class="toc" aria-label="목차"><ol>
-  <li><a href="#s1">먼저 답: 룰인가 AI인가</a></li>
-  <li><a href="#s2">우리가 일한 방식</a></li>
-  <li><a href="#s3">전체 구조 한 장</a></li>
-  <li><a href="#s4">피그마를 「배운」 방법</a></li>
-  <li><a href="#s5">시안이 만들어지는 순간</a></li>
-  <li><a href="#s6">정리된 룰과 근거, 폴더</a></li>
-  <li><a href="#s7">검증은 어떻게 했나</a></li>
-  <li><a href="#s8">한계와 남은 일</a></li>
-  <li><a href="#s9">핸드오프: 이어받는 법</a></li>
-  <li><a href="#s10">용어</a></li>
+  <li><a href="#s1">먼저 답</a></li>
+  <li><a href="#s2">AI(API)를 쓰는 범위</a></li>
+  <li><a href="#s3">규칙은 다섯 층으로 되어 있다</a></li>
+  <li><a href="#s4">결과 한 장이 만들어지는 순서</a></li>
+  <li><a href="#s5">난이도 하 · 중 · 상은 어떻게 다른가</a></li>
+  <li><a href="#s6">시안 틀: 피그마에서 만든 방법</a></li>
+  <li><a href="#s7">규칙 장부: 근거를 남기는 방식</a></li>
+  <li><a href="#s8">검증</a></li>
+  <li><a href="#s9">한계와 남은 일</a></li>
+  <li><a href="#s10">핸드오프: 폴더와 명령</a></li>
 </ol></nav>
 
 <section id="s1">
-<h2>1. 먼저 답: 룰인가 AI인가</h2>
+<h2>1. 먼저 답</h2>
 <div class="card answer">
-<b class="big">난이도 상 시안은 「룰 + 데이터」로 만듭니다. 시안을 그리는 순간에 AI(대화형 모델)가 판단하지 않습니다.</b>
-<p>같은 입력이면 언제 돌려도 같은 시안이 나옵니다(재현 가능). AI는 <b>만드는 과정</b>에서 썼고, <b>돌아가는 앱</b> 안에서는 거의 쓰지 않습니다.</p>
+<b class="big">룰베이스 + 템플릿입니다. 소재를 그리는 단계에는 AI가 들어가지 않습니다.</b>
+<ul>
+  <li><b>템플릿은 두 종류</b>입니다.
+    <ul>
+      <li><b>매체 틀</b>: 매체 공식 템플릿을 실측한 것. 글자 칸 위치·크기·굵기·색, 로고 칸, 그림 칸이 정해져 있고 내용과 그림만 바뀝니다. <b>모든 난이도의 기본안</b>이 이걸로 나옵니다.</li>
+      <li><b>시안 틀</b>: 피그마 「홍보사업셀」의 과거 통과 소재 94세트에서 구조만 뽑은 것. <b>난이도 중·상 일부 규격의 추가 시안</b>이 이걸로 나옵니다.</li>
+    </ul>
+  </li>
+  <li>틀에 없는 부분(그림을 어디에 얼마나 크게, 배경색, 그라데이션, 줄바꿈, 넘칠 때 줄이는 순서)은 <b>규칙</b>이 계산합니다.</li>
+  <li>그래서 같은 입력이면 항상 같은 결과가 나오고, 결과마다 <b>어떤 규칙이 발동했는지 기록</b>이 남습니다(4장).</li>
+</ul>
 </div>
-<div class="tbl"><table>
-<thead><tr><th style="width:26%">단계</th><th style="width:20%">방식</th><th>설명</th></tr></thead>
-<tbody>
-<tr><td>피그마 소재 읽기</td><td><span class="tag ai">AI가 개발 도구로</span></td><td>Claude가 피그마 플러그인 API로 노드(글자 상자·이미지 칸·도형)를 <b>숫자로 읽었습니다.</b> 그림을 눈으로 보고 짐작한 게 아니라 좌표·크기·글꼴·굵기 값입니다.</td></tr>
-<tr><td>시안 틀 만들기</td><td><span class="tag data">데이터</span></td><td>읽은 숫자를 스크립트가 「틀」 데이터로 정리(94세트 188프레임). 고객사 문구·이미지·색 값은 버리고 구조만 남김.</td></tr>
-<tr><td>어떤 시안을 보여줄지</td><td><span class="tag rule">룰</span> <span class="tag data">데이터</span></td><td>비율이 맞는 틀 중, 미리 돌려 본 전수 시험에서 합격한 것만, 점수 순으로.</td></tr>
-<tr><td>시안 그리기</td><td><span class="tag rule">룰</span></td><td>틀의 칸에 내용을 채우고, 글자 크기·여백·키비주얼 자리·그라데이션을 규칙으로 계산.</td></tr>
-<tr><td>검수·승인</td><td><span class="tag rule">룰</span></td><td>매체 규정 검사 + 디자인 검사. 규정 위반은 차단.</td></tr>
-<tr><td>(선택) AI 그림 판단</td><td><span class="tag ai">AI 실행 중</span></td><td>API 키가 있을 때만, 캠페인당 1회 Claude가 그림을 보고 기본안의 그림 자리·크기를 정함(약 30원). <b>시안 틀에는 적용되지 않습니다.</b></td></tr>
-<tr><td>(선택) 문장 읽기 AI 해석</td><td><span class="tag ai">AI 실행 중</span></td><td>기본은 규칙으로 공고문을 읽고, API 키가 있으면 AI 해석을 보탭니다.</td></tr>
-</tbody>
-</table></div>
-<p><b>「학습」이라는 말에 대해.</b> 머신러닝처럼 모델을 훈련시킨 것이 아닙니다. 과거 통과 소재를 <b>측정해서 표준값과 틀로 저장</b>했고, 그 틀로 수만 장을 시험 생성해 <b>잘 되는 조합만 골라 둔 것</b>입니다. 그래서 왜 그 시안이 나왔는지 항상 설명할 수 있습니다.</p>
 </section>
 
 <section id="s2">
-<h2>2. 우리가 일한 방식</h2>
-<p>디자이너(김성진)가 기준과 판단을 주고, Claude(Claude Code, 코드를 읽고 고치는 AI)가 측정·구현·시험·기록을 맡았습니다.</p>
-<div class="flow">
-  <div><b>① 요청·기준</b>대화로 요청. 피그마 링크, 노션 요청, 스크린샷, 「이건 엉망」 같은 피드백<span class="who tag">디자이너</span></div>
-  <div><b>② 읽고 재기</b>피그마 노드·노션 원문·현재 코드를 직접 읽음. 눈대중 대신 수치<span class="who tag ai">Claude</span></div>
-  <div><b>③ 만들기</b>규칙·데이터·화면을 코드로. 큰 기능은 보조 에이전트가 따로 만들고 검수 후 합침<span class="who tag ai">Claude</span></div>
-  <div><b>④ 시험</b>자동 테스트 + 수천~수만 장 전수 렌더 + 청사진과 나란히 보기<span class="who tag ai">Claude</span></div>
-  <div><b>⑤ 판정·기록</b>디자이너가 눈으로 판정 → 기록(history)·커밋. 배포는 요청할 때만<span class="who tag">디자이너</span> <span class="tag ai">Claude</span></div>
+<h2>2. AI(API)를 쓰는 범위</h2>
+<p>보라색 칸만 AI를 부를 수 있고, 셋 다 <b>API 키가 있을 때만</b> 켜지는 선택 기능입니다. 키가 없어도 모든 단계가 규칙으로 돌아갑니다.</p>
+<div class="pipe">
+  <div class="ai"><b>① 공고 읽기</b>기본 규칙(정규식). 키가 있으면 AI 해석 추가<br><span class="tag ai">선택 AI</span></div>
+  <div><b>② 자료 측정</b>키비주얼 유형·주인공 위치·색, 로고 손질<br><span class="tag rule">규칙</span></div>
+  <div class="ai"><b>③ 그림 판단</b>기본안 그림 자리를 Claude가 1회 판단(시안 틀엔 미적용)<br><span class="tag ai">선택 AI</span></div>
+  <div><b>④ 생성</b>매체 틀 · 시안 틀 + 배치 규칙<br><span class="tag rule">규칙</span> <span class="tag data">데이터</span></div>
+  <div><b>⑤ 검수·승인</b>매체 규정 · 디자인 검사 · 승인 게이트<br><span class="tag rule">규칙</span> <span class="tag human">사람 승인</span></div>
+  <div class="ai"><b>⑥ 수정 지시</b>「장소 킨텍스로 변경」 같은 문장. 기본 규칙, 키가 있으면 AI 해석<br><span class="tag ai">선택 AI</span></div>
 </div>
-<h3>이번 시안 작업의 실제 흐름(11-02 ~ 11-03)</h3>
-<ol>
-  <li><b>요청</b>: 「피그마 홍보사업셀의 과거 통과 소재를 청사진으로, 난이도 중·상에 시안 1~3개를 추천하고 고르게. 배경 그림은 못 만들어도 타이포·뱃지·레이아웃으로 느낌을 내라.」</li>
-  <li><b>1차 시도(R1~R3)</b>: 정렬·알약만 바꾼 안 → 「그게 아니다, 시안을 그대로 탑재하라」 → <b>폐기</b>.</li>
-  <li><b>방향 전환</b>: 피그마 프레임을 노드 단위로 읽어 「시안 틀」로 탑재.</li>
-  <li><b>합격 기준 합의</b>(디자이너 지정 순서): ① 매체 가이드 ② 타이포·여백 안정 ③ 키비주얼·배경 조화(작아지지 않게) ③-1 끊기는 곳 그라데이션 자연스럽게.</li>
-  <li><b>피드백 반복</b>: 「엉망진창」, 「세로 인물이 작다」, 「제목 약하다」, 「인물 말고 다른 비주얼로도 시험해라」, 「퀄리티 떨어지는 건 보여주지 마라」 → 규칙·합격선 수정 → 재시험.</li>
-  <li><b>검사기</b>: 「서브가 제목보다 크다, 패딩 이상하다, 싹 잡아내라」 → 타이포·여백 자동 검사기(미커밋, 7장).</li>
-</ol>
-<p class="note">계정이 바뀌어도 이어지도록 작업이 끝날 때마다 <code>history/</code>에 날짜별 기록과 브리핑을 남기고, Claude는 새 작업을 시작할 때 이 폴더부터 읽습니다(<code>CLAUDE.md</code>에 규칙으로 적혀 있음).</p>
+<div class="tbl"><table>
+<thead><tr><th style="width:22%">AI 사용처</th><th>무엇을</th><th style="width:30%">평가</th></tr></thead>
+<tbody>
+<tr><td>공고 읽기 AI 해석</td><td>규칙이 놓친 칸을 보충</td><td>규칙만으로도 대부분 읽힘. 일부 회사명을 놓치는 경우 보완용</td></tr>
+<tr><td>AI 그림 판단</td><td>기본안의 그림 위치·크기·지면색(캠페인당 1회, 약 30원)</td><td>10-23 시험에서 규칙보다 나빠진 경우 0건이지만 채점 3.3/5. 시안 틀·하 매체에 안 들어가 지금은 쓰임이 작음</td></tr>
+<tr><td>수정 지시 AI 해석</td><td>자연어 수정 지시를 바꿀 값으로</td><td>규칙으로 안 읽히는 지시만 AI로</td></tr>
+</tbody>
+</table></div>
+<p>AI는 <b>개발 과정</b>에서 더 많이 썼습니다. Claude가 피그마 노드를 숫자로 읽고(6장), 규칙 코드를 쓰고, 수만 장 시험을 돌려 검증했습니다. 이건 앱이 돌아갈 때가 아니라 규칙과 데이터를 만들 때의 일입니다.</p>
 </section>
 
 <section id="s3">
-<h2>3. 전체 구조 한 장</h2>
-<div class="flow">
-  <div><b>입력</b>공고 문장 → 고객사·채용 구분·기간·직무<br><span class="tag rule">규칙</span> <span class="tag ai">선택 AI</span></div>
-  <div><b>자료 측정</b>키비주얼 유형(누끼·일러스트·사진·질감)·주인공 위치·색, 로고 손질<br><span class="tag rule">규칙</span></div>
-  <div><b>생성</b>규격마다 기본안 1 + 시안 틀 2(난이도 중·상)<br><span class="tag rule">규칙</span> <span class="tag data">데이터</span></div>
-  <div><b>검수</b>매체 규정 · 디자인 검사 · 승인 게이트<br><span class="tag rule">규칙</span></div>
-  <div><b>내보내기</b>매체별 폴더 ZIP · 파일명 양식 · SVG<br><span class="tag rule">규칙</span></div>
+<h2>3. 규칙은 다섯 층으로 되어 있다</h2>
+<p>아래 층일수록 「꼭 지켜야 하는 것」, 위 층일수록 「더 좋게 만드는 것」입니다. 렌더러가 이 층들을 읽어 한 장을 그리고, 검수기가 같은 층으로 다시 확인합니다.</p>
+<div class="layers">
+  <div><b>① 매체 규정</b><span>크기, 글자 수·줄 수, 안전영역, 로고 개수, 금지 배경색, 고정 폰트, 파일 용량. 어기면 <b>차단</b>.</span><code>core/media/매체.json</code></div>
+  <div><b>② 매체 틀</b><span>매체 공식 템플릿 실측: 글자 칸(x, 줄별 y, 크기, 굵기, 색), 로고 칸, 그림 칸, 줄 수에 따른 변형, 기업명 길이 규칙.</span><code>매체.json 안 measuredFromTemplate.mold</code></div>
+  <div><b>③ 공통 조형 기준</b><span>매체가 정하지 않은 것: 굵기 위계, 그림 비중 목표, 블리드·자르기 한도, 그라데이션 길이, 안 수(규정 1 · 그 밖 3).</span><code>core/canon.js</code></div>
+  <div><b>④ 키비주얼 유형</b><span>그림을 재서 누끼·일러스트·사진·질감과 세부 유형(인물, 캐릭터 떼, 배경형 등)으로 나누고, 유형마다 배치 방식을 분기.</span><code>core/kvtypes.js · core/palette.js</code></div>
+  <div><b>⑤ 시안 틀 + 합격 목록</b><span>피그마 통과 소재 94세트의 구조, 청사진 분포, 「틀 × 규격 × 그림 유형」 합격 514조합.</span><code>core/templates-data.js · template-norms.js · templates-quality.js</code></div>
 </div>
-<div class="tbl"><table>
-<thead><tr><th style="width:18%">난이도</th><th>무엇으로 만드나</th><th style="width:26%">핵심 파일</th></tr></thead>
-<tbody>
-<tr><td><b>하</b>(자소설·리멤버·비즈보드 20)</td><td>매체 공식 템플릿을 실측한 「구멍 뚫린 틀」. 글자 칸·로고 칸·그림 칸 위치가 고정, 내용과 그림만 바뀜. 시안 틀 안 씀</td><td><code>core/media/*.json</code>, <code>docs/*-mold.md</code></td></tr>
-<tr><td><b>중·상</b>(구글·인스타·블라인드·네이버·NAP 등)</td><td>기본안: 디자인 규칙으로 자유 배치. 추가 시안: 피그마 통과 소재에서 만든 시안 틀</td><td><code>core/renderers/ad.js</code>, <code>core/renderers/ad-template.js</code></td></tr>
-<tr><td><b>보조</b>(로고·프로필)</td><td>로고·그림 손질과 규격 맞춤</td><td><code>core/logo.js</code></td></tr>
-</tbody>
-</table></div>
+
+<h3>① 매체 규정 예(자소설 PC 채용공고 160×600)</h3>
+<pre><span class="c">// core/media/jasoseol.json 중 일부(요약)</span>
+{ id: 'jasoseol-pc-standard-jobpost-pc', w: 160, h: 600,
+  textLimits: [
+    { field: '서브문구', maxChars: 9,  lines: 2 },   <span class="c">// 줄당 9자, 최대 2줄</span>
+    { field: '메인문구', maxChars: 6,  lines: 4 },
+    { field: '상세문구', maxChars: 11, lines: 6 } ] }</pre>
+<h3>② 매체 틀 예(같은 규격)</h3>
+<pre><span class="c">// 같은 파일의 measuredFromTemplate.mold (디자이너 샘플 6개 전수 실측)</span>
+mold: { x: 15, w: 130, color: '#555555', colorDark: '#FFFFFF',
+  rows: {
+    sub:  { y: 81.9,  px: 16, weight: 700, lines: 2 },
+    main: { y: 117.5, px: 24, weight: 700, lines: 4,
+            bySubLines: { 2: { y: 141 } } } },        <span class="c">// 서브가 2줄이면 메인을 아래로</span>
+  clientLen: { mainMax: 6, subRanges: [[7,8],[10,15]] } } <span class="c">// 기업명 7자 이상은 서브 줄로</span></pre>
+<p>규칙마다 출처(피그마 노드 번호, 담당자 요청, 날짜)가 같이 적혀 있습니다.</p>
 </section>
 
 <section id="s4">
-<h2>4. 피그마를 「배운」 방법</h2>
-<p>4단계입니다. 앞의 두 단계는 한 번 하면 되고, 뒤의 두 단계는 규칙을 바꿀 때마다 다시 돌립니다.</p>
-<div class="flow f4">
-  <div><b>1. 노드 읽기</b>피그마 플러그인 API로 프레임 안 글자·이미지·도형의 숫자를 뽑음</div>
-  <div><b>2. 틀로 정리</b>역할(제목·일정·직무…)과 뱃지·강조를 붙여 「시안 틀」 데이터로</div>
-  <div><b>3. 표준값 측정</b>통과 소재 1,918장에서 글자 크기·여백·그림 비중의 분포</div>
-  <div><b>4. 전수 시험·합격</b>틀 × 규격 × 그림 53종으로 수만 장 그려 보고, 합격한 조합만 남김</div>
-</div>
-
-<h3>1단계. 노드 읽기(어떤 기술로)</h3>
-<ul>
-  <li><b>도구</b>: Figma MCP의 <code>use_figma</code>(피그마 안에서 플러그인 코드를 실행) → 프레임마다 숫자를 JSON으로 돌려받음.</li>
-  <li><b>읽는 것</b>: 프레임 크기, 글자 상자(위치·크기·글꼴·굵기·행간·정렬·색·줄 수·부분 강조), 이미지 칸(위치·크기·둥근 모서리), 도형(뱃지·알약의 위치·채움·테두리).</li>
-  <li><b>버리는 것</b>: 고객사 문구, 이미지 파일, 실제 색 값. 피그마 위에 얹어 둔 가이드 표시(빨간 안전영역·치수 글자)도 걸러냄.</li>
-  <li><b>대상</b>: 피그마 「홍보사업셀」(<code>GW7zyq01PqazV9uMAJT0ST</code>) BLIND·GDN·IG·NAP/GFA 페이지. 원본 응답은 로컬 전용 <code>ref/learned/figma-1102/</code>(공개 저장소 제외).</li>
-</ul>
-
-<h3>2단계. 틀로 정리</h3>
-<p><code>scripts/build-templates.mjs</code>가 읽은 숫자를 정리해 <code>core/templates-data.js</code>를 만듭니다.</p>
-<ul>
-  <li><b>역할 붙이기</b>: 가장 큰 글자 = 제목(기업명·채용 구분), 제목 위 작은 글자 = 시즌, 그 밖은 일정·직무·라벨.</li>
-  <li><b>색은 값이 아니라 역할로</b>: 채도 있는 색 = 강조색, 흰·검정·회색 = 글자색. 실제 색은 캠페인 브랜드·키비주얼에서 다시 정함.</li>
-  <li><b>뱃지·강조</b>: 글자 뒤 도형 = 알약(채움/테두리), 제목 두 줄의 색이 다르면 「색 강조」, 굵기가 다르면 「굵기 대비」.</li>
-  <li><b>이름 규칙</b>: 비주얼 위치 + 타이포 특징. 예) 「우측 비주얼 · 일정 뱃지형」.</li>
-</ul>
-<div class="tbl"><table>
-<thead><tr><th>타이포 특징</th><th>판정</th><th>세트 수</th></tr></thead>
-<tbody>
-<tr><td>색 강조형</td><td>제목 일부가 강조색</td><td>25</td></tr>
-<tr><td>기본 타이포형</td><td>특징 없음</td><td>23</td></tr>
-<tr><td>일정 뱃지형</td><td>일정이 알약 안</td><td>22</td></tr>
-<tr><td>굵기 대비형</td><td>제목 두 부분 굵기가 다름</td><td>11</td></tr>
-<tr><td>라벨 뱃지형 · 라벨 정보형</td><td>「접수기간」 같은 라벨이 알약/글자</td><td>8 · 3</td></tr>
-<tr><td>타이포 강조형</td><td>제목이 지면 대비 아주 큼</td><td>2</td></tr>
-</tbody>
-</table></div>
-<p>비주얼 위치: 우측 34 · 전면 30 · 하단 22 · 상단 6 · 좌측 2. 출처 페이지: BLIND 8 · GDN 33 · IG 40 · NAP/GFA 13 (총 94세트 188프레임).</p>
-<pre>// core/templates-data.js 한 줄 예(구조만, 고객사 정보 없음)
-{ w:1200, h:628, tone:'light', full:false,
-  slot:{ x:736, y:196, w:447, h:399 },            // 그림 칸
-  rows:[ { role:'main', x:71, y:221, fs:91, wt:800, lines:3 },          // 제목
-         { role:'date', fs:44, wt:700, badge:{ fill:'accent', r:3 } },  // 일정 알약
-         { role:'role', fs:39, wt:700, color:'accent' } ] }             // 직무</pre>
-
-<h3>3단계. 표준값 측정</h3>
-<p>통과 소재 1,918장을 재서 규격별로 「하위 10% · 중앙값 · 상위 10%」를 저장했습니다(<code>core/template-norms.js</code>, 8규격). 이 분포가 「청사진」입니다.</p>
-<ul>
-  <li>제목 크기 ÷ 지면 크기, 둘째 글자 ÷ 제목, 가장 작은 글자 ÷ 제목</li>
-  <li>왼쪽·위 여백 ÷ 짧은 변, 줄 간격 ÷ 제목 크기, 그림이 덮는 면적</li>
-  <li>그라데이션 이음: 이미지 칸의 약 40%가 명시적 그라데이션, 길이는 이미지의 28~94%</li>
-</ul>
-
-<h3>4단계. 전수 시험과 합격 목록</h3>
-<p>규칙을 바꿀 때마다 「모든 틀 × 해당 규격 × 시험용 그림 53종 × 문구 2종」을 실제 브라우저(헤드리스 크롬)로 그려 재고, 합격한 조합만 남깁니다.</p>
-<ul>
-  <li><b>시험용 그림 53종</b>: 피그마 소재에서 받은 키비주얼 35종(누끼·일러스트·사진·3D·캐릭터 떼 등) + 기존 장부 18종. 로컬 전용.</li>
-  <li><b>문구 2종</b>: 보통 길이(gs), 긴 기업명(longname).</li>
-  <li><b>합격 조건</b>: 그려진 것 중 70% 이상이 매체 검수·청사진 대조를 통과 + 같은 유형 그림의 1/4 이상에 들어감.</li>
-  <li><b>순위</b>: 유형(인물 누끼·누끼·일러스트·사진·질감)별 통과율 순, 규격×유형마다 상위 12개.</li>
-  <li><b>결과(11-03)</b>: 33,962장 시험, 1,635조합 → 합격 514(<code>core/templates-quality.js</code>).</li>
-</ul>
+<h2>4. 결과 한 장이 만들어지는 순서</h2>
+<p>렌더러(<code>core/renderers/ad.js</code>, 시안 틀은 <code>ad-template.js</code>)가 규격 하나마다 이 순서로 결정합니다.</p>
+<ol class="steps">
+  <li><b>어떤 틀로 그릴까</b>: 규격의 매체 틀, 시안을 고른 경우 시안 틀.<span class="where">core/variants.js · core/recipes.js</span></li>
+  <li><b>문구 후보 만들기</b>: 칸마다 긴 문장부터 짧은 문장까지 후보 사다리(예: 「2026년 하반기 마이다스아이티 신입 공채」 → 「마이다스아이티 신입 공채」 → 「마이다스아이티」). 비어 있는 정보는 칸을 지움.<span class="where">ad.js 문구 사다리 · 기업명 길이 규칙</span></li>
+  <li><b>글자 칸 배치</b>: 틀의 위치·크기·굵기로. 매체 줄 수·글자 수를 넘으면 짧은 후보로 내려감.<span class="where">매체 틀 rows · textLimits</span></li>
+  <li><b>지면색</b>: 키비주얼 가장자리·대표색에서. 매체 금지색이면 바꿈. 브랜드색은 포인트(알약·날짜)에.<span class="where">core/field.js · palette.js (지면 색 규칙 20건)</span></li>
+  <li><b>그림 배치</b>: 키비주얼 유형에 따라. 누끼는 칸에 맞추고 필요하면 가장자리 밖으로, 사진·일러스트는 칸을 채우고 글자 쪽을 녹임. 인물은 머리를 지킴.<span class="where">kvtypes.js · canon.js (배치·비중 48건, 자르기·블리드 19건)</span></li>
+  <li><b>이음 처리</b>: 그림과 지면이 끊기는 변을 그라데이션으로. 녹이는 길이에 한도를 둬서 그림이 너무 사라지지 않게.<span class="where">이음·녹임 14건</span></li>
+  <li><b>글자색</b>: 지면 대비로 흰색·검정(사람이 고르면 그 색). 사진 위 글자는 스크림(글자 뒤 어둡게).<span class="where">글자 색·스크림 14건</span></li>
+  <li><b>로고</b>: 틀의 로고 칸. 글자·주인공과 닿으면 다른 모서리. 흰 로고가 필요하면 흰색 버전.<span class="where">로고 15건</span></li>
+  <li><b>보정</b>: 글자가 주인공을 가리면 글자 → 줄바꿈 → 그림 크기 순으로 다시. 지면이 비면 그림을 키움.<span class="where">overlapFix · emptyFix</span></li>
+  <li><b>기록·검수</b>: 발동한 규칙과 측정값을 결과에 기록(data-trace), 검수기가 매체 규정·디자인·가이드를 실측 → 승인 게이트.<span class="where">core/lint.js · adcheck.js · guidecheck.js · gate.js</span></li>
+</ol>
+<h3>실제 기록 예</h3>
+<p>자소설 PC 팝업 550×400(블루 큐브 키비주얼)을 그렸을 때 결과에 남은 발동 규칙입니다.</p>
+<pre>templateMold · templateMold.logoArea · templateMold.containGrad · templateMold.containEdge
+emptyFix.ok · emptyFix.slot · meltFix · meltFix.subject · fieldAlign · objectOverlap · weights
+<span class="c">// 「매체 틀로 그림 → 로고는 틀의 칸 → 그림은 칸에 맞추고 가장자리는 그라데이션 → 빈 곳 없음 확인
+//  → 녹임 보정 → 정렬 → 주인공 겹침 없음 → 굵기 위계」 순으로 읽으면 된다</span></pre>
+<p>앱의 「검수」 탭에 보이는 「가이드 검수 ✓27 · ✗0」이 이 기록과 실측을 규칙마다 대조한 결과입니다.</p>
 </section>
 
 <section id="s5">
-<h2>5. 시안이 만들어지는 순간</h2>
-<h3>어떤 시안을 보여줄까(고르기 규칙)</h3>
-<ol>
-  <li><b>난이도 하·규정 매체면 시안 없음</b>(자소설·리멤버·잡다·카카오 등). 매체 템플릿 그대로.</li>
-  <li><b>비율이 맞는 틀만</b>: 규격과 프레임 비율 차이 1.35배 이내.</li>
-  <li><b>합격 목록에 있는 것만</b>: 「틀 × 규격 × 지금 그림 유형」이 합격 514 안에 있어야 함.</li>
-  <li><b>점수 순 → 같은 점수대 안에서만 캠페인마다 순서를 섞음</b>(같은 캠페인은 항상 같은 순서).</li>
-  <li><b>그려 보고 한 번 더 거름</b>: 글자가 주인공을 5% 넘게 가리거나, 그림이 너무 작거나(면적 15%, 세로 인물 10% 미만), 규정 줄 수를 못 지키면 뺌.</li>
-  <li><b>자동 추천 2개</b>는 비주얼 위치·타이포 특징이 서로 겹치지 않게. 나머지는 「다른 시안 보기」 창에서.</li>
-</ol>
-<p>코드: <code>core/recipes.js</code>(고르기), <code>core/variants.js</code>(기본안 + 시안 2, 다른 시안 목록).</p>
-
-<h3>시안을 그리는 규칙(<code>core/renderers/ad-template.js</code>)</h3>
+<h2>5. 난이도 하 · 중 · 상은 어떻게 다른가</h2>
 <div class="tbl"><table>
-<thead><tr><th style="width:22%">무엇</th><th>규칙</th></tr></thead>
+<thead><tr><th style="width:12%">난이도</th><th style="width:24%">규격</th><th style="width:14%">나오는 안</th><th>무엇으로 만드나</th><th style="width:16%">사람이 하는 일</th></tr></thead>
 <tbody>
-<tr><td>글자 크기</td><td>틀의 글자 크기 × 규격 배율에서 시작. 제목은 틀의 글상자 폭까지 키움(틀의 1.35배·청사진 상위선 1.12배 상한). 서브·일정·직무는 제목 대비 상한 이하.</td></tr>
-<tr><td>줄 수</td><td>제목은 문구 줄 수 그대로(긴 기업명만 한 줄 더). 일정·시즌은 한 줄. 매체 줄 수 규정을 넘으면 기업명만 남김.</td></tr>
-<tr><td>여백·간격</td><td>틀의 간격을 쓰고, 넘치면 간격 → 글자 → 뒤 항목(직무·시즌) 순으로 줄임. 글자 덩어리는 청사진 자리에 세로 정렬.</td></tr>
-<tr><td>정렬</td><td>시안 하나에 정렬선 하나. 모든 줄이 한 열 안에서 쌓여 어긋날 수 없음.</td></tr>
-<tr><td>키비주얼(누끼)</td><td>글자 옆·아래 후보 중 그림이 가장 크게 들어가는 자리. 인물은 머리를 남기고 아래를 최대 35~45% 잘라 크게, 단일 사물은 25%까지 가장자리 밖으로.</td></tr>
-<tr><td>키비주얼(사진·일러스트)</td><td>글자 쪽 변을 그라데이션으로 녹여 지면과 이음. 녹이는 길이는 측정값(가로 45%·세로 30%).</td></tr>
-<tr><td>전면 그림</td><td>글자 덩어리 뒤만 지면색으로 덮고 글자 밖 20%에서 풀어줌(그림 가운데까지 탁해지지 않게).</td></tr>
-<tr><td>지면·글자색</td><td>지면은 키비주얼에서 뽑은 색. 밝은 지면 틀은 누끼일 때만 옅게. 글자색은 지면 대비로 흰색·검정, 사람이 고르면 그 색.</td></tr>
-<tr><td>로고</td><td>틀의 로고 자리 → 글자·주인공과 닿으면 다른 모서리.</td></tr>
+<tr><td><b>하</b></td><td>자소설 11 · 리멤버 8 · 카카오 비즈보드 1 (20)</td><td>1개</td><td>매체 틀 그대로. 글자 칸·로고 칸·그림 칸 고정, 폰트 고정(Pretendard). 바뀌는 건 내용·배경색·그림뿐. 규정 위반이면 차단</td><td>내용 확인 · 승인</td></tr>
+<tr><td><b>중</b></td><td>네이버 GFA · NAP 4 · 에브리타임 3 · 카카오 PC (9)</td><td>최대 3개</td><td>기본안 = 매체 샘플 틀 + 배치 규칙. 추가 안 = <b>시안 틀</b>(GFA 1250×560, NAP 300×250·320×480) 또는 <b>정렬·지면 프리셋 안</b>(그 밖)</td><td>안 고르기 · 다듬기 · 승인</td></tr>
+<tr><td><b>상</b></td><td>구글 GDN 5 · 인스타 · 블라인드 2 · 잡다 2 · 당근 (11)</td><td>최대 3개 + 다른 시안 보기</td><td>기본안 = 매체 샘플 틀 + 배치 규칙. 추가 안 = <b>시안 틀</b> 2개 자동 추천, 나머지는 「다른 시안 보기」에서(GDN 4 · 인스타 · 블라인드 2). 띠·잡다는 프리셋 안</td><td>시안 고르기 · 다듬기 · 승인</td></tr>
+<tr><td><b>보조</b></td><td>로고·프로필·누끼 전달용 (8)</td><td>1개</td><td>로고·그림 손질과 규격 맞춤</td><td>확인</td></tr>
+</tbody>
+</table></div>
+
+<h3>난이도 하: 「구멍 뚫린 틀」</h3>
+<ul>
+  <li>매체 공식 템플릿과 담당 디자이너 샘플을 규격마다 실측해 틀로 고정했습니다(자소설 10 · 리멤버 8 · 비즈보드).</li>
+  <li>틀이 줄 수에 따라 바뀌는 것도 데이터로 들어 있습니다. 예: 자소설 채용공고는 서브 1·2줄 × 메인 2·3·4줄의 6유형, 기업명 6자 이하·7~8자·10~15자에 따라 줄 배치가 다름.</li>
+  <li>안을 여러 개 만들지 않습니다(틀이 정답이라 고를 게 없음). 그래서 11월에 실제 업무에 바로 쓰고 있습니다.</li>
+</ul>
+<h3>난이도 중·상: 기본안 + 고르는 안</h3>
+<ul>
+  <li><b>기본안</b>: 매체 샘플 틀로 글자 자리를 잡고, 그림·배경은 3장의 배치 규칙으로 자유롭게.</li>
+  <li><b>시안 틀 안</b>(10규격): 과거 통과 소재의 레이아웃·타이포를 그대로 가져온 안. 고르는 기준(<code>core/recipes.js</code>):
+    <ol>
+      <li>규격과 틀의 비율 차이 1.35배 이내</li>
+      <li>「틀 × 규격 × 지금 그림 유형」이 합격 목록에 있음</li>
+      <li>통과율 점수 순(같은 점수대 안에서만 캠페인마다 순서를 섞음)</li>
+      <li>실제로 그려 보고 글자가 주인공을 5% 넘게 가리거나 그림이 너무 작으면 뺌</li>
+      <li>자동 2개는 비주얼 위치·타이포 특징이 서로 다르게</li>
+    </ol>
+  </li>
+  <li><b>프리셋 안</b>(시안 틀이 없는 규격): 기본안에 정렬(가운데·오른쪽)이나 지면(브랜드색) 프리셋을 조합해 렌더해 보고 쓸 수 있는 것만.</li>
+</ul>
+<h3>시안 틀로 그릴 때 규칙(<code>core/renderers/ad-template.js</code>)</h3>
+<div class="tbl"><table>
+<tbody>
+<tr><td style="width:20%">글자 크기</td><td>틀의 글자 크기 × 규격 배율. 제목은 틀의 글상자 폭까지 키움(상한 있음). 서브·일정·직무는 제목 대비 상한 이하</td></tr>
+<tr><td>줄·넘침</td><td>넘치면 간격 → 글자 크기 → 뒤 항목(직무·시즌) 순으로 줄임. 매체 줄 수 규정을 못 지키면 그 시안은 후보에서 빠짐</td></tr>
+<tr><td>정렬</td><td>시안 하나에 정렬선 하나. 모든 줄이 한 열 안에서 쌓임</td></tr>
+<tr><td>그림(누끼)</td><td>글자 옆·아래 중 가장 크게 들어가는 자리. 인물은 머리를 남기고 아래를 잘라 크게</td></tr>
+<tr><td>그림(사진·일러스트)</td><td>글자 쪽 변을 측정한 길이만큼 그라데이션으로 녹임. 전면 그림은 글자 뒤만 어둡게</td></tr>
+<tr><td>색</td><td>틀의 색은 「글자색 / 강조색」 역할만 가져오고 실제 색은 이 캠페인의 키비주얼·브랜드에서</td></tr>
 </tbody>
 </table></div>
 </section>
 
 <section id="s6">
-<h2>6. 정리된 룰과 근거, 폴더</h2>
+<h2>6. 시안 틀: 피그마에서 만든 방법</h2>
+<p>모델을 훈련시키는 「학습」이 아니라, <b>재서 저장하고, 시험해서 거른 것</b>입니다.</p>
+<ol class="steps">
+  <li><b>노드 읽기</b>: Figma MCP <code>use_figma</code>로 플러그인 코드를 실행해 프레임마다 글자 상자(위치·크기·글꼴·굵기·정렬·색·줄 수), 이미지 칸, 도형(알약)을 숫자로 받음. 고객사 문구·이미지·색 값은 버림.<span class="where">피그마 「홍보사업셀」 BLIND·GDN·IG·NAP/GFA 페이지 · 원본은 로컬 전용 ref/learned/figma-1102/</span></li>
+  <li><b>틀로 정리</b>: 가장 큰 글자 = 제목, 그 위 = 시즌, 그 밖 = 일정·직무·라벨. 색은 값 대신 「글자색/강조색」 역할로. 글자 뒤 도형 = 알약. 이름은 「비주얼 위치 + 타이포 특징」.<span class="where">scripts/build-templates.mjs → core/templates-data.js (94세트 188프레임)</span></li>
+  <li><b>청사진 분포</b>: 통과 소재 1,918장의 제목 크기, 글자 크기 비, 여백, 줄 간격, 그림 면적의 하위 10%·중앙값·상위 10%.<span class="where">core/template-norms.js (8규격)</span></li>
+  <li><b>전수 시험 → 합격 목록</b>: 틀 × 규격 × 시험 그림 53종 × 문구 2종을 헤드리스 크롬으로 실제 렌더 → 매체 검수 + 청사진 대조 → 70% 이상 통과하고 같은 유형 그림의 1/4 이상에 맞는 조합만, 규격×유형마다 상위 12개.<span class="where">scripts/self-block.mjs → scripts/template-quality.mjs → core/templates-quality.js (11-03: 33,962장, 1,635조합 → 514)</span></li>
+</ol>
 <div class="tbl"><table>
-<thead><tr><th style="width:32%">위치</th><th>무엇이 있나</th><th style="width:16%">공개 저장소</th></tr></thead>
+<thead><tr><th>타이포 특징(이름)</th><th>판정</th><th>세트</th></tr></thead>
 <tbody>
-<tr><td><code>core/media/*.json</code></td><td>매체 15곳 규정(크기·글자 수·줄 수·안전영역·로고·금지색·폰트·용량), 하 매체 템플릿 실측값</td><td class="ok">포함</td></tr>
-<tr><td><code>core/templates-data.js</code></td><td>시안 틀 94세트 188프레임(구조만)</td><td class="ok">포함</td></tr>
-<tr><td><code>core/template-norms.js</code></td><td>청사진 분포(8규격)</td><td class="ok">포함</td></tr>
-<tr><td><code>core/templates-quality.js</code></td><td>합격 목록 514조합과 통과율</td><td class="ok">포함</td></tr>
-<tr><td><code>core/recipes.js</code> · <code>core/variants.js</code></td><td>시안 고르기 · 기본안+시안 구성</td><td class="ok">포함</td></tr>
-<tr><td><code>core/renderers/ad-template.js</code></td><td>시안 틀 렌더러(5장 규칙)</td><td class="ok">포함</td></tr>
-<tr><td><code>core/renderers/ad.js</code> · <code>core/canon.js</code> · <code>core/kvtypes.js</code></td><td>기본안 렌더러 · 공통 조형 기준 · 키비주얼 유형 분류</td><td class="ok">포함</td></tr>
-<tr><td><code>core/tplquality.js</code></td><td>청사진 대조 검사(제목 크기·위계·정렬·패딩·간격·로고)</td><td class="ok">포함</td></tr>
-<tr><td><code>core/typoaudit.js</code></td><td>타이포·여백 검사기(위계·비율·뱃지·패딩·간격·그림·잘림)</td><td class="warn">미커밋</td></tr>
-<tr><td><code>ref/learned/rules.json</code> → <code>history/규칙장부.md</code></td><td>디자인 규칙 287건 장부(규칙마다 근거·출처)</td><td class="ok">포함</td></tr>
-<tr><td><code>scripts/build-templates.mjs</code></td><td>피그마 추출값 → 시안 틀</td><td class="ok">포함</td></tr>
-<tr><td><code>scripts/self-block.mjs</code> (+ <code>scripts/lib/self-block-page.html</code>)</td><td>전수 렌더 시험(헤드리스 크롬)</td><td class="ok">포함</td></tr>
-<tr><td><code>scripts/template-quality.mjs</code></td><td>전수 결과 → 합격 목록</td><td class="ok">포함(수정분 미커밋)</td></tr>
-<tr><td><code>scripts/lib/recipe-sheet.html</code> · <code>template-compare.html</code></td><td>눈 검수 시트 · 청사진 나란히 보기</td><td class="ok">포함</td></tr>
-<tr><td><code>ref/learned/figma-1102/</code></td><td>피그마 원본 응답·청사진 PNG·키비주얼 원본</td><td class="bad">로컬 전용</td></tr>
-<tr><td><code>ref/learned/cases/</code></td><td>시험용 그림 장부(147 + 피그마 35). 목록 파일만 공개</td><td class="warn">그림은 로컬</td></tr>
-<tr><td><code>history/</code></td><td>날짜별 기록·브리핑·핸드오프</td><td class="ok">포함</td></tr>
-<tr><td><code>docs/design-recipes-2026-11-02.md</code></td><td>과거 소재 유형화 분석</td><td class="ok">포함</td></tr>
+<tr><td>색 강조형</td><td>제목 일부가 강조색</td><td>25</td></tr>
+<tr><td>기본 타이포형</td><td>특징 없음</td><td>23</td></tr>
+<tr><td>일정 뱃지형</td><td>일정이 알약 안</td><td>22</td></tr>
+<tr><td>굵기 대비형</td><td>제목 두 부분 굵기 다름</td><td>11</td></tr>
+<tr><td>라벨 뱃지형 · 라벨 정보형</td><td>「접수기간」 같은 라벨</td><td>8 · 3</td></tr>
+<tr><td>타이포 강조형</td><td>제목이 아주 큼</td><td>2</td></tr>
 </tbody>
 </table></div>
-<h3>근거의 종류</h3>
-<ul>
-  <li><b>매체 공식 가이드</b>: 매체 JSON의 출처 링크. 가이드 수집 에이전트(<code>tools/guide-collector</code>)가 28페이지를 주간 감시.</li>
-  <li><b>디자이너 실측</b>: 담당 디자이너 피그마 소재를 규격마다 잰 값(난이도 하 틀).</li>
-  <li><b>과거 통과 소재 분포</b>: 홍보사업셀 1,918장(난이도 중·상 청사진).</li>
-  <li><b>사용자·컨시어지 피드백</b>: 규칙장부에 요청자와 날짜를 같이 기록.</li>
-</ul>
+<p>비주얼 위치: 우측 34 · 전면 30 · 하단 22 · 상단 6 · 좌측 2.</p>
 </section>
 
 <section id="s7">
-<h2>7. 검증은 어떻게 했나</h2>
+<h2>7. 규칙 장부: 근거를 남기는 방식</h2>
+<p>흩어진 규칙을 한 장부에 모았습니다. 규칙 하나가 한 줄이고, 근거와 코드 위치가 붙어 있습니다.</p>
+<pre><span class="c">// ref/learned/rules.json 한 건 (→ history/규칙장부.md 로 사람이 읽는 표 생성)</span>
+{ id: 'one-flat-edge-photo', category: '유형 판정', scope: 'photo',
+  rule: '평평한 변이 하나뿐인데 바탕과 주인공을 가를 수 없으면 사진으로 본다',
+  value: '평평한 변 = 1 이고 주인공 상자 없음 → 사진',
+  evidence: ['시험 그림 id'], since: '2026-10-08', round: 29,
+  where: 'core/palette.js:289', source: '근거 문서', status: 'active' }</pre>
 <div class="tbl"><table>
-<thead><tr><th style="width:24%">검증</th><th>방법</th><th style="width:28%">결과</th></tr></thead>
+<thead><tr><th>분류</th><th>건수</th><th>분류</th><th>건수</th></tr></thead>
 <tbody>
-<tr><td>자동 테스트</td><td>요청 하나 고칠 때마다 사례를 테스트로 남김(<code>npm test</code>)</td><td>695건 모두 통과(11-04 확인)</td></tr>
-<tr><td>기본안 전수</td><td>추출 규격 × 시험 그림 × 문구 11종을 그려 매체 검수</td><td>3,168장 차단 0</td></tr>
-<tr><td>시안 틀 전수</td><td>틀 × 규격 × 그림 53종 × 문구 2종, 매체 검수 + 청사진 대조</td><td>33,962장 → 합격 514조합</td></tr>
-<tr><td>타이포·여백 검사기</td><td>렌더 기록을 청사진 프레임과 상대 비교(서브가 제목보다 큼, 패딩, 간격, 알약 크기 등)</td><td>1,590장 기준 불합격 87% → 5% (렌더러 수정 후)</td></tr>
-<tr><td>청사진 나란히 보기</td><td>과거 통과 소재와 같은 틀로 만든 결과를 한 장에</td><td>눈 대조. 일부 규격만</td></tr>
-<tr><td>실제 앱 끝까지</td><td>입력 → 생성 → 시안 고르기 → 승인 → ZIP+SVG 내려받기</td><td>34파일 정상</td></tr>
-<tr><td>컨시어지 요청 재검수</td><td>노션 31건 원문·이미지 85장 대조, 실제 ZIP으로 확인</td><td>완료 25 · 확인 중 5 · 자료 대기 1</td></tr>
-<tr><td>매체 가이드 변경</td><td>가이드 수집 결과와 앱 규격 비교(<code>npm run guide-diff</code>)</td><td>수집 규격 없는 5매체는 비교 불가</td></tr>
+<tr><td>타이포</td><td>58</td><td>글자 색·스크림</td><td>14</td></tr>
+<tr><td>배치·비중</td><td>48</td><td>이음·녹임</td><td>14</td></tr>
+<tr><td>매체 규정</td><td>33</td><td>로고</td><td>15</td></tr>
+<tr><td>유형 판정</td><td>29</td><td>누끼·로고 손질</td><td>10</td></tr>
+<tr><td>자동 검사</td><td>27</td><td>지면 색</td><td>20</td></tr>
+<tr><td>자르기·블리드</td><td>19</td><td><b>합계</b></td><td><b>287</b></td></tr>
 </tbody>
 </table></div>
-<p class="note"><b>솔직하게.</b> 숫자 검사는 전수로 했지만 <b>눈 대조는 일부</b>입니다. 측정으로 통과해도 눈으로 보면 아쉬운 시안이 남을 수 있어, 마지막 판정은 디자이너가 합니다.</p>
+<p>근거는 네 종류입니다: 매체 공식 가이드(출처 링크, 가이드 수집 에이전트가 28페이지 주간 감시), 디자이너 샘플 실측(피그마 노드 번호), 과거 통과 소재 분포, 사용자·컨시어지 피드백(요청자와 날짜).</p>
 </section>
 
 <section id="s8">
-<h2>8. 한계와 남은 일</h2>
-<ul>
-  <li><span class="warn">미커밋 작업</span> 다른 계정에서 만든 타이포·여백 검사기(<code>core/typoaudit.js</code>)와 렌더러 수정이 커밋 전입니다. 이걸로 합격 목록을 다시 계산하던 전수 시험(11-03 14:34 시작)이 <b>중간에 끊겨</b> 결과 파일이 없습니다. 지금 앱의 합격 목록은 그 전(11-03 오전) 기준 514입니다.</li>
-  <li>피그마의 곡선 마스크·사선 분할·장식 도형은 재현하지 않습니다(사각 칸 + 그라데이션).</li>
-  <li>틀은 대표 유형만(94세트). 에브리타임·잡다 등 일부 매체 틀은 제외.</li>
-  <li>13자 넘는 붙여 쓴 기업명은 좁은 규격에서 시안이 거의 빠집니다(기본안만).</li>
-  <li>공고 문장 읽기 규칙이 일부 회사명을 놓칩니다(예: 「2026년 하반기 마이다스아이티 신입 공채」에서 고객사 빈칸). 칸에서 바로 고칠 수는 있음.</li>
-  <li>「AI 그림 판단」은 시안 틀에 적용되지 않아 쓰임이 줄었습니다. 숨길지 결정 필요.</li>
-  <li>공개 앱은 11-03 오전 판입니다(이후 로컬 커밋 3개 + 미커밋 작업).</li>
-</ul>
+<h2>8. 검증</h2>
+<div class="tbl"><table>
+<thead><tr><th style="width:24%">검증</th><th>방법</th><th style="width:30%">결과</th></tr></thead>
+<tbody>
+<tr><td>자동 테스트</td><td>요청·규칙 하나 고칠 때마다 사례를 테스트로</td><td>695건 통과(11-04)</td></tr>
+<tr><td>기본안 전수</td><td>추출 규격 × 시험 그림 × 문구 11종, 매체 검수</td><td>3,168장 차단 0</td></tr>
+<tr><td>시안 틀 전수</td><td>틀 × 규격 × 그림 53종 × 문구 2종, 매체 검수 + 청사진 대조</td><td>33,962장 → 합격 514조합</td></tr>
+<tr><td>타이포·여백 검사기</td><td>서브가 제목보다 큼, 패딩·간격·알약 크기를 청사진 프레임과 상대 비교</td><td>1,590장 기준 불합격 87% → 5%(렌더러 수정 후)</td></tr>
+<tr><td>가이드 대조표</td><td>결과마다 규칙별 「가이드 값 → 실측 → ✓/✗」</td><td>앱 검수 탭에 표시</td></tr>
+<tr><td>청사진 나란히 보기</td><td>과거 통과 소재와 같은 틀 결과를 한 장에</td><td>눈 대조(일부 규격)</td></tr>
+<tr><td>실제 앱 끝까지</td><td>입력 → 생성 → 시안 고르기 → 승인 → ZIP+SVG</td><td>정상</td></tr>
+<tr><td>컨시어지 재검수</td><td>노션 31건 원문·이미지 대조, 실제 ZIP</td><td>완료 25 · 확인 중 5 · 대기 1</td></tr>
+</tbody>
+</table></div>
+<p class="note">숫자 검사는 전수, 눈 대조는 일부입니다. 측정으로 통과해도 아쉬운 시안이 남을 수 있어 최종 판정은 사람이 합니다.</p>
 </section>
 
 <section id="s9">
-<h2>9. 핸드오프: 이어받는 법</h2>
-<h3>처음 읽을 것(순서대로)</h3>
-<ol>
-  <li><code>history/README.md</code> → <code>history/00_브리핑.md</code> → <code>history/HANDOFF_다음세션.md</code></li>
-  <li><code>history/2026-11-02_시안틀_탑재.md</code> → <code>2026-11-03_시안_보정_피그마비주얼.md</code> → <code>2026-11-03_시안틀_타이포_여백_검사기.md</code></li>
-  <li>이 문서 5장의 파일들</li>
-</ol>
-<h3>돌리는 명령</h3>
-<pre># 로컬 서버(저장소 루트를 4793 포트로 서빙) 후
-npm test                                   # 자동 테스트
-
-# 시안 틀 전수 시험(약 1시간, 헤드리스 크롬)
-node scripts/self-block.mjs --recipes \
-  --cases fig-01,...,fig-35,t1014-gs2025,... --briefs gs,longname \
-  --timeout 5400 --out _out/tpl-audit/result.json
-
-# 합격 목록 다시 만들기(통과율 70%, 유형별 상위 12)
-node scripts/template-quality.mjs _out/tpl-audit/result.json 0.7 12
-
-# 눈 검수 시트
-http://localhost:4793/scripts/lib/recipe-sheet.html?case=&lt;케이스&gt;&amp;specs=&lt;규격,..&gt;
-
-# 피그마에서 틀 다시 만들기(추출 JSON이 있을 때)
-node scripts/build-templates.mjs &lt;추출 JSON...&gt;</pre>
-<h3>바로 할 일</h3>
-<ol>
-  <li>미커밋 검사기·렌더러 수정을 테스트 확인 후 커밋.</li>
-  <li>끊긴 전수 시험을 다시 돌려 합격 목록 재계산 → 시트로 눈 대조.</li>
-  <li>공개 앱 배포(요청 시). 결정 2건: AI 그림 판단 버튼, 13자 기업명 처리.</li>
-</ol>
-<h3>지킬 것</h3>
+<h2>9. 한계와 남은 일</h2>
 <ul>
-  <li>공개 저장소: API 키, <code>app/config.local.js</code>, <code>server/.env</code>, 고객사 문구·이미지·색 값 금지. <code>ref/learned/figma-1102/</code>, <code>_out/</code>은 커밋하지 않음.</li>
-  <li>규칙을 바꾸면 <code>ref/learned/rules.json</code>에 근거와 함께 추가하고 장부를 다시 만듦.</li>
-  <li>push는 요청할 때만, 커밋은 테스트 통과 때만.</li>
+  <li><span class="warn">진행 중</span> 타이포·여백 검사기(<code>core/typoaudit.js</code>)와 렌더러 수정은 아직 커밋 전이고, 이걸 반영한 합격 목록 재계산 전수 시험을 11-04 다시 돌리는 중입니다. 지금 앱의 합격 목록은 11-03 오전 기준 514조합입니다.</li>
+  <li>피그마의 곡선 마스크·사선 분할·장식 도형은 재현하지 않습니다(사각 칸 + 그라데이션).</li>
+  <li>시안 틀은 대표 유형 94세트. 에브리타임·잡다 등은 프리셋 안만.</li>
+  <li>13자 넘는 붙여 쓴 기업명은 좁은 규격에서 시안이 거의 빠집니다(기본안만).</li>
+  <li>공고 문장 읽기 규칙이 일부 회사명을 놓칩니다(칸에서 바로 고칠 수 있음).</li>
+  <li>AI 그림 판단은 쓰임이 작아 숨길지 결정이 필요합니다.</li>
 </ul>
 </section>
 
 <section id="s10">
-<h2>10. 용어</h2>
+<h2>10. 핸드오프: 폴더와 명령</h2>
 <div class="tbl"><table>
+<thead><tr><th style="width:36%">폴더 · 파일</th><th>역할</th></tr></thead>
 <tbody>
-<tr><td style="width:22%"><b>시안 틀</b></td><td>과거 통과 소재 한 세트에서 뽑은 구조(글자 칸·그림 칸·뱃지·강조). 내용만 바꿔 끼움</td></tr>
-<tr><td><b>구멍 뚫린 틀</b></td><td>난이도 하 매체의 공식 템플릿을 실측한 고정 틀</td></tr>
-<tr><td><b>청사진</b></td><td>과거 통과 소재. 그 측정 분포가 품질 기준</td></tr>
-<tr><td><b>기본안</b></td><td>시안 틀 없이 디자인 규칙으로 자유 배치한 안</td></tr>
-<tr><td><b>합격 목록</b></td><td>전수 시험을 통과한 「틀 × 규격 × 그림 유형」 조합</td></tr>
-<tr><td><b>전수 시험</b></td><td>모든 조합을 실제 브라우저로 그려 재는 시험</td></tr>
-<tr><td><b>누끼</b></td><td>배경을 지운 투명 PNG 그림</td></tr>
-<tr><td><b>승인 게이트</b></td><td>차단 / 검수 필요 / 승인 가능으로 나누는 출고 관문</td></tr>
+<tr><td><code>core/media/*.json</code></td><td>① 매체 규정 + ② 매체 틀</td></tr>
+<tr><td><code>core/canon.js</code></td><td>③ 공통 조형 기준(숫자 상수)</td></tr>
+<tr><td><code>core/kvtypes.js</code> · <code>palette.js</code> · <code>field.js</code></td><td>④ 키비주얼 측정·유형 · 지면색</td></tr>
+<tr><td><code>core/templates-data.js</code> · <code>template-norms.js</code> · <code>templates-quality.js</code></td><td>⑤ 시안 틀 · 청사진 분포 · 합격 목록(스크립트가 생성, 직접 고치지 않음)</td></tr>
+<tr><td><code>core/renderers/ad.js</code> · <code>ad-template.js</code></td><td>기본안 렌더러 · 시안 틀 렌더러</td></tr>
+<tr><td><code>core/recipes.js</code> · <code>variants.js</code></td><td>시안 고르기 · 안 구성</td></tr>
+<tr><td><code>core/lint.js</code> · <code>adcheck.js</code> · <code>guidecheck.js</code> · <code>tplquality.js</code> · <code>typoaudit.js</code> · <code>gate.js</code></td><td>매체 규정 검사 · 디자인 검사 · 가이드 대조 · 청사진 대조 · 타이포 검사 · 승인 게이트</td></tr>
+<tr><td><code>core/trackb/</code> · <code>app/llm.js</code> · <code>app/agent.js</code></td><td>AI 사용처(그림 판단 · 공고 읽기 · 수정 지시)</td></tr>
+<tr><td><code>scripts/build-templates.mjs</code> · <code>self-block.mjs</code> · <code>template-quality.mjs</code></td><td>피그마 → 틀 · 전수 시험 · 합격 목록</td></tr>
+<tr><td><code>ref/learned/rules.json</code> → <code>history/규칙장부.md</code></td><td>규칙 장부</td></tr>
+<tr><td><code>docs/*-mold.md</code></td><td>매체별 틀 실측 문서</td></tr>
+<tr><td><code>history/</code></td><td>날짜별 기록 · 브리핑 · 핸드오프(<code>HANDOFF_다음세션.md</code>)</td></tr>
+<tr><td><code>ref/learned/figma-1102/</code> · <code>ref/learned/cases/</code></td><td>피그마 원본·시험 그림(로컬 전용, 공개 저장소 제외)</td></tr>
 </tbody>
 </table></div>
+<pre>npm test                                      <span class="c"># 자동 테스트</span>
+node scripts/self-block.mjs --recipes --cases &lt;그림 목록&gt; --briefs gs,longname \
+  --timeout 5400 --out _out/tpl-audit/result.json      <span class="c"># 시안 틀 전수 시험(약 1시간)</span>
+node scripts/template-quality.mjs _out/tpl-audit/result.json 0.7 12   <span class="c"># 합격 목록</span>
+node scripts/rules-ledger.mjs --md            <span class="c"># 규칙 장부 다시 만들기</span>
+http://localhost:4793/scripts/lib/recipe-sheet.html?case=&lt;그림&gt;&amp;specs=&lt;규격&gt;   <span class="c"># 눈 검수 시트</span></pre>
+<p>지킬 것: 공개 저장소에 API 키·고객사 문구·이미지·색 값을 넣지 않음, 규칙을 바꾸면 장부에 근거와 함께 추가, 테스트 통과 때만 커밋.</p>
 </section>
 
-<p class="foot">출처: 저장소 코드와 history 기록, 11-03 전수 시험 결과, 11-04 테스트 실행. 수치는 기록 시점 기준이며 미커밋 작업 반영 전입니다.</p>
+<p class="foot">출처: 저장소 코드·규칙 장부·history 기록, 11-03 전수 시험, 11-04 테스트와 실제 렌더 기록.</p>
 </main>
 </body>
 </html>
