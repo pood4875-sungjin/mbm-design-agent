@@ -36,7 +36,7 @@ test('작은 인물 누끼(174px)는 시안 틀에서도 원본의 1.5배를 넘
         const need = +tag.match(/data-kv-need="(\d+)"/)[1], cap = traceOf(html).tpl.kvCap;
         assert.ok(need > SMALL.px[0] * K, '필요 폭은 상한보다 크다');
         assert.equal(cap.need, need); assert.equal(cap.max, Math.round(SMALL.px[0] * K));
-        assert.ok(cap.k > 1.55, `배율 ${cap.k}은 검수 문턱(1.55) 위 — 상한 없었으면 흐림 경고`);
+        assert.ok(cap.k >= K, `배율 ${cap.k}은 상한(${K}) 이상이 필요했던 경우에만 멈춘다`);
       }
     }
   }

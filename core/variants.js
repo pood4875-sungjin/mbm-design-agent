@@ -8,6 +8,7 @@ import { renderArtifact } from './contract.js';
 import { adSpecEntries } from './adspecs.js';
 import { CANON } from './canon.js';
 import { familyById, familiesFor, familyStyle, frameFor, recipeStyles } from './recipes.js';
+import { fingerprintOf, nearDuplicate } from './typoaudit.js';
 
 export const CANDIDATE_ORDER = [
   {}, { kvPlace: 'left' }, { kvPlace: 'bottom' }, { textAlign: 'center' }, { kvPlace: 'bg' }, { kvSize: 'lg' }, { bgFill: 'brand' },
@@ -61,10 +62,12 @@ export function templateChoices(specId, ctx, style, ropts = {}, { countOnly = fa
   const spec = adSpecEntries()[specId]; if (!spec) return countOnly ? 0 : [];
   const list = familiesFor(spec, style?.kvMeta, !!style?.keyVisual, ctx?.core?.client);
   if (countOnly) return list.length;
-  const out = [];
+  const out = [], fps = [];
   for (const f of list) {
     const st = familyStyle(f); let html; try { html = renderArtifact(specId, ctx, { ...style, ...st }, ropts); } catch { continue; }
     const tr = traceOf(html); if (!tr?.tpl || tr.tpl.unfit || (tr.tpl.overlap ?? 0) >= 0.05) continue;
+    // 거의 같은 안(글자 상자 몇 px 차이)은 앞의 것만 — 11-03 모달에 「일정 뱃지형」 3개가 사실상 같은 그림으로 떴다. 「n개」는 남은 수
+    const fp = fingerprintOf(tr, spec.w, spec.h); if (fp && fps.some(x => nearDuplicate(x, fp))) continue; if (fp) fps.push(fp);
     out.push({ label: frameFor(f, spec)?.name ?? f.name, style: st, html });
   }
   return out;

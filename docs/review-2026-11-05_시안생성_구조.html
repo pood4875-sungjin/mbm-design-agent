@@ -126,7 +126,7 @@ tr:last-child td{border-bottom:0}
   <div><b>② 매체 틀</b><span>매체 공식 템플릿 실측: 글자 칸(x, 줄별 y, 크기, 굵기, 색), 로고 칸, 그림 칸, 줄 수에 따른 변형, 기업명 길이 규칙.</span><code>매체.json 안 measuredFromTemplate.mold</code></div>
   <div><b>③ 공통 조형 기준</b><span>매체가 정하지 않은 것: 굵기 위계, 그림 비중 목표, 블리드·자르기 한도, 그라데이션 길이, 안 수(규정 1 · 그 밖 3).</span><code>core/canon.js</code></div>
   <div><b>④ 키비주얼 유형</b><span>그림을 재서 누끼·일러스트·사진·질감과 세부 유형(인물, 캐릭터 떼, 배경형 등)으로 나누고, 유형마다 배치 방식을 분기.</span><code>core/kvtypes.js · core/palette.js</code></div>
-  <div><b>⑤ 시안 틀 + 합격 목록</b><span>피그마 통과 소재 94세트의 구조, 청사진 분포, 「틀 × 규격 × 그림 유형」 합격 514조합.</span><code>core/templates-data.js · template-norms.js · templates-quality.js</code></div>
+  <div><b>⑤ 시안 틀 + 합격 목록</b><span>피그마 통과 소재 94세트의 구조, 청사진 분포, 「틀 × 규격 × 그림 유형」 합격 466조합.</span><code>core/templates-data.js · template-norms.js · templates-quality.js</code></div>
 </div>
 
 <h3>① 매체 규정 예(자소설 PC 채용공고 160×600)</h3>
@@ -223,7 +223,7 @@ emptyFix.ok · emptyFix.slot · meltFix · meltFix.subject · fieldAlign · obje
   <li><b>노드 읽기</b>: Figma MCP <code>use_figma</code>로 플러그인 코드를 실행해 프레임마다 글자 상자(위치·크기·글꼴·굵기·정렬·색·줄 수), 이미지 칸, 도형(알약)을 숫자로 받음. 고객사 문구·이미지·색 값은 버림.<span class="where">피그마 「홍보사업셀」 BLIND·GDN·IG·NAP/GFA 페이지 · 원본은 로컬 전용 ref/learned/figma-1102/</span></li>
   <li><b>틀로 정리</b>: 가장 큰 글자 = 제목, 그 위 = 시즌, 그 밖 = 일정·직무·라벨. 색은 값 대신 「글자색/강조색」 역할로. 글자 뒤 도형 = 알약. 이름은 「비주얼 위치 + 타이포 특징」.<span class="where">scripts/build-templates.mjs → core/templates-data.js (94세트 188프레임)</span></li>
   <li><b>청사진 분포</b>: 통과 소재 1,918장의 제목 크기, 글자 크기 비, 여백, 줄 간격, 그림 면적의 하위 10%·중앙값·상위 10%.<span class="where">core/template-norms.js (8규격)</span></li>
-  <li><b>전수 시험 → 합격 목록</b>: 틀 × 규격 × 시험 그림 53종 × 문구 2종을 헤드리스 크롬으로 실제 렌더 → 매체 검수 + 청사진 대조 → 70% 이상 통과하고 같은 유형 그림의 1/4 이상에 맞는 조합만, 규격×유형마다 상위 12개.<span class="where">scripts/self-block.mjs → scripts/template-quality.mjs → core/templates-quality.js (11-03: 33,962장, 1,635조합 → 514)</span></li>
+  <li><b>전수 시험 → 합격 목록</b>: 틀 × 규격 × 시험 그림 53종 × 문구 2종을 헤드리스 크롬으로 실제 렌더 → 매체 검수 + 청사진 대조 → 70% 이상 통과하고 같은 유형 그림의 1/4 이상에 맞는 조합만, 규격×유형마다 상위 12개.<span class="where">scripts/self-block.mjs → scripts/template-quality.mjs → core/templates-quality.js (11-04: 33,962행, 1,635조합 → 466)</span></li>
 </ol>
 <div class="tbl"><table>
 <thead><tr><th>타이포 특징(이름)</th><th>판정</th><th>세트</th></tr></thead>
@@ -269,8 +269,8 @@ emptyFix.ok · emptyFix.slot · meltFix · meltFix.subject · fieldAlign · obje
 <tbody>
 <tr><td>자동 테스트</td><td>요청·규칙 하나 고칠 때마다 사례를 테스트로</td><td>695건 통과(11-04)</td></tr>
 <tr><td>기본안 전수</td><td>추출 규격 × 시험 그림 × 문구 11종, 매체 검수</td><td>3,168장 차단 0</td></tr>
-<tr><td>시안 틀 전수</td><td>틀 × 규격 × 그림 53종 × 문구 2종, 매체 검수 + 청사진 대조</td><td>33,962장 → 합격 514조합</td></tr>
-<tr><td>타이포·여백 검사기</td><td>서브가 제목보다 큼, 패딩·간격·알약 크기를 청사진 프레임과 상대 비교</td><td>1,590장 기준 불합격 87% → 5%(렌더러 수정 후)</td></tr>
+<tr><td>시안 틀 전수</td><td>틀 × 규격 × 그림 53종 × 문구 2종, 매체 검수 + 청사진 대조 + 타이포 검사</td><td>33,962행(그려진 13,325장) → 합격 466조합</td></tr>
+<tr><td>타이포·여백 검사기</td><td>서브가 제목보다 큼, 패딩·간격·알약 크기를 청사진 프레임과 상대 비교</td><td>1,590장 기준 불합격 87% → 5%(렌더러 수정 후). 11-04 전수 13,325장 중 ✗ 601(4.5%)은 후보에서 뺌</td></tr>
 <tr><td>가이드 대조표</td><td>결과마다 규칙별 「가이드 값 → 실측 → ✓/✗」</td><td>앱 검수 탭에 표시</td></tr>
 <tr><td>청사진 나란히 보기</td><td>과거 통과 소재와 같은 틀 결과를 한 장에</td><td>눈 대조(일부 규격)</td></tr>
 <tr><td>실제 앱 끝까지</td><td>입력 → 생성 → 시안 고르기 → 승인 → ZIP+SVG</td><td>정상</td></tr>
@@ -283,7 +283,7 @@ emptyFix.ok · emptyFix.slot · meltFix · meltFix.subject · fieldAlign · obje
 <section id="s9">
 <h2>9. 한계와 남은 일</h2>
 <ul>
-  <li><span class="warn">진행 중</span> 타이포·여백 검사기(<code>core/typoaudit.js</code>)와 렌더러 수정은 아직 커밋 전이고, 이걸 반영한 합격 목록 재계산 전수 시험을 11-04 다시 돌리는 중입니다. 지금 앱의 합격 목록은 11-03 오전 기준 514조합입니다.</li>
+  <li>타이포·여백 검사기를 넣고 11-04 전수를 다시 돌려 합격 목록이 514 → 466조합이 됐습니다. 구글 300×600 사진(1개), 300×1050 인물 누끼(0~1개), 블라인드 게시글(2~4개)은 시안이 적고, 시안이 없으면 기본안만 나갑니다.</li><li>비슷한 「일정 뱃지형」 시안이 여러 개 남는 경우가 있습니다.</li>
   <li>피그마의 곡선 마스크·사선 분할·장식 도형은 재현하지 않습니다(사각 칸 + 그라데이션).</li>
   <li>시안 틀은 대표 유형 94세트. 에브리타임·잡다 등은 프리셋 안만.</li>
   <li>13자 넘는 붙여 쓴 기업명은 좁은 규격에서 시안이 거의 빠집니다(기본안만).</li>

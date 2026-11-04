@@ -39,9 +39,10 @@ test('규정 매체에 tpl 을 줘도 그림이 그대로다', () => {
 
 test('중·상 자유 규격은 비주얼 유형마다 고를 시안이 여러 개다', () => {
   for (const id of ['google-gdn-580x400', 'google-gdn-970x250', 'google-gdn-300x600', 'google-gdn-300x1050', 'instagram-feed-1080', 'blind-post-banner', 'blind-feed-image', 'naver-gfa-mobile-da-1250x560', 'nap-dsp-full-300x250', 'nap-dsp-full-320x480']) {
-    const need = id === 'blind-post-banner' ? 2 : 3;   // 블라인드 게시글은 시안 수가 적다(합격 2~3)
-    assert.ok(familiesFor(specs[id], PHOTO).length >= need, `${id} 사진 ${familiesFor(specs[id], PHOTO).length}`);
-    assert.ok(familiesFor(specs[id], CUT).length >= need, `${id} 누끼 ${familiesFor(specs[id], CUT).length}`);
+    // 타이포·여백 검사(11-04 전수)에서 합격이 적은 조합: 300×600 사진 1, 300×1050 인물 누끼 0(기본안만), 블라인드 게시글 2~3 — 퀄이 안 되면 안 보여준다(사용자 11-03)
+    const need = k => ({ 'google-gdn-300x600|photo': 1, 'google-gdn-300x1050|cut': 0 })[`${id}|${k}`] ?? (id === 'blind-post-banner' ? 2 : 3);
+    assert.ok(familiesFor(specs[id], PHOTO).length >= need('photo'), `${id} 사진 ${familiesFor(specs[id], PHOTO).length}`);
+    assert.ok(familiesFor(specs[id], CUT).length >= need('cut'), `${id} 누끼 ${familiesFor(specs[id], CUT).length}`);
   }
 });
 
