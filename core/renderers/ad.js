@@ -19,6 +19,7 @@
 // 모든 글자 요소에 data-field="<role>"을 심어 measure.js가 재고 lint.js가 판정한다. 렌더러는 검사하지 않는다.
 // 절대배치는 템플릿이 좌표를 정한 로고 칸·이미지 영역에만 쓴다 — 글자는 그 영역을 피한 흐름 배치다.
 
+import { fillTemplate } from '../freetpl.js';
 import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack, fontRuleOf, textColorLocked } from '../fonts.js';
 import { adSpecEntries } from '../adspecs.js';   // 캠페인 공통 메인(리멤버 PC·MO 동일) — 같은 매체 규격을 한 번씩 돌려 본다(런타임에만 부른다: contract.js 와 순환)
@@ -315,7 +316,18 @@ export function pickKvVariant(style, spec) {
   const vm = v.kvMeta ?? rest.kvMeta, var0 = vm?.ar ? Math.max(vm.ar / ar, ar / vm.ar) : 9, fullOk = var0 <= 1.5 && (vm?.field?.opaque ?? 1) >= 0.5 && (rest.kvUse ?? 'auto') === 'auto' && spec.medium !== 'jasoseol';   // 자소설은 그림 칸이 규정
   return { ...rest, keyVisual: v.keyVisual, kvMeta: vm, ...(fullOk ? { kvUse: 'full', kvFullForce: true } : {}) };
 }
+// 자유 시안(11-05 「대화로 시안 뽑기」, core/freetpl.js): 고른 안의 틀(style.free.tpl)을 글감·키비주얼·로고로 채워 그대로 쓴다 — 규칙 렌더·겹침 교정은 안 거친다(검수기가 거른다).
+//   texts 는 Claude 가 그 캠페인에 쓴 글자(같은 캠페인에선 그대로), 다른 캠페인의 「내 자유 시안」은 texts 가 없어 문구 사다리 첫 값으로 채운다
+export function freeTextsOf(ctx) {
+  const L = copyLadder(ctx), first = k => L[k]?.[0] ?? '';
+  return { main: first('main'), sub: first('sub'), date: first('date'), notice: first('notice'), detail: (L.details ?? []).map(d => `${d.label} ${d.value}`).join(' · ') };
+}
 export function renderAd(ctx, style, spec) {
+  if (style?.free?.tpl) {
+    const kvS = pickKvVariant(style, spec);
+    const logo = style.free.logoTone === 'light' ? (style.logoLight ?? style.logo ?? null) : (style.logo ?? style.logoLight ?? null);
+    return fillTemplate(style.free.tpl, { texts: style.free.texts ?? freeTextsOf(ctx), kv: kvS.keyVisual ?? null, logo });
+  }
   style = pickKvVariant(style, spec);
   return withAiShapes(renderAdInner(ctx, style, spec), style, spec);
 }

@@ -8,6 +8,7 @@ import { readFileSync, existsSync, statSync, createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { makeClient, designLayout, analyzeKv, ANALYZE_MODEL } from './design.js';
+import { freeDesign, claudeCodeAvailable } from './freedesign.js';   // 자유 디자인(헤드리스 Claude Code 또는 API)
 import { DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -48,7 +49,17 @@ function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
-    if (req.method === 'GET' && u.pathname === '/api/health') return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })) });
+    if (req.method === 'GET' && u.pathname === '/api/health') {
+      const cc = await claudeCodeAvailable();
+      return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })), freedesign: { claudeCode: cc.ok, version: cc.version, loggedIn: cc.loggedIn, api: !!client } });
+    }
+    if (req.method === 'POST' && u.pathname === '/api/freedesign') {   // 자유 디자인 — engine 'claude-code'(로그인 계정, 키 없음) | 'api'(키 있을 때)
+      let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }
+      if (body.engine === 'api' && !client) return json(res, 503, { error: 'API 키가 없습니다 — engine:"claude-code" 를 쓰거나 server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' });
+      if (body.engine !== 'api') { const cc = await claudeCodeAvailable(); if (!cc.ok) return json(res, 503, { error: 'claude 명령을 찾지 못했습니다 — Claude Code 설치 후 서버를 다시 켜 주세요' }); if (cc.loggedIn === false) return json(res, 503, { error: 'Claude Code 가 로그인돼 있지 않습니다 — 터미널에서 `claude auth login` 한 번' }); }
+      try { const out = await freeDesign(body, { client }); return json(res, 200, out); }
+      catch (e) { console.error('[freedesign]', e?.message ?? e); return json(res, 500, { error: e?.message ?? String(e) }); }
+    }
     if (req.method === 'POST' && u.pathname === '/api/analyze') {   // 하이브리드: 그림 판단 1회(캠페인당)
       if (!client) return json(res, 503, { error: 'API 키가 없습니다 — server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' });
       let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }

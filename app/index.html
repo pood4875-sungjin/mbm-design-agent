@@ -716,6 +716,50 @@
   #tplPicker .tp-card.on .tp-box{outline:3px solid var(--focus)}
   #tplPicker .tp-lab{font-size:12.5px;line-height:1.4}
   @media (max-width:640px){#tplPicker{padding:0}#tplPicker .tp-panel{height:100%}}
+  /* 대화로 시안 뽑기(11-05, app/freedesign.js) — 시안 고르기 창과 같은 유리 위 흰 카드. 왼쪽 대화, 오른쪽 결과 카드 */
+  #freePanel{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.5)}
+  #freePanel .fp-panel{display:flex;flex-direction:column;width:min(1320px,100%);height:min(900px,100%);background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+  #freePanel .fp-head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  #freePanel h3{font-size:16px;margin:0;white-space:nowrap}
+  #freePanel .fp-spec{display:flex;align-items:center;gap:6px;font-size:12.5px;min-width:0}
+  #freePanel .fp-spec select{max-width:360px;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+  #freePanel .fp-engine{font-size:12.5px;color:var(--sub);margin-left:auto;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  #freePanel .fp-engine select{font-size:12px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+  #freePanel .fp-none{color:var(--danger);font-weight:700}
+  #freePanel .fp-engine small{white-space:normal;max-width:360px}
+  #freePanel .fp-body{flex:1;display:grid;grid-template-columns:340px 1fr;min-height:0}
+  #freePanel .fp-chat{display:flex;flex-direction:column;gap:8px;padding:14px;border-right:1px solid var(--line);min-height:0}
+  #freePanel .fp-note{font-size:11.5px;line-height:1.5;color:var(--sub)}
+  #freePanel .fp-hist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:80px}
+  #freePanel .fp-bub{font-size:12.5px;line-height:1.5;padding:8px 10px;border-radius:10px;max-width:92%;white-space:pre-wrap;word-break:break-word}
+  #freePanel .fp-bub.user{align-self:flex-end;background:var(--ink);color:var(--panel)}
+  #freePanel .fp-bub.assistant{align-self:flex-start;background:var(--soft);color:var(--ink)}
+  #freePanel .fp-empty{font-size:12.5px;color:var(--sub);padding:12px}
+  #freePanel .fp-prev{font-size:12px;color:var(--amber);background:var(--amber-soft);padding:6px 10px;border-radius:8px}
+  #freePanel .fp-prev .lnk{margin-left:6px;font-size:12px}
+  #freePanel textarea{width:100%;resize:vertical;font:inherit;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);box-sizing:border-box}
+  #freePanel .fp-row{display:flex;align-items:center;gap:8px}
+  #freePanel .fp-msg{flex:1;font-size:11.5px;color:var(--sub);line-height:1.4}
+  #freePanel .fp-results{overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--fp-w,300px)),var(--fp-w,300px)));gap:20px 16px;align-content:start;justify-content:center;padding:18px}
+  #freePanel .fp-card{display:flex;flex-direction:column;gap:8px;max-width:100%}
+  #freePanel .fp-top{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  #freePanel .fp-top small{color:var(--sub);margin-left:auto}
+  #freePanel .fp-box{display:block;overflow:hidden;position:relative;background:var(--soft);border-radius:6px;outline:1px solid var(--line);max-width:100%;padding:0;border:0;cursor:zoom-in}
+  #freePanel .fp-box iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;pointer-events:none}
+  #freePanel .fp-box:hover{outline:2px solid var(--focus)}
+  #freePanel .fp-notes{font-size:11.5px;line-height:1.5;color:var(--sub)}
+  #freePanel .fp-issues{margin:0;padding-left:16px;font-size:11.5px;line-height:1.5}
+  #freePanel .fp-issues .block{color:var(--danger)} #freePanel .fp-issues .warn{color:var(--amber)}
+  #freePanel .fp-ok{font-size:11.5px;color:var(--good);font-weight:600}
+  #freePanel .fp-warn{font-size:11px;color:var(--amber)}
+  #freePanel .fp-acts{display:flex;flex-wrap:wrap;gap:6px}
+  #freePanel .fp-acts .btn{padding:7px 10px;font-size:12px}
+  #freePanel .fp-big{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
+  #freePanel .fp-big-in{background:var(--card);border-radius:var(--r-sm);padding:12px;max-width:100%;max-height:100%;overflow:auto}
+  #freePanel .fp-big-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px} #freePanel .fp-big-head span{color:var(--sub)} #freePanel .fp-big-head .btn{margin-left:auto}
+  #freePanel .fp-big-box{position:relative;overflow:hidden;background:var(--soft)} #freePanel .fp-big-box iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0}
+  @media (max-width:900px){#freePanel{padding:0}#freePanel .fp-panel{height:100%}#freePanel .fp-body{grid-template-columns:1fr;grid-template-rows:auto 1fr}#freePanel .fp-chat{border-right:0;border-bottom:1px solid var(--line);max-height:45%}}
+
   #modal{width:min(440px,92vw);background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-line);border-radius:var(--r-xl);box-shadow:0 24px 60px -12px rgba(16,24,40,.35);padding:22px}
   #modal h3{font-size:16px;margin-bottom:4px}
   #modal p{font-size:12.5px;color:var(--sub);margin-bottom:12px;line-height:1.55}

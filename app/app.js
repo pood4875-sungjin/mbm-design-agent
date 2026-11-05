@@ -22,7 +22,8 @@ import { approvalGate, STATE_LABEL } from '../core/gate.js';
 import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
 import { htmlHash, templateChoices } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
-import { rasterize, download, downloadText, openPrintPdf } from './raster.js';
+import { rasterize, rasterizeCanvas, download, downloadText, openPrintPdf } from './raster.js';
+import { createFreeDesign, freeFontIds } from './freedesign.js';   // 11-05 「대화로 시안 뽑기」 — Claude 가 만든 자유 시안(배경·타이포 HTML)을 안(kind 'free')으로 쓰고 저장해 재사용
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
@@ -112,6 +113,26 @@ const EL = createElementSelect({
   liveText: (a, id, k) => textScaleLive(a, id, k), commitTextScale: (a, id, k) => textScaleCommit(a, id, k),
   pick: (a, id) => select(a.key ?? a.specId, id), up: a => select(a.key ?? a.specId), locks: (a, id) => elLocks(a, id),
 });
+// 「대화로 시안 뽑기」 창(11-05, app/freedesign.js) — 검수는 보드와 같은 길(measureArtifact → lintArtifact → approvalGate)
+const FREE = createFreeDesign({
+  state, SPECS, $, escH: s => escH(s), previewDoc: (h, f) => previewDoc(h, f), measureArtifact, lintArtifact, approvalGate, STATE_LABEL, adEffCtx: a => adEffCtx(a), apiCopy, rasterizeCanvas,
+  toast: t => toast(t), log: t => log(t), useFree: (a, f) => useFree(a, f), artLabel: a => artLabel(a), renderArtifact, checkAdDoc,
+});
+// 자유 시안을 소재의 안(variants kind 'free')으로 넣고 고른다 — 안 style 은 { free:{ id, tpl, texts, notes, logoTone } } 하나뿐이라 안 바꾸기(이전 안 키 지우기)와 같은 길을 탄다
+function useFree(a, free) {
+  const c = state.campaign;
+  pushHistory(`${artLabel(a)} 자유 시안`);
+  const prev = a.variants?.[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key];
+  const fv = { id: free.id, tpl: free.tpl, texts: free.texts ?? null, notes: free.notes ?? '', logoTone: free.logoTone ?? 'dark' };
+  st.free = fv; a.overrides.style = st;
+  a.variants ??= [];
+  const n = a.variants.filter(v => v.kind === 'free').length + 1;
+  a.variants.push({ id: a.variants.length, kind: 'free', label: `자유 ${n}`, html: free.tpl, notes: fv.notes, style: { free: fv }, hash: '' });
+  a.variantSel = a.variants.length - 1; a.status = 'draft'; a.gateOverride = null;
+  logEvent(c, 'free_selected', { specId: a.specId, id: fv.id });
+  regen(c); autosave(); refreshFrames(a.key ?? a.specId); select(a.key ?? a.specId); renderInspector();
+  log(`${a.specId} 자유 시안 ${n}`);
+}
 const RULER = createRuler({ top: $('rulerT'), left: $('rulerL'), view: () => state, range: () => { const f = state.selected && frames.get(state.selected); if (!f) return null; const b = f.frame.querySelector('.fbody'); return { x: f.frame.offsetLeft, y: f.frame.offsetTop, w: b.clientWidth, h: b.clientHeight }; } });
 
 /* ═══ helpers ═══ */
@@ -173,7 +194,8 @@ function embedFont(html, face, mark = CUSTOM_MARK) {
 function previewDoc(html, fontId = null) {
   if (!html || /^\s*(<!doctype|<html)/i.test(html)) return html;
   const elFonts = html.includes('data-el-font="') ? [...new Set([...html.matchAll(/data-el-font="([^"]+)"/g)].map(m => m[1]))] : [];   // 요소 하나에 고른 글꼴(11-02)
-  const face = [...new Set([fontId, ...elFonts])].filter(Boolean).map(id => isBundledFont(id) ? `<style>${localFaceCss(id)}</style>` : customFontCss(id) ? `<style>${customFontCss(id)}</style>` : '').join('');
+  const freeFonts = html.includes('data-free="1"') ? freeFontIds(html) : [];   // 자유 시안(11-05)이 쓴 허용 글꼴 — 틀이 font-family 로 적은 이름 그대로
+  const face = [...new Set([fontId, ...elFonts, ...freeFonts])].filter(Boolean).map(id => isBundledFont(id) ? `<style>${localFaceCss(id)}</style>` : customFontCss(id) ? `<style>${customFontCss(id)}</style>` : '').join('');
   return `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>${face}</head><body>${html}</body></html>`;
 }
 // 산출물이 실제로 쓰는 폰트 id — 매체가 고정하면(자소설·카카오·리멤버 Pretendard) 그 폰트, 아니면 캠페인(또는 산출물 개별) 폰트
@@ -203,6 +225,8 @@ async function exportFaceCss(fontId, force = false) {
   return fontBytesCache.get(fontId);
 }
 // 요소 하나에 고른 글꼴(11-02) — 산출물 글꼴과 다르니 바이트를 따로 싣는다
+// 자유 시안(11-05)이 쓴 글꼴 — 고른 안·전체 안의 틀에서 이름을 읽어 바이트째
+async function freeFaceCss(a) { const tpls = [a.overrides?.style?.free?.tpl, ...(a.variants ?? []).filter(v => v.kind === 'free').map(v => v.style?.free?.tpl)].filter(Boolean); let out = ''; for (const id of new Set(tpls.flatMap(freeFontIds))) out += customFontCss(id) || await exportFaceCss(id, true); return out; }
 async function elementFaceCss(a) { let out = ''; for (const id of elementFontIds(a.overrides?.elements)) out += customFontCss(id) || await exportFaceCss(id, true); return out; }
 async function withExportFont(html, fontId) { return embedFont(html, await exportFaceCss(fontId), BUNDLED_MARK); }
 
@@ -322,7 +346,7 @@ function openTplPicker({ title, choices, nw, nh, current, docOf, onPick, returnT
   const close = () => { io.disconnect(); root.remove(); document.removeEventListener('keydown', onKey, true); returnTo?.focus?.(); };
   const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) { const f = e.target; f.srcdoc = docOf(choices[+f.dataset.i]); io.unobserve(f); } }, { root: grid, rootMargin: '300px' });
   choices.forEach((ch, i) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'tp-card'; const on = ch.style.tpl === current; if (on) { b.classList.add('on'); b.setAttribute('aria-current', 'true'); }
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tp-card'; const on = (ch.style.tpl ?? ch.style.free?.id ?? null) != null && (ch.style.tpl ?? ch.style.free?.id) === current; if (on) { b.classList.add('on'); b.setAttribute('aria-current', 'true'); }
     const bx = document.createElement('span'); bx.className = 'tp-box'; bx.style.cssText = `width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px`;
     const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.dataset.i = i; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.style.transform = `scale(${k})`;
     const lb = document.createElement('span'); lb.className = 'tp-lab'; lb.textContent = on ? `${ch.label} · 지금 안` : ch.label;
@@ -2756,6 +2780,9 @@ function renderInspectorBody() {
       ${c.style.logo ? `<button class="btn" id="iLogoMakeWhite" style="width:100%;margin-top:6px">원색 로고로 흰색 로고 만들기</button>` : ''}
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       </section>
+      ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
+      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(로컬 Claude Code 또는 API 키 서버). 규칙은 검수기가 강제.</div>
+      <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
       <section class="isec"><h3>배경</h3>${bgControlHtml(c.style, 'iBg')}</section>
       <section class="isec">
       <h3>컬러</h3>
@@ -2866,6 +2893,7 @@ function renderInspectorBody() {
       if (lb) { lb.textContent = logoGuideText(); if (c.style.logo) logoCheckOf(c.style.logoOrig ?? c.style.logo, { tone: c.style.logoTone }).then(ck => { if (ck.level !== 'na') { lb.textContent = ck.text; lb.style.color = CHECK_TONE[ck.level]; } }); } }
     for (const k of ['wide', 'tall']) { const th = insp.querySelector(`#iKvV-${k}`), inp = insp.querySelector(`#iKvV-${k}File`); if (th && inp) bindUpload(th, inp, async d => { const kd = await prepKv(d); const { meta } = await analyzeKeyVisual(kd); restyle({ kvVariants: { ...(c.style.kvVariants ?? {}), [k]: { keyVisual: kd, kvMeta: meta } } }, `${k === 'wide' ? '가로형' : '세로형'} 키비주얼`); renderInspector(); toast('맞는 모양의 규격을 다시 그렸어요'); }); }
     insp.querySelectorAll('[data-ikvvdel]').forEach(b => b.onclick = () => { const { [b.dataset.ikvvdel]: _, ...rest } = c.style.kvVariants ?? {}; restyle({ kvVariants: rest }, '키비주얼 모양 빼기'); renderInspector(); });
+    { const fb = insp.querySelector('#iFreeOpenAll'); if (fb) fb.onclick = () => FREE.open(null); }
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
     // 보여 줄 영역 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
@@ -2987,10 +3015,13 @@ function renderInspectorBody() {
   // 섹션마다 .isec(흰 카드)로 묶는다 — 인스펙터는 유리 판이라 안쪽을 카드로 쌓아야 층이 읽힌다
   const scopeTop = scopeHtml(a);
   const designSections = state.elSel && a.channel === 'ad' && EL.find(a, state.elSel) ? elementPanelHtml(a, spec, state.elSel) : `
-    ${(a.channel === 'ad' && (a.variants?.length ?? 0) > 1) ? `<section class="isec isec-var">
+    ${a.channel === 'ad' && SPECS[a.specId]?.rules ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
+      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들고, 말로 고치며 계속 뽑아요. 규칙은 검수기가 강제.</div>
+      <button class="btn" id="iFreeOpen" style="width:100%">대화로 시안 뽑기 — ${escH(artLabel(a))}</button></section>` : ''}
+    ${(a.channel === 'ad' && ((a.variants?.length ?? 0) > 1 || FREE.templatesFor(a.specId).length)) ? `<section class="isec isec-var">
       <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
-      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}</div>
+      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${(templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 || FREE.templatesFor(a.specId).length) ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}</div>
     </section>` : ''}
     ${a.channel === 'ad' ? `${layerListHtml(a)}
     <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
@@ -3123,7 +3154,8 @@ function renderInspectorBody() {
   });
   if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); bindGuideOv(insp); }
   // 레이아웃 안(10-20): 썸네일은 그 안의 프리셋으로 다시 그린 html 을 작은 iframe 에 — 안은 캠페인 공통 스타일 + 안 프리셋(산출물 개별 편집값은 안 섞는다)
-  if (a.channel === 'ad' && (a.variants?.length ?? 0) > 1 && insp.querySelector('#iVariants')) {
+  { const fb = $('iFreeOpen'); if (fb) fb.onclick = () => FREE.open(a); }
+  if (a.channel === 'ad' && insp.querySelector('#iVariants')) {
     const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec), k = Math.min(106 / nw, 66 / nh);
     for (const box of insp.querySelectorAll('.vthumb-box')) {
       const v = a.variants[+box.dataset.vi]; if (!v) continue;
@@ -3135,17 +3167,17 @@ function renderInspectorBody() {
     const moreBtn = $('iTplMore');
     if (moreBtn) moreBtn.onclick = () => openTplPicker({
       title: `다른 시안 · ${artLabel(a)}`, nw, nh, returnTo: moreBtn,
-      current: a.variants[currentVariantIndex(a)]?.style?.tpl ?? null,
-      choices: templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a)),
+      current: (v => v?.tpl ?? v?.free?.id ?? null)(a.variants[currentVariantIndex(a)]?.style),
+      choices: [...FREE.choicesFor(a, c, artRenderOpts(a)), ...templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a))],   // 내 자유 시안(같은 규격, 11-05)이 맨 앞
       docOf: ch => previewDoc(ch.html, ch.style.fonts?.heading ?? artifactFontId(a)),
       onPick: ch => {
         pushHistory(`${artLabel(a)} 시안 고르기`);
         const prev = a.variants[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, ch.style);
         a.overrides.style = st;
-        let i = a.variants.findIndex(v => v.style?.tpl === ch.style.tpl);
-        if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '' }); i = a.variants.length - 1; }
+        let i = a.variants.findIndex(v => ch.style.free ? v.style?.free?.id === ch.style.free.id : v.style?.tpl === ch.style.tpl);
+        if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '', ...(ch.style.free ? { kind: 'free', html: ch.style.free.tpl, notes: ch.style.free.notes ?? '' } : {}) }); i = a.variants.length - 1; }
         a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
-        logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl, label: ch.label });
+        logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl ?? ch.style.free?.id ?? null, label: ch.label });
         regen(c); autosave(); refreshFrames(a.specId); renderInspector();
         log(`${a.specId} 시안 ${ch.label}`);
       },
@@ -3582,7 +3614,7 @@ async function exportAdFiles(ads, opts = {}) {
   for (const a of ads) {
     const spec = adSpecOf(a);
     const eff = adEffCtx(a);
-    const face = await exportFaceCss(artifactFontId(a)) + await elementFaceCss(a);   // 묶은 무료 폰트면 바이트째(10-14) — 래스터가 바깥 파일을 못 받는다
+    const face = await exportFaceCss(artifactFontId(a)) + await elementFaceCss(a) + await freeFaceCss(a);   // 묶은 무료 폰트면 바이트째(10-14) — 래스터가 바깥 파일을 못 받는다. 자유 시안 글꼴(11-05)도
     const post0 = h => embedFont(h, face, BUNDLED_MARK), post = h => post0(applyElementEdits(h, a.overrides?.elements, spec));   // 요소 편집(11-02)은 고른 안에만
     const variants = (opts.allVariants && (a.variants?.length ?? 0) > 1) ? a.variants : null;
     if (!variants) {

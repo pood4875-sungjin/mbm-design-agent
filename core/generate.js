@@ -106,7 +106,9 @@ export function generateArtifacts(campaign) {
       // 안 목록은 캠페인 스타일이 바뀌면 달라진다 — 번호가 아니라 같은 프리셋 묶음을 다시 찾는다(10-20 리뷰). 없으면 기본안(0)
       const prevStyle = artifact.variants?.[artifact.variantSel]?.style ?? null;
       const vs = variantCandidates(item.specId, effContext, campaign.style, { variant: artifact.variant ?? 0 });
+      const prevFree = (artifact.variants ?? []).filter(v => v.kind === 'free');   // 자유 시안(11-05, 「대화로 시안 뽑기」 「이 안으로 쓰기」) — 자동 안을 다시 세워도 남긴다
       artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
+      for (const v of prevFree) artifact.variants.push({ ...v, id: artifact.variants.length });
       const i = prevStyle ? artifact.variants.findIndex(v => JSON.stringify(v.style) === JSON.stringify(prevStyle)) : -1;
       // 「다른 시안 보기」에서 고른 시안은 자동 안 목록에 없어도 선택을 유지한다
       if (i < 0 && prevStyle?.tpl) { artifact.variants.push({ id: artifact.variants.length, label: artifact.variants.length ? (vsLabel(prevStyle, SPECS[item.specId]) ?? '시안') : '시안', style: prevStyle, hash: '' }); artifact.variantSel = artifact.variants.length - 1; }
