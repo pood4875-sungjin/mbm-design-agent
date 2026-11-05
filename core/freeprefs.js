@@ -99,7 +99,7 @@ export function parseTree(html) {
   const re = /<\/([a-zA-Z][\w:-]*)\s*>|<([a-zA-Z][\w:-]*)((?:\s+[^\s=>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*(\/?)>|([^<]+)/g;
   let m;
   while ((m = re.exec(String(html ?? '')))) {
-    if (m[5] != null) { cur.children.push({ tag: '#text', attrs: {}, style: {}, children: [], parent: cur, text: m[5] }); continue; }   // 글자도 순서대로 자식으로(11-06: <br> 앞뒤 줄이 섞이던 것)
+    if (m[5] != null) { cur.children.push({ tag: '#text', attrs: {}, style: {}, children: [], parent: cur, text: m[5] }); continue; }   // 글자도 순서대로 자식으로(11-05: <br> 앞뒤 줄이 섞이던 것)
     if (m[1]) { const t = m[1].toLowerCase(); let p = cur; while (p && p.tag !== t) p = p.parent; if (p && p.parent) cur = p.parent; continue; }
     const tag = m[2].toLowerCase(); const attrs = {};
     for (const a of (m[3] ?? '').matchAll(/([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) attrs[a[1].toLowerCase()] = a[2] ?? a[3] ?? a[4] ?? '';

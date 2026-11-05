@@ -12,7 +12,7 @@
   header h1{font-size:16px;margin:0 8px 0 0} header label{display:flex;align-items:center;gap:6px;font-size:13px} select,input[type=number]{font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
   .btn{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer} .btn.pri{background:var(--pri);color:#fff;border-color:var(--pri)} .btn:disabled{opacity:.5;cursor:default}
   #stats{font-size:12px;color:var(--sub)} #stats b{color:var(--ink)} #stats table{border-collapse:collapse;margin-top:4px} #stats td,#stats th{padding:1px 8px 1px 0;text-align:right;font-weight:500} #stats th{text-align:left;color:var(--ink)}
-  #cases{display:flex;flex-wrap:wrap;gap:4px 10px;max-width:720px;font-size:12px} #cases label{gap:3px} #cases small{color:var(--sub)}
+  #casebox summary{cursor:pointer;font-size:13px} #cases{display:flex;flex-wrap:wrap;gap:4px 10px;max-width:720px;max-height:40vh;overflow:auto;margin-top:6px;font-size:12px} #cases label{gap:3px} #cases small{color:var(--sub)}
   #msg{font-size:12.5px;color:var(--sub);flex-basis:100%} #msg.pending{color:var(--amber)} #msg.err{color:var(--danger)}
   main{padding:16px;display:flex;flex-direction:column;gap:22px;max-width:1700px;margin:0 auto}
   .batch{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px} .batch.pendingBatch{border-style:dashed;color:var(--sub)}
@@ -35,7 +35,7 @@
 <header>
   <h1>자유 시안 평가 루프</h1>
   <div id="stats">통계 불러오는 중…</div>
-  <div id="cases" aria-label="키비주얼 케이스"></div>
+  <details id="casebox"><summary>키비주얼 케이스 <b id="casecount">0</b>개 선택</summary><div id="cases" aria-label="키비주얼 케이스"></div></details>
   <label>규격 <select id="spec"></select></label>
   <label>묶음 크기 <input id="n" type="number" min="1" max="6" value="3" style="width:56px"> 안/케이스</label>
   <button class="btn pri" id="next">다음 묶음 생성</button>
@@ -44,7 +44,8 @@
 </header>
 <main id="main"><div class="empty">묶음을 불러오는 중…</div></main>
 <script type="module">
-import { SPECS } from '../core/contract.js';
+import { adSpecEntries } from '../core/adspecs.js';
+const SPECS = adSpecEntries();   // 11-05: contract.js SPECS 는 registerAll 전엔 비어 규격 칸이 비었다
 import { RATING_LABEL, SCOPE_LABEL, fpSummary, normRating } from '../core/freeprefs.js';
 import { localFaceCss, isBundledFont, fontIds } from '../core/fonts.js';
 const $ = s => document.querySelector(s);
@@ -66,7 +67,8 @@ function selectedCases() { return [...document.querySelectorAll('#cases input:ch
 function renderCases() {
   const latest = STATE.batches[0]; const def = new Set(pref.cases?.length ? pref.cases : latest?.cases ?? []);
   $('#cases').innerHTML = STATE.cases.map(c => `<label title="${esc(c.kvType ?? '')}"><input type="checkbox" value="${esc(c.id)}" ${def.has(c.id) ? 'checked' : ''}>${esc(c.id)}<small>${esc(c.kvType ?? c.kind ?? '')}</small></label>`).join('');
-  $('#cases').onchange = savePref;
+  const count = () => { $('#casecount').textContent = selectedCases().length; };   // 11-05: 케이스 목록이 머리글(고정)을 1,100px 넘게 키워 카드를 덮던 것 → 접어 두고 개수만
+  $('#cases').onchange = () => { savePref(); count(); }; count();
 }
 function renderStats() {
   const s = STATE.stats; if (!s) return;
