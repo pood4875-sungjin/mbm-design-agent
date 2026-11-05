@@ -4,7 +4,7 @@
 
 ## 지금 상태
 - 공개 앱 배포 완료: https://pood4875-sungjin.github.io/mbm-design-agent/app/ (main 6cb9112까지 push, Pages 빌드 built, 공개 주소의 시안 틀 합격 목록 1,017 확인).
-- 11-05 밤: 8e0b4dc(자유 디자인 2차 + 셀렉 루프 WIP)까지 push. 테스트 719(716 통과·3 skip). 미커밋 = `_out/` 아래 로컬 산출물뿐(커밋 금지).
+- 11-05 밤: 8e0b4dc(자유 디자인 2차 + 셀렉 루프 WIP)까지 push. 테스트 719 전부 통과(11-05 skip 3 살림). 미커밋 = `_out/` 아래 로컬 산출물뿐(커밋 금지).
 - 로컬 앱: http://localhost:4795/app/ (이 폴더 루트를 서빙하는 python 서버. 꺼져 있으면 `python3 -m http.server 4795` 를 이 폴더에서).
 
 ## 지금까지 대화 흐름 (11-03 ~ 11-05)
@@ -16,7 +16,7 @@
    - 사용자 「지금 push」 → 배포 완료.
 
 ## 바로 할 일 (사용자 결정 대기)
-0-1. **셀렉 학습 루프 마무리**(11-05 밤, 최우선): `test/freeloop.test.js`·`test/freeprefs.test.js` 의 `test.skip('[11-05 미완…` 3개 살리기 → `node server/server.mjs` → http://localhost:4793/app/loop.html 열어 `node scripts/freeloop-push.mjs --from-matrix` 로 18안 넣고 5점 평가 → `ref/learned/free-prefs.json` 생성 확인. 평가는 5점(좋음/약간 좋음/보통/별로/절대 못씀), KV 유형별 소프트 랭킹, don't 목록 금지. 기록 2026-11-05_자유디자인_2차_규칙축소_방향3종_셀렉루프.md
+0-1. ~~셀렉 학습 루프 마무리~~(11-05 완료: skip 3 살림·loop.html 버그 2 수정·저장 확인, 커밋 eb02665·5f208cb, 기록 2026-11-05_셀렉루프_마무리.md). 남음: 사용자가 http://localhost:4796/app/loop.html 에서 18안 실제 평가(서버 `node server/server.mjs 4796`).
 0. **자유 디자인 브리지 실측**(11-05 저녁 추가): 사용자가 `claude auth login` 한 뒤 `node scripts/freedesign-run.mjs sep-open-recruit google-gdn-580x400` → 소요·재시도·PNG 확인, 앱 패널(로컬 서버 `node server/server.mjs`)에서 실제 대화 뽑기 1회. 규칙은 docs/freedesign-rules.md(자간·장평만). 기록 2026-11-05_자유디자인_대화로_시안뽑기.md
 1. **캐치 메인 라지 기본안 그림 누락**: 일러스트·사진·질감 KV 를 기본안이 안 그린다. 틀 글자 칸이 폭 전체라 `moldFreeRect`(`core/renderers/ad.js`)가 null(조건: 남은 폭 ≥ 20%, 남은 높이 ≥ 20%, 글자 상자와 안 겹침). 누끼만 cutCorner 로 모서리 칸을 얻는다. 이런 그림엔 시안 틀도 안 붙어 「가운데 정렬」「전체 배경」만 남음. 고칠지 물어보고 진행.
 2. 합격 0인 규격 6개: 캐치 메인 라지 PC(줄 수 차단), NAP 비즈보드 1029×258(색·투명 차단), 알바몬 스플래시·M 메인(투명 지면), 스펙업 액티비티(미확인), 알바몬 스카이 120×600(비율 맞는 틀 없음). 새 규격들에서 사진 유형 합격 0.
