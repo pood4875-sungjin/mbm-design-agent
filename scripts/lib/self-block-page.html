@@ -26,7 +26,7 @@ document.head.insertAdjacentHTML('beforeend', `<style id="bundledFonts">${FACES}
 const post = (p, b) => fetch(p, { method: 'POST', body: JSON.stringify(b) });
 const toData = async u => { if (!u) return null; const b = await (await fetch(u)).blob(); return new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }); };
 const job = await (await fetch('/job')).json();
-const groups = adSpecGroups().filter(g => g.entry.extract && (!job.specs || job.specs.includes(g.id)));
+const groups = adSpecGroups().filter(g => (job.specs ? job.specs.includes(g.id) : g.entry.extract));   // 규격을 직접 고르면 extract 밖 규격도(11-05 시안 틀 대상 21규격)
 for (const c of job.cases) {
   const kv = await toData(c.kvUrl), logo = await toData(c.logoUrl);
   const style = normalizeStyle({ keyVisual: kv, kvMeta: c.meta, logo, logoLight: c.tone === 'light' ? logo : null, logoTone: c.tone, logoMeta: c.logoMeta, colors: c.colors, mode: 'light', fonts: { heading: 'KakaoBigSans', body: 'KakaoBigSans' }, background: { mode: 'auto', color: null }, kvUse: 'auto', mood: [] });

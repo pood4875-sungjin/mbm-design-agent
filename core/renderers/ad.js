@@ -2783,7 +2783,7 @@ ${tplLogo}${kvWrap(tplObject)}
           for (const it of u.items) { const valW = Math.round(textWidth(it.value) * u.px * 1.04), colW2 = u.valueW ?? Math.max(1, u.w - u.labelCol);
             const n = Math.max(1, it.rows ?? 1);
             for (let i = 0; i < n; i++) { const rw = it.col ? Math.min(u.w, u.labelCol + Math.min(colW2, n > 1 && i < n - 1 ? colW2 : valW)) : Math.min(u.w, it.inline ? Math.round(textWidth(`${it.label} : ${it.value}`) * u.px * 1.04) : Math.max(Math.round(textWidth(it.label) * u.px * 1.04), Math.min(valW, u.w)));
-              rows.push({ role, x: u.x, y: Math.round(yy * 10) / 10, w: rw, h: u.pitch }); yy += u.pitch; }
+              rows.push({ role, x: Math.round(u.align === 'center' ? u.x + (u.w - rw) / 2 : u.align === 'right' ? u.x + u.w - rw : u.x), y: Math.round(yy * 10) / 10, w: rw, h: u.pitch }); yy += u.pitch; }   // 정렬대로 x — 가운데 정렬 프리셋에서 상세가 왼쪽에 있다고 잡아 그림 겹침을 놓치던 것(11-05 캐치 메인 라지)
             yy += u.gap ?? 0; }
           continue; }
         const lines = role === 'main' ? String(u.text ?? '').split('\n') : [String(u.text ?? '')]; const n = Math.max(1, Math.min(u.lines ?? 1, role === 'main' ? lines.length : (u.lines ?? 1)));

@@ -3,6 +3,7 @@
 //   후보를 순서대로 실제 렌더해(renderArtifact) 추적(trace)으로 거른다: ① 프리셋이 통째로 무시되면(edit.ignored 의 `키(사유)` — 「textAlign(규정 매체)」「kvSize(매체 칸·지면 전체)」)
 //   ② 위치 프리셋이 안 서면(edit.place.ok false — 「매체 템플릿이 그림 칸을 정함」「투명 배경 규격」) ③ 겹침 교정 실패(overlapFix.fail) ④ 결과 그림이 이미 있는 안과 같으면(hash, trace 제외) 버린다.
 //   `textAlign.kv(…)`·`textAlign.logo(…)` 같은 「키.부분(사유)」는 틀 칸 메모(글자는 정렬됐고 그림·로고 칸만 제자리) — 부분 적용이라 버리지 않는다(그림이 같으면 ④가 거른다).
+//   ⑤(11-05) 기본안보다 못한 프리셋 안: 기본안엔 없던 글자-그림 겹침 교정이 필요하거나, 기본안엔 있던 키비주얼이 빠지면 버린다.
 //   첫 안은 늘 기본안(빈 style) — 지금 시스템이 내는 그림이라 거르지 않는다(겹침 실패여도 검수가 그대로 보고). 규정 매체(fonts.required)는 기본안 하나.
 import { renderArtifact } from './contract.js';
 import { adSpecEntries } from './adspecs.js';
@@ -27,12 +28,18 @@ export function variantCountFor(spec) {
   return V.default;
 }
 const labelOf = (st, spec0 = null) => { if (!Object.keys(st).length) return '기본안'; if (st.tpl) { const f = familyById(st.tpl); return (spec0 && f && frameFor(f, spec0)?.name) || f?.name || '시안'; } const L = { kvPlace: { left: '키비주얼 왼쪽', bottom: '키비주얼 아래', bg: '전체 배경', right: '키비주얼 오른쪽' }, textAlign: { center: '가운데 정렬', right: '오른쪽 정렬', left: '왼쪽 정렬' }, kvSize: { lg: '키비주얼 크게', sm: '키비주얼 작게' }, bgFill: { brand: '브랜드색 지면' }, textTone: { light: '흰 글자', dark: '검은 글자' } }; return Object.entries(st).map(([k, v]) => L[k]?.[v] ?? `${k} ${v}`).join(' · '); };
+// 겹침 교정이 실제로 글자·그림을 줄였나(data-overlap="처음>끝:단계") — 처음 겹침이 문턱을 넘었다는 뜻
+export const overlapFixed = html => /data-overlap="\d+>\d+:/.test(String(html ?? ''));
+// 키비주얼이 그려졌나 — 그림 원본 주소(data: 앞부분)가 결과에 있는지. 캐치 메인 라지 틀에서 「키비주얼 왼쪽」이 그림 없이 서던 것(11-05)
+export const kvDrawn = (html, style) => { const u = String(style?.keyVisual ?? ''); return !!u && String(html ?? '').includes(u.slice(0, 160)); };
+// 프리셋 안 품질 거름(11-05): 기본안은 교정 없이 섰는데 이 안은 교정이 필요했으면 뺀다. 기본안도 교정했으면 비교 기준이 없어 남긴다
+export const presetWorse = (html, baseFixed) => baseFixed === false && overlapFixed(html);
 // opts 는 renderArtifact 로 그대로(purpose·size…). opts.stats = {} 를 주면 { rendered, tried } 를 채운다(인스펙터·로그용)
 export function variantCandidates(specId, ctx, style, opts = {}) {
   const { stats, ...ropts } = opts;
   const spec = adSpecEntries()[specId]; if (!spec) return [];
   const want = variantCountFor(spec); const V = CANON.variants ?? {};
-  const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual;
+  const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual; let baseFixed = null, baseKv = null;
   // 첫 안은 기본안, 그다음 키비주얼 유형에 맞는 시안, 모자라면 기존 프리셋 후보(11-02)
   const order = [{}, ...recipeStyles(spec, style?.kvMeta, hasKv, ctx?.core?.client, 8), ...CANDIDATE_ORDER.slice(1)];
   for (const cand of order) {
@@ -42,12 +49,14 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
     let html; try { html = renderArtifact(specId, ctx, st, ropts); rendered++; } catch { continue; }
     const tr = traceOf(html); if (!tr) continue;
     const keys = Object.keys(cand);
+    if (!keys.length) { baseFixed = overlapFixed(html); baseKv = kvDrawn(html, style); }
     if (cand.tpl && (!/data-field="main"/.test(html) || (tr.tpl?.overlap ?? 0) >= 0.05 || tr.tpl?.unfit)) continue;   // 글자 없는 규격 · 글자가 주인공 위에 얹히는 시안은 이 키비주얼에 안 맞는다
     if (keys.length) {   // 기본안은 거르지 않는다
       const ignored = (tr.edit?.ignored ?? []).filter(Boolean).map(String);
       if (keys.some(k => ignored.some(x => x.startsWith(k + '(')))) continue;                 // 통째로 무시 — 「키(사유)」만. 「키.부분(사유)」는 틀 칸 메모
       if (cand.kvPlace && tr.edit?.place && tr.edit.place.ok === false) continue;              // 위치가 안 서는 규격(틀·투명·얇은 띠) — 그림은 기본안과 같다
       if (tr.rules?.includes('overlapFix.fail')) continue;
+      if (!cand.tpl && (presetWorse(html, baseFixed) || ((baseKv || keys.some(k => KV_KEYS.has(k))) && !kvDrawn(html, style)))) continue;   // 그림 자리·크기 안인데 그림이 없으면 이름과 다른 안   // 프리셋 안이 기본안에 없던 글자-그림 겹침을 만들어 글자·그림을 줄여야 했으면 기본안보다 못한 안(11-05 캐치 메인 라지 가운데 정렬)
     }
     const hash = htmlHash(html); if (seen.has(hash)) continue; seen.add(hash);
     out.push({ id: out.length, label: labelOf(cand, spec), style: cand, hash, trace: { rules: tr.rules ?? [], edit: tr.edit ?? null, place: tr.place ? { mode: tr.place.mode, objectSide: tr.place.objectSide } : null } });
