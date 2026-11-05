@@ -9,6 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { makeClient, designLayout, analyzeKv, ANALYZE_MODEL } from './design.js';
 import { freeDesign, claudeCodeAvailable } from './freedesign.js';   // 자유 디자인(헤드리스 Claude Code 또는 API)
+import { handleFreeLoop } from './freeloop.js';   // 자유 시안 평가 루프(/api/freeprefs · /api/freeloop/*) — 11-05 취향 학습
 import { DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -29,6 +30,9 @@ function loadKey() {
   }
   return { key: '', from: '없음' };
 }
+// 루프 묶음 PNG 렌더(헤드리스 Chrome, scripts/lib/freedesign-renderer.mjs) — 없으면 png 없이 진행
+let _render = null; const loopRender = (e, dir) => { if (!_render) throw new Error('렌더러 미적재'); return _render(e, dir); };
+import('../scripts/lib/freedesign-renderer.mjs').then(m => { _render = m.renderFree; }).catch(e => console.warn('[freeloop] 렌더러 적재 실패(png 없이 진행):', e.message));
 const KEY = loadKey();
 const client = KEY.key ? makeClient(KEY.key) : null;
 
@@ -72,6 +76,7 @@ const server = http.createServer(async (req, res) => {
       try { const out = await designLayout(client, body); return json(res, 200, out); }
       catch (e) { console.error('[design]', e?.status ?? '', e?.message ?? e); return json(res, e?.status && e.status >= 400 && e.status < 600 ? e.status : 500, { error: e?.message ?? String(e) }); }
     }
+    if (u.pathname.startsWith('/api/freeprefs') || u.pathname.startsWith('/api/freeloop/')) { if (await handleFreeLoop(req, res, u, { json, readBody, client, render: loopRender })) return; }
     if (req.method === 'GET' || req.method === 'HEAD') return serveStatic(req, res);
     res.writeHead(405); res.end();
   } catch (e) { json(res, 500, { error: e?.message ?? String(e) }); }

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자유 시안 평가 루프</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#111;--sub:#666;--line:#e3e5ea;--pri:#1a56db;--good:#16853d;--good-soft:#e5f6ea;--amber:#b7791f;--amber-soft:#fff4de;--danger:#c0392b;--danger-soft:#fdecea;--soft:#f0f1f4}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121316;--card:#1c1e23;--ink:#eee;--sub:#9aa0a8;--line:#2b2e35;--soft:#24272e;--good-soft:#15301e;--amber-soft:#3a2c10;--danger-soft:#3b1a17}}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Pretendard,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+  header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+  header h1{font-size:16px;margin:0 8px 0 0} header label{display:flex;align-items:center;gap:6px;font-size:13px} select,input[type=number]{font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+  .btn{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer} .btn.pri{background:var(--pri);color:#fff;border-color:var(--pri)} .btn:disabled{opacity:.5;cursor:default}
+  #stats{font-size:12px;color:var(--sub)} #stats b{color:var(--ink)} #stats table{border-collapse:collapse;margin-top:4px} #stats td,#stats th{padding:1px 8px 1px 0;text-align:right;font-weight:500} #stats th{text-align:left;color:var(--ink)}
+  #cases{display:flex;flex-wrap:wrap;gap:4px 10px;max-width:720px;font-size:12px} #cases label{gap:3px} #cases small{color:var(--sub)}
+  #msg{font-size:12.5px;color:var(--sub);flex-basis:100%} #msg.pending{color:var(--amber)} #msg.err{color:var(--danger)}
+  main{padding:16px;display:flex;flex-direction:column;gap:22px;max-width:1700px;margin:0 auto}
+  .batch{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px} .batch.pendingBatch{border-style:dashed;color:var(--sub)}
+  .bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:12px;font-size:13px} .bh b{font-size:14px} .bh .sub{color:var(--sub)} .bh .btn{margin-left:auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)} .card.active{outline:2px solid var(--pri)} .card.rated{background:var(--card)}
+  .ct{display:flex;align-items:center;gap:6px;font-size:12px} .ct small{color:var(--sub);margin-left:auto}
+  .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--soft);color:var(--sub)} .badge.score{background:var(--good-soft);color:var(--good)} .badge.score.neg{background:var(--danger-soft);color:var(--danger)} .badge.explore{background:var(--amber-soft);color:var(--amber)}
+  .pic{position:relative;width:100%;background:var(--soft);border-radius:6px;overflow:hidden;cursor:zoom-in} .pic img{display:block;width:100%;height:auto} .pic iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;pointer-events:none}
+  .fp{font-size:11px;color:var(--sub);line-height:1.4} .notes{font-size:11.5px;color:var(--sub);line-height:1.45;max-height:3em;overflow:hidden}
+  .rate{display:flex;gap:4px} .rate button{flex:1;font:inherit;font-size:12px;padding:6px 2px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);cursor:pointer;line-height:1.2} .rate button small{display:block;font-size:10px;color:var(--sub)}
+  .rate button.on[data-v="5"],.rate button.on[data-v="4"]{background:var(--good);color:#fff;border-color:var(--good)} .rate button.on[data-v="3"]{background:var(--sub);color:#fff;border-color:var(--sub)} .rate button.on[data-v="2"],.rate button.on[data-v="1"]{background:var(--danger);color:#fff;border-color:var(--danger)} .rate button.on small{color:inherit}
+  .row{display:flex;gap:6px;align-items:center} .row select{font-size:12px} .row input{flex:1;font:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+  .big{position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;cursor:zoom-out} .big img{max-width:96vw;max-height:94vh;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .hint{font-size:12px;color:var(--sub)} kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  .empty{color:var(--sub);text-align:center;padding:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>자유 시안 평가 루프</h1>
+  <div id="stats">통계 불러오는 중…</div>
+  <div id="cases" aria-label="키비주얼 케이스"></div>
+  <label>규격 <select id="spec"></select></label>
+  <label>묶음 크기 <input id="n" type="number" min="1" max="6" value="3" style="width:56px"> 안/케이스</label>
+  <button class="btn pri" id="next">다음 묶음 생성</button>
+  <span class="hint">카드를 클릭하고 <kbd>1</kbd>~<kbd>5</kbd> 로 평가 · 「입력」 하면 저장하고 바로 다음 묶음</span>
+  <div id="msg" role="status"></div>
+</header>
+<main id="main"><div class="empty">묶음을 불러오는 중…</div></main>
+<script type="module">
+import { SPECS } from '../core/contract.js';
+import { RATING_LABEL, SCOPE_LABEL, fpSummary, normRating } from '../core/freeprefs.js';
+import { localFaceCss, isBundledFont, fontIds } from '../core/fonts.js';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const FACES = fontIds().filter(isBundledFont).map(id => localFaceCss(id)).join('');
+const LS_PREF = 'mbm-loop-prefs';   // 마지막 케이스·규격·크기(편의)
+let STATE = { batches: [], cases: [], stats: null, active: null, busy: false };
+const pref = (() => { try { return JSON.parse(localStorage.getItem(LS_PREF) ?? '{}'); } catch { return {}; } })();
+const savePref = () => { try { localStorage.setItem(LS_PREF, JSON.stringify({ cases: selectedCases(), specId: $('#spec').value, n: +$('#n').value })); } catch {} };
+const api = async (url, body) => { const r = await fetch(url, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' }); const j = await r.json().catch(() => ({ error: `HTTP ${r.status}` })); if (!r.ok || j.error) throw new Error(j.error ?? `HTTP ${r.status}`); return j; };
+const msg = (t, cls = '') => { const el = $('#msg'); el.textContent = t; el.className = cls; };
+
+/* 규격 select */
+for (const [id, s] of Object.entries(SPECS).filter(([, s]) => s.w > 0 && s.rules).sort((a, b) => a[0].localeCompare(b[0]))) { const o = document.createElement('option'); o.value = id; o.textContent = `${id} (${s.w}×${s.h})`; $('#spec').appendChild(o); }
+$('#spec').value = pref.specId ?? 'google-gdn-580x400'; if (pref.n) $('#n').value = pref.n;
+$('#spec').onchange = savePref; $('#n').onchange = savePref;
+
+function selectedCases() { return [...document.querySelectorAll('#cases input:checked')].map(i => i.value); }
+function renderCases() {
+  const latest = STATE.batches[0]; const def = new Set(pref.cases?.length ? pref.cases : latest?.cases ?? []);
+  $('#cases').innerHTML = STATE.cases.map(c => `<label title="${esc(c.kvType ?? '')}"><input type="checkbox" value="${esc(c.id)}" ${def.has(c.id) ? 'checked' : ''}>${esc(c.id)}<small>${esc(c.kvType ?? c.kind ?? '')}</small></label>`).join('');
+  $('#cases').onchange = savePref;
+}
+function renderStats() {
+  const s = STATE.stats; if (!s) return;
+  const types = Object.entries(s.byType).sort((a, b) => b[1].total - a[1].total);
+  $('#stats').innerHTML = `평가 <b>${s.total}</b> · 좋음(5·4) <b>${s.good}</b> · 보통(3) <b>${s.ok}</b> · 안 됨(2·1) <b>${s.bad}</b>${s.unrated ? ` · 미평가 ${s.unrated}` : ''}` +
+    (types.length ? `<table><tr><th>유형</th><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td></tr>${types.map(([t, v]) => `<tr><th>${esc(t)}</th>${[5, 4, 3, 2, 1].map(k => `<td>${v.by[k] || ''}</td>`).join('')}</tr>`).join('')}</table>` : '');
+}
+const scoreBadge = it => it.score == null ? '' : `<span class="badge score ${it.score < 0 ? 'neg' : ''}" title="취향 점수(레이아웃 ${it.layoutScore} · 스타일 ${it.styleScore})">${it.score > 0 ? '+' : ''}${it.score}</span>`;
+const srcHtml = h => String(h ?? '').replace(/file:\/\/\/[^'"()]*?\/ref\/learned\//g, '/ref/learned/');
+function cardHtml(b, it) {
+  const spec = SPECS[it.specId ?? b.specId] ?? { w: 580, h: 400 };
+  const r = normRating(it.rating);
+  return `<div class="card ${r ? 'rated' : ''}" data-b="${esc(b.id)}" data-i="${esc(it.id)}" tabindex="0">
+    <div class="ct"><b>${esc(it.caseId ?? '')}</b> <span class="badge">${esc(it.kvType ?? '?')}</span>${it.style?.name ? `<span class="badge">${esc(it.style.name)}</span>` : ''}${scoreBadge(it)}${it.explore ? '<span class="badge explore" title="점수와 무관하게 남긴 탐색 안">탐색</span>' : ''}<small>${esc(it.id)}</small></div>
+    <div class="pic" style="aspect-ratio:${spec.w}/${spec.h}">${it.png ? `<img src="${esc(it.png)}" alt="" loading="lazy">` : `<iframe data-html="1" tabindex="-1" aria-hidden="true" width="${spec.w}" height="${spec.h}"></iframe>`}</div>
+    <div class="fp">${esc(fpSummary(it.fp))}</div>
+    ${it.notes ? `<div class="notes" title="${esc(it.notes)}">${esc(it.notes)}</div>` : ''}
+    <div class="rate" role="radiogroup" aria-label="평가">${[5, 4, 3, 2, 1].map(v => `<button type="button" data-v="${v}" class="${r === v ? 'on' : ''}" aria-pressed="${r === v}">${v}<small>${RATING_LABEL[v]}</small></button>`).join('')}</div>
+    <div class="row"><select aria-label="범위">${['kv', 'type', 'all'].map(k => `<option value="${k}" ${(it.scope ?? 'type') === k ? 'selected' : ''}>${SCOPE_LABEL[k]}</option>`).join('')}</select><input placeholder="이유 한 줄(#레이아웃 #톤 #타이포 #키비주얼 태그 가능)" value="${esc(it.note ?? '')}"></div>
+  </div>`;
+}
+function renderBatches() {
+  const main = $('#main');
+  if (!STATE.batches.length && !STATE.pending) { main.innerHTML = '<div class="empty">아직 묶음이 없어요. 위에서 케이스를 고르고 「다음 묶음 생성」 — 또는 <code>node scripts/freeloop-push.mjs --from-matrix</code> 로 18안을 밀어 넣어요.</div>'; return; }
+  main.innerHTML = (STATE.pending ? `<section class="batch pendingBatch"><div class="bh"><b>다음 묶음 대기 중</b><span class="sub">${esc(STATE.pending)}</span><button class="btn" id="retry">다시 시도</button></div></section>` : '') +
+    STATE.batches.map(b => `<section class="batch" data-b="${esc(b.id)}"><div class="bh"><b>${esc(b.label ?? b.id)}</b><span class="sub">${new Date(b.at).toLocaleString('ko-KR')} · ${esc(b.specId ?? '')} · ${(b.cases ?? []).join(', ')} · ${b.items.length}안${b.source ? ` · ${esc(b.source)}` : ''}</span>${b.rated ? '<span class="badge" style="background:var(--good-soft);color:var(--good)">입력됨</span>' : ''}<button class="btn pri" data-submit="1">입력${b.rated ? '(다시)' : ''} → 다음 묶음</button></div><div class="grid">${b.items.map(it => cardHtml(b, it)).join('')}</div></section>`).join('');
+  // iframe 미리보기(png 없을 때)
+  for (const f of main.querySelectorAll('iframe[data-html]')) { const card = f.closest('.card'); const it = itemOf(card); const pic = f.parentElement; const k = pic.clientWidth / +f.width; f.style.transform = `scale(${k})`; f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>${FACES}html,body{margin:0;overflow:hidden}</style></head><body>${srcHtml(it.html)}</body></html>`; }
+  $('#retry') && ($('#retry').onclick = () => next());
+}
+const itemOf = card => { const b = STATE.batches.find(x => x.id === card.dataset.b); return b?.items.find(i => i.id === card.dataset.i); };
+function setRating(card, v) { const it = itemOf(card); if (!it) return; it.rating = v; card.classList.add('rated'); for (const bt of card.querySelectorAll('.rate button')) { const on = +bt.dataset.v === v; bt.classList.toggle('on', on); bt.setAttribute('aria-pressed', on); } }
+$('#main').addEventListener('click', e => {
+  const card = e.target.closest('.card'); if (card) { document.querySelectorAll('.card.active').forEach(c => c.classList.remove('active')); card.classList.add('active'); STATE.active = card; }
+  const rb = e.target.closest('.rate button'); if (rb && card) { setRating(card, +rb.dataset.v); return; }
+  const pic = e.target.closest('.pic img'); if (pic) { const big = document.createElement('div'); big.className = 'big'; big.innerHTML = `<img src="${pic.getAttribute('src')}" alt="">`; big.onclick = () => big.remove(); document.body.appendChild(big); return; }
+  const sb = e.target.closest('[data-submit]'); if (sb) submit(sb.closest('.batch').dataset.b);
+});
+$('#main').addEventListener('change', e => { const card = e.target.closest('.card'); const it = card && itemOf(card); if (!it) return; if (e.target.tagName === 'SELECT') it.scope = e.target.value; });
+$('#main').addEventListener('input', e => { const card = e.target.closest('.card'); const it = card && itemOf(card); if (it && e.target.tagName === 'INPUT') it.note = e.target.value; });
+document.addEventListener('keydown', e => { if (/^[1-5]$/.test(e.key) && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { const card = document.activeElement?.closest?.('.card') ?? STATE.active; if (card) { e.preventDefault(); setRating(card, +e.key); } } });
+
+async function submit(batchId) {
+  const b = STATE.batches.find(x => x.id === batchId); if (!b || STATE.busy) return;
+  STATE.busy = true; msg('평가 저장 중…');
+  try {
+    const ratings = b.items.map(it => ({ batch: b.id, itemId: it.id, rating: normRating(it.rating) ?? null, scope: it.scope ?? 'type', note: it.note ?? '' }));
+    const r = await api('/api/freeprefs', { ratings });
+    b.rated = true; STATE.stats = r.stats; renderStats();
+    const rated = ratings.filter(x => x.rating).length;
+    msg(`저장 ${r.saved}건(평가 ${rated} · 미평가 ${ratings.length - rated}) → 다음 묶음 생성 중… (케이스당 1~3분)`);
+    STATE.busy = false;
+    await next();
+  } catch (e) { msg(`저장 실패: ${e.message}`, 'err'); STATE.busy = false; }
+}
+async function next() {
+  if (STATE.busy) return;
+  const kvCases = selectedCases(); const specId = $('#spec').value, n = Math.max(1, Math.min(6, +$('#n').value || 3));
+  if (!kvCases.length) { msg('키비주얼 케이스를 하나 이상 고르세요', 'err'); return; }
+  STATE.busy = true; $('#next').disabled = true; msg(`다음 묶음 생성 중… ${kvCases.join(', ')} × ${n}안 (${specId})`);
+  try {
+    const r = await api('/api/freeloop/next', { kvCases, specId, n });
+    if (r.pending) { STATE.pending = r.reason; msg(`다음 묶음 대기 중 — ${r.reason}`, 'pending'); renderBatches(); }
+    else { STATE.pending = null; STATE.batches.unshift(r.batch); renderBatches(); msg(`새 묶음 ${r.batch.id} — ${r.batch.items.length}안`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  } catch (e) { msg(`생성 실패: ${e.message}`, 'err'); }
+  finally { STATE.busy = false; $('#next').disabled = false; }
+}
+$('#next').onclick = () => next();
+
+// rate.html(localStorage free-rate-1105) 에서 평가 중이던 값 → 묶음 b-matrix-1105 가 있으면 자동 입력하고 비운다
+async function importRateSheet() {
+  let R = null; try { R = JSON.parse(localStorage.getItem('free-rate-1105') ?? 'null'); } catch {}
+  if (!R || !Object.keys(R).length) return;
+  const b = STATE.batches.find(x => x.id === 'b-matrix-1105');
+  if (!b) { msg('rate.html 평가가 브라우저에 남아 있어요 — `node scripts/freeloop-push.mjs --from-matrix` 로 18안 묶음을 넣으면 자동으로 입력돼요', 'pending'); return; }
+  const ratings = Object.entries(R).filter(([id, v]) => b.items.some(i => i.id === id) && (v.v || v.note)).map(([id, v]) => ({ batch: b.id, itemId: id, rating: normRating(v.v) ?? null, scope: 'type', note: v.note ?? '' }));
+  if (!ratings.length) return;
+  try { const r = await api('/api/freeprefs', { ratings }); localStorage.removeItem('free-rate-1105'); STATE.stats = r.stats; renderStats(); msg(`rate.html 평가 ${ratings.length}건을 자동 입력했어요`); await load(false); } catch (e) { msg(`rate.html 평가 자동 입력 실패: ${e.message}`, 'err'); }
+}
+async function load(first = true) {
+  try { const r = await api('/api/freeloop/batches'); STATE.batches = r.batches; STATE.cases = r.cases; STATE.stats = r.stats; }
+  catch (e) { $('#main').innerHTML = `<div class="empty">서버에 못 붙었어요(${esc(e.message)}) — <code>node server/server.mjs</code> 로 띄운 주소에서 여세요</div>`; return; }
+  renderStats(); renderCases(); renderBatches();
+  if (first) importRateSheet();
+}
+load();
+</script>
+</body>
+</html>

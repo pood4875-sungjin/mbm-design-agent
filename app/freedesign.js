@@ -9,6 +9,32 @@
 // 서버가 없을 때(배포 앱): 엔진 없음 안내만 — 브라우저에서 api.anthropic.com 직접 호출은 이번엔 만들지 않는다(안내 문구만).
 import { toTemplate, fillTemplate, validateFreeHtml, normalizeFreeHtml, fontNamesIn, freeTemplateRecord, FREE_FIELDS } from '../core/freetpl.js';
 import { FONTS, fontRuleOf, fontIdOfName, isBundledFont } from '../core/fonts.js';
+import { scoreCandidates, exemplarsFor, prefRecord, prefStats, mergePrefs, fingerprintOf, RATING_LABEL, SCOPE_LABEL, normRating } from '../core/freeprefs.js';   // 취향 학습(11-05): 좋음/보통/절대 안 됨 → 5점 셀렉이 정렬·프롬프트 참고가 된다
+
+export const PREFS_DB = 'mbm-free-prefs';   // IndexedDB(mbm-free-prefs / prefs, keyPath id) → 안 되면 localStorage 같은 키. 파일 ref/learned/free-prefs.json 과 같은 레코드(core/freeprefs.js prefRecord)
+let PREFS = [];   // 메모리 캐시(패널 열 때 적재)
+function prefsDb() {
+  return new Promise((ok, no) => { try { const r = indexedDB.open(PREFS_DB, 1); r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains('prefs')) r.result.createObjectStore('prefs', { keyPath: 'id' }); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch (e) { no(e); } });
+}
+export async function loadPrefs() {
+  let local = [];
+  try { const db = await prefsDb(); local = await new Promise((ok, no) => { const q = db.transaction('prefs').objectStore('prefs').getAll(); q.onsuccess = () => ok(q.result ?? []); q.onerror = () => no(q.error); }); }
+  catch { try { local = JSON.parse(ls()?.getItem(PREFS_DB) ?? '[]'); } catch { local = []; } }
+  let file = [];   // 레포 파일(다른 컴퓨터·대화창 평가) — 서버가 있으면 /api/freeprefs, 없으면 정적 파일
+  try { const r = await fetch('/api/freeprefs', { cache: 'no-store' }); if (r.ok) file = (await r.json()).prefs ?? []; } catch {}
+  if (!file.length) { try { const r = await fetch('../ref/learned/free-prefs.json', { cache: 'no-store' }); if (r.ok) file = (await r.json()).prefs ?? []; } catch {} }
+  PREFS = mergePrefs(local, file);
+  return PREFS;
+}
+export async function savePrefRecord(rec) {
+  PREFS = mergePrefs(PREFS, [rec]);
+  try { const db = await prefsDb(); await new Promise((ok, no) => { const tx = db.transaction('prefs', 'readwrite'); tx.objectStore('prefs').put(rec); tx.oncomplete = ok; tx.onerror = () => no(tx.error); }); }
+  catch { try { ls()?.setItem(PREFS_DB, JSON.stringify(PREFS.map(({ png, ...p }) => p))); } catch {} }
+  try { fetch('/api/freeprefs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefs: [{ ...rec, png: undefined }] }) }).catch(() => {}); } catch {}   // 로컬 서버가 있으면 파일에도(없으면 조용히)
+  return rec;
+}
+export const currentPrefs = () => PREFS;
+export function exportPrefsJson() { return JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), prefs: PREFS.map(({ png, ...p }) => p) }, null, 1); }
 
 export const FREE_LS = 'mbm-free-templates';
 const BRIEF_KEYS = ['client', 'hiringType', 'season', 'role', 'startDate', 'deadline', 'deadlineTime', 'slogan', 'notice'];
@@ -72,7 +98,7 @@ export function createFreeDesign(D) {
 
   async function checkResult(res, spec, ctx) {   // 검수: 규격 검사 + 승인 게이트(디자인 검수는 생략 — 자유 시안은 사람이 본다)
     try {
-      const m = await D.measureArtifact(res.html, spec);
+      const m = await D.measureArtifact(res.html, spec); res.measure = { texts: m.texts, logo: m.logo, objects: m.objects ?? [], bgColors: m.bgColors, fontFamily: m.fontFamily };
       res.lint = D.lintArtifact({ spec: spec.rules, medium: spec.mediumRules, measure: m, ctx });
       res.design = await designCheck(res.html, spec);   // 디자인 검수(겹침·가림·잘림) — 보드와 같은 core/adcheck.js, 숨은 iframe 에서
       res.gate = D.approvalGate({ grade: spec.grade ?? null, lint: res.lint, design: res.design });
@@ -109,6 +135,7 @@ export function createFreeDesign(D) {
       <div class="fp-head"><h3 id="fpTitle">대화로 시안 뽑기</h3>
         <label class="fp-spec">규격 <select id="fpSpec" aria-label="규격">${ads.map(x => `<option value="${D.escH(keyOf(x))}" ${keyOf(x) === S.specId ? 'selected' : ''}>${D.escH(specLabel(x))}</option>`).join('')}</select></label>
         <span class="fp-engine" id="fpEngine" aria-live="polite">엔진 확인 중…</span>
+        <span class="fp-prefs" id="fpPrefs" aria-live="polite"></span>
         <button class="btn" id="fpClose">닫기</button></div>
       <div class="fp-body">
         <div class="fp-chat">
@@ -128,6 +155,7 @@ export function createFreeDesign(D) {
     root.querySelector('#fpGo').onclick = () => go(c, S);
     root.querySelector('#fpIn').onkeydown = e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') go(c, S); };
     renderHist(S); renderPrev(S); renderResults(c, S);
+    loadPrefs().then(() => { if (root) renderResults(c, S); });   // 평가 적재 → 정렬·머리 갱신
     freeHealth().then(h => { const el = root?.querySelector('#fpEngine'); if (!el) return; const list = enginesOf(h); S.engine = list.includes(S.engine) ? S.engine : list[0] ?? null;
       if (!list.length) { el.innerHTML = `<span class="fp-none">엔진 없음</span> <small>${h.server ? '서버에 Claude Code 도 API 키도 없어요' : '로컬 서버에서 Claude Code 로 쓰거나 API 키 서버가 필요해요(배포 앱에선 안내만)'}</small>`; root.querySelector('#fpGo').disabled = true; return; }
       el.innerHTML = list.length > 1 ? `엔진 <select id="fpEngineSel">${list.map(k => `<option value="${k}" ${k === S.engine ? 'selected' : ''}>${ENGINE_LABEL[k]}</option>`).join('')}</select>` : `엔진 <b>${ENGINE_LABEL[list[0]]}</b>`;
@@ -167,19 +195,26 @@ export function createFreeDesign(D) {
         logo: c.style.logo ? { dataUrl: c.style.logo, tone: logoTone } : null,
         brand: { primary: c.style.palette?.primary ?? null, secondary: c.style.palette?.secondary ?? null, accent: c.style.palette?.accent ?? null },
         rules: rulesFor(spec), history: S.history.slice(-12), prev: S.prev ? { html: S.prev.html } : null, engine: S.engine, n: 1,
+        prefs: exemplarsFor(PREFS, { specId: a.specId, kvMeta: c.style.kvMeta ?? null, n: 3 }),   // 취향 학습 — 채택된 안 참고(최대 3)·피할 안(최대 1, 「모든 유형」만)
       };
       const res = await requestFreeDesign(body);
-      const html = normalizeFreeHtml(res.html, { specId: a.specId, w: spec.w, h: spec.h });
-      const v = validateFreeHtml(html, { w: spec.w, h: spec.h, allowedFonts: allowedFontNames(spec) });
-      const n = S.results.length + 1;
-      const item = { n, specKey: keyOf(a), specId: a.specId, html, notes: String(res.notes ?? ''), engine: res.engine ?? S.engine, model: res.model ?? null, ms: res.ms ?? null, kvSent, logoTone, valid: v, lint: null, gate: null, at: Date.now() };
-      S.results.unshift(item);
-      S.history.push({ role: 'assistant', text: `안 ${n}${item.notes ? ` — ${item.notes}` : ''}${v.ok ? '' : ` (형식 문제: ${v.errors.join(' / ')})`}` });
+      const vars = Array.isArray(res.variants) && res.variants.length ? res.variants : [{ html: res.html, notes: res.notes, style: null }];   // 서버가 방향 여럿을 주면 전부 카드로(묶음)
+      const batch = Date.now(); const items = [];
+      for (const vr of vars) {
+        const html = normalizeFreeHtml(vr.html, { specId: a.specId, w: spec.w, h: spec.h });
+        const v = validateFreeHtml(html, { w: spec.w, h: spec.h, allowedFonts: allowedFontNames(spec) });
+        const n = S.results.length + 1;
+        const item = { n, specKey: keyOf(a), specId: a.specId, html, notes: String(vr.notes ?? ''), style: vr.style ?? null, engine: res.engine ?? S.engine, model: res.model ?? null, ms: res.ms ?? null, kvSent, logoTone, valid: v, lint: null, gate: null, at: Date.now(), batch, fp: fingerprintOf(html, { specId: a.specId, kvMeta: c.style.kvMeta ?? null }), rating: null, scope: 'type', note: '' };
+        S.results.unshift(item); items.push(item);
+        S.history.push({ role: 'assistant', text: `안 ${n}${item.style?.name ? `(${item.style.name})` : ''}${item.notes ? ` — ${item.notes}` : ''}${v.ok ? '' : ` (형식 문제: ${v.errors.join(' / ')})`}` });
+      }
       renderHist(S); renderResults(c, S);
-      msg.textContent = v.ok ? `안 ${n} 완성 — 검수 중…` : `안 ${n}: 계약과 다른 HTML(${v.errors[0]}) — 「다시」로 고쳐 달라고 해 보세요`;
-      D.log(`자유 시안 ${n} (${spec.id}, ${item.engine}${item.model ? ' · ' + item.model : ''}${item.ms ? ' · ' + (item.ms / 1000).toFixed(0) + 's' : ''})`);
-      await checkResult(item, spec, ctx); renderResults(c, S);
-      if (v.ok) msg.textContent = `안 ${n}: ${D.STATE_LABEL[item.gate?.state] ?? ''}${item.gate?.reasons?.length ? ' — ' + item.gate.reasons[0] : ''}`;
+      const first = items[0], v = first.valid, n = first.n;
+      msg.textContent = v.ok ? `안 ${n}${items.length > 1 ? `~${items[items.length - 1].n}` : ''} 완성 — 검수 중…` : `안 ${n}: 계약과 다른 HTML(${v.errors[0]}) — 「다시」로 고쳐 달라고 해 보세요`;
+      D.log(`자유 시안 ${n}${items.length > 1 ? `~${items[items.length - 1].n}` : ''} (${spec.id}, ${first.engine}${first.model ? ' · ' + first.model : ''}${first.ms ? ' · ' + (first.ms / 1000).toFixed(0) + 's' : ''})`);
+      for (const it of items) { await checkResult(it, spec, ctx); it.fp = fingerprintOf(it.html, { specId: a.specId, kvMeta: c.style.kvMeta ?? null, measure: it.measure ?? null }); }
+      renderResults(c, S);
+      if (v.ok) msg.textContent = `안 ${n}: ${D.STATE_LABEL[first.gate?.state] ?? ''}${first.gate?.reasons?.length ? ' — ' + first.gate.reasons[0] : ''}`;
     } catch (e) {
       S.history.push({ role: 'assistant', text: `실패: ${e.message}` }); renderHist(S); msg.textContent = `실패: ${e.message}`;
     } finally { btn.disabled = false; }
@@ -188,30 +223,53 @@ export function createFreeDesign(D) {
   function renderResults(c, S) {
     const box = root?.querySelector('#fpResults'); if (!box) return;
     io?.disconnect();
-    const list = S.results.filter(r => r.specKey === S.specId);
-    if (!list.length) { box.innerHTML = `<div class="fp-empty">이 규격으로 뽑은 안이 아직 없어요.</div>`; return; }
+    const raw = S.results.filter(r => r.specKey === S.specId);
+    renderPrefHead();
+    if (!raw.length) { box.innerHTML = `<div class="fp-empty">이 규격으로 뽑은 안이 아직 없어요.</div>`; return; }
     const a = adsOf(c).find(x => keyOf(x) === S.specId), spec = D.SPECS[a.specId], [nw, nh] = [spec.w, spec.h];
+    // 카드 정렬 = 취향 점수 순(core/freeprefs.js scoreCandidates — 버리지 않는다, 탐색 안 1개 표시). 같은 묶음끼리 모은다(최신 묶음 먼저)
+    const scored = scoreCandidates(raw.map(r => ({ r, fp: r.fp, html: r.html })), PREFS, { specId: a.specId, kvMeta: c.style.kvMeta ?? null });
+    for (const s of scored) { s.r.score = s.score; s.r.layoutScore = s.layoutScore; s.r.styleScore = s.styleScore; s.r.explore = s.explore; }
+    const list = scored.map(s => s.r).sort((x, y) => (y.batch ?? y.at) - (x.batch ?? x.at) || y.score - x.score);
     const wide = nw / nh > 1.5, cardW = wide ? 460 : 300, k = Math.min(cardW / nw, 340 / nh);
     box.style.setProperty('--fp-w', `${Math.round(nw * k)}px`);
     box.innerHTML = '';
     io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) { const f = e.target; f.srcdoc = D.previewDoc(list[+f.dataset.i].html, null); io.unobserve(f); } }, { root: box, rootMargin: '200px' });
+    const batches = [...new Set(list.map(r => r.batch ?? r.at))];
+    if (list.length > 1) {   // 묶음 단위 「다 아님」(전부 1 절대 못씀) — 최신 묶음
+      const bar = document.createElement('div'); bar.className = 'fp-batchbar';
+      bar.innerHTML = `<span>${list.length}안 · 취향 점수 순${batches.length > 1 ? ` · 묶음 ${batches.length}` : ''}</span><button type="button" class="btn" data-allbad="1" title="이번 묶음 전부 「1 절대 못씀」으로 기록">이 묶음 다 아님</button>`;
+      bar.querySelector('[data-allbad]').onclick = async () => { const b = batches[0]; for (const r of list.filter(x => (x.batch ?? x.at) === b)) await rate(r, 1, c, a); renderResults(c, S); D.toast('묶음 전부 「절대 못씀」으로 기록'); };
+      box.appendChild(bar);
+    }
     list.forEach((r, i) => {
       const card = document.createElement('div'); card.className = 'fp-card'; card.dataset.n = r.n;
       const gate = r.gate, gs = gate?.state ?? 'pending';
       const badge = !r.valid.ok ? `<span class="badge gate blocked" title="${D.escH(r.valid.errors.join('\n'))}">형식 오류</span>` : `<span class="badge gate ${gs}" title="${D.escH((gate?.reasons ?? []).join('\n'))}">${gate ? D.STATE_LABEL[gs] : '검사 중'}</span>`;
       const issues = [...(r.lint?.issues ?? []), ...((r.design?.warnings ?? []).filter(w => w.level !== 'info').map(w => ({ level: 'warn', msg: `디자인 · ${w.msg ?? w.code}` })))];
-      card.innerHTML = `<div class="fp-top"><b>안 ${r.n}</b> ${badge} <small>${D.escH(ENGINE_LABEL[r.engine] ?? r.engine ?? '')}${r.ms ? ` · ${(r.ms / 1000).toFixed(0)}s` : ''}</small></div>
+      const rv = normRating(r.rating);
+      const scoreB = PREFS.length ? `<span class="badge fp-score ${r.score < 0 ? 'neg' : ''}" title="취향 점수(레이아웃 ${r.layoutScore} · 스타일 ${r.styleScore}) — 평가가 쌓일수록 정렬에 반영">${r.score > 0 ? '+' : ''}${r.score ?? 0}</span>` : '';
+      const exploreB = r.explore ? '<span class="badge fp-explore" title="점수와 무관하게 남긴 탐색 안(좋음들과 가장 먼 구조)">탐색</span>' : '';
+      card.innerHTML = `<div class="fp-top"><b>안 ${r.n}</b>${r.style?.name ? ` <span class="badge">${D.escH(r.style.name)}</span>` : ''} ${badge} ${scoreB}${exploreB} <small>${D.escH(ENGINE_LABEL[r.engine] ?? r.engine ?? '')}${r.ms ? ` · ${(r.ms / 1000).toFixed(0)}s` : ''}</small></div>
         <button type="button" class="fp-box" title="크게 보기" style="width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px"><iframe width="${nw}" height="${nh}" data-i="${i}" tabindex="-1" aria-hidden="true" style="transform:scale(${k})"></iframe></button>
         ${r.notes ? `<div class="fp-notes">${D.escH(r.notes)}</div>` : ''}
         ${issues.length ? `<ul class="fp-issues">${issues.map(x => `<li class="${x.level}">${D.escH(x.msg ?? x.code)}</li>`).join('')}</ul>` : r.lint ? '<div class="fp-ok">규격 통과 — 치수·글자수·색·폰트 규정 안</div>' : ''}
         ${r.valid.warnings?.length ? `<div class="fp-warn">${D.escH(r.valid.warnings.join(' · '))}</div>` : ''}
+        <div class="fp-rate" role="radiogroup" aria-label="평가">${[5, 4, 3, 2, 1].map(v => `<button type="button" data-rate="${v}" class="${rv === v ? 'on' : ''}" aria-pressed="${rv === v}" title="${v} ${RATING_LABEL[v]} (키 ${v})">${v}<small>${RATING_LABEL[v]}</small></button>`).join('')}</div>
+        <div class="fp-scope"><select aria-label="평가 범위" data-scope="1">${['kv', 'type', 'all'].map(k => `<option value="${k}" ${(r.scope ?? 'type') === k ? 'selected' : ''}>${SCOPE_LABEL[k]}</option>`).join('')}</select><input data-note="1" placeholder="이유 한 줄(#레이아웃 #톤 #타이포 #키비주얼)" value="${D.escH(r.note ?? '')}"></div>
         <div class="fp-acts"><button type="button" class="btn pri" data-use="1" ${r.valid.ok ? '' : 'disabled'}>이 안으로 쓰기</button><button type="button" class="btn" data-redo="1">다시: 말로 수정</button><button type="button" class="btn" data-save="1" ${r.valid.ok ? '' : 'disabled'}>자유 시안으로 저장</button></div>`;
+      card.tabIndex = 0;
+      for (const bt of card.querySelectorAll('[data-rate]')) bt.onclick = async () => { await rate(r, +bt.dataset.rate, c, a); renderResults(c, S); };
+      card.querySelector('[data-scope]').onchange = e => { r.scope = e.target.value; if (r.rating) rate(r, r.rating, c, a); };
+      card.querySelector('[data-note]').onchange = e => { r.note = e.target.value; if (r.rating) rate(r, r.rating, c, a); };
+      card.onkeydown = e => { if (/^[1-5]$/.test(e.key) && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { e.preventDefault(); rate(r, +e.key, c, a).then(() => renderResults(c, S)); } };
       const f = card.querySelector('iframe'); io.observe(f);
       card.querySelector('.fp-box').onclick = () => enlarge(r, spec);
       card.querySelector('[data-use]').onclick = () => {
         const { tpl, texts } = toTemplate(r.html, { kv: r.kvSent, logo: c.style.logo ?? null });
         const id = `free-${r.at.toString(36)}-${r.n}`;
         D.useFree(a, { id, tpl, texts, notes: r.notes, logoTone: r.logoTone, html: r.html });
+        if (!normRating(r.rating) || normRating(r.rating) < 4) rate(r, 5, c, a);   // 채택 = 좋음(5) 자동 기록
         D.toast(`안 ${r.n} 을 ${specLabel(a)} 에 넣었어요`); close();
       };
       card.querySelector('[data-redo]').onclick = () => { S.prev = { n: r.n, html: r.html }; renderPrev(S); const inp = root.querySelector('#fpIn'); inp.placeholder = `안 ${r.n} 에서 고칠 점 — 예: 메인 글자를 더 크게, 로고는 오른쪽 아래`; inp.focus(); };
@@ -228,6 +286,24 @@ export function createFreeDesign(D) {
     });
   }
 
+  // 평가 기록 — 레코드(core/freeprefs.js prefRecord: 지문·KV 유형·범위·메모·썸네일) → IndexedDB + 로컬 서버 파일
+  async function rate(r, v, c, a) {
+    r.rating = v;
+    const spec = D.SPECS[a.specId];
+    const png = r.png ?? (r.png = await thumbOf(r.html, spec));
+    const { tpl } = toTemplate(r.html, { kv: r.kvSent, logo: c.style.logo ?? null });
+    const rec = prefRecord({ id: r.prefId ?? (r.prefId = `fp-${(r.batch ?? r.at).toString(36)}-${r.n}`), specId: a.specId, kvMeta: c.style.kvMeta ?? null, caseId: c.id ?? null, html: tpl, png, rating: v, note: r.note ?? '', scope: r.scope ?? 'type', at: Date.now(), batch: String(r.batch ?? r.at), fp: r.fp ?? null, measure: r.measure ?? null });
+    await savePrefRecord(rec);
+    D.log(`자유 시안 평가: 안 ${r.n} → ${v} ${RATING_LABEL[v]}(${SCOPE_LABEL[r.scope ?? 'type']})`);
+    return rec;
+  }
+  function renderPrefHead() {
+    const el = root?.querySelector('#fpPrefs'); if (!el) return;
+    const s = prefStats(PREFS);
+    el.innerHTML = s.total ? `평가 <b>${s.total}</b> · 좋음 <b>${s.good}</b> · 보통 <b>${s.ok}</b> · 안 됨 <b>${s.bad}</b> <button type="button" class="lnk" id="fpPrefExport" title="ref/learned/free-prefs.json 형식">내보내기</button>` : '<span class="fp-none">평가 없음 — 카드의 1~5 로 고르면 정렬·프롬프트에 반영돼요</span>';
+    const ex = el.querySelector('#fpPrefExport'); if (ex) ex.onclick = () => { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(exportPrefsJson()); a.download = 'free-prefs.json'; a.click(); };
+  }
+
   function enlarge(r, spec) {
     const big = document.createElement('div'); big.className = 'fp-big';
     const k = Math.min(1, (window.innerWidth - 80) / spec.w, (window.innerHeight - 120) / spec.h);
@@ -241,7 +317,9 @@ export function createFreeDesign(D) {
   // 「다른 시안 보기」 맨 앞에 넣을 내 자유 시안(같은 규격) — 이 캠페인의 글감·키비주얼로 채워 보여 준다
   function choicesFor(a, c, renderOpts) {
     const spec = D.SPECS[a.specId]; if (!spec) return [];
-    return freeTemplatesFor(a.specId).map(t => {
+    const tpls = freeTemplatesFor(a.specId);
+    const scored = PREFS.length ? scoreCandidates(tpls.map(t => ({ t, html: t.html })), PREFS, { specId: a.specId, kvMeta: c.style.kvMeta ?? null }).map(s => s.t) : tpls;   // 좋음 평가와 닮은 틀 먼저
+    return scored.map(t => {
       const free = { id: t.id, tpl: t.html, notes: t.notes ?? '', logoTone: c.style.logoTone === 'light' ? 'light' : 'dark', saved: true };
       let html = ''; try { html = D.renderArtifact(a.specId, D.adEffCtx(a), { ...c.style, free }, renderOpts); } catch { return null; }
       return html ? { label: t.label ?? '내 자유 시안', style: { free }, html, saved: t } : null;

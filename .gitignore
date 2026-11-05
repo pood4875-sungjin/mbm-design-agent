@@ -17,6 +17,7 @@ ref/learned/*
 !ref/learned/spec-matrix.json
 !ref/learned/index.json
 !ref/learned/media-watch.json
+!ref/learned/free-prefs.json
 !ref/learned/board/
 ref/learned/board/*
 !ref/learned/board/*.json

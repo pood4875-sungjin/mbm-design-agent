@@ -10,6 +10,8 @@
 //   날짜 뱃지 글자/메인 n=64 p50 .50 p90 .66 max .76 · 뱃지 높이/메인 p50 .89 p90 1.10 max 1.54 → 상한 글자 .66 · 높이 1.10
 //   상세 뱃지 글자/메인 n=22 p50 .44 p90 .54 · 높이/메인 p90 1.01 → 상한 글자 .54 · 높이 1.01 (서브 뱃지 n=1 → 날짜 값)
 //   굵기: 서브·날짜·상세가 메인(강조 굵기 포함)보다 굵은 프레임 18/405줄 — 그 세트는 청사진을 따른다
+import { TEMPLATE_NORMS } from './template-norms.js';
+
 export const BP = { sub: 0.78, date: 0.70, detail: 0.60, label: 0.60, badgePx: { date: 0.66, detail: 0.54, sub: 0.66 }, badgeH: { date: 1.10, detail: 1.01, sub: 1.10 }, kRel: 1.15 };
 
 const ROLE_OF = { main: 'main', season: 'sub', date: 'date', role: 'detail' };
@@ -171,3 +173,60 @@ export function fpDistance(a, b) {
 }
 export const DUP_DIST = 1;
 export const nearDuplicate = (a, b) => fpDistance(a, b) < DUP_DIST;
+
+// ── 기준 = 규격 분포(norms) 모드 — 자유 디자인(11-05 사용자 「배경은 자유, 타이포는 기본 여백 규칙」 → 정정 「간격만 규칙, 나머지는 참고 분포」).
+//   검증하는 것(docs/freedesign-rules.md 4항): 글자 덩어리 안 간격(서브→메인·메인→정보 블록·정보 블록 행)과 글자↔키비주얼·로고 거리의 「너무 붙음(하한)·너무 벙벙(상한)」,
+//   잘림·겹침·규격 밖·안전영역(매체 규정 층). 여백 위치·메인 크기·서브/메인 비·덩어리 폭은 m 에 재서 돌려줄 뿐 fail 하지 않는다(프롬프트의 참고 분포).
+//   상한은 core/template-norms.js 의 gap(줄 간격 ÷ 메인 글자) 상위10% — 규격 분포가 없으면 전 규격 상위10% 들의 중앙값. 하한은 em 고정값(두 요소 중 작은 글자 기준).
+const med = a => { const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+export const TYPO_RULE_FIXED = { gapSubMain: 0.3, gapMainInfo: 0.8, gapInfoRow: 0.6, assetGap: 0.5, assetGapMaxFrac: 0.1 };   // em = 작은 쪽 글자 · 그림 거리 상한 = 규격 긴 변 10%(렌더러 kv-gap 상한과 같은 값)
+export function typoNormsFor(specId) {
+  const n = TEMPLATE_NORMS[specId];
+  const pick = k => n ? [n[k][0], n[k][2], n[k][1]] : (() => { const all = Object.values(TEMPLATE_NORMS).map(x => x[k]); return [med(all.map(a => a[0])), med(all.map(a => a[2])), med(all.map(a => a[1]))]; })();
+  const r = { source: n ? `규격 분포 n=${n.n}` : '전 규격 합산 중앙값(규격 분포 없음)' };
+  for (const k of ['main', 'padL', 'padT', 'r2', 'gap']) { const [lo, hi, mid] = pick(k); r[k] = { lo: +lo.toFixed(3), hi: +hi.toFixed(3), mid: +mid.toFixed(3) }; }
+  return r;
+}
+// rows: [{ role, px, lines, x,y,w,h(상자), ink:{x,y,w,h}|null, clip, wb }] · logo/kv: {x,y,w,h}|null (kv 는 주인공 상자 — 누끼일 때만 넘긴다)
+export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, norms = null, safe = null }) {
+  const N = norms ?? typoNormsFor(specId), F = TYPO_RULE_FIXED, fails = [], m = { norms: N };
+  const fail = (rule, code, msg) => fails.push({ rule, code, msg });
+  const main = rows.find(r => r.role === 'main');
+  if (!main) return { ok: false, fails: [{ rule: 0, code: 'no-main', msg: '메인 없음' }], m };
+  const box = r => r.ink ?? r;
+  const short = Math.min(W, H), S = Math.sqrt(W * H);
+  const L = Math.min(...rows.map(r => box(r).x)), R = Math.max(...rows.map(r => box(r).x + box(r).w)), T = Math.min(...rows.map(r => box(r).y)), B = Math.max(...rows.map(r => box(r).y + box(r).h));
+  // 참고 수치(검증 안 함): 여백·메인 크기·서브/메인·덩어리 폭
+  m.padL = +(L / short).toFixed(3); m.padT = +(T / short).toFixed(3); m.main = +(main.px / S).toFixed(3); m.blockW = +((R - L) / W).toFixed(3);
+  const second = rows.filter(r => r !== main && r.role !== 'notice').sort((a, b) => b.px - a.px)[0];
+  if (second) m.r2 = +(second.px / main.px).toFixed(3);
+  // ① 덩어리 안 간격 — 하한: 서브→메인 0.3em · 메인→정보 0.8em · 정보 행 0.6em(em = 작은 쪽) · 상한: 분포 상위10%(÷메인 px). 겹침은 ✗
+  const INFO = ['date', 'detail', 'notice'];
+  const stack = [...rows].sort((a, b) => box(a).y - box(b).y); m.gaps = {};
+  const hi = N.gap.hi * main.px;
+  for (let i = 1; i < stack.length; i++) {
+    const a = stack[i - 1], b = stack[i], g = box(b).y - (box(a).y + box(a).h), k = `${a.role}>${b.role}`; m.gaps[k] = Math.round(g);
+    if (g < -1) { fail(1, 'overlap', `${a.role}·${b.role} 겹침 ${Math.round(-g)}px`); continue; }
+    const em = Math.min(a.px, b.px);
+    const lo = a.role === 'sub' && b.role === 'main' ? F.gapSubMain : a.role === 'main' && INFO.includes(b.role) ? F.gapMainInfo : INFO.includes(a.role) && INFO.includes(b.role) ? F.gapInfoRow : null;
+    if (lo != null && g < em * lo - 1) fail(1, 'gap-tight', `${k} 간격 ${Math.round(g)}px < ${lo}em(${Math.round(em * lo)}px) — 너무 붙음`);
+    if (g > hi + 1) fail(1, 'gap-loose', `${k} 간격 ${Math.round(g)}px > 분포 상위10% ${N.gap.hi}×메인(${Math.round(hi)}px) — 너무 벙벙`);
+  }
+  // ② 글자 ↔ 키비주얼(주인공)·로고 — 겹침 0 · 하한 메인 px 0.5배 · 상한(키비주얼만) 규격 긴 변 10%
+  const want = main.px * F.assetGap, cap = Math.max(W, H) * F.assetGapMaxFrac;
+  const gapTo = (o) => { let gap = Infinity; for (const r of rows) { const b = box(r); const ox = Math.min(b.x + b.w, o.x + o.w) - Math.max(b.x, o.x), oy = Math.min(b.y + b.h, o.y + o.h) - Math.max(b.y, o.y); gap = Math.min(gap, ox > 0 && oy > 0 ? -Math.min(ox, oy) : Math.max(ox > 0 ? 0 : -ox, oy > 0 ? 0 : -oy)); } return gap; };
+  for (const [name, o] of [['키비주얼', kv], ['로고', logo]]) {
+    if (!o) continue; const g = gapTo(o); m[name === '로고' ? 'logoGap' : 'kvGap'] = Math.round(g);
+    if (g < 0) fail(2, name === '로고' ? 'logo-overlap' : 'kv-overlap', `글자와 ${name} ${Math.round(-g)}px 겹침`);
+    else if (g < want - 1) fail(2, 'asset-tight', `글자·${name} 간격 ${Math.round(g)}px < 메인 0.5배(${Math.round(want)}px) — 너무 붙음`);
+    else if (name === '키비주얼' && g > cap + 1) fail(2, 'asset-loose', `글자·${name} 간격 ${Math.round(g)}px > 규격 긴 변 10%(${Math.round(cap)}px) — 너무 벙벙`);
+  }
+  // ③ 잘림·낱말 안 줄바꿈·규격 밖·안전영역(매체 규정 층)
+  for (const r of rows) {
+    if (r.y + r.h > H + 1 || r.x + r.w > W + 1 || r.x < -1 || r.y < -1) fail(3, 'clip', `${r.role} 상자가 규격 밖`);
+    if (r.clip) fail(3, 'clip', `${r.role} 글자 잘림`);
+    if (r.wb) fail(3, 'word-break', `${r.role} 낱말 안 줄바꿈`);
+  }
+  if (safe) { const s = { l: +safe.l || 0, r: +safe.r || 0, t: +safe.t || 0, b: +safe.b || 0 }; if (L < s.l - 1 || R > W - s.r + 1 || T < s.t - 1 || B > H - s.b + 1) fail(3, 'safe', `글자 상자 ${Math.round(L)},${Math.round(T)}~${Math.round(R)},${Math.round(B)} 안전영역 밖`); }
+  return { ok: fails.length === 0, fails, m };
+}

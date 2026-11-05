@@ -5,8 +5,10 @@
 //                   또는 `--input-format stream-json` 으로 이미지 블록을 직접 넣는다(imageMode:'stream').
 //     api         : server/design.js makeClient 와 같은 Anthropic SDK 호출(키 있을 때).
 //   계약(앱과 공유 — 바꾸지 말 것):
-//     입력 { specId, brief, kv:{dataUrl, meta}, logo:{dataUrl, tone}|null, brand, rules:{w,h,exportScale,safeArea,textLimits,fonts:{allowed,required},logo,background,textColors,mold,notes}, history, prev:{html}|null, engine, n }
-//     출력 { html, notes, engine, model, ms, usage? }
+//     입력 { specId, brief, kv:{dataUrl, meta}, logo:{dataUrl, tone}|null, brand, rules:{w,h,exportScale,safeArea,textLimits,fonts:{allowed,required},logo,background,textColors,mold,notes}, history, prev:{html}|null, engine, n,
+//            styles?: [id…](STYLE_DIRECTIONS 의 id, 기본 3종 — n 은 styles 길이), review?: true|false(자기 검토 1회, 기본 켬) }
+//     출력 { html, notes, engine, model, ms, usage?, variants:[{ style:{id,name}, html, notes, attempts, errors, review:{issues:[…], fixed, auto:[…]}|null }], review }
+//            — 하위 호환: 첫 안(variants[0])을 html·notes·review 에도 그대로. 방향마다 `claude -p` 1회씩 순차(각 결과 검증·재요청·자기 검토).
 //   프롬프트에는 dataURL 을 넣지 않는다 — 모델은 {{KV}}·{{LOGO}} 자리표시를 쓰고 서버가 치환한다(substituteAssets). 글자 자리표시({main} 등)는 금지.
 
 import { spawn, execFile } from 'node:child_process';
@@ -22,6 +24,7 @@ import { limitsByRole, inImage, countChars } from '../core/adfields.js';
 import { FONTS, DEFAULT_FONT, fontIds, isBundledFont, fontRuleOf, effectiveFontId } from '../core/fonts.js';
 import { safeAreaOf } from '../core/trackb/prompt.js';
 import { TEMPLATE_NORMS } from '../core/template-norms.js';
+import { typoNormsFor, TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';
 
 registerAll();
 
@@ -41,6 +44,88 @@ export const AI_TELLS = [   // 11-05 사용자: 취향 규칙은 자간·장평 
 export function aiTellIssues(html) {
   const h = String(html ?? '');
   return AI_TELLS.filter(t => t.re.test(h)).map(t => `AI 티 위반: ${t.why}`);
+}
+
+// ── 스타일 방향(11-05 정정 B — 요청 1회 = 안 3개, 방향마다 지시가 다르다). 기본 세트 3종 + 추가 후보(정의만).
+export const STYLE_DIRECTIONS = [
+  { id: 'typo', name: '타이포 강조형', hint: '제목이 지면의 주인 — 메인을 분포 상위로 크게, 지면은 단색 또는 아주 약한 같은 색상 그라데이션, 키비주얼은 작게(캔버스 20~30%) 보조로 한쪽에.', default: true },
+  { id: 'bright', name: '밝은 비주얼형', hint: '밝은 지면(흰~연한 유색), 키비주얼을 크게(캔버스 45~60%) 주인공으로, 글자는 어두운색(#111 계열) 단색.', default: true },
+  { id: 'dark', name: '어두운 비주얼형', hint: '어두운 지면(브랜드색 딥톤 또는 #0B0B0B 계열)과 단색→투명 스크림, 키비주얼을 크게(캔버스 45~60%), 글자는 흰색.', default: true },
+  { id: 'brand', name: '브랜드색형', hint: '브랜드 원색을 지면 전체에 깔고 글자는 흰색 또는 검정 한 가지, 키비주얼은 중간 크기.' },
+  { id: 'photo', name: '사진 전면형', hint: '키비주얼을 지면 전체(블리드)로 깔고 한쪽에 스크림을 넣어 글자를 올린다. 누끼면 지면 높이 90% 이상으로.' },
+  { id: 'minimal', name: '절제형', hint: '여백을 넉넉히(분포 상위) 두고 글자 크기 차이를 작게, 장식 없이 키비주얼 하나와 글자만.' },
+];
+export const DEFAULT_STYLES = STYLE_DIRECTIONS.filter(s => s.default).map(s => s.id);
+export const styleOf = id => STYLE_DIRECTIONS.find(s => s.id === id) ?? null;
+
+// ── 정보 블록 프리셋 3종(규칙 3항). 글자 크기는 {px}(정보 글자), 라벨 폭 {lw}. 모델은 하나를 통째로 쓰고 크기만 맞춘다.
+export const INFO_PRESETS = [
+  { id: 'badge', name: '뱃지형 2행', html: `<div data-field="date" style="position:absolute;left:48px;top:260px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="display:inline-block;width:76px;box-sizing:border-box;text-align:center;background:#111;color:#fff;font-weight:700;font-size:14px;line-height:24px;border-radius:5px;margin-right:10px;vertical-align:top;margin-top:2px">모집기간</span><span style="display:inline-block;vertical-align:top;font-weight:700">~10.31(토)</span></div>
+<div data-field="detail" style="position:absolute;left:48px;top:298px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="display:inline-block;width:76px;box-sizing:border-box;text-align:center;background:#111;color:#fff;font-weight:700;font-size:14px;line-height:24px;border-radius:5px;margin-right:10px;vertical-align:top;margin-top:2px">모집직무</span><span style="display:inline-block;vertical-align:top;font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
+    note: '두 행 모두 뱃지(같은 폭·같은 배경·같은 굵기), 행 피치 = 글자 2.1배(예 18px → 38px), 값은 vertical-align:top 으로 라벨과 같은 줄' },
+  { id: 'bold', name: '볼드 라벨형 2행', html: `<div data-field="date" style="position:absolute;left:48px;top:260px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><b style="display:inline-block;width:5em;font-weight:700">모집기간</b><span style="font-weight:400">~10.31(토)</span></div>
+<div data-field="detail" style="position:absolute;left:48px;top:294px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><b style="display:inline-block;width:5em;font-weight:700">모집직무</b><span style="font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
+    note: '라벨은 <b> 고정 폭 5em(값 시작 x 같음), 값은 Regular, 행 피치 = 글자 1.9배(예 18px → 34px)' },
+  { id: 'divider', name: '세로 구분선형 가로 1행', html: `<div data-field="date" style="position:absolute;left:48px;top:270px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="font-weight:700;margin-right:8px">모집기간</span><span style="font-weight:400">~10.31(토)</span></div>
+<div data-field="detail" style="position:absolute;left:240px;top:270px;font-size:18px;line-height:28px;color:#111;white-space:nowrap;border-left:1px solid rgba(17,17,17,.35);padding-left:16px"><span style="font-weight:700;margin-right:8px">모집직무</span><span style="font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
+    note: '한 행에 가로로, 두 번째 요소의 border-left 가 구분선. 라벨 span 스타일은 둘이 같다(볼드 + margin-right). 가로형 규격에서 글자 덩어리 폭이 허락할 때만' },
+];
+export function infoPresetLines() {
+  const L = [`## 정보 블록 프리셋 (규칙 3항 — 아래 셋 중 **하나를 통째로** 쓰고 좌표·글자 크기만 규격에 맞춘다. 글꼴·색은 디자인에 맞게 바꿔도 되지만 구조(라벨 요소·폭·vertical-align·행 피치)는 유지. date 만 쓸 때도 같은 구조)`];
+  for (const p of INFO_PRESETS) { L.push(`- ${p.name}(${p.id}) — ${p.note}`); L.push('```html'); L.push(p.html); L.push('```'); }
+  return L;
+}
+
+// ── 4항 간격 규칙 + 참고 분포 — 프롬프트 문장. 수치는 core/template-norms.js · core/typoaudit.js 에서만.
+export function typoRuleLines(specId, rules) {
+  const N = typoNormsFor(specId), F = TYPO_RULE_FIXED, w = rules.w, h = rules.h, S = Math.sqrt(w * h), short = Math.min(w, h);
+  const px = v => Math.round(v * S), pd = v => Math.round(v * short);
+  const mainMid = px(N.main.mid);
+  return [
+    `## 간격 기본 규칙 (규칙 4항 — 렌더 실측으로 검증, 어기면 재요청. em = 두 요소 중 작은 글자)`,
+    `- 서브→메인 ≥ ${F.gapSubMain}em · 메인→정보 블록 ≥ ${F.gapMainInfo}em · 정보 블록 행 ≥ ${F.gapInfoRow}em — 너무 붙으면 ✗`,
+    `- 모든 글자 쌍 간격 ≤ 메인 px × ${N.gap.hi}(${N.source} 줄 간격 상위10%; 메인 ${mainMid}px 이면 ${Math.round(N.gap.hi * mainMid)}px) — 너무 벙벙하면 ✗`,
+    `- 글자 ↔ 키비주얼(누끼 주인공)·로고: 겹침 0 · 거리 ≥ 메인 px × ${F.assetGap} · 키비주얼은 규격 긴 변 ${F.assetGapMaxFrac * 100}%(${Math.round(Math.max(w, h) * F.assetGapMaxFrac)}px) 이하 — 그 이상 비면 글자·그림을 키운다`,
+    `- 잘림 · 낱말 안 줄바꿈(한글도 어절 끝에서만 — <br> 로 네가 정한다) · 규격 밖 · 안전영역 밖 0`,
+    `- 참고 분포(검증하지 않음, ${N.source} 하위10%~상위10%·중앙): 왼쪽 여백 ${pd(N.padL.lo)}~${pd(N.padL.hi)}px(중앙 ${pd(N.padL.mid)}) · 위 여백 ${pd(N.padT.lo)}~${pd(N.padT.hi)}px(중앙 ${pd(N.padT.mid)}) · 메인 글자 ${px(N.main.lo)}~${px(N.main.hi)}px(중앙 ${mainMid}) · 서브/메인 ${N.r2.lo}~${N.r2.hi}(중앙 ${N.r2.mid}) · 날짜/메인 ≤ ${BP.date} · 상세/메인 ≤ ${BP.detail} · 글자 덩어리 폭은 가로형 60%·정사각 85% 안쪽이 보통`,
+  ];
+}
+
+// ── 정보 블록 검사(규칙 3항) — HTML 정적: date·detail·notice 의 라벨(첫 자식 span/b/strong/em/i) 스타일 지문(배경 유무·굵기·테두리)이 서로 다르면 ✗.
+//   measure.free(렌더 측정, scripts/lib/freedesign-renderer.mjs)가 들어오면: 라벨 폭·값 시작 x 가 다르면 ✗, 행 간격 < 글자 0.6배면 ✗.
+const INFO_ROLES = ['date', 'detail', 'notice'];
+export function infoLabelOf(inner) {
+  const m = /^\s*<(span|b|strong|em|i)\b([^>]*)>([\s\S]*?)<\/\1>/i.exec(String(inner ?? '')); if (!m) return null;
+  const st = /style="([^"]*)"/i.exec(m[2])?.[1] ?? '';
+  const bg = /(?:^|;)\s*background(?:-color)?\s*:\s*(?!none|transparent)[^;]+/i.test(st);
+  const fw = /(?:^|;)\s*font-weight\s*:\s*([^;]+)/i.exec(st)?.[1]?.trim();
+  const bold = fw ? (/bold/i.test(fw) || parseInt(fw) >= 600) : /^(b|strong)$/i.test(m[1]);
+  const border = /(?:^|;)\s*border(?:-left|-right|-top|-bottom)?\s*:\s*(?!none|0)[^;]+/i.test(st);
+  return { tag: m[1].toLowerCase(), text: m[3].replace(/<[^>]+>/g, '').trim(), bg, bold, border, kind: bg ? '뱃지' : border ? '구분선' : bold ? '볼드 라벨' : '평문 라벨' };
+}
+export function infoBlockIssues(html, measure = null) {
+  const issues = []; const h = String(html ?? '');
+  const els = [...h.matchAll(/<([a-z0-9]+)\b[^>]*data-field="(date|detail|notice)"[^>]*>([\s\S]*?)<\/\1>/gi)].map(m => ({ role: m[2], inner: m[3], label: infoLabelOf(m[3]) }));
+  if (els.length < 2) { if (measure?.free) {/* 한 행이면 간격 검사만 없음 */} return { ok: true, issues, labels: els.map(e => ({ role: e.role, kind: e.label?.kind ?? '라벨 없음' })) }; }
+  const kinds = els.map(e => ({ role: e.role, kind: e.label?.kind ?? '라벨 없음' }));
+  const uniq = [...new Set(kinds.map(k => k.kind))];
+  if (uniq.length > 1) issues.push(`3항 라벨 스타일 섞임: ${kinds.map(k => `${k.role}=${k.kind}`).join(' · ')} — 한 블록은 전부 뱃지 / 전부 볼드 라벨 / 전부 세로 구분선 중 하나`);
+  const F = measure?.free?.fields;
+  if (F) {
+    const rows = els.map(e => ({ role: e.role, f: F[e.role] })).filter(r => r.f);
+    const labs = rows.filter(r => r.f.label);
+    if (labs.length >= 2) {
+      const ws = labs.map(r => r.f.label.bbox.w); if (Math.max(...ws) - Math.min(...ws) > 2) issues.push(`3항 라벨 폭 다름: ${labs.map(r => `${r.role} ${Math.round(r.f.label.bbox.w)}px`).join(' · ')} — 라벨은 고정 폭 한 열`);
+      const xs = labs.map(r => r.f.valueX).filter(v => v != null); if (xs.length >= 2 && Math.max(...xs) - Math.min(...xs) > 2) issues.push(`3항 값 시작 x 다름: ${labs.filter(r => r.f.valueX != null).map(r => `${r.role} ${Math.round(r.f.valueX)}px`).join(' · ')}`);
+    }
+    const stack = rows.filter(r => r.f.ink).sort((a, b) => a.f.ink.y - b.f.ink.y);
+    for (let i = 1; i < stack.length; i++) {
+      const a = stack[i - 1], b = stack[i], g = b.f.ink.y - (a.f.ink.y + a.f.ink.h), em = Math.min(a.f.fontPx, b.f.fontPx);
+      const sameRow = Math.abs(a.f.ink.y - b.f.ink.y) < em * 0.5;   // 가로 1행(구분선형)은 세로 간격을 안 잰다
+      if (!sameRow && g < em * TYPO_RULE_FIXED.gapInfoRow - 1) issues.push(`3항 행 간격 ${a.role}→${b.role} ${Math.round(g)}px < 글자 ${TYPO_RULE_FIXED.gapInfoRow}배(${Math.round(em * TYPO_RULE_FIXED.gapInfoRow)}px) — 너무 붙음`);
+    }
+  }
+  return { ok: !issues.length, issues, labels: kinds };
 }
 
 export const FIELD_ROLES = ['main', 'sub', 'date', 'detail', 'notice'];
@@ -109,8 +194,9 @@ function normsLine(specId, w, h) {
 const kvKindLabel = k => ({ cutout: '누끼(배경 투명, 주인공만)', photo: '사진', illust: '일러스트', texture: '질감·추상', pattern: '패턴' }[k] ?? k ?? '?');
 
 // ── 프롬프트 조립 — 순수 함수. images: { kv:'<경로>'|null, logo:'<경로>'|null } (read 모드) / 'inline'(stream 모드)
-export function buildFreePrompt(input, { images = {}, retryErrors = null } = {}) {
+export function buildFreePrompt(input, { images = {}, retryErrors = null, style = null } = {}) {
   const { specId, brief = {}, rules, brand = {}, kv, logo, history = [], prev = null } = input;
+  const dir = typeof style === 'string' ? styleOf(style) : style;
   if (!rules) throw new Error('rules 가 없습니다');
   const copy = copyOptions(brief);
   const kvMeta = kv?.meta ?? {}; const f = kvMeta.field ?? {};
@@ -167,12 +253,22 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null } = {})
   L.push(`4. 배경은 네 디자인이지만 절제한다 — 단색 또는 같은 색상의 2색 그라데이션(각도 하나). 비는 곳은 장식이 아니라 키비주얼·글자를 키워 채운다.`);
   L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 4.5:1 이상. 글자는 흰 또는 #111 단색, 강조는 브랜드 포인트색 한 단어까지.`);
   const nl = normsLine(specId, rules.w, rules.h); if (nl) L.push(`6. 청사진 분포 참고 — ${nl}.`);
+  if (dir) {
+    L.push('');
+    L.push(`## 스타일 방향: ${dir.name}(${dir.id})`);
+    L.push(`- ${dir.hint}`);
+    L.push(`- 이 방향 안에서 배경·타이포는 네 디자인. 다른 방향과 겹치지 않게 이 지시를 분명히 드러낸다.`);
+  }
   const doc = loadFreeRules();
   if (doc) {
     L.push('');
-    L.push(`## 취향 규칙 (docs/freedesign-rules.md 그대로. 어기면 재요청된다: 양의 letter-spacing · 장평(transform scale/font-stretch) 두 가지만 검증기가 잡는다. 그 외는 전부 자유 — 과감하게)`);
+    L.push(`## 규칙 (docs/freedesign-rules.md 그대로. 어기면 재요청된다 — 검증기가 잡는 것: 양의 letter-spacing · 장평(1·2항) · 정보 블록 라벨 섞임·행 붙음(3항) · 간격 하한/상한·그림/로고 겹침·잘림(4항). 그 외 배경·색·장식은 전부 자유 — 과감하게)`);
     L.push(doc);
   }
+  L.push('');
+  L.push(...typoRuleLines(specId, rules));
+  L.push('');
+  L.push(...infoPresetLines());
   L.push('');
   L.push(`## 출력 형식 (렌더러·검수기 호환 — 정확히)`);
   L.push(`- 루트 하나: <div data-ad="1" data-spec="${specId}" data-free="1" style="position:relative;width:${rules.w}px;height:${rules.h}px;overflow:hidden;font-family:'…'"> … </div>. 모든 자식은 position:absolute, 좌표는 px.`);
@@ -186,11 +282,23 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null } = {})
     for (const h of history.slice(-6)) L.push(`- ${h.role === 'assistant' ? 'AI' : '사용자'}: ${String(h.text ?? '').slice(0, 600)}`);
     if (prev?.html) { L.push(`아래는 이전 HTML 이다. 위 대화의 요청대로 고쳐서 전체 HTML 을 다시 내라(다른 부분은 유지):`); L.push('```html'); L.push(String(prev.html).slice(0, 60000)); L.push('```'); }
   }
+  { const ps = prefsSection(input.prefs); if (ps) { L.push(''); L.push(ps); } }   // 취향 학습(core/freeprefs.js) — 채택된 안 참고·피할 안(최대 1)
   if (retryErrors?.length) {
     L.push('');
     L.push(`## 다시 — 방금 결과가 검증에 걸렸다. 아래를 고쳐 전체 HTML 을 다시 내라:`);
     for (const e of retryErrors) L.push(`- ${e}`);
   }
+  return L.join('\n');
+}
+
+// ── 취향 학습 절(11-05 사용자: 좋음/보통/절대 안 됨 셀렉이 품질 기준). input.prefs = { exemplars:[{html,fp,note,summary}], avoid:[{html,fp,note,summary}] } (core/freeprefs.js exemplarsFor)
+//   긍정 예시 위주(최대 3) — 「don't 를 많이 줄수록 자유도가 떨어진다」. 피할 안은 최대 1, 금지 문장은 만들지 않는다(참고만).
+export function prefsSection(prefs) {
+  const ex = (prefs?.exemplars ?? []).filter(e => e?.html).slice(0, 3), av = (prefs?.avoid ?? []).filter(e => e?.html).slice(0, 1);
+  if (!ex.length && !av.length) return '';
+  const L = [`## 채택된 안(참고 — 사용자가 좋다고 고른 안. 구조·톤의 감각만 가져오고 그대로 베끼지 않는다. 새 디자인이어야 한다)`];
+  ex.forEach((e, i) => { L.push(`${i + 1}. ${e.summary ?? ''}${e.note ? ` — 사용자 메모: ${String(e.note).slice(0, 200)}` : ''}`); L.push('```html'); L.push(String(e.html).slice(0, 2500)); L.push('```'); });
+  if (av.length) { const e = av[0]; L.push(`## 피할 안(참고 — 사용자가 어느 키비주얼에도 안 맞는다고 한 구조 하나. 이 구조만 피하면 된다, 다른 제약은 없다)`); L.push(`- ${e.summary ?? ''}${e.note ? ` — 사용자 메모: ${String(e.note).slice(0, 200)}` : ''}`); }
   return L.join('\n');
 }
 
@@ -365,41 +473,115 @@ async function runApi(client, prompt, { images = [], model = DEFAULT_API_MODEL }
   return { text, usage: res.usage ?? null, model: res.model ?? model, raw: null, ms: Date.now() - t0 };
 }
 
-// ── 메인 — 입력(계약) → { html, notes, engine, model, ms, usage, attempts, errors, prompt }
-//   deps: { run(prompt, {images}) } 로 모델 호출을 바꿔 끼울 수 있다(테스트 mock). client 는 api 엔진용.
-export async function freeDesign(input = {}, { client = null, run = null, imageMode = 'read', model = null, keepTmp = false } = {}) {
+// ── 자기 검토 프롬프트 — 1차 HTML 의 렌더 PNG 와 체크리스트로 「지적 → 고친 HTML」 한 번. 응답: ISSUES: 줄(없으면 「ISSUES: 없음」) + ```html``` 블록(고칠 게 있을 때만) + NOTES:
+export const REVIEW_CHECKLIST = [
+  '위계: 메인 > 서브 > 상세(날짜·직무) — 크기·굵기 순서가 한눈에 읽히는가',
+  '간격 균일: 글자 덩어리 안 간격이 한 리듬인가(서브→메인·메인→정보 블록·정보 행). 너무 붙거나 벙벙한 곳',
+  '정렬 기준선: 모든 글자의 왼쪽(또는 가운데) 기준선이 한 줄인가, 라벨·값이 같은 기준선인가',
+  '라벨 일관성: 정보 블록 라벨이 전부 뱃지 / 전부 볼드 / 전부 구분선 중 하나인가, 라벨 폭·값 시작 x 가 같은가',
+  '여백 균형: 바깥 여백(왼·위·아래)이 고르고 지면이 한쪽으로 쏠리지 않는가',
+  '키비주얼: 잘리거나(주인공 손상) 작아 허전하지 않은가, 글자와 겹치지 않는가',
+  '이음: 키비주얼과 지면 사이 경계가 뚝 끊기지 않는가(같은 계열 색·그라데이션·마스크)',
+];
+export function buildReviewPrompt(input, { html, png = null, auto = [], style = null } = {}) {
+  const { specId, rules } = input; const dir = typeof style === 'string' ? styleOf(style) : style;
+  const L = [];
+  L.push(`너는 방금 아래 ${rules.w}×${rules.h}px 광고(규격 ${specId}${dir ? ` · 방향 ${dir.name}` : ''})를 디자인했다. 이제 **아트디렉터로서 자기 검토** 한 번: 렌더된 PNG 를 보고 체크리스트로 문제를 짚은 뒤, 고칠 게 있으면 전체 HTML 을 고쳐 낸다. 디자인 방향은 바꾸지 않는다(고치는 건 간격·정렬·크기·라벨·여백·이음 같은 마감).`);
+  L.push('');
+  if (png) L.push(`렌더 PNG: ${png} — **먼저 Read 도구로 열어 눈으로 본다.**`); else L.push(`렌더 PNG 는 첨부한 마지막 이미지다.`);
+  L.push('');
+  L.push(`## 체크리스트`);
+  REVIEW_CHECKLIST.forEach((c, i) => L.push(`${i + 1}. ${c}`));
+  L.push(...typoRuleLines(specId, rules));
+  if (auto.length) { L.push(''); L.push(`## 검증기가 이미 잡은 것(반드시 고친다)`); for (const a of auto) L.push(`- ${a}`); }
+  L.push('');
+  L.push(`## 현재 HTML`); L.push('```html'); L.push(String(html).slice(0, 60000)); L.push('```');
+  L.push('');
+  L.push(`## 출력 형식`);
+  L.push(`- 첫 줄부터 「ISSUES:」 다음 줄마다 「- 」로 지적(한국어, 위치와 무엇이 문제인지). 문제가 없으면 「ISSUES: 없음」 한 줄.`);
+  L.push(`- 고칠 게 있으면 이어서 \`\`\`html 코드 블록에 **전체 HTML**(같은 계약: 루트 data-ad/data-spec/data-free, 자리표시 ${KV_PLACEHOLDER}·${LOGO_PLACEHOLDER} 그대로, 문구 그대로). 없으면 코드 블록을 내지 않는다.`);
+  L.push(`- 마지막에 「NOTES: 」 한 줄(무엇을 고쳤는지).`);
+  return L.join('\n');
+}
+export function extractIssues(text) {
+  const s = String(text ?? '').replace(/```[\s\S]*?```/g, '');
+  const m = /ISSUES?\s*[:：][ \t]*([^\n]*)\n?([\s\S]*)/i.exec(s); if (!m) return [];
+  if (/^(없음|none|no issues?)\s*$/i.test(m[1].trim())) return [];
+  const out = m[1].trim() ? [m[1].trim().replace(/^[-•*]\s+/, '')] : [];
+  for (const line of m[2].split('\n')) { const t = line.trim(); if (/^NOTES?\s*[:：]/i.test(t)) break; if (/^[-•*]\s+/.test(t)) out.push(t.replace(/^[-•*]\s+/, '')); else if (t && out.length === 0 && !/^#/.test(t)) out.push(t); else if (!t && out.length) break; }
+  return out.filter(x => x && !/^없음$/.test(x));
+}
+
+// 기본 렌더 — scripts/lib/freedesign-renderer.mjs(헤드리스 Chrome). 순환 import 라 늦게 불러온다. 반환 { png, measure, free, auto:[…] }
+async function defaultRender(input, html, dir) {
+  const { renderFree } = await import('../scripts/lib/freedesign-renderer.mjs');
+  const a = renderFree({ specId: input.specId, html, rules: input.rules, brief: input.brief ?? {}, name: `review-${Date.now()}` }, dir, { kvFocus: input.kv?.meta?.focus ?? input.kv?.meta?.field?.focus ?? null, kvKind: input.kv?.meta?.field?.kind ?? input.kv?.meta?.kind ?? null });
+  return { png: a.png, measure: a.measure, free: a.free, auto: [...(a.info?.issues ?? []), ...(a.typoRules?.issues ?? [])], audit: a };
+}
+
+// ── 메인 — 입력(계약) → { html, notes, engine, model, ms, usage, attempts, errors, review, variants:[…] }
+//   deps: { run(prompt, {images}) } 로 모델 호출을, { render(input, html, dir) } 로 렌더를 바꿔 끼울 수 있다(테스트 mock). client 는 api 엔진용.
+//   방향(styles)마다 순차: 생성(검증 실패 시 사유 붙여 1회 재요청) → 자기 검토 1회(review !== false: 렌더 PNG + 체크리스트 + 검증기 자동 지적 → 고친 HTML 이 검증을 통과하면 채택).
+export async function freeDesign(input = {}, { client = null, run = null, render = null, imageMode = 'read', model = null, keepTmp = false } = {}) {
   const t0 = Date.now();
   const specId = input.specId; if (!specId) throw new Error('specId 가 없습니다');
   const rules = input.rules ?? rulesForSpec(specId);
   const engine = input.engine === 'api' ? 'api' : 'claude-code';
   const inp = { ...input, rules, history: input.history ?? [], prev: input.prev ?? null };
+  const styleIds = Array.isArray(input.styles) && input.styles.length ? input.styles : (typeof input.n === 'number' && input.n === 1 ? DEFAULT_STYLES.slice(0, 1) : DEFAULT_STYLES);
+  const styles = styleIds.map(id => styleOf(id) ?? { id: String(id), name: String(id), hint: '' });
+  const doReview = input.review !== false;
   const images = []; if (input.kv?.dataUrl) images.push({ name: 'kv', dataUrl: input.kv.dataUrl }); if (input.logo?.dataUrl) images.push({ name: 'logo', dataUrl: input.logo.dataUrl });
+  const readMode = !run && engine === 'claude-code' && imageMode === 'read';
   let tmp = null; const paths = {};
-  if (!run && engine === 'claude-code' && imageMode === 'read' && images.length) {
-    tmp = mkdtempSync(path.join(tmpdir(), 'freedesign-'));
-    for (const im of images) paths[im.name] = dataUrlToFile(im.dataUrl, path.join(tmp, im.name)).file;
-  }
+  if ((readMode && images.length) || (doReview && !render)) tmp = mkdtempSync(path.join(tmpdir(), 'freedesign-'));
+  if (readMode && images.length) for (const im of images) paths[im.name] = dataUrlToFile(im.dataUrl, path.join(tmp, im.name)).file;
   const call = run ?? (engine === 'api'
-    ? (p) => { if (!client) throw new Error('API 키가 없습니다(engine:api)'); return runApi(client, p, { images, model: model ?? DEFAULT_API_MODEL }); }
-    : (p) => runClaudeCode(p, { images, model: model ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir() }));
-  const imgOpt = engine === 'claude-code' && imageMode === 'read' && !run ? { kv: paths.kv ?? null, logo: paths.logo ?? null } : { inline: images.length > 0 };
-  const usages = []; let attempts = 0, html = null, notes = '', errors = [], usedModel = null, lastText = '';
+    ? (p, o = {}) => { if (!client) throw new Error('API 키가 없습니다(engine:api)'); return runApi(client, p, { images: o.images ?? images, model: model ?? DEFAULT_API_MODEL }); }
+    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: model ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir() }));
+  const imgOpt = readMode ? { kv: paths.kv ?? null, logo: paths.logo ?? null } : { inline: images.length > 0 };
+  const renderFn = render ?? ((html) => defaultRender(inp, html, tmp));
+  const usages = []; let usedModel = null; const variants = [];
+  const addUsage = r => { if (r?.usage) usages.push(r.usage); usedModel = r?.model ?? usedModel; };
   try {
-    let retryErrors = null;
-    while (attempts < 2) {
-      const prompt = buildFreePrompt(inp, { images: imgOpt, retryErrors });
-      const r = await call(prompt, { images }); attempts++;
-      if (r.usage) usages.push(r.usage); usedModel = r.model ?? usedModel; lastText = r.text ?? '';
-      const raw = extractHtml(r.text);
-      if (!raw) { errors = ['응답에 <div data-ad> HTML 블록이 없음']; retryErrors = errors; continue; }
-      const sub = substituteAssets(raw, { kv: input.kv?.dataUrl ?? null, logo: input.logo?.dataUrl ?? null });
-      const v = validateFreeHtml(sub, inp);
-      html = sub; notes = extractNotes(r.text); errors = v.errors;
-      if (v.ok) break;
-      retryErrors = v.errors;
+    for (const dir of styles) {
+      let attempts = 0, html = null, notes = '', errors = [], lastText = '', retryErrors = null;
+      while (attempts < 2) {
+        const prompt = buildFreePrompt(inp, { images: imgOpt, retryErrors, style: dir });
+        const r = await call(prompt, { images }); attempts++; addUsage(r); lastText = r.text ?? '';
+        const raw = extractHtml(r.text);
+        if (!raw) { errors = ['응답에 <div data-ad> HTML 블록이 없음']; retryErrors = errors; continue; }
+        const sub = substituteAssets(raw, { kv: input.kv?.dataUrl ?? null, logo: input.logo?.dataUrl ?? null });
+        const v = validateFreeHtml(sub, inp);
+        html = sub; notes = extractNotes(r.text); errors = v.errors;
+        if (v.ok) break;
+        retryErrors = v.errors;
+      }
+      if (!html) throw new Error(`HTML 을 받지 못함(${dir.name}): ${errors.join(' · ')} — 응답 앞부분: ${lastText.slice(0, 300)}`);
+      let review = null;
+      if (doReview) {
+        review = { issues: [], fixed: false, auto: [] };
+        try {
+          const rd = await renderFn(html, dir);
+          review.auto = rd.auto ?? [];
+          const rawHtml = stripAssets(html, { kv: input.kv?.dataUrl ?? null, logo: input.logo?.dataUrl ?? null });
+          const pngImg = rd.png && !readMode ? { name: 'png', dataUrl: `data:image/png;base64,${readFileSync(rd.png).toString('base64')}` } : null;
+          const prompt = buildReviewPrompt(inp, { html: rawHtml, png: readMode ? rd.png : null, auto: review.auto, style: dir });
+          const r = await call(prompt, { images: pngImg ? [...images, pngImg] : readMode ? [...images, { name: 'png', dataUrl: null }] : images }); addUsage(r);
+          review.issues = extractIssues(r.text);
+          const fixedRaw = extractHtml(r.text);
+          if (fixedRaw) {
+            const fixed = substituteAssets(fixedRaw, { kv: input.kv?.dataUrl ?? null, logo: input.logo?.dataUrl ?? null });
+            const v2 = validateFreeHtml(fixed, inp);
+            if (v2.ok) { html = fixed; errors = []; review.fixed = true; const n2 = extractNotes(r.text); if (n2) notes = n2; }
+            else review.rejected = v2.errors;
+          }
+        } catch (e) { review.error = String(e?.message ?? e); }
+      }
+      variants.push({ style: { id: dir.id, name: dir.name }, html, notes, attempts, errors, ok: !errors.length, review });
     }
   } finally { if (tmp && !keepTmp) { try { rmSync(tmp, { recursive: true, force: true }); } catch {} } }
-  if (!html) throw new Error(`HTML 을 받지 못함: ${errors.join(' · ')} — 응답 앞부분: ${lastText.slice(0, 300)}`);
   const usage = usages.length ? usages.reduce((a, u) => { for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens']) if (u[k] != null) a[k] = (a[k] ?? 0) + u[k]; return a; }, {}) : null;
-  return { html, notes, engine, model: usedModel, ms: Date.now() - t0, usage, attempts, ok: !errors.length, errors, specId };
+  const first = variants[0];
+  return { html: first.html, notes: first.notes, engine, model: usedModel, ms: Date.now() - t0, usage, attempts: first.attempts, ok: first.ok, errors: first.errors, review: first.review, specId, variants };
 }
