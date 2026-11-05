@@ -413,6 +413,7 @@ export function claudeCodeAvailable({ force = false } = {}) {
       });
     });
   });
+  _ccAvail.then(r => { if (!r.ok || r.loggedIn !== true) _ccAvail = null; });   // 11-05: 미로그인 결과를 기억해 로그인 뒤에도 「로그인 필요」가 남던 것 — 성공만 기억
   return _ccAvail;
 }
 function ccEnv() { const env = { ...process.env }; delete env.CLAUDECODE; return env; }   // 안에서 또 띄우는 것이라 중첩 표식을 지운다
