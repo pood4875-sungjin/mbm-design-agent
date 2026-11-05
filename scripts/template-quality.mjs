@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 전수 결과(self-block --recipes) → 시안×규격×비주얼 유형 합격 목록(core/templates-quality.js). 후보는 이 목록 안에서 점수 순으로 나간다.
-//   node scripts/template-quality.mjs <결과.json> [통과율 기준 0.7] [유형별 상한 12]
+//   node scripts/template-quality.mjs <결과.json[,결과2.json…]> [통과율 기준 0.7] [유형별 상한 12]
 //   그려진 것 중 통과율로 거르고, 순위는 그 유형 그림 전체 대비 통과율(렌더에서 빠진 경우 포함)로 매긴다. 유형마다 잘 맞는 시안이 다르다(11-03 피그마 비주얼 시험)
 //   11-03(2): 타이포·여백 검사(core/typoaudit.js — 위계·비율·패딩·간격·잘림·로고 겹침)에 ✗ 면 그 그림은 불합격. 같은 결과 행을 Node 에서 다시 그려 trace 로 잰다(브라우저 결과와 같은 코드).
 //            거의 같은 안(지문 거리 < DUP_DIST, 그린 조합의 과반)은 순위 낮은 쪽을 뺀다 — 「다른 시안」 모달에 같은 안이 3개 뜨던 것.
@@ -17,7 +17,8 @@ import { adSpecEntries } from '../core/adspecs.js';
 import { BRIEFS } from './lib/briefs.mjs';
 registerAll();
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const rows = JSON.parse(readFileSync(process.argv[2], 'utf8')).filter(r => r.recipe && r.skip !== 'asset');
+const files = process.argv[2].split(',');   // 결과 파일 여러 개는 쉼표로(11-05: 10규격 전수 + 21규격 전수)
+const rows = files.flatMap(f => JSON.parse(readFileSync(f, 'utf8'))).filter(r => r.recipe && r.skip !== 'asset');
 const min = +(process.argv[3] ?? 0.7), cap = +(process.argv[4] ?? 12), by = {}, caseOf = {}, specs = adSpecEntries();
 const led = JSON.parse(readFileSync(path.join(ROOT, 'ref/learned/cases/cases.json'), 'utf8')).cases;
 const loadCase = id => (caseOf[id] ??= (() => {
@@ -34,7 +35,7 @@ for (const r of rows) {
   const k = `${r.recipe}|${r.spec}|${key}`; const v = (by[k] ??= { n: 0, ok: 0, drawn: 0, typoX: 0 }); v.n++;
   if (r.skip) continue;
   v.drawn++;
-  const onlySubject = r.state === 'review' && (r.design ?? []).every(d => d.code === 'text-over-subject' || d.level === 'info');   // 주인공 겹침은 키비주얼마다 달라 런타임(trace.tpl.overlap)에서 거른다
+  const onlySubject = (r.state === 'review' || r.state === 'draft') && (r.design ?? []).every(d => d.code === 'text-over-subject' || d.level === 'info') && !(r.issues ?? []).some(i => i.level === 'block');   // 주인공 겹침은 키비주얼마다 달라 런타임(trace.tpl.overlap)에서 거른다 · draft = 매체 등급이 없는 규격(11-05 21규격) — 사유가 등급 없음뿐이면 ready 와 같다
   let pass = !!(r.quality?.ok && (r.state === 'ready' || onlySubject));
   // 타이포·여백 검사(같은 코드로 다시 그려 trace 로)
   const spec = specs[r.spec], fam = familyById(r.recipe);
