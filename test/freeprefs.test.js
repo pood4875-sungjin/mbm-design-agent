@@ -25,7 +25,7 @@ const full = `<div data-ad="1" data-spec="google-gdn-580x400" data-free="1" styl
 const kvCutout = { ar: 0.9, colors: ['#3366CC'], field: { kind: 'cutout', opaque: 0.3, lum: 0.5, focus: { x: 0.5, y: 0.5, w: 0.6, h: 0.9, parts: 1, density: 0.6 } } };
 const kvPhoto = { ar: 1.6, colors: ['#A07B58'], field: { kind: 'photo', opaque: 1, lum: 0.49, flatEdges: 1, focus: null } };
 
-test.skip('[11-05 미완, 5점 전환 중 끊김] 지문 — 방향(어두움/밝음/전면)·KV 자리·면적·정보 블록 스타일·지면 L*·글꼴·로고 자리·KV 유형을 HTML 만으로 근사', () => {
+test('지문 — 방향(어두움/밝음/전면)·KV 자리·면적·정보 블록 스타일·지면 L*·글꼴·로고 자리·KV 유형을 HTML 만으로 근사', () => {
   const a = fingerprintOf(dark, { specId: 'google-gdn-580x400', kvMeta: kvCutout });
   assert.equal(a.direction, '분할'); assert.equal(a.kvPlace, '우'); assert.ok(a.kvArea > 0.4 && a.kvArea < 0.5, String(a.kvArea));
   assert.equal(a.infoStyle, 'badge'); assert.ok(a.bgTone < 30, String(a.bgTone)); assert.ok(a.scrim); assert.equal(a.font, 'Pretendard'); assert.equal(a.mainWeight, 800); assert.equal(a.logoPlace, '상좌');
@@ -41,7 +41,7 @@ test.skip('[11-05 미완, 5점 전환 중 끊김] 지문 — 방향(어두움/�
   assert.equal(normRating('good'), 5); assert.equal(normRating('bad'), 1); assert.equal(normRating('3'), 3); assert.equal(normRating('x'), null);
 });
 
-test.skip('[11-05 미완, 5점 전환 중 끊김] 점수 순서 — 5점 좋음과 닮은 안이 위, 1점과 닮은 안이 아래. 같은 유형 1.0 · 이웃 0.4 · 다른 유형 0(절대 안 됨도 전파 안 함). 후보는 버리지 않는다', () => {
+test('점수 순서 — 5점 좋음과 닮은 안이 위, 1점과 닮은 안이 아래. 같은 유형 1.0 · 이웃 0.4 · 다른 유형 0(절대 안 됨도 전파 안 함). 후보는 버리지 않는다', () => {
   const good = prefRecord({ specId: 'google-gdn-580x400', kvMeta: kvCutout, html: dark, rating: 5, note: '스크림 좋다' });
   const bad = prefRecord({ specId: 'google-gdn-580x400', kvMeta: kvCutout, html: light, rating: 1 });
   const cands = [{ id: 'L', html: light }, { id: 'D', html: dark }, { id: 'F', html: full }];
@@ -61,7 +61,8 @@ test.skip('[11-05 미완, 5점 전환 중 끊김] 점수 순서 — 5점 좋음�
   assert.equal(r4.find(x => x.id === 'D').layoutScore, 0); assert.ok(r4.find(x => x.id === 'D').styleScore > 0);
   // 4점(약간 좋음)은 5점의 절반 가중, 3점은 작게 양수
   const r5 = scoreCandidates([{ id: 'D', html: dark }], [{ ...good, rating: 4 }], { kvMeta: kvCutout }), r6 = scoreCandidates([{ id: 'D', html: dark }], [{ ...good, rating: 3 }], { kvMeta: kvCutout });
-  assert.ok(r5[0].score > r6[0].score && r6[0].score > 0 && r5[0].score < r[0].score);
+  const r7 = scoreCandidates([{ id: 'D', html: dark }], [good], { kvMeta: kvCutout });   // 같은 조건의 5점 하나와 비교(r 은 1점 평가가 섞여 기준이 다르다)
+  assert.ok(r5[0].score > r6[0].score && r6[0].score > 0 && r5[0].score < r7[0].score, JSON.stringify([r7[0].score, r5[0].score, r6[0].score]));
 });
 
 test('탐색 안 — 좋음들과 가장 먼 후보 1개가 explore 로 남고, pickTop 은 점수와 무관하게 포함한다(좋음이 많아도)', () => {

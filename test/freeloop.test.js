@@ -15,18 +15,19 @@ const json = (res, code, body) => { res.code = code; res.body = body; };
 const readBody = req => Promise.resolve(Buffer.from(JSON.stringify(req._body ?? {})));
 const u = p => ({ pathname: p });
 
-test.skip('[11-05 미완, 5점 전환 중 끊김] 묶음 밀어넣기 → 배치 목록 → 평가 저장(5점·범위·미평가) → 파일에 합쳐지고 통계가 돈다', async () => {
+test('묶음 밀어넣기 → 배치 목록 → 평가 저장(5점·범위·미평가) → 파일에 합쳐지고 통계가 돈다', async () => {
   const b = pushBatch([{ id: 'x-1', caseId: null, specId: 'google-gdn-580x400', html, kvType: 'cutout-object' }, { id: 'x-2', caseId: null, specId: 'google-gdn-580x400', html: html.replace('#102B6A', '#fff').replace('#fff">A', '#111">A'), kvType: 'cutout-object' }], { id: 'b-test', specId: 'google-gdn-580x400', dir: tmp });
   assert.equal(b.items.length, 2); assert.ok(existsSync(path.join(tmp, 'b-test/batch.json')));
   // 라우트는 기본 폴더를 보므로 여기서는 저장 로직을 직접 — readPrefs/addPrefs 경로 주입
   const { addPrefs, recordFromItem } = await import('../server/freeloop.js');
-  const recs = [recordFromItem(b.items[0], b, { rating: 5, scope: 'all', note: '#레이아웃 좋다' }), recordFromItem(b.items[1], b, { rating: null })];
+  const item = id => b.items.find(i => i.id === id);   // 묶음은 취향 점수로 다시 정렬되므로 순서가 아니라 id 로
+  const recs = [recordFromItem(item('x-1'), b, { rating: 5, scope: 'all', note: '#레이아웃 좋다' }), recordFromItem(item('x-2'), b, { rating: null })];
   const merged = addPrefs(recs, PREFS);
   assert.equal(merged.length, 2); assert.equal(merged.find(r => r.itemId === 'x-1').rating, 5); assert.equal(merged.find(r => r.itemId === 'x-2').rating, 'unrated', '미평가는 보통이 아니라 unrated');
-  assert.deepEqual(merged.find(r => r.itemId === 'x-1').tags, ['레이아웃']); assert.equal(merged[0].png, undefined, '파일엔 썸네일 없음');
-  const f = JSON.parse(readFileSync(PREFS, 'utf8')); assert.equal(f.stats.total, 1); assert.equal(f.stats.unrated, 1); assert.equal(f.stats.byType['cutout-object'].by[5], 1);
+  assert.deepEqual(merged.find(r => r.itemId === 'x-1').tags, ['레이아웃']);
+  const f = JSON.parse(readFileSync(PREFS, 'utf8')); assert.equal(f.stats.total, 1); assert.equal(f.stats.unrated, 1); assert.equal(f.stats.byType['cutout-object'].by[5], 1); assert.ok(f.prefs.every(p => !('png' in p)), '파일엔 썸네일 없음');
   // 옛 3단 값도 받는다
-  addPrefs([recordFromItem(b.items[1], b, { rating: 'bad', id: 'z' })], PREFS); assert.equal(readPrefs(PREFS).find(r => r.id === 'z').rating, 1);
+  addPrefs([recordFromItem(item('x-2'), b, { rating: 'bad', id: 'z' })], PREFS); assert.equal(readPrefs(PREFS).find(r => r.id === 'z').rating, 1);
   // 라우트: GET /api/freeloop/batches 는 배치·케이스·통계를 준다(기본 폴더 — 모양만)
   const res = mockRes(); const handled = await handleFreeLoop(mockReq('GET'), res, u('/api/freeloop/batches'), { json, readBody });
   assert.equal(handled, true); assert.equal(res.code, 200); assert.ok(Array.isArray(res.body.batches) && Array.isArray(res.body.cases) && res.body.stats);

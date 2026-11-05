@@ -99,7 +99,7 @@ export function parseTree(html) {
   const re = /<\/([a-zA-Z][\w:-]*)\s*>|<([a-zA-Z][\w:-]*)((?:\s+[^\s=>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*(\/?)>|([^<]+)/g;
   let m;
   while ((m = re.exec(String(html ?? '')))) {
-    if (m[5] != null) { cur.text += m[5]; continue; }
+    if (m[5] != null) { cur.children.push({ tag: '#text', attrs: {}, style: {}, children: [], parent: cur, text: m[5] }); continue; }   // 글자도 순서대로 자식으로(11-06: <br> 앞뒤 줄이 섞이던 것)
     if (m[1]) { const t = m[1].toLowerCase(); let p = cur; while (p && p.tag !== t) p = p.parent; if (p && p.parent) cur = p.parent; continue; }
     const tag = m[2].toLowerCase(); const attrs = {};
     for (const a of (m[3] ?? '').matchAll(/([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) attrs[a[1].toLowerCase()] = a[2] ?? a[3] ?? a[4] ?? '';
@@ -110,11 +110,11 @@ export function parseTree(html) {
   return root;
 }
 export function styleMap(st) { const o = {}; for (const part of String(st ?? '').split(';')) { const i = part.indexOf(':'); if (i > 0) o[part.slice(0, i).trim().toLowerCase()] = part.slice(i + 1).trim(); } return o; }
-const walk = (n, fn) => { for (const c of n.children) { fn(c); walk(c, fn); } };
+const walk = (n, fn) => { for (const c of n.children) { if (c.tag === '#text') continue; fn(c); walk(c, fn); } };
 const find = (n, pred) => { let out = null; walk(n, c => { if (!out && pred(c)) out = c; }); return out; };
 const findAll = (n, pred) => { const out = []; walk(n, c => { if (pred(c)) out.push(c); }); return out; };
 const px = (v, base = 0) => { if (v == null) return null; const s = String(v).trim(); if (/px$/.test(s)) return parseFloat(s); if (/%$/.test(s)) return parseFloat(s) / 100 * base; if (/^-?[\d.]+$/.test(s)) return parseFloat(s); return null; };
-const innerText = n => { let t = n.text; for (const c of n.children) t += (c.tag === 'br' ? '\n' : innerText(c)); return t; };
+const innerText = n => { if (n.tag === '#text') return n.text; let t = ''; for (const c of n.children) t += (c.tag === 'br' ? '\n' : innerText(c)); return t; };
 
 // 요소 자체의 높이(부모를 보지 않는다 — 재귀 고리 방지): 글자는 줄 수 × 글자 크기, 그림은 height/width, 흐름 상자는 흐름 자식 높이 합
 function ownH(el, pw) {
@@ -185,7 +185,7 @@ export function infoStyleOf(tree) {
 //   measure(선택): { texts:[{role,bbox,fontPx,color}], logo:{bbox}|null, objects:[{x,y,w,h}], bgColors:[hex] } — app/measure.js measureArtifact 모양
 export function fingerprintOf(html, { specId = null, kvMeta = null, measure = null } = {}) {
   const tree = parseTree(html);
-  const root = find(tree, n => n.attrs?.['data-ad'] != null) ?? tree.children[0] ?? tree;
+  const root = find(tree, n => n.attrs?.['data-ad'] != null) ?? tree.children.find(c => c.tag !== '#text') ?? tree;
   const rs = root.style ?? {};
   const W = px(rs.width) || measure?.w || 1, H = px(rs.height) || measure?.h || 1;
   const cache = new Map();
