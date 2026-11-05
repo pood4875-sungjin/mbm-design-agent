@@ -52,7 +52,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const FACES = fontIds().filter(isBundledFont).map(id => localFaceCss(id)).join('');
 const LS_PREF = 'mbm-loop-prefs';   // 마지막 케이스·규격·크기(편의)
-let STATE = { batches: [], cases: [], stats: null, active: null, busy: false };
+let STATE = { batches: [], cases: [], stats: null, active: null, busy: false, running: null, runningSince: 0 };
 const pref = (() => { try { return JSON.parse(localStorage.getItem(LS_PREF) ?? '{}'); } catch { return {}; } })();
 const savePref = () => { try { localStorage.setItem(LS_PREF, JSON.stringify({ cases: selectedCases(), specId: $('#spec').value, n: +$('#n').value })); } catch {} };
 const api = async (url, body) => { const r = await fetch(url, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' }); const j = await r.json().catch(() => ({ error: `HTTP ${r.status}` })); if (!r.ok || j.error) throw new Error(j.error ?? `HTTP ${r.status}`); return j; };
@@ -98,6 +98,7 @@ function renderBatches() {
   // iframe 미리보기(png 없을 때)
   for (const f of main.querySelectorAll('iframe[data-html]')) { const card = f.closest('.card'); const it = itemOf(card); const pic = f.parentElement; const k = pic.clientWidth / +f.width; f.style.transform = `scale(${k})`; f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>${FACES}html,body{margin:0;overflow:hidden}</style></head><body>${srcHtml(it.html)}</body></html>`; }
   $('#retry') && ($('#retry').onclick = () => next());
+  if (STATE.running) lockButtons(true);
 }
 const itemOf = card => { const b = STATE.batches.find(x => x.id === card.dataset.b); return b?.items.find(i => i.id === card.dataset.i); };
 function setRating(card, v) { const it = itemOf(card); if (!it) return; it.rating = v; card.classList.add('rated'); for (const bt of card.querySelectorAll('.rate button')) { const on = +bt.dataset.v === v; bt.classList.toggle('on', on); bt.setAttribute('aria-pressed', on); } }
@@ -119,22 +120,44 @@ async function submit(batchId) {
     const r = await api('/api/freeprefs', { ratings });
     b.rated = true; STATE.stats = r.stats; renderStats();
     const rated = ratings.filter(x => x.rating).length;
-    msg(`저장 ${r.saved}건(평가 ${rated} · 미평가 ${ratings.length - rated}) → 다음 묶음 생성 중… (케이스당 1~3분)`);
+    msg(`저장 ${r.saved}건(평가 ${rated} · 미평가 ${ratings.length - rated})`);
     STATE.busy = false;
     await next();
   } catch (e) { msg(`저장 실패: ${e.message}`, 'err'); STATE.busy = false; }
 }
 async function next() {
-  if (STATE.busy) return;
+  if (STATE.busy || STATE.running) { if (STATE.running) showRunning(); return; }
   const kvCases = selectedCases(); const specId = $('#spec').value, n = Math.max(1, Math.min(6, +$('#n').value || 3));
   if (!kvCases.length) { msg('키비주얼 케이스를 하나 이상 고르세요', 'err'); return; }
-  STATE.busy = true; $('#next').disabled = true; msg(`다음 묶음 생성 중… ${kvCases.join(', ')} × ${n}안 (${specId})`);
+  STATE.busy = true; lockButtons(true); msg(`다음 묶음 생성 요청 중… ${kvCases.join(', ')} × ${n}안 (${specId})`);
   try {
     const r = await api('/api/freeloop/next', { kvCases, specId, n });
     if (r.pending) { STATE.pending = r.reason; msg(`다음 묶음 대기 중 — ${r.reason}`, 'pending'); renderBatches(); }
-    else { STATE.pending = null; STATE.batches.unshift(r.batch); renderBatches(); msg(`새 묶음 ${r.batch.id} — ${r.batch.items.length}안`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else if (r.running) { STATE.pending = null; STATE.running = r.running; if (r.busy) msg('이미 다음 묶음을 만들고 있어요 — 끝나면 맨 위에 붙어요', 'pending'); watch(); }
   } catch (e) { msg(`생성 실패: ${e.message}`, 'err'); }
-  finally { STATE.busy = false; $('#next').disabled = false; }
+  finally { STATE.busy = false; lockButtons(!!STATE.running); }
+}
+// 11-05: 생성은 서버 백그라운드(30분 안팎). 생성 중엔 버튼을 잠그고 「○분째 · 케이스 n/N」을 보여 주며, 끝나면 새 묶음을 불러온다
+function lockButtons(on) { $('#next').disabled = on; document.querySelectorAll('[data-submit]').forEach(b => { b.disabled = on; b.title = on ? '다음 묶음을 만드는 중이에요' : ''; }); }
+function showRunning() {
+  const r = STATE.running; if (!r) return;
+  const min = Math.floor(((r.elapsedMs ?? 0) + Date.now() - STATE.runningSince) / 60000);
+  msg(`다음 묶음 생성 중 · ${min}분째 · 케이스 ${Math.min(r.done + 1, r.total)}/${r.total}(${r.caseId ?? ''}) — 케이스당 5분 안팎, 끝나면 맨 위에 자동으로 붙어요`, 'pending');
+}
+let _watch = null;
+function watch() {
+  STATE.runningSince = Date.now(); lockButtons(true); showRunning();
+  clearInterval(_watch);
+  _watch = setInterval(async () => {
+    let r; try { r = await api('/api/freeloop/batches'); } catch { return; }
+    if (r.running) { STATE.running = r.running; STATE.runningSince = Date.now(); showRunning(); return; }
+    clearInterval(_watch); _watch = null; STATE.running = null;
+    STATE.batches = r.batches; STATE.stats = r.stats; renderStats(); renderBatches(); lockButtons(false);
+    const L = r.last;
+    if (L?.error) msg(`생성 실패: ${L.error}`, 'err');
+    else if (L?.pending) { STATE.pending = L.pending; msg(`다음 묶음 대기 중 — ${L.pending}`, 'pending'); renderBatches(); }
+    else { msg(`새 묶음 ${L?.batchId ?? ''} — ${Math.round((L?.ms ?? 0) / 60000)}분 걸림`); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  }, 10000);
 }
 $('#next').onclick = () => next();
 
@@ -149,9 +172,10 @@ async function importRateSheet() {
   try { const r = await api('/api/freeprefs', { ratings }); localStorage.removeItem('free-rate-1105'); STATE.stats = r.stats; renderStats(); msg(`rate.html 평가 ${ratings.length}건을 자동 입력했어요`); await load(false); } catch (e) { msg(`rate.html 평가 자동 입력 실패: ${e.message}`, 'err'); }
 }
 async function load(first = true) {
-  try { const r = await api('/api/freeloop/batches'); STATE.batches = r.batches; STATE.cases = r.cases; STATE.stats = r.stats; }
+  let r; try { r = await api('/api/freeloop/batches'); STATE.batches = r.batches; STATE.cases = r.cases; STATE.stats = r.stats; }
   catch (e) { $('#main').innerHTML = `<div class="empty">서버에 못 붙었어요(${esc(e.message)}) — <code>node server/server.mjs</code> 로 띄운 주소에서 여세요</div>`; return; }
   renderStats(); renderCases(); renderBatches();
+  if (r.running) { STATE.running = r.running; watch(); }
   if (first) importRateSheet();
 }
 load();

@@ -83,7 +83,7 @@ export function rankItems(items, prefs) {
 }
 
 // 다음 묶음 생성 — 로그인된 claude 로 케이스마다 n 안(styles 기본 3종 중 n). render 는 scripts/lib/freedesign-renderer.mjs(헤드리스 Chrome) — 없으면 png 없이
-export async function nextBatch({ kvCases = [], specId = DEFAULT_SPEC, n = 3 } = {}, { client = null, run = null, render = null, dir = LOOP_DIR, check = claudeCodeAvailable } = {}) {
+export async function nextBatch({ kvCases = [], specId = DEFAULT_SPEC, n = 3 } = {}, { client = null, run = null, render = null, dir = LOOP_DIR, check = claudeCodeAvailable, onProgress = null } = {}) {
   if (!kvCases.length) throw new Error('kvCases 가 비었습니다');
   if (!run) {
     const cc = await check();
@@ -95,7 +95,8 @@ export async function nextBatch({ kvCases = [], specId = DEFAULT_SPEC, n = 3 } =
   const at = Date.now(); const bid = `b-${new Date(at).toISOString().slice(0, 16).replace(/[-:T]/g, '')}-auto`;
   const bdir = path.join(dir, bid); mkdirSync(bdir, { recursive: true });
   const entries = [];
-  for (const caseId of kvCases) {
+  for (const [ci, caseId] of kvCases.entries()) {
+    onProgress?.({ done: ci, total: kvCases.length, caseId });
     const inp = caseInput(caseId, specId, { assets: 'data' });
     const meta = caseMeta(caseId);
     inp.prefs = exemplarsFor(prefs, { specId, kvMeta: meta, n: 3 });
@@ -112,6 +113,26 @@ export async function nextBatch({ kvCases = [], specId = DEFAULT_SPEC, n = 3 } =
     });
   }
   return { batch: pushBatch(entries, { id: bid, specId, source: 'auto', dir }) };
+}
+
+// 생성 중 상태(11-05) — 한 번에 하나만. 요청은 바로 돌려주고(30분 걸려도 브라우저가 붙잡혀 있지 않게) 페이지는 GET /api/freeloop/batches 의 running 으로 진행을 본다.
+//   중복 요청은 { busy, running } — 18:41·18:57 두 묶음이 동시에 돌던 것.
+let RUNNING = null, LAST = null;
+export const loopState = () => ({ running: RUNNING ? { ...RUNNING, elapsedMs: Date.now() - RUNNING.at } : null, last: LAST });
+export async function startNext(args, deps = {}) {
+  if (RUNNING) return { busy: true, ...loopState() };
+  if (!(args.kvCases ?? []).length) throw new Error('kvCases 가 비었습니다');
+  if (!deps.run) {   // 로그인 안 됐으면 백그라운드로 넘기지 않고 바로 알린다
+    const cc = await (deps.check ?? claudeCodeAvailable)();
+    if (!cc.ok || cc.loggedIn === false) return nextBatch(args, deps);
+  }
+  RUNNING = { at: Date.now(), kvCases: args.kvCases, specId: args.specId ?? DEFAULT_SPEC, n: args.n ?? 3, done: 0, total: args.kvCases.length, caseId: args.kvCases[0] };
+  const job = nextBatch(args, { ...deps, onProgress: p => { if (RUNNING) Object.assign(RUNNING, p); } })
+    .then(out => { LAST = { at: Date.now(), ms: Date.now() - RUNNING.at, batchId: out.batch?.id ?? null, pending: out.pending ? out.reason : null }; })
+    .catch(e => { console.error('[freeloop]', e?.message ?? e); LAST = { at: Date.now(), ms: Date.now() - RUNNING.at, error: e?.message ?? String(e) }; })
+    .finally(() => { RUNNING = null; });
+  if (deps.wait) await job;
+  return { started: true, ...loopState(), job };
 }
 
 // ── 라우트 ── 처리했으면 true. json(res, code, body)·readBody(req) 는 server.mjs 의 것
@@ -135,10 +156,10 @@ export async function handleFreeLoop(req, res, u, { json, readBody, client = nul
     const merged = addPrefs(recs);
     return json(res, 200, { saved: recs.length, total: merged.length, stats: prefStats(merged) }), true;
   }
-  if (req.method === 'GET' && p === '/api/freeloop/batches') return json(res, 200, { batches: listBatches(), cases: listCases(), stats: prefStats(readPrefs()) }), true;
+  if (req.method === 'GET' && p === '/api/freeloop/batches') return json(res, 200, { batches: listBatches(), cases: listCases(), stats: prefStats(readPrefs()), ...loopState() }), true;
   if (req.method === 'POST' && p === '/api/freeloop/next') {
     let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }), true; }
-    try { const out = await nextBatch({ kvCases: body.kvCases ?? [], specId: body.specId ?? DEFAULT_SPEC, n: Math.max(1, Math.min(6, Number(body.n) || 3)) }, { client, render }); return json(res, 200, out), true; }
+    try { const { job, ...out } = await startNext({ kvCases: body.kvCases ?? [], specId: body.specId ?? DEFAULT_SPEC, n: Math.max(1, Math.min(6, Number(body.n) || 3)) }, { client, render }); return json(res, 200, out), true; }
     catch (e) { console.error('[freeloop]', e?.message ?? e); return json(res, 500, { error: e?.message ?? String(e) }), true; }
   }
   return false;

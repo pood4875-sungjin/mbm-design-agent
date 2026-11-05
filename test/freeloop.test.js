@@ -48,3 +48,18 @@ test('다음 묶음 — claude 미로그인이면 pending(사유) · mock 엔진
 });
 
 test.after(() => { try { rmSync(tmp, { recursive: true, force: true }); } catch {} });
+
+test('생성 중엔 한 번에 하나 — 두 번째 요청은 busy, 진행(done/total)이 보이고 끝나면 last 에 묶음 id', async () => {
+  const { startNext, loopState } = await import('../server/freeloop.js');
+  if (!existsSync(path.resolve('ref/learned/cases/fig-28/meta.json'))) return;
+  let release; const gate = new Promise(r => { release = r; });
+  const run = async () => { await gate; return { text: '```html\n' + html.replace("url('x.png')", "url('{{KV}}')") + '\n```\nNOTES: mock', usage: null }; };
+  const a = await startNext({ kvCases: ['fig-28'], specId: 'google-gdn-580x400', n: 1 }, { dir: tmp, run });
+  assert.equal(a.started, true); assert.equal(a.running.total, 1); assert.ok(a.running.elapsedMs >= 0);
+  const b = await startNext({ kvCases: ['fig-28'], specId: 'google-gdn-580x400', n: 1 }, { dir: tmp, run });
+  assert.equal(b.busy, true, '두 번째는 막힌다'); assert.equal(b.running.kvCases[0], 'fig-28');
+  release(); await a.job;
+  const s = loopState(); assert.equal(s.running, null); assert.ok(s.last?.batchId, JSON.stringify(s.last));
+  const p = await startNext({ kvCases: ['fig-28'] }, { dir: tmp, check: async () => ({ ok: true, loggedIn: false }) });
+  assert.equal(p.pending, true, '미로그인은 백그라운드로 안 넘기고 바로 대기'); assert.equal(loopState().running, null);
+});
