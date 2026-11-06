@@ -117,6 +117,7 @@ const EL = createElementSelect({
 const FREE = createFreeDesign({
   state, SPECS, $, escH: s => escH(s), previewDoc: (h, f) => previewDoc(h, f), measureArtifact, lintArtifact, approvalGate, STATE_LABEL, adEffCtx: a => adEffCtx(a), apiCopy, rasterizeCanvas,
   toast: t => toast(t), log: t => log(t), useFree: (a, f) => useFree(a, f), artLabel: a => artLabel(a), renderArtifact, checkAdDoc,
+  onFreeSuggest: a => { if (a && state.selected === (a.key ?? a.specId) && !$('inspector').contains(document.activeElement)) renderInspector(); },   // AI 제안 도착(11-06) — 그 산출물을 보고 있으면 인스펙터 다시 그려 「다른 시안 보기」·배지 갱신
 });
 // 자유 시안을 소재의 안(variants kind 'free')으로 넣고 고른다 — 안 style 은 { free:{ id, tpl, texts, notes, logoTone } } 하나뿐이라 안 바꾸기(이전 안 키 지우기)와 같은 길을 탄다
 function useFree(a, free) {
@@ -3018,10 +3019,11 @@ function renderInspectorBody() {
     ${a.channel === 'ad' && SPECS[a.specId]?.rules ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
       <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들고, 말로 고치며 계속 뽑아요. 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpen" style="width:100%">대화로 시안 뽑기 — ${escH(artLabel(a))}</button></section>` : ''}
-    ${(a.channel === 'ad' && ((a.variants?.length ?? 0) > 1 || FREE.templatesFor(a.specId).length)) ? `<section class="isec isec-var">
+    ${(a.channel === 'ad' && ((a.variants?.length ?? 0) > 1 || FREE.templatesFor(a.specId).length || SPECS[a.specId]?.rules)) ? `<section class="isec isec-var">
       <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
       <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
-      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${(templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 || FREE.templatesFor(a.specId).length) ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}</div>
+      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${(templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 || FREE.templatesFor(a.specId).length || FREE.suggestionsFor(a, c).length) ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}${SPECS[a.specId]?.rules ? `<button class="btn" id="iAiMore" hidden title="서버가 백그라운드로 방향 3종(타이포·밝은·어두운)을 만들어요. 끝나면 알림 → 「다른 시안 보기」 맨 앞">AI 추가 제안</button>` : ''}</div>
+      ${SPECS[a.specId]?.rules ? `<span id="iAiJob" data-key="${escH(a.key ?? a.specId)}">${FREE.jobBadge(a)}</span>` : ''}
     </section>` : ''}
     ${a.channel === 'ad' ? `${layerListHtml(a)}
     <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
@@ -3178,10 +3180,14 @@ function renderInspectorBody() {
         if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '', ...(ch.style.free ? { kind: 'free', html: ch.style.free.tpl, notes: ch.style.free.notes ?? '' } : {}) }); i = a.variants.length - 1; }
         a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
         logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl ?? ch.style.free?.id ?? null, label: ch.label });
+        if (ch.suggested) FREE.notePick(ch, c, a);   // AI 제안 채택 = 좋음(5) 기록(평가 루프와 같은 경로)
         regen(c); autosave(); refreshFrames(a.specId); renderInspector();
         log(`${a.specId} 시안 ${ch.label}`);
       },
     });
+    // AI 추가 제안(11-06): 로컬 서버(큐 지원·엔진 있음)일 때만 버튼이 보인다 — health 는 비동기라 처음엔 숨기고 오면 보이게. 도착 배지 클릭 → 「다른 시안 보기」
+    { const ab = $('iAiMore'); if (ab) { FREE.hasServerJobs().then(ok => { if (ok && ab.isConnected) ab.hidden = false; }); ab.onclick = () => FREE.suggest(a, c); } }
+    { const jb = $('iAiJob'); if (jb) jb.onclick = e => { if (e.target.closest('.aijob.done')) { const mb = $('iTplMore'); if (mb) mb.click(); else { renderInspector(); $('iTplMore')?.click(); } } }; }
     insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
       const cur = currentVariantIndex(a), i = +b.dataset.vi; if (i === cur) return;
       pushHistory(`${artLabel(a)} 레이아웃 안 ${i + 1}`);

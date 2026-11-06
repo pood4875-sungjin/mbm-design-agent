@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { makeClient, designLayout, analyzeKv, ANALYZE_MODEL } from './design.js';
 import { freeDesign, claudeCodeAvailable } from './freedesign.js';   // 자유 디자인(헤드리스 Claude Code 또는 API)
 import { handleFreeLoop } from './freeloop.js';   // 자유 시안 평가 루프(/api/freeprefs · /api/freeloop/*) — 11-05 취향 학습
+import { handleFreeJobs } from './freejobs.js';   // 「AI 추가 제안」 백그라운드 작업(/api/freedesign/jobs) — 11-06
 import { DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -55,8 +56,9 @@ const server = http.createServer(async (req, res) => {
     const u = new URL(req.url, 'http://x');
     if (req.method === 'GET' && u.pathname === '/api/health') {
       const cc = await claudeCodeAvailable();
-      return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })), freedesign: { claudeCode: cc.ok, version: cc.version, loggedIn: cc.loggedIn, api: !!client } });
+      return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })), freedesign: { claudeCode: cc.ok, version: cc.version, loggedIn: cc.loggedIn, api: !!client, jobs: true } });
     }
+    if (u.pathname.startsWith('/api/freedesign/jobs')) { if (await handleFreeJobs(req, res, u, { json, readBody, client, freeDesign })) return; }   // 백그라운드 작업(큐) — 아래 동기 호출과 같은 엔진
     if (req.method === 'POST' && u.pathname === '/api/freedesign') {   // 자유 디자인 — engine 'claude-code'(로그인 계정, 키 없음) | 'api'(키 있을 때)
       let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }
       if (body.engine === 'api' && !client) return json(res, 503, { error: 'API 키가 없습니다 — engine:"claude-code" 를 쓰거나 server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' });
