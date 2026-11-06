@@ -28,6 +28,37 @@ export function variantCountFor(spec) {
   return V.default;
 }
 const labelOf = (st, spec0 = null) => { if (!Object.keys(st).length) return '기본안'; if (st.tpl) { const f = familyById(st.tpl); return (spec0 && f && frameFor(f, spec0)?.name) || f?.name || '시안'; } const L = { kvPlace: { left: '키비주얼 왼쪽', bottom: '키비주얼 아래', bg: '전체 배경', right: '키비주얼 오른쪽' }, textAlign: { center: '가운데 정렬', right: '오른쪽 정렬', left: '왼쪽 정렬' }, kvSize: { lg: '키비주얼 크게', sm: '키비주얼 작게' }, bgFill: { brand: '브랜드색 지면' }, textTone: { light: '흰 글자', dark: '검은 글자' } }; return Object.entries(st).map(([k, v]) => L[k]?.[v] ?? `${k} ${v}`).join(' · '); };
+// 안 축(11-06 사용자 「타이포 강조형·뱃지형·레이아웃·배경색이 달라야 후보」): 후보끼리 네 축 중 하나 이상 달라야 한다. 라벨도 이 축으로 적는다.
+const TYPO_EMPH = new Set(['weight', 'big', 'color']);
+const INFO_OF = { datebadge: '일정 뱃지', labelbadge: '라벨 뱃지', label: '라벨' };
+const LAYOUT_OF = { right: '우측 비주얼', left: '좌측 비주얼', bottom: '하단 비주얼', top: '상단 비주얼', full: '전면 비주얼', bg: '전체 배경', center: '가운데 배치', object: '오브젝트', cover: '전면 비주얼', band: '띠', none: '글자만' };
+const fieldSourceOf = html => (String(html ?? '').match(/data-field-source="([^"]*)"/)?.[1] ?? '');
+// 지면 톤은 실제로 그려진 지면색(trace.field.stops 첫 색의 밝기)으로 — 틀 원본이 밝아도 브랜드색 지면이면 어두움(11-06 시트에서 라벨 어긋남)
+const lumOf = hex => { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex ?? '').trim()); if (!m) return null; const n = parseInt(m[1], 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(n >> 16) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255); };
+const renderedTone = (tr, html, fallbackDark) => { const L = lumOf(tr?.field?.stops?.[0]); if (L != null) return L < 0.3 ? '어두움' : '밝음'; const src = fieldSourceOf(html); if (src) return /dark|photo-full|kv-full|kv-texture|kv-frame/.test(src) ? '어두움' : '밝음'; return fallbackDark ? '어두움' : '밝음'; };
+export function axesOf(cand, tr, spec, html = '') {
+  if (cand?.tpl) {
+    const f = familyById(cand.tpl), fr = f && spec ? frameFor(f, spec) : null;
+    return { typo: TYPO_EMPH.has(f?.typo) ? '강조' : '기본', info: INFO_OF[f?.typo] ?? '글줄', layout: fr?.visual ?? f?.visual ?? 'auto', tone: renderedTone(tr, html, fr?.bgDark ?? f?.bgDark) };
+  }
+  const tone = cand?.bgFill === 'brand' ? '브랜드색' : cand?.textTone === 'light' ? '어두움' : cand?.textTone === 'dark' ? '밝음' : renderedTone(tr, html, false);
+  const layout = cand?.kvPlace ?? tr?.place?.mode ?? (cand?.textAlign ? `정렬 ${cand.textAlign}` : 'auto');
+  return { typo: '기본', info: '글줄', layout: `${layout}${cand?.textAlign ? `/${cand.textAlign}` : ''}${cand?.kvSize ? `/${cand.kvSize}` : ''}`, tone };
+}
+export const axesKey = ax => `${ax.typo}|${ax.info}|${ax.layout}|${ax.tone}`;
+export const axesLabel = ax => `${ax.typo === '강조' ? '타이포 강조' : '기본 타이포'} · ${ax.info} · ${LAYOUT_OF[ax.layout] ?? ax.layout} · ${ax.tone} 지면`;
+export const MIN_VARIANTS = 3;
+// 틀 후보 순서: 이미 고른 안들과 다른 축 수가 가장 많은 것부터(렌더 전에 가족 메타만으로 — 비용 0). 같으면 원래 순서(합격 점수)
+const axesDiff = (a, b) => ['typo', 'info', 'layout', 'tone'].filter(k => a[k] !== b[k]).length;
+export function spreadByAxes(styles, spec) {
+  const pool = styles.map((st, i) => ({ st, i, ax: axesOf(st, null, spec) })); const out = [];
+  while (pool.length) {
+    let best = 0, bestScore = -1;
+    pool.forEach((p, j) => { const score = out.length ? Math.min(...out.map(o => axesDiff(o.ax, p.ax))) * 10 + Math.max(0, 7 - p.i) : 100 - p.i; if (score > bestScore) { bestScore = score; best = j; } });
+    out.push(pool.splice(best, 1)[0]);
+  }
+  return out.map(p => p.st);
+}   // 안 최소 수(11-06 사용자 「무조건 후보는 3개」). 규정 매체(1안)는 예외
 // 겹침 교정이 실제로 글자·그림을 줄였나(data-overlap="처음>끝:단계") — 처음 겹침이 문턱을 넘었다는 뜻
 export const overlapFixed = html => /data-overlap="\d+>\d+:/.test(String(html ?? ''));
 // 키비주얼이 그려졌나 — 그림 원본 주소(data: 앞부분)가 결과에 있는지. 캐치 메인 라지 틀에서 「키비주얼 왼쪽」이 그림 없이 서던 것(11-05)
@@ -39,9 +70,9 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
   const { stats, ...ropts } = opts;
   const spec = adSpecEntries()[specId]; if (!spec) return [];
   const want = variantCountFor(spec); const V = CANON.variants ?? {};
-  const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual; let baseFixed = null, baseKv = null;
+  const out = []; const seen = new Set(); const axesSeen = new Set(); const spare = [], spare2 = []; let rendered = 0; const hasKv = !!style?.keyVisual; let baseFixed = null, baseKv = null;
   // 첫 안은 기본안, 그다음 키비주얼 유형에 맞는 시안, 모자라면 기존 프리셋 후보(11-02)
-  const order = [{}, ...recipeStyles(spec, style?.kvMeta, hasKv, ctx?.core?.client, 8), ...CANDIDATE_ORDER.slice(1)];
+  const order = [{}, ...spreadByAxes(recipeStyles(spec, style?.kvMeta, hasKv, ctx?.core?.client, 8), spec), ...CANDIDATE_ORDER.slice(1)];   // 틀 후보는 네 축이 서로 멀어지는 순(11-06)
   for (const cand of order) {
     if (out.length >= want || rendered >= (V.maxRender ?? 14)) break;
     if (!hasKv && Object.keys(cand).some(k => KV_KEYS.has(k))) continue;
@@ -59,9 +90,17 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       if (!cand.tpl && (presetWorse(html, baseFixed) || ((baseKv || keys.some(k => KV_KEYS.has(k))) && !kvDrawn(html, style)))) continue;   // 그림 자리·크기 안인데 그림이 없으면 이름과 다른 안   // 프리셋 안이 기본안에 없던 글자-그림 겹침을 만들어 글자·그림을 줄여야 했으면 기본안보다 못한 안(11-05 캐치 메인 라지 가운데 정렬)
     }
     const hash = htmlHash(html); if (seen.has(hash)) continue; seen.add(hash);
-    out.push({ id: out.length, label: labelOf(cand, spec), style: cand, hash, trace: { rules: tr.rules ?? [], edit: tr.edit ?? null, place: tr.place ? { mode: tr.place.mode, objectSide: tr.place.objectSide } : null } });
+    const ax = axesOf(cand, tr, spec, html), akey = axesKey(ax);
+    const rec = { id: out.length, label: cand.tpl ? axesLabel(ax) : labelOf(cand, spec), style: cand, hash, axes: ax, trace: { rules: tr.rules ?? [], edit: tr.edit ?? null, place: tr.place ? { mode: tr.place.mode, objectSide: tr.place.objectSide } : null } };
+    if (keys.length) {   // 고른 안 모두와 두 축 이상 달라야 바로 들어간다. 한 축만 다르면 뒤로, 전부 같으면 맨 뒤(모자랄 때만 채움)
+      const minDiff = Math.min(...out.map(o => axesDiff(o.axes, ax)));
+      if (minDiff < 2) { (minDiff === 1 ? spare : spare2).push(rec); continue; }
+    }
+    axesSeen.add(akey); out.push(rec);
     if (want === 1) break;
   }
+  // 최소 3안(11-06): 축이 겹치더라도 그림이 다른 안으로 채운다
+  if (want > 1) for (const rec of [...spare, ...spare2]) { if (out.length >= Math.max(want, MIN_VARIANTS)) break; rec.id = out.length; out.push(rec); }
   if (stats) { stats.rendered = rendered; stats.tried = rendered; }
   return out;
 }
@@ -71,13 +110,15 @@ export function templateChoices(specId, ctx, style, ropts = {}, { countOnly = fa
   const spec = adSpecEntries()[specId]; if (!spec) return countOnly ? 0 : [];
   const list = familiesFor(spec, style?.kvMeta, !!style?.keyVisual, ctx?.core?.client);
   if (countOnly) return list.length;
-  const out = [], fps = [];
+  const out = [], fps = [], axesSeen = new Set();
   for (const f of list) {
     const st = familyStyle(f); let html; try { html = renderArtifact(specId, ctx, { ...style, ...st }, ropts); } catch { continue; }
     const tr = traceOf(html); if (!tr?.tpl || tr.tpl.unfit || (tr.tpl.overlap ?? 0) >= 0.05) continue;
     // 거의 같은 안(글자 상자 몇 px 차이)은 앞의 것만 — 11-03 모달에 「일정 뱃지형」 3개가 사실상 같은 그림으로 떴다. 「n개」는 남은 수
     const fp = fingerprintOf(tr, spec.w, spec.h); if (fp && fps.some(x => nearDuplicate(x, fp))) continue; if (fp) fps.push(fp);
-    out.push({ label: frameFor(f, spec)?.name ?? f.name, style: st, html });
+    const ax = axesOf(st, tr, spec, html), akey = axesKey(ax);   // 네 축(타이포 강조·정보 블록·레이아웃·지면 톤)이 전부 같은 시안은 하나만(11-06 「차이도 기준도 애매」)
+    if (axesSeen.has(akey)) continue; axesSeen.add(akey);
+    out.push({ label: axesLabel(ax), sub: frameFor(f, spec)?.name ?? f.name, style: st, html, axes: ax });
   }
   return out;
 }

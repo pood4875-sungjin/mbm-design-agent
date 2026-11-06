@@ -57,7 +57,7 @@ test('자동 안은 기본안 포함 최대 3개이고 시안 이름으로 나�
   const vs = variantCandidates('google-gdn-580x400', ctx, styleOf(CUT));
   assert.equal(vs.length, 3);
   assert.deepEqual(vs[0].style, {}, '첫 안은 기본안');
-  for (const v of vs.slice(1)) { assert.ok(v.style.tpl); assert.equal(v.label, frameFor(familyById(v.style.tpl), specs['google-gdn-580x400']).name); }
+  for (const v of vs.slice(1)) { assert.ok(v.style.tpl); assert.match(v.label, /^(기본 타이포|타이포 강조) · .+ · .+ · .+ 지면$/, '라벨은 네 축(11-06): ' + v.label); assert.ok(v.axes?.layout); }
   const [a, b] = recipeStyles(specs['google-gdn-580x400'], CUT, true, 'GS에너지').map(s => familyById(s.tpl));
   assert.notEqual(a.typo, b.typo, '타이포 특징이 다르다');
 });

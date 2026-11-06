@@ -349,7 +349,7 @@ function openTplPicker({ title, choices, nw, nh, current, docOf, onPick, returnT
     const b = document.createElement('button'); b.type = 'button'; b.className = 'tp-card'; const on = (ch.style.tpl ?? ch.style.free?.id ?? null) != null && (ch.style.tpl ?? ch.style.free?.id) === current; if (on) { b.classList.add('on'); b.setAttribute('aria-current', 'true'); }
     const bx = document.createElement('span'); bx.className = 'tp-box'; bx.style.cssText = `width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px`;
     const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.dataset.i = i; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.style.transform = `scale(${k})`;
-    const lb = document.createElement('span'); lb.className = 'tp-lab'; lb.textContent = on ? `${ch.label} · 지금 안` : ch.label;
+    const lb = document.createElement('span'); lb.className = 'tp-lab'; lb.textContent = on ? `${ch.label} · 지금 안` : ch.label; if (ch.sub) lb.title = ch.sub;   // 라벨은 네 축(11-06), 원래 시안 이름은 툴팁
     bx.append(f); b.append(bx, lb); b.onclick = () => { close(); onPick(ch); }; grid.append(b); io.observe(f);
   });
   const onKey = e => {
