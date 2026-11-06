@@ -22,10 +22,19 @@ export function recipeEligible(spec) {
 
 export const familyById = id => TEMPLATE_FAMILIES.find(f => f.id === id) ?? null;
 
-// 세트 안에서 규격에 가장 가까운 프레임. 비율이 너무 다르면 null
+// 프레임 구조 결함(11-06 사용자 「뜬금없이 연도는 다른 데 있고」): 날짜 줄이 서브(시즌)와 메인 사이에 끼면 읽는 순서가 깨진다(gdn-21402-170 시즌 → 날짜 → 메인). 후보에서 뺀다
+export function frameIssues(fr) {
+  const out = []; const rows = [...(fr?.rows ?? [])].sort((a, b) => a.y - b.y);
+  const main = rows.find(r => r.role === 'main'), sub = rows.find(r => r.role === 'season' || r.role === 'sub'), date = rows.find(r => r.role === 'date');
+  if (main && sub && date && date.y > sub.y && date.y < main.y) out.push('date-between');
+  return out;
+}
+
+// 세트 안에서 규격에 가장 가까운 프레임. 비율이 너무 다르면 null. 구조 결함 프레임은 건너뛴다
 export function frameFor(family, spec) {
   let best = null, gap = Infinity;
   for (const fr of family.frames) {
+    if (frameIssues(fr).length) continue;
     const a = fr.w / fr.h, b = spec.w / spec.h, g = Math.max(a / b, b / a);
     if (g < gap) { gap = g; best = fr; }
   }

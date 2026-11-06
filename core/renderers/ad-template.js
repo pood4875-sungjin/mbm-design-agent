@@ -252,7 +252,10 @@ export function renderTemplate(ctx, style, spec) {
     };
     const html = r.role === 'main' ? mainHtml() : esc(text);
     const dataField = r.role === 'main' ? 'main' : r.role === 'season' ? 'sub' : r.role === 'date' ? 'date' : 'detail';
-    const wtMain = r.role === 'main' && emph?.kind === 'weight' && !(client && hire && text !== client) ? Math.max(emph.client, emph.hire) : r.wt;   // 굵기 대비형에서 기업명만 남으면 굵은 쪽(가는 300 한 줄은 날짜보다 약해진다)
+    const mainWt = fr.rows.find(q => q.role === 'main')?.wt ?? 700;
+    // 서브(시즌) 굵기 하한(11-06 사용자 「텍스트 스타일이 다르다」 — gdn-21402-170 시즌 400 ↔ 메인 800): 메인이 700 이상인데 서브가 500 미만이면 600 으로. 다른 역할은 디자이너 값 그대로
+    const wtRow = (r.role === 'season' && (r.wt ?? 700) < 500 && mainWt >= 700) ? 600 : r.wt;
+    const wtMain = r.role === 'main' && emph?.kind === 'weight' && !(client && hire && text !== client) ? Math.max(emph.client, emph.hire) : wtRow;   // 굵기 대비형에서 기업명만 남으면 굵은 쪽(가는 300 한 줄은 날짜보다 약해진다)
     const inner = `font-size:${fs}px;line-height:${lh};font-weight:${wtMain};text-align:${al};word-break:keep-all;overflow-wrap:anywhere`;
     const justify = al === 'center' ? 'center' : al === 'right' ? 'flex-end' : 'flex-start';
     const b = p.pill ? r.badge : null;
@@ -269,7 +272,7 @@ export function renderTemplate(ctx, style, spec) {
     // 검사기(core/typoaudit.js) 입력: 글자 상자(라벨 포함) 추정·굵기(강조 굵기 포함)·뱃지 여부·낱말 꺾임
     const tw = p.tw;
     const x0 = al === 'center' ? anchor - tw / 2 : al === 'right' ? anchor - tw : left0;
-    const wt = r.role === 'main' && emph?.kind === 'weight' ? Math.max(emph.client, emph.hire) : r.wt;
+    const wt = r.role === 'main' && emph?.kind === 'weight' ? Math.max(emph.client, emph.hire) : wtRow;
     rowsOut.push({ role: dataField, px: fs, rows, wt, x: Math.round(x0), y: Math.round(top), w: Math.round(tw), h: Math.round(p.blockH), badge: !!b, gap: p.gap ?? 0, wb: p.wb });
   }
   let kvPx = null, kvCap = null;   // kvCap: 작은 누끼를 원본 1.5배에서 멈춘 기록(trace.tpl.kvCap)
