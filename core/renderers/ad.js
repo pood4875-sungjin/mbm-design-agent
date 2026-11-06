@@ -2516,9 +2516,12 @@ ${tplLogo}${kvWrap(tplObject)}
     const topOf = r => r.chip ? Math.round(r.y * k * 10) / 10 : Math.round((r.y * k - (pitchOf(r) - pxOf(r) * 1.2) / 2) * 10) / 10;   // 알약 행(날짜 칩)은 칩 상자 top 이 곧 y
     const blocks = []; const used = {};
     // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
-    const rowX = r => r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA: 정렬 프리셋(10-19) — 칸은 그대로, 칸 안 text-align 만 */
+    // 정렬 프리셋(10-19)이 켜지면 글자 행은 전부 「한 열」(행 칸들의 합집합)에 같은 정렬 — 칸마다 따로 가운데를 잡으면 메인(491px)·상세(217px)·라벨 칩이 축을 셋 만든다(11-06 사용자 「정렬은 하나로」 에브리타임 홈카드 캡처)
+    const MCOL = (() => { if (!TA) return null; const rs = ['sub', 'main', 'detail', 'date', 'notice', 'tags'].map(n => MR[n]).filter(r => r && r.x != null && r.w != null); if (!rs.length) return { x: 0, w: colW, ax: sx, col: true }; const x0 = Math.min(...rs.map(r => r.x)), x1 = Math.max(...rs.map(r => r.x + r.w)); return { x: Math.round(x0 * k) - sx, w: Math.round((x1 - x0) * k), ax: Math.round(x0 * k) }; })();   // 행에 칸이 없는 틀(에브리타임 홈카드)은 글자 열 그대로 — 칩만 이 열 기준으로 옮긴다
+    const rowX = r => (MCOL && !MCOL.col) ? MCOL.x : r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => (MCOL && !MCOL.col) ? MCOL.w : r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA 없으면 칸 그대로(기본 그림 바이트 동일) */
+    if (MCOL) fired('templateMold.alignOneColumn');
     const put = (role, r, lines, weight, color, inner, text) => { const rs = style.roleScale?.[role] ?? 1, t = topOf(r), px = Math.round(pxOf(r) * rs), pitch = Math.round(pitchOf(r) * rs * 100) / 100;   // roleScale: 글자별 크기(N6 직접 편집)
-      used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+      used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: (MCOL && !MCOL.col) ? MCOL.ax : r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
@@ -2702,7 +2705,7 @@ ${tplLogo}${kvWrap(tplObject)}
       // 알약 칩 라벨(mold.rows.detail.chip — 구글 ABL 「모집분야」 흰 칩 Bold #0074E5 + 값 SemiBold/Medium, 세로형은 칩 아래 가운데 여러 줄, 10-15 저녁): 라벨은 칩에, 상세 행은 값만
       const CH = dR.chip ?? null;
       if (CH && rows.length) {
-        const cx = Math.round(CH.x * k), cy = Math.round(CH.y * k), cw = Math.round(CH.w * k), chh = Math.round(CH.h * k), cpx = Math.round(CH.px * k), crad = Math.round((CH.radius ?? chh / 2) * k);
+        const cw = Math.round(CH.w * k), cx = MCOL ? (TA === 'center' ? Math.round(MCOL.ax + (MCOL.w - cw) / 2) : TA === 'right' ? MCOL.ax + MCOL.w - cw : MCOL.ax) : Math.round(CH.x * k), cy = Math.round(CH.y * k), chh = Math.round(CH.h * k), cpx = Math.round(CH.px * k), crad = Math.round((CH.radius ?? chh / 2) * k);   // 정렬 프리셋이면 칩도 글자 열 기준(가운데/오른쪽)
         const plain = CH.bg === 'none';   /* 10-16 사용자 「라운드 없애 줘」(에브리타임 홈카드·구글 300×1050 「모집분야」 알약) — 상자 없이 라벨 글자만, 같은 자리·크기, 왼쪽 맞춤, 상세 글자색 */
         const cfg = plain ? detailFg : CH.color === 'brand' ? (p.primary ?? field?.stops?.[0] ?? '#000000') : (CH.color ?? '#000000'), cbg = plain ? 'transparent' : (CH.bg ?? '#FFFFFF');
         const ctext = CH.text ?? labelOf(rows[0].label);
