@@ -29,9 +29,11 @@ const styleOf = (kv, primary = '#1428A0') => normalizeStyle({ colors: [primary],
 // ad.js 틀 분기와 같은 어절 단위 줄 수 어림(word-break:keep-all)
 const wrapRows = (t, px, width) => String(t).split('\n').reduce((n, line) => { let rows = 1, cur = 0; for (const wd of line.split(/\s+/).filter(Boolean)) { const ww = textWidth(wd) * px; if (cur > 0 && cur + 0.35 * px + ww > width) { rows++; cur = ww; } else cur = cur > 0 ? cur + 0.35 * px + ww : ww; if (ww > width) rows += Math.ceil(ww / width) - 1; } return n + rows; }, 0);
 
-test('① 틀 contain 그림(gradEdge)은 칸이 닿는 지면 변 쪽으로 붙고 그 변은 녹이지 않는다 — 리멤버 오른쪽 열은 오른쪽 변에, 자소설 M팝업 하단 띠는 가운데 + 양옆 녹임', () => {
+// 11-09 (3) 시안 대조: bgRule(자동 포함) 틀에서는 그라데이션 바탕 캐릭터도 시안 칸 cover — contain 경로(10-15·10-20)는 bgRule 을 끈 틀(mold.bgRule:false — 안쪽 상자·둥근 칸과 같은 처리)로 검사한다
+const noBgRule = sp => ({ ...sp, rules: { ...sp.rules, safeArea: { ...sp.rules.safeArea, measuredFromTemplate: { ...sp.rules.safeArea.measuredFromTemplate, mold: { ...sp.rules.safeArea.measuredFromTemplate.mold, bgRule: false } } } } });
+test('① 틀 contain 그림(gradEdge, bgRule 끈 틀)은 칸이 닿는 지면 변 쪽으로 붙고 그 변은 녹이지 않는다 — 리멤버 오른쪽 열은 오른쪽 변에, 자소설 M팝업 하단 띠는 가운데 + 양옆 녹임', () => {
   const st = styleOf(GRAD, '#6D5CF5');
-  const html = renderAd(ctx, st, specs['remember-main-top-pc']); const tr = traceOf(html);
+  const html = renderAd(ctx, st, noBgRule(specs['remember-main-top-pc'])); const tr = traceOf(html);
   assert.equal(tr.mode, 'templateMold');
   assert.ok(tr.rules.includes('templateMold.containGrad') && tr.rules.includes('templateMold.containEdge'), tr.rules.join(','));
   const m = html.match(/data-object="1" style="position:absolute;left:(-?[\d.]+)px;top:(-?[\d.]+)px;width:([\d.]+)px;height:([\d.]+)px;background:url\([^)]*\) center bottom\/contain no-repeat;[^"]*" data-melt="([\d.]+)" data-melt-dir="sides" data-melt-right="([\d.]+)"/);
@@ -40,8 +42,9 @@ test('① 틀 contain 그림(gradEdge)은 칸이 닿는 지면 변 쪽으로 붙
   assert.equal(Math.round(+m[1] + +m[3]), P.x + P.w, '오른쪽 열: 상자 오른변 = 칸 오른변 = 지면 오른변');
   assert.equal(Math.round(+m[3]), Math.min(P.w, P.h), '상자 = contain 그림 사각형(정사각 그림이면 칸 높이만큼)');
   assert.equal(+m[6], 0, '지면 변 쪽(오른쪽)은 안 녹인다'); assert.ok(+m[5] > 0, '글자 쪽(왼쪽)은 녹인다');
-  // 그라데이션 바탕 캐릭터 일러스트는 11-09 시안 규칙(cover)에서 빠져 10-15 결정(contain)을 지킨다
-  const band = renderAd(ctx, st, specs['jasoseol-m-premium-popup-mo']); const tb = traceOf(band);
+  // bgRule 이 있는 틀에서는 같은 그림이 시안 칸 cover(11-09 (3)) — contain 은 끈 틀에서만
+  assert.ok(traceOf(renderAd(ctx, st, specs['jasoseol-m-premium-popup-mo'])).rules.includes('templateMold.bgRule'));
+  const band = renderAd(ctx, st, noBgRule(specs['jasoseol-m-premium-popup-mo'])); const tb = traceOf(band);
   assert.ok(tb.rules.includes('templateMold.containGrad') && !tb.rules.includes('templateMold.containEdge'), '양쪽 다 닿는 하단 띠는 가운데');
   assert.match(band, /data-melt="[1-9][\d.]*" data-melt-dir="sides" data-melt-right="[1-9][\d.]*"/);
 });

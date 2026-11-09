@@ -7,6 +7,8 @@ import path from 'node:path';
 import { coverFit, coverPos, kvPlacement, kvLayer } from '../core/field.js';
 import { CANON } from '../core/canon.js';
 import { renderArtifact } from '../core/contract.js';
+import { renderAd } from '../core/renderers/ad.js';
+import { adSpecEntries } from '../core/adspecs.js';
 import { registerAll } from '../core/generate.js';
 import { createContext } from '../core/context.js';
 import { normalizeStyle } from '../core/style.js';
@@ -50,7 +52,9 @@ test('렌더: desk-16 × 리멤버 사이드 MO(열) · 자소설 M팝업(띠, �
   assert.doesNotMatch(pc[1], /width:305px;height:219px/);
 });
 
-test('meltFix 주인공 캡: 그 변에서 이미 잘린 주인공도 melt.min(30%) 으로 캡 — hr-doctor × 리멤버 사이드 PC 왼변 48→30 (전에는 캡 없이 55)', () => {
-  const o = objOf(renderArtifact('remember-job-side-pc', ctx, caseStyle('hr-doctor'), {}));
+// 11-09 (3): bgRule(자동 포함) 틀에서는 캐릭터·인물 그림도 시안 칸 cover 라 meltFix 가 안 건드린다 — 예전 경로는 bgRule 을 끈 틀로 검사한다
+const noBgRule = sp => ({ ...sp, rules: { ...sp.rules, safeArea: { ...sp.rules.safeArea, measuredFromTemplate: { ...sp.rules.safeArea.measuredFromTemplate, mold: { ...sp.rules.safeArea.measuredFromTemplate.mold, bgRule: false } } } } });
+test('meltFix 주인공 캡: 그 변에서 이미 잘린 주인공도 melt.min(30%) 으로 캡 — hr-doctor × 리멤버 사이드 PC(bgRule 끔) 왼변 48→30 (전에는 캡 없이 55)', () => {
+  const o = objOf(renderAd(ctx, caseStyle('hr-doctor'), noBgRule(adSpecEntries()['remember-job-side-pc'])));
   assert.match(o[2], /data-melt="30"/); assert.match(o[2], /data-melt-fix="L48→30"/);
 });

@@ -276,12 +276,15 @@ test('캐치 이미지형 틀 — PC 1:5765(서브 20 y56 · 타이틀 40 y93 1�
   { const ti = t2.place.tImage; assert.ok(ti && ti.x + ti.w === 702 && ti.y + ti.h === 428, `그림 칸 = 글자 상자를 피한 오른쪽 아래 칸(10-15 밤 자유 배치): ${JSON.stringify(ti)}`); }
 });
 
-test('틀 그림 칸 + 그라데이션 바탕 일러스트(gradEdge) — contain 바닥 맞춤 + 양옆 녹임, 몸 전체가 보인다(10-15 저녁 사용자: 여우 M팝업·PC메인 몸통 잘림)', () => {
+// 11-09 (3) 시안 대조: bgRule 틀에서는 그라데이션 바탕 캐릭터도 시안 칸 cover(DN 폰 PC팝업) — 10-15 contain 경로는 bgRule 을 끈 틀로 검사
+const noBgRule = sp => ({ ...sp, rules: { ...sp.rules, safeArea: { ...sp.rules.safeArea, measuredFromTemplate: { ...sp.rules.safeArea.measuredFromTemplate, mold: { ...sp.rules.safeArea.measuredFromTemplate.mold, bgRule: false } } } } });
+test('틀 그림 칸(bgRule 끔) + 그라데이션 바탕 일러스트(gradEdge) — contain 바닥 맞춤 + 양옆 녹임, 몸 전체가 보인다(10-15 저녁 사용자: 여우 M팝업·PC메인 몸통 잘림) · bgRule 틀은 cover', () => {
   const E = { flat: true, from: '#6A4FE0', to: '#9B82F2', hex: '#8268E9' };
   const GRAD = { ar: 1, px: [1000, 1000], field: { kind: 'illust', opaque: 1, flatEdges: 4, edges: { top: E, bottom: E, left: E, right: E }, focus: { x: 0.5, y: 0.55, w: 0.7, h: 0.8 } } };
   const st = normalizeStyle({ colors: ['#6D5CF5'], keyVisual: PNG, kvMeta: GRAD });
   for (const id of ['jasoseol-m-premium-popup-mo', 'jasoseol-pc-standard-main-pc', 'jasoseol-pc-premium-jobpost-pc']) {
-    const html = renderAd(ctx, st, specs[id]); const tr = traceOf(html);
+    const on = traceOf(renderAd(ctx, st, specs[id])); assert.ok(on.rules.includes('templateMold.bgRule') && !on.rules.includes('templateMold.containGrad'), id + ' bgRule 틀은 cover');
+    const html = renderAd(ctx, st, noBgRule(specs[id])); const tr = traceOf(html);
     assert.equal(tr.mode, 'templateMold', id);
     assert.ok(tr.rules.includes('templateMold.containGrad'), id + ' ' + tr.rules.join(','));
     // 10-20: 윗변 색이 지면과 다르면 윗변 녹임(to bottom)이 더 붙을 수 있고, meltFix 가 그림 변에 맞춰 길이를 소수로 적을 수 있다(data-melt="48.2")

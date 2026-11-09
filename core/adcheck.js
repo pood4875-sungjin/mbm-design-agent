@@ -158,6 +158,7 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
   const M = CANON.melt;
   if (M && !cutoutKv && fieldCols.length && kvMeta?.field?.edges) {
     for (const o of objs) {
+      if (o.el.hasAttribute('data-bgrule')) continue;   // 11-09 시안 bgRule 칸(docs/jasoseol-bg-rules-1109.md): 녹임 길이(27%·26/38%·37~53%)가 사용자 시안 실측이라 CANON.melt(43~55%) 자로 재지 않는다(전수 720장 short-melt 113건이 전부 이 칸)
       const cs = getComputedStyle(o.el); const mk = cs.webkitMaskImage && cs.webkitMaskImage !== 'none' ? cs.webkitMaskImage : cs.maskImage;
       if (!mk || mk === 'none') continue;
       for (const g of mk.split(/(?=linear-gradient)/)) {

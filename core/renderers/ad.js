@@ -26,7 +26,7 @@ import { adSpecEntries } from '../adspecs.js';   // 캠페인 공통 메인(리�
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
 import { designOf } from '../design.js';
 import { aiEligible } from '../trackb/analyze.js';
-import { resolveField, brandDeep, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltGradientFrom, meltLength, seamHexes, meltNeed, cutFadePct, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
+import { resolveField, brandDeep, flatLightBg, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltGradientFrom, meltLength, seamHexes, meltNeed, cutFadePct, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
@@ -2211,10 +2211,12 @@ function renderAdBase(ctx, style, spec) {
   //   bgRule 이 없는 틀(다른 매체)은 그림 칸 자리로 같은 규칙을 고른다(autoBgRule — 오른쪽/왼쪽 열 = PC메인, 하단 띠 = 채용공고·M팝업, 오른쪽 아래 모서리 = PC팝업). mold.bgRule:false 면 끔
   const BR = mold?.bgRule === false ? null : (mold?.bgRule ?? autoBgRule(mold, w / (tScale || 1), h / (tScale || 1)));
   if (BR && !mold?.bgRule) fired('templateMold.bgRuleAuto');
-  //   그라데이션 바탕의 캐릭터 일러스트는 몸 전체가 보이게 contain(10-15 저녁 사용자 결정 — 여우 M팝업·PC메인) — 시안 규칙(cover)에서 뺀다
-  const gradChar = !!(kvTypeOf(style.kvMeta)?.flags.gradEdge && kvTypeOf(style.kvMeta)?.flags.character);
-  const brImage = !!(BR && tImage && hasKv && !isCutout && !transparent && !logoAsObject && !(tImage.radius != null) && !gradChar);
-  if (BR && !ED?.bgGrad && field?.gradient && !field.align && !photoFull && !roomFull && !textureFull && field.stops.length > 1) {
+  //   11-09 (3) 시안 대조(_out/figma-1109/compare): 그라데이션 바탕 캐릭터(10-15 contain 결정)도 bgRule 틀에서는 시안대로 cover — DN 폰 PC팝업이 contain + cutFade 로 작아졌다. contain 은 bgRule 없는 규격(mold.bgRule:false·안쪽 상자·둥근 칸)에만(moldContain)
+  //   밝은 단색 바탕 RGB 그림(flatLight — 세아 항만, 사진으로 분류)은 바탕 있는 그림으로 본다: 시안 칸 cover, 지면 = 바탕색(kv-edge)이라 후광·녹임이 안 보인다
+  const flatLight = kvKind === 'photo' && flatLightBg(style.kvMeta?.field);
+  const brImage = !!(BR && tImage && hasKv && !isCutout && !transparent && !logoAsObject && !(tImage.radius != null));
+  // 사람이 편집기에서 정한 그라데이션(source manual-gradient — 각도·정지점)은 그대로. 규칙 각도는 자동 지면(kv·palette·brand)에만 — 카카오만 225° 로 보이던 실제 원인은 bgRule 이 직접 각도를 135° 로 덮은 것
+  if (BR && !ED?.bgGrad && field?.gradient && !field.align && field.source !== 'manual-gradient' && !photoFull && !roomFull && !textureFull && field.stops.length > 1) {
     const ang = brImage ? (BR.gradImage ?? BR.grad) : BR.grad;
     if (Number.isFinite(ang)) { field = { ...field, angle: ang, css: `linear-gradient(${ang}deg,${field.stops[0]} 0%,${field.stops[field.stops.length - 1]} 100%)` }; if (TR.field) TR.field = { ...TR.field, angle: ang, css: field.css }; fired('templateMold.bgRuleGrad'); }
   }
@@ -2441,7 +2443,9 @@ function renderAdBase(ctx, style, spec) {
     const pc = v => `${Math.round(v * 1000) / 10}%`;
     const grads = (BR.fade ?? []).map(f => f.mid == null ? `linear-gradient(${inward[f.side]},transparent 0%,#000 ${pc(f.frac)})` : `linear-gradient(${inward[f.side]},transparent 0%,rgba(0,0,0,0.2) ${pc(f.frac * f.mid)},#000 ${pc(f.frac)})`);
     const c = coverPos(style, r.w, r.h, { fallback: kvPos, headroom: 0.04 });
-    if (c.fit) { fired('templateMold.bgRuleFitBack'); return null; }   // 칸 cover 가 주인공을 60% 미만만 보이면(11-02 컨시어지 #2 보일 부분 규칙) 시안 칸 대신 예전 보정(칸을 그림 크기로)
+    // 칸 cover 가 주인공을 60% 미만만 보이면(11-02 컨시어지 #2 보일 부분 규칙) 시안 칸 대신 예전 보정(칸을 그림 크기로) — 11-09 (3) 좁힘: 주인공 상자가 있는 사진에서 그 상자를 잘라야만 할 때만.
+    //   바탕 있는 그림(일러스트·밝은 단색 바탕 flatLight)은 상자가 그림 거의 전부(한림 알약 100×80%)라 시안 칸(0,355 160×245 + 53% 녹임)이 예전 칸(0,400 160×200 + 긴 곡선 녹임)으로 되돌아갔다 — 시안 칸 우선
+    if (c.fit && kvKind === 'photo' && !flatLight) { fired('templateMold.bgRuleFitBack'); return null; }
     const fr = side => Math.round(((BR.fade ?? []).find(f => f.side === side)?.frac ?? 0) * 100);
     const mR = fr('right'), mL = fr('left'), mT = fr('top');
     const meltA = mR ? ` data-melt="${mR}" data-melt-dir="to left"` : mL ? ` data-melt="${mL}" data-melt-dir="to right"${mT ? ` data-melt-top="${mT}"` : ''}` : mT ? ` data-melt="${mT}" data-melt-dir="to bottom"` : '';

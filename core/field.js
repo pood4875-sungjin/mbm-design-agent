@@ -16,6 +16,17 @@ import { kvTypeOf } from './kvtypes.js';
 
 const ROUGH_MAX = 0.035;   // 이보다 거칠면 "바탕"이 아니라 사진의 디테일이다
 const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션이라 부른다
+// 11-09 흰/밝은 단색 바탕 RGB 그림(세아 항만 아이소 — 흰 종이 위 그림): palette.js 의 변 판정은 「평평」(std < 15)에 못 미쳐(std 22~32) 사진으로 분류되고, 그러면 지면이 kv-vivid 파랑이 되어
+//   흰 바탕이 파란 지면 위에 후광 사각형으로 드러났다(자소설 M팝업·네이버 DA·리멤버·잡다, _out/figma-1109/compare). 시안은 흰 지면에 누끼처럼 얹는다.
+//   판정: 불투명 바탕 그림(누끼 아님)의 네 변 중 셋 이상이 ① 결 없이(rough ≤ ROUGH_MAX·색 편차 std ≤ 40) ② 밝고(상대 휘도 ≥ .8) ③ 서로 같은 색(거리 ≤ .08)이면 「밝은 단색 바탕」 — 그 변들을 평평한 변으로 보고 지면 = 그 바탕색(kv-edge).
+export const FLAT_LIGHT = { std: 40, rough: ROUGH_MAX, lum: 0.8, same: 0.08, edges: 3 };
+export function lightFlatEdge(x) { return !!(x?.hex && (x.opaque ?? 0) >= 0.9 && (x.rough ?? 1) <= FLAT_LIGHT.rough && (x.std ?? 99) <= FLAT_LIGHT.std && relLum(x.hex) >= FLAT_LIGHT.lum); }
+export function flatLightBg(f) {
+  if (!f || (f.opaque ?? 1) < 0.5 || f.kind === 'cutout' || f.kind === 'texture') return false;
+  const es = ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).filter(lightFlatEdge);
+  if (es.length < FLAT_LIGHT.edges) return false;
+  return es.every(a => es.every(b => colorDistance(a.hex, b.hex) <= FLAT_LIGHT.same));
+}
 
 // facing: 이미지가 글자 쪽으로 맞닿는 변 — 이미지가 오른쪽에 있으면 'left', 아래에 있으면 'top', 왼쪽에 있으면 'right'
 // lightPhoto: 사진도 밝은 지면에 녹이는 매체(구글 일화 사옥 → 흰 지면). 자소설은 밝은 매체여도 사진은 브랜드색 지면(한독 → 파랑)
@@ -83,9 +94,10 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   let stops = null, angle = 180, source = null, seamless = false, align = null, deviation = null;   // deviation: 이 규격이 캠페인 공통 지면에서 벗어난 이유(규정·모드) — 없으면 null(10-20)
 
   // 지면을 정하는 순서: ① 직접 고른 색 → ② 배경을 품은 일러스트의 가장자리 색(이음매가 없어야 하니 로고보다 우선) → ③ 흰색 로고만 있으면 어두운 브랜드색 → ④ 사진·누끼는 브랜드색(밝은 매체면 틴트)
-  const flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX));
+  const flatLight = f?.kind === 'photo' && flatLightBg(f);   // 11-09 밝은 단색 바탕 RGB 그림(세아) — 사진으로 분류된 것만(바탕 있는 일러스트는 이미 kv-edge 경로): 바탕 있는 그림처럼 지면 = 바탕색
+  const flatEdge = x => !!(x?.hex && x.opaque >= 0.9 && (x.flat ?? x.rough <= ROUGH_MAX)) || (flatLight && lightFlatEdge(x));
   const e = f?.edges?.[facing];
-  const hasBg = !!(f && f.kind !== 'photo' && f.opaque >= 0.5);
+  const hasBg = !!(f && (f.kind !== 'photo' || flatLight) && f.opaque >= 0.5);
   // 글자 쪽 변은 그림이 걸쳐 있지만 다른 변이 평평하면(한미글로벌 3D: 위는 흰 바탕, 왼쪽은 글자가 가로지름) 그 바탕색이 지면이다.
   // 대표색을 쓰면 그림의 흰 바탕이 상자처럼 드러나고, 오브젝트가 오른쪽인 규격과 아래인 규격의 지면색이 달라진다(구글 GDN 5규격은 지면색이 같다 28/28)
   const other = (hasBg && !flatEdge(e)) ? ['top', 'bottom', 'left', 'right'].map(k => f.edges?.[k]).find(flatEdge) : null;
@@ -100,7 +112,11 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   else if (style.colorsManual && p.primary) { const sec = p.secondary && p.secondary.toUpperCase() !== p.primary.toUpperCase() ? p.secondary : null; stops = [p.primary, sec ?? shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
   else if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
   // 그림 변 지면(kv-edge): 규격(facing)과 무관하게 그림 네 변에서 한 번 정한다(edgeField, 10-20 캠페인 공통 지면). seamless 는 배치용(글자 쪽 변이 평평해 그 변을 기준으로 붙인다) — 색은 바꾸지 않는다
-  else if (hasBg && (flatEdge(e) || other)) { const ef = edgeField(f, { flatEdge }); stops = ef.stops; angle = ef.angle; align = ef.align; source = 'kv-edge'; seamless = flatEdge(e); }
+  else if (hasBg && (flatEdge(e) || other)) {
+    // 밝은 단색 바탕(flatLight)은 단색으로 — 종이 결의 미세한 명도 차(from→to)를 그라데이션으로 만들지 않는다. 글자 쪽 변이 밝은 바탕이면 그 변, 아니면 왼쪽→위→오른쪽→아래 순
+    const ef = flatLight ? { stops: [(lightFlatEdge(e) ? e : ['left', 'top', 'right', 'bottom'].map(k => f.edges?.[k]).find(lightFlatEdge)).hex], angle: 180, align: null } : edgeField(f, { flatEdge });
+    stops = ef.stops; angle = ef.angle; align = ef.align; source = 'kv-edge'; seamless = flatEdge(e);
+  }
   // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변(10-20: facing 변이 아니라 그림 축으로 — 캠페인 공통)
   else if (moodStops(style, e, f)) { const m = moodStops(style, e, f); stops = m.stops; source = m.source; angle = m.angle; align = m.align ?? null; }
   // 비주얼 우선 지면(CANON kvHarmony, 10-16): 사진은 글자 쪽 변 색, 누끼는 대표색 — 어두운 매체는 흰 글자 4.5:1 까지 어둡힌 같은 색상, 밝은 매체는 옅은 틴트. 브랜드색은 포인트에만
