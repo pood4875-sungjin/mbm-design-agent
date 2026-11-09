@@ -14,9 +14,19 @@ export const PRESETS = {
   kvSize: { label: '키비주얼 크기', choices: { auto: '자동', sm: '작게', md: '보통', lg: '크게' } },
   textAlign: { label: '글자 정렬', choices: { auto: '자동', left: '왼쪽', center: '가운데', right: '오른쪽' } },   // 10-19 가로 정렬 — 키비주얼·로고 자리가 따라간다(core/alignrule.js). 규정 매체·글자 없는 규격은 잠김
   textAnchor: { label: '글자 세로 위치', choices: { auto: '자동', top: '위', center: '가운데', bottom: '아래' } },
-  bgFill: { label: '배경', choices: { auto: '자동', brand: '브랜드색', kv: '키비주얼 배경 이어 칠하기', custom: '직접 색' } },
+  bgFill: { label: '배경', choices: { auto: '자동', brand: '브랜드색', kv: '키비주얼 배경 이어 칠하기', light: '밝은 지면(반전)', custom: '직접 색' } },   // light(11-09 결정 1): 누끼 = 흰색 + 브랜드 ≤ 3%(L* ≥ 98), 사진 = 이음 쪽 톤 옅게(L* 92~95) · 글자 브랜드 딥(core/field.js lightFieldOf)
   bgGrad: { label: '그라데이션', choices: { auto: '자동', none: '없음', v: '세로', h: '가로', d: '대각' } },
   scrim: { label: '스크림 세기', choices: { auto: '자동', none: '없음', low: '약', mid: '중', high: '강' } },
+  // 정보 태그(11-09 시안 슬롯 ②, docs/variant-types-1109.md): 기본안은 「날짜·라벨은 알약을 두르지 않는다」 — 사람이 고르거나 안(variant)으로만 켠다. 규정 매체는 잠김
+  infoTag: { label: '정보 태그', choices: { auto: '없음', date: '날짜 알약', label: '라벨 태그', both: '라벨 + 날짜' } },
+  tagShape: { label: '태그 모양', choices: { auto: '자동', pill: '알약', square: '각진' } },   // 자동 = 날짜 알약 · 라벨 각진(반지름 = 높이 × 0.12, 결정 3)
+};
+// 정보 태그 수치(피그마 8436:3892 실측) — 글자 = 메인 × 0.36~0.55, 높이 = 글자 × 1.64~2.29(날짜) / 1.30~1.56(라벨), 각진 반지름 = 높이 × 0.10~0.14
+export const INFO_TAG = { fsMin: 0.36, fsMax: 0.55, dateH: 1.9, labelH: 1.45, squareR: 0.12, datePadX: 0.8, labelPadX: 0.5, labelFs: 0.92 };
+export const infoTagOf = style => {
+  const v = style?.infoTag; if (!['date', 'label', 'both'].includes(v)) return null;
+  const sh = ['pill', 'square'].includes(style?.tagShape) ? style.tagShape : null;
+  return { date: v === 'date' || v === 'both', label: v === 'label' || v === 'both', dateShape: sh ?? 'pill', labelShape: sh ?? 'square', key: v };
 };
 export const PRESET_KEYS = Object.keys(PRESETS);
 // 크기 배율 — 보통 = 규칙이 정한 기본 크기(자동은 여기에 「빈 곳 채우기」 키움까지 더한다)
@@ -197,6 +207,14 @@ export function bgAvail(spec, opt, ctx = {}) {
   if (['bg-room', 'bg-texture', 'bg-frame'].includes(mode) && opt !== 'custom' && opt !== 'brand') return { ok: false, why: '그림이 곧 지면' };
   if (['bg-room', 'bg-texture', 'bg-frame'].includes(mode)) return { ok: false, why: '그림이 곧 지면 — 스크림으로 조절' };
   if (opt === 'kv' && !g.hasKv) return { ok: false, why: '키비주얼 없음' };
+  if (opt === 'light' && mode === 'full') return { ok: false, why: '사진 전체형 — 지면이 사진 위 스크림' };
+  return { ok: true };
+}
+// 정보 태그 — 규정 매체(공식 템플릿 틀)·글자 없는 규격은 잠김
+export function infoTagAvail(spec, opt, ctx = {}) {
+  if (opt === 'auto') return { ok: true };
+  if (spec?.mediumRules?.fonts?.required) return { ok: false, why: '규정 매체(공식 템플릿 틀)' };
+  if (ctx.gate?.logoOnly) return { ok: false, why: '로고 전용 규격' };
   return { ok: true };
 }
 
@@ -226,7 +244,7 @@ export function traceOfHtml(html) {
 }
 
 // 가이드 규칙 ✗ 를 「규칙대로 고치기」 하면 지울 편집 — 그 규칙 값에 닿는 프리셋·직접 수정
-const K = { place: 'kvPlace', size: 'kvSize', anchor: 'textAnchor', align: 'textAlign', fill: 'bgFill', grad: 'bgGrad', scrim: 'scrim', kv: 'layout.kv', text: 'layout.text', logo: 'layout.logo' };
+const K = { place: 'kvPlace', size: 'kvSize', anchor: 'textAnchor', align: 'textAlign', fill: 'bgFill', grad: 'bgGrad', scrim: 'scrim', tag: 'infoTag', kv: 'layout.kv', text: 'layout.text', logo: 'layout.logo' };
 const KV_ALL = [K.place, K.size, K.kv];
 export const RULE_EDIT_KEYS = {
   'objectBleed.area': KV_ALL, 'objectBleed.cut': KV_ALL, 'objectBleed.vis': KV_ALL, 'objectBleed.minTextCol': [...KV_ALL, K.text],
@@ -240,7 +258,7 @@ export const RULE_EDIT_KEYS = {
   hierarchy: [K.place, K.size], 'main.lines': [K.place, K.size],
   logoCap: [K.logo], 'logo.tone': [K.fill, K.logo], wideLogo: [K.logo, K.place], 'guide.logo.h': [K.logo],
   'check.textOverSubject': [...KV_ALL, K.text, K.anchor, K.align], 'check.emptyBand': [...KV_ALL, K.text, K.anchor], 'check.logoCovered': [...KV_ALL, K.logo, K.align],
-  'check.hardCut': [...KV_ALL, K.fill], 'check.textClipped': [K.text, K.anchor, K.place, K.size], 'check.chipOverflow': [K.text, K.place, K.size], maxUpscale: [K.size, K.kv],
+  'check.hardCut': [...KV_ALL, K.fill], 'check.textClipped': [K.text, K.anchor, K.place, K.size, K.tag], 'check.chipOverflow': [K.text, K.place, K.size, K.tag], maxUpscale: [K.size, K.kv],
   // 가이드 배치(10-14): 글자 칸·시작선·로고 자리·직접 수정 이탈·권장 여백 — 직접 수정을 지운다. 글자 정렬·키비주얼 위치·크기 프리셋이 글자를 칸 밖으로 밀었으면(우하단 그림 위로 내린 정렬, 580×400 「아래」 띠에서 넘친 상세) 그것도
   'place.textZone': [K.text, K.anchor, K.place, K.size, K.align], 'place.textAlign': [K.text, K.align], 'place.logoSlot': [K.logo, K.align], 'place.manualDrift': [K.text, K.logo, K.kv], 'place.recommendedMargin': [K.text, K.logo, K.anchor],
 };

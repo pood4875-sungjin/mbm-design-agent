@@ -22,21 +22,21 @@ test('안 수는 등급·규정으로 정해진다: 규정 매체(fonts.required
   assert.equal(variantCountFor(specs['daangn-native-feed-image']), CANON.variants.free);
   assert.equal(variantCountFor(specs['naver-gfa-native-mo-342x228']), 1, '비주얼만(B) 파일 규격은 1안');
   assert.equal(variantCountFor(specs['blind-brand-logo']), 1, '로고만(B) 파일 규격은 1안');
-  assert.ok(CANON.variants.free <= 3 && CANON.variants.default <= 3);
+  assert.equal(CANON.variants.default, 4, '기본안 + 추가 3안(11-09 「소재마다 최소 3개의 추가 시안」)'); assert.ok(CANON.variants.free >= 4);
 });
 
 test('후보는 프리셋 조합이고 첫 안은 늘 기본안(빈 style)이다 — 순서가 곧 우선순위', () => {
   assert.deepEqual(CANDIDATE_ORDER[0], {});
-  for (const c of CANDIDATE_ORDER) for (const k of Object.keys(c)) assert.ok(['kvPlace', 'kvSize', 'textAlign', 'bgFill', 'textTone'].includes(k), k);
+  for (const c of CANDIDATE_ORDER) for (const k of Object.keys(c)) assert.ok(['kvPlace', 'kvSize', 'textAlign', 'bgFill', 'textTone', 'infoTag', 'tagShape'].includes(k), k);
 });
 
 test('구글 580(템플릿 틀·누끼 — 위치 프리셋은 안 서고 정렬·배경만 선다): 기본안 + 서로 다른 안 ≥ 2, 적용 안 된 프리셋(ignored)·안 서는 위치(place.ok false)·겹침 실패(overlapFix.fail)·같은 그림(hash 중복)은 걸러진다', () => {
   const vs = variantCandidates('google-gdn-580x400', ctx, style);
-  assert.ok(vs.length >= 3 && vs.length <= CANON.variants.default, `${vs.length}안`);
+  assert.equal(vs.length, CANON.variants.default, `${vs.length}안`);
   assert.deepEqual(vs[0].style, {}); assert.equal(vs[0].label, '기본안');
   const hashes = vs.map(v => v.hash); assert.equal(new Set(hashes).size, hashes.length, '같은 그림이 두 번 들어가면 안 된다');
   for (const v of vs) { assert.ok(!v.trace.rules.includes('overlapFix.fail'), v.label); assert.ok(!(v.trace.edit?.ignored ?? []).some(x => Object.keys(v.style).some(k => String(x).startsWith(k + '('))), `${v.label}: 프리셋이 무시됨 ${JSON.stringify(v.trace.edit?.ignored)}`); }   // 「키(사유)」= 통째로 무시. 「textAlign.kv(…)」는 틀 칸 메모(부분 적용)라 허용
-  assert.ok(vs.slice(1).every(v => v.style.tpl), '자유 규격의 안은 시안 틀이다(11-02)');
+  assert.deepEqual(vs.slice(1).map(v => v.slot).sort(), ['A', 'B', 'C'], '기본안 + 슬롯 A(정렬·비주얼) · B(태그) · C(밝은 지면) — 11-09'); for (const v of vs.slice(1)) assert.ok(v.sub, `${v.label} 부제`);
   for (const v of vs) if (v.style.kvPlace) assert.equal(v.trace.edit?.place?.ok, true, v.label);
 });
 

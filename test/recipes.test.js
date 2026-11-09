@@ -52,12 +52,12 @@ test('전면 시안은 누끼에 내지 않고 사진에는 먼저 낸다', () =
   assert.equal(frameFor(photo[0], specs['instagram-feed-1080']).full, true);
 });
 
-test('자동 안은 기본안 포함 최대 3개이고 시안 이름으로 나온다', () => {
-  for (const id of Object.keys(specs)) assert.ok(variantCountFor(specs[id]) <= 3, id);
+test('자동 안은 기본안 포함 최대 4개(기본안 + 3슬롯), 슬롯이 실패하면 시안 틀로 채운다', () => {
+  for (const id of Object.keys(specs)) assert.ok(variantCountFor(specs[id]) <= 4, id);
   const vs = variantCandidates('google-gdn-580x400', ctx, styleOf(CUT));
-  assert.equal(vs.length, 3);
+  assert.equal(vs.length, 4);
   assert.deepEqual(vs[0].style, {}, '첫 안은 기본안');
-  for (const v of vs.slice(1)) { assert.ok(v.style.tpl); assert.match(v.label, /^(기본 타이포|타이포 강조) · .+ · .+ · .+ 지면$/, '라벨은 네 축(11-06): ' + v.label); assert.ok(v.axes?.layout); }
+  for (const v of vs.slice(1)) { assert.ok(['정렬·비주얼 바꿈', '일정 태그 강조', '밝은 지면', '지면 반전'].includes(v.label) || /^(기본 타이포|타이포 강조) · .+ · .+ · .+ 지면$/.test(v.label), '라벨: ' + v.label); assert.ok(v.axes?.layout); }
   const [a, b] = recipeStyles(specs['google-gdn-580x400'], CUT, true, 'GS에너지').map(s => familyById(s.tpl));
   assert.notEqual(a.typo, b.typo, '타이포 특징이 다르다');
 });

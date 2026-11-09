@@ -119,8 +119,10 @@ test('틀 규격(블라인드 게시글 1250×560 · 구글 580×400): 글자 �
       if (kv === 'ilhwa-photo') { assert.match(R, /data-melt-dir="to left"/, '사진 모서리 칸의 녹임 방향도 거울'); assert.doesNotMatch(R, /data-object="1"[^>]*data-melt-dir="to right"/); }
       const C = renderAd(ctx, { ...st, textAlign: 'center' }, sp), tC = traceOfHtml(C);
       assert.deepEqual([...fieldAligns(C)], ['center']); assert.equal(tC.place.zone.align, 'center');
-      assert.equal(tC.edit.align.mold.kv, 'keep', '날짜 줄과 세로로 겹치는 모서리 칸은 원자리'); assert.equal(objLeftAny(C), x0);
-      assert.ok(tC.edit.ignored.some(s => /textAlign\.kv/.test(s)));
+      // 11-09 사용자 기준: 가운데 정렬에서 비주얼을 오른쪽 칸에 두지 않는다 — 누끼는 글자 아래 빈 띠 가운데(자리가 없으면 원자리 + 안에서 거름), 이미지는 지면 가득(cover + 위→아래 스크림)
+      if (kv === 'ilhwa-photo') { assert.equal(tC.edit.align.mold.kv, 'full'); assert.equal(tC.place.mode === 'full' || tC.gate?.photoFull, true, `${sid} 이미지 가운데 = 지면 가득`); assert.ok(tC.rules.includes('align.centerFull')); }
+      else if (tC.edit.align.mold.kv === 'center-below') { const m = C.match(/<div data-object="1"[^>]*style="[^"]*?left:(-?\d+)px;[^"]*?width:(\d+)px/); assert.ok(Math.abs(Number(m[1]) + Number(m[2]) / 2 - w / 2) <= 2, `${sid} 누끼가 가로 가운데`); }
+      else { assert.equal(tC.edit.align.mold.kv, 'keep'); assert.ok(tC.edit.ignored.some(s => /textAlign\.kv/.test(s))); }
     }
   }
   // 글자 줄 아래에 칸이 따로 있는 틀(NAP 300×250): 가운데 → 칸·로고 가로 가운데

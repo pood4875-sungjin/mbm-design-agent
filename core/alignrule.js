@@ -74,9 +74,14 @@ const overlapArea = (a, b) => rectOverlap(a, b) ? (Math.min(a.x + a.w, b.x + b.w
 // 틀 그림 칸·로고 칸을 정렬에 맞춰 옮긴다(렌더 시 변환). free: 그림 칸이 틀 데이터가 아니라 「글자 상자를 피한 가장 큰 빈 칸」(templateMold.freeKv)이면
 //   오른쪽 정렬일 때 왼쪽 아래에 붙는 가장 큰 빈 칸을 다시 찾고(렌더러와 같은 20% 문턱), 없으면 원자리.
 // 돌려주는 것: { tImage, tLogo, kv: 'mirror'|'center'|'keep'|null, logo: 'mirror'|'center'|'keep'|null, notes: [] }
-export function alignMoldSlots({ mold, w, h, k = 1, tImage, tLogo, align, free = false }) {
+export function alignMoldSlots({ mold, w, h, k = 1, tImage, tLogo, align, free = false, cutout = false }) {
   const out = { tImage, tLogo, kv: null, logo: null, notes: [] };
-  if (!mold || !isAlign(align) || align === 'left') return out;
+  if (!mold || !isAlign(align)) return out;
+  // 가운데 틀(구글 300×600)을 왼쪽 정렬로: 그림 칸은 그대로(결정 2 — 세로형은 아래 칸 유지), 오른쪽 위 로고만 정렬 쪽(왼쪽 위)으로 — 시안 B·C 「로고가 글자 쪽으로」(11-09)
+  if (align === 'left') {
+    if ((mold.align === 'center' || mold.align === 'right') && tLogo && tLogo.x + tLogo.w / 2 > w / 2) { out.tLogo = mirrorSlot(tLogo, w, 'right'); out.logo = 'mirror'; }
+    return out;
+  }
   const boxes = moldTextBoxes(mold, { w, k });
   if (tImage) {
     if (free) {
@@ -87,8 +92,11 @@ export function alignMoldSlots({ mold, w, h, k = 1, tImage, tLogo, align, free =
     } else if (align === 'right') { out.tImage = mirrorSlot(tImage, w, 'right'); out.kv = 'mirror'; }
     else {
       const c = mirrorSlot(tImage, w, 'center');
-      if (boxes.some(b => yOverlap(b, c))) { out.kv = 'keep'; out.notes.push('kv(가운데 칸이 글자 줄과 겹쳐 원자리 유지)'); }
-      else { out.tImage = c; out.kv = 'center'; }
+      // 누끼·오브제(11-09 사용자 기준 「글자와 함께 가운데 — 글자 아래 여유 공간에 맞춰 크기 조정, 겹침 0」): 가운데 칸이 글자 줄과 겹치면 글자 아래 빈 띠(폭 전체, 높이 ≥ 20%)에 담는다
+      const below = cutout ? belowText(boxes, w, h) : null;
+      if (!boxes.some(b => yOverlap(b, c))) { out.tImage = c; out.kv = 'center'; }
+      else if (below) { out.tImage = below; out.kv = 'center-below'; }
+      else { out.kv = 'keep'; out.notes.push('kv(가운데 칸이 글자 줄과 겹쳐 원자리 유지)'); }
     }
   }
   if (tLogo) {
@@ -101,6 +109,12 @@ export function alignMoldSlots({ mold, w, h, k = 1, tImage, tLogo, align, free =
     else { out.logo = 'keep'; out.notes.push('logo(가운데 자리가 글자·그림 칸과 더 겹쳐 원자리 유지)'); }
   }
   return out;
+}
+// 글자 상자 아래 폭 전체 빈 띠 — 높이가 지면의 20% 이상일 때만(누끼 가운데 정렬 자리)
+export function belowText(boxes, w, h) {
+  if (!boxes.length) return null;
+  const gap = Math.round(Math.min(w, h) * 0.03), y0 = Math.max(...boxes.map(b => b.y + b.h)) + gap;
+  return h - y0 >= h * 0.2 ? { x: 0, y: Math.round(y0), w, h: Math.round(h - y0) } : null;
 }
 // 좌우 낱말 뒤집기 — 틀 로고 칸 안 정렬(mold.logo.align right ↔ left)
 export const flipLR = v => ({ right: 'left', left: 'right' }[v] ?? v);

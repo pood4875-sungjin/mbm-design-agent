@@ -20,10 +20,11 @@ import { registerAll, generateArtifacts, logEvent, artifactKey } from '../core/g
 import { propagate } from '../core/propagate.js';
 import { approvalGate, STATE_LABEL } from '../core/gate.js';
 import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
-import { htmlHash, templateChoices } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
+import { htmlHash, templateChoices, variantSubOf } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
 import { rasterize, rasterizeCanvas, download, downloadText, openPrintPdf } from './raster.js';
-import { createFreeDesign, freeFontIds } from './freedesign.js';   // 11-05 「대화로 시안 뽑기」 — Claude 가 만든 자유 시안(배경·타이포 HTML)을 안(kind 'free')으로 쓰고 저장해 재사용
+import { createFreeDesign, freeFontIds } from './freedesign.js';
+import { createAiDesign } from './aidesign.js';   // 11-09 인스펙터 「AI 디자인」 칸 — 제안·말로 고치기·펼치기(docs/ai-design-flow.md)   // 11-05 「대화로 시안 뽑기」 — Claude 가 만든 자유 시안(배경·타이포 HTML)을 안(kind 'free')으로 쓰고 저장해 재사용
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
@@ -181,6 +182,7 @@ const FREE = createFreeDesign({
   toast: t => toast(t), log: t => log(t), useFree: (a, f) => useFree(a, f), artLabel: a => artLabel(a), renderArtifact, checkAdDoc,
   onFreeSuggest: a => { if (a && state.selected === (a.key ?? a.specId) && !$('inspector').contains(document.activeElement)) renderInspector(); },   // AI 제안 도착(11-06) — 그 산출물을 보고 있으면 인스펙터 다시 그려 「다른 시안 보기」·배지 갱신
 });
+const AID = createAiDesign({ state, SPECS, $, escH: s => escH(s), previewDoc: (h, f) => previewDoc(h, f), toast: t => toast(t), log: t => log(t), artLabel: a => artLabel(a), FREE, frames });
 // 자유 시안을 소재의 안(variants kind 'free')으로 넣고 고른다 — 안 style 은 { free:{ id, tpl, texts, notes, logoTone } } 하나뿐이라 안 바꾸기(이전 안 키 지우기)와 같은 길을 탄다
 function useFree(a, free) {
   const c = state.campaign;
@@ -402,7 +404,7 @@ function modal({ title, desc, body, actions, wide = false }) {
 }
 // 시안 고르기 창(11-03 사용자 「작아서 안 보임, 모달로」). 그림은 보이는 칸부터 그린다(시안마다 키비주얼을 통째로 담아 무겁다)
 function openTplPicker({ title, choices, nw, nh, current, docOf, onPick, returnTo }) {
-  const wide = nw / nh > 1.5, cardW = wide ? 420 : 280, k = Math.min(cardW / nw, 360 / nh);
+  const wide = nw / nh > 1.5, cardW = Math.min(window.innerWidth - 80, wide ? 640 : 400), k = Math.min(cardW / nw, Math.min(520, window.innerHeight * 0.6) / nh);   // 11-09 「크게」: 카드 폭 가로형 640 · 그 밖 400(화면 안), 높이 상한 520
   const root = document.createElement('div'); root.id = 'tplPicker';
   root.innerHTML = `<div class="tp-panel" role="dialog" aria-modal="true" aria-labelledby="tpTitle"><div class="tp-head"><h3 id="tpTitle">${escH(title)}</h3><span class="tp-n">${choices.length}개</span><button class="btn" id="tpClose">닫기</button></div><div class="tp-grid" style="--tp-w:${Math.round(nw * k)}px"></div></div>`;
   const grid = root.querySelector('.tp-grid');
@@ -412,7 +414,7 @@ function openTplPicker({ title, choices, nw, nh, current, docOf, onPick, returnT
     const b = document.createElement('button'); b.type = 'button'; b.className = 'tp-card'; const on = (ch.style.tpl ?? ch.style.free?.id ?? null) != null && (ch.style.tpl ?? ch.style.free?.id) === current; if (on) { b.classList.add('on'); b.setAttribute('aria-current', 'true'); }
     const bx = document.createElement('span'); bx.className = 'tp-box'; bx.style.cssText = `width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px`;
     const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.dataset.i = i; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.style.transform = `scale(${k})`;
-    const lb = document.createElement('span'); lb.className = 'tp-lab'; lb.textContent = on ? `${ch.label} · 지금 안` : ch.label; if (ch.sub) lb.title = ch.sub;   // 라벨은 네 축(11-06), 원래 시안 이름은 툴팁
+    const lb = document.createElement('span'); lb.className = 'tp-lab'; lb.textContent = on ? `${ch.label} · 지금 안` : ch.label; if (ch.sub) { lb.title = ch.sub; const sb = document.createElement('small'); sb.style.cssText = 'display:block;color:var(--sub);font-size:11px'; sb.textContent = ch.sub; lb.append(sb); }   // 라벨은 네 축(11-06), 원래 시안 이름은 툴팁
     bx.append(f); b.append(bx, lb); b.onclick = () => { close(); onPick(ch); }; grid.append(b); io.observe(f);
   });
   const onKey = e => {
@@ -3174,15 +3176,13 @@ function renderInspectorBody() {
   const omitA = a.channel === 'ad' ? omitOf(c, a) : [];
   const omitSec = omitA.length ? `<section class="isec"><h3>뺀 요소</h3>${omitA.map(r => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin:4px 0"><span>${OMIT_NAME[r] ?? r}${omitList(a.overrides?.core?.omit).includes(r) ? '' : ' <span style="opacity:.6">(일괄)</span>'}</span>${omitList(a.overrides?.core?.omit ?? null).includes(r) || a.overrides?.core?.omit != null ? `<button type="button" class="lnk" data-unomit="${r}">다시 넣기</button>` : ''}</div>`).join('')}</section>` : '';
   const designSections = state.elSel && a.channel === 'ad' && EL.find(a, state.elSel) ? elementPanelHtml(a, spec, state.elSel) : omitSec + `
-    ${a.channel === 'ad' && SPECS[a.specId]?.rules ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
-      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들고, 말로 고치며 계속 뽑아요. 규칙은 검수기가 강제.</div>
-      <button class="btn" id="iFreeOpen" style="width:100%">대화로 시안 뽑기 — ${escH(artLabel(a))}</button></section>` : ''}
     ${(a.channel === 'ad' && ((a.variants?.length ?? 0) > 1 || FREE.templatesFor(a.specId).length || SPECS[a.specId]?.rules)) ? `<section class="isec isec-var">
       <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
-      <div class="vrow" id="iVariants">${a.variants.map((v, i) => `<button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span></button>`).join('')}</div>
-      <div class="row"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${(templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 || FREE.templatesFor(a.specId).length || FREE.suggestionsFor(a, c).length) ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}${SPECS[a.specId]?.rules ? `<button class="btn" id="iAiMore" hidden title="서버가 백그라운드로 방향 3종(타이포·밝은·어두운)을 만들어요. 끝나면 알림 → 「다른 시안 보기」 맨 앞">AI 추가 제안</button>` : ''}</div>
+      <div class="vrow vrow-big" id="iVariants">${a.variants.map((v, i) => { const sub = v.kind === 'free' ? '' : variantSubOf(v.style, SPECS[a.specId]); return `<div class="vcard"><button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}${sub ? ' — ' + escH(sub) : ''}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span>${sub ? `<span class="vthumb-sub">${escH(sub)}</span>` : ''}</button><button type="button" class="vzoom" data-vz="${i}" aria-label="안 ${i + 1} 크게 보기" title="크게 보기">⤢</button></div>`; }).join('')}</div>
+      <div class="row vbtns"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${(templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 || FREE.templatesFor(a.specId).length || FREE.suggestionsFor(a, c).length) ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}${SPECS[a.specId]?.rules ? `<button class="btn" id="iAiMore" hidden title="서버가 백그라운드로 방향 3종(타이포·밝은·어두운)을 만들어요. 끝나면 알림 → 「다른 시안 보기」 맨 앞">AI 추가 제안</button>` : ''}</div>
       ${SPECS[a.specId]?.rules ? `<span id="iAiJob" data-key="${escH(a.key ?? a.specId)}">${FREE.jobBadge(a)}</span>` : ''}
     </section>` : ''}
+    ${a.channel === 'ad' && SPECS[a.specId]?.rules ? AID.sectionHtml(a) : ''}
     ${a.channel === 'ad' ? `${layerListHtml(a)}
     <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
       ${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}
@@ -3201,7 +3201,7 @@ function renderInspectorBody() {
       <div class="vseg" id="iToneOv">${[['', '공통'], ['light', '흰색'], ['dark', '검정']].map(([k, v]) => { const on = !a.overrides.style?.textColor && (a.overrides.style?.textTone ?? '') === k; return `<button data-tto="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}">${v}</button>`; }).join('')}</div>
       ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 소재만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 소재 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div>${reg ? '<div class="fnote">매체 규정 색 고정 — 직접 지정 불가</div>' : ''}`; })()}
       ${ED.alignArtifactHtml(a)}
-      ${ED.presetArtifactHtml(a, ['textAnchor'], 'inspPresetT')}
+      ${ED.presetArtifactHtml(a, ['textAnchor', 'infoTag', 'tagShape'], 'inspPresetT')}
       ${textRolesHtml(a, spec)}
     </section>
     <section class="isec"><h3>가이드</h3>${guideOvHtml(a) || '<div class="fnote">이 규격은 틀 가이드가 없어요</div>'}</section>` : ''}
@@ -3315,9 +3315,20 @@ function renderInspectorBody() {
   });
   if (a.channel === 'ad') { ED.bindGuideSection(insp, a); ED.bindEditSection(insp, a); ED.bindPresetArtifact(insp, a); ED.bindAlignArtifact(insp, a); bindGuideOv(insp); }
   // 레이아웃 안(10-20): 썸네일은 그 안의 프리셋으로 다시 그린 html 을 작은 iframe 에 — 안은 캠페인 공통 스타일 + 안 프리셋(산출물 개별 편집값은 안 섞는다)
+  if (a.channel === 'ad') AID.bind(insp, a);   // AI 디자인 칸(11-09) — 「대화 창에서 더 뽑기」(FREE.open)도 이 칸 안
   { const fb = $('iFreeOpen'); if (fb) fb.onclick = () => FREE.open(a); }
   if (a.channel === 'ad' && insp.querySelector('#iVariants')) {
-    const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec), k = Math.min(106 / nw, 66 / nh);
+    const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec);
+    // 11-09 사용자 「썸네일이 너무 작다」: 패널 폭에 1~2열(가로로 긴 규격은 1열), 규격 비율 그대로. 높이 상한 240
+    if (!document.getElementById('vthumbStyle1109')) document.head.insertAdjacentHTML('beforeend', `<style id="vthumbStyle1109">#inspector .vrow-big{display:grid;grid-template-columns:repeat(var(--vcols,2),minmax(0,1fr));gap:8px;overflow:visible}#inspector .vrow-big .vcard{position:relative;min-width:0}#inspector .vrow-big .vthumb{width:100%;display:block}#inspector .vrow-big .vthumb-box{width:100%;height:auto}#inspector .vthumb-sub{display:block;font-size:10px;line-height:1.3;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#inspector .vzoom{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;line-height:1;cursor:pointer;opacity:.9}#inspector .vzoom:focus-visible{outline:2px solid var(--focus)}#inspector .vbtns{display:flex;flex-wrap:wrap;gap:6px}#inspector .vbtns .btn{white-space:nowrap;flex:1 1 auto}</style>`);
+    const vrow = insp.querySelector('#iVariants'), cols = nw / nh > 1.5 ? 1 : 2; vrow.style.setProperty('--vcols', cols);
+    const boxW = Math.max(100, Math.floor(((vrow.clientWidth || 300) - 8 * (cols - 1)) / cols) - 10), k = Math.min(boxW / nw, 240 / nh);
+    for (const box of insp.querySelectorAll('.vthumb-box')) box.style.cssText = `width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px`;
+    // 크게 보기(「다른 시안 보기」와 같은 큰 카드 모달) — 고르면 썸네일 클릭과 같다
+    insp.querySelectorAll('#iVariants .vzoom').forEach(z => z.onclick = e => { e.stopPropagation(); const cur = currentVariantIndex(a); openTplPicker({ title: `레이아웃 안 · ${artLabel(a)}`, nw, nh, returnTo: z, current: `vi${cur}`,
+      choices: a.variants.map((v, i) => ({ label: `${i + 1} ${v.label}`, sub: v.kind === 'free' ? '' : variantSubOf(v.style, spec), style: { ...v.style, tpl: `vi${i}` }, vi: i, html: (() => { try { return renderArtifact(a.specId, adEffCtx(a), { ...c.style, ...v.style }, artRenderOpts(a)); } catch { return ''; } })() })),
+      docOf: ch => previewDoc(ch.html, a.variants[ch.vi]?.style?.fonts?.heading ?? artifactFontId(a)),
+      onPick: ch => insp.querySelector(`#iVariants .vthumb[data-vi="${ch.vi}"]`)?.click() }); });
     for (const box of insp.querySelectorAll('.vthumb-box')) {
       const v = a.variants[+box.dataset.vi]; if (!v) continue;
       let html = ''; try { html = renderArtifact(a.specId, adEffCtx(a), { ...c.style, ...v.style }, artRenderOpts(a)); } catch {}   // 보드와 같은 옵션(시안 번호·용도·화살표·규격)

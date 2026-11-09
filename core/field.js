@@ -830,3 +830,46 @@ export function bleedLayer(style, P, w, h) {
   const capped = P.dw >= cutoutCapW(style) - 1;
   return `<div data-object="1" data-bleed="1" style="position:absolute;left:${P.left}px;top:${P.top}px;width:${w - P.left}px;height:${h - P.top}px;background:url('${url}') 0px 0px/${P.dw}px auto no-repeat;--kv-bleed:1${capped ? ';--kv-capped:1' : ''}"></div>`;
 }
+
+// ── 밝은 지면(반전) 시안 — 11-09 결정 1·4(docs/variant-types-1109.md ③, 피그마 8436:3892 실측) ──
+//   누끼·그림 없음: 흰색에 브랜드 주색 ≤ 3%(L* ≥ 98) — H 98.3 · E·G 100.
+//   바탕 있는 그림(사진·일러스트): 이음 쪽 변 색을 흰색으로 풀어 L* 92~95(F 92.4) — 브랜드색이 아니라 사진 톤. 이음 쪽 밝기(상대 휘도) < 0.55 면 안 낸다(어두운 사진을 밝은 지면에 녹이면 뿌옇다 — 시안은 사진을 바꿨다).
+//   글자 = 브랜드 딥(L* 5~20, 지면 대비 ≥ 7:1 — 시안 12~17.5), 강조어 = 브랜드 주색(대비 ≥ 3:1, 못 넘으면 딥). 단색 로고는 딥으로 칠한다(렌더러).
+export const LIGHT_FIELD = { cutL: 98, brandMix: 0.03, photoL: [92, 95], edgeLum: 0.55, deepL: [5, 20], deepContrast: 7, accentContrast: 3 };
+export const lstarOf = hex => { const Y = relLum(hex); return Y > 0.008856 ? 116 * Math.cbrt(Y) - 16 : 903.3 * Y; };
+const HEX6 = /^#[0-9A-Fa-f]{6}$/;
+// 브랜드 딥: 색상·채도는 브랜드 그대로, 명도만 내려 L* ≤ 20 · 지면 대비 ≥ 7 이 되는 가장 밝은 색(L* 5 아래로는 안 내린다)
+export function brandInk(brand, bg = WHITE, K = LIGHT_FIELD) {
+  if (!HEX6.test(brand ?? '')) return '#1A1A1A';
+  const [h, s0, l0] = rgbToHsl(hexToRgb(brand)); const s = Math.min(s0, 0.85);
+  let l = Math.min(l0, 0.4), c = rgbToHex(hslToRgb([h, s, l]));
+  for (let g = 0; g < 80 && (lstarOf(c) > K.deepL[1] || contrast(c, bg) < K.deepContrast) && lstarOf(c) > K.deepL[0]; g++) { l = Math.max(0, l - 0.01); c = rgbToHex(hslToRgb([h, s, l])); }
+  return c.toUpperCase();
+}
+// facing: 이미지가 글자 쪽으로 맞닿는 변(resolveField 와 같은 낱말). 돌려주는 것 { ok, hex, deep, accent, kind, why, edgeLum, L }
+export function lightFieldOf(style, facing = 'left', K = LIGHT_FIELD) {
+  const brand = HEX6.test(style?.palette?.primary ?? '') ? style.palette.primary : null;
+  const f = style?.keyVisual ? style.kvMeta?.field ?? null : null;
+  const cut = !f || (f.opaque ?? 1) < 0.5;
+  let hex, kind, edgeLum = null;
+  if (f && (f.kind === 'texture' || kvTypeOf(style.kvMeta)?.flags?.frame)) return { ok: false, why: '그림이 곧 지면(질감·프레임)', kind: 'texture' };
+  if (cut) {
+    kind = f ? 'cutout' : 'none';
+    let t = brand ? K.brandMix : 0; hex = brand ? mix(WHITE, brand, t) : WHITE;
+    while (t > 0 && lstarOf(hex) < K.cutL) { t = Math.max(0, t - 0.005); hex = mix(WHITE, brand, t); }
+  } else {
+    kind = f.kind === 'photo' ? 'photo' : 'illust';
+    const e = f.edges?.[facing]?.hex ?? f.edges?.left?.hex ?? style.kvMeta?.colors?.[0] ?? null;
+    if (!HEX6.test(e ?? '')) return { ok: false, why: '이음 쪽 색을 못 읽음', kind };
+    edgeLum = Math.round(relLum(e) * 100) / 100;
+    if (edgeLum < K.edgeLum) return { ok: false, why: `이음 쪽 밝기 ${edgeLum} < ${K.edgeLum} — 밝은 지면에 녹이면 뿌옇다`, kind, edgeLum };
+    if (lstarOf(e) >= K.photoL[0]) hex = e;   // 이미 밝은 바탕(흰 종이 일러스트) — 그 색 그대로면 이음매가 없다
+    else { let t = 0.3; hex = mix(e, WHITE, t); while (lstarOf(hex) < K.photoL[0] && t < 0.98) { t += 0.02; hex = mix(e, WHITE, t); } }
+  }
+  hex = String(hex).toUpperCase();
+  const deep = brandInk(brand ?? '#1A1A1A', hex, K);
+  const cr = contrast(deep, hex);
+  if (cr < K.deepContrast) return { ok: false, why: `딥 글자 대비 ${Math.round(cr * 10) / 10} < ${K.deepContrast}`, kind, edgeLum, hex, deep };
+  const accent = brand && contrast(brand, hex) >= K.accentContrast ? brand.toUpperCase() : deep;
+  return { ok: true, hex, deep, accent, kind, edgeLum, L: Math.round(lstarOf(hex) * 10) / 10, contrast: Math.round(cr * 10) / 10 };
+}
