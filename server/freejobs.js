@@ -1,35 +1,61 @@
-// 「AI 추가 제안」 백그라운드 작업(11-06 사용자 결정) — 앱이 /api/freedesign 과 같은 계약으로 작업을 걸어 두고 다른 일을 하다가, 끝나면 노티를 받아 「다른 시안 보기」 맨 앞에서 고른다.
-//   라우트(server/server.mjs 가 handleFreeJobs 한 줄로 위임):
-//     POST /api/freedesign/jobs  body = /api/freedesign 과 같은 계약(+ styles 기본 ['typo','bright','dark'], review 기본 true, campaignId 선택)
-//                                → 바로 { jobId, status:'queued'|'running', position }. 동시에 하나만 돌고 나머지는 FIFO 큐(최대 MAX_QUEUE, 넘치면 429).
-//                                  같은 specId+campaignId 가 이미 queued/running 이면 그 jobId 를 돌려준다(중복 방지).
-//     GET  /api/freedesign/jobs/:id → { id, status:'queued'|'running'|'done'|'failed', specId, campaignId, startedAt, finishedAt, elapsedMs, position, result?, error? }
-//     GET  /api/freedesign/jobs     → { jobs:[…최근 50, result 제외], running, queued }
-//   결과는 메모리 + _out/freedesign-jobs/<id>.json(서버 재시작 뒤에도 GET 가능, _out 은 git 제외). 본문(dataURL)은 파일에 쓰지 않는다.
-//   엔진 호출은 freeDesign(body)(server/freedesign.js) 그대로 — 테스트는 stub 을 deps.freeDesign 으로 넣는다.
-import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'node:fs';
+// 「AI 추가 제안」 백그라운드 작업(11-06 사용자 결정 · 11-09 AI 디자인 트랙 확장 — docs/ai-design-flow.md 「서버 계약」)
+//   앱이 작업을 걸어 두고 다른 일을 하다가, 안이 끝나는 대로(partial) 카드를 채운다.
+//   라우트(server/server.mjs 가 handleFreeJobs · handleFreeExtra 한 줄씩으로 위임):
+//     POST /api/freedesign/jobs  body = /api/freedesign 계약 + mode('suggest'|'revise'|'spread') · prompt · prev · language · specIds · parallel · model · campaignId
+//                                → 바로 { jobId, status:'queued'|'running', position }. 작업은 한 번에 하나(FIFO, 최대 MAX_QUEUE, 넘치면 429) — 작업 안에서는 안·규격마다 병렬(상한 PARALLEL).
+//                                  같은 mode+specId+campaignId 가 이미 queued/running 이면 그 jobId(중복 방지).
+//     GET  /api/freedesign/jobs/:id → { id, status, mode, specId, stage:'queued'|'kv'|'design'|'review'|'done'|'failed', progress:{done,total}, etaMs, partial:[variant…](끝난 순서), elapsedMs, position, result?, error? }
+//     GET  /api/freedesign/jobs     → { jobs:[…최근 50, result·partial 제외], running, queued }
+//     POST /api/freedesign/quick   { html, instruction, specId, brand? } → { ok, html, applied } | { ok:false, reason } — LLM 없음(core/freequick.js)
+//     GET  /api/freedesign/stats   → 최근 50 작업의 모드별 평균(전체·첫 안·호출 ms, 재요청 수, 모델) + 최근 행
+//   결과는 메모리 + _out/freedesign-jobs/<id>.json(재시작 뒤에도 GET), 통계는 _out/freedesign-jobs/stats.jsonl. 본문(입력 dataURL)은 파일에 쓰지 않는다.
+//   엔진: server/freedesign.js runMode(mode) — 테스트는 deps.freeDesign(suggest)·deps.freeRevise·deps.freeSpread stub 을 넣는다. stub 은 (body, hooks) 를 받고 hooks.onVariant/onStage/onCall 을 불러도 된다.
+import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync, appendFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { freeDesign as realFreeDesign, claudeCodeAvailable, DEFAULT_STYLES } from './freedesign.js';
+import { freeDesign as realFreeDesign, freeRevise as realFreeRevise, freeSpread as realFreeSpread, claudeCodeAvailable, DEFAULT_STYLES, API_ENGINE_ENABLED, rulesForSpec } from './freedesign.js';
+import { applyQuick } from '../core/freequick.js';
+import { SPECS } from '../core/contract.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const JOBS_DIR = path.join(ROOT, '_out/freedesign-jobs');
 export const MAX_QUEUE = 5;
 export const LIST_MAX = 50;
+export const MODES = ['suggest', 'revise', 'spread'];
+export const STAGES = ['queued', 'kv', 'design', 'review', 'done'];
+const DEFAULT_ETA = { suggest: 180_000, revise: 45_000, spread: 120_000 };   // 통계가 없을 때 예상 시간
 
 const JOBS = new Map();   // id → job(메모리: body·deps 포함. 공개 필드는 publicJob 으로)
 const QUEUE = [];         // queued 작업 id, FIFO
 let RUNNING = null;       // 지금 도는 작업 id
+const STATS = [];         // 최근 통계 행(메모리) — 파일과 합쳐 50개
 const log = (...a) => console.log('[freejobs]', ...a);
 
 const newId = () => `fj-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-const dedupKey = b => b?.campaignId != null ? `${b.specId}::${b.campaignId}` : null;
+const modeOf = b => MODES.includes(b?.mode) ? b.mode : 'suggest';
+const dedupKey = b => b?.campaignId != null ? `${modeOf(b)}::${b.specId}::${b.campaignId}` : null;
 export const positionOf = id => id === RUNNING ? 0 : QUEUE.indexOf(id) + 1;   // running 0 · 큐 1부터 · 끝났으면 0
+const isLegacyTones = s => Array.isArray(s) && s.length === DEFAULT_STYLES.length && s.every((x, i) => x === DEFAULT_STYLES[i]);
+
+function totalOf(body, mode) { if (mode === 'spread') return (body.specIds ?? []).length || 1; if (mode === 'revise') return 1; return Array.isArray(body.styles) && body.styles.length ? body.styles.length : (typeof body.n === 'number' && body.n >= 1 ? Math.min(6, body.n) : 3); }
+
+// 예상 남은 시간 — 같은 모드 최근 평균(spread 는 규격 수 비례) − 경과. 넘기면 남은 개수 × 평균 호출 시간
+export function etaOf(j, now = Date.now()) {
+  if (j.status === 'done' || j.status === 'failed') return 0;
+  const s = statsSummary().byMode[j.mode];
+  const per = j.mode === 'spread' ? Math.ceil(j.progress.total / 3) : 1;
+  const est = (s?.avgTotalMs ?? DEFAULT_ETA[j.mode]) * (j.mode === 'spread' ? Math.max(1, per) : 1);
+  const el = j.startedAt ? now - j.startedAt : 0;
+  const queuedAhead = j.status === 'queued' ? positionOf(j.id) * (s?.avgTotalMs ?? DEFAULT_ETA.suggest) : 0;
+  const left = est - el;
+  return Math.round(queuedAhead + (left > 0 ? left : Math.max(5_000, (j.progress.total - j.progress.done) * (s?.avgCallMs ?? 30_000) * 0.3)));
+}
 
 export function publicJob(j, { withResult = false } = {}) {
   if (!j) return null;
-  const out = { id: j.id, status: j.status, specId: j.specId, campaignId: j.campaignId ?? null, styles: j.styles, createdAt: j.createdAt, startedAt: j.startedAt ?? null, finishedAt: j.finishedAt ?? null, elapsedMs: j.startedAt ? (j.finishedAt ?? Date.now()) - j.startedAt : 0, position: j.status === 'queued' || j.status === 'running' ? positionOf(j.id) : 0, error: j.error ?? null };
-  if (withResult && j.result) out.result = j.result;
+  const out = { id: j.id, status: j.status, mode: j.mode ?? 'suggest', specId: j.specId, specIds: j.specIds ?? null, campaignId: j.campaignId ?? null, styles: j.styles ?? null, stage: j.stage ?? (j.status === 'done' ? 'done' : j.status), progress: j.progress ?? { done: 0, total: 0 }, etaMs: j.progress ? etaOf(j) : 0,
+    createdAt: j.createdAt, startedAt: j.startedAt ?? null, finishedAt: j.finishedAt ?? null, elapsedMs: j.startedAt ? (j.finishedAt ?? Date.now()) - j.startedAt : 0, position: j.status === 'queued' || j.status === 'running' ? positionOf(j.id) : 0, error: j.error ?? null, stats: j.stats ?? null };
+  if (withResult) { out.partial = j.partial ?? []; if (j.result) out.result = j.result; }
   return out;
 }
 
@@ -38,65 +64,116 @@ function persist(j, dir) {
   try {
     mkdirSync(dir, { recursive: true });
     const f = jobFile(j.id, dir), tmp = f + '.tmp';
-    writeFileSync(tmp, JSON.stringify(publicJob(j, { withResult: true })));
+    const pub = publicJob(j, { withResult: true }); if (pub.result) delete pub.partial;   // 끝난 작업은 result 에 다 있다(파일 크기 절반)
+    writeFileSync(tmp, JSON.stringify(pub));
     renameSync(tmp, f);
   } catch (e) { log('저장 실패', j.id, e.message); }
 }
 export function readJobFile(id, dir = JOBS_DIR) {
   const f = jobFile(id, dir); if (!existsSync(f)) return null;
-  try { return JSON.parse(readFileSync(f, 'utf8')); } catch { return null; }
+  try { const o = JSON.parse(readFileSync(f, 'utf8')); if (o.result && !o.partial) o.partial = o.result.variants ?? []; return o; } catch { return null; }
 }
 
-// 작업 걸기 — 바로 돌려준다(생성은 백그라운드). 같은 specId+campaignId 가 살아 있으면 그것(dup:true)
+// ── 통계(속도 측정 훅) — 작업이 끝날 때 한 줄
+export function statsRowOf(j) {
+  const r = j.result ?? {}; const calls = r.calls ?? j.calls ?? [];
+  return { id: j.id, mode: j.mode, specId: j.specId, n: j.progress?.total ?? 0, status: j.status, at: j.finishedAt ?? Date.now(), totalMs: j.startedAt ? (j.finishedAt ?? Date.now()) - j.startedAt : null,
+    firstMs: j.firstAt ? j.firstAt - j.startedAt : (r.firstMs ?? null), calls: calls.map(c => ({ kind: c.kind, ms: c.ms, model: c.model ?? null, style: c.style ?? null, specId: c.specId ?? null })),
+    retries: calls.filter(c => c.kind === 'retry').length, rejected: r.rejected ?? (r.variants ?? []).filter(v => v.rejected).length, model: calls.find(c => c.kind !== 'retry' && c.model)?.model ?? r.model ?? null };   // 설계 호출의 모델(재요청은 빠른 모델)
+}
+function readStatsFile(dir) { const f = path.join(dir, 'stats.jsonl'); if (!existsSync(f)) return []; try { return readFileSync(f, 'utf8').trim().split('\n').slice(-LIST_MAX).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return []; } }
+let STATS_DIR = JOBS_DIR, STATS_LOADED = false;
+function recordStats(row, dir) {
+  if (!STATS_LOADED || STATS_DIR !== dir) { STATS.length = 0; STATS.push(...readStatsFile(dir)); STATS_DIR = dir; STATS_LOADED = true; }
+  STATS.push(row); while (STATS.length > LIST_MAX) STATS.shift();
+  try { mkdirSync(dir, { recursive: true }); appendFileSync(path.join(dir, 'stats.jsonl'), JSON.stringify(row) + '\n'); } catch (e) { log('통계 저장 실패', e.message); }
+}
+const avg = a => a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : null;
+export function statsSummary(dir = STATS_DIR) {
+  if (!STATS_LOADED || STATS_DIR !== dir) { STATS.length = 0; STATS.push(...readStatsFile(dir)); STATS_DIR = dir; STATS_LOADED = true; }
+  const rows = STATS.slice(-LIST_MAX); const byMode = {};
+  for (const m of MODES) {
+    const rs = rows.filter(r => r.mode === m && r.status === 'done'); if (!rs.length) continue;
+    const calls = rs.flatMap(r => r.calls ?? []); const models = {}; for (const c of calls) if (c.model) models[c.model] = (models[c.model] ?? 0) + 1;
+    byMode[m] = { n: rs.length, avgTotalMs: avg(rs.map(r => r.totalMs).filter(v => v != null)), avgFirstMs: avg(rs.map(r => r.firstMs).filter(v => v != null)), avgCallMs: avg(calls.filter(c => c.kind !== 'retry').map(c => c.ms).filter(v => v != null)), avgRetryMs: avg(calls.filter(c => c.kind === 'retry').map(c => c.ms)), avgRetries: rs.length ? Math.round(rs.reduce((a, r) => a + (r.retries ?? 0), 0) / rs.length * 100) / 100 : 0, avgRejected: Math.round(rs.reduce((a, r) => a + (r.rejected ?? 0), 0) / rs.length * 100) / 100, models };
+  }
+  return { n: rows.length, byMode, recent: rows.slice(-10).reverse() };
+}
+
+// 작업 걸기 — 바로 돌려준다(생성은 백그라운드). 같은 mode+specId+campaignId 가 살아 있으면 그것(dup:true)
 export function enqueue(body, deps = {}) {
-  if (!body?.specId) throw Object.assign(new Error('specId 가 없습니다'), { status: 400 });
-  const key = dedupKey(body);
+  const mode = modeOf(body);
+  if (mode === 'spread') { if (!Array.isArray(body?.specIds) || !body.specIds.length) throw Object.assign(new Error('spread 는 specIds 가 필요합니다'), { status: 400 }); if (!body.language) throw Object.assign(new Error('spread 는 language 가 필요합니다'), { status: 400 }); }
+  const specId = body?.specId ?? (mode === 'spread' ? body.specIds[0] : null);
+  if (!specId) throw Object.assign(new Error('specId 가 없습니다'), { status: 400 });
+  if (mode === 'revise' && !body?.prev?.html) throw Object.assign(new Error('revise 는 prev.html 이 필요합니다'), { status: 400 });
+  const key = dedupKey({ ...body, specId });
   if (key) { for (const j of JOBS.values()) if ((j.status === 'queued' || j.status === 'running') && j.dedupKey === key) return { job: j, dup: true }; }
   if (QUEUE.length >= (deps.maxQueue ?? MAX_QUEUE)) throw Object.assign(new Error(`대기열이 가득 찼습니다(최대 ${deps.maxQueue ?? MAX_QUEUE}) — 끝나면 다시 눌러 주세요`), { status: 429 });
-  const styles = Array.isArray(body.styles) && body.styles.length ? body.styles : DEFAULT_STYLES;
-  const j = { id: newId(), status: 'queued', specId: body.specId, campaignId: body.campaignId ?? null, dedupKey: key, styles, createdAt: Date.now(), body: { ...body, styles, review: body.review !== false }, deps: { freeDesign: deps.freeDesign ?? realFreeDesign, client: deps.client ?? null, dir: deps.dir ?? JOBS_DIR } };
+  // 옛 앱이 보내던 톤 3종(typo/bright/dark)은 「지정 없음」으로 — 11-09 부터 방향은 구성 축(KV 유형별 pickCompositions)
+  const styles = Array.isArray(body.styles) && body.styles.length && !isLegacyTones(body.styles) ? body.styles : null;
+  const engine = body.engine === 'api' && API_ENGINE_ENABLED ? 'api' : 'claude-code';
+  const nb = { ...body, mode, specId, styles: styles ?? undefined, engine, review: body.review === true };
+  const j = { id: newId(), mode, status: 'queued', stage: 'queued', specId, specIds: mode === 'spread' ? [...body.specIds] : null, campaignId: body.campaignId ?? null, dedupKey: key, styles, createdAt: Date.now(), partial: [], calls: [], progress: { done: 0, total: totalOf(nb, mode) }, body: nb,
+    deps: { engines: { suggest: deps.freeDesign ?? realFreeDesign, revise: deps.freeRevise ?? realFreeRevise, spread: deps.freeSpread ?? realFreeSpread }, client: deps.client ?? null, dir: deps.dir ?? JOBS_DIR } };
   JOBS.set(j.id, j); QUEUE.push(j.id);
-  log('접수', j.id, j.specId, j.campaignId ?? '', `대기 ${QUEUE.length}`);
+  log('접수', j.id, mode, j.specId, j.campaignId ?? '', `대기 ${QUEUE.length}`);
   pump();
   return { job: j, dup: false };
 }
 
+const stageRank = s => STAGES.indexOf(s);
 // 큐 펌프 — 한 번에 하나만. 끝나면 다음 것
 function pump() {
   if (RUNNING || !QUEUE.length) return;
   const id = QUEUE.shift(); const j = JOBS.get(id); if (!j) return pump();
-  RUNNING = id; j.status = 'running'; j.startedAt = Date.now();
-  log('시작', id, j.specId, `방향 ${j.styles.join(',')}`);
-  const { freeDesign, client, dir } = j.deps;
-  Promise.resolve().then(() => freeDesign(j.body, { client }))
-    .then(out => { j.result = out; j.status = 'done'; j.finishedAt = Date.now(); log('완료', id, `${((j.finishedAt - j.startedAt) / 1000).toFixed(0)}s`, `안 ${out?.variants?.length ?? (out?.html ? 1 : 0)}`); })
-    .catch(e => { j.error = e?.message ?? String(e); j.status = 'failed'; j.finishedAt = Date.now(); log('실패', id, j.error); })
-    .finally(() => { delete j.body; persist(j, dir); j.done?.(); RUNNING = null; pump(); });
+  RUNNING = id; j.status = 'running'; j.stage = 'kv'; j.startedAt = Date.now();
+  log('시작', id, j.mode, j.specId, j.styles ? `방향 ${j.styles.join(',')}` : '방향 자동');
+  const { engines, client, dir } = j.deps;
+  const hooks = {
+    client,
+    onStage: s => { if (stageRank(s) > stageRank(j.stage)) j.stage = s; },
+    onVariant: v => { j.partial.push(v); j.progress.done = j.partial.length; if (!j.firstAt) j.firstAt = Date.now(); log('안', id, v.specId ?? '', v.style?.id ?? '', v.rejected ? '반려' : '통과', `${((Date.now() - j.startedAt) / 1000).toFixed(0)}s`); },
+    onCall: c => { j.calls.push(c); },
+  };
+  Promise.resolve().then(() => engines[j.mode](j.body, hooks))
+    .then(out => {
+      j.result = out; j.status = 'done'; j.stage = 'done'; j.finishedAt = Date.now();
+      if (!j.partial.length && out?.variants?.length) { j.partial = [...out.variants]; j.firstAt ??= j.finishedAt; }   // onVariant 을 안 부르는 엔진(옛 stub)
+      j.progress.done = j.partial.length || j.progress.done; j.progress.total = Math.max(j.progress.total, out?.variants?.length ?? 0);
+      log('완료', id, `${((j.finishedAt - j.startedAt) / 1000).toFixed(0)}s`, `안 ${out?.variants?.length ?? (out?.html ? 1 : 0)}`);
+    })
+    .catch(e => { j.error = e?.message ?? String(e); j.status = 'failed'; j.stage = 'failed'; j.finishedAt = Date.now(); log('실패', id, j.error); })
+    .finally(() => { delete j.body; j.stats = statsRowOf(j); recordStats(j.stats, dir); persist(j, dir); j.done?.(); RUNNING = null; pump(); });
 }
 
-export function getJob(id, dir = JOBS_DIR) { return JOBS.get(id) ?? null; }
+export function getJob(id) { return JOBS.get(id) ?? null; }
 export function listJobs() { return [...JOBS.values()].sort((a, b) => b.createdAt - a.createdAt).slice(0, LIST_MAX).map(j => publicJob(j)); }
 export const jobsState = () => ({ running: RUNNING ? publicJob(JOBS.get(RUNNING)) : null, queued: QUEUE.length });
 // 테스트용 — 끝날 때까지 기다리기 · 비우기
 export function waitJob(id) { const j = JOBS.get(id); if (!j) return Promise.resolve(null); if (j.status === 'done' || j.status === 'failed') return Promise.resolve(j); return new Promise(ok => { const prev = j.done; j.done = () => { prev?.(); ok(j); }; }); }
-export function resetJobs() { JOBS.clear(); QUEUE.length = 0; RUNNING = null; }
+export function resetJobs() { JOBS.clear(); QUEUE.length = 0; RUNNING = null; STATS.length = 0; STATS_LOADED = false; }
+
+async function loginCheck(body, check) {
+  if (body.engine === 'api' && API_ENGINE_ENABLED) return null;
+  const cc = await check();
+  if (!cc.ok) return 'claude 명령을 찾지 못했습니다 — Claude Code 설치 후 서버를 다시 켜 주세요';
+  if (cc.loggedIn === false) return 'Claude Code 가 로그인돼 있지 않습니다 — 터미널에서 `claude auth login` 한 번';
+  return null;
+}
 
 // ── 라우트 ── 처리했으면 true. json(res, code, body)·readBody(req) 는 server.mjs 의 것. check 는 claude 로그인 확인(테스트는 stub)
-export async function handleFreeJobs(req, res, u, { json, readBody, client = null, freeDesign = null, check = claudeCodeAvailable, dir = JOBS_DIR, maxQueue = MAX_QUEUE } = {}) {
+export async function handleFreeJobs(req, res, u, { json, readBody, client = null, freeDesign = null, freeRevise = null, freeSpread = null, check = claudeCodeAvailable, dir = JOBS_DIR, maxQueue = MAX_QUEUE } = {}) {
   const p = u.pathname;
   if (!p.startsWith('/api/freedesign/jobs')) return false;
   const rest = p.slice('/api/freedesign/jobs'.length).replace(/^\//, '');
   if (req.method === 'POST' && !rest) {
     let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }), true; }
-    if (body.engine === 'api' && !client) return json(res, 503, { error: 'API 키가 없습니다 — engine:"claude-code" 를 쓰거나 server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' }), true;
-    if (body.engine !== 'api') {
-      const cc = await check();
-      if (!cc.ok) return json(res, 503, { error: 'claude 명령을 찾지 못했습니다 — Claude Code 설치 후 서버를 다시 켜 주세요' }), true;
-      if (cc.loggedIn === false) return json(res, 503, { error: 'Claude Code 가 로그인돼 있지 않습니다 — 터미널에서 `claude auth login` 한 번' }), true;
-    }
+    if (body.engine === 'api' && API_ENGINE_ENABLED && !client) return json(res, 503, { error: 'API 키가 없습니다 — engine:"claude-code" 를 쓰거나 server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' }), true;
+    const bad = await loginCheck(body, check); if (bad) return json(res, 503, { error: bad }), true;
     try {
-      const { job, dup } = enqueue(body, { freeDesign: freeDesign ?? undefined, client, dir, maxQueue });
-      return json(res, dup ? 200 : 202, { jobId: job.id, status: job.status, position: positionOf(job.id), dup, ...jobsState() }), true;
+      const { job, dup } = enqueue(body, { freeDesign: freeDesign ?? undefined, freeRevise: freeRevise ?? undefined, freeSpread: freeSpread ?? undefined, client, dir, maxQueue });
+      return json(res, dup ? 200 : 202, { jobId: job.id, status: job.status, mode: job.mode, position: positionOf(job.id), dup, progress: job.progress, etaMs: etaOf(job), ...jobsState() }), true;
     } catch (e) { return json(res, e.status ?? 500, { error: e.message }), true; }
   }
   if (req.method === 'GET' && !rest) return json(res, 200, { jobs: listJobs(), ...jobsState() }), true;
@@ -107,4 +184,25 @@ export async function handleFreeJobs(req, res, u, { json, readBody, client = nul
     return json(res, 404, { error: '작업 없음: ' + id }), true;
   }
   return json(res, 405, { error: 'method' }), true;
+}
+
+// 즉시 수정 — LLM 없음. 규격 규칙(rulesForSpec)으로 고정 글자색·로고 크기·금지 배경색을 미리 거절
+export function quickFix({ html, instruction, specId, brand = null } = {}) {
+  if (!html) return { ok: false, reason: 'html 이 없습니다' };
+  if (!instruction) return { ok: false, reason: 'instruction 이 없습니다' };
+  const spec = specId ? SPECS[specId] : null;
+  let rules = null; try { if (spec?.channel === 'ad') rules = rulesForSpec(specId); } catch {}
+  const t0 = Date.now();
+  const r = applyQuick(html, instruction, { w: spec?.w ?? null, h: spec?.h ?? null, rules, brand });
+  return { ...r, ms: Date.now() - t0 };
+}
+export async function handleFreeExtra(req, res, u, { json, readBody, dir = JOBS_DIR } = {}) {
+  const p = u.pathname;
+  if (p === '/api/freedesign/quick') {
+    if (req.method !== 'POST') return json(res, 405, { error: 'method' }), true;
+    let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }), true; }
+    return json(res, 200, quickFix(body)), true;
+  }
+  if (p === '/api/freedesign/stats' && req.method === 'GET') return json(res, 200, statsSummary(dir)), true;
+  return false;
 }

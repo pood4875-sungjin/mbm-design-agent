@@ -3,8 +3,9 @@
 //   html 의 {{KV}}·{{LOGO}} 는 caseId 의 그림 file:// 로 치환(dataURL 이 이미 들어 있으면 그대로).
 //   측정(헤드리스 Chrome): measureDoc(글자·로고·그림 상자) + 자유 안 전용 — 글자 잉크 상자(Range)·행간 배수·낱말 안 줄바꿈·정보 블록 라벨(첫 자식 span/b)·키비주얼 실제 그려진 상자.
 //   판정: validateFreeHtml(계약) · lint(core/lint.js) · typoStats(청사진 분포) · infoBlockIssues(3항) · typoAuditNorms(4항, core/typoaudit.js) · 대비.
-import { readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync, mkdirSync, statSync, existsSync, rmSync } from 'node:fs';
+import { execFileSync, execFile } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { ROOT, CHROME, caseOf } from './freedesign-case.mjs';
@@ -134,8 +135,8 @@ export function typoRulesOf({ specId, rules, measure, free, kvFocus = null, kvKi
   return { ...out, issues: out.fails.map(f => `4항-${f.rule} ${f.code}: ${f.msg}`) };
 }
 
-// 한 안 렌더 + 검수. 반환 audit(파일도 쓴다)
-export function renderFree(e, outDir, { kvFocus = null, kvKind = null } = {}) {
+// 한 안 렌더 + 검수. 반환 audit(파일도 쓴다). 동기판(CLI·스크립트)과 비동기판(서버 — 이벤트 루프를 막지 않는다)이 앞뒤 절반을 같이 쓴다
+function renderPrep(e, outDir, { kvFocus = null, kvKind = null } = {}) {
   const spec = SPECS[e.specId]; if (!spec) throw new Error('규격 없음: ' + e.specId);
   mkdirSync(outDir, { recursive: true });
   const K = e.caseId ? caseOf(e.caseId) : null;
@@ -147,11 +148,12 @@ export function renderFree(e, outDir, { kvFocus = null, kvKind = null } = {}) {
   const scale = spec.exportScale ?? 1;
   const doc = docOf(html);
   writeFileSync(base + '.html', doc);
-  const t0 = Date.now();
-  chrome([`--window-size=${spec.w},${spec.h}`, `--force-device-scale-factor=${scale}`, '--virtual-time-budget=6000', `--screenshot=${base}.png`, pathToFileURL(base + '.html').href]);
-  const mdoc = doc.replace('</body>', MEASURE(pathToFileURL(base + '.png').href, scale) + '</body>');
-  writeFileSync(base + '.measure.html', mdoc);
-  const dom = chrome([`--window-size=${spec.w + 40},${spec.h + 40}`, '--virtual-time-budget=10000', '--dump-dom', pathToFileURL(base + '.measure.html').href]);
+  const shotArgs = [`--window-size=${spec.w},${spec.h}`, `--force-device-scale-factor=${scale}`, '--virtual-time-budget=6000', `--screenshot=${base}.png`, pathToFileURL(base + '.html').href];
+  const measureArgs = () => { writeFileSync(base + '.measure.html', doc.replace('</body>', MEASURE(pathToFileURL(base + '.png').href, scale) + '</body>')); return [`--window-size=${spec.w + 40},${spec.h + 40}`, '--virtual-time-budget=10000', '--dump-dom', pathToFileURL(base + '.measure.html').href]; };
+  return { e, spec, K, html, rules, brief, v, base, kvFocus, kvKind, shotArgs, measureArgs, t0: Date.now() };
+}
+function renderFinish(P, dom) {
+  const { e, spec, K, html, rules, brief, v, base } = P;
   let q = null; const m = /<pre id="q"[^>]*>([\s\S]*?)<\/pre>/.exec(dom);
   try { q = JSON.parse(m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')); } catch (err) { q = { error: '측정 실패: ' + (m ? m[1].slice(0, 200) : 'pre 없음') }; }
   const bytes = statSync(base + '.png').size;
@@ -159,14 +161,33 @@ export function renderFree(e, outDir, { kvFocus = null, kvKind = null } = {}) {
   const lint = measure ? lintArtifact({ spec, medium: spec.mediumRules, measure }) : { level: 'error', issues: [{ level: 'block', code: 'measure', msg: q.error ?? q.m?.error ?? '측정 실패' }] };
   const typo = measure ? typoStats(q.m, spec, q.imgArea ?? 0) : null;
   const free = q.free ?? null;
-  const focus = kvFocus ?? K?.meta?.field?.focus ?? null, kind = kvKind ?? K?.meta?.field?.kind ?? null;
+  const focus = P.kvFocus ?? K?.meta?.field?.focus ?? null, kind = P.kvKind ?? K?.meta?.field?.kind ?? null;
   const info = measure ? infoBlockIssues(html, { free }) : null;
   const typoRules = measure ? typoRulesOf({ specId: e.specId, rules, measure, free, kvFocus: focus, kvKind: kind }) : null;
   const lowContrast = (q.contrast ?? []).filter(c => c.ratio != null && c.ratio < 4.5);
-  const audit = { specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
+  const audit = { specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - P.t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
   writeFileSync(base + '.audit.json', JSON.stringify(audit, null, 1));
   audit.verdict = !v.ok ? '계약✗' : lint.level === 'block' ? 'lint 차단' : lint.level === 'warn' ? 'lint 경고' : '통과';
   return audit;
+}
+export function renderFree(e, outDir, opts = {}) {
+  const P = renderPrep(e, outDir, opts);
+  chrome(P.shotArgs);
+  return renderFinish(P, chrome(P.measureArgs()));
+}
+// 비동기판 — 서버(server/freedesign-gate.js)가 쓴다. Chrome 이 없으면 throw(호출자가 측정 생략)
+const chromeAsync = (args) => new Promise((ok, no) => {
+  const prof = path.join(tmpdir(), `fd-chrome-${process.pid}-${Math.random().toString(36).slice(2, 8)}`);   // 병렬 렌더 — 프로필을 따로(같은 프로필이면 둘째 Chrome 이 바로 끝난다)
+  execFile(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', `--user-data-dir=${prof}`, ...args], { maxBuffer: 256 << 20, timeout: 60_000 }, (err, out) => {
+    try { rmSync(prof, { recursive: true, force: true }); } catch {}
+    return err ? no(err) : ok(String(out));
+  });
+});
+export const chromeAvailable = () => existsSync(CHROME);
+export async function renderFreeAsync(e, outDir, opts = {}) {
+  const P = renderPrep(e, outDir, opts);
+  await chromeAsync(P.shotArgs);
+  return renderFinish(P, await chromeAsync(P.measureArgs()));
 }
 
 export function auditRow(a) {

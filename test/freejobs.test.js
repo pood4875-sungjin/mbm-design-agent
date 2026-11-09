@@ -39,7 +39,7 @@ test('접수는 바로 돌아오고(202·queued/running) → 한 번에 하나�
   assert.equal(maxRunning, 1, '동시에 하나만');
   const ga = await get(a.body.jobId);
   assert.equal(ga.body.status, 'done'); assert.equal(ga.body.result.variants.length, 3); assert.ok(ga.body.elapsedMs >= 50); assert.ok(ga.body.finishedAt >= ga.body.startedAt); assert.equal(ga.body.position, 0);
-  assert.deepEqual(calls[0].styles, ['typo', 'bright', 'dark'], 'styles 기본 3종'); assert.equal(calls[0].review, true, 'review 기본 켬');
+  assert.equal(calls[0].styles, undefined, '11-09: styles 지정 없음 → 엔진이 KV 유형으로 구성 3개'); assert.equal(calls[0].review, false, '11-09: 자기 검토 기본 끔(속도)'); assert.equal(calls[0].mode, 'suggest');
   assert.ok(existsSync(path.join(tmp, a.body.jobId + '.json')), '결과 파일'); const f = JSON.parse(readFileSync(path.join(tmp, a.body.jobId + '.json'), 'utf8')); assert.equal(f.result.variants.length, 3); assert.equal(f.body, undefined, '본문은 파일에 안 쓴다');
   // 메모리에서 지워도 파일로 GET 된다
   resetJobs(); const gf = await get(a.body.jobId); assert.equal(gf.code, 200); assert.equal(gf.body.fromFile, true); assert.equal(gf.body.result.variants.length, 3);

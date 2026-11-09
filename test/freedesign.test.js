@@ -160,7 +160,7 @@ test('freeDesign — 3방향 × 자기 검토(mock): 방향마다 생성 1회 + 
   };
   const renders = [];
   const render = async (html, dir) => { renders.push(dir.id); return { png: null, measure: null, free: null, auto: ['3항 라벨 스타일 섞임: date=뱃지 · detail=볼드 라벨'] }; };
-  const out = await freeDesign(input('google-gdn-580x400'), { run, render });
+  const out = await freeDesign(input('google-gdn-580x400', { styles: DEFAULT_STYLES, review: true }), { run, render, concurrency: 1 });   // 11-09: 자기 검토는 review:true 일 때만(기본 끔), 순서 확인은 동시 1로
   assert.equal(out.variants.length, 3); assert.deepEqual(out.variants.map(v => v.style.id), ['typo', 'bright', 'dark']); assert.deepEqual(renders, ['typo', 'bright', 'dark']);
   assert.equal(calls.length, 6, '방향 3 × (생성 1 + 검토 1)');
   assert.ok(calls[0].includes('타이포 강조형') && calls[2].includes('밝은 비주얼형') && calls[4].includes('어두운 비주얼형'));

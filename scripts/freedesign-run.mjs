@@ -19,7 +19,7 @@ const log = [];
 for (const specId of specArg.split(',')) {
   const inp = { ...caseInput(caseId, specId, { engine }), styles: styles ?? undefined, review };
   const t0 = Date.now(); let r = null, err = null;
-  try { r = await freeDesign(inp, { client, imageMode, model }); } catch (e) { err = e.message; }
+  try { r = await freeDesign(inp, { client, imageMode, model, allowApi: engine === 'api' }); }   // CLI 에서 --engine api 를 명시했을 때만 API 경로(서버는 FREEDESIGN_API=1) catch (e) { err = e.message; }
   const ms = Date.now() - t0;
   if (!r) { const rec = { specId, caseId, engine, imageMode, ms, errors: [err], html: null }; writeFileSync(path.join(out, `${specId}.json`), JSON.stringify(rec, null, 1)); log.push(rec); console.log(`${specId}: 실패 ${(ms / 1000).toFixed(0)}s — ${err}`); continue; }
   for (const v of r.variants) {
