@@ -1836,6 +1836,12 @@ const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)'
 function campaignFields(c) {
   return c.kind === 'recruit' ? RECRUIT_EDIT_FIELDS : ['name', 'date', 'venue', 'cta'];
 }
+// 11-09 사용자 「이거 5개 이상 쌓이게 하는 건?」: id 가 캠페인 이름이라 같은 브리프로 새로 만들면 예전 캠페인을 덮어썼다 — 이미 있으면 -2, -3 …
+function uniqueCampaignId(base) {
+  if (!campStore.get(base)) return base;
+  let n = 2; while (campStore.get(`${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
 function slug(name) {
   return (name || 'campaign').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -1871,7 +1877,7 @@ function buildAndGenerate() {
   const signage = {};
   for (const [ch, list] of Object.entries(it.signage)) if (it.channels.includes(ch) && list.length) signage[ch] = list;
   state.campaign = {
-    id: slug(campaignName(ctx)), context: ctx, style, channels: it.channels, signage,
+    id: uniqueCampaignId(slug(campaignName(ctx))), context: ctx, style, channels: it.channels, signage,
     // 문장에서 고른 소재만 — 같은 파일을 쓰는 상품은 한 장으로 묶여 있다(adSpecGroups)
     kind: it.kind, track: it.track, media: it.media ?? [], adSpecIds: chosenAdGroups(it).map(g => g.id),
     roster: it.roster ?? [], artifacts: [], log: [],
@@ -2956,9 +2962,11 @@ function renderInspectorBody() {
         try { ({ readability, suggests, meta } = await analyzeKeyVisual(kv)); } catch {}
         // 로고가 있으면 주색은 로고가 맡고 키비주얼은 보조·포인트만 바꾼다 — 이미지를 갈았다고 브랜드 색이 바뀌면 안 된다
         const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, keyVisual: kv, kvMeta: meta, mode: c.style.mode, kvColors: suggests });
-        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, colorsManual: false, ...(roles ? { colors: roles } : {}) }, '키비주얼 교체');
+        // 11-09 사용자 「배경색 키비 바꾸면 변경 안 돼?」: 직접 고른 배경색·그라데이션·AI 지면은 전 그림에 맞춘 값 — 그림을 갈면 자동으로 돌려 새 그림에 맞춘다(되돌리기로 복구)
+        const bgWasManual = c.style.background && (c.style.background.mode !== 'auto' || c.style.background.color || c.style.background.ai);
+        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, colorsManual: false, ...(roles ? { colors: roles } : {}), ...(bgWasManual ? { background: { mode: 'auto', color: null, gradient: null } } : {}) }, '키비주얼 교체');
         renderInspector();
-        toast(roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체');
+        toast((roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체') + (bgWasManual ? ' · 배경도 새 그림에 맞췄어요(되돌리기 ⌘Z)' : ''));
         { const ck = await kvCheckOf(r.result, meta); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
       };
       r.readAsDataURL(f);
