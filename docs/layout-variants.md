@@ -77,6 +77,8 @@
 ## R2 품질(11-09 총괄 눈 검수 2라운드)
 - **C 밝은 지면 로고 대비**: 렌더러가 로고 실측 색(`logoMeta.colors`, core/logo.js — 앱이 업로드 때 잰다)마다 반전 지면 대비를 재고, 3:1 미만 색이 면적 30% 이상이거나 실측이 없으면(톤만 있는 장부) 브랜드 딥으로 칠한다(`mbm-ink-*` 필터 — 헤드리스·앱 모두 먹음, 한림 흰 로고가 안 보였던 원인은 장부 `logoMeta.tone: dark` + 색 실측 없음). 타일 로고는 칠하지 않고 대비가 낮으면 `trace.logo.light.low` → 안에서 C 를 거른다. 시안 틀(ad-template)도 밝은 틀에 흰 로고면 어둡게.
 - **A 가운데 정렬 전면 이미지 스크림**(`trace.scrim.center`): 스크림 바탕을 흰 글자 대비 ≥ 7 까지 어둡히고, 그림의 밝은 쪽이 비쳐도 흰 글자 ≥ 4.8 이 되는 불투명도 + 복잡도(가장자리 밀도 — kvMeta texture.spread·sharp·focus.density) 최대 +0.08, 범위 0.6~0.88, 높이 72% 까지 유지. 0.88 로도 안 되면 `short` → A 는 다음 변형(거울 칸형).
+- **R3 A 가운데 정렬 이미지 = 글자 쪽만 스크림**(총괄 눈 검수 「사진 전체에 진한 막 → 사진이 죽고 탁함」, 피그마 가로형 전면 녹임): R2 의 전면 0.6~0.9 막(높이 72%)을 버리고 ① 위쪽 그라데이션 — 맨 위 ~ 글자 덩어리 바닥(TR.textBox 어림)까지 지면색(브랜드 딥, 흰 글자 대비 ≥ 7)을 0.85~0.97 로 유지, 그 아래 6~16% 에서 0.3 → 0.06, 꼬리 10% 에서 0(이징). 틀 경로는 글 덩어리를 로고 바로 아래(+4%)로 올린다(`scrim.center.lift`). ② 그래도 사진이 살아 있는 몫(막 ≤ 0.1 인 면적) < 40% 면 글자 밑 국소 막(로고·글자 상자 + 패딩, blur 가장자리 — `data-scrim="center-local"`). ③ 그래도 모자라면 `short` → A 대체. `trace.scrim.center {mode: top|local, alive, hold, end | box}`.
+  - 픽셀 실측 `_out/ai-track/r6/alive.mjs`(스크림 있음/뺌 화소별 밝기·채도 90% 유지 몫): 가운데 이미지 30칸(580·NAP 300×250) 아래 40% 띠 평균 0.35 → 0.99(최소 0.13 → 0.93), 전체 0.20 → 0.49. 글자 대비 최소 5.46 → 5.5. 시트 `rule3v2-*-p*.png`(tag r6).
 - **B**: 브리프에 직무·고용형태·라벨이 있으면 `both`(라벨 각진 태그 + 날짜 알약)를 첫 후보로.
 - **C 지면 반전(bgFill brand)이 기본안과 밝기 차 < 0.2**(KG #F1F1F1)면 거른다.
 - 시트 v2: `_out/ai-track/rule3v2-<규격>-p<N>.png`(8 케이스씩, 칸 폭 ≥ 360) — 칸 아래 픽셀 실측(글자 뒤 지면 하위 10% 대비 · 가장자리 밀도 · 로고 대비 중앙값). 스크립트 `_out/ai-track/rule3v2.mjs` + `r5/pixmeasure.py`, 기록 `rule3-round5.md`.
@@ -89,7 +91,10 @@
   - 바닥(메인 아래 그림 칸 윗변·안전영역 아래)에 닿으면 메인 글자·행간 한 단계(0.9) 축소 → 그래도 넘치면 `autolayout.over`(검수 경고).
   - 줄 수별 표가 있는 틀(bySubLines·byMainLines — 자소설)·규정 매체·세로 가운데 틀(vCenter)은 표·규정대로(스택 안 함). 타이틀을 안 적으면 지금 그림 그대로(기본안 바이트 동일).
 - **캔버스 이동과 공존**: 캔버스에서 옮긴 글자는 「자유 위치」(피그마 absolute) — 옮길 때의 스택 밀림(`sdy`)을 같이 저장하고(app/elselect.js), 그리면서 지금 밀림(`data-stack-dy`)을 빼 그 자리를 지킨다(core/elementedit.js, `data-free`). 나머지는 스택 유지. 요소 패널에 「자유 위치(옮김)」 안내 · 다른 글자와 겹치면 빨간 경고 · 「자동 배치로 되돌리기」.
-- 전/후 시트 `_out/ai-track/autolayout-before.png` · `autolayout-after.png`(메인 1·2·3줄 × 자동 | 날짜 옮김). 한계: 자유 배치(flex)에서 옮긴 글자는 아직 상대 이동(스택 따라감).
+- 전/후 시트 `_out/ai-track/autolayout-before.png` · `autolayout-after.png`(메인 1·2·3줄 × 자동 | 날짜 옮김).
+- **R3(11-09) 세 경로 통일**: 자유 배치(flex 글자 열)·시안 틀(ad-template 열)에서 옮긴 글자도 절대 위치 — 옮기기 시작할 때 그 요소의 위치 기준 조상(글자 열) 안 offset·폭(`fx·fy·fw`)을 같이 저장하고(app/elselect.js `flowOf`), elementedit 가 `position:absolute; left=fx+dx; top=fy+dy; width=fw` 로 흐름에서 뺀다 → 나머지는 빈자리를 메워 스택, 옮긴 요소는 타이틀 줄 수가 바뀌어도 제자리. 틀(이미 절대)은 sdy 규칙 그대로. `fx` 없는 옛 저장값은 예전처럼 relative. 「자동 배치로 되돌리기」는 `dx·dy·sdy·fx·fy·fw` 를 다 지운다.
+  - 틀 afterMain 행(날짜가 메인 마지막 줄 + 간격)의 `data-stack-dy` 는 AL.dy 가 아니라 실제 밀림(지금 y − 원래 줄 수·피치로 잡은 y) — 한 단계 축소(0.9)면 피치가 달라 5px 어긋나던 것(UI 실측).
+  - 전/후 시트 `_out/ai-track/autolayout-r3-before.png`(R2: flex·시안 틀은 옮긴 글자가 스택 따라감) · `autolayout-r3-after.png`(세 경로 제자리 + 겹치면 경고). UI 캡처 `autolayout-ui-1~4*.png`(580 틀) · `autolayout-ui-flex-daangn-*.png`(당근 flex).
 
 ## 앱에서 쓰기
 - **인스펙터 「레이아웃 안」**: 산출물을 고르면 안 썸네일이 패널 폭 1~2열(가로로 긴 규격 1열, 규격 비율, 높이 ≤ 240)로 나오고 라벨 아래 부제가 붙는다. ⤢ 로 큰 보기 모달(「다른 시안 보기」와 같은 큰 카드). 글자 칸 프리셋에 「정보 태그」「태그 모양」이 있다. 누르면 그 안으로 바뀌고 저장된다(복원 때 `variantSel` 도 돌아온다). 캠페인 스타일이 바뀌면 안 목록이 다시 계산되고 선택은 style 동치로 다시 찾는다.

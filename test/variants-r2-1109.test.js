@@ -29,12 +29,18 @@ test('A1 밝은 지면: 흰 글자 + 남색 엠블럼 로고(실측 흰 58%)는 
   assert.equal(tr(renderArtifact('google-gdn-580x400', ctx, st, {})).logo.light, undefined, '기본안엔 반전 로고 판정이 없다');
 });
 
-test('A2 가운데 정렬 전면 이미지: 스크림 바탕 흰 글자 대비 ≥ 8.5, 불투명도 0.6~0.9, 글자 블록(72%)까지 유지 — 기본안은 예전 스크림', () => {
+test('A2 가운데 정렬 전면 이미지(R3 11-09): 스크림은 글자 블록 쪽만 — 위에서 글자 바닥까지 지면색(대비 ≥ 7) 유지 후 투명, 아래 사진 원색 · 기본안은 예전 스크림', () => {
   const st = styleOf('ilhwa-photo');
   const h = renderArtifact('google-gdn-580x400', ctx, { ...st, textAlign: 'center' }, {}), t = tr(h);
-  assert.ok(t.scrim.center, '가운데 스크림'); assert.ok(contrast(t.scrim.base, "#FFFFFF") >= 8.5, t.scrim.base);
-  assert.ok(t.scrim.a[1] >= 0.6 && t.scrim.a[1] <= 0.9, String(t.scrim.a)); assert.equal(t.scrim.center.short, false);
-  assert.match(h, new RegExp(`${t.scrim.center.hold}%`));
+  assert.ok(t.scrim.center, '가운데 스크림'); assert.ok(contrast(t.scrim.base, "#FFFFFF") >= 7, t.scrim.base);
+  assert.ok(t.scrim.a[1] >= 0.85 && t.scrim.a[1] <= 0.97, String(t.scrim.a)); assert.equal(t.scrim.center.short, false);
+  assert.equal(t.scrim.center.mode, 'top'); assert.ok(t.scrim.center.alive >= 0.38, String(t.scrim.center.alive));
+  const bg = h.match(/<div data-ad="1"[^>]*? style="[^"]*?background:(linear-gradient\(to bottom,[^;]*?\)),url\(/)?.[1] ?? '';
+  const stops = [...bg.matchAll(/rgba\([^)]*,(0(?:\.\d+)?|1)\) ([\d.]+)%/g)].map(m => [+m[1], +m[2]]);
+  assert.ok(stops.length >= 3, bg);
+  const clearAt = stops.find(([a]) => a <= 0.1)?.[1] ?? 100;
+  assert.ok(clearAt <= 62, `0.1 아래로 빠지는 자리 ${clearAt}% — 아래 사진 38% 이상 원색`);
+  assert.equal(stops[stops.length - 1][0], 0);
   const b = tr(renderArtifact('google-gdn-580x400', ctx, st, {}));
   assert.equal(b.scrim?.center, undefined);
 });

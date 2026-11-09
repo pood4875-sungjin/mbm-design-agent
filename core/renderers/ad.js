@@ -1514,26 +1514,63 @@ function renderAdBase(ctx, style, spec) {
   // 지면 CSS는 그릴 때 읽는다 — 띠 높이가 정해진 뒤 이음매 줄 색으로 지면을 잇는다(joinField)
   // 편집 「스크림 세기」(사진 전체형): 없음 = 스크림 층을 빼고, 약·중·강 = 불투명도 띠
   const PH_A = { low: [0.5, 0.35], mid: [0.75, 0.55], high: [0.96, 0.88] };
-  // 가운데 정렬 전면 이미지(시안 슬롯 A — 11-09 R2 총괄 눈 검수 「군중·알약 그림 위 글자가 지저분·대비 부족」): 글자가 그림 한가운데 앉는다.
-  //   스크림 바탕을 흰 글자 대비 ≥ 8.5 까지 어둡히고(브랜드 주색이 밝으면 딥 쪽으로), 그림의 가장 밝은 점(밝은 사진 = 흰색)이 비쳐도 흰 글자 대비 ≥ 4.8(4.5 + 여유)이
-  //   되는 불투명도를 푼다. 복잡도(가장자리 밀도 — kvMeta texture.spread·sharp·focus.density)가 높으면 +0.06 까지 더 진하게. 범위 0.6~0.9, 글자 블록 아래(높이 72%)까지 유지 후 사라짐.
-  //   0.9 로도 대비를 못 넘으면 short — 안(variants)이 A 를 다른 변형(거울 칸형)으로 바꾼다. 기본안(정렬 미지정)은 그대로
+  // 가운데 정렬 전면 이미지(시안 슬롯 A) — R3(11-09 총괄 눈 검수 「건물·공원·군중·알약: 대비 맞추려 사진 전체에 진한 막 → 사진이 죽고 탁함」, R2 의 전면 0.6~0.9 막을 대체):
+  //   피그마 가로형 전면 녹임처럼 스크림은 글자 블록 쪽만. ① 위쪽 그라데이션: 맨 위 ~ 글자 덩어리 바닥까지 지면색(브랜드 딥 — 흰 글자 대비 ≥ 7)을 유지하고
+  //   그 아래 짧은 구간(6~16%)에서 0.3 → 0.06 으로 빠지고 꼬리 10%에서 0(이징, 0.1 아래 꼬리는 사진 원색 몫). 아래 사진은 원색. 유지 불투명도 = 그림 밝은 쪽(밝은 사진은 흰색) 위 흰 글자 ≥ 4.8(4.5+여유)이 되는 값 + 복잡도 0.1(0.85~0.97 — 글자 칸은 거의 지면색).
+  //   ② 위쪽 그라데이션으로는 사진이 살아 있는 몫(막 불투명도 ≤ 0.1 인 면적)이 40% 미만이면(글자 덩어리가 낮거나 큼) 글자 밑 국소 막(로고·글자 상자 + 패딩, 부드러운 가장자리).
+  //   ③ 그래도 40% 미만이거나 대비를 못 맞추면 short — 안(variants)이 A 를 다른 변형(거울 칸형)으로. 기본안(정렬 미지정)은 그대로. 자리는 렌더 끝(centerGeo — 글자 상자 어림 TR.textBox)에서
   const centerScrim = (photoFull && TA === 'center' && !ED?.scrim) ? (() => {
-    let base = scrimBase; for (let i = 0; i < 12 && contrast(base, WHITE) < 8.5; i++) base = mix(base, BLACK, 0.12);
+    let base = scrimBase; for (let i = 0; i < 12 && contrast(base, WHITE) < 7; i++) base = mix(base, BLACK, 0.12);
     const f = style.kvMeta?.field ?? {}, t = f.texture ?? {};
     const busy = Math.max(0, Math.min(1, Math.max(((t.spread ?? 0) - 30) / 50, (t.sharp ?? 0) / 0.35, ((f.focus?.density ?? 0) - 0.3) / 0.4)));
     const hi = Math.min(1, (f.lum ?? 1) + (f.lumSpread ?? 0.3));   // 그림의 밝은 쪽(평균 + 퍼짐) — 밝은 사진은 흰색으로 본다
     const worstHex = hi >= 0.45 ? WHITE : mix(BLACK, WHITE, Math.sqrt(hi));
-    let need = null; for (let a = 0.4; a <= 0.951; a += 0.01) if (contrast(WHITE, mix(base, worstHex, 1 - a)) >= 4.8) { need = Math.round(a * 100) / 100; break; }
-    const want = need == null ? 1 : need + busy * 0.06, a1 = Math.round(Math.min(0.9, Math.max(0.6, want)) * 100) / 100;
-    return { base, a: [Math.round(Math.min(0.95, a1 + 0.07) * 100) / 100, a1], busy: Math.round(busy * 100) / 100, need, short: need == null || need > 0.9 + 1e-9, hold: Math.round(scrimEnd * 0.72) };
+    let need = null; for (let a = 0.3; a <= 1.0001; a += 0.01) if (contrast(WHITE, mix(base, worstHex, 1 - a)) >= 4.8) { need = Math.round(a * 100) / 100; break; }
+    const a1 = need == null ? 1 : Math.round(Math.min(0.97, Math.max(0.85, need + busy * 0.1)) * 100) / 100;   // 라운드 2: 글자 칸은 지면색이 되게(0.85↑) — 비친 그림 글씨·무늬(BC 「BCWORLD」)가 글자 뒤에서 시끄럽지 않게
+    return { base, a: [Math.round(Math.min(1, a1 + 0.05) * 100) / 100, a1], busy: Math.round(busy * 100) / 100, need, short: need == null, hold: null, geo: null };
   })() : null;
-  if (centerScrim) fired(centerScrim.short ? 'scrim.center.short' : 'scrim.center');
+  const centerGeo = () => {
+    const C = centerScrim; if (!C) return null; if (C.geo) return C.geo;
+    const rows = (TR.textBox?.rows ?? []).filter(r => r.w > 0 && r.h > 0);
+    const tb = rows.length ? { x0: Math.min(...rows.map(r => r.x)), y0: Math.min(...rows.map(r => r.y)), x1: Math.max(...rows.map(r => r.x + r.w)), y1: Math.max(...rows.map(r => r.y + r.h)) } : { x0: w * 0.15, y0: h * 0.2, x1: w * 0.85, y1: h * 0.55 };
+    const a1 = C.a[1], r2 = v => Math.round(v * 10) / 10;
+    // ① 위쪽 그라데이션 — 사진이 살아 있는 몫 = 불투명도가 0.1 아래로 떨어진 뒤의 높이
+    const hold = Math.min(h, tb.y1 + Math.max(3, Math.round(h * 0.01)));
+    const fade = Math.max(Math.round(h * 0.06), Math.min(Math.round(h * 0.16), Math.floor((h * 0.6 - hold) / 0.9)));
+    const end = Math.min(h, hold + fade), clear = Math.min(h, hold + fade * 0.9), tail = Math.min(h, end + Math.round(h * 0.1));   // 끝은 0.06 → 꼬리(10%)에서 0 — 띠 경계가 덜 보이게(꼬리는 0.1 아래라 사진 원색 몫)
+    const aliveTop = Math.max(0, 1 - clear / h);
+    let g;
+    if (aliveTop >= 0.38) g = { mode: 'top', hold: r2(hold / h * 100), mid: r2((hold + fade * 0.55) / h * 100), end: r2(end / h * 100), tail: r2(tail / h * 100), alive: Math.round(aliveTop * 100) / 100 };
+    else {
+      // ② 글자 밑 국소 막: 로고(글 위에 있으면)·글자 상자 + 패딩, 가장자리 feather 만큼 부드럽게
+      const lg = (tLogo && tLogo.y + tLogo.h <= tb.y0 + 1) ? tLogo : null;
+      const pad = Math.round(Math.min(w, h) * 0.05), fe = Math.round(Math.min(w, h) * 0.08);
+      const x0 = Math.max(0, Math.min(tb.x0, lg ? lg.x : Infinity) - pad), x1 = Math.min(w, Math.max(tb.x1, lg ? lg.x + lg.w : -Infinity) + pad);
+      const y0 = Math.max(0, Math.min(tb.y0, lg ? lg.y : Infinity) - pad), y1 = Math.min(h, tb.y1 + pad);
+      const area = (Math.min(w, x1 + fe * 0.5) - Math.max(0, x0 - fe * 0.5)) * (Math.min(h, y1 + fe * 0.5) - Math.max(0, y0 - fe * 0.5));
+      const alive = Math.max(0, 1 - area / (w * h));
+      g = { mode: 'local', box: { x: r2(x0), y: r2(y0), w: r2(x1 - x0), h: r2(y1 - y0) }, fe, alive: Math.round(alive * 100) / 100, aliveTop: Math.round(aliveTop * 100) / 100 };
+    }
+    if (g.alive < (g.mode === 'top' ? 0.38 : 0.4)) C.short = true;   // 위쪽 그라데이션 어림은 보수적(꼬리 0.1 지점까지 막으로 셈 — 실측 alive 는 0.41~0.69)
+    C.geo = g; C.hold = g.hold ?? null;
+    if (TR.scrim?.center) TR.scrim.center = { ...TR.scrim.center, short: C.short, mode: g.mode, alive: g.alive, ...(g.mode === 'top' ? { hold: g.hold, end: g.end } : { box: g.box }) };
+    fired(g.mode === 'top' ? 'scrim.center.top' : 'scrim.center.local'); if (C.short) fired('scrim.center.short');
+    return g;
+  };
+  if (centerScrim) fired('scrim.center');
   const phA = ED?.scrim ? PH_A[ED.scrim] ?? null : centerScrim ? centerScrim.a : [0.94, 0.82];
   const scrimInk = centerScrim ? centerScrim.base : scrimBase;
+  // 가운데 전면 스크림 층(①: 배경 그라데이션 / ②: 국소 막 — 셸 첫 자식 div, 부드러운 가장자리는 box-shadow 퍼짐)
+  const centerLayer = () => {
+    const g = centerGeo(); if (!g) return null;
+    const [a0, a1] = centerScrim.a, ink = centerScrim.base;
+    if (g.mode === 'top') return { bg: `linear-gradient(to bottom,${rgba(ink, a0)} 0%,${rgba(ink, a1)} ${g.hold}%,${rgba(ink, Math.round(a1 * 0.3 * 100) / 100)} ${g.mid}%,${rgba(ink, 0.06)} ${g.end}%,${rgba(ink, 0)} ${g.tail}%),`, el: '' };
+    const B = g.box, rad = Math.round(g.fe * 0.8);
+    return { bg: '', el: `<div data-scrim="center-local" style="position:absolute;left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;border-radius:${rad}px;background:${rgba(ink, a1)};filter:blur(${Math.round(g.fe * 0.5)}px);pointer-events:none"></div>` };
+  };
   const bgCss = () => (mold?.field && mold.bg) ? `background:${mold.bg};`   // 틀의 지면 처리가 영역이면(자소설 PC메인 왼쪽 350×280) 바탕은 템플릿 고정색, 브랜드 지면은 그 영역에만(아래 moldField)
     : photoFull
-    ? `background:${phA ? `linear-gradient(${scrimDir},${rgba(scrimInk, phA[0])} 0%,${rgba(scrimInk, phA[1])} ${centerScrim ? centerScrim.hold : Math.round(scrimEnd * (TA === 'center' ? 0.62 : 0.5))}%,${rgba(scrimInk, 0)} ${scrimEnd}%),` : ''}${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
+    ? `background:${centerScrim ? centerLayer().bg : phA ? `linear-gradient(${scrimDir},${rgba(scrimInk, phA[0])} 0%,${rgba(scrimInk, phA[1])} ${Math.round(scrimEnd * (TA === 'center' ? 0.62 : 0.5))}%,${rgba(scrimInk, 0)} ${scrimEnd}%),` : ''}${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
     // 질감: 통째로 깐다(가운데 맞춤 cover). 글자 대비가 4.5:1에 못 미치면(10-09: 3:1 → 4.5:1 — 파란 유리 면 위 흰 상세 글자) 글자 쪽에서 시작하는 브랜드색 스크림(사진 전체형과 같은 문법)
     : frameFull ? (() => { const tallF = L.shape === 'tall' || L.shape === 'tower'; const dw = Math.round(Math.max(w * 1.7, tallF ? h * 0.45 * (style.kvMeta?.ar ?? 1.8) : 0)); return `background:linear-gradient(${scrimDir},${rgba(field.stops[0], 0.85)} 0%,${rgba(field.stops[0], 0.55)} ${Math.round(scrimEnd * 0.45)}%,${rgba(field.stops[0], 0)} ${Math.round(scrimEnd * 0.8)}%),url('${esc(style.keyVisual)}') ${tallF ? 'right bottom' : 'right center'}/${dw}px auto no-repeat,${field.css};`; })()
     : textureFull ? `background:${ED?.scrim ? '' : field && field.contrast < 4.5 ? `linear-gradient(${scrimDir},${rgba(scrimBase, 0.9)} 0%,${rgba(scrimBase, 0.75)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : calm ? `linear-gradient(${scrimDir},${rgba(calm.tint, calm.a)} 0%,${rgba(calm.tint, Math.round(calm.a * 0.7 * 100) / 100)} ${Math.round(calm.reach * 45)}%,${rgba(calm.tint, 0)} ${Math.round(calm.reach * 100)}%),` : ''}url('${esc(style.keyVisual)}') center/cover no-repeat;`
@@ -1635,14 +1672,14 @@ function renderAdBase(ctx, style, spec) {
   if (emblemX != null) fired('logo.emblemKeep');
   TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, css: field.css, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined, align: field.align ?? null, deviation: field.deviation ?? null } : null;
   TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv, textColor: textColorTr, ...(LF ? { light: { ok: LF.ok, why: LF.why ?? null, hex: LF.hex ?? null, L: LF.L ?? null, deep: LF.deep ?? null, accent: LF.accent ?? null, kind: LF.kind, edgeLum: LF.edgeLum ?? null, applied: !!lightInk } } : {}) };
-  TR.scrim = photoFull ? { kind: 'photo-full', base: scrimInk, a: phA ?? [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv, ...(centerScrim ? { center: { busy: centerScrim.busy, need: centerScrim.need, short: centerScrim.short, hold: centerScrim.hold } } : {}) } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
+  TR.scrim = photoFull ? { kind: 'photo-full', base: scrimInk, a: phA ?? [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv, ...(centerScrim ? { center: { busy: centerScrim.busy, need: centerScrim.need, short: centerScrim.short } } : {}) } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
   TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : inkDefs ? 'ink' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, ...(logoLowOnLight ? { light: { ...logoLowOnLight, ink: !!(logoFilter && inkDefs), low: !!(logoTile && logoLowOnLight.share != null && logoLowOnLight.share >= 0.3) } } : {}), mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
     // 가이드 배치 규칙(10-14 place.logoSlot): 자동 로고 자리 — 모서리(왼쪽 배치면 좌우 뒤집음)·칸 종류(abs 모서리 칸 · flex 글자 열 안 · template 매체 로고 칸 · object 그림 자리)
     corner: (mirrorX && /-(left|right)$/.test(logoPlace)) ? logoPlace.replace(/(left|right)$/, x => (x === 'left' ? 'right' : 'left')) : logoPlace, slot: logoAsObject ? 'object' : tLogo ? 'template' : logoBox ? 'abs' : 'flex', tplRect: tLogo ?? null };
   if (logoWhite) fired('logoOnly.white'); if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-harmony|kv-vivid/.test(field?.source ?? '')) fired('kvHarmony'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
 
   const shellCss = () => `position:relative;width:${w}px;height:${h}px;${bgCss()}overflow:hidden;font-family:${family};color:${mainFg};box-sizing:border-box;display:flex;padding:${pad.top}px ${mirrorX ? pad.left : pad.right}px ${pad.bottom}px ${mirrorX ? pad.right : pad.left}px`;
-  const open = (extra = '') => `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${mold ? ' data-mold="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} data-trace="${esc(JSON.stringify(TR))}" style="${shellCss()};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${inkDefs}${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}`;
+  const open = (extra = '') => { const sc = shellCss(); return `<div data-ad="1" data-spec="${esc(spec.id ?? '')}" data-transparent="${transparent ? 1 : 0}" data-field-source="${field?.source ?? 'none'}"${field?.joined ? ' data-field-joined="1"' : ''}${roomFull?.oy > 0 ? ' data-kv-fill="row"' : ''}${calm ? ` data-calm="${calm.a}"` : ''}${style.visual === 'object' ? ' data-visual="object"' : ''} data-kv-use="${photoFull ? 'full' : (roomFull || textureFull) ? 'bg' : hasKv ? 'part' : 'none'}"${logoOnly ? ' data-logo-only="1"' : ''}${(tImage && !cutCorner) ? ' data-template="1"' : ''}${mold ? ' data-mold="1"' : ''}${gv ? ` data-variant="${esc(gv.id)}"` : ''} data-trace="${esc(JSON.stringify(TR))}" style="${sc};${extra}"${field?.dim ? ` data-dim="${field.dim}"` : ''}>${inkDefs}${field?.dim ? `<style>[data-dim="${field.dim}"] [data-object="1"]{filter:brightness(${field.dim})}</style>` : ''}${centerScrim ? centerLayer().el : ''}`; };
 
   /* ── 로고 전용 규격 ── */
   if (logoOnly) {
@@ -2657,7 +2694,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const rowX = r => (MCOL && !MCOL.col) ? MCOL.x : r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => (MCOL && !MCOL.col) ? MCOL.w : r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA 없으면 칸 그대로(기본 그림 바이트 동일) */
     if (MCOL) fired('templateMold.alignOneColumn');
     const put = (role, r, lines, weight, color, inner, text) => { const rs = style.roleScale?.[role] ?? 1, t = topOf(r), px = Math.round(pxOf(r) * rs), pitch = Math.round(pitchOf(r) * rs * 100) / 100;   // roleScale: 글자별 크기(N6 직접 편집)
-      used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: (MCOL && !MCOL.col) ? MCOL.ax : r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)}${(r.stackDy ?? (AL && r.afterMain != null ? AL.dy : 0)) ? ` data-stack-dy="${Math.round((r.stackDy ?? AL.dy) * k * 10) / 10}"` : ''} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+      used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: (MCOL && !MCOL.col) ? MCOL.ax : r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)}${(r.stackDy ?? (AL && r.afterMain != null ? afterDy(r) : 0)) ? ` data-stack-dy="${Math.round((r.stackDy ?? afterDy(r)) * k * 10) / 10}"` : ''} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if (!ctx.core?.headline && (MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
@@ -2704,8 +2741,10 @@ ${tplLogo}${kvWrap(tplObject)}
       const floor = floorOf();
       if (want > lines0 && bottomOf(dy, pitch, want) > floor + 0.5) { kk = 0.9; pitch = pitch0 * kk; dy = pitch * want - pitch0 * lines0; }
       const over = want > lines0 && bottomOf(dy, pitch, want) > floor + 0.5;
-      return { want, lines0, kk, pitch, dy: Math.round(dy * 10) / 10, below, over, hl };
+      return { want, lines0, kk, pitch, pitch0, mainY: m0.y, dy: Math.round(dy * 10) / 10, below, over, hl };
     })();
+    // afterMain 행(메인 마지막 줄 + 간격)의 실제 스택 밀림 = 지금 행 y − (틀 원래 메인 줄 수·피치로 잡은 행 y) — AL.dy 와 다르다(한 단계 축소 0.9 면 피치가 바뀜, 11-09 R3 UI 실측 5px 어긋남)
+    const afterDy = r => AL ? Math.round((r.y - (AL.mainY + (AL.lines0 - 1) * AL.pitch0 + r.afterMain)) * 100) / 100 : 0;
     if (AL) {
       MR.main = { ...MR.main, lines: AL.want, ...(AL.kk < 1 ? { px: MR.main.px * AL.kk, pitch: AL.pitch } : {}) };
       for (const n of AL.below) MR[n] = { ...MR[n], y: MR[n].y + AL.dy, ...(MR[n].chip && typeof MR[n].chip === 'object' && MR[n].chip.y != null ? { chip: { ...MR[n].chip, y: MR[n].chip.y + AL.dy } } : {}), stackDy: AL.dy };
@@ -2980,8 +3019,12 @@ ${tplLogo}${kvWrap(tplObject)}
     }
     const top00 = blocks.length ? Math.min(...blocks.map(b => b.t)) : 0, bot0 = blocks.length ? Math.max(...blocks.map(b => b.t + b.h)) : 0;
     // 세로 가운데(mold.vCenter — NAP 띠배너 HS화성 샘플 77:497·77:518: 글 덩어리(메인 + 날짜 알약)가 지면 세로 가운데. 줄 수·알약 유무에 따라 덩어리째 움직인다, 10-15 밤 사용자 「텍스트 위아래 미들로」)
-    const vOff = (mold.vCenter && blocks.length) ? Math.round((h / 2 - (top00 + bot0) / 2) * 10) / 10 : 0;
-    if (vOff) { for (const b of blocks) b.t = Math.round((b.t + vOff) * 10) / 10; for (const u of Object.values(used)) { u.top = Math.round((u.top + vOff) * 10) / 10; u.y = Math.round((u.y + vOff) * 10) / 10; } fired('templateMold.vCenter'); }
+    // R3(11-09 총괄 「가운데 정렬 이미지 안이 사진 전체를 어둡게 덮어 탁함」): 가운데 전면 이미지(슬롯 A)는 글 덩어리를 로고 바로 아래(+4%)로 올린다 —
+    //   스크림이 위쪽 글자 블록만 덮고(지면색 → 투명), 아래 사진은 원색으로 넓게 남게(피그마 가로형 전면 녹임). 로고가 글 위에 있을 때만, 올리기만
+    const liftC = (centerScrim && !mold.vCenter && blocks.length && tLogo && tLogo.y + tLogo.h <= top00) ? Math.max(0, Math.round((top00 - (tLogo.y + tLogo.h + Math.round(h * 0.04))) * 10) / 10) : 0;
+    if (liftC) fired('scrim.center.lift');
+    const vOff = (mold.vCenter && blocks.length) ? Math.round((h / 2 - (top00 + bot0) / 2) * 10) / 10 : -liftC;
+    if (vOff) { for (const b of blocks) b.t = Math.round((b.t + vOff) * 10) / 10; for (const u of Object.values(used)) { u.top = Math.round((u.top + vOff) * 10) / 10; u.y = Math.round((u.y + vOff) * 10) / 10; } if (mold.vCenter) fired('templateMold.vCenter'); }
     const top0 = top00 + vOff, bot = bot0 + vOff;
     if (mold.font) fired('templateMold.font');   // 틀 글꼴(mold.font — NAP HS화성 샘플 A2Z 7 Bold = 에이투지체, 10-15 밤): 틀 글 덩어리에만
     const textCol = `<div data-text-col="1" style="position:absolute;left:${sx}px;top:${top0}px;width:${colW}px;height:${Math.round((bot - top0) * 10) / 10}px${mold.font ? `;font-family:${fontStack(mold.font)}` : ''}">${blocks.map(b => b.html.replace('top:@@px', `top:${Math.round((b.t - top0) * 10) / 10}px`)).join('\n')}</div>`;

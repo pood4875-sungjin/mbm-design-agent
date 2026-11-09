@@ -2917,7 +2917,7 @@ function bindElementPanel(insp, a, c, spec, id) {
   const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
   const q = s => insp.querySelector(s);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
-  q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null }) }, `${elementName(id)} 자동 배치로`));
+  q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null }) }, `${elementName(id)} 자동 배치로`));
   { const pk = CS.pick, pc = q('#iPickColor'), ph = q('#iPickHex');
     if (pk && pc) {
       const go = v => { if (/^#[0-9A-Fa-f]{6}$/.test(v)) charApply(a, pk.id, { s: pk.s, e: pk.e, c: v.toUpperCase() }, pk.text); };

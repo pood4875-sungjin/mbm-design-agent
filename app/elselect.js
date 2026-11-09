@@ -48,7 +48,7 @@ export function createElementSelect(E) {
   // 지금 값 + 변형 전 상자 — 그림·로고는 직접 수정(몫 단위), 글자는 px
   function xform(a, it) {
     const spec = E.specOf(a), W = spec.w, H = spec.h, box = it.box;
-    if (it.kind === 'text') { const e = a.overrides?.elements?.[it.id] ?? {}; const cur = { dx: e.dx ?? 0, dy: e.dy ?? 0 }; return { W, H, box, cur, mode: 'text', base: { ...box, x: box.x - cur.dx, y: box.y - cur.dy } }; }
+    if (it.kind === 'text') { const e = a.overrides?.elements?.[it.id] ?? {}; const cur = { dx: e.dx ?? 0, dy: e.dy ?? 0 }; return { W, H, box, cur, mode: 'text', base: { ...box, x: box.x - cur.dx, y: box.y - cur.dy }, flow: flowOf(a, it) }; }   // 흐름 자리는 끌기 시작에 한 번(미리보기 뒤엔 이미 절대 위치)
     const P = E.partsOf(a); const mode = P?.[it.kind] ? 'layout' : 'patch';
     const cur = mode === 'layout' ? (normLayout(a.overrides?.layout)?.[it.kind] ?? null) : (a.overrides?.elements?.[it.kind] ?? null);
     const base = invertBox(box, cur, W, H);
@@ -84,12 +84,23 @@ export function createElementSelect(E) {
       const d = snapDelta(it.kind === 'text' ? 'text' : it.kind, nb, st.spec, it.kind === 'kv' ? null : st.base);
       if (st.mode === 'text') { p.dx += d.ddx; p.dy += d.ddy; } else { p.dx += d.ddx / st.W; p.dy += d.ddy / st.H; }
     }
-    const patch = st.mode === 'text' ? { elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy, sdy: sdyOf(a, it) }) } : withKind(a, it.kind, p, st.mode);
+    const patch = st.mode === 'text' ? textPatch(a, it, p, st) : withKind(a, it.kind, p, st.mode);
     E.commit(a, patch, label, coalesce);
   }
   // 오토레이아웃(11-09 2b): 옮기는 글자는 「자유 위치」 — 옮길 때의 스택 밀림(렌더러 data-stack-dy)을 같이 적어, 다른 글자 줄 수가 바뀌어도 그 자리에 남게(core/elementedit.js)
   const sdyOf = (a, it) => a.overrides?.elements?.[it.id]?.sdy ?? (parseFloat(it.el?.dataset?.stackDy ?? '0') || 0);
-  const previewOf = (a, it, st, q) => st.mode === 'text' ? { elements: withElementEdit(a.overrides?.elements, it.id, { dx: q.p.dx, dy: q.p.dy, sdy: sdyOf(a, it) }) } : withKind(a, it.kind, q.p, st.mode);
+  // R3(11-09): 흐름 안 글자(자유 배치 flex 열·시안 틀 열)는 옮기기 전 자리(위치 기준 조상 안 offset·폭)를 적는다 → elementedit 가 절대 위치로 뺀다(틀 경로는 이미 절대 — sdy 로)
+  const flowOf = (a, it) => {
+    const e = a.overrides?.elements?.[it.id] ?? {};
+    if (e.fx != null && e.fy != null) return { fx: e.fx, fy: e.fy, fw: e.fw ?? null };
+    const el = it.el; if (!el?.ownerDocument?.defaultView) return {};
+    const cs = el.ownerDocument.defaultView.getComputedStyle(el);
+    if (cs.position === 'absolute' || cs.position === 'fixed') return {};
+    const rx = cs.position === 'relative' ? (parseFloat(cs.left) || 0) : 0, ry = cs.position === 'relative' ? (parseFloat(cs.top) || 0) : 0;   // 옛 저장값(relative 로 민 것)은 그만큼 되짚는다
+    return { fx: el.offsetLeft - rx, fy: el.offsetTop - ry, fw: el.offsetWidth };
+  };
+  const textPatch = (a, it, p, st) => ({ elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy, sdy: sdyOf(a, it), ...(st?.flow ?? flowOf(a, it)) }) });
+  const previewOf = (a, it, st, q) => st.mode === 'text' ? textPatch(a, it, q.p, st) : withKind(a, it.kind, q.p, st.mode);
 
   function hide() { ovl?.el?.remove(); ovl = null; }
   function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; }
