@@ -8,7 +8,7 @@ const CSS_ID = 'charsel-css';
 const CSS = '[data-ad]{-webkit-user-select:none;user-select:none}[data-field],[data-field] *{-webkit-user-select:text;user-select:text;cursor:text}::selection{background:rgba(31,79,209,.35)}[contenteditable]{outline:1px dashed rgba(31,79,209,.55);outline-offset:2px;caret-color:#1f4fd1}[contenteditable]:focus{outline:2px solid #1f4fd1}';
 const hexOf = css => { const m = String(css).match(/\d+(\.\d+)?/g); if (!m || m.length < 3) return '#000000'; return '#' + m.slice(0, 3).map(v => Math.round(+v).toString(16).padStart(2, '0')).join('').toUpperCase(); };
 
-// 11-09 사용자 「개별은 캔버스에서 바로 수정」: 같은 모드에서 글자를 고친다(contenteditable) — Enter·바깥 클릭 = 저장(onText → 그 소재만) · Shift+Enter 줄바꿈 · Esc 취소
+// 11-09 사용자 「개별은 캔버스에서 바로 수정」: 같은 모드에서 글자를 고친다(contenteditable) — Enter = 줄바꿈 · 바깥 클릭·Esc = 저장(onText → 그 소재만) · 취소는 ⌘Z
 const EDITABLE = '[data-field="main"],[data-field="sub"],[data-field="date"],[data-field="detail"]';
 const textOfEl = el => el.innerText.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
 // 11-09 사용자 「피그마 UI 랑 비슷해야」: 더블클릭 = 누른 자리에 커서(바로 수정) · 끌어 고르면 오른쪽 패널에 그 범위의 색(onPick) — 글자 옆 팝오버는 쓰지 않는다
@@ -46,19 +46,21 @@ export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPic
     if (doc.__charsel) return;
     doc.__charsel = true;
     // 글자 고치기: 포커스가 빠질 때 바뀌었으면 저장(그 소재만). 렌더가 다시 그려지면 rearm 이 원래 글자를 다시 잰다
-    doc.addEventListener('focusout', e => {
-      const el = e.target?.closest?.(EDITABLE); if (!el || !cur || el.dataset.cancel) { if (el) delete el.dataset.cancel; return; }
+    const commitEl = el => {
+      if (!el || !cur) return;
       const now = textOfEl(el), was = el.dataset.orig ?? '';
       if (now === was) return;
-      if (!now) { el.innerText = was; toast('비우면 저장하지 않아요 — 자동 문구로 되돌리려면 왼쪽 패널에서'); return; }
+      if (!now) { el.innerText = was; toast('비우면 저장하지 않아요 — 이 줄을 빼려면 Delete, 자동 문구로 되돌리려면 왼쪽 패널에서'); return; }
       const role = el.dataset.field, n = [...doc.querySelectorAll(`[data-field="${role}"]`)].indexOf(el);
       el.dataset.orig = now;
       onText(cur.a, n > 0 ? `${role}#${n}` : role, now, was);
-    });
+    };
+    doc.addEventListener('focusout', e => commitEl(e.target?.closest?.(EDITABLE)));
     doc.addEventListener('keydown', e => {
       const el = e.target?.closest?.(EDITABLE); if (!el) return;
-      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); el.blur(); }
-      else if (e.key === 'Escape') { e.preventDefault(); el.dataset.cancel = '1'; el.innerText = el.dataset.orig ?? el.innerText; el.blur(); }
+      // 11-09 사용자 「엔터 하면 여기서 줄바꿈 되고 조절되도록」: Enter = 커서 자리 줄바꿈(피그마처럼). 저장은 바깥 클릭·Esc(저장하고 끝내기) · 취소는 ⌘Z
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); doc.execCommand('insertLineBreak'); }
+      else if (e.key === 'Escape') { e.preventDefault(); commitEl(el); el.blur(); }   // 저장하고 끝내기(keyup 에서 exit)
     });
     doc.addEventListener('mouseup', () => setTimeout(check, 0));
     doc.addEventListener('keyup', e => { if (e.key === 'Escape') exit(); else check(); });
@@ -106,7 +108,7 @@ export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPic
     arm(); onState(true, a);
     try { f.iframe.focus(); } catch {}
     setTimeout(() => caretAt(pt), 0);
-    if (!pt) toast('글자를 고치면 이 소재만 바뀌어요 · 끌어 고르면 오른쪽 패널에서 색 · Esc 끝내기');
+    if (!pt) toast('글자를 고치면 이 소재만 바뀌어요 · Enter 줄바꿈 · 끌어 고르면 오른쪽 패널에서 색 · Esc 저장하고 끝내기');
   }
   function exit() {
     if (!cur) return;

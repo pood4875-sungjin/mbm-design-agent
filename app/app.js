@@ -115,25 +115,31 @@ function charApply(a, id, run, text) {
 function charText(a, id, text, was) {
   const c = state.campaign; if (!c) return;
   const role = parseElementId(id).role;
-  let f = { main: 'headline', advertiser: 'headline', sub: 'subText', date: 'dateText' }[role] ?? null, v = text;
+  const clean = t => t.replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n').trim();   // 줄바꿈은 지킨다
+  let pairs = [];
   if (role === 'detail') {
-    const flat = text.replace(/\s*\n\s*/g, ' ');
-    const m = flat.match(/^(접수\s*기간|모집\s*기간|모집\s*직무|직무|근무\s*지역?|고용\s*형태)\s*[:：|｜ㅣ]?\s*(.*)$/);
-    if (m) { f = /기간/.test(m[1]) ? 'dateText' : /직무/.test(m[1]) ? 'role' : /근무/.test(m[1]) ? 'location' : 'employType'; v = m[2].trim(); }
-    else { const was1 = was.replace(/\s*\n\s*/g, ' '); f = was1.includes(c.context.core.role ?? '\u0000') ? 'role' : null; v = flat; }
+    // 상세 칸 하나에 여러 줄(「모집일정 : …」「모집직무 : …」)이 들어 있다 — 줄마다 라벨로 칸을 찾고, 라벨 없는 줄은 앞 줄 값의 이어진 줄(사용자가 Enter 로 꺾은 줄)
+    const RE = /^\s*(접수\s*기간|모집\s*기간|모집\s*일정|모집\s*직무|모집\s*분야|직무|근무\s*지역?|근무지|고용\s*형태)\s*[:：|｜ㅣ]?\s*(.*)$/;
+    const fieldOf = l => /기간|일정/.test(l) ? 'dateText' : /직무|분야/.test(l) ? 'role' : /근무/.test(l) ? 'location' : 'employType';
+    const rowsOf = t => { const out = []; for (const ln of String(t).split('\n')) { const m = ln.match(RE); if (m) out.push({ f: fieldOf(m[1]), v: m[2] }); else if (out.length) out[out.length - 1].v += '\n' + ln; else out.push({ f: null, v: ln }); } return out.map(r => ({ ...r, v: clean(r.v) })); };
+    const now = rowsOf(text), prev = rowsOf(was);
+    pairs = now.filter(r => r.f && (prev.find(p => p.f === r.f)?.v ?? null) !== r.v).map(r => [r.f, r.v]);
+    if (!pairs.length && now.every(r => !r.f)) pairs = [['role', clean(text)]];   // 라벨 없는 값만 쓰는 틀(인스타 1080 값만)
+  } else {
+    const f = { main: 'headline', advertiser: 'headline', sub: 'subText', date: 'dateText' }[role];
+    if (f) pairs = [[f, clean(text)]];
   }
-  if (!f) { toast('이 줄은 캔버스에서 고칠 수 없어요 — 왼쪽 패널에서 고쳐 주세요'); refreshFrames(a.key ?? a.specId); return; }
-  if (!['headline', 'subText', 'dateText'].includes(f)) v = v.replace(/\s*\n\s*/g, ' ');
-  const o = { ...(a.overrides.core ?? {}) };
-  if ((o[f] ?? c.context.core[f] ?? '') === v) return;
-  pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 캔버스에서 고침`, false);
-  if (v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
+  if (!pairs.length) { if (role !== 'detail') toast('이 줄은 캔버스에서 고칠 수 없어요 — 왼쪽 패널에서 고쳐 주세요'); refreshFrames(a.key ?? a.specId); return; }
+  const o = { ...(a.overrides.core ?? {}) }; let changed = false;
+  for (const [f, v] of pairs) { if ((o[f] ?? c.context.core[f] ?? '') === v) continue; changed = true; if (v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f]; }
+  if (!changed) return;
+  pushHistory(`${artLabel(a)} ${pairs.map(p => FIELD_LABEL[p[0]]).join('·')} 캔버스에서 고침`, false);
   a.overrides.core = o; a.status = 'draft'; a.gateOverride = null;
   logEvent(c, 'manual_edit', { specId: a.specId, element: id });
   regen(c); autosave(); refreshFrames(a.key ?? a.specId);
   setTimeout(() => CS.rearm(a.key ?? a.specId), 80);
-  toast(`이 소재만 바뀌었어요 — ${FIELD_LABEL[f]}${f === 'headline' ? '(메인 문구)' : ''}. 모든 소재에 쓰려면 왼쪽 패널에서`);
-  log(`${a.specId} 캔버스 글자 편집 (${FIELD_LABEL[f]})`);
+  toast(`이 소재만 바뀌었어요 — ${pairs.map(p => FIELD_LABEL[p[0]]).join('·')}. 모든 소재에 쓰려면 왼쪽 패널에서`);
+  log(`${a.specId} 캔버스 글자 편집 (${pairs.map(p => FIELD_LABEL[p[0]]).join('·')})`);
 }
 function charEnter(a, pt = null) { CS.enter(a, pt); }
 // 11-09 사용자 「삭제하고 싶으면 할 수 있게」 — 요소 빼기: 일괄(core.omit, 왼쪽 패널) · 개별(a.overrides.core.omit, 캔버스 Delete). 렌더 단계에서 빼서 레이아웃이 다시 맞춰진다
@@ -2651,7 +2657,10 @@ function renderLeft() {
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
   body.dataset.sig = sig;
   const core = c.context.core;
-  const input = f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`;
+  const MULTI = new Set(['role', 'employType', 'location', 'notice']);   // 상세 값은 줄바꿈 가능(캔버스와 같게)
+  const input = f => MULTI.has(f) && c.kind === 'recruit'
+    ? `<label>${FIELD_LABEL[f]}</label><textarea data-f="${f}" rows="${Math.min(3, Math.max(1, String(core[f] ?? '').split('\n').length))}" placeholder="${escH(FIELD_HINT[f] ?? '')}">${escH(core[f] ?? '')}</textarea>`
+    : `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`;
   const overN = c.artifacts.filter(x => Object.keys(x.overrides?.core ?? {}).length).length;
   const textBox = g => { const own = core[g.text] ?? ''; const shown = own || liveText(c, g.role);
     return `<label>${g.role === 'main' ? '타이틀' : `${g.name} 문구`} ${own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.text}"`) : '<span class="lauto">자동</span>'}</label>
