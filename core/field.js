@@ -46,6 +46,36 @@ export function brandDeep(brand) {
 }
 
 // 화사한 지면색(CANON.kvHarmony, 10-16 오후): 후보 중 채도 ≥ minSat 인 첫 색을 채도 sat 이상·명도 lMin~lMax 로 맞추고, 흰 글자 4.5:1 이 될 때까지만 명도를 내린다. 전부 무채면 null
+// 11-09 사진 지면(유채 변) — 사용자 피그마 시안(자소설 PC팝업 236:3717 · 236:3742)대로: 지면은 이음 쪽 사진과 「같은 색 계열」을 더 진하게.
+//   진해도 같은 색상끼리 섞이면 녹임 띠가 뿌옇지 않다 — 뿌연 띠는 색상이 다를 때(흰 가운 → 파랑, 회색 → 주황) 생겼다.
+//   ① 사진 변 색이 무채(채도 < photoChroma)면 null(브랜드 경로) ② 변 색상 ±photoHueNear 안의 사진 속 유채색 중 가장 채도 높은 색(숲 변 → 사진 속 잔디색)
+//   ③ 채도 photoSat[0]~[1] · 명도 lMin~lMax 로 맞추고 흰 글자 4.5:1 까지만 어둡힘(시안 지면과 색 거리 0.03)
+export function photoEdgeField(hex, pal = [], K = CANON.kvHarmony, brand = null) {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex ?? '')) return null;
+  const hsl = x => rgbToHsl(hexToRgb(x));
+  const [h0, s0] = hsl(hex);
+  if (s0 < (K.photoChroma ?? 0.15)) return null;
+  const near = (K.photoHueNear ?? 40) / 360, hd = h => { const d = Math.abs(h - h0); return Math.min(d, 1 - d); };
+  const cands = [hex, ...pal].filter(x => /^#[0-9A-Fa-f]{6}$/.test(x ?? '')).map(x => ({ x, c: hsl(x) })).filter(o => o.c[1] >= (K.photoChroma ?? 0.15) && hd(o.c[0]) <= near);
+  // 브랜드색이 사진 이음 쪽 색상과 어울리면(±photoHueNear, 채도 있음) 브랜드색 — 사옥 사진 시안: 사진 변 카키(55°) · 브랜드 초록(82°) → 시안 지면 초록.
+  //   우리 대표 3색엔 나무 초록이 안 잡혀(베이지·카키·하늘) 사진 색만으로는 시안 색이 안 나온다
+  const B = /^#[0-9A-Fa-f]{6}$/.test(brand ?? '') ? { x: brand, c: hsl(brand) } : null;
+  const pick = B && B.c[1] >= 0.25 && hd(B.c[0]) <= near ? B : cands.reduce((a, b) => (b.c[1] > a.c[1] ? b : a));
+  let [h, s, l] = pick.c;
+  const [sMin, sMax] = K.photoSat ?? [0.4, 0.5];
+  s = Math.min(Math.max(s, sMin), sMax); l = Math.min(Math.max(l, K.lMin ?? 0.34), K.lMax ?? 0.5);
+  let c = rgbToHex(hslToRgb([h, s, l])), guard = 0;
+  while (contrast(c, WHITE) < 4.5 && guard++ < 100) { l -= 0.01; c = rgbToHex(hslToRgb([h, s, Math.max(0.05, l)])); }
+  return c;
+}
+
+export function photoLightField(hex, K = CANON.kvHarmony) {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex ?? '')) return null;
+  const [, s, l] = rgbToHsl(hexToRgb(hex));
+  if (s < (K.photoChroma ?? 0.15) || l < (K.photoLightL ?? 0.6)) return null;
+  return mix(hex, WHITE, K.photoLightMix ?? 0.55);
+}
+
 export function vividOf(cands, K = CANON.kvHarmony) {
   const ok = cands.filter(x => /^#[0-9A-Fa-f]{6}$/.test(x ?? '')).map(hex => ({ hex, hsl: rgbToHsl(hexToRgb(hex)) })).filter(c => c.hsl[1] >= (K.minSat ?? 0.18));
   if (!ok.length) return null;
@@ -120,7 +150,16 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // 분위기 있는 KV 배경 > 브랜드 지면색(CANON kvMood, 10-12) — 누끼의 원본 바탕 팔레트, 어두운 사진, 채도 있는 그라데이션 변(10-20: facing 변이 아니라 그림 축으로 — 캠페인 공통)
   else if (moodStops(style, e, f)) { const m = moodStops(style, e, f); stops = m.stops; source = m.source; angle = m.angle; align = m.align ?? null; }
   // 비주얼 우선 지면(CANON kvHarmony, 10-16): 사진은 글자 쪽 변 색, 누끼는 대표색 — 어두운 매체는 흰 글자 4.5:1 까지 어둡힌 같은 색상, 밝은 매체는 옅은 틴트. 브랜드색은 포인트에만
-  else if (CANON.kvHarmony && f && (f.kind === 'photo' || f.opaque < 0.5) && (e?.hex || dominant)) {
+  // 11-09 사진(유채 변): 사진 왼변 색상 그대로 + 채도 조금 + 흰 글자 4.5:1 까지만 어둡힘 — 이음이 지면에 붙는다. 무채 변은 아래 브랜드 경로(브릿지)
+  // 11-09 이음 쪽이 밝은 유채 사진(명도 ≥ photoLightL — 베이지 바탕 일러스트 사진 .65): 진한 지면에 녹이면 뿌옇다 → 그 색을 옅게 푼 밝은 지면 + 어두운 글자(시안의 밝은 회색 지면 쪽)
+  else if (CANON.kvHarmony && f?.kind === 'photo' && (f.lum ?? 1) >= (CANON.kvHarmony.photoTintLum ?? 0.55) && photoLightField(f.edges?.left?.hex ?? dominant)) {   // 어두운 사진(한진 사옥 0.40)은 변이 밝아도 진한 지면(디자이너 9/9 남색)
+    stops = [photoLightField(f.edges?.left?.hex ?? dominant)]; angle = 180; source = 'kv-photo-light';
+  }
+  else if (CANON.kvHarmony && f?.kind === 'photo' && photoEdgeField(f.edges?.left?.hex ?? dominant, style.kvMeta?.colors ?? [], CANON.kvHarmony, p.primary)) {
+    const c = photoEdgeField(f.edges?.left?.hex ?? dominant, style.kvMeta?.colors ?? [], CANON.kvHarmony, p.primary);
+    stops = [c, shiftHue(c, 0, -0.08, 0)]; angle = 135; source = 'kv-vivid-photo';
+  }
+  else if (CANON.kvHarmony && f && f.kind !== 'photo' && f.opaque < 0.5 && (e?.hex || dominant)) {   // 누끼(사진은 위 photoEdgeField 또는 아래 브랜드 경로)
     const K = CANON.kvHarmony;
     const pal = (style.kvMeta?.colors ?? []).filter(Boolean);
     // 10-20 캠페인 공통 지면: 후보에 글자 쪽 변(facing)을 넣으면 오른쪽 열 규격(왼변)과 아래 띠 규격(윗변)의 색이 갈린다 — 사진은 왼변(글자가 왼쪽에 서는 규격이 다수) 하나로 고정, 누끼는 대표색·팔레트만
@@ -145,7 +184,12 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     const warm = warmLightBrand(brand);
     // 10-20 캠페인 공통 지면: 매체 프로필(구글 lightField·자소설 bgLight)로 틴트/딥을 가르지 않는다 — 같은 캠페인이 자소설은 분홍 틴트, 카카오는 딥 빨강으로 갈렸다(사용자 보드: ABL 떼 누끼 × 로고 빨강). 밝은 난색 브랜드(warm)는 브랜드 자체의 성질이라 캠페인 공통
     const tint = warm;
-    if (tint) { stops = [mix(brand, WHITE, CANON.warmLightBrand.tint), WHITE]; angle = 180; source = 'brand-tint-warm'; }
+    // 11-09 무채 변 밝은 사진(흰 가운·흰 벽, 밝기 ≥ photoTintLum): 진한 브랜드 지면에 녹이면 경계가 분홍·연두로 뿌옇다 —
+    //   옅은 브랜드 틴트 단색 + 어두운 글자(피그마 시안 규칙 2 「밝은 지면 → 어두운 글자」, HDC #97B6D4). 같은 밝기끼리 녹아 띠가 안 보인다. 어두운 사진은 아래 딥 + 브릿지
+    if (f?.kind === 'photo' && !tint && (f.lum ?? 0) >= (CANON.kvHarmony?.photoTintLum ?? 0.55)) { stops = [mix(brand, WHITE, CANON.warmLightBrand.tint)]; angle = 180; source = 'brand-tint-photo'; }
+    // 브랜드색 자체가 아주 밝으면(흰 글자 1.6:1 미만 — 밝은 회색 브랜드) 진하게 바꾸지 않고 그대로 밝은 지면(시안과 같다). 진하게 바꾸면 탁한 회색이 됐다
+    else if (f?.kind === 'photo' && !tint && contrast(brand, WHITE) < 1.6) { stops = [brand]; angle = 180; source = 'brand-light-photo'; }
+    else if (tint) { stops = [mix(brand, WHITE, CANON.warmLightBrand.tint), WHITE]; angle = 180; source = 'brand-tint-warm'; }
     else {
       stops = brandDeep(brand); angle = 135; source = f.kind === 'photo' ? 'brand-photo' : 'brand';
       // 10-12 GC녹십자(밝은 사진 × 네이비 브랜드): 지면이 그림과 따로 정해져 이음매 쪽 색이 멀면(거리 ≥ bridgeFrom) 이음매 쪽 끝을 그림 변 색 쪽으로 당긴다 —

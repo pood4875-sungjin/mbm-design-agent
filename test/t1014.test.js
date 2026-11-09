@@ -158,7 +158,7 @@ test('어두운 사진(밝기 < 0.55)은 지면을 그림 변 색으로 당기�
   assert.equal(dark.source, 'kv-vivid-photo');   // 10-16 비주얼 우선: 사진 지면 = 글자 쪽 변 색(#D8E6F2)을 흰 글자 4.5:1 까지 어둡힌 같은 색상 — 브랜드 남색·브릿지 둘 다 아님
   assert.notEqual(dark.stops[0].toUpperCase(), '#061266');
   const bright = resolveField(normalizeStyle({ colors: ['#061266'], keyVisual: PNG, kvMeta: photo(0.71) }), { facing: 'left' });
-  assert.equal(bright.source, 'kv-vivid-photo');
+  assert.equal(bright.source, 'kv-photo-light');   // 11-09 밝은 사진 + 밝은 이음 변(#D8E6F2) → 그 색을 옅게 푼 밝은 지면(진한 지면에 녹이면 뿌옇다)
 });
 
 test('누끼 떼는 샘플이 보여 준 상세 줄을 더하지 않는다 — 머리 위로 올라갔다(ABL·바이오노트 NAP 300×250, ABL 디자이너 상세 없음)', () => {

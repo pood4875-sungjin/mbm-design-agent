@@ -2,7 +2,10 @@
 //   시안 = 피그마 실제 소재에서 옮긴 칸·타이포·뱃지 구조. 배경 비주얼은 만들지 않고 타이포(굵기·글꼴·크기·색)·뱃지·배치로 느낌을 낸다.
 //   규정 매체·틀에 가까운 매체·얇은 띠·오브젝트 칸 규격에는 쓰지 않는다 — 그 규격은 지금처럼 규정대로 1안.
 import { kvTypeOf } from './kvtypes.js';
-import { TEMPLATE_FAMILIES } from './templates-data.js';
+import { TEMPLATE_FAMILIES as TPL0 } from './templates-data.js';
+import { TYPO_FAMILIES } from './templates-typo.js';
+// 11-09 사용자 타이포 시안 5묶음(templates-typo.js)을 홍보사업셀 추출 틀 뒤에 더한다
+const TEMPLATE_FAMILIES = [...TPL0, ...TYPO_FAMILIES];
 import { TEMPLATE_PASS } from './templates-quality.js';
 
 const MIN_H = 240;
@@ -20,6 +23,7 @@ export function recipeEligible(spec) {
   return spec.h >= MIN_H;
 }
 
+export { TEMPLATE_FAMILIES };
 export const familyById = id => TEMPLATE_FAMILIES.find(f => f.id === id) ?? null;
 
 // 프레임 구조 결함(11-06 사용자 「뜬금없이 연도는 다른 데 있고」): 날짜 줄이 서브(시즌)와 메인 사이에 끼면 읽는 순서가 깨진다(gdn-21402-170 시즌 → 날짜 → 메인). 후보에서 뺀다
@@ -61,8 +65,8 @@ export function familiesFor(spec, kvMeta, hasKv = !!kvMeta, seed = '', { all = f
   if (!recipeEligible(spec)) return [];
   const key = kvKeyOf(kvMeta), kind = kvKindOf(kvMeta), wantFull = kind === 'photo' || kind === 'texture', h = hashOf(seed);
   const rank = f => (frameFor(f, spec).full === wantFull ? 0 : 1);
-  return TEMPLATE_FAMILIES.filter(f => frameFor(f, spec) && familyFits(f, kvMeta, hasKv, spec) && (all || TEMPLATE_PASS.has(`${f.id}|${spec.id}|${key}`)))
-    .map(f => ({ f, k: (hashOf(f.id) ^ h) >>> 0, q: Math.round((TEMPLATE_PASS.get(`${f.id}|${spec.id}|${key}`) ?? 0) * 5) }))   // 점수 5단계 안에서만 캠페인마다 순서가 바뀐다
+  return TEMPLATE_FAMILIES.filter(f => frameFor(f, spec) && familyFits(f, kvMeta, hasKv, spec) && (all || f.curated || TEMPLATE_PASS.has(`${f.id}|${spec.id}|${key}`)))
+    .map(f => ({ f, k: (hashOf(f.id) ^ h) >>> 0, q: f.curated ? 4 : Math.round((TEMPLATE_PASS.get(`${f.id}|${spec.id}|${key}`) ?? 0) * 5) }))   // curated(사용자 시안)는 합격 목록 없이 상위 묶음   // 점수 5단계 안에서만 캠페인마다 순서가 바뀐다
     .sort((a, b) => rank(a.f) - rank(b.f) || b.q - a.q || a.k - b.k)
     .map(x => x.f);
 }

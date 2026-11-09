@@ -37,8 +37,8 @@ test('에브리타임 홈카드: 로고는 로고 여백(30)으로 — 틀 칸 �
 test('잘림 판정: 글꼴 위아래 여백으로 넘치는 건 잘림이 아니다 — 측정 코드(앱·전수)에 줄 절반 문턱', () => {
   for (const f of ['app/measure.js', 'scripts/lib/lint-extra.mjs']) assert.match(readFileSync(f, 'utf8'), /scrollHeight[^;\n]*Math\.max\(2, lh \* 0\.5\)/, f);
 });
-test('캐치 PC 중앙배너(로고 불가): 바탕 있는 그림이어도 로고로 대신하지 않고 그림을 녹여 넣는다', () => {
+test('캐치 PC 중앙배너(로고 불가): 바탕 있는 그림이어도 로고로 대신하지 않고 그림을 그대로 — 단독 이미지는 녹임(그라) 없이 지면 전체(11-09 사용자)', () => {
   const meta = { ar: 1.5, px: [1500, 1000], colors: ['#123456'], field: { kind: 'photo', opaque: 1, lum: 0.5, sat: 0.3 } };
   const h = renderAd(createContext(BRIEFS[0], 'recruit'), normalizeStyle({ colors: ['#0A3D91'], keyVisual: PNG, kvMeta: meta, logo: PNG }), specs['catch-center-object-pc']);
-  assert.ok(!/data-logo=/.test(h), '로고 없음'); assert.match(h, /data-object="1"/); assert.match(h, /mask-image:/);
+  assert.ok(!/data-logo=/.test(h), '로고 없음'); assert.match(h, /data-object="1" data-kv-only="1" style="position:absolute;inset:0;/); assert.doesNotMatch(h, /mask-image:/);
 });

@@ -43,7 +43,8 @@ import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { createElementSelect } from './elselect.js';   // 11-02 프레임 안 요소 고르기
 import { createRuler } from './ruler.js';
-import { applyElementEdits, elementFontIds, elementName, parseElementId, withElementEdit, STYLE_ROLES, WEIGHTS } from '../core/elementedit.js';
+import { applyElementEdits, elementFontIds, elementName, parseElementId, withElementEdit, addRun, STYLE_ROLES, WEIGHTS } from '../core/elementedit.js';
+import { createCharSel } from './charsel.js';   // 11-09 글자 범위 색(드래그로 고른 글자만)
 import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
 import { getKey as aiGetKey } from './llm.js';
@@ -99,6 +100,17 @@ const $ = id => document.getElementById(id);
 const frames = new Map();  // artifact.key → {frame, iframe, badge, label}
 // 선택하기(11-02, app/select.js) — 선택은 세션만(저장 안 함). 켜져 있으면 카드 클릭·빈 곳 드래그가 선택이 되고, 내보내기 모달에 「선택한 소재만」이 뜬다
 const SEL = createSelect({ state, frames, $ });
+// 글자 범위 색(11-09 사용자 「글자 하나하나 단위로 — 드래그해서」, app/charsel.js): 고른 프레임 글자 더블클릭 → 끌어 고르기 → 그 글자만 색(overrides.elements[요소].runs)
+const CS = createCharSel({ frames, keyOf: a => a.key ?? a.specId, onApply: (a, id, run, text) => charApply(a, id, run, text), toast: t => toast(t), onState: () => { if (state.campaign) renderInspector(); } });
+function charApply(a, id, run, text) {
+  const runs = addRun(a.overrides.elements?.[id]?.runs ?? null, run, text);
+  elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: runs ?? null }) }, `${elementName(id)} 글자 ${run.c ? '색' : '색 지우기'}`);
+  setTimeout(() => CS.rearm(a.key ?? a.specId), 80);
+}
+function charEnter(a) {
+  if (textColorRegulated(SPECS[a.specId])) { toast('이 매체는 글자색이 규정으로 정해져 있어 글자 일부 색을 바꿀 수 없어요'); return; }
+  CS.enter(a);
+}
 // 편집 고도화·가이드 검수(10-14, app/editor.js) — 프리셋·직접 수정 손잡이·가이드 검수. 아래 함수들은 늦게 정의되는 것도 있어 화살표로 감싸 넘긴다
 const ED = createEditor({
   state, SPECS, frames, logEvent,
@@ -1978,7 +1990,8 @@ function layoutArtboard(opts = {}) {
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } const k = a.key ?? a.specId; if (a.channel !== 'ad') { select(k); return; } if (state.selected !== k && !(e.metaKey || e.ctrlKey)) { select(k); return; } textRoleFocus = textRoleAt(a, e); select(k, EL.at(a, e)); };   // 한 번 = 프레임, 고른 프레임 안에서 한 번 더(또는 ⌘/Ctrl) = 그 자리 요소
-        { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = () => zoomToFrame(a.key ?? a.specId); }
+        { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = e => { const k = a.key ?? a.specId; if (state.selected === k && a.channel === 'ad' && !SEL.on) { const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { charEnter(a); return; } } zoomToFrame(k); };
+          frame.addEventListener('dblclick', e => { if (!e.target.closest?.('.eov') || SEL.on || a.channel !== 'ad') return; const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { e.stopPropagation(); charEnter(a); } }); }   // 요소를 고른 뒤에는 선택 테두리 층(.eov)이 위에 있다 — 거기서도 글자 더블클릭   // 고른 프레임의 글자 더블클릭 = 글자 범위 색(11-09), 그 밖은 확대
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
@@ -2506,6 +2519,7 @@ document.addEventListener('pointerdown', e => {
 
 /* ═══ 선택 · 인스펙터 ═══ */
 function select(specId, elId = null) {
+  if (CS.on && CS.key !== specId) CS.exit();   // 다른 프레임을 고르면 글자 고르기 끝
   state.selected = specId; state.elSel = specId ? elId : null;
   textRoleFocus = state.elSel ? parseElementId(state.elSel).role : null;
   for (const [id, f] of frames) f.frame.classList.toggle('sel', id === specId);
@@ -2679,6 +2693,7 @@ function elementPanelHtml(a, spec, id) {
     <div class="vseg" id="iElAlign" role="group" aria-label="정렬">${[['left', 'ta-l', '왼쪽'], ['center', 'ta-c', '가운데'], ['right', 'ta-r', '오른쪽']].map(([k, icn, n]) => `<button type="button" data-ela="${k}" class="${al === k ? 'on' : ''}" aria-pressed="${al === k}" aria-label="${n}" title="${n}">${ic(icn)}</button>`).join('')}</div>
     <label>색</label>
     <div class="fstack">${colorRowHtml({ id: 'iElColor', value: curColor, label: `${elementName(id)} 색`, disabled: locks.color })}</div>
+    ${locks.color ? '' : (() => { const nr = (ed.runs ?? []).length; return `<button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:6px">${CS.on && CS.key === (a.key ?? a.specId) ? '글자 고르기 끝내기' : '글자 일부 색 바꾸기(끌어 고르기)'}</button>${nr ? `<div class="fnote">따로 칠한 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : '<div class="fnote">미리보기 글자를 더블클릭해도 돼요</div>'}`; })()}
     ${(() => { const notes = [locks.color ? '글자색이 규정으로 정해진 규격' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색' : '', locks.size ? '글자 크기가 규정으로 정해진 규격' : ''].filter(Boolean); return notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''; })()}
     </section>`;
 }
@@ -2730,6 +2745,8 @@ function bindElementPanel(insp, a, c, spec, id) {
     col.oninput = () => { const v = col.value.toUpperCase(); if (styled) LIVE.push({ style: c.style, only: key, ov: ov(v) }); else LIVE.push({ style: c.style, only: key, elements: withElementEdit(a.overrides.elements, id, { color: v }) }); };
     col.onchange = () => { const v = col.value.toUpperCase(); if (styled) elCommit(a, { style: { ...(a.overrides.style ?? {}), ...ov(v) } }, `${elementName(id)} 색`); else edit({ color: v }, '색'); };
   }
+  q('#iElRuns')?.addEventListener('click', () => { if (CS.on && CS.key === key) CS.exit(); else charEnter(a); });
+  q('#iElRunsClear')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: null }) }, `${elementName(id)} 글자 색 모두 지우기`));
   q('#iElReset')?.addEventListener('click', () => {
     const st = { ...(a.overrides.style ?? {}) };
     for (const k of ['roleColors', 'roleScale']) if (styled && st[k]) { const o = { ...st[k] }; delete o[role]; if (Object.keys(o).length) st[k] = o; else delete st[k]; }

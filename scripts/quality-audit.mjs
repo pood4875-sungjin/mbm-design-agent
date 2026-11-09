@@ -63,7 +63,7 @@ const RULESET = applyRulesJson(RULES, existsSync(RULES_JSON) ? JSON.parse(readFi
 const MEDIA = {}; const mediaName = m => { if (!MEDIA[m]) MEDIA[m] = JSON.parse(readFileSync(path.join(CORE_DIR, 'media', m + '.json'), 'utf8')); return MEDIA[m].name ?? m; };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const CASES = path.join(ROOT, 'ref/learned/cases');
+const CASES = process.env.CASES_ROOT ? path.resolve(process.env.CASES_ROOT) : path.join(ROOT, 'ref/learned/cases');   // 11-09 최근 키비주얼 묶음(_out/, 커밋 안 함)으로 검수할 때 CASES_ROOT=<폴더>(그 안 cases.json)
 const LEDGER = JSON.parse(readFileSync(path.join(CASES, 'cases.json'), 'utf8'));
 const CASE_IDS = (() => { const v = opt('--cases') ?? 'all'; return v === 'all' ? LEDGER.cases.map(c => c.id).filter(id => existsSync(path.join(CASES, id, 'meta.json'))) : v.split(','); })();
 const mime = f => f.endsWith('.png') ? 'image/png' : f.endsWith('.svg') ? 'image/svg+xml' : f.endsWith('.webp') ? 'image/webp' : 'image/jpeg';

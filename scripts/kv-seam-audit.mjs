@@ -63,7 +63,7 @@ const IDS = (EXTRACT.extract ?? []).filter(id => ENTRIES[id] && ENTRIES[id].chan
 const MEDIA = {}; const mediaName = m => { if (!MEDIA[m]) MEDIA[m] = JSON.parse(readFileSync(path.join(CORE_DIR, 'media', m + '.json'), 'utf8')); return MEDIA[m].name ?? m; };
 const unesc = s => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
-const CASES = path.join(ROOT, 'ref/learned/cases');
+const CASES = process.env.CASES_ROOT ? path.resolve(process.env.CASES_ROOT) : path.join(ROOT, 'ref/learned/cases');   // 11-09 최근 키비주얼 묶음(_out/, 커밋 안 함)으로 검수할 때 CASES_ROOT=<폴더>(그 안 cases.json)
 const LEDGER = JSON.parse(readFileSync(path.join(CASES, 'cases.json'), 'utf8'));
 const CASE_IDS = (() => { const v = opt('--cases') ?? 'all'; return v === 'all' ? LEDGER.cases.map(c => c.id).filter(id => existsSync(path.join(CASES, id, 'meta.json'))) : v.split(','); })();
 const mime = f => f.endsWith('.png') ? 'image/png' : f.endsWith('.svg') ? 'image/svg+xml' : f.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
@@ -150,6 +150,7 @@ function maskEnds(mask, bw, bh) {
   if (!mask) return ends;
   const grads = []; let i = 0; while ((i = mask.indexOf('linear-gradient(', i)) >= 0) { let d = 0, j = i; for (; j < mask.length; j++) { if (mask[j] === '(') d++; else if (mask[j] === ')' && --d === 0) break; } grads.push(mask.slice(i, j + 1)); i = j + 1; }
   for (const g of grads) {
+    if (/^linear-gradient\(\s*-?[\d.]+deg/.test(g)) continue;   // 11-09 모서리 대각 덮개(각도) — 변 녹임 길이 측정에서 뺀다
     const dir = (g.match(/^linear-gradient\(\s*to (right|left|bottom|top)/) ?? [])[1] ?? 'bottom';
     const side = { right: 'left', left: 'right', bottom: 'top', top: 'bottom' }[dir];
     const len = (side === 'left' || side === 'right') ? bw : bh;

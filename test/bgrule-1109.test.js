@@ -31,7 +31,7 @@ test('세로형·팝업: 이미지가 있으면 그라데이션은 그림 쪽 �
   const jp = renderArtifact('jasoseol-pc-standard-jobpost-pc', ctx, st(PHOTO), {});
   assert.match(obj(jp), /left:0px;top:355px;width:160px;height:245px;[^"]*linear-gradient\(to bottom,transparent 0%,rgba\(0,0,0,0\.2\) 26\.5%,#000 53%\)/);
   const pp = renderArtifact('jasoseol-pc-premium-popup-pc', ctx, st(PHOTO), {});
-  assert.match(obj(pp), /left:245px;top:181px;width:305px;height:219px;[^"]*linear-gradient\(to right,transparent 0%,#000 26%\),linear-gradient\(to bottom,transparent 0%,#000 38%\)/);
+  assert.match(obj(pp), /left:245px;top:181px;width:305px;height:219px;[^"]*linear-gradient\(to right,transparent 0%,#000 27.5%\),linear-gradient\(to bottom,transparent 0%,#000 39.7%\),linear-gradient\(135\.4\ddeg,transparent 13\.4%,rgba\(0,0,0,0\.4\) 26\.[34]%,#000 39\.3%\)/);   // 11-09 시안 실측 84/305·87/219 + 왼쪽 위 대각(「네모로만 주면 각져 보여」);
 });
 
 test('누끼는 시안 칸·녹임을 쓰지 않는다(예전 칸 contain, 녹임 없음)', () => {
@@ -43,7 +43,7 @@ test('다른 매체는 그림 칸 자리로 자동: 리멤버 오른쪽 열 = �
   const r = renderArtifact('remember-main-top-mo', ctx, st(PHOTO), {});
   assert.match(r, /data-bgrule="1" data-melt="27" data-melt-dir="to right"/); assert.ok(traceOf(r).rules.includes('templateMold.bgRuleAuto'));
   if (traceOf(r).field.gradient) assert.equal(traceOf(r).field.angle, 270);
-  assert.match(renderArtifact('google-gdn-580x400', ctx, st(PHOTO), {}), /data-bgrule="1" data-melt="26" data-melt-dir="to right" data-melt-top="38"/);
+  assert.match(renderArtifact('google-gdn-580x400', ctx, st(PHOTO), {}), /data-bgrule="1" data-melt="28" data-melt-dir="to right" data-melt-top="40"/);
   assert.match(renderArtifact('google-gdn-300x1050', ctx, st(PHOTO), {}), /data-bgrule="1" data-melt="53" data-melt-dir="to bottom"/);
   assert.doesNotMatch(renderArtifact('kakao-bizboard-mo', ctx, st(PHOTO), {}), /data-bgrule/);
 });
@@ -77,7 +77,7 @@ test('그라데이션 바탕 캐릭터도 bgRule 틀(PC팝업·M팝업·리멤�
     assert.match(obj(h), /\/cover no-repeat;/); assert.doesNotMatch(obj(h), /contain no-repeat|data-cut-melt=/);
   }
   const pp = obj(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, st(CHAR), {}));
-  assert.match(pp, /left:245px;top:181px;width:305px;height:219px;/); assert.match(pp, /data-bgrule="1" data-melt="26" data-melt-dir="to right" data-melt-top="38"/);
+  assert.match(pp, /left:245px;top:181px;width:305px;height:219px;/); assert.match(pp, /data-bgrule="1" data-melt="28" data-melt-dir="to right" data-melt-top="40"/);
 });
 
 test('흰/밝은 단색 바탕 RGB 그림(사진으로 분류, 세 변이 거의 흰색): 지면 = 그 바탕색(kv-edge 단색) + 어두운 글자, 시안 칸 cover, 후광·cutFade 없음 — 자소설 M팝업·네이버 DA·리멤버', async () => {

@@ -251,14 +251,21 @@
               "fade": [
                 {
                   "side": "left",
-                  "frac": 0.26
+                  "frac": 0.275
                 },
                 {
                   "side": "top",
-                  "frac": 0.38
+                  "frac": 0.397
+                },
+                {
+                  "side": "diag",
+                  "corner": "top-left",
+                  "from": [0.231, 0.317],
+                  "to": [0.68, 0.934],
+                  "mid": 0.4
                 }
               ],
-              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3771 — 이미지 245,181(칸 밖으로 넘침) · 왼쪽 84px(26%)·위쪽 87px(38%) 녹임 1→0 · 대각 왼쪽 위→오른쪽 아래"
+              "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3771 — 이미지 245,181(칸 밖으로 넘침) · 왼쪽 84px(칸 305의 27.5%)·위쪽 87px(칸 219의 39.7%) 녹임 1→0 + 왼쪽 위 모서리 대각 덮개 1→.6@.5→0(0% 선 23%·32%, 100% 선 68%·93%, 11-09 사용자 「네모로만 주면 각져 보여」)"
             }
           }
         }
@@ -1517,11 +1524,18 @@
               "fade": [
                 {
                   "side": "left",
-                  "frac": 0.26
+                  "frac": 0.275
                 },
                 {
                   "side": "top",
-                  "frac": 0.38
+                  "frac": 0.397
+                },
+                {
+                  "side": "diag",
+                  "corner": "top-left",
+                  "from": [0.231, 0.317],
+                  "to": [0.68, 0.934],
+                  "mid": 0.4
                 }
               ],
               "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) — 시안 없음, 오른쪽 아래 그림 칸이라 PC팝업 규칙을 옮김(11-09 확장)"

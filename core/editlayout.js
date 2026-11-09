@@ -214,7 +214,7 @@ export function autoLabel(key, trace) {
   }
   if (key === 'textAnchor') return P.vCenter ? '가운데' : P.distribute ? '위(상세는 아래로)' : '위';
   if (key === 'textAlign') return { left: '왼쪽', center: '가운데', right: '오른쪽' }[P.zone?.align] ?? '';
-  if (key === 'bgFill') return { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드색', 'brand-tint': '브랜드 틴트', 'brand-photo': '브랜드색', 'brand-dark-logo': '어두운 브랜드색', 'photo-full': '사진 + 브랜드 스크림', 'kv-full': '그림 그대로', 'kv-texture': '그림 그대로', 'kv-frame': '어두운 브랜드색', manual: '직접 고른 색' }[trace.field?.source?.replace(/-bridge$/, '')] ?? (trace.field?.source?.startsWith('kv-mood') ? '키비주얼 분위기 색' : trace.field?.source ?? '없음');
+  if (key === 'bgFill') return { 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드색', 'brand-tint': '브랜드 틴트', 'brand-tint-photo': '브랜드 틴트', 'brand-light-photo': '브랜드색', 'brand-tint-warm': '브랜드 틴트', 'brand-photo': '브랜드색', 'kv-vivid-photo': '사진 색', 'kv-photo-light': '사진 색(옅게)', 'kv-vivid': '키비주얼 대표색', 'brand-dark-logo': '어두운 브랜드색', 'photo-full': '사진 + 브랜드 스크림', 'kv-full': '그림 그대로', 'kv-texture': '그림 그대로', 'kv-frame': '어두운 브랜드색', manual: '직접 고른 색' }[trace.field?.source?.replace(/-bridge$/, '')] ?? (trace.field?.source?.startsWith('kv-mood') ? '키비주얼 분위기 색' : trace.field?.source ?? '없음');
   if (key === 'bgGrad') return trace.field?.gradient ? `${trace.field.angle}°` : '없음';
   if (key === 'scrim') return trace.scrim ? ({ 'photo-full': '사진 스크림', 'texture-contrast': '대비 스크림', calm: '질감 진정', frame: '프레임 스크림' }[trace.scrim.kind] ?? trace.scrim.kind) : '없음';
   return '';

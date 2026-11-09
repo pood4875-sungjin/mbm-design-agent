@@ -44,13 +44,13 @@ test('meltFix ① 덮어 자른 사진 칸: 변 색(갈색 ≈ 지면)이 아니
   assert.match(r, /data-bgrule="1" data-melt="27" data-melt-dir="to right"/, '리멤버 오른쪽 열 = PC메인 시안의 거울(왼쪽 27%)');
   assert.ok(!rulesOf(r).includes('meltFix') && rulesOf(r).includes('templateMold.bgRuleAuto'));
   const g = renderAd(ctx, styleOf(PHOTO), specs['google-gdn-580x400']);
-  assert.match(g, /data-bgrule="1" data-melt="26" data-melt-dir="to right" data-melt-top="38"/, '구글 580 모서리 칸 = PC팝업 시안(왼 26·위 38)');
+  assert.match(g, /data-bgrule="1" data-melt="28" data-melt-dir="to right" data-melt-top="40"/, '구글 580 모서리 칸 = PC팝업 시안(왼 27.5·위 39.7 + 대각)');
 });
 
-test('meltFix ② 조용한 그림(어느 줄이나 바탕)은 어디도 안 늘인다 · 인스타 1080 모서리 칸은 시안 규칙(왼 26·위 38)으로 녹임 그대로', () => {
+test('meltFix ② 조용한 그림(어느 줄이나 바탕)은 어디도 안 늘인다 · 인스타 1080 모서리 칸은 시안 규칙(왼 27.5·위 39.7 + 대각)으로 녹임 그대로', () => {
   const h = renderAd(ctx, styleOf(ILLUST, '#1E3A8A'), specs['instagram-feed-1080']);
   const o = objOf(h);
-  assert.match(o, /data-bgrule="1" data-melt="26" data-melt-dir="to right" data-melt-top="38"/, o.slice(-200));
+  assert.match(o, /data-bgrule="1" data-melt="28" data-melt-dir="to right" data-melt-top="40"/, o.slice(-200));
   assert.doesNotMatch(o, /data-melt-fix=/);
   assert.match(o, /no-repeat;-webkit-mask-image:linear-gradient\(to right[^"]*overflow:hidden"/);
   const q = renderAd(ctx, styleOf(QUIET, '#1E3A8A'), specs['instagram-feed-1080']);

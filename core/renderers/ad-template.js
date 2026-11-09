@@ -112,11 +112,19 @@ export function renderTemplate(ctx, style, spec) {
   const rowsOut = [];
   const parts = [];
   const emph = fr.rows.find(r => r.role === 'main')?.emph ?? null;
+  const hasClientRow = fr.rows.some(r => r.role === 'client');   // 11-09 타이포 시안: 회사명 머리 줄이 따로 있으면 메인은 채용구분만
   const textOf = r => {
-    if (r.role === 'main') return mainFull;
+    if (r.role === 'main') {
+      let t = hasClientRow ? (hire || client) : (r.join && client && hire ? `${client}${r.join}${hire}` : mainFull);
+      if (r.withSeason && season) t = `${season}\n${t}`;
+      return t;
+    }
+    if (r.role === 'client') return client && hire ? client : null;
+    if (r.role === 'slogan') return String(core.slogan ?? '').trim() || null;
+    if (r.role === 'role' && roleText && r.stack) return roleText.split(/\s*,\s*/).filter(Boolean).join('\n');
     if (r.role === 'season') return season || null;
     if (r.role === 'date') return dateText || null;
-    if (r.role === 'role' && roleText) return r.hash ? roleText.split(/\s*,\s*/).filter(Boolean).slice(0, 4).map(t => `#${t.replace(/\s+/g, '')}`).join(' ') : roleText;
+    if (r.role === 'role' && roleText) return r.hash ? roleText.split(/\s*,\s*/).filter(Boolean).slice(0, 4).map(t => `#${r.hashSpace ? ' ' : ''}${t.replace(/\s+/g, '')}`).join(' ') : roleText;
     return null;
   };
   // 글자가 쓸 수 있는 가로 범위: 칸 시안은 그림 쪽으로 넘어가지 않게
@@ -127,7 +135,7 @@ export function renderTemplate(ctx, style, spec) {
   const slotWide = slot.w > W * 0.75;
   const textRight = Math.min(safeR, (!frFull && frVisual === 'right' && !slotWide) ? Math.max(W * 0.45, slot.x + slot.w * 0.08, (mainRowBp.x + mainRowBp.w) * sx) : W);
   const textLeft = Math.max(safeL, (!frFull && frVisual === 'left' && !slotWide) ? Math.min(W * 0.55, slot.x + slot.w * 0.92, mainRowBp.x * sx) : 0);
-  const textBottom = Math.min(safeB, (!frFull && frVisual === 'bottom' && !cutout) ? Math.max(H * 0.5, slot.y + slot.h * 0.2) : H);
+  const textBottom0 = Math.min(safeB, (!frFull && frVisual === 'bottom' && !cutout) ? Math.max(H * 0.5, slot.y + slot.h * 0.2) : H);
 
   // 정렬은 시안 하나에 하나. 피그마의 글상자 정렬값 대신 글자 칸이 실제로 어디에 맞춰 있는지로 판단한다
   const colRows = fr.rows.filter(r => r.role !== 'label');
@@ -137,11 +145,15 @@ export function renderTemplate(ctx, style, spec) {
   const baseEdge = frameAlign === 'center' ? (mainRow0.x + mainRow0.w / 2) * sx : frameAlign === 'right' ? (mainRow0.x + mainRow0.w) * sx : Math.min(...colRows.map(r => r.x)) * sx;
   const bpTop = Math.min(...colRows.map(r => (r.y - (r.lines ?? 1) * r.fs * 0.625) * sy));
   const bpBot = Math.max(...colRows.map(r => (r.y + (r.lines ?? 1) * r.fs * 0.625) * sy));
+  // 11-09 사용자 타이포 시안(curated)은 글자가 그림 칸의 녹임 구역까지 내려온다(콜마 300×600 글자 끝 426 > 그림 칸 263) — 시안 글자 범위까지는 쓴다(전엔 0.6배로 줄었다)
+  const textBottom = family.curated ? Math.min(safeB, Math.max(textBottom0, bpBot + 4 * sy)) : textBottom0;
 
+  // 알약 안쪽 여백: 시안 실측(badge.px/py, 글자 크기 배)이 있으면 그 값, 없으면 청사진 기본(가로 .9 · 세로 .22)
+  const pillPadX = (r, fs) => Math.round(fs * (r.badge?.px ?? 0.9)), pillPadY = (r, fs) => Math.round(fs * (r.badge?.py ?? 0.22));
   // 줄 하나의 크기 → 줄 수·높이·낱말 꺾임. 알약 세로 여백은 글자의 .22(청사진 날짜 알약 높이/글자 중앙값 1.78 ≈ 1.32 + .22×2)
   const sizeRow = (p, fs) => {
     const { r, text, bw, labelW, lfs, pill } = p;
-    const padX = pill ? Math.round(fs * 0.9) * 2 : 0, rows = wrapRows(text, fs, bw - labelW - padX), padY = pill ? Math.round(fs * 0.22) : 0;
+    const padX = pill ? pillPadX(r, fs) * 2 : 0, rows = wrapRows(text, fs, bw - labelW - padX), padY = pill ? pillPadY(r, fs) : 0;
     let blockH = rows * fs * p.lh + padY * 2;
     if (r.label && r.labelTop) blockH += lfs * 1.3 + lfs * 0.5;
     const wb = String(text).split(/[\s\n]+/).some(tk => KO(tk, fs) > bw - labelW - padX);   // 한 낱말이 칸보다 길어 글자 단위로 꺾임(검사기 word-break)
@@ -154,7 +166,7 @@ export function renderTemplate(ctx, style, spec) {
     const mp = plan.find(p => p.r.role === 'main'); if (!mp) return plan;
     for (const p of plan) {
       if (p === mp) continue;
-      const role = { season: 'sub', date: 'date', role: 'detail' }[p.r.role] ?? 'detail', b0 = bpRef.ratio[role];
+      const role = { season: 'sub', client: 'sub', date: 'date', role: 'detail', slogan: 'detail' }[p.r.role] ?? 'detail', b0 = bpRef.ratio[role];
       if (b0 == null) continue;
       const glob = p.pill ? (BP.badgePx[role] ?? BP[role]) : BP[role];
       let bound = Math.min(glob, b0 * BP.kRel);
@@ -171,7 +183,7 @@ export function renderTemplate(ctx, style, spec) {
       const isMain = r.role === 'main';
       let text = textOf(r); if (!text) continue;
       const floor = isMain ? Math.max(limits?.min ?? 0, r.fs * sf * 0.6) : Math.max(limits?.min ?? 0, Math.round(Math.sqrt(W * H) * 0.03), 11);
-      const rs = style.roleScale?.[{ season: 'sub', date: 'date', role: 'detail' }[r.role] ?? 'main'] ?? 1;
+      const rs = style.roleScale?.[{ season: 'sub', client: 'sub', date: 'date', role: 'detail', slogan: 'detail' }[r.role] ?? 'main'] ?? 1;
       let fs = Math.max(floor, clampFs(r.fs * sf * k * rs));
       const al0 = frameAlign;
       let anchor = baseEdge;
@@ -180,21 +192,22 @@ export function renderTemplate(ctx, style, spec) {
       else if (al0 === 'right') anchor = Math.max(textLeft + minW, Math.min(textRight, anchor));
       else anchor = Math.max(textLeft, Math.min(textRight - minW, anchor));
       const left0 = al0 === 'left' ? anchor : textLeft;
-      const bw = al0 === 'center' ? 2 * Math.min(anchor - textLeft, textRight - anchor) : al0 === 'right' ? anchor - textLeft : textRight - left0;
+      const bw0 = al0 === 'center' ? 2 * Math.min(anchor - textLeft, textRight - anchor) : al0 === 'right' ? anchor - textLeft : textRight - left0;
+      const bw = family.curated && (r.role === 'role' || r.role === 'slogan') && !r.badge ? Math.min(bw0, Math.max(r.w * sx * 1.12, W * 0.3)) : bw0;   // 11-09 사용자 시안: 정보 줄은 시안 글상자 폭에서 꺾는다(콜마 「참여회사」 355 → 두 줄, 그림을 덮지 않게)
       const lfs = r.label ? Math.max(limits?.min ?? 0, 10, Math.round(clampFs(r.label.fs * sf * k))) : 0;
       const labelW = r.label && !r.labelTop ? KO('접수기간', lfs) + lfs * 2 : 0;
       const parts0 = String(text).split('\n'), longName = parts0.some(l => [...l].length > 11);   // 짧은 문구는 줄을 더 꺾지 않는다. 긴 기업명만 한 줄 더
       const pill = !!(r.badge && (r.badge.fill || r.badge.stroke));
-      const maxRows = isMain ? (mainRule?.lines != null ? Math.min(mainRule.lines, parts0.length + (longName ? 1 : 0)) : parts0.length + (longName ? 1 : 0)) : r.role === 'date' || r.role === 'season' || pill ? 1 : Math.max(2, r.lines ?? 1);   // 알약은 한 줄(두 줄 알약은 청사진에 없다)
+      const maxRows = isMain ? (mainRule?.lines != null ? Math.min(mainRule.lines, parts0.length + (longName ? 1 : 0)) : parts0.length + (longName ? 1 : 0)) : r.role === 'date' || r.role === 'season' || r.role === 'client' || r.role === 'slogan' || pill ? 1 : Math.max(2, r.lines ?? 1);   // 알약은 한 줄(두 줄 알약은 청사진에 없다)
       // 규정 줄 수·글자 수에 안 들면 기업명만
-      if (isMain && client && hire && (wrapRows(text, floor, bw - labelW) > maxRows || (mainRule?.maxChars != null && text.split('\n').some(l => [...l.replace(/\s/g, '')].length > mainRule.maxChars)))) text = client;
+      if (isMain && client && hire && !hasClientRow && !r.withSeason && (wrapRows(text, floor, bw - labelW) > maxRows || (mainRule?.maxChars != null && text.split('\n').some(l => [...l.replace(/\s/g, '')].length > mainRule.maxChars)))) text = client;
       let rows = wrapRows(text, fs, bw - labelW);
       while (fs > floor && rows > maxRows) { fs -= 1; rows = wrapRows(text, fs, bw - labelW); }
       // 긴 기업명이 낱말 안에서 꺾이면 먼저 줄인다(청사진의 72%까지 — typeWeak 선). 그 아래로도 안 들어가면 꺾는다(검사기 word-break → 이 안은 이 문구에 안 맞음)
       if (isMain) { const tok = Math.max(...String(text).split(/[\s\n]+/).map(t => textWidth(t))), lo = Math.max(floor, r.fs * sf * 0.72); while (fs > lo && tok * fs > bw - labelW) fs -= 1; rows = wrapRows(text, fs, bw - labelW); }
       // 알약은 한 줄에 못 들어가면 알약 없이 글자만(두 줄 알약은 청사진에 없고 제목보다 커 보인다 — 11-03 검사기 badge-h)
       let pillOn = pill;
-      if (pill && wrapRows(text, fs, bw - labelW - Math.round(fs * 0.9) * 2) > 1) { pillOn = false; rows = wrapRows(text, fs, bw - labelW); const mr = Math.max(2, r.lines ?? 1); while (fs > floor && rows > mr) { fs -= 1; rows = wrapRows(text, fs, bw - labelW); } }
+      if (pill && !r.hash && wrapRows(text, fs, bw - labelW - pillPadX(r, fs) * 2) > 1) { pillOn = false; rows = wrapRows(text, fs, bw - labelW); const mr = Math.max(2, r.lines ?? 1); while (fs > floor && rows > mr) { fs -= 1; rows = wrapRows(text, fs, bw - labelW); } }
       // 제목은 시안 글상자 폭까지 키운다(짧은 문구가 작고 듬성해 보이지 않게). 통과 소재 상위선 + 시안의 1.35배까지
       if (isMain && rows === parts0.length && k === 1) {
         const line = Math.max(...text.split('\n').map(l => KO(l, fs)));
@@ -205,9 +218,9 @@ export function renderTemplate(ctx, style, spec) {
         if (up > fs) fs = up;
       }
       fs = Math.round(fs);
-      const lh = isMain ? 1.2 : 1.32;
+      const lh = r.lh ?? (isMain ? 1.2 : 1.32);   // 11-09 타이포 시안은 칸마다 실측 행간
       const H0 = (r.lines ?? 1) * r.fs * 1.25;
-      plan.push(sizeRow({ r, text, fs, lh, bw, left0, anchor, lfs, labelW, pill: pillOn, top0: (r.y - H0 / 2) * sy, bot0: (r.y + H0 / 2) * sy }, fs));
+      plan.push(sizeRow({ r, text, fs, lh, bw, bwCol: bw0, left0, anchor, lfs, labelW, pill: pillOn, top0: (r.y - H0 / 2) * sy, bot0: (r.y + H0 / 2) * sy }, fs));
     }
     return capHierarchy(plan);
   };
@@ -234,46 +247,58 @@ export function renderTemplate(ctx, style, spec) {
     end = b + dy;
   };
   // 그래도 넘치면 뒤 항목부터 뺀다(일정·기업명은 끝까지 남긴다)
-  while (end > textBottom && plan.some(p => p.r.role === 'role' || p.r.role === 'season')) { const i = plan.findLastIndex(p => p.r.role === 'role' || p.r.role === 'season'); plan.splice(i, 1); end = placeAll(plan, 0.85); }
+  while (end > textBottom && plan.some(p => p.r.role === 'role' || p.r.role === 'season' || p.r.role === 'slogan')) { const i = plan.findLastIndex(p => p.r.role === 'role' || p.r.role === 'season' || p.r.role === 'slogan'); plan.splice(i, 1); end = placeAll(plan, 0.85); }
 
   recenter();
   for (const p of plan) {
     const { r, text, fs, lh, bw, left0, anchor, rows, top, lfs, padY } = p;
-    const fieldKey = r.role === 'main' ? 'main' : r.role === 'season' ? 'sub' : r.role === 'date' ? 'date' : 'detail';
+    const fieldKey = r.role === 'main' ? 'main' : r.role === 'season' || r.role === 'client' ? 'sub' : r.role === 'date' ? 'date' : 'detail';
     const color = rcOf(fieldKey) ?? roleColor(r.color), al = frameAlign;
     const mainHtml = () => {
-      if (!(client && hire) || text === client) return esc(text).replace(/\n/g, '<br/>');
+      const pre = r.withSeason && season && text.startsWith(season + '\n') ? season : null, base = pre ? text.slice(season.length + 1) : text;
+      if (hasClientRow || !(client && hire) || base === client) return esc(text).replace(/\n/g, '<br/>');
       const span = (t, on) => {
         if (emph?.kind === 'color' && emph.on === on && accent && !customFg && !rcOf('main')) return `<span data-accent="1" style="color:${accent}">${esc(t)}</span>`;
         if (emph?.kind === 'weight') return `<span data-weight-part="${on}" style="font-weight:${on === 'client' ? emph.client : emph.hire}">${esc(t)}</span>`;
         return esc(t);
       };
-      return `${span(client, 'client')}<br/>${span(hire, 'hire')}`;
+      return `${pre ? `${esc(pre)}<br/>` : ''}${span(client, 'client')}${r.join ? esc(r.join) : '<br/>'}${span(hire, 'hire')}`;
     };
     const html = r.role === 'main' ? mainHtml() : esc(text);
-    const dataField = r.role === 'main' ? 'main' : r.role === 'season' ? 'sub' : r.role === 'date' ? 'date' : 'detail';
+    const dataField = r.role === 'main' ? 'main' : r.role === 'season' || r.role === 'client' ? 'sub' : r.role === 'date' ? 'date' : 'detail';
     const mainWt = fr.rows.find(q => q.role === 'main')?.wt ?? 700;
     // 서브(시즌) 굵기 하한(11-06 사용자 「텍스트 스타일이 다르다」 — gdn-21402-170 시즌 400 ↔ 메인 800): 메인이 700 이상인데 서브가 500 미만이면 600 으로. 다른 역할은 디자이너 값 그대로
     const wtRow = (r.role === 'season' && (r.wt ?? 700) < 500 && mainWt >= 700) ? 600 : r.wt;
     const wtMain = r.role === 'main' && emph?.kind === 'weight' && !(client && hire && text !== client) ? Math.max(emph.client, emph.hire) : wtRow;   // 굵기 대비형에서 기업명만 남으면 굵은 쪽(가는 300 한 줄은 날짜보다 약해진다)
-    const inner = `font-size:${fs}px;line-height:${lh};font-weight:${wtMain};text-align:${al};word-break:keep-all;overflow-wrap:anywhere`;
+    const inner = `font-size:${fs}px;line-height:${lh};font-weight:${wtMain};text-align:${al};word-break:keep-all;overflow-wrap:anywhere${r.ls ? `;letter-spacing:${r.ls}em` : ''}`;
     const justify = al === 'center' ? 'center' : al === 'right' ? 'flex-end' : 'flex-start';
     const b = p.pill ? r.badge : null;
     const fill = b?.fill ? badgeFill(b.fill) : null;
-    const valueCss = b ? `display:inline-block;box-sizing:border-box;max-width:100%;padding:${padY}px ${Math.round(fs * 0.9)}px;border-radius:${Math.max(4, Math.min(fs, Math.round(b.r * sf)))}px;${fill ? `background:${fill};` : ''}${b.stroke ? `border:${Math.max(1, Math.round(2 * sf))}px solid ${color};` : ''}color:${fill ? onFill(fill) : color};` : `color:${color};`;
-    const value = `<div data-field="${dataField}" style="${valueCss}${inner}${r.role === 'date' || r.role === 'season' ? `;${NOWRAP}` : ''}">${html}</div>`;
+    // 11-09 타이포 시안 알약: 칠 불투명도(alpha — 반투명 흰 20%) · 글자색(ink bg = 지면색 반전 · fg) · 실측 여백 · 끝까지 둥근 모서리
+    const rgba = (hx, a) => { const [rr, gg, bb] = [1, 3, 5].map(i => parseInt(hx.slice(i, i + 2), 16)); return `rgba(${rr},${gg},${bb},${a})`; };
+    const fillCss = fill ? (b.alpha != null && b.alpha < 1 ? rgba(fill, b.alpha) : fill) : null;
+    const inkCol = b?.ink === 'bg' ? edge : b?.ink === 'fg' ? color : (fill ? onFill(fill) : color);
+    const radius = b?.px != null ? 999 : Math.max(4, Math.min(fs, Math.round((b?.r ?? 0) * sf)));
+    const valueCss = b ? `display:inline-block;box-sizing:border-box;max-width:100%;padding:${padY}px ${pillPadX(r, fs)}px;border-radius:${radius}px;${fillCss ? `background:${fillCss};` : ''}${b.stroke ? `border:${Math.max(1, Math.round(2 * sf))}px solid ${color};` : ''}color:${inkCol};` : `color:${color};${r.op != null && r.op < 1 ? `opacity:${r.op};` : ''}`;
+    const nowrap = r.role === 'date' || r.role === 'season' || r.role === 'client' ? `;${NOWRAP}` : '';
+    // 해시 알약: 값마다 알약 하나씩, 시안 간격(badge.gap)
+    const value = b && r.hash && b.gap != null
+      ? `<div data-field="${dataField}" style="display:flex;flex-wrap:wrap;justify-content:${al === 'center' ? 'center' : al === 'right' ? 'flex-end' : 'flex-start'};gap:${Math.round(fs * b.gap)}px">${String(text).split(/\s+(?=#)/).map(t => `<span style="${valueCss}${inner};${NOWRAP}">${esc(t)}</span>`).join('')}</div>`
+      : `<div data-field="${dataField}" style="${valueCss}${inner}${nowrap}">${html}</div>`;
     let labelHtml = '';
     if (r.label) {
+      const lt0 = r.label.text ?? (r.role === 'date' ? '접수기간' : '모집직무');   // 11-09 타이포 시안: 라벨 문구·막대(「모집기간｜값」·「｜모집기간｜」)
+      const labelText = r.sepWrap ? `${r.sepWrap}${lt0}${r.sepWrap}` : r.sep ? `${lt0}${r.sep}` : lt0;
       const L = r.label, lb = L.badge, lfill = lb?.fill ? badgeFill(lb.fill) : null, lpadX = lb ? Math.round(lfs * 0.7) : 0, lpadY = lb ? Math.round(lfs * 0.2) : 0;
-      labelHtml = `<div data-field="label" style="flex:none;box-sizing:border-box;padding:${lpadY}px ${lpadX}px;border-radius:${lb ? Math.max(3, Math.min(lfs, Math.round((lb.r || lfs) * sf))) : 0}px;${lfill ? `background:${lfill};` : ''}${lb?.stroke ? `border:1px solid ${roleColor(L.color)};` : ''}color:${lfill ? onFill(lfill) : roleColor(L.color)};font-size:${lfs}px;line-height:1.3;font-weight:${L.wt};${NOWRAP}">${r.role === 'date' ? '접수기간' : '모집직무'}</div>`;
+      labelHtml = `<div data-field="label" style="flex:none;box-sizing:border-box;padding:${lpadY}px ${lpadX}px;border-radius:${lb ? Math.max(3, Math.min(lfs, Math.round((lb.r || lfs) * sf))) : 0}px;${lfill ? `background:${lfill};` : ''}${lb?.stroke ? `border:1px solid ${roleColor(L.color)};` : ''}color:${lfill ? onFill(lfill) : roleColor(L.color)};font-size:${lfs}px;line-height:${r.sep ? lh : 1.3};font-weight:${L.wt};${r.ls ? `letter-spacing:${r.ls}em;` : ''}${NOWRAP}">${esc(labelText)}</div>`;
     }
-    const dir = r.label && r.labelTop ? `flex-direction:column;align-items:${justify};gap:${Math.round(lfs * 0.5)}px` : `align-items:${rows > 1 ? 'flex-start' : 'center'};justify-content:${justify};gap:${Math.round(Math.max(lfs, fs) * 0.6)}px`;
-    parts.push(`<div style="display:flex;max-width:100%;${dir};${parts.length ? `margin-top:${p.gap ?? 0}px` : ''}">${labelHtml}${value}</div>`);
+    const dir = r.label && r.labelTop ? `flex-direction:column;align-items:${justify};gap:${r.sepWrap ? 0 : Math.round(lfs * 0.5)}px` : `align-items:${rows > 1 || r.sep ? 'flex-start' : 'center'};justify-content:${justify};gap:${r.sep ? 0 : Math.round(Math.max(lfs, fs) * 0.6)}px`;
+    parts.push(`<div style="display:flex;max-width:${p.bwCol != null && p.bw < p.bwCol ? `${Math.round(p.bw)}px` : '100%'};${dir};${parts.length ? `margin-top:${p.gap ?? 0}px` : ''}">${labelHtml}${value}</div>`);
     // 검사기(core/typoaudit.js) 입력: 글자 상자(라벨 포함) 추정·굵기(강조 굵기 포함)·뱃지 여부·낱말 꺾임
     const tw = p.tw;
     const x0 = al === 'center' ? anchor - tw / 2 : al === 'right' ? anchor - tw : left0;
     const wt = r.role === 'main' && emph?.kind === 'weight' ? Math.max(emph.client, emph.hire) : wtRow;
-    rowsOut.push({ role: dataField, px: fs, rows, wt, x: Math.round(x0), y: Math.round(top), w: Math.round(tw), h: Math.round(p.blockH), badge: !!b, gap: p.gap ?? 0, wb: p.wb });
+    rowsOut.push({ role: dataField, px: fs, rows, wt, x: Math.round(x0), y: Math.round(top), w: Math.round(tw), h: Math.round(b && r.hash && b.gap != null ? fs * lh + padY * 2 : p.blockH) /* 해시 알약은 여러 줄로 꺾여도 알약 하나 높이 */, badge: !!b, gap: p.gap ?? 0, wb: p.wb });
   }
   let kvPx = null, kvCap = null;   // kvCap: 작은 누끼를 원본 1.5배에서 멈춘 기록(trace.tpl.kvCap)
   // 전면 그림: 글자 덩어리 뒤만 지면색으로 덮고 글자 밖에서 풀어 준다(그림 가운데까지 탁하게 덮지 않는다)
@@ -348,8 +373,8 @@ export function renderTemplate(ctx, style, spec) {
   }
   // 글자 열: 정렬선은 하나. 모든 줄이 이 열 안에서 쌓여 겹치거나 어긋날 수 없다
   const p0 = plan[0];
-  const colLeft = Math.round(frameAlign === 'center' ? p0.anchor - p0.bw / 2 : frameAlign === 'right' ? p0.anchor - p0.bw : p0.left0);
-  const colW = Math.round(p0.bw), colTop = Math.round(p0.top);
+  const colLeft = Math.round(frameAlign === 'center' ? p0.anchor - (p0.bwCol ?? p0.bw) / 2 : frameAlign === 'right' ? p0.anchor - (p0.bwCol ?? p0.bw) : p0.left0);
+  const colW = Math.round(p0.bwCol ?? p0.bw), colTop = Math.round(p0.top);
   // 로고: 시안 자리 → 글자와 닿으면 다른 모서리
   if (logoSrc) {
     const ar = style.logoMeta?.px ? style.logoMeta.px[0] / Math.max(1, style.logoMeta.px[1]) : 3;

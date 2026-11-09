@@ -35,9 +35,28 @@ export function normElementEdits(edits) {
     if (WEIGHTS.includes(+e.weight)) q.weight = +e.weight;
     if (typeof e.font === 'string' && e.font) q.font = e.font;
     if (['left', 'center', 'right'].includes(e.align)) q.align = e.align;
+    const runs = normRuns(e.runs); if (runs) q.runs = runs;
     if (Object.keys(q).length) out[id] = q;
   }
   return Object.keys(out).length ? out : null;
+}
+// 글자 범위 색(11-09 사용자 「글자색 편집은 글자 하나하나 단위로 — 드래그해서」): runs = [{ s, e, c, t }] — 요소 글자(textContent, <br> 은 0글자)의 [s, e) 를 색 c 로.
+//   t = 고를 때의 그 글자 조각. 문구가 바뀌어 자리가 밀리면 t 를 다시 찾아 붙이고, 없으면 그 범위는 버린다(applyRuns)
+export function normRuns(runs) {
+  if (!Array.isArray(runs)) return null;
+  const out = runs.filter(r => r && Number.isInteger(r.s) && Number.isInteger(r.e) && r.e > r.s && r.s >= 0 && /^#[0-9A-Fa-f]{6}$/.test(r.c ?? '')).map(r => ({ s: r.s, e: r.e, c: r.c.toUpperCase(), ...(typeof r.t === 'string' && r.t ? { t: r.t } : {}) }));
+  return out.length ? out.sort((a, b) => a.s - b.s) : null;
+}
+// 새 범위를 얹는다 — 겹치는 옛 범위는 겹친 몫만 잘라 낸다(나중에 칠한 색이 이긴다). c 가 null 이면 그 범위의 색을 지운다
+export function addRun(runs, run, text = null) {
+  const out = [];
+  for (const r of runs ?? []) {
+    if (r.e <= run.s || r.s >= run.e) { out.push(r); continue; }
+    if (r.s < run.s) out.push({ ...r, e: run.s, ...(text != null ? { t: text.slice(r.s, run.s) } : {}) });
+    if (r.e > run.e) out.push({ ...r, s: run.e, ...(text != null ? { t: text.slice(run.e, r.e) } : {}) });
+  }
+  if (run.c) out.push({ s: run.s, e: run.e, c: run.c, ...(text != null ? { t: text.slice(run.s, run.e) } : run.t ? { t: run.t } : {}) });
+  return normRuns(out);
 }
 // 한 요소 값만 고친 새 편집 묶음(patch 의 값이 null 이면 그 항목 지움)
 export function withElementEdit(edits, id, patch) {
@@ -108,6 +127,33 @@ const scaleText = (s, k) => ['font-size', 'letter-spacing', 'line-height'].reduc
 const mapInner = (inner, fn) => inner.replace(/\sstyle="([^"]*)"/g, (m, s) => ` style="${fn(s)}"`);
 const dropDecl = (s, re) => s.replace(re, '$1').replace(/;;+/g, ';');
 
+// 글자 토막 — 태그 밖 글자를 한 글자씩(엔티티는 한 글자). <br> 은 0글자(DOM textContent 와 같은 셈)
+const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00A0' };
+const decodeEnt = x => x.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, n) => n[0] === '#' ? String.fromCodePoint(n[1] === 'x' || n[1] === 'X' ? parseInt(n.slice(2), 16) : +n.slice(1)) : (ENT[n.toLowerCase()] ?? m));
+const encodeTxt = x => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export const textOfInner = inner => decodeEnt(inner.replace(/<[^>]*>/g, ''));
+// runs 를 안쪽 html 에 입힌다 — 글자 토막을 범위 경계로 나눠 <span data-run> 으로 감싼다(색만 다른 토막이라 SVG 는 한 줄 글자 노드 안 색 구간이 된다)
+export function applyRuns(inner, runs0) {
+  const text = textOfInner(inner);
+  // 자리 다시 맞추기: [s,e) 가 t 와 다르면 t 를 가장 가까운 곳에서 찾는다
+  const runs = [];
+  for (const r of runs0 ?? []) {
+    if (!r.t || text.slice(r.s, r.e) === r.t) { if (r.e <= text.length) runs.push(r); continue; }
+    let best = -1, i = text.indexOf(r.t); while (i >= 0) { if (best < 0 || Math.abs(i - r.s) < Math.abs(best - r.s)) best = i; i = text.indexOf(r.t, i + 1); }
+    if (best >= 0) runs.push({ ...r, s: best, e: best + r.t.length });
+  }
+  if (!runs.length) return inner;
+  const colorAt = k => { let c = null; for (const r of runs) if (k >= r.s && k < r.e) c = r.c; return c; };
+  let pos = 0;
+  return inner.replace(/(<[^>]*>)|([^<]+)/g, (m, tag, txt) => {
+    if (tag) return tag;
+    const chars = [...decodeEnt(txt)]; let out = '', buf = '', cur;
+    const flush = () => { if (!buf) return; out += cur ? `<span data-run="1" style="color:${cur}">${encodeTxt(buf)}</span>` : encodeTxt(buf); buf = ''; };
+    for (const ch of chars) { const c = colorAt(pos); if (buf && c !== cur) flush(); cur = c; buf += ch; pos += ch.length; }
+    flush();
+    return out;
+  });
+}
 function patchText(html, tag, e) {
   const end = closeEnd(html, tag.t, tag.name, tag.oe);
   let open = html.slice(tag.t, tag.oe + 1), inner = html.slice(tag.oe + 1, end);
@@ -118,6 +164,7 @@ function patchText(html, tag, e) {
   if (e.weight) { s = `${s};font-weight:${e.weight}`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*font-weight\s*:[^;]*/g)); }
   if (fontCss) { s = `${s};font-family:${fontCss}`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*font-family\s*:[^;]*/g)); open = addAttr(open, `data-el-font="${e.font}"`); }
   if (e.align) s = `${s};text-align:${e.align}${/(^|;)\s*display\s*:\s*(inline-)?flex/.test(s) ? `;justify-content:${e.align === 'center' ? 'center' : e.align === 'right' ? 'flex-end' : 'flex-start'}` : ''}`;
+  if (e.runs) inner = applyRuns(inner, e.runs);
   s = moveStyle(s, num(e.dx), num(e.dy));
   return html.slice(0, tag.t) + setStyle(open, s) + inner + html.slice(end);
 }

@@ -549,6 +549,18 @@
     .sendb:hover{transform:none}
   }
   .fbody .hit{position:absolute;inset:0;cursor:pointer}
+  /* 11-09 글자 범위 색 — 고르기 모드: 덮개를 끄고 미리보기 글자를 직접 끌어 고른다 */
+  .frame.charsel .hit,.frame.charsel .eov,.frame.charsel .gov{pointer-events:none}
+  .frame.charsel .fbody iframe{pointer-events:auto}
+  .frame.charsel .fbody{outline:2px dashed var(--accent,#1f4fd1);outline-offset:3px}
+  #charPop{position:fixed;z-index:80;background:var(--panel,#fff);color:var(--ink,#111);border:1px solid var(--line,#ddd);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:10px;display:flex;flex-direction:column;gap:8px;font-size:12px;min-width:240px}
+  #charPop[hidden]{display:none}
+  #charPop .cp-row{display:flex;gap:6px;align-items:center}
+  #charPop input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--line,#ddd);border-radius:6px;background:none}
+  #charPop input[type=text]{width:78px;font:inherit;padding:4px 6px;border:1px solid var(--line,#ddd);border-radius:6px}
+  #charPop .cp-txt{font-weight:600}
+  #charPop .cp-hint{color:var(--sub,#666)}
+  #charPop .lnk,.fnote .lnk{background:none;border:0;padding:0;color:var(--accent,#1f4fd1);cursor:pointer;font:inherit;text-decoration:underline}
   .frole{padding:8px;border-radius:8px;border:1px solid transparent}
   .frole.on{border-color:var(--focus);background:var(--soft)}
 

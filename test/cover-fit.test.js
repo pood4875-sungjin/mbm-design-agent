@@ -56,5 +56,5 @@ test('렌더: desk-16 × 리멤버 사이드 MO(열) · 자소설 M팝업(띠, �
 const noBgRule = sp => ({ ...sp, rules: { ...sp.rules, safeArea: { ...sp.rules.safeArea, measuredFromTemplate: { ...sp.rules.safeArea.measuredFromTemplate, mold: { ...sp.rules.safeArea.measuredFromTemplate.mold, bgRule: false } } } } });
 test('meltFix 주인공 캡: 그 변에서 이미 잘린 주인공도 melt.min(30%) 으로 캡 — hr-doctor × 리멤버 사이드 PC(bgRule 끔) 왼변 48→30 (전에는 캡 없이 55)', () => {
   const o = objOf(renderAd(ctx, caseStyle('hr-doctor'), noBgRule(adSpecEntries()['remember-job-side-pc'])));
-  assert.match(o[2], /data-melt="30"/); assert.match(o[2], /data-melt-fix="L48→30"/);
+  assert.match(o[2], /data-melt="30"/); assert.match(o[2], /data-melt-fix="L\d+→30"/);   // 11-09 사진 지면 무채 → 브랜드 브릿지: 보정 전 길이는 지면색 따라 달라진다(48 → 50) — 캡 30 이 요점
 });

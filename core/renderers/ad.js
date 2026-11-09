@@ -1604,10 +1604,11 @@ function renderAdBase(ctx, style, spec) {
       return `${open('padding:0')}${img}</div>`;
     }
     // 로고를 못 넣는 규격(캐치 PC 중앙배너 logo.count 0)은 로고로 대신하지 않는다 — 그림의 주인공을 네 변을 녹여 투명 지면 위에(배경은 매체가 Hex 로 깐다). 11-02 전수: 바탕 있는 그림마다 logo-forbidden 차단이었다
+    // 로고를 못 넣는 규격(캐치 PC 중앙배너 logo.count 0)은 로고로 대신하지 않는다 — 그림을 그대로 쓴다(배경은 매체가 Hex 로 깐다).
+    //   11-09 사용자 「단독 쓸 때는 그라로 안 하는 거 알지」: 이미지만 쓰는 규격에서 네 변을 녹이면 흐린 상자가 된다 → 녹임 없이 지면 전체 cover(주인공 기준)
     if (rules.logo?.count === 0 && style.keyVisual) {
-      const bw0 = Math.round(w * 0.86), bh0 = Math.round(h * 0.84), c0 = coverPos(style, bw0, bh0, { fallback: 'center' });
-      fired('visualOnly.kvMelt');
-      return `${open('padding:0')}<div data-object="1" data-kv-only="1" style="position:absolute;left:${Math.round(w * 0.07)}px;top:${Math.round(h * 0.08)}px;width:${bw0}px;height:${bh0}px;background:url('${esc(style.keyVisual)}') ${c0.pos}/cover no-repeat;${meltMaskList([meltGradient('to right', 16), meltGradient('to left', 16), meltGradient('to bottom', 16), meltGradient('to top', 16)])}"></div></div>`;
+      fired('visualOnly.kvFull');
+      return `${open('padding:0')}<div data-object="1" data-kv-only="1" style="position:absolute;inset:0;background:url('${esc(style.keyVisual)}') ${coverPos(style, w, h, { fallback: 'center' }).pos}/cover no-repeat"></div></div>`;
     }
     const side = Math.min(innerW, innerH);
     const mark = style.logo
@@ -2441,7 +2442,7 @@ function renderAdBase(ctx, style, spec) {
     const r = S0 ? { x: Math.round(S0.x * tScale), y: Math.round(S0.y * tScale), w: Math.round(S0.w * tScale), h: Math.round(S0.h * tScale) } : tImage;
     const inward = { right: 'to left', left: 'to right', top: 'to bottom', bottom: 'to top' };
     const pc = v => `${Math.round(v * 1000) / 10}%`;
-    const grads = (BR.fade ?? []).map(f => f.mid == null ? `linear-gradient(${inward[f.side]},transparent 0%,#000 ${pc(f.frac)})` : `linear-gradient(${inward[f.side]},transparent 0%,rgba(0,0,0,0.2) ${pc(f.frac * f.mid)},#000 ${pc(f.frac)})`);
+    const grads = (BR.fade ?? []).map(f => f.side === 'diag' ? diagFade(f, r.w, r.h) : f.mid == null ? `linear-gradient(${inward[f.side]},transparent 0%,#000 ${pc(f.frac)})` : `linear-gradient(${inward[f.side]},transparent 0%,rgba(0,0,0,0.2) ${pc(f.frac * f.mid)},#000 ${pc(f.frac)})`).filter(Boolean);
     const c = coverPos(style, r.w, r.h, { fallback: kvPos, headroom: 0.04 });
     // 칸 cover 가 주인공을 60% 미만만 보이면(11-02 컨시어지 #2 보일 부분 규칙) 시안 칸 대신 예전 보정(칸을 그림 크기로) — 11-09 (3) 좁힘: 주인공 상자가 있는 사진에서 그 상자를 잘라야만 할 때만.
     //   바탕 있는 그림(일러스트·밝은 단색 바탕 flatLight)은 상자가 그림 거의 전부(한림 알약 100×80%)라 시안 칸(0,355 160×245 + 53% 녹임)이 예전 칸(0,400 160×200 + 긴 곡선 녹임)으로 되돌아갔다 — 시안 칸 우선
@@ -2947,12 +2948,25 @@ function swapMoldSide(m, W) {
 }
 
 // 11-09 시안 규칙을 다른 매체 틀로(사용자 「비율 비슷한 건 최대한 이대로」): 그림 칸이 지면 어느 변에 붙었는지로 고른다. 안쪽에 뜬 상자·둥근 칸·자유 칸은 시안이 없어 null(예전 처리)
+// 11-09 사용자 「네모로만 주면 각져 보여 — 대각선으로도 줬거든」: 시안 PC팝업(236:3717 Rectangle 3468712) 왼쪽 위 모서리 대각 덮개(지면색 100% → 60% → 0%).
+//   두 변 녹임만 겹치면 모서리가 네모로 각진다. 대각선은 칸 비율 좌표로 둔다 — 0% 선 = (from[0]·폭, 0)–(0, from[1]·높이), 100% 선 = to 로 같은 식(두 선은 평행).
+//   시안 305×219 칸: 135.45° · 13.4% → 26.4%(보임 0.4) → 39.3%. 칸 크기가 달라도 같은 비율 자리에 선다(각도는 칸 비율 따라).
+export function diagFade(f, W, H) {
+  const [a0, b0] = f.from ?? [0.231, 0.317], [a1] = f.to ?? [0.68, 0.934];
+  if (!(W > 0 && H > 0)) return null;
+  const nx = b0 * H, ny = a0 * W, n = Math.hypot(nx, ny), ux = nx / n, uy = ny / n;   // 선 x/(aW) + y/(bH) = 1 의 법선(아래·오른쪽)
+  const L = W * ux + H * uy, deg = Math.round(Math.atan2(ux, -uy) * 180 / Math.PI * 100) / 100;
+  const at = a => Math.round(a * W * ux / L * 1000) / 10;
+  return `linear-gradient(${deg}deg,transparent ${at(a0)}%,rgba(0,0,0,${f.mid ?? 0.4}) ${at((a0 + a1) / 2)}%,#000 ${at(a1)}%)`;
+}
+const DIAG_TL = { side: 'diag', corner: 'top-left', from: [0.231, 0.317], to: [0.68, 0.934], mid: 0.4 };
+
 function autoBgRule(m, W, H) {
   const I = m?.image; if (!I || I.radius != null || m.freeKv || !(W > 0 && H > 0)) return null;
   const atL = I.x <= 1, atR = I.x + I.w >= W - 1, atT = I.y <= 1, atB = I.y + I.h >= H - 1;
   if (atT && atB && atR && !atL) return { grad: 270, gradImage: 270, fade: [{ side: 'left', frac: 0.27, mid: 0.46 }], auto: 'right-col' };   // PC메인(왼쪽 열)의 거울
   if (atT && atB && atL && !atR) return { grad: 90, gradImage: 90, fade: [{ side: 'right', frac: 0.27, mid: 0.46 }], auto: 'left-col' };
   if (atL && atR && atB && !atT) return { grad: 180, gradImage: 0, fade: [{ side: 'top', frac: W / H <= 0.35 ? 0.53 : 0.37, mid: 0.5 }], auto: 'bottom-band' };   // 아주 가는 세로 띠 = 채용공고 53%, 그 밖 = M팝업 37%
-  if (atR && atB && !atL && !atT) return { grad: 135, gradImage: 315, fade: [{ side: 'left', frac: 0.26 }, { side: 'top', frac: 0.38 }], auto: 'corner-br' };
+  if (atR && atB && !atL && !atT) return { grad: 135, gradImage: 315, fade: [{ side: 'left', frac: 0.275 }, { side: 'top', frac: 0.397 }, DIAG_TL], auto: 'corner-br' };   // 시안 칸 305×219 기준 84/305 · 87/219 + 대각
   return null;
 }
