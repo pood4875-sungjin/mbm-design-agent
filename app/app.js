@@ -1336,6 +1336,15 @@ function kvTypeControlHtml(meta, override, id) {
 const FIELD_SRC = { 'manual-gradient': '직접 설정한 그라데이션', 'kv-edge': '키비주얼 가장자리 색', 'kv-colour': '키비주얼 대표색', brand: '브랜드 색', 'brand-tint': '브랜드 색 틴트 → 흰색', 'brand-dark-logo': '흰색 로고라 어두운 브랜드 색', 'brand-photo': '사진이라 브랜드 색 — 사진은 지면으로 녹임', 'photo-full': '사진 전체 + 글자 쪽 스크림', 'kv-full': '배경형 — 그림을 통째로 깔고 빈 자리에 글자', 'kv-texture': '질감 — 그라데이션을 통째로 깔고 글자만', manual: '직접 고른 색' };
 // 그라데이션 편집 시작값 — 저장한 값, 없으면 지금 자동으로 잡힌 지면색(노션 N3 「1차는 AI 자동 추출 색상」, 그다음 사람이 고침). 자동이 단색이면 같은 색상의 두 끝
 const editGradientOf = (st, f) => normGradient(st.background?.gradient) ?? gradientFrom(f.stops, f.angle || 180);
+// 팔레트(주색·보조)를 바꾸면 저장해 둔 직접 그라데이션도 따라간다(11-09 담당자 「주색/보조 변경 후 보조색을 통한 변화 없음」· 그라데이션 전환 시 초기 KV 색으로 되돌아가던 문제):
+//   정지점 중 「그때 자동으로 잡힌 지면색」과 같던 것만 새 자동 색으로 바꾸고, 손으로 따로 고른 정지점 색·위치·각도·종류는 그대로. 저장한 그라데이션이 없으면 null(자동 = 팔레트)
+function gradientFollowingPalette(g0, oldStyle, newStyle) {
+  const g = normGradient(g0); if (!g) return null;
+  const auto = st => { try { return resolveField({ ...st, background: { ...(st.background ?? {}), mode: 'gradient', gradient: null } }, { facing: 'left' }).stops.map(c => c.toUpperCase()); } catch { return []; } };
+  const was = auto(oldStyle), now = auto(newStyle);
+  if (!now.length || was.join() === now.join()) return g;
+  return { ...g, stops: g.stops.map(s => { const i = was.indexOf(s.color.toUpperCase()); return i < 0 ? s : { ...s, color: now[Math.min(i, now.length - 1)] }; }) };
+}
 function bgControlHtml(styleLike, id) {
   const f = resolveField(styleLike, { facing: 'left' });
   const mode = styleLike.background?.mode ?? 'auto';
@@ -1425,7 +1434,7 @@ function slotStyleBody() {
   $('fontUp').onclick = () => $('fontFile').click();
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
-  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; $(id).onchange = () => slotStyle(); });   // 고르고 나면 배경 미리보기도 따라간다(11-02)
+  ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; $(id).onchange = () => { it.bgGradient = gradientFollowingPalette(it.bgGradient, bgStyle, { ...bgStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: true }); slotStyle(); }; });   // 고르고 나면 배경 미리보기도 따라간다(11-02) · 저장한 그라데이션도 팔레트를 따라간다(11-09)
   $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; reslotStyle(); });
   if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
@@ -2844,9 +2853,11 @@ function renderInspectorBody() {
     const styleChange = debounce(() => restyle({}, '스타일 변경', true), 350);
     // 끄는 동안 보드가 따라오고(liveStyle), 피커를 놓을 때 한 번 정식으로 — 되돌리기도 그 한 걸음(10-19: 손으로 고른 색은 지면까지 따라간다)
     const curColors = () => ['#iColor1', '#iColor2', '#iColor3'].map(k => insp.querySelector(k).value.toUpperCase());
+    // 11-09: 저장한 직접 그라데이션의 정지점도 팔레트를 따라간다(gradientFollowingPalette) — 그라데이션 편집기가 떠 있으면 정지점 UI 도 같은 값으로 다시 그린다
+    const palettePatch = () => ({ colorsManual: true, background: { ...c.style.background, gradient: gradientFollowingPalette(c.style.background?.gradient, c.style, nextStyle(c, { colorsManual: true }, { colors: curColors() })) } });
     for (const k of ['#iColor1', '#iColor2', '#iColor3']) {
-      insp.querySelector(k).oninput = () => liveStyle(c, { colorsManual: true }, { colors: curColors() });
-      insp.querySelector(k).onchange = () => softly(() => restyle({ colorsManual: true }, '색 직접 변경'));
+      insp.querySelector(k).oninput = () => liveStyle(c, palettePatch(), { colors: curColors() });
+      insp.querySelector(k).onchange = () => { softly(() => restyle(palettePatch(), '색 직접 변경')); if (insp.querySelector('#iBgGrad')) renderInspector(); };
     }
     insp.querySelector('#iFont').onchange = () => styleChange();
     insp.querySelector('#iFont').value = c.style.fonts.heading;

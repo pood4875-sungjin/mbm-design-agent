@@ -51,11 +51,12 @@ test('규정 매체(자소설·리멤버·카카오·NAP 비즈보드)는 지정
 
 test('대비 경고 — 지면과 3:1 미만이면 trace textColor.lowContrast · 검수(lint) text-contrast warn(차단 아님) · 3:1 이상이면 없음', async () => {
   const { renderArtifact, ctx } = await setup();
-  // 네이비 지면(#1428A0 그라데이션) 위 진남색 글자 → 대비 1점대
-  const low = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, colorsManual: true, textColor: '#1A2E8A' }), {}));
+  // 네이비 지면(#1428A0 → 보조 #0F1E70 그라데이션 — 11-09부터 손 팔레트의 두 번째 정지점은 보조색이라 노랑 보조를 쓰면 지면 자체가 노랑이 된다) 위 진남색 글자 → 대비 1점대
+  const navy = { ...base, colors: ['#1428A0', '#0F1E70', '#5CB85C'] };
+  const low = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...navy, colorsManual: true, textColor: '#1A2E8A' }), {}));
   assert.ok(low.rules.includes('textColor.lowContrast'), 'lowContrast: ' + JSON.stringify(low.text.textColor));
   assert.ok(low.text.textColor.contrast < 3);
-  const ok = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, colorsManual: true, textColor: '#FFD200' }), {}));
+  const ok = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...navy, colorsManual: true, textColor: '#FFD200' }), {}));
   assert.ok(!ok.rules.includes('textColor.lowContrast') && ok.text.textColor.contrast >= 3, '노랑은 통과: ' + ok.text.textColor.contrast);
   // 검수: 앱이 유효 글자색을 measure.textColor 로 넘긴다 — bgColors 와 대비
   const spec = { w: 580, h: 400 };
