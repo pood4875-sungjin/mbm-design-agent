@@ -27,7 +27,7 @@ import { TEMPLATE_NORMS } from '../core/template-norms.js';
 import { typoNormsFor, TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';
 import { kvTypeOf } from '../core/kvtypes.js';
 import { languageLines, languageOf, languageFromHtml, mergeLanguage } from '../core/freelang.js';
-import { fixStack, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast } from '../core/freequick.js';
+import { fixStack, fixStackCandidates, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast } from '../core/freequick.js';
 import { profileFocus } from '../core/field.js';
 
 // 주인공 상자(원본 비율) — 앱 디자인 검수(core/adcheck.js)와 같은 profileFocus(meta.field). 사진에 focus 가 없으면 줄·열 프로필로 어림한 상자
@@ -573,12 +573,16 @@ export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, i
     }
     const child = spawn('claude', args, { env: ccEnv(), cwd, stdio: ['pipe', 'pipe', 'pipe'] });
     const out = [], err = [];
-    const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`claude -p 시간 초과(${Math.round(timeoutMs / 1000)}s)`)); }, timeoutMs);
+    const sys = [];   // 11-09 7단계: stream-json 의 system 이벤트(api_retry 등) — 시간 초과가 계정 한도(429)·과부하(529) 재시도인지 가린다
+    const sysNote = () => { const r = sys.filter(e => e.subtype && e.subtype !== 'init'); if (!r.length) return ''; const last = r[r.length - 1]; return ` · ${r.length}회 ${last.subtype}${last.error_status ?? last.status ? ' ' + (last.error_status ?? last.status) : ''}${last.error ? ' ' + String(last.error).slice(0, 60) : ''}`; };
+    const timer = setTimeout(() => { child.kill('SIGKILL'); reject(Object.assign(new Error(`claude -p 시간 초과(${Math.round(timeoutMs / 1000)}s)${sysNote()}`), { system: sys.slice(-5) })); }, timeoutMs);
     // 취소(11-09 통합 — DELETE /api/freedesign/jobs/:id): 자식 claude 를 끊는다(SIGTERM → 2초 뒤 SIGKILL)
     const onAbort = () => { clearTimeout(timer); try { child.kill('SIGTERM'); } catch {} const k = setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, 2000); k.unref?.(); reject(cancelError()); };
     signal?.addEventListener?.('abort', onAbort, { once: true });
     child.on('close', () => signal?.removeEventListener?.('abort', onAbort));
-    child.stdout.on('data', d => out.push(d)); child.stderr.on('data', d => err.push(d));
+    let buf = '';
+    child.stdout.on('data', d => { out.push(d); if (imageMode !== 'stream') return; buf += d.toString('utf8'); let i; while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i); buf = buf.slice(i + 1); if (line.startsWith('{"type":"system"')) { try { const o = JSON.parse(line); sys.push({ subtype: o.subtype, status: o.status ?? null, error_status: o.error_status ?? null, error: o.error ?? null, attempt: o.attempt ?? null, retry_delay_ms: o.retry_delay_ms ?? null, at: Date.now() - t0 }); } catch {} } } });
+    child.stderr.on('data', d => err.push(d));
     child.on('error', e => { clearTimeout(timer); reject(e); });
     child.on('close', code => {
       clearTimeout(timer);
@@ -589,7 +593,8 @@ export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, i
       if (!res) return reject(new Error(`claude -p 응답을 읽지 못함(code ${code}): ${(se || so).slice(0, 400)}`));
       if (res.is_error) return reject(new Error(`claude -p 오류: ${String(res.result ?? '').slice(0, 300)}`));
       const text = typeof res.result === 'string' ? res.result : (res.result?.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('');
-      resolve({ text, usage: res.usage ?? null, model: Object.keys(res.modelUsage ?? {})[0] ?? model ?? null, cost: res.total_cost_usd ?? null, raw: res, ms: Date.now() - t0 });
+      const retries = sys.filter(e => e.subtype && e.subtype !== 'init');
+      resolve({ text, usage: res.usage ?? null, model: Object.keys(res.modelUsage ?? {})[0] ?? model ?? null, cost: res.total_cost_usd ?? null, raw: res, ms: Date.now() - t0, apiRetries: retries.length ? retries.slice(-5) : null });
     });
     child.stdin.on('error', () => {});
     child.stdin.end(stdinText);
@@ -683,6 +688,7 @@ export async function measureFreeHtml(inp, html, dir, name) {
   return { png: a.png, audit: a, issues: gateIssues(a), auto: [...(a.info?.issues ?? []), ...(a.typoRules?.issues ?? [])], fix };
 }
 export const STACK_CODES = ['gap-tight', 'gap-loose', 'overlap'];
+export const STACK_TRIES = Number(process.env.FREEDESIGN_STACK_TRIES ?? 4);   // 스택 후보 측정 상한(1회 ≈ 3~8s)
 export const isStackIssue = s => /^4항-1 (gap-tight|gap-loose|overlap)\b|^3항 행 간격/.test(String(s));
 // 재요청에 붙이는 실측(모델은 렌더 높이를 모른다 — 잉크 상자를 알려 줘야 간격을 고친다)
 export function measureLines(gate) {
@@ -707,26 +713,32 @@ export const isContrastIssue = s => /^대비 \w+ [\d.]+:1 </.test(String(s));
 export const isTinyIssue = s => /^4항-3 tiny/.test(String(s));
 export const isLogoBuried = s => /^로고 묻힘/.test(String(s));
 export const isKvGapIssue = s => /^4항-2 (kv-overlap|asset-tight: 글자·키비주얼|asset-loose: 글자·키비주얼)/.test(String(s));
-async function tryAutoFix(X, html, raw, gate, dir, inp, k, restore = h => h) {
+export async function tryAutoFix(X, html, raw, gate, dir, inp, k, restore = h => h) {
   let cur = { html, raw, gate }; const moves = []; let n = 0;
   const steps = [
     { is: isTinyIssue, later: x => isStackIssue(x) || isLogoGapIssue(x) || isKvGapIssue(x), run: (r, f) => { const sp = SPECS[inp.specId]; const need = sp ? minTextPx(sp) : null; const small = (f.rows ?? []).filter(x => x.role !== 'notice' && x.px && need && x.px < need); return small.length ? fixTextSize(r, Object.fromEntries(small.map(x => [x.role, Math.min(1.6, (need + 0.5) / x.px)]))) : null; } },
     { is: isContrastIssue, run: (r, f) => { const bad = (cur.gate.issues ?? []).filter(isContrastIssue).map(x => /^대비 (\w+)/.exec(x)?.[1]).filter(Boolean); const by = {}; for (const role of bad) { const c = (f.contrast ?? []).find(x => x.role === role); if (c?.bg == null) continue; by[role] = (1.05 / (c.bg + 0.05)) >= ((c.bg + 0.05) / 0.0555) ? '#FFFFFF' : '#111111'; } return Object.keys(by).length ? fixContrast(r, by, inp.rules) : null; } },
-    { is: isStackIssue, run: (r, f) => f.codes?.some(c => STACK_CODES.includes(c)) ? fixStack(r, f.rows, { rules: TYPO_RULE_FIXED, hi: f.hi, H: f.H, safe: f.safe, ...stackBounds(f) }) : null },
+    { is: isStackIssue, tries: STACK_TRIES, run: (r, f) => { const sp = SPECS[inp.specId]; return fixStackCandidates(r, f.rows, { rules: TYPO_RULE_FIXED, hi: f.hi, H: f.H, safe: f.safe, obstacles: [f.subject, f.logo], want: f.want ?? 0, minPx: sp ? minTextPx(sp) : 0, legacy: stackBounds(f) }); } },   // 11-09 7단계: 후보 여러 개(붙는 쪽·글자 한 단계 축소) 중 게이트가 고른다
     { is: isLogoGapIssue, run: (r, f) => f.logo && f.want ? fixLogoGap(r, f.rows, f.logo, { want: f.want, H: f.H, safe: f.safe }) : null },
     { is: isLogoBuried, run: r => (inp.logo?.colors ?? []).length ? fixLogoPlate(r, inp.logo.colors, [inp.brand?.primary, inp.brand?.secondary, ...(inp.kv?.meta?.colors ?? [])]) : null },
     { is: isKvGapIssue, run: (r, f) => f.subject && f.want ? fixKvGap(r, f.rows, f.subject, { want: f.want, cap: f.cap }) : null },
   ];
   for (const st of steps) {
     const f = cur.gate?.fix; if (!f || !(cur.gate.issues ?? []).some(st.is)) continue;
-    const fr = st.run(cur.raw, f); if (!fr) continue;
-    const nh = restore(substituteAssets(fr.html, X.assets));
-    if (!validateFreeHtml(nh, inp).ok) continue;
-    let g2; try { g2 = await X.measureFn(nh, dir, inp, `${k}f${++n}`); } catch { continue; }
+    const got = st.run(cur.raw, f); const cands = (Array.isArray(got) ? got : [got]).filter(Boolean).slice(0, st.tries ?? 1);
     const split = g => { const is = (g?.issues ?? []).filter(x => !st.later?.(x)); const t = is.filter(st.is).length; return { t, other: is.length - t }; };   // later = 뒤 단계가 고칠 위반(글자 키우면 생기는 간격)은 셈에서 뺀다
-    const b = split(cur.gate), a = split(g2);
-    if (!(a.t < b.t && a.other <= b.other)) continue;
-    cur = { html: nh, raw: fr.html, gate: g2 }; moves.push(...fr.moves);
+    let best = null;
+    for (const fr of cands) {   // 후보는 차례로 재서 「고치려던 위반 0 · 그 밖 안 늘어남」이면 바로, 아니면 줄어든 것 중 가장 적은 것
+      const nh = restore(substituteAssets(fr.html, X.assets));
+      if (!validateFreeHtml(nh, inp).ok) continue;
+      let g2; try { g2 = await X.measureFn(nh, dir, inp, `${k}f${++n}`); } catch { continue; }
+      const b = split(cur.gate), a = split(g2);
+      if (!(a.t < b.t && a.other <= b.other)) continue;
+      if (!best || a.t + a.other < best.score) best = { fr, nh, g2, score: a.t + a.other };
+      if (a.t === 0 && a.other <= b.other) break;
+    }
+    if (!best) continue;
+    cur = { html: best.nh, raw: best.fr.html, gate: best.g2 }; moves.push(...best.fr.moves);
   }
   return moves.length && (cur.gate.issues?.length ?? 0) <= (gate.issues?.length ?? 0) ? { ...cur, moves } : null;
 }
@@ -759,13 +771,16 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
   const calls = [], usages = []; let usedModel = null;
   const base = run ?? (engine === 'api'
     ? (p, o = {}) => { if (!client) throw new Error('API 키가 없습니다(engine:api)'); return runApi(client, p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_API_MODEL }); }
-    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir(), tools: o.tools ?? true, effort: o.effort, signal, timeoutMs: o.kind === 'retry' ? RETRY_TIMEOUT_MS : GEN_TIMEOUT_MS }));
+    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir(), tools: o.tools ?? true, effort: o.effort, signal: o.signal ?? signal, timeoutMs: o.kind === 'retry' ? RETRY_TIMEOUT_MS : GEN_TIMEOUT_MS }));
   const call = async (prompt, o = {}) => {
-    if (signal?.aborted) throw cancelError();
+    const sig = o.signal ?? signal;
+    if (sig?.aborted) throw cancelError();
     const t0 = Date.now();
     const effort = o.effort ?? (o.kind === 'retry' || o.kind === 'revise' ? (input.fastEffort ?? FAST_EFFORT) : (input.effort ?? DESIGN_EFFORT));
-    const r = await base(prompt, { ...o, effort });
-    const rec = { kind: o.kind ?? 'gen', style: o.style ?? null, specId: o.specId ?? input.specId ?? null, ms: r?.ms ?? (Date.now() - t0), model: r?.model ?? o.model ?? useModel ?? null, effort: engine === 'claude-code' ? effort : null, imageMode: o.images?.length ? imageMode : null };
+    let r;
+    try { r = await base(prompt, { ...o, effort, signal: sig }); }
+    catch (e) { if (e?.cancelled) { const rec = { kind: o.kind ?? 'gen', style: o.style ?? null, specId: o.specId ?? input.specId ?? null, ms: Date.now() - t0, model: o.model ?? useModel ?? null, cancelled: true }; calls.push(rec); onCall?.(rec); } throw e; }   // 11-09 7단계: 3안이 차서 끊은 예비 안 호출도 센다(계정 사용량)
+    const rec = { ...(r?.apiRetries ? { apiRetries: r.apiRetries.length, apiLast: r.apiRetries[r.apiRetries.length - 1] } : {}), kind: o.kind ?? 'gen', style: o.style ?? null, specId: o.specId ?? input.specId ?? null, ms: r?.ms ?? (Date.now() - t0), model: r?.model ?? o.model ?? useModel ?? null, effort: engine === 'claude-code' ? effort : null, imageMode: o.images?.length ? imageMode : null };
     calls.push(rec); if (r?.usage) usages.push(r.usage); usedModel = r?.model ?? usedModel; onCall?.(rec);
     return r;
   };
@@ -782,14 +797,15 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
 // 셋째 시도 — 둘째에도 걸렸지만 사유가 THIRD_MAX_ISSUES 이하(자동 고침 뒤)이고 작업 시작부터 THIRD_BUDGET_MS 안이면 sonnet 고치기 1회 더. r3 실측(재요청 1회): 안 통과율 56%, 3안 다 나온 작업 2/16
 export const THIRD_BUDGET_MS = Number(process.env.FREEDESIGN_THIRD_BUDGET_MS ?? 150_000), THIRD_MAX_ISSUES = 3;
 const thirdTry = (inp, X, retryHtml, retryErrors, t0) => (X.stub ? inp.thirdTry === true : inp.thirdTry !== false) && !!retryHtml && (retryErrors ?? []).filter(e => !/^\(참고 실측/.test(e)).length <= THIRD_MAX_ISSUES && Date.now() - t0 < THIRD_BUDGET_MS;
-async function designVariant(inp, dir, X, { doReview = false, onStage = null, kind = 'gen', t0 = Date.now() } = {}) {
+async function designVariant(inp, dir, X, { doReview = false, onStage = null, kind = 'gen', t0 = Date.now(), signal = null, onRisk = null } = {}) {
   const tv = Date.now();
   let attempts = 0, html = null, raw = null, notes = '', errors = [], lastText = '', text = '', retryErrors = null, retryHtml = null, gate = null; const tries = [];
   while (attempts < 2 || (attempts < 3 && thirdTry(inp, X, retryHtml, retryErrors, t0))) {   // 11-09 6단계: 걸린 게 몇 개뿐이고 시간 여유가 있으면 「걸린 것만 고치기」 한 번 더(3안 보장)
     // 첫 시도 = 전체 프롬프트(그림 봄). 재요청은 HTML 이 있으면 「걸린 것만 고치기」 짧은 프롬프트(그림·도구 없음, RETRY_MODEL) — 없으면 전체 다시
+    if (attempts > 0) onRisk?.();   // 첫 시도가 걸림 — 예비 안을 깨울 신호(11-09 7단계)
     const fix = attempts > 0 && retryHtml;
     const prompt = fix ? buildRevisePrompt(inp, { html: retryHtml, instruction: '검증기가 잡은 아래 문제만 고친다 — 구성·색·그래픽·문구는 그대로', retryErrors, fix: true }) : buildFreePrompt(inp, { images: X.imgOpt, retryErrors, retryHtml, style: dir });
-    const r = await X.call(prompt, fix ? { images: [], tools: false, model: X.retryModel ?? undefined, kind: 'retry', style: dir?.id ?? null, specId: inp.specId } : { images: X.images, kind: attempts ? 'retry' : kind, style: dir?.id ?? null, specId: inp.specId }); attempts++;
+    const r = await X.call(prompt, fix ? { images: [], tools: false, model: X.retryModel ?? undefined, kind: 'retry', style: dir?.id ?? null, specId: inp.specId, signal } : { images: X.images, kind: attempts ? 'retry' : kind, style: dir?.id ?? null, specId: inp.specId, signal }); attempts++;
     lastText = r.text ?? '';
     let rr = extractHtml(r.text);
     if (!rr) { errors = ['응답에 <div data-ad> HTML 블록이 없음']; tries.push({ attempt: attempts, errors, text: String(r.text ?? '').slice(0, 300) }); retryErrors = errors; continue; }
@@ -803,6 +819,7 @@ async function designVariant(inp, dir, X, { doReview = false, onStage = null, ki
     if (!v.ok) { tries.push({ attempt: attempts, errors: v.errors }); retryErrors = v.errors; retryHtml = rr; continue; }
     if (X.measureFn) {
       onStage?.('review');
+      if (signal?.aborted) throw cancelError();
       try { gate = await X.measureFn(html, dir, inp, attempts); } catch (e) { gate = { error: String(e?.message ?? e), issues: [] }; }
       let gi = gate?.issues ?? [];
       if (gi.length) {   // 간격만이면 LLM 없이 스택 다시 쌓기(0초) → 다시 측정
@@ -851,29 +868,65 @@ const resultOf = (mode, X, variants, t0, input, extra = {}) => {
 // ── suggest(기본) — 입력(계약) → { html, notes, …, variants:[…] }. 방향(구성)마다 별도 호출을 동시에(상한 concurrency, 기본 PARALLEL=3). 끝난 순서대로 onVariant(v).
 //   deps: { run(prompt,{images}) } 모델 mock · { measure(html, dir, inp) → {issues, png?, auto?} } 게이트 mock · { render(html, dir) } 자기 검토용 렌더 mock. client 는 api 엔진용(FREEDESIGN_API=1 일 때만).
 //   styles 지정이 없으면 KV 유형으로 구성 3개(pickCompositions). review 는 기본 끔(속도 — 게이트가 가이드를 지킨다), true 면 통과 안마다 자기 검토 1회.
+export const SPARE = Math.max(0, Number(process.env.FREEDESIGN_SPARE ?? 1) || 0);   // 11-09 7단계: 3안 보장 = 과생성(서로 다른 구성 n+SPARE 안 → 게이트 통과 안 중 먼저 끝난 n안만 노출)
+// 예비를 언제 띄우나: 'staged'(기본) = n안 먼저, 어느 안이 첫 시도에 걸리거나(재요청) 반려되거나 SPARE_AFTER_MS 안에 n안이 안 차면 예비 1개씩 / 'eager' = 처음부터 n+SPARE 동시.
+//   11-09 r4 실측: 같은 계정에서 opus 설계 4개를 동시에 돌리면 호출마다 느려진다(혼자 91s → 4개 동시 236~244s, api_retry 없음 = 계정 처리량 나눠 씀) — 처음부터 4개면 첫 카드가 늦다.
+export const SPARE_MODE = process.env.FREEDESIGN_SPARE_MODE ?? 'staged';
+export const SPARE_AFTER_MS = Number(process.env.FREEDESIGN_SPARE_AFTER_MS ?? 150_000);
 export async function freeDesign(input = {}, deps = {}) {
   const t0 = Date.now();
   const specId = input.specId; if (!specId) throw new Error('specId 가 없습니다');
   const rules = input.rules ?? rulesForSpec(specId);
   const inp = { ...input, rules, history: input.history ?? [], prev: input.prev ?? null };
   const n = typeof input.n === 'number' && input.n >= 1 ? Math.min(6, input.n) : 3;
-  const styleIds = Array.isArray(input.styles) && input.styles.length ? input.styles : pickCompositions(input.kv?.meta ?? null, rules, input.n === 1 ? 1 : n);
+  const given = Array.isArray(input.styles) && input.styles.length;
+  // 예비 안: 방향을 지정하지 않은 여러 안 제안일 때만(지정 방향·1안은 그대로). r3 실측 안 통과율 56~67% → 3안 다 나온 작업 2~3/16
+  const spare = given || n < 2 ? 0 : Math.max(0, Math.min(3, Number(input.spare ?? SPARE) || 0));
+  const styleIds = given ? input.styles : pickCompositions(input.kv?.meta ?? null, rules, input.n === 1 ? 1 : n + spare);
   const styles = styleIds.map(id => styleOf(id) ?? { id: String(id), name: String(id), hint: '' });
+  const want = spare ? Math.min(n, styles.length) : styles.length;
+  const mode = input.spareMode ?? SPARE_MODE;
   const X = engineCtx(inp, deps, { defaultModel: SUGGEST_MODEL });
   const stop = stageTimer(deps.onStage);
-  const limit = input.parallel === false ? 1 : Math.max(1, deps.concurrency ?? PARALLEL);
+  const limit = input.parallel === false ? 1 : Math.max(1, deps.concurrency ?? (spare ? Math.max(PARALLEL, styles.length) : PARALLEL));
+  // 예비 끊기: 통과 안이 want 개 차면 남은 안(설계·재요청 중인 claude 자식)을 끊어 계정 사용량을 아낀다. 작업 취소(deps.signal)도 같이 전달
+  const enough = new AbortController(); const onJobAbort = () => enough.abort(); deps.signal?.addEventListener?.('abort', onJobAbort, { once: true }); if (deps.signal?.aborted) enough.abort();
+  const shown = [], held = [], extra = [], cut = [], spareStarts = []; let passed = 0;
+  const emit = v => { shown.push(v); deps.onVariant?.(v); };
+  const head = spare && mode === 'staged' && input.parallel !== false ? styles.slice(0, want) : styles, tail = head === styles ? [] : styles.slice(want);
+  const tasks = []; let nextSpare = 0, timer = null;
+  const startSpare = why => { if (enough.signal.aborted || nextSpare >= tail.length || passed >= want) return; const dir = tail[nextSpare++]; spareStarts.push({ id: dir.id, why, at: Date.now() - t0 }); tasks.push(runOne(dir)); };
+  async function runOne(dir) {
+    let v;
+    try { v = await designVariant(inp, dir, X, { doReview: input.review === true, onStage: deps.onStage, t0, signal: enough.signal, onRisk: () => startSpare('retry') }); }
+    catch (e) {
+      if (e?.cancelled && deps.signal?.aborted) throw e;
+      if (e?.cancelled) { cut.push({ id: `${specId}:${dir.id}`, style: { id: dir.id, name: dir.name }, cancelled: true, at: Date.now() - t0 }); return null; }
+      v = { id: `${specId}:${dir.id}`, specId, style: { id: dir.id, name: dir.name }, html: null, notes: '', attempts: 0, errors: [String(e?.message ?? e)], ok: false, valid: { ok: false, errors: [String(e?.message ?? e)] }, rejected: true, gate: gateSummary(null), review: null, language: null, ms: Date.now() - t0, at: Date.now() - t0 };
+    }
+    if (!spare) { emit(v); return v; }   // 예비 없음(방향 지정·1안) — 예전처럼 끝난 순서대로 전부
+    if (v.ok && passed < want) { passed++; emit(v); if (passed >= want) enough.abort(); }
+    else if (v.ok) extra.push(v);   // 끊기 전에 이미 끝난 통과 안 — 예비로 둔다
+    else { held.push(v); startSpare('rejected'); }   // 반려는 붙잡아 둔다(예비가 메우면 안 보임)
+    return v;
+  }
   try {
-    const variants = await pool(styles, limit, async dir => {
-      let v;
-      try { v = await designVariant(inp, dir, X, { doReview: input.review === true, onStage: deps.onStage, t0 }); }
-      catch (e) { if (e?.cancelled) throw e; v = { id: `${specId}:${dir.id}`, specId, style: { id: dir.id, name: dir.name }, html: null, notes: '', attempts: 0, errors: [String(e?.message ?? e)], ok: false, valid: { ok: false, errors: [String(e?.message ?? e)] }, rejected: true, gate: gateSummary(null), review: null, language: null, ms: Date.now() - t0, at: Date.now() - t0 }; }
-      deps.onVariant?.(v);
-      return v;
-    }, deps.signal);
+    if (!tail.length) await pool(styles, limit, runOne, enough.signal);
+    else {
+      // 느린 설계 가리기(hedge): SPARE_AFTER_MS 에 아직 설계 응답이 없는 안 수만큼(모자란 안 수까지) 예비를 띄운다 — r4: 설계 호출이 시간대에 따라 86s~420s+
+      timer = setTimeout(() => { const settled = new Set([...shown, ...held, ...extra].map(v => v?.id)); const slow = head.filter(d => !settled.has(`${specId}:${d.id}`) && !X.calls.some(c => c.style === d.id && c.kind === 'gen' && !c.cancelled)).length; for (let i = 0; i < Math.max(1, Math.min(slow, want - passed)); i++) startSpare('slow'); }, SPARE_AFTER_MS); timer.unref?.();
+      tasks.push(...head.map(d => runOne(d)));
+      for (let k = 0; k < tasks.length; k++) await tasks[k];   // 도는 중에 예비가 더해질 수 있다
+      clearTimeout(timer);
+      for (const d of tail.slice(nextSpare)) cut.push({ id: `${specId}:${d.id}`, style: { id: d.id, name: d.name }, cancelled: true, notStarted: true, at: Date.now() - t0 });
+    }
     if (deps.signal?.aborted) throw cancelError();
-    if (!variants.some(v => v.html)) throw new Error(`HTML 을 받지 못함(${variants.map(v => v.style.name).join('·')}): ${variants.flatMap(v => v.errors).slice(0, 3).join(' · ')} — 응답 앞부분: ${variants[0]?.lastText ?? ''}`);
-    return resultOf('suggest', X, variants, t0, inp);
-  } finally { stop(); if (X.tmp && !deps.keepTmp) { try { rmSync(X.tmp, { recursive: true, force: true }); } catch {} } }
+    if (spare && passed < want) for (const v of held.splice(0, want - passed)) emit(v);   // 다 돌았는데 모자라면 반려 안을 (숨김 카드로) 보내 「N안 제외」 안내
+    const all = [...shown, ...extra, ...held];
+    if (!all.some(v => v.html)) throw new Error(`HTML 을 받지 못함(${styles.map(s => s.name).join('·')}): ${all.flatMap(v => v.errors ?? []).slice(0, 3).join(' · ')} — 응답 앞부분: ${all[0]?.lastText ?? ''}`);
+    const order = v => styles.findIndex(d => `${specId}:${d.id}` === v.id);   // 결과 variants 는 방향 순서(partial 은 끝난 순서)
+    return resultOf('suggest', X, [...shown].sort((x, y) => order(x) - order(y)), t0, inp, { spares: [...extra, ...held], cut, spareStarts, made: styles.length - cut.length, planned: styles.length, want, spareMode: tail.length ? 'staged' : spare ? 'eager' : null });
+  } finally { clearTimeout(timer); stop(); deps.signal?.removeEventListener?.('abort', onJobAbort); if (X.tmp && !deps.keepTmp) { try { rmSync(X.tmp, { recursive: true, force: true }); } catch {} } }
 }
 
 // ── revise — 이전 HTML + 지시만. 자기 검토 없음, 검증기만, 기본 모델 sonnet, 그림 안 봄(도구 없음). 목표 ≤ 60초

@@ -165,7 +165,7 @@ export function createAiDesign(D) {
     if (last?.rejected) parts.push(`<div class="ai-rej" role="note" title="${esc((last.rejWhy ?? []).join('\n'))}">${!run && last.status === 'done' && !(last.arrived > 0) ? `${last.rejected}안 모두 가이드에 안 맞아 숨겼어요 — 다시 누르면 새로 만들어요${last.rejWhy?.[0] ? `<small>예: ${esc(last.rejWhy[0].replace(/^겹침 [\w-]+: /, ''))}</small>` : ''}` : `가이드에 안 맞아 ${last.rejected}안 제외`}</div>`);
     if (last?.status === 'failed' && !run) parts.push(`<div class="ai-err" role="alert">실패: ${esc(String(last.error ?? '사유 없음').slice(0, 120))}</div>`);
     if (last?.status === 'cancelled' && !run) parts.push('<div class="ai-hint">취소했어요 — 이미 도착한 안은 남겨 둬요</div>');
-    if (!run && !t.cards.length && !spread && !(last?.rejected && last.status === 'done')) parts.push(`<p class="ai-empty">키비주얼에 어울리는 새 디자인 3안(배경 그래픽·컬러·강조)을 만들어요. 첫 안 ${roughMin(speed?.first ?? FIRST_MS)}, 3안 ${roughMin(speed?.total ?? ETA_MS.suggest)}${speed ? '(최근 평균)' : ''} — 기다리는 동안 다른 작업을 해도 돼요.</p>`);
+    if (!run && !t.cards.length && !spread && !(last?.rejected && last.status === 'done')) parts.push(`<p class="ai-empty">키비주얼에 어울리는 새 디자인 3안(배경 그래픽·컬러·강조)을 만들어요 — 예비 안을 같이 만들어 가이드 검수를 통과한 3안만 보여 줘요. 첫 안 ${roughMin(speed?.first ?? FIRST_MS)}, 3안 ${roughMin(speed?.total ?? ETA_MS.suggest)}${speed ? '(최근 평균)' : ''} — 기다리는 동안 다른 작업을 해도 돼요.</p>`);
     let live = body.querySelector('.ai-live');
     const head = parts.join('');
     // 상태 영역은 통째로, 카드 목록은 키별로 재사용
@@ -211,7 +211,7 @@ export function createAiDesign(D) {
     const i = stageIndex(job.stage);
     const steps = job.mode === 'revise' ? '' : i >= 0 ? `<ol class="ai-steps" aria-label="진행 단계">${STAGES.map(([k, n], x) => `<li class="${x < i ? 'done' : x === i ? 'on' : ''}" ${x === i ? 'aria-current="step"' : ''}>${n}</li>`).join('')}</ol>` : '';
     const arrived = (job.mode === 'suggest' ? ` <span class="ai-n">${job.arrived ?? 0}/${job.slots ?? 3} 도착</span>` : '') + (job.position > 0 ? ` <span class="ai-n">대기 ${job.position}</span>` : '');
-    return `<div class="ai-status" role="status"><div class="ai-line"><b>${job.mode === 'revise' ? `AI 수정 중 — ${esc(job.parentTitle ?? '')}` : job.prompt ? 'AI 제안 만드는 중 · 「' + esc(job.prompt.slice(0, 24)) + '」' : 'AI 제안 만드는 중'}</b>${arrived}</div>${steps}<div class="ai-time" data-tjob="${esc(job.id)}">${esc(etaText(job))}</div><div class="ai-hint">다른 작업 하셔도 돼요 — 끝나면 알려드려요</div><button type="button" class="lnk ai-cancel" data-cancel="${esc(job.id)}">취소</button></div>`;
+    return `<div class="ai-status" role="status"><div class="ai-line"><b>${job.mode === 'revise' ? `AI 수정 중 — ${esc(job.parentTitle ?? '')}` : job.prompt ? 'AI 제안 만드는 중 · 「' + esc(job.prompt.slice(0, 24)) + '」' : 'AI 제안 만드는 중'}</b>${arrived}</div>${steps}<div class="ai-time" data-tjob="${esc(job.id)}">${esc(etaText(job))}</div><div class="ai-hint">${job.mode === 'suggest' ? '검수 통과한 안만 차례로 채워요 · ' : ''}다른 작업 하셔도 돼요 — 끝나면 알려드려요</div><button type="button" class="lnk ai-cancel" data-cancel="${esc(job.id)}">취소</button></div>`;
   }
   function cardEl(a, cd, spec, k, t) {
     const n = document.createElement('article'); n.className = `ai-card${t.sel === cd.id ? ' sel' : ''}${cd.used ? ' used' : ''}`; n.dataset.id = cd.id;

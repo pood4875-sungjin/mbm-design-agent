@@ -304,6 +304,88 @@ export function fixStack(html, rows, opts) {
   return { html: E.apply(), moves };
 }
 
+// ── 스택 후보(11-09 7단계 — r3 반려 사유 다수가 「sub·main 잉크 3~10px 겹침」「date→detail 행 간격 < 글자 0.6배」인데 fixStack 이 null 이던 것:
+//   ① 바닥(안전영역·아래 장애물)이 막혀 못 벌림 ② 이미 주인공·사진 면에 걸친 스택을 그쪽으로 더 밀어 다른 위반이 생김 ③ 아래에 붙인 글자 덩어리를 아래로 밀어 장식에 닿음).
+//   후보 = 붙는 쪽(덩어리가 아래 절반이면 바닥 고정, 위면 위 고정 → 반대) × 장애물(가운데보다 아래/위에 있는 주인공·로고는 덩어리 밖으로) × 글자 한 단계 축소(메인 0.9 → 메인·서브 0.9 → 메인 0.8).
+//   기준(TYPO_RULE_FIXED 간격 하한·상한)은 그대로 — 게이트가 다시 재서 「고치려던 위반은 줄고 그 밖은 안 늘면」 채택(server/freedesign.js tryAutoFix).
+//   rows: typoRowsOf(측정, 요소 상자 y·h + 잉크), opts: { rules, hi, H, safe, obstacles:[{x,y,w,h}], want(장애물 간격), minPx(정보 글자 하한), legacy:{floor,ceil} }
+const SHRINK_ROOT = ['font-size', 'line-height'];   // 폭·left 는 두어 가운데 정렬(축)·라벨 열이 그대로
+function shrinkText(html, roles, f) {
+  const R = rootInfo(html); if (!R) return null; const els = fieldNodes(R.nodes, roles); if (!els.length) return null;
+  const E = edits(html);
+  for (const n of els) {
+    const outer = outerAt(html, n.index); if (!/font-size\s*:\s*[\d.]+px/i.test(outer)) return null;
+    E.replace(n.index, outer, outer.replace(/<([a-z][a-z0-9]*)\b[^>]*>/gi, (tag, _nm, off) => { const st = styleOf(tag); if (!st) return tag; const ns = scaleStyle(st, f, off === 0 ? SHRINK_ROOT : SCALE_INNER); return ns === st ? tag : withStyle(tag, ns); }));
+  }
+  return E.apply();
+}
+function placeStack(rows, { rules, hi, H, safe = null, obstacles = [], want = 0, anchor = 'auto', tight = false }) {
+  const st = rows.filter(r => r.ink && r.ink.h > 0).map(r => ({ ...r })).sort((a, b) => a.ink.y - b.ink.y); if (st.length < 2) return null;
+  const lo = (a, b) => a.role === 'sub' && b.role === 'main' ? rules.gapSubMain : a.role === 'main' && INFO_R.includes(b.role) ? rules.gapMainInfo : INFO_R.includes(a.role) && INFO_R.includes(b.role) ? rules.gapInfoRow : 0.15;
+  st[0].ny = 0;
+  for (let i = 1; i < st.length; i++) {
+    const a = st[i - 1], b = st[i], em = Math.min(a.px, b.px);
+    if (Math.abs(a.ink.y - b.ink.y) < em * 0.5) { b.ny = a.ny + (b.ink.y - a.ink.y); continue; }
+    const need = Math.ceil(em * lo(a, b)) + 2, g = b.ink.y - (a.ink.y + a.ink.h);
+    b.ny = a.ny + a.ink.h + (tight ? need : Math.max(need, Math.min(g, hi != null ? Math.floor(hi * 0.95) : g)));
+  }
+  const T0 = Math.min(...st.map(r => r.ink.y)), B0 = Math.max(...st.map(r => r.ink.y + r.ink.h)), L = Math.min(...st.map(r => r.ink.x)), Rx = Math.max(...st.map(r => r.ink.x + r.ink.w));
+  const Hs = Math.max(...st.map(r => r.ny + r.ink.h)), sc = (T0 + B0) / 2;
+  let floor = Infinity, ceil = -Infinity;
+  for (const b of obstacles) {
+    if (!b || !(b.w > 0) || Math.min(Rx, b.x + b.w) - Math.max(L, b.x) <= 0) continue;
+    const cy = b.y + b.h / 2;
+    if (b.y >= B0 - 2 || (cy > sc && b.y > T0)) floor = Math.min(floor, b.y - want);
+    else if (b.y + b.h <= T0 + 2 || (cy < sc && b.y + b.h < B0)) ceil = Math.max(ceil, b.y + b.h + want);
+  }
+  const limT = Math.max(safe?.t ?? 4, ceil), limB = Math.min(H - (safe?.b ?? 4), floor);
+  if (Hs > limB - limT) return null;
+  const side = anchor === 'auto' ? (sc > H / 2 ? 'bottom' : 'top') : anchor;
+  let top = side === 'bottom' ? B0 - Hs : side === 'center' ? sc - Hs / 2 : T0;
+  top = Math.min(Math.max(top, limT), limB - Hs);
+  return st.map(r => ({ role: r.role, dy: Math.round((top + r.ny - r.ink.y) * 10) / 10 }));
+}
+function applyMoves(html, moves) {
+  const R = rootInfo(String(html ?? '')); if (!R) return null;
+  const E = edits(String(html));
+  for (const m of moves) {
+    const n = R.nodes.find(x => x.field === m.role); if (!n) return null;
+    let st = styleOf(n.tag); const top = pxOf(st, 'top'), bottom = pxOf(st, 'bottom');
+    if (top != null) st = setDecl(st, 'top', `${r1(top + m.dy)}px`); else if (bottom != null) st = setDecl(st, 'bottom', `${r1(bottom - m.dy)}px`); else return null;
+    E.replace(n.index, n.tag, withStyle(n.tag, st));
+  }
+  return E.apply();
+}
+export function fixStackCandidates(html, rows, { rules, hi, H, safe = null, obstacles = [], want = 0, minPx = 0, legacy = null, max = 8 } = {}) {
+  const R = rootInfo(String(html ?? '')); if (!R) return [];
+  const anchorOf = role => { const n = R.nodes.find(x => x.field === role); if (!n) return null; const st = styleOf(n.tag); return pxOf(st, 'top') != null ? 'top' : pxOf(st, 'bottom') != null ? 'bottom' : null; };
+  const live = rows.filter(r => r.ink && r.ink.h > 0); if (live.length < 2 || live.some(r => !anchorOf(r.role))) return [];   // 흐름 배치(flex)는 좌표로 못 옮긴다
+  const scaled = (by) => live.map(r => { const s = by[r.role] ?? 1; if (s === 1) return r; const a = anchorOf(r.role), bb = r.y + r.h;
+    const iy = a === 'bottom' && r.h ? bb - (bb - r.ink.y) * s : r.y != null ? r.y + (r.ink.y - r.y) * s : r.ink.y;
+    return { ...r, px: r.px * s, y: a === 'bottom' ? bb - r.h * s : r.y, h: r.h * s, ink: { ...r.ink, y: iy, h: r.ink.h * s } }; });
+  const ok = (r, s) => r.role === 'main' || r.role === 'sub' || !minPx || r.px * s >= minPx;
+  const shrinks = [{}, { main: 0.9 }, { main: 0.9, sub: 0.9 }, Object.fromEntries(live.filter(r => ok(r, 0.9)).map(r => [r.role, 0.9])), { main: 0.8, sub: 0.9 }];
+  const out = [], seen = new Set();
+  const push = (by, t, how) => {
+    if (!t) return; const moves = t.filter(m => Math.abs(m.dy) >= 0.5); if (!moves.length && !Object.keys(by).length) return;
+    const key = JSON.stringify([by, moves]); if (seen.has(key)) return; seen.add(key);
+    let h = String(html); for (const [role, s] of Object.entries(by)) { h = shrinkText(h, [role], s); if (!h) return; }
+    const hh = moves.length ? applyMoves(h, moves) : h; if (!hh) return;
+    out.push({ html: hh, moves: [...Object.entries(by).map(([role, scale]) => ({ role, scale })), ...moves], how });
+  };
+  for (const by of shrinks) {
+    const rs = scaled(by); const w = want * (by.main ?? 1);
+    const base = { rules, hi: hi != null ? hi * (by.main ?? 1) : null, H, safe, obstacles, want: w };
+    push(by, placeStack(rs, base), 'auto');
+    push(by, placeStack(rs, { ...base, tight: true }), 'auto-tight');
+    const auto = (Math.min(...rs.map(r => r.ink.y)) + Math.max(...rs.map(r => r.ink.y + r.ink.h))) / 2 > H / 2 ? 'bottom' : 'top';
+    push(by, placeStack(rs, { ...base, tight: true, anchor: auto === 'bottom' ? 'top' : 'bottom' }), 'flip');
+    if (!Object.keys(by).length && legacy) push(by, stackTargets(rs, { rules, hi, H, safe, ...legacy }), 'legacy');
+    if (out.length >= max) break;
+  }
+  return out.slice(0, max);
+}
+
 // ── 로고 간격 자동 고침(11-09 6단계 r1 — 「4항-2 asset-tight 글자·로고 간격」이 반려 사유 1위권). 로고가 글자 덩어리 위·아래에 있으면
 //   로고를 바깥쪽(위 로고는 위로, 아래 로고는 아래로)으로 모자란 만큼 옮기고, 자리가 없으면 글자 전체를 반대쪽으로 민다. 옆에 있으면(가로 간격) 못 고침 → null.
 //   rows: 측정 글자 잉크 상자, logo: 측정 로고 상자 {x,y,w,h}, want: 필요한 간격 px, H: 규격 높이, safe: { t, b } 안전영역

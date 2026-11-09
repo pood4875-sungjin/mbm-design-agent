@@ -41,13 +41,13 @@ test('병렬 3안 — 방향마다 별도 호출이 동시에(상한 3) · 끝�
   let live = 0, maxLive = 0; const delay = { bleed: 60, diagonal: 10, frame: 35 };
   const run = async (prompt) => { live++; maxLive = Math.max(maxLive, live); const id = /## 구성: [^(]+\((\w+)\)/.exec(prompt)[1]; await sleep(delay[id]); live--; return reply(htmlFor('google-gdn-580x400', 580, 400), `LANGUAGE: {"ground":"linear-gradient(135deg,#0B1440,#17296B)","palette":["#0B1440","#2A75CE"],"emphasis":{"kind":"tag","color":"#2A75CE"},"note":"${id}"}`); };
   const order = []; const stages = [];
-  const out = await freeDesign(input('google-gdn-580x400'), { run, onVariant: v => order.push(v.style.id), onStage: s => stages.push(s) });
+  const out = await freeDesign(input('google-gdn-580x400', { spare: 0 }), { run, onVariant: v => order.push(v.style.id), onStage: s => stages.push(s) });   // 예비 없음(옛 3안 계약) — 예비는 freeloop7 테스트
   assert.equal(maxLive, 3, '3안 동시'); assert.deepEqual(order, ['diagonal', 'frame', 'bleed'], '끝난 순서'); assert.deepEqual(out.variants.map(v => v.style.id), ['bleed', 'diagonal', 'frame']);
   assert.equal(stages[0], 'kv');
   for (const v of out.variants) { assert.ok(v.ok && !v.rejected && v.valid.ok && v.html.includes(KV) && typeof v.ms === 'number'); assert.equal(v.language.source, 'mixed'); assert.equal(v.language.emphasis.kind, 'tag'); assert.equal(v.language.composition.id, v.style.id); assert.ok(v.language.palette.includes('#2A75CE')); }
   assert.equal(out.calls.length, 3); assert.ok(out.calls.every(c => c.kind === 'gen' && c.model === 'stub-model' && c.ms >= 0)); assert.ok(out.firstMs < 60);
   const seq = []; live = 0; maxLive = 0;
-  await freeDesign(input('google-gdn-580x400', { parallel: false }), { run: async p => { seq.push(1); return run(p); } }); assert.equal(maxLive, 1, 'parallel:false 면 하나씩');
+  await freeDesign(input('google-gdn-580x400', { parallel: false, spare: 0 }), { run: async p => { seq.push(1); return run(p); } }); assert.equal(maxLive, 1, 'parallel:false 면 하나씩');
   const lim = []; await pool([1, 2, 3, 4, 5], 2, async x => { lim.push(x); await sleep(5); return x; }); assert.equal(lim.length, 5);
 });
 
@@ -55,7 +55,7 @@ test('게이트 — 측정 위반이면 사유 + 방금 HTML 로 1회 재요청 
   const prompts = [], opts = [];
   const run = async (prompt, o) => { prompts.push(prompt); opts.push(o); if (prompt.includes('## 다시 —')) return reply(htmlFor('google-gdn-580x400', 580, 400)); const id = /## 구성: [^(]+\((\w+)\)/.exec(prompt)[1]; return reply(htmlFor('google-gdn-580x400', 580, 400, { bad: id === 'frame' })); };
   const measure = async (html, dir, inp, k) => ({ issues: dir.id === 'diagonal' ? ['대비 main 2.1:1 < 3:1 — 글자 뒤 바탕을 정리'] : dir.id === 'bleed' && k === 1 ? ['4항-1 gap-tight: sub>main 간격 2px'] : [], png: null });
-  const out = await freeDesign(input('google-gdn-580x400'), { run, measure });
+  const out = await freeDesign(input('google-gdn-580x400', { spare: 0 }), { run, measure });
   const by = Object.fromEntries(out.variants.map(v => [v.style.id, v]));
   assert.ok(by.bleed.ok && by.bleed.attempts === 2 && !by.bleed.rejected, '측정 위반 → 재요청 → 통과');
   assert.ok(by.frame.ok && by.frame.attempts === 2, '계약 위반(자간) → 재요청 → 통과');
@@ -113,7 +113,7 @@ test('jobs — suggest 병렬: partial 이 끝난 순서로 쌓이고 progress·
   const readBody = req => Promise.resolve(Buffer.from(JSON.stringify(req._body ?? {})));
   const delay = { bleed: 220, diagonal: 10, frame: 130 };
   const run = async (prompt) => { const id = /## 구성: [^(]+\((\w+)\)/.exec(prompt)?.[1]; if (id) await sleep(delay[id]); return reply(htmlFor('google-gdn-580x400', 580, 400)); };
-  const engine = (body, hooks) => freeDesign(body, { ...hooks, run, measure: async () => ({ issues: [] }) });
+  const engine = (body, hooks) => freeDesign({ ...body, spare: 0 }, { ...hooks, run, measure: async () => ({ issues: [] }) });
   const deps = { json, readBody, freeDesign: engine, freeRevise: (b, h) => freeRevise(b, { ...h, run }), freeSpread: (b, h) => freeSpread(b, { ...h, run: async p => { const sid = /규격 id: ([\w-]+)/.exec(p)[1]; return reply(htmlFor(sid, ...{ 'nap-dsp-full-300x250': [300, 250], 'google-gdn-580x400': [580, 400] }[sid])); } }), check: async () => ({ ok: true, loggedIn: true }), dir: tmp };
   const call = async (method, p, body) => { const res = {}; await handleFreeJobs({ method, _body: body }, res, { pathname: p }, deps); return res; };
   const a = await call('POST', '/api/freedesign/jobs', input('google-gdn-580x400', { campaignId: 'c1', styles: ['typo', 'bright', 'dark'], engine: 'api' }));

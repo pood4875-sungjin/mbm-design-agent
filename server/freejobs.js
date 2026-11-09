@@ -59,7 +59,7 @@ export function etaOf(j, now = Date.now()) {
   let left = Math.max(est - el, gen - el + retryTail);
   // 진행 중 실제 신호(11-09 r1: 첫 카드 126s 에 「34초」 → 실제 80초) — 설계 호출이 끝났는데 아직 안 온 안 = 재요청·측정 중, 아직 설계 중인 안 = 꼬리가 길다
   if (j.status === 'running' && Array.isArray(j.calls) && j.mode !== 'revise') {
-    const gens = j.calls.filter(c => c.kind !== 'retry' && c.kind !== 'review'), retries = j.calls.filter(c => c.kind === 'retry');
+    const gens = j.calls.filter(c => c.kind !== 'retry' && c.kind !== 'review' && !c.cancelled), retries = j.calls.filter(c => c.kind === 'retry' && !c.cancelled);
     const pendingGen = Math.max(0, (j.progress?.total ?? 0) - gens.length), inFix = Math.max(0, gens.length - (j.progress?.done ?? 0));
     const retryMs = (s?.avgRetryMs ?? 25_000) + GATE_MS;
     let live = 0;
@@ -104,8 +104,8 @@ export function readJobFile(id, dir = JOBS_DIR) {
 export function statsRowOf(j) {
   const r = j.result ?? {}; const calls = r.calls ?? j.calls ?? [];
   return { id: j.id, mode: j.mode, specId: j.specId, n: j.progress?.total ?? 0, status: j.status, at: j.finishedAt ?? Date.now(), totalMs: j.startedAt ? (j.finishedAt ?? Date.now()) - j.startedAt : null,
-    firstMs: j.firstAt ? j.firstAt - j.startedAt : (r.firstMs ?? null), calls: calls.map(c => ({ kind: c.kind, ms: c.ms, model: c.model ?? null, style: c.style ?? null, specId: c.specId ?? null })),
-    retries: calls.filter(c => c.kind === 'retry').length, rejected: r.rejected ?? (r.variants ?? []).filter(v => v.rejected).length, model: calls.find(c => c.kind !== 'retry' && c.model)?.model ?? r.model ?? null };   // 설계 호출의 모델(재요청은 빠른 모델)
+    firstMs: j.firstAt ? j.firstAt - j.startedAt : (r.firstMs ?? null), calls: calls.map(c => ({ kind: c.kind, ms: c.ms, model: c.model ?? null, style: c.style ?? null, specId: c.specId ?? null, ...(c.cancelled ? { cancelled: true } : {}), ...(c.apiRetries ? { apiRetries: c.apiRetries, apiLast: c.apiLast } : {}) })),
+    retries: calls.filter(c => c.kind === 'retry' && !c.cancelled).length, made: r.made ?? null, cut: (r.cut ?? []).length, rejected: r.rejected ?? (r.variants ?? []).filter(v => v.rejected).length, model: calls.find(c => c.kind !== 'retry' && c.model)?.model ?? r.model ?? null };   // 설계 호출의 모델(재요청은 빠른 모델)
 }
 function readStatsFile(dir) { const f = path.join(dir, 'stats.jsonl'); if (!existsSync(f)) return []; try { return readFileSync(f, 'utf8').trim().split('\n').slice(-LIST_MAX).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return []; } }
 let STATS_DIR = JOBS_DIR, STATS_LOADED = false;
@@ -120,7 +120,7 @@ export function statsSummary(dir = STATS_DIR) {
   const rows = STATS.slice(-LIST_MAX); const byMode = {};
   for (const m of MODES) {
     const rs = rows.filter(r => r.mode === m && r.status === 'done'); if (!rs.length) continue;
-    const calls = rs.flatMap(r => r.calls ?? []); const models = {}; for (const c of calls) if (c.model) models[c.model] = (models[c.model] ?? 0) + 1;
+    const calls = rs.flatMap(r => r.calls ?? []).filter(c => !c.cancelled); const models = {}; for (const c of calls) if (c.model) models[c.model] = (models[c.model] ?? 0) + 1;
     const gens = calls.filter(c => c.kind !== 'retry' && c.ms != null).map(c => c.ms).sort((a, b) => a - b);
     const nv = rs.reduce((a, r) => a + (r.n || 1), 0);
     byMode[m] = { p75CallMs: gens.length ? gens[Math.min(gens.length - 1, Math.floor(gens.length * 0.75))] : null, retryRate: nv ? Math.round(rs.reduce((a, r) => a + (r.retries ?? 0), 0) / nv * 100) / 100 : 0, n: rs.length, avgTotalMs: avg(rs.map(r => r.totalMs).filter(v => v != null)), avgFirstMs: avg(rs.map(r => r.firstMs).filter(v => v != null)), avgCallMs: avg(calls.filter(c => c.kind !== 'retry').map(c => c.ms).filter(v => v != null)), avgRetryMs: avg(calls.filter(c => c.kind === 'retry').map(c => c.ms)), avgRetries: rs.length ? Math.round(rs.reduce((a, r) => a + (r.retries ?? 0), 0) / rs.length * 100) / 100 : 0, avgRejected: Math.round(rs.reduce((a, r) => a + (r.rejected ?? 0), 0) / rs.length * 100) / 100, models };
