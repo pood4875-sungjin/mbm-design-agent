@@ -8,6 +8,7 @@
 
 import { rasterizeCanvas } from './raster.js';
 import { CANON } from '../core/canon.js';
+import { resolveRefs } from '../core/assetref.js';
 
 const toHex = rgb => {
   const m = String(rgb).match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
@@ -60,6 +61,7 @@ function hasAlpha(canvas) {
 }
 
 export async function measureArtifact(html, spec, opts = {}) {
+  html = resolveRefs(html);   // 보드 html 의 그림 참조(blob:, 11-09) → 바이트. 래스터(SVG foreignObject)는 바깥 주소를 못 읽는다
   const dom = await measureDom(html, spec);
   const format = opts.format ?? (spec.format?.[0] ?? 'png');
   const submitW = spec.submitW ?? spec.w * (spec.exportScale ?? 1);

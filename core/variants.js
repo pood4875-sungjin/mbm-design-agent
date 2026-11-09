@@ -19,8 +19,8 @@ export const CANDIDATE_ORDER = [
 ];
 const KV_KEYS = new Set(['kvPlace', 'kvSize']);
 const traceOf = html => { const m = html?.match?.(/data-trace="([^"]*)"/); if (!m) return null; try { return JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
-// 그림 지문: 추적(data-trace — 프리셋을 적기만 해도 달라진다)·그림 바이트(data:)는 빼고 잰다
-export const htmlHash = html => { const s = String(html ?? '').replace(/data-trace="[^"]*"/g, '').replace(/data:[^'")]+/g, ''); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); };
+// 그림 지문: 추적(data-trace — 프리셋을 적기만 해도 달라진다)·그림 바이트(data:)·그림 참조(blob:, core/assetref.js 11-09)는 빼고 잰다 — 참조로 그려도 data URL 로 그린 것과 지문이 같다
+export const htmlHash = html => { const s = String(html ?? '').replace(/data-trace="[^"]*"/g, '').replace(/data:[^'")]+/g, '').replace(/blob:[^'")]+/g, ''); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); };
 export function variantCountFor(spec) {
   const V = CANON.variants ?? { regulated: 1, default: 3, free: 5 };
   if (!spec) return V.default;

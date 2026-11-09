@@ -72,12 +72,13 @@ export function plannedItems(campaign) {
   return items;
 }
 
-export function generateArtifacts(campaign) {
+// 계획(plannedItems)에 맞춰 산출물 칸을 만든다(그리기 전). 생성 직후 규격 크기를 먼저 얹고 한 번만 그리려고 따로 뺐다(11-09 성능 — 생성 때 regen 두 번 → 한 번)
+export function ensureArtifacts(campaign) {
   const items = plannedItems(campaign);
   const keys = new Set(items.map(i => artifactKey(i.specId, i.purpose, i.arrow)));
   // 계획에서 빠진 산출물 제거(용도 선택 변경 반영)
   campaign.artifacts = campaign.artifacts.filter(a => keys.has(a.key ?? a.specId));
-
+  const out = [];
   for (const item of items) {
     const key = artifactKey(item.specId, item.purpose, item.arrow);
     let artifact = campaign.artifacts.find(a => (a.key ?? a.specId) === key);
@@ -90,31 +91,51 @@ export function generateArtifacts(campaign) {
       };
       campaign.artifacts.push(artifact);
     }
-    const effContext = {
-      ...campaign.context,
-      core: { ...campaign.context.core, ...(artifact.overrides.core ?? {}) },
-    };
+    out.push({ item, key, artifact });
+  }
+  return out;
+}
+
+const effContextOf = (campaign, artifact) => ({
+  ...campaign.context,
+  core: { ...campaign.context.core, ...(artifact.overrides?.core ?? {}) },
+});
+
+// 레이아웃 안(10-20 2단계): 광고 규격마다 후보를 캠페인 공통 스타일로 만든다 — 안은 「프리셋 묶음」이라 선택하면 overrides.style 로 복사된다.
+//   이미 선택한 안(variantSel)이 있으면 다시 계산해도 선택은 유지. 저장 크기 때문에 trace 는 빼고 {id,label,style,hash}만.
+//   11-09 성능: 편집 경로는 generateArtifacts(…, { variants: false }) 로 그림만 그리고 이 함수를 소재를 고를 때·idle 에 따로 부른다(variantsStale). 결과는 같다(안은 html 을 읽지 않는다)
+//   opts.ref — 렌더용 스타일 변환(core/assetref.js refStyle: 큰 data URL → 짧은 참조)
+export function computeVariants(campaign, artifact, opts = {}) {
+  if (artifact.channel !== 'ad') { delete artifact.variantsStale; return artifact; }
+  const ref = opts.ref ?? (s => s);
+  // 안 목록은 캠페인 스타일이 바뀌면 달라진다 — 번호가 아니라 같은 프리셋 묶음을 다시 찾는다(10-20 리뷰). 없으면 기본안(0)
+  const prevStyle = artifact.variants?.[artifact.variantSel]?.style ?? null;
+  const vs = variantCandidates(artifact.specId, effContextOf(campaign, artifact), ref(campaign.style), { variant: artifact.variant ?? 0 });
+  const prevFree = (artifact.variants ?? []).filter(v => v.kind === 'free');   // 자유 시안(11-05, 「대화로 시안 뽑기」 「이 안으로 쓰기」) — 자동 안을 다시 세워도 남긴다
+  artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
+  for (const v of prevFree) artifact.variants.push({ ...v, id: artifact.variants.length });
+  const i = prevStyle ? artifact.variants.findIndex(v => JSON.stringify(v.style) === JSON.stringify(prevStyle)) : -1;
+  // 「다른 시안 보기」에서 고른 시안은 자동 안 목록에 없어도 선택을 유지한다
+  if (i < 0 && prevStyle?.tpl) { artifact.variants.push({ id: artifact.variants.length, label: artifact.variants.length ? (vsLabel(prevStyle, SPECS[artifact.specId]) ?? '시안') : '시안', style: prevStyle, hash: '' }); artifact.variantSel = artifact.variants.length - 1; }
+  else artifact.variantSel = i >= 0 ? i : 0;
+  delete artifact.variantsStale;
+  return artifact;
+}
+
+// opts.variants === false — 안 후보를 계산하지 않고 variantsStale 표시만(앱 편집 경로). opts.ref — 렌더용 스타일 변환(위 computeVariants 와 같음)
+export function generateArtifacts(campaign, opts = {}) {
+  const ref = opts.ref ?? (s => s);
+  for (const { item, key, artifact } of ensureArtifacts(campaign)) {
+    const effContext = effContextOf(campaign, artifact);
     // 인쇄물·옛 배너는 행사용 렌더러가 그린다 — 채용 내용을 그 렌더러가 읽는 칸으로 옮겨 준다. 매체 광고·그룹웨어 썸네일(ad.js)은 종류별 사다리를 직접 읽는다
     const adLike = item.channel === 'ad' || item.channel === 'gwthumb';
     // 산출물별 스타일 덮어쓰기(overrides.style: 라벨 알약 톤 등) — 캠페인 스타일 위에 얹는다. 개별 편집값은 일괄 변경에서도 남는다
     let effStyle = artifact.overrides?.style && Object.keys(artifact.overrides.style).length ? resolveAiStyle(campaign, { ...campaign.style, ...artifact.overrides.style }, SPECS[item.specId]) : campaign.style;   // 10-22 aiShape → 캠페인 c.ai.groups 의 crop 사본·주인공
     // 직접 수정(10-14 편집 고도화) — 산출물 하나의 키비주얼·글자 덩어리·로고 이동·크기(캔버스 몫 단위). 렌더러가 자동 배치 뒤 마지막 변형으로 얹는다(core/editlayout.js)
     if (artifact.overrides?.layout && Object.keys(artifact.overrides.layout).length) effStyle = { ...effStyle, manualLayout: artifact.overrides.layout };
-    // 레이아웃 안(10-20 2단계): 광고 규격마다 후보를 캠페인 공통 스타일로 만든다 — 안은 「프리셋 묶음」이라 선택하면 overrides.style 로 복사된다.
-    //   이미 선택한 안(variantSel)이 있으면 다시 계산해도 선택은 유지. 안은 html 보다 먼저 만들어야 overrides 와 섞이지 않는다. 저장 크기 때문에 trace 는 빼고 {id,label,style,hash}만
-    if (item.channel === 'ad') {
-      // 안 목록은 캠페인 스타일이 바뀌면 달라진다 — 번호가 아니라 같은 프리셋 묶음을 다시 찾는다(10-20 리뷰). 없으면 기본안(0)
-      const prevStyle = artifact.variants?.[artifact.variantSel]?.style ?? null;
-      const vs = variantCandidates(item.specId, effContext, campaign.style, { variant: artifact.variant ?? 0 });
-      const prevFree = (artifact.variants ?? []).filter(v => v.kind === 'free');   // 자유 시안(11-05, 「대화로 시안 뽑기」 「이 안으로 쓰기」) — 자동 안을 다시 세워도 남긴다
-      artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
-      for (const v of prevFree) artifact.variants.push({ ...v, id: artifact.variants.length });
-      const i = prevStyle ? artifact.variants.findIndex(v => JSON.stringify(v.style) === JSON.stringify(prevStyle)) : -1;
-      // 「다른 시안 보기」에서 고른 시안은 자동 안 목록에 없어도 선택을 유지한다
-      if (i < 0 && prevStyle?.tpl) { artifact.variants.push({ id: artifact.variants.length, label: artifact.variants.length ? (vsLabel(prevStyle, SPECS[item.specId]) ?? '시안') : '시안', style: prevStyle, hash: '' }); artifact.variantSel = artifact.variants.length - 1; }
-      else artifact.variantSel = i >= 0 ? i : 0;
-    }
-    artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), effStyle, {
+    // 안은 html 보다 먼저 만들어야 overrides 와 섞이지 않는다(안은 캠페인 공통 스타일 + 안 프리셋)
+    if (item.channel === 'ad') { if (opts.variants === false) artifact.variantsStale = true; else computeVariants(campaign, artifact, { ref }); }
+    artifact.html = renderArtifact(item.specId, adLike ? effContext : asEventContext(effContext), ref(effStyle), {
       variant: artifact.variant ?? 0,
       purpose: artifact.purpose,
       arrow: artifact.arrow,

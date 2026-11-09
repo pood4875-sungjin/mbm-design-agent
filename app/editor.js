@@ -14,6 +14,7 @@ import { guideFor } from '../core/canon.js';
 import { shapeOf } from '../core/layouts.js';
 import { kvTypeOf } from '../core/kvtypes.js';
 import { renderArtifact } from '../core/contract.js';
+import { refStyle } from '../core/assetref.js';   // 추적만 보는 렌더는 그림 참조로(11-09 성능)
 import { ALIGN_CHOICES, alignLockOf, lockedSummary } from '../core/alignrule.js';
 import { resolveAiStyle } from '../core/trackb/analyze.js';
 import { kvOptionsFor, kvOptionsNote } from '../core/editopts.js';
@@ -46,11 +47,11 @@ export function createEditor(E) {
   const stripEdits = st => { const s = { ...st }; for (const k of PRESET_KEYS) delete s[k]; delete s.manualLayout; s.kvUse = 'auto'; s.background = { ...(s.background ?? {}), mode: 'auto', color: null }; return s; };
   const autoCache = new Map();
   function autoTrace(a) {
-    const st = stripEdits(effStyleOf(a));
+    const st = stripEdits(effStyleOf(a));   // 지문(sig)은 원래 그림 길이로 — 렌더만 참조로(11-09 성능)
     const sig = `${keyOf(a)}|${camp().context?.version}|${JSON.stringify(a.overrides?.core ?? {})}|${a.variant ?? 0}|${st.palette?.primary}|${st.keyVisual?.length}|${st.kvTypeOverride}|${st.chipTone}|${st.fonts?.heading}|${st.logo?.length}`;
     if (autoCache.has(sig)) return autoCache.get(sig);
     let t = null;
-    try { t = traceOfHtml(renderArtifact(a.specId, E.adEffCtx(a), st, { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size })); } catch {}
+    try { t = traceOfHtml(renderArtifact(a.specId, E.adEffCtx(a), refStyle(st), { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size })); } catch {}
     autoCache.set(sig, t); return t;
   }
   const availOf = (key, a, v, t) => {
@@ -111,7 +112,7 @@ export function createEditor(E) {
     const c = camp(); const t = autoTrace(a), now = traceOfHtml(a.html);
     const ov = a.overrides?.style ?? {};
     // 11-03 키비주얼 위치·크기·스크림은 이 소재(규격·시안 틀·그림 유형)에서 실제로 먹는 선택지만(core/editopts.js — 렌더러와 같은 가름 + 실제로 그려 비교). 안 먹는 컨트롤은 숨기고 한 줄로 말한다
-    const KO = keys.some(k => KV_KEYS.includes(k)) ? kvOptionsFor({ spec: specOf(a), style: effStyleOf(a), trace: t, render: st => renderArtifact(a.specId, E.adEffCtx(a), st, { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size }) }) : null;
+    const KO = keys.some(k => KV_KEYS.includes(k)) ? kvOptionsFor({ spec: specOf(a), style: refStyle(effStyleOf(a)), trace: t, render: st => renderArtifact(a.specId, E.adEffCtx(a), refStyle(st), { variant: a.variant ?? 0, purpose: a.purpose, arrow: a.arrow, size: a.size }) }) : null;
     const kvOk = (k, v) => v === 'auto' || (k === 'kvPlace' ? KO.place.includes(v) : k === 'kvSize' ? KO.scale : KO.scrim);
     const hiddenKv = [];
     const ctl = k => {
