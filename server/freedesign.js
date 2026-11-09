@@ -26,7 +26,7 @@ import { safeAreaOf } from '../core/trackb/prompt.js';
 import { TEMPLATE_NORMS } from '../core/template-norms.js';
 import { typoNormsFor, TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';
 import { kvTypeOf } from '../core/kvtypes.js';
-import { languageLines, languageOf } from '../core/freelang.js';
+import { languageLines, languageOf, languageFromHtml, mergeLanguage } from '../core/freelang.js';
 import { fixStack } from '../core/freequick.js';
 
 registerAll();
@@ -308,6 +308,7 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
     L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·그라데이션·마스크(mask-image)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다(카드·프레임처럼 의도한 테두리는 예외).`);
     L.push(`4. 지면·그래픽·패턴·컬러·강조(태그·색·굵기)·글꼴 섞기는 자유 — 키비주얼과 어울리는 그래픽(키비주얼의 모양·색에서 뽑은 SVG/CSS 도형·패턴)을 과감하게. 단 글자 가독과 위계를 해치지 않는다.`);
     L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 4.5:1 이상(24px 이상 굵은 글자는 3:1). 강조색 한 가지까지.`);
+    L.push(`   - 글자 상자(가장 긴 줄 끝까지)가 사진 위로 넘어가지 않게 — 넘으면 줄을 나누거나 글자 뒤에 판·스크림. 장식(SVG 도형·별·선·원)은 글자 획에서 떨어뜨린다(글자에 걸치면 반려 — 검증기가 글자 없는 렌더로 실측).`);
   } else {
   L.push(`2. 키비주얼이 작거나 허전하지 않게 — 캔버스의 35~55%를 차지하게, 누끼는 지면 높이의 70% 이상, 사진·일러스트는 한 변으로 흘려도 된다(잘리는 몫 ≤ 30%). 주인공 위에는 글자를 올리지 않는다.`);
   L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·한 방향 그라데이션·마스크(mask-image 의 linear-gradient)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다. 글자 가독을 위한 스크림은 단색→투명 linear-gradient 한 장까지.`);
@@ -499,9 +500,10 @@ const dataUrlToFile = (dataUrl, file) => {
 // prompt 를 stdin 으로 넣고 `claude -p` 를 돌린다. 반환 { text, usage, model, raw, ms }
 //   imageMode 'read'  : 그림을 임시 파일로 써 두고 프롬프트에 경로 — 모델이 Read 로 본다(--allowedTools Read)
 //   imageMode 'stream': --input-format stream-json 으로 user 메시지에 image 블록을 직접 넣는다(도구 없이)
-export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, imageMode = 'read', timeoutMs = 600_000, cwd = tmpdir(), tools = true, effort = null } = {}) {
+export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, imageMode = 'read', timeoutMs = 600_000, cwd = tmpdir(), tools = true, effort = null, signal = null } = {}) {
   return new Promise((resolve, reject) => {
     const t0 = Date.now();
+    if (signal?.aborted) return reject(cancelError());
     const args = ['-p', '--output-format', imageMode === 'stream' ? 'stream-json' : 'json', '--no-session-persistence'];
     if (model) args.push('--model', model);
     if (effort) args.push('--effort', effort);   // 11-09: 생각 길이 — revise·재요청은 low(속도)
@@ -523,6 +525,10 @@ export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, i
     const child = spawn('claude', args, { env: ccEnv(), cwd, stdio: ['pipe', 'pipe', 'pipe'] });
     const out = [], err = [];
     const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`claude -p 시간 초과(${Math.round(timeoutMs / 1000)}s)`)); }, timeoutMs);
+    // 취소(11-09 통합 — DELETE /api/freedesign/jobs/:id): 자식 claude 를 끊는다(SIGTERM → 2초 뒤 SIGKILL)
+    const onAbort = () => { clearTimeout(timer); try { child.kill('SIGTERM'); } catch {} const k = setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, 2000); k.unref?.(); reject(cancelError()); };
+    signal?.addEventListener?.('abort', onAbort, { once: true });
+    child.on('close', () => signal?.removeEventListener?.('abort', onAbort));
     child.stdout.on('data', d => out.push(d)); child.stderr.on('data', d => err.push(d));
     child.on('error', e => { clearTimeout(timer); reject(e); });
     child.on('close', code => {
@@ -540,6 +546,8 @@ export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, i
     child.stdin.end(stdinText);
   });
 }
+
+export const cancelError = () => Object.assign(new Error('취소됨'), { cancelled: true });
 
 // api 엔진 — server/design.js makeClient 와 같은 SDK. client 는 호출자가 만든다.
 async function runApi(client, prompt, { images = [], model = DEFAULT_API_MODEL } = {}) {
@@ -606,6 +614,7 @@ export function gateIssues(a) {
   for (const c of a.contrast ?? []) { if (c.ratio == null) continue; const need = (byRole[c.role]?.fontPx ?? 0) >= 24 ? 3 : 4.5; if (c.ratio < need) out.push(`대비 ${c.role} ${c.ratio}:1 < ${need}:1 — 글자 뒤 바탕을 정리(스크림·판)하거나 글자색을 바꾼다`); }
   for (const x of a.info?.issues ?? []) out.push(x);
   for (const x of a.typoRules?.issues ?? []) out.push(x);
+  for (const x of a.overlap?.issues ?? []) out.push(x);   // 11-09 글자 ↔ 사진(실측 대비)·장식 겹침(core/typoaudit.js overlapAudit)
   if (a.kvLoaded === false) out.push('키비주얼 그림을 불러오지 못함');
   return out;
 }
@@ -638,9 +647,9 @@ async function tryAutoFix(X, html, raw, gate, dir, inp, k) {
 const gateSummary = g => g ? { measured: !g.error && !!(g.audit || g.issues), issues: g.issues ?? [], error: g.error ?? null, contrast: g.audit?.contrast ?? null, verdict: g.audit?.verdict ?? null } : { measured: false, issues: [] };
 
 // 동시 실행 상한 풀 — 결과는 입력 순서, fn 이 끝나는 순서는 자유
-export async function pool(items, limit, fn) {
+export async function pool(items, limit, fn, signal = null) {
   const out = new Array(items.length); let next = 0;
-  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, async () => { while (next < items.length) { const k = next++; out[k] = await fn(items[k], k); } }));
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, async () => { while (next < items.length && !signal?.aborted) { const k = next++; out[k] = await fn(items[k], k); } }));
   return out;
 }
 
@@ -653,7 +662,7 @@ export function stripDataUrls(html, { kv = null, logo = null } = {}) {
 export const restoreDataUrls = (html, map = {}) => Object.entries(map).reduce((h, [k, v]) => h.split(k).join(v), String(html ?? ''));
 
 // ── 공통 엔진 준비 — 모델 호출(call: 시간·모델·종류 기록), 그림 임시 파일, 측정·렌더 함수
-function engineCtx(input, { client = null, run = null, render = null, measure = null, imageMode = input.imageMode ?? IMAGE_MODE, model = null, onCall = null, allowApi = false } = {}, { defaultModel = SUGGEST_MODEL, needTmp = true } = {}) {
+function engineCtx(input, { client = null, run = null, render = null, measure = null, imageMode = input.imageMode ?? IMAGE_MODE, model = null, onCall = null, allowApi = false, signal = null } = {}, { defaultModel = SUGGEST_MODEL, needTmp = true } = {}) {
   const engine = input.engine === 'api' && (API_ENGINE_ENABLED || allowApi) ? 'api' : 'claude-code';
   const images = []; if (input.kv?.dataUrl) images.push({ name: 'kv', dataUrl: input.kv.dataUrl }); if (input.logo?.dataUrl) images.push({ name: 'logo', dataUrl: input.logo.dataUrl });
   const readMode = !run && engine === 'claude-code' && imageMode === 'read';
@@ -664,8 +673,9 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
   const calls = [], usages = []; let usedModel = null;
   const base = run ?? (engine === 'api'
     ? (p, o = {}) => { if (!client) throw new Error('API 키가 없습니다(engine:api)'); return runApi(client, p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_API_MODEL }); }
-    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir(), tools: o.tools ?? true, effort: o.effort }));
+    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir(), tools: o.tools ?? true, effort: o.effort, signal }));
   const call = async (prompt, o = {}) => {
+    if (signal?.aborted) throw cancelError();
     const t0 = Date.now();
     const effort = o.effort ?? (o.kind === 'retry' || o.kind === 'revise' ? (input.fastEffort ?? FAST_EFFORT) : (input.effort ?? DESIGN_EFFORT));
     const r = await base(prompt, { ...o, effort });
@@ -679,7 +689,7 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
   const measureFn = measure ?? (!run && input.measure !== false ? (html, dir, inp, k) => measureFreeHtml(inp, html, tmp ?? tmpdir(), `${inp.specId}-${dir?.id ?? 'x'}-${k ?? 0}-${Date.now()}`) : null);
   const renderFn = render ?? (measureFn ? (html, dir, inp) => measureFn(html, dir, inp ?? input, 'review') : null);
   const usage = () => usages.length ? usages.reduce((a, u) => { for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens']) if (u[k] != null) a[k] = (a[k] ?? 0) + u[k]; return a; }, {}) : null;
-  return { engine, images, readMode, tmp, call, calls, assets, imgOpt, measureFn, renderFn, usage, model: () => usedModel, retryModel: run ? null : (input.retryModel ?? RETRY_MODEL) };
+  return { engine, signal, images, readMode, tmp, call, calls, assets, imgOpt, measureFn, renderFn, usage, model: () => usedModel, retryModel: run ? null : (input.retryModel ?? RETRY_MODEL) };
 }
 
 // ── 한 안 — 생성 → 계약 검증 → 렌더 측정(가이드 게이트) → 걸리면 사유 + 방금 HTML 로 1회 재요청 → 그래도 걸리면 rejected. (review 가 켜져 있으면 통과 안에 자기 검토 1회)
@@ -764,10 +774,11 @@ export async function freeDesign(input = {}, deps = {}) {
     const variants = await pool(styles, limit, async dir => {
       let v;
       try { v = await designVariant(inp, dir, X, { doReview: input.review === true, onStage: deps.onStage, t0 }); }
-      catch (e) { v = { id: `${specId}:${dir.id}`, specId, style: { id: dir.id, name: dir.name }, html: null, notes: '', attempts: 0, errors: [String(e?.message ?? e)], ok: false, valid: { ok: false, errors: [String(e?.message ?? e)] }, rejected: true, gate: gateSummary(null), review: null, language: null, ms: Date.now() - t0, at: Date.now() - t0 }; }
+      catch (e) { if (e?.cancelled) throw e; v = { id: `${specId}:${dir.id}`, specId, style: { id: dir.id, name: dir.name }, html: null, notes: '', attempts: 0, errors: [String(e?.message ?? e)], ok: false, valid: { ok: false, errors: [String(e?.message ?? e)] }, rejected: true, gate: gateSummary(null), review: null, language: null, ms: Date.now() - t0, at: Date.now() - t0 }; }
       deps.onVariant?.(v);
       return v;
-    });
+    }, deps.signal);
+    if (deps.signal?.aborted) throw cancelError();
     if (!variants.some(v => v.html)) throw new Error(`HTML 을 받지 못함(${variants.map(v => v.style.name).join('·')}): ${variants.flatMap(v => v.errors).slice(0, 3).join(' · ')} — 응답 앞부분: ${variants[0]?.lastText ?? ''}`);
     return resultOf('suggest', X, variants, t0, inp);
   } finally { stop(); if (X.tmp && !deps.keepTmp) { try { rmSync(X.tmp, { recursive: true, force: true }); } catch {} } }
@@ -786,9 +797,9 @@ export function buildRevisePrompt(input, { html, instruction, retryErrors = null
   L.push(`- 루트 <div data-ad="1" data-spec="${specId}" data-free="1" style="position:relative;width:${rules.w}px;height:${rules.h}px;overflow:hidden;…"> 그대로. 글자 data-field 역할당 한 요소, 문구는 그대로(새 문구 금지 — 쓸 수 있는 문구: ${FIELD_ROLES.filter(r => copy[r]?.length).map(r => `${r} ${copy[r].map(s => `「${s}」`).join('/')}`).join(' · ')}).`);
   L.push(`- 안전영역 위 ${sa.top ?? 0} · 오른쪽 ${sa.right ?? 0} · 아래 ${sa.bottom ?? 0} · 왼쪽 ${sa.left ?? 0}px 안에 글자·로고.${(rules.textLimits ?? []).length ? ' 글자 수: ' + rules.textLimits.map(t => `${t.role} ${t.maxChars ?? '-'}자/${t.lines ?? '-'}줄`).join(' · ') : ''}`);
   L.push(`- 글꼴: ${fo.required ? `${fo.required} 고정` : (fo.allowed ?? []).join(', ')}.${lg.forbidden || lg.count === 0 ? ' 로고 삽입 불가.' : ''}${rules.backgroundBanned?.length ? ` 배경 금지색 ${rules.backgroundBanned.join(' ')}.` : ''}${rules.textColors?.main ? ` 메인 글자색 ${rules.textColors.main} 고정.` : ''}`);
-  L.push(`- 자간은 0 또는 음수만 · 장평(scaleX/Y·font-stretch) 금지 · 정보 블록(date·detail·notice) 라벨 스타일 하나 · 간격 서브→메인 ≥ ${TYPO_RULE_FIXED.gapSubMain}em, 메인→정보 ≥ ${TYPO_RULE_FIXED.gapMainInfo}em, 정보 행 ≥ ${TYPO_RULE_FIXED.gapInfoRow}em · 글자와 키비주얼·로고 겹침 0 · 대비 4.5:1.`);
+  L.push(`- 자간은 0 또는 음수만 · 장평(scaleX/Y·font-stretch) 금지 · 정보 블록(date·detail·notice) 라벨 스타일 하나 · 간격 서브→메인 ≥ ${TYPO_RULE_FIXED.gapSubMain}em, 메인→정보 ≥ ${TYPO_RULE_FIXED.gapMainInfo}em, 정보 행 ≥ ${TYPO_RULE_FIXED.gapInfoRow}em · 글자와 키비주얼·로고 겹침 0 · 대비 4.5:1 · 글자가 사진 위로 넘어가지 않게 · 장식은 글자 획에 걸치지 않게.`);
   L.push(`- 그림 자리표시(${KV_PLACEHOLDER}·${LOGO_PLACEHOLDER}·{{IMG1}} 등)는 그대로 둔다.`);
-  if (retryErrors?.length) { L.push(''); L.push(fix ? `## 다시 — 방금 결과가 검증에 걸렸다. 아래만 고친다(간격은 글자 상자 top 을 옮기고, 대비는 글자 뒤 스크림·판 또는 글자색으로)` : `## 방금 결과가 검증에 걸렸다 — 이것도 고친다`); for (const e of retryErrors) L.push(`- ${e}`); }
+  if (retryErrors?.length) { L.push(''); L.push(fix ? `## 다시 — 방금 결과가 검증에 걸렸다. 아래만 고친다(간격은 글자 상자 top 을 옮기고, 대비·사진 위 글자는 글자 뒤 스크림·판·글자색 또는 줄 나누기, 장식 겹침은 장식을 옮기거나 지운다)` : `## 방금 결과가 검증에 걸렸다 — 이것도 고친다`); for (const e of retryErrors) L.push(`- ${e}`); }
   L.push('');
   L.push(`## 현재 HTML`); L.push('```html'); L.push(String(html).slice(0, 60000)); L.push('```');
   L.push('');
@@ -823,7 +834,7 @@ export async function freeRevise(input = {}, deps = {}) {
     }
     if (!html) throw new Error(`HTML 을 받지 못함(revise): ${errors.join(' · ')}`);
     const ok = !errors.length;
-    const v = { id: `${specId}:revise`, specId, style: { id: 'revise', name: 'AI 수정' }, html, notes, attempts, errors, ok, valid: { ok, errors }, rejected: !ok, gate: gateSummary(gate), review: null, language: raw ? (input.language ?? languageOf(text, raw)) : null, ms: Date.now() - t0, at: Date.now() - t0 };
+    const v = { id: `${specId}:revise`, specId, style: { id: 'revise', name: 'AI 수정' }, html, notes, attempts, errors, ok, valid: { ok, errors }, rejected: !ok, gate: gateSummary(gate), review: null, language: raw ? (input.language ? mergeLanguage(input.language, languageFromHtml(raw, { composition: input.language.composition ?? null })) : languageOf(text, raw)) : null, ms: Date.now() - t0, at: Date.now() - t0 };   // 고친 안의 새 모티프·라벨도 언어로(11-09 통합)
     deps.onVariant?.(v);
     return resultOf('revise', X, [v], t0, inp, { instruction });
   } finally { stop(); }
@@ -832,7 +843,9 @@ export async function freeRevise(input = {}, deps = {}) {
 // ── spread — 캠페인 디자인 언어(language) + 대상 규격들 → 규격별 병렬 생성(규격 규칙·글자 수·안전영역은 규격마다). 자기 검토 없음, 게이트(검증+측정+재요청 1회)는 같다
 export async function freeSpread(input = {}, deps = {}) {
   const t0 = Date.now();
-  const language = input.language; if (!language || typeof language !== 'object') throw new Error('spread 는 language(캠페인 디자인 언어)가 필요합니다');
+  let language = input.language; if (!language || typeof language !== 'object') throw new Error('spread 는 language(캠페인 디자인 언어)가 필요합니다');
+  // 앱이 언어를 못 받은 안(옛 카드·즉시 수정본)은 { fromHtml:true } + prev.html — 원안 HTML 에서 뽑아 빈 칸을 채운다(11-09 통합)
+  if (input.prev?.html && (language.fromHtml || !language.ground?.css)) { const { fromHtml, ...m } = language; language = mergeLanguage(m, languageFromHtml(stripAssets(input.prev.html, { kv: input.kv?.dataUrl ?? null, logo: input.logo?.dataUrl ?? null }), { composition: m.composition ?? null })); }
   const specIds = [...new Set((input.specIds ?? []).filter(Boolean))]; if (!specIds.length) throw new Error('spread 는 specIds 가 필요합니다');
   const dir = (language.composition?.id && compositionOf(language.composition.id)) || { id: 'spread', name: language.composition?.name ?? '펼치기', kind: 'composition', hint: language.composition?.hint ?? '', kvArea: [0.3, 0.6] };
   const X = engineCtx({ ...input, specId: specIds[0] }, deps, { defaultModel: SUGGEST_MODEL });
@@ -845,10 +858,11 @@ export async function freeSpread(input = {}, deps = {}) {
         const rules = input.rulesBySpec?.[specId] ?? rulesForSpec(specId);
         const inp = { ...input, specId, rules, history: [], prev: null, language, styles: undefined };
         v = await designVariant(inp, dir, X, { onStage: deps.onStage, kind: 'spread', t0 });
-      } catch (e) { v = { id: `${specId}:spread`, specId, style: { id: dir.id, name: dir.name }, html: null, notes: '', attempts: 0, errors: [String(e?.message ?? e)], ok: false, valid: { ok: false, errors: [String(e?.message ?? e)] }, rejected: true, gate: gateSummary(null), review: null, language, ms: Date.now() - t0, at: Date.now() - t0 }; }
+      } catch (e) { if (e?.cancelled) throw e; v = { id: `${specId}:spread`, specId, style: { id: dir.id, name: dir.name }, html: null, notes: '', attempts: 0, errors: [String(e?.message ?? e)], ok: false, valid: { ok: false, errors: [String(e?.message ?? e)] }, rejected: true, gate: gateSummary(null), review: null, language, ms: Date.now() - t0, at: Date.now() - t0 }; }
       deps.onVariant?.(v);
       return v;
-    });
+    }, deps.signal);
+    if (deps.signal?.aborted) throw cancelError();
     return resultOf('spread', X, variants, t0, { ...input, specId: specIds[0] }, { specIds });
   } finally { stop(); if (X.tmp && !deps.keepTmp) { try { rmSync(X.tmp, { recursive: true, force: true }); } catch {} } }
 }

@@ -36,7 +36,10 @@ test('시간 줄 — 서버 etaMs 가 있으면 그 값, 없으면 모드별 목
   const now = 1_000_000;
   assert.match(etaText({ mode: 'suggest', t0: now - 60000 }, now), /^1분 지남 · 남은 시간 ~3분$/);
   assert.match(etaText({ mode: 'suggest', t0: now - 60000, etaMs: 20000 }, now), /남은 시간 ~20초/);
-  assert.match(etaText({ mode: 'revise', t0: now - 10000 }, now), /남은 시간 ~1분/);
+  assert.match(etaText({ mode: 'revise', t0: now - 10000 }, now), /남은 시간 ~50초/);
+  assert.match(etaText({ mode: 'suggest', t0: now - 10000, etaMs: 97000 }, now), /남은 시간 ~1분 40초/, '11-09: 1~2분대는 10초 단위');
+  assert.match(etaText({ mode: 'suggest', t0: now - 10000, etaMs: 97000, firstEtaMs: 59000 }, now), /첫 안 ~1분 · 전부 ~1분 40초/, '11-09: 첫 안 전엔 서버 평균 firstEtaMs');
+  assert.match(etaText({ mode: 'suggest', t0: now - 10000, etaMs: 97000, firstEtaMs: 59000, arrived: 1 }, now), /남은 시간 ~1분 40초$/);
   assert.match(etaText({ mode: 'suggest', t0: now - 300000 }, now), /곧 끝나요/, '목표를 넘기면 음수가 아니라 「곧」');
   assert.equal(stageIndex('design'), 1); assert.equal(stageIndex(undefined), -1, 'stage 없으면 단계 표시 없음');
 });

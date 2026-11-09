@@ -75,3 +75,23 @@ test('지문: 글자 상자 몇 px 차이는 같은 안, 뱃지·굵기·역할�
   assert.ok(fps.length >= 2);
   assert.ok(TEMPLATE_PASS.size > 0 && TEMPLATE_FAMILIES.length >= 30 && kvKeyOf(PHOTO) === 'photo');
 });
+
+// 11-09 AI 트랙 통합 — 게이트 구멍: 글자 ↔ 사진(실측 대비)·장식 겹침(core/typoaudit.js overlapAudit)
+import { overlapAudit, OVERLAP_RULE } from '../core/typoaudit.js';
+test('overlapAudit: 사진 위 상세 글자(25%·2.8:1) ✗ · 경계 스크림(32%·4.4:1) 통과 · 장식 svg 가 글자에 걸리면 ✗ · 글자 아래 판·패턴·흐린 장식은 통과', () => {
+  const f = (role, photo, decos = [], need = 4.5) => ({ role, fontPx: 15, need, n: 100, photo, decos });
+  const deco = o => ({ tag: 'path', svg: true, box: { x: 52, y: 70, w: 36, h: 35 }, area: 0.01, opacity: 0.75, hits: 6, above: 0, frac: 0.06, ...o });
+  const r = overlapAudit({ fields: [
+    f('detail', { n: 100, bad: 25, p10: 2.8, min: 2.1 }),
+    f('date', { n: 100, bad: 32, p10: 4.4, min: 4.1 }),
+    f('sub', { n: 0, bad: 0, p10: null }, [deco()]),
+    f('main', { n: 0, bad: 0 }, [deco({ tag: 'div', svg: false, above: 0 }), deco({ frac: 0.8 }), deco({ area: 0.6 }), deco({ opacity: 0.1 }), deco({ hits: 2 })]),
+  ] });
+  assert.equal(r.ok, false);
+  assert.deepEqual(r.fails.map(x => `${x.code}:${x.role}`), ['photo-text:detail', 'deco-overlap:sub']);
+  assert.match(r.issues[0], /사진 위.*2\.8:1 < 4\.5:1/);
+  const up = overlapAudit({ fields: [f('main', { n: 0, bad: 0 }, [deco({ tag: 'div', svg: false, above: 3 })])] });
+  assert.equal(up.fails[0].code, 'deco-overlap', '글자 위에 올라온 칠한 상자는 ✗');
+  assert.ok(OVERLAP_RULE.photoBadFrac > 0 && OVERLAP_RULE.photoSlack < 1);
+  assert.equal(overlapAudit({ fields: [] }).ok, true);
+});

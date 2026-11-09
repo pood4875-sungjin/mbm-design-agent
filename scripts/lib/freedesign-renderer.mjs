@@ -15,7 +15,7 @@ import { SPECS } from '../../core/contract.js';
 import { lintArtifact } from '../../core/lint.js';
 import { CANON } from '../../core/canon.js';
 import { TEMPLATE_NORMS } from '../../core/template-norms.js';
-import { typoAuditNorms } from '../../core/typoaudit.js';
+import { typoAuditNorms, overlapAudit } from '../../core/typoaudit.js';
 import * as F from '../../core/fonts.js';
 
 export const FACES = F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pathToFileURL(path.join(ROOT, 'app')).href + '/')).join('');
@@ -69,10 +69,60 @@ function measureFree(d, root) {
   return { fields, kvRect };
 }`;
 
+// 11-09 통합(게이트 구멍): 글자 ↔ 사진·장식 겹침 실측. 글자를 지운 렌더(noText PNG)에서 글자 잉크 상자 안 픽셀을 촘촘히 재고(사진 위 실측 대비),
+//   같은 점마다 elementsFromPoint 로 장식(svg 도형·글자 없는 칠한 상자)이 글자에 걸리는지 센다. 판정은 core/typoaudit.js overlapAudit(순수).
+const OVERLAP_JS = String.raw`
+function measureOverlap(d, root, free, texts, nt, S, full) {
+  const rr = root.getBoundingClientRect(); const W = rr.width, H = rr.height;
+  const lum = (r, g, b) => { const f = c => { c /= 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const hexL = h => lum(parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16));
+  const kv = free && free.kvRect; const inKv = (x, y) => !!kv && x >= kv.x && x <= kv.x + kv.w && y >= kv.y && y <= kv.y + kv.h;
+  const ntd = nt ? nt.getImageData(0, 0, nt.canvas.width, nt.canvas.height).data : null; const NW = nt ? nt.canvas.width : 0, NH = nt ? nt.canvas.height : 0;
+  const fd = full && ntd && full.canvas.width === NW && full.canvas.height === NH ? full.getImageData(0, 0, NW, NH).data : null;
+  // 글자 획 근처(±2px 안에 글자 있음/없음 렌더가 다른 픽셀) — 잉크 상자의 위아래 빈 줄(글꼴 ascent 여유)에 걸친 장식은 겹침이 아니다
+  const glyphNear = (x, y) => { if (!fd) return true; for (const dy of [-2, 0, 2]) for (const dx of [-2, 0, 2]) { const px = Math.round((x + dx) * S), py = Math.round((y + dy) * S); if (px < 0 || py < 0 || px >= NW || py >= NH) continue; const i = (py * NW + px) * 4; if (Math.abs(fd[i] - ntd[i]) + Math.abs(fd[i + 1] - ntd[i + 1]) + Math.abs(fd[i + 2] - ntd[i + 2]) > 60) return true; } return false; };
+  const opa = el => { let o = 1; for (let e = el; e && e !== root.parentElement; e = e.parentElement) { const cs = getComputedStyle(e); o *= parseFloat(cs.opacity); } return o; };
+  const painted = el => { const cs = getComputedStyle(el); const bg = cs.backgroundColor; return (bg && bg !== 'transparent' && !/rgba\(\d+, \d+, \d+, 0\)/.test(bg)) || cs.backgroundImage !== 'none' || ['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(cs['border' + k + 'Width']) > 0 && cs['border' + k + 'Style'] !== 'none'); };
+  const rel = r => ({ x: r.left - rr.left, y: r.top - rr.top, w: r.width, h: r.height });
+  const colC = new Map(); const colL = e => { if (colC.has(e)) return colC.get(e); const m = /rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/.exec(getComputedStyle(e).color); const v = m && (m[4] == null || +m[4] > 0.2) ? lum(+m[1], +m[2], +m[3]) : null; colC.set(e, v); return v; };
+  const out = [];
+  for (const el of root.querySelectorAll('[data-field]')) {
+    const role = el.dataset.field; const f = free && free.fields && free.fields[role]; const t = texts.find(x => x.role === role);
+    const b = (f && f.ink) || (t && t.bbox); if (!b || b.w < 2 || b.h < 2) continue;
+    const fontPx = (f && f.fontPx) || (t && t.fontPx) || 16; const need = fontPx >= 24 ? 3 : 4.5;
+    const step = Math.max(2, Math.sqrt(b.w * b.h / 2500));
+    const tl = t && t.color && /^#[0-9a-f]{6}$/i.test(t.color) ? hexL(t.color) : null;
+    let n = 0, nk = 0, bad = 0; const ratios = []; const decos = new Map();
+    for (let y = b.y + step / 2; y < b.y + b.h; y += step) for (let x = b.x + step / 2; x < b.x + b.w; x += step) {
+      if (x < 0 || y < 0 || x >= W || y >= H) continue; n++;
+      const list = d.elementsFromPoint(rr.left + x, rr.top + y); let near = null; const ti = list.findIndex(e => e === el || el.contains(e));
+      // 그 점의 글자색 = 맞은 가장 안쪽 글자 요소(라벨 span 은 제 색 — 파란 칩 위 흰 글자를 본문 검정과 견주지 않게)
+      const tlx = ti >= 0 ? colL(list[ti]) : tl;
+      if (ntd && tlx != null && inKv(x, y)) { const px = Math.min(NW - 1, Math.round(x * S)), py = Math.min(NH - 1, Math.round(y * S)); const i = (py * NW + px) * 4; if (ntd[i + 3] >= 128) { const lb = lum(ntd[i], ntd[i + 1], ntd[i + 2]); const ratio = (Math.max(lb, tlx) + 0.05) / (Math.min(lb, tlx) + 0.05); nk++; ratios.push(ratio); if (ratio < need) bad++; } }
+      for (const [k, e] of list.entries()) {
+        if (e === el || el.contains(e)) continue;
+        if (e === root || !root.contains(e) || e.contains(el)) continue;
+        if (e.closest('[data-field],[data-kv],[data-object],[data-logo]') || e.querySelector('[data-field]')) continue;
+        const tag = e.tagName.toLowerCase(); const svg = e instanceof SVGElement;
+        if (svg && /^(svg|g|defs|clippath|mask|pattern|lineargradient|radialgradient|stop|symbol)$/.test(tag)) continue;
+        if (!svg && tag !== 'img' && !painted(e)) continue;
+        if (near === null) near = glyphNear(x, y); if (!near) continue;
+        let rec = decos.get(e);
+        if (!rec) { const r = rel(e.getBoundingClientRect()); const cs = getComputedStyle(e); let o = opa(e); if (svg) o *= Math.max(cs.stroke !== 'none' ? parseFloat(cs.strokeOpacity) : 0, cs.fill !== 'none' ? parseFloat(cs.fillOpacity) : 0); rec = { tag, svg, box: { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) }, area: (r.w * r.h) / (W * H), opacity: Math.round(o * 100) / 100, hits: 0, above: 0 }; decos.set(e, rec); }
+        rec.hits++; if (ti >= 0 && k < ti) rec.above++;   // 글자 요소도 맞은 점에서 그보다 위일 때만 「글자 위」
+      }
+    }
+    ratios.sort((p, q) => p - q);
+    out.push({ role, fontPx, need, n, photo: { n: nk, bad, p10: nk ? Math.round(ratios[Math.floor(nk * 0.1)] * 10) / 10 : null, min: nk ? Math.round(ratios[0] * 10) / 10 : null }, decos: [...decos.values()].filter(x => x.hits >= 2).map(x => ({ ...x, frac: Math.round(x.hits / n * 1000) / 1000 })) });
+  }
+  return out;
+}`;
+
 // 측정 페이지 — measureDoc + measureFree + PNG 캔버스(바탕색·알파·대비)
-const MEASURE = (pngUrl, scale) => `<script type="module">
+const MEASURE = (pngUrl, scale, noTextUrl = null) => `<style>[data-ad] *{pointer-events:auto!important}</style><script type="module">
 ${MEASURE_JS}
 ${EXTRA_JS}
+${OVERLAP_JS}
 const __out = o => { const p = document.createElement('pre'); p.id = 'q'; p.style.display = 'none'; p.textContent = JSON.stringify(o); document.body.appendChild(p); document.documentElement.dataset.done = '1'; };
 addEventListener('error', e => __out({ error: String(e.error?.stack ?? e.message) }));
 (async () => { const out = {}; try {
@@ -97,6 +147,7 @@ addEventListener('error', e => __out({ error: String(e.error?.stack ?? e.message
   out.bgColors = bg.length ? [...new Set(bg)] : null; out.transparent = alpha; out.pngPx = [cv.width, cv.height];
   const lum = ([r, g, b]) => { const f = c => { c /= 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  try { let nt = null; const nurl = ${JSON.stringify(noTextUrl)}; if (nurl) { const ni = new Image(); await new Promise((res, rej) => { ni.onload = res; ni.onerror = () => rej(new Error('notext png')); ni.src = nurl; }); const c2 = document.createElement('canvas'); c2.width = ni.naturalWidth; c2.height = ni.naturalHeight; nt = c2.getContext('2d', { willReadFrequently: true }); nt.drawImage(ni, 0, 0); } out.overlap = measureOverlap(document, root, out.free, out.m.texts, nt, S, cx); } catch (e) { out.overlap = { error: String(e?.message ?? e) }; }
   out.contrast = out.m.texts.map(t => { const b = t.bbox; const pts = []; const x0 = Math.round(b.x * S), y0 = Math.round(b.y * S), x1 = Math.round((b.x + b.w) * S), y1 = Math.round((b.y + b.h) * S); for (let i = 0; i <= 8; i++) { const x = x0 + (x1 - x0) * i / 8; pts.push([x, y0 - 4], [x, y1 + 4]); const y = y0 + (y1 - y0) * i / 8; pts.push([x0 - 4, y], [x1 + 4, y]); } let n = 0, L = 0; for (const [x, y] of pts) { if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) continue; const d = cx.getImageData(Math.round(x), Math.round(y), 1, 1).data; if (d[3] < 128) continue; L += lum(d); n++; } if (!n || !t.color) return { role: t.role, ratio: null }; const lb = L / n, lt = lum(hexRgb(t.color)); const ratio = (Math.max(lb, lt) + 0.05) / (Math.min(lb, lt) + 0.05); return { role: t.role, ratio: Math.round(ratio * 10) / 10 }; });
 } catch (e) { out.error = String(e?.stack ?? e); } __out(out); })();
 </script>`;
@@ -149,8 +200,11 @@ function renderPrep(e, outDir, { kvFocus = null, kvKind = null } = {}) {
   const doc = docOf(html);
   writeFileSync(base + '.html', doc);
   const shotArgs = [`--window-size=${spec.w},${spec.h}`, `--force-device-scale-factor=${scale}`, '--virtual-time-budget=6000', `--screenshot=${base}.png`, pathToFileURL(base + '.html').href];
-  const measureArgs = () => { writeFileSync(base + '.measure.html', doc.replace('</body>', MEASURE(pathToFileURL(base + '.png').href, scale) + '</body>')); return [`--window-size=${spec.w + 40},${spec.h + 40}`, '--virtual-time-budget=10000', '--dump-dom', pathToFileURL(base + '.measure.html').href]; };
-  return { e, spec, K, html, rules, brief, v, base, kvFocus, kvKind, shotArgs, measureArgs, t0: Date.now() };
+  // 글자만 지운 렌더(겹침 실측용) — 글자 뒤 판·스크림·라벨 바탕은 남는다
+  writeFileSync(base + '.notext.html', doc.replace('</head>', '<style>[data-field],[data-field] *{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;text-decoration-color:transparent!important}</style></head>'));
+  const noTextArgs = [`--window-size=${spec.w},${spec.h}`, `--force-device-scale-factor=${scale}`, '--virtual-time-budget=6000', `--screenshot=${base}.notext.png`, pathToFileURL(base + '.notext.html').href];
+  const measureArgs = () => { writeFileSync(base + '.measure.html', doc.replace('</body>', MEASURE(pathToFileURL(base + '.png').href, scale, existsSync(base + '.notext.png') ? pathToFileURL(base + '.notext.png').href : null) + '</body>')); return [`--window-size=${spec.w + 40},${spec.h + 40}`, '--virtual-time-budget=10000', '--dump-dom', pathToFileURL(base + '.measure.html').href]; };
+  return { e, spec, K, html, rules, brief, v, base, kvFocus, kvKind, shotArgs, noTextArgs, measureArgs, t0: Date.now() };
 }
 function renderFinish(P, dom) {
   const { e, spec, K, html, rules, brief, v, base } = P;
@@ -165,7 +219,8 @@ function renderFinish(P, dom) {
   const info = measure ? infoBlockIssues(html, { free }) : null;
   const typoRules = measure ? typoRulesOf({ specId: e.specId, rules, measure, free, kvFocus: focus, kvKind: kind }) : null;
   const lowContrast = (q.contrast ?? []).filter(c => c.ratio != null && c.ratio < 4.5);
-  const audit = { specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - P.t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
+  const overlap = Array.isArray(q.overlap) ? overlapAudit({ W: spec.w, H: spec.h, fields: q.overlap }) : null;   // 11-09 글자 ↔ 사진(실측 대비)·장식 겹침
+  const audit = { overlap, specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - P.t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
   writeFileSync(base + '.audit.json', JSON.stringify(audit, null, 1));
   audit.verdict = !v.ok ? '계약✗' : lint.level === 'block' ? 'lint 차단' : lint.level === 'warn' ? 'lint 경고' : '통과';
   return audit;
@@ -173,6 +228,7 @@ function renderFinish(P, dom) {
 export function renderFree(e, outDir, opts = {}) {
   const P = renderPrep(e, outDir, opts);
   chrome(P.shotArgs);
+  try { chrome(P.noTextArgs); } catch {}
   return renderFinish(P, chrome(P.measureArgs()));
 }
 // 비동기판 — 서버(server/freedesign-gate.js)가 쓴다. Chrome 이 없으면 throw(호출자가 측정 생략)
@@ -186,7 +242,7 @@ const chromeAsync = (args) => new Promise((ok, no) => {
 export const chromeAvailable = () => existsSync(CHROME);
 export async function renderFreeAsync(e, outDir, opts = {}) {
   const P = renderPrep(e, outDir, opts);
-  await chromeAsync(P.shotArgs);
+  await Promise.all([chromeAsync(P.shotArgs), chromeAsync(P.noTextArgs).catch(() => null)]);   // 글자 없는 렌더는 나란히(겹침 실측용 — 실패하면 사진 대비만 빠진다)
   return renderFinish(P, await chromeAsync(P.measureArgs()));
 }
 

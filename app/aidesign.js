@@ -42,19 +42,21 @@ export function fmtDur(ms) {
   const m = Math.floor(s / 60), r = s % 60;
   return r ? `${m}분 ${r}초` : `${m}분`;
 }
-const roughMin = ms => ms >= 90000 ? `~${Math.round(ms / 60000)}분` : ms >= 50000 ? '~1분' : `~${Math.max(5, Math.round(ms / 5000) * 5)}초`;
+const roughMin = ms => { if (ms >= 150000) return `~${Math.round(ms / 60000)}분`; const t = Math.round(ms / 10000) * 10; if (t < 60) return `~${Math.max(5, Math.round(ms / 5000) * 5)}초`; const m = Math.floor(t / 60), r = t % 60; return r ? `~${m}분 ${r}초` : `~${m}분`; };   // 1~2분대는 10초 단위(실측 69s·107s 가 「~2분」으로 뭉개지지 않게)
 // 시간 줄 — 서버 etaMs(남은 시간) 가 있으면 그 값, 없으면 모드별 목표에서 경과를 뺀다(넘으면 「곧」)
 export function etaText(job, now = Date.now()) {
   const el = now - (job.t0 ?? now);
   const total = job.mode === 'spread' ? Math.max(ETA_MS.spread, 45000 * Math.ceil((job.specIds?.length ?? 1) / 3)) : ETA_MS[job.mode] ?? ETA_MS.suggest;
   const left = job.etaMs != null ? job.etaMs : total - el;
-  const tail = left > 4000 ? `남은 시간 ${roughMin(left)}` : '곧 끝나요';
+  const first = job.mode === 'suggest' && !(job.arrived > 0) && job.firstEtaMs != null ? (job.firstEtaMs > 4000 ? `첫 안 ${roughMin(job.firstEtaMs)}` : '첫 안 곧') : null;   // 서버 최근 평균(11-09 통합)
+  const tail = first ? `${first} · 전부 ${roughMin(Math.max(left, job.firstEtaMs))}` : left > 4000 ? `남은 시간 ${roughMin(left)}` : '곧 끝나요';
   return `${fmtDur(el)} 지남 · ${tail}`;
 }
+export { roughMin };
 export function stageIndex(stage) { return STAGES.findIndex(s => s[0] === stage); }
 export function variantKey(vr, i) { return String(vr?.id ?? vr?.style?.key ?? vr?.style?.id ?? vr?.specId ?? i); }
 // 「가이드에 안 맞아」 — 서버가 접어 보낸 안(rejected·valid.ok false)
-export function isRejected(vr) { return !!(vr?.rejected || vr?.valid?.ok === false || vr?.review?.rejected); }
+export function isRejected(vr) { return !!(vr?.rejected || vr?.valid?.ok === false); }   // review.rejected 는 「자기 검토가 낸 고침본을 버림」이라 안 자체는 살아 있다
 // 이번 응답에서 새로 온 안 — partial(끝난 순서) 먼저, 끝나면 result.variants(또는 html 하나)
 export function freshVariants(job, seen = new Set()) {
   const all = [];
@@ -82,6 +84,7 @@ const BADGE = { pass: ['검수 통과', 'pass'], warn: ['경고', 'warn'], pendi
 export function createAiDesign(D) {
   const tracks = new Map();   // `${캠페인id}|${소재key}` → { cards, sel, draft, unseen, n }
   const jobs = new Map();     // jobId → 작업(메모리). sessionStorage 엔 html 없이 요약만
+  let speed = null;   // 서버 최근 평균(/api/freedesign/stats) — 빈 칸 안내의 「첫 안 ~ · 3안 ~」
   let health = null, healthAsked = false, pollT = null, tickT = null, pollBusy = false, askedNotify = false;
   const keyOf = a => a.key ?? a.specId;
   const shortLabel = a => { const sp = D.SPECS[a.specId]; const m = String(D.artLabel(a)).split(' · ')[0]; return sp?.w ? `${m} ${sp.w}×${sp.h}` : D.artLabel(a); };   // 토스트·기록용 짧은 이름(매체 + 크기)
@@ -98,7 +101,7 @@ export function createAiDesign(D) {
 
   function ensureHealth() {
     if (healthAsked) return; healthAsked = true;
-    D.FREE.health().then(h => { health = h; for (const el of document.querySelectorAll('#iAi[data-key]')) { const c = curC(); const a = c && adByKey(c, el.dataset.key); if (a) paintSection(el, a); } if (h.server && h.jobs && [...jobs.values()].some(active)) startPolling(); });
+    D.FREE.health().then(h => { health = h; if (h.server && h.jobs) fetch('/api/freedesign/stats', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { const s = j?.byMode?.suggest; if (s?.n) speed = { first: s.avgFirstMs, total: s.avgTotalMs }; }).catch(() => {}); for (const el of document.querySelectorAll('#iAi[data-key]')) { const c = curC(); const a = c && adByKey(c, el.dataset.key); if (a) paintSection(el, a); } if (h.server && h.jobs && [...jobs.values()].some(active)) startPolling(); });
   }
 
   /* ── 인스펙터 칸 ── */
@@ -157,10 +160,10 @@ export function createAiDesign(D) {
     if (run) parts.push(statusHtml(run));
     if (spread) parts.push(`<div class="ai-status ai-spread" role="status"><div class="ai-line"><b>다른 규격으로 펼치는 중</b> <span class="ai-n">${spread.progress?.done ?? (spread.doneSpecs ?? []).length}/${spread.progress?.total ?? spread.specIds.length}</span></div><progress max="${spread.progress?.total ?? spread.specIds.length}" value="${spread.progress?.done ?? (spread.doneSpecs ?? []).length}" aria-label="펼치기 진행률"></progress><div class="ai-time" data-tjob="${esc(spread.id)}">${esc(etaText(spread))}</div><div class="ai-hint">끝난 규격부터 그 소재의 「다른 시안」 맨 앞에 들어가요</div><button type="button" class="lnk ai-cancel" data-cancel="${esc(spread.id)}">취소</button></div>`);
     if (incoming) parts.push('<div class="ai-hint ai-incoming">다른 소재에서 이 규격으로 펼치는 중 — 곧 도착해요</div>');
-    if (last?.rejected) parts.push(`<div class="ai-rej" role="note">가이드에 안 맞아 ${last.rejected}안 제외</div>`);
+    if (last?.rejected) parts.push(`<div class="ai-rej" role="note" title="${esc((last.rejWhy ?? []).join('\n'))}">${!run && last.status === 'done' && !(last.arrived > 0) ? `${last.rejected}안 모두 가이드에 안 맞아 숨겼어요 — 다시 누르면 새로 만들어요${last.rejWhy?.[0] ? `<small>예: ${esc(last.rejWhy[0].replace(/^겹침 [\w-]+: /, ''))}</small>` : ''}` : `가이드에 안 맞아 ${last.rejected}안 제외`}</div>`);
     if (last?.status === 'failed' && !run) parts.push(`<div class="ai-err" role="alert">실패: ${esc(String(last.error ?? '사유 없음').slice(0, 120))}</div>`);
     if (last?.status === 'cancelled' && !run) parts.push('<div class="ai-hint">취소했어요 — 이미 도착한 안은 남겨 둬요</div>');
-    if (!run && !t.cards.length && !spread) parts.push(`<p class="ai-empty">키비주얼에 어울리는 새 디자인 3안(배경 그래픽·컬러·강조)을 만들어요. 첫 안 ~1분 30초, 3안 ~4분 — 기다리는 동안 다른 작업을 해도 돼요.</p>`);
+    if (!run && !t.cards.length && !spread && !(last?.rejected && last.status === 'done')) parts.push(`<p class="ai-empty">키비주얼에 어울리는 새 디자인 3안(배경 그래픽·컬러·강조)을 만들어요. 첫 안 ${roughMin(speed?.first ?? FIRST_MS)}, 3안 ${roughMin(speed?.total ?? ETA_MS.suggest)}${speed ? '(최근 평균)' : ''} — 기다리는 동안 다른 작업을 해도 돼요.</p>`);
     let live = body.querySelector('.ai-live');
     const head = parts.join('');
     // 상태 영역은 통째로, 카드 목록은 키별로 재사용
@@ -176,7 +179,7 @@ export function createAiDesign(D) {
       if (skels.dataset.sig !== sig) {
         skels.dataset.sig = sig; skels.hidden = !run;
         const ar = Math.min(1.6, Math.max(0.5, spec.h / spec.w));
-        skels.innerHTML = run ? Array.from({ length: got + rej + Math.max(1, total - got - rej) }, (_, i) => i < got ? `<div class="ai-slot got"><span>✓ 도착</span></div>` : i < got + rej ? `<div class="ai-slot rej"><span>제외</span></div>` : `<div class="ai-slot wait" style="aspect-ratio:${(1 / ar).toFixed(3)}"><span>${esc(stageText(run))}</span></div>`).join('') : '';
+        skels.innerHTML = run ? Array.from({ length: got + rej + Math.max(1, total - got - rej) }, (_, i) => i < got ? `<div class="ai-slot got"><span>✓ 도착</span></div>` : i < got + rej ? `<div class="ai-slot rej"><span>제외</span></div>` : `<div class="ai-slot wait" style="aspect-ratio:${(1 / ar).toFixed(3)}"><span>${esc(got + rej ? '만드는 중…' : stageText(run))}</span></div>`   /* 단계는 작업 전체의 가장 앞선 안 기준 — 하나가 도착하면 남은 칸은 「만드는 중」(실측: 남은 둘이 설계 중인데 「검수…」로 보였다) */).join('') : '';
         skels.setAttribute('aria-hidden', 'true');
       }
     }
@@ -198,7 +201,7 @@ export function createAiDesign(D) {
     for (const b of top.querySelectorAll('[data-cancel]')) b.onclick = () => cancel(b.dataset.cancel);
   }
   function stageText(job) {
-    if (job.mode === 'revise') return 'AI 수정 중 ~1분';
+    if (job.mode === 'revise') return 'AI 수정 중…';   // 시간은 위 시간 줄 하나로(서버 평균 — 실측 13~21초)
     const i = stageIndex(job.stage);
     return i >= 0 ? `${STAGES[i][1]}…` : job.stage === 'queued' ? '차례 기다리는 중…' : '만드는 중…';
   }
@@ -222,7 +225,7 @@ export function createAiDesign(D) {
     n.querySelector('iframe').srcdoc = D.previewDoc(cd.html, null);
     n.querySelector('.ai-prev').onclick = e => enlarge(cd, spec, e.currentTarget);
     n.querySelector('[data-use]').onclick = () => use(a, cd);
-    n.querySelector('[data-fix]').onclick = () => { t.sel = t.sel === cd.id ? null : cd.id; repaint(a); document.getElementById('iAiIn')?.focus(); };
+    n.querySelector('[data-fix]').onclick = () => { t.sel = cd.id; repaint(a); document.getElementById('iAiIn')?.focus(); };   // 늘 고르기(토글 아님 — 즉시 수정 뒤 다시 누르면 풀려 새 제안 3안이 돌던 것, 11-09 통합 실측). 풀기는 입력칸 위 ×
     n.querySelector('[data-spread]').onclick = e => openSpread(a, cd, e.currentTarget);
     n.querySelector('[data-undo]')?.addEventListener('click', () => { if (!cd.quick) return; cd.html = cd.quick.prevHtml; cd.gate = cd.quick.prevGate ?? cd.gate; cd.badge = badgeOf(cd.gate); cd.quick = null; refresh(a); D.toast(`${cardTitle(cd)} 되돌렸어요`); });
     return n;
@@ -271,7 +274,7 @@ export function createAiDesign(D) {
     let q = null;
     try {
       const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 8000);
-      const r = await fetch('/api/freedesign/quick', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ html: cd.html, instruction, specId: a.specId }) });
+      const r = await fetch('/api/freedesign/quick', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ html: cd.html, instruction, specId: a.specId, brand: { primary: c.style?.palette?.primary ?? null } }) });
       clearTimeout(tm); if (r.ok) q = await r.json();
     } catch {}
     if (q?.ok && q.html) {
@@ -280,7 +283,7 @@ export function createAiDesign(D) {
         cd.quick = { instruction, applied: q.applied ?? [], prevHtml: cd.html, prevGate: cd.gate, ms: performance.now() - t0 };
         cd.html = html; cd.badge = 'pending'; repaint(a);
         D.toast(`즉시 반영 — ${(q.applied ?? []).join(' · ') || instruction}`); say(`${cardTitle(cd)} 즉시 반영. 되돌리기 가능`);
-        D.log(`AI 안 즉시 수정: ${cardTitle(cd)} 「${instruction}」 ${Math.round(cd.quick.ms)}ms`);
+        D.log(`AI 안 즉시 수정: ${cardTitle(cd)} 「${instruction}」 ${Math.round(cd.quick.ms)}ms(서버 ${q.ms ?? '?'}ms)`);
         check(a, cd);
         return;
       }
@@ -288,7 +291,7 @@ export function createAiDesign(D) {
     // AI 수정(목표 ≤ 60초) — 새 카드로(이전 안 보존)
     const tmp = `tmp-${Date.now().toString(36)}`;
     const job = { id: tmp, mode: 'revise', cid: c.id, key: keyOf(a), specId: a.specId, label: shortLabel(a), t0: Date.now(), status: 'queued', slots: 1, arrived: 0, rejected: 0, seen: new Set(), prompt: instruction, parentId: cd.id, parentTitle: cardTitle(cd), parentN: cd.n, parentVersion: cd.version, kvSent: cd.kvSent ?? null };
-    addJob(job); repaint(a); paintBoard(); say(`${cardTitle(cd)} AI 수정 중, 1분쯤 걸려요`);
+    addJob(job); repaint(a); paintBoard(); say(`${cardTitle(cd)} AI 수정 중이에요`);
     try {
       const { body, kvSent } = await D.FREE.jobBody(a, c, { mode: 'revise', prompt: instruction, prev: { html: cd.html }, parallel: false, model: 'sonnet', language: cd.language ?? undefined });
       const r = await postJob(body);
@@ -334,7 +337,8 @@ export function createAiDesign(D) {
     addJob(job); refresh(a); say(`${specIds.length}개 규격으로 펼치기 시작`);
     try {
       const rulesBySpec = Object.fromEntries(specIds.map(id => [id, rulesFor(D.SPECS[id])]));
-      const { body, kvSent } = await D.FREE.jobBody(a, c, { mode: 'spread', language: cd.language ?? { fromHtml: true }, prev: { html: cd.html }, specIds, rulesBySpec, parallel: true });
+      const language = cd.language && !cd.quick ? cd.language : { fromHtml: true, composition: cd.language?.composition ?? null, motifs: cd.language?.motifs ?? [] };   // 즉시 수정본은 색·글자가 바뀌었다 — 지금 HTML 에서 다시 뽑게(서버 freeSpread)
+      const { body, kvSent } = await D.FREE.jobBody(a, c, { mode: 'spread', language, prev: { html: cd.html }, specIds, rulesBySpec, parallel: true });
       const r = await postJob(body);
       jobs.delete(tmp); job.id = r.jobId; job.status = r.status ?? 'running'; job.kvSent = kvSent; jobs.set(job.id, job); saveJobs();
       D.log(`AI 펼치기 접수: ${cardTitle(cd)} → ${specIds.length}개 규격 (${r.jobId})`);
@@ -371,14 +375,14 @@ export function createAiDesign(D) {
       const a = job.mode === 'spread' ? adBySpec(c, vr.specId ?? job.specIds[[...job.seen].length - 1]) : adByKey(c, job.key);
       if (job.mode === 'spread' && a && !(job.doneSpecs ?? []).includes(a.specId)) job.doneSpecs.push(a.specId);
       if (!a) continue;
-      if (isRejected(vr)) { job.rejected = (job.rejected ?? 0) + 1; continue; }
+      if (isRejected(vr)) { job.rejected = (job.rejected ?? 0) + 1; (job.rejWhy ??= []).push(String((vr.errors ?? vr.valid?.errors ?? [])[0] ?? '사유 없음').slice(0, 140)); D.log(`AI 안 제외(가이드 위반): ${vr.style?.name ?? ''} — ${(vr.errors ?? []).slice(0, 2).join(' / ')}`); continue; }
       const { html, valid } = D.FREE.prepVariant(a, vr);
       if (!valid.ok) { job.rejected = (job.rejected ?? 0) + 1; D.log(`AI 안 형식 문제로 제외: ${valid.errors[0]}`); continue; }
       const t = trackOf(c.id, keyOf(a));
       const parent = job.parentId ? t.cards.find(x => x.id === job.parentId) : null;
       const n = job.mode === 'revise' ? (parent?.n ?? job.parentN ?? ++t.n) : ++t.n;
       const version = job.mode === 'revise' ? Math.max(1 + (job.parentVersion ?? parent?.version ?? 1), ...t.cards.filter(x => x.n === n).map(x => x.version + 1)) : 1;
-      const name = vr.style?.name ?? (job.mode === 'spread' ? `${job.parentTitle} 펼침` : '');
+      const name = job.mode === 'spread' ? `${job.parentTitle} 펼침` : vr.style?.name ?? '';   // 펼친 안은 어느 안에서 왔는지가 이름(구성명은 원안과 같다)
       const cd = { id: `${job.id}-${key}`, n, version, html, name, notes: String(vr.notes ?? ''), style: vr.style ?? null, language: vr.language ?? data.result?.language ?? null, jobId: job.id, kvSent: job.kvSent ?? null, ms: vr.ms ?? null, at: Date.now(), batch: job.t0, badge: 'pending', gate: null, parentTitle: job.mode === 'revise' ? job.parentTitle : job.mode === 'spread' ? null : null, src: job.mode };
       if (job.mode !== 'revise') cd.storeAs = { id: cd.id, html, notes: cd.notes, styleName: name || cardTitle(cd), jobId: job.id, kvSent: job.kvSent ?? null };
       t.cards.push(cd); job.arrived = (job.arrived ?? 0) + 1;
@@ -398,7 +402,7 @@ export function createAiDesign(D) {
     if (a) { repaint(a); paintBoard(); }
     if (quiet || job.status !== 'done') return;
     const n = job.arrived ?? 0;
-    const msg = job.mode === 'spread' ? `펼치기 끝 — ${job.doneSpecs?.length ?? n}/${job.specIds.length}개 규격에 AI 안 도착` : job.mode === 'revise' ? `${job.parentTitle} AI 수정 도착` : `${job.label} — AI 안 ${n}개 도착${job.rejected ? ` (가이드에 안 맞아 ${job.rejected}안 제외)` : ''}`;
+    const msg = job.mode === 'spread' ? `펼치기 끝 — ${n}/${job.specIds.length}개 규격에 AI 안 도착${job.rejected ? ` · ${job.rejected}개는 가이드에 안 맞아 제외` : ''}` : job.mode === 'revise' ? `${job.parentTitle} AI 수정 도착` : `${job.label} — AI 안 ${n}개 도착${job.rejected ? ` (가이드에 안 맞아 ${job.rejected}안 제외)` : ''}`;
     D.toast(msg); D.log(`${msg} · ${fmtDur(Date.now() - job.t0)}`); say(msg);
     try { if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && n) { const nt = new Notification('AI 디자인 도착', { body: msg, tag: job.id }); nt.onclick = () => { try { window.focus(); } catch {} nt.close(); }; } } catch {}
   }
@@ -416,7 +420,7 @@ export function createAiDesign(D) {
         if (job.status === 'cancelled') continue;   // 기다리는 사이 취소
         if (data.stage) job.stage = data.stage;
         if (data.progress) { job.progress = data.progress; if (job.mode !== 'spread' && data.progress.total > 0) job.slots = data.progress.total; }
-        job.etaMs = data.etaMs > 0 ? data.etaMs : null;   // 0·없음 = 모름(진행 전) → 모드별 목표로
+        job.etaMs = data.etaMs > 0 ? data.etaMs : null; job.firstEtaMs = data.firstEtaMs > 0 ? data.firstEtaMs : null;   // 0·없음 = 모름(진행 전) → 모드별 목표로
         if (data.position != null) job.position = data.position;
         const quiet = !!job.restored;
         const took = ingest(job, data, { quiet });

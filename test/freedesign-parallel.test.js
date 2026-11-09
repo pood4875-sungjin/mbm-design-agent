@@ -100,6 +100,10 @@ test('spread — language + 규격 3개 → 규격마다 병렬 호출(규격 �
   for (const sid of specs) { const p = prompts[sid]; const [w, h] = size[sid]; assert.ok(p.includes(`${w}×${h}px`) && p.includes('## 캠페인 디자인 언어') && p.includes('<circle cx="5"') && p.includes('태그(배경 칩)') && p.includes(COMPOSITION_BAN), sid); assert.ok(!p.includes('LANGUAGE:'), 'spread 는 언어를 다시 내지 않는다'); }
   assert.ok(out.calls.every(c => c.kind === 'spread')); assert.equal(out.mode, 'spread');
   await assert.rejects(freeSpread(input('google-gdn-580x400', { specIds: specs }), { run }), /language/);
+  // 11-09 통합: 언어 없는 안(즉시 수정본) — { fromHtml:true } + prev.html → 원안 HTML 에서 지면 색을 뽑아 프롬프트에
+  const prev = '<div data-ad="1" data-spec="google-gdn-580x400" data-free="1" style="position:relative;width:580px;height:400px;overflow:hidden;background:linear-gradient(120deg,#123456,#ABCDEF)"><div data-field="main" style="color:#FFEE00">메인</div></div>';
+  const ps = []; await freeSpread(input('google-gdn-580x400', { mode: 'spread', language: { fromHtml: true }, prev: { html: prev }, specIds: ['nap-dsp-full-300x250'] }), { run: async p => { ps.push(p); return reply(htmlFor('nap-dsp-full-300x250', 300, 250)); } });
+  assert.ok(ps[0].includes('#123456') && ps[0].includes('## 캠페인 디자인 언어'), '원안 지면이 언어로');
 });
 
 test('jobs — suggest 병렬: partial 이 끝난 순서로 쌓이고 progress·stage·etaMs · revise/spread 모드 분기 · 통계 GET · api 엔진 기본 꺼짐', async () => {

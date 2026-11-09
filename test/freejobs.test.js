@@ -74,3 +74,26 @@ test('실패는 failed + error · 큐가 가득 차면 429 · specId 없으면 4
 });
 
 test.after(() => { try { rmSync(tmp, { recursive: true, force: true }); } catch {} });
+
+test('11-09 통합: DELETE 취소 — running 은 신호(signal)로 엔진을 끊고 cancelled, queued 는 큐에서 빠진다 · 다음 작업은 이어서 돈다', async () => {
+  resetJobs();
+  let aborted = 0;
+  const slow = (body, hooks) => new Promise((ok, no) => {
+    const t = setTimeout(() => ok({ variants: [{ style: { id: 'bleed', name: 'b' }, html: '<div data-ad="1"></div>', ok: true }] }), body.brief?.client === 'FAST' ? 20 : 5000);
+    hooks.signal?.addEventListener('abort', () => { aborted++; clearTimeout(t); no(Object.assign(new Error('취소됨'), { cancelled: true })); });
+  });
+  const d2 = { ...deps, freeDesign: slow };
+  const p = body => { const res = mockRes(); return handleFreeJobs(mockReq('POST', body), res, u('/api/freedesign/jobs'), d2).then(() => res); };
+  const del = id => { const res = mockRes(); return handleFreeJobs(mockReq('DELETE'), res, u('/api/freedesign/jobs/' + id), d2).then(() => res); };
+  const a = await p({ specId: 'google-gdn-580x400', campaignId: 'k1' });
+  const b = await p({ specId: 'google-gdn-580x400', campaignId: 'k2' });
+  const c = await p({ specId: 'google-gdn-580x400', campaignId: 'k3', brief: { client: 'FAST' } });
+  const db = await del(b.body.jobId); assert.equal(db.code, 200); assert.equal(db.body.status, 'cancelled'); assert.equal(db.body.queued, 1, 'queued 하나가 빠짐');
+  const da = await del(a.body.jobId); assert.equal(da.body.status, 'cancelled');
+  await waitJob(a.body.jobId); assert.equal(aborted, 1, 'running 엔진에 abort 신호');
+  await waitJob(c.body.jobId);
+  const gc = await get(c.body.jobId); assert.equal(gc.body.status, 'done', '취소 뒤 다음 작업이 돈다');
+  const ga = await get(a.body.jobId); assert.equal(ga.body.status, 'cancelled'); assert.equal(ga.body.etaMs, 0);
+  const d404 = await del('fj-none'); assert.equal(d404.code, 404);
+  const dd = await del(c.body.jobId); assert.equal(dd.body.status, 'done', '끝난 작업은 그대로');
+});

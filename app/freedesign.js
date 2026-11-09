@@ -68,10 +68,11 @@ export function briefOf(ctx) { const c = ctx?.core ?? {}; const b = {}; for (con
 let healthP = null;
 export function freeHealth(force = false) {
   if (healthP && !force) return healthP;
-  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, model: j.model ?? null }; } catch { return { server: false }; } })();
+  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, engines: Array.isArray(j.freedesign?.engines) ? j.freedesign.engines : null, quick: !!j.freedesign?.quick, model: j.model ?? null }; } catch { return { server: false }; } })();
   return healthP;
 }
-export function enginesOf(h) { const out = []; if (h?.claudeCode) out.push('claude-code'); if (h?.hasKey) out.push('api'); return out; }
+// 서버가 쓸 수 있다고 한 엔진(11-09 계약: /api/health freedesign.engines — API 키 경로는 FREEDESIGN_API=1 일 때만 오른다). 옛 서버(engines 없음)는 claudeCode·hasKey 로 추정
+export function enginesOf(h) { if (Array.isArray(h?.engines)) return h.engines.filter(e => e === 'claude-code' || e === 'api'); const out = []; if (h?.claudeCode) out.push('claude-code'); if (h?.hasKey) out.push('api'); return out; }
 export const ENGINE_LABEL = { 'claude-code': 'Claude Code(로컬)', api: 'API 키(서버)' };
 
 export async function requestFreeDesign(body) {
@@ -336,7 +337,7 @@ export function createFreeDesign(D) {
     const ai = suggestionsFor(c, a).map(r => {
       const free = { id: r.id, tpl: r.tpl, texts: null, notes: r.notes ?? '', logoTone, suggested: true };
       const html = render(free);
-      return html ? { label: r.label, sub: r.styleName ?? '', style: { free }, html, suggested: true, rec: r } : null;
+      return html ? { label: r.label, sub: r.styleName && !String(r.label).includes(r.styleName) ? r.styleName : '', style: { free }, html, suggested: true, rec: r } : null;   // 라벨에 이미 있으면 작은 줄 생략
     }).filter(Boolean);
     const tpls = freeTemplatesFor(a.specId);
     const scored = PREFS.length ? scoreCandidates(tpls.map(t => ({ t, html: t.html })), PREFS, { specId: a.specId, kvMeta: c.style.kvMeta ?? null }).map(s => s.t) : tpls;   // 좋음 평가와 닮은 틀 먼저
@@ -372,7 +373,7 @@ export function createFreeDesign(D) {
     if (!askedNotify) { askedNotify = true; try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(() => {}); } catch {} }   // 거부해도 토스트만
     try {
       const { body } = await buildBody(c, a, null, { engine });
-      body.campaignId = c.id; body.styles = ['typo', 'bright', 'dark']; body.review = true;
+      body.campaignId = c.id;   // 방향은 서버가 KV 유형으로 구성 3개를 고른다(11-09 — styles 지정 안 함) · 자기 검토 대신 가이드 게이트
       const r = await fetch('/api/freedesign/jobs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
       let j; try { j = await r.json(); } catch { throw new Error(`서버 응답이 JSON 이 아닙니다(HTTP ${r.status})`); }
       if (!r.ok || j.error) throw new Error(j.error ?? `HTTP ${r.status}`);
@@ -472,7 +473,8 @@ export function createFreeDesign(D) {
   async function jobBody(a, c, extra = {}) {
     const h = await freeHealth(); const engine = enginesOf(h)[0] ?? 'claude-code';
     const { body, kvSent, logoTone } = await buildBody(c, a, null, { engine });
-    return { body: { ...body, campaignId: c.id, review: true, ...extra }, kvSent, logoTone };
+    const { n: _n1, ...rest } = body;   // 대화 창의 n:1 을 넘기면 서버가 1안만 만든다(11-09 통합 실측 「0/1 도착」) — 제안은 서버 기본 3안
+    return { body: { ...rest, campaignId: c.id, ...extra }, kvSent, logoTone };   // review(자기 검토)는 서버 기본 끔 — 가이드 게이트가 대신(11-09)
   }
   // 서버 안 하나 → 정규화 HTML + 형식 검사(go()·takeIn 과 같은 길)
   function prepVariant(a, vr) {

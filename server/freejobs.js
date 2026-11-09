@@ -5,6 +5,7 @@
 //                                → 바로 { jobId, status:'queued'|'running', position }. 작업은 한 번에 하나(FIFO, 최대 MAX_QUEUE, 넘치면 429) — 작업 안에서는 안·규격마다 병렬(상한 PARALLEL).
 //                                  같은 mode+specId+campaignId 가 이미 queued/running 이면 그 jobId(중복 방지).
 //     GET  /api/freedesign/jobs/:id → { id, status, mode, specId, stage:'queued'|'kv'|'design'|'review'|'done'|'failed', progress:{done,total}, etaMs, partial:[variant…](끝난 순서), elapsedMs, position, result?, error? }
+//     DELETE /api/freedesign/jobs/:id → 취소. queued 면 큐에서 빼고, running 이면 진행 중 claude 자식 프로세스를 끊는다(AbortSignal). → { id, status:'cancelled', partial 수 } — 이미 끝난 작업은 그대로(200, status 그대로)
 //     GET  /api/freedesign/jobs     → { jobs:[…최근 50, result·partial 제외], running, queued }
 //     POST /api/freedesign/quick   { html, instruction, specId, brand? } → { ok, html, applied } | { ok:false, reason } — LLM 없음(core/freequick.js)
 //     GET  /api/freedesign/stats   → 최근 50 작업의 모드별 평균(전체·첫 안·호출 ms, 재요청 수, 모델) + 최근 행
@@ -22,7 +23,7 @@ export const JOBS_DIR = path.join(ROOT, '_out/freedesign-jobs');
 export const MAX_QUEUE = 5;
 export const LIST_MAX = 50;
 export const MODES = ['suggest', 'revise', 'spread'];
-export const STAGES = ['queued', 'kv', 'design', 'review', 'done'];
+export const STAGES = ['queued', 'kv', 'design', 'review', 'done'];   // + 'failed'·'cancelled'(끝 상태)
 const DEFAULT_ETA = { suggest: 180_000, revise: 45_000, spread: 120_000 };   // 통계가 없을 때 예상 시간
 
 const JOBS = new Map();   // id → job(메모리: body·deps 포함. 공개 필드는 publicJob 으로)
@@ -41,7 +42,7 @@ function totalOf(body, mode) { if (mode === 'spread') return (body.specIds ?? []
 
 // 예상 남은 시간 — 같은 모드 최근 평균(spread 는 규격 수 비례) − 경과. 넘기면 남은 개수 × 평균 호출 시간
 export function etaOf(j, now = Date.now()) {
-  if (j.status === 'done' || j.status === 'failed') return 0;
+  if (j.status === 'done' || j.status === 'failed' || j.status === 'cancelled') return 0;
   const s = statsSummary().byMode[j.mode];
   const per = j.mode === 'spread' ? Math.ceil(j.progress.total / 3) : 1;
   const est = (s?.avgTotalMs ?? DEFAULT_ETA[j.mode]) * (j.mode === 'spread' ? Math.max(1, per) : 1);
@@ -51,9 +52,16 @@ export function etaOf(j, now = Date.now()) {
   return Math.round(queuedAhead + (left > 0 ? left : Math.max(5_000, (j.progress.total - j.progress.done) * (s?.avgCallMs ?? 30_000) * 0.3)));
 }
 
+// 첫 안까지 남은 시간(아직 안 왔을 때만) — 같은 모드 최근 평균 firstMs − 경과. 앱이 「첫 안 ~N초」로 쓴다(11-09 통합)
+export function firstEtaOf(j, now = Date.now()) {
+  if (j.status !== 'running' && j.status !== 'queued') return null; if (j.partial?.length) return null;
+  const s = statsSummary().byMode[j.mode]; const f = s?.avgFirstMs ?? (j.mode === 'suggest' ? 90_000 : null); if (f == null) return null;
+  const el = j.startedAt ? now - j.startedAt : 0; const ahead = j.status === 'queued' ? positionOf(j.id) * (s?.avgTotalMs ?? DEFAULT_ETA.suggest) : 0;
+  return Math.round(ahead + Math.max(3_000, f - el));
+}
 export function publicJob(j, { withResult = false } = {}) {
   if (!j) return null;
-  const out = { id: j.id, status: j.status, mode: j.mode ?? 'suggest', specId: j.specId, specIds: j.specIds ?? null, campaignId: j.campaignId ?? null, styles: j.styles ?? null, stage: j.stage ?? (j.status === 'done' ? 'done' : j.status), progress: j.progress ?? { done: 0, total: 0 }, etaMs: j.progress ? etaOf(j) : 0,
+  const out = { id: j.id, status: j.status, mode: j.mode ?? 'suggest', specId: j.specId, specIds: j.specIds ?? null, campaignId: j.campaignId ?? null, styles: j.styles ?? null, stage: j.stage ?? (j.status === 'done' ? 'done' : j.status), progress: j.progress ?? { done: 0, total: 0 }, etaMs: j.progress ? etaOf(j) : 0, firstEtaMs: j.progress ? firstEtaOf(j) : null,
     createdAt: j.createdAt, startedAt: j.startedAt ?? null, finishedAt: j.finishedAt ?? null, elapsedMs: j.startedAt ? (j.finishedAt ?? Date.now()) - j.startedAt : 0, position: j.status === 'queued' || j.status === 'running' ? positionOf(j.id) : 0, error: j.error ?? null, stats: j.stats ?? null };
   if (withResult) { out.partial = j.partial ?? []; if (j.result) out.result = j.result; }
   return out;
@@ -130,28 +138,42 @@ function pump() {
   RUNNING = id; j.status = 'running'; j.stage = 'kv'; j.startedAt = Date.now();
   log('시작', id, j.mode, j.specId, j.styles ? `방향 ${j.styles.join(',')}` : '방향 자동');
   const { engines, client, dir } = j.deps;
+  j.abort = new AbortController();
   const hooks = {
-    client,
+    client, signal: j.abort.signal,
     onStage: s => { if (stageRank(s) > stageRank(j.stage)) j.stage = s; },
     onVariant: v => { j.partial.push(v); j.progress.done = j.partial.length; if (!j.firstAt) j.firstAt = Date.now(); log('안', id, v.specId ?? '', v.style?.id ?? '', v.rejected ? '반려' : '통과', `${((Date.now() - j.startedAt) / 1000).toFixed(0)}s`); },
     onCall: c => { j.calls.push(c); },
   };
   Promise.resolve().then(() => engines[j.mode](j.body, hooks))
     .then(out => {
+      if (j.status === 'cancelled') { j.result = out; return; }   // 취소 신호를 무시하고 끝난 엔진(stub) — 상태는 취소로 둔다
       j.result = out; j.status = 'done'; j.stage = 'done'; j.finishedAt = Date.now();
       if (!j.partial.length && out?.variants?.length) { j.partial = [...out.variants]; j.firstAt ??= j.finishedAt; }   // onVariant 을 안 부르는 엔진(옛 stub)
       j.progress.done = j.partial.length || j.progress.done; j.progress.total = Math.max(j.progress.total, out?.variants?.length ?? 0);
       log('완료', id, `${((j.finishedAt - j.startedAt) / 1000).toFixed(0)}s`, `안 ${out?.variants?.length ?? (out?.html ? 1 : 0)}`);
     })
-    .catch(e => { j.error = e?.message ?? String(e); j.status = 'failed'; j.stage = 'failed'; j.finishedAt = Date.now(); log('실패', id, j.error); })
-    .finally(() => { delete j.body; j.stats = statsRowOf(j); recordStats(j.stats, dir); persist(j, dir); j.done?.(); RUNNING = null; pump(); });
+    .catch(e => { if (j.status === 'cancelled') { log('취소 끝', id); return; } j.error = e?.message ?? String(e); j.status = 'failed'; j.stage = 'failed'; j.finishedAt = Date.now(); log('실패', id, j.error); })
+    .finally(() => { delete j.body; delete j.abort; j.stats = statsRowOf(j); recordStats(j.stats, dir); persist(j, dir); j.done?.(); RUNNING = null; pump(); });
+}
+
+// 취소 — queued 는 큐에서 빼고 바로 끝, running 은 신호로 claude 자식 프로세스를 끊는다(엔진이 '취소됨' 으로 끝나면 pump 가 다음 작업으로). 이미 끝난 작업은 그대로
+export function cancelJob(id) {
+  const j = JOBS.get(id); if (!j) return null;
+  if (j.status !== 'queued' && j.status !== 'running') return j;
+  const was = j.status;
+  j.status = 'cancelled'; j.stage = 'cancelled'; j.finishedAt = Date.now(); j.error = null;
+  if (was === 'queued') { const i = QUEUE.indexOf(id); if (i >= 0) QUEUE.splice(i, 1); delete j.body; persist(j, j.deps?.dir ?? JOBS_DIR); j.done?.(); }
+  else j.abort?.abort();
+  log('취소', id, was, `도착 ${j.partial?.length ?? 0}`);
+  return j;
 }
 
 export function getJob(id) { return JOBS.get(id) ?? null; }
 export function listJobs() { return [...JOBS.values()].sort((a, b) => b.createdAt - a.createdAt).slice(0, LIST_MAX).map(j => publicJob(j)); }
 export const jobsState = () => ({ running: RUNNING ? publicJob(JOBS.get(RUNNING)) : null, queued: QUEUE.length });
 // 테스트용 — 끝날 때까지 기다리기 · 비우기
-export function waitJob(id) { const j = JOBS.get(id); if (!j) return Promise.resolve(null); if (j.status === 'done' || j.status === 'failed') return Promise.resolve(j); return new Promise(ok => { const prev = j.done; j.done = () => { prev?.(); ok(j); }; }); }
+export function waitJob(id) { const j = JOBS.get(id); if (!j) return Promise.resolve(null); if (j.status === 'done' || j.status === 'failed' || (j.status === 'cancelled' && !j.abort)) return Promise.resolve(j); return new Promise(ok => { const prev = j.done; j.done = () => { prev?.(); ok(j); }; }); }
 export function resetJobs() { JOBS.clear(); QUEUE.length = 0; RUNNING = null; STATS.length = 0; STATS_LOADED = false; }
 
 async function loginCheck(body, check) {
@@ -182,6 +204,11 @@ export async function handleFreeJobs(req, res, u, { json, readBody, client = nul
     const j = getJob(id); if (j) return json(res, 200, publicJob(j, { withResult: true })), true;
     const f = readJobFile(id, dir); if (f) return json(res, 200, { ...f, position: 0, fromFile: true }), true;
     return json(res, 404, { error: '작업 없음: ' + id }), true;
+  }
+  if (req.method === 'DELETE' && rest) {
+    const id = decodeURIComponent(rest);
+    const j = cancelJob(id); if (!j) return json(res, 404, { error: '작업 없음: ' + id }), true;
+    return json(res, 200, { id: j.id, status: j.status, partial: j.partial?.length ?? 0, ...jobsState() }), true;
   }
   return json(res, 405, { error: 'method' }), true;
 }

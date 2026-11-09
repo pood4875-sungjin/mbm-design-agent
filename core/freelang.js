@@ -77,13 +77,15 @@ export function languageFromHtml(html, { composition = null } = {}) {
     if (motifs.length < 3 && (/radius|clip-path|gradient|rotate|border/i.test(st))) motifs.push({ kind: 'shape', css: st.replace(/(?:^|;)\s*(left|top|right|bottom)\s*:[^;]*/gi, '').replace(/^;+/, '').slice(0, 400) });
   }
   // 글자 — 역할별 색·글꼴·강조
-  const textColors = {}, families = new Set(); let mainWeight = null, align = 'left'; let emphasis = { kind: 'none' };
+  const textColors = {}, families = new Set(); let mainWeight = null, align = 'left'; let emphasis = { kind: 'none' }; let labels = null;
   const rootFam = decl(rst, 'font-family'); if (rootFam) families.add(rootFam.split(',')[0].replace(/['"]/g, '').trim());
   for (const n of nodes.filter(x => x.field)) {
     const st = styleOf(n.tag); const col = decl(st, 'color'); if (col && !textColors[n.field]) textColors[n.field] = colorsIn(col)[0] ?? col;
     const fam = decl(st, 'font-family'); if (fam) families.add(fam.split(',')[0].replace(/['"]/g, '').trim());
     if (n.field === 'main') { const w = decl(st, 'font-weight'); mainWeight = w ? (parseInt(w) || (/bold/i.test(w) ? 700 : 400)) : null; align = decl(st, 'text-align') ?? 'left'; }
     const inner = outerAt(s, n.index) ?? '';
+    // 정보 블록 라벨(접수기간·모집직무 앞말) — 첫 자식 span/b 의 칩 모양(11-09 통합: 펼친 규격에서 칩이 사라지던 것)
+    if (!labels && /^(date|detail|notice)$/.test(n.field)) { const fm = /^<[a-z]+\b[^>]*>\s*<(span|b|strong|em|i)\b([^>]*)>/i.exec(inner); if (fm) { const ls = styleOf(fm[0].slice(fm[0].lastIndexOf('<'))); const lbg = bgOf(ls); labels = { chip: !!(lbg && !/transparent|none/i.test(lbg)), bg: lbg ? colorsIn(lbg)[0] ?? null : null, color: colorsIn(decl(ls, 'color') ?? '')[0] ?? null, radius: decl(ls, 'border-radius'), weight: parseInt(decl(ls, 'font-weight') ?? '') || null }; } }
     // 강조: 필드 안 span 중 배경 있는 것(태그) > 다른 색 > 굵기
     for (const sm of inner.matchAll(/<(span|b|strong|em|mark)\b([^>]*)>/gi)) {
       const ist = styleOf(sm[0]); const ibg = bgOf(ist); const icol = decl(ist, 'color');
@@ -107,7 +109,7 @@ export function languageFromHtml(html, { composition = null } = {}) {
   }
   const g0 = colorsIn(groundCss);   // 지면 색이 먼저, 그다음 많이 쓴 순
   const palette = [...new Set([...g0, ...[...freq.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c)])].slice(0, 6);
-  return { v: 1, source: 'html', composition, ground: { css: groundCss ?? null, colors: colorsIn(groundCss) }, palette, motifs, emphasis, fonts: { families: [...families].filter(Boolean), mainWeight, align }, textColors, kvTreatment, note: '' };
+  return { v: 1, source: 'html', composition, labels, ground: { css: groundCss ?? null, colors: colorsIn(groundCss) }, palette, motifs, emphasis, fonts: { families: [...families].filter(Boolean), mainWeight, align }, textColors, kvTreatment, note: '' };
 }
 
 // 모델 응답의 `LANGUAGE: {...}` — 여러 줄 JSON 도 받는다(괄호 짝). 실패면 null
@@ -149,6 +151,8 @@ export function mergeLanguage(model, fromHtml) {
     out[k] = typeof v === 'object' && !Array.isArray(v) && typeof fromHtml[k] === 'object' && fromHtml[k] && !Array.isArray(fromHtml[k]) ? { ...fromHtml[k], ...Object.fromEntries(Object.entries(v).filter(([, x]) => x != null && x !== '')) } : v;
     used++;
   }
+  // 모티프는 합친다(모델 먼저, HTML 에만 있는 svg — 고친 안에 더해진 물결 등 — 도 잇는다, 최대 3)
+  if (m.motifs?.length && fromHtml.motifs?.length) { const key = x => String(x.svg ?? x.css ?? x.note ?? '').replace(/\s+/g, '').slice(0, 120); const seen = new Set(m.motifs.map(key)); out.motifs = [...m.motifs, ...fromHtml.motifs.filter(x => x.kind === 'svg' && !seen.has(key(x)))].slice(0, 3); }
   out.source = used ? 'mixed' : 'html';
   return out;
 }
@@ -170,6 +174,7 @@ export function languageLines(lang) {
     else if (m.css || m.note) L.push(`- 그래픽 모티프 ${i + 1}: ${m.note ? m.note + ' ' : ''}${m.css ? `(CSS ${m.css})` : ''}`);
   }
   if (lang.emphasis?.kind && lang.emphasis.kind !== 'none') L.push(`- 강조 방식: ${({ tag: '태그(배경 칩)', color: '색 한 단어', weight: '굵기 대비' })[lang.emphasis.kind] ?? lang.emphasis.kind}${lang.emphasis.color ? ` ${lang.emphasis.color}` : ''}${lang.emphasis.note ? ` — ${lang.emphasis.note}` : ''}`);
+  if (lang.labels) L.push(lang.labels.chip ? `- 정보 라벨(접수기간·모집직무 같은 앞말): 배경 ${lang.labels.bg ?? ''} 칩${lang.labels.color ? ` · 글자 ${lang.labels.color}` : ''}${lang.labels.radius ? ` · 모서리 ${lang.labels.radius}` : ''} — 모든 규격에서 같은 칩 모양으로` : `- 정보 라벨: 칩 없이${lang.labels.color ? ` 글자색 ${lang.labels.color}` : ''}${lang.labels.weight ? ` · 굵기 ${lang.labels.weight}` : ''}`);
   if (lang.fonts?.families?.length) L.push(`- 글꼴: ${lang.fonts.families.join(', ')}${lang.fonts.mainWeight ? ` · 메인 굵기 ${lang.fonts.mainWeight}` : ''}${lang.fonts.align ? ` · 정렬 ${lang.fonts.align}` : ''} (규격 글꼴 규정이 있으면 규정이 우선)`);
   const tc = Object.entries(lang.textColors ?? {}); if (tc.length) L.push(`- 글자색: ${tc.map(([k, v]) => `${k} ${v}`).join(' · ')}`);
   if (lang.kvTreatment) L.push(`- 키비주얼 처리: ${lang.kvTreatment.fit ?? ''}${lang.kvTreatment.bleed ? ' · 지면 밖으로 흘림(블리드)' : ''}${lang.kvTreatment.area != null ? ` · 원안 면적 ${Math.round(lang.kvTreatment.area * 100)}%` : ''}`);

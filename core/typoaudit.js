@@ -230,3 +230,28 @@ export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, nor
   if (safe) { const s = { l: +safe.l || 0, r: +safe.r || 0, t: +safe.t || 0, b: +safe.b || 0 }; if (L < s.l - 1 || R > W - s.r + 1 || T < s.t - 1 || B > H - s.b + 1) fail(3, 'safe', `글자 상자 ${Math.round(L)},${Math.round(T)}~${Math.round(R)},${Math.round(B)} 안전영역 밖`); }
   return { ok: fails.length === 0, fails, m };
 }
+
+// ── 11-09 AI 트랙 통합 — 게이트 구멍: 글자 ↔ 사진·장식 겹침(순수 판정. 측정은 scripts/lib/freedesign-renderer.mjs measureOverlap)
+//   서버 에이전트 보고: 대각 구성에서 상세 글자 끝이 사진 위로 넘어가도, 장식 별이 서브 글자에 걸려도 통과했다(대비 검사가 글자 둘레 평균이라 묻힘).
+//   ① 사진 위 글자: 글자를 지운 렌더에서 잉크 상자 안(키비주얼 상자와 겹치는 점만)을 촘촘히 재어 대비 < 기준(24px 이상 3:1, 그 밖 4.5:1 — 게이트 대비와 같은 기준)인 점이 상자의 photoBadFrac 이상이고
+//      그 점들의 하위 10% 대비가 기준 × photoSlack 밑이면 ✗(4.4:1 같은 경계값 스크림 위 글자는 살린다 — fg-dn-park 전면 안 실측)
+//   ② 장식 겹침: svg 도형·글자 없는 칠한 상자가 글자 잉크 상자에 decoMinHits 점 이상 걸리면 ✗. 단 글자 아래에 깔린 넓은 판(글자 점의 backdropFrac 이상을 덮음)·지면 넓이 bigArea 이상(패턴·질감)·흐린 것(opacity < minOpacity)은 뺀다.
+//      칠한 상자(div)는 글자 위에 올라온 것만 센다(글자 아래 형광펜·라벨 판은 디자인).
+export const OVERLAP_RULE = { photoBadFrac: 0.08, photoSlack: 0.9, decoMinHits: 3, backdropFrac: 0.6, bigArea: 0.4, minOpacity: 0.2 };
+// fields: [{ role, fontPx, need, n, photo:{ n, bad, p10, min }, decos:[{ tag, svg, box, area, opacity, hits, above, frac }] }]
+export function overlapAudit({ fields = [], rule = OVERLAP_RULE } = {}) {
+  const fails = [], m = {};
+  for (const f of fields) {
+    const n = f.n || 1, ph = f.photo ?? {};
+    m[f.role] = { photoBad: ph.n ? Math.round(ph.bad / n * 100) / 100 : 0, p10: ph.p10 ?? null };
+    if (ph.n && ph.bad / n >= rule.photoBadFrac && (ph.p10 ?? ph.min ?? 0) < f.need * rule.photoSlack) fails.push({ code: 'photo-text', role: f.role, msg: `${f.role} 글자가 사진 위 — 상자 ${Math.round(ph.bad / n * 100)}%가 대비 ${ph.p10 ?? ph.min}:1 < ${f.need}:1. 글자를 지면 쪽으로 옮기거나 줄을 나누거나, 글자 뒤에 판·스크림` });
+    for (const d of f.decos ?? []) {
+      if (d.hits < rule.decoMinHits || d.area >= rule.bigArea || d.opacity < rule.minOpacity) continue;
+      const above = d.above > 0;
+      if (!d.svg && !above) continue;                       // 글자 아래 칠한 상자 = 판·형광펜(디자인)
+      if (!above && d.frac >= rule.backdropFrac) continue;  // 글자 아래 넓게 깔린 도형 = 바탕
+      fails.push({ code: 'deco-overlap', role: f.role, msg: `장식 ${d.tag}(x${d.box.x} y${d.box.y} ${d.box.w}×${d.box.h})가 ${f.role} 글자에 걸림${above ? '(글자 위)' : ''} — 장식을 글자 밖으로 옮기거나 지운다` });
+    }
+  }
+  return { ok: !fails.length, fails, issues: fails.map(f => `겹침 ${f.code}: ${f.msg}`), m };
+}
