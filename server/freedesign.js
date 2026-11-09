@@ -779,7 +779,7 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
     const effort = o.effort ?? (o.kind === 'retry' || o.kind === 'revise' ? (input.fastEffort ?? FAST_EFFORT) : (input.effort ?? DESIGN_EFFORT));
     let r;
     try { r = await base(prompt, { ...o, effort, signal: sig }); }
-    catch (e) { if (e?.cancelled) { const rec = { kind: o.kind ?? 'gen', style: o.style ?? null, specId: o.specId ?? input.specId ?? null, ms: Date.now() - t0, model: o.model ?? useModel ?? null, cancelled: true }; calls.push(rec); onCall?.(rec); } throw e; }   // 11-09 7단계: 3안이 차서 끊은 예비 안 호출도 센다(계정 사용량)
+    catch (e) { const rec = { kind: o.kind ?? 'gen', style: o.style ?? null, specId: o.specId ?? input.specId ?? null, ms: Date.now() - t0, model: o.model ?? useModel ?? null, ...(e?.cancelled ? { cancelled: true } : { failed: String(e?.message ?? e).slice(0, 80) }) }; calls.push(rec); onCall?.(rec); throw e; }   // 11-09 7단계: 끊은 예비·시간 초과 호출도 센다(계정 사용량)   // 11-09 7단계: 3안이 차서 끊은 예비 안 호출도 센다(계정 사용량)
     const rec = { ...(r?.apiRetries ? { apiRetries: r.apiRetries.length, apiLast: r.apiRetries[r.apiRetries.length - 1] } : {}), kind: o.kind ?? 'gen', style: o.style ?? null, specId: o.specId ?? input.specId ?? null, ms: r?.ms ?? (Date.now() - t0), model: r?.model ?? o.model ?? useModel ?? null, effort: engine === 'claude-code' ? effort : null, imageMode: o.images?.length ? imageMode : null };
     calls.push(rec); if (r?.usage) usages.push(r.usage); usedModel = r?.model ?? usedModel; onCall?.(rec);
     return r;
@@ -868,7 +868,7 @@ const resultOf = (mode, X, variants, t0, input, extra = {}) => {
 // ── suggest(기본) — 입력(계약) → { html, notes, …, variants:[…] }. 방향(구성)마다 별도 호출을 동시에(상한 concurrency, 기본 PARALLEL=3). 끝난 순서대로 onVariant(v).
 //   deps: { run(prompt,{images}) } 모델 mock · { measure(html, dir, inp) → {issues, png?, auto?} } 게이트 mock · { render(html, dir) } 자기 검토용 렌더 mock. client 는 api 엔진용(FREEDESIGN_API=1 일 때만).
 //   styles 지정이 없으면 KV 유형으로 구성 3개(pickCompositions). review 는 기본 끔(속도 — 게이트가 가이드를 지킨다), true 면 통과 안마다 자기 검토 1회.
-export const SPARE = Math.max(0, Number(process.env.FREEDESIGN_SPARE ?? 1) || 0);   // 11-09 7단계: 3안 보장 = 과생성(서로 다른 구성 n+SPARE 안 → 게이트 통과 안 중 먼저 끝난 n안만 노출)
+export const SPARE = Math.max(0, Number(process.env.FREEDESIGN_SPARE ?? 2) || 0);   // r4: 1 → 8/16(설계 시간 초과 15안) → r5 부터 2(staged 라 필요할 때만 띄움)   // 11-09 7단계: 3안 보장 = 과생성(서로 다른 구성 n+SPARE 안 → 게이트 통과 안 중 먼저 끝난 n안만 노출)
 // 예비를 언제 띄우나: 'staged'(기본) = n안 먼저, 어느 안이 첫 시도에 걸리거나(재요청) 반려되거나 SPARE_AFTER_MS 안에 n안이 안 차면 예비 1개씩 / 'eager' = 처음부터 n+SPARE 동시.
 //   11-09 r4 실측: 같은 계정에서 opus 설계 4개를 동시에 돌리면 호출마다 느려진다(혼자 91s → 4개 동시 236~244s, api_retry 없음 = 계정 처리량 나눠 씀) — 처음부터 4개면 첫 카드가 늦다.
 export const SPARE_MODE = process.env.FREEDESIGN_SPARE_MODE ?? 'staged';
@@ -914,7 +914,7 @@ export async function freeDesign(input = {}, deps = {}) {
     if (!tail.length) await pool(styles, limit, runOne, enough.signal);
     else {
       // 느린 설계 가리기(hedge): SPARE_AFTER_MS 에 아직 설계 응답이 없는 안 수만큼(모자란 안 수까지) 예비를 띄운다 — r4: 설계 호출이 시간대에 따라 86s~420s+
-      timer = setTimeout(() => { const settled = new Set([...shown, ...held, ...extra].map(v => v?.id)); const slow = head.filter(d => !settled.has(`${specId}:${d.id}`) && !X.calls.some(c => c.style === d.id && c.kind === 'gen' && !c.cancelled)).length; for (let i = 0; i < Math.max(1, Math.min(slow, want - passed)); i++) startSpare('slow'); }, SPARE_AFTER_MS); timer.unref?.();
+      timer = setTimeout(() => { const settled = new Set([...shown, ...held, ...extra].map(v => v?.id)); const slow = head.filter(d => !settled.has(`${specId}:${d.id}`) && !X.calls.some(c => c.style === d.id && c.kind === 'gen' && !c.cancelled && !c.failed)).length; for (let i = 0; i < Math.max(1, Math.min(slow, want - passed)); i++) startSpare('slow'); }, SPARE_AFTER_MS); timer.unref?.();
       tasks.push(...head.map(d => runOne(d)));
       for (let k = 0; k < tasks.length; k++) await tasks[k];   // 도는 중에 예비가 더해질 수 있다
       clearTimeout(timer);
@@ -944,6 +944,8 @@ export function buildRevisePrompt(input, { html, instruction, retryErrors = null
   L.push(`- 글꼴: ${fo.required ? `${fo.required} 고정` : (fo.allowed ?? []).join(', ')}.${lg.forbidden || lg.count === 0 ? ' 로고 삽입 불가.' : ''}${rules.backgroundBanned?.length ? ` 배경 금지색 ${rules.backgroundBanned.join(' ')}.` : ''}${rules.textColors?.main ? ` 메인 글자색 ${rules.textColors.main} 고정.` : ''}`);
   L.push(`- 자간은 0 또는 음수만 · 장평(scaleX/Y·font-stretch) 금지 · 정보 블록(date·detail·notice) 라벨 스타일 하나 · 간격 서브→메인 ≥ ${TYPO_RULE_FIXED.gapSubMain}em, 메인→정보 ≥ ${TYPO_RULE_FIXED.gapMainInfo}em, 정보 행 ≥ ${TYPO_RULE_FIXED.gapInfoRow}em · 글자와 키비주얼·로고 겹침 0 · 대비 4.5:1 · 글자가 사진 위로 넘어가지 않게 · 장식은 글자 획에 걸치지 않게.`);
   L.push(`- 그림 자리표시(${KV_PLACEHOLDER}·${LOGO_PLACEHOLDER}·{{IMG1}} 등)는 그대로 둔다.`);
+  // 11-09 r4: 「글자가 키비주얼 상자 위」를 고치며 정보 값을 줄바꿈 → 라벨 위/아래로 쌓거나 값 둘째 줄이 라벨 x 로 돌아가 「3항 값 시작 x 다름」으로 다시 반려(3안 중 3)
+  if (fix && (retryErrors ?? []).some(e => /text-over-kvbox|word-break|4항-3 clip|낱말 안 줄바꿈/.test(e))) L.push('- 정보 행(date·detail)은 **라벨 | 값 두 칸** 그대로: 라벨 폭·값 시작 x 를 다른 행과 같게 두고, 값이 길면 값 칸에 max-width 를 줘 값 칸 안에서만 줄바꿈(둘째 줄도 값 첫 글자 x, word-break:keep-all). 라벨을 값 위로 올리거나 값을 라벨 아래 x 로 내리지 않는다 — 공간이 모자라면 정보 글자를 한 단계 줄이거나 덩어리를 키비주얼 반대쪽으로 옮긴다.');
   if (retryErrors?.length) { L.push(''); L.push(fix ? `## 다시 — 방금 결과가 검증에 걸렸다. 아래만 고친다(간격은 글자 상자 top 을 옮기고, 대비·사진 위 글자는 글자 뒤 스크림·판·글자색 또는 줄 나누기, 장식 겹침은 장식을 옮기거나 지운다, 주인공 겹침·로고 가림은 글자·로고를 실측 주인공 상자 밖으로 옮기거나 그림 background-position·size 를 바꿔 주인공을 비킨다)` : `## 방금 결과가 검증에 걸렸다 — 이것도 고친다`); for (const e of retryErrors) L.push(`- ${e}`); }
   L.push('');
   L.push(`## 현재 HTML`); L.push('```html'); L.push(String(html).slice(0, 60000)); L.push('```');

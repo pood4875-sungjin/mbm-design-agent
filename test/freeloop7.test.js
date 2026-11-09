@@ -8,7 +8,7 @@ import { fixStackCandidates } from '../core/freequick.js';
 
 const brief = { client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기', role: '자유직무', startDate: '2025-09-22', deadline: '2025-10-12', slogan: '', notice: '' };
 const KV = 'data:image/png;base64,iVBORw0KGgo=', LOGO = 'data:image/png;base64,iVBORw0KGgoA';
-const input = (extra = {}) => ({ specId: 'google-gdn-580x400', brief, kv: { dataUrl: KV, meta: { kind: 'photo', ar: 0.74, field: { kind: 'photo', lum: 0.48, opaque: 1 } } }, logo: { dataUrl: LOGO, tone: 'dark' }, brand: { primary: '#2A75CE' }, rules: rulesForSpec('google-gdn-580x400'), history: [], prev: null, engine: 'claude-code', ...extra });
+const input = (extra = {}) => ({ specId: 'google-gdn-580x400', brief, kv: { dataUrl: KV, meta: { kind: 'photo', ar: 0.74, field: { kind: 'photo', lum: 0.48, opaque: 1 } } }, logo: { dataUrl: LOGO, tone: 'dark' }, brand: { primary: '#2A75CE' }, rules: rulesForSpec('google-gdn-580x400'), history: [], prev: null, engine: 'claude-code', spare: 1, ...extra });   // 예비 1 고정(기본 SPARE 는 2)
 const html = `<div data-ad="1" data-spec="google-gdn-580x400" data-free="1" style="position:relative;width:580px;height:400px;overflow:hidden;font-family:'Pretendard';background:#0B1440">
 <div data-object="1" style="position:absolute;left:290px;top:20px;width:240px;height:360px;background:url('${KV_PLACEHOLDER}') center/cover no-repeat"></div>
 <img data-logo="1" src="${LOGO_PLACEHOLDER}" style="position:absolute;left:30px;top:24px;width:80px;height:22px">
@@ -22,7 +22,7 @@ const idOf = p => /## 구성: [^(]+\((\w+)\)/.exec(p)?.[1];
 const runWith = delay => (p, o = {}) => new Promise((ok, no) => { const id = idOf(p); const t = setTimeout(() => ok(reply()), delay[id] ?? 5); o.signal?.addEventListener?.('abort', () => { clearTimeout(t); no(cancelError()); }, { once: true }); });
 
 test('과생성(eager) — 구성 4개를 동시에, 게이트 통과 3안이 먼저 차면 노출 3 · 남은 예비 호출은 끊고 센다', async () => {
-  assert.equal(SPARE, 1);
+  assert.equal(SPARE, 2);
   const delay = { bleed: 10, diagonal: 20, frame: 30, typehero: 400 };
   const shown = [];
   const out = await freeDesign(input({ spareMode: 'eager' }), { run: runWith(delay), measure: async () => ({ issues: [] }), onVariant: v => shown.push(v.style.id) });
