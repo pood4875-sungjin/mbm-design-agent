@@ -12,6 +12,7 @@ const ctx = createContext({
   client: '한진정보통신', role: '백엔드 개발자', employType: '정규직', location: '서울 강남',
   deadline: '2026-10-31', applyUrl: 'https://example.com/apply', notice: '본 광고는 고용정책기본법에 따릅니다',
 }, 'recruit');
+const ctxSeason = createContext({ ...ctx.core, season: '2026 하반기' }, 'recruit');
 const style = normalizeStyle({ colors: ['#0B3C8C'] });
 
 const attrs = html => [...html.matchAll(/\s(data-[a-z-]+)(?=[\s>])/g)].map(m => m[1]);
@@ -48,7 +49,7 @@ test('a transparent-background spec renders no fill and says so', () => {
 });
 
 test('font sizes stated by the medium are used as-is (jasoseol 35/22/17 on the 550×400 popup)', () => {
-  const html = renderAd(ctx, style, specs['jasoseol-pc-premium-popup-pc']);
+  const html = renderAd(ctxSeason, style, specs['jasoseol-pc-premium-popup-pc']);   // 11-09: 서브(시즌)는 적어 줄 때만 선다
   assert.match(html, /data-field="main"[^>]*font-size:35px/);
   assert.match(html, /data-field="sub"[^>]*font-size:22px/);
 });
@@ -71,7 +72,8 @@ test('copy comes from the recruit context; an event context still renders throug
   const c = copyFor(ctx);
   // 레퍼런스 문법(2026-10-06): 메인 = 회사 + 채용구분(없으면 고용형태) + 채용, 직무는 상세 줄로
   assert.equal(c.main, '한진정보통신 정규직 채용');
-  assert.equal(c.sub, '2026 하반기', '시즌이 없으면 마감일에서 읽는다 — 적어 준 슬로건이 없으면 시즌이 먼저, 회사명을 넣은 기본 아이브로는 그 다음');
+  assert.notEqual(c.sub, '2026 하반기', '11-09 컨시어지: 시즌을 적지 않으면 마감일로 유추해 넣지 않는다');
+  assert.equal(copyFor(ctxSeason).sub, '2026 하반기', '적어 준 시즌은 서브 첫 후보');
   assert.equal(c.advertiser, '한진정보통신');
   assert.match(c.date, /10\.31|10-31|10\/31/);
   const ev = createContext({ name: 'MBM 2026', date: '2026-11-05', venue: '코엑스', audience: '고객사', cta: '사전등록' });
@@ -228,7 +230,7 @@ test('template measurements taken on a 2x frame are scaled to the 1x canvas (자
 
 /* ── 자소설 실제 소재의 위계: 로고 칸 → 서브(시즌) → 메인 → 상세("라벨 : 값") → 이미지 띠 ── */
 test('자소설 jobpost renders sub above main, detail lines below, in the template text column', () => {
-  const html = renderAd(ctx, style, specs['jasoseol-pc-standard-jobpost-pc']);
+  const html = renderAd(ctxSeason, style, specs['jasoseol-pc-standard-jobpost-pc']);
   const iSub = html.indexOf('data-field="sub"'), iMain = html.indexOf('data-field="main"'), iDet = html.indexOf('data-field="detail"');
   assert.ok(iSub > 0 && iMain > 0 && iDet > 0, '세 슬롯이 모두 있어야 한다');
   assert.ok(iSub < iMain && iMain < iDet, '서브 → 메인 → 상세 순');

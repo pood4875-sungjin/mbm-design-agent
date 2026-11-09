@@ -61,15 +61,17 @@ export function extractRecruit(text, now = new Date()) {
   const url = raw.match(/https?:\/\/[^\s,)]+/);
   if (url) out.applyUrl = url[0].replace(/[.。]+$/, '');
   const t = raw.replace(/https?:\/\/[^\s,)]+/g, ' ');
+  // 11-09 컨시어지(대구경북첨단의료산업진흥재단): 줄머리 글머리표 「- 」「• 」는 내용이 아니다 — 떼고 읽는다(안 떼면 채용 구분이 「- 채용」)
+  const tb = t.replace(/^[ \t]*[-–•·▶►]\s+/gm, '');   // 「* 」는 고지 줄이라 남긴다
 
-  const emp = t.match(EMPLOY);
+  const emp = tb.match(EMPLOY);
   if (emp) out.employType = emp[1].replace(/\s/g, ' ');
-  const hir = t.match(HIRING);
+  const hir = tb.match(HIRING);
   if (hir) out.hiringType = hir[1].replace(/\s+/g, ' ').replace(/\s?([\/·∙])\s?/g, '$1').trim();
-  const sea = t.match(SEASON);
+  const sea = tb.match(SEASON);
   if (sea) out.season = sea[1].replace(/\s+/g, ' ').replace(/(\d{4})\s?년/, '$1년').trim();
 
-  const loc = t.match(REGION_RE);
+  const loc = tb.match(REGION_RE);
   if (loc) {
     // 뒤따르는 낱말은 지명일 때만 붙인다 — "서울 근무"의 근무는 지명이 아니다
     const w = loc[3];
@@ -79,15 +81,15 @@ export function extractRecruit(text, now = new Date()) {
 
   // 마감일 — "마감"·"까지"가 붙은 날짜가 먼저. 날짜가 하나뿐이면 그것. 여럿인데 표시가 없으면 고르지 않는다.
   // 10-21: 레퍼런스 기간 표기 「6.20(금)~7.2(수) 17시」「02.28 ~ 03.10」「9/28(월)~10/12(월)」「~1/18(일) 23:59까지」 — 점·빗금 날짜 + 요일 괄호 + 시각
-  const WD = '(?:\\s?\\([월화수목금토일]\\))?', TM = '(?:\\s?\\d{1,2}(?::\\d{2})?\\s?시?\\s?)?';
+  const WD = '\\.?(?:\\s?\\([월화수목금토일]\\)\\.?)?', TM = '(?:\\s?(?:\\d{1,2}(?::\\d{2})?\\s?시?|자정|정오)\\s?)?';   // 11-09 「2026.11.06. (금) ~ 12.17.(목) 자정까지」 — 날짜 끝 점·요일 뒤 점·「자정」
   const DATE = new RegExp(`(\\d{4}\\s?[-./년]\\s?\\d{1,2}\\s?[-./월]\\s?\\d{1,2}\\s?일?${WD}|\\d{1,2}\\s?월\\s?\\d{1,2}\\s?일${WD}|\\d{1,2}\\s?[./]\\s?\\d{1,2}${WD}(?=\\s?${TM}(?:까지|마감|~|-|–|—|부터))|(?<=(?:~|-|–|—|부터|에서)\\s?)\\d{1,2}\\s?[./]\\s?\\d{1,2}${WD})`, 'g');   // 10-19: 「10/1 ~ 10/31」 꼴 기간도 시작·마감으로
-  const dates = [...t.matchAll(DATE)].map(m => ({ s: m[0], at: m.index, end: m.index + m[0].length }));
-  const marked = dates.find(d => /^\s{0,2}(?:\d{1,2}(?::\d{2})?\s?시?\s?)?(까지|마감)/.test(t.slice(d.end, d.end + 14)) || /(마감|까지)[은는이가:]?\s{0,2}~?\s?$/.test(t.slice(Math.max(0, d.at - 8), d.at)));
+  const dates = [...tb.matchAll(DATE)].map(m => ({ s: m[0], at: m.index, end: m.index + m[0].length }));
+  const marked = dates.find(d => /^\s{0,2}(?:(?:\d{1,2}(?::\d{2})?\s?시?|자정|정오)\s?)?(까지|마감)/.test(tb.slice(d.end, d.end + 14)) || /(마감|까지)[은는이가:]?\s{0,2}~?\s?$/.test(tb.slice(Math.max(0, d.at - 8), d.at)));
   // 기간 — "5.3 ~ 5.21", "5월 3일부터 5월 21일까지": 앞 날짜가 접수 시작, 뒤 날짜가 마감
   // 10-28 피에스케이 「2026년 10월 27일 00:00~2026년 12월 31일 23:50」 — 시작 날짜 뒤에 시각이 붙어도 기간이다
-  const range = dates.slice(0, -1).map((d, i) => [d, dates[i + 1]]).find(([a, b]) => /^\s*(?:\d{1,2}(?::\d{2})?\s?시?)?\s*(~|-|–|—|부터|에서)\s*$/.test(t.slice(a.end, b.at)));
+  const range = dates.slice(0, -1).map((d, i) => [d, dates[i + 1]]).find(([a, b]) => /^\s*(?:\d{1,2}(?::\d{2})?\s?시?|자정|정오)?\s*(~|-|–|—|부터|에서)\s*$/.test(tb.slice(a.end, b.at)));
   const pick = marked ?? (range ? range[1] : dates.length === 1 ? dates[0] : null);
-  const yearHint = (() => { const sm = t.match(SEASON); const y = sm && sm[1].match(/^(19|20)\d{2}/)?.[0]; return y ? +y : null; })();   // 시즌 연도 → 연도 없는 날짜의 해(11-02)
+  const yearHint = (() => { const sm = tb.match(SEASON); const y = sm && sm[1].match(/^(19|20)\d{2}/)?.[0]; return y ? +y : null; })();   // 시즌 연도 → 연도 없는 날짜의 해(11-02)
   const iso = pick && normDate(pick.s, now, yearHint);
   if (iso) out.deadline = iso;
   let iso0 = range && normDate(range[0].s, now, yearHint);
@@ -95,16 +97,21 @@ export function extractRecruit(text, now = new Date()) {
   if (iso0 && iso && iso0 > iso) iso0 = `${+iso0.slice(0, 4) - 1}${iso0.slice(4)}`;
   if (iso0 && iso) out.startDate = iso0;
   // 마감 시각 — 마감 날짜 바로 뒤의 「17시」「23:59」(디자이너 산출물 3곳이 날짜 뒤에 시각을 붙였다)
-  if (pick) { const tm = t.slice(pick.end, pick.end + 16).match(/^\s?(?:\([월화수목금토일]\)\s?)?(?:(\d{1,2}):(\d{2})|(\d{1,2})\s?시)/); if (tm) out.deadlineTime = tm[1] ? `${pad2(tm[1])}:${tm[2]}` : `${pad2(tm[3])}:00`; }
+  if (pick) { const tm = tb.slice(pick.end, pick.end + 16).match(/^\s?(?:\([월화수목금토일]\)\s?)?(?:(\d{1,2}):(\d{2})|(\d{1,2})\s?시)/); if (tm) out.deadlineTime = tm[1] ? `${pad2(tm[1])}:${tm[2]}` : `${pad2(tm[3])}:00`; }
 
   // 직무 라벨 — "모집부문 건설사업관리 PM"·"모집직무: 인사, 연구개발"·"모집분야: 전장설계, 공정개발" 라벨 뒤의 구절이 직무다(레퍼런스 상세 줄의 라벨 그대로).
   // 10-28: 라벨이 있으면 제목 구절의 낱말보다 라벨이 먼저다 — 인천국제공항보안 「일반직 직원 채용 … 모집분야: 전산, 안전/보건」의 「일반직」은 직무가 아니라 채용 구분
-  const lab = t.match(/(?:모집\s?(?:부문|직무|분야)|대상\s?직무|채용\s?직무)\s*[:：]?\s*([^,.\n]+(?:,\s*[^,.\n]+)*)/);
+  const lab = tb.match(/(?:모집\s?(?:부문|직무|분야)|대상\s?직무|채용\s?직무)\s*[:：]?\s*([^,.\n]+(?:,\s*[^,.\n]+)*)/);
   const labRole = lab ? lab[1].replace(/\s*(?:입니다|이에요|예요)$/, '').trim() : null;
 
+  // 11-09 라벨로 적은 공고(대구경북첨단의료산업진흥재단): 맨 앞 「[기관명]」·「고객사: …」은 고객사, 「채용명·공고명: …」은 채용 구분(메인 문구)
+  const brk = tb.match(/^\s*[\[【「]([^\]】」\n]{2,30})[\]】」]/) ?? tb.match(/(?:고객사|기업명|회사명|기관명)\s*[:：]\s*([^\n,]{2,30})/);
+  if (brk) out.client = brk[1].trim();
+  const ttl = tb.match(/(?:채용명|공고명|채용\s?제목|공고\s?제목)\s*[:：]?\s*([^\n]{2,40})/);
+  if (ttl) out.hiringType = ttl[1].replace(/[.。]\s*$/, '').trim();
   // 고객사·직무 — "…채용/모집" 앞 구절에서 읽는다
   // "…공채"도 채용 구절이다("2026 ㈜한독 신입/경력 공채")
-  const clauses = t.split(/[.\n!?]/);
+  const clauses = tb.split(/[.\n!?]/);
   const ci = clauses.findIndex(c => /채용|모집|구인|공채/.test(c));
   const clause = ci >= 0 ? clauses[ci] : null;
   let rest = [];
@@ -137,10 +144,10 @@ export function extractRecruit(text, now = new Date()) {
     if (par && !out.location && /^(전국|전\s?지역|수도권|지방)$/.test(par[1])) out.location = par[1];
   }
   // 슬로건 — 「슬로건 "…"」 또는 따옴표 문구(바이오노트 BRINGING NEW INNOVATION·한샘 「당신과 함께 만드는 공간의 가치」)
-  const slo = t.match(/슬로건\s*[:：]?\s*["“'‘]([^"”'’\n]{2,60})["”'’]/) ?? t.match(/["“]([^"”\n]{4,60})["”]/);
+  const slo = tb.match(/슬로건\s*[:：]?\s*["“'‘]([^"”'’\n]{2,60})["”'’]/) ?? tb.match(/["“]([^"”\n]{4,60})["”]/);
   if (slo) out.slogan = slo[1].trim();
   // 고지 문구 — 「* …」 줄, 또는 「채용 일정은 공고별 상이」(한진: 마감 대신 적는 말)
-  const nt = t.match(/(?:^|\s)\*\s?([^\n*]{4,80}?)(?=\s*(?:\n|$))/m) ?? (/일정은\s?공고별\s?상이/.test(t) ? [null, '채용 일정은 공고별 상이합니다.'] : null);
+  const nt = tb.match(/(?:^|\s)\*\s?([^\n*]{4,80}?)(?=\s*(?:\n|$))/m) ?? (/일정은\s?공고별\s?상이/.test(tb) ? [null, '채용 일정은 공고별 상이합니다.'] : null);
   if (nt) out.notice = `* ${nt[1].trim().replace(/^\*\s?/, '')}`;
   return out;
 }

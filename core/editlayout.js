@@ -168,7 +168,7 @@ export function placeAvail(spec, opt, ctx = {}) {
   if (opt === 'auto') return { ok: true };
   if (g.logoOnly) return { ok: false, why: '로고 전용 규격' };
   if (!g.hasKv) return { ok: false, why: '이 규격엔 키비주얼이 들어가지 않음(매체 규정·투명 지면)' };
-  if (g.template) return { ok: false, why: '매체 템플릿이 그림 칸을 정함' };
+  if (g.template) return ((opt === 'left' || opt === 'right') && (spec.rules ?? spec)?.safeArea?.measuredFromTemplate?.mold?.sideSwap) ? { ok: true } : { ok: false, why: '매체 템플릿이 그림 칸을 정함' };   // 11-09 비즈보드 좌측/우측형(mold.sideSwap)
   if (ctx.objectBox) return { ok: false, why: '매체가 오브젝트 상자를 정함' };
   if (g.transparent) return { ok: false, why: '투명 배경 규격' };
   if (shape === 'strip') return { ok: false, why: '얇은 띠(높이 120 미만)는 한 줄 문법' };

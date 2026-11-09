@@ -165,7 +165,7 @@
         "measuredFromTemplate": {
           "mold": {
             "measuredAt": "2026-11-02",
-            "positionsEstimated": true,
+            "sideSwap": true, "sideSwapNote": "11-09 컨시어지 신규 규격 4유형 — 썸네일·오브젝트 좌측/우측: 「키비주얼 왼쪽」이면 그림 칸 x41 · 카피 x393(좌우 대칭)", "positionsEstimated": true,
             "source": "공식 가이드 https://kakaobusiness.gitbook.io/main/ad/moment/performance/talkboard/content-guide · 외부DSP https://kakaobusiness.gitbook.io/dsp/dsp-1/960x300 (guide-collector 수집, 2026-11-02 읽음)",
             "note": "글자 크기·색·행간·칸 크기 = 공식 값. x·y 는 어림: 공식 폭 합 878 을 지면 가운데로 두면 좌우 41, 글자 덩어리 세로 가운데(메인 46/57 + 간격 14 + 서브 38/47). 두줄형 43/54 + 간격 14 + 서브. 1029×258 틀(사용자 10-16 「타이틀·서브 너무 붙어 있음」)의 간격 비례를 따랐다. PSD 받으면 교체",
             "x": 41,

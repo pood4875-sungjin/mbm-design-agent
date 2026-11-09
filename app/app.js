@@ -2012,11 +2012,27 @@ const twinTitle = specId => { const shared = sharedTwins(specId); return shared.
    가이드가 명확한 매체(자소설·카카오·리멤버·에브리타임 …)의 틀(core/media.js spec.rules.safeArea.measuredFromTemplate.mold: 글자 칸·로고 칸·그림 칸)과
    safeArea 여백을 소재 위에 반투명 칸으로 그린다. 보기용 — 렌더·검사에는 영향 없음. 틀도 여백 수치도 없는 매체는 토글을 숨긴다 */
 const GUIDE_ROLE = { sub: '서브', main: '메인', detail: '상세', date: '날짜', cta: 'CTA', extra: '부가' };
-function guideBoxesOf(spec) {
+// 11-09 컨시어지 「문구별 가이드 영역으로 세분화」(자소설 PC채용공고 메인×2·상세×6 등 6유형, PC·M메인 메인 2줄이면 상세 1행 없음, M팝업 상세 위치, 달력 메인만):
+//   틀의 최대 칸 대신 이 산출물이 실제로 쓴 줄 — 렌더 기록(data-trace textBox.rows: 역할·줄마다 x·y·w·h)을 역할별로 묶어 그린다. 기록이 없으면 틀 칸(예전 방식)
+const traceOfHtml = html => { try { return JSON.parse(String(html ?? '').match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
+function usedTextBoxes(a, mold) {
+  const tr = traceOfHtml(a?.html); const rows = tr?.textBox?.rows; if (!Array.isArray(rows) || !rows.length) return null;
+  const out = [];
+  for (const r of rows) {
+    const last = out[out.length - 1];
+    if (last && last.role === r.role && Math.abs(r.y - (last.y + last.h)) < Math.max(4, r.h * 0.6)) { const x2 = Math.max(last.x + last.w, r.x + r.w); last.x = Math.min(last.x, r.x); last.w = x2 - last.x; last.h = r.y + r.h - last.y; last.n++; continue; }
+    out.push({ role: r.role, x: r.x, y: r.y, w: r.w, h: r.h, n: 1 });
+  }
+  return out.map(b => { const px = tr.fonts?.[b.role]?.px ?? mold?.rows?.[b.role]?.px ?? null; const colW = mold?.rows?.[b.role]?.w ?? mold?.w ?? null;
+    return { kind: 'text', label: `${GUIDE_ROLE[b.role] ?? b.role}${px ? ` ${Math.round(px)}px` : ''}${b.n > 1 ? ` ×${b.n}` : ''}`, x: b.x, y: b.y, w: Math.max(b.w, colW ?? 0), h: b.h }; });   // 폭은 틀 칸 폭(글자가 짧아도 칸 폭을 보여야 넘침을 가늠한다)
+}
+function guideBoxesOf(spec, a = null) {
   const sa = spec?.rules?.safeArea; if (!sa) return [];
   const mold = sa.measuredFromTemplate?.mold ?? null;
   const out = [];
-  if (mold?.rows) for (const [role, row] of Object.entries(mold.rows)) {
+  const used = a ? usedTextBoxes(a, mold) : null;
+  if (used) out.push(...used);
+  else if (mold?.rows) for (const [role, row] of Object.entries(mold.rows)) {
     if (!row || !Number.isFinite(row.y)) continue;
     const x = row.x ?? mold.x ?? 0, w = row.w ?? mold.w ?? spec.w - x;
     const h = (row.pitch ?? (row.px ? row.px * 1.25 : 24)) * (row.lines ?? 1);
@@ -2038,7 +2054,7 @@ function guideOverlay(a) {
   if (!state.guideOv.on || !hasGuide(a)) return;
   const spec = effSpec(a); const ds = body.clientWidth / spec.w;
   const el = document.createElement('div'); el.className = 'gov'; el.style.opacity = String(state.guideOv.alpha); el.setAttribute('aria-hidden', 'true');
-  for (const b of guideBoxesOf(spec)) {
+  for (const b of guideBoxesOf(spec, a)) {
     const d = document.createElement('div'); d.className = `gb gb-${b.kind}`;
     d.style.cssText = `left:${b.x * ds}px;top:${b.y * ds}px;width:${Math.max(2, b.w * ds)}px;height:${Math.max(2, b.h * ds)}px`;
     d.innerHTML = `<i>${escH(b.label)}</i>`; el.appendChild(d);

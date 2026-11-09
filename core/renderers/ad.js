@@ -54,7 +54,6 @@ export function softBreakLong(text, lineChars) {
   return String(text ?? '').split(/(\s+)/).map(seg => /^\s+$/.test(seg) || seg.includes('\u200B') ? seg : brk(seg.replace(/\u2060/g, ''))).join('');
 }
 // 시즌이 없으면 마감일에서 — 레퍼런스 13장 중 12장이 "2024 상반기"·"2026년" 같은 시즌을 서브나 메인에 둔다
-const seasonOf = d => { const m = String(d ?? '').match(/^(\d{4})-(\d{2})/); return m ? `${m[1]} ${+m[2] <= 6 ? '상반기' : '하반기'}` : null; };
 
 // 일정을 말하는 고지 문구(「채용 일정은 공고별 상이」「상시 채용」「채용 시 마감」) — 마감일이 없을 때 날짜 자리를 대신한다
 const SCHEDULE_NOTE = /일정|상이|상시|수시|채용\s?시\s?마감|마감\s?시/;
@@ -73,13 +72,13 @@ export function copyLadder(ctx) {
     const period = d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '';
     const qual = c.qualification ? String(c.qualification) : '';
     const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
-    const season = c.season || seasonOf(c.deadline);   // 적지 않았으면 마감일에서 유추(10월 마감 → 2026 하반기) — 정보가 없다고 비워 두지 않는다(10-06 사용자 "정보 없는 건 임의로 넣어야지")
+    const season = c.season || null;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
     const slogan0 = c.slogan || (c.client ? `${c.client}에서 함께할 인재를 찾습니다` : null);   // 좁은 띠(narrowMain 분기)와 구글 아이브로가 쓴다
     const slogan = c.slogan ?? null;
     const hire = hireFor(c);   // 채용구분이 없으면 고용형태로("정규직 채용"), 둘 다 없으면 ''(「채용」을 지어 넣지 않음 — 10-28 결정)
     const named = !!hire;
-    const tag = hire ? '채용' : '';   // 직무·회사 뒤에 붙는 「채용」도 채용 구분이 있을 때만
+    const tag = hire && !/(모집|선발)$/.test(hire) ? '채용' : '';   // 직무·회사 뒤에 붙는 「채용」도 채용 구분이 있을 때만 · 11-09 채용 구분이 「…교육생 모집」처럼 모집·선발이면 「채용」을 지어 붙이지 않는다(「…재단 채용」)
     // 메인을 직접 적어 준 경우(한독 "전문의약품 의료기기 영업∙마케팅 공채 모집") 회사·구분은 서브로 간다
     const subFull = [season, c.client, named ? hire : null].filter(Boolean).join(' ');
     const clientHire = c.client ? [c.client, hire].filter(Boolean).join(' ') : null;
@@ -1038,7 +1037,7 @@ function renderAdBase(ctx, style, spec) {
     const c0 = ctx.core ?? {};
     const hire0 = hireFor(c0);
     // 시즌 자리는 둘 다 예시에 있다 — 앞("2026년 동부건설 …" 동부·ABL) 또는 회사 뒤("비씨월드제약/헬스케어 2026년 3차 정기 채용"). 앞이 안 들어가면 뒤
-    const season0 = c0.season || seasonOf(c0.deadline);   // 적지 않은 시즌은 마감일에서 유추
+    const season0 = c0.season || null;   // 11-09: 적은 시즌만(마감일 유추 폐지)
     const sc = season0 && c0.client ? [season0, c0.client, hire0].filter(Boolean).join(' ') : null;
     const sc2 = season0 && c0.client && hire0 ? [c0.client, season0, hire0].join(' ') : null;   // 채용구분이 없으면 「회사 시즌」은 어색 — 빼고 「시즌 회사」만
     const first = [c0.headline, sc, sc2].filter(Boolean);
@@ -1053,7 +1052,10 @@ function renderAdBase(ctx, style, spec) {
   // 템플릿 틀(10-15 templateMold, 사용자 「구멍 뚫린 틀」): 매체 샘플을 그대로 틀로 쓰는 규격(자소설 — rules.safeArea.measuredFromTemplate.mold).
   //   글자 칸(x·줄 y·크기·굵기·색)·로고 칸·그림 칸·지면 처리가 고정이고 캠페인마다 배경색·키비주얼·문구만 바뀐다. 일반 배치(CANON 행간·블리드·로고 상한·유리/채도 지면·스크림·프리셋)는 돌리지 않는다
   const tpl0 = rules.safeArea?.measuredFromTemplate ?? null;
-  const mold = tpl0?.mold ?? null;
+  // 11-09 컨시어지 「카카오 비즈보드 신규 규격 4유형(오브젝트형·썸네일형 × 좌측·우측 × 메인 1줄·2줄)」: 틀이 좌우 바꾸기를 허용하면(mold.sideSwap) 「키비주얼 왼쪽」(편집 kvPlace left)에서
+  //   그림 칸·글자 열을 통째로 거울 자리로(글자는 왼쪽 정렬 그대로 — 가운데·오른쪽 정렬 프리셋의 거울과 다르다)
+  const mold = (tpl0?.mold?.sideSwap && ED?.kvPlace === 'left') ? swapMoldSide(tpl0.mold, w / (tScale || 1)) : (tpl0?.mold ?? null);
+  if (mold && mold !== tpl0?.mold) fired('templateMold.sideSwap');
   if (mold?.rows) for (const r of ['sub', 'main', 'detail']) { const ln = mold.rows[r]?.lines; if (slots[r] && ln) slots[r] = { ...slots[r], lines: Math.min(slots[r].lines ?? ln, ln) }; }   // 틀의 줄 수가 규정보다 적으면(채용공고 서브 1줄) 틀대로
   if (mold) { if (!mold.rows?.date) delete slots.date; delete slots.label; }   // 틀에는 날짜 줄·라벨 칩이 따로 없다(달력은 마감일 줄이 틀) — 날짜는 상세 첫 항목(「모집일정」)으로(세아제강 28:124·28:333)
   // 틀의 서브는 시즌이 먼저(mold.subPrefer 'season' — 자소설 샘플 4/4 「2026년 하반기」·「2026 상반기」), 시즌이 없으면 기존 사다리(슬로건·회사)
@@ -1217,7 +1219,7 @@ function renderAdBase(ctx, style, spec) {
   // 정렬 프리셋(10-19)이 데려가는 자리: 왼쪽→오른쪽 열 · 오른쪽→왼쪽 열(거울) · 가운데→아래 띠 — 사람이 위치 프리셋을 따로 골랐으면 그게 먼저. 질감·프레임(지면 전체 그림)·사진 전체(kvUse full)는 자리를 안 바꾼다
   const wantPlace = ED?.kvPlace ?? ((TA && !mold && kvKind !== 'texture' && !kvTypeOf(style.kvMeta)?.flags.frame && style.kvUse !== 'full') ? ALIGN_KV_PLACE[TA] : null);
   const EP = wantPlace ? (() => { const av = placeAvail(spec, wantPlace, { gate: { logoOnly, hasKv, template: !!tImage, transparent }, objectBox: !!rules.objectBox, cutout: (style.kvMeta?.field?.opaque ?? 1) < 0.5 && !kvTypeOf(style.kvMeta)?.flags.frame }); return { want: wantPlace, by: ED?.kvPlace ? 'kvPlace' : 'textAlign', ok: !!(av.ok && useRef), why: av.why ?? (useRef ? null : '얇은 띠') }; })() : null;
-  const forcedSide = (EP?.ok && EP.want !== 'bg') ? EP.want : null;   // right · bottom · left
+  const forcedSide = (EP?.ok && EP.want !== 'bg' && !mold) ? EP.want : null;   // right · bottom · left — 틀 규격의 좌우(비즈보드 sideSwap)는 틀째 바꿔서 이미 반영(11-09)
   const mirrorX = forcedSide === 'left' || (TA === 'right' && !mold && useRef && !tImage && !rules.objectBox);   // 왼쪽 = 오른쪽 열을 좌우로 뒤집어 그린다(그림 자체는 뒤집지 않는다) · 오른쪽 정렬(10-19)은 열이 안 서는 규격도 글자 열·로고를 거울
   if (forcedSide) style = { ...style, kvUse: 'part' };
   else if (EP?.ok && EP.want === 'bg') { const t0 = kvTypeOf(style.kvMeta); const keep = kvKind === 'texture' || !!t0?.flags.frame || !!(t0?.flags.room && kvFull(style, w, h)); if (!keep) style = { ...style, kvUse: 'full' }; }
@@ -2577,8 +2579,11 @@ ${tplLogo}${kvWrap(tplObject)}
       const altFull = cl0 ? cands.find(c => hasCl(c) && hasHire(c) && !bare(c) && rowsOfMain(c) <= MR.main.lines) : null;
       const kkSelf = (!altFull && cl0 && hasCl(copy.main) && hasHire(copy.main) && !bare(copy.main)) ? kkList.find(kk => rowsAt(copy.main, kk) <= MR.main.lines) : null;
       const alt0 = (!altFull && !kkSelf && cl0) ? cands.find(c => hasCl(c) && !bare(c) && rowsOfMain(c) <= MR.main.lines) : null;
+      // 11-09 컨시어지(대구경북첨단의료산업진흥재단 PC메인배너 1200×280): 회사명 후보(alt0)가 채용 구분을 버리면(「…재단 채용」 — 브리프의 「MEDILINK 아카데미 5기 교육생 모집」이 이 규격에만 빠짐) 기업명을 서브로 올리는 쪽이 먼저
+      const dropsHire = !!(alt0 && hireS && !String(alt0).includes(hireS));
       if (altFull) copy.main = altFull;
       else if (kkSelf) { hit = { c: copy.main, kk: kkSelf }; mainShrink = kkSelf; fired('templateMold.mainShrink'); }
+      else if (dropsHire && cl0 && moveClientToSub()) { /* 기업명은 서브로, 메인은 채용 구분 */ }
       else if (alt0) copy.main = alt0;
       else if (cl0 && moveClientToSub()) { /* 기업명은 서브로 */ }
       else if (cl0) {
@@ -2801,8 +2806,8 @@ ${tplLogo}${kvWrap(tplObject)}
               rows.push({ role, x: Math.round(u.align === 'center' ? u.x + (u.w - rw) / 2 : u.align === 'right' ? u.x + u.w - rw : u.x), y: Math.round(yy * 10) / 10, w: rw, h: u.pitch }); yy += u.pitch; }   // 정렬대로 x — 가운데 정렬 프리셋에서 상세가 왼쪽에 있다고 잡아 그림 겹침을 놓치던 것(11-05 캐치 메인 라지)
             yy += u.gap ?? 0; }
           continue; }
-        const lines = role === 'main' ? String(u.text ?? '').split('\n') : [String(u.text ?? '')]; const n = Math.max(1, Math.min(u.lines ?? 1, role === 'main' ? lines.length : (u.lines ?? 1)));
-        for (let i = 0; i < n; i++) { const t = role === 'main' ? lines[i] ?? '' : (lines[0] ?? ''); const rw = role === 'tags' ? u.w : role === 'detail' ? Math.min(u.w, Math.round(Math.max(0, ...(detailLines ?? []).map(d => textWidth(`${labelOf(d.label)} : ${d.value ?? ''}`))) * u.px * 1.04) || u.w) : Math.min(u.w, Math.round(textWidth(t) * u.px * 1.04) || u.w);   /* 상세 행 폭 = 가장 긴 「라벨 : 값」 글자 폭(행 폭 전체로 잡으면 그림 칸까지 닿아 거짓 겹침 — 자소설 팝업) */ const x = u.align === 'center' ? u.x + (u.w - rw) / 2 : u.align === 'right' ? u.x + u.w - rw : u.x; rows.push({ role, x: Math.round(x), y: Math.round((u.top + i * u.pitch) * 10) / 10, w: rw, h: u.pitch }); } }
+        const lines = role === 'main' ? String(u.text ?? '').split('\n') : [String(u.text ?? '')]; const n = Math.max(1, Math.min(u.lines ?? 1, role === 'main' ? Math.max(lines.length, mainN) : role === 'sub' ? (subN || 1) : (u.lines ?? 1)));   // 11-09: 실제 줄 수 — 메인은 칸 폭에서 접힌 줄까지(mainN), 서브는 쓴 줄(subN). 전엔 메인은 적어 둔 줄바꿈만, 서브는 틀 최대 줄 수라 레이아웃 가이드·겹침 어림이 실제와 달랐다
+        for (let i = 0; i < n; i++) { const t = role === 'main' ? (lines.length === n ? lines[i] ?? '' : String(u.text ?? '')) : (lines[0] ?? ''); const rw = role === 'tags' ? u.w : role === 'detail' ? Math.min(u.w, Math.round(Math.max(0, ...(detailLines ?? []).map(d => textWidth(`${labelOf(d.label)} : ${d.value ?? ''}`))) * u.px * 1.04) || u.w) : Math.min(u.w, Math.round(textWidth(t) * u.px * 1.04) || u.w);   /* 상세 행 폭 = 가장 긴 「라벨 : 값」 글자 폭(행 폭 전체로 잡으면 그림 칸까지 닿아 거짓 겹침 — 자소설 팝업) */ const x = u.align === 'center' ? u.x + (u.w - rw) / 2 : u.align === 'right' ? u.x + u.w - rw : u.x; rows.push({ role, x: Math.round(x), y: Math.round((u.top + i * u.pitch) * 10) / 10, w: rw, h: u.pitch }); } }
       TR.textBox = { v: 'mold', align: mold.align ?? 'left', rows }; }
     TR.fonts = { ...TR.fonts, main: used.main ? { ...(TR.fonts?.main ?? {}), px: used.main.px, weight: used.main.weight, lh: Math.round(used.main.pitch / used.main.px * 100) / 100, lines: mainN } : TR.fonts?.main, sub: used.sub ? { ...(TR.fonts?.sub ?? {}), px: used.sub.px, weight: used.sub.weight, lh: Math.round(used.sub.pitch / used.sub.px * 100) / 100 } : null, detail: used.detail ? { ...(TR.fonts?.detail ?? {}), px: used.detail.px, value: used.detail.weight, lh: Math.round(used.detail.pitch / used.detail.px * 100) / 100 } : null, logoCapW: null };
     return `${open('')}
@@ -2859,4 +2864,13 @@ ${objectSide === 'right' ? kvWrap(mirrorLayer(bleedRight(objW))) : ''}${kvWrap(t
 ${textCol}${objectSide === 'right' ? `<div style="flex:none;width:${objW}px"></div>` : ''}
 ${tplLogo}${bandEl}${logoWrap(absLogoEl)}
 </div>`;
+}
+
+// 틀 좌우 바꾸기(11-09 비즈보드 좌측형): x 를 W − x − w 로. 글자 행은 틀 열(x·w) 기준, 그림·누끼·로고 칸도. edgeInset 의 좌우 낱말도 바꾼다
+function swapMoldSide(m, W) {
+  const fx = (o, dw) => (o && Number.isFinite(o.x) && Number.isFinite(o.w ?? dw)) ? { ...o, x: Math.round((W - o.x - (o.w ?? dw)) * 10) / 10 } : o;
+  const out = { ...m, ...(Number.isFinite(m.x) && Number.isFinite(m.w) ? { x: W - m.x - m.w } : {}), swapped: true };
+  if (m.rows) out.rows = Object.fromEntries(Object.entries(m.rows).map(([k, r]) => [k, r && Number.isFinite(r.x) ? fx(r, m.w) : r]));
+  for (const k of ['image', 'imageCutout', 'logo']) if (m[k]) { out[k] = fx(m[k]); if (m[k].edgeInset) { const e = m[k].edgeInset; out[k].edgeInset = { ...(e.left != null ? { right: e.left } : {}), ...(e.right != null ? { left: e.right } : {}), ...(e.top != null ? { top: e.top } : {}), ...(e.bottom != null ? { bottom: e.bottom } : {}) }; } }
+  return out;
 }
