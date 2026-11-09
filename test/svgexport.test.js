@@ -166,3 +166,24 @@ test('figmaBaseline: Figma 글상자(1.2em)는 줄 상자 가운데 — 줄 간�
   // line-height 를 못 읽으면 content 상자 top 기준
   near(figmaBaseline({ top: 10, h: 12, lh: NaN, fs: 10 }), 20, 0.01);
 });
+
+test('Figma 기준선 − Chrome 기준선 차(shift)는 글꼴마다 ±0.05em 안 — 리멤버 메인 상단 MO 48px +2.2px · NAP 320×50 Kakao Big Sans 16px −0.6px(11-09 충실도 검사 실패 12건의 원인, 검사는 이 값을 빼고 잰다)', () => {
+  // 리멤버 메인 상단 MO: Pretendard 48px · 줄 간격 75 · content 상자 57.1(1.19em) · Chrome 올림 비율 0.797(캔버스 실측) → SVG 기준선 138.5
+  const rem = { top: 90.8, h: 57.1, lh: 75, fs: 48 }, remAsc = 0.797;
+  const remBase = figmaBaseline(rem), remChrome = rem.top + rem.h * remAsc;
+  near(remBase, 138.5, 0.1);
+  near(remBase - remChrome, 2.2, 0.1);
+  assert.ok(Math.abs(remBase - remChrome) <= rem.fs * 0.05);
+  // NAP DSP 띠 320×50: Kakao Big Sans 16px · 줄 간격 21 · content 상자 23.68(1.48em, 줄 상자보다 큼) · 올림 비율 0.796 → SVG 기준선 35.49, Chrome 보다 0.6px 위
+  const nap = { top: 17.25, h: 23.68, lh: 21, fs: 16 }, napAsc = 0.796;
+  const napBase = figmaBaseline(nap), napChrome = nap.top + nap.h * napAsc;
+  near(napBase, 35.49, 0.1);
+  near(napBase - napChrome, -0.6, 0.1);
+  assert.ok(Math.abs(napBase - napChrome) <= nap.fs * 0.05);
+  // 줄 묶기는 chromeBase 를 토막에 그대로 넘긴다(검사용 debug shift 의 재료)
+  const st = { color: { r: 255, g: 255, b: 255, a: 1 }, fs: 16, fw: '700', ls: 0, fam: 'Kakao Big Sans', fontStyle: 'normal' };
+  const chars = [...'채용'].map((ch, i) => ({ ch, x: 12 + i * 16, y: nap.top, w: 16, h: nap.h, key: 'k', style: st, base: napBase, chromeBase: napChrome }));
+  const [line] = groupLines(chars);
+  assert.equal(line.runs.length, 1);
+  near(line.runs[0].base, napBase); near(line.runs[0].chromeBase, napChrome);
+});

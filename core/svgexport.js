@@ -211,7 +211,7 @@ export function groupLines(chars) {
       const last = runs[runs.length - 1];
       // 같은 모양이고 이어져 있으면(앞 글자 오른끝 근처) 한 토막
       if (last && last.key === c.key && c.x - last.right < Math.max(2, c.h * 0.6)) { last.text += /\s/.test(c.ch) ? ' ' : c.ch; last.right = c.x + c.w; continue; }
-      runs.push({ key: c.key, style: c.style, text: /\s/.test(c.ch) ? ' ' : c.ch, x: c.x, y: c.y, h: c.h, base: c.base, right: c.x + c.w });
+      runs.push({ key: c.key, style: c.style, text: /\s/.test(c.ch) ? ' ' : c.ch, x: c.x, y: c.y, h: c.h, base: c.base, chromeBase: c.chromeBase, right: c.x + c.w });
     }
     // 토막 안 겹공백은 하나로(브라우저도 접는다)
     for (const r of runs) r.text = r.text.replace(/ {2,}/g, ' ');
@@ -474,7 +474,10 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
             //   그대로 적으면 Figma 글상자가 0.05em(13px → 0.7 · 35px → 1.8px) 위로 올라간다(자소설 틀 대조 −0.8~−2.3px). Figma 편집용이므로 글상자 top 이 렌더와 같도록 y = top + 1.0em 으로 적는다(브라우저로 보면 글자가 0.05em 내려 보인다)
             // 10-16 네이버 DA 대조(사용자 수정본 100:613 vs 렌더 −8/−5px): 글리프 상자(rc)는 글꼴 content 영역이라 줄 상자와 다르다 — Kakao Big Sans 는 올림+내림 1.48em 이라 line-height 1.2em 줄 상자보다 위로 0.14em 삐져나온다.
             //   Figma 글상자 top 은 Chrome 줄 상자 top(= 틀 y)과 같아야 하므로 반행간(half-leading)을 되돌려 줄 상자 top 에서 1.0em 내려 적는다(Pretendard 는 content 1.19em 이라 ±0.2px 변화)
-            c.base = baseline === 'chrome' ? c.y + rc.height * asc : figmaBaseline({ top: c.y, h: rc.height, lh: parseFloat(pcs.lineHeight), fs });
+            // 11-09: Chrome 기준선(chromeBase)도 같이 둔다 — Figma 약속 기준선과의 차이는 글꼴마다 ±0.05em(Pretendard +0.046em · Kakao Big Sans −0.04em)이고 의도한 것.
+            //   충실도 검사(scripts/svg-check.mjs)는 이 차이를 빼고 글자 위치를 재고, 픽셀 비교는 baseline:'chrome' SVG 로 한다(리멤버 48px → 2.2px, NAP 320×50 16px → 1px 올라가 보이던 것)
+            c.chromeBase = c.y + rc.height * asc;
+            c.base = baseline === 'chrome' ? c.chromeBase : figmaBaseline({ top: c.y, h: rc.height, lh: parseFloat(pcs.lineHeight), fs });
             // 넘침 감춤(line-clamp·overflow) 밖 글자는 보이지 않는다
             const cx = c.x + c.w / 2, cy = c.y + c.h / 2;
             if (clip && (cx < clip.x || cx > clip.x + clip.w || cy < clip.y || cy > clip.y + clip.h)) continue;
@@ -520,7 +523,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
         g.spans.push(`<tspan${glued ? '' : ` x="${round(r.x)}" y="${round(r.base)}"`}${colorOnly}>${escXml(r.text)}</tspan>`);
         g.text.push(r.text);
         stats.tspans++;
-        dbg?.push({ text: r.text, x: r.x, right: r.right, y: r.y, h: r.h });
+        dbg?.push({ text: r.text, x: r.x, right: r.right, y: r.y, h: r.h, base: round(r.base), shift: Number.isFinite(r.chromeBase) ? round(r.base - r.chromeBase) : 0 });   // shift = Figma 약속 기준선 − Chrome 기준선(의도한 차이, 검사는 이만큼 빼고 잰다)
       });
     }
     stats.texts++;

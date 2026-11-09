@@ -5,7 +5,10 @@
 //
 // 케이스마다(장부 ref/learned/cases) 규격마다:
 //   ① 광고 HTML 을 headless Chrome 에 띄워 변환기를 페이지 안에서 돌린다 → SVG 문자열 + 글자 위치 오차(DOM 줄 상자 vs 같은 문서에 붙인 SVG tspan 상자)
-//   ② HTML 을 1x 로 찍는다  ③ SVG 를 같은 폰트(Pretendard) 문서에 붙여 1x 로 찍는다
+//      Figma 용 SVG 는 기준선을 Figma 글상자 약속(줄 상자 가운데 1.2em 글상자 top + 1.0em, core/svgexport.js figmaBaseline)으로 적어 Chrome 기준선과 글꼴마다 ±0.05em 어긋난다(의도한 것,
+//      Pretendard 48px → +2.2px · Kakao Big Sans 16px → −0.6px). 글자 위치 오차는 그 차이(debug shift)를 빼고 재고, 픽셀 비교는 같은 변환기를 baseline:'chrome' 으로 한 번 더 돌린 SVG 로 한다
+//      (tspan y 만 다르다). 11-09 전엔 이 차이를 안 빼 리멤버 메인 상단 MO(48px)·NAP 320×50(16px 띠, 글자가 1px 올라감)이 떨어졌다
+//   ② HTML 을 1x 로 찍는다  ③ SVG(chrome 기준선)를 같은 폰트(Pretendard) 문서에 붙여 1x 로 찍는다
 //   ④ 픽셀 차이: 평균 절대 차이(0~255) · 채널 차이 > 40 인 픽셀 % · 차이 그림
 // 결과: ref/learned/cases/_out/svg-check/index.html (HTML | SVG | 차이) + result.json + <case>/<spec>.svg
 // 그림·로고는 data URI 로 넣는다(앱과 같다 — file:// 그림은 캔버스가 막는다).
@@ -67,6 +70,8 @@ try {
   const root = document.querySelector('[data-ad]');
   const r = await adToSvg(root, { debug: true });
   out.svg = r.svg; out.fallbacks = r.fallbacks; out.stats = r.stats;
+  // 픽셀 비교용: Chrome 기준선으로 적은 같은 SVG(글자 y 만 다름)
+  out.svgChrome = (await adToSvg(root, { baseline: 'chrome' })).svg;
   // 글자 위치: 같은 문서(같은 폰트)에 SVG 를 붙여 tspan 상자 vs DOM 토막 상자
   const host = document.createElement('div'); host.style.cssText = 'position:absolute;left:0;top:0;opacity:0;pointer-events:none';
   host.innerHTML = r.svg.replace(/^<\\?xml[^>]*>/, '');
@@ -78,7 +83,9 @@ try {
   spans.forEach((t, i) => {
     const d = r.debug?.[i]; if (!d) return;
     const b = t.getBoundingClientRect();
-    errs.push({ text: d.text.slice(0, 24), dx: +(b.left - hr.left - d.x).toFixed(2), dr: +(b.right - hr.left - d.right).toFixed(2), dy: +(b.top - hr.top - d.y).toFixed(2) });
+    // dy 는 Figma 약속 기준선 − Chrome 기준선(shift, 의도한 차이)을 뺀 값. 뺀 전 값은 dyRaw
+    const dyRaw = +(b.top - hr.top - d.y).toFixed(2);
+    errs.push({ text: d.text.slice(0, 24), dx: +(b.left - hr.left - d.x).toFixed(2), dr: +(b.right - hr.left - d.right).toFixed(2), dy: +(dyRaw - (d.shift ?? 0)).toFixed(2), dyRaw, shift: d.shift ?? 0 });
   });
   out.text = errs;
   out.fontOK = (document.fonts.check('700 20px Pretendard') && document.fonts.check('700 20px Paperlogy'));
@@ -129,7 +136,7 @@ for (const cid of CASE_IDS) {
     if (o.svg) {
       writeFileSync(path.join(dir, `${sid}.svg`), o.svg);
       row.kb = Math.round(Buffer.byteLength(o.svg) / 1024);
-      const svg1x = o.svg.replace(/^<\?xml[^>]*>\s*/, '').replace(/<svg ([^>]*?)width="[^"]*" height="[^"]*"/, `<svg $1width="${sp.w}" height="${sp.h}"`);
+      const svg1x = (o.svgChrome ?? o.svg).replace(/^<\?xml[^>]*>\s*/, '').replace(/<svg ([^>]*?)width="[^"]*" height="[^"]*"/, `<svg $1width="${sp.w}" height="${sp.h}"`);
       writeFileSync(fC, page(`<div style="width:${sp.w}px;height:${sp.h}px;overflow:hidden">${svg1x}</div>`, '<style>svg{display:block}</style>'));
       const win = `--window-size=${Math.max(sp.w, 500)},${Math.max(sp.h, 400)}`;
       const pa = path.join(dir, `${sid}.a.png`), pb = path.join(dir, `${sid}.b.png`), pd = path.join(dir, `${sid}.d.png`);
@@ -140,11 +147,12 @@ for (const cid of CASE_IDS) {
       row.textN = t.length;
       row.textMax = t.length ? Math.max(...t.flatMap(e => [Math.abs(e.dx), Math.abs(e.dr), Math.abs(e.dy)])) : 0;
       row.textWorst = t.slice().sort((a, b) => Math.max(Math.abs(b.dx), Math.abs(b.dr), Math.abs(b.dy)) - Math.max(Math.abs(a.dx), Math.abs(a.dr), Math.abs(a.dy)))[0] ?? null;
+      row.shiftMax = t.length ? Math.max(...t.map(e => Math.abs(e.shift ?? 0))) : 0;   // Figma 약속 기준선이 Chrome 보다 얼마나 어긋나게 적혔나(의도한 차이, 합격선에 안 넣는다)
       row.pass = row.textMax <= PASS.text && row.mean <= PASS.mean && row.over <= PASS.over;
     } else row.pass = false;
     row.ms = Date.now() - t0;
     results.push(row);
-    console.log(`${row.pass ? '✓' : '✗'} ${cid.padEnd(17)} ${sid.padEnd(30)} ${row.error ? '오류 ' + row.error.slice(0, 80) : `글자 최대 ${row.textMax?.toFixed(2)}px(${row.textN}) · 평균 ${row.mean} · 큰 차이 ${row.over}% · ${row.kb}KB${row.fallbacks.length ? ' · 대체 ' + row.fallbacks.length : ''}`}`);
+    console.log(`${row.pass ? '✓' : '✗'} ${cid.padEnd(17)} ${sid.padEnd(30)} ${row.error ? '오류 ' + row.error.slice(0, 80) : `글자 최대 ${row.textMax?.toFixed(2)}px(${row.textN}, Figma 기준선 차 ${row.shiftMax?.toFixed(2)}px) · 평균 ${row.mean} · 큰 차이 ${row.over}% · ${row.kb}KB${row.fallbacks.length ? ' · 대체 ' + row.fallbacks.length : ''}`}`);
   }
 }
 writeFileSync(path.join(OUT, 'result.json'), JSON.stringify(results, null, 1));
@@ -153,12 +161,12 @@ writeFileSync(path.join(OUT, 'result.json'), JSON.stringify(results, null, 1));
 const bySpec = SPEC_IDS.map(sid => {
   const rs = results.filter(r => r.spec === sid && !r.error);
   const avg = k => rs.length ? Math.round(rs.reduce((a, r) => a + r[k], 0) / rs.length * 100) / 100 : null;
-  return { sid, n: rs.length, pass: rs.filter(r => r.pass).length, mean: avg('mean'), over: avg('over'), textMax: rs.length ? Math.max(...rs.map(r => r.textMax)) : null, kb: avg('kb') };
+  return { sid, n: rs.length, pass: rs.filter(r => r.pass).length, mean: avg('mean'), over: avg('over'), textMax: rs.length ? Math.max(...rs.map(r => r.textMax)) : null, shiftMax: rs.length ? Math.max(...rs.map(r => r.shiftMax ?? 0)) : null, kb: avg('kb') };
 });
 const pass = results.filter(r => r.pass).length;
 const fb = [...new Set(results.flatMap(r => r.fallbacks))];
 const rows = results.map(r => `<section class="${r.pass ? 'ok' : 'bad'}"><h3>${r.pass ? '✓' : '✗'} ${esc(r.case)} · ${esc(r.spec)} <span>${r.w}×${r.h}</span></h3>
-${r.error ? `<p class="err">${esc(r.error)}</p>` : `<p>글자 위치 최대 오차 <b>${r.textMax.toFixed(2)}px</b> (${r.textN}토막${r.textWorst ? ` · 가장 큰 곳 「${esc(r.textWorst.text)}」 dx ${r.textWorst.dx} · 오른끝 ${r.textWorst.dr} · dy ${r.textWorst.dy}` : ''}) · 평균 차이 <b>${r.mean}</b> · 큰 차이 픽셀 <b>${r.over}%</b> · SVG ${r.kb}KB · 글자 ${r.stats?.texts}·tspan ${r.stats?.tspans}·그림 ${r.stats?.images}·그라데이션 ${r.stats?.gradients}·마스크 ${r.stats?.masks}${r.fallbacks.length ? `<br><span class="fb">대체: ${esc(r.fallbacks.join(' / '))}</span>` : ''}</p>
+${r.error ? `<p class="err">${esc(r.error)}</p>` : `<p>글자 위치 최대 오차 <b>${r.textMax.toFixed(2)}px</b> (${r.textN}토막${r.textWorst ? ` · 가장 큰 곳 「${esc(r.textWorst.text)}」 dx ${r.textWorst.dx} · 오른끝 ${r.textWorst.dr} · dy ${r.textWorst.dy}` : ''} · Figma 기준선 차 ${r.shiftMax?.toFixed(2)}px 은 뺌) · 평균 차이 <b>${r.mean}</b> · 큰 차이 픽셀 <b>${r.over}%</b> · SVG ${r.kb}KB · 글자 ${r.stats?.texts}·tspan ${r.stats?.tspans}·그림 ${r.stats?.images}·그라데이션 ${r.stats?.gradients}·마스크 ${r.stats?.masks}${r.fallbacks.length ? `<br><span class="fb">대체: ${esc(r.fallbacks.join(' / '))}</span>` : ''}</p>
 <div class="row"><figure><img src="${r.case}/${r.spec}.a.png" style="max-width:${Math.min(r.w, 540)}px"><figcaption>HTML</figcaption></figure><figure><img src="${r.case}/${r.spec}.b.png" style="max-width:${Math.min(r.w, 540)}px"><figcaption>SVG (<a href="${r.case}/${r.spec}.svg">파일</a>)</figcaption></figure><figure><img src="${r.case}/${r.spec}.d.png" style="max-width:${Math.min(r.w, 540)}px"><figcaption>차이(빨강 = 다름)</figcaption></figure></div>`}</section>`).join('\n');
 writeFileSync(path.join(OUT, 'index.html'), `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SVG 충실도 검사</title><style>
 :root{--bg:#fafaf8;--ink:#1a1a1a;--sub:#666;--line:#e3e3e0;--ok:#1b7f3b;--bad:#b3261e;--card:#fff}
@@ -169,8 +177,9 @@ section{background:var(--card);border:1px solid var(--line);border-radius:10px;p
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}figure{margin:0}figure img{display:block;width:100%;height:auto;outline:1px solid var(--line)}figcaption{font-size:12px;color:var(--sub);margin-top:4px}
 .err{color:var(--bad)}.fb{color:var(--sub)}a{color:inherit}</style></head><body>
 <h1>SVG 내보내기 충실도 검사 <span style="font-weight:400;font-size:13px;color:var(--sub)">${new Date().toISOString().slice(0, 16).replace('T', ' ')} · ${CASE_IDS.length}케이스 × ${SPEC_IDS.length}규격 · 합격 ${pass}/${results.length}</span></h1>
-<p>같은 광고 HTML 을 headless Chrome 으로 찍은 그림(왼쪽)과 core/svgexport.js 가 만든 SVG 를 같은 폰트로 찍은 그림(가운데), 픽셀 차이(오른쪽). 합격선: 글자 위치 오차 ≤ ${PASS.text}px · 평균 차이 ≤ ${PASS.mean}(0~255) · 채널 차이 40 넘는 픽셀 ≤ ${PASS.over}%.</p>
-<table><tr><th>규격</th><th>합격</th><th>평균 차이</th><th>큰 차이 %</th><th>글자 최대 오차</th><th>평균 크기</th></tr>${bySpec.map(s => `<tr><td>${s.sid}</td><td>${s.pass}/${s.n}</td><td>${s.mean}</td><td>${s.over}</td><td>${s.textMax?.toFixed(2)}px</td><td>${s.kb}KB</td></tr>`).join('')}</table>
+<p>같은 광고 HTML 을 headless Chrome 으로 찍은 그림(왼쪽)과 core/svgexport.js 가 만든 SVG 를 같은 폰트로 찍은 그림(가운데), 픽셀 차이(오른쪽). 합격선: 글자 위치 오차 ≤ ${PASS.text}px · 평균 차이 ≤ ${PASS.mean}(0~255) · 채널 차이 40 넘는 픽셀 ≤ ${PASS.over}%.<br>
+내보내는 SVG(파일 링크)는 글자 기준선을 Figma 글상자 약속으로 적어 Chrome 기준선과 글꼴마다 ±0.05em 어긋난다(의도한 것, 「Figma 기준선 차」 열). 글자 위치 오차는 그 차이를 뺀 값이고, 가운데 그림은 같은 변환기를 Chrome 기준선(baseline:'chrome')으로 돌린 SVG(글자 y 만 다름)다.</p>
+<table><tr><th>규격</th><th>합격</th><th>평균 차이</th><th>큰 차이 %</th><th>글자 최대 오차</th><th>Figma 기준선 차</th><th>평균 크기</th></tr>${bySpec.map(s => `<tr><td>${s.sid}</td><td>${s.pass}/${s.n}</td><td>${s.mean}</td><td>${s.over}</td><td>${s.textMax?.toFixed(2)}px</td><td>${s.shiftMax?.toFixed(2)}px</td><td>${s.kb}KB</td></tr>`).join('')}</table>
 <p>대체·근사한 효과: ${fb.length ? esc(fb.join(' / ')) : '없음'}</p>
 ${rows}</body></html>`);
 writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify({ at: new Date().toISOString(), pass, total: results.length, bySpec, fallbacks: fb }, null, 1));
