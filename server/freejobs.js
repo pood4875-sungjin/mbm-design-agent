@@ -40,16 +40,34 @@ const isLegacyTones = s => Array.isArray(s) && s.length === DEFAULT_STYLES.lengt
 
 function totalOf(body, mode) { if (mode === 'spread') return (body.specIds ?? []).length || 1; if (mode === 'revise') return 1; return Array.isArray(body.styles) && body.styles.length ? body.styles.length : (typeof body.n === 'number' && body.n >= 1 ? Math.min(6, body.n) : 3); }
 
-// 예상 남은 시간 — 같은 모드 최근 평균(spread 는 규격 수 비례) − 경과. 넘기면 남은 개수 × 평균 호출 시간
+// 예상 남은 시간(11-09 6단계 — 재요청 반영). 통합 시험: 39초에 「남은 1분 20초」 → 실제 156초(두 안이 재요청). 평균 전체 시간만 쓰면 설계 호출 꼬리·재요청이 빠진다.
+//   남은 = max(평균 전체 − 경과, 설계 호출 p75 + 측정 − 경과 + P(남은 안 중 하나라도 재요청) × (재요청 평균 + 측정))
+//   P = 1 − (1 − 안당 재요청률)^남은 안 수. spread 는 규격 3개씩 묶음 수만큼. 넘기면 남은 개수 × 재요청 꼬리(최소 5초)
+export const GATE_MS = 8_000;   // 렌더 측정 1회(헤드리스 Chrome 3번) 어림
 export function etaOf(j, now = Date.now()) {
   if (j.status === 'done' || j.status === 'failed' || j.status === 'cancelled') return 0;
   const s = statsSummary().byMode[j.mode];
-  const per = j.mode === 'spread' ? Math.ceil(j.progress.total / 3) : 1;
-  const est = (s?.avgTotalMs ?? DEFAULT_ETA[j.mode]) * (j.mode === 'spread' ? Math.max(1, per) : 1);
+  const batches = j.mode === 'spread' ? Math.max(1, Math.ceil(j.progress.total / 3)) : 1;
+  const est = (s?.avgTotalMs ?? DEFAULT_ETA[j.mode]) * batches;
   const el = j.startedAt ? now - j.startedAt : 0;
   const queuedAhead = j.status === 'queued' ? positionOf(j.id) * (s?.avgTotalMs ?? DEFAULT_ETA.suggest) : 0;
-  const left = est - el;
-  return Math.round(queuedAhead + (left > 0 ? left : Math.max(5_000, (j.progress.total - j.progress.done) * (s?.avgCallMs ?? 30_000) * 0.3)));
+  const k = Math.max(0, (j.progress?.total ?? 1) - (j.progress?.done ?? 0));
+  const p = Math.min(1, Math.max(0, s?.retryRate ?? 0.4));
+  const retryTail = (1 - Math.pow(1 - p, Math.max(1, k))) * ((s?.avgRetryMs ?? 25_000) + GATE_MS);
+  const p75 = s?.p75CallMs ?? s?.avgCallMs ?? (DEFAULT_ETA[j.mode] * 0.6);
+  const gen = p75 * batches + GATE_MS;
+  let left = Math.max(est - el, gen - el + retryTail);
+  // 진행 중 실제 신호(11-09 r1: 첫 카드 126s 에 「34초」 → 실제 80초) — 설계 호출이 끝났는데 아직 안 온 안 = 재요청·측정 중, 아직 설계 중인 안 = 꼬리가 길다
+  if (j.status === 'running' && Array.isArray(j.calls) && j.mode !== 'revise') {
+    const gens = j.calls.filter(c => c.kind !== 'retry' && c.kind !== 'review'), retries = j.calls.filter(c => c.kind === 'retry');
+    const pendingGen = Math.max(0, (j.progress?.total ?? 0) - gens.length), inFix = Math.max(0, gens.length - (j.progress?.done ?? 0));
+    const retryMs = (s?.avgRetryMs ?? 25_000) + GATE_MS;
+    let live = 0;
+    if (pendingGen) { const tail = el < p75 ? p75 - el : Math.max(25_000, p75 * 0.35); live = Math.max(live, tail + GATE_MS + (1 - Math.pow(1 - p, pendingGen)) * retryMs); }
+    if (inFix) { const lastGen = Math.max(...gens.map(c => c.t ?? now)); const sinceGen = now - lastGen; const fixing = retries.filter(c => (c.t ?? 0) >= lastGen).length; live = Math.max(live, Math.max(5_000, (fixing ? GATE_MS : retryMs) - sinceGen)); }
+    left = Math.max(left - Math.max(0, est - el - live) * 0.5, live);   // 평균 기반과 실제 신호 사이 — 신호가 더 길면 신호를 따른다
+  }
+  return Math.round(queuedAhead + (left > 5_000 ? left : Math.max(5_000, k * Math.max(5_000, retryTail * 0.5))));
 }
 
 // 첫 안까지 남은 시간(아직 안 왔을 때만) — 같은 모드 최근 평균 firstMs − 경과. 앱이 「첫 안 ~N초」로 쓴다(11-09 통합)
@@ -103,7 +121,9 @@ export function statsSummary(dir = STATS_DIR) {
   for (const m of MODES) {
     const rs = rows.filter(r => r.mode === m && r.status === 'done'); if (!rs.length) continue;
     const calls = rs.flatMap(r => r.calls ?? []); const models = {}; for (const c of calls) if (c.model) models[c.model] = (models[c.model] ?? 0) + 1;
-    byMode[m] = { n: rs.length, avgTotalMs: avg(rs.map(r => r.totalMs).filter(v => v != null)), avgFirstMs: avg(rs.map(r => r.firstMs).filter(v => v != null)), avgCallMs: avg(calls.filter(c => c.kind !== 'retry').map(c => c.ms).filter(v => v != null)), avgRetryMs: avg(calls.filter(c => c.kind === 'retry').map(c => c.ms)), avgRetries: rs.length ? Math.round(rs.reduce((a, r) => a + (r.retries ?? 0), 0) / rs.length * 100) / 100 : 0, avgRejected: Math.round(rs.reduce((a, r) => a + (r.rejected ?? 0), 0) / rs.length * 100) / 100, models };
+    const gens = calls.filter(c => c.kind !== 'retry' && c.ms != null).map(c => c.ms).sort((a, b) => a - b);
+    const nv = rs.reduce((a, r) => a + (r.n || 1), 0);
+    byMode[m] = { p75CallMs: gens.length ? gens[Math.min(gens.length - 1, Math.floor(gens.length * 0.75))] : null, retryRate: nv ? Math.round(rs.reduce((a, r) => a + (r.retries ?? 0), 0) / nv * 100) / 100 : 0, n: rs.length, avgTotalMs: avg(rs.map(r => r.totalMs).filter(v => v != null)), avgFirstMs: avg(rs.map(r => r.firstMs).filter(v => v != null)), avgCallMs: avg(calls.filter(c => c.kind !== 'retry').map(c => c.ms).filter(v => v != null)), avgRetryMs: avg(calls.filter(c => c.kind === 'retry').map(c => c.ms)), avgRetries: rs.length ? Math.round(rs.reduce((a, r) => a + (r.retries ?? 0), 0) / rs.length * 100) / 100 : 0, avgRejected: Math.round(rs.reduce((a, r) => a + (r.rejected ?? 0), 0) / rs.length * 100) / 100, models };
   }
   return { n: rows.length, byMode, recent: rows.slice(-10).reverse() };
 }
@@ -143,7 +163,7 @@ function pump() {
     client, signal: j.abort.signal,
     onStage: s => { if (stageRank(s) > stageRank(j.stage)) j.stage = s; },
     onVariant: v => { j.partial.push(v); j.progress.done = j.partial.length; if (!j.firstAt) j.firstAt = Date.now(); log('안', id, v.specId ?? '', v.style?.id ?? '', v.rejected ? '반려' : '통과', `${((Date.now() - j.startedAt) / 1000).toFixed(0)}s`); },
-    onCall: c => { j.calls.push(c); },
+    onCall: c => { j.calls.push({ ...c, t: Date.now() }); },
   };
   Promise.resolve().then(() => engines[j.mode](j.body, hooks))
     .then(out => {

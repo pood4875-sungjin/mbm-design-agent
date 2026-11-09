@@ -53,7 +53,7 @@ export function setDecl(st, prop, value) {
   if (value == null) return st.replace(new RegExp(`(^|;)\\s*${prop}\\s*:[^;]*`, 'gi'), '$1').replace(/;;+/g, ';').replace(/^;/, '');
   return re.test(st) ? st.replace(re, `$1${prop}:${value}`) : `${st.replace(/;?\s*$/, '')}${st.trim() ? ';' : ''}${prop}:${value}`;
 }
-const pxOf = (st, prop) => { const v = getDecl(st, prop); const m = v && /^(-?[\d.]+)px$/.exec(v); return m ? +m[1] : null; };
+const pxOf = (st, prop) => { const v = getDecl(st, prop); if (v != null && /^-?0+(\.0+)?$/.test(v)) return 0; const m = v && /^(-?[\d.]+)px$/.exec(v); return m ? +m[1] : null; };   // 단위 없는 0(left:0)도 0px
 const scalePx = (val, f) => String(val).replace(/(-?[\d.]+)px/g, (_, n) => `${r1(+n * f)}px`);
 const SCALE_ROOT = ['font-size', 'line-height', 'width', 'max-width', 'height'];
 const SCALE_INNER = ['font-size', 'line-height', 'width', 'height', 'padding', 'padding-left', 'padding-right', 'padding-top', 'padding-bottom', 'margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom', 'border-radius', 'gap'];
@@ -269,7 +269,10 @@ export function applyQuick(html, instruction, { w = null, h = null, rules = null
 //   rows: [{ role, px, ink:{x,y,w,h} }] (scripts/lib/freedesign-renderer.mjs typoRowsOf). rules: { gapSubMain, gapMainInfo, gapInfoRow }(core/typoaudit TYPO_RULE_FIXED), hi = 간격 상한 px
 //   간격이 하한·상한 사이면 그대로 두고, 위 요소가 움직인 만큼 따라 내려간다. 바닥이 안전영역을 넘으면 스택 전체를 올린다(위 여백이 허락할 때). 못 하면 null → LLM 재요청.
 const INFO_R = ['date', 'detail', 'notice'];
-export function stackTargets(rows, { rules, hi, H, safe = null }) {
+export function stackTargets(rows, opts) {
+  return stackTargetsOnce(rows, opts, false) ?? stackTargetsOnce(rows, opts, true);   // 11-09 6단계: 바닥이 넘치면 간격을 하한으로 조여 한 번 더(2px 차이 반려를 줄인다)
+}
+function stackTargetsOnce(rows, { rules, hi, H, safe = null, floor = null, ceil = null }, tight) {   // floor/ceil: 스택 아래·위 장애물(키비주얼·로고) 경계 — 넘으면 스택을 반대쪽으로 민다(11-09 r2)
   const st = rows.filter(r => r.ink && r.ink.h > 0).map(r => ({ ...r })).sort((a, b) => a.ink.y - b.ink.y); if (st.length < 2) return null;
   const lo = (a, b) => a.role === 'sub' && b.role === 'main' ? rules.gapSubMain : a.role === 'main' && INFO_R.includes(b.role) ? rules.gapMainInfo : INFO_R.includes(a.role) && INFO_R.includes(b.role) ? rules.gapInfoRow : 0.15;
   st[0].ny = st[0].ink.y;
@@ -277,11 +280,11 @@ export function stackTargets(rows, { rules, hi, H, safe = null }) {
     const a = st[i - 1], b = st[i], em = Math.min(a.px, b.px);
     if (Math.abs(a.ink.y - b.ink.y) < em * 0.5) { b.ny = b.ink.y + (a.ny - a.ink.y); continue; }   // 같은 줄(가로 정보 블록) — 같이 움직인다
     const need = Math.ceil(em * lo(a, b)) + 2, g = b.ink.y - (a.ink.y + a.ink.h);
-    const keep = Math.max(need, Math.min(g, hi != null ? Math.floor(hi * 0.95) : g));
+    const keep = tight ? need : Math.max(need, Math.min(g, hi != null ? Math.floor(hi * 0.95) : g));
     b.ny = a.ny + a.ink.h + keep;
   }
   const top = Math.min(...st.map(r => r.ny)), bottom = Math.max(...st.map(r => r.ny + r.ink.h));
-  const limB = H - (safe?.b ?? 4), limT = safe?.t ?? 4;
+  const limB = Math.min(H - (safe?.b ?? 4), floor ?? Infinity), limT = Math.max(safe?.t ?? 4, ceil ?? -Infinity);
   if (bottom > limB) { const up = bottom - limB; if (top - up < limT) return null; for (const r of st) r.ny -= up; }
   return st.map(r => ({ role: r.role, dy: Math.round((r.ny - r.ink.y) * 10) / 10 }));
 }
@@ -299,4 +302,117 @@ export function fixStack(html, rows, opts) {
     E.replace(n.index, n.tag, withStyle(n.tag, st));
   }
   return { html: E.apply(), moves };
+}
+
+// ── 로고 간격 자동 고침(11-09 6단계 r1 — 「4항-2 asset-tight 글자·로고 간격」이 반려 사유 1위권). 로고가 글자 덩어리 위·아래에 있으면
+//   로고를 바깥쪽(위 로고는 위로, 아래 로고는 아래로)으로 모자란 만큼 옮기고, 자리가 없으면 글자 전체를 반대쪽으로 민다. 옆에 있으면(가로 간격) 못 고침 → null.
+//   rows: 측정 글자 잉크 상자, logo: 측정 로고 상자 {x,y,w,h}, want: 필요한 간격 px, H: 규격 높이, safe: { t, b } 안전영역
+export function fixLogoGap(html, rows, logo, { want, H, safe = null }) {
+  const all = rows.filter(r => r.ink && r.ink.h > 0).map(r => r.ink); if (!all.length || !logo || !(want > 0)) return null;
+  // 로고와 가로로 겹치는 글자 줄만 본다(11-09 r1: 로고가 날짜 줄 옆·메인 아래 모서리 — 덩어리 전체로 보면 「옆」이라 못 고쳤다)
+  const ink = all.filter(b => Math.min(b.x + b.w, logo.x + logo.w) - Math.max(b.x, logo.x) > 0); if (!ink.length) return null;
+  const T = Math.min(...ink.map(b => b.y)), B = Math.max(...ink.map(b => b.y + b.h));
+  const above = logo.y + logo.h <= T + 1, below = logo.y >= B - 1; if (!above && !below) return null;
+  const gap = above ? T - (logo.y + logo.h) : logo.y - B; const need = Math.ceil(want - gap) + 2; if (need <= 0) return null;
+  const limT = safe?.t ?? 8, limB = H - (safe?.b ?? 8);
+  const Rt = rootInfo(String(html ?? '')); if (!Rt) return null;
+  const E = edits(String(html));
+  const move = (n, dy) => { let st = styleOf(n.tag); const top = pxOf(st, 'top'), bottom = pxOf(st, 'bottom'); if (top != null) st = setDecl(st, 'top', `${r1(top + dy)}px`); else if (bottom != null) st = setDecl(st, 'bottom', `${r1(bottom - dy)}px`); else return false; E.replace(n.index, n.tag, withStyle(n.tag, st)); return true; };
+  const ln = Rt.nodes.find(n => n.logo); if (!ln) return null;
+  const roomLogo = above ? logo.y - limT : limB - (logo.y + logo.h);
+  if (roomLogo >= need) { if (!move(ln, above ? -need : need)) return null; return { html: E.apply(), moves: [{ role: 'logo', dy: above ? -need : need }] }; }
+  const TA = Math.min(...all.map(b => b.y)), BA = Math.max(...all.map(b => b.y + b.h));
+  const roomText = above ? limB - BA : TA - limT;
+  if (roomText < need) return null;
+  const dy = above ? need : -need; const moves = [];
+  for (const n of Rt.nodes.filter(x => x.field && !x.inField)) { if (!move(n, dy)) return null; moves.push({ role: n.field, dy }); }
+  return { html: E.apply(), moves };
+}
+
+// ── 누끼 키비주얼 간격 자동 고침(11-09 6단계 r1 — 「4항-2 kv-overlap·asset-tight 글자·키비주얼」 반려 10건, 재요청(sonnet)이 거의 못 고침).
+//   주인공 상자(subject, 지면 좌표)가 글자 덩어리 오른쪽/아래에 있으면 키비주얼 요소를 먼 모서리(오른쪽·아래) 기준으로 줄여 간격을 만든다(비율 유지 — width·height 같이).
+//   왼쪽/위에 있으면 왼·위 모서리 기준. 줄이는 몫이 25%를 넘으면 null(재요청으로). rows: 글자 잉크, subject: {x,y,w,h}, want: 필요한 간격 px
+export function fixKvGap(html, rows, subject, { want, cap = null, minScale = 0.75, maxScale = 1.25 } = {}) {
+  const ink = rows.filter(r => r.ink && r.ink.h > 0).map(r => r.ink); if (!ink.length || !subject || !(want > 0)) return null;
+  const T = Math.min(...ink.map(b => b.y)), B = Math.max(...ink.map(b => b.y + b.h)), L = Math.min(...ink.map(b => b.x)), R = Math.max(...ink.map(b => b.x + b.w));
+  const Rt = rootInfo(String(html ?? '')); if (!Rt) return null;
+  const n = Rt.nodes.find(x => x.kv); if (!n) return null;
+  let st = styleOf(n.tag); const w = pxOf(st, 'width'), h = pxOf(st, 'height'); if (w == null || h == null) return null;
+  const left = pxOf(st, 'left'), top = pxOf(st, 'top'), right = pxOf(st, 'right'), bottom = pxOf(st, 'bottom');
+  const ex = left ?? (right != null && Rt.W ? Rt.W - right - w : null), ey = top ?? (bottom != null && Rt.H ? Rt.H - bottom - h : null); if (ex == null || ey == null) return null;
+  const sx = subject.x, sy = subject.y, sr = subject.x + subject.w, sb = subject.y + subject.h;
+  // 어느 쪽으로 비킬지 — 가로 간격으로 풀 수 있으면 가로(글자 왼쪽 열 + 그림 오른쪽이 흔하다), 아니면 세로
+  // 간격이 하한보다 작으면 비키고(줄임), 상한(cap)보다 크면 다가간다(키움 — 11-09 r1 「62px > 58px 너무 벙벙」 4px 차이 반려)
+  const delta = gap => gap < want ? want - gap + 2 : cap != null && gap > cap ? -(gap - cap + 2) : 0;
+  const opts = [];
+  if (sr > R && sx > L) { const d = delta(sx - R); const far = ex + w; if (d) opts.push({ f: (far - sx - d) / (far - sx), ax: 'right' }); }
+  if (sb > B && sy > T) { const d = delta(sy - B); const far = ey + h; if (d) opts.push({ f: (far - sy - d) / (far - sy), ax: 'bottom' }); }
+  if (sx < L && sr < R) { const d = delta(L - sr); if (d) opts.push({ f: (sr - ex - d) / (sr - ex), ax: 'left' }); }
+  const gapOf = (o) => { let g = Infinity; for (const k of ink) { const ox = Math.min(k.x + k.w, o.x + o.w) - Math.max(k.x, o.x), oy = Math.min(k.y + k.h, o.y + o.h) - Math.max(k.y, o.y); g = Math.min(g, ox > 0 && oy > 0 ? -Math.min(ox, oy) : Math.max(ox > 0 ? 0 : -ox, oy > 0 ? 0 : -oy)); } return g; };
+  const scaled = o => { const fx = o.ax === 'right' ? ex + w : o.ax === 'left' ? ex : ex + w / 2, fy = ey + h; return { x: fx + (sx - fx) * o.f, y: fy + (sy - fy) * o.f, w: subject.w * o.f, h: subject.h * o.f }; };   // 먼 모서리 고정 축소/확대 뒤 주인공 상자
+  const okGap = g => g >= want && (cap == null || g <= cap);
+  const best = opts.filter(o => o.f !== 1 && o.f >= minScale && o.f <= maxScale && okGap(gapOf(scaled(o)))).sort((a, b) => Math.abs(1 - a.f) - Math.abs(1 - b.f))[0];
+  if (!best) {   // 크기로 못 맞추면 옮긴다 — 게이트(core/typoaudit 4항-2)와 같은 거리(줄마다 max(가로, 세로) 의 최소)로, 가장 작은 이동을 찾는다(11-09 r3: 대각 방향으로 먼 누끼)
+    const W = Rt.W ?? Infinity, H = Rt.H ?? Infinity; let mv = null;
+    for (let r = 2; r <= 160 && !mv; r += 2) for (const [ux, uy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+      const dx = ux * r, dy = uy * r; const o = { x: sx + dx, y: sy + dy, w: subject.w, h: subject.h }; const g = gapOf(o);
+      if (!okGap(g)) continue;
+      if (o.x < -o.w * 0.05 || o.y < -o.h * 0.05 || o.x + o.w > W + o.w * 0.05 || o.y + o.h > H + o.h * 0.05) continue;   // 주인공이 지면 밖으로 나가면 안 된다
+      mv = { dx, dy }; break;
+    }
+    if (!mv) return null;
+    if (mv.dx && left == null && right == null) return null; if (mv.dy && top == null && bottom == null) return null;
+    if (mv.dx) st = left != null ? setDecl(st, 'left', `${r1(left + mv.dx)}px`) : setDecl(st, 'right', `${r1(right - mv.dx)}px`);
+    if (mv.dy) st = top != null ? setDecl(st, 'top', `${r1(top + mv.dy)}px`) : setDecl(st, 'bottom', `${r1(bottom - mv.dy)}px`);
+    const E = edits(String(html)); E.replace(n.index, n.tag, withStyle(n.tag, st));
+    return { html: E.apply(), moves: [{ role: 'kv', dx: mv.dx, dy: mv.dy }] };
+  }
+  const f = best.f, nw = w * f, nh = h * f;
+  // 먼 모서리 고정: 오른쪽 기준이면 오른·아래 고정, 아래 기준이면 아래·가운데, 왼쪽 기준이면 왼·아래
+  const nx = best.ax === 'right' ? ex + w - nw : best.ax === 'left' ? ex : ex + (w - nw) / 2;
+  const ny = ey + h - nh;
+  st = setDecl(st, 'width', `${r1(nw)}px`); st = setDecl(st, 'height', `${r1(nh)}px`);
+  if (left != null) st = setDecl(st, 'left', `${r1(nx)}px`); else st = setDecl(st, 'right', `${r1((Rt.W ?? 0) - nx - nw)}px`);
+  if (top != null) st = setDecl(st, 'top', `${r1(ny)}px`); else st = setDecl(st, 'bottom', `${r1((Rt.H ?? 0) - ny - nh)}px`);
+  const E = edits(String(html)); E.replace(n.index, n.tag, withStyle(n.tag, st));
+  return { html: E.apply(), moves: [{ role: 'kv', scale: Math.round(f * 100) / 100, anchor: best.ax }] };
+}
+
+// ── 로고 판 자동 고침(11-09 6단계 r1 — 흰 글씨+남색 심볼 로고(한림)가 밝은 지면·어두운 지면 어느 쪽에서도 반쯤 묻혔다). 로고 뒤에 둥근 판 하나를 깐다.
+//   판 색 = 후보(브랜드색·키비주얼 색·중간 회색·검정·흰색) 중 로고 색(share 가중)이 2:1 이상으로 가장 많이 보이는 색. 0.8 미만이면 null.
+export function logoPlateColor(colors = [], candidates = []) {
+  const cs = colors.filter(c => /^#[0-9a-f]{6}$/i.test(c?.hex ?? '')); if (!cs.length) return null;
+  const tot = cs.reduce((a, c) => a + (c.share ?? 1), 0) || 1;
+  const L = h => lum(hexRgb(h)); const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  let best = null;
+  for (const cand of [...new Set(candidates.filter(x => /^#[0-9a-f]{6}$/i.test(x ?? '')).map(x => x.toUpperCase()))]) {
+    const lc = L(cand); const vis = cs.reduce((a, c) => a + (ratio(L(c.hex), lc) >= 2 ? (c.share ?? 1) : 0), 0) / tot;
+    const minR = Math.min(...cs.map(c => ratio(L(c.hex), lc)));
+    if (!best || vis > best.vis || (vis === best.vis && minR > best.minR)) best = { color: cand, vis, minR };
+  }
+  return best && best.vis >= 0.8 ? best : null;
+}
+export function fixLogoPlate(html, colors, candidates) {
+  const p = logoPlateColor(colors, [...candidates, '#6B7280', '#4B5563', '#111111', '#FFFFFF']); if (!p) return null;
+  const Rt = rootInfo(String(html ?? '')); if (!Rt) return null;
+  const n = Rt.nodes.find(x => x.logo); if (!n) return null;
+  const st = styleOf(n.tag); const x = pxOf(st, 'left'), y = pxOf(st, 'top'), w = pxOf(st, 'width'), h = pxOf(st, 'height'); if ([x, y, w, h].some(v => v == null)) return null;
+  const pad = Math.round(Math.max(6, h * 0.35)), z = getDecl(st, 'z-index');
+  const plate = `<div style="position:absolute;left:${r1(x - pad)}px;top:${r1(y - pad * 0.7)}px;width:${r1(w + pad * 2)}px;height:${r1(h + pad * 1.4)}px;border-radius:${Math.round(pad)}px;background:${p.color}${z ? `;z-index:${z}` : ''}"></div>`;
+  const E = edits(String(html)); E.replace(n.index, n.tag, plate + n.tag);
+  return { html: E.apply(), moves: [{ role: 'logo-plate', color: p.color }] };
+}
+
+// ── 작은 글자 자동 고침(11-09 6단계 r1 — 1080 에서 정보 글자 14~22px). byRole: { role: 배수 } — 즉시 수정의 「글자 크게」와 같은 동작(글자 안 px 전부 비례)
+export function fixTextSize(html, byRole) {
+  let out = String(html ?? ''); const moves = [];
+  for (const [role, f] of Object.entries(byRole ?? {})) { if (!(f > 1)) continue; try { out = actScaleText(out, [role], f); moves.push({ role, scale: Math.round(f * 100) / 100 }); } catch { return null; } }
+  return moves.length ? { html: out, moves } : null;
+}
+
+// ── 대비 자동 고침(11-09 6단계 r2 — 4.3:1 < 4.5:1 같은 경계 반려). 걸린 역할의 글자색을 바탕 밝기 반대 끝(흰 #FFFFFF / 먹 #111111)으로. 뱃지 안 글자는 둔다
+export function fixContrast(html, byRole, rules = null) {
+  let out = String(html ?? ''); const moves = [];
+  for (const [role, color] of Object.entries(byRole ?? {})) { try { out = actTextColor(out, [role], color, rules); moves.push({ role, color }); } catch { return null; } }
+  return moves.length ? { html: out, moves } : null;
 }

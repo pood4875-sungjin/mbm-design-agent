@@ -45,10 +45,19 @@ POST `/api/freedesign/quick` `{ html, instruction, specId }` → `{ ok, html, ap
 - spread: `language`·`specIds` 필수, `rulesBySpec?:{[specId]:rules}`(없으면 서버 `rulesForSpec`). 결과 `variants[i].specId`.
 - quick: body 에 `brand?:{primary}` 를 주면 「일정 태그·브랜드색」에 쓴다. 응답에 `ms`. 매체 규정(고정 글자색·로고 크기 고정·금지 배경색)은 `ok:false`.
 - `GET /api/freedesign/stats` → `{ n, byMode:{suggest|revise|spread:{n,avgTotalMs,avgFirstMs,avgCallMs,avgRetryMs,avgRetries,avgRejected,models}}, recent }`(최근 50 작업, `_out/freedesign-jobs/stats.jsonl`).
-- 속도 장치(11-09 실측으로 정함): 그림은 메시지에 직접(`FREEDESIGN_IMAGE_MODE=stream`, Read 왕복 없음) · `--effort` 설계 medium / 고치기 low(`FREEDESIGN_EFFORT`·`FREEDESIGN_FAST_EFFORT`) · `--strict-mcp-config --disable-slash-commands` + 짧은 디자이너 시스템 프롬프트(도구 없는 호출에서 모델이 스킬을 부르려다 HTML 없이 끝나던 것 — 3안 중 3) · 간격 위반(4항-1 gap-tight·gap-loose·overlap)은 **LLM 없이 측정 잉크 상자로 스택을 다시 쌓아**(`core/freequick.js fixStack`) 재측정 · 그 밖 위반은 「걸린 것만 고치기」 짧은 프롬프트 + 실측 줄 + `sonnet`(`FREEDESIGN_RETRY_MODEL`)으로 1회.
+- 속도 장치(11-09 실측으로 정함): 그림은 메시지에 직접(`FREEDESIGN_IMAGE_MODE=stream`, Read 왕복 없음) · `--effort` 설계 low(11-09 r2 부터, 그 전 medium) / 고치기 low(`FREEDESIGN_EFFORT`·`FREEDESIGN_FAST_EFFORT`) · `--strict-mcp-config --disable-slash-commands` + 짧은 디자이너 시스템 프롬프트(도구 없는 호출에서 모델이 스킬을 부르려다 HTML 없이 끝나던 것 — 3안 중 3) · 간격 위반(4항-1 gap-tight·gap-loose·overlap)은 **LLM 없이 측정 잉크 상자로 스택을 다시 쌓아**(`core/freequick.js fixStack`) 재측정 · 그 밖 위반은 「걸린 것만 고치기」 짧은 프롬프트 + 실측 줄 + `sonnet`(`FREEDESIGN_RETRY_MODEL`)으로 1회.
 - 실측(fg-dn-park 사진 × 구글 580, opus-4-8 설계, 11-09): 첫 카드 **69s** · 3안 **107s**(호출 3, 재요청 0, 반려 0 — 간격 자동 고침 3/3) · AI 수정 **12~21s**(sonnet low) · 즉시 수정 **1~3ms**. 고치기 전(1차): 첫 카드 186s · 3안 216s · AI 수정 80s. 시트 `_out/ai-track/server-fg-dn-park-*.png`, 재현 `node scripts/freedesign-ai-bench.mjs`.
 - **11-09 통합(5단계)에서 더한 것**: `DELETE /api/freedesign/jobs/:id` = 취소(queued 는 큐에서 빼고, running 은 AbortSignal 로 진행 중 `claude -p` 자식을 SIGTERM→2초 뒤 SIGKILL, 상태 `cancelled`) · job 응답 `firstEtaMs`(첫 안 전까지 최근 평균 기준 남은 시간 — 앱 「첫 안 ~N초 · 전부 ~M」) · spread `language:{fromHtml:true}` + `prev.html` 이면 원안 HTML 에서 언어를 뽑아 채움 · 언어에 `labels`(정보 라벨 칩 모양) 추가, 모티프는 모델 것 + HTML svg 합침, revise 결과 언어는 고친 HTML 로 다시 합침 · 게이트에 「글자 ↔ 사진(글자 지운 렌더로 실측 대비)·장식 겹침」(`core/typoaudit.js overlapAudit`, 렌더러 `measureOverlap`). 앱은 제안 본문에서 `n`(대화 창의 1)·`styles`·`review` 를 보내지 않는다(→ 3안·게이트만).
 - `GET /api/health` 의 `freedesign.engines` = `['claude-code']` — API 키 경로는 `FREEDESIGN_API=1` 일 때만 목록에 오르고, 꺼져 있으면 `engine:'api'` 요청도 claude-code 로 돈다(앱은 `hasKey` 대신 `freedesign.engines` 를 볼 것).
+
+- **11-09 6단계 검증 루프에서 더한 것**(`_out/ai-track/loop-r1~3.md`, 재현 `node scripts/freedesign-ai-loop.mjs --round N [--edits]`):
+  - 게이트 = 앱 디자인 검수와 같은 판정: 「글자-주인공 15%」「로고 가림 5%」「뚝 끊긴 변(누끼)」(`core/typoaudit.js subjectAudit`, 주인공 = `core/field.js profileFocus`). clip-path 로 한 면에만 그린 그림은 보이는 영역까지만(`clipBoxOf` — **core/adcheck.js 도 같은 함수**). 앱은 안전망으로 디자인 검수가 주인공 겹침·로고 가림을 잡으면 카드를 내린다(`app/aidesign.js HARD_DESIGN`).
+  - 더한 게이트: 로고 묻힘(로고 픽셀의 50% 이상이 바로 아래 바탕과 2:1 — 렌더러 `measureLogo`) · 로고 빼먹기(검증 오류) · 작은 글자(고지 제외 √면적 × 2.2%, 1080 = 24px) · 글자가 카드·창 상자 위로 걸침(`text-over-kvbox`) · 넓은 도형도 글자 위면 장식 겹침.
+  - 자동 고침(LLM 없이, 재요청 전): 작은 글자 키움 → 대비(글자색 흰/먹) → 스택 다시 쌓기(위·아래 장애물 경계, 넘치면 간격 조임) → 로고 간격(로고·글자 세로 이동) → 로고 판(로고 색이 다 보이는 판 색) → 누끼 간격(먼 모서리 기준 0.75~1.25배, 안 되면 옮김). 채택 = 「고치려던 위반은 줄고 그 밖은 안 늘고 전체도 안 늘면」.
+  - 구성: 누끼는 `motif·typehero·axis`(전면 bleed 1/6 통과라 뺌). 모티프·장식은 글자 덩어리를 가로지르지 않게, 축은 글자 한 덩어리, 대각은 글자 면 단색·사진 면 꽉 채움, 주인공이 그림의 55% 이상인 사진은 한쪽 배치. 프롬프트에 주인공 상자·로고 색.
+  - 속도: 설계 `--effort low` 기본(r2 실측: 첫 카드 117→76s, 3안 229→171s, 눈 점수 떨어지지 않음). 재요청 호출 상한 120s(`FREEDESIGN_RETRY_TIMEOUT_MS`), 설계 420s.
+  - ETA: `etaOf` = max(평균 전체 − 경과, 설계 p75 + 측정 − 경과 + P(남은 안 중 재요청) × (재요청 평균 + 측정)) 에 진행 중 신호(설계 끝났는데 안 온 안 = 고치는 중)를 섞는다. 통계에 `p75CallMs`·`retryRate`.
+  - AI 수정(revise)도 게이트 기본 켬(자동 고침 → 남으면 1회 재요청, `measure:false` 면 생략).
 
 ## 최소 규칙 (docs/freedesign-rules.md 그대로 + 아래)
 - 매체 규정(글자 수·안전영역·색·글꼴·로고·용량)은 검수기가 강제 — 위반 안은 추천하지 않는다.

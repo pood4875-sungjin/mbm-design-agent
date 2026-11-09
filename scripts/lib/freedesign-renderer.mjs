@@ -15,9 +15,11 @@ import { SPECS } from '../../core/contract.js';
 import { lintArtifact } from '../../core/lint.js';
 import { CANON } from '../../core/canon.js';
 import { TEMPLATE_NORMS } from '../../core/template-norms.js';
-import { typoAuditNorms, overlapAudit } from '../../core/typoaudit.js';
+import { typoAuditNorms, overlapAudit, subjectAudit, subjectBoxes, clipBoxOf } from '../../core/typoaudit.js';
+import { profileFocus } from '../../core/field.js';
 import * as F from '../../core/fonts.js';
 
+export const LOGO_VISIBLE_MIN = 0.5;
 export const FACES = F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pathToFileURL(path.join(ROOT, 'app')).href + '/')).join('');
 export const docOf = html => `<!doctype html><html><head><meta charset="utf-8"><style>${FACES}</style><style>html,body{margin:0;background:#fff}</style></head><body>${html}</body></html>`;
 
@@ -67,6 +69,30 @@ function measureFree(d, root) {
     return null;
   })();
   return { fields, kvRect };
+}
+${clipBoxOf.toString()}
+// 11-09 6단계: 앱 디자인 검수(core/adcheck.js)와 같은 재료 — 오브젝트 상자(요소)·그림이 그려진 네모(drawnImage 와 같은 환산)·글자 잉크(텍스트 노드 Range)·로고 상자와 z-index 위 여부
+// 둥근 창: 요소 자신 또는 지면 안 조상(overflow 숨김)이 둥글면 — 원형·라운드 창 안에 담은 그림은 잘림이 의도(11-09 r3 행성 원형 창). core/adcheck.js 3항과 같은 기준
+function roundedWin(e, root) { for (let x = e; x && x !== root; x = x.parentElement) { const c = getComputedStyle(x); if (parseFloat(c.borderTopLeftRadius || '0') > 4 && (x === e || c.overflow !== 'visible' || (c.clipPath && c.clipPath !== 'none'))) return true; if (x !== e && c.clipPath && c.clipPath !== 'none') return true; } return false; }
+function measureSubjects(d, root) {
+  const rr = root.getBoundingClientRect(); const R = el => { const b = el.getBoundingClientRect(); return { x: b.left - rr.left, y: b.top - rr.top, w: b.width, h: b.height }; };
+  const nat = window.__kvNat; const ar = nat && nat.h ? nat.w / nat.h : null;
+  const drawn = (el, r) => {
+    if (!ar) return null;
+    if (el.tagName === 'IMG') { const fit = getComputedStyle(el).objectFit; let w = r.w, h = r.h; if (fit === 'contain') { if (r.w / r.h > ar) { h = r.h; w = h * ar; } else { w = r.w; h = w / ar; } } else if (fit === 'cover') { if (r.w / r.h > ar) { w = r.w; h = w / ar; } else { h = r.h; w = h * ar; } } const pos = getComputedStyle(el).objectPosition.split(/\s+/); const off = (v, box, img) => /%$/.test(v || '') ? (box - img) * parseFloat(v) / 100 : parseFloat(v || '0') || 0; return { x: r.x + off(pos[0] || '50%', r.w, w), y: r.y + off(pos[1] || '50%', r.h, h), w, h }; }
+    const cs = getComputedStyle(el); const size = cs.backgroundSize || 'auto', pos = cs.backgroundPosition || '0% 0%'; let iw, ih;
+    if (/contain/.test(size)) { if (r.w / r.h > ar) { ih = r.h; iw = ih * ar; } else { iw = r.w; ih = iw / ar; } }
+    else if (/cover/.test(size)) { if (r.w / r.h > ar) { iw = r.w; ih = iw / ar; } else { ih = r.h; iw = ih * ar; } }
+    else { const parts = size.split(/\s+/); const px = (v, ref) => !v || v === 'auto' ? null : /%$/.test(v) ? parseFloat(v) / 100 * ref : /px$/.test(v) ? parseFloat(v) : null; const pw = px(parts[0], r.w), ph = px(parts[1], r.h); if (pw != null && ph != null) { iw = pw; ih = ph; } else if (pw != null) { iw = pw; ih = pw / ar; } else if (ph != null) { ih = ph; iw = ph * ar; } else { iw = r.w; ih = r.h; } }
+    const [sx, sy] = pos.split(/\s+/); const off = (v, box, img) => (v && v.endsWith('%')) ? (box - img) * parseFloat(v) / 100 : parseFloat(v || '0') || 0;
+    return { x: r.x + off(sx, r.w, iw), y: r.y + off(sy, r.h, ih), w: iw, h: ih };
+  };
+  const objects = [...root.querySelectorAll('[data-object],img[data-kv="1"]')].filter(e => e.getAttribute('data-object') !== 'logo' && e.getClientRects().length).map(e => { const r = R(e); let clip = null; try { clip = clipBoxOf(getComputedStyle(e).clipPath, r); } catch {} const cs = getComputedStyle(e); const masked = (cs.maskImage && cs.maskImage !== 'none') || (cs.webkitMaskImage && cs.webkitMaskImage !== 'none'); return { box: r, clip, drawn: drawn(e, r), masked: !!masked, rounded: roundedWin(e, root), W: rr.width, H: rr.height }; });
+  const ink = el => { const rects = []; const w = d.createTreeWalker(el, NodeFilter.SHOW_TEXT); for (let n = w.nextNode(); n; n = w.nextNode()) { if (!n.nodeValue.trim()) continue; const rg = d.createRange(); rg.selectNodeContents(n); for (const b of rg.getClientRects()) if (b.width > 0.5 && b.height > 0.5) rects.push(b); } if (!rects.length) return R(el); const x0 = Math.min(...rects.map(b => b.left)), y0 = Math.min(...rects.map(b => b.top)), x1 = Math.max(...rects.map(b => b.right)), y1 = Math.max(...rects.map(b => b.bottom)); return { x: x0 - rr.left, y: y0 - rr.top, w: x1 - x0, h: y1 - y0 }; };
+  const texts = [...root.querySelectorAll('[data-field]')].filter(e => e.dataset.field !== 'cta' && e.getClientRects().length).map(e => ({ role: e.dataset.field, ink: ink(e) }));
+  const lg = root.querySelector('[data-logo]'); let logo = null;
+  if (lg) { let onTop = false; for (let e = lg; e && e !== root; e = e.parentElement) { const z = parseInt(getComputedStyle(e).zIndex, 10); if (Number.isFinite(z) && z > 0) { onTop = true; break; } } logo = { box: R(lg), onTop }; }
+  return { objects, texts, logo };
 }`;
 
 // 11-09 통합(게이트 구멍): 글자 ↔ 사진·장식 겹침 실측. 글자를 지운 렌더(noText PNG)에서 글자 잉크 상자 안 픽셀을 촘촘히 재고(사진 위 실측 대비),
@@ -116,6 +142,25 @@ function measureOverlap(d, root, free, texts, nt, S, full) {
     out.push({ role, fontPx, need, n, photo: { n: nk, bad, p10: nk ? Math.round(ratios[Math.floor(nk * 0.1)] * 10) / 10 : null, min: nk ? Math.round(ratios[0] * 10) / 10 : null }, decos: [...decos.values()].filter(x => x.hits >= 2).map(x => ({ ...x, frac: Math.round(x.hits / n * 1000) / 1000 })) });
   }
   return out;
+}
+// 11-09 6단계 r1: 흰 글씨 로고가 밝은 지면에 묻혀 안 보이는데 추천됐다(한림 frame·diagonal). 로고 그림의 불투명 픽셀마다 「로고 없는 렌더」의 같은 자리 바탕과 대비를 잰다
+async function measureLogo(d, root, nt, S) {
+  const lg = root.querySelector('img[data-logo]'); if (!lg || !nt || !lg.naturalWidth) return null;
+  const rr = root.getBoundingClientRect(), b = lg.getBoundingClientRect(); const bx = b.left - rr.left, by = b.top - rr.top;
+  const ar = lg.naturalWidth / lg.naturalHeight; let w = b.width, h = b.height; const fit = getComputedStyle(lg).objectFit;
+  if (fit === 'contain' || fit === 'scale-down') { if (b.width / b.height > ar) { h = b.height; w = h * ar; } else { w = b.width; h = w / ar; } }
+  const ox = bx + (b.width - w) / 2, oy = by + (b.height - h) / 2;
+  const c = d.createElement('canvas'); c.width = Math.max(1, Math.round(w * S)); c.height = Math.max(1, Math.round(h * S)); const cx = c.getContext('2d', { willReadFrequently: true }); cx.drawImage(lg, 0, 0, c.width, c.height);
+  const ld = cx.getImageData(0, 0, c.width, c.height).data; const NW = nt.canvas.width, NH = nt.canvas.height; const nd = nt.getImageData(0, 0, NW, NH).data;
+  const lum = (r, g, bb) => { const f = v => { v /= 255; return v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(bb); };
+  let n = 0, vis = 0; const step = Math.max(1, Math.floor(Math.sqrt(c.width * c.height / 1600)));
+  for (let y = 0; y < c.height; y += step) for (let x = 0; x < c.width; x += step) {
+    const i = (y * c.width + x) * 4; if (ld[i + 3] < 160) continue;
+    const px = Math.round(ox * S + x), py = Math.round(oy * S + y); if (px < 0 || py < 0 || px >= NW || py >= NH) continue;
+    const j = (py * NW + px) * 4; const a = lum(ld[i], ld[i + 1], ld[i + 2]), bg = lum(nd[j], nd[j + 1], nd[j + 2]);
+    n++; if ((Math.max(a, bg) + 0.05) / (Math.min(a, bg) + 0.05) >= 2) vis++;
+  }
+  return n ? { n, visible: Math.round(vis / n * 100) / 100, box: { x: Math.round(bx), y: Math.round(by), w: Math.round(b.width), h: Math.round(b.height) } } : null;
 }`;
 
 // 측정 페이지 — measureDoc + measureFree + PNG 캔버스(바탕색·알파·대비)
@@ -134,6 +179,7 @@ addEventListener('error', e => __out({ error: String(e.error?.stack ?? e.message
   const kvUrls = []; for (const e of root.querySelectorAll('[data-object="1"]')) for (const m of getComputedStyle(e).backgroundImage.matchAll(/url\\("?([^")]+)"?\\)/g)) kvUrls.push(m[1]); for (const i of root.querySelectorAll('img[data-kv="1"]')) kvUrls.push(i.src);
   out.kvLoaded = kvUrls.length ? (await Promise.all(kvUrls.map((u, k) => new Promise(res => { const i = new Image(); i.onload = () => { if (k === 0) window.__kvNat = { w: i.naturalWidth, h: i.naturalHeight }; res(i.naturalWidth > 0); }; i.onerror = () => res(false); i.src = u; })))).every(Boolean) : null;
   out.free = measureFree(document, root);
+  try { out.subj = measureSubjects(document, root); } catch (e) { out.subj = { error: String(e?.message ?? e) }; }
   const W = root.getBoundingClientRect().width, H = root.getBoundingClientRect().height;
   let img = 0; for (const e of root.querySelectorAll('[data-object="1"],img[data-kv="1"]')) { const r = e.getBoundingClientRect(), rr = root.getBoundingClientRect(); const x0 = Math.max(0, r.left - rr.left), y0 = Math.max(0, r.top - rr.top), x1 = Math.min(W, r.right - rr.left), y1 = Math.min(H, r.bottom - rr.top); if (x1 > x0 && y1 > y0) img += (x1 - x0) * (y1 - y0); }
   out.imgArea = Math.min(1, img / (W * H));
@@ -147,8 +193,8 @@ addEventListener('error', e => __out({ error: String(e.error?.stack ?? e.message
   out.bgColors = bg.length ? [...new Set(bg)] : null; out.transparent = alpha; out.pngPx = [cv.width, cv.height];
   const lum = ([r, g, b]) => { const f = c => { c /= 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-  try { let nt = null; const nurl = ${JSON.stringify(noTextUrl)}; if (nurl) { const ni = new Image(); await new Promise((res, rej) => { ni.onload = res; ni.onerror = () => rej(new Error('notext png')); ni.src = nurl; }); const c2 = document.createElement('canvas'); c2.width = ni.naturalWidth; c2.height = ni.naturalHeight; nt = c2.getContext('2d', { willReadFrequently: true }); nt.drawImage(ni, 0, 0); } out.overlap = measureOverlap(document, root, out.free, out.m.texts, nt, S, cx); } catch (e) { out.overlap = { error: String(e?.message ?? e) }; }
-  out.contrast = out.m.texts.map(t => { const b = t.bbox; const pts = []; const x0 = Math.round(b.x * S), y0 = Math.round(b.y * S), x1 = Math.round((b.x + b.w) * S), y1 = Math.round((b.y + b.h) * S); for (let i = 0; i <= 8; i++) { const x = x0 + (x1 - x0) * i / 8; pts.push([x, y0 - 4], [x, y1 + 4]); const y = y0 + (y1 - y0) * i / 8; pts.push([x0 - 4, y], [x1 + 4, y]); } let n = 0, L = 0; for (const [x, y] of pts) { if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) continue; const d = cx.getImageData(Math.round(x), Math.round(y), 1, 1).data; if (d[3] < 128) continue; L += lum(d); n++; } if (!n || !t.color) return { role: t.role, ratio: null }; const lb = L / n, lt = lum(hexRgb(t.color)); const ratio = (Math.max(lb, lt) + 0.05) / (Math.min(lb, lt) + 0.05); return { role: t.role, ratio: Math.round(ratio * 10) / 10 }; });
+  try { let nt = null; const nurl = ${JSON.stringify(noTextUrl)}; if (nurl) { const ni = new Image(); await new Promise((res, rej) => { ni.onload = res; ni.onerror = () => rej(new Error('notext png')); ni.src = nurl; }); const c2 = document.createElement('canvas'); c2.width = ni.naturalWidth; c2.height = ni.naturalHeight; nt = c2.getContext('2d', { willReadFrequently: true }); nt.drawImage(ni, 0, 0); } out.overlap = measureOverlap(document, root, out.free, out.m.texts, nt, S, cx); try { out.logoVis = await measureLogo(document, root, nt, S); } catch (e) { out.logoVis = { error: String(e?.message ?? e) }; } } catch (e) { out.overlap = { error: String(e?.message ?? e) }; }
+  out.contrast = out.m.texts.map(t => { const b = t.bbox; const pts = []; const x0 = Math.round(b.x * S), y0 = Math.round(b.y * S), x1 = Math.round((b.x + b.w) * S), y1 = Math.round((b.y + b.h) * S); for (let i = 0; i <= 8; i++) { const x = x0 + (x1 - x0) * i / 8; pts.push([x, y0 - 4], [x, y1 + 4]); const y = y0 + (y1 - y0) * i / 8; pts.push([x0 - 4, y], [x1 + 4, y]); } let n = 0, L = 0; for (const [x, y] of pts) { if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) continue; const d = cx.getImageData(Math.round(x), Math.round(y), 1, 1).data; if (d[3] < 128) continue; L += lum(d); n++; } if (!n || !t.color) return { role: t.role, ratio: null }; const lb = L / n, lt = lum(hexRgb(t.color)); const ratio = (Math.max(lb, lt) + 0.05) / (Math.min(lb, lt) + 0.05); return { role: t.role, ratio: Math.round(ratio * 10) / 10, bg: Math.round(lb * 1000) / 1000 }; });
 } catch (e) { out.error = String(e?.stack ?? e); } __out(out); })();
 </script>`;
 
@@ -177,17 +223,19 @@ export function kvSubjectBox(kvRect, focus) {
   if (!focus) return { x: kvRect.x, y: kvRect.y, w: kvRect.w, h: kvRect.h };
   return { x: r.x + (focus.x - focus.w / 2) * r.w, y: r.y + (focus.y - focus.h / 2) * r.h, w: focus.w * r.w, h: focus.h * r.h };
 }
-export function typoRulesOf({ specId, rules, measure, free, kvFocus = null, kvKind = null }) {
+export function typoRulesOf({ specId, rules, measure, free, kvFocus = null, kvKind = null, subj = null }) {
   const spec = SPECS[specId]; if (!spec || !measure?.texts?.length) return null;
   const rows = typoRowsOf(measure, free);
-  const kv = kvKind === 'cutout' ? kvSubjectBox(free?.kvRect, kvFocus) : null;   // 배경 있는 그림은 글자 쪽을 녹이므로 안 잰다(core/typoaudit 과 같은 원칙)
+  // 주인공 상자는 요소 상자(·clip-path) 안으로 자른다(11-09 6단계 r1: cover 로 요소보다 크게 그린 그림의 바깥 — 요소가 잘라 안 보이는 부분 — 까지 재어 「글자와 키비주얼 98px 겹침」 오탐 5건)
+  const sb = kvKind === 'cutout' && subj?.objects?.length ? subjectBoxes(subj.objects, kvFocus)[0]?.s ?? null : null;
+  const kv = kvKind === 'cutout' ? (sb && sb.w > 0 && sb.h > 0 ? sb : kvSubjectBox(free?.kvRect, kvFocus)) : null;   // 배경 있는 그림은 글자 쪽을 녹이므로 안 잰다(core/typoaudit 과 같은 원칙)
   const sa = rules?.safeArea ?? {};
   const out = typoAuditNorms({ W: spec.w, H: spec.h, rows, logo: measure.logo?.bbox ?? null, kv, specId, safe: sa.hard ? { l: sa.left, r: sa.right, t: sa.top, b: sa.bottom } : null });
   return { ...out, issues: out.fails.map(f => `4항-${f.rule} ${f.code}: ${f.msg}`) };
 }
 
 // 한 안 렌더 + 검수. 반환 audit(파일도 쓴다). 동기판(CLI·스크립트)과 비동기판(서버 — 이벤트 루프를 막지 않는다)이 앞뒤 절반을 같이 쓴다
-function renderPrep(e, outDir, { kvFocus = null, kvKind = null } = {}) {
+function renderPrep(e, outDir, { kvFocus = null, kvKind = null, kvMeta = null } = {}) {
   const spec = SPECS[e.specId]; if (!spec) throw new Error('규격 없음: ' + e.specId);
   mkdirSync(outDir, { recursive: true });
   const K = e.caseId ? caseOf(e.caseId) : null;
@@ -200,11 +248,11 @@ function renderPrep(e, outDir, { kvFocus = null, kvKind = null } = {}) {
   const doc = docOf(html);
   writeFileSync(base + '.html', doc);
   const shotArgs = [`--window-size=${spec.w},${spec.h}`, `--force-device-scale-factor=${scale}`, '--virtual-time-budget=6000', `--screenshot=${base}.png`, pathToFileURL(base + '.html').href];
-  // 글자만 지운 렌더(겹침 실측용) — 글자 뒤 판·스크림·라벨 바탕은 남는다
-  writeFileSync(base + '.notext.html', doc.replace('</head>', '<style>[data-field],[data-field] *{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;text-decoration-color:transparent!important}</style></head>'));
+  // 글자(와 로고)만 지운 렌더(겹침·로고 보임 실측용) — 글자 뒤 판·스크림·라벨 바탕은 남는다
+  writeFileSync(base + '.notext.html', doc.replace('</head>', '<style>[data-field],[data-field] *{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;text-decoration-color:transparent!important}[data-logo]{visibility:hidden!important}</style></head>'));
   const noTextArgs = [`--window-size=${spec.w},${spec.h}`, `--force-device-scale-factor=${scale}`, '--virtual-time-budget=6000', `--screenshot=${base}.notext.png`, pathToFileURL(base + '.notext.html').href];
   const measureArgs = () => { writeFileSync(base + '.measure.html', doc.replace('</body>', MEASURE(pathToFileURL(base + '.png').href, scale, existsSync(base + '.notext.png') ? pathToFileURL(base + '.notext.png').href : null) + '</body>')); return [`--window-size=${spec.w + 40},${spec.h + 40}`, '--virtual-time-budget=10000', '--dump-dom', pathToFileURL(base + '.measure.html').href]; };
-  return { e, spec, K, html, rules, brief, v, base, kvFocus, kvKind, shotArgs, noTextArgs, measureArgs, t0: Date.now() };
+  return { e, spec, K, html, rules, brief, v, base, kvFocus, kvKind, kvMeta, shotArgs, noTextArgs, measureArgs, t0: Date.now() };
 }
 function renderFinish(P, dom) {
   const { e, spec, K, html, rules, brief, v, base } = P;
@@ -217,10 +265,16 @@ function renderFinish(P, dom) {
   const free = q.free ?? null;
   const focus = P.kvFocus ?? K?.meta?.field?.focus ?? null, kind = P.kvKind ?? K?.meta?.field?.kind ?? null;
   const info = measure ? infoBlockIssues(html, { free }) : null;
-  const typoRules = measure ? typoRulesOf({ specId: e.specId, rules, measure, free, kvFocus: focus, kvKind: kind }) : null;
+  const typoRules = measure ? typoRulesOf({ specId: e.specId, rules, measure, free, kvFocus: focus, kvKind: kind, subj: q.subj && !q.subj.error ? q.subj : null }) : null;
   const lowContrast = (q.contrast ?? []).filter(c => c.ratio != null && c.ratio < 4.5);
   const overlap = Array.isArray(q.overlap) ? overlapAudit({ W: spec.w, H: spec.h, fields: q.overlap }) : null;   // 11-09 글자 ↔ 사진(실측 대비)·장식 겹침
-  const audit = { overlap, specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - P.t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
+  // 11-09 6단계: 앱 디자인 검수와 같은 주인공 판정(글자-주인공 15% · 로고 가림 5%). 주인공 = profileFocus(kvMeta.field) — 앱(core/adcheck.js)과 같은 함수
+  const km = P.kvMeta ?? K?.meta ?? null; let subject = null;
+  if (q.subj && !q.subj.error && q.subj.objects?.length) { let sf = null; try { sf = km?.field ? profileFocus(km.field) : (P.kvFocus ?? null); } catch { sf = P.kvFocus ?? null; } subject = subjectAudit({ texts: q.subj.texts, logo: q.subj.logo, objects: q.subj.objects, focus: sf, cutout: ((km?.field?.opaque ?? 1) < 0.5) || (P.kvKind ?? km?.field?.kind) === 'cutout' }); }
+  // 로고 보임(11-09 6단계): 로고 불투명 픽셀의 절반 이상이 바탕과 2:1 이상이어야 한다
+  const logoVis = q.logoVis && !q.logoVis.error ? q.logoVis : null;
+  const logoIssues = logoVis && logoVis.visible < LOGO_VISIBLE_MIN ? [`로고 묻힘: 로고 픽셀 ${Math.round(logoVis.visible * 100)}%만 바탕과 구분(2:1 이상) — 로고 톤에 맞는 바탕(흰 로고는 어두운 바탕, 어두운 로고는 밝은 바탕)으로 자리를 옮기거나 로고 뒤에 판`] : [];
+  const audit = { logoVis, logoIssues, subject, overlap, specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - P.t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
   writeFileSync(base + '.audit.json', JSON.stringify(audit, null, 1));
   audit.verdict = !v.ok ? '계약✗' : lint.level === 'block' ? 'lint 차단' : lint.level === 'warn' ? 'lint 경고' : '통과';
   return audit;

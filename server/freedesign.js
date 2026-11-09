@@ -27,7 +27,12 @@ import { TEMPLATE_NORMS } from '../core/template-norms.js';
 import { typoNormsFor, TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';
 import { kvTypeOf } from '../core/kvtypes.js';
 import { languageLines, languageOf, languageFromHtml, mergeLanguage } from '../core/freelang.js';
-import { fixStack } from '../core/freequick.js';
+import { fixStack, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast } from '../core/freequick.js';
+import { profileFocus } from '../core/field.js';
+
+// 주인공 상자(원본 비율) — 앱 디자인 검수(core/adcheck.js)와 같은 profileFocus(meta.field). 사진에 focus 가 없으면 줄·열 프로필로 어림한 상자
+export function focusOf(meta) { try { if (meta?.field) return profileFocus(meta.field) ?? null; } catch {} return meta?.focus ?? null; }
+const r2 = v => Math.round(v * 100) / 100;
 
 registerAll();
 
@@ -65,17 +70,17 @@ export const DEFAULT_STYLES = STYLE_DIRECTIONS.filter(s => s.default).map(s => s
 export const COMPOSITION_BAN = '「글자 왼쪽 · 키비주얼 오른쪽」을 세로 직선으로 반 나눈 단순 분할은 쓰지 않는다(평가 54건 중 22건이 이 구성, 좋음 0).';
 export const COMPOSITIONS = [
   { id: 'bleed', name: '전면 비주얼 + 글자 오버레이', kind: 'composition', kvArea: [0.85, 1],
-    hint: '키비주얼이 지면 전체를 덮는다 — 사진·바탕 있는 그림은 background-size:cover 로 캔버스 전체(주인공이 잘리지 않게 background-position 을 주인공 쪽으로), 누끼는 지면 높이 90~130%로 크게 키워 한 변 밖으로 흘린다. 글자는 그림의 빈 쪽(하늘·바닥·여백) 위에 올리고, 가독은 단색→투명 스크림 한 장 또는 글자 뒤 반투명 판 하나로. 주인공 얼굴·몸통 위 글자 금지.' },
+    hint: '키비주얼이 지면 전체를 덮는다 — 사진·바탕 있는 그림은 background-size:cover 로 캔버스 전체(주인공이 잘리지 않게 background-position 을 주인공 쪽으로), 누끼는 지면 높이 90~130%로 크게 키워 한 변 밖으로 흘린다. 글자는 그림의 빈 쪽(하늘·바닥·여백) 위에 올리고, 가독은 단색→투명 스크림 한 장 또는 글자 뒤 반투명 판 하나로. 주인공 얼굴·몸통 위 글자 금지. 그림 비율이 지면과 많이 달라도 그림을 작은 상자에 넣고 옆에 회색·단색 띠를 남기지 않는다(cover 로 채우거나, 한쪽에 붙이고 가장자리색으로 녹인다 — 11-09 r1 1080 에서 띠 남긴 안 2점).' },
   { id: 'motif', name: '그래픽 모티프 지면', kind: 'composition', kvArea: [0.3, 0.45],
-    hint: '키비주얼에서 뽑은 모양(원·호·띠·격자·물결·별·셀 등 그림의 형태 언어)과 대표색으로 인라인 SVG(또는 CSS 도형)를 만들어 지면에 반복·확대 배치한다 — 최소 2개 요소가 리듬을 이룬다. 키비주얼은 캔버스 30~45% 중간 크기로 모티프와 엮는다(모티프가 그림 뒤를 지나가거나 그림을 감싼다). 모티프가 글자 아래를 지나가도 되지만 글자 바로 뒤 대비 4.5:1 유지.' },
+    hint: '키비주얼에서 뽑은 모양(원·호·띠·격자·물결·별·셀 등 그림의 형태 언어)과 대표색으로 인라인 SVG(또는 CSS 도형)를 만들어 지면에 반복·확대 배치한다 — 최소 2개 요소가 리듬을 이룬다. 키비주얼은 캔버스 30~45% 중간 크기로 모티프와 엮는다(모티프가 그림 뒤를 지나가거나 그림을 감싼다). 모티프 도형은 글자 덩어리(글자 상자 + 여백 0.5em)와 겹치지 않게 비운 자리에 둔다 — 도형 가장자리·선이 글자를 가로지르면 반려(11-09 r2 반려 1위). 글자 전체를 덮는 넓은 바탕 면은 예외.' },
   { id: 'typehero', name: '타이포 주도 + 키비주얼 작게', kind: 'composition', kvArea: [0.15, 0.25],
     hint: '메인 글자가 지면의 주인 — 분포 상위 이상으로 크게(메인 글자 덩어리 높이가 캔버스 짧은 변의 30~45%), 강조 한 단어는 색 또는 태그. 키비주얼은 캔버스 15~25%로 작게 — 원형·라운드 창, 글자 줄 끝에 붙는 스티커, 또는 메인 글자와 맞물리게. 지면은 단색 또는 아주 약한 같은 색상 그라데이션.' },
   { id: 'diagonal', name: '분할 대각·곡선', kind: 'composition', kvArea: [0.35, 0.55],
-    hint: '지면을 대각선(15~35°) 또는 큰 곡선(호)으로 두 면으로 나눈다(clip-path polygon 또는 인라인 SVG path). 두 면은 대비되는 색(키비주얼 대표색 + 그 짝색 또는 딥톤). 키비주얼은 한 면에 두되 경계선을 넘어 걸치게 해 두 면을 잇는다. 세로 직선 50:50 분할은 금지.' },
+    hint: '지면을 대각선(15~35°) 또는 큰 곡선(호)으로 두 면으로 나눈다(clip-path polygon 또는 인라인 SVG path). 한 면 = 키비주얼 면(사진·바탕 있는 그림은 이 면 안에만 clip-path 로 cover — 주인공이 면 안에 온전히), 다른 면 = **글자 면: 단색 또는 같은 색 2색 그라데이션만**(사진·패턴·도형이 글자 아래를 지나가지 않는다). 글자 상자(가장 긴 줄 끝까지)는 전부 글자 면 안, 사선 경계에서 메인 글자 1em 이상 떨어뜨린다 — 사선이 글자 쪽으로 기울어 끝 글자가 사진 위로 넘어가면 반려. 키비주얼 면은 사진으로 꽉 채운다(면 안에 회색·단색 빈 띠 금지 — 11-09 r2). 누끼만 경계선을 넘어 걸쳐 두 면을 잇는다. 장식 원·도형은 키비주얼 면 쪽에만. 세로 직선 50:50 분할은 금지.' },
   { id: 'frame', name: '카드·프레임', kind: 'composition', kvArea: [0.4, 0.6],
     hint: '지면 위에 라운드 카드(창) 하나를 띄우고 키비주얼을 카드 안에 cover 로 담는다(radius 16~32px, 얇은 테두리 또는 부드러운 그림자). 글자는 카드 밖 지면 또는 카드 아래 띠에. 카드는 캔버스의 40~60%, 살짝 기울이거나 두 장을 겹쳐도 좋다. 누끼는 카드 밖으로 머리·몸 일부가 튀어나오게.' },
   { id: 'axis', name: '가운데 축(대칭)', kind: 'composition', kvArea: [0.4, 0.6],
-    hint: '글자를 가운데 정렬로 위(또는 아래)에 모으고 키비주얼을 가운데 축에 크게 세운다(캔버스 40~60%). 좌우 대칭의 안정감 — 정보 블록도 가운데 정렬(라벨 규칙은 그대로). 배경은 주인공 뒤 후광(원형 그라데이션)이나 바닥 그림자로 깊이를 준다.' },
+    hint: '글자(서브·메인·정보 블록)를 **한 덩어리로** 가운데 정렬해 위 또는 아래 한쪽에만 모으고(키비주얼 위아래로 글자를 나누면 간격 규칙에 걸려 반려) 키비주얼을 가운데 축에 크게 세운다(캔버스 40~60%). 좌우 대칭의 안정감 — 정보 블록도 가운데 정렬(라벨 규칙은 그대로). 배경은 주인공 뒤 후광(원형 그라데이션)이나 바닥 그림자로 깊이를 준다.' },
 ];
 export const compositionOf = id => COMPOSITIONS.find(c => c.id === id) ?? null;
 export const styleOf = id => STYLE_DIRECTIONS.find(s => s.id === id) ?? compositionOf(id) ?? null;
@@ -89,11 +94,12 @@ export function pickCompositions(kvMeta = null, rules = null, n = 3) {
   else if (kind === 'photo') ids = ['bleed', 'diagonal', 'frame'];
   else if (kind === 'illust') ids = ['bleed', 'frame', 'typehero'];
   else if (kind === 'texture' || kind === 'pattern') ids = ['bleed', 'typehero', 'motif'];
-  else if (kind === 'cutout') ids = character ? ['axis', 'motif', 'bleed'] : ['motif', 'bleed', 'typehero'];
+  else if (kind === 'cutout') ids = character ? ['axis', 'motif', 'typehero'] : ['motif', 'typehero', 'axis'];   // 11-09 6단계 r1: 누끼 전면(bleed)은 1/6 통과(주인공이 글자와 겹치거나 아래가 뚝 잘림) → 가운데 축
   else ids = ['typehero', 'motif', 'diagonal'];
   const ar = rules?.w && rules?.h ? rules.w / rules.h : 1;
   const swap = (from, to) => { const i = ids.indexOf(from); if (i >= 0 && !ids.includes(to)) ids[i] = to; };
-  if (ar >= 3) { swap('axis', 'typehero'); swap('frame', 'motif'); }
+  const swapAny = (from, tos) => { const i = ids.indexOf(from); if (i < 0) return; const to = tos.find(t => !ids.includes(t)); if (to) ids[i] = to; };
+  if (ar >= 3) { swapAny('axis', ['typehero', 'motif', 'diagonal', 'bleed']); swap('frame', 'motif'); }
   if (ar <= 0.8) swap('diagonal', 'axis');
   const spare = ['typehero', 'motif', 'diagonal', 'frame', 'bleed', 'axis'].filter(x => !ids.includes(x));
   while (ids.length < n && spare.length) ids.push(spare.shift());
@@ -128,6 +134,7 @@ export function typoRuleLines(specId, rules) {
     `- 서브→메인 ≥ ${F.gapSubMain}em · 메인→정보 블록 ≥ ${F.gapMainInfo}em · 정보 블록 행 ≥ ${F.gapInfoRow}em — 너무 붙으면 ✗`,
     `- 모든 글자 쌍 간격 ≤ 메인 px × ${N.gap.hi}(${N.source} 줄 간격 상위10%; 메인 ${mainMid}px 이면 ${Math.round(N.gap.hi * mainMid)}px) — 너무 벙벙하면 ✗`,
     `- 글자 ↔ 키비주얼(누끼 주인공)·로고: 겹침 0 · 거리 ≥ 메인 px × ${F.assetGap} · 키비주얼은 규격 긴 변 ${F.assetGapMaxFrac * 100}%(${Math.round(Math.max(w, h) * F.assetGapMaxFrac)}px) 이하 — 그 이상 비면 글자·그림을 키운다`,
+    `- 가장 작은 글자(고지 제외) ≥ ${Math.max(10, Math.round(S * 0.022))}px — 정보 블록(날짜·직무)도 이보다 작으면 ✗`,
     `- 잘림 · 낱말 안 줄바꿈(한글도 어절 끝에서만 — <br> 로 네가 정한다) · 규격 밖 · 안전영역 밖 0`,
     `- 참고 분포(검증하지 않음, ${N.source} 하위10%~상위10%·중앙): 왼쪽 여백 ${pd(N.padL.lo)}~${pd(N.padL.hi)}px(중앙 ${pd(N.padL.mid)}) · 위 여백 ${pd(N.padT.lo)}~${pd(N.padT.hi)}px(중앙 ${pd(N.padT.mid)}) · 메인 글자 ${px(N.main.lo)}~${px(N.main.hi)}px(중앙 ${mainMid}) · 서브/메인 ${N.r2.lo}~${N.r2.hi}(중앙 ${N.r2.mid}) · 날짜/메인 ≤ ${BP.date} · 상세/메인 ≤ ${BP.detail} · 글자 덩어리 폭은 가로형 60%·정사각 85% 안쪽이 보통`,
   ];
@@ -156,7 +163,8 @@ export function infoBlockIssues(html, measure = null) {
   if (F) {
     const rows = els.map(e => ({ role: e.role, f: F[e.role] })).filter(r => r.f);
     const labs = rows.filter(r => r.f.label);
-    if (labs.length >= 2) {
+    const oneRow = rows.length >= 2 && rows.every(r => r.f.ink) && rows.every(r => Math.abs(r.f.ink.y - rows[0].f.ink.y) < Math.min(...rows.map(x => x.f.fontPx || 16)) * 0.5);   // 가로 1행(구분선형) — 라벨 폭·값 x 는 열이 아니다(11-09 r1 오탐)
+    if (labs.length >= 2 && !oneRow) {
       const ws = labs.map(r => r.f.label.bbox.w); if (Math.max(...ws) - Math.min(...ws) > 2) issues.push(`3항 라벨 폭 다름: ${labs.map(r => `${r.role} ${Math.round(r.f.label.bbox.w)}px`).join(' · ')} — 라벨은 고정 폭 한 열`);
       const xs = labs.map(r => r.f.valueX).filter(v => v != null); if (xs.length >= 2 && Math.max(...xs) - Math.min(...xs) > 2) issues.push(`3항 값 시작 x 다름: ${labs.filter(r => r.f.valueX != null).map(r => `${r.role} ${Math.round(r.f.valueX)}px`).join(' · ')}`);
     }
@@ -182,10 +190,13 @@ export const REVISE_MODEL = process.env.FREEDESIGN_REVISE_MODEL ?? 'sonnet';
 export const SUGGEST_MODEL = process.env.FREEDESIGN_SUGGEST_MODEL ?? null;   // null = 로그인 계정 기본(측정 후 결정 — history 11-09)
 export const PARALLEL = Math.max(1, Number(process.env.FREEDESIGN_PARALLEL ?? 3) || 3);
 export const RETRY_MODEL = process.env.FREEDESIGN_RETRY_MODEL ?? 'sonnet';   // 게이트 재요청(걸린 것만 고치기)은 짧은 프롬프트 + 빠른 모델
+// 호출 시간 상한(11-09 6단계 r2: sonnet 재요청 한 번이 508s — 3안 전체가 592s). 재요청은 넘기면 그 안을 반려로 끝낸다
+export const RETRY_TIMEOUT_MS = Number(process.env.FREEDESIGN_RETRY_TIMEOUT_MS ?? 120_000);
+export const GEN_TIMEOUT_MS = Number(process.env.FREEDESIGN_GEN_TIMEOUT_MS ?? 420_000);
 export const IMAGE_MODE = process.env.FREEDESIGN_IMAGE_MODE ?? 'stream';
-// 생각 길이(--effort) — 11-09 실측: revise 프롬프트 sonnet 기본 80s → low 21s(출력 1.8k 토큰). 설계(suggest·spread)는 medium, 고치기(revise·재요청)는 low
+// 생각 길이(--effort) — 11-09 실측: revise 프롬프트 sonnet 기본 80s → low 21s(출력 1.8k 토큰). 설계(suggest·spread)도 low(11-09 6단계 r2), 고치기(revise·재요청) low
 export const CC_SYSTEM = '너는 채용 광고 소재를 HTML/CSS 로 디자인하는 아트디렉터다. 도구나 스킬을 쓰지 않고, 사용자 메시지가 정한 출력 형식(```html 코드 블록 + NOTES 등)으로만 답한다.';
-export const DESIGN_EFFORT = process.env.FREEDESIGN_EFFORT ?? 'medium';
+export const DESIGN_EFFORT = process.env.FREEDESIGN_EFFORT ?? 'low';   // 11-09 6단계 r2: medium → low 로 첫 카드 117→76s · 3안 229→171s, 눈 점수 3.46→3.61(프롬프트·게이트 고침 포함) — 떨어지지 않아 low
 export const FAST_EFFORT = process.env.FREEDESIGN_FAST_EFFORT ?? 'low';     // 서버 기본: 그림을 메시지에 직접(Read 도구 왕복 없음 — 11-09 실측 7.5s 확인)
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -266,7 +277,11 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   L.push(`- 글꼴: ${fo.required ? `**${fo.required} 고정**(매체 규정)` : `다음 중에서만: ${(fo.allowed ?? []).join(', ')}`}${fo.defaultFamily ? ` · 기본 ${fo.defaultFamily}` : ''}${fo.weights?.length ? ` · 보유 굵기 ${fo.weights.join('/')}` : ''}. font-family 에 이 이름을 그대로 쓴다(@font-face 는 앱이 넣는다 — 네가 쓰지 않는다).`);
   const lg = rules.logo ?? {};
   if (lg.forbidden || lg.count === 0) L.push(`- 로고: **삽입 불가** — <img data-logo> 를 넣지 않는다.`);
-  else if (logo?.dataUrl) L.push(`- 로고: 최대 ${lg.count ?? 1}개${lg.w || lg.h ? ` · 크기 ${lg.w ?? '?'}×${lg.h ?? '?'}px` : ''} · 원본 비율 유지(object-fit:contain) · 안전영역 안 · 톤 ${logo.tone === 'light' ? '밝음(어두운 바탕 필요)' : '어두움/유색(밝은 바탕 필요)'}`);
+  else if (logo?.dataUrl) {
+    const lc = (logo.colors ?? []).filter(c => c?.hex);
+    L.push(`- 로고: 최대 ${lg.count ?? 1}개${lg.w || lg.h ? ` · 크기 ${lg.w ?? '?'}×${lg.h ?? '?'}px` : ''} · 원본 비율 유지(object-fit:contain) · 안전영역 안 · 톤 ${logo.tone === 'light' ? '밝음(어두운 바탕 필요)' : '어두움/유색(밝은 바탕 필요)'}${lc.length ? ` · 로고 색 ${lc.map(c => `${c.hex} ${Math.round((c.share ?? 0) * 100)}%`).join(' · ')}` : ''}`);
+    L.push(`  - **로고가 바탕에 묻히면 반려**(검증기가 로고 픽셀마다 바로 아래 바탕과 대비를 잰다 — 픽셀 절반 이상이 2:1 이상). ${lc.length >= 2 && lc.some(c => /^#F[0-9A-F]F[0-9A-F]F[0-9A-F]$/i.test(c.hex)) && lc.some(c => !/^#F/i.test(c.hex)) ? '흰색과 진한 색이 섞인 로고 — 흰 부분과 진한 부분이 모두 보이는 중간 톤(브랜드 원색·채도 있는 색) 바탕, 또는 로고 뒤에 그런 색 판을 둔다. 흰 지면·크림 지면 위에 그대로 두지 않는다.' : '로고 톤과 반대 밝기의 바탕에 둔다.'}`);
+  }
   else L.push(`- 로고: 없음 — data-logo 요소를 만들지 않는다.`);
   if (rules.background) L.push(`- 배경 규정: ${String(rules.background).slice(0, 500)}`);
   if (rules.backgroundBanned?.length) L.push(`- **배경 금지색**: ${rules.backgroundBanned.join(' ')} (같은 색은 반려 — 근접색도 피한다)`);
@@ -288,10 +303,14 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   L.push(`## 키비주얼`);
   if (kv?.dataUrl || images.kv) {
     const px = Array.isArray(kvMeta.px) ? `${kvMeta.px[0]}×${kvMeta.px[1]}px` : '';
-    const fc = f.focus ?? kvMeta.focus;
+    const fc0 = focusOf(kvMeta); const fc = fc0 ? { x: r2(fc0.x), y: r2(fc0.y), w: r2(fc0.w), h: r2(fc0.h) } : null;
     L.push(`- 유형 ${kvKindLabel(f.kind ?? kvMeta.kind)} · 원본 ${px} 비율 ${kvMeta.ar ? Number(kvMeta.ar).toFixed(3) : '?'}${kvMeta.colors?.length ? ` · 대표색 ${kvMeta.colors.join(' ')}` : ''}${kvMeta.edge ? ` · 가장자리색 ${kvMeta.edge}` : ''}${f.lum != null ? ` · 밝기 ${f.lum}` : ''}${fc ? ` · 주인공 위치(원본 비율) 중심 (${fc.x}, ${fc.y}) 크기 ${fc.w}×${fc.h}` : ''}`);
     if (images.kv) L.push(`- 그림 파일: ${images.kv} — **먼저 Read 도구로 열어 눈으로 본 뒤** 디자인한다.`);
     else if (images.inline) L.push(`- 그림은 첫 번째 이미지로 첨부했다.`);
+    if (fc) {   // 11-09 6단계: 앱 디자인 검수와 같은 판정을 게이트가 실측 — 주인공 상자를 지면 좌표로 환산해 글자·로고를 피한다
+      L.push(`- **주인공 상자**(원본 그림 비율 0~1): x ${r2(fc.x - fc.w / 2)}~${r2(fc.x + fc.w / 2)} · y ${r2(fc.y - fc.h / 2)}~${r2(fc.y + fc.h / 2)}. 그림을 그린 위치·크기(cover·position)로 지면 좌표에 환산해, **글자 잉크가 이 상자와 15% 이상 겹치거나 로고가 5% 넘게 겹치면 반려**(검증기가 렌더로 실측 — 앱 디자인 검수와 같은 기준). 검증기는 키비주얼 요소 상자와 background-size·position(또는 object-fit)으로 그림이 그려진 자리를 잰다 — clip-path·mask 로 가린 부분도 그림으로 센다. 그러니 그림을 한 면에만 두려면 **요소 상자 자체를 그 면 크기로** 만들거나 background-size·position 으로 그 면에만 그린다.`);
+      if ((f.opaque ?? 1) >= 0.5 && fc.w * fc.h >= 0.55) L.push(`- 이 그림은 주인공이 그림의 ${Math.round(fc.w * fc.h * 100)}%를 차지한다 — 그림을 지면 전체에 깔고 그 위에 글자를 올리면 반려된다. 그림은 지면의 한쪽(55~70%)만 덮게 놓고(background-size 를 높이 또는 폭 100% 로, position 을 한쪽 끝으로), 나머지는 그림 가장자리색 단색 면으로 마스크(mask-image) 녹여 잇고, 글자·로고는 그 단색 면에만.`);
+    }
     L.push(`- HTML 에서는 \`${KV_PLACEHOLDER}\` 자리표시를 쓴다: <div data-object="1" style="position:absolute;…;background:url('${KV_PLACEHOLDER}') center/cover no-repeat"> 또는 <img data-kv="1" src="${KV_PLACEHOLDER}">. 서버가 실제 그림으로 바꾼다. 왜곡 금지(background-size 는 cover/contain/한 축 auto).`);
   } else L.push(`- 키비주얼 없음 — 글자와 배경 그래픽만으로.`);
   if (logo?.dataUrl && !(lg.forbidden || lg.count === 0)) L.push(`- 로고 자리표시: <img data-logo="1" src="${LOGO_PLACEHOLDER}" style="position:absolute;…;object-fit:contain">${images.logo ? ` (파일: ${images.logo} — Read 로 본다)` : ''}`);
@@ -308,7 +327,7 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
     L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·그라데이션·마스크(mask-image)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다(카드·프레임처럼 의도한 테두리는 예외).`);
     L.push(`4. 지면·그래픽·패턴·컬러·강조(태그·색·굵기)·글꼴 섞기는 자유 — 키비주얼과 어울리는 그래픽(키비주얼의 모양·색에서 뽑은 SVG/CSS 도형·패턴)을 과감하게. 단 글자 가독과 위계를 해치지 않는다.`);
     L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 4.5:1 이상(24px 이상 굵은 글자는 3:1). 강조색 한 가지까지.`);
-    L.push(`   - 글자 상자(가장 긴 줄 끝까지)가 사진 위로 넘어가지 않게 — 넘으면 줄을 나누거나 글자 뒤에 판·스크림. 장식(SVG 도형·별·선·원)은 글자 획에서 떨어뜨린다(글자에 걸치면 반려 — 검증기가 글자 없는 렌더로 실측).`);
+    L.push(`   - 글자 상자(가장 긴 줄 끝까지)가 사진 위로 넘어가지 않게 — 넘으면 줄을 나누거나 글자 뒤에 판·스크림. 장식(SVG 도형·별·선·원·호·물결)은 글자 덩어리 밖에 — 도형의 가장자리·선이 글자 상자를 지나가면 반려(검증기가 글자 없는 렌더로 실측). 큰 원·호를 글자 뒤로 걸치는 연출은 쓰지 않는다.`);
   } else {
   L.push(`2. 키비주얼이 작거나 허전하지 않게 — 캔버스의 35~55%를 차지하게, 누끼는 지면 높이의 70% 이상, 사진·일러스트는 한 변으로 흘려도 된다(잘리는 몫 ≤ 30%). 주인공 위에는 글자를 올리지 않는다.`);
   L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·한 방향 그라데이션·마스크(mask-image 의 linear-gradient)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다. 글자 가독을 위한 스크림은 단색→투명 linear-gradient 한 장까지.`);
@@ -316,7 +335,12 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 4.5:1 이상. 글자는 흰 또는 #111 단색, 강조는 브랜드 포인트색 한 단어까지.`);
   }
   const nl = normsLine(specId, rules.w, rules.h); if (nl) L.push(`6. 청사진 분포 참고 — ${nl}.`);
-  if (input.language) { L.push(''); L.push(...languageLines(input.language)); L.push(`- 이 규격의 비율·안전영역·글자 수에 맞게 자리와 크기만 새로 짠다. ${COMPOSITION_BAN}`); }
+  if (input.language) {
+    L.push(''); L.push(...languageLines(input.language)); L.push(`- 이 규격의 비율·안전영역·글자 수에 맞게 자리와 크기만 새로 짠다. ${COMPOSITION_BAN}`);
+    const lc = input.language.composition?.id;
+    if (lc === 'diagonal') L.push(`- 분할 대각 구성을 이 비율로 옮길 때(11-09 펼치기 반려 잦음): 사선 각도는 규격에 맞게 다시 정한다(가로 띠는 거의 세로에 가까운 짧은 사선, 세로형은 가로에 가까운 사선). 글자 면은 단색(또는 같은 색 그라데이션)만 — 사진·장식이 글자 아래로 지나가지 않게, 글자 상자는 사선에서 메인 1em 이상 떨어뜨린다. 글자 덩어리가 들어갈 단색 면이 모자라면 사선을 키비주얼 쪽으로 민다.`);
+    else if (lc === 'bleed') L.push(`- 전면 구성을 이 비율로 옮길 때: 글자 쪽은 스크림·판으로 가독을 먼저 확보하고, 주인공 상자(위 키비주얼 줄)와 글자·로고가 겹치지 않게 그림 position 을 다시 정한다.`);
+  }
   else if (dir?.kind === 'composition') {
     L.push('');
     L.push(`## 구성: ${dir.name}(${dir.id}) — 이 안의 뼈대. 다른 안과 구성이 겹치지 않게 이 지시를 분명히 드러낸다`);
@@ -410,6 +434,30 @@ const textOfField = inner => String(inner).replace(/<br\s*\/?>/gi, '\n').replace
 // 문구 비교 — 공백·물결/하이픈(기간 구분)·쉼표/가운뎃점(나열 구분) 차이는 같은 글로 본다
 const squash = s => String(s ?? '').replace(/\s+/g, '').replace(/[~\-–—]/g, '-').replace(/[,·|]/g, '·');
 
+// ── 문구 자동 고침(11-09 6단계 r3) — 「브리프 문구가 아님」만 걸렸을 때, 그 역할 글을 가장 가까운 허용 문구로 바꾼다. 라벨(첫 자식 span/b)은 두고 값만.
+export const isCopyError = e => /^(main|sub|date|detail) 문구 「[\s\S]*」 — 브리프 문구가 아님/.test(String(e));
+const bigrams = t => { const x = squash(t); const out = new Set(); for (let i = 0; i < x.length - 1; i++) out.add(x.slice(i, i + 2)); return out; };
+const simOf = (a, b) => { const A = bigrams(a), B = bigrams(b); if (!A.size || !B.size) return 0; let k = 0; for (const g of A) if (B.has(g)) k++; return 2 * k / (A.size + B.size); };
+export function fixCopy(html, brief, errors) {
+  let h = String(html ?? ''); const copy = copyOptions(brief);
+  for (const role of new Set(errors.map(e => /^(\w+) 문구/.exec(e)?.[1]).filter(Boolean))) {
+    const opts = copy[role] ?? []; if (!opts.length) return null;
+    const re = new RegExp(`(<([a-z0-9]+)\\b[^>]*data-field="${role}"[^>]*>)([\\s\\S]*?)(</\\2>)`, 'i'); const m = re.exec(h); if (!m) return null;
+    const inner = m[3], cur = textOfField(inner).replace(/\n/g, ' ');
+    const target = [...opts].sort((a, b) => simOf(b, cur) - simOf(a, cur))[0]; if (simOf(target, cur) < 0.3) return null;
+    const lab = /^\s*<(span|b|strong|em|i)\b[^>]*>([\s\S]*?)<\/\1>/i.exec(inner);
+    let next;
+    if (lab) {
+      const L = lab[2].replace(/<[^>]+>/g, '').trim(); const sq = squash(target), sl = squash(L);
+      let value = target; if (sl && sq.startsWith(sl)) { let i = 0, k = 0; while (k < sl.length && i < target.length) { if (squash(target[i])) k++; i++; } value = target.slice(i).trim(); }
+      const rest = inner.slice(lab[0].length); const vm = /^(\s*<(span|b|strong|em|i)\b[^>]*>)[\s\S]*?(<\/\2>\s*)$/i.exec(rest);
+      next = lab[0] + (vm ? vm[1] + esc(value) + vm[3] : esc(value));
+    } else next = esc(target);
+    h = h.slice(0, m.index) + m[1] + next + m[4] + h.slice(m.index + m[0].length);
+  }
+  return h;
+}
+
 // ── HTML 검증 — 순수 함수. errors 가 비면 통과. (픽셀 측정은 렌더 뒤 lint 가 한다)
 export function validateFreeHtml(html, input) {
   const errors = [];
@@ -455,6 +503,7 @@ export function validateFreeHtml(html, input) {
   const logoCount = (h.match(/data-logo="1"/g) ?? []).length;
   if ((rules.logo?.forbidden || rules.logo?.count === 0) && logoCount > 0) errors.push('이 규격은 로고 삽입 불가 — data-logo 제거');
   if (!logo?.dataUrl && logoCount > 0) errors.push('로고가 없는데 data-logo 요소가 있음');
+  if (logo?.dataUrl && logoCount === 0 && !(rules.logo?.forbidden || rules.logo?.count === 0)) errors.push('로고 요소(<img data-logo="1">)가 없음 — 로고를 넣는다(로고 톤에 맞는 바탕 위나 판 위에)');   // 11-09 6단계 r1: 흰 로고를 밝은 지면에서 빼 버린 안 2건
   if (typeof rules.logo?.count === 'number' && rules.logo.count > 0 && logoCount > rules.logo.count) errors.push(`로고 ${logoCount}개 — 최대 ${rules.logo.count}개`);
   // 글꼴
   const allowed = (rules.fonts?.allowed ?? []).map(s => s.toLowerCase());
@@ -604,6 +653,8 @@ export function extractIssues(text) {
 //   순환 import 라 늦게 불러온다.
 let _renderer = null;
 async function loadRenderer() { if (_renderer === null) { try { _renderer = await import('../scripts/lib/freedesign-renderer.mjs'); } catch (e) { console.warn('[freedesign] 렌더러 적재 실패(측정 생략):', e.message); _renderer = false; } } return _renderer || null; }
+export const MIN_TEXT_FRAC = 0.022;   // 가장 작은 글자(고지 제외) 하한 = √(w·h) × 2.2% — 580×400 11px · 1080 24px · 300×250 6px→ 10px 바닥
+export const minTextPx = sp => Math.max(10, Math.round(Math.sqrt(sp.w * sp.h) * MIN_TEXT_FRAC));
 export const GATE_SKIP_LINT = new Set(['weight', 'format']);   // 용량·포맷은 내보내기(JPG/PNG 선택)에서 정해진다 — PNG 측정으로 막지 않는다(11-05 기록)
 // 렌더 감사(audit) → 추천 막는 사유. 매체 규정 block · 대비(24px 이상 3:1, 그 밖 4.5:1) · 정보 블록 3항 · 간격 4항 · 그림 못 읽음
 export function gateIssues(a) {
@@ -614,6 +665,10 @@ export function gateIssues(a) {
   for (const c of a.contrast ?? []) { if (c.ratio == null) continue; const need = (byRole[c.role]?.fontPx ?? 0) >= 24 ? 3 : 4.5; if (c.ratio < need) out.push(`대비 ${c.role} ${c.ratio}:1 < ${need}:1 — 글자 뒤 바탕을 정리(스크림·판)하거나 글자색을 바꾼다`); }
   for (const x of a.info?.issues ?? []) out.push(x);
   for (const x of a.typoRules?.issues ?? []) out.push(x);
+  for (const x of a.subject?.issues ?? []) out.push(x);
+  for (const x of a.logoIssues ?? []) out.push(x);
+  { const W = a.measure?.w, H = a.measure?.h; const sp = SPECS[a.specId]; const S = sp ? Math.sqrt(sp.w * sp.h) : null;   // 11-09 6단계 r1: 1080 에서 정보 글자 14~18px(읽히지 않음)이 추천됐다
+    if (S) for (const t of a.measure?.texts ?? []) if (t.role !== 'notice' && t.fontPx && t.fontPx < minTextPx(sp)) out.push(`4항-3 tiny: ${t.role} 글자 ${Math.round(t.fontPx)}px < 최소 ${minTextPx(sp)}px(이 규격 √면적의 ${Math.round(MIN_TEXT_FRAC * 1000) / 10}%) — 정보 글자를 키운다`); }   // 11-09 6단계: 로고가 바탕에 묻힘(흰 로고 · 밝은 지면)   // 11-09 6단계: 앱 디자인 검수(core/adcheck.js)와 같은 「글자-주인공 15% · 로고 가림 5%」 — 앱에서만 잡혀 경고 카드로 추천되던 것
   for (const x of a.overlap?.issues ?? []) out.push(x);   // 11-09 글자 ↔ 사진(실측 대비)·장식 겹침(core/typoaudit.js overlapAudit)
   if (a.kvLoaded === false) out.push('키비주얼 그림을 불러오지 못함');
   return out;
@@ -621,28 +676,59 @@ export function gateIssues(a) {
 export async function measureFreeHtml(inp, html, dir, name) {
   const R = await loadRenderer(); if (!R || !R.chromeAvailable()) return null;
   const meta = inp.kv?.meta ?? {};
-  const a = await R.renderFreeAsync({ specId: inp.specId, html, rules: inp.rules, brief: inp.brief ?? {}, name }, dir, { kvFocus: meta.focus ?? meta.field?.focus ?? null, kvKind: meta.field?.kind ?? meta.kind ?? null });
+  const a = await R.renderFreeAsync({ specId: inp.specId, html, rules: inp.rules, brief: inp.brief ?? {}, name }, dir, { kvFocus: meta.focus ?? meta.field?.focus ?? null, kvKind: meta.field?.kind ?? meta.kind ?? null, kvMeta: meta.field ? meta : null });
   const rows = a.measure ? R.typoRowsOf(a.measure, a.free) : [];
   const mainPx = rows.find(r => r.role === 'main')?.px ?? null; const sa = inp.rules?.safeArea ?? {};
-  const fix = rows.length ? { rows, hi: mainPx ? typoNormsFor(inp.specId).gap.hi * mainPx : null, H: inp.rules?.h ?? SPECS[inp.specId]?.h, safe: sa.hard ? { t: sa.top, b: sa.bottom } : null, codes: (a.typoRules?.fails ?? []).map(f => f.code) } : null;
+  const fix = rows.length ? { rows, hi: mainPx ? typoNormsFor(inp.specId).gap.hi * mainPx : null, H: inp.rules?.h ?? SPECS[inp.specId]?.h, safe: sa.hard ? { t: sa.top, b: sa.bottom } : null, codes: (a.typoRules?.fails ?? []).map(f => f.code), logo: a.measure?.logo?.bbox ?? null, want: mainPx ? mainPx * TYPO_RULE_FIXED.assetGap : null, contrast: a.contrast ?? null, subject: a.subject?.m?.subjects?.[0] ?? null, cap: Math.max(inp.rules?.w ?? 0, inp.rules?.h ?? 0) * TYPO_RULE_FIXED.assetGapMaxFrac || null } : null;
   return { png: a.png, audit: a, issues: gateIssues(a), auto: [...(a.info?.issues ?? []), ...(a.typoRules?.issues ?? [])], fix };
 }
 export const STACK_CODES = ['gap-tight', 'gap-loose', 'overlap'];
+export const isStackIssue = s => /^4항-1 (gap-tight|gap-loose|overlap)\b|^3항 행 간격/.test(String(s));
 // 재요청에 붙이는 실측(모델은 렌더 높이를 모른다 — 잉크 상자를 알려 줘야 간격을 고친다)
 export function measureLines(gate) {
   const rows = gate?.fix?.rows ?? []; if (!rows.length) return [];
-  return [`(참고 실측 — 렌더된 글자 잉크 상자 px: ${rows.filter(r => r.ink).map(r => `${r.role} x${Math.round(r.ink.x)} y${Math.round(r.ink.y)}~${Math.round(r.ink.y + r.ink.h)} ${r.lines ?? '?'}줄 ${r.px}px`).join(' · ')} — 요소 top 은 잉크보다 (line-height−글자)/2 위)`];
+  const subs = gate?.audit?.subject?.m?.subjects ?? [];
+  return [`(참고 실측 — 렌더된 글자 잉크 상자 px: ${rows.filter(r => r.ink).map(r => `${r.role} x${Math.round(r.ink.x)} y${Math.round(r.ink.y)}~${Math.round(r.ink.y + r.ink.h)} 폭${Math.round(r.ink.w)} ${r.lines ?? '?'}줄 ${r.px}px`).join(' · ')} — 요소 top 은 잉크보다 (line-height−글자)/2 위)`,
+    ...(subs.length && gate?.audit?.subject?.fails?.length ? [`(참고 실측 — 지면 위 주인공 상자 px: ${subs.map(b => `x${b.x}~${b.x + b.w} y${b.y}~${b.y + b.h}`).join(' · ')} — 글자 잉크·로고가 이 상자와 겹치지 않게)`] : [])];
 }
-// 게이트 위반 중 간격(4항-1)이 있으면 LLM 없이 스택을 다시 쌓아 본다 → 다시 측정. 반환 { html, raw, gate } | null
-async function tryAutoFix(X, html, raw, gate, dir, inp, k) {
-  const f = gate?.fix; if (!f || !f.codes?.some(c => STACK_CODES.includes(c))) return null;
-  const opts = { rules: TYPO_RULE_FIXED, hi: f.hi, H: f.H, safe: f.safe };
-  const fr = fixStack(raw, f.rows, opts); if (!fr) return null;
-  const nh = substituteAssets(fr.html, X.assets);
-  if (!validateFreeHtml(nh, inp).ok) return null;
-  let g2; try { g2 = await X.measureFn(nh, dir, inp, `${k}f`); } catch { return null; }
-  if ((g2?.issues?.length ?? 0) >= (gate.issues?.length ?? 0)) return null;   // 나아지지 않으면 버린다
-  return { html: nh, raw: fr.html, gate: g2, moves: fr.moves };
+// 게이트 위반 중 간격(4항-1)·로고 간격(4항-2 asset-tight 로고)이 있으면 LLM 없이 옮겨 본다 → 다시 측정. 반환 { html, raw, gate, moves } | null
+//   한 번에 하나씩(스택 → 로고), 고칠 때마다 다시 잰다. 채택: 「고치려던 위반은 줄고 그 밖 위반은 늘지 않음」(11-09 6단계 — 총 개수로 보면 다른 사유 1건 때문에 버려졌다)
+// 스택 위·아래 장애물(주인공 상자·로고) — 글자 덩어리와 가로로 겹치고 덩어리 아래(위)에 있는 것의 경계 − 간격 하한(11-09 r2: 간격 고치다 글자가 아래 카드 사진 위로 밀려 버려졌다)
+export function stackBounds(f) {
+  const ink = (f?.rows ?? []).filter(r => r.ink).map(r => r.ink); if (!ink.length) return {};
+  const T = Math.min(...ink.map(b => b.y)), B = Math.max(...ink.map(b => b.y + b.h)), L = Math.min(...ink.map(b => b.x)), R = Math.max(...ink.map(b => b.x + b.w)), g = f.want ?? 0;
+  const xo = b => Math.min(R, b.x + b.w) - Math.max(L, b.x) > 0;
+  const obs = [f.subject, f.logo].filter(b => b && b.w > 0 && xo(b));
+  const below = obs.filter(b => b.y >= B - 2).map(b => b.y - g), above = obs.filter(b => b.y + b.h <= T + 2).map(b => b.y + b.h + g);
+  return { floor: below.length ? Math.max(B, Math.min(...below)) : null, ceil: above.length ? Math.min(T, Math.max(...above)) : null };   // 이미 그 안쪽이면 지금 자리까지만 막는다
+}
+export const isLogoGapIssue = s => /^4항-2 asset-tight: 글자·로고/.test(String(s));
+export const isContrastIssue = s => /^대비 \w+ [\d.]+:1 </.test(String(s));
+export const isTinyIssue = s => /^4항-3 tiny/.test(String(s));
+export const isLogoBuried = s => /^로고 묻힘/.test(String(s));
+export const isKvGapIssue = s => /^4항-2 (kv-overlap|asset-tight: 글자·키비주얼|asset-loose: 글자·키비주얼)/.test(String(s));
+async function tryAutoFix(X, html, raw, gate, dir, inp, k, restore = h => h) {
+  let cur = { html, raw, gate }; const moves = []; let n = 0;
+  const steps = [
+    { is: isTinyIssue, later: x => isStackIssue(x) || isLogoGapIssue(x) || isKvGapIssue(x), run: (r, f) => { const sp = SPECS[inp.specId]; const need = sp ? minTextPx(sp) : null; const small = (f.rows ?? []).filter(x => x.role !== 'notice' && x.px && need && x.px < need); return small.length ? fixTextSize(r, Object.fromEntries(small.map(x => [x.role, Math.min(1.6, (need + 0.5) / x.px)]))) : null; } },
+    { is: isContrastIssue, run: (r, f) => { const bad = (cur.gate.issues ?? []).filter(isContrastIssue).map(x => /^대비 (\w+)/.exec(x)?.[1]).filter(Boolean); const by = {}; for (const role of bad) { const c = (f.contrast ?? []).find(x => x.role === role); if (c?.bg == null) continue; by[role] = (1.05 / (c.bg + 0.05)) >= ((c.bg + 0.05) / 0.0555) ? '#FFFFFF' : '#111111'; } return Object.keys(by).length ? fixContrast(r, by, inp.rules) : null; } },
+    { is: isStackIssue, run: (r, f) => f.codes?.some(c => STACK_CODES.includes(c)) ? fixStack(r, f.rows, { rules: TYPO_RULE_FIXED, hi: f.hi, H: f.H, safe: f.safe, ...stackBounds(f) }) : null },
+    { is: isLogoGapIssue, run: (r, f) => f.logo && f.want ? fixLogoGap(r, f.rows, f.logo, { want: f.want, H: f.H, safe: f.safe }) : null },
+    { is: isLogoBuried, run: r => (inp.logo?.colors ?? []).length ? fixLogoPlate(r, inp.logo.colors, [inp.brand?.primary, inp.brand?.secondary, ...(inp.kv?.meta?.colors ?? [])]) : null },
+    { is: isKvGapIssue, run: (r, f) => f.subject && f.want ? fixKvGap(r, f.rows, f.subject, { want: f.want, cap: f.cap }) : null },
+  ];
+  for (const st of steps) {
+    const f = cur.gate?.fix; if (!f || !(cur.gate.issues ?? []).some(st.is)) continue;
+    const fr = st.run(cur.raw, f); if (!fr) continue;
+    const nh = restore(substituteAssets(fr.html, X.assets));
+    if (!validateFreeHtml(nh, inp).ok) continue;
+    let g2; try { g2 = await X.measureFn(nh, dir, inp, `${k}f${++n}`); } catch { continue; }
+    const split = g => { const is = (g?.issues ?? []).filter(x => !st.later?.(x)); const t = is.filter(st.is).length; return { t, other: is.length - t }; };   // later = 뒤 단계가 고칠 위반(글자 키우면 생기는 간격)은 셈에서 뺀다
+    const b = split(cur.gate), a = split(g2);
+    if (!(a.t < b.t && a.other <= b.other)) continue;
+    cur = { html: nh, raw: fr.html, gate: g2 }; moves.push(...fr.moves);
+  }
+  return moves.length && (cur.gate.issues?.length ?? 0) <= (gate.issues?.length ?? 0) ? { ...cur, moves } : null;
 }
 const gateSummary = g => g ? { measured: !g.error && !!(g.audit || g.issues), issues: g.issues ?? [], error: g.error ?? null, contrast: g.audit?.contrast ?? null, verdict: g.audit?.verdict ?? null } : { measured: false, issues: [] };
 
@@ -673,7 +759,7 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
   const calls = [], usages = []; let usedModel = null;
   const base = run ?? (engine === 'api'
     ? (p, o = {}) => { if (!client) throw new Error('API 키가 없습니다(engine:api)'); return runApi(client, p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_API_MODEL }); }
-    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir(), tools: o.tools ?? true, effort: o.effort, signal }));
+    : (p, o = {}) => runClaudeCode(p, { images: o.images ?? images, model: o.model ?? useModel ?? DEFAULT_CC_MODEL, imageMode, cwd: tmp ?? tmpdir(), tools: o.tools ?? true, effort: o.effort, signal, timeoutMs: o.kind === 'retry' ? RETRY_TIMEOUT_MS : GEN_TIMEOUT_MS }));
   const call = async (prompt, o = {}) => {
     if (signal?.aborted) throw cancelError();
     const t0 = Date.now();
@@ -689,23 +775,29 @@ function engineCtx(input, { client = null, run = null, render = null, measure = 
   const measureFn = measure ?? (!run && input.measure !== false ? (html, dir, inp, k) => measureFreeHtml(inp, html, tmp ?? tmpdir(), `${inp.specId}-${dir?.id ?? 'x'}-${k ?? 0}-${Date.now()}`) : null);
   const renderFn = render ?? (measureFn ? (html, dir, inp) => measureFn(html, dir, inp ?? input, 'review') : null);
   const usage = () => usages.length ? usages.reduce((a, u) => { for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens']) if (u[k] != null) a[k] = (a[k] ?? 0) + u[k]; return a; }, {}) : null;
-  return { engine, signal, images, readMode, tmp, call, calls, assets, imgOpt, measureFn, renderFn, usage, model: () => usedModel, retryModel: run ? null : (input.retryModel ?? RETRY_MODEL) };
+  return { stub: !!run, engine, signal, images, readMode, tmp, call, calls, assets, imgOpt, measureFn, renderFn, usage, model: () => usedModel, retryModel: run ? null : (input.retryModel ?? RETRY_MODEL) };
 }
 
 // ── 한 안 — 생성 → 계약 검증 → 렌더 측정(가이드 게이트) → 걸리면 사유 + 방금 HTML 로 1회 재요청 → 그래도 걸리면 rejected. (review 가 켜져 있으면 통과 안에 자기 검토 1회)
+// 셋째 시도 — 둘째에도 걸렸지만 사유가 THIRD_MAX_ISSUES 이하(자동 고침 뒤)이고 작업 시작부터 THIRD_BUDGET_MS 안이면 sonnet 고치기 1회 더. r3 실측(재요청 1회): 안 통과율 56%, 3안 다 나온 작업 2/16
+export const THIRD_BUDGET_MS = Number(process.env.FREEDESIGN_THIRD_BUDGET_MS ?? 150_000), THIRD_MAX_ISSUES = 3;
+const thirdTry = (inp, X, retryHtml, retryErrors, t0) => (X.stub ? inp.thirdTry === true : inp.thirdTry !== false) && !!retryHtml && (retryErrors ?? []).filter(e => !/^\(참고 실측/.test(e)).length <= THIRD_MAX_ISSUES && Date.now() - t0 < THIRD_BUDGET_MS;
 async function designVariant(inp, dir, X, { doReview = false, onStage = null, kind = 'gen', t0 = Date.now() } = {}) {
   const tv = Date.now();
   let attempts = 0, html = null, raw = null, notes = '', errors = [], lastText = '', text = '', retryErrors = null, retryHtml = null, gate = null; const tries = [];
-  while (attempts < 2) {
+  while (attempts < 2 || (attempts < 3 && thirdTry(inp, X, retryHtml, retryErrors, t0))) {   // 11-09 6단계: 걸린 게 몇 개뿐이고 시간 여유가 있으면 「걸린 것만 고치기」 한 번 더(3안 보장)
     // 첫 시도 = 전체 프롬프트(그림 봄). 재요청은 HTML 이 있으면 「걸린 것만 고치기」 짧은 프롬프트(그림·도구 없음, RETRY_MODEL) — 없으면 전체 다시
     const fix = attempts > 0 && retryHtml;
     const prompt = fix ? buildRevisePrompt(inp, { html: retryHtml, instruction: '검증기가 잡은 아래 문제만 고친다 — 구성·색·그래픽·문구는 그대로', retryErrors, fix: true }) : buildFreePrompt(inp, { images: X.imgOpt, retryErrors, retryHtml, style: dir });
     const r = await X.call(prompt, fix ? { images: [], tools: false, model: X.retryModel ?? undefined, kind: 'retry', style: dir?.id ?? null, specId: inp.specId } : { images: X.images, kind: attempts ? 'retry' : kind, style: dir?.id ?? null, specId: inp.specId }); attempts++;
     lastText = r.text ?? '';
-    const rr = extractHtml(r.text);
+    let rr = extractHtml(r.text);
     if (!rr) { errors = ['응답에 <div data-ad> HTML 블록이 없음']; tries.push({ attempt: attempts, errors, text: String(r.text ?? '').slice(0, 300) }); retryErrors = errors; continue; }
-    const sub = substituteAssets(rr, X.assets);
-    const v = validateFreeHtml(sub, inp);
+    let sub = substituteAssets(rr, X.assets);
+    let v = validateFreeHtml(sub, inp);
+    if (!v.ok && v.errors.every(isCopyError)) {   // 문구만 틀렸으면(브리프 문구 아님) 가장 가까운 허용 문구로 바꿔 끼운다 — 0초(11-09 r3: 첫 시도 3안 중 2안이 직무 문구를 줄여 써 통째로 버려졌다)
+      const fc = fixCopy(rr, inp.brief ?? {}, v.errors); if (fc) { const s2 = substituteAssets(fc, X.assets); const v2 = validateFreeHtml(s2, inp); if (v2.ok) { tries.push({ attempt: attempts, errors: v.errors, autofix: [{ role: 'copy' }] }); rr = fc; sub = s2; v = v2; } }
+    }
     if (fix && raw && !/LANGUAGE\s*[:：]/i.test(r.text ?? '')) text = `${r.text}\n${(text.match(/LANGUAGE\s*[:：][^\n]*/i) ?? [''])[0]}`; else text = r.text;   // 고치기 응답엔 LANGUAGE 가 없다 — 첫 응답 것을 잇는다
     raw = rr; html = sub; notes = extractNotes(r.text) || notes; errors = v.errors; gate = null;
     if (!v.ok) { tries.push({ attempt: attempts, errors: v.errors }); retryErrors = v.errors; retryHtml = rr; continue; }
@@ -799,7 +891,7 @@ export function buildRevisePrompt(input, { html, instruction, retryErrors = null
   L.push(`- 글꼴: ${fo.required ? `${fo.required} 고정` : (fo.allowed ?? []).join(', ')}.${lg.forbidden || lg.count === 0 ? ' 로고 삽입 불가.' : ''}${rules.backgroundBanned?.length ? ` 배경 금지색 ${rules.backgroundBanned.join(' ')}.` : ''}${rules.textColors?.main ? ` 메인 글자색 ${rules.textColors.main} 고정.` : ''}`);
   L.push(`- 자간은 0 또는 음수만 · 장평(scaleX/Y·font-stretch) 금지 · 정보 블록(date·detail·notice) 라벨 스타일 하나 · 간격 서브→메인 ≥ ${TYPO_RULE_FIXED.gapSubMain}em, 메인→정보 ≥ ${TYPO_RULE_FIXED.gapMainInfo}em, 정보 행 ≥ ${TYPO_RULE_FIXED.gapInfoRow}em · 글자와 키비주얼·로고 겹침 0 · 대비 4.5:1 · 글자가 사진 위로 넘어가지 않게 · 장식은 글자 획에 걸치지 않게.`);
   L.push(`- 그림 자리표시(${KV_PLACEHOLDER}·${LOGO_PLACEHOLDER}·{{IMG1}} 등)는 그대로 둔다.`);
-  if (retryErrors?.length) { L.push(''); L.push(fix ? `## 다시 — 방금 결과가 검증에 걸렸다. 아래만 고친다(간격은 글자 상자 top 을 옮기고, 대비·사진 위 글자는 글자 뒤 스크림·판·글자색 또는 줄 나누기, 장식 겹침은 장식을 옮기거나 지운다)` : `## 방금 결과가 검증에 걸렸다 — 이것도 고친다`); for (const e of retryErrors) L.push(`- ${e}`); }
+  if (retryErrors?.length) { L.push(''); L.push(fix ? `## 다시 — 방금 결과가 검증에 걸렸다. 아래만 고친다(간격은 글자 상자 top 을 옮기고, 대비·사진 위 글자는 글자 뒤 스크림·판·글자색 또는 줄 나누기, 장식 겹침은 장식을 옮기거나 지운다, 주인공 겹침·로고 가림은 글자·로고를 실측 주인공 상자 밖으로 옮기거나 그림 background-position·size 를 바꿔 주인공을 비킨다)` : `## 방금 결과가 검증에 걸렸다 — 이것도 고친다`); for (const e of retryErrors) L.push(`- ${e}`); }
   L.push('');
   L.push(`## 현재 HTML`); L.push('```html'); L.push(String(html).slice(0, 60000)); L.push('```');
   L.push('');
@@ -827,7 +919,12 @@ export async function freeRevise(input = {}, deps = {}) {
       const v = validateFreeHtml(sub, inp);
       raw = rr; text = r.text; html = sub; notes = extractNotes(r.text); errors = v.errors;
       if (v.ok) {
-        if (input.measure === true && X.measureFn) { try { gate = await X.measureFn(html, { id: 'revise' }, inp, attempts); } catch (e) { gate = { error: e.message, issues: [] }; } if (gate?.issues?.length) { errors = gate.issues; retryErrors = errors; cur = rr; continue; } }
+        // 11-09 6단계: AI 수정본도 게이트(기본 켬 — r1 수정 3건 중 2건이 대비·간격 위반인 채 카드로 왔다). 자동 고침(0초) 먼저, 남으면 LLM 1회
+        if (input.measure !== false && X.measureFn) {
+          try { gate = await X.measureFn(html, { id: 'revise' }, inp, attempts); } catch (e) { gate = { error: e.message, issues: [] }; }
+          if (gate?.issues?.length) { const af = await tryAutoFix(X, html, rr, gate, { id: 'revise' }, inp, `v${attempts}`, h => restoreDataUrls(h, map)); if (af) { html = af.html; raw = af.raw; gate = af.gate; } }
+          if (gate?.issues?.length) { errors = gate.issues; if (attempts < 2) { retryErrors = [...errors, ...measureLines(gate)]; cur = raw; continue; } }
+        }
         break;
       }
       retryErrors = v.errors; cur = rr;

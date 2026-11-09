@@ -185,7 +185,7 @@ export function createFreeDesign(D) {
     const logoTone = c.style.logoTone === 'light' ? 'light' : 'dark';
     const body = {
       specId: a.specId, brief: briefOf(ctx), kv: { dataUrl: kvSent, meta: c.style.kvMeta ?? null },
-      logo: c.style.logo ? { dataUrl: c.style.logo, tone: logoTone } : null,
+      logo: c.style.logo ? { dataUrl: c.style.logo, tone: logoTone, colors: (c.style.logoMeta?.colors ?? []).slice(0, 3).map(x => ({ hex: x.hex, share: x.share })) } : null,   // 로고 색(11-09 6단계 — 두 톤 로고가 한쪽 바탕에 묻혔다)
       brand: { primary: c.style.palette?.primary ?? null, secondary: c.style.palette?.secondary ?? null, accent: c.style.palette?.accent ?? null },
       rules: rulesFor(spec), history: (S?.history ?? []).slice(-12), prev: S?.prev ? { html: S.prev.html } : null, engine, n: 1,
       prefs: exemplarsFor(PREFS, { specId: a.specId, kvMeta: c.style.kvMeta ?? null, n: 3 }),   // 취향 학습 — 채택된 안 참고(최대 3)·피할 안(최대 1, 「모든 유형」만)

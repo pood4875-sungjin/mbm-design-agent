@@ -24,7 +24,7 @@ const reply = (html, extra = '') => ({ text: '```html\n' + html + '\n```\nNOTES:
 test('구성 축 — KV 유형별로 서로 다른 구성 3개 · 아주 긴 띠는 가운데 축 대신 타이포 · 프롬프트에 구성 지시 + 분할 금지 + LANGUAGE 요청', () => {
   const r580 = rulesForSpec('google-gdn-580x400');
   assert.deepEqual(pickCompositions({ kind: 'photo', field: { kind: 'photo' } }, r580), ['bleed', 'diagonal', 'frame']);
-  assert.deepEqual(pickCompositions({ kind: 'cutout', field: { kind: 'cutout' } }, r580), ['motif', 'bleed', 'typehero']);
+  assert.deepEqual(pickCompositions({ kind: 'cutout', field: { kind: 'cutout' } }, r580), ['motif', 'typehero', 'axis']);
   assert.deepEqual(pickCompositions({ field: { kind: 'illust' } }, r580), ['bleed', 'frame', 'typehero']);
   assert.deepEqual(pickCompositions(null, r580), ['typehero', 'motif', 'diagonal']);
   for (const m of [{ kind: 'photo', field: { kind: 'photo' } }, { field: { kind: 'texture' } }, { field: { kind: 'cutout' } }]) { const ids = pickCompositions(m, r580); assert.equal(new Set(ids).size, 3, '서로 다름'); assert.ok(ids.every(id => COMPOSITIONS.some(c => c.id === id))); }

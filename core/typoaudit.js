@@ -206,6 +206,8 @@ export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, nor
   const hi = N.gap.hi * main.px;
   for (let i = 1; i < stack.length; i++) {
     const a = stack[i - 1], b = stack[i], g = box(b).y - (box(a).y + box(a).h), k = `${a.role}>${b.role}`; m.gaps[k] = Math.round(g);
+    // 가로 1행(세로 구분선형 정보 블록 — 프리셋 divider)은 위아래 스택이 아니다: 가로로 안 겹치고 세로로 겹치면 건너뛴다(11-09 r1 오탐 「date·detail 겹침 20px」)
+    { const A = box(a), B = box(b); const xo = Math.min(A.x + A.w, B.x + B.w) - Math.max(A.x, B.x); if (xo <= 0 && g < 0) continue; }
     if (g < -1) { fail(1, 'overlap', `${a.role}·${b.role} 겹침 ${Math.round(-g)}px`); continue; }
     const em = Math.min(a.px, b.px);
     const lo = a.role === 'sub' && b.role === 'main' ? F.gapSubMain : a.role === 'main' && INFO.includes(b.role) ? F.gapMainInfo : INFO.includes(a.role) && INFO.includes(b.role) ? F.gapInfoRow : null;
@@ -246,12 +248,89 @@ export function overlapAudit({ fields = [], rule = OVERLAP_RULE } = {}) {
     m[f.role] = { photoBad: ph.n ? Math.round(ph.bad / n * 100) / 100 : 0, p10: ph.p10 ?? null };
     if (ph.n && ph.bad / n >= rule.photoBadFrac && (ph.p10 ?? ph.min ?? 0) < f.need * rule.photoSlack) fails.push({ code: 'photo-text', role: f.role, msg: `${f.role} 글자가 사진 위 — 상자 ${Math.round(ph.bad / n * 100)}%가 대비 ${ph.p10 ?? ph.min}:1 < ${f.need}:1. 글자를 지면 쪽으로 옮기거나 줄을 나누거나, 글자 뒤에 판·스크림` });
     for (const d of f.decos ?? []) {
-      if (d.hits < rule.decoMinHits || d.area >= rule.bigArea || d.opacity < rule.minOpacity) continue;
       const above = d.above > 0;
+      if (d.hits < rule.decoMinHits || (d.area >= rule.bigArea && !above) || d.opacity < rule.minOpacity) continue;   // 넓은 도형도 글자 위로 지나가면 ✗(11-09 r1: 지면 가로지르는 사선이 날짜 글자 위)
       if (!d.svg && !above) continue;                       // 글자 아래 칠한 상자 = 판·형광펜(디자인)
       if (!above && d.frac >= rule.backdropFrac) continue;  // 글자 아래 넓게 깔린 도형 = 바탕
       fails.push({ code: 'deco-overlap', role: f.role, msg: `장식 ${d.tag}(x${d.box.x} y${d.box.y} ${d.box.w}×${d.box.h})가 ${f.role} 글자에 걸림${above ? '(글자 위)' : ''} — 장식을 글자 밖으로 옮기거나 지운다` });
     }
   }
   return { ok: !fails.length, fails, issues: fails.map(f => `겹침 ${f.code}: ${f.msg}`), m };
+}
+
+// ── 11-09 6단계 검증 루프 — 게이트 구멍: 앱 디자인 검수(core/adcheck.js checkAdDoc 1·2항)와 같은 판정을 서버 게이트에서(순수. 측정은 scripts/lib/freedesign-renderer.mjs measureSubjects)
+//   통합 시험: 전면 사진 안에서 「sub 글자가 주인공 위 100%」「주인공이 로고 100% 가림」이 앱에서만 잡혀 「경고」 카드로 추천됐다.
+//   주인공 상자 = 그림이 실제 그려진 네모(배경 size/position 환산) × kvMeta 주인공(core/field.js profileFocus — 앱과 같은 함수), 오브젝트 상자 안으로 자름.
+//   주인공을 모르면(focus 없음) 오브젝트 상자 전체가 주인공(앱과 같음).
+//   ① 글자-주인공: 글자 잉크 상자의 textFrac 이상이 주인공 상자 위면 ✗ ② 로고 가림: 로고 상자의 logoFrac 넘게 주인공과 겹치는데 로고가 위(z-index>0 조상)가 아니면 ✗
+export const SUBJECT_RULE = { textFrac: 0.15, logoFrac: 0.05, boxBgFrac: 0.6 };
+const _inter = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); return Math.max(0, x1 - x0) * Math.max(0, y1 - y0); };
+const _area = r => Math.max(1, r.w * r.h);
+// objects: [{ box:{x,y,w,h}(요소 상자), clip?:{x,y,w,h}(clip-path 로 보이는 bbox), drawn:{x,y,w,h}|null(그림이 그려진 네모) }], focus: { x,y,w,h }(원본 비율) | null, texts: [{ role, ink }], logo: { box, onTop } | null
+export function subjectBoxes(objects = [], focus = null) {
+  return objects.filter(o => o?.box).map(o => {
+    const vb = o.clip ?? o.box;   // clip-path 가 있으면 보이는 영역(앱 adcheck 와 같음)
+    if (!focus || !o.drawn) return { box: o.box, s: vb, full: null };
+    const img = o.drawn;
+    const full = { x: img.x + (focus.x - focus.w / 2) * img.w, y: img.y + (focus.y - focus.h / 2) * img.h, w: focus.w * img.w, h: focus.h * img.h };
+    const x0 = Math.max(full.x, vb.x), y0 = Math.max(full.y, vb.y), x1 = Math.min(full.x + full.w, vb.x + vb.w), y1 = Math.min(full.y + full.h, vb.y + vb.h);
+    return { box: o.box, s: { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) }, full };
+  });
+}
+export function subjectAudit({ texts = [], logo = null, objects = [], focus = null, cutout = false, rule = SUBJECT_RULE } = {}) {
+  const subs = subjectBoxes(objects, focus); const fails = [];
+  const r1 = v => Math.round(v);
+  const m = { subjects: subs.map(s => ({ x: r1(s.s.x), y: r1(s.s.y), w: r1(s.s.w), h: r1(s.s.h) })), text: {}, logo: null, focus: !!focus };
+  for (const t of texts) {
+    const ink = t.ink; if (!ink || ink.w < 1 || ink.h < 1) continue;
+    let pct = 0; for (const s of subs) pct = Math.max(pct, _inter(ink, s.s) / _area(ink));
+    m.text[t.role] = Math.round(pct * 100);
+    if (pct >= rule.textFrac) { const s = subs[0]?.s; fails.push({ code: 'text-over-subject', role: t.role, msg: `${t.role} 글자가 주인공 위로 ${Math.round(pct * 100)}% 겹침(주인공 상자 x${r1(s.x)} y${r1(s.y)} ${r1(s.w)}×${r1(s.h)}) — 글자를 주인공 밖 빈 쪽(하늘·바닥·단색 면)으로 옮기거나, 그림 위치·크기를 바꿔 주인공을 글자 반대쪽으로` }); }
+  }
+  // ③ 뚝 끊긴 변(앱 adcheck 3항과 같음): 주인공이 요소 상자 변에서 잘리는데 그 변이 지면 안쪽이고 녹임(mask)·둥근 상자·clip-path 가 없으면 ✗ — 11-09 r1 누끼 행성이 상자 왼변에서 세로로 뚝 잘림
+  if (focus && cutout) subs.forEach((s, i) => {
+    const o = objects.filter(x => x?.box)[i]; if (!s.full || !o || o.masked || o.rounded || o.clip) return;
+    const tol = 0.12, tx = s.full.w * tol, ty = s.full.h * tol, b = o.box, W = o.W ?? Infinity, H = o.H ?? Infinity;
+    const cut = { top: s.full.y < b.y - ty, bottom: s.full.y + s.full.h > b.y + b.h + ty, left: s.full.x < b.x - tx, right: s.full.x + s.full.w > b.x + b.w + tx };
+    const inside = { top: b.y > 1, bottom: b.y + b.h < H - 1, left: b.x > 1, right: b.x + b.w < W - 1 };
+    const hard = ['top', 'bottom', 'left', 'right'].filter(k => cut[k] && inside[k]);
+    if (hard.length) fails.push({ code: 'hard-cut', role: 'kv', msg: `주인공이 키비주얼 상자 ${hard.map(k => ({ top: '윗변', bottom: '아랫변', left: '왼변', right: '오른변' }[k])).join('·')}에서 뚝 잘림(녹임 없음) — 상자를 키우거나 background-size:contain 으로 주인공 전체를 담거나, 그 변을 지면 끝에 붙인다` });
+  });
+  // ④ 글자가 키비주얼 상자(카드·창·면) 위로 걸침 — 지면 바탕으로 깐 그림(지면의 boxBgFrac 이상)은 빼고, 보이는 상자(clip-path 반영)와 글자 잉크가 2px 넘게 겹치면 ✗(11-09 r2: 카드 테두리 위로 직무 글자 끝 「IT」가 넘어감)
+  { const objs = objects.filter(x => x?.box); const W0 = objs[0]?.W, H0 = objs[0]?.H;
+    if (!cutout && W0 && H0) for (const o of objs) { const vb = o.clip ?? o.box; if (vb.w * vb.h >= rule.boxBgFrac * W0 * H0) continue;
+      for (const t of texts) { const ink = t.ink; if (!ink) continue; const ox = Math.min(ink.x + ink.w, vb.x + vb.w) - Math.max(ink.x, vb.x), oy = Math.min(ink.y + ink.h, vb.y + vb.h) - Math.max(ink.y, vb.y);
+        if (ox > 2 && oy > 2 && vb.poly) {   // 다각형(대각 면)은 bbox 가 아니라 다각형 안 점으로 — 잉크 격자 점 중 다각형 안이 3% 넘을 때만
+          const inPoly = (x, y) => { let c = false; const P = vb.poly; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+          let n = 0, k = 0; for (let gy = 0; gy < 8; gy++) for (let gx = 0; gx < 16; gx++) { n++; if (inPoly(ink.x + ink.w * (gx + 0.5) / 16, ink.y + ink.h * (gy + 0.5) / 8)) k++; }
+          if (k / n <= 0.03) continue;
+        }
+        if (ox > 2 && oy > 2 && !fails.some(f => f.role === t.role)) fails.push({ code: 'text-over-kvbox', role: t.role, msg: `${t.role} 글자가 키비주얼 상자(x${r1(vb.x)} y${r1(vb.y)} ${r1(vb.w)}×${r1(vb.h)}) 위로 ${r1(ox)}×${r1(oy)}px 걸침 — 줄을 나누거나 글자를 상자 밖으로` }); } } }
+  if (logo?.box) {
+    let pct = 0; for (const s of subs) pct = Math.max(pct, _inter(logo.box, s.s) / _area(logo.box));
+    m.logo = Math.round(pct * 100);
+    if (pct > rule.logoFrac && !logo.onTop) fails.push({ code: 'logo-covered', role: 'logo', msg: `주인공이 로고를 ${Math.round(pct * 100)}% 가림 — 로고를 주인공 밖(빈 모서리)으로 옮기거나 주인공을 비킨다` });
+  }
+  return { ok: !fails.length, fails, issues: fails.map(f => `주인공 ${f.code}: ${f.msg}`), m };
+}
+// clip-path 로 보이는 영역(요소 상자 기준 bbox) — polygon(…px|%)·inset(…) 만. 모르면 null(요소 상자 그대로). 앱 core/adcheck.js 와 렌더러 측정이 같이 쓴다(문자열로 주입하므로 자기완결).
+//   11-09 6단계 r1: 대각 구성이 지면 전체 상자에 clip-path 로 사진을 한 면에만 그렸는데, 요소 상자 전체를 주인공으로 재어 글자·로고가 「주인공 위」로 반려됐다(눈으로는 깨끗).
+export function clipBoxOf(clip, r) {
+  const s = String(clip ?? '').trim(); if (!s || s === 'none') return null;
+  const val = (v, ref) => { v = String(v).trim(); if (/%$/.test(v)) return parseFloat(v) / 100 * ref; if (/px$/.test(v) || /^-?[\d.]+$/.test(v)) return parseFloat(v); return null; };
+  let m = /^polygon\((.*)\)$/i.exec(s);
+  if (m) {
+    const pts = m[1].replace(/^\s*(nonzero|evenodd)\s*,/i, '').split(',').map(p => p.trim().split(/\s+/)).filter(p => p.length >= 2).map(([x, y]) => [val(x, r.w), val(y, r.h)]);
+    if (!pts.length || pts.some(([x, y]) => x == null || y == null || !isFinite(x) || !isFinite(y))) return null;
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const x0 = Math.max(0, Math.min(...xs)), y0 = Math.max(0, Math.min(...ys)), x1 = Math.min(r.w, Math.max(...xs)), y1 = Math.min(r.h, Math.max(...ys));
+    return x1 > x0 && y1 > y0 ? { x: r.x + x0, y: r.y + y0, w: x1 - x0, h: y1 - y0, poly: pts.map(([x, y]) => [r.x + x, r.y + y]) } : null;
+  }
+  m = /^inset\(([^)]*)\)$/i.exec(s);
+  if (m) {
+    const parts = m[1].split(/\s+round\s+/i)[0].trim().split(/\s+/); const [t, rt = t, b = t, l = rt] = parts;
+    const T = val(t, r.h), Rr = val(rt, r.w), B = val(b, r.h), L = val(l, r.w); if ([T, Rr, B, L].some(v => v == null)) return null;
+    return { x: r.x + L, y: r.y + T, w: Math.max(0, r.w - L - Rr), h: Math.max(0, r.h - T - B) };
+  }
+  return null;
 }

@@ -70,6 +70,8 @@ export function freshVariants(job, seen = new Set()) {
   for (const x of all) { if (got.has(x.key)) continue; got.add(x.key); out.push(x); }
   return out;
 }
+// 앱 디자인 검수(core/adcheck.js) 중 AI 안이면 추천에서 빼는 것 — 서버 게이트(core/typoaudit.js subjectAudit)와 같은 판정
+export const HARD_DESIGN = ['text-over-subject', 'logo-covered'];
 // 카드 배지 — 승인 게이트 결과로: 차단은 카드로 안 올린다(rejected), 검수 필요는 경고, 그 밖은 통과
 export function badgeOf(gate) {
   if (!gate) return 'pending';
@@ -357,6 +359,9 @@ export function createAiDesign(D) {
   async function check(a, cd) {
     try { await D.FREE.checkVariant(cd, a); } catch {}
     cd.badge = badgeOf(cd.gate);
+    // 11-09 6단계: 「가이드에 안 맞는 건 추천하지 않음」 — 서버 게이트가 같은 판정을 하지만, 앱 디자인 검수가 주인공 겹침·로고 가림을 잡으면 카드로 올리지 않는다(경고 카드로 추천되던 것)
+    const hard = (cd.design?.warnings ?? []).filter(w => HARD_DESIGN.includes(w.code));
+    if (hard.length && cd.badge !== 'reject') { cd.badge = 'reject'; cd.gate = { ...(cd.gate ?? {}), state: 'blocked', reasons: [...hard.map(w => `디자인: ${w.msg}`), ...(cd.gate?.reasons ?? [])] }; }
     const c = curC();
     if (cd.badge === 'reject') {
       const t = trackOf(c.id, keyOf(a)); t.cards = t.cards.filter(x => x !== cd);

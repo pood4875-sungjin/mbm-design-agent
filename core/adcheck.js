@@ -12,6 +12,7 @@
 
 import { CANON } from './canon.js';
 import { profileFocus } from './field.js';
+import { clipBoxOf } from './typoaudit.js';
 
 const inter = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); return Math.max(0, x1 - x0) * Math.max(0, y1 - y0); };
 const area = r => Math.max(1, r.w * r.h);
@@ -68,10 +69,12 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
 
   // 주인공 네모(상자 안으로 자른 것)와 잘린 변
   const subjects = objs.map(o => {
-    if (!focus || !ar) return { ...o, s: o.r, cut: {} };
+    // clip-path 로 그림을 한 면에만 보이게 한 상자(AI 안 대각 구성)는 보이는 영역까지만 주인공(11-09 — 서버 게이트 core/typoaudit.js subjectBoxes 와 같음)
+    let vb = o.r; try { vb = clipBoxOf(getComputedStyle(o.el).clipPath, o.r) ?? o.r; } catch {}
+    if (!focus || !ar) return { ...o, s: vb, cut: {} };
     const img = drawnImage(o.el, o.r, ar);
     const full = { x: img.x + (focus.x - focus.w / 2) * img.w, y: img.y + (focus.y - focus.h / 2) * img.h, w: focus.w * img.w, h: focus.h * img.h };
-    const x0 = Math.max(full.x, o.r.x), y0 = Math.max(full.y, o.r.y), x1 = Math.min(full.x + full.w, o.r.x + o.r.w), y1 = Math.min(full.y + full.h, o.r.y + o.r.h);
+    const x0 = Math.max(full.x, vb.x), y0 = Math.max(full.y, vb.y), x1 = Math.min(full.x + full.w, vb.x + vb.w), y1 = Math.min(full.y + full.h, vb.y + vb.h);
     const tol = cutoutKv ? 0.12 : 0.03;              // 누끼는 부드러운 그림자·낮은 알파 가장자리가 상자에 들어 12%(동부 건물 왼쪽 7%), 바탕 있는 그림은 3%
     const tx = full.w * tol, ty = full.h * tol;
     const cut = { top: full.y < o.r.y - ty, bottom: full.y + full.h > o.r.y + o.r.h + ty, left: full.x < o.r.x - tx, right: full.x + full.w > o.r.x + o.r.w + tx };
@@ -102,7 +105,8 @@ export function checkAdDoc(doc, { kvMeta = null, debug = false } = {}) {
     const masked = (cs.maskImage && cs.maskImage !== 'none') || (cs.webkitMaskImage && cs.webkitMaskImage !== 'none');
     const inside = { top: o.r.y > 1, bottom: o.r.y + o.r.h < frame.h - 1, left: o.r.x > 1, right: o.r.x + o.r.w < frame.w - 1 };
     const hard = ['top', 'bottom', 'left', 'right'].filter(k => o.cut[k] && inside[k] && !masked);
-    const rounded = parseFloat(cs.borderTopLeftRadius || '0') > 4;   // 둥근 상자(카카오 썸네일)는 상자가 의도
+    let rounded = parseFloat(cs.borderTopLeftRadius || '0') > 4;   // 둥근 상자(카카오 썸네일)는 상자가 의도
+    for (let x = o.el.parentElement; !rounded && x && x !== root; x = x.parentElement) { const c = getComputedStyle(x); if ((parseFloat(c.borderTopLeftRadius || '0') > 4 && c.overflow !== 'visible') || (c.clipPath && c.clipPath !== 'none')) rounded = true; }   // 둥근 창·잘라낸 면(overflow 숨김 조상) 안의 그림도 의도(11-09 AI 안 원형 창)
     if (hard.length && !rounded) push('hard-cut', `주인공이 상자 ${hard.map(k => ({ top: '윗변', bottom: '아랫변', left: '왼변', right: '오른변' }[k])).join('·')}에서 뚝 끊김(녹임 없음)`);
   }
 
