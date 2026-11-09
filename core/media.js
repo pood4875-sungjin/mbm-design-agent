@@ -265,7 +265,28 @@ export const MEDIA = [
               "bgNote": "배경색 자유(브랜드색). 밝은 바탕이면 글자 샘플색(color), 어두운 바탕이면 흰 글자·흰 로고(colorDark) — 채용공고 샘플 6개 원칙을 전제로 적용(이 규격은 밝은 샘플 1개뿐, 10-15)",
               "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
               "docRef": "docs/jasoseol-mold.md ①",
-              "imageSampleNote": "10-15 세아제강 샘플 28:125 칸 (293,187) 249×183(오른쪽 8·아래 30 안쪽)이었음 — 11-02 담당자 「PC팝업배너 이미지 가이드 영역을 기존 자소설닷컴 가이드와 동일하게」로 공식 가이드 칸(408:34293 그룹 310×216 @240,184)으로 바꿈"
+              "imageSampleNote": "10-15 세아제강 샘플 28:125 칸 (293,187) 249×183(오른쪽 8·아래 30 안쪽)이었음 — 11-02 담당자 「PC팝업배너 이미지 가이드 영역을 기존 자소설닷컴 가이드와 동일하게」로 공식 가이드 칸(408:34293 그룹 310×216 @240,184)으로 바꿈",
+              "bgRule": {
+                "grad": 135,
+                "gradImage": 315,
+                "imageSlot": {
+                  "x": 245,
+                  "y": 181,
+                  "w": 305,
+                  "h": 219
+                },
+                "fade": [
+                  {
+                    "side": "left",
+                    "frac": 0.26
+                  },
+                  {
+                    "side": "top",
+                    "frac": 0.38
+                  }
+                ],
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3771 — 이미지 245,181(칸 밖으로 넘침) · 왼쪽 84px(26%)·위쪽 87px(38%) 녹임 1→0 · 대각 왼쪽 위→오른쪽 아래"
+              }
             }
           }
         },
@@ -483,7 +504,25 @@ export const MEDIA = [
                 ],
                 "note": "기업명 글자수 기준(10-28 컨시어지 #1 한희하 제안, 사용자 결정): 6자 이하 메인 「회사 / 채용구분」 · 7~18자 기업명은 서브 줄로(메인은 채용구분만, 서브 두 줄까지). 11-02 전수조사: 노션 원문은 9자·16자 생략을 「오류」로 적었다 — 생략 규칙으로 잘못 옮겨져 있어 고침. 19자 이상만 생략. 글자수는 띄어쓰기·기호 포함 그대로 센다(「한미글로벌&터너앤타운젠드코리아」 16)"
               },
-              "docRef": "docs/jasoseol-mold.md ②"
+              "docRef": "docs/jasoseol-mold.md ②",
+              "bgRule": {
+                "grad": 180,
+                "gradImage": 0,
+                "imageSlot": {
+                  "x": 0,
+                  "y": 355,
+                  "w": 160,
+                  "h": 245
+                },
+                "fade": [
+                  {
+                    "side": "top",
+                    "frac": 0.53,
+                    "mid": 0.5
+                  }
+                ],
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3768 (채용공고 같은 틀)"
+              }
             }
           }
         },
@@ -728,7 +767,20 @@ export const MEDIA = [
               "subPreferNote": "서브는 시즌(「2026년 하반기」·「2026 상반기」) — 세아 28:124·28:333, 현대모비스 28:382, 현대케피코 28:1002 4/4",
               "bgNote": "배경색 자유(브랜드색). 밝은 바탕이면 글자 샘플색(color), 어두운 바탕이면 흰 글자·흰 로고(colorDark) — 채용공고 샘플 6개 원칙을 전제로 적용(이 규격은 밝은 샘플 1개뿐, 10-15)",
               "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
-              "docRef": "docs/jasoseol-mold.md ③"
+              "docRef": "docs/jasoseol-mold.md ③",
+              "bgRule": {
+                "grad": 90,
+                "gradImage": 90,
+                "fade": [
+                  {
+                    "side": "right",
+                    "frac": 0.27,
+                    "mid": 0.46
+                  }
+                ],
+                "imageOpacity": 0.9,
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3767 — 그림 칸 350 중 오른쪽 94px(x256~350) 녹임 0→.8@.54→1, 이미지 불투명도 .9, 그라데이션 가로 왼→오"
+              }
             }
           }
         },
@@ -948,7 +1000,25 @@ export const MEDIA = [
                 ],
                 "note": "기업명 글자수 기준(10-28 컨시어지 #1 한희하 제안, 사용자 결정): 6자 이하 메인 「회사 / 채용구분」 · 7~18자 기업명은 서브 줄로(메인은 채용구분만, 서브 두 줄까지). 11-02 전수조사: 노션 원문은 9자·16자 생략을 「오류」로 적었다 — 생략 규칙으로 잘못 옮겨져 있어 고침. 19자 이상만 생략. 글자수는 띄어쓰기·기호 포함 그대로 센다(「한미글로벌&터너앤타운젠드코리아」 16)"
               },
-              "docRef": "docs/jasoseol-mold.md ②"
+              "docRef": "docs/jasoseol-mold.md ②",
+              "bgRule": {
+                "grad": 180,
+                "gradImage": 0,
+                "imageSlot": {
+                  "x": 0,
+                  "y": 355,
+                  "w": 160,
+                  "h": 245
+                },
+                "fade": [
+                  {
+                    "side": "top",
+                    "frac": 0.53,
+                    "mid": 0.5
+                  }
+                ],
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3768 — 이미지 0,355 160×245 · 위쪽 131px 녹임 1→.8@.5→0 · 단톤/세로(이미지면 아래가 주색, 위로 변주)"
+              }
             }
           }
         },
@@ -1183,7 +1253,25 @@ export const MEDIA = [
               },
               "target": "figma:qhEEyEBDCjTmTho3tByBf1 43:2 (10-15 목표 프레임)",
               "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
-              "docRef": "docs/jasoseol-mold.md ⑤"
+              "docRef": "docs/jasoseol-mold.md ⑤",
+              "bgRule": {
+                "grad": 180,
+                "gradImage": 0,
+                "imageSlot": {
+                  "x": 0,
+                  "y": 523,
+                  "w": 600,
+                  "h": 357
+                },
+                "fade": [
+                  {
+                    "side": "top",
+                    "frac": 0.37,
+                    "mid": 0.5
+                  }
+                ],
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:3899 — 이미지 0,523 600×357 · 위쪽 131px 녹임 1→.8@.5→0 — 시안의 녹임 상자는 M팝업 것(600px 폭, x−42)을 복사한 흔적이라 131px 그대로면 보이는 칸의 82%가 녹아 그림이 흐려짐 → 세로형 중간값 50%(11-09 판단)"
+              }
             }
           }
         },
@@ -1461,7 +1549,22 @@ export const MEDIA = [
               },
               "target": "figma:qhEEyEBDCjTmTho3tByBf1 44:2 (10-15 목표 프레임)",
               "weightsNote": "굵기는 역할·줄마다 샘플 실측 그대로(사용자 확정 10-15): 팝업 서브 Bold22/메인 Bold35/상세 Regular17(라벨 포함) · 채용공고 서브 Bold16/메인 Bold24/상세 라벨 행 Bold13·값 행 Regular13 · PC메인 서브 Medium22/메인 Bold32/상세 Regular18 · M팝업 서브 Bold30/메인 Bold50/상세 26 라벨 Bold + 값 Regular · M메인 서브 Bold28/메인 Bold40/상세 24 라벨 Bold + 값 Regular",
-              "docRef": "docs/jasoseol-mold.md ⑦"
+              "docRef": "docs/jasoseol-mold.md ⑦",
+              "bgRule": {
+                "grad": 135,
+                "gradImage": 315,
+                "fade": [
+                  {
+                    "side": "left",
+                    "frac": 0.26
+                  },
+                  {
+                    "side": "top",
+                    "frac": 0.38
+                  }
+                ],
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) — 시안 없음, 오른쪽 아래 그림 칸이라 PC팝업 규칙을 옮김(11-09 확장)"
+              }
             }
           }
         },
@@ -1861,7 +1964,19 @@ export const MEDIA = [
                 "note": "하단 전폭 칸, 처리는 디자인 가이드(하단 띠: native/contain/cover + 윗변 녹임)"
               },
               "target": "figma:qhEEyEBDCjTmTho3tByBf1 47:2 (10-15 목표 프레임, 2배)",
-              "docRef": "docs/jasoseol-mold.md ⑩"
+              "docRef": "docs/jasoseol-mold.md ⑩",
+              "bgRule": {
+                "grad": 180,
+                "gradImage": 0,
+                "fade": [
+                  {
+                    "side": "top",
+                    "frac": 0.5,
+                    "mid": 0.5
+                  }
+                ],
+                "source": "figma:sZMBhkuLMEiyMLPPpGxvC1 사용자 시안 11-09 (docs/jasoseol-bg-rules-1109.md) 236:4293 — 이미지 0,306 328×160 · 위쪽 131px(보이는 칸의 82%) 녹임 1→.8@.5→0"
+              }
             }
           }
         },

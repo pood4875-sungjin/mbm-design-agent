@@ -40,6 +40,7 @@ test('① 틀 contain 그림(gradEdge)은 칸이 닿는 지면 변 쪽으로 붙
   assert.equal(Math.round(+m[1] + +m[3]), P.x + P.w, '오른쪽 열: 상자 오른변 = 칸 오른변 = 지면 오른변');
   assert.equal(Math.round(+m[3]), Math.min(P.w, P.h), '상자 = contain 그림 사각형(정사각 그림이면 칸 높이만큼)');
   assert.equal(+m[6], 0, '지면 변 쪽(오른쪽)은 안 녹인다'); assert.ok(+m[5] > 0, '글자 쪽(왼쪽)은 녹인다');
+  // 그라데이션 바탕 캐릭터 일러스트는 11-09 시안 규칙(cover)에서 빠져 10-15 결정(contain)을 지킨다
   const band = renderAd(ctx, st, specs['jasoseol-m-premium-popup-mo']); const tb = traceOf(band);
   assert.ok(tb.rules.includes('templateMold.containGrad') && !tb.rules.includes('templateMold.containEdge'), '양쪽 다 닿는 하단 띠는 가운데');
   assert.match(band, /data-melt="[1-9][\d.]*" data-melt-dir="sides" data-melt-right="[1-9][\d.]*"/);
@@ -72,8 +73,8 @@ test('④ 틀 모서리 칸 cover 는 주인공 머리를 지키는 coverPos 위
     edges: { top: edge('#17132B', true, '#141027', '#19152F'), bottom: edge('#282545', false, '#2F2C4F', '#221E3A'), left: edge('#434162', false, '#231F3C', '#636289'), right: edge('#403E60', false, '#4D4C6E', '#333152') } } };
   const st = styleOf(ICONS, '#1428A0');
   const html = renderAd(ctx, st, specs['jasoseol-pc-premium-popup-pc']); const tr = traceOf(html);
-  assert.ok(tr.rules.includes('templateMold.slotCover'), tr.rules.join(','));
-  const T = tr.place.tImage; const want = coverPos(st, T.w, T.h, { fallback: '50% 52%', headroom: 0.04 }).pos;
+  assert.ok(tr.rules.includes('templateMold.bgRule'), tr.rules.join(','));   // 11-09 시안 칸(245,181 305×219)도 같은 coverPos(머리 지킴)
+  const T = { x: 245, y: 181, w: 305, h: 219 }; const want = coverPos(st, T.w, T.h, { fallback: '50% 52%', headroom: 0.04 }).pos;
   assert.notEqual(want, '50% 52%', 'coverPos 가 머리를 지키려 위치를 바꾼다(px 오프셋)');
   const esc = s => s.replace(/[.*+?^${}()|[\]\\%-]/g, '\\$&');
   assert.match(html, new RegExp(`data-object="1" style="position:absolute;left:${T.x}px;top:${T.y}px;width:${T.w}px;height:${T.h}px;background:url\\([^)]*\\) ${esc(want)}/cover`), `칸 cover 위치 ${want}`);

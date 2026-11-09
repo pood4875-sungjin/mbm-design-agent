@@ -68,6 +68,8 @@ test('편집 「키비주얼 크기」를 손으로 정했으면 안 건드린�
   assert.equal(emptyAttr(manual), null, '편집 크기');
   const spec = specs['jasoseol-pc-premium-popup-pc'];
   const before = renderAd(ctx, { ...cube, __fix: {} }, spec), reg = renderAd(ctx, cube, spec);
+  // 11-09 사용자 시안(bgRule): 자소설 PC팝업의 바탕 있는 그림은 시안 칸(245,181 305×219)을 채운다 — 빈 지면 보정은 그 칸이 없는 틀에서만
+  if (/data-bgrule="1"/.test(reg)) { assert.equal(emptyAttr(reg), null, '시안 칸은 보정 안 함'); assert.match(reg, /left:245px;top:181px;width:305px;height:219px/); return; }
   assert.ok(CANON.emptyFix.regulated && emptyAttr(reg), '규정 매체도 보정: ' + emptyAttr(reg));
   const b = traceOf(before).place.tImage, a = traceOf(reg).place.tImage;
   assert.ok(a.w > b.w || a.h > b.h, `${JSON.stringify(b)} → ${JSON.stringify(a)}`);

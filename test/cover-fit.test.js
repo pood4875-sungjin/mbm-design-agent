@@ -42,12 +42,12 @@ test('렌더: desk-16 × 리멤버 사이드 MO(열) · 자소설 M팝업(띠, �
   const style = caseStyle('desk-16');
   const side = objOf(renderArtifact('remember-job-side-mo', ctx, style, {}));
   assert.match(side[1], /left:751px;top:0px;width:374px;height:276px/); assert.match(side[2], /data-kv-fit="0\.673"/);
+  // 11-09 사용자 시안(bgRule)도 칸 cover 가 주인공을 60% 미만만 보이면 시안 칸 대신 이 보정으로(templateMold.bgRuleFitBack)
   const mo = renderArtifact('jasoseol-m-premium-popup-mo', ctx, style, {}); const band = objOf(mo);
-  assert.match(band[1], /left:73px;top:544px;width:455px;height:336px/);
-  const cf = band[2].match(/data-cut-fade="L(\d+),R(\d+)"/); assert.ok(cf, band[2]); assert.ok(+cf[1] + +cf[2] <= 60, cf[0]);   // 좁아진 띠의 양옆은 녹이되 합이 예산(1−keep) 안
+  assert.match(mo, /templateMold\.bgRuleFitBack/);
   assert.match(mo, /templateMold\.slotFit/);
   const pc = objOf(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, style, {}));
-  assert.ok(/data-kv-fit=/.test(pc[2]), pc[2]); assert.doesNotMatch(pc[1], /width:310px;height:216px/);
+  assert.doesNotMatch(pc[1], /width:305px;height:219px/);
 });
 
 test('meltFix 주인공 캡: 그 변에서 이미 잘린 주인공도 melt.min(30%) 으로 캡 — hr-doctor × 리멤버 사이드 PC 왼변 48→30 (전에는 캡 없이 55)', () => {

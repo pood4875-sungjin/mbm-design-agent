@@ -31,27 +31,28 @@ const styleOf = (kv, primary = '#E2401A') => normalizeStyle({ colors: [primary],
 const rulesOf = html => JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"')).rules;
 const objOf = html => (html.match(/<div data-object="1"[^>]*>/g) ?? []).find(t => /mask-image/.test(t)) ?? '';
 
-test('meltFix ① 덮어 자른 사진 칸: 변 색(갈색 ≈ 지면)이 아니라 속 색(크림·하늘색)으로 재서 글자 쪽 녹임을 55% 까지 늘인다 — 리멤버 1005×360 · 구글 580 모서리 칸(왼·위) · data-melt 도 같은 값', () => {
-  const h = renderAd(ctx, styleOf(PHOTO), specs['remember-main-top-mo']);
-  const o = objOf(h);
-  assert.match(o, /data-melt="55" data-melt-dir="to right"/, o.slice(-300));
-  assert.match(o, /mask-image:linear-gradient\(to right,transparent 0%,[^;]*#000 55%\)/, '마스크 길이 = data-melt');
-  assert.match(o, /data-melt-fix="L3\d→55"/);
-  assert.ok(rulesOf(h).includes('meltFix'));
-  const g = objOf(renderAd(ctx, styleOf(PHOTO), specs['google-gdn-580x400']));
-  assert.match(g, /data-melt="55"[^>]*data-melt-top="55"/, '모서리 칸은 왼쪽·위 둘 다');
-  assert.match(g, /data-melt-fix="L3\d→55,T\d+→55"/);
+test('meltFix ① 덮어 자른 사진 칸: 변 색(갈색 ≈ 지면)이 아니라 속 색(크림·하늘색)으로 재서 글자 쪽 녹임을 55% 까지 늘인다 — 시안 규칙이 없는 틀(카카오 PC 프로모·에브리타임 홈배너) · data-melt 도 같은 값', () => {
+  // 11-09: 리멤버 1005×360·구글 580 모서리 칸은 사용자 시안 규칙(bgRule 자동 — 짧은 녹임 그대로)으로 옮겨 이 후처리를 타지 않는다
+  for (const id of ['kakao-display-pc-promo', 'everytime-home-banner']) {
+    const h = renderAd(ctx, styleOf(PHOTO), specs[id]); const o = objOf(h);
+    assert.match(o, /data-melt="55" data-melt-dir="to right"/, id + ' ' + o.slice(-300));
+    assert.match(o, /mask-image:linear-gradient\(to right,transparent 0%,[^;]*#000 55%\)/, '마스크 길이 = data-melt');
+    assert.match(o, /data-melt-fix="L3\d→55"/);
+    assert.ok(rulesOf(h).includes('meltFix'));
+  }
+  const r = renderAd(ctx, styleOf(PHOTO), specs['remember-main-top-mo']);
+  assert.match(r, /data-bgrule="1" data-melt="27" data-melt-dir="to right"/, '리멤버 오른쪽 열 = PC메인 시안의 거울(왼쪽 27%)');
+  assert.ok(!rulesOf(r).includes('meltFix') && rulesOf(r).includes('templateMold.bgRuleAuto'));
+  const g = renderAd(ctx, styleOf(PHOTO), specs['google-gdn-580x400']);
+  assert.match(g, /data-bgrule="1" data-melt="26" data-melt-dir="to right" data-melt-top="38"/, '구글 580 모서리 칸 = PC팝업 시안(왼 26·위 38)');
 });
 
-test('meltFix ② 흰 바탕 일러스트 × 흰 지면(kv-edge) 인스타 1080 틀 칸(cover): 그림 변이 그대로 보이는 왼변(평평·같은 색)은 34% 그대로, cover 로 잘려 남색 주인공을 가로지르는 윗변만 55% 로 — 조용한 그림은 어디도 안 늘인다', () => {
+test('meltFix ② 조용한 그림(어느 줄이나 바탕)은 어디도 안 늘인다 · 인스타 1080 모서리 칸은 시안 규칙(왼 26·위 38)으로 녹임 그대로', () => {
   const h = renderAd(ctx, styleOf(ILLUST, '#1E3A8A'), specs['instagram-feed-1080']);
   const o = objOf(h);
-  assert.match(o, /data-melt="34" data-melt-dir="to right"/, '왼변: 그림의 변(흰 바탕) = 지면 → 34% 그대로: ' + o.slice(-200));
-  assert.match(o, /data-melt-top="55"/, '윗변: cover 로 5.5% 잘려 주인공 줄 → 55%');
-  assert.match(o, /data-melt-fix="T34→55"/);
-  // 흰 바탕 × 흰 지면인데 덮어 자른 칸은 녹임이 있어야 한다(10-20 전수 감사: 예전엔 cornerSeamless 라 녹임 없이 주인공을 가로질렀다) — 마스크 문자열이 `;` 로 이어져 overflow:hidden 도 살아 있다
+  assert.match(o, /data-bgrule="1" data-melt="26" data-melt-dir="to right" data-melt-top="38"/, o.slice(-200));
+  assert.doesNotMatch(o, /data-melt-fix=/);
   assert.match(o, /no-repeat;-webkit-mask-image:linear-gradient\(to right[^"]*overflow:hidden"/);
-  // 조용한 그림(어느 줄이나 바탕)은 아무 데도 늘이지 않는다
   const q = renderAd(ctx, styleOf(QUIET, '#1E3A8A'), specs['instagram-feed-1080']);
   assert.doesNotMatch(q, /data-melt-fix=/);
   assert.ok(!rulesOf(q).includes('meltFix'));
@@ -113,9 +114,9 @@ test('fieldAlign — 그림 네 변에서 정한 세로 그라데이션(위 남�
   assert.deepEqual(ta.field.stops, ['#081A4E', '#0144D3']); assert.deepEqual(tb.field.stops, ta.field.stops);
   assert.ok(ta.rules.includes('fieldAlign') && tb.rules.includes('fieldAlign'));
   const ma = a.match(/<div data-ad="1"[^>]*style="[^"]*background:linear-gradient\(180deg,#081A4E ([\d.]+)px,#0144D3 ([\d.]+)px\)/); assert.ok(ma, '루트 지면이 px 정지점 그라데이션');
-  assert.ok(+ma[1] >= 544 && +ma[2] <= 880 && +ma[2] > +ma[1], `하단 띠 안에서 위 3%→아래 97%: ${ma[1]}~${ma[2]}`);
+  assert.ok(+ma[1] < 880 && +ma[2] > 523 && +ma[2] > +ma[1], `그림 자리(11-09 시안 칸 y523~880 cover — 그림 사각형이 칸보다 커서 정지점이 칸 밖일 수 있다)와 겹친다: ${ma[1]}~${ma[2]}`);
   // 모서리 칸은 빈 지면 보정(emptyFix, 10-21)이 글자 쪽으로 키울 수 있다 — 정지점은 실제 칸(trace place.tImage) 안이면 된다
-  const tb0 = tb.place.tImage, mb = b.match(/background:linear-gradient\(180deg,#081A4E ([\d.]+)px,#0144D3 ([\d.]+)px\)/); assert.ok(mb && +mb[1] >= tb0.y && +mb[2] <= tb0.y + tb0.h, `모서리 칸 ${tb0.y}~${tb0.y + tb0.h} 안: ${mb?.[1]}~${mb?.[2]}`);
+  const tb0 = tb.place.tImage, mb = b.match(/background:linear-gradient\(180deg,#081A4E ([\d.]+)px,#0144D3 ([\d.]+)px\)/); assert.ok(mb && +mb[1] < tb0.y + tb0.h && +mb[2] > tb0.y, `모서리 칸 ${tb0.y}~${tb0.y + tb0.h} 과 겹친다(11-09 시안 칸 cover — 그림 사각형이 칸보다 크다): ${mb?.[1]}~${mb?.[2]}`);
   // 글자 쪽 양옆 녹임은 늘이지 않는다(변 색 = 같은 높이의 지면 색) — meltFix 가 55% 로 키우지 않는다
   const o = (a.match(/<div data-object="1"[^>]*>/g) ?? []).find(t => /mask-image/.test(t)) ?? '';
   const dm = +((o.match(/data-melt="([\d.]+)"/) ?? [])[1] ?? 0); assert.ok(dm > 0 && dm < 50, '양옆 녹임 ' + dm);

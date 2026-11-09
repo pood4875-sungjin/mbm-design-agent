@@ -53,7 +53,7 @@ test('녹임 예산(10-21 사용자 「너무 조금 보여… 좌·하단」): 
   const melt = +(h.match(/data-object="1"[^>]*data-melt="([\d.]+)"/) ?? [])[1], top = +(h.match(/data-object="1"[^>]*data-melt-top="([\d.]+)"/) ?? [])[1];
   const limit = Math.round((1 - CANON.cutFade.keep) * 100);
   assert.ok(melt <= 55.5 && top <= 55.5, `왼 ${melt} · 위 ${top} ≤ 55 (11-02: 여백 변 없음 — 한쪽만 녹이는 칸이라 예산(keep) 밖, 녹임 상한만)`);
-  assert.ok(melt >= CANON.melt.min * 100 - 0.5, '글자 쪽 녹임은 바닥(30%) 아래로는 안 줄인다: ' + melt);
+  assert.ok(melt === 26 && top === 38, `11-09 사용자 시안(236:3771): 자소설 PC팝업 이미지 칸은 왼쪽 26%·위쪽 38% 녹임 그대로(meltFix 가 늘리지 않음): 왼 ${melt} · 위 ${top}`);
   if (/data-fade-budget=/.test(h)) assert.match(h, /data-fade-budget="[LT]\d+(\.\d+)?→\d+/);
   // 한쪽만 녹이는 칸은 그대로 — 구글 580 모서리 칸 왼·위 녹임(오른쪽·아래는 지면 변)
   const g = renderAd(ctx, { ...bright, __fix: {} }, specs['google-gdn-580x400']);

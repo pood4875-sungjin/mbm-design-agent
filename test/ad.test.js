@@ -145,7 +145,7 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
   const html = renderAd(ctx, style, specs['jasoseol-pc-premium-popup-pc']);
   // 순백이 아니라 브랜드색 파스텔 틴트(현대케피코 라벤더 블루) — 위가 조금 진하고 아래가 옅다
   // 10-15 템플릿 틀(templateMold): 자소설 PC팝업은 세아제강 샘플 28:124 이 틀 — 밝은 틴트 지면(단색 또는 위가 조금 진한 그라데이션) + 샘플 글자색 #555555(브랜드색 메인 아님)
-  assert.match(html.split('>')[0], /background:(linear-gradient\(180deg,#[C-F][0-9A-F]{5} 0%,#[D-F][0-9A-F]{5} 100%\)|#[C-F][0-9A-F]{5});/i);
+  assert.match(html.split('>')[0], /background:(linear-gradient\((?:180|135)deg,#[C-F][0-9A-F]{5} 0%,#[D-F][0-9A-F]{5} 100%\)|#[C-F][0-9A-F]{5});/i);
   assert.match(html, /data-field="main"[^>]*color:#555555/, '틀 글자색은 샘플 실측(세아제강 #555555) — 밝은 지면에서 브랜드색으로 바꾸지 않는다(10-15)');
 });
 
@@ -281,7 +281,8 @@ test('the template image area takes the picture by its size — 10-15 templateMo
   const tall = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 0.5, px: [160, 324], edge: '#0B3C8C' } };
   const tallHtml = renderAd(ctx, tall, specs['jasoseol-pc-standard-jobpost-pc']);
   // 10-15 사용자 정정: 틀은 칸의 위치·범위만 — 처리(cover + 윗변 녹임 / 누끼 contain)는 디자인 가이드 그대로
-  assert.match(tallHtml, /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*\/cover/);
+  // 11-09 사용자 시안(236:3768): 바탕 있는 그림은 0,355 160×245 를 cover + 위쪽 53% 녹임(bgRule) — 누끼는 예전 칸(0,400 160×200) contain
+  assert.match(tallHtml, /data-object="1" style="position:absolute;left:0px;top:355px;width:160px;height:245px;[^"]*\/cover/);
   assert.match(tallHtml, /data-object="1"[^>]*mask-image:linear-gradient\(to bottom/, '하단 칸 윗변 녹임은 그대로');
   const cut = { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.36, px: [302, 222], field: { opaque: 0.3 } } };
   assert.match(renderAd(ctx, cut, specs['jasoseol-pc-standard-jobpost-pc']), /data-object="1"[^>]*left:0px;top:400px;width:160px;height:200px;[^"]*center bottom\/contain/, '누끼는 칸 안 contain — 10-15 tower 블리드는 10-19 사용자 「비주얼 끊기지 않게」로 끔');

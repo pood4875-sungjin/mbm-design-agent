@@ -706,7 +706,7 @@ function meltFix(html, style, spec, tr) {
   const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return m ? parseFloat(m[1]) : null; };
   let hit = false, subjHit = false;
   const out = html.replace(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g, (m, attrs, st, rest) => {
-    if (/data-kv-only/.test(attrs) || /inset:0/.test(st)) return m;
+    if (/data-kv-only/.test(attrs) || /data-bgrule/.test(rest) || /inset:0/.test(st)) return m;   // 11-09 시안 bgRule 칸은 시안 녹임 그대로
     const seg = /-webkit-mask-image:[^;]*;(?:-webkit-mask-composite:[^;]*;)?mask-image:[^;]*;(?:mask-composite:[^;]*;)?/;
     const mk = st.match(seg); if (!mk) return m;
     const own = grads((st.match(/-webkit-mask-image:[^;]*;/) ?? [''])[0]); if (!own.length) return m;
@@ -804,7 +804,7 @@ function cutFade(html, style, spec, tr = null) {
   const num = (s, k) => { const m = s.match(new RegExp('(?:^|;)' + k + ':(-?[\\d.]+)(?:px)?(?=;|$)')); return m ? parseFloat(m[1]) : null; };
   let hit = false;
   const out = html.replace(/<div data-object="1"((?:\s+data-[a-z0-9-]+="[^"]*")*) style="([^"]*)"([^>]*)>/g, (m, attrs, st, rest) => {
-    if (/data-kv-only/.test(attrs) || /inset:0/.test(st) || /border-radius:(?!0px)/.test(st)) return m;
+    if (/data-kv-only/.test(attrs) || /data-bgrule/.test(rest) || /inset:0/.test(st) || /border-radius:(?!0px)/.test(st)) return m;
     const bw = num(st, 'width'), bh = num(st, 'height'), bx = num(st, 'left'), by = num(st, 'top');
     if (!(bw > 0 && bh > 0) || bx == null || by == null) return m;
     const bg = st.match(/background:url\('[^']*'\) ([^;]*?)\/([^;]*?) no-repeat;/); if (!bg) return m;
@@ -2199,6 +2199,18 @@ function renderAdBase(ctx, style, spec) {
 
   // 편집 「그라데이션」 방향(세로·가로·대각) — 지면이 그라데이션이면 각도만 바꾼다(단색이면 resolveField 가 명도 ±5% 두 끝을 만들어 둔다)
   if (ED?.bgGrad && GRAD_ANGLE[ED.bgGrad] && field?.gradient && !photoFull && !roomFull && !textureFull && field.stops.length > 1) { const ang = GRAD_ANGLE[ED.bgGrad]; field = { ...field, angle: ang, css: `linear-gradient(${ang}deg,${field.stops[0]} 0%,${field.stops[field.stops.length - 1]} 100%)` }; if (TR.field) TR.field = { ...TR.field, angle: ang, stops: field.stops }; }
+  // 11-09 사용자 시안(자소설 키비주얼별 배경 활용, docs/jasoseol-bg-rules-1109.md): 틀이 bgRule 을 가지면 지면 그라데이션 방향을 틀이 정한다 —
+  //   가로 띠 왼→오 · 세로 띠 위→아래 · 팝업 대각. 바탕 있는 그림(이미지)이면 그림 쪽 끝이 주색(stops[0])이 되게 뒤집는다(「그라를 넣으려면 이미지쪽 그라 끝과 동일해야 하고 반대로 그라가 올라가야 함」)
+  //   bgRule 이 없는 틀(다른 매체)은 그림 칸 자리로 같은 규칙을 고른다(autoBgRule — 오른쪽/왼쪽 열 = PC메인, 하단 띠 = 채용공고·M팝업, 오른쪽 아래 모서리 = PC팝업). mold.bgRule:false 면 끔
+  const BR = mold?.bgRule === false ? null : (mold?.bgRule ?? autoBgRule(mold, w / (tScale || 1), h / (tScale || 1)));
+  if (BR && !mold?.bgRule) fired('templateMold.bgRuleAuto');
+  //   그라데이션 바탕의 캐릭터 일러스트는 몸 전체가 보이게 contain(10-15 저녁 사용자 결정 — 여우 M팝업·PC메인) — 시안 규칙(cover)에서 뺀다
+  const gradChar = !!(kvTypeOf(style.kvMeta)?.flags.gradEdge && kvTypeOf(style.kvMeta)?.flags.character);
+  const brImage = !!(BR && tImage && hasKv && !isCutout && !transparent && !logoAsObject && !(tImage.radius != null) && !gradChar);
+  if (BR && !ED?.bgGrad && field?.gradient && !field.align && !photoFull && !roomFull && !textureFull && field.stops.length > 1) {
+    const ang = brImage ? (BR.gradImage ?? BR.grad) : BR.grad;
+    if (Number.isFinite(ang)) { field = { ...field, angle: ang, css: `linear-gradient(${ang}deg,${field.stops[0]} 0%,${field.stops[field.stops.length - 1]} 100%)` }; if (TR.field) TR.field = { ...TR.field, angle: ang, css: field.css }; fired('templateMold.bgRuleGrad'); }
+  }
   // 편집 「스크림 세기」(사진 전체형 밖): 글자 쪽에서 시작해 사라지는 지면색 막 — 글자 아래 그림을 진정시킨다
   const scrimEl = (ED?.scrim && ED.scrim !== 'none' && SCRIM_A[ED.scrim] && !photoFull && field && !transparent) ? (() => {
     const a = SCRIM_A[ED.scrim], base = field.stops[0];
@@ -2411,9 +2423,25 @@ function renderAdBase(ctx, style, spec) {
   // 둥근 그림 칸(mold.image.radius — 카카오 비즈보드 템플릿 64:3325 오브젝트 상자 r10, 10-16 사용자 「우측 비주얼 라운드 넣거나, 누끼면 그냥 툭」): 사진·바탕 있는 그림은 칸을 채우고(cover) 모서리를 둥글게 자른다(녹임 없음 — 안랩 샘플), 누끼는 칸 안에 contain 그대로
   const roundSlot = !!(mold && tImage && tImage.radius != null && hasKv && !cutout && !isCutout && !logoAsObject);
   if (roundSlot) fired('templateMold.slotRound');
-  const moldContain = !!(mold && tImage && hasKv && !cutout && !transparent && !logoAsObject && kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.gradEdge) && !roundSlot;
+  const moldContain = !!(mold && tImage && hasKv && !cutout && !transparent && !logoAsObject && kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.gradEdge) && !roundSlot && !brImage;   // 11-09 bgRule 이미지 칸은 시안대로 cover
   if (moldContain) fired('templateMold.containGrad');
-  const tplObject = (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
+  // 11-09 시안 bgRule 이미지 칸: 칸(시안 실측 imageSlot)을 cover 로 채우고 지면 쪽 변만 짧게 녹인다 — 녹임 정지점은 시안 그대로(가장자리 0 → mid 지점 0.2 → 길이 끝 1).
+  //   이 칸은 meltFix·cutFade(색 거리로 녹임을 늘리는 후처리)가 다시 건드리지 않는다(data-bgrule)
+  const bgRuleLayer = brImage ? (() => {
+    const S0 = BR.imageSlot && !AM?.kv ? BR.imageSlot : null;
+    const r = S0 ? { x: Math.round(S0.x * tScale), y: Math.round(S0.y * tScale), w: Math.round(S0.w * tScale), h: Math.round(S0.h * tScale) } : tImage;
+    const inward = { right: 'to left', left: 'to right', top: 'to bottom', bottom: 'to top' };
+    const pc = v => `${Math.round(v * 1000) / 10}%`;
+    const grads = (BR.fade ?? []).map(f => f.mid == null ? `linear-gradient(${inward[f.side]},transparent 0%,#000 ${pc(f.frac)})` : `linear-gradient(${inward[f.side]},transparent 0%,rgba(0,0,0,0.2) ${pc(f.frac * f.mid)},#000 ${pc(f.frac)})`);
+    const c = coverPos(style, r.w, r.h, { fallback: kvPos, headroom: 0.04 });
+    if (c.fit) { fired('templateMold.bgRuleFitBack'); return null; }   // 칸 cover 가 주인공을 60% 미만만 보이면(11-02 컨시어지 #2 보일 부분 규칙) 시안 칸 대신 예전 보정(칸을 그림 크기로)
+    const fr = side => Math.round(((BR.fade ?? []).find(f => f.side === side)?.frac ?? 0) * 100);
+    const mR = fr('right'), mL = fr('left'), mT = fr('top');
+    const meltA = mR ? ` data-melt="${mR}" data-melt-dir="to left"` : mL ? ` data-melt="${mL}" data-melt-dir="to right"${mT ? ` data-melt-top="${mT}"` : ''}` : mT ? ` data-melt="${mT}" data-melt-dir="to bottom"` : '';
+    fired('templateMold.bgRule');
+    return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${c.pos}/cover no-repeat;${meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
+  })() : null;
+  const tplObject = bgRuleLayer ? bgRuleLayer : (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : moldContain
     ? (() => { const mL0 = fadeFor('to right'), mR0 = fadeFor('to left');
         // 윗변(그림 변)이 지면색과 0.15 넘게 다르면 윗변도 녹인다(10-20 전수 감사 desk-11 네 변 평평한 일러스트 — 왼·오른쪽만 녹여 윗변이 네모 선). 길이는 CANON.melt, 같은 색이면 0
@@ -2873,4 +2901,15 @@ function swapMoldSide(m, W) {
   if (m.rows) out.rows = Object.fromEntries(Object.entries(m.rows).map(([k, r]) => [k, r && Number.isFinite(r.x) ? fx(r, m.w) : r]));
   for (const k of ['image', 'imageCutout', 'logo']) if (m[k]) { out[k] = fx(m[k]); if (m[k].edgeInset) { const e = m[k].edgeInset; out[k].edgeInset = { ...(e.left != null ? { right: e.left } : {}), ...(e.right != null ? { left: e.right } : {}), ...(e.top != null ? { top: e.top } : {}), ...(e.bottom != null ? { bottom: e.bottom } : {}) }; } }
   return out;
+}
+
+// 11-09 시안 규칙을 다른 매체 틀로(사용자 「비율 비슷한 건 최대한 이대로」): 그림 칸이 지면 어느 변에 붙었는지로 고른다. 안쪽에 뜬 상자·둥근 칸·자유 칸은 시안이 없어 null(예전 처리)
+function autoBgRule(m, W, H) {
+  const I = m?.image; if (!I || I.radius != null || m.freeKv || !(W > 0 && H > 0)) return null;
+  const atL = I.x <= 1, atR = I.x + I.w >= W - 1, atT = I.y <= 1, atB = I.y + I.h >= H - 1;
+  if (atT && atB && atR && !atL) return { grad: 270, gradImage: 270, fade: [{ side: 'left', frac: 0.27, mid: 0.46 }], auto: 'right-col' };   // PC메인(왼쪽 열)의 거울
+  if (atT && atB && atL && !atR) return { grad: 90, gradImage: 90, fade: [{ side: 'right', frac: 0.27, mid: 0.46 }], auto: 'left-col' };
+  if (atL && atR && atB && !atT) return { grad: 180, gradImage: 0, fade: [{ side: 'top', frac: W / H <= 0.35 ? 0.53 : 0.37, mid: 0.5 }], auto: 'bottom-band' };   // 아주 가는 세로 띠 = 채용공고 53%, 그 밖 = M팝업 37%
+  if (atR && atB && !atL && !atT) return { grad: 135, gradImage: 315, fade: [{ side: 'left', frac: 0.26 }, { side: 'top', frac: 0.38 }], auto: 'corner-br' };
+  return null;
 }
