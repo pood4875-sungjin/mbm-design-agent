@@ -1,4 +1,15 @@
-# 다음 세션 이어하기 (2026-11-09 계정 이동)
+# 다음 세션 이어하기 (2026-11-10 새벽 갱신)
+
+## 0. 11-10 새벽 상태 (먼저 읽기)
+- 로컬 커밋 10개 **미push**: 8af4b4f·1fdec15·fad25e0·6106097·f73a043·abb7855·0209db3·a046f4e·c3b9ae5·d1d9300 (origin = 85a5581). push 는 사용자 말할 때만. 테스트 826.
+- 기록: `history/2026-11-10_추가시안3슬롯_AI디자인트랙_오토레이아웃_성능.md`. 작업판 `_out/ai-track/ORCH.md`(단계 1~8, 로그).
+- AI 트랙: 로컬 claude CLI(회사 계정) 전용. `node server/server.mjs 4796` + `python3 scripts/serve.py 4795`. 루프 재현 `node scripts/freedesign-ai-loop.mjs --round N [--edits]`. 정본 `docs/ai-design-flow.md`.
+- 다음 할 일:
+  1. 사용자 결정 5개(00_브리핑 5절 0-2): push · 과생성 유지 · 규칙 4항 완화 · 톡보드 18행 · Claude Code 좌석.
+  2. 정상 시간대에 AI 루프 r6(r4·r5 는 계정 응답 지연 시간대 — 3안 12/16, 미달 4 중 3은 호출 시간 초과).
+  3. AI 칸 실서버 앱 화면 확인(성능 수정 뒤 미확인). 연도 중복 안·로고 판 색 탁함 고침.
+- 아침 보고서 아티팩트: https://claude.ai/artifact/Siw6uY3S6TSrCRvED9onUw
+
 
 사용자가 「이어서」라고만 말하면 이 파일부터 읽고 아래 「바로 할 일」을 이어 간다. 답은 한국어, 짧게, 결정과 근거 위주.
 
