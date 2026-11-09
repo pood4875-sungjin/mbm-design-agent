@@ -3692,11 +3692,12 @@ async function exportAdFiles(ads, opts = {}) {
   }
   return out;
 }
-async function doAdExport(a) {
+async function doAdExport(a, { force = false } = {}) {   // force: 차단 소재를 확인하고 내보냄(11-09 사용자 「차단된 것도 추출되게 — 확인만 하고」)
   toast('소재 생성 중…');
   try {
     const [{ fit, name }] = await exportAdFiles([a]);
-    if (fit.lint.level === 'block') { toast(`규격 차단 — ${fit.lint.issues[0]?.msg ?? ''}`); return; }
+    if (fit.lint.level === 'block' && !force) { toast(`규격 차단 — ${fit.lint.issues[0]?.msg ?? ''}`); return; }
+    if (fit.lint.level === 'block') toast('규정 차단 소재를 내보냈어요 — 매체에서 반려될 수 있어요');
     download(fit.measure.blob, name);
     const kb = (fit.measure.bytes / 1024).toFixed(0);
     log(`내보내기: ${name} · ${kb}KB${fit.attempts.length > 1 ? ` (${fit.attempts.map(x => x.label).join('→')})` : ''}`);
@@ -3743,11 +3744,16 @@ async function doAdSvg(a) {
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
-async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false, only = null } = {}) {   // only: Set<키> — 선택한 소재만(11-02)
+async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false, only = null, includeBlocked = null } = {}) {   // only: Set<키> — 선택한 소재만(11-02) · includeBlocked: 차단 소재 포함(null 이면 물어본다, 11-09)
   const c = state.campaign;
   // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로.
   // 「미승인도 포함(검토용)」(10-21 사용자 「전체 선택했는데 1단계 산출물만 추출됨」 — 2·3단계는 게이트가 검수 필요라 승인분만 ZIP 에 들어갔다)을 켜면 차단 아닌 미승인도 「미승인_검토용/」 폴더로 함께
-  const { all, approved, ads, assets } = pickForExport(c.artifacts, { only, includeUnapproved });   // app/select.js — only 가 있으면 선택한 소재(전달물 포함)만
+  let { all, approved, ads, assets } = pickForExport(c.artifacts, { only, includeUnapproved });   // app/select.js — only 가 있으면 선택한 소재(전달물 포함)만
+  // 11-09 차단 소재: 확인을 받고 「규정차단_확인필요/」 폴더로 함께(매체 전달분과 섞지 않는다)
+  const blockedArts = all.filter(a => gateOf(a)?.state === 'blocked');
+  if (blockedArts.length && includeBlocked == null) { confirmBlockedExport(blockedArts, inc => exportAdZip(withSvg, { allVariants, includeUnapproved, only, includeBlocked: inc }), { canSkip: true }); return; }
+  if (includeBlocked && blockedArts.length) { const keep = new Set([...ads, ...blockedArts]); ads = all.filter(a => keep.has(a)); }
+  const blockedKey = new Set(includeBlocked ? blockedArts.map(a => a.key ?? a.specId) : []);
   if (only && !all.length) { toast('선택한 소재 중 매체 소재가 없어요'); return; }
   if (!ads.length) { toast(`승인된 매체 소재가 없어요 — 먼저 승인하거나 「미승인도 포함」을 켜세요(미승인 ${all.length}장)`); return; }
   if (!includeUnapproved && ads.length < all.length) toast(`승인분 ${ads.length}장만 ZIP 에 — 미승인 ${all.length - ads.length}장 제외(「미승인도 포함」으로 검토용 묶음 가능)`);
@@ -3761,10 +3767,12 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
   try {
     const files = await exportAdFiles(ads, { allVariants, progress: P });
     const blocked = files.filter(f => f.fit.lint.level === 'block');
-    if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 이미지는 ZIP 에서 제외${withSvg && includeUnapproved ? ' (수정용 SVG 는 미승인_검토용/svg/ 에)' : withSvg ? ' (「미승인도 포함」을 켜면 수정용 SVG 는 들어가요)' : ''}`); }
+    if (blocked.length && includeBlocked) toast(`규정 차단 ${blocked.length}건은 「규정차단_확인필요/」 폴더에 — 매체에서 반려될 수 있어요`);
+    else if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 이미지는 ZIP 에서 제외${withSvg && includeUnapproved ? ' (수정용 SVG 는 미승인_검토용/svg/ 에)' : withSvg ? ' (「미승인도 포함」을 켜면 수정용 SVG 는 들어가요)' : ''}`); }
     const entries = [];
-    for (const f of files.filter(f => f.fit.lint.level !== 'block')) {
-      const pre = unapprovedKey.has(f.a?.key ?? f.a?.specId ?? f.spec.id) ? '미승인_검토용/' : '';
+    for (const f of files.filter(f => includeBlocked || f.fit.lint.level !== 'block')) {
+      const k0 = f.a?.key ?? f.a?.specId ?? f.spec.id;
+      const pre = (f.fit.lint.level === 'block' || blockedKey.has(k0)) ? '규정차단_확인필요/' : unapprovedKey.has(k0) ? '미승인_검토용/' : '';
       entries.push({ name: pre + (f.variant != null ? `${f.spec.mediumName}/${f.spec.id}/${f.name}` : `${f.spec.mediumName}/${f.name}`), data: new Uint8Array(await f.fit.measure.blob.arrayBuffer()) });
     }
     // 전달물(자소설 M시작배너 로고·이미지 파일): 원본 바이트 그대로(10-16)
@@ -3819,21 +3827,35 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
     if (e instanceof ProgressCancelled) toast('내보내기를 취소했어요'); else toast(`실패: ${e.message}`);
   } finally { exportAdZip.running = false; modalBtns.forEach(b => { b.disabled = false; }); }
 }
+// 차단 소재 내보내기 확인(11-09 사용자 「차단된 것도 추출되게 해 줘 — 확인만 하고」): 사유를 보여 주고 고르게 한다. go(true) = 포함 · go(false) = 빼고
+function confirmBlockedExport(list, go, { canSkip = false } = {}) {
+  const why = a => { const g = gateOf(a); const m = a.lint?.issues?.find(i => i.level === 'block')?.msg ?? g?.reasons?.[0] ?? '규정 미준수'; return `<li><b>${escH(artLabel(a))}</b> — ${escH(m)}</li>`; };
+  modal({
+    title: `규정 차단 소재 ${list.length}건`,
+    desc: '매체 규정에 맞지 않아 반려될 수 있어요. 사유를 확인하고 내보낼지 골라 주세요.',
+    body: `<ul style="font-size:12.5px;line-height:1.7;margin:0;padding-left:18px;max-height:260px;overflow:auto">${list.slice(0, 40).map(why).join('')}${list.length > 40 ? `<li>외 ${list.length - 40}건</li>` : ''}</ul>`,
+    actions: [
+      { label: '취소' },
+      ...(canSkip ? [{ label: '차단 빼고 내보내기', fn: () => { go(false); return false; } }] : []),
+      { label: list.length > 1 ? '확인했어요 — 포함해서 내보내기' : '확인했어요 — 내보내기', pri: true, fn: () => { go(true); return false; } },
+    ],
+  });
+}
 function exportAdModal(a) {
   const spec = SPECS[a.specId];
   const blocked = gateOf(a)?.state === 'blocked';   // 차단 소재: 이미지(매체 전달)는 막고 수정용 SVG 만(10-28 담당자 「미승인이어도 2차 수정용 추출」)
   modal({
     title: `${artLabel(a)} 내보내기`,
-    desc: blocked ? '규정 차단 소재 — 이미지(매체 전달)는 내보내지 않고, 고치기 위한 SVG(Figma 편집용)만 뽑을 수 있어요.' : '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
+    desc: blocked ? '규정 차단 소재 — 차단 사유를 확인하면 이미지도 내보낼 수 있어요. 고치기 위한 SVG(Figma 편집용)도 뽑을 수 있어요.' : '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b> · SVG 는 작업 크기 ${spec.w}×${spec.h}(1배)${a.fitNote ? `<br>용량 맞춤: ${escH(a.fitNote)}` : ''}</div>
       <div style="margin-top:10px">${lintHtml(a)}</div>
-      ${blocked ? '<div style="font-size:12px;color:var(--danger);line-height:1.6;margin-top:8px">차단 사유를 고친 뒤 다시 검사하면 이미지 내보내기가 열립니다. SVG 는 수정용 — 매체에 그대로 전달하지 마세요.</div>' : ''}
+      ${blocked ? '<div style="font-size:12px;color:var(--danger);line-height:1.6;margin-top:8px">차단 사유를 고치면 그대로 내보낼 수 있어요. 지금 이미지가 필요하면 「확인하고 다운로드」 — 매체에서 반려될 수 있어요. SVG 는 수정용이에요.</div>' : ''}
       <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">${exportFontLine([a])}</div>
       <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${SVG_NOTE}</div>`,
     actions: [
       { label: '닫기' },
       { label: blocked ? 'SVG (수정용)' : 'SVG (Figma 편집용)', pri: blocked, fn: () => { doAdSvg(a); return false; } },
-      ...(blocked ? [] : [{ label: '다운로드', pri: true, fn: () => { doAdExport(a); return false; } }]),
+      ...(blocked ? [{ label: '확인하고 다운로드', fn: () => { confirmBlockedExport([a], ok => { if (ok) doAdExport(a, { force: true }); }); return false; } }] : [{ label: '다운로드', pri: true, fn: () => { doAdExport(a); return false; } }]),
     ],
   });
 }
