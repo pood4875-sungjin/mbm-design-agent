@@ -1514,10 +1514,26 @@ function renderAdBase(ctx, style, spec) {
   // 지면 CSS는 그릴 때 읽는다 — 띠 높이가 정해진 뒤 이음매 줄 색으로 지면을 잇는다(joinField)
   // 편집 「스크림 세기」(사진 전체형): 없음 = 스크림 층을 빼고, 약·중·강 = 불투명도 띠
   const PH_A = { low: [0.5, 0.35], mid: [0.75, 0.55], high: [0.96, 0.88] };
-  const phA = ED?.scrim ? PH_A[ED.scrim] ?? null : [0.94, 0.82];
+  // 가운데 정렬 전면 이미지(시안 슬롯 A — 11-09 R2 총괄 눈 검수 「군중·알약 그림 위 글자가 지저분·대비 부족」): 글자가 그림 한가운데 앉는다.
+  //   스크림 바탕을 흰 글자 대비 ≥ 8.5 까지 어둡히고(브랜드 주색이 밝으면 딥 쪽으로), 그림의 가장 밝은 점(밝은 사진 = 흰색)이 비쳐도 흰 글자 대비 ≥ 4.8(4.5 + 여유)이
+  //   되는 불투명도를 푼다. 복잡도(가장자리 밀도 — kvMeta texture.spread·sharp·focus.density)가 높으면 +0.06 까지 더 진하게. 범위 0.6~0.9, 글자 블록 아래(높이 72%)까지 유지 후 사라짐.
+  //   0.9 로도 대비를 못 넘으면 short — 안(variants)이 A 를 다른 변형(거울 칸형)으로 바꾼다. 기본안(정렬 미지정)은 그대로
+  const centerScrim = (photoFull && TA === 'center' && !ED?.scrim) ? (() => {
+    let base = scrimBase; for (let i = 0; i < 12 && contrast(base, WHITE) < 8.5; i++) base = mix(base, BLACK, 0.12);
+    const f = style.kvMeta?.field ?? {}, t = f.texture ?? {};
+    const busy = Math.max(0, Math.min(1, Math.max(((t.spread ?? 0) - 30) / 50, (t.sharp ?? 0) / 0.35, ((f.focus?.density ?? 0) - 0.3) / 0.4)));
+    const hi = Math.min(1, (f.lum ?? 1) + (f.lumSpread ?? 0.3));   // 그림의 밝은 쪽(평균 + 퍼짐) — 밝은 사진은 흰색으로 본다
+    const worstHex = hi >= 0.45 ? WHITE : mix(BLACK, WHITE, Math.sqrt(hi));
+    let need = null; for (let a = 0.4; a <= 0.951; a += 0.01) if (contrast(WHITE, mix(base, worstHex, 1 - a)) >= 4.8) { need = Math.round(a * 100) / 100; break; }
+    const want = need == null ? 1 : need + busy * 0.06, a1 = Math.round(Math.min(0.9, Math.max(0.6, want)) * 100) / 100;
+    return { base, a: [Math.round(Math.min(0.95, a1 + 0.07) * 100) / 100, a1], busy: Math.round(busy * 100) / 100, need, short: need == null || need > 0.9 + 1e-9, hold: Math.round(scrimEnd * 0.72) };
+  })() : null;
+  if (centerScrim) fired(centerScrim.short ? 'scrim.center.short' : 'scrim.center');
+  const phA = ED?.scrim ? PH_A[ED.scrim] ?? null : centerScrim ? centerScrim.a : [0.94, 0.82];
+  const scrimInk = centerScrim ? centerScrim.base : scrimBase;
   const bgCss = () => (mold?.field && mold.bg) ? `background:${mold.bg};`   // 틀의 지면 처리가 영역이면(자소설 PC메인 왼쪽 350×280) 바탕은 템플릿 고정색, 브랜드 지면은 그 영역에만(아래 moldField)
     : photoFull
-    ? `background:${phA ? `linear-gradient(${scrimDir},${rgba(scrimBase, phA[0])} 0%,${rgba(scrimBase, phA[1])} ${Math.round(scrimEnd * (TA === 'center' ? 0.62 : 0.5))}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : ''}${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
+    ? `background:${phA ? `linear-gradient(${scrimDir},${rgba(scrimInk, phA[0])} 0%,${rgba(scrimInk, phA[1])} ${centerScrim ? centerScrim.hold : Math.round(scrimEnd * (TA === 'center' ? 0.62 : 0.5))}%,${rgba(scrimInk, 0)} ${scrimEnd}%),` : ''}${crowdKv && style.kvUse !== 'full' ? `linear-gradient(${rgba(mix(scrimBase, BLACK, 0.35), 0.55)},${rgba(mix(scrimBase, BLACK, 0.35), 0.55)}),` : ''}url('${esc(style.keyVisual)}') ${kvPos}/cover no-repeat;`   // 현장·군중 사진은 전체에 한 단계 어둡힌 브랜드색 55%를 한 겹 더(디자이너: 사진을 어둡게 톤다운 + 브랜드색 덮기) — 사람 머리가 글자 뒤에서 덜 시끄럽다
     // 질감: 통째로 깐다(가운데 맞춤 cover). 글자 대비가 4.5:1에 못 미치면(10-09: 3:1 → 4.5:1 — 파란 유리 면 위 흰 상세 글자) 글자 쪽에서 시작하는 브랜드색 스크림(사진 전체형과 같은 문법)
     : frameFull ? (() => { const tallF = L.shape === 'tall' || L.shape === 'tower'; const dw = Math.round(Math.max(w * 1.7, tallF ? h * 0.45 * (style.kvMeta?.ar ?? 1.8) : 0)); return `background:linear-gradient(${scrimDir},${rgba(field.stops[0], 0.85)} 0%,${rgba(field.stops[0], 0.55)} ${Math.round(scrimEnd * 0.45)}%,${rgba(field.stops[0], 0)} ${Math.round(scrimEnd * 0.8)}%),url('${esc(style.keyVisual)}') ${tallF ? 'right bottom' : 'right center'}/${dw}px auto no-repeat,${field.css};`; })()
     : textureFull ? `background:${ED?.scrim ? '' : field && field.contrast < 4.5 ? `linear-gradient(${scrimDir},${rgba(scrimBase, 0.9)} 0%,${rgba(scrimBase, 0.75)} ${Math.round(scrimEnd * 0.5)}%,${rgba(scrimBase, 0)} ${scrimEnd}%),` : calm ? `linear-gradient(${scrimDir},${rgba(calm.tint, calm.a)} 0%,${rgba(calm.tint, Math.round(calm.a * 0.7 * 100) / 100)} ${Math.round(calm.reach * 45)}%,${rgba(calm.tint, 0)} ${Math.round(calm.reach * 100)}%),` : ''}url('${esc(style.keyVisual)}') center/cover no-repeat;`
@@ -1590,9 +1606,19 @@ function renderAdBase(ctx, style, spec) {
     && style.logoMeta.colors.filter(c => Math.min(...field.stops.map(st => contrast(c.hex, st))) < clash.minContrast).reduce((a, c) => a + c.share, 0) >= clash.share);
   // 반전 지면(lightInk): 단색으로 바꾸는 로고는 검정 대신 브랜드 딥으로 칠한다(시안 E·H — 원색 로고는 그대로). 칠은 문서 안 SVG 필터(feFlood + SourceAlpha)
   const inkId = lightInk ? `mbm-ink-${lightInk.slice(1).toLowerCase()}` : null;
+  // 반전 지면 로고 대비(11-09 R2 — 총괄 눈 검수 「한림 흰 로고가 흰 지면에 그대로」): 로고 실측 색(logoMeta.colors, core/logo.js)마다 지면 대비를 재서
+  //   3:1 미만 색이 로고 면적의 30% 이상이거나 실측이 없으면(톤만 있는 장부 — 흰 로고가 dark 로 적혀 있었다) 딥으로 칠한다. 타일 로고는 칠하지 않는다(판째 원색 — 대비는 trace 로 남겨 안에서 거른다)
+  const logoLowOnLight = (() => {
+    if (!lightInk || !field?.stops?.length) return null;
+    const cs = style.logoMeta?.colors ?? null; if (!cs?.length) return { share: null, min: null };
+    const cOf = hx => Math.min(...field.stops.map(st => contrast(hx, st)));
+    const low = cs.filter(c => cOf(c.hex) < 3).reduce((a, c) => a + c.share, 0), tot = cs.reduce((a, c) => a + c.share, 0) || 1;
+    return { share: Math.round(low / tot * 100) / 100, min: Math.round(Math.min(...cs.map(c => cOf(c.hex))) * 100) / 100 };
+  })();
+  const logoInkLight = !!(logoLowOnLight && !logoTile && (logoLowOnLight.share == null || logoLowOnLight.share >= 0.3));
   const logoFilter = logoTile ? ''
     : (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)'
-    : (fgIsDark && (style.logoTone === 'light' || logoClash)) ? (inkId ? `filter:url(#${inkId})` : 'filter:brightness(0)')
+    : (fgIsDark && (style.logoTone === 'light' || logoClash || logoInkLight)) ? (inkId ? `filter:url(#${inkId})` : 'filter:brightness(0)')
     : '';
   const inkDefs = (inkId && logoFilter.includes(inkId)) ? `<svg width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0"><filter id="${inkId}" color-interpolation-filters="sRGB"><feFlood flood-color="${lightInk}"/><feComposite in2="SourceAlpha" operator="in"/></filter></svg>` : '';
   // 단색으로 바꿀 때만 글자 속까지 지운 사본(style.logoMono, core/logo.js prepLogoRGBA mono) — 속이 메워져 「●」가 되지 않게.
@@ -1609,8 +1635,8 @@ function renderAdBase(ctx, style, spec) {
   if (emblemX != null) fired('logo.emblemKeep');
   TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, css: field.css, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined, align: field.align ?? null, deviation: field.deviation ?? null } : null;
   TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv, textColor: textColorTr, ...(LF ? { light: { ok: LF.ok, why: LF.why ?? null, hex: LF.hex ?? null, L: LF.L ?? null, deep: LF.deep ?? null, accent: LF.accent ?? null, kind: LF.kind, edgeLum: LF.edgeLum ?? null, applied: !!lightInk } } : {}) };
-  TR.scrim = photoFull ? { kind: 'photo-full', base: scrimBase, a: [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
-  TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : inkDefs ? 'ink' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
+  TR.scrim = photoFull ? { kind: 'photo-full', base: scrimInk, a: phA ?? [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv, ...(centerScrim ? { center: { busy: centerScrim.busy, need: centerScrim.need, short: centerScrim.short, hold: centerScrim.hold } } : {}) } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
+  TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : inkDefs ? 'ink' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, ...(logoLowOnLight ? { light: { ...logoLowOnLight, ink: !!(logoFilter && inkDefs), low: !!(logoTile && logoLowOnLight.share != null && logoLowOnLight.share >= 0.3) } } : {}), mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
     // 가이드 배치 규칙(10-14 place.logoSlot): 자동 로고 자리 — 모서리(왼쪽 배치면 좌우 뒤집음)·칸 종류(abs 모서리 칸 · flex 글자 열 안 · template 매체 로고 칸 · object 그림 자리)
     corner: (mirrorX && /-(left|right)$/.test(logoPlace)) ? logoPlace.replace(/(left|right)$/, x => (x === 'left' ? 'right' : 'left')) : logoPlace, slot: logoAsObject ? 'object' : tLogo ? 'template' : logoBox ? 'abs' : 'flex', tplRect: tLogo ?? null };
   if (logoWhite) fired('logoOnly.white'); if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-harmony|kv-vivid/.test(field?.source ?? '')) fired('kvHarmony'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
@@ -2631,7 +2657,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const rowX = r => (MCOL && !MCOL.col) ? MCOL.x : r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => (MCOL && !MCOL.col) ? MCOL.w : r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA 없으면 칸 그대로(기본 그림 바이트 동일) */
     if (MCOL) fired('templateMold.alignOneColumn');
     const put = (role, r, lines, weight, color, inner, text) => { const rs = style.roleScale?.[role] ?? 1, t = topOf(r), px = Math.round(pxOf(r) * rs), pitch = Math.round(pitchOf(r) * rs * 100) / 100;   // roleScale: 글자별 크기(N6 직접 편집)
-      used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: (MCOL && !MCOL.col) ? MCOL.ax : r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
+      used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: (MCOL && !MCOL.col) ? MCOL.ax : r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)}${(r.stackDy ?? (AL && r.afterMain != null ? AL.dy : 0)) ? ` data-stack-dy="${Math.round((r.stackDy ?? AL.dy) * k * 10) / 10}"` : ''} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
     if (!ctx.core?.headline && (MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
@@ -2660,6 +2686,33 @@ ${tplLogo}${kvWrap(tplObject)}
     // 메인에 광고주 필수인 규격(카카오 비즈보드 mainMustIncludeClient)에서 고른 문구에 기업명이 없으면(16자 「한미글로벌&터너앤타운젠드코리아」 — 사다리가 .85 까지 줄여도 한 줄에 못 넣어 「신입/경력 채용」만) 줄 수가 맞아도 아래 사다리(두줄형)로 들어간다 — 11-02 컨시어지 #1·#5
     const mustClMain = !!((rules.mainMustIncludeClient ?? spec.mainMustIncludeClient) && ctx.kind === 'recruit' && ctx.core?.client);   // 규격이 메인에 광고주를 요구하는지(needClMain 은 「지금 고른 문구에 광고주가 없는지」)
     const needClMain = !!((rules.mainMustIncludeClient ?? spec.mainMustIncludeClient) && ctx.kind === 'recruit' && ctx.core?.client && !String(copy.main).includes(String(ctx.core.client).trim()));
+    // ── 오토레이아웃(11-09 2b 사용자 「타이틀·서브텍스트가 패딩을 유지한 채로 내부 콘텐츠 3줄이면 아래로 — 세로로 영역이 길어져야」): 사용자가 적은 타이틀(headline)이
+    //   틀 메인 줄 수와 다르면(1~3줄, 매체 줄 수 상한 안) 메인 칸을 그 줄 수로 늘리거나 줄이고(hug), 메인 아래 행(날짜·상세·태그·칩)을 같은 만큼 내리거나 올린다 — 위·왼 패딩, 행 사이 간격은 틀 그대로.
+    //   afterMain 행(메인 마지막 줄 + 간격)은 이미 따라가고, 줄 수별 표(bySubLines·byMainLines)가 있는 틀·규정 매체(fonts.required)는 표·규정을 따른다(스택 안 함).
+    //   바닥(메인 아래 그림 칸 윗변·안전영역 아래)에 닿으면 메인 글자·행간을 한 단계(0.9) 줄이고, 그래도 넘치면 trace autolayout.over(검수 경고). 사용자 타이틀이 없으면 지금 그림 그대로(기본 바이트 동일)
+    const AL = (() => {
+      const hl = String(ctx.core?.headline ?? '').trim(); const m0 = MR.main;
+      if (!hl || !m0?.lines || mr.fonts?.required || m0.bySubLines || MR.detail?.byMainLines || MR.sub?.byMainLines || mold.vCenter) return null;
+      const cap = Math.min(3, by.main?.maxLines ?? 3), lines0 = m0.lines;
+      const want = Math.max(1, Math.min(cap, rowsOfMain(hl)));
+      if (want === lines0 && rowsOfMain(hl) <= lines0) return null;
+      const pitch0 = m0.pitch ?? m0.px * 1.2, mainTop = m0.y, mainBot0 = m0.y + pitch0 * lines0;
+      const below = Object.keys(MR).filter(n => n !== 'main' && MR[n] && MR[n].y != null && MR[n].afterMain == null && MR[n].y >= mainBot0 - pitch0 * 0.5);
+      const floorOf = () => { const sb = (h - (typeof rules.safeArea?.bottom === 'number' ? rules.safeArea.bottom : Math.round(Math.min(w, h) * 0.04))) / k; const img = (tImage && tImage.y / k > mainTop + pitch0 && tImage.x < sx + colW && tImage.x + tImage.w > sx) ? tImage.y / k - 4 : null; return Math.min(sb, img ?? Infinity); };
+      const bottomOf = (dy, pitch, n) => Math.max(m0.y + pitch * n, ...below.map(r => { const R = MR[r]; return R.y + dy + (R.chip ? (R.chip.h ?? R.pitch ?? R.px * 1.2) : (R.pitch ?? R.px * 1.2)) * (R.lines ?? 1); }));
+      let kk = 1, pitch = pitch0, dy = pitch0 * (want - lines0);
+      const floor = floorOf();
+      if (want > lines0 && bottomOf(dy, pitch, want) > floor + 0.5) { kk = 0.9; pitch = pitch0 * kk; dy = pitch * want - pitch0 * lines0; }
+      const over = want > lines0 && bottomOf(dy, pitch, want) > floor + 0.5;
+      return { want, lines0, kk, pitch, dy: Math.round(dy * 10) / 10, below, over, hl };
+    })();
+    if (AL) {
+      MR.main = { ...MR.main, lines: AL.want, ...(AL.kk < 1 ? { px: MR.main.px * AL.kk, pitch: AL.pitch } : {}) };
+      for (const n of AL.below) MR[n] = { ...MR[n], y: MR[n].y + AL.dy, ...(MR[n].chip && typeof MR[n].chip === 'object' && MR[n].chip.y != null ? { chip: { ...MR[n].chip, y: MR[n].chip.y + AL.dy } } : {}), stackDy: AL.dy };
+      if (MR.detail?.chip && typeof MR.detail.chip === 'object' && MR.detail.chip.y != null && !AL.below.includes('detail')) { /* 칩만 아래에 있으면 칩도 */ if (MR.detail.chip.y >= MR.main.y) MR.detail = { ...MR.detail, chip: { ...MR.detail.chip, y: MR.detail.chip.y + AL.dy } }; }
+      copy.main = AL.hl; fired(AL.dy >= 0 ? 'autolayout.grow' : 'autolayout.shrink'); if (AL.kk < 1) fired('autolayout.textStep'); if (AL.over) fired('autolayout.over');
+      TR.autolayout = { want: AL.want, lines0: AL.lines0, dy: AL.dy, k: AL.kk, rows: AL.below, over: AL.over };
+    }
     if (MR.main?.lines && (rowsOfMain(copy.main) > MR.main.lines || needClMain)) {
       const cands = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])];
       const floor = CANON.overlapFix?.textFloorRegulated ?? 0.85;

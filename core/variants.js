@@ -132,7 +132,7 @@ export function logoInSafe(tr, spec, html = '') {
 // 메인 글자 대비(trace.text.mainFg vs 지면 정지점) — hex 가 아니면 못 잰다(통과)
 const minMainContrast = tr => { const fg = tr?.text?.mainFg, st = tr?.field?.stops ?? []; if (!/^#[0-9a-f]{6}$/i.test(fg ?? '') || !st.length) return null; return Math.min(...st.filter(x => /^#[0-9a-f]{6}$/i.test(x)).map(x => contrast(x, fg))); };
 // 슬롯 프리셋 후보 — 기본안 trace(정렬·배치·지면)에 따라. { st, sub }
-export function slotPresets(slotId, spec, baseTr, style) {
+export function slotPresets(slotId, spec, baseTr, style, ctx = null) {
   const shape = shapeOf(spec.w, spec.h), hasKv = !!style?.keyVisual && !!baseTr?.gate?.hasKv;
   const ba = baseTr?.place?.zone?.align ?? 'left', mode = baseTr?.place?.mode ?? 'none', mold = MOLD_MODES.has(mode) || !!baseTr?.gate?.template;
   const cut = (style?.kvMeta?.field?.opaque ?? 1) < 0.5;
@@ -153,7 +153,12 @@ export function slotPresets(slotId, spec, baseTr, style) {
       else if (ba === 'center') C.push({ textAlign: 'left', kvPlace: 'right' }, { kvPlace: 'left' });
       else { C.push({ textAlign: 'center', kvPlace: 'bottom' }, { kvPlace: 'left' }); if (!cut) C.push({ kvPlace: 'bg' }); C.push({ textAlign: 'center' }); }
     }
-  } else if (slotId === 'B') C.push({ infoTag: 'date' }, { infoTag: 'both' }, { infoTag: 'label' }, { infoTag: 'date', tagShape: 'square' });
+  } else if (slotId === 'B') {
+    // R2(11-09 총괄 「B 가 기본안과 차이가 약함 — 날짜 알약 하나만」): 브리프에 직무·라벨 정보가 있으면 라벨 각진 태그 + 날짜 알약(both)을 먼저 — 피그마 ② 묶음 A·H(라벨 태그 + 값), C·D(날짜 알약)
+    const core = ctx?.core ?? {}, hasLabel = !!(core.role || core.employType || (Array.isArray(core.label) ? core.label.length : core.label));
+    if (hasLabel) C.push({ infoTag: 'both' }, { infoTag: 'date' }, { infoTag: 'label' }, { infoTag: 'date', tagShape: 'square' });
+    else C.push({ infoTag: 'date' }, { infoTag: 'both' }, { infoTag: 'label' }, { infoTag: 'date', tagShape: 'square' });
+  }
   else if (slotId === 'C') {
     const L = lumOf(baseTr?.field?.stops?.[0]);
     if (L != null && L >= 0.6 && !/^manual/.test(baseTr?.field?.source ?? '')) C.push({ bgFill: 'brand' });   // 기본안이 이미 밝은 지면이면 반전 = 브랜드색 지면
@@ -168,7 +173,7 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
   const spec = adSpecEntries()[specId]; if (!spec) return [];
   const want = variantCountFor(spec); const V = CANON.variants ?? {};
   const maxRender = V.maxRender ?? 28;
-  const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual; let baseFixed = null, baseKv = null, baseTr = null, baseMc = null;
+  const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual; let baseFixed = null, baseKv = null, baseTr = null, baseMc = null, baseMain = null;
   const slotLog = [];   // 슬롯마다 { slot, ok, style?, tried, why[] }
   // 후보 하나 렌더 + 거르기 → rec 또는 { why }
   const tryCand = (cand, meta = {}) => {
@@ -178,7 +183,8 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
     let html; try { html = renderArtifact(specId, ctx, st, ropts); rendered++; } catch (e) { return { why: '렌더 실패' }; }
     const tr = traceOf(html); if (!tr) return { why: 'trace 없음' };
     const keys = Object.keys(cand);
-    if (!keys.length) { baseFixed = overlapFixed(html); baseKv = kvDrawn(html, style); baseTr = tr; baseMc = minMainContrast(tr); }
+    const mainTag = String(html).match(/<div data-field="main"[^>]*>/)?.[0]?.replace(/ data-[a-z-]+="[^"]*"/g, '') ?? null;
+    if (!keys.length) { baseFixed = overlapFixed(html); baseKv = kvDrawn(html, style); baseTr = tr; baseMc = minMainContrast(tr); baseMain = mainTag; }
     if (cand.tpl && (!/data-field="main"/.test(html) || (tr.tpl?.overlap ?? 0) >= 0.05 || tr.tpl?.unfit)) return { why: '시안 틀이 이 그림에 안 맞음' };
     if (keys.length) {
       const ignored = (tr.edit?.ignored ?? []).filter(Boolean).map(String);
@@ -192,7 +198,15 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       const mc = minMainContrast(tr), need = cand.bgFill === 'light' ? 7 : Math.min(3, (baseMc ?? 3) - 0.05);   // 기본안부터 대비가 낮은 질감 지면(그라데이션 2.3)은 기본안보다 나빠질 때만
       if (mc != null && mc < need) return { why: `메인 대비 ${Math.round(mc * 10) / 10}` };
       if (cand.infoTag && !(tr.tags ?? []).length) return { why: '태그 붙일 정보 없음' };
+      // R2(11-09 전수 jobda-main-mo 몰락스 both → overflow:main): 태그만 바꾸는 안이 메인 칸(폭·크기)까지 바꾸면 거른다
+      if (cand.infoTag && Object.keys(cand).every(k => k === 'infoTag' || k === 'tagShape') && baseMain && mainTag && mainTag !== baseMain) return { why: '태그가 메인 칸을 바꿈' };
       if ((tr.tags ?? []).some(t => t.contrast < 4.5)) return { why: '태그 글자 대비 4.5 미만' };
+      // R2(11-09): 가운데 정렬 전면 이미지 스크림이 0.9 로도 흰 글자 4.5:1 을 못 보장(렌더러 centerScrim.short) → 다른 A 변형으로
+      if (tr.scrim?.center?.short) return { why: `가운데 전면 스크림 부족(필요 ${tr.scrim.center.need ?? '>0.95'} · 복잡도 ${tr.scrim.center.busy})` };
+      // R2: 밝은 지면에서 로고가 안 보임 — 칠할 수 없는 타일 로고가 지면과 3:1 미만(렌더러 logo.light.low)
+      if (cand.bgFill === 'light' && tr.logo?.light?.low) return { why: `밝은 지면 로고 대비 부족(타일 로고 ${tr.logo.light.min}:1)` };
+      // R2: 「지면 반전」(bgFill brand)인데 지면이 기본안과 거의 같다(KG 브랜드 #F1F1F1 — 반전이 안 보임)
+      if (cand.bgFill === 'brand' && !cand.tpl && meta.slot === 'C') { const a = lumOf(tr.field?.stops?.[0]), b = lumOf(baseTr?.field?.stops?.[0]); if (a != null && b != null && Math.abs(a - b) < 0.2) return { why: `지면 반전이 기본안과 비슷(밝기 ${Math.round(b * 100) / 100}→${Math.round(a * 100) / 100})` }; }
     }
     const hash = htmlHash(html); if (seen.has(hash)) return { why: '기본안·다른 안과 같은 그림' };
     const ax = axesOf(cand, tr, spec, html);
@@ -218,6 +232,7 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       const r = tryCand(st, { slot: slotId, label: st.bgFill === 'brand' ? '지면 반전' : S.label, sub, substitute: substituteFor });
       if (r.rec) { push(r.rec); log.ok = true; log.style = st; return log; }
       log.why.push(`${keyOf(st)}: ${r.why}`);
+      if (/^지면 반전이 기본안과 비슷/.test(r.why ?? '')) used.delete(keyOf(st));   // 「반전」이라 부르진 않지만 채움 후보(브랜드색 지면)로는 다시 쓸 수 있게(네이버 1250 KG — 3안 보장)
     }
     for (const f of recipe) {
       const st = familyStyle(f); if (used.has(keyOf(st))) continue;
@@ -235,12 +250,12 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
   const failed = [];
   for (const S of SLOTS) {
     // ③ 밝은 지면의 사진 톤 검수(결정 4)는 렌더러(core/field.js lightFieldOf)가 한다 — 이음 쪽 밝기 < 0.55·대비 미달이면 edit.ignored 「bgFill(밝은 지면 — 사유)」로 거르고 사유가 슬롯 기록에 남는다
-    const log = runSlot(S.id, slotPresets(S.id, spec, baseTr, style));
+    const log = runSlot(S.id, slotPresets(S.id, spec, baseTr, style, ctx));
     slotLog.push(log); if (!log.ok) failed.push(log);
   }
   // 대체(결정 4): 실패한 슬롯 자리는 ①의 다른 변형 → ②의 다른 태그 구성 → 시안 틀·기존 프리셋 후보
   if (out.length < target) {
-    const more = [...slotPresets('A', spec, baseTr, style).map(x => ({ ...x, slot: 'A' })), ...slotPresets('B', spec, baseTr, style).map(x => ({ ...x, slot: 'B' })), { st: { infoTag: 'both', tagShape: 'pill' }, slot: 'B' }, { st: { infoTag: 'label', tagShape: 'pill' }, slot: 'B' }];
+    const more = [...slotPresets('A', spec, baseTr, style, ctx).map(x => ({ ...x, slot: 'A' })), ...slotPresets('B', spec, baseTr, style, ctx).map(x => ({ ...x, slot: 'B' })), { st: { infoTag: 'both', tagShape: 'pill' }, slot: 'B' }, { st: { infoTag: 'label', tagShape: 'pill' }, slot: 'B' }];
     for (const m of more) {
       if (out.length >= target) break;
       if (used.has(keyOf(m.st))) continue; used.add(keyOf(m.st));

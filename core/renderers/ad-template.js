@@ -391,8 +391,10 @@ export function renderTemplate(ctx, style, spec) {
     const firstY = fr.logo && fr.logo.y + fr.logo.h / 2 > fr.h * 0.6 ? 1 : 0;
     const order = [[firstX, firstY], [firstX, 1 - firstY], [0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [2, 1]];
     const pick = order.find(([i, j]) => !touches(xs[i], ys[j]) && !onKv(xs[i], ys[j])) ?? order.find(([i, j]) => !touches(xs[i], ys[j])) ?? null;
-    const filter = fgIsDark ? '' : (style.logoLight ? '' : 'filter:brightness(0) invert(1);');
-    if (pick) { logoRect = { x: Math.round(xs[pick[0]]), y: Math.round(ys[pick[1]]), w: lw, h: lh }; logoEl = `<img data-logo="1" src="${esc(logoSrc)}" alt="" style="position:absolute;z-index:2;left:${logoRect.x}px;top:${logoRect.y}px;height:${lh}px;width:auto;object-fit:contain;${filter}"/>`; }
+    // 밝은 지면 + 흰/옅은 로고(11-09 R2): 로고 실측 색 중 지면 대비 3:1 미만이 면적 30% 이상이면 어둡게(단색) — 흰 로고가 밝은 시안 틀에서 사라지던 것. 타일 로고는 그대로
+    const lowShare = (() => { const cs = style.logoMeta?.colors; if (!cs?.length) return style.logoTone === 'light' ? 1 : 0; const tot = cs.reduce((a, c) => a + c.share, 0) || 1; return cs.filter(c => worst(c.hex) < 3).reduce((a, c) => a + c.share, 0) / tot; })();
+    const filter = fgIsDark ? ((lowShare >= 0.3 && (style.logoMeta?.solid ?? 0) < 0.85) ? 'filter:brightness(0);' : '') : (style.logoLight ? '' : 'filter:brightness(0) invert(1);');
+    if (pick) { logoRect = { x: Math.round(xs[pick[0]]), y: Math.round(ys[pick[1]]), w: lw, h: lh }; logoEl = `<img data-logo="1" src="${esc(filter === 'filter:brightness(0);' && style.logoMono && logoSrc === style.logo ? style.logoMono : logoSrc)}" alt="" style="position:absolute;z-index:2;left:${logoRect.x}px;top:${logoRect.y}px;height:${lh}px;width:auto;object-fit:contain;${filter}"/>`; }
     else logoFail = true;
   }
   // 그림이 칸을 채우는가 · 글자와 그림 사이가 텅 비는가(세로 인물을 넓은 칸에 넣는 경우 등) — 안 맞으면 후보에서 뺀다

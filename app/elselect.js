@@ -84,10 +84,12 @@ export function createElementSelect(E) {
       const d = snapDelta(it.kind === 'text' ? 'text' : it.kind, nb, st.spec, it.kind === 'kv' ? null : st.base);
       if (st.mode === 'text') { p.dx += d.ddx; p.dy += d.ddy; } else { p.dx += d.ddx / st.W; p.dy += d.ddy / st.H; }
     }
-    const patch = st.mode === 'text' ? { elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy }) } : withKind(a, it.kind, p, st.mode);
+    const patch = st.mode === 'text' ? { elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy, sdy: sdyOf(a, it) }) } : withKind(a, it.kind, p, st.mode);
     E.commit(a, patch, label, coalesce);
   }
-  const previewOf = (a, it, st, q) => st.mode === 'text' ? { elements: withElementEdit(a.overrides?.elements, it.id, { dx: q.p.dx, dy: q.p.dy }) } : withKind(a, it.kind, q.p, st.mode);
+  // 오토레이아웃(11-09 2b): 옮기는 글자는 「자유 위치」 — 옮길 때의 스택 밀림(렌더러 data-stack-dy)을 같이 적어, 다른 글자 줄 수가 바뀌어도 그 자리에 남게(core/elementedit.js)
+  const sdyOf = (a, it) => a.overrides?.elements?.[it.id]?.sdy ?? (parseFloat(it.el?.dataset?.stackDy ?? '0') || 0);
+  const previewOf = (a, it, st, q) => st.mode === 'text' ? { elements: withElementEdit(a.overrides?.elements, it.id, { dx: q.p.dx, dy: q.p.dy, sdy: sdyOf(a, it) }) } : withKind(a, it.kind, q.p, st.mode);
 
   function hide() { ovl?.el?.remove(); ovl = null; }
   function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; }

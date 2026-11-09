@@ -31,6 +31,7 @@ export function normElementEdits(edits) {
     if (Math.abs(num(e.dy)) > (isBox ? 1e-4 : 0.04)) q.dy = isBox ? Math.round(num(e.dy) * 10000) / 10000 : round1(num(e.dy));
     if (e.scale != null && Math.abs(num(e.scale) - 1) > 1e-3) q.scale = Math.round(num(e.scale) * 1000) / 1000;
     if (isBox && (q.dx != null || q.dy != null || q.scale != null)) { q.ox = num(e.ox ?? 0.5); q.oy = num(e.oy ?? 0.5); }
+    if (!isBox && (q.dx != null || q.dy != null) && Math.abs(num(e.sdy)) > 0.04) q.sdy = round1(num(e.sdy));   // 오토레이아웃(11-09 2b): 옮길 때의 스택 밀림(data-stack-dy) — 옮긴 요소는 「자유 위치」라 스택이 다시 밀려도 그 자리에 남는다
     if (/^#[0-9A-Fa-f]{6}$/.test(e.color ?? '')) q.color = e.color.toUpperCase();
     if (WEIGHTS.includes(+e.weight)) q.weight = +e.weight;
     if (typeof e.font === 'string' && e.font) q.font = e.font;
@@ -165,7 +166,10 @@ function patchText(html, tag, e) {
   if (fontCss) { s = `${s};font-family:${fontCss}`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*font-family\s*:[^;]*/g)); open = addAttr(open, `data-el-font="${e.font}"`); }
   if (e.align) s = `${s};text-align:${e.align}${/(^|;)\s*display\s*:\s*(inline-)?flex/.test(s) ? `;justify-content:${e.align === 'center' ? 'center' : e.align === 'right' ? 'flex-end' : 'flex-start'}` : ''}`;
   if (e.runs) inner = applyRuns(inner, e.runs);
-  s = moveStyle(s, num(e.dx), num(e.dy));
+  // 자유 위치(오토레이아웃 2b — 피그마 absolute): 옮긴 요소는 스택에서 빠진다. 렌더러가 적은 지금 스택 밀림(data-stack-dy)을 빼고, 옮길 때의 밀림(sdy)을 더해 옮긴 자리를 지킨다
+  const moved = !!(num(e.dx) || num(e.dy)), stackNow = moved ? num(/\sdata-stack-dy="(-?[\d.]+)"/.exec(open)?.[1]) : 0;
+  s = moveStyle(s, num(e.dx), num(e.dy) + (moved ? num(e.sdy) - stackNow : 0));
+  if (moved) open = addAttr(open, 'data-free="1"');
   return html.slice(0, tag.t) + setStyle(open, s) + inner + html.slice(end);
 }
 // 틀 칸이라 렌더러 manualLayout 이 안 듣는 그림·로고 — 렌더러의 kvWrap 과 같은 캔버스 크기 층으로 감싸 변형(svgexport 가 data-edit 을 「옮긴 것」으로 읽는다)

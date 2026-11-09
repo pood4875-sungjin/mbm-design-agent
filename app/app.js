@@ -2781,8 +2781,10 @@ function elementPanelHtml(a, spec, id) {
   const px = Math.round(parseFloat(cs.fontSize) * 10) / 10, w = +cs.fontWeight || 400, curColor = (isStyleRole(id) ? st.roleColors?.[role] : ed.color) ?? hexOfCss(cs.color);
   const al = ed.align ?? (['left', 'center', 'right'].includes(cs.textAlign) ? cs.textAlign : 'left');
   const fontRule = fontRuleOf(spec?.mediumRules, spec?.rules);
+  // 오토레이아웃(11-09 2b): 옮긴 글자 = 자유 위치(스택에서 빠짐). 다른 글자와 겹치면 경고 · 「자동 배치로 되돌리기」
+  const freeSec = (ed.dx || ed.dy) ? (() => { const hit = EL.list(a).filter(o => o.kind === 'text' && o.id !== id && o.box.x < box.x + box.w && box.x < o.box.x + o.box.w && o.box.y < box.y + box.h && box.y < o.box.y + o.box.h); return `<div class="fnote" id="iElFree">자유 위치(옮김) — 다른 글자 줄 수가 바뀌어도 이 자리에 남아요${hit.length ? ` · <b style="color:var(--danger,#c00)">${escH(hit.map(o => elementName(o.id)).join('·'))}와 겹침</b>` : ''}</div><button type="button" class="btn" id="iElAuto" style="width:100%;margin-top:6px">자동 배치로 되돌리기</button>`; })() : '';
   return `${pickSec}<section class="isec">${head}
-    ${posRow}
+    ${posRow}${freeSec}
     <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비(글자에 맞춤)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이(글자에 맞춤)', prefix: 'H', attrs: 'disabled' })}</div>
     </section>
     <section class="isec"><h3>글자</h3>
@@ -2835,6 +2837,7 @@ function bindElementPanel(insp, a, c, spec, id) {
   const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
   const q = s => insp.querySelector(s);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
+  q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null }) }, `${elementName(id)} 자동 배치로`));
   { const pk = CS.pick, pc = q('#iPickColor'), ph = q('#iPickHex');
     if (pk && pc) {
       const go = v => { if (/^#[0-9A-Fa-f]{6}$/.test(v)) charApply(a, pk.id, { s: pk.s, e: pk.e, c: v.toUpperCase() }, pk.text); };
