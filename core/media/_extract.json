@@ -21,7 +21,7 @@
     "jobda": 2,
     "catch": 3,
     "google-gdn": 5,
-    "nap-dsp": 4,
+    "nap-dsp": 5,
     "instagram": 1,
     "kakao": 3,
     "naver-gfa": 3,
@@ -63,6 +63,7 @@
     "nap-dsp-band-320x100",
     "nap-dsp-full-300x250",
     "nap-dsp-full-320x480",
+    "nap-dsp-bizboard-960x300",
     "instagram-feed-1080",
     "kakao-bizboard-mo",
     "kakao-display-pc-promo",
@@ -267,7 +268,7 @@
       "jobda": "31:4246 「2개(PC,MO)」",
       "catch": "31:4245 「2개(PC,MO)」",
       "google-gdn": "31:4249 「4개」",
-      "nap-dsp": "31:4253 「4개」",
+      "nap-dsp": "31:4253 「4개」 + 11-09 비즈보드 960×300(규정 「비즈보드까지 총 5장」·컨시어지 「카카오 비즈보드 규격 = NAP DSP 비즈보드 규격」)",
       "instagram": "31:4257 「4개」(사용자 지시 1종)",
       "kakao": "31:4261 「3」",
       "naver-gfa": "31:4266 「3」 + 31:4268 「배너/비주얼만/로고만」",
@@ -371,6 +372,7 @@
     "jobda-main-pc": "A",
     "jobda-main-mo": "A",
     "kakao-bizboard-mo": "A",
+    "nap-dsp-bizboard-960x300": "A",
     "kakao-display-pc-promo": "A",
     "kakao-display-pc-profile": "B",
     "nap-dsp-band-320x50": "A",
@@ -419,7 +421,8 @@
       "remember-job-top-mo",
       "remember-job-side-pc",
       "remember-job-side-mo",
-      "kakao-bizboard-mo"
+      "kakao-bizboard-mo",
+      "nap-dsp-bizboard-960x300"
     ],
     "2": [
       "naver-gfa-mobile-da-1250x560",

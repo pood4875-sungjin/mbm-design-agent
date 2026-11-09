@@ -74,7 +74,7 @@ export function copyLadder(ctx) {
     const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
     const season = c.season || null;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
-    const slogan0 = c.slogan || (c.client ? `${c.client}에서 함께할 인재를 찾습니다` : null);   // 좁은 띠(narrowMain 분기)와 구글 아이브로가 쓴다
+    const slogan0 = c.slogan || null;   // 좁은 띠(narrowMain 분기)와 구글 아이브로가 쓴다 · 11-09: 적은 슬로건만 — 「○○에서 함께할 인재를 찾습니다」 기본 문구 폐지(입력 안 한 문구는 넣지 않는다, 시즌과 같은 원칙)
     const slogan = c.slogan ?? null;
     const hire = hireFor(c);   // 채용구분이 없으면 고용형태로("정규직 채용"), 둘 다 없으면 ''(「채용」을 지어 넣지 않음 — 10-28 결정)
     const named = !!hire;
@@ -1044,7 +1044,7 @@ function renderAdBase(ctx, style, spec) {
     ladder.main = [...new Set([...first, ...(ladder.main ?? [])])];
     // 세로 띠도 회사가 메인에 남는다(일화 300×1050 "㈜일화 / 신입/경력 / 사원 모집") — 서브가 슬로건뿐이라 회사를 서브로 올릴 수 없다
     ladder.mainNarrow = ladder.main;
-    const subOnly = [c0.headline ? [season0, c0.client, hire0 || null].filter(Boolean).join(' ') : null, c0.slogan || (c0.client ? `${c0.client}에서 함께할 인재를 찾습니다` : null)].filter(Boolean);
+    const subOnly = [c0.headline ? [season0, c0.client, hire0 || null].filter(Boolean).join(' ') : null, c0.slogan || null].filter(Boolean);
     ladder.sub = subOnly; ladder.subNarrow = subOnly;
   }
 

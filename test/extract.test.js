@@ -9,13 +9,13 @@ import { checklist8, ITEMS } from '../core/checklist8.js';
 // 추출 47규격 — 사용자 「컨시어지」 보드 목록(core/media/_extract.json). 매체마다 수가 정해져 있고 그 밖은 참고 규격이다.
 
 // 10-28 컨시어지: 구글 4 → 5(930×180 추가, #18) · 에브리타임 8 → 4 id(담당자 5종 = 커뮤니티보드 썸네일형/오브젝트형 2 + 홈배너 + 프로필 160 + 카드 720, #19)
-const COUNTS = { jasoseol: 11, remember: 8, jobda: 2, catch: 3, 'google-gdn': 5, 'nap-dsp': 4, instagram: 1, kakao: 3, 'naver-gfa': 3, everytime: 4, blind: 3, daangn: 1 };
+const COUNTS = { jasoseol: 11, remember: 8, jobda: 2, catch: 3, 'google-gdn': 5, 'nap-dsp': 5, instagram: 1, kakao: 3, 'naver-gfa': 3, everytime: 4, blind: 3, daangn: 1 };
 const ORDER = ['jasoseol', 'remember', 'jobda', 'catch', 'google-gdn', 'nap-dsp', 'instagram', 'kakao', 'naver-gfa', 'everytime', 'blind', 'daangn'];
 
-test('exactly 48 specs are extract:true, with the per-medium counts from the board (10-16: 자소설 11 · 캐치 3 / 10-28: 구글 5 · 에브리타임 4)', () => {
+test('exactly 49 specs are extract:true, with the per-medium counts from the board (10-16: 자소설 11 · 캐치 3 / 10-28: 구글 5 · 에브리타임 4 / 11-09: NAP 5 — 비즈보드 960×300)', () => {
   const all = MEDIA.flatMap(m => (m.specs ?? []).map(s => ({ ...s, medium: m.id })));
   const ex = all.filter(s => s.extract === true);
-  assert.equal(ex.length, 48, `추출 규격은 48이어야 한다 (지금 ${ex.length})`);
+  assert.equal(ex.length, 49, `추출 규격은 49여야 한다 (지금 ${ex.length})`);
   // 10-28 담당자 기준: 에브리타임은 5종(id 4)만, 288 3종·데일리 120 은 참고 / 구글 930×180 은 추출
   for (const id of ['everytime-community-board', 'everytime-home-banner', 'everytime-home-card-profile', 'everytime-home-card-image', 'google-gdn-930x180']) assert.ok(ex.some(s => s.id === id), `${id}: 추출이어야 한다`);
   for (const id of ['everytime-community-native', 'everytime-contest-card', 'everytime-search-keyword-thumb', 'everytime-daily-message-profile']) {
@@ -44,7 +44,7 @@ test('extract specs all have a size and a format — they are images we hand ove
   }
 });
 
-test('extractSpecGroups covers all 49 (twins folded, 전달물 2 제외), adSpecGroups keeps the reference specs, both in board medium order', () => {
+test('extractSpecGroups covers all 50 (twins folded, 전달물 2 제외), adSpecGroups keeps the reference specs, both in board medium order', () => {
   const ex = extractSpecGroups();
   const ids = new Set(ex.flatMap(g => [g.id, ...g.twins]));
   const ASSET_ONLY = new Set(['jasoseol-m-start-logo-mo', 'jasoseol-m-start-image-mo']);   // 렌더 없는 전달물은 광고 규격 묶음에 안 들어간다
@@ -60,9 +60,9 @@ test('extractSpecGroups covers all 49 (twins folded, 전달물 2 제외), adSpec
     const stages = groups.map(g => specStage(g.id));
     assert.deepEqual(stages, [...stages].sort((a, b) => a - b));
   }
-  assert.deepEqual(Object.values(EXTRACT.stages).map(l => l.length), [20, 9, 11, 8], '하 20 · 중 9 · 상 11(10-28 구글 930×180) · 보조 8(10-28 에브리타임 288 3종·데일리 120 은 참고)');
+  assert.deepEqual(Object.values(EXTRACT.stages).map(l => l.length), [21, 9, 11, 8], '하 21(11-09 NAP 비즈보드 960) · 중 9 · 상 11(10-28 구글 930×180) · 보조 8(10-28 에브리타임 288 3종·데일리 120 은 참고)');
   assert.equal(specStage('google-gdn-930x180'), 3); assert.equal(specStage('everytime-contest-card'), 5);
-  assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 1).map(g => g.medium))], ['jasoseol', 'remember', 'kakao']);
+  assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 1).map(g => g.medium))], ['jasoseol', 'remember', 'kakao', 'nap-dsp']);   // 11-09 NAP 비즈보드 960×300 도 하·1차(카카오 비즈보드와 같은 틀)
   assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 2).map(g => g.medium))], ['naver-gfa', 'everytime', 'nap-dsp', 'kakao']);
   assert.deepEqual([...new Set(ex.filter(g => specStage(g.id) === 3).map(g => g.medium))], ['blind', 'google-gdn', 'jobda', 'instagram', 'daangn']);
   assert.ok(all.every(g => g.entry.extract || specStage(g.id) === 5), '참고 규격은 5');
