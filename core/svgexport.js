@@ -220,6 +220,17 @@ export function groupLines(chars) {
 }
 
 // 레이어 이름 — data-* 속성 → Figma 에서 읽히는 한글 이름
+// 11-09 컨시어지 「PC메인배너 서브가 SVG 에서 Regular(사이트는 Medium)」: Figma 의 SVG 가져오기는 font-weight 를 보통/굵게 두 단계로만 읽는다
+//   (실측 Inter: 500 → Regular, 600 → Bold). PostScript 이름(「Inter-Medium」)을 font-family 맨 앞에 두면 그 스타일로 읽는다(500·600·700·400 모두 맞음) —
+//   「Pretendard-Medium, Pretendard」처럼 앞에 PostScript 이름, 뒤에 원래 이름(그 이름이 없는 곳에선 원래 이름 + font-weight 로)
+const PS_WEIGHT = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
+const PS_FAMILIES = /^(Pretendard|Pretendard JP|Inter|Noto Sans KR|Paperlogy|SUIT|SUITE)$/i;   // 「이름-스타일」 PostScript 규칙을 따르는 정적 글꼴 묶음
+export function psFamily(fam, fw) {
+  const f = String(fam ?? '').split(',')[0].replace(/["']/g, '').trim();
+  const w = PS_WEIGHT[Math.round((+fw || 400) / 100) * 100];
+  if (!f || !w || !PS_FAMILIES.test(f)) return String(fam ?? '');
+  return `${f.replace(/\s+/g, '')}-${w}, ${f}`;
+}
 export const ROLE_NAMES = {
   main: '메인', sub: '서브', date: '날짜', detail: '상세', cta: 'CTA', tag: '해시태그', hashtag: '해시태그',
   notice: '안내', extra: '추가', advertiser: '광고주', label: '라벨', eyebrow: '서브',
@@ -489,29 +500,33 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     }
     const first = lines[0].runs[0].style;
     const attrs = st => `${paintAttrs(st.color)} font-size="${round(st.fs)}" font-weight="${st.fw}"${st.ls ? ` letter-spacing="${round(st.ls, 3)}"` : ''}${st.fontStyle !== 'normal' ? ` font-style="${st.fontStyle}"` : ''}${st.deco && st.deco !== 'none' ? ` text-decoration="${st.deco}"` : ''}`;
-    const fam = escXml(first.fam);
     // Figma 의 SVG 가져오기는 letter-spacing 을 읽지 않는다(10-14 실측: 속성·style·em 모두 0%) — 어느 글자에 얼마였는지 남겨 Figma 에서 다시 지정하게
     for (const l of lines) for (const r of l.runs) if (r.style.ls) {
       const fe = el.closest('[data-field]'); const role = fe ? (ROLE_NAMES[fe.dataset.field] ?? fe.dataset.field) : '글자';
       note(`자간 ${role} ${round(r.style.ls / r.style.fs * 100, 1)}% — Figma 가 SVG 의 letter-spacing 을 읽지 않아 0% 로 들어옴(Figma 에서 다시 지정)`);
     }
-    const spans = [];
+    // 11-09 실측(Figma createNodeFromSvg): 한 <text> 안의 토막은 굵기·크기가 달라도 첫 토막 스타일로 통일된다(상세 「모집일정 :」 Bold 뒤 값 Regular → 전부 Bold).
+    //   그래서 모양(크기·굵기·글꼴·자간·기울임)이 같은 토막끼리만 한 <text> 로 묶고, 다른 모양은 <text> 를 나눈다. 색만 다른 토막은 지금처럼 한 노드(색 구간)
+    const shapeKey = st => `${st.fs}|${st.fw}|${st.ls}|${st.fam}|${st.fontStyle}`;
+    const groups = new Map();   // shapeKey → { st, spans:[], text:[] }
     for (const l of lines) {
       l.runs.forEach((r, i) => {
-        const st = r.style, same = r.key === lines[0].runs[0].key;
-        // 같은 줄에서 앞 토막에 바로 붙은 토막(두 톤 강조 등)은 x·y 를 주지 않는다 — Figma 가 한 줄을 글자 노드 하나(색 구간 여럿)로 읽는다
+        const st = r.style, k0 = shapeKey(st);
+        const g = groups.get(k0) ?? groups.set(k0, { st, spans: [], text: [] }).get(k0);
         const prev = l.runs[i - 1];
-        //   색만 다를 때만 — 굵기·크기가 다른 토막을 붙이면 Figma 가 앞 토막 굵기로 통일한다(10-14 실측: 「모집직무 : 값」 400 → Bold)
-        const sameShape = prev && prev.style.fs === st.fs && prev.style.fw === st.fw && prev.style.ls === st.ls && prev.style.fam === st.fam && prev.style.fontStyle === st.fontStyle;
-        const glued = sameShape && Math.abs(r.x - prev.right) < 1 && Math.abs(r.base - prev.base) < 0.5;
-        spans.push(`<tspan${glued ? '' : ` x="${round(r.x)}" y="${round(r.base)}"`}${same ? '' : ` ${attrs(st)}${st.fam !== first.fam ? ` font-family="${escXml(st.fam)}"` : ''}`}>${escXml(r.text)}</tspan>`);
+        // 같은 줄에서 앞 토막에 바로 붙은 같은 모양 토막(두 톤 강조 등)은 x·y 를 주지 않는다 — Figma 가 한 줄을 글자 노드 하나(색 구간 여럿)로 읽는다
+        const glued = prev && shapeKey(prev.style) === k0 && Math.abs(r.x - prev.right) < 1 && Math.abs(r.base - prev.base) < 0.5;
+        const colorOnly = st.color !== g.st.color ? ` ${paintAttrs(st.color)}` : '';
+        g.spans.push(`<tspan${glued ? '' : ` x="${round(r.x)}" y="${round(r.base)}"`}${colorOnly}>${escXml(r.text)}</tspan>`);
+        g.text.push(r.text);
         stats.tspans++;
         dbg?.push({ text: r.text, x: r.x, right: r.right, y: r.y, h: r.h });
       });
     }
     stats.texts++;
     const full = lines.map(l => l.runs.map(r => r.text).join('')).join(' ').replace(/\s+/g, ' ').trim();
-    return `<text xml:space="preserve" font-family="${fam}" ${attrs(first)} data-name="${escXml(full.slice(0, 40))}">${spans.join('')}</text>`;
+    const texts = [...groups.values()].map((g, gi) => `<text xml:space="preserve" font-family="${escXml(psFamily(g.st.fam, g.st.fw))}" ${attrs(g.st)} data-name="${escXml((gi === 0 ? full : g.text.join('').trim()).slice(0, 40))}">${g.spans.join('')}</text>`);
+    return texts.join('');
   };
 
   // 배경(색 + 층들) → 조각들. 층 이름: 그림 층 = 키비주얼, 그림 위 그라데이션 = 스크림, 아래 = 지면

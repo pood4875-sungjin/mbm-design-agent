@@ -47,8 +47,11 @@ export function kvOptionsFor({ spec, style, render = null, trace = null }) {
   } else if (tr?.mode === 'templateMold' || g.template) {
     out.mode = 'mold';
     out.scale = true; out.scrim = !g.transparent;
-    out.why = '매체 틀이 그림 칸을 고정 — 위치는 못 바꿉니다';
-    out.whyOf = { kvPlace: out.why, scrim: g.transparent ? '투명 배경 규격' : '' };
+    // 11-09 비즈보드 좌측/우측형(틀 mold.sideSwap): 그림 칸 좌우만 고를 수 있다
+    const swap = !!(spec.rules ?? spec)?.safeArea?.measuredFromTemplate?.mold?.sideSwap;
+    if (swap) out.place = ['right', 'left'].filter(v => KV_PLACES.includes(v));
+    out.why = swap ? '매체 틀 — 그림 칸은 왼쪽·오른쪽만' : '매체 틀이 그림 칸을 고정 — 위치는 못 바꿉니다';
+    out.whyOf = { kvPlace: swap ? '아래·전체 배경 — 매체 틀(좌측형·우측형만)' : out.why, scrim: g.transparent ? '투명 배경 규격' : '' };
   } else {
     out.mode = 'free';
     const ctx = { gate: g, mode: tr?.place?.mode, objectBox: !!spec.rules?.objectBox, cutout: kind === 'cutout' && !(kvTypeOf(base.kvMeta)?.flags?.frame) };

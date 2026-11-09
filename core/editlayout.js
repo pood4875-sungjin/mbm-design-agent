@@ -201,7 +201,7 @@ export function bgAvail(spec, opt, ctx = {}) {
 }
 
 // 자동 선택을 사람 말로(인스펙터 「자동: 오른쪽 열」) — trace.place.mode
-export const MODE_LABEL = { column: '오른쪽 열', band: '아래 띠', full: '전체 배경 + 스크림', 'bg-room': '전체 배경(빈 자리에 글자)', 'bg-texture': '전체 배경(질감)', 'bg-frame': '전체 배경(장식 프레임)', bleed: '우하단 블리드', 'bleed-sym': '아래 블리드', box: '매체 오브젝트 상자', corner: '우하단 모서리', 'corner-contain': '우하단 모서리', 'corner-cover': '우하단 모서리', template: '템플릿 칸', 'template-band-cover': '템플릿 아래 칸', 'template-band-contain': '템플릿 아래 칸', 'template-band-native': '템플릿 아래 칸', none: '그림 없음' };
+export const MODE_LABEL = { mold: '매체 틀 칸', column: '오른쪽 열', band: '아래 띠', full: '전체 배경 + 스크림', 'bg-room': '전체 배경(빈 자리에 글자)', 'bg-texture': '전체 배경(질감)', 'bg-frame': '전체 배경(장식 프레임)', bleed: '우하단 블리드', 'bleed-sym': '아래 블리드', box: '매체 오브젝트 상자', corner: '우하단 모서리', 'corner-contain': '우하단 모서리', 'corner-cover': '우하단 모서리', template: '템플릿 칸', 'template-band-cover': '템플릿 아래 칸', 'template-band-contain': '템플릿 아래 칸', 'template-band-native': '템플릿 아래 칸', none: '그림 없음' };
 export function autoLabel(key, trace) {
   if (!trace) return '';
   const P = trace.place ?? {};

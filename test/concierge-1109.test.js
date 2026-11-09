@@ -66,3 +66,11 @@ test('틀 글자 행 기록은 실제 줄 수 — 메인은 칸 폭에서 접힌
   const one = traceOf(renderArtifact('jasoseol-pc-standard-jobpost-pc', createContext({ client: '토스플레이스', hiringType: '신입 채용', season: '채용 공고', role: '서버 개발', deadline: '2026-11-30' }, 'recruit'), st, {}));
   assert.equal(one.textBox.rows.filter(r => r.role === 'sub').length, 1, '서브 1줄이면 칸도 1줄');
 });
+
+test('SVG 글꼴 이름: Figma 가 굵기를 읽도록 PostScript 이름을 앞에(「Pretendard-Medium, Pretendard」) — 정적 글꼴 묶음만', async () => {
+  const { psFamily } = await import('../core/svgexport.js');
+  assert.equal(psFamily('Pretendard', 500), 'Pretendard-Medium, Pretendard');
+  assert.equal(psFamily("'Pretendard', sans-serif", 600), 'Pretendard-SemiBold, Pretendard');
+  assert.equal(psFamily('Pretendard', 400), 'Pretendard-Regular, Pretendard');
+  assert.equal(psFamily('Kakao Big Sans', 700), 'Kakao Big Sans', '규칙을 모르는 글꼴은 그대로');
+});
