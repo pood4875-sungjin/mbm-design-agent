@@ -27,13 +27,15 @@ const PSK = { client: '피에스케이', hiringType: '전문연구요원', role:
 
 test('#1 긴 기업명 — 띄어쓰기 없는 16자 「한미글로벌&터너앤타운젠드코리아」가 GDN·잡다 MO·리멤버·달력에서 통째로 생략되지 않는다(줄바꿈·줄임이 먼저, 생략은 마지막)', () => {
   const ctx = ctxOf(HANMI);
-  for (const id of ['google-gdn-300x600', 'google-gdn-970x250', 'google-gdn-580x400', 'jobda-main-mo', 'jasoseol-pc-calendar-pc', 'remember-job-side-pc', 'remember-main-top-mo']) {
+  // 11-09: 채용구분은 항상 살린다 — 기업명+채용구분(한 줄 더·줄임)이 먼저, 둘 다 안 들어가는 규격(리멤버 10자 규정)만 기업명 생략(채용구분만, test/concierge-1109-longname.test.js)
+  for (const id of ['google-gdn-300x600', 'google-gdn-970x250', 'google-gdn-580x400', 'jobda-main-mo', 'jasoseol-pc-calendar-pc']) {
     const main = fieldOf(renderAd(ctx, style, specs[id]), 'main');
-    assert.ok(main.includes('한미글로벌&터너앤타운젠드코리아'), `${id}: 메인에 기업명 — 「${main}」`);
+    assert.ok(main.includes('한미글로벌&터너앤타운젠드코리아'), `${id}: 메인에 기업명 — 「${main}」`); assert.ok(main.includes('신입/경력 채용'), `${id}: 메인에 채용구분 — 「${main}」`);
   }
-  // GDN 300×600 줄 수 상한 2: 기업명이 두 줄을 다 쓰면 채용구분은 뺀다 — 세 줄이면 lint lines 차단(11-02 실제 ZIP)
+  for (const id of ['remember-job-side-pc', 'remember-main-top-mo']) { const main = fieldOf(renderAd(ctx, style, specs[id]), 'main'); assert.equal(main, '신입/경력 채용', `${id}: 리멤버 10자 규정 — 16자 기업명은 생략, 채용구분만 — 「${main}」`); }
+  // GDN 300×600 줄 수 상한 2: 「기업명 / 채용구분」 한 줄 더(상자 안에서 글자·행간 축소) — 11-09 전엔 기업명 두 줄만
   const g = renderAd(ctx, style, specs['google-gdn-300x600']);
-  assert.equal(fieldOf(g, 'main'), '한미글로벌&터너앤타운젠드코리아'); assert.ok(rulesOf(g).includes('templateMold.mainShrink') || !/<br/.test(g.match(/data-field="main"[\s\S]*?<\/div>/)[0]));
+  assert.equal(fieldOf(g, 'main'), '한미글로벌&터너앤타운젠드코리아\n신입/경력 채용'); assert.ok(rulesOf(g).includes('templateMold.mainExtraLine'));
   // 음절 줄바꿈 자리(U+200B)가 긴 낱말 안에 — & 뒤가 먼저
   assert.match(g, /한미글로벌&amp;\u200B터너앤타운/, '& 뒤 줄바꿈 자리(U+200B)');
 });
@@ -76,7 +78,7 @@ test('#3 리멤버 PC-MO 메인 통일 — 매체 규정 「PC와 동일한 문�
     const ctx = ctxOf(f);
     const mains = REM.map(id => { const h = renderAd(ctx, style, specs[id]); assert.ok(rulesOf(h).includes('sharedMainCopy'), id); return fieldOf(h, 'main').replace(/\n/g, ' '); });
     assert.equal(new Set(mains).size, 1, `${f.client}: ${JSON.stringify(mains)}`);
-    assert.ok(mains[0].includes(f.client), mains[0]);
+    assert.ok(mains[0].includes(f.client) || ([...f.client].length >= 16 && mains[0] === f.hiringType), mains[0]);   // 11-09: 16자 기업명은 리멤버 10자 규정에서 생략(채용구분만) — 한 벌 통일은 그대로
   }
 });
 
@@ -144,8 +146,9 @@ test('#1 (e) 11-02 재현 — 기업명 길이별 기대값(담당자 아직 「
   assert.equal(run('kakao-bizboard-mo', '한진정보통신').main, '한진정보통신 신입/경력 채용'); assert.ok(run('kakao-bizboard-mo', '현대오일터미널 주식회사').rules.includes('templateMold.mainTwoLineClient'), '46pt 로 526px 를 넘으면 줄이지 않고 공식 두줄형(11-02)');
   // 자소설 달력 164×233: 8자 「인천국제공항보안」 8 × 20 × .87 = 139 > 130 → 음절로 끊기 전에 글자를 .9(18px) 로 줄여 한 줄(templateMold.clientOneLine)
   const c8 = run('jasoseol-pc-calendar-pc', '인천국제공항보안'); assert.equal(c8.main, '인천국제공항보안\n신입/경력 채용'); assert.equal(c8.fs, 18); assert.ok(c8.rules.includes('templateMold.clientOneLine')); assert.doesNotMatch(mainTag(c8.h), /​/);
-  // 잡다 MO·리멤버 MO·달력: 16자 기업명이 메인에 남는다(생략은 마지막)
-  for (const id of ['jobda-main-mo', 'remember-main-top-mo', 'jasoseol-pc-calendar-pc']) assert.ok(run(id, '한미글로벌&터너앤타운젠드코리아').main.includes('한미글로벌&터너앤타운젠드코리아'), id);
+  // 잡다 MO·달력: 16자 기업명이 채용구분과 함께 메인에 남는다(생략은 마지막) — 리멤버는 10자 규정이라 채용구분만(11-09)
+  for (const id of ['jobda-main-mo', 'jasoseol-pc-calendar-pc']) { const m = run(id, '한미글로벌&터너앤타운젠드코리아').main; assert.ok(m.includes('한미글로벌&터너앤타운젠드코리아') && m.includes('신입/경력 채용'), `${id}: ${m}`); }
+  assert.equal(run('remember-main-top-mo', '한미글로벌&터너앤타운젠드코리아').main, '신입/경력 채용');
   // 채용 구분이 비면 「채용」을 지어 넣지 않는다 — 16자 기업명에서도(카카오 두줄형·잡다·GDN)
   for (const id of ['kakao-bizboard-mo', 'jobda-main-mo', 'google-gdn-580x400']) { const r = run(id, '한미글로벌&터너앤타운젠드코리아', { hiringType: '', role: '' }); assert.doesNotMatch(r.main, /채용/, id); assert.ok(r.main.includes('한미글로벌&터너앤타운젠드코리아'), id); }
 });

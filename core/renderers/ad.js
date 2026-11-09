@@ -1080,7 +1080,8 @@ function renderAdBase(ctx, style, spec) {
   if (mold && (mold.rows?.main?.lines ?? 1) >= 2 && ctx.core?.client) {
     const cl = String(ctx.core.client);
     for (const k0 of ['main', 'mainNarrow']) {
-      const two = (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(cl + ' ') && String(c).length > cl.length + 1).map(c => `${cl}\n${String(c).slice(cl.length + 1)}`);
+      // 11-09: 「회사 / 채용」(채용구분을 뺀 「○○ 채용」 후보)은 두 줄로 앞세우지 않는다 — 달력 328×466 에서 「기업명 / 신입/경력 채용」이 안 들어가면 「기업명 / 채용」이 「신입/경력 채용」보다 먼저 잡혔다(컨시어지 「채용」만 남음)
+      const two = (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(cl + ' ') && String(c).length > cl.length + 1 && !(String(c) === `${cl} 채용` && hireFor(ctx.core ?? {}) !== '채용')).map(c => `${cl}\n${String(c).slice(cl.length + 1)}`);
       /* mold.seasonMain(인스타 1080·구글 300×1050 수정본 10-16): 「시즌 회사명 / 채용구분」 두 줄을 회사명 두 줄보다 먼저 — 구글 가이드(seasonInMain) 사다리의 「회사명 시즌 채용구분」이 「ABL생명 / 2024 신입사원 공개채용」 3줄로 접히던 것 */
       const sn = ctx.core?.season ? String(ctx.core.season) : null; const head = sn ? `${sn} ${cl}` : null;
       const seasonTwo = (mold.seasonMain && head) ? (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(head + ' ') && String(c).length > head.length + 1).map(c => `${head}\n${String(c).slice(head.length + 1)}`) : [];
@@ -1758,7 +1759,9 @@ function renderAdBase(ctx, style, spec) {
       const cl1 = String(core.client), hire1 = hireFor(core);
       const pool = [...new Set(ladder.main ?? [])].filter(c => String(c).includes(cl1));
       // 회사명 + 채용구분을 품은 후보(「회사 / 신입/경력 채용」)가 회사명만인 후보보다 먼저 — 사다리 순서(가로형 한 줄 후보가 두 줄 후보보다 앞)보다 정보량이 우선
-      const ordered = [...pool.filter(c => hire1 && String(c).includes(hire1)), ...pool.filter(c => !(hire1 && String(c).includes(hire1)))];
+      // 11-09: 고른 문구가 실제 채용구분을 품고 있으면(「신입/경력 채용」) 채용구분을 뺀 회사명 후보(「○○ 채용」·회사명만)로 바꾸지 않는다 — 채용구분은 항상 살리고 기업명 생략이 마지막(컨시어지 「문구 오류」). 광고주 필수 규격(비즈보드)은 틀 사다리가 따로 지킨다
+      const keepHire = !!(hire1 && String(info.text).includes(hire1));
+      const ordered = [...pool.filter(c => hire1 && String(c).includes(hire1)), ...(keepHire ? [] : pool.filter(c => !(hire1 && String(c).includes(hire1))))];
       const minFs = Math.max(floorMain, Math.round(mainCap * (CANON.overlapFix?.textFloorRegulated ?? 0.85)));
       for (const cand of ordered) {
         let fs = mainCap, ok = null;
@@ -2582,6 +2585,7 @@ ${tplLogo}${kvWrap(tplObject)}
       }
     }
     // 메인에 광고주 필수인 규격(카카오 비즈보드 mainMustIncludeClient)에서 고른 문구에 기업명이 없으면(16자 「한미글로벌&터너앤타운젠드코리아」 — 사다리가 .85 까지 줄여도 한 줄에 못 넣어 「신입/경력 채용」만) 줄 수가 맞아도 아래 사다리(두줄형)로 들어간다 — 11-02 컨시어지 #1·#5
+    const mustClMain = !!((rules.mainMustIncludeClient ?? spec.mainMustIncludeClient) && ctx.kind === 'recruit' && ctx.core?.client);   // 규격이 메인에 광고주를 요구하는지(needClMain 은 「지금 고른 문구에 광고주가 없는지」)
     const needClMain = !!((rules.mainMustIncludeClient ?? spec.mainMustIncludeClient) && ctx.kind === 'recruit' && ctx.core?.client && !String(copy.main).includes(String(ctx.core.client).trim()));
     if (MR.main?.lines && (rowsOfMain(copy.main) > MR.main.lines || needClMain)) {
       const cands = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])];
@@ -2593,8 +2597,10 @@ ${tplLogo}${kvWrap(tplObject)}
       const bare = c => String(c).trim() === cl0;   // 회사명만인 후보는 줄여서라도 채용구분까지 넣은 뒤에(맨 뒤)
       let hit = null;
       // 서브 칸이 있으면(메인 광고주 필수 규격 제외) 기업명을 서브 줄로 — 자소설 160×600 기준(7~18자 서브 전환)과 같은 모양을 다른 틀에도(11-02 실제 ZIP: 16자가 550×400 에서 23px 로 줄어 차단)
+      //   11-09: 틀 밖 규격(글자 크기 줄임 허용)도 서브 칸이 비었거나 시즌만일 때는 같은 방식 — 줄임(kkSelf)으로 안 들어가면 메인은 채용구분, 기업명은 서브. 슬로건·헤드라인이 서브를 쓰고 있으면 안 올린다
       const moveClientToSub = () => {
-        if (!strictPx || needClMain || !MR.sub || MR.sub.content === 'period' || !MR.sub.lines) return false;
+        if (needClMain || !MR.sub || MR.sub.content === 'period' || !MR.sub.lines) return false;
+        if (!strictPx) { const s = String(copy.sub ?? '').trim(), sn = String(ctx.core?.season ?? '').trim(); if (s && s !== sn && !s.includes(cl0)) return false; }
         const subPx = MR.sub.px * k, subW = MR.sub.w != null ? MR.sub.w * k : colW, parts = cl0.split(/\s+|(?<=[\/∙·&])/).filter(Boolean);
         if (moldW(cl0) * subPx > subW * MR.sub.lines || parts.some(pt => moldW(pt) * subPx > subW)) return false;
         const c = cands.find(c => !String(c).includes(cl0) && rowsOfMain(c) <= MR.main.lines); if (!c) return false;
@@ -2613,16 +2619,21 @@ ${tplLogo}${kvWrap(tplObject)}
       const alt0 = (!altFull && !kkSelf && cl0) ? cands.find(c => hasCl(c) && !bare(c) && rowsOfMain(c) <= MR.main.lines) : null;
       // 11-09 컨시어지(대구경북첨단의료산업진흥재단 PC메인배너 1200×280): 회사명 후보(alt0)가 채용 구분을 버리면(「…재단 채용」 — 브리프의 「MEDILINK 아카데미 5기 교육생 모집」이 이 규격에만 빠짐) 기업명을 서브로 올리는 쪽이 먼저
       const dropsHire = !!(alt0 && hireS && !String(alt0).includes(hireS));
+      // 규격 글자수(NAP 300×250 10자·잡다 24자·비즈보드 15자) — 아래 사다리가 고른 문구가 글자수 안전장치(templateMold.charLimit)에서 다시 깎이지 않게 후보 단계에서 거른다(11-09: 「기업명 / 채용구분」 한 줄 더를 골라 놓고 글자수에서 기업명만 남던 NAP 300×250)
+      const wholeN = t => countChars(String(t).replace(/[\n​]/g, ''), counting), mxMain = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null;
+      const inChars = c => mxMain == null || wholeN(c) <= mxMain || (!!(rules.mainTwoLine ?? spec.mainTwoLine) && String(c).split('\n').every(l => wholeN(l) <= mxMain));
+      // 11-09 컨시어지 「문구 오류」(16자 「한미글로벌&터너앤타운젠드코리아」 — 구글 580·970·잡다 M 메인이 기업명 2줄만, 달력은 「채용」만): 채용구분은 항상 살린다 —
+      //   ① 기업명+채용구분 후보를 틀 줄 수에(그대로 → 줄여서) ② 기업명을 서브로(서브 칸이 비었거나 시즌만일 때) ③ 「기업명 / 채용구분」 한 줄 더(두줄형) ④ 그래도 안 들어가면 기업명 생략(채용구분만, 로고가 기업명 몫 — 메인 광고주 필수 규격은 제외)
+      //   ⑤ 채용구분 뺀 회사명 후보(「○○ 채용」)는 광고주 필수 규격(비즈보드)에서만 그 뒤에. 「채용」 한 낱말만 남는 출력은 내지 않는다(장부 mold-main-keep-hire)
       if (altFull) copy.main = altFull;
       else if (kkSelf) { hit = { c: copy.main, kk: kkSelf }; mainShrink = kkSelf; fired('templateMold.mainShrink'); }
-      else if (dropsHire && cl0 && moveClientToSub()) { /* 기업명은 서브로, 메인은 채용 구분 */ }
-      else if (alt0) copy.main = alt0;
-      else if (cl0 && moveClientToSub()) { /* 기업명은 서브로 */ }
+      else if (alt0 && !dropsHire) copy.main = alt0;   // 채용구분이 없는 브리프(hireS '') — 회사명 품은 후보 그대로
+      else if (cl0 && moveClientToSub()) { /* 기업명은 서브로, 메인은 채용 구분 */ }
       else if (cl0) {
         // 후보마다(회사명 + 채용구분 품은 것 먼저) 줄임 단계 → 한 줄 더 순으로 — 정보가 많은 후보를 작게 쓰는 쪽이 정보를 뺀 후보를 크게 쓰는 쪽보다 먼저
-        const hire2 = hireFor(ctx.core ?? {});
-        const pool = [...new Set([copy.main, ...cands])].filter(c => hasCl(c) && !bare(c));
-        const ordered = [...pool.filter(c => hire2 && String(c).includes(hire2)), ...pool.filter(c => !(hire2 && String(c).includes(hire2)))];
+        const hire2 = hireS;
+        const pool = [...new Set([copy.main, ...cands])].filter(c => hasCl(c) && !bare(c) && inChars(c));
+        const withHire = pool.filter(c => hire2 && String(c).includes(hire2)), noHire = pool.filter(c => !(hire2 && String(c).includes(hire2)));
         const kk1 = MR.main.lines / (MR.main.lines + 1);
         // 메인 1줄 틀인데 매체가 두줄형을 허용하면(카카오 비즈보드 spec.mainTwoLine — 새 가이드 「메인문구 두줄형」, 줄 간격·크기 수치 미입수): 서브 줄 위까지(sub.y − main.y)를 둘로 나눠 「1줄 기업명 / 2줄 채용 구분」 — 광고주 없는 메인(lint main-client 차단)보다 낫다(11-02 컨시어지 #1·#5). 수치 입수 후 틀 값으로 바꿀 것
         const twoLine = !!((rules.mainTwoLine ?? spec.mainTwoLine)?.allowed && MR.main.lines === 1 && MR.sub?.y != null && MR.sub.y > MR.main.y);
@@ -2630,12 +2641,22 @@ ${tplLogo}${kvWrap(tplObject)}
         const twoCfg = twoLine ? (rules.mainTwoLine ?? spec.mainTwoLine) : null;   // 공식 두줄형 수치가 있으면(960×300: 43pt 행간 54) 그 값, 없으면 메인·서브 사이에 맞춘다
         const kkX = twoLine ? (twoCfg.px ? twoCfg.px / MR.main.px : Math.min(1, (MR.sub.y - MR.main.y) / 2 / pitch0)) : kk1;
         const extra = c => { const c2 = (twoLine && !String(c).includes('\n') && String(c).startsWith(cl0 + ' ')) ? `${cl0}\n${String(c).slice(cl0.length + 1)}` : c; hit = { c: c2, kk: kkX }; mainExtraLine = true; if (twoLine) { mainExtraPitch = twoCfg.pitch ?? pitch0 * kkX; fired('templateMold.mainTwoLineClient'); } fired('templateMold.mainExtraLine'); };   // 두줄형은 회사명 뒤에서 줄을 나눈다(「1줄 기업명 / 2줄 채용 구분」)
-        // 두 번 훑는다: ① 후보마다 줄임(.95/.9/.85) → ② 그래도 없으면 후보마다 한 줄 더 — 한 번에 훑으면 첫 후보(시즌까지 품은 「2026 하반기 인천국제공항보안공사 신입/경력 채용」)가 한 줄 더로 먼저 잡혀, 다음 후보(「인천국제공항보안공사 / 신입/경력 채용」)가 .95 로 틀 줄 수에 들어가는데도 29px 3줄이 됐다(11-02 컨시어지 #1 재현, 구글 580·970 10자)
-        for (const c of ordered) { const kk = kkList.find(kk => rowsAt(c, kk) <= MR.main.lines); if (kk) { hit = { c, kk }; break; } }
         const sn0 = ctx.core?.season ? String(ctx.core.season) : null;
-        const ordX = (twoLine && sn0) ? [...ordered.filter(c => !String(c).includes(sn0)), ...ordered.filter(c => String(c).includes(sn0))] : ordered;   // 두줄형은 「1줄 기업명 / 2줄 채용 구분」 — 시즌 품은 후보(「2026 하반기 …」 24자)는 뒤로
         const maxLn = by.main?.maxLines ?? null;
-        if (!hit && (twoLine || (kkOk(kkX) && (maxLn == null || MR.main.lines + 1 <= maxLn)))) for (const c of ordX) { if ((kkX >= 0.6 || twoLine) && rowsAt(c, kkX) <= MR.main.lines + 1) { extra(c); break; } }   // 한 줄 더는 글자 크기 규정 · 줄 수 상한을 넘으면 쓰지 않는다
+        const extraOk = twoLine || (kkOk(kkX) && (maxLn == null || MR.main.lines + 1 <= maxLn));   // 한 줄 더는 글자 크기 규정 · 줄 수 상한을 넘으면 쓰지 않는다
+        const twoRows = c => { const c2 = (twoLine && !String(c).includes('\n') && String(c).startsWith(cl0 + ' ')) ? `${cl0}\n${String(c).slice(cl0.length + 1)}` : c; return rowsAt(c2, kkX); };   // 두줄형은 나눈 뒤 줄 수로 — 「기업명 / 긴 채용구분」의 둘째 줄이 넘치면 쓰지 않는다
+        // 두 번 훑는다: ① 후보마다 줄임(.95/.9/.85) → ② 그래도 없으면 후보마다 한 줄 더 — 한 번에 훑으면 첫 후보(시즌까지 품은 「2026 하반기 인천국제공항보안공사 신입/경력 채용」)가 한 줄 더로 먼저 잡혀, 다음 후보(「인천국제공항보안공사 / 신입/경력 채용」)가 .95 로 틀 줄 수에 들어가는데도 29px 3줄이 됐다(11-02 컨시어지 #1 재현, 구글 580·970 10자)
+        const sweep = list => {
+          for (const c of list) { const kk = kkList.find(kk => rowsAt(c, kk) <= MR.main.lines); if (kk) { hit = { c, kk }; return true; } }
+          const ordX = (twoLine && sn0) ? [...list.filter(c => !String(c).includes(sn0)), ...list.filter(c => String(c).includes(sn0))] : list;   // 두줄형은 「1줄 기업명 / 2줄 채용 구분」 — 시즌 품은 후보(「2026 하반기 …」 24자)는 뒤로
+          if (extraOk) for (const c of ordX) { if ((kkX >= 0.6 || twoLine) && twoRows(c) <= MR.main.lines + 1) { extra(c); return true; } }
+          return false;
+        };
+        sweep(withHire);   // ①·③ 기업명+채용구분
+        // ④ 틀 밖 규격(메인 광고주 필수 아님): 기업명+채용구분이 어떻게도 안 들어가면 채용구분만 — 기업명 생략이 「채용」만 남는 것보다 먼저(11-09 담당자 자소설 160×600 「16자 이상 기업명 삭제」와 같은 원칙)
+        if (!hit && !mustClMain && hire2) { const c = cands.find(c => !hasCl(c) && String(c).includes(hire2) && rowsOfMain(c) <= MR.main.lines && inChars(c)); if (c) { hit = { c, kk: 1 }; fired('templateMold.clientDropped'); } }
+        if (!hit && alt0) { hit = { c: alt0, kk: 1 }; }   // ⑤ 광고주 필수 규격: 채용구분 뺀 회사명 후보(「하나증권 채용」 11-02)를 틀 줄 수에 그대로
+        if (!hit) sweep(noHire);
         if (!hit && twoLine && rowsAt(cl0, kkX) <= 2) extra(cl0);   // 두줄형: 채용구분까지 안 들어가면 기업명만 음절 2줄로라도(softBreakLong) — 생략은 마지막
         if (!hit) { const c = cands.find(c => bare(c) && rowsOfMain(c) <= MR.main.lines); if (c) hit = { c, kk: 1 }; }
         if (hit) { copy.main = hit.c; mainShrink = hit.kk; if (hit.kk < 1) fired('templateMold.mainShrink'); }
@@ -2656,7 +2677,9 @@ ${tplLogo}${kvWrap(tplObject)}
     // 규격 글자수 안전장치(11-02 전수 chars 35건): 틀 사다리는 줄 수만 봐서 전체 글자수를 넘길 수 있다(NAP 20자·잡다 24자·비즈보드 15자) — 검수와 같은 셈(글자 전체)으로 넘으면 들어가는 후보 → 고객사만. 서브도 넘으면 일정 고지는 줄이고 그 밖은 뺀다
     { const whole = t => countChars(String(t).replace(/[\n\u200b]/g, ''), counting), mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null;
       const twoOk = String(copy.main).includes('\n') && rules.mainTwoLine && String(copy.main).split('\n').every(l => whole(l) <= mx);   // 두줄형(카카오 비즈보드)은 줄마다 센다
-      if (mx != null && copy.main && !twoOk && whole(copy.main) > mx) { const cl = String(ctx.core?.client ?? '').trim(); const c = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? []), cl].find(x => x && (!cl || String(x).includes(cl)) && whole(x) <= mx); if (c) { copy.main = c; fired('templateMold.charLimit'); } }
+      // 11-09: 넘으면 기업명+채용구분 → (광고주 필수 규격이 아니면) 채용구분만 → 기업명 품은 후보 → 기업명 순 — 「채용」만 남는 「○○ 채용」보다 채용구분이 먼저
+      if (mx != null && copy.main && !twoOk && whole(copy.main) > mx) { const cl = String(ctx.core?.client ?? '').trim(), hs = ctx.kind === 'recruit' ? hireFor(ctx.core ?? {}) : '', all = [...(ladder.main ?? []), ...(ladder.mainNarrow ?? [])], hasC = x => !cl || String(x).includes(cl), hasH = x => !!hs && String(x).includes(hs);
+        const c = [...all.filter(x => hasC(x) && hasH(x)), ...(mustClMain ? [] : all.filter(x => hasH(x) && !hasC(x))), ...all.filter(hasC), cl].find(x => x && whole(x) <= mx); if (c) { copy.main = c; fired('templateMold.charLimit'); } }
       const sx0 = limitsByRole((rules.textLimits ?? []).filter(inImage)).sub?.maxChars ?? null;
       if (sx0 != null && copy.sub && whole(copy.sub) > sx0) { copy.sub = /상이/.test(copy.sub) && whole('공고별 상이') <= sx0 ? '공고별 상이' : ''; fired('templateMold.charLimit'); } }
     // 메인에 이미 고객사가 있으면 서브에 또 쓰지 않는다(「GS에너지 신입 공채」 위에 「GS에너지 채용」, 11-02)
@@ -2665,17 +2688,26 @@ ${tplLogo}${kvWrap(tplObject)}
     if (MR.sub?.px != null && copy.sub) { const subW = MR.sub.w != null ? MR.sub.w * k : colW, longest = Math.max(...String(copy.sub).split(/\s+|(?<=[\/∙·&])/).filter(Boolean).map(moldW)), px0 = MR.sub.px * k, fit = subW / Math.max(.01, longest); if (longest * px0 > subW && fit >= px0 - 2) { MR.sub = { ...MR.sub, px: Math.floor(fit * 2) / 2 / k }; fired('templateMold.subFit'); } }
     // 기업명이 메인·서브 어디에도 없으면(「신입 채용」만 — 노션 #1 「표기 생략」) 메인을 기업명으로 — 글자수·줄 수에 들어가는 한 채용구분보다 기업명이 먼저(11-02 실제 ZIP 에브리타임·NAP)
     { const cl = ctx.kind === 'recruit' ? String(ctx.core?.client ?? '').trim() : '', txt = t => String(t ?? '').replace(/[\u00a0\u200b\u2060]/g, ' ');
-      if (cl && MR.main?.px != null && !txt(copy.main).includes(cl) && !txt(copy.sub).includes(cl) && !rules.visualOnly && !spec.visualOnly && !mold.clientLen) {
+      // 11-09: 메인이 실제 채용구분(「신입/경력 채용」)을 품고 있으면 기업명으로 바꾸지 않는다 — 채용구분은 항상 살리고 기업명 생략이 마지막(위 사다리 ④ templateMold.clientDropped 의 결과를 되돌리지 않게). 채용구분이 없는 브리프(「채용 공고」·직무만)는 예전대로 기업명
+      const hs0 = cl ? hireFor(ctx.core ?? {}) : '';
+      if (cl && MR.main?.px != null && !txt(copy.main).includes(cl) && !txt(copy.sub).includes(cl) && !rules.visualOnly && !spec.visualOnly && !mold.clientLen && !(hs0 && txt(copy.main).includes(hs0))) {
         const mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null, rowsK = kk => wrapRows(cl, Math.round(MR.main.px * k * kk), Math.max(1, mainColW) * 0.95, true), lim = MR.main.lines ?? 1, kks = spec.medium === 'jasoseol' ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85], kk = kks.find(v => rowsK(v) <= lim);
         if ((mx == null || countChars(cl, counting) <= mx) && kk) { copy.main = cl; mainShrink = kk; mainExtraLine = false; fired('templateMold.clientFirst'); }
       } }
     // 마지막 확인: 실제로는 빗금·& 뒤에서도 끊겨 줄 수 상한을 넘기면(「한미글로벌& / 터너앤타운젠드코리아 / 채용」 3줄, 상한 2 — NAP·잡다 MO) 규정 밖 줄임이 아닌 곳은 바닥(.85)까지 줄이고, 그래도 넘으면 기업명만
+    //   11-09: 한 줄 더(mainExtraLine)를 골랐으면 그 줄 수(lines + 1)로 센다 — 틀 줄 수로 세어 「기업명 / 채용구분」 29px 3줄 상자를 기업명만 43px 로 되돌리던 것(구글 580·970 16자, trace.copy.main 과 실제 렌더가 어긋나던 원인). 그래도 넘으면 채용구분만(광고주 필수 규격 제외) → 기업명만
     if (MR.main?.px != null && slots.main?.lines != null && spec.medium !== 'jasoseol' && !(rules.mainTwoLine ?? spec.mainTwoLine) && MR.main.lines) {
-      const lim = slots.main.lines, softAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, mainColW) * 0.95, true), floor0 = CANON.overlapFix?.textFloorRegulated ?? 0.85;
+      //   폭은 사다리(rowsAt)와 같은 칸 폭으로 센다 — .95 로 좁혀 재면 사다리가 .85 로 넣은 「한진오일터미널 주식회사 / 신입/경력 채용」(NAP 300×250 23px, Chrome 실측 2줄)을 다시 깎았다. 빗금·& 뒤 끊김만 soft 로 더 본다
+      const lim = (MR.main.lines ?? slots.main.lines) + (mainExtraLine ? 1 : 0), softAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, mainColW), true), floor0 = CANON.overlapFix?.textFloorRegulated ?? 0.85;
       if (softAt(copy.main, mainShrink) > lim) {
         const kk = [0.95, 0.9, floor0].filter(v => v < mainShrink).find(v => softAt(copy.main, v) <= lim), cl = ctx.kind === 'recruit' ? String(ctx.core?.client ?? '').trim() : '';
+        const hs = cl ? hireFor(ctx.core ?? {}) : '', lim0 = MR.main.lines ?? slots.main.lines;   // 상자를 자르는 건 틀의 줄 수(카카오 PC디스플레이 1200×600: 매체 1줄·틀 2줄 — 매체 줄 수로 세면 「마이다스 / 대규모 공개채용」 72px 2줄이 깎였다)
+        const needCl = !!(rules.mainMustIncludeClient ?? spec.mainMustIncludeClient);
+        const kk1 = lim0 / (lim0 + 1), maxLn = by.main?.maxLines ?? null, extraOk = !mainExtraLine && cl && String(copy.main).includes(cl) && hs && String(copy.main).includes(hs) && (maxLn == null || lim0 + 1 <= maxLn) && softAt(copy.main, kk1) <= lim0 + 1;
         if (kk) { mainShrink = kk; fired('templateMold.mainShrink'); }
-        else if (cl && String(copy.main).includes(cl) && [1, 0.95, 0.9, floor0].some(v => softAt(cl, v) <= lim)) { copy.main = cl; mainShrink = [1, 0.95, 0.9, floor0].find(v => softAt(cl, v) <= lim); mainExtraLine = false; fired('templateMold.mainShrink'); }
+        else if (extraOk) { mainShrink = kk1; mainExtraLine = true; fired('templateMold.mainExtraLine'); fired('templateMold.mainShrink'); }   // 「기업명 / 채용구분」 한 줄 더(상자 높이 안에서 글자·행간 축소) — 기업명 생략보다 먼저
+        else if (!needCl && hs && String(copy.main).includes(cl) && softAt(hs, 1) <= lim0) { copy.main = hs; mainShrink = 1; mainExtraLine = false; fired('templateMold.clientDropped'); }
+        else if (cl && String(copy.main).includes(cl) && [1, 0.95, 0.9, floor0].some(v => softAt(cl, v) <= lim0)) { copy.main = cl; mainShrink = [1, 0.95, 0.9, floor0].find(v => softAt(cl, v) <= lim0); mainExtraLine = false; fired('templateMold.mainShrink'); }
       }
     }
     const mainPxUsed = mainShrink < 1 ? Math.round(MR.main.px * k * mainShrink * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)) : mainPx;
@@ -2824,7 +2856,7 @@ ${tplLogo}${kvWrap(tplObject)}
     const moldKv = kvWrap((AM && AM.kv !== 'keep' && AM.kv && imgCorner) ? alignObjectHtml(tplObject, TA) : tplObject);   // 정렬 프리셋(10-19): 거울 모서리 칸은 녹임 방향·배경 위치 낱말도 뒤집는다(왼쪽 열·아래 띠는 기존 분기가 그대로 맞다)
     TR.mode = 'templateMold';
     TR.place = { ...TR.place, mode: 'mold', tImage, imgCol: imgLeftCol ? 'left' : imgRightCol ? 'right' : imgBottomBand ? 'bottom' : imgCorner ? 'corner' : null, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: TA ?? mold.align ?? 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
-    TR.copy = { ...(TR.copy ?? {}), sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.map(d => d.label) : [] };
+    TR.copy = { ...(TR.copy ?? {}), main: copy.main, sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.map(d => d.label) : [] };   // main: 틀 사다리가 바꾼 뒤의 문구(11-09: 전달 시트·검수 표가 렌더와 어긋나던 것)
     TR.mold = { source: mold.source ?? null, rows: used, mainN, subN, field: fz, logo: tLogo, image: tImage, labels: { period: labelOf('접수기간') }, color: moldFg };
     if (FIX?.textK && FIX.textK < 1) fired('overlapFix.text');
     // 글자 덩어리 어림 상자(겹침 교정 overlapFix): 틀 행마다 top·피치·줄 수, 폭은 글자 폭(textWidth×px×1.04, 행 폭 안) — 정렬대로 x
@@ -2860,8 +2892,11 @@ ${tplLogo}
   const subLh = useRef ? L.subLine : line;
   if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   if (guide?.dateAbove) parts.push(metaRow().replace(/margin-top:\d+px/, `margin-bottom:${Math.max(8, Math.round(z.smallFs * 0.5))}px`));   // 잡다: 라벨 칩 + 날짜가 메인 위(샘플 PC 5/5 · MO 4/5, 10-12 매체별 규격정리)
-  // 줄 수 안에 안 들어가면(16자 붙임 기업명 + 채용구분, 당근 200×200) 잘린 채 그리지 않고 기업명만
-  { const softRows = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * 0.9 * mainFs / Math.max(1, Math.max(textW, mainW ?? 0)))), 0), cl = String(core.client ?? '').trim(); if (cl && String(copy.main).includes(cl) && String(copy.main).trim() !== cl && softRows(copy.main) > mainLines && softRows(cl) <= mainLines) { copy.main = cl; fired('mainClientOnly'); } }
+  // 줄 수 안에 안 들어가면(16자 붙임 기업명 + 채용구분, 당근 200×200) 잘린 채 그리지 않고 — 채용구분이 들어가면 채용구분만(11-09 「채용구분은 항상」, 광고주 필수 규격 제외), 아니면 기업명만
+  { const softRows = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * 0.9 * mainFs / Math.max(1, Math.max(textW, mainW ?? 0)))), 0), cl = String(core.client ?? '').trim(), hs = (cl && ctx.kind === 'recruit') ? hireFor(core) : '', needCl = !!(rules.mainMustIncludeClient ?? spec.mainMustIncludeClient);
+    if (cl && String(copy.main).includes(cl) && String(copy.main).trim() !== cl && softRows(copy.main) > mainLines) {
+      if (!needCl && hs && String(copy.main).includes(hs) && softRows(hs) <= mainLines) { copy.main = hs; fired('mainClientDropped'); }
+      else if (softRows(cl) <= mainLines) { copy.main = cl; fired('mainClientOnly'); } } }
   parts.push(T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, (useRef ? 'text-wrap:balance' : '') + (mainW > textW ? `;width:${mainW}px;max-width:none` : ''), mainLines, mainLine));
   if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan', z.subFs), subFg, `margin-top:${useRef ? subGap(z) : 6}px${subW > textW ? `;width:${subW}px;max-width:none` : ''}`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   if (!guide?.dateAbove) parts.push(metaRow());
