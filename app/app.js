@@ -2782,8 +2782,8 @@ function elementPanelHtml(a, spec, id) {
     </div>
     <label>정렬</label>
     <div class="vseg" id="iElAlign" role="group" aria-label="정렬">${[['left', 'ta-l', '왼쪽'], ['center', 'ta-c', '가운데'], ['right', 'ta-r', '오른쪽']].map(([k, icn, n]) => `<button type="button" data-ela="${k}" class="${al === k ? 'on' : ''}" aria-pressed="${al === k}" aria-label="${n}" title="${n}">${ic(icn)}</button>`).join('')}</div>
-    <label>색</label>
-    <div class="fstack">${colorRowHtml({ id: 'iElColor', value: curColor, label: `${elementName(id)} 색`, disabled: locks.color })}</div>
+    ${pk ? `<label>색</label><div class="fnote">글자 범위를 고르는 중이에요 — 위 「고른 글자 · 칠」에서 그 부분만 바꿔요(문구 전체 색은 글자 편집을 끝낸 뒤)</div>` : `<label>색</label>
+    <div class="fstack">${colorRowHtml({ id: 'iElColor', value: curColor, label: `${elementName(id)} 색`, disabled: locks.color })}</div>`}
     ${(() => { const nr = (ed.runs ?? []).length; return `<button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:6px">${CS.on && CS.key === (a.key ?? a.specId) ? '글자 편집 끝내기' : locks.color ? '이 소재 글자 고치기' : '이 소재 글자 고치기 · 일부 색'}</button>${nr ? `<div class="fnote">따로 칠한 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : `<div class="fnote">미리보기 글자를 더블클릭해도 돼요. 이 소재만 바뀌어요 — 모든 소재는 왼쪽 패널에서${locks.color ? ' · 이 매체는 글자색이 규정이라 색은 못 바꿔요' : ''}</div>`}`; })()}
       ${OMIT_ROLE[role] ? `<button type="button" class="btn" id="iElOmit" style="width:100%;margin-top:6px">이 소재에서 ${OMIT_NAME[OMIT_ROLE[role]]} 빼기 <span style="opacity:.6">Delete</span></button>` : ''}
     ${(() => { const notes = [locks.color ? '글자색이 규정으로 정해진 규격' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색' : '', locks.size ? '글자 크기가 규정으로 정해진 규격' : ''].filter(Boolean); return notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''; })()}
