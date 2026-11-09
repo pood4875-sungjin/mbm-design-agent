@@ -1224,13 +1224,17 @@ function renderAdBase(ctx, style, spec) {
   if (forcedSide) style = { ...style, kvUse: 'part' };
   else if (EP?.ok && EP.want === 'bg') { const t0 = kvTypeOf(style.kvMeta); const keep = kvKind === 'texture' || !!t0?.flags.frame || !!(t0?.flags.room && kvFull(style, w, h)); if (!keep) style = { ...style, kvUse: 'full' }; }
   const frameFull = hasKv && !mold && !!kvTypeOf(style.kvMeta)?.flags.frame && !logoOnly && !transparent && style.kvUse !== 'part';   // 틀 규격은 그림 칸에 담는다(10-15)
-  const textureFull = hasKv && !mold && (kvKind === 'texture' || frameFull) && !logoOnly && style.kvUse !== 'part';
+  // 틀 글자 칸이 폭 전체라 자유 그림 칸(moldFreeRect)이 없는 규격(캐치 메인 라지 MO 702×428, 11-09): 바탕 있는 그림(사진·질감·바탕 일러스트)은 칸 대신 지면 전체(cover) + 스크림 —
+  //   캐치 오브젝트형 가이드 「배경이미지는 FULL 로 배치」(PDF p.11)·틀 image 칸 = 통이미지 전체. 누끼(opaque<0.5)는 그대로 모서리 칸(cutCorner). 「한쪽에 넣기」(part)는 안 바꾼다
+  const moldNoSlot = !!(moldFreeKv && !tImage && !moldCutZone && hasKv && !logoOnly && !transparent && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && style.kvUse !== 'part');
+  if (moldNoSlot) fired('templateMold.noSlotFull');
+  const textureFull = hasKv && (!mold || moldNoSlot) && (kvKind === 'texture' || frameFull) && !logoOnly && style.kvUse !== 'part';
   if (textureFull) { tImage = null; vCenter = true; }
   const hasLogo = !!(style.logo || style.logoLight);
   // 사진 전체형(보드 예시 9/136: 코엑스·원광대병원·호반) — 담당자가 고른 때만. 사진이 지면 전체를 채우고 글자 쪽에서 시작하는 브랜드색 스크림 위에 흰 글자
   // 현장·군중 사진(kvtypes flags.crowd — 어둡고 주인공 없음)은 자동으로 사진 전체형(10-09 figma-dg 디자이너 10/10). '한쪽에 넣기'(part)를 고르면 예전대로
   const crowdKv = !!kvTypeOf(style.kvMeta)?.flags.crowd && style.kvUse !== 'part';
-  const photoFull = hasKv && (style.kvUse === 'full' || crowdKv) && !transparent && !tImage && !textureFull;
+  const photoFull = hasKv && (style.kvUse === 'full' || crowdKv || moldNoSlot) && !transparent && !tImage && !textureFull;
   // 배경형 그림(core/field.js kvFull): 주인공이 한쪽을 감싸고 다른 쪽이 비어 있으면(삼성 3D 호) 그림이 곧 지면이다 — 통째로 깔고 빈 자리(room)에 글자.
   // 자리에 잘라 붙이고 녹이면 뿌연 번짐이 AI 티로 보인다(10-06 사용자). 템플릿 칸(자소설)·매체 상자(카카오)·투명 지면·사진 전체형·'한쪽에 넣기'를 고른 경우는 제외
   const roomFull = (hasKv && !logoOnly && !photoFull && !textureFull && !transparent && !tImage && !rules.objectBox && style.kvUse !== 'part') ? kvFull(style, w, h) : null;
@@ -1252,7 +1256,7 @@ function renderAdBase(ctx, style, spec) {
   // 11-02 담당자 「누끼 첨부 시 잘리는 경우 최소화(가로 이미지에서 더 잘 나타남)」: 틀 그림 칸에서는 누끼를 블리드로 흘리지 않는다 — 칸 안에 통째로(contain). 10-15 밤의 모서리 칸 블리드(slotBleed)는 이 결정으로 꺼짐(자유 배치 규격의 objectBleed 는 그대로)
   const singleObj = !mirrorX && !mold && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸: 여백 있는 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로) · 모서리에 닿는 칸은 이전 가이드대로 우하단 블리드(10-15 밤 「KV·배경은 이전 버전이 더 견고」)
   { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
-    TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
+    TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, moldNoSlot, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
     if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv && !templateLight) fired('glassDark'); if (mold) fired('templateMold'); }
   let bleedP = null;
   // 편집 「키비주얼 크기」: 블리드는 목표 면적을 배율²로(잘림 상한 maxCut 은 그대로)
