@@ -18,8 +18,8 @@
 4. 사용자 「push 해줘」 ×2 → 배포. 노션 상태값은 우리가 안 바꿈(담당자 몫).
 
 ## 바로 할 일 (사용자 결정 대기)
-- **11-09 (6)** 커밋 0a76acd·030a72d·69824f2(로컬, 미push). 최근 KV 검수는 `CASES_ROOT=_out/audit-recent/cases`. 결정: 지면색 기본은 「지금대로」(11-09 사용자) · 남은 결정 = 검수기 녹임 기준. 타이포 시안 비교 `_out/typo-1109/cmp.png`. 기록 2026-11-09_사진지면_대각녹임_타이포시안.md
-- **11-09 (5) 이음·비중 검수 결정 3개**(보고서 https://claude.ai/artifact/9CGowKgsx5ChTqJxCsNng6 · 원본 _out/audit-1109/index.html · 기록 2026-11-09_글자범위색_이음비중_검수.md): 사진 지면 A′/브랜드색, 떠 있는 칸, 누끼 칸 밖 넘침. 결정 나면 core/field.js vividOf·틀 칸 처리 고치고 quality-audit 다시. 글자 범위 색은 3dda051(로컬, 미push).
+- **11-09 (6)** 11-09 저녁 작업 전부 main 2088d60(코드)·c689abb(기록)로 push(공개 앱 배포). 시안 브랜드 색 값은 공개 레포에서 뺐다. 최근 KV 검수는 `CASES_ROOT=_out/audit-recent/cases`. 결정: 지면색 기본은 「지금대로」(11-09 사용자) · 남은 결정 = 검수기 녹임 기준. 타이포 시안 비교 `_out/typo-1109/cmp.png`. 기록 2026-11-09_사진지면_대각녹임_타이포시안.md
+- **11-09 (5) 이음·비중 검수 결정 3개**(보고서 https://claude.ai/artifact/9CGowKgsx5ChTqJxCsNng6 · 원본 _out/audit-1109/index.html · 기록 2026-11-09_글자범위색_이음비중_검수.md): 사진 지면 A′/브랜드색, 떠 있는 칸, 누끼 칸 밖 넘침. 결정 나면 core/field.js vividOf·틀 칸 처리 고치고 quality-audit 다시. 글자 범위 색 포함 push 됨.
 0. **11-09 (4) 결정 4개**(보고서 https://claude.ai/artifact/2Mxaf7qKY6Dhs5L85hKkxv 5절 — 다른 계정 소유, 이 계정 사본 https://claude.ai/artifact/Vxv7GmmqL5kWr2SqmD2Mqj · 원본 _out/report-1109/index.html): 지면색 기본 브랜드색 / 누끼·이미지 칸 밖 넘침 / 레이아웃 가이드 매체 한정 / 1줄 틀 16자 기업명. + 회사 LLM 키 회수 대응(공개 앱 키 모달 숨김·로컬 Claude Code 모드 브리지) — 회사 계정 Claude Code 좌석 확인 후. eb0b332 까지 push 됨(11-09 저녁, 계정 한도로 이동).
 1. **배경 시안 규칙 후속**: 그라데이션 변주색 규칙(시안은 밝게·어둡게·색상 이동 섞임 — 지금은 주색 → 진한 색), 안쪽 상자(카카오 PC 프로모·네이버 DA·구글 930)·둥근 칸(비즈보드) 시안 없음, 사용자가 앱에서 실제 캠페인으로 눈 확인.
 2. ~~SVG 충실도 12건~~ 해결(검사기 회귀). 남은 의문: FIGMA_ASCENT 1.0em 이 Kakao Big Sans 등에서도 맞는지 피그마 실측.
