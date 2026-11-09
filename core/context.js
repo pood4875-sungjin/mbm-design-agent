@@ -20,13 +20,13 @@ export const KINDS = {
     // 레퍼런스는 "2024 상반기 / 한미글로벌 신입 채용 / 접수기간 | 5.3(금) - 5.21(화)" 꼴이다 — 직무명은 메인이 아니라 상세 줄에 간다.
     // deadlineTime: 마감 시각(HH:MM) — 10-14 t1014 디자이너 산출물 3곳(GS에너지 「7.2(수) 17시」·LT소재·제일약품 「23:59」)이 날짜 뒤에 시각을 붙였다
     fields: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl', 'qualification', 'process', 'notice',
-      'season', 'hiringType', 'startDate', 'headline', 'slogan', 'deadlineTime'],
+      'season', 'hiringType', 'startDate', 'headline', 'slogan', 'deadlineTime', 'subText', 'dateText', 'omit'],   // omit: 뺀 요소(쉼표 목록 sub·date·detail — 11-09 사용자 「삭제하고 싶으면 할 수 있게」)   // subText·dateText: 11-09 사용자 「패널은 요소마다 찍히는 문구 그대로 한 칸」 — 비면 자동(시즌·슬로건 / 시작일·마감일)
     // 10-21 레퍼런스 13장 기준(사용자 결정): 메인 = 고객사 + 채용 구분, 상세 = 기간·모집직무. 고용 형태 0장·근무지 1장이라 선택으로. applyUrl 은 선택(10-19 「지원경로는 필요 없을 듯」)
     required: ['client', 'hiringType', 'deadline', 'role'],
     labels: {
       client: '고객사', role: '모집 직무', employType: '고용 형태', location: '근무지', deadline: '지원 마감', applyUrl: '지원 경로',
       qualification: '자격 요건', process: '전형 절차', notice: '필수 고지 문구',
-      season: '시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '공고 타이틀', slogan: '슬로건', deadlineTime: '마감 시각',   // headline: 10-19 사용자 「고객사 이름 이외에 공고 타이틀이 필요 — ○○그룹 2026 하반기 신입 채용!」 → 적으면 그 문장이 메인, 비우면 회사·시즌·채용구분으로 자동
+      season: '시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '공고 타이틀', slogan: '슬로건', deadlineTime: '마감 시각', subText: '서브 문구', dateText: '날짜 문구', omit: '뺀 요소',   // headline: 10-19 사용자 「고객사 이름 이외에 공고 타이틀이 필요 — ○○그룹 2026 하반기 신입 채용!」 → 적으면 그 문장이 메인, 비우면 회사·시즌·채용구분으로 자동
     },
   },
 };

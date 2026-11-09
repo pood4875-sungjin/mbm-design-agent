@@ -101,16 +101,60 @@ const frames = new Map();  // artifact.key → {frame, iframe, badge, label}
 // 선택하기(11-02, app/select.js) — 선택은 세션만(저장 안 함). 켜져 있으면 카드 클릭·빈 곳 드래그가 선택이 되고, 내보내기 모달에 「선택한 소재만」이 뜬다
 const SEL = createSelect({ state, frames, $ });
 // 글자 범위 색(11-09 사용자 「글자 하나하나 단위로 — 드래그해서」, app/charsel.js): 고른 프레임 글자 더블클릭 → 끌어 고르기 → 그 글자만 색(overrides.elements[요소].runs)
-const CS = createCharSel({ frames, keyOf: a => a.key ?? a.specId, onApply: (a, id, run, text) => charApply(a, id, run, text), toast: t => toast(t), onState: () => { if (state.campaign) renderInspector(); } });
+const CS = createCharSel({ frames, keyOf: a => a.key ?? a.specId, onApply: (a, id, run, text) => charApply(a, id, run, text), onText: (a, id, text, was) => charText(a, id, text, was), toast: t => toast(t),
+  // 피그마처럼: 편집 중엔 선택 손잡이를 숨기고, 끌어 고른 범위는 오른쪽 패널(고른 글자 · 칠)로
+  onPick: (p, a) => { if (p && state.selected === (a.key ?? a.specId) && state.elSel !== p.id) state.elSel = p.id; if (state.campaign) renderInspector(); },
+  onState: (on, a) => { if (on) EL.hide(); else if (state.elSel && state.selected === (a?.key ?? a?.specId)) EL.show(a, state.elSel); if (state.campaign) renderInspector(); } });
 function charApply(a, id, run, text) {
+  if (textColorRegulated(SPECS[a.specId])) { toast('이 매체는 글자색이 규정으로 정해져 있어 글자 일부 색을 바꿀 수 없어요'); return; }
   const runs = addRun(a.overrides.elements?.[id]?.runs ?? null, run, text);
   elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: runs ?? null }) }, `${elementName(id)} 글자 ${run.c ? '색' : '색 지우기'}`);
   setTimeout(() => CS.rearm(a.key ?? a.specId), 80);
 }
-function charEnter(a) {
-  if (textColorRegulated(SPECS[a.specId])) { toast('이 매체는 글자색이 규정으로 정해져 있어 글자 일부 색을 바꿀 수 없어요'); return; }
-  CS.enter(a);
+// 11-09 캔버스 글자 고치기 = 그 소재만(일괄은 왼쪽 패널). 요소 → 브리프 칸: 메인 → 공고 타이틀 · 서브 → 서브 문구 · 날짜 → 날짜 문구 · 상세 줄 → 라벨로 모집 직무·근무지·고용 형태·날짜
+function charText(a, id, text, was) {
+  const c = state.campaign; if (!c) return;
+  const role = parseElementId(id).role;
+  let f = { main: 'headline', advertiser: 'headline', sub: 'subText', date: 'dateText' }[role] ?? null, v = text;
+  if (role === 'detail') {
+    const flat = text.replace(/\s*\n\s*/g, ' ');
+    const m = flat.match(/^(접수\s*기간|모집\s*기간|모집\s*직무|직무|근무\s*지역?|고용\s*형태)\s*[:：|｜ㅣ]?\s*(.*)$/);
+    if (m) { f = /기간/.test(m[1]) ? 'dateText' : /직무/.test(m[1]) ? 'role' : /근무/.test(m[1]) ? 'location' : 'employType'; v = m[2].trim(); }
+    else { const was1 = was.replace(/\s*\n\s*/g, ' '); f = was1.includes(c.context.core.role ?? '\u0000') ? 'role' : null; v = flat; }
+  }
+  if (!f) { toast('이 줄은 캔버스에서 고칠 수 없어요 — 왼쪽 패널에서 고쳐 주세요'); refreshFrames(a.key ?? a.specId); return; }
+  if (!['headline', 'subText', 'dateText'].includes(f)) v = v.replace(/\s*\n\s*/g, ' ');
+  const o = { ...(a.overrides.core ?? {}) };
+  if ((o[f] ?? c.context.core[f] ?? '') === v) return;
+  pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 캔버스에서 고침`, false);
+  if (v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
+  a.overrides.core = o; a.status = 'draft'; a.gateOverride = null;
+  logEvent(c, 'manual_edit', { specId: a.specId, element: id });
+  regen(c); autosave(); refreshFrames(a.key ?? a.specId);
+  setTimeout(() => CS.rearm(a.key ?? a.specId), 80);
+  toast(`이 소재만 바뀌었어요 — ${FIELD_LABEL[f]}${f === 'headline' ? '(메인 문구)' : ''}. 모든 소재에 쓰려면 왼쪽 패널에서`);
+  log(`${a.specId} 캔버스 글자 편집 (${FIELD_LABEL[f]})`);
 }
+function charEnter(a, pt = null) { CS.enter(a, pt); }
+// 11-09 사용자 「삭제하고 싶으면 할 수 있게」 — 요소 빼기: 일괄(core.omit, 왼쪽 패널) · 개별(a.overrides.core.omit, 캔버스 Delete). 렌더 단계에서 빼서 레이아웃이 다시 맞춰진다
+const OMIT_ROLE = { sub: 'sub', date: 'date', detail: 'detail', chip: 'detail', tags: 'detail', tag: 'detail' };
+const OMIT_NAME = { sub: '서브', date: '날짜', detail: '상세' };
+const omitList = v => String(v ?? '').split(',').map(t => t.trim()).filter(Boolean);
+function omitOf(c, a = null) { return omitList(a?.overrides?.core?.omit ?? c.context.core.omit); }
+function setArtOmit(a, roles) {
+  const c = state.campaign, o = { ...(a.overrides.core ?? {}) }, v = [...new Set(roles)].join(',');
+  if (v === (c.context.core.omit ?? '')) delete o.omit; else o.omit = v;
+  pushHistory(`${artLabel(a)} 요소 ${roles.length > omitOf(c, a).length ? '빼기' : '다시 넣기'}`);
+  a.overrides.core = o; a.status = 'draft'; a.gateOverride = null;
+  state.elSel = null; EL.hide();
+  regen(c); autosave(); refreshFrames(a.key ?? a.specId); renderInspector();
+}
+function omitElement(a, id) {
+  const role = OMIT_ROLE[parseElementId(id).role];
+  if (!role) { toast(`${elementName(id)}는 뺄 수 없어요 — 메인 문구는 글자를 고쳐 주세요`); return; }
+  setArtOmit(a, [...omitOf(state.campaign, a), role]);
+  toast(`이 소재에서 ${OMIT_NAME[role]}을 뺐어요 — 되돌리기 ⌘Z · 모든 소재는 왼쪽 패널에서`);
+}   // 11-09 색 잠금 매체도 글자 고치기는 연다(색 적용만 charApply 에서 막는다)
 // 편집 고도화·가이드 검수(10-14, app/editor.js) — 프리셋·직접 수정 손잡이·가이드 검수. 아래 함수들은 늦게 정의되는 것도 있어 화살표로 감싸 넘긴다
 const ED = createEditor({
   state, SPECS, frames, logEvent,
@@ -1831,7 +1875,7 @@ function campaignName(ctx) {
 }
 // 편집 칸(인스펙터 캠페인 공통 + 산출물별). 10-19 사용자: 「모집기간은 언제부터 언제까지로 · 텍스트는 수정 가능하게」 → 접수 시작(startDate)과 글자 자리(시즌·채용 구분·메인 문구)를 칸으로 연다.
 //   날짜 둘 다 있으면 렌더러가 「2.28(수) - 3.10(일)」, 마감만 있으면 「~3.10(일)」. 메인 문구를 적으면 그 문장이 메인(회사·구분은 서브·상세로).
-const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'season', 'slogan', 'notice', 'employType', 'location', 'headline'];   // 마감 시각 칸은 뺐다(10-21) — 파서가 읽은 값은 그대로 쓰인다   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
+const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'season', 'slogan', 'notice', 'employType', 'location', 'headline', 'subText', 'dateText'];   // 마감 시각 칸은 뺐다(10-21) — 파서가 읽은 값은 그대로 쓰인다   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
 const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)', deadline: 'YYYY-MM-DD', season: '예: 2026 하반기', hiringType: '예: 신입사원 공개채용', headline: '예: ○○그룹 2026 하반기 신입 채용 — 비우면 고객사·시즌·채용 구분으로 자동' };
 function campaignFields(c) {
   return c.kind === 'recruit' ? RECRUIT_EDIT_FIELDS : ['name', 'date', 'venue', 'cta'];
@@ -1996,8 +2040,8 @@ function layoutArtboard(opts = {}) {
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = previewDoc(a.html, artifactFontId(a));
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } const k = a.key ?? a.specId; if (a.channel !== 'ad') { select(k); return; } if (state.selected !== k && !(e.metaKey || e.ctrlKey)) { select(k); return; } textRoleFocus = textRoleAt(a, e); select(k, EL.at(a, e)); };   // 한 번 = 프레임, 고른 프레임 안에서 한 번 더(또는 ⌘/Ctrl) = 그 자리 요소
-        { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = e => { const k = a.key ?? a.specId; if (state.selected === k && a.channel === 'ad' && !SEL.on) { const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { charEnter(a); return; } } zoomToFrame(k); };
-          frame.addEventListener('dblclick', e => { if (!e.target.closest?.('.eov') || SEL.on || a.channel !== 'ad') return; const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { e.stopPropagation(); charEnter(a); } }); }   // 요소를 고른 뒤에는 선택 테두리 층(.eov)이 위에 있다 — 거기서도 글자 더블클릭   // 고른 프레임의 글자 더블클릭 = 글자 범위 색(11-09), 그 밖은 확대
+        { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = e => { const k = a.key ?? a.specId; if (a.channel === 'ad' && !SEL.on) { const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { if (state.selected !== k || state.elSel !== id) select(k, id); charEnter(a, { x: e.clientX, y: e.clientY }); return; } } zoomToFrame(k); };
+          frame.addEventListener('dblclick', e => { if (!e.target.closest?.('.eov') || SEL.on || a.channel !== 'ad') return; const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { e.stopPropagation(); if (state.elSel !== id) select(a.key ?? a.specId, id); charEnter(a, { x: e.clientX, y: e.clientY }); } }); }   // 요소를 고른 뒤에는 선택 테두리 층(.eov)이 위에 있다 — 거기서도 글자 더블클릭   // 고른 프레임의 글자 더블클릭 = 글자 범위 색(11-09), 그 밖은 확대
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname') });
         ED.guideBadge(a); ED.editedBadge(a);
@@ -2214,6 +2258,7 @@ function designCheck(a) {
   // 샘플 문구(data-sample — 마감일·직무가 비어 있어 샘플 밀도를 맞추려 넣은 자리표시) 배지: 승인 전에 디자이너가 실제 정보로 바꾼다(10-12 매체별 규격정리)
   try { const n = f.iframe.contentDocument.querySelectorAll('[data-sample]').length; if (f.sample) { f.sample.style.display = n ? '' : 'none'; f.sample.textContent = n ? `샘플 문구 ${n}` : ''; f.sample.title = n ? '비어 있는 정보 자리에 넣은 샘플 문구 — 승인 전에 실제 정보로 바꾸세요' : ''; } } catch {}
   if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
+  leftLiveRefresh();   // 11-09 왼쪽 문구 칸의 자동값은 그려진 소재에서 읽는다 — 그려지면 다시 채운다
   if (state.selected === (a.key ?? a.specId) && state.elSel) { EL.show(a, state.elSel); if (!$('inspector').contains(document.activeElement)) renderInspector(); }   // 다시 그려진 뒤 선택 테두리·패널 수치를 새 자리에
   ED.afterRender(a);   // 같은 모양 옮기기 경계 맞춤 → 직접 수정 손잡이 → 가이드 검수(10-14)
 }
@@ -2359,6 +2404,12 @@ function zoomToFrame(k) {
 }
 // 패널 접기(피그마 ⌘\ 자리) — 캔버스를 넓게. 접어도 값은 그대로
 for (const [id, cls] of [['lToggle', 'noL'], ['rToggle', 'noR']]) $(id).onclick = () => { const w = $('work'); w.classList.toggle(cls); $(id).setAttribute('aria-pressed', String(w.classList.contains(cls))); RULER?.draw(); };
+document.addEventListener('keydown', e => {   // 11-09 Delete·Backspace: 고른 글자 요소를 이 소재에서 빼기(피그마처럼)
+  if (!(e.key === 'Delete' || e.key === 'Backspace') || !state.campaign || !state.selected || !state.elSel || CS.on || SEL.on) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName ?? '') || e.target.isContentEditable || $('overlay').style.display === 'flex') return;
+  const a = state.campaign.artifacts.find(x => (x.key ?? x.specId) === state.selected); if (!a || a.channel !== 'ad') return;
+  e.preventDefault(); omitElement(a, state.elSel);
+});
 document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전체
   if (e.key === '@' && e.shiftKey && state.selected && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName ?? '') && $('work').style.display !== 'none') { zoomToFrame(state.selected); return; }
   if (e.key !== 'Escape' || !state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex') return;
@@ -2557,18 +2608,63 @@ function campaignStat(c = state.campaign) {
   const done = (list.length ? list : c?.artifacts ?? []).filter(x => x.status === 'approved').length;
   return `${done && done === n ? '승인 완료' : '초안'} · 검수 완료 ${done}/${n}`;
 }
+// 11-09 사용자 「일괄 수정은 왼쪽 패널, 개별은 캔버스에서」 · 「타이틀은 하나로 묶어 줘야」 · 「매칭이 잘 안 돼」:
+//   왼쪽 브리프는 항상 전체 일괄. 칸을 캔버스 요소 이름(메인 문구·서브·날짜·상세)으로 묶고, 메인 문구는 「타이틀」 한 칸(= 공고 타이틀 headline, 비면 고객사+채용 구분).
+//   캔버스에서 요소를 고르면 같은 묶음이 강조된다. 개별 수정은 캔버스 글자 편집(app/charsel.js → charText)
+const LEFT_GROUPS = [   // text: 찍히는 문구 그대로 한 칸(비면 자동) · fields: 그 문구를 자동으로 만들 때 쓰는 재료(「기본 정보」에 접어 둔다)
+  { role: 'main', name: '메인 문구', text: 'headline', auto: '고객사 + 채용 구분', hint: '고치면 모든 소재의 메인 문구가 이 글이에요. 줄바꿈도 그대로 반영돼요. 고객사·채용 구분은 서브로 내려가요.' },
+  { role: 'sub', name: '서브', text: 'subText', auto: '시즌 · 슬로건' },
+  { role: 'date', name: '날짜', text: 'dateText', auto: '접수 시작 + 지원 마감' },
+  { role: 'detail', name: '상세', fields: ['role', 'employType', 'location', 'notice'] },
+];
+const BASE_FIELDS = ['client', 'hiringType', 'season', 'slogan', 'startDate', 'deadline'];
+const ROLE_GROUP = { main: 'main', advertiser: 'main', sub: 'sub', date: 'date', detail: 'detail', chip: 'detail', tags: 'detail', tag: 'detail' };
+// 캠페인 전체 칸 하나 바꾸기(일괄) — 왼쪽 패널·되돌리기 공통
+function commitBrief(c, f, v, note = () => {}) {
+  if (v === (c.context.core[f] ?? '')) return false;
+  pushHistory(`${FIELD_LABEL[f]} 일괄 변경`);
+  const { impacted, conflicts } = propagate(c, { [f]: v });
+  regen(c);   // propagate 는 공통 스타일로만 다시 그린다 — 개별값·요소 편집이 빠지지 않게 정식으로 한 번 더
+  refreshFrames();
+  $('lName').textContent = campaignName(c.context);
+  note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}종은 캔버스에서 따로 고친 값 유지` : `${impacted.length}종 모두 반영됨`);
+  log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+  autosave();
+  return true;
+}
+// 지금 찍히는 문구(칸에 보여 줄 자동값) — 고른 소재, 없으면 그 요소가 있는 첫 매체 소재의 실제 렌더 글자(줄바꿈 그대로)
+function liveText(c, role) {
+  const list = c.artifacts.filter(x => x.channel === 'ad' && !Object.keys(x.overrides?.core ?? {}).length);   // 캔버스에서 따로 고친 소재는 빼고
+  const cnt = new Map();
+  for (const a of list) {
+    try { const d = frames.get(a.key ?? a.specId)?.iframe?.contentDocument; const el = d?.querySelector(`[data-field="${role}"]:not([data-sample])`); const t = el ? el.innerText.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim() : ''; if (t) cnt.set(t, (cnt.get(t) ?? 0) + 1); } catch {}
+  }
+  // 가장 많은 소재가 쓰는 문구 — 같으면 긴 쪽(달력 「~7/2」 같은 줄임 대신 「6.20(금) - 7.2(수) 17시」)
+  return [...cnt.entries()].sort((p, q) => q[1] - p[1] || q[0].replace(/\n/g, '').length - p[0].replace(/\n/g, '').length)[0]?.[0] ?? '';
+}
+const leftLiveRefresh = debounce(() => { const b = $('leftBody'); if (!b || b.contains(document.activeElement)) return; if ([...b.querySelectorAll('textarea[data-auto]')].some(t => t.dataset.auto !== undefined)) { b.dataset.sig = '-'; renderLeft(); } }, 400);
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
   $('lName').textContent = campaignName(c.context); $('lStat').textContent = campaignStat(c);
-  const a = state.selected ? c.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null;
-  const sig = state.selected ?? '';
+  const focusGroup = state.elSel ? ROLE_GROUP[parseElementId(state.elSel).role] ?? null : null;
+  const sig = `${focusGroup ?? ''}`;
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
   body.dataset.sig = sig;
-  const fields = campaignFields(c);
-  body.innerHTML = `<section class="isec"><h3>브리프 <span class="mode">${a ? '이 소재만' : '전체 일괄'}</span></h3>
-    ${fields.map(f => a
-      ? `<label>${FIELD_LABEL[f]}${a.overrides.core?.[f] ? ` ${iconBtn('swap', `${FIELD_LABEL[f]} 일괄값으로 되돌리기`, `data-lreset="${f}"`)}` : ''}</label><input type="text" data-f="${f}" value="${escH(a.overrides.core?.[f] ?? '')}" placeholder="${escH(c.context.core[f] ?? FIELD_HINT[f] ?? '')}">`
-      : `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(c.context.core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`).join('')}
+  const core = c.context.core;
+  const input = f => `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`;
+  const overN = c.artifacts.filter(x => Object.keys(x.overrides?.core ?? {}).length).length;
+  const textBox = g => { const own = core[g.text] ?? ''; const shown = own || liveText(c, g.role);
+    return `<label>${g.role === 'main' ? '타이틀' : `${g.name} 문구`} ${own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.text}"`) : '<span class="lauto">자동</span>'}</label>
+      <textarea data-f="${g.text}" data-auto="${escH(own ? '' : shown)}" rows="${Math.min(4, Math.max(2, shown.split('\n').length))}" aria-label="${g.name} 문구">${escH(shown)}</textarea>
+      <div class="fnote">${own ? (g.hint ?? '직접 쓴 문구가 모든 소재에 나가요.') : `비워 두면 ${g.auto}(으)로 만들어요. 고치면 이 글이 모든 소재에 나가요.`}</div>`; };
+  const briefHtml = c.kind === 'recruit'
+    ? LEFT_GROUPS.map(g => { const off = omitList(core.omit).includes(g.role);
+        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lgh">${g.name}${g.role !== 'main' ? `<button type="button" class="lnk" data-lomit="${g.role}">${off ? '다시 넣기' : '모든 소재에서 빼기'}</button>` : ''}</div>${off ? '<div class="fnote">모든 소재에서 뺐어요</div>' : `${g.text ? textBox(g) : ''}${(g.fields ?? []).map(input).join('')}`}</div>`; }).join('')
+      + `<details class="lbase"><summary>기본 정보 — 자동 문구·파일 이름에 쓰여요</summary>${BASE_FIELDS.map(input).join('')}</details>`
+    : campaignFields(c).map(input).join('');
+  body.innerHTML = `<section class="isec"><h3>브리프 <span class="mode">전체 일괄</span></h3>
+    <div class="fnote" style="margin:-2px 0 8px">여기서 고치면 모든 소재에 반영돼요. 소재 하나만 고치려면 캔버스에서 글자를 더블클릭하세요.${overN ? ` · 따로 고친 소재 ${overN}종` : ''}</div>
+    ${briefHtml}
     <button class="btn" id="lApply" style="width:100%;margin-top:10px">글자에 반영</button>
     <div id="lNote" class="fnote" role="status"></div>
     </section>
@@ -2578,32 +2674,16 @@ function renderLeft() {
     </section>`;
   const note = t => { const n = $('lNote'); if (n) n.textContent = t; };
   const commit = i => {
-    const f = i.dataset.f, v = i.value.trim();
-    if (a) {
-      const o = { ...(a.overrides.core ?? {}) };
-      if ((o[f] ?? '') === v) return;
-      if (v && v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f];
-      pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 개별 편집`, true);
-      a.overrides.core = o; a.status = 'draft'; a.gateOverride = null;
-      logEvent(c, 'manual_edit', { specId: a.specId });
-      regen(c); autosave(); refreshFrames(a.key ?? a.specId);
-      note('이 소재만 반영됨');
-      log(`${a.specId} 개별 편집 (${FIELD_LABEL[f]})`);
-      return;
-    }
-    if (v === (c.context.core[f] ?? '')) return;
-    pushHistory(`${FIELD_LABEL[f]} 일괄 변경`);
-    const { impacted, conflicts } = propagate(c, { [f]: v });
-    regen(c);   // propagate 는 공통 스타일로만 다시 그린다 — 개별값·요소 편집이 빠지지 않게 정식으로 한 번 더
-    refreshFrames();
-    $('lName').textContent = campaignName(c.context);
-    note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}건은 개별 편집값 유지(확인 필요)` : `${impacted.length}종 즉시 반영됨`);
-    log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
-    autosave();
+    const f = i.dataset.f, multi = i.tagName === 'TEXTAREA';
+    const v = multi ? i.value.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim() : i.value.trim();   // 문구 칸은 줄바꿈을 지킨다
+    if (multi && i.dataset.auto && v === i.dataset.auto) return;   // 자동 문구를 그대로 두면 고정하지 않는다
+    commitBrief(c, f, v, note);
   };
-  body.querySelectorAll('input[data-f]').forEach(i => { i.oninput = debounce(() => commit(i), 450); });
-  $('lApply').onclick = () => body.querySelectorAll('input[data-f]').forEach(commit);
-  body.querySelectorAll('[data-lreset]').forEach(b => b.onclick = () => { const f = b.dataset.lreset, o = { ...(a.overrides.core ?? {}) }; delete o[f]; pushHistory(`${artLabel(a)} ${FIELD_LABEL[f]} 일괄값으로`); a.overrides.core = o; a.status = 'draft'; a.gateOverride = null; regen(c); autosave(); refreshFrames(a.key ?? a.specId); body.dataset.sig = '!'; renderLeft(); });
+  body.querySelectorAll('[data-f]').forEach(i => { i.oninput = debounce(() => commit(i), 450); });
+  $('lApply').onclick = () => body.querySelectorAll('[data-f]').forEach(commit);
+  body.querySelectorAll('[data-lomit]').forEach(b => b.addEventListener('click', () => { const r = b.dataset.lomit, cur0 = omitList(core.omit); const next = cur0.includes(r) ? cur0.filter(x => x !== r) : [...cur0, r]; if (commitBrief(c, 'omit', next.join(','), note)) { body.dataset.sig = '-'; renderLeft(); } }));
+  body.querySelectorAll('[data-ltreset]').forEach(b => b.addEventListener('click', () => { if (commitBrief(c, b.dataset.ltreset, '', note)) { body.dataset.sig = '-'; setTimeout(renderLeft, 300); } }));
+  if (focusGroup) body.querySelector(`[data-lgrp="${focusGroup}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   const pr = $('lPrompt'), go = () => { const t = pr.value.trim(); if (t) { pr.value = ''; onCommand(t); } };
   $('lPromptGo').onclick = go;
   pr.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); go(); } };
@@ -2670,6 +2750,11 @@ function elementPanelHtml(a, spec, id) {
   const ed = a.overrides.elements?.[id] ?? {}, st = a.overrides.style ?? {};
   const own = !!(a.overrides.elements?.[id] || (isStyleRole(id) && (st.roleColors?.[role] || st.roleScale?.[role])) || a.overrides.layout?.[role]);
   const head = `<h3>${escH(elementName(id))} ${own ? `<button type="button" class="ovr" id="iElReset" title="일괄값으로 되돌리기" aria-label="${escH(elementName(id))} 일괄값으로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>`;
+  // 11-09 피그마식: 글자 편집 중 끌어 고른 범위 — 그 범위의 칠(색)을 여기서 바꾼다
+  const pk = CS.on && CS.key === (a.key ?? a.specId) && CS.pick?.id === id ? CS.pick : null;
+  const pickSec = pk ? `<section class="isec" id="iPickSec"><h3>고른 글자 <span class="mode">「${escH(pk.part.slice(0, 18))}${pk.part.length > 18 ? '…' : ''}」 ${pk.part.length}글자</span></h3>
+      ${textColorRegulated(spec) ? '<div class="fnote">이 매체는 글자색이 규정이라 색을 바꿀 수 없어요</div>' : `<label>칠</label><div class="fstack" style="display:flex;gap:6px;align-items:center"><input type="color" id="iPickColor" value="${pk.color}" aria-label="고른 글자 색"><input type="text" id="iPickHex" value="${pk.color}" maxlength="7" spellcheck="false" aria-label="색 코드" style="width:90px"><button type="button" class="btn" id="iPickClear">색 지우기</button></div>
+      <div class="fnote">이 소재의 고른 글자만 바뀌어요</div>`}</section>` : '';
   const posRow = `<div class="fgrid2">${numField({ id: 'iElX', value: r1(box.x), label: 'X 위치', prefix: 'X' })}${numField({ id: 'iElY', value: r1(box.y), label: 'Y 위치', prefix: 'Y' })}</div>`;
   if (it.kind !== 'text') {
     const P = ED.partsOf(a), why = !P?.[it.kind] ? P?.why?.[it.kind] : null;
@@ -2685,7 +2770,7 @@ function elementPanelHtml(a, spec, id) {
   const px = Math.round(parseFloat(cs.fontSize) * 10) / 10, w = +cs.fontWeight || 400, curColor = (isStyleRole(id) ? st.roleColors?.[role] : ed.color) ?? hexOfCss(cs.color);
   const al = ed.align ?? (['left', 'center', 'right'].includes(cs.textAlign) ? cs.textAlign : 'left');
   const fontRule = fontRuleOf(spec?.mediumRules, spec?.rules);
-  return `<section class="isec">${head}
+  return `${pickSec}<section class="isec">${head}
     ${posRow}
     <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비(글자에 맞춤)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이(글자에 맞춤)', prefix: 'H', attrs: 'disabled' })}</div>
     </section>
@@ -2699,7 +2784,8 @@ function elementPanelHtml(a, spec, id) {
     <div class="vseg" id="iElAlign" role="group" aria-label="정렬">${[['left', 'ta-l', '왼쪽'], ['center', 'ta-c', '가운데'], ['right', 'ta-r', '오른쪽']].map(([k, icn, n]) => `<button type="button" data-ela="${k}" class="${al === k ? 'on' : ''}" aria-pressed="${al === k}" aria-label="${n}" title="${n}">${ic(icn)}</button>`).join('')}</div>
     <label>색</label>
     <div class="fstack">${colorRowHtml({ id: 'iElColor', value: curColor, label: `${elementName(id)} 색`, disabled: locks.color })}</div>
-    ${locks.color ? '' : (() => { const nr = (ed.runs ?? []).length; return `<button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:6px">${CS.on && CS.key === (a.key ?? a.specId) ? '글자 고르기 끝내기' : '글자 일부 색 바꾸기(끌어 고르기)'}</button>${nr ? `<div class="fnote">따로 칠한 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : '<div class="fnote">미리보기 글자를 더블클릭해도 돼요</div>'}`; })()}
+    ${(() => { const nr = (ed.runs ?? []).length; return `<button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:6px">${CS.on && CS.key === (a.key ?? a.specId) ? '글자 편집 끝내기' : locks.color ? '이 소재 글자 고치기' : '이 소재 글자 고치기 · 일부 색'}</button>${nr ? `<div class="fnote">따로 칠한 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : `<div class="fnote">미리보기 글자를 더블클릭해도 돼요. 이 소재만 바뀌어요 — 모든 소재는 왼쪽 패널에서${locks.color ? ' · 이 매체는 글자색이 규정이라 색은 못 바꿔요' : ''}</div>`}`; })()}
+      ${OMIT_ROLE[role] ? `<button type="button" class="btn" id="iElOmit" style="width:100%;margin-top:6px">이 소재에서 ${OMIT_NAME[OMIT_ROLE[role]]} 빼기 <span style="opacity:.6">Delete</span></button>` : ''}
     ${(() => { const notes = [locks.color ? '글자색이 규정으로 정해진 규격' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색' : '', locks.size ? '글자 크기가 규정으로 정해진 규격' : ''].filter(Boolean); return notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''; })()}
     </section>`;
 }
@@ -2737,6 +2823,15 @@ function textScaleLive(a, id, k) {
 function bindElementPanel(insp, a, c, spec, id) {
   const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
   const q = s => insp.querySelector(s);
+  q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
+  { const pk = CS.pick, pc = q('#iPickColor'), ph = q('#iPickHex');
+    if (pk && pc) {
+      const go = v => { if (/^#[0-9A-Fa-f]{6}$/.test(v)) charApply(a, pk.id, { s: pk.s, e: pk.e, c: v.toUpperCase() }, pk.text); };
+      pc.oninput = () => { ph.value = pc.value.toUpperCase(); };
+      pc.onchange = () => go(pc.value);   // 피그마처럼 고르면 바로
+      ph.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(ph.value.trim()); } };
+      q('#iPickClear').onclick = () => charApply(a, pk.id, { s: pk.s, e: pk.e, c: null }, pk.text);
+    } }
   const edit = (patch, label) => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, patch) }, `${elementName(id)} ${label}`);
   for (const [sel, set] of [['#iElX', v => EL.setXY(a, id, v, null)], ['#iElY', v => EL.setXY(a, id, null, v)], ['#iElW', v => EL.setSize(a, id, v, null)], ['#iElH', v => EL.setSize(a, id, null, v)]]) {
     const n = q(sel); if (n && !n.disabled) n.addEventListener('change', () => { const v = parseFloat(n.value); if (Number.isFinite(v)) set(v); });
@@ -3067,7 +3162,9 @@ function renderInspectorBody() {
   const presets = presetsFor(a);
   // 섹션마다 .isec(흰 카드)로 묶는다 — 인스펙터는 유리 판이라 안쪽을 카드로 쌓아야 층이 읽힌다
   const scopeTop = scopeHtml(a);
-  const designSections = state.elSel && a.channel === 'ad' && EL.find(a, state.elSel) ? elementPanelHtml(a, spec, state.elSel) : `
+  const omitA = a.channel === 'ad' ? omitOf(c, a) : [];
+  const omitSec = omitA.length ? `<section class="isec"><h3>뺀 요소</h3>${omitA.map(r => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin:4px 0"><span>${OMIT_NAME[r] ?? r}${omitList(a.overrides?.core?.omit).includes(r) ? '' : ' <span style="opacity:.6">(일괄)</span>'}</span>${omitList(a.overrides?.core?.omit ?? null).includes(r) || a.overrides?.core?.omit != null ? `<button type="button" class="lnk" data-unomit="${r}">다시 넣기</button>` : ''}</div>`).join('')}</section>` : '';
+  const designSections = state.elSel && a.channel === 'ad' && EL.find(a, state.elSel) ? elementPanelHtml(a, spec, state.elSel) : omitSec + `
     ${a.channel === 'ad' && SPECS[a.specId]?.rules ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
       <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들고, 말로 고치며 계속 뽑아요. 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpen" style="width:100%">대화로 시안 뽑기 — ${escH(artLabel(a))}</button></section>` : ''}
@@ -3141,6 +3238,7 @@ function renderInspectorBody() {
     <div id="inspNote"></div>`;
   bindScope(insp, a, c);
   if (a.channel === 'ad' && state.elSel) bindElementPanel(insp, a, c, spec, state.elSel);
+  insp.querySelectorAll('[data-unomit]').forEach(b => b.onclick = () => setArtOmit(a, omitOf(c, a).filter(r => r !== b.dataset.unomit)));
   if (a.channel === 'ad') bindArtifactStyle(insp, a, c);
   // 폰트 — 이 산출물만(overrides.style.fonts). 매체가 고정한 규격엔 선택 칸이 없다(artifactFontHtml)
   const fontOv = insp.querySelector('#iFontOv');

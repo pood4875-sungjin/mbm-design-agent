@@ -69,7 +69,8 @@ export function copyLadder(ctx) {
     // 마감 시각(deadlineTime 'HH:MM') — 정시는 「17시」, 아니면 「23:59」(10-14 t1014: GS에너지 「7.2(수) 17시」·LT소재·제일약품 「23:59」 디자이너 3곳). 날짜가 없으면 붙이지 않는다
     const tm = (() => { const m = String(c.deadlineTime ?? '').trim().match(/^(\d{1,2}):(\d{2})$/); return m ? (m[2] === '00' ? ` ${+m[1]}시` : ` ${m[1].padStart(2, '0')}:${m[2]}`) : ''; })();
     const d = c.deadline ? md(c.deadline) + tm : '', s0 = c.startDate ? md(c.startDate) : '';
-    const period = d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '';
+    const dateTxt = String(c.dateText ?? '').trim();   // 11-09 날짜 문구 직접(패널·캔버스) — 있으면 시작일·마감일로 만든 기간 대신
+    const period = dateTxt || (d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '');
     const qual = c.qualification ? String(c.qualification) : '';
     const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
     const season = c.season || null;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
@@ -87,15 +88,15 @@ export function copyLadder(ctx) {
       ? [c.headline, [c.client, c.season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
       : [c.headline, named ? hire : null, clientHire];
     return {
-      main: uniq([c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
-      sub: uniq([c.headline ? subFull : null, slogan, season, slogan0, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.employType]),   // 입력에 없는 「채용 공고」를 서브로 지어 넣지 않는다(11-02)
+      main: c.headline ? [String(c.headline)] : uniq([c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
+      sub: c.subText ? [String(c.subText)] : uniq([c.headline ? subFull : null, slogan, season, slogan0, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.employType]),   // 입력에 없는 「채용 공고」를 서브로 지어 넣지 않는다(11-02)
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
-      mainWide: uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),
-      mainNarrow: uniq([...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),
-      subNarrow: uniq([c.headline ? subFull : null, slogan, [season, c.client].filter(Boolean).join(' '), season, c.client, slogan0]),
+      mainWide: c.headline ? [String(c.headline)] : uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),
+      mainNarrow: c.headline ? [String(c.headline)] : uniq([...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),
+      subNarrow: c.subText ? [String(c.subText)] : uniq([c.headline ? subFull : null, slogan, [season, c.client].filter(Boolean).join(' '), season, c.client, slogan0]),
       // 날짜가 혼자 한 줄에 설 때(서브·날짜 줄)는 라벨을 붙이지 않는다 — Figma 9월 공채 디자이너 12/12 무라벨(10-08 typo A7). 상세 목록 안에서는 「접수기간」 라벨 유지(details)
       // 마감일이 없고 고지 문구가 일정을 말하면(「* 채용 일정은 공고별 상이합니다.」) 그 문구가 날짜 자리를 쓴다 — 자리표시 「0/00(월) ~ 0/00(일)」 대신(10-14 t1014 한진정보통신 디자이너 9/9 날짜 없음, 3/9 이 문구)
-      date: uniq(period ? [period, d ? `~${d}` : null] : scheduleNote ? [scheduleNote, shortNote(scheduleNote), shortNote(scheduleNote).split(/\s+/).slice(-2).join(' ')] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
+      date: uniq(period ? [period, d && !dateTxt ? `~${d}` : null] : scheduleNote ? [scheduleNote, shortNote(scheduleNote), shortNote(scheduleNote).split(/\s+/).slice(-2).join(' ')] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
       extra: uniq([qual, qual.split(/[·,/]/)[0]?.trim()]),
       advertiser: uniq([c.client]),
       cta: uniq([c.ctaText, '지원하기', '지원']),
@@ -1111,9 +1112,10 @@ function renderAdBase(ctx, style, spec) {
     const wordOk = c => perLine == null || !Number.isFinite(perLine) || !String(c).split(/\s+/).flatMap(pieces).some(w => countChars(w, counting) > perLine || (fs && widthPx && textWidth(w) * fs * 0.9 > widthPx));
     // 줄 수 추정: 매체가 줄당 글자수를 정했으면 글자수로, 아니면 글꼴 폭(textWidth)으로 — 글자수 0.9em 어림은 띄어쓰기·빗금까지 한 글자로 세어
     // "㈜일화 신입/경력 사원 모집"(575px)을 582px 칸에서 두 줄로 보고 회사를 떨어뜨린다(카카오). fitFontSize와 같은 자로 재야 둘이 어긋나지 않는다
-    const linesOf = c => (slot?.maxCharsPerLine != null || !(fs && widthPx)) ? estimateLines(c, perLine, counting) : Math.max(1, Math.ceil(textWidth(c) * fs * 1.04 / widthPx));
+    const linesOf0 = c => (slot?.maxCharsPerLine != null || !(fs && widthPx)) ? estimateLines(c, perLine, counting) : Math.max(1, Math.ceil(textWidth(c) * fs * 1.04 / widthPx));
+    const linesOf = c => String(c).split('\n').reduce((n, t) => n + linesOf0(t), 0);   // 11-09 직접 넣은 줄바꿈(패널 타이틀)도 한 줄로 센다
     // 틀(mold)의 글자수는 줄당 값(자소설 「행당 최대 15자」) — 적어 둔 줄바꿈이 있으면 가장 긴 줄로 센다(「현대케피코 / 신입채용 (채용연계형 인턴)」 28:1002)
-    const charsOf = c => mold ? Math.max(...String(c).split('\n').map(t => countChars(t, counting))) : countChars(c, counting);
+    const charsOf = c => mold ? Math.max(...String(c).split('\n').map(t => countChars(t, counting))) : countChars(String(c).replace(/\n/g, ''), counting);
     const fits = c => (slot?.maxChars == null || charsOf(c) <= slot.maxChars) && wordOk(c)
       && (!Number.isFinite(linesCap) || perLine == null || !Number.isFinite(perLine) || linesOf(c) <= linesCap);
     if (only != null) return { text: only, fits: fits(only), last: false };   // 특정 문구 하나가 이 크기에 들어가는지만
@@ -1124,7 +1126,7 @@ function renderAdBase(ctx, style, spec) {
   const pickIn = (...a) => pickInfo(...a).text;
   const core = ctx.core ?? {};
   // 캠페인 공통 메인(매체 규정 「Mobile/APP 메인 카피는 PC와 동일한 문구를 적용」 — 리멤버 PDF p.14·19·24·28, 10-28 컨시어지 #3): 같은 매체의 모든 규격을 한 번씩 골라 보고 가장 짧은(가장 좁은 칸이 고른) 문구 한 벌로 — 낱말은 같고 줄바꿈만 규격별(장부 shared-main-copy)
-  if (!spec.__unifyOff && ctx.kind === 'recruit' && sharedMainMedium(mr)) {
+  if (!spec.__unifyOff && ctx.kind === 'recruit' && sharedMainMedium(mr) && !String(core.headline ?? '').trim()) {   // 직접 쓴 타이틀이 있으면 그대로(11-09)
     const u = unifiedMainOf(ctx, style, spec);
     if (u) { const cl = String(core.client ?? '').trim(); const two = cl && u.startsWith(cl + ' ') && u.length > cl.length + 1 ? `${cl}\n${u.slice(cl.length + 1)}` : null; const set = [u, two].filter(Boolean); ladder.main = set; ladder.mainNarrow = set; ladder.mainWide = set; fired('sharedMainCopy'); }
   }
@@ -1140,7 +1142,22 @@ function renderAdBase(ctx, style, spec) {
   if (((useRef && L.shape === 'wide') || mold?.seasonMain) && ctx.kind === 'recruit' && ladder.mainWide?.length && !guide?.seasonInMain && !tplCopy) ladder.main = [...ladder.mainWide, ...(ladder.main ?? [])];   /* mold.seasonMain: 정사각 틀도 시즌 포함 메인(인스타 1080 수정본 10-16 「2024 ABL생명 / 신입사원 공개채용」) */
   if (useRef && L.shape === 'wide' && slots.sub && ctx.kind === 'recruit' && ladder.date?.length && !guide?.seasonInMain && !reqDate && !tplCopy && !mold) {   // reqDate: 날짜 줄이 따로 있다 — 서브는 슬로건 · 틀(mold)은 서브 = 시즌/슬로건, 날짜는 상세·날짜 줄(캐치 이미지형 1:5765)
     ladder.sub = [...ladder.date, ...(ladder.sub ?? [])];
+  }  // 11-09 뺀 요소(core.omit — 패널 「모든 소재에서 빼기」 · 캔버스 Delete): 그 줄을 렌더 단계에서 빼 레이아웃이 다시 맞춰지게(가리기만 하면 빈자리가 남는다)
+  { const om = new Set(String(core.omit ?? '').split(',').map(t => t.trim()).filter(Boolean));
+    if (om.size) {
+      if (om.has('sub')) { ladder.sub = []; ladder.subNarrow = []; }
+      if (om.has('date')) { ladder.date = []; ladder.details = (ladder.details ?? []).filter(d => !/기간/.test(d.label)); ladder.label = (ladder.label ?? []).filter(t => !/기간/.test(t)); }
+      if (om.has('detail')) { ladder.details = []; ladder.label = []; ladder.extra = []; }
+      fired('userOmit');
+    } }
+  // 11-09 사용자 타이틀(패널·캔버스 「메인 문구」 직접): 사다리를 다 짠 뒤 타이틀만 남긴다 — 시즌 넣기·회사/채용 두 줄·매체 공유 메인이 밀어내지 않게.
+  //   메인 칸이 한 줄뿐인 틀(리멤버 PC·에브리타임)은 적은 줄바꿈을 띄어쓰기로 합친 한 줄을 다음 후보로
+  if (ctx.kind === 'recruit' && String(core.headline ?? '').trim()) {
+    const hl = String(core.headline).trim(), flat = hl.replace(/\s*\n\s*/g, ' ');
+    ladder.main = ladder.mainNarrow = ladder.mainWide = [...new Set([hl, flat])];
+    fired('userHeadline');
   }
+
   let copy = Object.fromEntries(Object.keys(ladder).filter(k => !['details', 'mainNarrow', 'subNarrow', 'mainWide'].includes(k)).map(r => [r, pickIn(r, null)]));
 
   /* ── 지면 성격 ── */
@@ -2566,8 +2583,8 @@ ${tplLogo}${kvWrap(tplObject)}
       used[role] = { y: Math.round(r.y * k * 10) / 10, px, pitch, lines, weight, top: t, x: (MCOL && !MCOL.col) ? MCOL.ax : r.x != null ? Math.round(r.x * k) : sx, w: rowW(r), align: rowAlign(r), text }; blocks.push({ t, h: pitch * lines, html: `<div data-field="${role}"${sampleAttr(text)} style="position:absolute;left:${rowX(r)}px;top:@@px;width:${rowW(r)}px;font-size:${px}px;line-height:${pitch}px;font-weight:${weight};color:${(fgIsDark && r.color) ? r.color : color};${r.ls != null ? `letter-spacing:${Math.round(r.ls * 10) / 1000}em;` : ''}text-align:${rowAlign(r)};${WRAP};max-height:${Math.round(pitch * lines * 100) / 100}px;overflow:hidden">${inner}</div>` }); };
     const mainPx = pxOf(MR.main ?? { px: mainFs });
     // 틀 메인은 회사 / 채용구분 두 줄(세아제강 「세아제강 / 신입/경력사원 채용」· 현대케피코 「현대케피코 / 신입채용 (…)」) — 한 줄에 다 들어가도 둘로 나눈다(줄 수가 2 이상인 틀만)
-    if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
-    else if ((MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && ctx.core?.season && copy.main.startsWith(`${ctx.core.season} ${ctx.core.client} `)) { const head = `${ctx.core.season} ${ctx.core.client}`; copy.main = `${head}\n${copy.main.slice(head.length + 1)}`; }   /* 시즌 포함 메인도 회사명 뒤에서 줄을 나눈다(인스타 수정본 「2024 ABL생명 / 신입사원 공개채용」, 10-16) */
+    if (!ctx.core?.headline && (MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && copy.main.startsWith(ctx.core.client + ' ') && copy.main.length > ctx.core.client.length + 1) copy.main = `${ctx.core.client}\n${copy.main.slice(ctx.core.client.length + 1)}`;
+    else if (!ctx.core?.headline && (MR.main?.lines ?? 2) >= 2 && !copy.main.includes('\n') && ctx.core?.client && ctx.core?.season && copy.main.startsWith(`${ctx.core.season} ${ctx.core.client} `)) { const head = `${ctx.core.season} ${ctx.core.client}`; copy.main = `${head}\n${copy.main.slice(head.length + 1)}`; }   /* 시즌 포함 메인도 회사명 뒤에서 줄을 나눈다(인스타 수정본 「2024 ABL생명 / 신입사원 공개채용」, 10-16) */
     // 틀의 메인 줄 수 한도(에브리타임 커뮤니티보드·홈배너 1줄)를 넘기면 사다리에서 들어가는 첫 후보로 바꾼다 — 칸은 max-height 로 잘리므로 「2025 하반기 마이다스 대규모 공개채용」(600px·45px 두 줄)이 반 토막 나지 않게(10-15 검수 표 ✗ 메인 줄 수)
     // 줄 수 어림은 어절 단위 그리디(word-break:keep-all 과 같은 식 — 10-20: 전체 폭 ÷ 칸 폭(ceil)은 「2026 하반기 한국산업단지공단 정규직 채용」을 513px 에 2줄로 봤지만 어절이 안 끊기는 실제는 3줄이라 셋째 줄이 잘렸다). 칸보다 긴 어절은 anywhere 로 쪼개지는 만큼 더한다
     // 틀 줄 수 어림의 글자 폭: 한글은 textWidth 의 1em 이 아니라 Pretendard 실측 0.864em(app/fonts/pretendard-700 hmtx, 11-02) — 1em 으로 재면 「한진정보통신」 6자 × 24px = 144 > 130 으로 보여 음절로 끊고(실제 124px, 담당자 「6자 OK」), 구글 580 「인천국제공항보안공사」 10자가 한 줄 더·29px 가 됐다. 사다리(pickInfo)는 이미 0.9em 로 재므로 그쪽과도 맞춘다

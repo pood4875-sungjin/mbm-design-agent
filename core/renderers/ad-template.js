@@ -43,13 +43,14 @@ export function renderTemplate(ctx, style, spec) {
   const core = ctx.core ?? {};
   const client = String(core.client ?? '').trim();
   const hire = String(core.hiringType ?? core.employType ?? '').trim();
-  const season = String(core.season ?? '').trim();
-  const dateText = (() => {
+  const season = String(core.subText ?? '').trim() || String(core.season ?? '').trim();   // 11-09 서브 문구 직접이면 그 문구
+  const dateText = String(core.dateText ?? '').trim() || (() => {
     const md = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s ?? '')); if (!m) return ''; const d = new Date(+m[1], +m[2] - 1, +m[3]); return `${+m[2]}.${+m[3]}(${'일월화수목금토'[d.getDay()]})`; };
     const a = md(core.startDate), b = md(core.deadline);
     return b ? (a ? `${a} - ${b}` : `~${b}`) : '';
   })();
-  const roleText = String(core.role ?? '').trim();
+  const omit = new Set(String(core.omit ?? '').split(',').map(t => t.trim()).filter(Boolean));   // 11-09 뺀 요소
+  const roleText = omit.has('detail') ? '' : String(core.role ?? '').trim();
 
   const rules = spec.rules ?? {}, INK = 0.92;
   const range0 = (rules.textLimits ?? []).find(t => t.fontSizeRange)?.fontSizeRange ?? null, th = rules.textHeightPx ?? null;
@@ -105,7 +106,8 @@ export function renderTemplate(ctx, style, spec) {
   const logoSrc = (!fgIsDark && style.logoLight) ? style.logoLight : style.logo;
 
   const clampFs = fs => { let v = fs; if (limits?.max != null) v = Math.min(v, limits.max); if (limits?.min != null) v = Math.max(v, limits.min); return v; };
-    const mainFull = hire && client ? `${client}\n${hire}` : (client || hire);
+    const headline = String(core.headline ?? '').trim();   // 11-09 공고 타이틀(패널·캔버스 직접) — 있으면 메인 문구 그대로(줄바꿈 포함)
+    const mainFull = headline || (hire && client ? `${client}\n${hire}` : (client || hire));
   if (!mainFull) return null;
 
   const family0 = fontStack(style.fonts?.heading ?? family.font);
@@ -115,15 +117,15 @@ export function renderTemplate(ctx, style, spec) {
   const hasClientRow = fr.rows.some(r => r.role === 'client');   // 11-09 타이포 시안: 회사명 머리 줄이 따로 있으면 메인은 채용구분만
   const textOf = r => {
     if (r.role === 'main') {
-      let t = hasClientRow ? (hire || client) : (r.join && client && hire ? `${client}${r.join}${hire}` : mainFull);
+      let t = headline ? headline : hasClientRow ? (hire || client) : (r.join && client && hire ? `${client}${r.join}${hire}` : mainFull);
       if (r.withSeason && season) t = `${season}\n${t}`;
       return t;
     }
-    if (r.role === 'client') return client && hire ? client : null;
-    if (r.role === 'slogan') return String(core.slogan ?? '').trim() || null;
+    if (r.role === 'client') return client && hire && !headline ? client : null;
+    if (r.role === 'slogan') return omit.has('sub') ? null : String(core.slogan ?? '').trim() || null;
     if (r.role === 'role' && roleText && r.stack) return roleText.split(/\s*,\s*/).filter(Boolean).join('\n');
-    if (r.role === 'season') return season || null;
-    if (r.role === 'date') return dateText || null;
+    if (r.role === 'season') return omit.has('sub') ? null : season || null;
+    if (r.role === 'date') return omit.has('date') ? null : dateText || null;
     if (r.role === 'role' && roleText) return r.hash ? roleText.split(/\s*,\s*/).filter(Boolean).slice(0, 4).map(t => `#${r.hashSpace ? ' ' : ''}${t.replace(/\s+/g, '')}`).join(' ') : roleText;
     return null;
   };
@@ -200,7 +202,7 @@ export function renderTemplate(ctx, style, spec) {
       const pill = !!(r.badge && (r.badge.fill || r.badge.stroke));
       const maxRows = isMain ? (mainRule?.lines != null ? Math.min(mainRule.lines, parts0.length + (longName ? 1 : 0)) : parts0.length + (longName ? 1 : 0)) : r.role === 'date' || r.role === 'season' || r.role === 'client' || r.role === 'slogan' || pill ? 1 : Math.max(2, r.lines ?? 1);   // 알약은 한 줄(두 줄 알약은 청사진에 없다)
       // 규정 줄 수·글자 수에 안 들면 기업명만
-      if (isMain && client && hire && !hasClientRow && !r.withSeason && (wrapRows(text, floor, bw - labelW) > maxRows || (mainRule?.maxChars != null && text.split('\n').some(l => [...l.replace(/\s/g, '')].length > mainRule.maxChars)))) text = client;
+      if (isMain && client && hire && !headline && !hasClientRow && !r.withSeason && (wrapRows(text, floor, bw - labelW) > maxRows || (mainRule?.maxChars != null && text.split('\n').some(l => [...l.replace(/\s/g, '')].length > mainRule.maxChars)))) text = client;
       let rows = wrapRows(text, fs, bw - labelW);
       while (fs > floor && rows > maxRows) { fs -= 1; rows = wrapRows(text, fs, bw - labelW); }
       // 긴 기업명이 낱말 안에서 꺾이면 먼저 줄인다(청사진의 72%까지 — typeWeak 선). 그 아래로도 안 들어가면 꺾는다(검사기 word-break → 이 안은 이 문구에 안 맞음)
@@ -256,7 +258,7 @@ export function renderTemplate(ctx, style, spec) {
     const color = rcOf(fieldKey) ?? roleColor(r.color), al = frameAlign;
     const mainHtml = () => {
       const pre = r.withSeason && season && text.startsWith(season + '\n') ? season : null, base = pre ? text.slice(season.length + 1) : text;
-      if (hasClientRow || !(client && hire) || base === client) return esc(text).replace(/\n/g, '<br/>');
+      if (headline || hasClientRow || !(client && hire) || base === client) return esc(text).replace(/\n/g, '<br/>');
       const span = (t, on) => {
         if (emph?.kind === 'color' && emph.on === on && accent && !customFg && !rcOf('main')) return `<span data-accent="1" style="color:${accent}">${esc(t)}</span>`;
         if (emph?.kind === 'weight') return `<span data-weight-part="${on}" style="font-weight:${on === 'client' ? emph.client : emph.hire}">${esc(t)}</span>`;
