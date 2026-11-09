@@ -660,6 +660,87 @@
   #iAiJob .aijob.done{background:var(--good-soft);color:var(--good);cursor:pointer}
   #iAiJob .aijob.done:hover{text-decoration:underline;text-underline-offset:3px}
   #iAiJob .aijob.failed{background:var(--soft);color:var(--danger);cursor:help}
+  /* ─ AI 디자인 칸(11-09, app/aidesign.js) — 생성 신호는 --gen 계열만(포인트 색 아님). 카드는 칸 폭을 꽉 채운다 ─ */
+  .isec-ai .ai-in{display:flex;flex-direction:column;gap:8px}
+  .isec-ai .mode{font-size:10px;font-weight:700;color:var(--gen1);background:var(--gen-soft);border-radius:var(--r-pill);padding:2px 8px}
+  .isec-ai .ai-gate{font-size:11.5px;line-height:1.5;color:var(--sub);margin:0}
+  .isec-ai .ai-gate .lnk{font-size:11.5px;padding:0 2px;color:var(--ink)}
+  .isec-ai .ai-lab{font-size:11px;color:var(--sub);font-weight:600;margin:0}
+  .isec-ai textarea{width:100%;min-height:48px;resize:vertical}
+  .isec-ai .ai-row{display:flex;gap:6px} .isec-ai .ai-row .btn{flex:1}
+  .isec-ai .btn.ai-go{background:var(--gen1);color:#fff;border-color:transparent;font-weight:700}
+  .isec-ai .btn.ai-go:hover:not(:disabled){background:var(--gen1);opacity:.9}
+  .isec-ai .ai-go:disabled{opacity:.5;cursor:not-allowed}
+  .isec-ai .ai-ctx{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11.5px;background:var(--gen-soft);color:var(--ink);border-radius:var(--r-xs);padding:4px 4px 4px 10px}
+  .isec-ai .ai-ctx[hidden]{display:none}
+  .isec-ai .ai-x{width:28px;height:28px;border:0;background:none;color:var(--sub);font-size:16px;border-radius:var(--r-xs);cursor:pointer}
+  .isec-ai .ai-x:hover{background:var(--card);color:var(--ink)}
+  .isec-ai .ai-chat{align-self:flex-start;font-size:11px}
+  .isec-ai .ai-empty{font-size:11.5px;line-height:1.55;color:var(--sub);margin:0}
+  .isec-ai .ai-status{position:relative;display:flex;flex-direction:column;gap:5px;background:var(--gen-soft);border-radius:var(--r-sm);padding:10px 12px;font-size:11.5px;line-height:1.45}
+  .isec-ai .ai-status::before{content:"";position:absolute;left:0;top:0;right:0;height:2px;border-radius:2px;background:var(--gen);background-size:200% 100%;animation:aiFlow 2.4s linear infinite}
+  .isec-ai .ai-line{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+  .isec-ai .ai-n{font-variant-numeric:tabular-nums;color:var(--gen1);font-weight:700}
+  .isec-ai .ai-steps{display:flex;gap:4px;list-style:none;padding:0;margin:0;flex-wrap:wrap}
+  .isec-ai .ai-steps li{font-size:10.5px;color:var(--sub);padding:2px 7px;border-radius:var(--r-pill);background:var(--card)}
+  .isec-ai .ai-steps li.done{color:var(--good)} .isec-ai .ai-steps li.done::before{content:"✓ "}
+  .isec-ai .ai-steps li.on{color:#fff;background:var(--gen1);font-weight:700}
+  .isec-ai .ai-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .isec-ai .ai-hint{font-size:11px;color:var(--sub)}
+  .isec-ai .ai-cancel{align-self:flex-end;font-size:11px;padding:2px}
+  .isec-ai progress{width:100%;height:6px;accent-color:var(--gen1)}
+  .isec-ai .ai-rej{font-size:11px;color:var(--sub);background:var(--soft);border-radius:var(--r-xs);padding:5px 9px}
+  .isec-ai .ai-err{font-size:11px;color:var(--danger);background:var(--danger-soft);border-radius:var(--r-xs);padding:5px 9px}
+  .isec-ai .ai-body{display:flex;flex-direction:column;gap:10px}
+  .isec-ai .ai-top{display:flex;flex-direction:column;gap:8px} .isec-ai .ai-top:empty{display:none}
+  .isec-ai .ai-cards{display:flex;flex-direction:column;gap:12px}
+  .isec-ai .ai-card{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);min-width:0}
+  .isec-ai .ai-card.sel{border-color:var(--gen1);box-shadow:0 0 0 1px var(--gen1)}
+  .isec-ai .ai-card.used{border-color:var(--good)}
+  .isec-ai .ai-card-top{display:flex;align-items:center;gap:6px;font-size:11.5px;min-width:0}
+  .isec-ai .ai-name{flex:1;min-width:0;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .isec-ai .ai-badge{flex:none;font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--r-pill)}
+  .isec-ai .ai-badge.pass{background:var(--good-soft);color:var(--good)}
+  .isec-ai .ai-badge.warn{background:var(--amber-soft);color:var(--amber);cursor:help}
+  .isec-ai .ai-badge.pending{background:var(--soft);color:var(--sub)}
+  .isec-ai .ai-prev{display:block;position:relative;overflow:hidden;padding:0;border:0;border-radius:6px;background:var(--soft);outline:1px solid var(--line);cursor:zoom-in;max-width:100%;align-self:center}
+  .isec-ai .ai-prev iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;pointer-events:none}
+  .isec-ai .ai-prev:hover{outline:2px solid var(--focus)}
+  .isec-ai .ai-quick{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;color:var(--gen1);font-weight:600}
+  .isec-ai .ai-quick .lnk{font-size:11px;padding:2px}
+  .isec-ai .ai-from,.isec-ai .ai-used{font-size:11px;color:var(--sub)} .isec-ai .ai-used{color:var(--good);font-weight:700}
+  .isec-ai .ai-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .isec-ai .ai-acts .btn{padding:0 6px;min-width:0}
+  .isec-ai .ai-acts .ai-wide{grid-column:1/-1}
+  .isec-ai .ai-skels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px} .isec-ai .ai-skels[hidden]{display:none}
+  .isec-ai .ai-slot{display:flex;align-items:flex-end;min-height:56px;border-radius:6px;padding:5px 6px;font-size:10px;font-weight:600;line-height:1.3}
+  .isec-ai .ai-slot.wait{border:1px dashed var(--accent-line);color:var(--gen1);background:linear-gradient(100deg,var(--soft) 30%,var(--gen-soft) 50%,var(--soft) 70%);background-size:300% 100%;animation:aiShim 1.6s ease-in-out infinite;max-height:120px}
+  .isec-ai .ai-slot.got{background:var(--good-soft);color:var(--good)}
+  .isec-ai .ai-slot.rej{background:var(--soft);color:var(--sub)}
+  .isec-ai .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  @keyframes aiShim{0%{background-position:100% 0}100%{background-position:0 0}}
+  @keyframes aiFlow{0%{background-position:0 0}100%{background-position:200% 0}}
+  @media (prefers-reduced-motion: reduce){ .isec-ai .ai-slot.wait,.isec-ai .ai-status::before{animation:none} }
+  #artboard .flabel .badge.aib{display:inline-block!important;background:var(--gen-soft);color:var(--gen1)}
+  #artboard .flabel .badge.aib.new{background:var(--gen1);color:#fff}
+  .ai-big{position:fixed;inset:0;z-index:1001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.6)}
+  .ai-big-in{display:flex;flex-direction:column;gap:10px;background:var(--card);border-radius:var(--r-sm);padding:14px;max-width:100%;max-height:100%;overflow:auto}
+  .ai-big-head{display:flex;align-items:center;gap:8px;font-size:13px} .ai-big-head span{color:var(--sub);margin-right:auto}
+  .ai-big-box{position:relative;overflow:hidden;background:var(--soft)} .ai-big-box iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0}
+  .ai-big-notes{font-size:12px;color:var(--sub);margin:0;max-width:640px;line-height:1.5}
+  #aiSpread{position:fixed;inset:0;z-index:1001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.5)}
+  #aiSpread .as-panel{display:flex;flex-direction:column;gap:10px;width:min(460px,100%);max-height:min(640px,100%);background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:16px}
+  #aiSpread .as-head{display:flex;align-items:center;justify-content:space-between} #aiSpread h3{font-size:15px;margin:0}
+  #aiSpread .as-note{font-size:12px;line-height:1.55;color:var(--sub);margin:0}
+  #aiSpread .as-bar{display:flex;align-items:center;gap:8px;font-size:12px} #aiSpread .as-cnt{margin-left:auto;color:var(--sub)}
+  #aiSpread .as-list{list-style:none;margin:0;padding:0;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-xs)}
+  #aiSpread .as-list li{border-bottom:1px solid var(--line)} #aiSpread .as-list li:last-child{border-bottom:0}
+  #aiSpread .as-list label{display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:12.5px;cursor:pointer;min-height:40px}
+  #aiSpread .as-list li.off label{cursor:not-allowed;color:var(--sub)}
+  #aiSpread .as-name{flex:1;min-width:0}
+  #aiSpread .as-list small{font-size:10.5px;color:var(--sub);background:var(--soft);border-radius:var(--r-pill);padding:2px 7px;white-space:nowrap}
+  #aiSpread .as-foot{display:flex;justify-content:flex-end;gap:8px}
+  #aiSpread .btn:disabled{opacity:.5}
   #inspector .row .btn{flex:1}
   #inspector .kvthumb{border-color:var(--accent-line)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--card);font-size:12.5px;font-weight:600;color:var(--ink)}

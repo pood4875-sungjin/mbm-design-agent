@@ -68,7 +68,7 @@ export function briefOf(ctx) { const c = ctx?.core ?? {}; const b = {}; for (con
 let healthP = null;
 export function freeHealth(force = false) {
   if (healthP && !force) return healthP;
-  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, jobs: !!j.freedesign?.jobs, model: j.model ?? null }; } catch { return { server: false }; } })();
+  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, model: j.model ?? null }; } catch { return { server: false }; } })();
   return healthP;
 }
 export function enginesOf(h) { const out = []; if (h?.claudeCode) out.push('claude-code'); if (h?.hasKey) out.push('api'); return out; }
@@ -467,6 +467,48 @@ export function createFreeDesign(D) {
   }
   if (loadJobs().some(j => j.status === 'queued' || j.status === 'running')) freeHealth().then(h => { if (h.server && h.jobs) startPolling(); });   // 새로고침 뒤에도 이어서 확인(서버 없으면 조용히)
 
-  return { open, choicesFor, templatesFor: freeTemplatesFor, isOpen: () => !!root, close, suggest, jobBadge, hasServerJobs, notePick, suggestionsFor: (a, c) => suggestionsFor(c, a) };
+  /* ── 「AI 디자인」 칸(11-09, app/aidesign.js)이 쓰는 입구 — 같은 본문·같은 검수·같은 「쓰기」 길(useFree + 좋음 5점) ── */
+  // 서버로 보낼 본문(대화·수정 없음) + 보낸 키비주얼 data URL(틀로 되돌릴 때 같은 값으로 {kv} 를 빼야 한다)
+  async function jobBody(a, c, extra = {}) {
+    const h = await freeHealth(); const engine = enginesOf(h)[0] ?? 'claude-code';
+    const { body, kvSent, logoTone } = await buildBody(c, a, null, { engine });
+    return { body: { ...body, campaignId: c.id, review: true, ...extra }, kvSent, logoTone };
+  }
+  // 서버 안 하나 → 정규화 HTML + 형식 검사(go()·takeIn 과 같은 길)
+  function prepVariant(a, vr) {
+    const spec = D.SPECS[a.specId];
+    const html = normalizeFreeHtml(vr?.html, { specId: a.specId, w: spec.w, h: spec.h });
+    return { html, valid: validateFreeHtml(html, { w: spec.w, h: spec.h, allowedFonts: allowedFontNames(spec) }) };
+  }
+  // 카드 검수 — 규격 검사 + 디자인 검수 + 승인 게이트(카드 객체에 measure·lint·design·gate 를 단다)
+  async function checkVariant(item, a) { await checkResult(item, D.SPECS[a.specId], D.adEffCtx(a)); return item.gate; }
+  // 틀로 — 보낸 키비주얼이 그대로 안 빠졌으면(서버 재인코딩) 가장 큰 그림을 키비주얼로
+  function tplOf(html, kvSent, c) {
+    let { tpl, texts } = toTemplate(html, { kv: kvSent, logo: c.style.logo ?? null });
+    if (!tpl.includes('{kv}')) { const m = [...tpl.matchAll(/data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]+/g)].map(x => x[0]).sort((p, q) => q.length - p.length)[0]; if (m) tpl = tpl.split(m).join('{kv}'); }
+    return { tpl, texts };
+  }
+  // 「쓰기」 — 소재의 안(kind 'free')으로 넣고(검수 게이트·승인·내보내기 같은 길) 좋음(5) 기록
+  async function useVariant(a, c, { id, html, notes = '', kvSent = null, label = 'AI 안', batch = null }) {
+    const { tpl, texts } = tplOf(html, kvSent, c);
+    const logoTone = c.style.logoTone === 'light' ? 'light' : 'dark';
+    D.useFree(a, { id, tpl, texts, notes, logoTone, html });
+    try {
+      const spec = D.SPECS[a.specId];
+      const rec = prefRecord({ id: `fp-${id}`, specId: a.specId, kvMeta: c.style.kvMeta ?? null, caseId: c.id ?? null, html: tpl, png: await thumbOf(html, spec), rating: 5, note: `#AI디자인 ${label}`, scope: 'type', at: Date.now(), batch: String(batch ?? id), fp: fingerprintOf(tpl, { specId: a.specId, kvMeta: c.style.kvMeta ?? null }), measure: null });
+      await savePrefRecord(rec);
+      D.log(`AI 디자인 채택: ${label} → 5 ${RATING_LABEL[5]}`);
+    } catch {}
+  }
+  // 「다른 시안」 맨 앞에 넣기(펼치기·제안 결과) — choicesFor 가 읽는 localStorage 같은 레코드
+  function storeSuggestion(c, a, { id, html, notes = '', styleName = 'AI 안', jobId = null, kvSent = null }) {
+    const { tpl, texts } = tplOf(html, kvSent, c);
+    const rec = { id: `fs-${id}`, campaignId: c.id, specId: a.specId, specKey: keyOf(a), tpl, texts, notes: String(notes ?? ''), styleName, styleId: null, label: `AI 안 · ${styleName}`, at: Date.now(), jobId };
+    if (!saveSuggest([rec, ...loadSuggest().filter(r => r.id !== rec.id)])) return null;
+    return rec;
+  }
+
+  return { open, choicesFor, templatesFor: freeTemplatesFor, isOpen: () => !!root, close, suggest, jobBadge, hasServerJobs, notePick, suggestionsFor: (a, c) => suggestionsFor(c, a),
+    jobBody, prepVariant, checkVariant, useVariant, storeSuggestion, adsOf, health: freeHealth };
 }
 export { toTemplate, fillTemplate, FREE_FIELDS };
