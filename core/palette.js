@@ -342,7 +342,9 @@ export function personFocus(field, person) {
   if (f0) {
     const ix = Math.max(0, Math.min(person.x1, f0.x + f0.w / 2) - Math.max(person.x0, f0.x - f0.w / 2));
     const iy = Math.max(0, Math.min(person.y1, f0.y + f0.h / 2) - Math.max(person.y0, f0.y - f0.h / 2));
-    if (!((f0.density ?? 1) < P.density && ix * iy / (bw * bh) < P.cover)) return field;
+    // 11-10 밤: 색 덩어리 상자가 그림 거의 전체(80%↑)면 주인공이 아니라 「전체」라는 뜻 — 인물 상자를 쓴다(desk-32 소파 두 사람: 색 상자 .92×1 · 얼굴 2 → 「군중·주인공 없음」으로 지면 가득 + 얼굴 위 글자)
+    const whole = (f0.w ?? 0) * (f0.h ?? 0) >= 0.8;
+    if (!whole && !((f0.density ?? 1) < P.density && ix * iy / (bw * bh) < P.cover)) return field;
   }
   const r = v => Math.round(v * 100) / 100;
   return { ...field, kind: field.kind === 'illust' ? 'photo' : field.kind, kindFrom: field.kind === 'illust' ? 'illust' : undefined,
