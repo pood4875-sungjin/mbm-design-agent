@@ -1285,7 +1285,11 @@ function renderAdBase(ctx, style, spec) {
   // 11-10 사용자 「가이드가 저렇지 않는 이상 이미지일 땐 옆으로 넓게 — 저 영역 지키려고 저렇게 하면 안 돼」: 가로형(w ≥ 1.8h) 틀의 고정 그림 칸(kv slot)이
   //   매체 공식 칸(mold.slotOfficial — 카카오·NAP 비즈보드 썸네일)이 아니고 키비주얼이 이미지형이면, 칸 왼변부터 오른쪽 끝·전체 높이(리멤버 썸네일형). 누끼는 칸 그대로
   if (mold?.kv === 'slot' && !mold.slotOfficial && tImage && !moldCutZone && kvImg0 && w >= 1.8 * h && (tImage.y > 0 || tImage.x + tImage.w < w || tImage.h < h)) { tImage = { x: tImage.x, y: 0, w: w - tImage.x, h }; fired('templateMold.slotWide'); }
-  const AM = (TA && mold) ? alignMoldSlots({ mold, w, h, k: tScale, tImage, tLogo, align: TA, free: moldFreeKv, cutout: kvCut0 && !kvImg0 }) : null;
+  // 11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함 — 누끼도 센터 정렬로 돼야 안 비어 보이고 정렬돼 보임(인스타)」: 틀 자체가 가운데 정렬(인스타 1080·구글 300×600)이면
+  //   정렬 프리셋이 없어도 누끼 그림 칸만 가운데로(로고는 틀 그대로). 사진·바탕 있는 그림은 칸 그대로
+  const cutCenterOnly = !TA && !!mold && mold.align === 'center' && kvCut0 && !kvImg0 && !!tImage && !moldCutZone && !moldFreeKv;
+  const AM = ((TA || cutCenterOnly) && mold) ? alignMoldSlots({ mold, w, h, k: tScale, tImage, tLogo: cutCenterOnly ? null : tLogo, align: TA ?? 'center', free: moldFreeKv, cutout: kvCut0 && !kvImg0 }) : null;
+  if (AM && cutCenterOnly) { AM.tLogo = tLogo; if (/^center/.test(AM.kv ?? '')) fired('templateMold.cutoutCenter'); }
   if (AM) {
     tImage = AM.tImage;
     // 거울·가운데로 옮긴 로고 칸이 매체 안전영역(숫자, logoInset 우선) 밖이면 원자리(11-09 전수: 에브리타임 커뮤니티보드 오른쪽 정렬 safe-area:logo)
@@ -1344,7 +1348,8 @@ function renderAdBase(ctx, style, spec) {
   const moldSlotEdge = !!(mold && tImage && tImage.x + tImage.w >= w - 2 && tImage.y + tImage.h >= h - 2 && tImage.y > 0 && !(tImage.w >= w - 1));   // 틀 그림 칸이 오른쪽·아래 모서리에 닿는 상자(NAP 300×250·블라인드 피드·네이버 DA) — 여백 있는 칸(자소설 팝업 8/30·구글 ABL)은 아님
   // mold.image.bleed === false(인스타 1080, 10-19): 칸이 모서리에 닿아도 블리드 없이 contain 우하단 맞춤 — 사용자 수정본 「누끼 contain 바닥 맞춤」 그대로, 칸만 오른쪽 가장자리까지(우측 여백 0)
   // 11-02 담당자 「누끼 첨부 시 잘리는 경우 최소화(가로 이미지에서 더 잘 나타남)」: 틀 그림 칸에서는 누끼를 블리드로 흘리지 않는다 — 칸 안에 통째로(contain). 10-15 밤의 모서리 칸 블리드(slotBleed)는 이 결정으로 꺼짐(자유 배치 규격의 objectBleed 는 그대로)
-  const singleObj = !mirrorX && !mold && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸: 여백 있는 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로) · 모서리에 닿는 칸은 이전 가이드대로 우하단 블리드(10-15 밤 「KV·배경은 이전 버전이 더 견고」)
+  // 11-10: 글자가 가운데 정렬이면 누끼를 오른쪽 아래로 흘리지 않는다(알바몬 기업 왼쪽·스카이 — 흘린 로켓이 글자를 덮고 축이 어긋났다)
+  const singleObj = !mirrorX && !mold && TA !== 'center' && !!(hasKv && !logoOnly && guide?.objectBleed && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && kvTypeOf(style.kvMeta)?.flags.single);   // 틀 그림 칸: 여백 있는 칸 안에서는 블리드 없음(10-15 세아제강 팝업: 오른쪽 8·아래 30 여백 안에 통째로) · 모서리에 닿는 칸은 이전 가이드대로 우하단 블리드(10-15 밤 「KV·배경은 이전 버전이 더 견고」)
   { const t = kvTypeOf(style.kvMeta); TR.kv = t ? { type: t.id, sub: t.sub?.id ?? null, subs: t.subs.map(s => s.id), flags: Object.keys(t.flags).filter(k => t.flags[k] === true), override: t.override, ar: t.ar, subjectArea: t.subjectArea } : null;
     TR.gate = { hasKv, textureFull, frameFull, photoFull, crowdKv, moldNoSlot, roomFull: !!roomFull, photoCol, gCorner, kvWideBand, singleObj, logoOnly, transparent, template: !!tImage, kvUse: style.kvUse ?? 'auto' };
     if (singleObj) fired('objectBleed'); if (frameFull) fired('frameFull'); else if (textureFull) fired('textureFull'); if (photoFull) fired(crowdKv ? 'photoCrowdFull' : 'photoFull'); if (roomFull) fired('roomFull'); if (photoCol && logoPlace === 'top-left') fired('photoColLogoLeft'); if (reqDate) fired('required.date'); if (glassKv && !templateLight) fired('glassDark'); if (mold) fired('templateMold'); }
@@ -1453,7 +1458,9 @@ function renderAdBase(ctx, style, spec) {
     if (gh) { fired('groupFill'); const gw = Math.round(gh * ar); return { x: AM?.kv === 'mirror' ? tImage.x + tImage.w - gw : tImage.x, y: tImage.y + tImage.h - gh, w: gw, h: gh, groupFill: true }; }   // 글자 쪽 변(칸 왼변)은 지키고 바깥쪽으로 넘친다
     const dw = fillW ? tImage.w : Math.round(tImage.h * ar), dh = fillW ? Math.round(tImage.w / ar) : tImage.h;
     // 거울 칸(정렬 프리셋 10-19 AM.kv): 오른쪽 아래 맞춤도 거울 — 왼쪽 아래(mirror)·아래 가운데(center)
-    const x = AM?.kv === 'mirror' ? tImage.x : /^center/.test(AM?.kv ?? '') ? tImage.x + Math.round((tImage.w - dw) / 2) : tImage.x + tImage.w - dw;
+    // 가운데(11-10): 그림 칸 가운데가 아니라 글자 축에 맞춘다 — 가운데 정렬 프리셋은 글자 열을 지면 가운데로 맞추니(아래 MCOL) 지면 가운데, 틀이 원래 가운데면 틀 글자 열 가운데(인스타 x89+934 → 556)
+    const axis = TA === 'center' ? w / 2 : (tText ? tText.x + tText.w / 2 : tImage.x + tImage.w / 2);
+    const x = AM?.kv === 'mirror' ? tImage.x : /^center/.test(AM?.kv ?? '') ? (dw >= w ? Math.round(axis - dw / 2) : Math.max(0, Math.min(w - dw, Math.round(axis - dw / 2)))) : tImage.x + tImage.w - dw;
     return { x, y: tImage.y + tImage.h - dh, w: dw, h: dh };
   })() : null;
   // 단, 그림이 칸 높이의 60%도 못 채우면(가로형 샘플 600×400 → 160×600 띠에 폭 맞춤 = 107px 조각) 레퍼런스처럼 보이지 않는다 — 비어 보인다.
@@ -2211,7 +2218,7 @@ function renderAdBase(ctx, style, spec) {
       const kWin = Math.min(2.4, Math.max(kNeed, (h * 0.45 + pad.bottom) * ar / w));
       const win = kWin > 1.05 ? cutWindow(colsC, kWin) : null;
       let k, fitH;
-      if (win) { k = win.k; fitH = Math.round(w * k / ar) - pad.bottom; cutLeft = win.left; }
+      if (win) { k = win.k; fitH = Math.round(w * k / ar) - pad.bottom; cutLeft = TA === 'center' ? null : win.left; }   // 11-10: 가운데 정렬이면 틈 창도 가운데(한쪽으로 치우친 창 → 그림이 글자 축에서 벗어났다 — 알바몬 스카이·인스타 스토리)
       else {
         const allowed = [1, 1.3, 1.5, 1.8, 2.2].filter(cutOk2);
         k = allowed[0]; fitH = Math.round(w * k / ar) - pad.bottom;
@@ -2768,11 +2775,13 @@ ${tplLogo}${kvWrap(tplObject)}
     const blocks = []; const used = {};
     // 행마다 글상자가 다르면(구글 ABL: 970 날짜가 메인 오른쪽 (434,80) · 300 세로형 메인 상자 178 안 가운데) r.x·r.w 로, 정렬은 r.align ?? mold.align(「center」 — 구글 300×600·300×1050, 10-15 저녁)
     // 정렬 프리셋(10-19)이 켜지면 글자 행은 전부 「한 열」(행 칸들의 합집합)에 같은 정렬 — 칸마다 따로 가운데를 잡으면 메인(491px)·상세(217px)·라벨 칩이 축을 셋 만든다(11-06 사용자 「정렬은 하나로」 에브리타임 홈카드 캡처)
-    const MCOL = (() => { if (!TA) return null; const rs = ['sub', 'main', 'detail', 'date', 'notice', 'tags'].map(n => MR[n]).filter(r => r && r.x != null && r.w != null); if (!rs.length) return { x: 0, w: colW, ax: sx, col: true }; let x0 = Math.min(...rs.map(r => r.x)), x1 = Math.max(...rs.map(r => r.x + r.w));
+    const MCOL = (() => { if (!TA) return null; const rs = ['sub', 'main', 'detail', 'date', 'notice', 'tags'].map(n => MR[n]).filter(r => r && r.x != null && r.w != null); if (!rs.length) { if (TA === 'center') { const m = Math.max(0, Math.min(sx, w - (sx + colW))); if (Math.abs(sx + colW / 2 - w / 2) > 2) { fired('templateMold.alignCenterColumn'); return { x: m - sx, w: w - 2 * m, ax: m }; } } /* 11-10: 행 칸 없는 틀(잡다 MO·에브리타임 홈카드)도 가운데 정렬이면 열을 지면 가운데로 */ return { x: 0, w: colW, ax: sx, col: true }; } let x0 = Math.min(...rs.map(r => r.x)), x1 = Math.max(...rs.map(r => r.x + r.w));
       // 오른쪽 정렬로 그림 칸이 왼쪽으로 거울이면(AM.kv mirror) 글자 열도 거울 — 열을 제자리에 두고 오른쪽 맞춤만 하면 글자가 지면 가운데로 와 거울 그림과 겹친다(11-09 970 시트)
       // 폭 전체 글자 칸(구글 300×600 x0·w300 — 가운데 정렬 틀)을 왼쪽·오른쪽 정렬로 바꾸면 글자가 지면 끝에 붙는다 — 여백 W 의 6%(시안 세로형 6~10% 하한 — 8% 는 긴 기업명 메인이 넘쳤다(300×1050), docs/variant-types-1109.md ①)
       { const W0 = w / k, m = Math.round(W0 * 0.06); if (TA !== 'center' && x0 < W0 * 0.04) x0 = m; if (TA !== 'center' && x1 > W0 * 0.96) x1 = W0 - m; }
       if (TA === 'right' && AM?.kv === 'mirror') { const W0 = w / k; [x0, x1] = [W0 - x1, W0 - x0]; fired('templateMold.alignMirrorColumn'); }
+      // 11-10: 가운데 정렬이면 글자 열도 지면 가운데 축으로(구글 580 틀 열 48~470 → 가운데 259 ≠ 지면 290 — 로고·누끼는 290 이라 축이 둘이었다). 좁은 쪽 여백을 양쪽에
+      if (TA === 'center') { const W0 = w / k, m = Math.min(x0, W0 - x1); if (Math.abs((x0 + x1) / 2 - W0 / 2) > 2) { [x0, x1] = [m, W0 - m]; fired('templateMold.alignCenterColumn'); } }
       return { x: Math.round(x0 * k) - sx, w: Math.round((x1 - x0) * k), ax: Math.round(x0 * k) }; })();   // 행에 칸이 없는 틀(에브리타임 홈카드)은 글자 열 그대로 — 칩만 이 열 기준으로 옮긴다
     const rowX = r => (MCOL && !MCOL.col) ? MCOL.x : r.x != null ? Math.round(r.x * k) - sx : 0, rowW = r => (MCOL && !MCOL.col) ? MCOL.w : r.w != null ? Math.round(r.w * k) : colW, rowAlign = r => TA ?? r.align ?? mold.align ?? 'left';   /* TA 없으면 칸 그대로(기본 그림 바이트 동일) */
     if (MCOL) fired('templateMold.alignOneColumn');

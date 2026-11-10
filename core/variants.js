@@ -92,6 +92,14 @@ export function tagSubOf(tags, st = {}) {
   const rest = variantSubOf(Object.fromEntries(Object.entries(st).filter(([k]) => k !== 'infoTag' && k !== 'tagShape')));
   return [parts.join(' + '), rest].filter(Boolean).join(' · ');
 }
+// 렌더 html 의 오브젝트 상자(data-object) — left/top 또는 bottom/right 로 적힌 것을 지면 좌표로
+export function objBoxOf(html, spec) {
+  const m = String(html ?? '').match(/data-object="1"[^>]*style="([^"]*)"/); if (!m) return null;
+  const v = k => { const r = m[1].match(new RegExp(`(?:^|;)\\s*${k}:\\s*(-?[\\d.]+)(px)?`)); return r ? +r[1] : null; };
+  const w = v('width'), h = v('height'); if (w == null || h == null) return null;
+  const x = v('left') ?? (v('right') != null ? spec.w - v('right') - w : null), y = v('top') ?? (v('bottom') != null ? spec.h - v('bottom') - h : null);
+  return x == null || y == null ? null : { x, y, w, h };
+}
 export function variantSubOf(st, spec = null) {
   if (!st || !Object.keys(st).length) return '';
   if (st.tpl) { const f = familyById(st.tpl); return `시안 「${(spec && f && frameFor(f, spec)?.name) || f?.name || st.tpl}」`; }
@@ -242,6 +250,12 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       // 11-10 사용자 「이 케이스는 절대 못 쓰니까 추천하지 말고 삭제」(잡다 792×240 가운데 정렬): 사진 전면 위 가운데 글자에 국소 막(글자 밑 어두운 덩어리)이 깔리는 안 — 그림 주인공 위에 글자가 얹힌다
       // 11-10 사용자 「응, 빼줘」: 사진·그래픽을 가득 깔고 글자를 가운데 얹는 안(가운데 스크림)은 글자가 주인공(얼굴·사람·사물)을 덮는다 — 패턴(주인공 없음)만 남긴다
       if (tr.scrim?.center && kvTypeOf(style?.kvMeta)?.id !== 'texture') return { why: '사진·그래픽 가운데 글자가 주인공을 덮음 — 안 씀' };
+      // 11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함」 전수에서: 가운데·아래 칸 안이 누끼를 글자 줄 위에 얹거나(알바몬 기업 왼쪽 — 로켓 상자가 마지막 줄 42px 덮음, place.overlap 은 0) 한쪽으로 치우친다(알바몬 스카이 — 렌더러에서 가운데 정렬이면 틈 창도 가운데로 고침)
+      if (cand.textAlign === 'center' || cand.kvPlace) {
+        const ob = objBoxOf(html, spec), rows = (tr.textBox?.rows ?? []).filter(r => [r.x, r.y, r.w, r.h].every(Number.isFinite));
+        const hit = ob && rows.some(r => Math.min(ob.x + ob.w, r.x + r.w) - Math.max(ob.x, r.x) > 4 && Math.min(ob.y + ob.h, r.y + r.h) - Math.max(ob.y, r.y) > Math.max(4, ob.h * 0.08));
+        if (hit) return { why: '그림이 글자 줄과 겹침' };   // place.overlap 은 다른 걸 잰다(인스타 스토리 캐릭터 떼: 글자 아래인데 0.3) — 상자로만
+      }
       if (tr.scrim?.center?.mode === 'local') return { why: '가운데 글자 밑 국소 막(그림 위 글자 덩어리) — 안 씀' };
       if (tr.scrim?.center?.short) return { why: `가운데 전면 스크림 부족(필요 ${tr.scrim.center.need ?? '>0.95'} · 복잡도 ${tr.scrim.center.busy})` };
       // R2: 밝은 지면에서 로고가 안 보임 — 칠할 수 없는 타일 로고가 지면과 3:1 미만(렌더러 logo.light.low)
