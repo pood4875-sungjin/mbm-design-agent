@@ -449,6 +449,36 @@
   .fchk input{width:14px;height:14px;margin:0;accent-color:var(--focus)}
   #inspector .isec .flab.sub + .falign,#inspector .isec .flab.sub + .fgrid2,#inspector .isec .flab.sub + .frow3{margin-top:2px}
   #inspector .isec .flab.sub{margin-top:8px}
+  /* 11-10 hub 이식 4단계 — 왼쪽 레일(hub .rail: 56 · 아이콘 24 + 이름 10px · 고른 탭 파랑) + 탭 내용 */
+  #leftPanel{display:flex;overflow:hidden}
+  #lRail{width:56px;flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-right:1px solid var(--line);background:var(--panel)}
+  #lRail button{width:48px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:8px;background:none;color:var(--sub);font-size:10px;line-height:1;cursor:pointer;padding:0}
+  #lRail button svg{width:20px;height:20px}
+  #lRail button:hover{background:var(--soft);color:var(--ink)}
+  #lRail button[aria-selected="true"]{color:var(--focus)}
+  #lRail button[aria-selected="true"] svg{background:color-mix(in srgb,var(--focus) 12%,transparent);border-radius:6px;box-shadow:0 0 0 4px color-mix(in srgb,var(--focus) 12%,transparent)}
+  #lRail button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+  #lMain{flex:1;min-width:0;overflow-y:auto;scrollbar-width:thin}
+  .ltree{display:flex;flex-direction:column;margin:0 -8px}
+  .ltree .lt-med{display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;font-size:11px;font-weight:600;color:var(--sub)}
+  .ltree .lt-med span:last-child{margin-left:auto;font-weight:400}
+  .ltree button{display:flex;align-items:center;gap:8px;min-height:32px;padding:0 8px;border:0;border-radius:5px;background:none;color:var(--ink);font-size:11px;text-align:left;width:100%;cursor:pointer}
+  .ltree button:hover{background:var(--soft)}
+  .ltree button.on{background:color-mix(in srgb,var(--focus) 12%,transparent)}
+  .ltree button .lt-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ltree button .lt-sz{color:var(--sub);font-variant-numeric:tabular-nums;flex:none}
+  .ltree button .lt-ok{color:var(--good);flex:none;width:12px}
+  .ltree .lt-row{display:flex;align-items:center;border-radius:5px;padding-right:4px}
+  .ltree .lt-row:hover{background:var(--soft)}
+  .ltree .lt-row.on{background:color-mix(in srgb,var(--focus) 12%,transparent)}
+  .ltree .lt-row .lt-el{flex:1;min-width:0;padding-left:32px;min-height:28px;background:none}
+  .lasset{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;margin-top:4px}
+  .lasset .kvthumb{width:64px;height:48px;font-size:10px}
+  .lasset .lasset-btns{display:flex;flex-direction:column;gap:4px}
+  .lchips{display:flex;flex-direction:column;gap:4px}
+  .lchips div{display:flex;align-items:center;gap:8px;font-size:11px;height:24px}
+  .lchips i{width:16px;height:16px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--line)}
+  .lchips em{font-style:normal;color:var(--sub);margin-left:auto;font-variant-numeric:tabular-nums}
   /* 11-10 hub 이식 3단계 — 오른쪽 섹션 문법(hub .sec: 머리 40 · 12px 600 · 오른쪽 아이콘 24) */
   #inspector .isec{padding:4px 16px 16px}
   #inspector .isec > h3{min-height:36px;margin:0;font-size:12px;font-weight:600;justify-content:flex-start}
@@ -492,7 +522,7 @@
   .bigbtn:disabled{opacity:.35;cursor:default}
 
   /* ═══ work (아트보드) ═══ */
-  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:256px;--rw:288px;--ruler-bg:var(--panel)}
+  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:340px;--rw:288px;--ruler-bg:var(--panel)}   /* 11-10 hub 이식 4단계: 왼쪽 = 레일 56 + 패널 284 */
   #work.noL{--lw:0px} #work.noR{--rw:0px}
   #work.noL #leftPanel,#work.noR #inspector{display:none}
   #viewport{position:absolute;inset:52px var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
@@ -813,7 +843,7 @@
      ≤1024: 우측 패널이 캔버스를 덮지 않도록 아래로 내려 가로로 눕힌다(두 열) — 플로팅 바는 그 위로 올라간다. */
   @media (max-width:1180px){ #cmdBar{width:min(560px,36%)} }
   @media (max-width:1024px){
-    #work{--lw:232px;--rw:256px}
+    #work{--lw:288px;--rw:256px}
     #work.noL{--lw:0px} #work.noR{--rw:0px}
     #sidebar{width:260px}
   }
@@ -1115,8 +1145,9 @@
 
   <div id="work">
     <aside id="leftPanel" aria-label="내용">
-      <div class="lhead"><b id="lName"></b><span id="lStat"></span></div>
-      <div id="leftBody"></div>
+      <nav id="lRail" role="tablist" aria-label="왼쪽 패널" aria-orientation="vertical"></nav><!-- 11-10 hub 이식 4단계: 레일 56 — 입력 · 에셋 · 파일 · 검수 -->
+      <div id="lMain"><div class="lhead"><b id="lName"></b><span id="lStat"></span></div>
+      <div id="leftBody"></div></div>
     </aside>
     <div id="viewport"><div id="artboard"></div><canvas id="rulerT" aria-hidden="true"></canvas><canvas id="rulerL" aria-hidden="true"></canvas></div>
     <aside id="inspector" aria-label="디자인"></aside>

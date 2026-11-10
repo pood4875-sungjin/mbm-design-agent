@@ -2886,9 +2886,73 @@ function liveText(c, role) {
   return [...cnt.entries()].sort((p, q) => q[1] - p[1] || q[0].replace(/\n/g, '').length - p[0].replace(/\n/g, '').length)[0]?.[0] ?? '';
 }
 const leftLiveRefresh = debounce(() => { const b = $('leftBody'); if (!b || b.contains(document.activeElement)) return; if ([...b.querySelectorAll('textarea[data-auto]')].some(t => t.dataset.auto !== undefined)) { b.dataset.sig = '-'; renderLeft(); } }, 400);
+/* ═══ 11-10 hub 이식 4단계 — 왼쪽 레일(hub .rail): 입력(기본) · 에셋 · 파일 · 검수. 입력 = 브리프(renderLeft 본문 그대로) ═══ */
+const LTABS = [['input', 'edit', '입력'], ['assets', 'layers', '에셋'], ['file', 'file', '파일'], ['review', 'check', '검수']];
+function drawRail() {
+  const r = $('lRail'); if (!r) return; const cur = state.leftTab ?? 'input';
+  if (!r.childElementCount) {
+    r.innerHTML = LTABS.map(([k, icn, n]) => `<button type="button" role="tab" id="lTab-${k}" data-ltab="${k}" aria-controls="lMain" title="${n}">${ic(icn)}<span>${n}</span></button>`).join('');
+    r.querySelectorAll('[data-ltab]').forEach(b => b.onclick = () => { state.leftTab = b.dataset.ltab; $('leftBody').dataset.sig = '-'; renderLeft(); });
+    r.onkeydown = e => { const i = LTABS.findIndex(t => t[0] === (state.leftTab ?? 'input')), d = { ArrowDown: 1, ArrowUp: -1 }[e.key]; if (!d) return; e.preventDefault(); state.leftTab = LTABS[(i + d + LTABS.length) % LTABS.length][0]; renderLeft(); $(`lTab-${state.leftTab}`)?.focus(); };
+  }
+  r.querySelectorAll('[data-ltab]').forEach(b => { const on = b.dataset.ltab === cur; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+}
+function renderLeftTab(body, c, tab) {
+  body.dataset.sig = `tab:${tab}:${state.selected ?? ''}:${state.elSel ?? ''}`;
+  const ads = c.artifacts.filter(a => a.channel === 'ad' || a.channel === 'asset');
+  // 오른쪽 「선택 없음」 칸을 그대로 쓴다(같은 입력 id) — 재료 관리 진입점
+  const viaRight = id => { select(null); $(id)?.click(); };
+  if (tab === 'assets') {
+    const st = c.style, chip = (n, v) => `<div><i style="background:${v}"></i>${n}<em>${escH(String(v).toUpperCase())}</em></div>`;
+    body.innerHTML = `<section class="isec"><h3>키비주얼 <span class="mode">모든 소재</span></h3>
+      <div class="lasset"><div class="kvthumb" style="${st.keyVisual ? `background-image:url(${refOf(st.keyVisual)})` : ''}">${st.keyVisual ? '' : '없음'}</div>
+        <div class="lasset-btns"><button type="button" class="btn" data-lv="iKvFile">바꾸기</button>${st.keyVisual ? '<button type="button" class="btn" data-lv="iKvColors">색 다시 맞춤</button>' : ''}</div></div>
+      ${st.keyVisual ? `<div class="fnote">가로형 ${st.kvVariants?.wide ? '있음' : '없음'} · 세로형 ${st.kvVariants?.tall ? '있음' : '없음'} — 오른쪽 「키비주얼 · 지면」에서 올려요 · 소재 하나만 바꾸려면 그 프레임에 그림 파일을 끌어 놓으세요</div>` : ''}
+      </section>
+      <section class="isec"><h3>로고 <span class="mode">모든 소재</span></h3>
+      <div class="lasset"><div class="kvthumb logo" style="${st.logo ? `background-image:url(${refOf(st.logo)})` : ''}">${st.logo ? '' : '원색'}</div><div class="lasset-btns"><button type="button" class="btn" data-lv="iLogoFile">원색 로고 바꾸기</button></div></div>
+      <div class="lasset"><div class="kvthumb logo dark" style="${st.logoLight ? `background-image:url(${refOf(st.logoLight)})` : ''}">${st.logoLight ? '' : '흰색'}</div><div class="lasset-btns"><button type="button" class="btn" data-lv="iLogoLightFile">흰색 로고 바꾸기</button></div></div>
+      </section>
+      <section class="isec"><h3>색 스타일</h3><div class="lchips">${chip('주색', st.palette.primary)}${chip('보조', st.palette.secondary)}${chip('포인트', st.palette.accent)}</div>
+      <div class="fnote">렌더러가 쓰는 역할색 세 칸 — 오른쪽 「스타일」에서 바꿔요</div></section>
+      <section class="isec"><h3>레퍼런스 <span class="mode">참고용</span></h3>
+      <div class="reflist insp">${(st.references ?? []).map((r, i) => `<span class="refi" style="background-image:url(${r})" title="레퍼런스 ${i + 1}"></span>`).join('') || '<span class="fnote">없음</span>'}</div>
+      <button type="button" class="btn" data-lv="iRefFile" style="width:100%;margin-top:6px">레퍼런스 추가</button></section>`;
+    body.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => viaRight(b.dataset.lv));
+    return;
+  }
+  if (tab === 'file') {
+    const byMed = new Map();
+    for (const a of ads) { const m = SPECS[a.specId]?.mediumName ?? CHANNEL_LABEL[a.channel] ?? '기타'; if (!byMed.has(m)) byMed.set(m, []); byMed.get(m).push(a); }
+    const selA = state.selected ? c.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null;
+    const els = selA?.channel === 'ad' ? EL.list(selA) : [];
+    const omitted = selA ? omitOf(c, selA) : [];
+    body.innerHTML = `<section class="isec"><h3>레이어 <span class="mode">${ads.length}</span></h3>
+      <div class="ltree" role="tree" aria-label="매체 › 소재 › 요소">${[...byMed].map(([m, list]) => `<div class="lt-med" role="presentation"><span>${escH(m)}</span><span>${list.length}</span></div>${list.map(a => { const k = a.key ?? a.specId, sp = SPECS[a.specId], on = k === state.selected;
+        return `<button type="button" role="treeitem" class="${on && !state.elSel ? 'on' : ''}" data-lfk="${escH(k)}" aria-selected="${on}"><span class="lt-ok" aria-label="${a.status === 'approved' ? '승인됨' : ''}">${a.status === 'approved' ? '✓' : ''}</span><span class="lt-name">${escH(String(sp?.title ?? artLabel(a)).replace(`${m} · `, ''))}</span><span class="lt-sz">${sp?.w ?? ''}×${sp?.h ?? ''}</span></button>${on ? els.map(it => { const role = parseElementId(it.id).role, om = OMIT_ROLE[role];
+          return `<div class="lt-row${state.elSel === it.id ? ' on' : ''}"><button type="button" role="treeitem" class="lt-el" data-lfe="${escH(it.id)}" aria-selected="${state.elSel === it.id}"><i class="layer-k layer-${it.kind}" aria-hidden="true"></i><span class="lt-name">${escH(elementName(it.id))}</span></button>${om && !omitted.includes(om) ? iconBtn('eye', `이 소재에서 ${OMIT_NAME[om]} 빼기`, `data-lfo="${escH(it.id)}"`) : ''}</div>`; }).join('') : ''}`; }).join('')}`).join('')}</div>
+      <div class="fnote">소재를 누르면 그 프레임으로 가요 · 눈 = 이 소재에서 빼기(되돌리기 ⌘Z) · 순서·잠금은 렌더러가 정해요</div></section>`;
+    body.querySelectorAll('[data-lfk]').forEach(b => b.onclick = () => { select(b.dataset.lfk); zoomToFrame(b.dataset.lfk); });
+    body.querySelectorAll('[data-lfe]').forEach(b => b.onclick = () => select(state.selected, b.dataset.lfe));
+    body.querySelectorAll('[data-lfo]').forEach(b => b.onclick = e => { e.stopPropagation(); if (selA) omitElement(selA, b.dataset.lfo); });
+    return;
+  }
+  if (tab === 'review') {
+    const sumA = ED.approveSummary(), ok = ads.filter(a => a.status === 'approved').length;
+    const bad = ads.filter(a => a.status !== 'approved' && a.guide?.rows?.some(r => r.ok === false && !a.guideSkips?.[r.id]));
+    body.innerHTML = `<section class="isec"><h3>가이드 검수 <span class="mode">승인 ${ok}/${ads.length}</span></h3>
+      <div class="fnote">가이드 ✗ ${sumA.fail}${sumA.pending ? ` · 재는 중 ${sumA.pending}` : ''} — 겹침·프레임 밖·최소 글자·로고·대비</div>
+      ${sumA.top.length ? `<ul class="gok-list">${sumA.top.map(([n, k]) => `<li>${escH(n)} <span>${k}</span></li>`).join('')}</ul>` : ''}
+      <button type="button" class="btn" id="lApproveAll" style="width:100%;margin-top:8px">문제 없는 것 전체 승인</button></section>
+      ${bad.length ? `<section class="isec"><h3>확인할 소재 <span class="mode">${bad.length}</span></h3><div class="ltree">${bad.map(a => `<button type="button" data-lfk="${escH(a.key ?? a.specId)}"><span class="lt-ok"></span><span class="lt-name">${escH(SPECS[a.specId]?.title ?? artLabel(a))}</span><span class="lt-sz">${escH(a.guide.rows.filter(r => r.ok === false).map(r => r.name).slice(0, 2).join('·'))}</span></button>`).join('')}</div></section>` : ''}`;
+    $('lApproveAll').onclick = () => $('approveAll').click();
+    body.querySelectorAll('[data-lfk]').forEach(b => b.onclick = () => { select(b.dataset.lfk); zoomToFrame(b.dataset.lfk); state.rightTab = 'review'; renderInspector(); });
+  }
+}
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
   $('lName').textContent = campaignName(c.context); $('lStat').textContent = campaignStat(c);
+  drawRail(); if ((state.leftTab ?? 'input') !== 'input') { renderLeftTab(body, c, state.leftTab); return; }   // 11-10 hub 이식 4단계 — 에셋·파일·검수 탭
   const focusGroup = state.elSel ? ROLE_GROUP[parseElementId(state.elSel).role] ?? null : null;
   const sig = `${focusGroup ?? ''}`;
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다

@@ -35,6 +35,11 @@ const ICONS = {
   opacity: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="2" ${L}/><path d="M5 5h2v2H5zM9 5h2v2H9zM7 7h2v2H7zM5 9h2v2H5zM9 9h2v2H9z" fill="currentColor"/>`),
   ratio: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="2" ${L}/><path d="M6 10l4-4M6.5 6h3.5v3.5" ${L}/>`),
   lock: s(`<path d="M5 7V5a3 3 0 016 0v2" ${L}/><rect x="3.5" y="7" width="9" height="6.5" rx="1" ${L}/>`),
+  // 11-10 hub 이식 4단계 레일 — 파일 · 입력 · 에셋 · 검수
+  file: s(`<path d="M4 2.5h5l3 3v8H4z" ${L} stroke-linejoin="round"/><path d="M9 2.5v3h3" ${L}/>`),
+  edit: s(`<rect x="2.5" y="3.5" width="11" height="9" rx="1.5" ${L}/><path d="M5 6.5h6M5 9.5h4" ${L}/>`),
+  layers: s(`<path d="M8 2.5l5.5 3L8 8.5 2.5 5.5z" ${L} stroke-linejoin="round"/><path d="M2.5 8L8 11l5.5-3M2.5 10.5L8 13.5l5.5-3" ${L} stroke-linejoin="round"/>`),
+  check: s(`<circle cx="8" cy="8" r="5.5" ${L}/><path d="M5.5 8.2l1.8 1.8 3.2-3.5" ${L} stroke-linejoin="round"/>`),
   export: s(`<path d="M8 10V2.5M5 5.5l3-3 3 3" ${L}/><path d="M3 9v3.5a1 1 0 001 1h8a1 1 0 001-1V9" ${L}/>`),
   img: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="1.5" ${L}/><path d="M3 12l3.5-4 2.5 3 1.5-1.5L13 12" ${L} stroke-linejoin="round"/><circle cx="10.5" cy="5.5" r="1" fill="currentColor"/>`),
 };
