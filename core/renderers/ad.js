@@ -104,7 +104,11 @@ export function copyLadder(ctx) {
     const period = dateTxt || (d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '');
     const qual = c.qualification ? String(c.qualification) : '';   // 11-10: 옛 칸 — 지금은 추가 행(지원자격)으로 옮겨져 비어 있다
     const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
-    const season = c.season || null;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
+    const season0 = c.season || null;
+    // 11-10 연도 한 번(docs/parser-rules.md D1): 채용 구분·타이틀에 시즌 연도가 이미 들어 있으면(「공고명: 2026년 하반기 3급 신입사원 채용」) 시즌을 또 붙이지 않는다 —
+    //   「2026년 하반기 삼성전자 2026년 하반기 3급 신입사원 채용」·메인과 서브에 같은 연도 두 번이던 것
+    const yr0 = season0 ? String(season0).match(/(?:19|20)\d{2}/)?.[0] : null;
+    const season = yr0 && [c.hiringType, c.employType, c.headline].some(v => String(v ?? '').includes(yr0)) ? null : season0;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
     // 11-10: 서브 = 추가 문구(subText, 옛 슬로건·「서브 문구 직접」을 합친 한 덩어리). 옛 시즌 자리에 선다 — 좁은 띠는 「추가 문구 회사」(회사는 서브, 메인은 채용 구분), 비면 회사만
     const extra = c.subText ? String(c.subText) : null;
@@ -120,7 +124,7 @@ export function copyLadder(ctx) {
     const yearHeads = c.__yearAuto && season && clientHire ? [...new Set([String(season), String(season).match(/(?:19|20)\d{2}년?/)?.[0]].filter(Boolean))] : [];
     // 세로 띠: 서브가 회사를 품으면 메인은 채용구분만(도레이·한독). 슬로건이 서브를 차지하면 회사·기수가 메인으로(PT코리아 "PTKOREA / 2026 8기 / 신입공개채용")
     const narrowMain = slogan0
-      ? [c.headline, [c.client, c.season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
+      ? [c.headline, [c.client, season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
       : [c.headline, named ? hire : null, clientHire];
     return {
       main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
