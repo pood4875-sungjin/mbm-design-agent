@@ -398,7 +398,7 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.deepEqual([ti.mold.rows.main.y, ti.mold.rows.main.px, ti.mold.rows.main.pitch, ti.mold.rows.main.weight, ti.mold.rows.main.x, ti.mold.rows.main.w, ti.mold.rows.main.align], [131, 72, 94, 700, 89, 934, 'center']);
   assert.deepEqual([ti.mold.rows.date?.y, ti.mold.rows.date?.px, ti.mold.rows.date?.weight, ti.mold.rows.detail?.px, ti.mold.rows.detail?.weight], [333, 43, 400, 43, 700], '날짜 y 333 = 131 + 94 + afterMain 108(메인 2줄) · Regular 43 · 상세 Bold 43');
   assert.match(hi, /data-field="main"[^>]*font-size:72px;line-height:94px;font-weight:700;[^"]*text-align:center/, '메인 Bold 72/94 가운데');
-  assert.match(hi, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 Regular 43 가운데, 라벨 없이');
+  assert.match(hi, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>접수기간 : 9\.22\(월\) - 10\.12\(일\)</, '날짜 Regular 43 가운데 — 11-10 밤: 상세가 「모집직무 : …」로 함께 서면 날짜도 「접수기간 :」(사용자 「둘 다 이렇게 맞춰야」)');
   assert.match(hi, /data-field="detail"[^>]*font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/, '모집직무 Bold 43 가운데');
   assert.match(detailOf(hi), /모집직무 :/, '11-10 사용자 「서브텍스트는 라벨 : 내용 · 라벨 ㅣ 내용 · 뱃지만」 — 10-16 값만(valuesOnly)은 공식 템플릿에서만');
   assert.match(hi, /data-logo-slot="1" style="position:absolute;left:835px;top:45px;width:195px;height:39px;[^"]*justify-content:flex-end/, '로고 오른쪽 위 (835,45) 195×39');

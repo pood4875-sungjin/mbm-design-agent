@@ -2613,6 +2613,7 @@ function renderAdBase(ctx, style, spec) {
   // 11-10 사용자 「로고는 높이값도 있고 가로 최대값도 있는 게 좋아」: 틀 로고 칸도 가로는 메인 글자 × 2.4 까지(2층 최소 품질 — 8:1 워드마크가 구글 580 칸 127px 을 다 채워 메인 43px × 2.4 = 103 을 넘었다).
   //   매체 공식 템플릿(글꼴 고정 매체 — 자소설·리멤버·카카오)은 칸이 곧 규정이라 그대로
   const moldMainPx = mold?.rows?.main?.px ? mold.rows.main.px * tScale : null, officialMold = !!(mold && (spec.mediumRules?.fonts?.required || mr?.fonts?.required));
+  const lockedMold = !!(mold && (officialMold || CANON.lockedMedia.includes(spec.medium) || CANON.lockedMedia.some(m => String(spec.id ?? '').startsWith(m + '-'))));   // 11-10 밤: 잠긴 매체 틀은 오늘 넣은 틀 고침을 안 받는다
   const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio))))
     : (LC && mold && !officialMold && moldMainPx && !moldLogoObj) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;   // 로고가 오브젝트 자리를 맡으면(moldLogoObj) 글자 대비 상한을 안 건다
   const capW = mw => Math.min(mw, logoCapW);
@@ -3035,7 +3036,7 @@ ${tplLogo}${kvWrap(tplObject)}
     // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
     // 11-10: 두 줄 틀에서 한 줄 타이틀이 접히면 회사명 뒤에서 끊는다(네이버 DA 「마이다스아이티 신입/ ↵ 경력 공개채용」 → 「마이다스아이티 ↵ 신입/경력 공개채용」) — 공식 템플릿은 그대로
     { const cl = String(ctx.core?.client ?? '').trim(), m0 = String(copy.main ?? '');
-      if (!officialMold && cl && (MR.main?.lines ?? 2) >= 2 && !m0.includes('\n') && m0.startsWith(cl + ' ') && wrapRows(m0, mainPxUsed, Math.max(1, mainColW), true) > 1 && wrapRows(m0.slice(cl.length + 1), mainPxUsed, Math.max(1, mainColW), true) === 1) { copy.main = cl + '\n' + m0.slice(cl.length + 1); fired('templateMold.breakAfterClient'); } }
+      if (!lockedMold && cl && (MR.main?.lines ?? 2) >= 2 && !m0.includes('\n') && m0.startsWith(cl + ' ') && wrapRows(m0, mainPxUsed, Math.max(1, mainColW), true) > 1 && wrapRows(m0.slice(cl.length + 1), mainPxUsed, Math.max(1, mainColW), true) === 1) { copy.main = cl + '\n' + m0.slice(cl.length + 1); fired('templateMold.breakAfterClient'); } }
     const mainN = Math.max(1, Math.min((MR.main?.lines ?? 2) + (mainExtraLine ? 1 : 0), wrapRows(copy.main, mainPxUsed, Math.max(1, mainColW), true)));   // 그린 뒤 실제 줄 수 어림은 빗금·& 뒤도 끊긴다(softBreakLong) — 후보 고르기(rowsOfMain)는 그대로
     const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
     // 틀의 서브 줄이 접수기간이면(mold.rows.sub.content 'period' — 잡다 PC 템플릿 1:6026 「서브문구」 자리에 샘플 8/8 「모집기간 날짜」) 시즌·슬로건 대신 「라벨 날짜」 한 줄(라벨·날짜 같은 굵기, 셀트리온 1:6223)
@@ -3066,14 +3067,14 @@ ${tplLogo}${kvWrap(tplObject)}
       if (!MR.detail?.items) return detailLines;
       // 11-10 피드백 56(네이버 모바일 DA 1250×560, 「가이드에 맞게」): ① 날짜는 줄바꿈 금지라 상세 칸(440)을 넘으면 잘렸다 — 글자를 줄이지 않고 칸을 글자 칸 안(mold.w 740 = 규정 좌우 여백 안)까지 넓힌다(값 열 상한도 함께).
       //   ② 매체 규정 「광고 문구 최대 N줄」(네이버 로고 제외 4줄)이면 상세는 메인 줄 수를 뺀 만큼만 — 넘치는 행은 짧은 후보로, 그래도 넘치면 뺀다
-      if (MR.detail.labelCol && !officialMold) {
+      if (MR.detail.labelCol && !lockedMold) {
         const dv = (ladder.details ?? []).find(d => d.label === '접수기간')?.value;
         const need = dv ? Math.round((MR.detail.labelCol * k) + textWidth(String(dv)) * pxOf(MR.detail) * 1.04) : 0;
         const colMax = Math.round((mold.w ?? MR.detail.w) * k);
         if (need > rowW(MR.detail) && need <= colMax) { const nw = Math.ceil(need / k) + 4; MR.detail = { ...MR.detail, w: nw, valueW: nw - MR.detail.labelCol }; fired('templateMold.detailWiden'); }
       }
       const guideLines = (inLimits ?? []).find(t => t.lines && /광고 문구|메인/.test(String(t.field ?? '')))?.lines ?? null;
-      if (guideLines && MR.detail.labelCol && !officialMold) { const room = Math.max(1, guideLines - mainN); if ((MR.detail.lines ?? 3) > room + 0.5) { MR.detail = { ...MR.detail, lines: room + 0.5 }; fired('templateMold.guideLines'); } }
+      if (guideLines && MR.detail.labelCol && !lockedMold) { const room = Math.max(1, guideLines - mainN); if ((MR.detail.lines ?? 3) > room + 0.5) { MR.detail = { ...MR.detail, lines: room + 0.5 }; fired('templateMold.guideLines'); } }
       const dpx = pxOf(MR.detail), wr = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, rowW(MR.detail)))), sep0 = MR.detail.labelSep ?? ' :';   // 행 수는 상세 행 자체의 폭으로(열 폭이 아니라 — 블라인드 게시글 열 498 vs 상세 행 600, 네이버 479 vs 714; 10-15 저녁)
       const seen = new Set();
       const cap0 = MR.detail.lines ?? 3;
@@ -3124,7 +3125,7 @@ ${tplLogo}${kvWrap(tplObject)}
       const colH = dR.labelCol ? rows.reduce((a, d, i) => a + d.rows * lhOf(d) + (i < rows.length - 1 ? gapPx : 0), 0) : 0;
       if (dR.labelCol && rows.length) fired('templateMold.labelCol');
       // 11-10 사용자 「서브텍스트는 라벨 : 내용 / 라벨 ㅣ 내용 / 뱃지(+태그)만」: 라벨 없이 값만(valuesOnly)은 매체 공식 템플릿일 때만 — 디자이너 샘플(인스타 1080)은 「라벨 : 값」으로
-      if (dR.valuesOnly && !officialMold && !CH) { dR.valuesOnly = false; fired('templateMold.valuesOnlyLabeled'); }
+      if (dR.valuesOnly && !lockedMold && !CH) { dR.valuesOnly = false; fired('templateMold.valuesOnlyLabeled'); }
       const moldBrand = p.primary ?? field?.stops?.[0] ?? '#000000', moldPillBg = fgIsDark ? moldBrand : '#FFFFFF', moldPillFg = fgIsDark ? '#FFFFFF' : (contrast(moldBrand, WHITE) >= 4.5 ? moldBrand : brandDeep(moldBrand)[0]);
       const inner = (CH || dR.valuesOnly)   /* valuesOnly: 라벨 없이 값만(인스타 1080 수정본 10-16 — 직무 값 가운데 2줄). 쉼표 항목 안에서는 안 끊는다(「상품/계리/리스크」가 / 에서 갈라지지 않게) */
         ? rows.map(d => `<div>${dR.valuesOnly ? String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join(', ') : esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`).join('')
@@ -3133,7 +3134,7 @@ ${tplLogo}${kvWrap(tplObject)}
         : rows.map(d => d.inline
         ? (IT?.label && !IT?.date ? `<div>${tagHtml('label', null, labelOf(d.label), Math.max(tagFs(0, 0), Math.round(dpx2 * 0.86)), `vertical-align:middle;display:inline-flex;margin-right:${Math.round(dpx2 * 0.4)}px`)}${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`   // 라벨 태그(infoTag): 「라벨 :」 대신 각진 태그 + 값(같은 줄 오른쪽)
           : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`)
-        : (!officialMold && dR.labelBadge)
+        : (!lockedMold && dR.labelBadge)
         // 11-10 피드백 28(구글 300×1050 「모집분야」) · 사용자 「서브텍스트는 라벨 : 내용 / 라벨 ㅣ 내용 / 뱃지(+태그)만」: 라벨만 따로 선 줄은 뱃지(둥근 알약, 좌우 여백 좁게)로, 값은 태그(ㅣ로 잇기) — 공식 템플릿은 그대로
         ? `<div style="margin-bottom:${Math.round(dpx2 * CANON.detailGap.label)}px"><span data-chip="1" style="display:inline-flex;align-items:center;height:${Math.round(dpx2 * 1.5)}px;padding:0 ${Math.round(dpx2 * 0.5)}px;border-radius:999px;background:${moldPillBg};color:${moldPillFg};font-weight:${dLw};font-size:${Math.round(dpx2 * 0.9)}px;line-height:1">${esc(labelOf(d.label))}</span></div><div${align === 'center' ? ' style="text-wrap:balance;word-break:keep-all;overflow-wrap:normal"' : ''}>${String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join('ㅣ\u200B')}</div>`
         : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div${align === 'center' ? ' style="text-wrap:balance;word-break:keep-all;overflow-wrap:normal"' : ''}>${align === 'center' ? String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join(', ') : esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`).join('');   /* 가운데 정렬 틀(NAP 320×480 수정본 10-16)은 값 줄을 쉼표 항목 단위로 고르게 */
@@ -3147,9 +3148,14 @@ ${tplLogo}${kvWrap(tplObject)}
       let txt = (MR.date.format === '~M/D' && dl) ? `~${+dl[2]}/${+dl[3]}` : (copy.date || '');
       // 틀 날짜 칸이 좁으면(구글 ABL 580 날짜 158px 1줄) 짧은 날짜 후보(「~10.31(토)」 — ladder.date)로(10-15 저녁)
       if (txt && MR.date.lines && rowsIn(txt, MR.date) > MR.date.lines) { const alt = [...new Set([txt, ...(ladder.date ?? [])])].find(c => rowsIn(c, MR.date) <= MR.date.lines); if (alt) txt = alt; }
+      // 11-10 밤(사용자 1회차 「모집기간 : · 모집직무 : 둘 다 이렇게 나오던지 맞춰야」): 상세가 「라벨 : 값」으로 섰는데 날짜만 라벨 없이 혼자 서면 꼴이 섞인다 — 날짜에도 라벨(한 줄에 들어갈 때만). 공식 템플릿·알약 날짜는 그대로
+      if (txt && !lockedMold && !MR.date.chip && !IT && (moldRowsShown?.length ?? 0) > 0 && !MR.detail?.chip && !MR.detail?.labelBadge && !MR.detail?.labelCol && !/^\D*(기간|일정|마감)/.test(txt)) {
+        const lab = `${labelOf('접수기간')} : `, opts = [...new Set([txt, ...(ladder.date ?? [])])].map(c => lab + c);
+        const fitL = opts.find(c => !MR.date.lines || rowsIn(c, MR.date) <= MR.date.lines); if (fitL) { txt = fitL; fired('templateMold.dateLabeled'); }
+      }
       // 날짜 알약(mold.rows.date.chip — NAP HS화성 샘플: 브랜드색 바탕 radius 200 · 흰 글자 Bold 10/12 · 안쪽 8 · 높이 24/26, 10-15 밤): 폭은 글자대로(hug), 어두운 지면이면 흰 바탕 + 브랜드색 글자
       // 11-10 피드백 31(구글 930×180 날짜 상자): 날짜 상자는 둥근 알약 · 폭은 글자대로 · 좌우 여백 좁게 — 공식 템플릿은 그대로
-      const DC = MR.date.chip ? (officialMold ? MR.date.chip : { ...MR.date.chip, radius: 200, w: null, padX: Math.min(MR.date.chip.padX ?? 8, 10) }) : null;
+      const DC = MR.date.chip ? (lockedMold ? MR.date.chip : { ...MR.date.chip, radius: 200, w: null, padX: Math.min(MR.date.chip.padX ?? 8, 10) }) : null;
       const dateRow = { ...MR.date, y: MR.date.afterMain != null ? mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + MR.date.afterMain : MR.date.y, ...(DC ? { chip: true, pitch: DC.h } : {}) };
       const dateInner = (DC && txt) ? (() => { const ch = Math.round(DC.h * k), padX = Math.round((DC.padX ?? 8) * k), rad = Math.round((DC.radius ?? 200) * k); const brand = p.primary ?? field?.stops?.[0] ?? '#000000'; const bg = DC.bg === 'brand' ? (fgIsDark ? brand : '#FFFFFF') : (DC.bg ?? brand), fg = DC.bg === 'brand' ? (fgIsDark ? (DC.color ?? '#FFFFFF') : (contrast(brand, WHITE) >= 4.5 ? brand : brandDeep(brand)[0])) : (DC.color ?? '#FFFFFF');   /* 11-10: 흰 상자 위 연한 브랜드색 글자(대비 2 안팎) → 4.5 될 때까지 진하게 */ fired('templateMold.dateChip'); const cw = DC.w != null ? Math.round(DC.w * k) : null; return `<span data-chip="1" style="display:inline-flex;align-items:center;${cw ? `width:${cw}px;justify-content:${DC.align === 'left' ? 'flex-start' : 'center'};box-sizing:border-box;` : ''}height:${ch}px;padding:0 ${padX}px;border-radius:${rad}px;background:${bg};color:${fg};white-space:nowrap">${esc(txt)}</span>`; })() : esc(txt);   // DC.w: 고정 폭 상자(비씨월드 구글 날짜 상자 271×38 — 글자 가운데/왼쪽, 10-16)
       // 정보 태그(infoTag, 11-09 시안 슬롯 ②): 틀 날짜 줄 자리에 [라벨 각진 태그] + [날짜 알약 또는 값]. 줄 높이는 태그 높이(칩 행 — top = y), 글자는 메인 × 0.36~0.55.

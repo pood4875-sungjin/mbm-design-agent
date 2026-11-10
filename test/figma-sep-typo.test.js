@@ -125,7 +125,7 @@ test('B4 인스타 1080 — 틀(사용자 수정본 10-16): 날짜는 혼자 한
   const html = renderAd(ctx, style, specs['instagram-feed-1080']);
   const css = tagOf(html, 'detail');
   // 10-12 매체별 규격정리: 인스타 샘플 7/9 가 날짜를 혼자 한 줄(43px)에 둔다 — 수정본 틀도 날짜 줄 43 Regular(afterMain 108)
-  assert.match(html, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수) Regular 43 가운데');
+  assert.match(html, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>접수기간 : 9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수) Regular 43 가운데 — 11-10 밤: 상세가 「모집직무 : …」로 함께 서면 날짜도 「접수기간 :」(사용자 「둘 다 이렇게 맞춰야」)');
   assert.equal(num(css, 'font-size'), 43, '상세 43 Bold(틀)'); assert.equal(num(css, 'font-weight'), 700); assert.match(css, /text-align:center/);
   assert.match(detailOf(html), /모집직무 :/, '11-10 사용자: 서브텍스트는 라벨 : 내용 · 라벨 ㅣ 내용 · 뱃지만 — 값만은 공식 템플릿에서만');
 });
