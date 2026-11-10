@@ -61,3 +61,19 @@ test('11-10 사용자 「응」: 자소설만 — 추가 문구가 비면 시즌
   const g = tr(renderAd(createContext(base, 'recruit'), st, S['google-gdn-580x400'])).copy;
   assert.ok(!/하반기/.test(String(g.sub ?? '')), '자소설 밖은 서브에 시즌 안 씀');
 });
+
+test('11-10 AI 층 결정: 글자–키비주얼 10%·낱말 안 줄바꿈은 참고(반려 안 함) · 로고 폭 > 메인 × 2.4 는 ✗ + 자동 축소', async () => {
+  const { typoAuditNorms } = await import('../core/typoaudit.js');
+  const { fixLogoSize } = await import('../core/freequick.js');
+  const rows = [{ role: 'main', px: 40, x: 40, y: 100, w: 300, h: 100, ink: { x: 40, y: 100, w: 300, h: 96 }, wb: true }];
+  const far = typoAuditNorms({ W: 580, H: 400, rows, kv: { x: 520, y: 100, w: 50, h: 100 }, specId: 'google-gdn-580x400' });
+  assert.ok(!far.fails.some(f => ['asset-loose', 'word-break'].includes(f.code)), JSON.stringify(far.fails));
+  assert.ok(far.m.notes.some(n => /asset-loose/.test(n)) && far.m.notes.some(n => /word-break/.test(n)));
+  const big = typoAuditNorms({ W: 580, H: 400, rows, logo: { x: 400, y: 20, w: 140, h: 30 }, specId: 'google-gdn-580x400' });
+  assert.ok(big.fails.some(f => f.code === 'logo-big'));
+  const ok = typoAuditNorms({ W: 580, H: 400, rows, logo: { x: 400, y: 20, w: 90, h: 20 }, specId: 'google-gdn-580x400' });
+  assert.ok(!ok.fails.some(f => f.code === 'logo-big'));
+  const html = '<div data-ad="1" style="position:relative;width:580px;height:400px;overflow:hidden"><img data-logo="1" src="x" style="position:absolute;right:20px;top:20px;width:140px"><div data-field="main" style="position:absolute;left:40px;top:100px;font-size:40px">A</div></div>';
+  const r = fixLogoSize(html, { x: 420, y: 20, w: 140, h: 30 }, 96);
+  assert.match(r.html, /width:96px/); assert.match(r.html, /right:20px/);
+});

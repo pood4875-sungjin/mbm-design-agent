@@ -27,7 +27,7 @@ import { TEMPLATE_NORMS } from '../core/template-norms.js';
 import { typoNormsFor, TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';
 import { kvTypeOf } from '../core/kvtypes.js';
 import { languageLines, languageOf, languageFromHtml, mergeLanguage } from '../core/freelang.js';
-import { fixStack, fixStackCandidates, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast } from '../core/freequick.js';
+import { fixStack, fixStackCandidates, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast, fixLogoSize } from '../core/freequick.js';
 import { profileFocus } from '../core/field.js';
 
 // 주인공 상자(원본 비율) — 앱 디자인 검수(core/adcheck.js)와 같은 profileFocus(meta.field). 사진에 focus 가 없으면 줄·열 프로필로 어림한 상자
@@ -133,9 +133,10 @@ export function typoRuleLines(specId, rules) {
     `## 간격 기본 규칙 (규칙 4항 — 렌더 실측으로 검증, 어기면 재요청. em = 두 요소 중 작은 글자)`,
     `- 서브→메인 ≥ ${F.gapSubMain}em · 메인→정보 블록 ≥ ${F.gapMainInfo}em · 정보 블록 행 ≥ ${F.gapInfoRow}em — 너무 붙으면 ✗`,
     `- 모든 글자 쌍 간격 ≤ 메인 px × ${N.gap.hi}(${N.source} 줄 간격 상위10%; 메인 ${mainMid}px 이면 ${Math.round(N.gap.hi * mainMid)}px) — 너무 벙벙하면 ✗`,
-    `- 글자 ↔ 키비주얼(누끼 주인공)·로고: 겹침 0 · 거리 ≥ 메인 px × ${F.assetGap} · 키비주얼은 규격 긴 변 ${F.assetGapMaxFrac * 100}%(${Math.round(Math.max(w, h) * F.assetGapMaxFrac)}px) 이하 — 그 이상 비면 글자·그림을 키운다`,
+    `- 글자 ↔ 키비주얼(누끼 주인공)·로고: 겹침 0 · 거리 ≥ 메인 px × ${F.assetGap}(참고: 키비주얼과 너무 멀면(규격 긴 변 ${F.assetGapMaxFrac * 100}% 넘게) 비어 보일 수 있다 — 반려는 안 함)`,
+    `- 로고 폭 ≤ 메인 글자 px × ${F.logoMaxMain} — 로고가 메인보다 커 보이면 ✗(자동으로 줄인다)`,
     `- 가장 작은 글자(고지 제외) ≥ ${Math.max(10, Math.round(S * 0.022))}px — 정보 블록(날짜·직무)도 이보다 작으면 ✗`,
-    `- 잘림 · 낱말 안 줄바꿈(한글도 어절 끝에서만 — <br> 로 네가 정한다) · 규격 밖 · 안전영역 밖 0`,
+    `- 잘림 · 규격 밖 · 안전영역 밖 0 (참고: 낱말 안 줄바꿈은 피한다 — 한글도 어절 끝에서 <br>. 반려는 안 함)`,
     `- 참고 분포(검증하지 않음, ${N.source} 하위10%~상위10%·중앙): 왼쪽 여백 ${pd(N.padL.lo)}~${pd(N.padL.hi)}px(중앙 ${pd(N.padL.mid)}) · 위 여백 ${pd(N.padT.lo)}~${pd(N.padT.hi)}px(중앙 ${pd(N.padT.mid)}) · 메인 글자 ${px(N.main.lo)}~${px(N.main.hi)}px(중앙 ${mainMid}) · 서브/메인 ${N.r2.lo}~${N.r2.hi}(중앙 ${N.r2.mid}) · 날짜/메인 ≤ ${BP.date} · 상세/메인 ≤ ${BP.detail} · 글자 덩어리 폭은 가로형 60%·정사각 85% 안쪽이 보통`,
   ];
 }
@@ -720,7 +721,8 @@ export const isLogoGapIssue = s => /^4항-2 asset-tight: 글자·로고/.test(St
 export const isContrastIssue = s => /^대비 \w+ [\d.]+:1 </.test(String(s));
 export const isTinyIssue = s => /^4항-3 tiny/.test(String(s));
 export const isLogoBuried = s => /^로고 묻힘/.test(String(s));
-export const isKvGapIssue = s => /^4항-2 (kv-overlap|asset-tight: 글자·키비주얼|asset-loose: 글자·키비주얼)/.test(String(s));
+export const isKvGapIssue = s => /^4항-2 (kv-overlap|asset-tight: 글자·키비주얼)/.test(String(s));   // asset-loose 는 11-10 부터 참고(반려 안 함)
+export const isLogoBigIssue = s => /^4항-2 logo-big/.test(String(s));
 export async function tryAutoFix(X, html, raw, gate, dir, inp, k, restore = h => h) {
   let cur = { html, raw, gate }; const moves = []; let n = 0;
   const steps = [
@@ -730,6 +732,7 @@ export async function tryAutoFix(X, html, raw, gate, dir, inp, k, restore = h =>
     { is: isLogoGapIssue, run: (r, f) => f.logo && f.want ? fixLogoGap(r, f.rows, f.logo, { want: f.want, H: f.H, safe: f.safe }) : null },
     { is: isLogoBuried, run: r => (inp.logo?.colors ?? []).length ? fixLogoPlate(r, inp.logo.colors, [inp.brand?.primary, inp.brand?.secondary, ...(inp.kv?.meta?.colors ?? [])]) : null },
     { is: isKvGapIssue, run: (r, f) => f.subject && f.want ? fixKvGap(r, f.rows, f.subject, { want: f.want, cap: f.cap }) : null },
+    { is: isLogoBigIssue, run: (r, f) => { const main = (f.rows ?? []).find(x => x.role === 'main'); return f.logo && main?.px ? fixLogoSize(r, f.logo, main.px * TYPO_RULE_FIXED.logoMaxMain) : null; } },
   ];
   for (const st of steps) {
     const f = cur.gate?.fix; if (!f || !(cur.gate.issues ?? []).some(st.is)) continue;
