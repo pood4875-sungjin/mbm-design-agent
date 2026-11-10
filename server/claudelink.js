@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cleanAiSlots } from '../core/aislots.js';
 import { runClaudeCode } from './freedesign.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -51,7 +52,7 @@ export const KV_LEAVES = {
   'graphic-object': { name: '이미지 · 그래픽(오브젝트 + 배경)', override: 'illust', cutout: false },
   'graphic-pattern': { name: '이미지 · 그래픽(패턴)', override: 'texture', cutout: false },
 };
-const JUDGE_SYSTEM = '너는 채용 광고에 쓸 키비주얼 그림의 종류를 가르는 분류기다. 그림을 보고 정해진 칸 중 하나만 고른다. 도구나 스킬을 쓰지 않고, JSON 한 줄만 답한다.';
+const JUDGE_SYSTEM = '너는 채용 광고에 쓸 키비주얼 그림을 보고 종류를 가르고, 규칙이 만드는 추가 시안 세 개의 방향을 고르는 판단기다. 정해진 값 중에서만 고른다. 도구나 스킬을 쓰지 않고, JSON 한 줄만 답한다.';
 export function judgePrompt({ transparent, ruleName }) {
   const keys = Object.entries(KV_LEAVES).filter(([, v]) => v.cutout === transparent);
   return [
@@ -60,7 +61,12 @@ export function judgePrompt({ transparent, ruleName }) {
     ...keys.map(([k, v]) => `- ${k}: ${v.name}`),
     transparent ? '기준: 캐릭터 = 사람·동물·마스코트처럼 얼굴(머리)이 있는 것. 여럿 = 그런 것이 둘 이상 나란히. 오브젝트 = 사물·아이콘·건물·탈것·3D 물건(로켓·상자·폴더 등), 여럿이면 object-many.'
       : '기준: 실사 = 카메라로 찍은 사진(사람이 주인공이면 photo-person). 그래픽 = 일러스트·3D 렌더 — 눈에 띄는 오브젝트가 있으면 graphic-object, 결·곡선·도형 반복뿐이면 graphic-pattern.',
-    '답: {"leaf":"<칸 id>","confidence":0~1,"reason":"한국어 한 문장"}',
+    '',
+    '그다음, 규칙이 기본안 옆에 만드는 추가 시안 세 개의 방향을 이 그림에 맞게 고른다(11-10 — 규칙이 그리고 너는 방향만):',
+    `- A 정렬·비주얼: center(글자 가운데, 그림은 아래나 가득) | mirror(좌우를 바꿔 그림이 왼쪽) ${transparent ? '' : '| full(그림을 화면 가득 깔고 글자를 위에) '}— 그림의 주인공 위치·여백·좌우 대칭을 보고`,
+    '- B 일정 태그: tag = both(라벨 태그 + 날짜 알약) | date(날짜 알약만) | label(라벨 태그만), shape = pill(둥근) | square(각진) — 그림 분위기(부드러움·둥근 형태면 pill, 반듯·기업적·각진 형태면 square)',
+    '- C 밝은 지면: light = true(흰·옅은 바탕에 이 그림이 잘 어울림) | false(그림이 어둡거나 바탕까지 꽉 찬 분위기라 밝은 바탕에 얹으면 어색함)',
+    `답: {"leaf":"<칸 id>","confidence":0~1,"reason":"한국어 한 문장","slots":{"A":"center|mirror${transparent ? '' : '|full'}","B":{"tag":"both|date|label","shape":"pill|square"},"C":{"light":true|false},"why":"한국어 한 문장"}}`,
   ].join('\n');
 }
 export function parseJudge(text, transparent) {
@@ -68,13 +74,14 @@ export function parseJudge(text, transparent) {
   const o = JSON.parse(m[0]); const leaf = KV_LEAVES[o.leaf];
   if (!leaf) throw new Error('모르는 칸: ' + o.leaf);
   if (leaf.cutout !== transparent) throw new Error(`투명 여부와 맞지 않는 칸(${o.leaf})`);
-  return { leaf: o.leaf, name: leaf.name, override: leaf.override, confidence: Math.max(0, Math.min(1, +o.confidence || 0)), reason: String(o.reason ?? '').slice(0, 200) };
+  const slots = cleanAiSlots(o.slots); if (slots && transparent && slots.A === 'full') delete slots.A;   // 누끼는 가득 깔 바탕이 없다
+  return { leaf: o.leaf, name: leaf.name, override: leaf.override, confidence: Math.max(0, Math.min(1, +o.confidence || 0)), reason: String(o.reason ?? '').slice(0, 200), slots: slots && Object.keys(slots).length ? slots : null, slotsWhy: String(o.slots?.why ?? '').slice(0, 200) };
 }
 const loadCache = () => { try { return JSON.parse(readFileSync(CACHE_FILE, 'utf8')); } catch { return {}; } };
 export async function judgeKv({ kv, rule = {} } = {}) {
   if (!kv?.dataUrl) throw new Error('kv.dataUrl 이 필요합니다');
   const transparent = (kv.meta?.field?.opaque ?? 1) < 0.5;
-  const hash = createHash('sha1').update(kv.dataUrl).digest('hex').slice(0, 20);
+  const hash = 'v2:' + createHash('sha1').update(kv.dataUrl).digest('hex').slice(0, 20);   // v2(11-10): 시안 방향(slots)까지 — 예전 판단은 다시 묻는다
   const cache = loadCache(); if (cache[hash]) return { ...cache[hash], cached: true };
   const r = await runClaudeCode(judgePrompt({ transparent, ruleName: rule.name ?? rule.sub ?? rule.id }), { images: [{ dataUrl: kv.dataUrl }], imageMode: 'stream', tools: false, model: process.env.KVJUDGE_MODEL ?? 'sonnet', effort: 'low', timeoutMs: 120_000, system: JUDGE_SYSTEM });
   const out = { ...parseJudge(r.text, transparent), ms: r.ms, model: r.model };

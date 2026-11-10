@@ -78,7 +78,8 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && u.pathname === '/api/analyze') {   // 하이브리드: 그림 판단 1회(캠페인당)
       let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }
       // 11-10: 키가 없으면(또는 engine 'claude-code') 개인 Claude 계정(CLI)으로 — 사용자 「API 빼고 CLI」
-      if (!client || body.engine === 'claude-code') { try { return json(res, 200, await analyzeKvCli(body)); } catch (e) { const { friendlyError } = await import('./claudelink.js'); const f = friendlyError(e); console.error('[analyze cli]', f.error); return json(res, f.code, { error: f.error }); } }
+      // 11-10 결정 「지금은 로컬 앱 · 로그인 기반, API 는 나중에」: server/.env 에 키가 있어도 Claude 계정(CLI)이 먼저. API 는 ANALYZE_ENGINE=api 이거나 engine:'api' 로 부를 때만
+      if (!client || (body.engine !== 'api' && process.env.ANALYZE_ENGINE !== 'api')) { try { return json(res, 200, await analyzeKvCli(body)); } catch (e) { const { friendlyError } = await import('./claudelink.js'); const f = friendlyError(e); console.error('[analyze cli]', f.error); return json(res, f.code, { error: f.error }); } }
       try { const out = await analyzeKv(client, body); return json(res, 200, out); }
       catch (e) { console.error('[analyze]', e?.status ?? '', e?.message ?? e); return json(res, e?.status && e.status >= 400 && e.status < 600 ? e.status : 500, { error: e?.message ?? String(e) }); }
     }
