@@ -41,10 +41,16 @@ test('1. 반사·유리 누끼(무채·중간 밝기·반투명 가장자리 ≥
 
 test('4. 로고 폭 ≤ 메인 글자 × 2.4, ≤ 캔버스 폭 12%(폭 320 이하 세로 띠 25%) — 템플릿 틀(mold) 로고 칸은 칸이 크기(상한 없음, 10-15)', () => {
   // 10-15 템플릿 우선: 자소설 PC 4규격(틀)은 로고 칸(150×31·130×30·163.5×45)이 곧 크기 — 세아제강 로고 143×23 이 칸을 채운다
-  for (const id of ['jasoseol-pc-standard-jobpost-pc', 'jasoseol-pc-premium-popup-pc', 'jasoseol-m-premium-popup-mo', 'google-gdn-580x400', 'blind-post-banner', 'instagram-feed-1080']) {   // 10-15 저녁: 구글·블라인드 게시글도 틀(로고 칸)   // 10-16 인스타 1080 도 틀(사용자 수정본 로고 칸 195×39)
+  // 매체 공식 템플릿(자소설 — 글꼴 고정 매체)은 칸이 곧 크기(10-15 그대로)
+  for (const id of ['jasoseol-pc-standard-jobpost-pc', 'jasoseol-pc-premium-popup-pc', 'jasoseol-m-premium-popup-mo']) {
     const html = renderAd(ctx, style, specs[id]);
-    assert.match(html, /<img data-logo="1"[^>]*?max-width:100%/, `${id}: 틀 로고는 칸 폭까지`);
+    assert.match(html, /<img data-logo="1"[^>]*?max-width:100%/, `${id}: 공식 템플릿 로고는 칸 폭까지`);
     assert.doesNotMatch(html, /<img data-logo="1"[^>]*?max-width:min\(100%/, `${id}: 로고 폭 상한 없음`);
+  }
+  // 11-10 사용자 「높이값도 있고 가로 최대값도」: 그 밖의 샘플 로고 칸은 칸 안에서 가로 ≤ 메인 글자 × 2.4
+  for (const id of ['google-gdn-580x400', 'blind-post-banner', 'instagram-feed-1080']) {
+    const html = renderAd(ctx, style, specs[id]);
+    assert.match(html, /<img data-logo="1"[^>]*?max-width:min\(100%,\d+px\)/, `${id}: 샘플 로고 칸도 가로 상한`);
   }
   for (const id of ['instagram-story-1080x1920', 'kakao-display-pc-promo']) {   // 10-15 저녁: 블라인드 게시글·피드도 공식 템플릿 틀 — 자유 배치 픽스처는 카카오 디스플레이·인스타   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 instagram-story-1080x1920 로
     const sp = specs[id], html = renderAd(ctx, style, sp);

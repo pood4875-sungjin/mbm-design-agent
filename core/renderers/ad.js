@@ -2561,7 +2561,11 @@ function renderAdBase(ctx, style, spec) {
   // (Figma 9월 공채: 디자이너 로고 폭 ÷ 메인 px 1.3~2.4, 우리 인스타 4.5·자소설 팝업 3.8). 템플릿 로고 칸 안에서도 이 폭을 넘지 않는다
   const LC = guide?.logoCap ?? null;
   // 10-15 템플릿 우선: 틀 로고 칸(자소설 150×31)은 칸이 크기다 — 상한을 걸지 않는다(세아제강 로고 143×23 이 칸을 채운다). 템플릿 없는 매체만 상한
-  const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio)))) : Infinity;
+  // 11-10 사용자 「로고는 높이값도 있고 가로 최대값도 있는 게 좋아」: 틀 로고 칸도 가로는 메인 글자 × 2.4 까지(2층 최소 품질 — 8:1 워드마크가 구글 580 칸 127px 을 다 채워 메인 43px × 2.4 = 103 을 넘었다).
+  //   매체 공식 템플릿(글꼴 고정 매체 — 자소설·리멤버·카카오)은 칸이 곧 규정이라 그대로
+  const moldMainPx = mold?.rows?.main?.px ? mold.rows.main.px * tScale : null, officialMold = !!(mold && (spec.mediumRules?.fonts?.required || mr?.fonts?.required));
+  const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio))))
+    : (LC && mold && !officialMold && moldMainPx) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;
   const capW = mw => Math.min(mw, logoCapW);
   { const subRole = showSub ? (subAbove ? 'eyebrow' : ((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan')) : null;
     const tk = guide?.tracking ?? {}; const trk = (tk.main ?? 0) && mainFs >= (tk.mainMinPx ?? 28) ? tk.main : 0;
