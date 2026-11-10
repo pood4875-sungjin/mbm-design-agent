@@ -1825,7 +1825,7 @@ function renderAdBase(ctx, style, spec) {
   const gObjH = kvWideBand ? guide.objectRatio.squareBand : gObj;
   const refObjW = gObj != null ? Math.round(w * gObj) : (L.objectW ?? Math.round(w * 0.42)), refObjH = gObjH != null ? Math.round(h * gObjH) : (L.objectH ?? Math.round(h * 0.4));   // ?? : 편집 프리셋이 형태 문법에 없는 자리(세로형 오른쪽 열)를 고를 때만 쓰인다
   let objW = objectSide !== 'right' ? 0
-    : logoAsObject ? Math.round(innerW * 0.22)   // 11-10 밤: 로고가 그림 자리를 대신할 때(투명 배경 매체 × 바탕 있는 그림) 34% 는 글자 칸을 먹어 채용 구분이 빠졌다(알바몬 스플래시 「채용 공고」) — 로고는 작아도 된다
+    : logoAsObject ? Math.round(innerW * 0.34)
     // 매체가 정한 상자: 글자 칸은 상자 왼쪽 선에서 간격(카카오 33px)만큼 떨어져 끝난다
     : oBox ? Math.max(0, Math.round(w - pad.right - innerW * 0.04 - (oBox.x - (oBox.gap ?? 33))))
     : useRef ? Math.max(0, refObjW - pad.right)
