@@ -2041,7 +2041,10 @@ function renderAdBase(ctx, style, spec) {
       const perLine = Math.min(detailSlot.maxCharsPerLine ?? Infinity, Math.max(6, Math.floor(detailW / (fs * 0.9))));
       const narrow = perLine <= 12;
       const lines = []; let used = 0, skipped = 0, extraOut = false;
-      for (const d of cands0) {
+      for (const d0 of cands0) {
+        // 11-10 밤(새 그림 JEIL × 325): 뱃지 꼴에서 기간 값이 칸보다 길면 「11.12(목) - / 11.25(수) / 18시」로 쪼개졌다 — 한 줄에 드는 짧은 날짜 후보로
+        let d = d0;
+        if (stackTags && d0.label === '접수기간' && detailSlot.maxCharsPerLine == null) { const one = v => Math.ceil(textWidth(String(v)) * fs * 1.02 / Math.max(1, detailW)) <= 1; if (!one(d0.value)) { const alt = (ladder.date ?? []).find(one); if (alt) d = { ...d0, value: alt }; } }
         if (d.extraRow && extraOut) { skipped++; continue; }   // 11-10 추가 행은 뒤에서부터 빠진다 — 앞 행이 안 들어가면 뒤 행도 넣지 않는다(순서 지킴)
         const inline = `${d.label} : ${d.value}`;
         // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
