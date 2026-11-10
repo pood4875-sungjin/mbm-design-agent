@@ -45,6 +45,15 @@
         "cd /Users/kimsungjin/mbm-design-agent/tools/guide-collector && exec node server.js"
       ],
       "port": 4173
+    },
+    {
+      "name": "mbm-claude-link",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/kimsungjin/mbm-design-agent/.claude/worktrees/vigorous-mestorf-e47df9 && exec node server/server.mjs 4797"
+      ],
+      "port": 4797
     }
   ]
 }

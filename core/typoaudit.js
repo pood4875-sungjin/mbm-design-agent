@@ -179,7 +179,7 @@ export const nearDuplicate = (a, b) => fpDistance(a, b) < DUP_DIST;
 //   잘림·겹침·규격 밖·안전영역(매체 규정 층). 여백 위치·메인 크기·서브/메인 비·덩어리 폭은 m 에 재서 돌려줄 뿐 fail 하지 않는다(프롬프트의 참고 분포).
 //   상한은 core/template-norms.js 의 gap(줄 간격 ÷ 메인 글자) 상위10% — 규격 분포가 없으면 전 규격 상위10% 들의 중앙값. 하한은 em 고정값(두 요소 중 작은 글자 기준).
 const med = a => { const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
-export const TYPO_RULE_FIXED = { gapSubMain: 0.3, gapMainInfo: 0.8, gapInfoRow: 0.6, assetGap: 0.5, assetGapMaxFrac: 0.1 };   // em = 작은 쪽 글자 · 그림 거리 상한 = 규격 긴 변 10%(렌더러 kv-gap 상한과 같은 값)
+export const TYPO_RULE_FIXED = { gapSubMain: 0.3, gapMainInfo: 0.8, gapInfoRow: 0.6, assetGap: 0.5, assetGapMaxFrac: 0.1, logoMaxMain: 2.4 };   // logoMaxMain: 로고 폭 ≤ 메인 px × 2.4(룰 logo-cap 과 같은 값, 11-10 사용자 「지키면 좋을듯」)   // em = 작은 쪽 글자 · 그림 거리 상한 = 규격 긴 변 10%(렌더러 kv-gap 상한과 같은 값)
 export function typoNormsFor(specId) {
   const n = TEMPLATE_NORMS[specId];
   const pick = k => n ? [n[k][0], n[k][2], n[k][1]] : (() => { const all = Object.values(TEMPLATE_NORMS).map(x => x[k]); return [med(all.map(a => a[0])), med(all.map(a => a[2])), med(all.map(a => a[1]))]; })();
@@ -221,13 +221,15 @@ export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, nor
     if (!o) continue; const g = gapTo(o); m[name === '로고' ? 'logoGap' : 'kvGap'] = Math.round(g);
     if (g < 0) fail(2, name === '로고' ? 'logo-overlap' : 'kv-overlap', `글자와 ${name} ${Math.round(-g)}px 겹침`);
     else if (g < want - 1) fail(2, 'asset-tight', `글자·${name} 간격 ${Math.round(g)}px < 메인 0.5배(${Math.round(want)}px) — 너무 붙음`);
-    else if (name === '키비주얼' && g > cap + 1) fail(2, 'asset-loose', `글자·${name} 간격 ${Math.round(g)}px > 규격 긴 변 10%(${Math.round(cap)}px) — 너무 벙벙`);
+    else if (name === '키비주얼' && g > cap + 1) (m.notes ??= []).push(`asset-loose(참고): 글자·${name} 간격 ${Math.round(g)}px > 규격 긴 변 10%(${Math.round(cap)}px)`);   // 11-10 사용자 「참고」 — 반려 안 함(docs/ai-rule-layers.md K9)
   }
+  // 로고 비중 상한(L1 — 룰 logo-cap 과 같은 값): 로고 폭이 메인 글자 px × 2.4 를 넘으면 ✗ — 자동 고침이 줄인다(core/freequick.js fixLogoSize)
+  if (logo && logo.w > main.px * F.logoMaxMain + 1) { m.logoCap = Math.round(main.px * F.logoMaxMain); fail(2, 'logo-big', `로고 폭 ${Math.round(logo.w)}px > 메인 글자 ${main.px}px × ${F.logoMaxMain}(${m.logoCap}px) — 로고가 메인보다 커 보임`); }
   // ③ 잘림·낱말 안 줄바꿈·규격 밖·안전영역(매체 규정 층)
   for (const r of rows) {
     if (r.y + r.h > H + 1 || r.x + r.w > W + 1 || r.x < -1 || r.y < -1) fail(3, 'clip', `${r.role} 상자가 규격 밖`);
     if (r.clip) fail(3, 'clip', `${r.role} 글자 잘림`);
-    if (r.wb) fail(3, 'word-break', `${r.role} 낱말 안 줄바꿈`);
+    if (r.wb) (m.notes ??= []).push(`word-break(참고): ${r.role} 낱말 안 줄바꿈`);   // 11-10 사용자 「안 지켜도 됨」 — AI 트랙은 반려 안 함
   }
   if (safe) { const s = { l: +safe.l || 0, r: +safe.r || 0, t: +safe.t || 0, b: +safe.b || 0 }; if (L < s.l - 1 || R > W - s.r + 1 || T < s.t - 1 || B > H - s.b + 1) fail(3, 'safe', `글자 상자 ${Math.round(L)},${Math.round(T)}~${Math.round(R)},${Math.round(B)} 안전영역 밖`); }
   return { ok: fails.length === 0, fails, m };

@@ -7,12 +7,13 @@ import http from 'node:http';
 import { readFileSync, existsSync, statSync, createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { makeClient, designLayout, analyzeKv, ANALYZE_MODEL } from './design.js';
+import { makeClient, designLayout, analyzeKv, analyzeKvCli, ANALYZE_MODEL } from './design.js';
 import { freeDesign, claudeCodeAvailable, enginesAvailable, API_ENGINE_ENABLED } from './freedesign.js';   // 자유 디자인(헤드리스 Claude Code 또는 API)
 import { handleFreeLoop } from './freeloop.js';   // 자유 시안 평가 루프(/api/freeprefs · /api/freeloop/*) — 11-05 취향 학습
 import { handleFreeJobs, handleFreeExtra } from './freejobs.js';   // 「AI 추가 제안」 백그라운드 작업(/api/freedesign/jobs) — 11-06 · 즉시 수정·통계(/api/freedesign/quick·stats) — 11-09
 import { DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
-import { handleElementEdit } from './elementedit.js';   // 요소 하나 말로 고치기(11-10 — 캔버스 AI 아이콘)
+import { handleElementEdit } from './elementedit.js';
+import { handleClaudeLink } from './claudelink.js';   // 11-10 개인 Claude 계정 연결(CLI) — 상태·로그인·그림 종류 판단·일반 질문   // 요소 하나 말로 고치기(11-10 — 캔버스 AI 아이콘)
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -60,6 +61,7 @@ const server = http.createServer(async (req, res) => {
       const cc = await claudeCodeAvailable();
       return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })), freedesign: { claudeCode: cc.ok, version: cc.version, loggedIn: cc.loggedIn, api: API_ENGINE_ENABLED && !!client, engines: enginesAvailable({ client, cc: cc.ok }), jobs: true, modes: ['suggest', 'revise', 'spread'], quick: true, stats: true }, elementEdit: true });
     }
+    if (u.pathname.startsWith('/api/claude/') || u.pathname === '/api/kvjudge') { if (await handleClaudeLink(req, res, u, { json, readBody })) return; }
     if (u.pathname === '/api/element-edit') { if (await handleElementEdit(req, res, { json, readBody })) return; }
     if (u.pathname === '/api/freedesign/quick' || u.pathname === '/api/freedesign/stats') { if (await handleFreeExtra(req, res, u, { json, readBody })) return; }   // 즉시 수정(LLM 없음)·속도 통계 — 11-09
     if (u.pathname.startsWith('/api/freedesign/jobs')) { if (await handleFreeJobs(req, res, u, { json, readBody, client, freeDesign })) return; }   // 백그라운드 작업(큐) — 아래 동기 호출과 같은 엔진
@@ -72,8 +74,9 @@ const server = http.createServer(async (req, res) => {
       catch (e) { console.error('[freedesign]', e?.message ?? e); return json(res, 500, { error: e?.message ?? String(e) }); }
     }
     if (req.method === 'POST' && u.pathname === '/api/analyze') {   // 하이브리드: 그림 판단 1회(캠페인당)
-      if (!client) return json(res, 503, { error: 'API 키가 없습니다 — server/.env 에 ANTHROPIC_API_KEY=… 를 넣고 서버를 다시 켜 주세요' });
       let body; try { body = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: '본문 JSON 오류: ' + e.message }); }
+      // 11-10: 키가 없으면(또는 engine 'claude-code') 개인 Claude 계정(CLI)으로 — 사용자 「API 빼고 CLI」
+      if (!client || body.engine === 'claude-code') { try { return json(res, 200, await analyzeKvCli(body)); } catch (e) { const { friendlyError } = await import('./claudelink.js'); const f = friendlyError(e); console.error('[analyze cli]', f.error); return json(res, f.code, { error: f.error }); } }
       try { const out = await analyzeKv(client, body); return json(res, 200, out); }
       catch (e) { console.error('[analyze]', e?.status ?? '', e?.message ?? e); return json(res, e?.status && e.status >= 400 && e.status < 600 ? e.status : 500, { error: e?.message ?? String(e) }); }
     }

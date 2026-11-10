@@ -22,6 +22,7 @@ import { approvalGate, STATE_LABEL } from '../core/gate.js';
 import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
 import { htmlHash, templateChoices, variantSubOf } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
+import { mountClaudeChip, claudeReady, judgeKvType } from './claudelink.js';   // 11-10 개인 Claude 계정 연결(로컬 앱 · CLI)
 import { rasterize, rasterizeCanvas, download, downloadText, openPrintPdf } from './raster.js';
 import { createFreeDesign, freeFontIds, freeHealth } from './freedesign.js';
 import { createElAi, AI_ICON } from './elai.js';   // 11-10 요소 AI 편집(선택 상자 옆 AI 아이콘 → 말로 고치기)
@@ -53,7 +54,7 @@ import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
 import { getKey as aiGetKey } from './llm.js';
 // 11-03 사용자 결정: 「AI 그림 판단」 버튼은 AI 키가 있을 때만(기본 숨김) — 시안 틀은 이 값을 안 읽어 기본안에만 효과
-const aiKeyReady = () => { try { return !!aiGetKey(); } catch { return false; } };
+const aiKeyReady = () => { try { return !!aiGetKey() || claudeReady(); } catch { return false; } };   // 11-10: Claude 계정이 연결돼 있으면 「AI 그림 판단」도 그 계정으로(서버가 CLI 로 돈다)
 import { createSelect, pickForExport } from './select.js';   // 11-02 선택하기(컨시어지 박진화 「선택한 소재만 추출」) — 카드·드래그·매체 머리글로 골라 그것만 ZIP
 import { mountKvFocus, withManual } from './kvfocus.js';   // 11-02 주인공 확인·직접 지정(컨시어지 한희하) — 썸네일 위 네모, 클릭/드래그   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
 import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
@@ -1706,6 +1707,10 @@ function slotStyleBody() {
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       kvDiagnosis(it, meta);
+      claudeKvType(d, meta, (ov, r, same) => {   // 11-10 Claude 그림 종류 판단 — 규칙 판정 뒤, 같은 그림이 그대로이고 사람이 유형을 안 골랐을 때만 바꾼다
+        if (!same && it.kv === d && !it.kvTypeOverride) { it.kvTypeOverride = ov; slotStyle(); }
+        bub('agent', `Claude가 그림을 보고 「${r.name}」로 판단했어요 — ${r.reason}${same ? '' : ' 유형을 이쪽으로 바꿨어요(「키비주얼 유형」에서 자동으로 되돌릴 수 있어요).'}`);
+      });
       announceDpi();
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
@@ -3322,7 +3327,7 @@ function renderInspectorBody() {
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;justify-content:flex-end;margin-top:2px"><button type="button" class="lnk" id="iKvClear">키비주얼 제거</button></div>
       <div style="display:flex;gap:6px;margin-top:6px">
-        ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 기본안에만 효과(시안 틀은 이 값을 안 읽음). 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
+        ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고 모양 묶음마다 그림 자리·크기·지면을 정해요. 글자·타이포·검수는 규칙 그대로예요. 기본안에만 효과가 있어요(시안 틀은 이 값을 안 읽어요). 위쪽 「Claude Code 연결」로 연결한 계정으로 돌아요">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
       <div style="margin-top:12px">${bgControlHtml(c.style, 'iBg')}</div>
@@ -3358,7 +3363,7 @@ function renderInspectorBody() {
       ${exportSecHtml(c)}
       ${toolSecHtml(c)}
       ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
-      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(로컬 Claude Code 또는 API 키 서버). 규칙은 검수기가 강제.</div>
+      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(위쪽 「Claude Code 연결」로 연결한 계정). 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
       ${c.kind !== undefined && (c.media?.length || c.adSpecIds?.length) ? mediaAddHtml(c) : ''}
       </div>
@@ -3478,6 +3483,10 @@ function renderInspectorBody() {
         renderInspector();
         toast((roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체') + (bgWasManual ? ' · 배경도 새 그림에 맞췄어요(되돌리기 ⌘Z)' : ''));
         { const ck = await kvCheckOf(r.result, meta); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
+        claudeKvType(kv, meta, (ov, res, same) => {   // 11-10 Claude 그림 종류 판단(인스펙터 그림 바꾸기)
+          if (!same && c.style.keyVisual === kv && !c.style.kvTypeOverride) restyle({ kvTypeOverride: ov }, `Claude 판단: ${res.name}`);
+          toast(`Claude: 「${res.name}」${same ? ' — 규칙 판정과 같아요' : ' — 유형을 바꿨어요(되돌리기 ⌘Z)'}`, 5000);
+        });
       };
       r.readAsDataURL(f);
     };
@@ -4712,16 +4721,16 @@ function openStored(saved) {
   for (const e of (saved.log ?? []).slice(-8).reverse()) log(`· ${LOG_LABEL[e.type] ?? e.type}`);
 }
 
-/* ═══ AI 키 ═══ */
+/* ═══ 환경 설정 ═══ 11-10 API 키(BYOK) 입력은 뺐다 — AI 는 위쪽 「Claude Code 연결」 칩의 개인 Claude 계정(CLI)으로만 돈다 */
 $('keyBtn').onclick = () => {
+  const oldKey = !!LLM.getKey();
   modal({
-    title: 'AI 해석 설정 (BYOK)',
-    desc: '개인 Anthropic API 키를 이 브라우저에만 저장합니다. 키가 있으면 기획·지시를 AI가 해석하고, 없으면 규칙 파서로 동작합니다.',
-    body: `<label>API 키</label><input type="password" id="keyIn" value="${LLM.getKey()}" placeholder="sk-ant-...">
-      <div id="keyMsg" style="font-size:12px;margin-top:10px;line-height:1.55;color:var(--sub);word-break:break-all">모델: ${LLM.currentModel()}</div>`,
+    title: '환경 설정',
+    desc: 'AI 기능은 API 키 없이, 위쪽 「Claude Code 연결」에서 연결한 내 Claude 계정으로 돌아요.',
+    body: `<div style="font-size:12.5px;line-height:1.6;color:var(--sub)">${claudeReady() ? 'Claude 계정이 연결돼 있어요.' : '아직 연결 전이에요. 연결 전에는 규칙으로 판단해요.'}${oldKey ? '<br>예전에 넣어 둔 API 키가 이 브라우저에 남아 있어요. 지우면 Claude 계정으로만 돌아요.' : ''}</div>`,
     actions: [
-      { label: '지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('키 삭제됨'); } },
-      { label: '연결 테스트', fn: () => { runKeyTest(); return false; } },
+      ...(oldKey ? [{ label: '남은 API 키 지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('API 키를 지웠어요'); } }] : []),
+      ...(claudeReady() ? [] : [{ label: 'Claude Code 연결', fn: () => { setTimeout(() => $('claudeChip')?.click(), 0); } }]),
       { label: '캠페인 JSON 내보내기', fn: () => {   // 레이아웃 안 선택 집계(scripts/variant-stats.mjs)·사례 기록의 입구
         campStore.exportParts().then(({ parts, count }) => {
           if (!count) { toast('저장된 캠페인이 없어요'); return; }
@@ -4729,7 +4738,7 @@ $('keyBtn').onclick = () => {
         }).catch(e => { console.warn(e); toast('내보내기 실패 — 저장소를 읽지 못했어요'); });
         return false;
       } },
-      { label: '저장', pri: true, fn: () => { LLM.setKey($('modalBody').querySelector('#keyIn').value); refreshAiChip(); toast('키 저장됨'); } },
+      { label: '닫기', pri: true, fn: () => {} },
     ],
   });
 };
@@ -4767,6 +4776,18 @@ $('logHead').onclick = () => $('logCard').classList.toggle('open');
   $('canvasBgReset').onclick = () => { apply(null); try { localStorage.removeItem(KEY); } catch {} };
 }
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다
+// 11-10 Claude 그림 종류 판단 — 규칙 판정(kvTypeOf) 다음에 Claude 가 그림을 보고 다시 고른다(로컬 앱 + 연결된 계정만). apply(override|null, 결과, 같은가)
+async function claudeKvType(dataUrl, meta, apply) {
+  if (!claudeReady() || !dataUrl || !meta) return;
+  const T = kvTypeOf(meta);
+  try {
+    const r = await judgeKvType(dataUrl, meta, { id: T?.id, sub: T?.sub?.id, name: T?.sub?.name ?? T?.name });
+    if (!r?.override) return;
+    const same = r.override === T?.id || r.override === T?.sub?.id;
+    apply(same ? null : r.override, r, same);
+  } catch (e) { toast(`Claude 그림 판단을 못 했어요 — ${e.message}`, 5000); }
+}
+mountClaudeChip({ onChange: () => { LLM.setClaudeCli(claudeReady()); refreshAiChip(); } });
 initHome();
 show('home');
 // 저장소를 다 읽으면(옛 localStorage 값 옮기기 포함) 목록을 그린다. 앱 시작은 붙들지 않는다
