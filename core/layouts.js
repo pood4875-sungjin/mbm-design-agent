@@ -79,7 +79,7 @@ export function layoutFor(w, h) {
       detail: Math.max(9, r(main * 0.62)), detailLine: 1.3, gapDetail: 0, detailLabelBold: false,
       object: 'right', objectW: Math.min(r(w * 0.42), r(h * 2.2)),
       // 가로형도 로고를 둔다 — 우상단 소형(Figma 9월 공채 디자이너 가로형 6/6에 로고, 높이 = 지면 높이의 6~8%). 매체가 로고를 금하면(리멤버 count 0) 렌더러가 생략
-      logo: 'top-right', logoH: Math.max(12, r(h * 0.065)), logoTop: Math.max(8, r(h * FP.logoWide)),
+      logo: 'top-right', logoH: Math.max(12, r(h * 0.08)), logoTop: Math.max(8, r(h * FP.logoWide)),   // 11-10 피드백 3 「로고가 살짝 작아」: 6.5% → 8%(디자이너 가로형 6~8% 위쪽 · 샘플 가로형 9~16%)
     };
   }
   if (shape === 'tower') {

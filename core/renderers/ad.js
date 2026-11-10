@@ -1391,7 +1391,8 @@ function renderAdBase(ctx, style, spec) {
   const cutKmax = cutWin ? cutWin.k : (() => { const cols = style.kvMeta?.field?.cols; const at = t => cols?.[Math.min(cols.length - 1, Math.max(0, Math.round(t * (cols.length - 1))))]?.bg ?? 1; let k = 1; for (const kk of [1.3, 1.5, 1.8, 2.2]) { const f = (1 - 1 / kk) / 2; if (!cols?.length || (at(f) >= 0.75 && at(1 - f) >= 0.75)) k = kk; } return k; })();
   let cutBand = false;   // 정사각 규격의 가로 긴 누끼 띠 — 띠 높이에 맞추고 좌우를 지면 밖으로(틈 창 또는 허용 배율)
   // 정사각 단일 사물: 모서리 상자(58%×55%)·아래 띠 대신 왼쪽 30%·위 48% 경계 안에서 우하단 블리드(Figma 인스타 1080: KV 29·49–100·100, 보임 86%, 면적 25%)
-  if (cutCorner && singleObj && (bleedP = bleedAt(Math.round(w * 0.3), Math.round(h * 0.48)))) tImage = { x: bleedP.left, y: bleedP.top, w: w - bleedP.left, h: h - bleedP.top };
+  // 11-10 피드백 4(알바몬 기업 좌측 200×275): 폭이 좁은 지면은 왼쪽 경계 30%면 누끼가 가운데처럼 보인다 — 42%부터(왼쪽 글자 ↔ 오른쪽 아래 그림)
+  if (cutCorner && singleObj && (bleedP = bleedAt(Math.round(w * (w < 320 ? 0.42 : 0.3)), Math.round(h * 0.48)))) tImage = { x: bleedP.left, y: bleedP.top, w: w - bleedP.left, h: h - bleedP.top };
   else if (cutCorner && cutAr > 1.3) { const bandH = Math.min(Math.round(h * 0.55), Math.max(Math.round(h * 0.3), Math.round(w * cutKmax / cutAr))); tImage = { x: 0, y: h - bandH, w, h: bandH }; cutBand = bandH * cutAr > w + 1; }
   // 캐릭터 하나(세로로 선 누끼)는 58%×55% 상자에선 키가 지면의 45% 남짓 — 위가 빈다(에브리타임 288 여우 빈 띠 37%, 캐치 700 30%). 키 72%까지, 폭 64%
   else if (cutCorner) { const solo = (() => { const t = kvTypeOf(style.kvMeta); return !!(t?.flags.character && !t.flags.group); })(); const bw = Math.round(w * (solo ? 0.64 : 0.58)), bh = Math.round(h * (solo ? 0.72 : 0.55)); tImage = { x: w - bw, y: h - bh, w: bw, h: bh }; }
@@ -1857,7 +1858,9 @@ function renderAdBase(ctx, style, spec) {
   // 편집 「키비주얼 크기」(오른쪽 열): 열 폭 × 배율 — 글자 칸은 안쪽 폭의 42%(CANON objectBleed.minTextCol) 아래로 내려가지 않는다
   if (kvK !== 1 && objectSide === 'right' && !oBox && !logoAsObject && !bleedP && !strip) objW = Math.round(Math.max(innerW * 0.15, Math.min(innerW * (1 - (guide?.objectBleed?.minTextCol ?? 0.42)), objW * kvK)));
   let objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
-  const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
+  // 11-10 피드백 12: 그림이 오른쪽 열에 서는 띠(알바몬 PC 하단 495×110)는 로고도 다른 가로형처럼 오른쪽 위 작게 — 왼쪽 로고 열은 그림 없는 띠에서만
+  const stripLogoTR = strip && objectSide === 'right' && innerH >= 70, stripLogoH = Math.max(14, Math.round(h * 0.14));
+  const stripLogoCol = (strip && allowLogo && logoSrc && !tLogo && innerH >= 70 && !stripLogoTR) ? Math.round(innerW * 0.16) + 20 : 0;   // 로고 + 간격
   // 띠형의 CTA 버튼도 같은 줄에 선다 — 글자 칸에서 그 폭을 빼지 않으면 메인이 잘린다(버튼 글자는 띠 높이의 1/4을 넘지 않는다)
   const stripCtaCol = (SHOW_CTA && strip && slots.cta && copy.cta) ? Math.round((textWidth(copy.cta) + 2.2) * innerH * 0.25) + 20 : 0;
   const textW = (objectSide === 'right' ? innerW - objW - Math.round(innerW * 0.04) : innerW) - stripLogoCol - stripCtaCol;
@@ -2239,8 +2242,8 @@ function renderAdBase(ctx, style, spec) {
     // 좁은 세로 띠(폭 ≤ 320, CANON objectBleed.narrow)는 좌우 양쪽 + 아래로(디자이너 GDN 300×600·300×1050 LRB)
     // 가로로 아주 긴 단일 사물(비율 ≥ 1.8 — 돔 와이어프레임 2.14)은 폭이 넓은 세로형에서도 좌우 양쪽으로 — 오른쪽·아래만이면 폭에 막혀 작게 바닥에 깔리고 위가 빈다(10-09 figma-dg: NAP 320×480·인스타 스토리·알바몬 보드 빈 띠 28~31% → 0).
     // 정사각은 되돌림 — 성긴 와이어프레임(밀도 0.27)은 면적 목표를 채우려 지나치게 커져 인스타 1080 상세 글자와 22% 겹쳤고, 에브리타임 288 빈 띠는 그대로였다
-    const symB = !!(guide.objectBleed?.narrow && (L.shape === 'tall' || L.shape === 'tower') && (w <= guide.objectBleed.narrow.maxW || (style.kvMeta?.ar ?? 1) >= 1.8));
-    if (singleObj && isCutout && ar && (L.shape === 'tall' || L.shape === 'tower' || L.shape === 'square') && (bleedP = bleedAt(0, Math.max(Math.round(h * (1 - maxObjEff)), yText), symB))) {
+    const symB = !!(guide.objectBleed?.narrow && (L.shape === 'tall' || L.shape === 'tower') && h / w >= 1.6 && (w <= guide.objectBleed.narrow.maxW || (style.kvMeta?.ar ?? 1) >= 1.8));   // 11-10 피드백 4: 거의 정사각(200×275 = 1.38)은 대칭 아님 — 왼쪽 글자면 오른쪽 아래
+    if (singleObj && isCutout && ar && (L.shape === 'tall' || L.shape === 'tower' || L.shape === 'square') && (bleedP = bleedAt((!symB && TA !== 'center' && w < 320 && h / w < 1.6) ? Math.round(w * 0.3) : 0, Math.max(Math.round(h * (1 - maxObjEff)), yText), symB))) {   // 11-10 피드백 4: 좁은 정사각(200×275)은 왼쪽 30%부터 — 왼쪽 글자 ↔ 오른쪽 아래 누끼
       objH = Math.max(Math.round(h * 0.1), h - bleedP.top - pad.bottom); objReserve = objH; distribute = true;
       // 오른쪽·아래로만 흘리면 좁은 세로 띠(300×1050)에선 그림이 목표 면적에 못 닿는다 — 남는 높이가 20%를 넘으면 메인 위에도 나눠 한 덩어리 빈 띠를 둘로
       if ((innerH - objReserve - 12) - used > h * 0.2) splitGap = true;
@@ -2662,7 +2665,8 @@ function renderAdBase(ctx, style, spec) {
   const boxLayer = b => { const c = isCutout ? null : subjectCrop(style, b.w, b.h);
     return `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : c ? `${c.pos}/${c.size}` : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`; };
   // 오른쪽 열 오브젝트가 로고 자리(우상단)까지 올라오면 로고를 가린다(970 여우) — 누끼·일러스트는 로고 띠 아래부터. 사진은 하늘 위에 로고가 얹혀도 된다(일화 970)
-  const objTop = (absLogo && logoBox && logoPlace === 'top-right' && kvKind !== 'photo') ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5) : 0;
+  const objTop = (absLogo && logoBox && logoPlace === 'top-right' && kvKind !== 'photo') ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5)
+    : (stripLogoTR && flexLogo && kvKind !== 'photo') ? Math.max(6, Math.round(h * CANON.framePad.logoWide)) + stripLogoH + Math.round(stripLogoH * 0.4) : 0;   // 띠 오른쪽 위 로고(피드백 12) 아래부터 그림
   const bleedRight = bw => hasKv ? (bleedP ? bleedLayer(style, bleedP, w, h) : oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent, top: objTop }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';
   const bleedBottom = bh => hasKv ? (bleedP ? bleedLayer(style, bleedP, w, h) : null) ?? kvLayer(style, field, { side: 'bottom', w, h, size: bh, edgePad: pad.bottom, melt: !transparent, bleedMax: cutBleed, cutLeft })
@@ -2797,13 +2801,13 @@ function renderAdBase(ctx, style, spec) {
 
   if (strip && !mold) {   // 틀(mold)이 있는 얇은 띠(NAP 320×50·320×100·PC 970/728, 10-15 저녁)는 띠 문법 대신 틀로
     const meta = [showSub ? copy.sub : null, want.date ? copy.date : null].filter(Boolean).join('  ·  ');
-    const lg = flexLogo ? logoImg(z.logoH, Math.round(innerW * 0.16)) : '';
+    const lg = flexLogo ? logoImg(stripLogoTR ? stripLogoH : z.logoH, Math.round(innerW * 0.16)) : '';
     return `${open('flex-direction:row;align-items:center;gap:20px')}
 ${objectSide === 'right' ? kvWrap(bleedRight(objW)) : ''}${scrimEl}
-${lg ? `<div style="position:relative;flex:none;display:flex;align-items:center">${lg}</div>` : ''}
+${lg ? (stripLogoTR ? `<div style="position:absolute;top:${Math.max(6, Math.round(h * CANON.framePad.logoWide))}px;right:${pad.right}px;height:${stripLogoH}px;display:flex;align-items:center;z-index:2">${lg}</div>` : `<div style="position:relative;flex:none;display:flex;align-items:center">${lg}</div>`) : ''}
 <div data-text-col="1" style="position:relative;flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:${anchorJ ?? 'center'}${textOff ? ';' + textOff.replace(/;$/, '') : ''}">
 ${(showSub && subAbove) ? T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${Math.round(z.subFs * 0.4)}px`) : ''}
-${T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, '', mainLines)}
+${T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, 'text-wrap:balance', mainLines)}
 ${(meta && !(showSub && subAbove)) ? T(showSub ? 'sub' : 'date', meta, z.subFs, fwOf('date', z.subFs), subFg, 'margin-top:3px') : (want.date && subAbove ? T('date', copy.date, z.smallFs, fwOf('date', z.smallFs), subFg, 'margin-top:3px') : '')}
 ${want.detail ? detailBlock() : ''}
 ${want.notice ? T('notice', copy.notice, noticeFs, fwOf('notice', noticeFs), subFg, 'margin-top:3px;opacity:.9') : ''}
