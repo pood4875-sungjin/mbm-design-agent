@@ -237,7 +237,8 @@ export function renderTemplate(ctx, style, spec) {
     for (const p of plan) {
       if (!prev) { p.top = Math.max(safeT, p.top0); cur = p.top + p.blockH; prev = p; continue; }
       const gap0 = p.top0 - prev.bot0;
-      const gap = Math.max(Math.min(p.fs, prev.fs) * 0.12, Math.min(gap0, H * 0.12) * gapK);   // 바닥은 글자의 .12(행간에 이미 여유가 있다). 청사진이 붙여 둔 시즌·제목을 .4 로 벌리던 것(11-03 검사기 gap)
+      const gapCap = prev.r.role === 'main' ? prev.fs * 0.6 : Math.max(p.fs, prev.fs) * 0.8;   // 11-10 밤: 타이틀↔서브텍스트 ≤ 타이틀 0.8배(사용자 규칙) · 서브텍스트끼리 ≤ 글자 1배 — 세로로 긴 규격에서 틀 간격을 높이로 늘려 2.9배까지 벌어졌다
+      const gap = Math.max(Math.min(p.fs, prev.fs) * 0.12, Math.min(gap0, H * 0.12, gapCap) * gapK);   // 바닥은 글자의 .12(행간에 이미 여유가 있다). 청사진이 붙여 둔 시즌·제목을 .4 로 벌리던 것(11-03 검사기 gap)
       p.gap = Math.round(gap); p.top = cur + gap; cur = p.top + p.blockH; prev = p;
     }
     return cur;
