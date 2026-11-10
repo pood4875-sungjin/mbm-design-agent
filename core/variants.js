@@ -48,7 +48,7 @@ export function axesOf(cand, tr, spec, html = '') {
   }
   const tone = cand?.bgFill === 'brand' ? '브랜드색' : cand?.textTone === 'light' ? '어두움' : cand?.textTone === 'dark' ? '밝음' : renderedTone(tr, html, false);
   const layout = cand?.kvPlace ?? tr?.place?.mode ?? (cand?.textAlign ? `정렬 ${cand.textAlign}` : 'auto');
-  return { typo: '기본', info: '글줄', layout: `${layout}${cand?.textAlign ? `/${cand.textAlign}` : ''}${cand?.kvSize ? `/${cand.kvSize}` : ''}`, tone };
+  return { typo: cand?.titleEmph === 'mix' ? '강조' : '기본', info: '글줄', layout: `${layout}${cand?.textAlign ? `/${cand.textAlign}` : ''}${cand?.kvSize ? `/${cand.kvSize}` : ''}`, tone };
 }
 export const axesKey = ax => `${ax.typo}|${ax.info}|${ax.layout}|${ax.tone}`;
 export const axesLabel = ax => `${ax.typo === '강조' ? '타이포 강조' : '기본 타이포'} · ${ax.info} · ${LAYOUT_OF[ax.layout] ?? ax.layout} · ${ax.tone} 지면`;
@@ -78,7 +78,8 @@ export const SLOTS = [
   // 11-10 사용자: 「정렬·비주얼 바꿈」은 비주얼도 바꾸는 것처럼 읽힘 — 결국 정렬을 바꾸는 안(그림은 따라감) → 「~형」 세 이름으로
   { id: 'A', key: 'align', label: '정렬 변경형' },
   { id: 'B', key: 'tag', label: '일정 강조형' },
-  { id: 'C', key: 'light', label: '밝은 지면형' },
+  // 11-10 사용자 「밝은 지면형보단(이건 공통으로 바꿔 줄 수 있게) 타이틀 강약형이 나을 것 같아」 — C = 타이포 강조형. 밝은 지면은 인스펙터 「배경」 프리셋(bgFill light)으로 전체에
+  { id: 'C', key: 'typo', label: '타이포 강조형' },
 ];
 const SLOT_OF = Object.fromEntries(SLOTS.map(s => [s.id, s]));
 const ALIGN_KO = { left: '왼쪽', center: '가운데', right: '오른쪽' };
@@ -112,6 +113,7 @@ export function variantSubOf(st, spec = null) {
   if (st.tagShape) out.push(st.tagShape === 'square' ? '각진 모양' : '알약 모양');
   if (st.bgFill) out.push({ light: '흰·옅은 지면 + 브랜드 딥 글자', brand: '브랜드색 지면', kv: '키비주얼 배경색' }[st.bgFill] ?? st.bgFill);
   if (st.textTone) out.push(st.textTone === 'light' ? '흰 글자' : '어두운 글자');
+  if (st.titleEmph === 'mix') out.push('타이틀 강약(회사명 얇게 · 채용 구분 굵게)');
   if (st.kvSize) out.push(st.kvSize === 'lg' ? '비주얼 크게' : '비주얼 작게');
   return out.join(' · ');
 }
@@ -203,9 +205,8 @@ function slotPresetsRule(slotId, spec, baseTr, style, ctx = null) {
     else C.push({ infoTag: 'date' }, { infoTag: 'both' }, { infoTag: 'label' }, { infoTag: 'date', tagShape: 'square' });
   }
   else if (slotId === 'C') {
-    const L = lumOf(baseTr?.field?.stops?.[0]);
-    if (L != null && L >= 0.6 && !/^manual/.test(baseTr?.field?.source ?? '')) C.push({ bgFill: 'brand' });   // 기본안이 이미 밝은 지면이면 반전 = 브랜드색 지면
-    else C.push({ bgFill: 'light' });
+    // 타이포 강조형: 타이틀 강약(회사명 얇게 · 채용 구분 굵게). 매체가 굵기를 정한 규격(fonts.required)은 바꿀 수 없어서 후보 없음 → 대체 안
+    if (!spec.mediumRules?.fonts?.required) C.push({ titleEmph: 'mix' });
   }
   return C.map(st => ({ st, sub: variantSubOf(st, spec) }));
 }
@@ -288,7 +289,7 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
     const S = SLOT_OF[slotId], log = { slot: slotId, ok: false, why: [], tried: 0 };
     for (const { st, sub } of presets) {
       if (used.has(keyOf(st))) continue; used.add(keyOf(st)); log.tried++;
-      const r = tryCand(st, { slot: slotId, label: st.bgFill === 'brand' ? '지면 반전형' : S.label, sub, substitute: substituteFor });
+      const r = tryCand(st, { slot: slotId, label: S.label, sub, substitute: substituteFor });
       if (r.rec) { push(r.rec); log.ok = true; log.style = st; return log; }
       log.why.push(`${keyOf(st)}: ${r.why}`);
       if (/^지면 반전이 기본안과 비슷/.test(r.why ?? '')) used.delete(keyOf(st));   // 「반전」이라 부르진 않지만 채움 후보(브랜드색 지면)로는 다시 쓸 수 있게(네이버 1250 KG — 3안 보장)

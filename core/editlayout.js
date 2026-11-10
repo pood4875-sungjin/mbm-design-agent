@@ -19,7 +19,9 @@ export const PRESETS = {
   scrim: { label: '스크림 세기', choices: { auto: '자동', none: '없음', low: '약', mid: '중', high: '강' } },
   // 정보 태그(11-09 시안 슬롯 ②, docs/variant-types-1109.md): 기본안은 「날짜·라벨은 알약을 두르지 않는다」 — 사람이 고르거나 안(variant)으로만 켠다. 규정 매체는 잠김
   infoTag: { label: '정보 태그', choices: { auto: '없음', date: '날짜 알약', label: '라벨 태그', both: '라벨 + 날짜' } },
-  tagShape: { label: '태그 모양', choices: { auto: '자동', pill: '알약', square: '각진' } },   // 자동 = 날짜 알약 · 라벨 각진(반지름 = 높이 × 0.12, 결정 3)
+  tagShape: { label: '태그 모양', choices: { auto: '자동', pill: '알약', square: '각진' } },
+  // 11-10 사용자 「타이틀은 강약형(볼드 차이) / 그냥 형」: 강약형 = 회사명 얇게(300) + 채용 구분 굵게(800). 매체가 글꼴·굵기를 정한 규격(자소설·리멤버·카카오)은 안 바뀐다
+  titleEmph: { label: '타이틀', choices: { auto: '기본형', mix: '강약형' } },   // 자동 = 날짜 알약 · 라벨 각진(반지름 = 높이 × 0.12, 결정 3)
 };
 // 정보 태그 수치(피그마 8436:3892 실측) — 글자 = 메인 × 0.36~0.55, 높이 = 글자 × 1.64~2.29(날짜) / 1.30~1.56(라벨), 각진 반지름 = 높이 × 0.10~0.14
 export const INFO_TAG = { fsMin: 0.36, fsMax: 0.55, dateH: 1.9, labelH: 1.45, squareR: 0.12, datePadX: 0.8, labelPadX: 0.5, labelFs: 0.92 };

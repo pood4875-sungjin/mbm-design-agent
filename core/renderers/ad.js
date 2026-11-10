@@ -268,7 +268,23 @@ function renderOnce(ctx, style, spec) {
   const bust = bustOf(style, spec);
   const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
   const used = bust ? { ...style, kvMeta: bust.meta } : style;
-  return { html: logoCap(cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), style), tr: LAST_TR, styleUsed: used };
+  return { html: titleEmph(logoCap(cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), style), style, spec, ctx), tr: LAST_TR, styleUsed: used };
+}
+// 타이틀 강약형(11-10 PRESETS.titleEmph 'mix'): 메인 첫 줄(회사명) 얇게 · 나머지(채용 구분) 굵게. 한 줄 메인이면 회사명 부분만 얇게.
+//   매체가 글꼴·굵기를 정한 규격(fonts.required — 자소설·리멤버·카카오)은 그대로. 굵기 대비만 바꾸고 크기·줄은 그대로라 자리·검수는 기본안과 같다
+export const TITLE_EMPH = { light: 300, bold: 800 };
+function titleEmph(html, style, spec, ctx) {
+  if (style?.titleEmph !== 'mix' || spec?.mediumRules?.fonts?.required) return html;
+  const cl = String(ctx?.core?.client ?? '').trim();
+  const L = s => `<span data-emph="light" style="font-weight:${TITLE_EMPH.light}">${s}</span>`, B = s => `<span data-emph="bold" style="font-weight:${TITLE_EMPH.bold}">${s}</span>`;
+  return html.replace(/(<div data-field="main"[^>]*>)([\s\S]*?)(<\/div>)/, (all, open, inner, close) => {
+    if (/data-emph=/.test(inner) || /<div/.test(inner)) return all;
+    const segs = inner.split(/(<br\s*\/?>)/);
+    const lines = segs.filter((x, i) => i % 2 === 0);
+    if (lines.length >= 2 && lines[0].trim()) return open + segs.map((x, i) => i % 2 ? x : i === 0 ? L(x) : (x.trim() ? B(x) : x)).join('') + close;
+    if (cl && inner.includes(cl)) { const [a, ...rest] = inner.split(cl); const tail = rest.join(cl); return open + (a ? B(a) : '') + L(cl) + (tail.trim() ? B(tail) : tail) + close; }
+    return all;
+  });
 }
 // 로고는 원본 높이의 1.5배까지만 키운다 — 작은 원본을 프로필·로고 규격에 꽉 채우면 흐려진다(11-02 전수: low-res-logo 70장). 그 위로는 칸 안에서 그 크기로 둔다
 function logoCap(html, style) {

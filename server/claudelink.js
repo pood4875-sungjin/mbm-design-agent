@@ -62,11 +62,10 @@ export function judgePrompt({ transparent, ruleName }) {
     transparent ? '기준: 캐릭터 = 사람·동물·마스코트처럼 얼굴(머리)이 있는 것. 여럿 = 그런 것이 둘 이상 나란히. 오브젝트 = 사물·아이콘·건물·탈것·3D 물건(로켓·상자·폴더 등), 여럿이면 object-many.'
       : '기준: 실사 = 카메라로 찍은 사진(사람이 주인공이면 photo-person). 그래픽 = 일러스트·3D 렌더 — 눈에 띄는 오브젝트가 있으면 graphic-object, 결·곡선·도형 반복뿐이면 graphic-pattern.',
     '',
-    '그다음, 규칙이 기본안 옆에 만드는 추가 시안 세 개의 방향을 이 그림에 맞게 고른다(11-10 — 규칙이 그리고 너는 방향만):',
+    '그다음, 규칙이 기본안 옆에 만드는 추가 시안 중 A·B 의 방향을 이 그림에 맞게 고른다(11-10 — 규칙이 그리고 너는 방향만. C 타이포 강조형은 그림과 무관해 고르지 않는다):',
     `- A 정렬·비주얼: center(글자 가운데, 그림은 아래나 가득) | mirror(좌우를 바꿔 그림이 왼쪽) ${transparent ? '' : '| full(그림을 화면 가득 깔고 글자를 위에) '}— 그림의 주인공 위치·여백·좌우 대칭을 보고`,
     '- B 일정 태그: tag = both(라벨 태그 + 날짜 알약) | date(날짜 알약만) | label(라벨 태그만), shape = pill(둥근) | square(각진) — 그림 분위기(부드러움·둥근 형태면 pill, 반듯·기업적·각진 형태면 square)',
-    '- C 밝은 지면: light = true(흰·옅은 바탕에 이 그림이 잘 어울림) | false(그림이 어둡거나 바탕까지 꽉 찬 분위기라 밝은 바탕에 얹으면 어색함)',
-    `답: {"leaf":"<칸 id>","confidence":0~1,"reason":"한국어 한 문장","slots":{"A":"center|mirror${transparent ? '' : '|full'}","B":{"tag":"both|date|label","shape":"pill|square"},"C":{"light":true|false},"why":"한국어 한 문장"}}`,
+    `답: {"leaf":"<칸 id>","confidence":0~1,"reason":"한국어 한 문장","slots":{"A":"center|mirror${transparent ? '' : '|full'}","B":{"tag":"both|date|label","shape":"pill|square"},"why":"한국어 한 문장"}}`,
   ].join('\n');
 }
 export function parseJudge(text, transparent) {
