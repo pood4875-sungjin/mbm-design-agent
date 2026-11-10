@@ -122,6 +122,8 @@ export const CANON = {
   graphicSmooth: { roughMax: 0.016, satMin: 0.5 },
   // 11-10 캐릭터 떼: 누끼 윗선 봉우리가 이만큼 이상이면 사람·캐릭터 떼(사물 떼는 2)
   charGroupPeaks: 3, charGroupMaxParts: 7,
+  // 11-10 누끼 캐릭터는 아래 1/4 평균 폭이 최대 폭의 이만큼 이상(몸·다리) — 로켓처럼 아래로 가늘어지는 사물은 캐릭터가 아니다(kvtypes bottomMass)
+  charBottomMin: 0.35,
   // 11-10 떼를 틀 칸에 넣을 때 칸을 채우게 키우는 몫 — 가장자리가 잘려도 이만큼은 보인다(캐릭터 떼는 얼굴 때문에 더 보이게)
   groupFill: { visObject: 0.7, visChar: 1, maxH: 0.95, minGain: 1.05 },   // visChar 1 = 캐릭터 떼는 키우지 않는다(넘치면 가장자리 캐릭터 얼굴이 잘린다 — ABL 곰). 사물 떼만
   // 누끼 사람 떼(맞닿아 틈 열이 없는 떼): 윗선 봉우리 ≥ peaks 이고 가로로 넓으면(비율 ≥ minAr) 떼(ABL 6명 어깨동무 봉우리 7 · 장부 단일 사물 최대 3, 장식 프레임 5~7은 frame 이 먼저)

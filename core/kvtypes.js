@@ -126,6 +126,13 @@ const dist = (a, b) => {
 
 // 행 투명 프로필(rows, 누끼 32칸)의 머리 꼭대기 — 위 두 칸의 불투명 폭 / 가장 넓은 칸. 사람·캐릭터는 머리가 둥글어 0.00~0.14(동서 모델·연사·여우·강아지),
 // 세로로 긴 사물(상자·병·기둥)은 윗면이 평평해 0.35~0.57(taihan 상자 fig-17 0.50, 스타디움 0.57, 책 0.35). 프로필이 없으면 null(판정에 안 씀).
+// 11-10 아래 몸통(사용자 예시 로켓 누끼가 캐릭터로 잡힘): 행 프로필 아래 1/4 의 평균 불투명 폭 ÷ 최대 폭. 사람·캐릭터는 몸·다리가 바닥까지 넓다(0.5 이상: 여우 0.53·연사 0.7·동서 모델 0.8),
+//   비스듬히 선 사물(로켓)은 아래로 갈수록 가늘어진다(0.19). 프로필이 없으면 null(판정 안 바꿈)
+export function bottomMass(rows) {
+  if (!rows?.length || rows.length < 8) return null;
+  const op = rows.map(r => 1 - (r?.bg ?? 1)), mx = Math.max(...op); if (!(mx > 0)) return null;
+  const q = op.slice(Math.floor(op.length * 0.75)); return Math.round(q.reduce((a, v) => a + v, 0) / q.length / mx * 100) / 100;
+}
 export function headApex(rows) {
   if (!rows?.length || rows.length < 8) return null;
   const op = rows.map(r => 1 - (r?.bg ?? 1)), mx = Math.max(...op), mn = Math.min(...op);
@@ -171,7 +178,7 @@ export function kvTypeOf(kvMeta) {
     // 바탕 있는 그림은 주인공 상자가 바탕 일부를 품을 수 있어(삼성 3D 호) 예전대로 그림 비율로
     // 누끼는 상자 밀도도 본다(10-09 figma-dg): 사람·캐릭터 0.59~0.72(연사 둘·동서 모델·여우) — 별표 3D 0.48(팔이 뻗은 사물)·폴더·책 0.79~0.92(네모난 사물)는 캐릭터가 아니다
     // 사진은 인물 상자(Apple Vision 인물 분리, palette.js personFocus)로 잡은 주인공일 때만 인물 — 색 덩어리는 사람인지 모른다(10-12 hr-doctor·AI 간호사)
-    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 && !((headApex(f.rows) ?? 0) >= 0.3) : ar < 1.05)),   // 머리 꼭대기가 평평·넓으면(윗 두 칸 ≥ 최대 폭 30%) 세로 사물이지 사람이 아니다(11-03 fig-17 taihan 상자 0.50 vs 사람 ≤ 0.14)
+    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 && !((headApex(f.rows) ?? 0) >= 0.3) && !((bottomMass(f.rows) ?? 1) < (CANON.charBottomMin ?? 0.35)) : ar < 1.05)),   // 머리 꼭대기가 평평·넓으면(윗 두 칸 ≥ 최대 폭 30%) 세로 사물이지 사람이 아니다(11-03 fig-17 taihan 상자 0.50 vs 사람 ≤ 0.14)
     group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2) || crowdTop)),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
     // 장면 판정용 「덩어리 여럿」 — 연결 성분이 둘 이상이거나 열 봉우리 둘 이상(덩어리 하나에 속이 빈 고리는 아니다)
     multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 맞닿은 사람 떼(crowdTop)는 장면이 아니라 떼 — 장면의 「누끼 위 빈 곳까지 글자 겹침 허용」을 받으면 머리 위로 상세가 올라갔다(10-14 ABL 580×400·300×250)
