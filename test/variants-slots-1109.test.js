@@ -73,6 +73,6 @@ test('3슬롯: 규정 아닌 틀 규격은 기본안 + A·B·C(또는 대체) = 
   const stats = {}; const vs = variantCandidates('google-gdn-580x400', ctx, styleOf('ilhwa-photo'), { stats });
   assert.equal(vs.length, 4); const c = stats.slots.find(s => s.slot === 'C'); assert.equal(c.ok, false); assert.match(c.why.join(' '), /이음 쪽 밝기/);
   assert.ok(vs.some(v => v.trace.substitute), '대체 안에 실패 사유');
-  assert.equal(variantCandidates('jasoseol-pc-premium-popup-pc', ctx, styleOf('fox-cutout')).length, 1, '규정 매체는 1안');
+  assert.ok(variantCandidates('jasoseol-pc-premium-popup-pc', ctx, styleOf('fox-cutout')).slice(1).every(v => !('textAlign' in v.style) && !('infoTag' in v.style)), '규정 매체는 바탕 안만(11-10)');
   assert.equal(variantSubOf({ textAlign: 'center', kvPlace: 'bottom' }), '가운데 정렬 · 비주얼 아래 칸');
 });

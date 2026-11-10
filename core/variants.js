@@ -9,6 +9,7 @@ import { cleanAiSlots } from './aislots.js';
 import { renderArtifact } from './contract.js';
 import { adSpecEntries } from './adspecs.js';
 import { CANON } from './canon.js';
+import { deltaE } from './lint.js';
 import { familyById, familiesFor, familyStyle, frameFor, recipeEligible } from './recipes.js';
 import { shapeOf } from './layouts.js';
 import { contrast } from './palette.js';
@@ -26,7 +27,7 @@ export function variantCountFor(spec) {
   const V = CANON.variants ?? { regulated: 1, default: 3, free: 5 };
   if (!spec) return V.default;
   if (spec.mediumRules?.fonts?.required) return V.regulated;
-  if (spec.grade === 'B') return V.regulated;   // 로고·비주얼만 파일 규격(등급 B)은 글자·배치가 없어 안이 뜻이 없다(10-20 ZIP 확인: 네이버 네이티브에 3안이 생김)
+  if (spec.grade === 'B') return 1;   // 11-10: regulated 를 4 로 올리면서 분리(로고·비주얼만 파일은 그대로 1안)   // 로고·비주얼만 파일 규격(등급 B)은 글자·배치가 없어 안이 뜻이 없다(10-20 ZIP 확인: 네이버 네이티브에 3안이 생김)
   if (spec.grade === 'C') return V.free;
   return V.default;
 }
@@ -199,6 +200,9 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
   const maxRender = V.maxRender ?? 28;
   const out = []; const seen = new Set(); let rendered = 0; const hasKv = !!style?.keyVisual; let baseFixed = null, baseKv = null, baseTr = null, baseMc = null, baseMain = null;
   const slotLog = [];   // 슬롯마다 { slot, ok, style?, tried, why[] }
+  const banned = (spec.mediumRules?.backgroundColors?.banned ?? []).filter(b => /^#?[0-9a-f]{6}$/i.test(String(b)));
+  const rgbOf = h => { const n = parseInt(String(h).replace('#', ''), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  const nearHex = (c, b) => /^#?[0-9a-f]{6}$/i.test(String(c)) && rgbOf(c).every((v, i) => Math.abs(v - rgbOf(b)[i]) <= (CANON.bgBanned?.tol ?? 12));
   // 후보 하나 렌더 + 거르기 → rec 또는 { why }
   const tryCand = (cand, meta = {}) => {
     if (rendered >= maxRender) return { why: '렌더 상한' };
@@ -226,12 +230,16 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       if (cand.infoTag && Object.keys(cand).every(k => k === 'infoTag' || k === 'tagShape') && baseMain && mainTag && mainTag !== baseMain) return { why: '태그가 메인 칸을 바꿈' };
       if ((tr.tags ?? []).some(t => t.contrast < 4.5)) return { why: '태그 글자 대비 4.5 미만' };
       // R2(11-09): 가운데 정렬 전면 이미지 스크림이 0.9 로도 흰 글자 4.5:1 을 못 보장(렌더러 centerScrim.short) → 다른 A 변형으로
+      // 11-10 사용자 「이 케이스는 절대 못 쓰니까 추천하지 말고 삭제」(잡다 792×240 가운데 정렬): 사진 전면 위 가운데 글자에 국소 막(글자 밑 어두운 덩어리)이 깔리는 안 — 그림 주인공 위에 글자가 얹힌다
+      if (tr.scrim?.center?.mode === 'local') return { why: '가운데 글자 밑 국소 막(그림 위 글자 덩어리) — 안 씀' };
       if (tr.scrim?.center?.short) return { why: `가운데 전면 스크림 부족(필요 ${tr.scrim.center.need ?? '>0.95'} · 복잡도 ${tr.scrim.center.busy})` };
       // R2: 밝은 지면에서 로고가 안 보임 — 칠할 수 없는 타일 로고가 지면과 3:1 미만(렌더러 logo.light.low)
       if (cand.bgFill === 'light' && tr.logo?.light?.low) return { why: `밝은 지면 로고 대비 부족(타일 로고 ${tr.logo.light.min}:1)` };
       // R2: 「지면 반전」(bgFill brand)인데 지면이 기본안과 거의 같다(KG 브랜드 #F1F1F1 — 반전이 안 보임)
       if (cand.bgFill === 'brand' && !cand.tpl && meta.slot === 'C') { const a = lumOf(tr.field?.stops?.[0]), b = lumOf(baseTr?.field?.stops?.[0]); if (a != null && b != null && Math.abs(a - b) < 0.2) return { why: `지면 반전이 기본안과 비슷(밝기 ${Math.round(b * 100) / 100}→${Math.round(a * 100) / 100})` }; }
     }
+    // 11-10 규정 매체도 4안: 안의 지면이 매체 금지색(리멤버 #FFFFFF·#000000·#FF5414…)과 같거나 가까우면 버린다 — 기본안은 렌더러·검수가 따로 본다
+    if (keys.length && banned.length) { const hit = (tr.field?.stops ?? []).find(c => banned.some(b => deltaE(c, b) <= (spec.mediumRules?.backgroundColors?.blockDeltaE ?? 1) || nearHex(c, b))); if (hit) return { why: `매체 금지색에 가까운 지면 ${hit}` }; }
     const hash = htmlHash(html); if (seen.has(hash)) return { why: '기본안·다른 안과 같은 그림' };
     const ax = axesOf(cand, tr, spec, html);
     const rec = { id: out.length, slot: meta.slot ?? null, label: meta.label ?? (!keys.length ? '기본안' : cand.tpl ? axesLabel(ax) : labelOf(cand, spec)), sub: meta.sub ?? variantSubOf(cand, spec), style: cand, hash, axes: ax, trace: { rules: tr.rules ?? [], edit: tr.edit ?? null, place: tr.place ? { mode: tr.place.mode, objectSide: tr.place.objectSide } : null, ...(meta.substitute ? { substitute: meta.substitute } : {}), ...(tr.text?.light ? { light: tr.text.light } : {}) } };
