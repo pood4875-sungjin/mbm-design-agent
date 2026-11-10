@@ -1359,7 +1359,9 @@ function renderAdBase(ctx, style, spec) {
   // 사진이 오른쪽 열을 채우는 가로형: 우상단 로고는 사진 위에 얹히고, 로고 색(반전 흰색)은 지면 기준이라 밝은 사진(흰 벽·하늘) 위에서 사라진다(10-09 데스크탑: 사진 10건 × 가로 규격 7~20 「로고 가림」).
   // 로고는 글자 쪽 지면(좌상단)으로 — 배경형 우상단 주인공과 같은 원칙. 사진 전체형(군중)은 스크림 쪽이 이미 지면이라 그대로
   const photoCol = hasKv && kvKind === 'photo' && !photoFull && !roomFull && !textureFull && !tImage && !rules.objectBox && (L.shape === 'wide' || L.object === 'right');
-  if (photoCol && logoPlace === 'top-right') logoPlace = 'top-left';
+  // 11-10 밤: 가로형은 사진이 있어도 로고 오른쪽 위(사용자 1회차 12 「다른 가로형과 규칙이 다르다」 · 왼쪽 위 로고가 가운데 정렬 타이틀과 겹침 — 메인 빅·커튼). 사진은 로고 아래부터(objTop)
+  const wideLogoRight = L.shape === 'wide' && !CANON.lockedMedia.includes(spec.medium);
+  if (photoCol && logoPlace === 'top-right' && !wideLogoRight) logoPlace = 'top-left';
   // 가이드 매체의 정사각형 지면(구글 580×400): 템플릿 '이미지 영역'은 오른쪽 열이 아니라 우하단 모서리 상자(297×239, y163~) —
   // 서브·메인은 그 위를 전폭으로 쓰고 상세만 상자 왼쪽 열에 선다(일화·비씨월드·동부). 오른쪽 열로 두면 글자 칸이 반으로 줄어 메인이 세 줄로 접힌다
   // 가로로 긴 누끼(ABL 캐릭터 AR 2.9)는 모서리 상자에 가두면 작아진다 — 하단 띠(전폭)로
@@ -2711,7 +2713,7 @@ function renderAdBase(ctx, style, spec) {
   const boxLayer = b => { const c = isCutout ? null : subjectCrop(style, b.w, b.h);
     return `<div data-object="1" style="position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:url('${esc(style.keyVisual)}') ${isCutout ? 'center/contain' : c ? `${c.pos}/${c.size}` : `${kvPos}/cover`} no-repeat;overflow:hidden"></div>`; };
   // 오른쪽 열 오브젝트가 로고 자리(우상단)까지 올라오면 로고를 가린다(970 여우) — 누끼·일러스트는 로고 띠 아래부터. 사진은 하늘 위에 로고가 얹혀도 된다(일화 970)
-  const objTop = (absLogo && logoBox && logoPlace === 'top-right' && kvKind !== 'photo') ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5)
+  const objTop = (absLogo && logoBox && logoPlace === 'top-right' && (kvKind !== 'photo' || (L.shape === 'wide' && !CANON.lockedMedia.includes(spec.medium)))) ? logoBox.top + logoBox.h + Math.round(logoBox.h * 0.5)
     : (stripLogoTR && flexLogo && kvKind !== 'photo') ? Math.max(6, Math.round(h * CANON.framePad.logoWide)) + stripLogoH + Math.round(stripLogoH * 0.4) : 0;   // 띠 오른쪽 위 로고(피드백 12) 아래부터 그림
   const bleedRight = bw => hasKv ? (bleedP ? bleedLayer(style, bleedP, w, h) : oBox ? boxLayer(oBox) : kvLayer(style, field, { side: 'right', w, h, size: bw, edgePad: pad.right, inset: edgeSolid ? pad.right : 0, melt: !transparent, top: objTop }))
     : logoAsObject ? logoZone(w - bw - pad.right, pad.top, bw, h - pad.top - pad.bottom) : '';

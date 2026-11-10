@@ -69,3 +69,11 @@ test('20자 붙임 회사명: 띠·가로형은 줄 제한에 잘리지 않게 �
   const sb = tr(renderArtifact('albamon-pc-sub-bottom', ctx, st));
   assert.ok(!/^한국마이다스아이티글로벌엔지니어링솔루션 신입/.test(sb.copy.main) || sb.rules.includes('mainWrapGuard'), sb.copy.main);
 });
+
+test('가로형 × 사진: 로고는 오른쪽 위(다른 가로형과 같게), 사진은 로고 아래부터 — 잠긴 매체는 예전대로', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js');
+  const ctx = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', startDate: '2026-11-12', deadline: '2026-11-25' }, 'recruit');
+  const st = normalizeStyle({ colors: ['#5A3018'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.58, field: { kind: 'photo', opaque: 1, focus: { x: 0.45, y: 0.62, w: 0.58, h: 0.76 } } }, logo: 'data:image/png;base64,iVBORw0KGgo=', logoMeta: { px: [437, 128], tone: 'dark' } });
+  for (const sid of ['albamon-pc-main-big', 'albamon-m-sub']) { const h = renderArtifact(sid, ctx, st); const slot = h.match(/data-logo-slot="1" style="([^"]*)"/)?.[1] ?? ''; assert.match(slot, /right:\d+px/, `${sid} ${slot}`); }
+});
