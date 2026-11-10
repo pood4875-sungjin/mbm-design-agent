@@ -90,7 +90,7 @@ export function layoutFor(w, h) {
       main: r(w * 0.15), mainLine: 1.4, mainLines: 4,
       sub: Math.max(9, r(w * 0.1)), subLine: 1.32, subWeight: 700, subAbove: true, gapSub: 0.8,
       detail: Math.max(9, r(w * 0.081)), detailLine: 1.65, gapDetail: 1.0, detailLabelBold: true,
-      object: 'bottom', objectH: r(h * 0.33),
+      object: 'bottom', objectH: r(h * 0.5),   // 11-10 밤: .33 → .5 — 120×600 에서 글자 아래·그림 위가 38~43% 비었다(사진·오브젝트+배경·사람 여럿)
       logo: 'top-center', logoH: Math.max(12, r(h * 0.046)), logoTop: r(h * 0.04),
     };
   }

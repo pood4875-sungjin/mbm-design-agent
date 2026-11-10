@@ -3291,7 +3291,7 @@ ${tplLogo}
   if (want.notice) tail.push(T('notice', copy.notice, noticeFs, fwOf('notice', noticeFs), subFg, `${logoAtBottom ? '' : 'margin-top:auto;'}padding-top:6px;opacity:.9`, noticeLines));
   if (lg && logoAtBottom) tail.push(logoRow);
   if (!(imgCorner && hasKv)) {
-    if (distribute && !anchorJ && (splitGap || towerCopyOnly)) { const at = (lg && !logoAtBottom) ? 1 : 0; parts.splice(at, 0, `<div style="flex:${towerCopyOnly ? 1 : 0.8} 1 auto;min-height:0"></div>`); }
+    if (distribute && !anchorJ && (splitGap || towerCopyOnly) && !(L.shape === 'tower' && !mold)) { const at = (lg && !logoAtBottom) ? 1 : 0; parts.splice(at, 0, `<div style="flex:${towerCopyOnly ? 1 : 0.8} 1 auto;min-height:0"></div>`); }
     // 11-10 피드백 10·34·5: 자유 레이아웃은 타이틀↔서브텍스트를 띄우지 않는다(타이틀 글자의 0.8배까지) — 남는 높이는 글자 묶음 아래로. 틀(샘플·공식 템플릿)은 그대로 바닥 정렬
     if (distribute && !anchorJ && mold) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
     parts.push(...tail);
