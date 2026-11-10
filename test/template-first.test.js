@@ -399,9 +399,9 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.match(hi, /data-field="detail"[^>]*font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/, '모집직무 Bold 43 가운데');
   assert.doesNotMatch(detailOf(hi), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
   assert.match(hi, /data-logo-slot="1" style="position:absolute;left:835px;top:45px;width:195px;height:39px;[^"]*justify-content:flex-end/, '로고 오른쪽 위 (835,45) 195×39');
-  assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 262, y: 587, w: 818, h: 493 });   // 10-19: 786 → 818 (오른쪽 가장자리까지)
-  assert.deepEqual(ti.place.tImage, { x: 262, y: 587, w: 818, h: 493 }); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)'); assert.ok(!ti.rules.includes('templateMold.slotBleed'), '인스타는 모서리 칸이어도 블리드 없음(image.bleed false)');
-  { const ob = hi.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && +ob[1] + +ob[3] === 1080 && +ob[2] + +ob[4] === 1080, '키비주얼 그림 오른쪽·바닥 맞닿음(10-19 우측 여백 0): ' + (ob && ob[0])); }
+  assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 131, y: 587, w: 818, h: 493 });   // 10-19: 786 → 818 (오른쪽 가장자리까지) · 11-10: 누끼면 칸이 가운데(실제 그린 칸)
+  assert.deepEqual(ti.place.tImage, { x: 131, y: 587, w: 818, h: 493 }, '11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함」: 가운데 틀의 누끼는 칸도 가운데'); assert.ok(ti.rules.includes('templateMold.cutoutCenter')); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)'); assert.ok(!ti.rules.includes('templateMold.slotBleed'), '인스타는 모서리 칸이어도 블리드 없음(image.bleed false)');
+  { const ob = hi.match(/data-object="1"[^>]*style="position:absolute;left:(-?\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/); assert.ok(ob && Math.abs(+ob[1] + +ob[3] / 2 - 556) <= 2 && +ob[2] + +ob[4] === 1080, '누끼는 글자 축(틀 글자 열 가운데 556)에 가운데 · 바닥 맞닿음(11-10): ' + (ob && ob[0])); }
   const tk = traceOf(renderAd(ctx, glass, specs['kakao-bizboard-mo'])); assert.equal(tk.mode, 'templateMold'); assert.deepEqual([tk.mold.rows.main.y, tk.mold.rows.main.px, tk.mold.rows.main.pitch, tk.mold.rows.main.weight, tk.mold.rows.sub.y, tk.mold.rows.sub.px, tk.mold.rows.sub.weight], [91, 46, 57, 700, 162, 38, 400], '카카오 비즈보드 960×300 공식: 메인 Bold 46 · 서브 Regular 38'); assert.deepEqual(tk.place.tImage, { x: 603, y: 0, w: 314, h: 300 });   /* glass 는 누끼 → 공식 오브젝트 칸 */
 });
 

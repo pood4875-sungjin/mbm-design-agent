@@ -50,7 +50,7 @@ export function textAlignOf(style, spec) {
 export function mirrorSlot(r, w, align) {
   if (!r) return r;
   if (align === 'right') return { ...r, x: Math.max(0, Math.round(w - r.x - r.w)) };
-  if (align === 'center') return { ...r, x: Math.max(0, Math.round((w - r.w) / 2)) };
+  if (align === 'center') return { ...r, x: r.w > w ? Math.round((w - r.w) / 2) : Math.max(0, Math.round((w - r.w) / 2)) };   // 11-10: 지면보다 넓은 블리드 칸(구글 300×600 x−49 w397)은 음수 그대로 가운데 — 0 으로 묶으면 오른쪽으로 49px 밀렸다
   return { ...r };
 }
 

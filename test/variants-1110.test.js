@@ -48,3 +48,17 @@ test('사진·그래픽을 가득 깔고 가운데 글자를 얹는 안은 빼�
       assert.ok(!tr(renderArtifact(sid, ctx, { ...st, ...v.style })).scrim?.center, `${id} ${sid} ${JSON.stringify(v.style)}`);
   }
 });
+
+test('누끼는 글자 정렬을 따라가요(11-10) — 가운데면 글자·로고·누끼가 한 축 · 인스타 피드 기본안도 가운데 · 글자 줄을 덮는 안은 빼요', async () => {
+  const { objBoxOf } = await import('../core/variants.js'); const { specOf } = await import('../core/media.js');
+  const cut = id => { const m = JSON.parse(readFileSync(new URL(`../ref/learned/cases/${id}/meta.json`, import.meta.url), 'utf8')); return normalizeStyle({ colors: ['#1428A0'], keyVisual: KV, kvMeta: m, logo: KV, logoMeta: { px: [400, 100], tone: 'dark' } }); };
+  const axisOff = (sid, st) => { const h = renderArtifact(sid, ctx, st), t = tr(h), ob = objBoxOf(h, specOf(sid)); const rows = t.textBox.rows.filter(r => r.role === 'main'); const ax = rows.reduce((a, r) => a + r.x + r.w / 2, 0) / rows.length; return Math.abs(ob.x + ob.w / 2 - ax) / specOf(sid).w; };
+  for (const id of ['ex-rocket-cut', 'ex-cart', 'ex-walk-people']) {
+    assert.ok(axisOff('google-gdn-580x400', { ...cut(id), textAlign: 'center' }) < 0.03, `${id} 580 가운데`);
+    assert.ok(axisOff('instagram-feed-1080', cut(id)) < 0.03, `${id} 인스타 피드 기본안`);
+    assert.ok(axisOff('everytime-home-card-image', { ...cut(id), textAlign: 'center' }) < 0.03, `${id} 에브리타임 홈카드 가운데`);
+  }
+  const ctx2 = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', role: '연구개발, 기술영업, 경영지원', startDate: '2026-11-12', deadline: '2026-11-25', rows: [{ label: '근무지', value: '판교' }] }, 'recruit');
+  const vs = variantCandidates('albamon-pc-company-left', ctx2, cut('ex-rocket-cut'));
+  assert.ok(!vs.some(v => v.style.textAlign === 'center'), '알바몬 기업 왼쪽: 로켓이 마지막 글자 줄을 덮는 가운데 안은 안 나와요');
+});
