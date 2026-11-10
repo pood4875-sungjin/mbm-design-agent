@@ -429,6 +429,29 @@
   #inspector input[type=range]{-webkit-appearance:none;appearance:none;height:4px;margin:0;border-radius:2px;background:var(--line)}
   #inspector input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.2)}
   #inspector input[type=range]:disabled{opacity:.4}
+  /* 11-10 hub 이식 1·2단계 — 이미지 요소 패널(app/artkv.js): 정렬 6 · 크기+비율 · 외관(칸 + 파랑 슬라이더 + 눈) · 채움 행(썸네일 24 · 맞춤 · 🖼) */
+  .falign{display:flex;align-items:center;gap:0;height:32px;padding:0 2px;background:var(--soft);border-radius:5px}
+  .falign .fib{flex:1;width:auto;height:28px}
+  .falign .fsep{width:1px;height:16px;background:var(--line);margin:0 2px;flex:none}
+  .frow3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 24px;gap:8px;align-items:center}
+  .frow3.wh{grid-template-columns:1fr 1fr 24px}
+  .fline2{display:flex;gap:4px}
+  .fib[aria-pressed="true"]{background:color-mix(in srgb,var(--focus) 14%,transparent);color:var(--focus)}
+  .fib[aria-pressed="true"]:disabled{background:transparent;color:var(--sub)}
+  #inspector input[type=range].fslider{width:100%;background:linear-gradient(to right,var(--focus) var(--p,0%),var(--line) var(--p,0%))}
+  .fimgrow{display:grid;grid-template-columns:24px minmax(0,1fr) 24px;gap:6px;align-items:center;min-height:32px;padding:0 4px;background:var(--soft);border-radius:5px;margin-top:4px}
+  .fimgrow select{height:24px;min-height:24px;padding:0 4px;background-color:transparent;border:0;font-size:11px}
+  .fimgsw{width:24px;height:24px;border-radius:3px;background:var(--card) center/cover no-repeat;box-shadow:inset 0 0 0 1px var(--line)}
+  .fimgsw.logo{background-size:contain}
+  .fimgsw.logo.dark{background-color:#2a2a2a}
+  .fimgname{font-size:11px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fchk{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--ink);cursor:pointer}
+  .fchk input{width:14px;height:14px;margin:0;accent-color:var(--focus)}
+  #inspector .isec .flab.sub + .falign,#inspector .isec .flab.sub + .fgrid2,#inspector .isec .flab.sub + .frow3{margin-top:2px}
+  #inspector .isec .flab.sub{margin-top:8px}
+  .frame.drop-kv .fbody{outline:3px solid var(--focus);outline-offset:2px}
+  .esel-size{position:absolute;left:50%;top:100%;transform:translateX(-50%) scale(calc(1 / var(--z,1)));transform-origin:50% 0;margin-top:3px;padding:1px 5px;border-radius:3px;background:var(--focus);color:#fff;font:600 10px/14px var(--font, inherit);white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
+  .esel.oob .esel-size{background:var(--danger)}
   /* 그라데이션 편집기(app/gradedit.js) — 종류 · 각도 / 막대 · 손잡이 / 정지점 행 */
   .gedit{display:flex;flex-direction:column;gap:6px;--fsel-bg:color-mix(in srgb,var(--focus) 14%,transparent)}
   .gtop{display:grid;grid-template-columns:1fr 64px 24px 24px;gap:4px;align-items:center}

@@ -44,6 +44,8 @@ import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { createElementSelect } from './elselect.js';   // 11-02 프레임 안 요소 고르기
+import { createArtKv } from './artkv.js';   // 11-10 hub 이식 1·2단계 — 이미지 요소 패널(이 소재만 그림·로고 바꾸기 · 외관 · 정렬)
+import { ART_ASSET_KEYS } from '../core/artasset.js';   // 11-10 hub 이식 — 이 소재 그림·로고 개별값
 import { createRuler } from './ruler.js';
 import { applyElementEdits, applyRuns, elementFontIds, elementName, parseElementId, withElementEdit, addRun, stripRuns, scaleRuns, STYLE_ROLES, WEIGHTS, WEIGHT_NAME } from '../core/elementedit.js';
 import { createCharSel, rangeStyle } from './charsel.js';   // 11-09 글자 범위 색(드래그로 고른 글자만)
@@ -239,6 +241,15 @@ const EL = createElementSelect({
   aiOpen: (a, id, anchor) => ELAI.open(a, id, anchor), aiIcon: AI_ICON,
 });
 // 요소 AI 편집(11-10, app/elai.js · core/elementai.js · server/elementedit.js) — 재료(ctxOf)와 적용(applyElOps, 되돌리기 한 걸음)
+// 11-10 hub 이식 1·2단계(app/artkv.js): 이미지 요소 패널 — 이 소재만 그림·로고(채움) · 외관 · 정렬 · 캔버스에 파일 끌어 놓기
+const AK = createArtKv({
+  state, SPECS, frames, EL, refOf, escH: v => escH(v), ic, iconBtn, numField, toast: (t, ms) => toast(t, ms),
+  elCommit: (a, patch, label, coalesce) => elCommit(a, patch, label, coalesce), live: (a, x) => LIVE.push({ style: state.campaign.style, only: a.key ?? a.specId, ...x }),
+  select: (k, el) => select(k, el), partsOf: a => ED.partsOf(a),
+  prepKv: d => prepKv(d), analyzeKeyVisual: d => analyzeKeyVisual(d), rolesFromAssets: o => rolesFromAssets(o), paletteOf: roles => normalizeStyle({ colors: roles, mode: state.campaign.style.mode }).palette,
+  prepLogo: d => prepLogo(d), logoToneOf: d => logoToneOf(d), logoMetaOfUrl: d => logoMetaOfUrl(d),
+  campaignKvFile: f => { select(null); const inp = $('iKvFile'); if (!inp) { toast('오른쪽 패널에서 키비주얼을 바꿔 주세요'); return; } const dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files; inp.dispatchEvent(new Event('change')); },   // hub 이식: 빈 곳에 놓기 = 선택 없음 「키비주얼 바꾸기」와 같은 길
+});
 const ELAI = createElAi({ ctxOf: (a, id) => elAiCtx(a, id), apply: (a, id, ops, label) => applyElOps(a, id, ops, label), undo: () => undo(), health: () => freeHealth(), toast: t => toast(t) });
 const cssHex = v => { const m = String(v ?? '').match(/[\d.]+/g); return m && m.length >= 3 ? '#' + m.slice(0, 3).map(x => Math.round(+x).toString(16).padStart(2, '0')).join('').toUpperCase() : null; };
 function elAiCtx(a, id) {
@@ -2939,7 +2950,7 @@ function renderLeft() {
 }
 
 /* ═══ 오른쪽 패널 범위(11-02 사용자 「개별과 일괄도 잘 정리」) — 전체 일괄 / 이 소재만 / 이 요소만. 지금 범위를 맨 위에 ═══ */
-const OV_GROUP = { visual: ['kvPlace', 'kvSize', 'scrim'], bg: ['bgFill', 'bgGrad', 'background'], color: ['palette'], text: ['fonts', 'textTone', 'textColor', 'textAlign', 'textAnchor', 'roleColors', 'roleScale'] };
+const OV_GROUP = { visual: ['kvPlace', 'kvSize', 'scrim'], bg: ['bgFill', 'bgGrad', 'background'], color: ['palette'], text: ['fonts', 'textTone', 'textColor', 'textAlign', 'textAnchor', 'roleColors', 'roleScale'], asset: ART_ASSET_KEYS };   // asset: 11-10 hub 이식 — 이 소재만 그림·로고
 const OV_KEYS = Object.values(OV_GROUP).flat();
 const ownStyleKeys = a => Object.keys(a?.overrides?.style ?? {}).filter(k => OV_KEYS.includes(k));
 function ownCount(a) { return ownStyleKeys(a).length + Object.keys(a?.overrides?.layout ?? {}).length + Object.keys(a?.overrides?.elements ?? {}).length; }
@@ -3001,15 +3012,11 @@ function elementPanelHtml(a, spec, id) {
   // 11-10 피그마 UI3 글자 패널: 글자 편집 중 끌어 고른 범위가 있으면 아래 「글자」·「칠」 칸이 그 범위의 값(섞이면 혼합)을 보이고 그 범위에 먹는다
   const pk = CS.on && CS.key === (a.key ?? a.specId) && CS.pick?.id === id ? CS.pick : null;
   const posRow = `<div class="fgrid2">${numField({ id: 'iElX', value: r1(box.x), label: 'X 위치', prefix: 'X' })}${numField({ id: 'iElY', value: r1(box.y), label: 'Y 위치', prefix: 'Y' })}</div>`;
-  if (it.kind !== 'text') {
+  if (it.kind !== 'text') {   // 11-10 hub 이식: 이름 · 정렬 · 위치 · 크기(비율 고정) → 외관 → 채움(이 소재만 그림·로고) — app/artkv.js
     const P = ED.partsOf(a), why = !P?.[it.kind] ? P?.why?.[it.kind] : null;
-    return `<section class="isec">${head}
-      ${posRow}
-      <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비', prefix: 'W' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이', prefix: 'H' })}</div>
-      ${why ? '<div class="fnote">틀이 정한 칸 · 옮기면 검수에 걸릴 수 있어요</div>' : ''}
-      </section>
-      ${it.kind === 'kv' ? `<section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}
-      <button class="btn" data-goall="kv" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button></section>` : `<section class="isec"><button class="btn" data-goall="logo" style="width:100%">로고 바꾸기</button></section>`}`;
+    const sizeRow = `${numField({ id: 'iElW', value: r1(box.w), label: '너비', prefix: 'W' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이', prefix: 'H' })}`;
+    return AK.boxHtml(a, it, head, posRow, sizeRow, why ? '<div class="fnote">틀이 정한 칸 · 옮기면 검수에 걸릴 수 있어요</div>' : '')
+      + (it.kind === 'kv' ? `<section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}</section>` : '');
   }
   const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el);
   // 오토레이아웃(11-09 2b): 옮긴 글자 = 자유 위치(스택에서 빠짐). 다른 글자와 겹치면 경고 · 「자동 배치로 되돌리기」
@@ -3115,6 +3122,7 @@ function bindElementPanel(insp, a, c, spec, id) {
   const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
   const q = s => insp.querySelector(s);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
+  if (role === 'kv' || role === 'logo') AK.bind(insp, a, id);   // 11-10 hub 이식 — 외관·정렬·채움
   q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null }) }, `${elementName(id)} 자동 배치로`));
   // 11-10 글자·칠 칸: 고른 범위(pk)가 있으면 범위에, 없으면 요소 전체에(그 속성의 범위 서식은 걷어 낸다 — 피그마처럼 전체 값이 이긴다)
   const pk = CS.on && CS.key === key && CS.pick?.id === id ? CS.pick : null;

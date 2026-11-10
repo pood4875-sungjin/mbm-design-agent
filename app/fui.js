@@ -23,6 +23,19 @@ const ICONS = {
   fsize: s(`<path d="M2.5 13l3.5-9 3.5 9M3.8 10h4.4M10 13l2-5 2 5M10.7 11.5h2.6" ${L}/>`),
   eye: s(`<path d="M1.5 8C3 5.3 5.3 4 8 4s5 1.3 6.5 4C13 10.7 10.7 12 8 12S3 10.7 1.5 8z" ${L} stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor"/>`),
   'eye-off': s(`<path d="M1.5 6.5C3 8.7 5.3 10 8 10s5-1.3 6.5-3.5M4 9l-1.5 1.5M12 9l1.5 1.5M8 10v2M5.8 9.7l-.8 1.8M10.2 9.7l.8 1.8" ${L}/>`),
+  // 11-10 hub 이식 — 이미지 요소 패널(정렬 6 · 뒤집기 · 모서리 · 불투명도 · 비율 · 그림 바꾸기), hub/fui/icons3.js 와 같은 모양
+  'al-l': s(`<path d="M2.5 2v12" ${L}/><rect x="4.5" y="4.5" width="8" height="2.5" fill="currentColor"/><rect x="4.5" y="9" width="5" height="2.5" fill="currentColor"/>`),
+  'al-c': s(`<path d="M8 2v12" ${L}/><rect x="3" y="4.5" width="10" height="2.5" fill="currentColor"/><rect x="5" y="9" width="6" height="2.5" fill="currentColor"/>`),
+  'al-r': s(`<path d="M13.5 2v12" ${L}/><rect x="3.5" y="4.5" width="8" height="2.5" fill="currentColor"/><rect x="6.5" y="9" width="5" height="2.5" fill="currentColor"/>`),
+  'al-t': s(`<path d="M2 2.5h12" ${L}/><rect x="4.5" y="4.5" width="2.5" height="8" fill="currentColor"/><rect x="9" y="4.5" width="2.5" height="5" fill="currentColor"/>`),
+  'al-m': s(`<path d="M2 8h12" ${L}/><rect x="4.5" y="3" width="2.5" height="10" fill="currentColor"/><rect x="9" y="5" width="2.5" height="6" fill="currentColor"/>`),
+  'al-b': s(`<path d="M2 13.5h12" ${L}/><rect x="4.5" y="3.5" width="2.5" height="8" fill="currentColor"/><rect x="9" y="6.5" width="2.5" height="5" fill="currentColor"/>`),
+  'flip-v': s(`<path d="M2 8h12" ${L} stroke-dasharray="1.5 1.5"/><path d="M4 6L8 2.5 12 6zM4 10l4 3.5 4-3.5z" ${L} stroke-linejoin="round"/>`),
+  radius: s(`<path d="M3.5 13V7a3.5 3.5 0 013.5-3.5h6" ${L}/>`),
+  opacity: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="2" ${L}/><path d="M5 5h2v2H5zM9 5h2v2H9zM7 7h2v2H7zM5 9h2v2H5zM9 9h2v2H9z" fill="currentColor"/>`),
+  ratio: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="2" ${L}/><path d="M6 10l4-4M6.5 6h3.5v3.5" ${L}/>`),
+  lock: s(`<path d="M5 7V5a3 3 0 016 0v2" ${L}/><rect x="3.5" y="7" width="9" height="6.5" rx="1" ${L}/>`),
+  img: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="1.5" ${L}/><path d="M3 12l3.5-4 2.5 3 1.5-1.5L13 12" ${L} stroke-linejoin="round"/><circle cx="10.5" cy="5.5" r="1" fill="currentColor"/>`),
 };
 export const ic = name => ICONS[name] ?? '';
 
