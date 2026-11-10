@@ -478,12 +478,7 @@
   /* 11-10 hub 이식 5단계 — 작업 화면 스타일(hub ui3): 주 버튼 파랑 · 머리 버튼 r5/32 · 패널 선 #E6E6E6 · 하단 가운데 떠 있는 툴바(r13 · 불투명 · 버튼 40 r9) */
   body .hbtn.pri,body header .hbtn.pri,body .btn.pri{background:var(--pri);color:var(--on-pri);border-color:transparent}
   body .hbtn.pri:hover,body header .hbtn.pri:hover,body .btn.pri:hover{background:var(--pri);opacity:.9}
-  body[data-view="work"] header .hbtn{height:32px;border-radius:var(--r-in);padding:0 12px;font-size:12px;font-weight:500}
-  /* 11-10 오후 — 작업 화면 머리 48(hub 탭스트립 문법): 불투명 판 · 아래 1px 선 · 그림자·유리 없음 · 로고 글자 13/600 */
-  body[data-view="work"]{--gnb:48px}
-  body[data-view="work"] header{height:var(--gnb);padding:0 8px 0 12px;background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:1px solid var(--border);box-shadow:none}
-  body[data-view="work"] header .logo{height:32px;font-size:13px;font-weight:600;margin-right:2px}
-  body[data-view="work"] header .hbtn.icon{width:32px;padding:0}
+  /* 11-10 저녁 사용자 「GNB만 이전으로 — 앞 플로우와 같은 느낌이어야 연결된 플로우」: 작업 화면 머리도 홈·인테이크와 같은 52 유리 머리(작업 화면 전용 48·불투명 덮어쓰기 걷음) */
   #inspector,#leftPanel,.isec,.scope,#leftPanel .lhead{border-color:var(--border)}
   #inspector .isec,#leftPanel .isec{border-bottom-color:var(--border)}
   #work #boardCtl{left:calc(var(--lw) + (100% - var(--lw) - var(--rw)) / 2);right:auto;transform:translateX(-50%);gap:0;padding:4px;background:var(--panel);border-radius:var(--r-tool);box-shadow:var(--sh-menu);align-items:center}
@@ -1133,51 +1128,8 @@
   .kvauto:hover,.kvrep:hover{background:rgba(0,0,0,.85)}
 
   /* ═══ 11-10 hub 2차 — 작업 화면 전체를 hub/pro 편집 화면(피그마 UI3) 문법으로 (hub/fui/ui3.css 근거) ═══
-     머리 = 탭스트립 40(연회색 · 홈 칸 46 · 활성 탭 흰 · + 칸 44) / 오른쪽 패널 머리 48(… · 내보내기 주 버튼) /
+     (머리줄 GNB 는 11-10 사용자 「GNB만 이전으로」— 48 흰 머리 유지) /
      섹션 머리 40 · 12/600 · 꼬리표 18 r4 / 썸네일·입력 r5 연회색 · 점선 없음 / 버튼 32 r5 · 링크형은 고스트 24 */
-  :root{--tabstrip:#F3F3F3}
-  @media (prefers-color-scheme: dark){ :root{--tabstrip:#18181b} }
-  .logo .hico,.tabic{display:none}
-  body[data-view="work"]{--gnb:40px}
-  body[data-view="work"] header{height:40px;padding:0;gap:0;background:var(--tabstrip);border-bottom:1px solid var(--border)}
-  body[data-view="work"] #backBtn{display:none}
-  body[data-view="work"] header .logo{display:grid;place-items:center;width:46px;height:40px;margin:0;padding:0;border-radius:0;border-right:1px solid var(--border);color:var(--sub)}
-  body[data-view="work"] header .logo:hover{background:transparent;color:var(--ink)}
-  body[data-view="work"] header .logo .hico{display:block;width:16px;height:16px;fill:currentColor;stroke:none}
-  body[data-view="work"] header .logo .ltxt{display:none}
-  body[data-view="work"] .wsmenu{height:40px;align-self:stretch}
-  body[data-view="work"] header #wsBtn{height:41px;margin-bottom:-1px;width:240px;max-width:40vw;border:0;border-right:1px solid var(--border);border-radius:0;background:var(--panel);padding:0 12px 0 14px;gap:8px;font-size:12px;font-weight:400;justify-content:flex-start}
-  body[data-view="work"] header #wsBtn:hover{background:var(--panel)}
-  body[data-view="work"] header #wsBtn .tabic{display:block;width:16px;height:16px}
-  body[data-view="work"] header #wsBtn > svg:last-child{width:12px!important;height:12px!important;color:var(--sub)}
-  body[data-view="work"] #campPill{font-size:12px;font-weight:500;padding:0;flex:1;min-width:0;max-width:none}
-  body[data-view="work"] header #newBtn{width:44px;height:40px;border:0;border-radius:0;background:none;color:var(--sub)}
-  body[data-view="work"] header #newBtn:hover{color:var(--ink);background:none}
-  body[data-view="work"] header #newBtn svg,body[data-view="work"] header #keyBtn svg{width:16px;height:16px}
-  body[data-view="work"] header #keyBtn{width:28px;height:28px;margin-right:8px;border:0;background:none;color:var(--sub);border-radius:var(--r-in)}
-  body[data-view="work"] header #keyBtn:hover{background:var(--hover);color:var(--ink)}
-  body[data-view="work"] .wsPop{top:calc(100% + 4px);background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none;border:0;border-radius:var(--r-menu);box-shadow:var(--sh-menu);padding:8px}
-  body[data-view="work"] .wsItem{border-radius:6px;height:32px;padding:0 12px;font-size:12px;font-weight:400}
-  body[data-view="work"] .wsItem:hover{background:var(--sel)}
-  body[data-view="work"] .wsHead{font-size:11px;font-weight:600;height:28px;padding:0 12px;display:flex;align-items:center}
-
-  /* 오른쪽 패널 머리 48 — hub: … · 내보내기(주). 선택하기·전체 승인은 고스트 */
-  #rTop{position:absolute;top:var(--gnb,52px);right:0;width:var(--rw);height:48px;display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);border-left:1px solid var(--border);border-bottom:1px solid var(--border);z-index:11}
-  #rTop .spacer{flex:1}
-  #rTop .hbtn{height:28px;padding:0 8px;border:0;border-radius:var(--r-in);background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;font-size:11px;font-weight:500;color:var(--ink)}
-  #rTop .hbtn:hover{background:var(--hover)}
-  #rTop .hbtn.pri{height:32px;padding:0 12px;background:var(--pri);color:var(--on-pri);font-size:12px}
-  #rTop .hbtn.pri:hover{background:var(--pri);opacity:.9}
-  #rTop #selectMode.on{background:var(--sel);color:var(--focus)}
-  #work:not(.noR) #inspector{top:calc(var(--gnb,52px) + 48px)}
-  #work.noR #rTop{width:auto;border-radius:0 0 0 var(--r-card);box-shadow:var(--sh-menu);border:0}
-  @media (max-width:768px){
-    #rTop{width:auto;border-radius:0 0 0 var(--r-card);box-shadow:var(--sh-menu);border:0}
-    #work:not(.noR) #inspector{top:auto}
-    body[data-view="work"] header .logo{display:grid}
-    body[data-view="work"] header #wsBtn{width:auto;max-width:60vw}
-  }
-
   /* 패널 안 */
   #inspector .scope{padding:0 16px 8px;gap:8px;border-bottom:1px solid var(--border)}
   #inspector .rtabs{height:40px;align-items:center;margin:0 -8px;gap:0}
@@ -1237,14 +1189,18 @@
 </head>
 <body data-view="home">
 <header>
-  <div class="logo" id="homeBtn" role="button" tabindex="0" aria-label="홈으로" title="홈으로"><svg class="ic hico" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5l2.2 2.2L12 7.9 9.8 5.7zM12 16.1l2.2 2.2-2.2 2.2-2.2-2.2zM5.7 9.8l2.2 2.2-2.2 2.2L3.5 12zM18.3 9.8l2.2 2.2-2.2 2.2-2.2-2.2z"/></svg><span class="ltxt">Campaign Agent</span></div>
+  <div class="logo" id="homeBtn" role="button" tabindex="0" aria-label="홈으로" title="홈으로">Campaign Agent</div>
   <button class="hbtn icon" id="backBtn" aria-label="뒤로 — 홈으로" title="뒤로"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <details class="wsmenu" id="wsMenu">
-    <summary class="hbtn" id="wsBtn" aria-label="작업공간 — 저장된 캠페인으로 이동"><svg class="ic tabic" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4.5 18l5-5.5 3.5 4 2-2 4.5 4"/><circle cx="15.5" cy="8.5" r="1.3"/></svg><span id="wsLabel">내 캠페인</span><span id="campPill"></span> <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M6 9l6 6 6-6"/></svg></summary>
+    <summary class="hbtn" id="wsBtn" aria-label="작업공간 — 저장된 캠페인으로 이동"><span id="wsLabel">내 캠페인</span><span id="campPill"></span> <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M6 9l6 6 6-6"/></svg></summary>
     <div class="wsPop" id="wsList" role="menu" aria-label="저장된 캠페인"></div>
   </details>
   <button class="hbtn icon" id="newBtn" aria-label="새 캠페인 시작" title="새 캠페인 시작"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   <div class="spacer"></div>
+  <button class="hbtn" id="selectClear" style="display:none" title="선택 모두 해제">모두 해제</button>
+  <button class="hbtn" id="selectMode" style="display:none" aria-pressed="false" title="소재를 여러 장 골라 그것만 내보내기">선택하기</button>
+  <button class="hbtn" id="exportAll" style="display:none">내보내기</button>
+  <button class="hbtn pri" id="approveAll" style="display:none">전체 승인</button>
   <button class="hbtn icon" id="keyBtn" aria-label="AI 키 · 환경 설정" title="AI 키 · 환경 설정"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button>
 </header>
 
@@ -1286,13 +1242,6 @@
     </aside>
     <div id="viewport"><div id="artboard"></div><canvas id="rulerT" aria-hidden="true"></canvas><canvas id="rulerL" aria-hidden="true"></canvas></div>
     <aside id="inspector" aria-label="디자인"></aside>
-    <div id="rTop" role="toolbar" aria-label="소재 작업"><!-- 11-10 hub 2차: hub/pro 오른쪽 패널 머리(… · 내보내기 주 버튼) -->
-      <button class="hbtn" id="selectMode" style="display:none" aria-pressed="false" title="소재를 여러 장 골라 그것만 내보내기">선택하기</button>
-      <button class="hbtn" id="selectClear" style="display:none" title="선택 모두 해제">모두 해제</button>
-      <span class="spacer"></span>
-      <button class="hbtn" id="approveAll" style="display:none">전체 승인</button>
-      <button class="hbtn pri" id="exportAll" style="display:none">내보내기</button>
-    </div>
     <div id="boardCtl" role="toolbar" aria-label="캔버스 도구">
       <div class="ctlGrp" id="toolGrp"><!-- 11-10 hub 이식 5단계: 이동 V · 손 H | 이미지 I | AI -->
         <button class="tool" id="tMove" aria-pressed="true" title="이동 V" aria-label="이동 도구 (V)"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 4l12 7.5-5.5 1.2L10 18z"/></svg></button><button class="tool" id="tHand" aria-pressed="false" title="손 H — 끌어서 화면 이동 (Space 누른 채 끌기도)" aria-label="손 도구 (H)"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 12V6.5a1.5 1.5 0 013 0V11M11 10.5V5a1.5 1.5 0 013 0v5.5M14 10.5V6.5a1.5 1.5 0 013 0V14a6 6 0 01-6 6h-.6a5 5 0 01-3.9-1.9L4 14.5a1.5 1.5 0 012.3-1.9L8 14.5"/></svg></button>
