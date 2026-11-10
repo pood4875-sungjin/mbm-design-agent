@@ -49,3 +49,12 @@ test('Claude 응답: 종류 + 시안 방향 · 누끼는 그림 가득(full) 없
   assert.equal(parseJudge('{"leaf":"photo","confidence":1,"reason":"사진"}', false).slots, null, '방향 없이 와도 종류는 받는다');
   assert.doesNotMatch(judgePrompt({ transparent: true }), /full\(/); assert.match(judgePrompt({ transparent: false }), /full\(/);
 });
+
+test('대체 순서(11-10): 밝은 지면을 안 써도 같은 종류 슬롯이 두 번 나오지 않는다 — 시안 틀·다른 모양이 먼저', () => {
+  for (const id of ['google-gdn-580x400', 'google-gdn-300x600', 'google-gdn-300x1050']) {
+    const vs = variantCandidates(id, ctx, styleOf({ aiSlots: { C: { light: false } } }));
+    const slots = vs.slice(1).map(v => v.slot).filter(Boolean);
+    assert.equal(slots.length, new Set(slots).size, `${id}: ${vs.map(v => v.label).join(' | ')}`);
+    assert.ok(vs.length >= 4, id);
+  }
+});
