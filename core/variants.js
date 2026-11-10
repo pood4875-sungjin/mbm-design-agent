@@ -75,9 +75,10 @@ export const presetWorse = (html, baseFixed) => baseFixed === false && overlapFi
 //   시안 틀 규격(recipeEligible)은 프리셋 후보 뒤에 그 슬롯 뜻에 맞는 틀(axesOf — layout/info/tone 축이 기본안과 다른 것)을 더 본다.
 //   슬롯이 실패하면(③ 어두운 사진 등) 사유를 trace 에 남기고 ①의 다른 변형 · ②의 다른 태그 구성 → 기존 시안 틀·프리셋 후보 순으로 채운다(최소 MIN_VARIANTS).
 export const SLOTS = [
-  { id: 'A', key: 'align', label: '정렬·비주얼 바꿈' },
-  { id: 'B', key: 'tag', label: '일정 태그 강조' },
-  { id: 'C', key: 'light', label: '밝은 지면' },
+  // 11-10 사용자: 「정렬·비주얼 바꿈」은 비주얼도 바꾸는 것처럼 읽힘 — 결국 정렬을 바꾸는 안(그림은 따라감) → 「~형」 세 이름으로
+  { id: 'A', key: 'align', label: '정렬 변경형' },
+  { id: 'B', key: 'tag', label: '일정 강조형' },
+  { id: 'C', key: 'light', label: '밝은 지면형' },
 ];
 const SLOT_OF = Object.fromEntries(SLOTS.map(s => [s.id, s]));
 const ALIGN_KO = { left: '왼쪽', center: '가운데', right: '오른쪽' };
@@ -287,7 +288,7 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
     const S = SLOT_OF[slotId], log = { slot: slotId, ok: false, why: [], tried: 0 };
     for (const { st, sub } of presets) {
       if (used.has(keyOf(st))) continue; used.add(keyOf(st)); log.tried++;
-      const r = tryCand(st, { slot: slotId, label: st.bgFill === 'brand' ? '지면 반전' : S.label, sub, substitute: substituteFor });
+      const r = tryCand(st, { slot: slotId, label: st.bgFill === 'brand' ? '지면 반전형' : S.label, sub, substitute: substituteFor });
       if (r.rec) { push(r.rec); log.ok = true; log.style = st; return log; }
       log.why.push(`${keyOf(st)}: ${r.why}`);
       if (/^지면 반전이 기본안과 비슷/.test(r.why ?? '')) used.delete(keyOf(st));   // 「반전」이라 부르진 않지만 채움 후보(브랜드색 지면)로는 다시 쓸 수 있게(네이버 1250 KG — 3안 보장)

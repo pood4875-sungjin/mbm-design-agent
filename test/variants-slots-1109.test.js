@@ -62,7 +62,7 @@ test('정렬-비주얼 짝(11-09 피드백): 가운데 정렬인데 비주얼이
 });
 
 test('3슬롯: 규정 아닌 틀 규격은 기본안 + A·B·C(또는 대체) = 4안, 부제가 있고 밝은 지면이 안 되면 사유를 남기고 다른 슬롯으로 채운다', () => {
-  assert.deepEqual(SLOTS.map(s => s.label), ['정렬·비주얼 바꿈', '일정 태그 강조', '밝은 지면']);
+  assert.deepEqual(SLOTS.map(s => s.label), ['정렬 변경형', '일정 강조형', '밝은 지면형']);
   for (const sid of ['google-gdn-580x400', 'google-gdn-970x250', 'google-gdn-300x600', 'instagram-feed-1080', 'nap-dsp-full-300x250', 'blind-post-banner']) {
     const stats = {}; const vs = variantCandidates(sid, ctx, styleOf('fox-cutout'), { stats });
     assert.equal(vs.length, 4, `${sid}: ${vs.map(v => v.label).join(' | ')}`);
