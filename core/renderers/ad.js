@@ -2107,7 +2107,7 @@ function renderAdBase(ctx, style, spec) {
     return Math.max(1, Math.min(rows, Math.ceil(detailLines.reduce((n, d) => n + countChars(`${d.label} : ${d.value}`, counting) + 3, 0) / perLine)));
   };
   // 칩 줄 사이 숨 — 칩(알약) 높이가 글줄 높이와 거의 같아 줄 간격 1.45로는 알약끼리 붙는다(10-06 사용자 "태그들이 너무 붙어 있어"). 예시(일화 580·비씨 300×600)는 칩 줄 사이가 글자 높이의 절반쯤
-  const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : !mold ? Math.round(z.dFs * CANON.detailGap.item) : 0);   // 11-10 피드백 10: 자유 레이아웃은 항목 사이를 라벨↔내용보다 조금 넓게
+  const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : !mold ? Math.round(z.dFs * (stackTags ? CANON.detailGap.item : CANON.detailGap.itemInline)) : 0);   // 11-10 피드백 10: 자유 레이아웃은 항목 사이를 라벨↔내용보다 조금 넓게
   // 한 행 흐름(구글 970 칩 2개가 한 줄)이면 줄 사이 숨은 높이에 안 들어간다 — 더하면 메인 예산이 줄어 두 줄 시즌이 떨어진다(동부 970 회귀)
   const rowFlowNow = () => useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
   const detailBlockH = z => {

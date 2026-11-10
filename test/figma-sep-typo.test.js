@@ -53,7 +53,7 @@ test('A3 메인 자간 −2.5%(28px 이상) — 자소설·에브리타임(템�
     // 메인 밖 글자는 자간을 건드리지 않는다
     for (const role of ['sub', 'date', 'detail']) assert.doesNotMatch(tagOf(html, role) ?? '', /letter-spacing/, `${id} ${role}`);
   }
-  assert.ok(on > 10 && off > 10, `켜짐 ${on} · 꺼짐 ${off}`);
+  assert.ok(on > 10 && off >= 8, `켜짐 ${on} · 꺼짐 ${off}`);   // 11-10 밤: 납작한 가로형 타이틀 하한 .23 으로 28px 미만 메인이 줄었다
 });
 
 test('A4 상세 블록은 text-wrap:pretty, 끝 어절 2자 이하(「분야」)는 앞 어절에 붙는다 — 가운뎃점 묶음도 끊기지 않는다', () => {
