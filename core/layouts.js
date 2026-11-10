@@ -1,3 +1,4 @@
+import { CANON } from './canon.js';
 // 형태별 레이아웃 기준 — 사용자가 고른 실제 소재(레퍼런스)를 픽셀로 재서 옮긴 값이다. 취향으로 정한 숫자가 아니다.
 //
 // 지면은 비율로 나눈다. 같은 형태면 매체가 달라도 같은 문법으로 그린다:
@@ -59,6 +60,8 @@ const r = Math.round;
 // 형태와 크기 → px 값. 렌더러는 이 값을 "원하는 크기"로 쓰고, 자리가 모자라면 비율을 지킨 채 줄인다.
 // gapSub = 서브와 메인 사이(서브 글자 크기의 배수), gapDetail = 메인과 상세 사이(메인 글자 크기의 배수).
 // 레퍼런스의 잉크 사이 간격에서 줄 상자의 위아래 여백을 뺀 값이다.
+// 11-10 프레임 패딩 규칙(CANON.framePad — 짧은 변 대비): 정사각·세로 글자 8% · 로고 6%, 가로로 긴 규격 글자 높이의 16% · 로고 8%
+const FP = CANON.framePad;
 export function layoutFor(w, h) {
   const shape = shapeOf(w, h);
   if (shape === 'strip') return { shape };
@@ -69,14 +72,14 @@ export function layoutFor(w, h) {
     return {
       shape, align: 'left', vAlign: 'center',
       // 위 여백 < 아래 여백 — 글자 덩어리 가운데가 높이의 44~45%에 온다
-      padX: Math.max(16, r(h * (flat ? 0.23 : 0.165))), padY: Math.max(8, r(h * 0.08)), padBottom: Math.max(8, r(h * 0.18)), top: null,
+      padX: Math.max(16, r(h * (flat ? 0.23 : Math.max(0.165, FP.textWide)))), padY: Math.max(8, r(h * FP.textWide)), padBottom: Math.max(8, r(h * 0.18)), top: null,   // 11-10 프레임 패딩: 위아래도 높이의 16%(예전 8% — 글자가 위 끝에 붙었다)
       // 줄 간격: 메인 1.25 · 서브·상세 1.3 — Figma 9월 공채 디자이너 가로형 메인 4/4가 1.2~1.25(블라인드·카카오 1.25, 에브리타임·자소설 PC메인 auto≈1.2). 예전 1.5는 리멤버 잉크 간격에서 읽은 값(10-08 typo A1)
       main, mainLine: 1.25, mainLines: flat ? 1 : 2,
       sub: Math.max(9, r(main * 0.62)), subLine: 1.3, subWeight: 400, subAbove: false, gapSub: 0,
       detail: Math.max(9, r(main * 0.62)), detailLine: 1.3, gapDetail: 0, detailLabelBold: false,
       object: 'right', objectW: Math.min(r(w * 0.42), r(h * 2.2)),
       // 가로형도 로고를 둔다 — 우상단 소형(Figma 9월 공채 디자이너 가로형 6/6에 로고, 높이 = 지면 높이의 6~8%). 매체가 로고를 금하면(리멤버 count 0) 렌더러가 생략
-      logo: 'top-right', logoH: Math.max(12, r(h * 0.065)), logoTop: Math.max(8, r(h * 0.07)),
+      logo: 'top-right', logoH: Math.max(12, r(h * 0.065)), logoTop: Math.max(8, r(h * FP.logoWide)),
     };
   }
   if (shape === 'tower') {
@@ -98,24 +101,24 @@ export function layoutFor(w, h) {
     //   레퍼런스 1.33은 그 띠의 위 끝이라 중앙 쪽으로 옮겼다 — 근거 둘(세아제강·한미 1.33 / 9월 공채 13장)이 어긋나면 사용자 확인
     return {
       shape, align: 'left', vAlign: 'top',
-      padX: Math.max(14, r(w * 0.072)), padY: Math.max(14, r(w * 0.057)), top: r(h * 0.178),
+      padX: Math.max(14, r(w * FP.text)), padY: Math.max(14, r(w * FP.text)), top: r(h * 0.178),
       main: r(w * 0.087), mainLine: 1.28, mainLines: 3,
       sub: Math.max(10, r(w * 0.05)), subLine: 1.3, subWeight: 700, subAbove: true, gapSub: 0.29,
       detail: Math.max(10, r(w * 0.047)), detailLine: 1.57, gapDetail: 1.0, detailLabelBold: true,
       object: 'bottom', objectH: r(h * 0.42),
-      logo: 'top-right', logoH: Math.max(14, r(w * 0.055)), logoTop: r(w * 0.06),
+      logo: 'top-right', logoH: Math.max(14, r(w * 0.055)), logoTop: r(w * FP.logo),
     };
   }
   // 정사각형에 가까운 것 — 세로형 문법을 짧은 변에 맞춰 줄인다. 가로가 넉넉하면(글자 칸 400px 이상) 이미지를 오른쪽에.
   const m = Math.min(w, h);
-  const roomy = w - 2 * r(m * 0.072) - r(w * 0.42) >= 240;
+  const roomy = w - 2 * r(m * FP.text) - r(w * 0.42) >= 240;
   return {
     shape, align: 'left', vAlign: 'top',
-    padX: Math.max(14, r(m * 0.072)), padY: Math.max(14, r(m * 0.06)), top: r(h * 0.15),
+    padX: Math.max(14, r(m * FP.text)), padY: Math.max(14, r(m * FP.text)), top: r(h * 0.15),
     main: r(m * 0.087), mainLine: 1.28, mainLines: 3,   // 세로형과 같은 1.28(A2)
     sub: Math.max(9, r(m * 0.05)), subLine: 1.3, subWeight: 700, subAbove: true, gapSub: 0.29,
     detail: Math.max(9, r(m * 0.047)), detailLine: 1.57, gapDetail: 0.95, detailLabelBold: true,
     object: roomy && w / h >= 1.15 ? 'right' : 'bottom', objectW: r(w * 0.42), objectH: r(h * 0.36),
-    logo: 'top-right', logoH: Math.max(12, r(m * 0.055)), logoTop: r(m * 0.06),
+    logo: 'top-right', logoH: Math.max(12, r(m * 0.055)), logoTop: r(m * FP.logo),
   };
 }
