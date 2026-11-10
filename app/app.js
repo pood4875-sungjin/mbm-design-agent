@@ -2649,6 +2649,19 @@ document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k === 'v') { setTool('move'); e.preventDefault(); } else if (k === 'h') { setTool('hand'); e.preventDefault(); } else if (k === 'i' && !e.shiftKey) { e.preventDefault(); toolImage(); }
 });
+// 11-10 hub 이식 6단계 — 캔버스 단축키: ⌘+ / ⌘− / ⌘0(100%) · ⇧1 전체 보기 · Space 누른 채 끌기(손) · ⌘E 내보내기. 입력 칸·글자 편집 중엔 안 먹는다
+document.addEventListener('keydown', e => {
+  if (!state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex' || typingIn(e.target) || CS.on) return;
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && (e.key === '=' || e.key === '+')) { e.preventDefault(); setZoom(state.zoom * 1.25); return; }
+  if (mod && (e.key === '-' || e.key === '_')) { e.preventDefault(); setZoom(state.zoom / 1.25); return; }
+  if (mod && e.key === '0') { e.preventDefault(); setZoom(1); return; }
+  if (mod && !e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportAllModal(); return; }
+  if (!mod && e.shiftKey && (e.key === '!' || e.code === 'Digit1')) { e.preventDefault(); fitZoom(); return; }
+  if (e.code === 'Space' && !mod && !SEL.on && !e.repeat) { if (document.activeElement?.tagName === 'BUTTON') document.activeElement.blur(); e.preventDefault(); TOOL.space = true; setTool(); }
+});
+document.addEventListener('keyup', e => { if (e.code === 'Space' && TOOL.space) { TOOL.space = false; setTool(); } });
+window.addEventListener('blur', () => { if (TOOL.space) { TOOL.space = false; setTool(); } });
 for (const [id, cls] of [['lToggle', 'noL'], ['rToggle', 'noR']]) $(id).onclick = () => { const w = $('work'); w.classList.toggle(cls); $(id).setAttribute('aria-pressed', String(w.classList.contains(cls))); RULER?.draw(); };
 document.addEventListener('keydown', e => {   // 11-09 Delete·Backspace: 고른 글자 요소를 이 소재에서 빼기(피그마처럼)
   if (!(e.key === 'Delete' || e.key === 'Backspace') || !state.campaign || !state.selected || !state.elSel || CS.on || SEL.on) return;
@@ -2815,6 +2828,12 @@ $('helpPop').innerHTML = `
     <dt><kbd>두 번</kbd></dt><dd>그 소재로 확대(Shift+2)</dd>
     <dt><kbd>Esc</kbd></dt><dd>요소 → 소재 → 전체</dd>
     <dt><kbd>화살표</kbd></dt><dd>고른 요소 1px · Shift 10px</dd>
+    <dt><kbd>V</kbd> <kbd>H</kbd></dt><dd>이동 · 손 도구(Space 누른 채 끌기 = 손)</dd>
+    <dt><kbd>I</kbd></dt><dd>그림 바꾸기 — 고른 소재만 / 없으면 모든 소재</dd>
+    <dt><kbd>⌘+</kbd> <kbd>⌘−</kbd> <kbd>⌘0</kbd></dt><dd>확대 · 축소 · 100%</dd>
+    <dt><kbd>⇧1</kbd> <kbd>⇧2</kbd></dt><dd>전체 보기 · 고른 소재로</dd>
+    <dt><kbd>⌥</kbd></dt><dd>요소를 고른 채 누르고 다른 요소에 올리면 간격</dd>
+    <dt><kbd>⌘E</kbd></dt><dd>내보내기</dd>
   </dl>
 `;
 $('helpBtn').onclick = e => { e.stopPropagation(); toggleHelp(); };

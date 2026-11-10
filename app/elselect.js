@@ -102,8 +102,16 @@ export function createElementSelect(E) {
   const textPatch = (a, it, p, st) => ({ elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy, sdy: sdyOf(a, it), ...(st?.flow ?? flowOf(a, it)) }) });
   const previewOf = (a, it, st, q) => st.mode === 'text' ? textPatch(a, it, q.p, st) : withKind(a, it.kind, q.p, st.mode);
 
-  function hide() { ovl?.el?.remove(); ovl = null; }
-  function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; const sz = btn.querySelector?.('.esel-size'); if (sz) sz.textContent = `${Math.round(box.w)} × ${Math.round(box.h)}`; }   // 11-10 hub 이식: 크기 배지(hub 파랑 「572 × 496」) — 끄는 동안 같이
+  function hide() { ovl?.el?.remove(); ovl = null; meas = null; }
+  function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; const sz = btn.querySelector?.('.esel-size'); if (sz) sz.textContent = `${Math.round(box.w)} × ${Math.round(box.h)}`; guides(btn, box, ds); }
+  // 11-10 hub 이식 6단계: 프레임 가장자리 거리 태그(hub 점선 + 파랑 숫자 — 왼쪽·위). 상자의 자식이라 끄는 동안 같이 움직이고 길이·숫자만 고친다
+  function guides(btn, box, ds) {
+    for (const [cls, v] of [['l', box.x], ['t', box.y]]) {
+      const g = btn.querySelector?.(`.egd-${cls}`); if (!g) continue;
+      const n = Math.round(v); g.hidden = !(n >= 1);
+      g.style[cls === 'l' ? 'width' : 'height'] = `${Math.max(0, v * ds)}px`; g.firstChild.textContent = String(n);
+    }
+  }   // 11-10 hub 이식: 크기 배지(hub 파랑 「572 × 496」) — 끄는 동안 같이
 
   function show(a, id) {
     const hadFocus = ovl?.box && document.activeElement === ovl.box;
@@ -115,7 +123,7 @@ export function createElementSelect(E) {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = `esel esel-${it.kind}`; btn.dataset.el = id;
     btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — 화살표 1px 이동 · Shift+화살표 10px${locks.size ? '' : ' · +/− 크기'} · Esc 위로`);
-    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}</span><span class="esel-size" aria-hidden="true"></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
+    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}</span><span class="esel-size" aria-hidden="true"></span><span class="egd egd-l" aria-hidden="true"><b></b></span><span class="egd egd-t" aria-hidden="true"><b></b></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
     el.appendChild(btn);
     // 11-10 AI 아이콘(피그마 AI 처럼) — 선택 상자 오른쪽 위 바깥. 누르면 E.aiOpen 팝오버(app/elai.js)
     if (E.aiOpen) {
@@ -183,8 +191,30 @@ export function createElementSelect(E) {
   }
 
   // 올려 둔 자리 표시 — 프레임을 고른 동안 어디를 누를 수 있는지
-  let hov = null;
+  let hov = null, meas = null;
+  // 11-10 hub 이식 6단계: ⌥ 간격 재기(hub 빨간 선) — 요소를 고른 채 ⌥ 누르고 다른 요소(없으면 프레임 가장자리)에 올리면 사이 거리
+  function measure(a, e) {
+    meas?.remove(); meas = null;
+    if (!e?.altKey || !ovl || ovl.a !== a) return false;
+    const cur = find(a, ovl.id); if (!cur) return false;
+    const S = E.specOf(a), B = cur.box, id = at(a, e), T = id && id !== ovl.id ? find(a, id)?.box : null, ds = dsOf(a);
+    const segs = [];   // [x1, y1, x2, y2, 값]
+    const cy = B.y + B.h / 2, cx = B.x + B.w / 2;
+    if (!T) { segs.push([0, cy, B.x, cy, B.x], [B.x + B.w, cy, S.w, cy, S.w - B.x - B.w], [cx, 0, cx, B.y, B.y], [cx, B.y + B.h, cx, S.h, S.h - B.y - B.h]); }
+    else {
+      const my = (Math.max(B.y, T.y) + Math.min(B.y + B.h, T.y + T.h)) / 2, mx = (Math.max(B.x, T.x) + Math.min(B.x + B.w, T.x + T.w)) / 2;
+      const yy = Math.max(B.y, T.y) < Math.min(B.y + B.h, T.y + T.h) ? my : cy, xx = Math.max(B.x, T.x) < Math.min(B.x + B.w, T.x + T.w) ? mx : cx;
+      if (T.x >= B.x + B.w) segs.push([B.x + B.w, yy, T.x, yy, T.x - B.x - B.w]); else if (T.x + T.w <= B.x) segs.push([T.x + T.w, yy, B.x, yy, B.x - T.x - T.w]);
+      if (T.y >= B.y + B.h) segs.push([xx, B.y + B.h, xx, T.y, T.y - B.y - B.h]); else if (T.y + T.h <= B.y) segs.push([xx, T.y + T.h, xx, B.y, B.y - T.y - T.h]);
+    }
+    meas = document.createElement('div'); meas.className = 'emeas';
+    meas.innerHTML = (T ? `<i class="emeas-box" style="left:${T.x * ds}px;top:${T.y * ds}px;width:${T.w * ds}px;height:${T.h * ds}px"></i>` : '')
+      + segs.filter(q => q[4] >= 0.5).map(([x1, y1, x2, y2, v]) => `<i class="emeas-l ${y1 === y2 ? 'h' : 'v'}" style="left:${Math.min(x1, x2) * ds}px;top:${Math.min(y1, y2) * ds}px;${y1 === y2 ? `width:${Math.abs(x2 - x1) * ds}px` : `height:${Math.abs(y2 - y1) * ds}px`}"><b>${Math.round(v)}</b></i>`).join('');
+    ovl.el.appendChild(meas);
+    return true;
+  }
   function hover(a, e) {
+    if (measure(a, e)) { if (hov) { hov.parentElement?.remove(); hov = null; } return; }
     const id = e ? at(a, e) : null;
     if (hov && (!id || hov.dataset.el !== id || hov.parentElement?.dataset.key !== E.keyOf(a))) { hov.parentElement?.remove(); hov = null; }
     if (!id || hov || ovl?.id === id) return;

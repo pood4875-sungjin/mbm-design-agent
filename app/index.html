@@ -459,6 +459,18 @@
   .fchk input{width:14px;height:14px;margin:0;accent-color:var(--focus)}
   #inspector .isec .flab.sub + .falign,#inspector .isec .flab.sub + .fgrid2,#inspector .isec .flab.sub + .frow3{margin-top:2px}
   #inspector .isec .flab.sub{margin-top:8px}
+  /* 11-10 hub 이식 6단계 — 캔버스 보조: 가장자리 거리 태그(파랑 점선) · ⌥ 간격(빨강 #F24822) */
+  .egd{position:absolute;pointer-events:none;border:0 dashed var(--focus)}
+  .egd[hidden]{display:none}
+  .egd-l{right:100%;top:50%;border-top-width:calc(1px / var(--z,1))}
+  .egd-t{bottom:100%;left:50%;border-left-width:calc(1px / var(--z,1))}
+  .egd b,.emeas-l b{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(1 / var(--z,1)));padding:0 4px;border-radius:3px;background:var(--focus);color:#fff;font-size:10px;font-weight:600;line-height:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .emeas{position:absolute;inset:0;pointer-events:none}
+  .emeas-box{position:absolute;outline:calc(1px / var(--z,1)) solid #F24822}
+  .emeas-l{position:absolute;border:0 solid #F24822}
+  .emeas-l.h{border-top-width:calc(1px / var(--z,1))}
+  .emeas-l.v{border-left-width:calc(1px / var(--z,1))}
+  .emeas-l b{background:#F24822}
   /* 11-10 hub 이식 5단계 — 작업 화면 스타일(hub ui3): 주 버튼 파랑 · 머리 버튼 r5/32 · 패널 선 #E6E6E6 · 하단 가운데 떠 있는 툴바(r13 · 불투명 · 버튼 40 r9) */
   body .hbtn.pri,body header .hbtn.pri,body .btn.pri{background:var(--pri);color:var(--on-pri);border-color:transparent}
   body .hbtn.pri:hover,body header .hbtn.pri:hover,body .btn.pri:hover{background:var(--pri);opacity:.9}

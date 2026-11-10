@@ -20,6 +20,15 @@ export function createRuler({ top, left, view, range }) {
       else { g.save(); g.translate(2, p + 3); g.rotate(Math.PI / 2); g.textBaseline = 'bottom'; g.fillText(String(v), 0, 0); g.restore(); }
     }
     g.beginPath(); if (horizontal) { g.moveTo(0, H - .5); g.lineTo(W, H - .5); } else { g.moveTo(W - .5, 0); g.lineTo(W - .5, H); } g.stroke();
+    // 11-10 hub 이식 6단계: 고른 범위 시작·끝 숫자(hub 파랑 굵게) — 눈금 숫자 위에 바탕을 깔고 쓴다
+    if (sel) {
+      g.font = '600 9px Pretendard,system-ui,sans-serif';
+      for (const [v, edge] of [[sel.at, 'start'], [sel.at + sel.len, 'end']]) {
+        const p = v * zoom + pan, t = String(Math.round(v)), tw = g.measureText(t).width + 4;
+        if (horizontal) { const x = edge === 'start' ? p + 1 : p - tw - 1; g.fillStyle = C.bg; g.fillRect(x, 0, tw, H - 1); g.fillStyle = C.hit; g.textBaseline = 'top'; g.fillText(t, x + 2, 2); }
+        else { g.save(); g.translate(2, edge === 'start' ? p + 1 : p - tw - 1); g.rotate(Math.PI / 2); g.fillStyle = C.bg; g.fillRect(0, -W + 2, tw, W - 1); g.fillStyle = C.hit; g.textBaseline = 'bottom'; g.fillText(t, 2, 0); g.restore(); }
+      }
+    }
   }
   function draw() {
     const v = view(), C = css(), r = range();
