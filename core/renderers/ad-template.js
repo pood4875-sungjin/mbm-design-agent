@@ -51,7 +51,8 @@ export function renderTemplate(ctx, style, spec) {
     return b ? (a ? `${a} - ${b}` : `~${b}`) : '';
   })();
   const omit = new Set(String(core.omit ?? '').split(',').map(t => t.trim()).filter(Boolean));   // 11-09 뺀 요소
-  const roleText = omit.has('detail') ? '' : String(core.role ?? '').trim();
+  const sq = v => String(v ?? '').replace(/\s+/g, '');
+  const roleText = omit.has('detail') || [core.hiringType, core.headline].some(t => sq(t) && sq(core.role) && sq(t).includes(sq(core.role))) ? '' : String(core.role ?? '').trim();   // 11-10 결정 ②: 채용 구분·타이틀에 든 직무는 상세에 또 안 씀
 
   const rules = spec.rules ?? {}, INK = 0.92;
   const range0 = (rules.textLimits ?? []).find(t => t.fontSizeRange)?.fontSizeRange ?? null, th = rules.textHeightPx ?? null;

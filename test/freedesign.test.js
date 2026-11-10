@@ -10,7 +10,7 @@ const input = (specId, extra = {}) => ({ specId, brief, kv: { dataUrl: KV, meta:
 const goodGdn = (kv = KV, logo = LOGO) => `<div data-ad="1" data-spec="google-gdn-580x400" data-free="1" style="position:relative;width:580px;height:400px;overflow:hidden;font-family:'Pretendard',sans-serif;background:linear-gradient(135deg,#0B1440,#17296B)">
 <div data-object="1" style="position:absolute;right:-150px;top:28px;width:560px;height:350px;background:url('${kv}') center/contain no-repeat"></div>
 <img data-logo="1" src="${logo}" style="position:absolute;left:38px;top:34px;width:88px">
-<div data-field="sub" style="position:absolute;left:38px;top:118px;font-size:16px;letter-spacing:-0.01em">2025 하반기</div>
+<div data-field="sub" style="position:absolute;left:38px;top:118px;font-size:16px;letter-spacing:-0.01em">자소서 없는 간편지원</div>
 <div data-field="main" style="position:absolute;left:38px;top:146px;font-size:42px;font-weight:700;letter-spacing:-0.035em">마이다스<br>대규모 공개채용</div>
 <div data-field="date" style="position:absolute;left:38px;top:270px;font-size:16px">모집기간 9.22(월) ~ 10.12(일)</div>
 </div>`;
@@ -39,9 +39,22 @@ test('프롬프트 조립 — 규격·브리프 문구·KV 경로(Read)·자리�
   assert.ok(fix.includes('수정 모드') && fix.includes('글자 더 크게') && fix.includes('main 이 없음'));
 });
 
-test('copyOptions — 사다리에서 역할별 문구(사용자 v2 예시의 「2025 하반기」 서브·「모집기간 ~」 날짜도 허용)', () => {
+test('copyOptions — 11-10 룰과 같은 규칙: 서브 = 추가 문구(옛 슬로건)만 · 시즌은 서브·상세에 없음 · 자소설만 추가 문구가 비면 서브 = 시즌(그때 메인은 연도 없이)', () => {
   const c = copyOptions(brief);
-  assert.ok(c.main.includes('마이다스 대규모 공개채용') && c.sub.includes('2025 하반기') && c.date.some(d => d.startsWith('모집기간')) && c.detail.includes('모집직무 자유직무, 경영·제품·사업 분야'));
+  assert.ok(c.main.includes('마이다스 대규모 공개채용') && c.date.some(d => d.startsWith('모집기간')) && c.detail.includes('모집직무 자유직무, 경영·제품·사업 분야'));
+  assert.ok(c.sub.includes('자소서 없는 간편지원') && !c.sub.some(x => /2025/.test(x)), c.sub.join('|'));
+  assert.ok(!c.detail.some(x => /2025/.test(x)), '상세에 「시즌 + 채용구분」 없음');
+  const noEx = { ...brief, slogan: '' };
+  assert.ok(!copyOptions(noEx, 'google-gdn-580x400').sub.some(x => /하반기/.test(x)));
+  const j = copyOptions(noEx, 'jasoseol-pc-premium-popup-pc');
+  assert.ok(j.sub.includes('2025 하반기') && j.main.every(m => !/2025/.test(m)), JSON.stringify(j));
+  assert.deepEqual(copyOptions({ client: '현대오일터미널 주식회사', hiringType: '생산전문직 채용', role: '생산전문직' }).detail, [], '결정 ②: 구분에 든 직무는 상세 없음');
+});
+
+test('검증 — 연도 두 번이면 반려(L1 year-once)', () => {
+  const inp = input('google-gdn-580x400');
+  const h = goodGdn().replace('자소서 없는 간편지원', '2025 하반기').replace('마이다스<br>대규모 공개채용', '2025 하반기 마이다스<br>대규모 공개채용');
+  assert.ok(validateFreeHtml(h, inp).errors.some(e => /연도 「2025」/.test(e)));
 });
 
 test('extractHtml/extractNotes — 코드펜스 안 루트 div 만, 뒤의 NOTES 분리', () => {
@@ -67,7 +80,7 @@ test('검증 — 좋은 HTML 통과, 계약 위반(크기·역할 중복·외부
   const e2 = validateFreeHtml(goodGdn().replace('마이다스<br>대규모 공개채용', '지금 바로 지원하세요').replace("url('" + KV, "url('https://x.com/a.png"), inp).errors;
   assert.ok(e2.some(e => /외부 URL/.test(e)) && e2.some(e => /브리프 문구가 아님/.test(e)) && e2.some(e => /고객사 이름/.test(e)));
   const e3 = validateFreeHtml(goodGdn(KV_PLACEHOLDER), inp).errors; assert.ok(e3.some(e => /치환되지 않음/.test(e)));
-  const e4 = validateFreeHtml(goodGdn().replace('2025 하반기', '{sub}'), inp).errors; assert.ok(e4.some(e => /자리표시/.test(e)));
+  const e4 = validateFreeHtml(goodGdn().replace('자소서 없는 간편지원', '{sub}'), inp).errors; assert.ok(e4.some(e => /자리표시/.test(e)));
   const rem = input('remember-main-top-pc');
   const remHtml = goodGdn().replace('google-gdn-580x400', 'remember-main-top-pc').replace('width:580px;height:400px', 'width:2240px;height:360px').replace("'Pretendard'", "'Kakao Big Sans'");
   const e5 = validateFreeHtml(remHtml, rem).errors;

@@ -4,7 +4,7 @@
 //   순수 함수. SPECS 는 호출자가 registerAll() 뒤 넘긴다.
 
 import { FONTS, DEFAULT_FONT, fontRuleOf, effectiveFontId } from '../fonts.js';
-import { copyFor } from '../renderers/ad.js';
+import { copyFor, seasonSubOf } from '../renderers/ad.js';
 import { ROLE_LABEL } from './schema.js';
 
 const n = v => (typeof v === 'number' && Number.isFinite(v)) ? v : null;
@@ -87,7 +87,9 @@ export function buildPrompt(fixed, { brief = {}, brand = {}, requests = '', kvMe
   lines.push('');
   lines.push(`## 광고 문구 (이 글만 쓴다 — 역할별)`);
   const c = fixed.copy ?? {};
-  const pairs = [['season', brief.season], ['main', c.main], ['period', c.date ? `${c.label ?? '접수기간'} ${c.date}` : ''], ['role', brief.role ? `모집직무 ${brief.role}` : ''], ['slogan', brief.slogan], ['notice', brief.notice], ['cta', c.cta]];
+  // 11-10 룰과 같은 규칙(사용자 「맞춰줘」): 시즌은 따로 안 줌(연도는 메인 후보 안에 한 번), 서브 = 추가 문구, 자소설만 추가 문구가 비면 서브 = 시즌
+  const sub0 = String(brief.subText ?? brief.slogan ?? '').trim() || seasonSubOf(brief, /^jasoseol-/.test(String(fixed.specId ?? ''))) || '';
+  const pairs = [['sub', sub0], ['main', c.main], ['period', c.date ? `${c.label ?? '접수기간'} ${c.date}` : ''], ['role', brief.role ? `모집직무 ${brief.role}` : ''], ['notice', brief.notice], ['cta', c.cta]];
   for (const [role, text] of pairs) if (text && String(text).trim()) lines.push(`- ${role}(${ROLE_LABEL[role]}): ${String(text).trim()}`);
   lines.push(`- 메인 문구 다른 길이: 「${c.mainWide ?? ''}」 / 「${c.main ?? ''}」 / 「${c.mainNarrow ?? ''}」 — 이 중 하나를 쓴다. 고객사 이름 「${c.advertiser ?? brief.client ?? ''}」은 반드시 보인다.`);
   if (c.date) lines.push(`- 접수 기간은 「${c.date}」 표기 그대로(라벨 「${c.label ?? '접수기간'}」은 붙여도 되고 빼도 된다).`);

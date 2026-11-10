@@ -68,11 +68,20 @@ function subShows(ctx, style, spec) {
   SUB_SHOWS.set(key, ok);
   return ok;
 }
-export function adCore(core, subSlot = false) {
+// seasonToSub(11-10 사용자 「응」 — 자소설만): 서브 자리가 서고 추가 문구가 비어 있으면 시즌·연도를 서브로(자소설 샘플 4/4 「2026년 하반기」 서브). 메인에 연도가 있으면 안 함(연도 한 번)
+// 서브에 시즌을 쓸 수 있나(자소설만 · 추가 문구 없음 · 메인 글감에 연도 없음) — 룰 렌더(adCore)와 AI 문구 후보(server/freedesign.js copyOptions·core/trackb/prompt.js)가 같은 판정을 쓴다(11-10 사용자 「맞춰줘」)
+export function seasonSubOf(core, seasonToSub) {
   const c = migrateRecruitCore(core ?? {});
-  const extra = String(c.subText ?? '').trim() || null;
+  const mainTxt = c.headline ? [c.headline] : [c.hiringType, c.client];
+  if (!seasonToSub || String(c.subText ?? '').trim() || !c.season || mainTxt.some(t => YEAR_RE.test(String(t ?? '')))) return null;
+  return String(c.season).trim();
+}
+export function adCore(core, subSlot = false, { seasonToSub = false } = {}) {
+  const c = migrateRecruitCore(core ?? {});
+  let extra = String(c.subText ?? '').trim() || null;
   const mainTxt = c.headline ? [c.headline] : [c.hiringType, c.client];
   const yearSaid = mainTxt.some(t => YEAR_RE.test(String(t ?? '')));
+  if (subSlot && !extra) extra = seasonSubOf(c, seasonToSub);
   const season = c.season && !yearSaid && !subSlot ? String(c.season).trim() : null;
   return { ...c, subText: extra, slogan: extra, season, __yearAuto: !!season, employType: null, location: null, qualification: null, process: null, rows: cleanRows(c.rows) };
 }
@@ -104,7 +113,11 @@ export function copyLadder(ctx) {
     const period = dateTxt || (d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '');
     const qual = c.qualification ? String(c.qualification) : '';   // 11-10: 옛 칸 — 지금은 추가 행(지원자격)으로 옮겨져 비어 있다
     const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
-    const season = c.season || null;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
+    const season0 = c.season || null;
+    // 11-10 연도 한 번(docs/parser-rules.md D1): 채용 구분·타이틀에 시즌 연도가 이미 들어 있으면(「공고명: 2026년 하반기 3급 신입사원 채용」) 시즌을 또 붙이지 않는다 —
+    //   「2026년 하반기 삼성전자 2026년 하반기 3급 신입사원 채용」·메인과 서브에 같은 연도 두 번이던 것
+    const yr0 = season0 ? String(season0).match(/(?:19|20)\d{2}/)?.[0] : null;
+    const season = yr0 && [c.hiringType, c.employType, c.headline].some(v => String(v ?? '').includes(yr0)) ? null : season0;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
     // 11-10: 서브 = 추가 문구(subText, 옛 슬로건·「서브 문구 직접」을 합친 한 덩어리). 옛 시즌 자리에 선다 — 좁은 띠는 「추가 문구 회사」(회사는 서브, 메인은 채용 구분), 비면 회사만
     const extra = c.subText ? String(c.subText) : null;
@@ -112,6 +125,9 @@ export function copyLadder(ctx) {
     const slogan = null;
     const hire = hireFor(c);   // 채용구분이 없으면 고용형태로("정규직 채용"), 둘 다 없으면 ''(「채용」을 지어 넣지 않음 — 10-28 결정)
     const named = !!hire;
+    // 11-10 사용자 결정 ②: 채용 구분은 타이틀에만 녹이는 정보 — 모집직무가 채용 구분·타이틀에 이미 든 말이면(「생산전문직 채용」 + 모집직무 「생산전문직」) 상세·라벨에 또 쓰지 않는다
+    const sq = v => String(v ?? '').replace(/\s+/g, '');
+    const roleShow = c.role && ![hire, c.headline].some(t => sq(t) && sq(t).includes(sq(c.role))) ? c.role : null;
     const tag = hire && !/(모집|선발)$/.test(hire) ? '채용' : '';   // 직무·회사 뒤에 붙는 「채용」도 채용 구분이 있을 때만 · 11-09 채용 구분이 「…교육생 모집」처럼 모집·선발이면 「채용」을 지어 붙이지 않는다(「…재단 채용」)
     // 메인을 직접 적어 준 경우(한독 "전문의약품 의료기기 영업∙마케팅 공채 모집") 회사·구분은 서브로 간다
     const subFull = [c.client, named ? hire : null].filter(Boolean).join(' ');   // 11-10: 시즌은 서브에 안 쓴다(연도 한 번)
@@ -120,7 +136,7 @@ export function copyLadder(ctx) {
     const yearHeads = c.__yearAuto && season && clientHire ? [...new Set([String(season), String(season).match(/(?:19|20)\d{2}년?/)?.[0]].filter(Boolean))] : [];
     // 세로 띠: 서브가 회사를 품으면 메인은 채용구분만(도레이·한독). 슬로건이 서브를 차지하면 회사·기수가 메인으로(PT코리아 "PTKOREA / 2026 8기 / 신입공개채용")
     const narrowMain = slogan0
-      ? [c.headline, [c.client, c.season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
+      ? [c.headline, [c.client, season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
       : [c.headline, named ? hire : null, clientHire];
     return {
       main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
@@ -138,12 +154,12 @@ export function copyLadder(ctx) {
       cta: uniq([c.ctaText, '지원하기', '지원']),
       notice: uniq([scheduleNote ? null : c.notice]),
       // 라벨 칩은 날짜 앞의 「접수기간」이 먼저(잡다 PC 5/5 「모집기간」 칩 + 날짜, NAP 320×480 「모집기간」 칩 — 10-12 매체별 규격정리). 날짜가 없으면 직무·고용형태
-      label: uniq([period ? '접수기간' : null, c.role ? `모집직무 : ${c.role}` : null]),
+      label: uniq([period ? '접수기간' : null, roleShow ? `모집직무 : ${roleShow}` : null]),
       url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
       // 상세 정보 줄 — 우선순위 순. 자리(줄 수)가 모자라면 뒤에서부터 뺀다.
       details: [
         period ? { label: '접수기간', value: period } : null,
-        c.role ? { label: '모집직무', value: c.role } : null,
+        roleShow ? { label: '모집직무', value: roleShow } : null,
         ...cleanRows(c.rows).map(r => ({ label: r.label, value: r.value, extraRow: true })),   // 11-10 추가 행 — 모집직무와 같은 모양, 자리가 모자라면 뒤에서부터 빠진다(TR.rowsDropped → 검수 경고)
         qual ? { label: '지원자격', value: qual } : null,
       ].filter(Boolean),
@@ -971,7 +987,7 @@ function bustCrop(html, style, bust, spec) {
 
 function renderAdBase(ctx, style, spec) {
   const rules = spec.rules ?? {};
-  if (ctx?.kind === 'recruit' && !ctx.core?.__subProbe) ctx = { ...ctx, core: adCore(ctx.core, ctx.core?.season ? subShows(ctx, style, spec) : false) };   // 11-10 연도 한 번·추가 문구·추가 행(시즌이 있을 때만 서브 자리를 재 본다)
+  if (ctx?.kind === 'recruit' && !ctx.core?.__subProbe) ctx = { ...ctx, core: adCore(ctx.core, ctx.core?.season ? subShows(ctx, style, spec) : false, { seasonToSub: spec.medium === 'jasoseol' }) };   // 11-10 연도 한 번·추가 문구·추가 행(시즌이 있을 때만 서브 자리를 재 본다)
   else if (ctx?.kind === 'recruit') ctx = { ...ctx, core: adCore(ctx.core, true) };
   // 오브젝트 누끼 — 투명 PNG 필수 자리와 그라데이션을 넣을 수 없는 상자 자리는 배경 노릇을 하는 키비주얼 대신 따로 올린 누끼를 쓴다(core/adfields.js objectNeedOf).
   // 없으면 그 자리는 글자만(hasKv 게이트). 누끼가 아닌 그림을 올렸어도 같은 게이트에 걸려 글자만 — 앱이 올릴 때 알려 준다
