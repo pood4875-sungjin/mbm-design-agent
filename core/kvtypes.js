@@ -71,9 +71,11 @@ export const KV_SUBTYPES = {
     // 10-08 Figma 9월 공채(유리 행성) 한 건에서 — 사용자 결정: 케이스 하나여도 채택, 예외가 나오면 조정
     { id: 'cutout-glass', name: '반사·유리·크롬 누끼', when: f => f.glass, why: '무채(채도 < 0.35)·중간 밝기(lum 0.35~0.6) + 반투명 가장자리(보이는 픽셀의 10% 이상이 10<α<230)',
       guide: ['지면은 어두운 브랜드색 — 매체의 밝은 지면(구글 lightField·자소설 bgLight)보다 먼저(디자이너 13/13 다크). 밝은 틴트 위에선 회색으로 탁해진다', '매체가 금지한 색·규정(자소설 형광·분할 배경 불가, 리멤버 #000000)은 그대로 지킨다', '반사광이 브랜드색이 아니다 — KV 대표색을 지면색으로 쓰지 않는다'] },
+    { id: 'cutout-group-character', name: '캐릭터 여럿(사람·캐릭터 떼)', when: f => f.charGroup, why: '덩어리가 여럿이고 윗선에 머리 봉우리가 3개 이상(또는 세로로 선 주인공들)',
+      guide: ['머리·얼굴은 자르지 않는다 — 자르기 선은 캐릭터 사이 빈 틈에서만', '틀 칸에서는 떼 전체가 칸을 채우게 키우되, 가장자리 캐릭터도 85% 이상 보이게', '지면은 캐릭터에서 가장 선명한 색'] },
     { id: 'cutout-character', name: '캐릭터·인물 누끼', when: f => f.character, why: '주인공이 세로로 서 있다(상자 높이 ≥ 55%, 그림 비율 ≤ 1.05)',
       guide: ['열에 세운다 — 발은 지면 바닥에, 머리는 자르지 않는다(머리 위 숨 4%)', '가로형에선 오른쪽 열 폭의 60~70%를 캐릭터에, 세로형에선 아래 띠 높이의 45~55%', '글자는 캐릭터 몸 위로 올리지 않는다 — 어깨선 위 여백만 허용', '지면은 브랜드색(어두운 매체)·브랜드 틴트(밝은 매체), 발밑에 옅은 그림자 없음(누끼 그대로)'] },
-    { id: 'cutout-group', name: '여러 오브젝트·캐릭터 떼', when: f => f.group, why: '덩어리가 둘 이상(parts > 1) — 맞닿은 떼는 열 투명 프로필의 봉우리 둘 이상(틈 열 ≥ 75%)',
+    { id: 'cutout-group', name: '여러 오브젝트 떼', when: f => f.group && !f.charGroup, why: '덩어리가 둘 이상(parts > 1) — 맞닿은 떼는 열 투명 프로필의 봉우리 둘 이상(틈 열 ≥ 75%)',
       guide: ['얼굴·몸통을 가르지 않는다 — 자르기 선은 캐릭터 사이 틈(열 투명 ≥75%)에서만("틈 창"), 틈이 없으면 통째로 맞춰 넣기', '오른쪽 열은 넓혀 키 70%까지, 세로 띠·정사각은 틈 창으로 두세 명을 크게', '정사각 규격은 모서리 상자 대신 폭 전체 아래 띠(30~55%)'] },
     // 덩어리가 여럿일 때만 장면 — 덩어리 하나에 속이 빈 것(고리·링·프레임: 유리 행성 density 0.57)은 성글어도 단일 사물(10-08 Figma 9월 공채)
     { id: 'cutout-scene', name: '장면·건물 누끼(아이소메트릭)', when: f => f.wide && (f.density ?? 1) < 0.6 && f.multi, why: '가로로 넓고(비율 > 1.3) 상자 안이 성글고(밀도 < 0.6) 덩어리가 여럿(parts > 1 또는 열 봉우리 ≥ 2)',
@@ -200,6 +202,10 @@ export function kvTypeOf(kvMeta) {
   flags.crowd = kind === 'photo' && f.lum != null && f.lum < 0.4 && (!focus || subjectArea >= 0.85);
   // 단일 사물 누끼 — 캐릭터도 떼도 아닌 덩어리 하나. 크게·우하단 블리드(CANON objectBleed)의 대상
   flags.single = kind === 'cutout' && !!focus && !flags.character && !flags.group && !flags.frame;
+  // 11-10 사용자 그림 종류 트리(누끼 → 캐릭터 1개·여럿 / 오브젝트): 떼 가운데 사람·캐릭터 떼를 따로 — 윗선 봉우리(머리)가 3개 이상이거나 캐릭터 깃발(세로로 선 주인공)이 함께 선 떼.
+  //   실측: 사람·캐릭터 떼 ABL 6~7 · 고양이 3 · 여우 셋 7 / 사물 떼(책·상자·건물) 2. 캐릭터 떼는 머리 보존·틈에서만 자르기, 사물 떼는 통째로 크게
+  //   조각이 아주 많으면(흩어 놓은 아이콘·스티커 fig-29 조각 19) 사물 떼 — 캐릭터 떼는 1~3조각
+  flags.charGroup = kind === 'cutout' && flags.group && !flags.frame && (focus?.parts ?? 1) <= (CANON.charGroupMaxParts ?? 7) && (flags.character || (f.topPeaks ?? 0) >= (CANON.charGroupPeaks ?? 3));
   // 사람이 유형을 직접 지정했으면(applyKvTypeOverride) 그 세분 유형이 걸리는 깃발을 켠다 — 렌더러 분기는 모두 이 깃발을 본다
   const ov = kvMeta.typeOverride ? overrideOf(kvMeta.typeOverride) : null;
   if (ov?.sub) Object.assign(flags, OVERRIDE_FLAGS[ov.sub.id] ?? {});
@@ -223,7 +229,8 @@ const OVERRIDE_FLAGS = {
   'cutout-frame': { frame: true, character: false, group: false, multi: false, single: false },
   'cutout-glass': { glass: true },
   'cutout-character': { character: true, group: false, multi: false, frame: false, single: false },
-  'cutout-group': { group: true, multi: true, character: false, frame: false, single: false },
+  'cutout-group-character': { group: true, multi: true, charGroup: true, frame: false, single: false },
+  'cutout-group': { group: true, multi: true, charGroup: false, character: false, frame: false, single: false },
   'cutout-scene': { wide: true, multi: true, group: true, character: false, frame: false, single: false },
   'cutout-object': { single: true, character: false, group: false, multi: false, frame: false },
   'illust-character': { character: true, group: false },

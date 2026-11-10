@@ -395,8 +395,8 @@
         "applyUrl": "https://hanjin.example"
       },
       "addedAt": "2026-10-08",
-      "type": "illust",
-      "summary": "오브젝트 느낌 3D·일러스트 · 주인공 40% · 덩어리 여럿 · 어두운 바탕 · 가로형",
+      "type": "photo",
+      "summary": "어두운 사진+여백 있는 사진(하늘·벽) · 주인공 40% · 덩어리 여럿 · 어두운 바탕 · 가로형",
       "verdicts": [],
       "logoMeta": {
         "px": [
@@ -5420,8 +5420,8 @@
       "logoMono": null,
       "fields": null,
       "addedAt": "2026-11-03",
-      "type": "illust",
-      "summary": "바탕 있는 캐릭터 · 캐릭터(머리 보존) · 세로형",
+      "type": "photo",
+      "summary": "밝은 사진 · 세로형",
       "verdicts": []
     },
     {

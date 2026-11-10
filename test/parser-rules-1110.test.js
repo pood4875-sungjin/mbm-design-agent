@@ -105,3 +105,20 @@ test('11-10 NAP 비즈보드 960×300 스타일(피그마 64:1781): 글자색 #4
   const kakao = renderAd(ctx, st(dark), S['kakao-bizboard-mo']);
   assert.doesNotMatch(kakao, /data-ad-tag/); assert.match(kakao, /#191919/i);
 });
+
+test('11-10 그림 종류 트리: 떼 → 캐릭터 여럿(머리 봉우리 ≥3·조각 ≤7) / 사물 여럿 · 실사 판정(결 거칠고 면 고르지 않음) · 사물 떼만 모서리 칸 채우기', async () => {
+  const { kvTypeOf } = await import('../core/kvtypes.js');
+  const { CANON } = await import('../core/canon.js');
+  const cut = (topPeaks, parts) => ({ ar: 3, field: { kind: 'cutout', opaque: 0.3, lum: 0.5, topPeaks, focus: { x: 0.5, y: 0.5, w: 0.95, h: 0.9, parts, others: [], density: 0.6 }, cols: [] } });
+  assert.equal(kvTypeOf(cut(6, 3)).sub.id, 'cutout-group-character', '사람·캐릭터 떼');
+  assert.equal(kvTypeOf(cut(2, 3)).sub.id, 'cutout-group', '봉우리 2 = 사물 떼');
+  assert.equal(kvTypeOf(cut(5, 19)).sub.id, 'cutout-group', '조각 19(흩어진 아이콘) = 사물 떼');
+  assert.ok(CANON.photoGrain.rough === 0.03 && CANON.photoGrain.flatMax === 0.4);
+  assert.equal(CANON.groupFill.visChar, 1, '캐릭터 떼는 키우지 않음(가장자리 얼굴이 잘린다)');
+  const { fieldFromImage } = await import('../core/palette.js');
+  // 결이 거친 잡음(사진처럼) + 위 변만 한 색 — 예전엔 평평한 변 때문에 일러스트, 이제 사진
+  const w = 120, h = 80, px = new Uint8ClampedArray(w * h * 4); let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; const v = y < 8 ? 200 : 60 + rnd() * 140; px[i] = v; px[i + 1] = v * 0.8 + rnd() * 30; px[i + 2] = v * 0.6; px[i + 3] = 255; }
+  const f = fieldFromImage(px, w, h);
+  assert.ok(f.kind === 'photo' || f.flatEdges === 0, `거친 결은 사진: ${f.kind} flatFill ${f.flatFill}`);
+});

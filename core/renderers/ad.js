@@ -1443,8 +1443,14 @@ function renderAdBase(ctx, style, spec) {
   // 10-12 desk-15: 바탕 있는 세로 그림을 모서리 상자(구글 580 297×239)에 통째로 맞춰 넣으면 상자의 60%도 못 채워 신호등이 가는 띠가 된다(지면의 15%) —
   //   그때는 상자를 덮고(cover, 주인공 위치) 글자 쪽 두 변을 녹인다(사진과 같은 문법). 누끼는 그대로 맞춰 넣는다
   const cornerFill = !!(tImage && imgCorner && hasKv && !bleedP && !isCutout && !transparent && kvAR && (() => { const fw = kvAR >= tImage.w / tImage.h; const dw = fw ? tImage.w : tImage.h * kvAR, dh = fw ? tImage.w / kvAR : tImage.h; return dw * dh / (tImage.w * tImage.h) < 0.6; })());
+  // 11-10 떼 크기(사용자 「여럿 넣을 때 작게 나옴」): 누끼 떼가 칸보다 가로로 길면 칸에 맞춰 넣을 때 납작하게 작아진다 — 칸 높이를 채우도록 키우고 넘치는 쪽은 칸 밖으로 잘리게.
+  //   잘려도 사물 떼는 70%, 캐릭터 떼는 85% 이상 보이게(CANON.groupFill). 장식 프레임은 제외. 모서리 칸(cornerRect)에서만 — 세로 띠·열 칸은 통째로(10-19 자소설 160×600 「비주얼 끊기지 않게」)
+  const kvFlagsG = ((style.kvMeta?.field?.opaque ?? 1) < 0.5) ? kvTypeOf(style.kvMeta)?.flags : null;
+  const groupH = (bw, bh) => { const GF = CANON.groupFill; if (!(GF && kvFlagsG && kvAR && (kvFlagsG.group || kvFlagsG.multi) && !kvFlagsG.frame && !(kvFlagsG.charGroup && GF.visChar >= 1)) || kvAR < (bw / bh) * 1.15) return null; const h0 = bw / kvAR, hh = Math.min(bh * GF.maxH, bw / ((kvFlagsG.charGroup ? GF.visChar : GF.visObject) * kvAR)); return hh > h0 * GF.minGain ? Math.round(hh) : null; };
   const cornerRect = (tImage && imgCorner && hasKv && (bleedP || cornerFill)) ? { ...tImage } : (tImage && imgCorner && hasKv) ? (() => {
     const ar = kvAR || (tImage.w / tImage.h); const fillW = ar >= tImage.w / tImage.h;
+    const gh = groupH(tImage.w, tImage.h);
+    if (gh) { fired('groupFill'); const gw = Math.round(gh * ar); return { x: AM?.kv === 'mirror' ? tImage.x + tImage.w - gw : tImage.x, y: tImage.y + tImage.h - gh, w: gw, h: gh, groupFill: true }; }   // 글자 쪽 변(칸 왼변)은 지키고 바깥쪽으로 넘친다
     const dw = fillW ? tImage.w : Math.round(tImage.h * ar), dh = fillW ? Math.round(tImage.w / ar) : tImage.h;
     // 거울 칸(정렬 프리셋 10-19 AM.kv): 오른쪽 아래 맞춤도 거울 — 왼쪽 아래(mirror)·아래 가운데(center)
     const x = AM?.kv === 'mirror' ? tImage.x : /^center/.test(AM?.kv ?? '') ? tImage.x + Math.round((tImage.w - dw) / 2) : tImage.x + tImage.w - dw;
@@ -2573,7 +2579,9 @@ function renderAdBase(ctx, style, spec) {
   const meltAttr = dir => (transparent || cutout) ? '' : ` data-melt="${fadeFor(dir)}" data-melt-dir="${dir}"`;   // 가이드 대조표(guide-trace)가 읽는 녹임 길이 — 마스크와 같은 값
   // 이미지의 그 변이 지면과 같은 색이면 그 변을 기준으로 붙인다(join) — 이음매에서 그림이 잘리지 않고, 넘치는 쪽은 지면 바깥으로 나간다.
   // 겹침 교정(kvK<1)으로 틀 칸·아래 띠의 누끼를 줄일 때: contain 대신 그 배율의 높이(우하단·바닥 가운데 정렬은 그대로)
-  const containSz = (bw, bh) => (FIX?.kvK && FIX.kvK < 1 && kvAR) ? `auto ${Math.max(8, Math.round(Math.min(bh, bw / kvAR) * FIX.kvK))}px` : 'contain';
+  // 11-10 떼 크기(사용자 「여럿 넣을 때 작게 나옴」): 떼가 칸보다 가로로 길면 칸에 맞춰 넣으면 납작하게 작아진다 — 칸 높이를 채우도록 키우고 가장자리는 칸 밖으로 잘리게.
+  //   잘려도 사물 떼는 70%, 캐릭터 떼는 85% 이상 보이게(CANON.groupFill). 장식 프레임은 제외
+  const containSz = (bw, bh) => (FIX?.kvK && FIX.kvK < 1 && kvAR) ? `auto ${Math.max(8, Math.round(Math.min(bh, bw / kvAR) * FIX.kvK))}px` : 'contain';   // 떼 키우기(groupH)는 모서리 칸(cornerRect)에서만 — 세로 띠·열 칸은 통째로(10-19 「비주얼 끊기지 않게」 자소설 160×600)
   // 보일 부분(field.js coverFit, 11-02 컨시어지 #2 재현): 칸 cover 가 주인공(focus)을 60% 미만만 보이면 칸을 그림 크기로 줄여 지면 변 쪽에 붙인다 — 오른쪽 열: 오른쪽·아래, 왼쪽 열: 왼쪽·아래, 아래 띠: 바닥 가운데, 모서리 칸: 칸의 오른쪽·아래.
   //   줄인 칸의 글자 쪽 변 녹임(melt)은 그림 변에서 시작하고, 띠의 좁아진 양옆은 cutFade(사진 안쪽 변 28%+)가 녹인다. 세로 그림 0.67 → 리멤버 사이드 열 40% · 자소설 M팝업 띠 46% 가 60% 로
   const fitCover = (box, anchor, opt) => { let c = coverPos(style, box.w, box.h, opt); if (!c.fit) return { rect: box, pos: c.pos, fit: null };
@@ -2644,7 +2652,11 @@ function renderAdBase(ctx, style, spec) {
     const mR = fr('right'), mL = fr('left'), mT = fr('top');
     const meltA = mR ? ` data-melt="${mR}" data-melt-dir="to left"` : mL ? ` data-melt="${mL}" data-melt-dir="to right"${mT ? ` data-melt-top="${mT}"` : ''}` : mT ? ` data-melt="${mT}" data-melt-dir="to bottom"` : '';
     fired('templateMold.bgRule');
-    return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${c.pos}/cover no-repeat;${meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
+    // 11-10 그래픽 「오브젝트 + 배경」(사용자 「오브젝트 비중이 잘 보이면서 배경색이 자연스럽게 연결」): 칸에 그림을 통째로 덮으면 주인공(오브젝트)이 작다(아크릴 상자) —
+    //   주인공 상자가 칸에 통째로 들어가는 데까지 당겨 넣는다(subjectCrop fit — 덮기로 당기면 GS에너지 사람·삼성 3D·NIFCO 글자가 칸 변에서 잘렸다. 1.25배 이상 커질 때만). 칸 변은 그대로 지면 쪽으로 녹아서 바탕색과 이어진다. 사진은 예전대로
+    const pull = (kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.subject) ? subjectCrop(style, r.w, r.h, { fit: true, margin: 0.12 }) : null;
+    if (pull) fired('templateMold.subjectPull');
+    return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${pull ? `${pull.pos}/${pull.size}` : `${c.pos}/cover`} no-repeat;${meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
   })() : null;
   const tplObject = bgRuleLayer ? bgRuleLayer : (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : moldContain
