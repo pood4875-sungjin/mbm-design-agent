@@ -29,7 +29,7 @@ export function variantCountFor(spec) {
   if (spec.grade === 'C') return V.free;
   return V.default;
 }
-const labelOf = (st, spec0 = null) => { if (!Object.keys(st).length) return '기본안'; if (st.tpl) { const f = familyById(st.tpl); return (spec0 && f && frameFor(f, spec0)?.name) || f?.name || '시안'; } const L = { kvPlace: { left: '키비주얼 왼쪽', bottom: '키비주얼 아래', bg: '전체 배경', right: '키비주얼 오른쪽' }, textAlign: { center: '가운데 정렬', right: '오른쪽 정렬', left: '왼쪽 정렬' }, kvSize: { lg: '키비주얼 크게', sm: '키비주얼 작게' }, bgFill: { brand: '브랜드색 지면' }, textTone: { light: '흰 글자', dark: '검은 글자' } }; return Object.entries(st).map(([k, v]) => L[k]?.[v] ?? `${k} ${v}`).join(' · '); };
+const labelOf = (st, spec0 = null) => { if (!Object.keys(st).length) return '기본안'; if (st.tpl) { const f = familyById(st.tpl); return (spec0 && f && frameFor(f, spec0)?.name) || f?.name || '시안'; } const L = { kvPlace: { left: '키비주얼 왼쪽', bottom: '키비주얼 아래', bg: '전체 배경', right: '키비주얼 오른쪽' }, textAlign: { center: '가운데 정렬', right: '오른쪽 정렬', left: '왼쪽 정렬' }, kvSize: { lg: '키비주얼 크게', sm: '키비주얼 작게' }, bgFill: { brand: '브랜드색 지면', kv: '키비주얼색 지면', light: '밝은 지면' }, bgGrad: { none: '단색 지면', d: '대각 그라데이션', v: '세로 그라데이션', h: '가로 그라데이션', auto: '자동 그라데이션' }, textAnchor: { center: '글자 세로 가운데', bottom: '글자 아래', top: '글자 위' }, infoTag: { date: '일정 태그', label: '라벨 태그', both: '일정 태그' }, textTone: { light: '흰 글자', dark: '검은 글자' } }; return Object.entries(st).map(([k, v]) => L[k]?.[v]).filter(Boolean).join(' · ') || '다른 배치'; };   // 11-10: 이름 없는 값은 내부 키(「bgGrad none」)를 내보내지 않는다
 // 안 축(11-06 사용자 「타이포 강조형·뱃지형·레이아웃·배경색이 달라야 후보」): 후보끼리 네 축 중 하나 이상 달라야 한다. 라벨도 이 축으로 적는다.
 const TYPO_EMPH = new Set(['weight', 'big', 'color']);
 const INFO_OF = { datebadge: '일정 뱃지', labelbadge: '라벨 뱃지', label: '라벨' };
