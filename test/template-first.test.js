@@ -326,12 +326,15 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
   const h1050 = renderAd(ctx, glass, specs['google-gdn-300x1050']); const t1050 = traceOf(h1050);
   assert.equal(t1050.mode, 'templateMold'); assert.ok(!t1050.mold.rows.sub, '1050 아이브로 없음');
   assert.deepEqual([t1050.mold.rows.main.px, t1050.mold.rows.main.pitch, t1050.mold.rows.main.lines, t1050.mold.rows.detail?.px, t1050.mold.rows.detail?.weight], [32, 42, 3, 20, 400]);
-  assert.match(h1050, /<div><b style="font-weight:700">모집분야<\/b><\/div><div/, '1050 「모집분야」 라벨 줄 + 값 줄(알약 없음)'); assert.doesNotMatch(h1050, /data-field="chip"/);
+  // 11-10 사용자 피드백 28: 「모집분야」는 둥근 뱃지 + 값은 ㅣ 태그, 기간도 뱃지(알약)
+  assert.match(h1050, /border-radius:999px[^"]*">모집분야<\/span>/, '1050 「모집분야」 뱃지'); assert.match(h1050, /연구개발|ㅣ/); assert.doesNotMatch(h1050, /data-field="chip"/);
+  assert.match(h1050, /data-field="date"[^>]*>\s*<span data-chip="1"/, '1050 기간 뱃지');
   assert.match(h1050, /data-logo-slot="1" style="position:absolute;left:104px;top:35px;width:91px;height:18px;[^"]*justify-content:center/, '1050 로고 가운데 위');
   assert.ok(!t1050.rules.includes('templateMold.freeKv') && t1050.place.tImage && t1050.place.tImage.y + t1050.place.tImage.h === 1050, '1050 키비주얼 칸 바닥 맞닿음: ' + JSON.stringify(t1050.place.tImage));
   const h930 = renderAd(ctx, glass, specs['google-gdn-930x180']); const t930 = traceOf(h930);
   assert.deepEqual([t930.mold.rows.main.px, t930.mold.rows.main.lines, t930.mold.rows.date.y], [36, 2, 115]);
-  assert.match(h930, /<span data-chip="1" style="display:inline-flex;align-items:center;width:237px;/, '930 날짜 상자 237×30');
+  // 11-10 사용자 피드백 31: 날짜 상자(237 고정 폭·각진) → 둥근 알약 · 폭은 글자대로 · 좌우 여백 좁게
+  assert.match(h930, /<span data-chip="1" style="display:inline-flex;align-items:center;height:30px;padding:0 9px;border-radius:200px/, '930 날짜 알약(글자 폭)');
   assert.doesNotMatch(h930, /data-band="1"/);
 });
 

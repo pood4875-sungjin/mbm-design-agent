@@ -706,7 +706,14 @@
                 "afterMain": 72,
                 "pitch": 29,
                 "align": "center",
-                "note": "수정본: 메인 셋째 줄(248) + 42 + gap 30 = 320 → afterMain 72"
+                "note": "수정본: 메인 셋째 줄(248) + 42 + gap 30 = 320 → afterMain 72",
+                "chip": {
+                  "h": 34,
+                  "padX": 10,
+                  "bg": "brand",
+                  "color": "#FFFFFF",
+                  "note": "11-10 사용자 피드백 28 「기간은 뱃지로」 — 둥근 알약, 폭은 글자대로"
+                }
               },
               "detail": {
                 "y": 379,
@@ -723,7 +730,9 @@
                 "items": [
                   "모집직무"
                 ],
-                "note": "수정본: 날짜(320)+29+gap 30 = 379 → afterMain 131 · 「모집분야」 Bold 20 줄 + 값 Regular 20 최대 3줄 가운데(알약 없음)"
+                "note": "수정본: 날짜(320)+29+gap 30 = 379 → afterMain 131 · 「모집분야」 Bold 20 줄 + 값 Regular 20 최대 3줄 가운데(알약 없음)",
+                "labelBadge": true,
+                "labelBadgeNote": "11-10 사용자 피드백 28·「서브텍스트는 라벨 : 내용 / 라벨 ㅣ 내용 / 뱃지(+태그)만」 — 라벨 줄을 둥근 뱃지로, 값은 ㅣ 태그"
               }
             },
             "logo": {
