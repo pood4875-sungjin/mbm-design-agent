@@ -2628,6 +2628,27 @@ function zoomToFrame(k) {
   applyTransform();
 }
 // 패널 접기(피그마 ⌘\ 자리) — 캔버스를 넓게. 접어도 값은 그대로
+// 11-10 hub 이식 5단계 — 하단 가운데 툴바 도구(hub 「이동 V · 손 H | 이미지 I | AI」). 프레임·사각형·글자 도구는 넣지 않는다(자유 도형 = 렌더러 밖 레이어)
+const TOOL = { cur: 'move', space: false };
+const typingIn = t => /^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName ?? '') || !!t?.isContentEditable;
+function setTool(t) {
+  if (t) TOOL.cur = t;
+  $('viewport').classList.toggle('tool-hand', TOOL.cur === 'hand' || TOOL.space);
+  $('tMove')?.setAttribute('aria-pressed', String(TOOL.cur === 'move')); $('tHand')?.setAttribute('aria-pressed', String(TOOL.cur === 'hand'));
+}
+function toolImage() {   // 고른 소재가 있으면 그 소재 그림(이 소재만), 없으면 모든 소재 키비주얼
+  const a = state.selected ? state.campaign?.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null;
+  if (a?.channel === 'ad' && EL.find(a, 'kv')) { select(state.selected, 'kv'); $('iElKvFile')?.click(); return; }
+  select(null); $('iKvFile')?.click();
+}
+$('tMove').onclick = () => setTool('move'); $('tHand').onclick = () => setTool('hand');
+$('tImage').onclick = () => { if (state.campaign) toolImage(); };
+$('tAi').onclick = () => { if (!state.campaign) return; const a = state.selected ? state.campaign.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null; FREE.open(a?.channel === 'ad' ? a : null); };
+document.addEventListener('keydown', e => {
+  if (!state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex' || typingIn(e.target) || CS.on || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'v') { setTool('move'); e.preventDefault(); } else if (k === 'h') { setTool('hand'); e.preventDefault(); } else if (k === 'i' && !e.shiftKey) { e.preventDefault(); toolImage(); }
+});
 for (const [id, cls] of [['lToggle', 'noL'], ['rToggle', 'noR']]) $(id).onclick = () => { const w = $('work'); w.classList.toggle(cls); $(id).setAttribute('aria-pressed', String(w.classList.contains(cls))); RULER?.draw(); };
 document.addEventListener('keydown', e => {   // 11-09 Delete·Backspace: 고른 글자 요소를 이 소재에서 빼기(피그마처럼)
   if (!(e.key === 'Delete' || e.key === 'Backspace') || !state.campaign || !state.selected || !state.elSel || CS.on || SEL.on) return;

@@ -36,6 +36,13 @@
     --shadow:var(--glass-shadow);
     /* 목록 로고 타일 — 로고 톤이 정한다(테마와 무관: 어두운 로고는 늘 밝은 타일, 흰 로고는 늘 어두운 타일) */
     --tile-light:#ffffff; --tile-dark:#1c1c1e; --tile-line:rgba(20,20,22,.1);
+    /* 11-10 hub 이식 5단계 — hub/fui/ui3.css 토큰(작업 화면 편집기). 다크 값은 아래 미디어 쿼리에 같이(design-system-examples.md > 시맨틱 컬러 토큰)
+       포커스·선택 = hub 파랑 #0D99FF. 주 버튼은 같은 계열에서 흰 글자 대비 4.5:1 을 넘는 #0A74CC(4.79) — #0D99FF 는 2.99 라 작은 버튼 글자가 AA 미달 */
+    --focus:#0D99FF; --sel:#E5F4FF; --sel2:#D6EDFF; --pri:#0A74CC; --on-pri:#ffffff;
+    --border:#E6E6E6; --border2:#D9D9D9; --hover:#F0F0F0; --soft:#F5F5F5;
+    --r-in:5px; --r-card:8px; --r-menu:13px; --r-tool:13px;
+    --sh-menu:0 2px 14px rgba(0,0,0,.15),0 0 0 .5px rgba(0,0,0,.1);
+    --rail:56px; --sec-h:40px; --row-h:32px;
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -52,6 +59,9 @@
       --gen-soft:#241f3d;
       --good:#6fd3a3; --good-soft:#16302a; --amber:#e2b04a; --amber-soft:#33290f; --danger:#ff7b86; --danger-soft:#3a1c20;
       --tile-light:#f4f5f7; --tile-dark:#111214; --tile-line:rgba(255,255,255,.14);
+      --focus:#4DB5FF; --sel:#10304A; --sel2:#164066; --pri:#4DB5FF; --on-pri:#111214;   /* 다크 주 버튼: 밝은 파랑 + 진한 글자 8.4:1 */
+      --border:rgba(255,255,255,.1); --border2:rgba(255,255,255,.16); --hover:#2c2c30; --soft:#28282c;
+      --sh-menu:0 2px 14px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.12);
     }
   }
 
@@ -449,8 +459,26 @@
   .fchk input{width:14px;height:14px;margin:0;accent-color:var(--focus)}
   #inspector .isec .flab.sub + .falign,#inspector .isec .flab.sub + .fgrid2,#inspector .isec .flab.sub + .frow3{margin-top:2px}
   #inspector .isec .flab.sub{margin-top:8px}
+  /* 11-10 hub 이식 5단계 — 작업 화면 스타일(hub ui3): 주 버튼 파랑 · 머리 버튼 r5/32 · 패널 선 #E6E6E6 · 하단 가운데 떠 있는 툴바(r13 · 불투명 · 버튼 40 r9) */
+  body .hbtn.pri,body header .hbtn.pri,body .btn.pri{background:var(--pri);color:var(--on-pri);border-color:transparent}
+  body .hbtn.pri:hover,body header .hbtn.pri:hover,body .btn.pri:hover{background:var(--pri);opacity:.9}
+  body[data-view="work"] header .hbtn{height:32px;border-radius:var(--r-in);padding:0 12px;font-size:12px;font-weight:500}
+  #inspector,#leftPanel,#lRail,.isec,.scope,#leftPanel .lhead{border-color:var(--border)}
+  #inspector .isec,#leftPanel .isec{border-bottom-color:var(--border)}
+  #work #boardCtl{left:calc(var(--lw) + (100% - var(--lw) - var(--rw)) / 2);right:auto;transform:translateX(-50%);gap:0;padding:4px;background:var(--panel);border-radius:var(--r-tool);box-shadow:var(--sh-menu);align-items:center}
+  #work #boardCtl .ctlGrp{background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;padding:0 4px}
+  #work #boardCtl .ctlGrp + .ctlGrp{border-left:1px solid var(--border)}
+  #work #boardCtl .ctlGrp button{width:40px;height:40px;border-radius:9px;font-size:14px}
+  #work #boardCtl .ctlGrp button:hover:not(:disabled){background:var(--hover)}
+  #work #boardCtl .ctlGrp button[aria-pressed="true"].tool{background:var(--focus);color:#fff}
+  #work #boardCtl #zoomPct{min-width:44px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink)}
+  #work #boardCtl .ctl-hidden{display:none}
+  #work #helpPop{left:calc(var(--lw) + (100% - var(--lw) - var(--rw)) / 2);right:auto;transform:translateX(-50%);bottom:calc(72px + var(--dock));background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none;border:0;border-radius:var(--r-menu);box-shadow:var(--sh-menu)}
+  #viewport.tool-hand{cursor:grab}
+  #viewport.tool-hand .frame .hit,#viewport.tool-hand .eov{pointer-events:none}
+  #viewport.tool-hand.panning{cursor:grabbing}
   /* 11-10 hub 이식 4단계 — 왼쪽 레일(hub .rail: 56 · 아이콘 24 + 이름 10px · 고른 탭 파랑) + 탭 내용 */
-  #leftPanel{display:flex;overflow:hidden}
+  #work #leftPanel{display:flex;overflow:hidden}
   #lRail{width:56px;flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-right:1px solid var(--line);background:var(--panel)}
   #lRail button{width:48px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:8px;background:none;color:var(--sub);font-size:10px;line-height:1;cursor:pointer;padding:0}
   #lRail button svg{width:20px;height:20px}
@@ -472,6 +500,7 @@
   .ltree .lt-row:hover{background:var(--soft)}
   .ltree .lt-row.on{background:color-mix(in srgb,var(--focus) 12%,transparent)}
   .ltree .lt-row .lt-el{flex:1;min-width:0;padding-left:32px;min-height:28px;background:none}
+  .ltree .lt-row .fib{width:24px;min-height:24px;height:24px;flex:none;padding:0;justify-content:center}
   .lasset{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;margin-top:4px}
   .lasset .kvthumb{width:64px;height:48px;font-size:10px}
   .lasset .lasset-btns{display:flex;flex-direction:column;gap:4px}
@@ -522,7 +551,7 @@
   .bigbtn:disabled{opacity:.35;cursor:default}
 
   /* ═══ work (아트보드) ═══ */
-  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:340px;--rw:288px;--ruler-bg:var(--panel)}   /* 11-10 hub 이식 4단계: 왼쪽 = 레일 56 + 패널 284 */
+  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:340px;--rw:248px;--ruler-bg:var(--panel)}   /* 11-10 hub 이식 4단계: 왼쪽 = 레일 56 + 패널 284 */
   #work.noL{--lw:0px} #work.noR{--rw:0px}
   #work.noL #leftPanel,#work.noR #inspector{display:none}
   #viewport{position:absolute;inset:52px var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
@@ -843,7 +872,7 @@
      ≤1024: 우측 패널이 캔버스를 덮지 않도록 아래로 내려 가로로 눕힌다(두 열) — 플로팅 바는 그 위로 올라간다. */
   @media (max-width:1180px){ #cmdBar{width:min(560px,36%)} }
   @media (max-width:1024px){
-    #work{--lw:288px;--rw:256px}
+    #work{--lw:288px;--rw:248px}
     #work.noL{--lw:0px} #work.noR{--rw:0px}
     #sidebar{width:260px}
   }
@@ -1151,14 +1180,20 @@
     </aside>
     <div id="viewport"><div id="artboard"></div><canvas id="rulerT" aria-hidden="true"></canvas><canvas id="rulerL" aria-hidden="true"></canvas></div>
     <aside id="inspector" aria-label="디자인"></aside>
-    <div id="boardCtl">
+    <div id="boardCtl" role="toolbar" aria-label="캔버스 도구">
+      <div class="ctlGrp" id="toolGrp"><!-- 11-10 hub 이식 5단계: 이동 V · 손 H | 이미지 I | AI -->
+        <button class="tool" id="tMove" aria-pressed="true" title="이동 V" aria-label="이동 도구 (V)"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 4l12 7.5-5.5 1.2L10 18z"/></svg></button><button class="tool" id="tHand" aria-pressed="false" title="손 H — 끌어서 화면 이동 (Space 누른 채 끌기도)" aria-label="손 도구 (H)"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 12V6.5a1.5 1.5 0 013 0V11M11 10.5V5a1.5 1.5 0 013 0v5.5M14 10.5V6.5a1.5 1.5 0 013 0V14a6 6 0 01-6 6h-.6a5 5 0 01-3.9-1.9L4 14.5a1.5 1.5 0 012.3-1.9L8 14.5"/></svg></button>
+      </div>
+      <div class="ctlGrp">
+        <button id="tImage" title="이미지 I — 고른 소재 그림 바꾸기(고른 게 없으면 모든 소재)" aria-label="이미지 바꾸기 (I)"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4.5 18l5-5.5 3.5 4 2-2 4.5 4"/><circle cx="15.5" cy="8.5" r="1.3"/></svg></button><button id="tAi" title="AI — 대화로 시안 뽑기" aria-label="AI 대화로 시안 뽑기"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></button>
+      </div>
       <div class="ctlGrp">
         <button id="hUndo" aria-label="되돌리기" disabled><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button id="hRedo" aria-label="다시하기" disabled><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
       </div>
       <div class="ctlGrp" id="zoomCtl">
         <button id="zOut" aria-label="축소"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div id="zoomPct">100%</div><button id="zIn" aria-label="확대"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><button id="zFit" title="전체 보기" aria-label="전체 보기"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
-      <div class="ctlGrp" title="캔버스 배경색"><label class="cbg" aria-label="캔버스 배경색"><input type="color" id="canvasBg" value="#f6f7f9"><span class="cbg-sw" id="canvasBgSw"></span></label><button id="canvasBgReset" aria-label="배경색 기본으로" title="기본으로">↺</button></div>
+      <div class="ctlGrp ctl-hidden" title="캔버스 배경색 — 오른쪽 「페이지」로 옮김"><label class="cbg" aria-label="캔버스 배경색"><input type="color" id="canvasBg" value="#f6f7f9"><span class="cbg-sw" id="canvasBgSw"></span></label><button id="canvasBgReset" aria-label="배경색 기본으로" title="기본으로">↺</button></div>
       <div class="ctlGrp">
         <button id="lToggle" aria-label="왼쪽 패널 접기" title="왼쪽 패널 접기" aria-pressed="false"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/></svg></button><button id="rToggle" aria-label="오른쪽 패널 접기" title="오른쪽 패널 접기" aria-pressed="false"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M15 5v14"/></svg></button>
       </div>
