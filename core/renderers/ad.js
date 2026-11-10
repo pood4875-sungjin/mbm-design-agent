@@ -1302,6 +1302,9 @@ function renderAdBase(ctx, style, spec) {
   // 11-10 사용자 「가이드가 저렇지 않는 이상 이미지일 땐 옆으로 넓게 — 저 영역 지키려고 저렇게 하면 안 돼」: 가로형(w ≥ 1.8h) 틀의 고정 그림 칸(kv slot)이
   //   매체 공식 칸(mold.slotOfficial — 카카오·NAP 비즈보드 썸네일)이 아니고 키비주얼이 이미지형이면, 칸 왼변부터 오른쪽 끝·전체 높이(리멤버 썸네일형). 누끼는 칸 그대로
   if (mold?.kv === 'slot' && !mold.slotOfficial && tImage && !moldCutZone && kvImg0 && w >= 1.8 * h && (tImage.y > 0 || tImage.x + tImage.w < w || tImage.h < h)) { tImage = { x: tImage.x, y: 0, w: w - tImage.x, h }; fired('templateMold.slotWide'); }
+  // 11-10 밤(네이버 DA × 인물 사진: 타이틀 둘째 줄이 사람 어깨 위): 잠기지 않은 틀에서 사진(바탕 있는 그림 중 실사)은 글자 칸 오른쪽부터 — 녹임 구간에도 사람이 보인다. 누끼·그래픽은 그대로
+  { const colR = mold && !mold.slotOfficial && Math.round(((mold.x ?? 0) + (mold.rows?.main?.w ?? mold.w ?? 0)) * tScale) + 24;
+    if (colR && tImage && kvImg0 && (style.kvMeta?.field?.kind === 'photo') && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && tImage.x < colR && colR < w * 0.8 && !CANON.lockedMedia.includes(spec.medium) && (mold.align ?? 'left') === 'left') { tImage = { ...tImage, x: colR, w: Math.max(1, tImage.x + tImage.w - colR) }; fired('templateMold.photoAfterText'); } }
   // 11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함 — 누끼도 센터 정렬로 돼야 안 비어 보이고 정렬돼 보임(인스타)」: 틀 자체가 가운데 정렬(인스타 1080·구글 300×600)이면
   //   정렬 프리셋이 없어도 누끼 그림 칸만 가운데로(로고는 틀 그대로). 사진·바탕 있는 그림은 칸 그대로
   const cutCenterOnly = !TA && !!mold && mold.align === 'center' && kvCut0 && !kvImg0 && !!tImage && !moldCutZone && !moldFreeKv;
@@ -3084,7 +3087,7 @@ ${tplLogo}${kvWrap(tplObject)}
       if (MR.detail.labelCol && !lockedMold) {
         const dv = (ladder.details ?? []).find(d => d.label === '접수기간')?.value;
         const need = dv ? Math.round((MR.detail.labelCol * k) + textWidth(String(dv)) * pxOf(MR.detail) * 1.04) : 0;
-        const colMax = Math.round((mold.w ?? MR.detail.w) * k);
+        const colMax = Math.min(Math.round((mold.w ?? MR.detail.w) * k), (tImage && tImage.x > sx && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && style.kvMeta?.field?.kind !== 'texture' && kvTypeOf(style.kvMeta)?.id !== 'texture') ? tImage.x - 12 - sx + Math.round((MR.detail.x ?? 0) * k) : Infinity);   /* 누끼는 칸 빈 곳까지 써도 된다 */   // 그림 칸 앞까지만(넓혀서 인물 위로 넘어가지 않게)
         if (need > rowW(MR.detail) && need <= colMax) { const nw = Math.ceil(need / k) + 4; MR.detail = { ...MR.detail, w: nw, valueW: nw - MR.detail.labelCol }; fired('templateMold.detailWiden'); }
       }
       const guideLines = (inLimits ?? []).find(t => t.lines && /광고 문구|메인/.test(String(t.field ?? '')))?.lines ?? null;
@@ -3094,7 +3097,7 @@ ${tplLogo}${kvWrap(tplObject)}
       const cap0 = MR.detail.lines ?? 3;
       // 라벨 열 + 값 열(mold.rows.detail.labelCol — 네이버 DA 107:657 「모집 기간 | 값」「모집 직무 | 값」, 10-16 오후): 행 수는 값 열 폭으로. 날짜(접수기간)는 한 줄(줄바꿈 금지 — 107:657 「2.28(수) - 3.10(일)」, 값 열 밖으로 나가도 칸 위쪽이라 그림과 안 겹침)
       const wrc = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k))));   // 값 열 폭 = valueW(107:657 직무 값 상자 240) 또는 칸 폭 − 라벨 열
-      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? 1 : wrc(String(value)) } : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
+      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? (textWidth(String(value)) * dpx * 1.02 <= (MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k)) + 2 ? 1 : 99) : wrc(String(value)) }   /* 기간은 줄바꿈 금지 — 안 들어가면 짧은 날짜 후보로 */ : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
       const rows0 = (ladder.details ?? []).filter(d => moldItemOk(MR.detail, d) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           // 그 밖의 항목(모집직무 등)도 칸에 안 들어가면 짧은 후보 — 괄호 속 설명을 빼고(「일반(사업, 재무 등), 보훈(사업/경영지원)」 → 「일반, 보훈」), 그래도 넘치면 앞 항목만(10-22 루프 r1: 네이버 1250 직무 줄 잘림 A·C 공통)
