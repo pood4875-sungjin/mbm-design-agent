@@ -2306,7 +2306,7 @@ function renderAdBase(ctx, style, spec) {
     const per = slots.main?.maxCharsPerLine ?? null, total = slots.main?.maxChars ?? null;
     // 안랩 "AhnLab / 신입/경력 채용" · 삼진제약 "2026년 / 삼진제약 부문별 채용" — 시즌을 적어 줬으면 시즌이 첫 줄
     const hireTxt = hireFor(core);
-    const pairs = [core.season && hireTxt ? [core.season, `${core.client} ${hireTxt}`] : null, [core.client, hireTxt], [core.client, core.role && (hireTxt ? `${core.role} 채용` : core.role)], hireTxt ? [core.client, '채용'] : null]
+    const pairs = [core.season && hireTxt ? [core.season, `${core.client} ${hireTxt}`] : null, [core.client, hireTxt], [core.client, core.role && (hireTxt ? `${core.role} 채용` : core.role)]]   // 11-10 밤: 「회사 / 채용」 짝은 뺐다 — 채용 구분을 버리고 「채용」만 남겼다(알바몬 320×155 · 11-09 「채용 구분은 항상」)
       .filter(p => p && p[1]);
     const fsFor = pr => Math.min(z.cap, Math.floor(textW / Math.max(...pr.map(t => textWidth(t) * 1.02))), Math.floor(titleBudget / (2 * mainLine)));
     const ok = pr => pr.every(t => per == null || countChars(t, counting) <= per)

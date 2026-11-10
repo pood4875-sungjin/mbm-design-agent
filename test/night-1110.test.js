@@ -37,3 +37,12 @@ test('날짜 자리가 따로 없는 규격에서 서브가 비면 마감 일정
   assert.ok(h.indexOf('data-field="main"') < h.indexOf('data-field="sub"'), '날짜는 타이틀 아래');
   for (const sid of ['instagram-story-1080x1920', 'albamon-pc-sub-bottom']) assert.ok(!tr(renderArtifact(sid, ctx, st)).rules.includes('subAsDate'), sid);
 });
+
+test('가로형 짝 규칙에 「회사 / 채용」 없음 — 채용 구분이 빠지지 않는다(알바몬 320×155)', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js');
+  const ctx = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', startDate: '2026-11-12', deadline: '2026-11-25' }, 'recruit');
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const st = normalizeStyle({ colors: ['#1428A0'] });
+  for (const sid of ['albamon-pc-search-right', 'specup-right-big-pc', 'gamejob-community-pick-mo']) { const c = tr(renderArtifact(sid, ctx, st)).copy; assert.ok(String(c.main + ' ' + (c.sub ?? '')).replace(/\s/g, '').includes('신입/경력공개채용'), `${sid} ${JSON.stringify(c)}`); }
+});
