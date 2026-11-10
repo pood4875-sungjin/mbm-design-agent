@@ -72,7 +72,7 @@ test('A5 쌓기 값은 쉼표로만 나눈다 — 「경영·제품·사업 분�
   const html = renderAd(ctx2, plain, specs['albamon-pc-sky-job']);   // 10-15: 에브리타임 홈 카드는 틀(mold) 규격이 됐다 → 쌓기 문법은 알바몬 PC 스카이(560×700)로 본다
   const det = detailOf(html);
   assert.match(det, /data-chip="1"/, '쌓기(알약 + 값)');
-  assert.match(det, /자유직무ㅣ​경영⁠·⁠제품/);
+  assert.match(det, /자유직무(ㅣ|<br\/>)경영⁠?·⁠?제품/);   // 11-10 밤: 넘치면 항목 사이에서 줄바꿈(줄 끝 ㅣ 없음)
   assert.doesNotMatch(det, /경영ㅣ|제품ㅣ/);
 });
 

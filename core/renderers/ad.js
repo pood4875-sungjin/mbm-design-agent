@@ -2039,7 +2039,7 @@ function renderAdBase(ctx, style, spec) {
         // 틀(mold)은 칸 폭이 정확하므로 글자수 어림 대신 글꼴 폭으로 센다 — 「접수기간 ㅣ 9.22(월) - 10.12(일)」(M메인 24px·칸 457)은 한 줄인데 글자수(27자 > 21)로는 두 줄로 세어 모집직무가 떨어졌다(10-15)
         const widthRows = t => Math.max(1, Math.ceil(textWidth(t) * fs * 1.02 / Math.max(1, detailW)));
         const inlineRows = mold ? widthRows(`${d.label}${mold.rows?.detail?.labelSep ?? ' :'} ${d.value}`) : estimateLines(inline, perLine, counting);
-        const useInline = (stackTags || mold?.rows?.detail?.labelRow) ? false : (inlineRows <= 1 || !narrow);   // 틀이 라벨 줄 + 값 줄이면(자소설 채용공고 세아 「모집일정」/날짜) 항상 쌓는다
+        const useInline = (stackTags || mold?.rows?.detail?.labelRow) ? false : (inlineRows <= 1 || (!narrow && d.label !== '접수기간'));   // 11-10 밤: 기간은 「11.12(목) - / 11.25(수)」로 쪼개지 않는다 — 한 줄에 안 들어가면 뱃지 꼴로   // 틀이 라벨 줄 + 값 줄이면(자소설 채용공고 세아 「모집일정」/날짜) 항상 쌓는다
         const valTxt = stackTags ? String(d.value).split(/\s*,\s*/).filter(Boolean).join('ㅣ') : d.value;   // 쉼표로만 나눈다 — 「경영·제품·사업 분야」 가운뎃점 묶음은 한 항목(A5)
         const valRows = mold ? widthRows(String(d.value)) : (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
         const needed = useInline ? inlineRows : 1 + valRows;
@@ -2607,7 +2607,11 @@ function renderAdBase(ctx, style, spec) {
   // 가로형은 상세를 한 행에 가로로 푼다(일화 970: 접수기간·모집부문 라벨 2개 한 줄 / 중앙 템플릿 상세 4칸 한 행)
   const detailRow = useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
   // 쌓기 값: 항목은 ㅣ로 잇고(참고 예시처럼 띄어쓰기 없이) 줄은 ㅣ 뒤에서만 끊는다 — 항목 안의 '/'(전시/컨벤션)에서 끊기면 "전시/ / 컨벤션"이 된다
-  const fmtVal = v => stackTags ? String(v).split(/\s*,\s*/).filter(Boolean).map(it => it.replace(/\//g, '\u2060/\u2060')).join('ㅣ\u200B') : String(v);
+  // 11-10 밤(눈 검수 「연구개발 | / 기술영업 | / 경영지원 — 줄 끝에 ㅣ」): 태그는 줄에 채우다 넘치면 항목 사이에서 줄을 바꾼다 — 줄 끝·줄 머리에 ㅣ 를 남기지 않는다
+  const fmtVal = v => { if (!stackTags) return String(v); const its = String(v).split(/\s*,\s*/).filter(Boolean).map(it => it.replace(/\//g, '\u2060/\u2060'));
+    const lim = Math.max(1, detailW) * 0.98, lines = []; let cur = '';
+    for (const it of its) { const cand = cur ? `${cur}ㅣ${it}` : it; if (!cur || textWidth(cand.replace(/\u2060/g, '')) * z.dFs * 1.02 <= lim) cur = cand; else { lines.push(cur); cur = it; } }
+    if (cur) lines.push(cur); return lines.join('\n'); };
   const detailBlock = () => detailLines.length
     ? `<div data-field="detail"${detailLines.some(d => sampleText.has(d.value)) ? ' data-sample="1"' : ''} style="font-size:${z.dFs}px;font-weight:${fwOf('detailValue', z.dFs)};line-height:${dLine};color:${detailFg};text-align:${align};margin-top:${detailGap(z)}px;${WRAP};text-wrap:pretty${detailW > textW ? `;width:${detailW}px;max-width:none` : ''}${detailRow ? `;display:flex;flex-wrap:wrap;gap:${chipRowGap(z)}px ${Math.round(z.dFs * 1.2)}px` : ''}">${detailLines.map((d, i) =>
         `<div${!detailRow && i > 0 && chipRowGap(z) ? ` style="margin-top:${chipRowGap(z)}px"` : ''}>${label(d)}${esc(nb(fmtVal(d.value))).replace(/\n/g, '<br/>')}</div>`).join('')}</div>` : '';
