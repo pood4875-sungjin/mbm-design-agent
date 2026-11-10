@@ -22,6 +22,9 @@ const mainWt = r => Math.max(r.wt ?? 0, r.emph?.kind === 'weight' ? Math.max(r.e
 // 청사진 프레임의 기준값(규격 크기로 환산)
 // 규격 모양에 맞는 하한(가로로 긴 규격은 minWide)
 export const bpMinFor = (w, h) => (w / Math.max(1, h) >= 3 ? BP.minWide : BP.min);
+// 생성 하한(11-10 밤): 검사 하한(하위 10%)과 중앙값 사이 — 하위 10%에 딱 걸친 크기(인스타 스토리 상세 38%)를 눈 검수 3명이 모두 「작다」고 봤다
+export const BP_GEN = { min: { sub: 0.54, date: 0.47, detail: 0.42, label: 0.40 }, minWide: { sub: 0.55, date: 0.55, detail: 0.48, label: 0.45 } };
+export const bpGenFor = (w, h) => (w / Math.max(1, h) >= 3 ? BP_GEN.minWide : BP_GEN.min);
 
 export function blueprintOf(frame, { sx = 1, sy = 1 } = {}) {
   const rows = frame.rows.filter(r => r.role !== 'label');

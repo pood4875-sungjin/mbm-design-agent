@@ -46,3 +46,13 @@ test('가로형 짝 규칙에 「회사 / 채용」 없음 — 채용 구분이 
   const st = normalizeStyle({ colors: ['#1428A0'] });
   for (const sid of ['albamon-pc-search-right', 'specup-right-big-pc', 'gamejob-community-pick-mo']) { const c = tr(renderArtifact(sid, ctx, st)).copy; assert.ok(String(c.main + ' ' + (c.sub ?? '')).replace(/\s/g, '').includes('신입/경력공개채용'), `${sid} ${JSON.stringify(c)}`); }
 });
+
+test('생성 하한(하위 10%와 중앙 사이) — 인스타 스토리 상세 ≥ 타이틀 42% · 라벨만 선 줄 없이 뱃지 꼴 · 뱃지 글자도 하한 뒤 크기', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js'); const { extractRecruit } = await import('../core/brief.js');
+  const ctx = createContext(extractRecruit('마이다스아이티 2026년 하반기 신입/경력 공개채용. 접수 11월 12일(목) ~ 11월 25일(수) 18:00. 모집분야: 연구개발, 기술영업, 경영지원. 근무지: 판교', new Date(2026, 10, 10)), 'recruit');
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const h = renderArtifact('instagram-story-1080x1920', ctx, normalizeStyle({ colors: ['#1428A0'] })), t = tr(h);
+  assert.ok(t.fonts.detail.px / t.fonts.main.px >= 0.42 - 0.005, JSON.stringify(t.fonts.detail));
+  assert.doesNotMatch(h, /<b style="font-weight:\d+;display:block">/, '라벨만 선 줄 없음');
+});

@@ -30,7 +30,7 @@ import { aiEligible } from '../trackb/analyze.js';
 import { resolveField, lightFieldOf, brandDeep, flatLightBg, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltGradientFrom, meltLength, seamHexes, meltNeed, cutFadePct, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
-import { bpMinFor } from '../typoaudit.js';
+import { bpGenFor } from '../typoaudit.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
 import { editOf, transformCss, KV_SIZE_K, SCRIM_A, GRAD_ANGLE, placeAvail, infoTagOf, INFO_TAG } from '../editlayout.js';
 import { kvTypeOf } from '../kvtypes.js';
@@ -2054,7 +2054,7 @@ function renderAdBase(ctx, style, spec) {
     let r = fit(fs);
     // 11-10 피드백 5·67·68·72: 자유 레이아웃의 서브텍스트는 「라벨 : 내용」 「라벨 ㅣ 내용」 「뱃지 + 내용(태그)」 셋만 — 굵은 라벨 줄 + 값 줄(라벨만 따로 선 꼴)은 안 쓴다.
     //   한 줄에 「라벨 : 내용」이 안 들어가는 항목이 하나라도 있으면 그 광고의 상세는 모두 뱃지 + 내용으로(한 광고 안에서 형식 통일)
-    if (!stackTags && !mold && !guide?.detailLabels && !strip && r.lines.some(d => !d.inline)) { stackTags = true; const head0 = cands0.filter(d => d.label === '모집직무'); cands0.splice(0, cands0.length, ...head0, ...cands0.filter(d => !head0.includes(d))); r = fit(fs); fired('detail.badgeForm'); }
+    if (!stackTags && !mold && guide?.detailLabels !== 'chip' && !strip && r.lines.some(d => !d.inline)) {   /* 가이드가 「인라인」이라 해도(인스타) 한 줄에 안 들어가면 라벨만 따로 서게 두지 않는다 */ stackTags = true; const head0 = cands0.filter(d => d.label === '모집직무'); cands0.splice(0, cands0.length, ...head0, ...cands0.filter(d => !head0.includes(d))); r = fit(fs); fired('detail.badgeForm'); }
     // 가이드 매체(구글)는 접수기간·모집부문 둘 다 템플릿 칩이다 — 줄이 모자라면 줄을 빼기 전에 글자를 하한까지 줄여 본다
     if (gMin != null && detailFs == null) {
       let best = { fs, r };
@@ -2558,6 +2558,13 @@ function renderAdBase(ctx, style, spec) {
   // 상세 블록 — 한 요소로 묶어 검사기가 총 글자수·총 줄 수를 본다. 라벨은 굵게, 값은 가늘게(세아제강·한독).
   const lw = fwOf('detailLabel', z.dFs);   // 라벨 700 + 값 400(자소설 3/3) — 예전엔 가로형 레퍼런스(detailLabelBold:false)에서 라벨도 400이라 강약이 없었다
   // 라벨 칩(구글 템플릿 '문구입력', 예시 24/28: 일화 레드 pill·비씨월드 네이비 pill·ABL 흰 pill) — 밝은 지면엔 브랜드색 칩에 흰 글자, 어두운 지면엔 흰 칩에 지면색 글자
+  // 11-10 청사진 하한(core/typoaudit BP.min — 디자이너 프레임 188개 분포 하위 10%): 서브·날짜·상세가 타이틀에 비해 이보다 작으면 비정상(알바몬 메인 빅 날짜 33%, 인스타 스토리 상세 35%).
+  //   매체가 글자 크기를 정한 규격(글자 띠·높이 규정·가이드 상세 px·적어 준 크기)은 그대로
+  if (!fsRange && !th && !(spec.mediumRules?.fonts?.required || mr?.fonts?.required) && stated.main == null) {   // 가이드 상세 px 띠(인스타 26~34 = 피드 샘플 절대값)보다 비율 하한이 먼저 — 스토리는 메인이 98px 라 34px 상세가 35%가 됐다
+    const BPM = bpGenFor(w, h), lo = (v, k, st) => st != null ? v : Math.max(v, Math.ceil(mainFs * BPM[k]));   // 올림 — 반올림이면 22px 메인의 서브가 10px(.455 < .47)
+    const z0 = z; z = { ...z, subFs: lo(z.subFs, 'sub', stated.sub), smallFs: lo(z.smallFs, 'date', stated.date), dFs: lo(z.dFs, 'detail', detailFs) };
+    if (z.subFs !== z0.subFs || z.smallFs !== z0.smallFs || z.dFs !== z0.dFs) { fired('size.blueprintFloor'); TR.blueprintFloor = { sub: [z0.subFs, z.subFs], date: [z0.smallFs, z.smallFs], detail: [z0.dFs, z.dFs] }; }
+  }
   const chipTone = style.chipTone ?? (IT?.label ? 'brand' : 'tint');   // 라벨 태그(infoTag label/both)는 채움 태그 — 밝은 지면 주색 + 흰 글자, 어두운 지면 흰 + 지면색(시안 ② 색 규칙)
   const chip = (guide?.detailLabels === 'chip' || stackTags || !!IT?.label) && chipTone !== 'plain';   // 'plain'은 알약 없이 굵은 라벨만
   // 알약 톤(style.chipTone, 캠페인 일괄·산출물 개별 모두 가능)
@@ -2626,13 +2633,6 @@ function renderAdBase(ctx, style, spec) {
   const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio))))
     : (LC && mold && !officialMold && moldMainPx && !moldLogoObj) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;   // 로고가 오브젝트 자리를 맡으면(moldLogoObj) 글자 대비 상한을 안 건다
   const capW = mw => Math.min(mw, logoCapW);
-  // 11-10 청사진 하한(core/typoaudit BP.min — 디자이너 프레임 188개 분포 하위 10%): 서브·날짜·상세가 타이틀에 비해 이보다 작으면 비정상(알바몬 메인 빅 날짜 33%, 인스타 스토리 상세 35%).
-  //   매체가 글자 크기를 정한 규격(글자 띠·높이 규정·가이드 상세 px·적어 준 크기)은 그대로
-  if (!fsRange && !th && !(spec.mediumRules?.fonts?.required || mr?.fonts?.required) && stated.main == null) {   // 가이드 상세 px 띠(인스타 26~34 = 피드 샘플 절대값)보다 비율 하한이 먼저 — 스토리는 메인이 98px 라 34px 상세가 35%가 됐다
-    const BPM = bpMinFor(w, h), lo = (v, k, st) => st != null ? v : Math.max(v, Math.ceil(mainFs * BPM[k]));   // 올림 — 반올림이면 22px 메인의 서브가 10px(.455 < .47)
-    const z0 = z; z = { ...z, subFs: lo(z.subFs, 'sub', stated.sub), smallFs: lo(z.smallFs, 'date', stated.date), dFs: lo(z.dFs, 'detail', detailFs) };
-    if (z.subFs !== z0.subFs || z.smallFs !== z0.smallFs || z.dFs !== z0.dFs) { fired('size.blueprintFloor'); TR.blueprintFloor = { sub: [z0.subFs, z.subFs], date: [z0.smallFs, z.smallFs], detail: [z0.dFs, z.dFs] }; }
-  }
   { const subRole = showSub ? (subAbove ? 'eyebrow' : ((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan')) : null;
     const tk = guide?.tracking ?? {}; const trk = (tk.main ?? 0) && mainFs >= (tk.mainMinPx ?? 28) ? tk.main : 0;
     TR.fonts = { main: { px: mainFs, weight: fwOf('main', mainFs), lh: mainLine, tracking: trk, lines: mainLines, cap: capMain, floor: floorMain, sqFloor }, sub: showSub ? { px: z.subFs, weight: fwOf(subRole, z.subFs), role: subRole, lh: useRef ? L.subLine : line } : null,
