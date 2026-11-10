@@ -186,6 +186,7 @@ export function createArtKv(D) {
       const a = fr ? D.state.campaign.artifacts.find(x => (x.key ?? x.specId) === fr.dataset.key) : null;
       if (a && a.channel === 'ad') {
         D.select(fr.dataset.key, 'kv');
+        for (let i = 0; i < 30 && !D.EL.find(a, 'kv'); i++) await new Promise(r => setTimeout(r, 100));   // 화면 밖이라 아직 안 실린 프레임이면 실릴 때까지(최대 3초)
         if (!D.EL.find(a, 'kv')) { D.toast('이 규격엔 키비주얼 자리가 없어요(로고만·글자만 규격)'); return; }
         await replaceKv(a, await readFile(f));
         return;
