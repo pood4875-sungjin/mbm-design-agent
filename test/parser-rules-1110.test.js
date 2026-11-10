@@ -13,14 +13,51 @@ test('공고명에 연도가 있으면 가로형 메인에 시즌을 또 붙이�
   assert.equal(l.mainWide[0], '삼성전자 2026년 하반기 3급 신입사원 채용');
 });
 
-test('채용 구분에 연도가 없으면 그대로 — 가로형 메인 앞 시즌·서브 시즌', () => {
+test('채용 구분에 연도가 없으면 그대로 — 가로형 메인 앞 시즌(서브엔 시즌 안 씀, 11-10 입력 개편)', () => {
   const l = L({ client: 'GS에너지', season: '2025년', hiringType: '신입 공채' });
   assert.equal(l.mainWide[0], '2025년 GS에너지 신입 공채');
-  assert.equal(l.sub[0], '2025년');
+  assert.ok(!l.sub.includes('2025년'));
+});
+
+test('결정 ②: 채용 구분에 든 직무는 상세·라벨에 또 안 씀', () => {
+  const l = L({ client: '현대오일터미널 주식회사', hiringType: '생산전문직 채용', role: '생산전문직', deadline: '2026-11-08' });
+  assert.ok(!l.details.some(d => d.label === '모집직무'));
+  assert.ok(!l.label.some(t => /모집직무/.test(t)));
+  const k = L({ client: 'GS에너지', hiringType: '신입 공채', role: '사업, 재무', deadline: '2026-07-02' });
+  assert.ok(k.details.some(d => d.label === '모집직무' && d.value === '사업, 재무'));
+});
+
+test('파서 11-10: 회사 + 채용 구분만 · 전각 물결 · 월 생략 · 오후 · 마감일 라벨 · 목록 줄 · 자격 속 경력 · 체험형 인턴 모집', async () => {
+  const { extractRecruit } = await import('../core/brief.js');
+  const N = new Date(2026, 10, 10);
+  assert.equal(extractRecruit('마이다스아이티 신입 채용, 11/1 ~ 11/15', N).client, '마이다스아이티');
+  assert.equal(extractRecruit('마이다스아이티 신입 채용. 접수 11.1(일)～11.15(일)', N).deadline, '2026-11-15');
+  const r = extractRecruit('마이다스아이티 신입 채용. 11월 1일부터 15일까지', N); assert.equal(r.startDate, '2026-11-01'); assert.equal(r.deadline, '2026-11-15');
+  assert.equal(extractRecruit('마이다스아이티 신입 채용. 11월 1일(일) ~ 11월 15일(일) 오후 6시', N).deadlineTime, '18:00');
+  assert.equal(extractRecruit('마이다스아이티 신입 채용. 서류접수 시작 11월 1일, 마감일: 11월 15일', N).deadline, '2026-11-15');
+  assert.equal(extractRecruit('마이다스아이티 신입 채용\n모집분야\n- 영업\n- 연구개발\n접수 11/1 ~ 11/15', N).role, '영업, 연구개발');
+  assert.equal(extractRecruit('마이다스아이티 채용 공고. 지원자격: 경력 3년 이상. 11/1 ~ 11/15', N).hiringType, undefined);
+  assert.equal(extractRecruit('마이다스아이티 체험형 인턴 모집. 11/1 ~ 11/15. 모집분야: 마케팅', N).hiringType, '체험형 인턴 모집');
 });
 
 test('타이틀(headline)에 연도가 있으면 서브(회사·구분)에 시즌을 안 붙인다', () => {
   const l = L({ client: '한독', season: '2026', hiringType: '신입/경력', headline: '2026 한독 신입/경력 공채' });
   assert.deepEqual(l.main, ['2026 한독 신입/경력 공채']);
   for (const s of l.sub) assert.ok(!/2026/.test(s), s);
+});
+
+test('11-10 사용자 「응」: 자소설만 — 추가 문구가 비면 시즌을 서브로, 메인엔 연도 없음 · 메인에 연도가 있으면 서브 시즌 없음', async () => {
+  const { createContext } = await import('../core/context.js');
+  const { renderAd } = await import('../core/renderers/ad.js');
+  const { adSpecEntries } = await import('../core/adspecs.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const S = adSpecEntries(), st = normalizeStyle({ colors: ['#1E5BE6'] });
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+  const base = { client: '세아제강', season: '2026년 하반기', hiringType: '신입/경력사원', deadline: '2026-11-20' };
+  const a = tr(renderAd(createContext(base, 'recruit'), st, S['jasoseol-pc-premium-popup-pc'])).copy;
+  assert.equal(a.sub, '2026년 하반기'); assert.ok(!/2026/.test(a.main), a.main);
+  const b = tr(renderAd(createContext({ ...base, hiringType: '2026년 하반기 신입 채용' }, 'recruit'), st, S['jasoseol-pc-premium-popup-pc'])).copy;
+  assert.ok(!/2026/.test(String(b.sub ?? '')), String(b.sub));
+  const g = tr(renderAd(createContext(base, 'recruit'), st, S['google-gdn-580x400'])).copy;
+  assert.ok(!/하반기/.test(String(g.sub ?? '')), '자소설 밖은 서브에 시즌 안 씀');
 });

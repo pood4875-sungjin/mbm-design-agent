@@ -27,10 +27,10 @@ test('파서: 공고의 「라벨: 값」은 추가 행으로(라벨 정규화),
 - 전형 절차: 서류전형 → 필기전형 → 면접전형`, NOW);
   assert.equal(r.client, '대구경북첨단의료산업진흥재단'); assert.equal(r.hiringType, '2026년 제5차 직원 채용'); assert.equal(r.role, '연구직, 행정직');
   assert.equal(r.startDate, '2026-11-06'); assert.equal(r.deadline, '2026-12-17');
-  assert.deepEqual(r.rows, [{ label: '근무지', value: '대구 동구' }, { label: '고용형태', value: '정규직' }, { label: '전형절차', value: '서류전형 → 필기전형 → 면접전형' }]);
+  assert.deepEqual(r.rows, [{ label: '근무지', value: '대구 동구' }, { label: '고용형태', value: '정규직' }], '11-10 사용자 결정 ③ 「결과값만」 — 전형절차는 파서가 행으로 안 만든다');
   assert.equal(r.employType, undefined); assert.equal(r.location, undefined);
   const h = extractRecruit('한빛소프트 2026년 하반기 신입사원 공개채용\n접수기간: 2026.11.12 ~ 2026.11.25 18:00\n모집분야: 게임기획, 서버개발\n근무지: 서울 강남\n지원방법: 홈페이지 온라인 접수\n우대사항: 관련 전공자\n슬로건 "게임의 내일을 함께"', NOW);
-  assert.deepEqual(h.rows.map(x => x.label), ['근무지', '지원방법', '우대사항']);
+  assert.deepEqual(h.rows.map(x => x.label), ['근무지'], '지원방법·우대사항은 안 읽음(결정 ③)');
   assert.equal(h.subText, '게임의 내일을 함께', '슬로건 → 추가 문구'); assert.equal(h.slogan, undefined);
   assert.equal(h.season, '2026년 하반기');
   // 한 줄에 이어 적은 라벨 — 직무 뒤 근무지가 직무에 섞이지 않는다
@@ -64,10 +64,10 @@ test('연도 한 번: 49규격 어디에도 같은 연도가 두 번 안 나온�
     const tr = traceOf(renderAd(plain, st, S[id]));
     assert.match(tr.copy.main.replace(/\n/g, ' '), /^2025년 GS에너지/, `${id} 메인 앞 연도`);
   }
-  // 서브 자리가 있는 자소설은 연도를 메인에도 서브에도 지어 넣지 않는다(추가 문구가 비면 서브가 시즌으로 차지 않는다)
+  // 11-10 사용자 결정(「응」): 자소설만 — 추가 문구가 비면 서브 = 시즌, 메인엔 연도 없음
   for (const id of ['jasoseol-pc-premium-popup-pc', 'jasoseol-m-standard-main-mo']) {
     const tr = traceOf(renderAd(plain, st, S[id]));
-    assert.doesNotMatch(`${tr.copy.main} ${tr.copy.sub ?? ''}`, /2025/, id);
+    assert.equal(tr.copy.sub, '2025년', id); assert.doesNotMatch(tr.copy.main, /2025/, id);
   }
   // 추가 문구를 적으면 서브 자리 있는 규격에 그 문구
   const ex = createContext({ ...plain.core, subText: '2025 하반기 정기 공채' }, 'recruit');

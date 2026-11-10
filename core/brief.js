@@ -28,10 +28,10 @@ export function normDate(s, now = new Date(), yearHint = null) {
 
 const EMPLOY = /(무기계약직|정규직|계약직|파견직|채용연계형\s?인턴|체험형\s?인턴|인턴십|인턴|아르바이트|프리랜서)/;
 const REGIONS = '서울|경기|인천|부산|대구|대전|광주|울산|세종|강원|충북|충남|전북|전남|경북|경남|제주|판교|분당|성남|수원|용인|화성|평택|천안|청주|창원|포항|구미|여수|여의도|마곡|강남|송도';
-const REGION_RE = new RegExp(`(?<![가-힣A-Za-z])(${REGIONS})(특별자치시|특별자치도|특별시|광역시|시|도)?(?=[\\s,.)]|$)(?:\\s+([가-힣0-9]+))?`);
+const REGION_RE = new RegExp(`(?<![가-힣A-Za-z])(${REGIONS})(특별자치시|특별자치도|특별시|광역시|시|도)?(?=[\\s,.)]|$)(?:[ \\t]+([가-힣0-9]+))?`);
 const REGION_ONE = new RegExp(`^(${REGIONS})$`);
 const PLACE_TAIL = /(구|동|로|길|읍|면|리|역|단지|밸리|타워|센터|캠퍼스)$/;
-const NOT_PLACE = /^(근무|소재|본사|지사|지역|전역|전체|채용|모집|마감|광고|및|또는|등)$/;
+const NOT_PLACE = /^(근무|소재|본사|지사|지역|전역|전체|채용|모집|마감|광고|및|또는|등|고용형태|근무형태|근무지)$/;
 // 회사로 읽는 근거 — 법인 표기, 흔한 사명 끝말, 영문 대문자+한글(SK하이닉스). 근거가 없으면 고객사는 비워 둔다.
 const CORP_MARK = /\(주\)|㈜|^주식회사$/;
 const CORP_TAIL = /(글로벌|제강|제철|첨단소재|소재|캐피탈|카드|생명|화재|통신|전자|그룹|건설|은행|증권|보험|화학|제약|자동차|중공업|물산|산업|에너지|바이오|테크|소프트|시스템즈?|네트웍스|랩스?|컴퍼니|코리아|홀딩스|엔지니어링|해운|항공|물류|텔레콤|모빌리티|게임즈|엔터테인먼트|공사|공단|재단|병원|대학교|식품|약품|정보통신|의료원|저축은행|유통|호텔|리츠|파트너스|테크놀로지|솔루션즈?|이엔지|디스플레이|반도체|전기|가스|석유|정유|시멘트|제지|타이어|조선|해양|방산|항공우주|음료|제과|유업|생활건강|패션|백화점|마트|홈쇼핑|금융|자산운용|신탁|캐피털|페이|뱅크|플랫폼|게임즈?|미디어|방송|에듀|스쿨|아카데미|협회|연구원|연구소)$/;
@@ -39,7 +39,7 @@ const JOB = /(엔지니어|개발자?|디자이너|기획자?|마케터|마케�
 const NOT_ROLE = /^(\d{4}년?|상반기|하반기|공채|공개|수시|신입|경력|신입·경력|신입\/경력|대규모|광고|소재|배너|홍보)$/;
 // 채용 구분·시즌 — 보드 레퍼런스 헤드라인 문법(2026-10-06): "2024 상반기 / 한미글로벌 신입 채용", "세아제강 신입/경력사원 채용", "PTKOREA 2026 8기 신입공개채용"
 // 채용 구분 — 레퍼런스 13장(10-21): 신입사원 공개채용 · 신입 공채 · 경력 및 신입사원 채용 · 대졸 신입/경력사원 채용 · 경력직 채용 · 신입/경력 공개채용. 「채용」 낱말은 안 담는다(렌더러 hireOf 가 없으면 붙인다)
-const HIRING = /((?:대졸\s?)?(?:신입|경력)(?:\s?(?:및|[\/·∙])\s?(?:신입|경력))?(?:\s?사원)?(?:직)?(?:\s?(?:공개\s?채용|공채))?|공개\s?채용|공채|부문별\s?채용|수시\s?채용)/;
+const HIRING = /((?:대졸\s?)?(?:신입|경력)(?:\s?(?:및|[\/·∙])\s?(?:신입|경력))?(?:\s?사원)?(?:직)?(?:\s?(?:공개\s?채용|공채|수시\s?채용|상시\s?채용))?|공개\s?채용|공채|부문별\s?채용|수시\s?채용)/;
 // 시즌 — 「2024 상반기」「2026년 하반기」「2025년」「2026년도」(레퍼런스 12/13 장). 연도만일 때는 날짜(2022년 10월 17일)의 연도가 아니어야 한다
 const SEASON = /((?:19|20)\d{2}(?:\s?년도?)?\s?(?:상반기|하반기|\d{1,2}기)|(?:19|20)\d{2}\s?년도?(?!\s?\d{1,2}\s?월))/;
 
@@ -62,11 +62,18 @@ export function extractRecruit(text, now = new Date()) {
   if (url) out.applyUrl = url[0].replace(/[.。]+$/, '');
   const t = raw.replace(/https?:\/\/[^\s,)]+/g, ' ');
   // 11-09 컨시어지(대구경북첨단의료산업진흥재단): 줄머리 글머리표 「- 」「• 」는 내용이 아니다 — 떼고 읽는다(안 떼면 채용 구분이 「- 채용」)
-  const tb = t.replace(/^[ \t]*[-–•·▶►]\s+/gm, '');   // 「* 」는 고지 줄이라 남긴다
+  const tb = t.replace(/^[ \t]*[-–•·▶►]\s+/gm, '')   // 「* 」는 고지 줄이라 남긴다
+    // 11-10 공고 문법 정리(docs/parser-rules.md 4-2): 전각 물결 「～〜」(P03) · 「오후 6시」→「18시」(P05) · 두 자리 연도 「26.11.01」(P07) · 마감 쪽 월 생략 「11월 1일 ~ 15일」「11월 1일부터 15일까지」(P04·P21)
+    .replace(/[～〜∼]/g, '~')
+    .replace(/(오전|오후)\s?(\d{1,2})\s?시/g, (_, ap, h) => `${ap === '오후' && +h < 12 ? +h + 12 : +h}시`)
+    .replace(/(?<![\d.])([2-3]\d)\.(\d{1,2})\.(\d{1,2})(?![\d])/g, '20$1.$2.$3')
+    .replace(/(\d{1,2})\s?월\s?(\d{1,2})\s?일((?:\s?\([월화수목금토일]\))?\s?(?:~|-|–|—|부터)\s?)(\d{1,2})\s?일/g, '$1월 $2일$3$1월 $4일');
+  // 채용 구분은 자격·우대 문장 밖에서 찾는다 — 「지원자격: 경력 3년 이상」의 경력은 채용 구분이 아니다(D5)
+  const tbH = tb.replace(/(?:(?:지원|응시)\s?자격|자격\s?(?:요건|조건|사항)|우대\s?(?:사항|조건)?)\s*[:：][^\n]*/g, ' ');
 
   const emp = tb.match(EMPLOY);
   const employ0 = emp ? emp[1].replace(/\s/g, ' ') : null;   // 11-10: 고용형태는 추가 행으로(끝에서) — 채용 구분에 이미 든 말이면 빼고
-  const hir = tb.match(HIRING);
+  const hir = tbH.match(HIRING);
   if (hir) out.hiringType = hir[1].replace(/\s+/g, ' ').replace(/\s?([\/·∙])\s?/g, '$1').trim();
   const sea = tb.match(SEASON);
   if (sea) out.season = sea[1].replace(/\s+/g, ' ').replace(/(\d{4})\s?년/, '$1년').trim();
@@ -85,7 +92,7 @@ export function extractRecruit(text, now = new Date()) {
   const WD = '\\.?(?:\\s?\\([월화수목금토일]\\)\\.?)?', TM = '(?:\\s?(?:\\d{1,2}(?::\\d{2})?\\s?시?|자정|정오)\\s?)?';   // 11-09 「2026.11.06. (금) ~ 12.17.(목) 자정까지」 — 날짜 끝 점·요일 뒤 점·「자정」
   const DATE = new RegExp(`(\\d{4}\\s?[-./년]\\s?\\d{1,2}\\s?[-./월]\\s?\\d{1,2}\\s?일?${WD}|\\d{1,2}\\s?월\\s?\\d{1,2}\\s?일${WD}|\\d{1,2}\\s?[./]\\s?\\d{1,2}${WD}(?=\\s?${TM}(?:까지|마감|~|-|–|—|부터))|(?<=(?:~|-|–|—|부터|에서)\\s?)\\d{1,2}\\s?[./]\\s?\\d{1,2}${WD})`, 'g');   // 10-19: 「10/1 ~ 10/31」 꼴 기간도 시작·마감으로
   const dates = [...tb.matchAll(DATE)].map(m => ({ s: m[0], at: m.index, end: m.index + m[0].length }));
-  const marked = dates.find(d => /^\s{0,2}(?:(?:\d{1,2}(?::\d{2})?\s?시?|자정|정오)\s?)?(까지|마감)/.test(tb.slice(d.end, d.end + 14)) || /(마감|까지)[은는이가:]?\s{0,2}~?\s?$/.test(tb.slice(Math.max(0, d.at - 8), d.at)));
+  const marked = dates.find(d => /^\s{0,2}(?:(?:\d{1,2}(?::\d{2})?\s?시?|자정|정오)\s?)?(까지|마감)/.test(tb.slice(d.end, d.end + 14)) || /(마감(?:일자?|일시)?|까지)\s?[은는이가:：]?\s{0,2}~?\s?$/.test(tb.slice(Math.max(0, d.at - 10), d.at)));
   // 기간 — "5.3 ~ 5.21", "5월 3일부터 5월 21일까지": 앞 날짜가 접수 시작, 뒤 날짜가 마감
   // 10-28 피에스케이 「2026년 10월 27일 00:00~2026년 12월 31일 23:50」 — 시작 날짜 뒤에 시각이 붙어도 기간이다
   const range = dates.slice(0, -1).map((d, i) => [d, dates[i + 1]]).find(([a, b]) => /^\s*(?:\d{1,2}(?::\d{2})?\s?시?|자정|정오)?\s*(~|-|–|—|부터|에서)\s*$/.test(tb.slice(a.end, b.at)));
@@ -102,7 +109,11 @@ export function extractRecruit(text, now = new Date()) {
 
   // 직무 라벨 — "모집부문 건설사업관리 PM"·"모집직무: 인사, 연구개발"·"모집분야: 전장설계, 공정개발" 라벨 뒤의 구절이 직무다(레퍼런스 상세 줄의 라벨 그대로).
   // 10-28: 라벨이 있으면 제목 구절의 낱말보다 라벨이 먼저다 — 인천국제공항보안 「일반직 직원 채용 … 모집분야: 전산, 안전/보건」의 「일반직」은 직무가 아니라 채용 구분
-  const lab = tb.match(/(?:모집\s?(?:부문|직무|분야)|대상\s?직무|채용\s?직무)\s*[:：]?\s*([^,.\n]+(?:,\s*[^,.\n]+)*)/);
+  // 11-10: 「모집분야 및 인원:」(P09) · PDF 표의 「모집직무 | 영업」(P10) · 라벨 아래 줄마다 적은 목록(P08)
+  const LABJ = '(?:모집\\s?(?:부문|직무|분야)|대상\\s?직무|채용\\s?직무)(?:\\s?및\\s?(?:인원|자격|규모))?';
+  const listM = tb.match(new RegExp(`${LABJ}\\s*[:：|│]?[ \\t]*\\n((?:[^\\n:：|│~\\d]{1,30}(?:\\n|$)){2,12})`));
+  const listRole = listM ? listM[1].split('\n').map(x => x.trim()).filter(x => x && !/채용|접수|마감|모집/.test(x)) : [];
+  const lab = listRole.length >= 2 ? [null, listRole.join(', ')] : tb.match(new RegExp(`${LABJ}\\s*[:：|│]?\\s*([^,.\\n]+(?:,\\s*[^,.\\n]+)*)`));
   // 11-10: 한 줄에 「모집분야: 전산, 근무지: 판교」처럼 다음 라벨이 이어지면 거기서 끊는다(근무지는 추가 행)
   const labRole = lab ? lab[1].replace(/\s*,\s*[가-힣][가-힣 ]{0,8}[가-힣]\s*[:：].*$/, '').replace(/\s*(?:입니다|이에요|예요)$/, '').trim() : null;
 
@@ -116,10 +127,12 @@ export function extractRecruit(text, now = new Date()) {
   const clauses = tb.split(/[.\n!?]/);
   const ci = clauses.findIndex(c => /채용|모집|구인|공채/.test(c));
   const clause = ci >= 0 ? clauses[ci] : null;
-  let rest = [];
+  let rest = [], toksAfter = [];
   if (clause) {
     // 시즌·채용구분은 회사·직무가 아니다 — 떼고 읽는다("2024 상반기 한미글로벌 신입 채용" → 한미글로벌)
-    const head = clause.slice(0, clause.search(/채용|모집|구인|공채/)).replace(SEASON, ' ').replace(HIRING, ' ');
+    const head0 = clause.slice(0, clause.search(/채용|모집|구인|공채/)).replace(SEASON, ' ');
+    const hadHire = HIRING.test(head0);
+    const head = head0.replace(HIRING, ' ');
     let toks = head.trim().split(/\s+/).filter(Boolean);
     // 연도만 앞에 선 경우("2026년 삼진제약 부문별 채용", "2026 ㈜한독 …") — 그 연도가 시즌이다. 날짜 안의 연도와 헷갈리지 않게 구절 맨 앞만 본다
     if (!out.season && toks[0] && /^(19|20)\d{2}년?$/.test(toks[0])) { out.season = toks[0]; toks = toks.slice(1); }
@@ -130,10 +143,11 @@ export function extractRecruit(text, now = new Date()) {
     } else if (looksCompany(toks[0])) { client = toks[0]; toks = toks.slice(1); }
     // 10-28 담당자 사례(피에스케이·인천국제공항보안·현대오일터미널): 법인 표기도 흔한 사명 끝말도 없는 이름은 「공고 제목의 첫 명사구」로 읽는다 —
     //   문장의 첫 구절이고(시즌은 떼고), 뒤에 채용 구분이 더 있고, 기간이나 직무 라벨이 적힌 공고꼴일 때만. 「백엔드 개발자 채용」 한 줄의 「백엔드」는 회사가 아니다
-    else if (ci === clauses.findIndex(c => c.trim()) && toks.length >= 2 && (dates.length || labRole) && firstNoun(toks[0])) { client = toks[0]; toks = toks.slice(1); }
+    else if (ci === clauses.findIndex(c => c.trim()) && ((toks.length >= 2 && (dates.length || labRole)) || (hadHire && toks.length === 1)) && firstNoun(toks[0])) { client = toks[0]; toks = toks.slice(1); }
     // 「현대오일터미널 주식회사」·「○○ (주)」 — 뒤에 붙은 법인 표기까지 이름이다
     if (client && /^(주식회사|\(주\)|㈜)$/.test(toks[0] ?? '')) { client = `${client} ${toks[0]}`; toks = toks.slice(1); }
     if (client) out.client = client;
+    toksAfter = toks;
     rest = toks.filter(w => !NOT_ROLE.test(w) && !EMPLOY.test(w) && !REGION_ONE.test(w));
     if (!labRole && rest.length && rest.some(w => JOB.test(w))) out.role = rest.join(' ');
   }
@@ -142,12 +156,15 @@ export function extractRecruit(text, now = new Date()) {
   //   10-28 피에스케이 「전문연구요원 채용」·인천국제공항보안 「2026-6 일반직 직원 채용」·현대오일터미널 「생산전문직 채용」). 메인 = 고객사 + 그 구절. 괄호의 지역은 근무지
   if (!out.hiringType && clause && rest.length && (out.client || out.role)) {
     const par = clause.match(/(?:채용|모집)\s?\(([가-힣A-Za-z· ]{2,8})\)/);
-    out.hiringType = `${rest.join(' ')} 채용${par ? `(${par[1]})` : ''}`;
+    const kw = clause.match(/채용|모집|구인|공채/)?.[0] === '모집' ? '모집' : '채용';
+    const emp0 = clause.match(EMPLOY)?.[1];
+    const phrase = emp0 && rest.length && toksAfter.join(' ').includes(emp0) ? toksAfter.filter(w => !NOT_ROLE.test(w) && !REGION_ONE.test(w)).join(' ') : rest.join(' ');
+    out.hiringType = `${phrase} ${kw}${par ? `(${par[1]})` : ''}`;
     if (par && !place0 && /^(전국|전\s?지역|수도권|지방)$/.test(par[1])) place0 = par[1];
   }
   // 슬로건 — 「슬로건 "…"」 또는 따옴표 문구(바이오노트 BRINGING NEW INNOVATION·한샘 「당신과 함께 만드는 공간의 가치」)
   const slo = tb.match(/슬로건\s*[:：]?\s*["“'‘]([^"”'’\n]{2,60})["”'’]/) ?? tb.match(/["“]([^"”\n]{4,60})["”]/);
-  if (slo) out.subText = slo[1].trim();   // 11-10: 슬로건 = 추가 문구(서브 자리 있는 매체에만 나가는 한 덩어리)
+  if (slo && (/^슬로건/.test(slo[0]) || !/채용|공채|모집|홈페이지|사이트|링크/.test(slo[1]))) out.subText = slo[1].trim();   // 11-10 D2: 따옴표로 적은 공고 제목·안내 말은 추가 문구 아님   // 11-10: 슬로건 = 추가 문구(서브 자리 있는 매체에만 나가는 한 덩어리)
   // 고지 문구 — 「* …」 줄, 또는 「채용 일정은 공고별 상이」(한진: 마감 대신 적는 말)
   const nt = tb.match(/(?:^|\s)\*\s?([^\n*]{4,80}?)(?=\s*(?:\n|$))/m) ?? (/일정은\s?공고별\s?상이/.test(tb) ? [null, '채용 일정은 공고별 상이합니다.'] : null);
   if (nt) out.notice = `* ${nt[1].trim().replace(/^\*\s?/, '')}`;
@@ -175,11 +192,13 @@ const ROW_LABELS = [
   [/^문의(?:처)?$/, '문의'],
   [/모집|직무|분야|부문|기간|일정|일자|접수|마감|고객사|기업명|회사명|기관명|채용명|공고명|제목|슬로건|매체|링크|홈페이지|경로|URL/i, null],
 ];
+// 11-10 사용자 결정 ③ 「전형 절차·지원 자격 이런 거 다 빼. 결과값만 — 서브(추가 문구) 자리만 뚫어 주면 거기 쓴다」:
+//   공고에서 자동으로 행을 만드는 건 소재에 실제로 나가는 근무지·고용형태뿐. 전형절차·지원방법·우대사항·지원자격·모집인원·복리후생·문의·그 밖의 라벨은 읽지 않는다(사람이 행 추가로 넣는 건 그대로 나감)
+const PARSE_ROWS = new Set(['근무지', '고용형태']);
 function rowLabelOf(raw) {
   const l = String(raw ?? '').trim();
-  for (const [re, to] of ROW_LABELS) if (re.test(l)) return to;
-  const k = l.replace(/\s+/g, '');
-  return k.length >= 2 && k.length <= 6 ? k : null;   // 그 밖의 짧은 라벨(급여·근무시간·수습기간…)은 띄어쓰기만 지워 그대로
+  for (const [re, to] of ROW_LABELS) if (re.test(l)) return PARSE_ROWS.has(to) ? to : null;
+  return null;
 }
 function labeledRows(tb) {
   const rows = [];
