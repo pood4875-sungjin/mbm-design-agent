@@ -1053,7 +1053,7 @@ async function startIntake(text) {
     // 로고에서 뽑은 색 · 주색을 어느 자료가 맡는가(null=자동: 로고에 색이 있으면 로고)
     logoSuggests: [], colorLead: null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다. 사람이 고정하는 것은 단색/그라데이션과 직접 고른 색뿐
-    bgMode: 'auto', bgColor: null, bgGradient: null, kvVariants: null, kvUse: 'auto', kvTypeOverride: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
+    bgMode: 'auto', bgColor: null, bgGradient: null, kvVariants: null, kvUse: 'auto', kvTypeOverride: null, aiSlots: null, logoTone: null, logoLightManual: false, object: null, objectMeta: null, references: [],
   };
   const seed = parseBriefRegex(text);
   Object.assign(state.intake.fields, seed.fields);
@@ -1704,12 +1704,18 @@ function slotStyleBody() {
       it.kvCheck = await kvCheckOf(it.kvOrig ?? d, meta); if (it.kvCheck.level === 'weak' || it.kvCheck.level === 'bad') toast(it.kvCheck.text);
       it.kvUse = 'auto';         // 새 그림이면 쓰임도 처음부터
       it.kvTypeOverride = null;  // 유형 지정도 새 그림이면 자동부터 — 사진이 아니면 '전체' 선택지가 사라진다
+      it.aiSlots = null;         // Claude 가 고른 추가 시안 방향도 새 그림이면 다시
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       kvDiagnosis(it, meta);
       claudeKvType(d, meta, (ov, r, same) => {   // 11-10 Claude 그림 종류 판단 — 규칙 판정 뒤, 같은 그림이 그대로이고 사람이 유형을 안 골랐을 때만 바꾼다
-        if (!same && it.kv === d && !it.kvTypeOverride) { it.kvTypeOverride = ov; slotStyle(); }
-        bub('agent', `Claude가 그림을 보고 「${r.name}」로 판단했어요 — ${r.reason}${same ? '' : ' 유형을 이쪽으로 바꿨어요(「키비주얼 유형」에서 자동으로 되돌릴 수 있어요).'}`);
+        if (it.kv !== d) return;   // 그 사이 그림이 바뀜
+        if (!same && !it.kvTypeOverride) it.kvTypeOverride = ov;
+        it.aiSlots = r.slots ?? null;
+        slotStyle();
+        // 판단이 생성 뒤에 왔으면(그림 올리자마자 만들기) 만든 캠페인에도 반영
+        const c = state.campaign; if (c?.style?.keyVisual === d) applyClaudeJudge(c, { ov: same || c.style.kvTypeOverride ? null : ov, slots: r.slots, name: r.name });
+        bub('agent', `Claude가 그림을 보고 「${r.name}」로 판단했어요 — ${r.reason}${same ? '' : ' 유형을 이쪽으로 바꿨어요(「키비주얼 유형」에서 자동으로 되돌릴 수 있어요).'}${r.slots ? ` 추가 시안 방향도 골랐어요 — ${slotsText(r.slots)}${r.slotsWhy ? ` (${r.slotsWhy})` : ''}` : ''}`);
       });
       announceDpi();
       bub('agent', (leadOf(it) === 'logo'
@@ -2076,6 +2082,7 @@ function buildAndGenerate() {
     background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null, gradient: it.bgGradient ?? null },
     kvUse: it.kvUse ?? 'auto',
     kvTypeOverride: it.kvTypeOverride ?? null,
+    aiSlots: it.aiSlots ?? null,
     colors: it.colors,
     fonts: { heading: it.font, body: it.font },
     mood: it.mood.split(',').map(s => s.trim()).filter(Boolean),
@@ -2104,6 +2111,7 @@ function buildAndGenerate() {
   regen();
   saveCampaignToStore();   // 생성 즉시 남긴다 — 여기서 이탈해도 잃지 않는다
   enterWork({ staged: true });
+  autoKvAi(state.campaign);   // 11-10 Claude 연결 때 「AI 그림 판단」 자동(규칙 결과는 이미 깔림 — 오면 다시 그림)
 }
 
 // 스켈레톤 → 하나씩 실제 산출물로 채워지는 연출 (생성이 눈에 보이게)
@@ -3477,13 +3485,14 @@ function renderInspectorBody() {
         const { roles, fromLogo } = await rolesFromAssets({ logo: c.style.logo, keyVisual: kv, kvMeta: meta, mode: c.style.mode, kvColors: suggests });
         // 11-09 사용자 「배경색 키비 바꾸면 변경 안 돼?」: 직접 고른 배경색·그라데이션·AI 지면은 전 그림에 맞춘 값 — 그림을 갈면 자동으로 돌려 새 그림에 맞춘다(되돌리기로 복구)
         const bgWasManual = c.style.background && (c.style.background.mode !== 'auto' || c.style.background.color || c.style.background.ai);
-        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, colorsManual: false, ...(roles ? { colors: roles } : {}), ...(bgWasManual ? { background: { mode: 'auto', color: null, gradient: null } } : {}) }, '키비주얼 교체');
+        restyle({ keyVisual: kv, kvOrig: r.result, kvReadability: readability, kvMeta: meta, kvTypeOverride: null, aiSlots: null, colorsManual: false, ...(roles ? { colors: roles } : {}), ...(bgWasManual ? { background: { mode: 'auto', color: null, gradient: null } } : {}) }, '키비주얼 교체');
         renderInspector();
         toast((roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체') + (bgWasManual ? ' · 배경도 새 그림에 맞췄어요(되돌리기 ⌘Z)' : ''));
         { const ck = await kvCheckOf(r.result, meta); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
+        autoKvAi(c, { kv });   // 11-10 그림이 바뀌면 AI 그림 판단도 새 그림으로(Claude 연결 때)
         claudeKvType(kv, meta, (ov, res, same) => {   // 11-10 Claude 그림 종류 판단(인스펙터 그림 바꾸기)
-          if (!same && c.style.keyVisual === kv && !c.style.kvTypeOverride) restyle({ kvTypeOverride: ov }, `Claude 판단: ${res.name}`);
-          toast(`Claude: 「${res.name}」${same ? ' — 규칙 판정과 같아요' : ' — 유형을 바꿨어요(되돌리기 ⌘Z)'}`, 5000);
+          if (c.style.keyVisual !== kv) return;
+          applyClaudeJudge(c, { ov: same || c.style.kvTypeOverride ? null : ov, slots: res.slots, name: res.name });
         });
       };
       r.readAsDataURL(f);
@@ -3506,24 +3515,10 @@ function renderInspectorBody() {
     // 하이브리드(10-22): AI 가 그림만 판단(캠페인당 1회) → 광고 규격마다 모양 묶음의 crop 사본·프리셋을 개별값(overrides.style)으로. 글자·타이포·검수는 규칙 그대로
     insp.querySelector('#iKvAi')?.addEventListener('click', async () => {
       const btn = insp.querySelector('#iKvAi');
-      if (!confirm('Claude 가 키비주얼을 한 번 봅니다(캠페인당 1회, 약 $0.02~0.03 — 30~40원). 모양 묶음마다 그림 자리·크기·지면을 정하고 광고 규격 전부에 적용합니다. 글자는 규칙 그대로. 진행할까요?')) return;
+      if (!confirm('Claude 가 키비주얼을 한 번 봅니다. 모양 묶음마다 그림 자리·크기·지면을 정하고 광고 규격 전부에 적용합니다. 글자는 규칙 그대로. 진행할까요?')) return;
       btn.disabled = true; btn.textContent = '그림 보는 중…';
-      try {
-        const res = await requestAnalysis({ kv: { dataUrl: await apiCopy(c.style.keyVisual), meta: c.style.kvMeta }, logo: c.style.logo ? { dataUrl: await apiCopy(c.style.logo, true), meta: c.style.logoMeta } : null, brief: c.context.core, brand: { primary: c.style.palette?.primary ?? null }, requests: '' });
-        const groups = await buildGroupStyles(res.analysis, { keyVisual: c.style.keyVisual, kvMeta: c.style.kvMeta, metaOf: async d => (await analyzeKeyVisual(d)).meta });
-        pushHistory('AI 그림 판단');
-        c.ai = { analysis: res.analysis, groups, fixes: res.fixes, usage: res.usage, cost: res.cost, model: res.model, effort: res.effort, ms: res.ms, at: new Date().toISOString() };
-        let n = 0;
-        for (const a of c.artifacts) {
-          if (a.channel !== 'ad') continue; const spec = SPECS[a.specId]; if (!spec || !aiEligible(spec)) continue;   // 틀 고정 매체·비즈보드는 규칙 그대로
-          const shape = shapeOfSpec(spec), g = groups[shape]; if (!g) continue;
-          a.overrides = a.overrides ?? {}; a.overrides.style = { ...(a.overrides.style ?? {}), ...g.patch, aiShape: shape }; a.status = 'draft'; a.gateOverride = null; n++;
-        }
-        logEvent(c, 'ai_analysis', { model: res.model, cost: res.cost, artifacts: n });
-        regen(c); autosave(); refreshFrames(); renderInspector();
-        log(`AI 그림 판단 — ${res.analysis.kv.type ?? '유형 자동'} · 규격 ${n}개에 적용 · $${res.cost} · ${Math.round(res.ms / 1000)}초`);
-        toast(`AI 그림 판단 적용 — ${n}개 규격 · $${res.cost}`);
-      } catch (e) { toast(`AI 그림 판단 실패: ${e.message}`, 6000); btn.disabled = false; btn.textContent = 'AI 그림 판단'; }
+      const ok = await runKvAi(c);
+      if (!ok) { btn.disabled = false; btn.textContent = 'AI 그림 판단'; }
     });
     insp.querySelector('#iKvAiClear')?.addEventListener('click', () => { pushHistory('AI 판단 해제'); clearAiOverrides(c); regen(c); autosave(); refreshFrames(); renderInspector(); toast('AI 판단 해제 — 자동 배치로'); });
     // 로고 두 벌 — 원색은 밝은 지면·투명 지면에, 흰색은 브랜드색 지면에 (자소설 한독·도레이는 흰색 로고)
@@ -3934,6 +3929,7 @@ function nextStyle(c, patch = {}, { colors, fonts } = {}) {
     background: c.style.background,
     kvUse: c.style.kvUse,
     kvTypeOverride: c.style.kvTypeOverride ?? null,
+    aiSlots: c.style.aiSlots ?? null,   // 11-10 Claude 가 고른 추가 시안 방향 — 색·글꼴만 바꿔도 남는다
     chipTone: c.style.chipTone,
     ...Object.fromEntries(PRESET_KEYS.map(k => [k, c.style[k]])),   // 편집 프리셋(10-14) — 색·글꼴만 바꿔도 풀리지 않게
     colors: colors ?? [c.style.palette.primary, c.style.palette.secondary, c.style.palette.accent],
@@ -4767,6 +4763,53 @@ $('logHead').onclick = () => $('logCard').classList.toggle('open');
 }
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다
 // 11-10 Claude 그림 종류 판단 — 규칙 판정(kvTypeOf) 다음에 Claude 가 그림을 보고 다시 고른다(로컬 앱 + 연결된 계정만). apply(override|null, 결과, 같은가)
+// ── 11-10 사용자 「기본안·추가 시안 3개는 규칙 + AI 가 판단만 도와서, 자유 디자인은 클릭해서」 ──
+//   규칙 결과가 먼저 깔리고, Claude 판단(그림 종류 · 추가 시안 방향 · 그림 자리)이 오면 다시 그린다. 되돌리기 ⌘Z. 실패하면 규칙 결과 그대로.
+const SLOT_KO = { A: { center: '가운데 정렬', mirror: '좌우 바꿈', full: '그림 가득' }, tag: { both: '라벨+날짜 태그', date: '날짜 태그', label: '라벨 태그' } };
+function slotsText(sl) {
+  const out = [];
+  if (sl?.A) out.push(`A ${SLOT_KO.A[sl.A]}`);
+  if (sl?.B) out.push(`B ${SLOT_KO.tag[sl.B.tag]}(${sl.B.shape === 'square' ? '각진' : '둥근'})`);
+  if (sl?.C) out.push(`C 밝은 지면 ${sl.C.light ? '씀' : '안 씀'}`);
+  return out.join(' · ');
+}
+function applyClaudeJudge(c, { ov = null, slots = null, name = '' } = {}) {
+  const patch = {};
+  if (ov) patch.kvTypeOverride = ov;
+  if (slots && JSON.stringify(slots) !== JSON.stringify(c.style.aiSlots ?? null)) patch.aiSlots = slots;
+  if (!Object.keys(patch).length) return;
+  restyleWith(c, patch, `Claude 판단: ${name}`);
+  if (state.campaign) renderInspector();
+  toast(`Claude 판단을 반영했어요${patch.kvTypeOverride ? ` — 「${name}」` : ''}${patch.aiSlots ? ` · 추가 시안 ${slotsText(patch.aiSlots)}` : ''} (되돌리기 ⌘Z)`, 6000);
+}
+// AI 그림 판단 — 버튼(확인 받음)과 자동(Claude 연결 때 생성·그림 교체 직후) 같은 길. 자동은 사람이 이미 손댄 산출물은 건드리지 않는다
+async function runKvAi(c, { auto = false, kv = c.style.keyVisual } = {}) {
+  try {
+    const res = await requestAnalysis({ kv: { dataUrl: await apiCopy(c.style.keyVisual), meta: c.style.kvMeta }, logo: c.style.logo ? { dataUrl: await apiCopy(c.style.logo, true), meta: c.style.logoMeta } : null, brief: c.context.core, brand: { primary: c.style.palette?.primary ?? null }, requests: '' });
+    if (state.campaign !== c || c.style.keyVisual !== kv) return false;   // 그 사이 캠페인·그림이 바뀜
+    const groups = await buildGroupStyles(res.analysis, { keyVisual: c.style.keyVisual, kvMeta: c.style.kvMeta, metaOf: async d => (await analyzeKeyVisual(d)).meta });
+    pushHistory('AI 그림 판단');
+    c.ai = { analysis: res.analysis, groups, fixes: res.fixes, usage: res.usage, cost: res.cost, model: res.model, effort: res.effort, ms: res.ms, at: new Date().toISOString(), ...(auto ? { auto: true } : {}) };
+    let n = 0, kept = 0;
+    for (const a of c.artifacts) {
+      if (a.channel !== 'ad') continue; const spec = SPECS[a.specId]; if (!spec || !aiEligible(spec)) continue;   // 틀 고정 매체·비즈보드는 규칙 그대로
+      const shape = shapeOfSpec(spec), g = groups[shape]; if (!g) continue;
+      const touched = a.status === 'approved' || Object.keys(a.overrides?.style ?? {}).some(k => k !== 'aiShape' && !(k in (c.ai.groups?.[a.overrides?.style?.aiShape]?.patch ?? {}))) || Object.keys(a.overrides ?? {}).some(k => k !== 'style');
+      if (auto && touched) { kept++; continue; }
+      a.overrides = a.overrides ?? {}; a.overrides.style = { ...(a.overrides.style ?? {}), ...g.patch, aiShape: shape }; a.status = 'draft'; a.gateOverride = null; n++;
+    }
+    logEvent(c, 'ai_analysis', { model: res.model, cost: res.cost, artifacts: n, auto });
+    regen(c); autosave(); refreshFrames(); renderInspector();
+    log(`AI 그림 판단${auto ? '(자동)' : ''} — ${res.analysis.kv.type ?? '유형 자동'} · 규격 ${n}개에 적용${kept ? ` · 손댄 ${kept}개는 그대로` : ''} · ${Math.round(res.ms / 1000)}초`);
+    toast(`Claude 그림 판단을 반영했어요 — ${n}개 규격${kept ? ` (손댄 ${kept}개는 그대로)` : ''} · 되돌리기 ⌘Z · 인스펙터 「AI 판단 해제」`, 6000);
+    return true;
+  } catch (e) { toast(`AI 그림 판단을 못 했어요 — 규칙 결과 그대로예요 (${e.message})`, 6000); return false; }
+}
+function autoKvAi(c, { kv = c?.style?.keyVisual } = {}) {
+  if (!c || !kv || !claudeReady() || (c.ai && !c.ai.auto)) return;   // 사람이 직접 돌린 판단은 덮지 않는다
+  if (!c.artifacts.some(a => a.channel === 'ad' && SPECS[a.specId] && aiEligible(SPECS[a.specId]))) return;
+  runKvAi(c, { auto: true, kv });
+}
 async function claudeKvType(dataUrl, meta, apply) {
   if (!claudeReady() || !dataUrl || !meta) return;
   const T = kvTypeOf(meta);

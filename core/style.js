@@ -5,6 +5,7 @@ import { buildPalette, MODES } from './palette.js';
 import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
 import { PRESETS, PRESET_KEYS } from './editlayout.js';
 import { normGradient } from './gradient.js';
+import { cleanAiSlots } from './aislots.js';
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
@@ -37,6 +38,8 @@ export function normalizeStyle(input = {}) {
     kvReadability: input.kvReadability ?? null,
     // 키비주얼 유형 직접 지정(10-12 결정 5) — null = 자동. 유형 id(photo …) 또는 세분 유형 id(photo-portrait …). 렌더러·검수는 지정을 입힌 kvMeta 를 본다
     kvTypeOverride: isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null,
+    // 11-10 Claude 가 고른 추가 시안 방향(core/variants.js preferAiSlot) — 후보 순서만 바꾼다. 없으면 키 없음
+    ...(cleanAiSlots(input.aiSlots) ? { aiSlots: cleanAiSlots(input.aiSlots) } : {}),
     // 10-22 하이브리드: AI 배경 도형(캔버스 몫) — 없으면 키 없음
     ...(Array.isArray(input.aiShapes) && input.aiShapes.length ? { aiShapes: input.aiShapes.filter(sh => HEX.test(sh?.color ?? '') && [sh.x, sh.y, sh.w, sh.h].every(Number.isFinite)).slice(0, 4) } : {}),
     // 10-22 하이브리드: AI 그림 상자(캔버스 몫)·녹일 변 — 없으면 키를 두지 않는다(기본 그림 바이트 동일)
