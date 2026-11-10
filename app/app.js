@@ -22,6 +22,7 @@ import { approvalGate, STATE_LABEL } from '../core/gate.js';
 import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
 import { htmlHash, templateChoices, variantSubOf } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
+import { mountClaudeChip, claudeReady, judgeKvType } from './claudelink.js';   // 11-10 개인 Claude 계정 연결(로컬 앱 · CLI)
 import { rasterize, rasterizeCanvas, download, downloadText, openPrintPdf } from './raster.js';
 import { createFreeDesign, freeFontIds, freeHealth } from './freedesign.js';
 import { createElAi, AI_ICON } from './elai.js';   // 11-10 요소 AI 편집(선택 상자 옆 AI 아이콘 → 말로 고치기)
@@ -53,7 +54,7 @@ import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
 import { getKey as aiGetKey } from './llm.js';
 // 11-03 사용자 결정: 「AI 그림 판단」 버튼은 AI 키가 있을 때만(기본 숨김) — 시안 틀은 이 값을 안 읽어 기본안에만 효과
-const aiKeyReady = () => { try { return !!aiGetKey(); } catch { return false; } };
+const aiKeyReady = () => { try { return !!aiGetKey() || claudeReady(); } catch { return false; } };   // 11-10: Claude 계정이 연결돼 있으면 「AI 그림 판단」도 그 계정으로(서버가 CLI 로 돈다)
 import { createSelect, pickForExport } from './select.js';   // 11-02 선택하기(컨시어지 박진화 「선택한 소재만 추출」) — 카드·드래그·매체 머리글로 골라 그것만 ZIP
 import { mountKvFocus, withManual } from './kvfocus.js';   // 11-02 주인공 확인·직접 지정(컨시어지 한희하) — 썸네일 위 네모, 클릭/드래그   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
 import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
@@ -1706,6 +1707,10 @@ function slotStyleBody() {
       it.colorsManual = false;   // 새 키비주얼이 들어왔으면 색은 그 이미지 기준으로 다시 잡는다
       applyDerived(); slotStyle();
       kvDiagnosis(it, meta);
+      claudeKvType(d, meta, (ov, r, same) => {   // 11-10 Claude 그림 종류 판단 — 규칙 판정 뒤, 같은 그림이 그대로이고 사람이 유형을 안 골랐을 때만 바꾼다
+        if (!same && it.kv === d && !it.kvTypeOverride) { it.kvTypeOverride = ov; slotStyle(); }
+        bub('agent', `Claude가 그림을 보고 「${r.name}」로 판단했어요 — ${r.reason}${same ? '' : ' 유형을 이쪽으로 바꿨어요(「키비주얼 유형」에서 자동으로 되돌릴 수 있어요).'}`);
+      });
       announceDpi();
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
@@ -3473,6 +3478,10 @@ function renderInspectorBody() {
         renderInspector();
         toast((roles ? `키비주얼 교체 — ${fromLogo ? '주색은 로고 유지, ' : ''}색 ${roles.join(', ')} 배치` : '키비주얼 교체') + (bgWasManual ? ' · 배경도 새 그림에 맞췄어요(되돌리기 ⌘Z)' : ''));
         { const ck = await kvCheckOf(r.result, meta); if (ck.level === 'weak' || ck.level === 'bad') toast(ck.text); }
+        claudeKvType(kv, meta, (ov, res, same) => {   // 11-10 Claude 그림 종류 판단(인스펙터 그림 바꾸기)
+          if (!same && c.style.keyVisual === kv && !c.style.kvTypeOverride) restyle({ kvTypeOverride: ov }, `Claude 판단: ${res.name}`);
+          toast(`Claude: 「${res.name}」${same ? ' — 규칙 판정과 같아요' : ' — 유형을 바꿨어요(되돌리기 ⌘Z)'}`, 5000);
+        });
       };
       r.readAsDataURL(f);
     };
@@ -4762,6 +4771,18 @@ $('logHead').onclick = () => $('logCard').classList.toggle('open');
   $('canvasBgReset').onclick = () => { apply(null); try { localStorage.removeItem(KEY); } catch {} };
 }
 renderHistBtns();   // 아직 캠페인이 없어도 툴팁은 붙여 둔다 — 단축키를 여기서 처음 알게 되는 사용자가 있다
+// 11-10 Claude 그림 종류 판단 — 규칙 판정(kvTypeOf) 다음에 Claude 가 그림을 보고 다시 고른다(로컬 앱 + 연결된 계정만). apply(override|null, 결과, 같은가)
+async function claudeKvType(dataUrl, meta, apply) {
+  if (!claudeReady() || !dataUrl || !meta) return;
+  const T = kvTypeOf(meta);
+  try {
+    const r = await judgeKvType(dataUrl, meta, { id: T?.id, sub: T?.sub?.id, name: T?.sub?.name ?? T?.name });
+    if (!r?.override) return;
+    const same = r.override === T?.id || r.override === T?.sub?.id;
+    apply(same ? null : r.override, r, same);
+  } catch (e) { toast(`Claude 그림 판단을 못 했어요 — ${e.message}`, 5000); }
+}
+mountClaudeChip({ onChange: () => { LLM.setClaudeCli(claudeReady()); refreshAiChip(); } });
 initHome();
 show('home');
 // 저장소를 다 읽으면(옛 localStorage 값 옮기기 포함) 목록을 그린다. 앱 시작은 붙들지 않는다

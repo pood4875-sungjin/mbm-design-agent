@@ -558,7 +558,7 @@ const dataUrlToFile = (dataUrl, file) => {
 // prompt 를 stdin 으로 넣고 `claude -p` 를 돌린다. 반환 { text, usage, model, raw, ms }
 //   imageMode 'read'  : 그림을 임시 파일로 써 두고 프롬프트에 경로 — 모델이 Read 로 본다(--allowedTools Read)
 //   imageMode 'stream': --input-format stream-json 으로 user 메시지에 image 블록을 직접 넣는다(도구 없이)
-export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, imageMode = 'read', timeoutMs = 600_000, cwd = tmpdir(), tools = true, effort = null, signal = null } = {}) {
+export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, imageMode = 'read', timeoutMs = 600_000, cwd = tmpdir(), tools = true, effort = null, signal = null, system = null } = {}) {   // system(11-10): 디자이너 역할 대신 쓸 시스템 프롬프트(그림 종류 판단·일반 질문)
   return new Promise((resolve, reject) => {
     const t0 = Date.now();
     if (signal?.aborted) return reject(cancelError());
@@ -566,7 +566,7 @@ export function runClaudeCode(prompt, { images = [], model = DEFAULT_CC_MODEL, i
     if (model) args.push('--model', model);
     if (effort) args.push('--effort', effort);   // 11-09: 생각 길이 — revise·재요청은 low(속도)
     args.push('--strict-mcp-config', '--disable-slash-commands');   // MCP 서버·스킬을 싣지 않는다 — 11-09 실측: 도구 없는 호출에서 모델이 스킬(frontend-design 등)을 부르려다 HTML 없이 끝났다(3안 중 3)
-    if (imageMode === 'stream' || !tools) args.push('--system-prompt', CC_SYSTEM);   // 코딩 에이전트 시스템 프롬프트 대신 짧은 디자이너 역할(도구 없는 호출만)
+    if (imageMode === 'stream' || !tools) args.push('--system-prompt', system ?? CC_SYSTEM);   // 코딩 에이전트 시스템 프롬프트 대신 짧은 디자이너 역할(도구 없는 호출만)
     let stdinText;
     if (imageMode === 'stream') {
       args.push('--input-format', 'stream-json', '--verbose', '--tools', '');
