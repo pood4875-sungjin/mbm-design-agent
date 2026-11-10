@@ -2429,6 +2429,11 @@ function renderAdBase(ctx, style, spec) {
   if (copy.sub && said(copy.sub)) {
     copy.sub = (ladder.sub ?? []).find(c => !said(c) && (slots.sub?.maxChars == null || countChars(c, counting) <= slots.sub.maxChars) && textWidth(c) * z.subFs <= subW * 0.96 * subRows) ?? '';
   }
+  // 11-10 밤: 날짜 자리가 따로 없는 규격에서 서브 자리가 비면(회사명이 메인에 이미 있음) 마감 일정을 서브 자리에 — 사용자 피드백 11·23 「비어 보여, 서브텍스트 넣어」 · 알바몬 메인 보드 「하단 서브카피 2줄」
+  if (!copy.sub && slots.sub && want.sub && !want.date && !mold && !strip && (ladder.date ?? []).length && !detailLines.some(d => /기간|일정|마감/.test(d.label))) {
+    const dPick = ladder.date.find(c => (slots.sub?.maxChars == null || countChars(c, counting) <= slots.sub.maxChars) && textWidth(c) * z.subFs <= subW * 0.96 * subRows);
+    if (dPick) { copy.sub = dPick; fired('subAsDate'); }
+  }
   // 메인이 회사를 못 품었으면(글자수 제한 16자·좁은 글자 자리 → "정규직 채용") 서브가 회사를 품는다 — 회사 없는 소재는 없다(세로 띠 도레이·한독 문법과 같다)
   // 단, 「이미지 내 텍스트 N줄」을 메인 + 슬로건 + 날짜로 나눈 규격(reqDate)에 슬로건이 있고 로고가 회사를 보여 주면 둘째 줄은 슬로건이다 — 디자이너 카카오 3줄(10-08 밤 B3)
   const sloganLine = reqDate && !!core.slogan && !!(logoBox && logoSrc && allowLogo);
@@ -3269,7 +3274,8 @@ ${tplLogo}
   if (lg && !logoAtBottom) parts.push(logoRow);
   else if (want.advertiser) parts.push(T('advertiser', copy.advertiser, z.smallFs, fwOf('eyebrow', z.smallFs), subFg, `margin-bottom:${Math.round(z.smallFs * 0.5)}px`));
   const subLh = useRef ? L.subLine : line;
-  if (showSub && subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
+  const subIsDate = (ladder.date ?? []).includes(copy.sub) && TR.rules.includes('subAsDate');   // 11-10 밤: 서브 자리에 넣은 날짜는 타이틀 아래(아이브로 자리 아님)
+  if (showSub && subAbove && !subIsDate) parts.push(T('sub', copy.sub, z.subFs, fwOf('eyebrow', z.subFs), subFg, `margin-bottom:${subGap(z)}px`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   if (guide?.dateAbove) parts.push(metaRow().replace(/margin-top:\d+px/, `margin-bottom:${Math.max(8, Math.round(z.smallFs * 0.5))}px`));   // 잡다: 라벨 칩 + 날짜가 메인 위(샘플 PC 5/5 · MO 4/5, 10-12 매체별 규격정리)
   // 줄 수 안에 안 들어가면(16자 붙임 기업명 + 채용구분, 당근 200×200) 잘린 채 그리지 않고 — 채용구분이 들어가면 채용구분만(11-09 「채용구분은 항상」, 광고주 필수 규격 제외), 아니면 기업명만
   { const softRows = t => String(t).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * 0.9 * mainFs / Math.max(1, Math.max(textW, mainW ?? 0)))), 0), cl = String(core.client ?? '').trim(), hs = (cl && ctx.kind === 'recruit') ? hireFor(core) : '', needCl = !!(rules.mainMustIncludeClient ?? spec.mainMustIncludeClient);
@@ -3277,7 +3283,7 @@ ${tplLogo}
       if (!needCl && hs && String(copy.main).includes(hs) && softRows(hs) <= mainLines) { copy.main = hs; fired('mainClientDropped'); }
       else if (softRows(cl) <= mainLines) { copy.main = cl; fired('mainClientOnly'); } } }
   parts.push(T('main', copy.main, mainFs, fwOf('main', mainFs), mainFg, (useRef ? 'text-wrap:balance' : '') + (mainW > textW ? `;width:${mainW}px;max-width:none` : ''), mainLines, mainLine));
-  if (showSub && !subAbove) parts.push(T('sub', copy.sub, z.subFs, fwOf((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan', z.subFs), subFg, `margin-top:${useRef ? subGap(z) : 6}px${subW > textW ? `;width:${subW}px;max-width:none` : ''}`, Math.min(slots.sub.lines ?? 2, 2), subLh));
+  if (showSub && (!subAbove || subIsDate)) parts.push(T('sub', copy.sub, z.subFs, fwOf((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan', z.subFs), subFg, `margin-top:${useRef ? (subIsDate ? Math.round(gBase(z) * TG.titleSub) : subGap(z)) : 6}px${subW > textW ? `;width:${subW}px;max-width:none` : ''}`, Math.min(slots.sub.lines ?? 2, 2), subLh));
   if (!guide?.dateAbove) parts.push(metaRow());
   tail.push(detailBlock());
   if (want.extra) tail.push(T('extra', copy.extra, z.smallFs, fwOf('extra', z.smallFs), subFg, 'margin-top:6px', Math.min(slots.extra.lines ?? 1, 2)));

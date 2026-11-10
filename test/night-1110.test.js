@@ -25,3 +25,15 @@ test('알바몬 스플래시 = 가이드 틀(위 240 안 가운데 문구 · 88 
   assert.equal(t.copy.main, '신입/경력 공개채용');
   for (const sid of ['albamon-m-main', 'albamon-pc-sky-recruit', 'google-gdn-300x600']) assert.notEqual(tr(renderArtifact(sid, ctx, photo)).copy.main, '채용 공고', sid);
 });
+
+test('날짜 자리가 따로 없는 규격에서 서브가 비면 마감 일정이 서브 자리로 — 타이틀 아래 · 상세에 접수기간이 있으면 안 넣음 · 띠는 안 넣음', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js'); const { extractRecruit } = await import('../core/brief.js');
+  const ctx = createContext(extractRecruit('마이다스아이티 2026년 하반기 신입/경력 공개채용. 접수 11월 12일(목) ~ 11월 25일(수) 18:00. 모집분야: 연구개발, 기술영업, 경영지원. 근무지: 판교', new Date(2026, 10, 10)), 'recruit');
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const st = normalizeStyle({ colors: ['#1428A0'] });
+  const h = renderArtifact('albamon-pc-main-board', ctx, st), t = tr(h);
+  assert.ok(t.rules.includes('subAsDate') && /11\.12/.test(t.copy.sub), JSON.stringify(t.copy));
+  assert.ok(h.indexOf('data-field="main"') < h.indexOf('data-field="sub"'), '날짜는 타이틀 아래');
+  for (const sid of ['instagram-story-1080x1920', 'albamon-pc-sub-bottom']) assert.ok(!tr(renderArtifact(sid, ctx, st)).rules.includes('subAsDate'), sid);
+});
