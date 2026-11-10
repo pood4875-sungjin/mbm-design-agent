@@ -34,8 +34,9 @@ test('자동 안: 기본안 포함 최소 3안, 안끼리 네 축 중 하나 이
   }
 });
 
-test('규정 매체는 그대로 1안(최소 3 예외)', () => {
-  assert.equal(variantCandidates('jasoseol-pc-premium-popup-pc', ctx, style).length, 1);
+test('규정 매체도 추가 안(11-10 사용자 「기본 외 3개」) — 바탕 축으로만', () => {
+  const vs = variantCandidates('jasoseol-pc-premium-popup-pc', ctx, style);
+  assert.ok(vs.length >= 2); for (const v of vs.slice(1)) assert.ok(Object.keys(v.style).every(k => ['bgFill', 'bgGrad', 'textTone', 'kvPlace'].includes(k)), JSON.stringify(v.style));
 });
 
 test('다른 시안 모달: 네 축이 전부 같은 시안은 하나만, 라벨은 축 이름 · 원래 이름은 sub 로', () => {

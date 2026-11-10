@@ -112,7 +112,7 @@ export function computeVariants(campaign, artifact, opts = {}) {
   const prevStyle = artifact.variants?.[artifact.variantSel]?.style ?? null;
   const vs = variantCandidates(artifact.specId, effContextOf(campaign, artifact), ref(campaign.style), { variant: artifact.variant ?? 0 });
   const prevFree = (artifact.variants ?? []).filter(v => v.kind === 'free');   // 자유 시안(11-05, 「대화로 시안 뽑기」 「이 안으로 쓰기」) — 자동 안을 다시 세워도 남긴다
-  artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash }));
+  artifact.variants = vs.map(v => ({ id: v.id, label: v.label, style: v.style, hash: v.hash, ...(v.sub ? { sub: v.sub } : {}) }));   // sub(11-10): 실제 그려진 태그로 지은 부제 — 앱이 style 로 다시 만들면 「라벨」이 안 그려져도 「라벨」이라 적혔다
   for (const v of prevFree) artifact.variants.push({ ...v, id: artifact.variants.length });
   const i = prevStyle ? artifact.variants.findIndex(v => JSON.stringify(v.style) === JSON.stringify(prevStyle)) : -1;
   // 「다른 시안 보기」에서 고른 시안은 자동 안 목록에 없어도 선택을 유지한다
