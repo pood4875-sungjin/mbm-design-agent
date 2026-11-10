@@ -94,7 +94,7 @@ export async function ask({ system, user }) {
 export function friendlyError(e) {
   const m = String(e?.message ?? e);
   if (/ENOENT/.test(m)) return { code: 503, error: '이 컴퓨터에 Claude Code(claude)가 없어요 — 설치 후 다시 시도해 주세요' };
-  if (/not logged in|login|authenticat|401/i.test(m)) return { code: 503, error: 'Claude 계정 연결이 필요해요 — 위쪽 「Claude Code 연결」 칩에서 연결해 주세요' };
+  if (/not logged in|login|authenticat|401/i.test(m)) return { code: 503, error: 'Claude 계정 연결이 필요해요 — 위쪽 「Claude 연결하기」 칩에서 연결해 주세요' };
   if (/rate|limit|429|usage/i.test(m)) return { code: 429, error: 'Claude 사용 한도에 걸렸어요 — 잠시 뒤 다시 시도해 주세요. 그동안은 규칙 판정으로 진행해요' };
   if (/시간 초과|timeout/i.test(m)) return { code: 504, error: 'Claude 응답이 늦어요 — 규칙 판정으로 진행하고, 잠시 뒤 다시 시도해 주세요' };
   return { code: 500, error: m.slice(0, 300) };
