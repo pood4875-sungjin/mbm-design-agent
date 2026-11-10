@@ -3131,7 +3131,10 @@ ${tplLogo}${kvWrap(tplObject)}
     if (MR.detail && moldDetailSrc.length) {
       const dR0 = { ...MR.detail, ...(MR.detail.byMainLines?.[String(mainN)] ?? {}) };   // PC메인: 메인 2줄이면 상세는 둘째 줄부터 2행(「메인 문구가 두 줄인 경우 상세 1행 입력 불가」)
       // 채용공고(160×600): 상세 블록은 마지막 메인 줄 y + 57.5 — 메인 줄 수 따라 내려간다(샘플 6개 전수 실측, 세아 메인 3줄 185.7 → 242.8)
-      const dR = (dR0.afterMain != null && mR) ? { ...dR0, y: mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + dR0.afterMain } : dR0;
+      // 11-10 밤(문구 바꿔 보기 — 마감일 없는 공고): 날짜 줄이 비면 상세가 날짜 자리로 올라온다 — 틀 자리에 남으면 타이틀↔상세가 타이틀의 1.5~2.7배로 벌어졌다(구글 300×1050·인스타 피드). 잠긴 매체는 그대로
+      const dateGone = !lockedMold && MR.date?.afterMain != null && dR0.afterMain != null && !copy.date && !(ladder.date ?? []).length && !ctx.core?.deadline;
+      const dR = (dR0.afterMain != null && mR) ? { ...dR0, y: mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + (dateGone ? MR.date.afterMain : dR0.afterMain) } : dR0;
+      if (dateGone) fired('templateMold.detailUp');
       const dLw = dR.labelWeight ?? 700; const cap = dR.lines ?? 3;
       const rows = []; let n = 0;
       for (const d0 of moldDetailSrc.filter(d => !dR.items || moldItemOk(dR, d))) { const d = d0.rows <= cap - n ? d0 : d0._opts?.find(o => o.rows <= cap - n); if (!d) break; n += d.rows; rows.push(d); }
