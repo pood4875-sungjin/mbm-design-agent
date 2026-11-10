@@ -101,6 +101,8 @@ export function variantSubOf(st, spec = null) {
 export function alignFollows(cand, tr, spec) {
   const a = cand?.textAlign; if (!a || !tr || !spec) return { ok: true };
   const P = tr.place ?? {}, mode = P.mode ?? 'none';
+  // 11-10 사용자 「말도 안 되는 디자인」(구글 930×180 가운데 정렬 — 이미지 전체 + 가운데 글자 국소 막): 아주 납작한 띠(w ≥ 3.5h)에서 이미지가 지면 전체면 가운데 글자는 그림 한복판을 가린다 → 안 낸다
+  if (a === 'center' && tr.gate?.hasKv && spec.w >= 3.5 * spec.h && (FULL_MODES.has(mode) || (tr.rules ?? []).includes('align.centerFull'))) return { ok: false, why: '납작한 띠에서 이미지 전체 + 가운데 글자' };
   if (mode === 'none' || FULL_MODES.has(mode) || !tr.gate?.hasKv) return { ok: true };
   const W = spec.w, H = spec.h;
   let r = P.tImage && Number.isFinite(P.tImage.x) ? P.tImage : P.bleed && Number.isFinite(P.bleed.left) ? { x: P.bleed.left, y: P.bleed.top, w: W - P.bleed.left, h: H - P.bleed.top } : null;

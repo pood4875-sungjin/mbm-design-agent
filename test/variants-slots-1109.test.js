@@ -42,8 +42,11 @@ test('렌더: infoTag date 는 날짜를 알약에(높이 = 글자 × 1.9, 글�
   const st = styleOf('fox-cutout');
   for (const sid of ['google-gdn-580x400', 'google-gdn-300x600', 'instagram-feed-1080']) {
     const t = tr(renderArtifact(sid, ctx, { ...st, infoTag: 'both' }, {}));
-    const d = t.tags.find(x => x.kind === 'date'), l = t.tags.find(x => x.kind === 'label');
-    assert.ok(d && l, sid); assert.equal(d.r, Math.ceil(d.h / 2), '날짜 = 알약'); assert.equal(l.r, Math.max(2, Math.round(l.h * 0.12)), '라벨 = 각진');
+    const d = t.tags.find(x => x.kind === 'date');
+    // 11-10 사용자 「라벨 두 개가 있으면 안 돼」: 날짜 알약이 있으면 「접수기간」 라벨 태그는 없다
+    assert.ok(d && !t.tags.some(x => x.kind === 'label' && /접수/.test(x.text ?? '')) && !t.tags.filter(x => x.kind === 'label').length, sid + ' ' + JSON.stringify(t.tags));
+    const l = tr(renderArtifact(sid, ctx, { ...st, infoTag: 'label' }, {})).tags.find(x => x.kind === 'label');
+    assert.ok(l, sid + ' label'); assert.equal(d.r, Math.ceil(d.h / 2), '날짜 = 알약'); assert.equal(l.r, Math.max(2, Math.round(l.h * 0.12)), '라벨 = 각진');
     const mainPx = t.fonts?.main?.px; if (mainPx) assert.ok(d.fs <= Math.round(mainPx * 0.55) + 1, `${sid} 태그 글자 ${d.fs} / 메인 ${mainPx}`);
     assert.ok(d.contrast >= 4.5 && l.contrast >= 4.5);
   }

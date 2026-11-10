@@ -2645,10 +2645,11 @@ function renderAdBase(ctx, style, spec) {
     const parts = [];
     // 라벨이 「모집직무 : …」(접수기간이 없을 때의 대체)인데 상세 줄에 모집직무가 또 있으면 빼다 — 같은 줄이 두 번 나왔다(10-14 t1014 한진정보통신 NAP 320×480)
     const dupLabel = /^모집직무/.test(String(copy.label ?? '')) && detailLines.some(d => d.label === '모집직무');
+    // 11-10 사용자 「라벨 두 개가 있으면 안 돼 — 접수기간 숫자를 라벨로 묶었다면 접수기간 텍스트는 빠져도 돼」: 날짜 알약이 있으면 「접수기간」 라벨(태그·글자) 없음
     // 정보 태그(infoTag): 날짜 = 알약(값 자체를 태그 안에), 라벨 = 각진 태그 + 값은 밖(같은 줄 오른쪽). 라벨 칸이 없으면 「접수기간」 라벨 태그를 날짜 앞에(시안 A 「라벨 : 값」 → 라벨 태그 + 값)
     const tfs = IT ? tagFs(z.smallFs, mainFs) : z.smallFs, lfs = IT ? Math.max(tagFs(0, 0), Math.round(tfs * INFO_TAG.labelFs)) : z.smallFs;
-    if (want.label && copy.label && !dupLabel) parts.push(IT?.label ? tagHtml('label', 'label', copy.label, lfs) : plain('label', copy.label, z.smallFs));   // 라벨 칩이 날짜 앞(「접수기간 9/4(금) ~ 9/13(일)」) — 샘플 잡다·NAP·구글 모두 라벨 → 값
-    else if (want.date && IT?.label && !(guide?.dateAbove)) parts.push(tagHtml('label', 'label', labelOf('접수기간'), lfs));
+    if (want.label && copy.label && !dupLabel && !(IT?.date && want.date)) parts.push(IT?.label ? tagHtml('label', 'label', copy.label, lfs) : plain('label', copy.label, z.smallFs));   // 라벨 칩이 날짜 앞(「접수기간 9/4(금) ~ 9/13(일)」) — 샘플 잡다·NAP·구글 모두 라벨 → 값
+    else if (want.date && IT?.label && !IT?.date && !(guide?.dateAbove)) parts.push(tagHtml('label', 'label', labelOf('접수기간'), lfs));
     if (want.date) parts.push(IT?.date ? tagHtml('date', 'date', copy.date, tfs) : plain('date', copy.date, IT ? tfs : z.smallFs));
     if (!parts.length) return '';
     return `<div style="display:flex;flex-wrap:wrap;gap:${IT ? `${Math.round(tfs * 0.3)}px ${Math.round(tfs * 0.45)}px;align-items:center` : '2px 12px'};justify-content:${align === 'center' ? 'center' : (IT && align === 'right') ? 'flex-end' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
@@ -2982,10 +2983,10 @@ ${tplLogo}${kvWrap(tplObject)}
       if (txt && IT && !DC) {
         const tfs = tagFs(pxOf(MR.date), mainPx), lfs = Math.max(tagFs(0, 0), Math.round(tfs * INFO_TAG.labelFs));
         const rowH = Math.max(IT.date ? Math.round(tfs * INFO_TAG.dateH) : Math.round(tfs * 1.3), IT.label ? Math.round(lfs * INFO_TAG.labelH) : 0), gapT = Math.round(tfs * 0.45);
-        const labT = labelOf('접수기간'), labW = IT.label ? moldW(labT) * lfs + 2 * Math.round(lfs * INFO_TAG.labelPadX) + gapT : 0;
+        const labT = labelOf('접수기간'), labW = (IT.label && !IT.date) ? moldW(labT) * lfs + 2 * Math.round(lfs * INFO_TAG.labelPadX) + gapT : 0;
         const avail = rowW(MR.date) - labW - (IT.date ? 2 * Math.round(tfs * INFO_TAG.datePadX) : 0);
         if (moldW(txt) * tfs * 1.03 > avail) { const alt = [...new Set([txt, ...(ladder.date ?? [])])].find(c => moldW(c) * tfs * 1.03 <= avail); if (alt) txt = alt; }
-        const inner = `<span data-tag-inner="1" style="display:inline-flex;align-items:center;gap:${gapT}px;vertical-align:top;max-width:100%">${IT.label ? tagHtml('label', 'label', labT, lfs) : ''}${IT.date ? tagHtml('date', 'date', txt, tfs) : `<span data-field="date"${sampleAttr(txt)} style="display:inline-block;font-size:${tfs}px;line-height:${rowH}px;white-space:nowrap">${esc(txt)}</span>`}</span>`;
+        const inner = `<span data-tag-inner="1" style="display:inline-flex;align-items:center;gap:${gapT}px;vertical-align:top;max-width:100%">${(IT.label && !IT.date) ? tagHtml('label', 'label', labT, lfs) : ''}${IT.date ? tagHtml('date', 'date', txt, tfs) : `<span data-field="date"${sampleAttr(txt)} style="display:inline-block;font-size:${tfs}px;line-height:${rowH}px;white-space:nowrap">${esc(txt)}</span>`}</span>`;
         put('date', { ...dateRow, chip: true, pitch: rowH / k }, 1, MR.date.weight ?? fwOf('date', tfs), subFg, inner, txt);
         const b = blocks[blocks.length - 1]; b.html = b.html.replace(/^<div data-field="date"(?: data-sample="1")?/, '<div data-tag-row="1"');
       }
