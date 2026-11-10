@@ -2681,11 +2681,15 @@ function cloneCampaign(c) {
   // 그림(data URL — keyVisual·logo·logoLight·logoMono·kvOrig·object …)은 문자열이라 참조만 옮긴다(11-09: 예전엔 keyVisual·logo 만 빼고 kvOrig 수 MB 는 걸음마다 복제)
   const pics = {}, styleRest = {};
   for (const [k, v] of Object.entries(style)) (typeof v === 'string' && v.startsWith('data:') ? pics : styleRest)[k] = v;
+  // 11-10 hub 이식: 이 소재만 바꾼 그림(overrides.style.keyVisual·kvOrig·logo …)도 참조만 — 소재마다 수 MB 를 걸음마다 복제하지 않게
+  const isPic = v => typeof v === 'string' && v.startsWith('data:');
+  const apics = artifacts.map(a => Object.entries(a.overrides?.style ?? {}).filter(([, v]) => isPic(v)));
   const out = structuredClone({
     ...rest,
     style: styleRest,
-    artifacts: artifacts.map(({ html, ...a }) => a),
+    artifacts: artifacts.map(({ html, ...a }, i) => apics[i].length ? { ...a, overrides: { ...a.overrides, style: Object.fromEntries(Object.entries(a.overrides.style).map(([k, v]) => [k, isPic(v) ? null : v])) } } : a),
   });
+  out.artifacts.forEach((a, i) => { for (const [k, v] of apics[i]) a.overrides.style[k] = v; });
   out.style = Object.fromEntries(Object.keys(style).map(k => [k, k in pics ? pics[k] : out.style[k]]));   // 키 순서도 원본 그대로
   out.style.keyVisual ??= null; out.style.logo ??= null;
   return out;
