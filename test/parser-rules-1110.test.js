@@ -87,3 +87,21 @@ test('11-10 지면 = 그림 비중 색(질감·평평한 바탕 없는 그림) �
   assert.equal(kvShareColor(['#87CAF9']), '#87CAF9', '밝은 하늘색은 진하게 안 바꾸고 그대로(글자를 어둡게)');
   assert.equal(kvShareColor(['#9A9A9A']), null, '무채색뿐이면 이 규칙 안 씀');
 });
+
+test('11-10 NAP 비즈보드 960×300 스타일(피그마 64:1781): 글자색 #4C4C4C/#777777 · AD 표시 줄 · 사진 썸네일 안 로고(어두우면 흰색) · 누끼면 로고 없음 · 카카오 960은 그대로', async () => {
+  const { createContext } = await import('../core/context.js');
+  const { renderAd } = await import('../core/renderers/ad.js');
+  const { adSpecEntries } = await import('../core/adspecs.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const S = adSpecEntries(), ctx = createContext({ client: '마이다스아이티', hiringType: '신입 공채', deadline: '2026-11-25' }, 'recruit');
+  const dark = { field: { kind: 'photo', opaque: 1, lum: 0.2, flatEdges: 0, edges: {}, quadrants: { tl: '#101018', tr: '#111122', bl: '#000', br: '#222' } }, colors: ['#203060'], ar: 1.5, px: [1500, 1000] };
+  const st = kvMeta => normalizeStyle({ colors: ['#1E5BE6'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta, logo: 'data:image/png;base64,iVBORw0KGgoA', logoTone: 'dark' });
+  const nap = renderAd(ctx, st(dark), S['nap-dsp-bizboard-960x300']);
+  assert.match(nap, /data-ad-tag="1"/); assert.match(nap, /nap dsp 광고입니다/);
+  assert.match(nap, /#4C4C4C/i);
+  assert.match(nap, /data-logo-slot="1"[\s\S]*?invert\(1\)/, '어두운 썸네일 위 로고는 흰색');
+  const cut = renderAd(ctx, st({ ...dark, field: { ...dark.field, opaque: 0.3 } }), S['nap-dsp-bizboard-960x300']);
+  assert.doesNotMatch(cut, /data-logo-slot="1"/, '누끼면 로고 칸 없음');
+  const kakao = renderAd(ctx, st(dark), S['kakao-bizboard-mo']);
+  assert.doesNotMatch(kakao, /data-ad-tag/); assert.match(kakao, /#191919/i);
+});

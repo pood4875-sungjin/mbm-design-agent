@@ -1246,7 +1246,9 @@ function renderAdBase(ctx, style, spec) {
 
   /* ── 템플릿 실측 칸 (자소설) ── */
   const tpl = tpl0;
-  let tLogo = rect(mold?.logo ?? tpl?.logo ?? tpl?.logoHorizontal ?? null, tScale);   // 틀의 로고 칸이 먼저(10-15) · let: 정렬 프리셋(10-19)이 틀 로고 칸을 거울에 비춘다
+  // 11-10 썸네일 안 로고(mold.logo.onImage — NAP 비즈보드): 로고는 사진 썸네일 안에만. 누끼(오브젝트형)는 칸이 사물 자리라 로고를 넣지 않는다(예전처럼)
+  const moldLogo0 = (mold?.logo?.onImage && (style.kvMeta?.field?.opaque ?? 1) < 0.5) ? null : mold?.logo;
+  let tLogo = rect(moldLogo0 ?? tpl?.logo ?? tpl?.logoHorizontal ?? null, tScale);   // 틀의 로고 칸이 먼저(10-15) · let: 정렬 프리셋(10-19)이 틀 로고 칸을 거울에 비춘다
   // 틀 매체의 KV·배경은 이전 자유 배치(열·띠·블리드·cover+녹임)로, 글자·로고만 틀 — 자소설만 샘플 그림 칸 유지(사용자 결정 10-15 밤: 「KV·배경 추출은 이전 버전이 더 견고」). mold.kv 'slot' 으로 칸을 강제할 수 있다
   const moldFreeKv = !!mold && mold.kv !== 'slot' && !/^jasoseol-/.test(String(spec.id ?? ''));
   // 자유 배치의 그림 칸 = 틀 글자 상자(행마다 x·폭·y·줄 수 최대)를 피한, 오른쪽 아래에 붙는 가장 큰 빈 네모(오른쪽 열 · 아래 띠 · 모서리 상자 중 면적 최대).
@@ -1710,7 +1712,14 @@ function renderAdBase(ctx, style, spec) {
     return { share: Math.round(low / tot * 100) / 100, min: Math.round(Math.min(...cs.map(c => cOf(c.hex))) * 100) / 100 };
   })();
   const logoInkLight = !!(logoLowOnLight && !logoTile && (logoLowOnLight.share == null || logoLowOnLight.share >= 0.3));
+  // 11-10 썸네일 위 로고(mold.logo.onImage — NAP 비즈보드 피그마 64:1781 「8px 여백 두고 로고 삽입」, 샘플 대원제약 빨간 사진 위 흰 로고): 로고 밑은 지면이 아니라 사진이다 —
+  //   사진(누끼 아님)이면 로고 자리 사분면 색(kvMeta.field.quadrants, 틀이 좌우 바뀌면 왼쪽 위)으로 흰색/원색을 고른다. 누끼는 로고 밑이 지면이라 예전 규칙
+  const logoUnder = (mold?.logo?.onImage && hasKv && (style.kvMeta?.field?.opaque ?? 1) >= 0.5) ? (style.kvMeta?.field?.quadrants?.[mold.swapped ? 'tl' : 'tr'] ?? null) : null;
+  const logoOnDarkImg = logoUnder ? contrast(logoUnder, WHITE) >= 3 : null;
+  if (logoUnder) fired(logoOnDarkImg ? 'templateMold.logoOnImage.white' : 'templateMold.logoOnImage');
   const logoFilter = logoTile ? ''
+    : logoOnDarkImg === true ? 'filter:brightness(0) invert(1)'
+    : logoOnDarkImg === false ? (style.logoTone === 'light' ? 'filter:brightness(0)' : '')
     : (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)'
     : (fgIsDark && (style.logoTone === 'light' || logoClash || logoInkLight)) ? (inkId ? `filter:url(#${inkId})` : 'filter:brightness(0)')
     : '';
@@ -3083,6 +3092,15 @@ ${tplLogo}${kvWrap(tplObject)}
           const inner = items.map(t => `<b data-chip="1" style="display:inline-flex;align-items:center;height:${th}px;padding:0 ${padX}px;border-radius:${rad}px;font-size:${tpx}px;line-height:${th}px;font-weight:${tw};background:${chipBgCss};color:${chipFg};white-space:nowrap">${esc(t)}</b>`).join('');
           blocks.push({ t: Math.round(tg.y * k * 10) / 10, h: totalH, html: `<div data-field="tags" style="position:absolute;left:${tagsX}px;top:@@px;width:${tagW}px;height:${totalH}px;display:flex;${tRows > 1 ? `flex-wrap:wrap;gap:${rowGap}px ${gap}px;` : `gap:${gap}px;`}align-items:center;align-content:flex-start;justify-content:${justify};overflow:hidden">${inner}</div>` });
         }
+      }
+    }
+    // 11-10 NAP 비즈보드(사용자 「960×300 유지, 스타일만」 — 나스미디어 가이드 템플릿 피그마 64:1781): 글 덩어리 아래 셋째 줄 「AD」 알약 + 「nap dsp 광고입니다」(mold.rows.adTag). 글자 칸(data-field)이 아니라 매체 표기 — 글자수 검사에 안 섞인다
+    if (MR.adTag && blocks.length) {
+      const A = MR.adTag, P = A.pill ?? {}, bot1 = Math.max(...blocks.map(b => b.t + b.h));
+      const ah = Math.round((A.h ?? 30) * k), apx = Math.round((A.px ?? 24) * k), ppx = Math.round((P.px ?? 20) * k), pw = Math.round((P.w ?? 48) * k), gx = Math.round((A.gapX ?? 5) * k), at = Math.round((bot1 + (A.gap ?? 16) * k) * 10) / 10;
+      if (at + ah <= h) {
+        blocks.push({ t: at, h: ah, html: `<div data-ad-tag="1" style="position:absolute;left:0;top:@@px;height:${ah}px;display:flex;align-items:center;gap:${gx}px;white-space:nowrap"><span style="display:inline-flex;align-items:center;justify-content:center;width:${pw}px;height:${ah}px;border-radius:${Math.round((P.radius ?? 15) * k)}px;background:${P.bg ?? '#D9D9D9'};color:${P.color ?? '#FFFFFF'};font-size:${ppx}px;font-weight:${P.weight ?? 700};line-height:1">${esc(P.text ?? 'AD')}</span><span style="font-size:${apx}px;font-weight:${A.weight ?? 400};color:${A.color ?? '#555555'};line-height:1">${esc(A.text ?? '')}</span></div>` });
+        fired('templateMold.adTag');
       }
     }
     const top00 = blocks.length ? Math.min(...blocks.map(b => b.t)) : 0, bot0 = blocks.length ? Math.max(...blocks.map(b => b.t + b.h)) : 0;
