@@ -5,6 +5,7 @@
 //   `textAlign.kv(…)`·`textAlign.logo(…)` 같은 「키.부분(사유)」는 틀 칸 메모(글자는 정렬됐고 그림·로고 칸만 제자리) — 부분 적용이라 버리지 않는다(그림이 같으면 ④가 거른다).
 //   ⑤(11-05) 기본안보다 못한 프리셋 안: 기본안엔 없던 글자-그림 겹침 교정이 필요하거나, 기본안엔 있던 키비주얼이 빠지면 버린다.
 //   첫 안은 늘 기본안(빈 style) — 지금 시스템이 내는 그림이라 거르지 않는다(겹침 실패여도 검수가 그대로 보고). 규정 매체(fonts.required)는 기본안 하나.
+import { cleanAiSlots } from './aislots.js';
 import { renderArtifact } from './contract.js';
 import { adSpecEntries } from './adspecs.js';
 import { CANON } from './canon.js';
@@ -134,7 +135,28 @@ export function logoInSafe(tr, spec, html = '') {
 // 메인 글자 대비(trace.text.mainFg vs 지면 정지점) — hex 가 아니면 못 잰다(통과)
 const minMainContrast = tr => { const fg = tr?.text?.mainFg, st = tr?.field?.stops ?? []; if (!/^#[0-9a-f]{6}$/i.test(fg ?? '') || !st.length) return null; return Math.min(...st.filter(x => /^#[0-9a-f]{6}$/i.test(x)).map(x => contrast(x, fg))); };
 // 슬롯 프리셋 후보 — 기본안 trace(정렬·배치·지면)에 따라. { st, sub }
+// 11-10 사용자 「추가 시안 3개는 규칙 기반 + AI 가 판단만 도와서」: Claude 가 그림을 보고 고른 방향(style.aiSlots)으로 슬롯 후보 「순서」만 바꾼다.
+//   거르기(대비·겹침·정렬-비주얼 짝…)는 그대로라 Claude 가 고른 방향이 이 규격에서 안 서면 다음 후보로 간다 — 퀄리티 바닥은 규칙.
+//   aiSlots = { A: 'center'|'mirror'|'full', B: { tag: 'both'|'date'|'label', shape: 'pill'|'square' }, C: { light: bool } }
+const aMatch = (pref, st) => pref === 'center' ? st.textAlign === 'center' : pref === 'mirror' ? (st.kvPlace === 'left' || (st.textAlign === 'right' && !st.kvPlace)) : pref === 'full' ? st.kvPlace === 'bg' : false;
+export function preferAiSlot(slotId, list, aiSlots) {
+  const pref = cleanAiSlots(aiSlots)?.[slotId]; if (!pref || !list.length) return list;
+  if (slotId === 'A') return [...list.filter(x => aMatch(pref, x.st)), ...list.filter(x => !aMatch(pref, x.st))];
+  if (slotId === 'B') {
+    const want = { infoTag: pref.tag, ...(pref.shape === 'square' ? { tagShape: 'square' } : {}) };
+    const same = x => x.st.infoTag === want.infoTag && (x.st.tagShape ?? 'pill') === pref.shape;
+    const head = list.find(same) ?? { st: want, sub: null };
+    const score = x => (x.st.infoTag === pref.tag ? 2 : 0) + ((x.st.tagShape ?? 'pill') === pref.shape ? 1 : 0);
+    return [head, ...list.filter(x => x !== head).map((x, i) => [x, i]).sort((a, b) => score(b[0]) - score(a[0]) || a[1] - b[1]).map(([x]) => x)];
+  }
+  if (slotId === 'C') return pref.light === false && list.every(x => x.st.bgFill === 'light') ? [] : list;   // 밝은 지면이 이 그림에 안 어울린다 → 대체 안으로(지면 반전 brand 는 그대로)
+  return list;
+}
 export function slotPresets(slotId, spec, baseTr, style, ctx = null) {
+  const out = slotPresetsRule(slotId, spec, baseTr, style, ctx);
+  return preferAiSlot(slotId, out, style?.aiSlots).map(x => ({ st: x.st, sub: x.sub ?? variantSubOf(x.st, spec) }));
+}
+function slotPresetsRule(slotId, spec, baseTr, style, ctx = null) {
   const shape = shapeOf(spec.w, spec.h), hasKv = !!style?.keyVisual && !!baseTr?.gate?.hasKv;
   const ba = baseTr?.place?.zone?.align ?? 'left', mode = baseTr?.place?.mode ?? 'none', mold = MOLD_MODES.has(mode) || !!baseTr?.gate?.template;
   const cut = (style?.kvMeta?.field?.opaque ?? 1) < 0.5;

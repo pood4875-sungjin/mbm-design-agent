@@ -26,6 +26,17 @@
 - **대체**(결정 4): 실패한 슬롯 자리는 A 의 다른 변형 → B 의 다른 태그 구성 → 시안 틀(축이 멀어지는 순) → 기존 프리셋(아래 CANDIDATE_ORDER) → 마지막 채움(글자 세로 위치·그라데이션·키비주얼 배경색). 대체 안은 `trace.substitute` 에 실패 사유.
 - `opts.stats.slots` = 슬롯마다 `{ slot, ok, style, tried, why[] }`(전수·로그용). `opts.accept(html, rec)`: 브라우저에서 lint 를 돌릴 수 있는 호출자가 동기로 거를 수 있다.
 
+## Claude 가 방향을 골라 줘요 (11-10)
+사용자 11-10: 「기본안·추가 시안 3개는 규칙 기반에 AI 가 판단만 도와서, 자유 디자인은 클릭해서」.
+
+- Claude 가 연결돼 있으면 그림을 올릴 때 그림 종류와 함께 세 슬롯의 방향을 골라요(`/api/kvjudge`, 같은 한 번의 호출).
+  - A: `center`(가운데 정렬) · `mirror`(좌우 바꿈) · `full`(그림 가득 — 누끼는 없음)
+  - B: 태그 `both` · `date` · `label` + 모양 `pill` · `square`
+  - C: 밝은 지면이 어울리면 `light: true`, 아니면 `false`
+- 값은 `style.aiSlots` 에 들어가고, `core/variants.js preferAiSlot` 이 **후보 순서만** 바꿔요. 거르기(대비·겹침·정렬-비주얼 짝…)는 그대로라, 고른 방향이 그 규격에서 안 서면 다음 후보로 가요. C 가 `false` 면 밝은 지면 안을 만들지 않고 대체 안으로 채워요(지면 반전 `brand` 는 그대로).
+- `aiSlots` 가 없으면 예전과 같은 안이 나와요(테스트 `test/aislots-1110.test.js`).
+- 규칙 결과가 먼저 깔리고, 판단이 오면 다시 그려요. 되돌리기 ⌘Z.
+
 ## 안 수 (`CANON.variants`)
 | 대상 | 안 수 |
 |---|---|

@@ -10,7 +10,8 @@ export const ANALYZE_MODEL = 'claude-sonnet-5-5';
 let serverOk = null;
 export async function hasServer(fetchFn = fetch) {
   if (serverOk != null) return serverOk;
-  try { const r = await fetchFn('/api/health', { cache: 'no-store' }); serverOk = r.ok ? !!(await r.json()).hasKey : false; } catch { serverOk = false; }
+  // 11-10: 키가 없어도 로컬 서버가 Claude 계정(CLI)으로 판단한다(server.mjs /api/analyze → analyzeKvCli) — 서버가 있으면 서버로
+  try { const r = await fetchFn('/api/health', { cache: 'no-store' }); const h = r.ok ? await r.json() : null; serverOk = !!(h && (h.hasKey || h.freedesign?.claudeCode)); } catch { serverOk = false; }
   return serverOk;
 }
 const imageBlock = (dataUrl, name) => {
