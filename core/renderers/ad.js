@@ -1395,8 +1395,9 @@ function renderAdBase(ctx, style, spec) {
   let cutBand = false;   // 정사각 규격의 가로 긴 누끼 띠 — 띠 높이에 맞추고 좌우를 지면 밖으로(틈 창 또는 허용 배율)
   // 정사각 단일 사물: 모서리 상자(58%×55%)·아래 띠 대신 왼쪽 30%·위 48% 경계 안에서 우하단 블리드(Figma 인스타 1080: KV 29·49–100·100, 보임 86%, 면적 25%)
   // 11-10 피드백 4(알바몬 기업 좌측 200×275): 폭이 좁은 지면은 왼쪽 경계 30%면 누끼가 가운데처럼 보인다 — 42%부터(왼쪽 글자 ↔ 오른쪽 아래 그림)
+  const want0Detail = !logoOnly && !!slots?.main && !!(slots?.detail || slots?.date) && !!(ctx.core?.deadline || (ctx.core?.rows ?? []).length || ctx.core?.role) && !CANON.lockedMedia.includes(spec.medium);   // 11-10 밤: 띠 높이 판단용(want 는 아래에서 정해진다)
   if (cutCorner && singleObj && (bleedP = bleedAt(Math.round(w * (w < 320 ? 0.42 : 0.3)), Math.round(h * 0.48)))) tImage = { x: bleedP.left, y: bleedP.top, w: w - bleedP.left, h: h - bleedP.top };
-  else if (cutCorner && cutAr > 1.3) { const bandH = Math.min(Math.round(h * 0.55), Math.max(Math.round(h * 0.3), Math.round(w * cutKmax / cutAr))); tImage = { x: 0, y: h - bandH, w, h: bandH }; cutBand = bandH * cutAr > w + 1; }
+  else if (cutCorner && cutAr > 1.3) { const bandH = Math.min(Math.round(h * ((want0Detail) ? 0.45 : 0.55)),   /* 11-10 밤: 상세가 있으면 띠 45% — 떼 누끼 머리가 날짜·상세 줄을 덮었다(specup 264·알바몬 325) */ Math.max(Math.round(h * 0.3), Math.round(w * cutKmax / cutAr))); tImage = { x: 0, y: h - bandH, w, h: bandH }; cutBand = bandH * cutAr > w + 1; }
   // 캐릭터 하나(세로로 선 누끼)는 58%×55% 상자에선 키가 지면의 45% 남짓 — 위가 빈다(에브리타임 288 여우 빈 띠 37%, 캐치 700 30%). 키 72%까지, 폭 64%
   else if (cutCorner) { const solo = (() => { const t = kvTypeOf(style.kvMeta); return !!(t?.flags.character && !t.flags.group); })(); const bw = Math.round(w * (solo ? 0.64 : 0.58)), bh = Math.round(h * (solo ? 0.72 : 0.55)); tImage = { x: w - bw, y: h - bh, w: bw, h: bh }; }
   // 편집 「키비주얼 크기」: 모서리 상자(구글 580·누끼 정사각)·아래 띠 상자를 배율만큼(지면의 75%까지), 우하단에 붙인 채
@@ -2497,9 +2498,13 @@ function renderAdBase(ctx, style, spec) {
       const H = mains.reduce((s, r) => s + r.h, 0) + rest.h;
       const y0 = v === 'center' ? col.y + Math.max(0, (col.h - H) / 2) : v === 'bottom' ? col.y + Math.max(0, col.h - H) : col.y;
       const xOf = rw => align === 'center' ? col.x + (col.w - rw) / 2 : align === 'right' ? col.x + col.w - rw : col.x;
-      let yy = y0; const rows = [];
+      // 11-10 밤: 타이틀 위 아이브로(회사명) 줄을 앞에 둔다 — 빼면 겹침 판정이 실제보다 한 줄 위에서 끝나 떼 누끼가 날짜 줄을 덮어도 교정이 안 돌았다(specup 264 × 사람 여럿)
+      const eyeH = (showSub && subAbove && !TR.rules.includes('subAsDate')) ? Math.round(z.subFs * (useRef ? L.subLine : line) + subGap(z)) : 0;
+      let yy = y0 + eyeH; const rows = [];
+      if (eyeH) rows.push({ role: 'sub', x: Math.round(xOf(Math.min(col.w, Math.round(textWidth(String(copy.sub ?? '')) * z.subFs * 1.04)))), y: Math.round(y0), w: Math.min(col.w, Math.round(textWidth(String(copy.sub ?? '')) * z.subFs * 1.04)), h: eyeH });
       for (const r of mains) { rows.push({ role: 'main', x: Math.round(xOf(r.w)), y: Math.round(yy), w: r.w, h: r.h }); yy += r.h; }
-      if (rest.h > 0) rows.push({ role: 'rest', x: Math.round(xOf(rest.w)), y: Math.round(v === 'distribute' && mold ? col.y + col.h - rest.h : yy), w: rest.w, h: rest.h });
+      // 겹침 판정용 여유(11-10 밤): 뱃지 꼴·서브 날짜가 든 덩어리는 어림이 실제보다 짧다(DOM 대비 최대 2배) — 판정 상자만 20% 늘려 실제로 겹치면 교정이 돈다. 배치는 그대로
+      if (rest.h - eyeH > 0) rows.push({ role: 'rest', x: Math.round(xOf(rest.w)), y: Math.round(v === 'distribute' && mold ? col.y + col.h - rest.h : yy), w: rest.w, h: Math.round((rest.h - eyeH) * (stackTags || TR.rules.includes('subAsDate') ? 1.2 : 1)) });
       TR.textBox = { v, align, rows };
     }
     TR.place.zone = { col, cut: (imgCorner && hasKv && tImage) ? { ...tImage } : null, detailW: (imgCorner && hasKv) ? detailW : null, spanW: Math.max(textW, mainW ?? 0, subW ?? 0), room: roomFull?.room ? { ...roomFull.room } : null, objTop: objectSide === 'bottom' ? h - pad.bottom - objReserve : null, side: objectSide === 'right' ? (mirrorX ? 'left' : 'right') : objectSide, align, v, margin: { left: mirrorX ? w - pad.left - colW : pad.left, top: pad.top, right: pad.right, bottom: pad.bottom } };
