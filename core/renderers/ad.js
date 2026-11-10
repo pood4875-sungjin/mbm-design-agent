@@ -2625,7 +2625,7 @@ function renderAdBase(ctx, style, spec) {
   // 11-10 청사진 하한(core/typoaudit BP.min — 디자이너 프레임 188개 분포 하위 10%): 서브·날짜·상세가 타이틀에 비해 이보다 작으면 비정상(알바몬 메인 빅 날짜 33%, 인스타 스토리 상세 35%).
   //   매체가 글자 크기를 정한 규격(글자 띠·높이 규정·가이드 상세 px·적어 준 크기)은 그대로
   if (!fsRange && !th && !(spec.mediumRules?.fonts?.required || mr?.fonts?.required) && stated.main == null) {   // 가이드 상세 px 띠(인스타 26~34 = 피드 샘플 절대값)보다 비율 하한이 먼저 — 스토리는 메인이 98px 라 34px 상세가 35%가 됐다
-    const BPM = bpMinFor(w, h), lo = (v, k, st) => st != null ? v : Math.max(v, Math.round(mainFs * BPM[k]));
+    const BPM = bpMinFor(w, h), lo = (v, k, st) => st != null ? v : Math.max(v, Math.ceil(mainFs * BPM[k]));   // 올림 — 반올림이면 22px 메인의 서브가 10px(.455 < .47)
     const z0 = z; z = { ...z, subFs: lo(z.subFs, 'sub', stated.sub), smallFs: lo(z.smallFs, 'date', stated.date), dFs: lo(z.dFs, 'detail', detailFs) };
     if (z.subFs !== z0.subFs || z.smallFs !== z0.smallFs || z.dFs !== z0.dFs) { fired('size.blueprintFloor'); TR.blueprintFloor = { sub: [z0.subFs, z.subFs], date: [z0.smallFs, z.smallFs], detail: [z0.dFs, z.dFs] }; }
   }
