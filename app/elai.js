@@ -106,19 +106,26 @@ export function createElAi(deps) {
     const image = deps.imageOf(a, id); if (!image) { paint({ msg: '이 요소의 그림을 찾지 못했어요', instr }); return; }
     ac = new AbortController();
     const started = Date.now();
-    paint({ busy: true, instr, msg: 'Claude가 그림을 보고 따는 중… 0s' });
-    clearInterval(tick); tick = setInterval(() => { const s = pop?.querySelector('.eai-status'); if (s) s.textContent = `Claude가 그림을 보고 따는 중… ${Math.round((Date.now() - started) / 1000)}s (보통 20~60초)`; }, 1000);
+    paint({ busy: true, instr, msg: 'Claude가 그림을 보고 고치는 중… 0s' });
+    clearInterval(tick); tick = setInterval(() => { const s = pop?.querySelector('.eai-status'); if (s) s.textContent = `Claude가 그림을 보고 고치는 중… ${Math.round((Date.now() - started) / 1000)}s (누끼는 20~60초)`; }, 1000);
     try {
-      const r = await fetch('/api/kv-edit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ instr, kind, image, roleName: elementName(id) }), signal: ac.signal });
+      const ctx = deps.ctxOf(a, id), c0 = ctx ? { W: ctx.W, H: ctx.H, box: ctx.box, others: ctx.others, safe: ctx.safe } : null;
+      const r = await fetch('/api/kv-edit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ instr, kind, image, roleName: elementName(id), ctx: c0 }), signal: ac.signal });
       const j = await r.json().catch(() => ({}));
       clearInterval(tick);
       if (!r.ok) { cur && paint({ msg: `AI 수정 실패: ${j.error ?? r.status}`, instr }); return; }
       if (!cur || cur.a !== a || cur.id !== id) return;
       const ms = Date.now() - started, n = j.tries?.length ?? 0;
-      if (!j.image) { paint({ msg: `그림은 그대로 뒀어요 — ${j.note ?? '할 수 없는 지시예요'}${n ? ` (${n}번 시도)` : ''}`, instr }); cur.last = { path: 'kv', ms, ok: false, tries: j.tries, note: j.note }; return; }
-      await deps.applyImage(a, id, j.image, `AI 「${instr}」`);
-      cur && paint({ done: true, instr, msg: `Claude · ${(ms / 1000).toFixed(0)}s · 검수 ${j.score ?? '?'}/5${n > 1 ? ` · ${n}번째 시도` : ''} — ${j.note ?? ''}` });
-      if (cur) cur.last = { path: 'kv', ms, ok: true, score: j.score, tries: j.tries, note: j.note };
+      // 결과 넣기 — 그림(이 소재만 새 그림) → 영역 → 자리·크기(규칙과 같은 검사) → 외관. 한 지시가 여러 걸음이면 되돌리기도 그만큼
+      const label = `AI 「${instr}」`, did = [];
+      if (j.image) { await deps.applyImage(a, id, j.image, label); did.push('그림'); }
+      if (j.region && deps.applyRegion?.(a, id, j.region, label)) did.push('영역');
+      let notes = [];
+      if (j.ops?.box) { const v = validateElementOps({ box: j.ops.box }, { ...(deps.ctxOf(a, id) ?? {}), kind }); notes = v.notes; if (v.ops.box) { deps.apply(a, id, { box: v.ops.box }, label); did.push('자리·크기'); } }
+      if (j.ops?.look && deps.applyLook?.(a, id, j.ops.look, label)) did.push('외관');
+      if (!did.length) { paint({ msg: `그대로 뒀어요 — ${j.note ?? '할 수 없는 지시예요'}${notes.length ? ` · ${notes.join(' · ')}` : ''}${n ? ` (${n}번 시도)` : ''}`, instr }); cur.last = { path: 'kv', ms, ok: false, tries: j.tries, note: j.note }; return; }
+      cur && paint({ done: true, instr, msg: `Claude · ${(ms / 1000).toFixed(0)}s · ${did.join('·')}${j.score != null ? ` · 검수 ${j.score}/5` : ''}${n > 1 ? ` · ${n}번째 시도` : ''} — ${j.note ?? ''}${notes.length ? ` · ${notes.join(' · ')}` : ''}` });
+      if (cur) cur.last = { path: 'kv', ms, ok: true, did, score: j.score, tries: j.tries, note: j.note };
     } catch (e) {
       clearInterval(tick);
       if (e?.name === 'AbortError') { cur && paint({ msg: '취소했어요', instr }); return; }

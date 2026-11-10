@@ -54,6 +54,9 @@ export function quickElementEdit(input) {
       if (/위로|위쪽|올려/.test(c)) { box.dy = r1(((box.dy ?? 0) - step) * 1000) / 1000; hit = true; applied.push('위로'); }
       if (/아래로|아래쪽|내려/.test(c)) { box.dy = r1(((box.dy ?? 0) + step) * 1000) / 1000; hit = true; applied.push('아래로'); }
       if (!hit) return { ok: false, reason: `「${c}」 — 규칙으로 못 알아들음` };
+      // 11-10 밤: 아는 낱말만 있을 때만 규칙으로 — 「글자랑 안 겹치게 … 작게」「로켓 머리만 크게」처럼 남는 말이 있으면 Claude(/api/kv-edit)로
+      const rest = c.replace(/\d+(?:\.\d+)?\s*%/g, ' ').replace(/(그림|키비주얼|비주얼|로고|이미지|더|좀|조금|살짝|약간|많이|훨씬|확|크게|키워|키우|확대|늘려|커지|작게|줄여|줄이|축소|작아|왼쪽|오른쪽|좌측|우측|위쪽|아래쪽|위로|아래로|올려|내려|으로|로|쪽|이동|옮겨|해\s*줘|해\s*주세요|줘|주세요|해|만큼|정도|요)/g, ' ').replace(/[\s.,!~·]+/g, '');
+      if (rest) return { ok: false, reason: `「${c}」 — 「${rest}」는 규칙 밖` };
     }
     return { ok: true, ops: { box }, applied };
   }
@@ -189,8 +192,8 @@ export function validateElementOps(ops0, ctx = {}) {
 
 // 추천 칩(팝오버) — 요소 종류별
 export function suggestionsFor(kind, role) {
-  if (kind === 'kv') return ['더 크게', '작게', '왼쪽으로', '오른쪽으로'];
-  if (kind === 'logo') return ['조금 크게', '조금 작게'];
+  if (kind === 'kv') return ['배경 제거', '더 크게', '작게', '좀 더 밝게'];   // 11-10 밤: 규칙 밖 지시는 연결된 Claude(/api/kv-edit)
+  if (kind === 'logo') return ['조금 크게', '조금 작게', '흑백으로'];
   if (role === 'main') return ['강약 주기', '더 굵게', '한 줄로', '브랜드색 강조'];
   return ['더 굵게', '조금 크게', '조금 작게', '브랜드색으로'];
 }

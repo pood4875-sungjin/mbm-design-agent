@@ -4,7 +4,9 @@
 //     ① 계획: Claude 가 원본 그림 + 지시를 보고 할 일(cutout | none)과 누끼 옵션(rect·T·person …)을 고른다
 //     ② 실행: kv-cutout.py 로 투명 PNG + 두 바탕 미리보기
 //     ③ 검수: Claude 가 원본·미리보기를 보고 통과 / 옵션 바꿔 다시. 최대 3번. 통과 못 하면 그림을 바꾸지 않고 사유만
-//   입력: { instr, kind:'kv'|'logo', image: dataUrl, roleName? }  출력: { image: dataUrl(PNG) | null, note, tries:[{ params, ok, why }], ms, model }
+//   입력: { instr, kind:'kv'|'logo', image: dataUrl, roleName?, ctx?:{W,H,box,others,safe} }
+//   출력: { image: dataUrl(PNG)|null, ops:{ box?, look? }|null, region:{x,y,w,h}|null, score, note, tries, ms, model }
+//   할 일(11-10 밤 사용자 「자연어로 할 수 있는 건 Claude 가 다」): cutout(누끼·검수 고리) · adjust(보정 server/kvadjust.py) · region(보여 줄 영역) · box(자리·크기) · look(불투명도·회전·뒤집기·모서리)
 //   호출: 헤드리스 Claude Code(`claude -p`, 로그인 계정 — server/freedesign.js runClaudeCode) · 그림은 stream 으로 직접 · 도구 없음
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
@@ -14,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { runClaudeCode, claudeCodeAvailable } from './freedesign.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const CUT = path.join(ROOT, 'scripts', 'kv-cutout.py'), CMP = path.join(ROOT, 'server', 'kvreview.py');
+const CUT = path.join(ROOT, 'scripts', 'kv-cutout.py'), CMP = path.join(ROOT, 'server', 'kvreview.py'), ADJ = path.join(ROOT, 'server', 'kvadjust.py');
 export const KV_EDIT_MODEL = process.env.KV_EDIT_MODEL ?? 'sonnet';
 export const KV_REVIEW_MODEL = process.env.KV_REVIEW_MODEL ?? 'opus';   // 검수는 눈이 좋은 모델(11-10 실측: sonnet 이 하늘 띠 남은 결과에 4점)
 export const KV_EDIT_TRIES = 3;
@@ -29,14 +31,42 @@ const OPTS_DOC = `누끼 도구 옵션(모두 선택):
 - fill: true — 주인공 안쪽 구멍 메우기(유리·창처럼 바탕이 비치는 속)
 - erode: 0~4 — 가장자리 깎기(바탕 테가 남을 때)`;
 
-export function planPrompt({ instr, kind, roleName }) {
-  return `광고 ${kind === 'logo' ? '로고' : '키비주얼'} 그림(첨부)을 사용자가 이렇게 고쳐 달라고 했다: «${String(instr).slice(0, 300)}»
-할 수 있는 일은 하나뿐이다:
-- cutout: 바탕(배경)을 지우고 주인공만 투명 PNG 로 남긴다(배경 제거·누끼·배경 빼기·주인공만 등)
-그 밖의 그림 편집(색 바꾸기·새로 그리기·물체 지우기 등)은 할 수 없다 → action "none" 과 이유.
-장면 전체가 하나의 그림이라 「주인공」이 없으면(풍경·배경 자체가 주제) cutout 은 하되 rect 로 가장 중요한 덩어리를 고른다. 그래도 무리면 none.
+const ADJ_DOC = `보정 옵션(adjust): brightness·contrast·saturation·sharpness = 배수(1 그대로, 0.3~2) · gray: true(흑백) · warmth: -1(차갑게)~1(따뜻하게)`;
+export function planPrompt({ instr, kind, roleName, ctx = null }) {
+  const c = ctx ?? {}, kv = kind !== 'logo';
+  const where = c.W ? `\n광고 크기 ${c.W}×${c.H}px. 이 ${kv ? '그림' : '로고'} 상자 ${JSON.stringify(c.box ?? null)} · 다른 요소 상자 ${JSON.stringify((c.others ?? []).slice(0, 8))} · 안전영역 ${JSON.stringify(c.safe ?? null)}` : '';
+  return `광고 ${kv ? '키비주얼' : '로고'} 그림(첨부)을 사용자가 이렇게 고쳐 달라고 했다: «${String(instr).slice(0, 300)}»${where}
+할 수 있는 일(steps 에 순서대로, 필요한 것만):
+- {"do":"cutout","params":{...}} 바탕(배경)을 지우고 주인공만 투명하게(배경 제거·누끼·주인공만)
+- {"do":"adjust","params":{...}} 그림 보정(밝게·어둡게·선명하게·흑백·따뜻하게·채도)
+${kv ? `- {"do":"region","region":{"x":0~1,"y":0~1,"w":0~1,"h":0~1}} 그림에서 보여 줄 영역(원본 그림 기준 비율 — 「사람 얼굴 위주로」「오른쪽 건물만」처럼). 그림을 실제로 보고 정한다\n` : ''}- {"do":"box","box":{"scale":0.5~1.6,"dx":-0.5~0.5,"dy":-0.5~0.5}} 광고 안 자리·크기(dx·dy 는 광고 폭·높이 비율만큼 옮김, scale 은 지금 크기의 배수 — 「글자랑 안 겹치게」면 다른 요소 상자를 보고 정한다)
+- {"do":"look","look":{"op":0~100${kv ? ',"rot":-180~180,"flip":"h"|"v"|"hv"|"","r":모서리px' : ',"rot":-180~180'}}} 외관(불투명도 %, 회전 °${kv ? ', 뒤집기, 둥근 모서리' : ''})
+사용자가 말한 것만 한다 — 말하지 않은 일은 넣지 않는다. 특히 cutout 은 배경 제거·누끼·바탕 빼기를 말했을 때만, adjust 는 밝기·색감을 말했을 때만(「안 겹치게」「기울여」「반투명」에 cutout·adjust 를 붙이지 않는다).
+그 밖(색 바꾸기·새로 그리기·물체 지우기·이어 그리기 등)은 할 수 없다 → steps 를 비우고 이유.
+장면 전체가 하나의 그림이라 「주인공」이 없으면 cutout 은 rect 로 가장 중요한 덩어리를 고른다. 그래도 무리면 cutout 은 빼고 이유.
 ${OPTS_DOC}
-JSON 만: {"action":"cutout"|"none","params":{...},"why":"한 줄(한국어)"}`;
+${ADJ_DOC}
+JSON 만: {"steps":[...],"why":"한 줄(한국어)"}`;
+}
+// 옛 모양({action:'cutout',params}) 도 받는다
+export function stepsOf(j) {
+  if (Array.isArray(j?.steps)) return j.steps.filter(x => x && typeof x === 'object' && ['cutout', 'adjust', 'region', 'box', 'look'].includes(x.do));
+  if (j?.action === 'cutout') return [{ do: 'cutout', params: j.params ?? {} }];
+  return [];
+}
+export function adjustArgs(p = {}) {
+  const a = [];
+  for (const k of ['brightness', 'contrast', 'saturation', 'sharpness']) { const v = +p[k]; if (p[k] != null && p[k] !== '' && Number.isFinite(v) && Math.abs(v - 1) > 1e-3) a.push('--' + k, String(Math.max(0.3, Math.min(2, v)))); }
+  if (p.gray === true) a.push('--gray');
+  { const v = +p.warmth; if (p.warmth != null && p.warmth !== '' && Number.isFinite(v) && Math.abs(v) > 1e-3) a.push('--warmth', String(Math.max(-1, Math.min(1, v)))); }
+  return a;
+}
+export function regionOf(r) {
+  const n = k => +r?.[k]; if (!['x', 'y', 'w', 'h'].every(k => Number.isFinite(n(k)))) return null;
+  let x = Math.max(0, Math.min(1, n('x'))), y = Math.max(0, Math.min(1, n('y')));
+  const w = Math.max(0.05, Math.min(1 - x, n('w'))), h = Math.max(0.05, Math.min(1 - y, n('h')));
+  x = Math.min(x, 1 - w); y = Math.min(y, 1 - h);
+  const r3 = v => Math.round(v * 1000) / 1000; return { x: r3(x), y: r3(y), w: r3(w), h: r3(h) };
 }
 export function reviewPrompt({ instr, params, out, fg = null }) {
   return `사용자 지시: «${String(instr).slice(0, 300)}». 첨부는 세 칸 비교 그림이다 — 1 원본 · 2 누끼 결과를 남색(#14183C)에 · 3 같은 결과를 주황(#FF8C00)에. 세 칸은 같은 크기·같은 위치다. 1과 2·3을 부분부분 짚어 비교하라: 원본에서 바탕이 아닌 것(사람 몸·다리, 땅, 식물, 사물)이 2·3에서 남색·주황으로 바뀌었으면 지워진 것이다. 바탕이 제대로 지워졌으면 주인공 둘레로 남색·주황이 보여야 한다.${fg != null ? ` 남은(불투명) 면적 ${fg}%.` : ''}
@@ -54,10 +84,18 @@ lost 가 하나라도 있으면 최대 2점, left 가 눈에 띄면 최대 2점.
 ${OPTS_DOC}
 JSON 만.`;
 }
+// 첫 JSON 덩어리만(괄호 짝·문자열 안 괄호 무시) — 11-10 실측: 답에 JSON 이 두 개 오면 첫 { ~ 끝 } 가 깨졌다
 export function parseJson(text) {
-  const s = String(text ?? ''); const a = s.indexOf('{'), b = s.lastIndexOf('}');
-  if (a < 0 || b <= a) throw new Error('Claude 답에서 JSON 을 못 찾음');
-  return JSON.parse(s.slice(a, b + 1));
+  const s = String(text ?? '');
+  for (let a = s.indexOf('{'); a >= 0; a = s.indexOf('{', a + 1)) {
+    let d = 0, str = false, esc = false;
+    for (let i = a; i < s.length; i++) {
+      const ch = s[i];
+      if (str) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') str = false; continue; }
+      if (ch === '"') str = true; else if (ch === '{') d++; else if (ch === '}' && --d === 0) { try { return JSON.parse(s.slice(a, i + 1)); } catch { break; } }
+    }
+  }
+  throw new Error('Claude 답에서 JSON 을 못 찾음');
 }
 // Claude 가 고른 옵션 → 명령 인자(허용 목록만 · 값 범위 고정)
 export function cutArgs(p = {}) {
@@ -97,38 +135,56 @@ export async function kvEdit(b, { call = runClaudeCode, signal = null, log = () 
     const srcS = await small(srcPng, signal), img = f => ({ dataUrl: dataUrlOf(f) });
     const ask = async (prompt, files, model = KV_EDIT_MODEL, effort = 'low') => { const r = await call(prompt, { images: files.map(img), imageMode: 'stream', tools: false, model, effort, system: SYSTEM, timeoutMs: 180_000, signal }); return { j: parseJson(r.text), model: r.model }; };
     const plan = await ask(planPrompt(b), [srcS]); log('plan', plan.j);
-    if (plan.j.action !== 'cutout') return { image: null, note: plan.j.why || '이 지시는 그림으로 할 수 없어요', tries: [], model: plan.model };
-    let params = plan.j.params ?? {}; const tries = []; let best = null;
-    for (let i = 0; i < KV_EDIT_TRIES; i++) {
-      const out = path.join(dir, `out${i}.png`), prev = path.join(dir, `prev${i}.png`);
-      const r = await run('python3', [CUT, srcPng, out, '--preview', prev, ...cutArgs(params)], { signal });
-      if (r.code !== 0 || !existsSync(prev)) {   // 도구가 전경을 못 찾음 등 — 다음 옵션은 Claude 가 출력 문장을 보고 고른다
-        const why = r.out.trim().split('\n').pop()?.slice(0, 160) ?? `종료 ${r.code}`; tries.push({ params, ok: false, why });
-        if (i === KV_EDIT_TRIES - 1) break;
-        const nx = await ask(`${planPrompt(b)}\n\n앞 시도(옵션 ${JSON.stringify(params)})가 실패했다: «${why}». 옵션을 바꿔 다시 고른다.`, [srcS]); log('replan', nx.j);
-        if (nx.j.action !== 'cutout') break; params = nx.j.params ?? {}; continue;
+    const wantsCut = /배경|바탕|누끼|배경\s*제거|투명\s*배경|주인공만|따\s*줘|따줘|잘라/.test(String(b.instr ?? ''));
+    const steps = stepsOf(plan.j).filter(x => x.do !== 'cutout' || wantsCut);   // 시키지 않은 누끼는 버린다(11-10 실측: 「안 겹치게 작게」「반투명」에 누끼를 붙임)
+    if (!steps.length) return { image: null, note: plan.j.why || '이 지시는 할 수 없어요', tries: [], model: plan.model };
+    // ① 누끼(검수 고리) — 지금 그림(cur)에서. 통과 못 하면 그림은 그대로, 나머지 단계도 하지 않는다(반쪽 결과 금지)
+    const cutout = async (cur, params0) => {
+      let params = params0 ?? {}; const tries = []; let best = null;
+      const re = async why => { const nx = await ask(`${planPrompt(b)}\n\n앞 누끼 시도(옵션 ${JSON.stringify(params)})의 결과: «${why}». cutout 옵션을 바꿔 다시 고른다(skipedge 는 주인공이 실제로 닿는 변만, T 조정, rect 좁히기).`, [srcS]); log('replan', nx.j); return stepsOf(nx.j).find(x => x.do === 'cutout')?.params ?? null; };
+      for (let i = 0; i < KV_EDIT_TRIES; i++) {
+        const out = path.join(dir, `cut${i}.png`), prev = path.join(dir, `prev${i}.png`);
+        const r = await run('python3', [CUT, cur, out, '--preview', prev, ...cutArgs(params)], { signal });
+        if (r.code !== 0 || !existsSync(prev)) {   // 도구가 전경을 못 찾음 등 — 다음 옵션은 Claude 가 출력 문장을 보고 고른다
+          const why = r.out.trim().split('\n').pop()?.slice(0, 160) ?? `종료 ${r.code}`; tries.push({ params, ok: false, why });
+          if (i === KV_EDIT_TRIES - 1 || !(params = await re(why))) break; continue;
+        }
+        // 수치 검사 먼저(11-10 실측: 투명 0% 결과를 Claude 가 통과시킴)
+        const fg = +(/fg=([\d.]+)%/.exec(r.out)?.[1] ?? NaN);
+        if (!(fg >= 3 && fg <= 95)) {
+          const why = Number.isFinite(fg) ? (fg > 95 ? `바탕이 거의 안 지워짐(남은 면적 ${fg}%)` : `주인공까지 거의 다 지워짐(남은 면적 ${fg}%)`) : '결과 면적을 못 읽음';
+          tries.push({ params, ok: false, why }); if (i === KV_EDIT_TRIES - 1 || !(params = await re(why))) break; continue;
+        }
+        const cmp = path.join(dir, `cmp${i}.png`); await run('python3', [CMP, cur, out, cmp], { signal, timeoutMs: 60_000 });
+        const rv = await ask(reviewPrompt({ instr: b.instr, params, out: r.out, fg }), [existsSync(cmp) ? cmp : await small(prev, signal)], KV_REVIEW_MODEL, 'high'); log('review', rv.j);
+        const items = Array.isArray(rv.j.items) ? rv.j.items : [], lost = items.filter(x => x?.state === 'lost' || x?.state === 'left');
+        const score = Math.max(0, Math.min(lost.length ? 2 : 5, +rv.j.score || (rv.j.ok ? 4 : 2)));   // 잃은·남은 부분이 있으면 점수가 높아도 2
+        tries.push({ params, ok: score >= 4, score, fg, why: rv.j.why ?? '', lost: lost.map(x => `${x.part}:${x.state}`) });
+        if (score >= 4) return { file: out, score, why: rv.j.why ?? '', tries, model: rv.model };
+        if (score >= 3 && (!best || score > best.score)) best = { file: out, score, why: `작은 흠 있음 — ${rv.j.why ?? ''}` };
+        if (rv.j.give || !rv.j.params) break;
+        params = rv.j.params;
       }
-      // 수치 검사 먼저(11-10 실측: 투명 0% 결과를 Claude 가 통과시킴) — 전경이 거의 전부거나 거의 없으면 실패로 보고 Claude 에게 이유를 준다
-      const fg = +(/fg=([\d.]+)%/.exec(r.out)?.[1] ?? NaN);
-      if (!(fg >= 3 && fg <= 95)) {
-        const why = Number.isFinite(fg) ? (fg > 95 ? `바탕이 거의 안 지워짐(남은 면적 ${fg}%)` : `주인공까지 거의 다 지워짐(남은 면적 ${fg}%)`) : '결과 면적을 못 읽음';
-        tries.push({ params, ok: false, why }); if (i === KV_EDIT_TRIES - 1) break;
-        const nx = await ask(`${planPrompt(b)}\n\n앞 시도(옵션 ${JSON.stringify(params)})의 결과: «${why}». 옵션을 바꿔 다시 고른다(skipedge 는 주인공이 실제로 닿는 변만, T 조정, rect 좁히기).`, [srcS]); log('replan', nx.j);
-        if (nx.j.action !== 'cutout') break; params = nx.j.params ?? {}; continue;
-      }
-      const cmp = path.join(dir, `cmp${i}.png`); await run('python3', [CMP, srcPng, out, cmp], { signal, timeoutMs: 60_000 });
-      const rv = await ask(reviewPrompt({ instr: b.instr, params, out: r.out, fg }), [existsSync(cmp) ? cmp : await small(prev, signal)], KV_REVIEW_MODEL, 'high'); log('review', rv.j);
-      const items = Array.isArray(rv.j.items) ? rv.j.items : [], lost = items.filter(x => x?.state === 'lost' || x?.state === 'left');
-      const score = Math.max(0, Math.min(lost.length ? 2 : 5, +rv.j.score || (rv.j.ok ? 4 : 2)));   // 잃은·남은 부분이 있으면 점수가 높아도 2(모델이 목록과 점수를 따로 놀 때)
-      tries.push({ params, ok: score >= 4, score, fg, why: rv.j.why ?? '', lost: lost.map(x => `${x.part}:${x.state}`) });
-      if (score >= 4) return { image: dataUrlOf(out), preview: dataUrlOf(prev), note: rv.j.why ?? '', score, tries, model: rv.model };
-      if (score >= 3 && (!best || score > best.score)) best = { score, image: dataUrlOf(out), preview: dataUrlOf(prev), why: rv.j.why ?? '' };
-      if (rv.j.give || !rv.j.params) break;
-      params = rv.j.params;
+      return best ? { ...best, tries } : { file: null, why: `깔끔하게 못 땄어요 — ${tries.at(-1)?.why ?? ''}`.trim(), tries };
+    };
+    let cur = srcPng, changed = false, score = null, tries = [], model = plan.model; const notes = [], ops = {}; let region = null;
+    for (const st of steps) {
+      if (st.do === 'cutout') {
+        const r = await cutout(cur, st.params); tries = tries.concat(r.tries ?? []); model = r.model ?? model;
+        if (!r.file) return { image: null, note: r.why, tries, model };
+        cur = r.file; changed = true; score = r.score; notes.push(r.why);
+      } else if (st.do === 'adjust') {
+        const args = adjustArgs(st.params); if (!args.length) continue;
+        const out = path.join(dir, `adj${notes.length}.png`), r = await run('python3', [ADJ, cur, out, ...args], { signal });
+        if (r.code !== 0 || !existsSync(out)) return { image: null, note: `보정 실패: ${r.out.trim().split('\n').pop()?.slice(0, 120)}`, tries, model };
+        cur = out; changed = true; notes.push('보정');
+      } else if (st.do === 'region' && b.kind !== 'logo') { region = regionOf(st.region); if (region) notes.push('보여 줄 영역'); }
+      else if (st.do === 'box' && st.box) { ops.box = st.box; notes.push('자리·크기'); }
+      else if (st.do === 'look' && st.look) { ops.look = st.look; notes.push('외관'); }
     }
-    // 4점이 안 나오면 가장 나은 3점 결과를 「작은 흠」 표시와 함께 — 2점 이하만 있으면 그림을 바꾸지 않는다
-    if (best) return { image: best.image, preview: best.preview, note: `작은 흠 있음 — ${best.why}`, score: best.score, tries, model: plan.model };
-    return { image: null, note: `깔끔하게 못 땄어요 — ${tries.at(-1)?.why ?? ''}`.trim(), tries, model: plan.model };
+    // 그림이 바뀌면 영역은 새 그림 기준이 아니라 버린다(새 그림은 분석이 새로 정한다)
+    if (changed && region) { region = null; notes.push('(새 그림이라 영역은 자동)'); }
+    return { image: changed ? dataUrlOf(cur) : null, ops: Object.keys(ops).length ? ops : null, region, score, note: [plan.j.why, ...notes].filter(Boolean).join(' · ').slice(0, 300), tries, model };
   } finally { try { rmSync(dir, { recursive: true, force: true }); } catch {} }
 }
 

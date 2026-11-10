@@ -255,7 +255,16 @@ AK.bindDrop($('viewport'));   // 11-10 hub 이식 1단계 — 캔버스에 그�
 const ELAI = createElAi({ ctxOf: (a, id) => elAiCtx(a, id), apply: (a, id, ops, label) => applyElOps(a, id, ops, label), undo: () => undo(), health: () => freeHealth(), toast: t => toast(t),
   // 11-10 저녁 그림 말로 고치기(/api/kv-edit) — 보낼 그림은 이 소재가 지금 쓰는 원본(손질 전), 결과는 이 소재만 새 그림
   imageOf: (a, id) => { const st = { ...state.campaign.style, ...(a.overrides?.style ?? {}) }; return id === 'logo' ? (st.logoOrig ?? st.logo ?? null) : (st.kvOrig ?? st.keyVisual ?? null); },
-  applyImage: (a, id, dataUrl) => id === 'logo' ? AK.replaceLogo(a, 'logo', dataUrl) : AK.replaceKv(a, dataUrl) });
+  applyImage: (a, id, dataUrl) => id === 'logo' ? AK.replaceLogo(a, 'logo', dataUrl) : AK.replaceKv(a, dataUrl),
+  // 보여 줄 영역(이 소재만 — 인스펙터 썸네일 네모와 같은 값) · 외관(불투명도·회전·뒤집기·모서리 — 인스펙터 외관과 같은 키)
+  applyRegion: (a, id, region, label) => { const eff = { ...state.campaign.style, ...(a.overrides?.style ?? {}) }; if (id !== 'kv' || !eff.kvMeta) return false; elCommit(a, { style: { ...(a.overrides.style ?? {}), kvMeta: withManual(structuredClone(eff.kvMeta), { region }) } }, label); return true; },
+  applyLook: (a, id, look, label) => { const p = {}, kv = id === 'kv';
+    if (look.op != null && Number.isFinite(+look.op)) { const n = Math.round(Math.max(0, Math.min(100, +look.op))); Object.assign(p, n >= 100 ? { op: null, hid: null } : { op: n, hid: null }); }
+    if (look.rot != null && Number.isFinite(+look.rot)) p.rot = +look.rot || null;
+    if (kv && typeof look.flip === 'string') p.flip = look.flip || null;
+    if (kv && look.r != null && Number.isFinite(+look.r)) p.r = Math.round(Math.max(0, +look.r)) || null;
+    if (!Object.keys(p).length) return false;
+    elCommit(a, { elements: withElementEdit(a.overrides.elements, id, p) }, label); return true; } });
 const cssHex = v => { const m = String(v ?? '').match(/[\d.]+/g); return m && m.length >= 3 ? '#' + m.slice(0, 3).map(x => Math.round(+x).toString(16).padStart(2, '0')).join('').toUpperCase() : null; };
 function elAiCtx(a, id) {
   const it = EL.find(a, id); if (!it) return null;
@@ -2943,10 +2952,13 @@ function renderLeft() {
   // 11-10 저녁 사용자 「추가 행 설명이 필요하냐 — + 행 추가만, 근무지·고용형태 나오는 곳이 없지 않아?」: 긴 설명 대신 실제로 찍힌 소재 수 한 줄
   //   (전 80규격 실측: 첫 행 11 · 둘째 행 5 · 필수 고지 2 — 상세 줄 자리가 있는 규격에만, 넘치면 뒤 행부터 빠짐)
   const adsL = c.artifacts.filter(a => a.channel === 'ad' && a.html);
-  const shownIn = v => { const t = escH(String(v ?? '').trim().split('\n')[0]); return t ? adsL.filter(a => a.html.includes(t)).length : 0; };
+  // 소재 글(태그·스타일 뺀 것)에서 찾는다. 행은 「라벨 : 값」 모양 그대로 — 한 글자 값(「오」)이 다른 낱말에 걸려 부풀던 것(11-10 사용자 화면 「오오 12개」)
+  const plainOf = new Map(), plain = a => { if (!plainOf.has(a)) plainOf.set(a, a.html.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\u2060/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ')); return plainOf.get(a); };
+  const reEsc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*');
+  const shownIn = (v, label = null) => { const t = String(v ?? '').trim().split('\n')[0].trim(); if (!t) return 0; const re = new RegExp(label ? `${reEsc(String(label).trim())}\\s*:?\\s*${reEsc(t)}` : reEsc(t)); return adsL.filter(a => re.test(plain(a))).length; };
   const rowsNow = cleanRows(core.rows);
   const reach = n => n ? `${n}개` : '안 나감';
-  const rowsNote = rowsNow.length ? `<div class="fnote">나가는 소재 — ${rowsNow.map(r => `${escH(r.label)} ${reach(shownIn(r.value))}`).join(' · ')} (전체 ${adsL.length}개)</div>` : '';
+  const rowsNote = rowsNow.length ? `<div class="fnote">나가는 소재 — ${rowsNow.map(r => `${escH(r.label)} ${reach(shownIn(r.value, r.label))}`).join(' · ')} (전체 ${adsL.length}개)</div>` : '';
   const rowsBox = () => `${input('role')}<div data-lrows style="margin-top:8px"></div>${rowsNote}`;
   const briefHtml = c.kind === 'recruit'
     ? LEFT_GROUPS.map(g => { const off = omitList(core.omit).includes(g.role);
