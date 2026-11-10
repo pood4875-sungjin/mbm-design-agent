@@ -101,6 +101,9 @@ export const CANON = {
   // 레이아웃 안(10-20 2단계 「여러 레이아웃 생성 → 선택 → 추출」): 안 = 편집 프리셋 조합. 규정 매체(fonts.required)는 1(정답 하나), 등급 C(자유)는 free, 그 외 default.
   //   후보는 CANDIDATE_ORDER 순서로 렌더해 프리셋이 안 먹거나(ignored) 겹침 교정이 실패하거나 그림이 같으면 버린다 — 「많이」가 아니라 「쓸 수 있는 안만」
   variants: { regulated: 1, default: 4, free: 4, maxRender: 28 },
+  // 11-10 사용자 「비주얼 기반으로 색 선택 — 그 비중의 색으로, 너무 어두워도 안 되고」: 질감·평평한 바탕 없는 그림(일러스트·3D)은 지면 = 그림에서 비중이 가장 큰 유채색(kvMeta.colors[0], 평평한 바탕색 제외·비중 순).
+  //   흰 글자 대비 minContrast 까지 같은 색상으로 어둡히되 HSL 밝기 lMin 밑·maxDrop 넘게는 안 내림 — 그 안에서 안 되면 원래 색 + 어두운 글자(너무 어두운 남색 방지). 둘째 정지점은 grad 만큼만 어둡게. 흰 로고 → 어두운 브랜드색(brand-dark-logo)보다 먼저
+  kvShare: { lMin: 0.34, maxDrop: 0.15, minContrast: 4.5, step: 0.01, grad: 0.06, minSat: 0.18 },   // maxDrop: 밝기를 이만큼 넘게 내려야 흰 글자가 되면 색은 그대로 두고 글자를 어둡게(밝은 하늘색 질감이 진한 파랑이 되던 것)
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5, photoChroma: 0.15, photoHueNear: 40, photoSat: [0.4, 0.5], photoTintLum: 0.55, photoLightL: 0.6, photoLightMix: 0.55 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7 (누끼만)
   //   11-09 사용자(이음·비중 검수 결정 「유채 A′ + 무채 브랜드색」): 사진은 왼변 색 채도가 photoChroma 이상이면 그 색상 ±photoHueNear° 안의 사진 속 유채색을 채도 photoSat·명도 lMin~lMax 로, 흰 글자 4.5:1(photoEdgeField — 피그마 시안 236:3717·236:3742 기준).
   //   무채 변(흰 가운·회색 사무실)은 사진에서 색을 만들지 않는다 — 밝은 사진(lum ≥ photoTintLum)은 옅은 브랜드 틴트 + 어두운 글자(brand-tint-photo), 어두운 사진은 브랜드 딥 + 사진 쪽 끝 브릿지(brand-photo-bridge). 전엔 채도 .7 로 올려 이음 색 차 평균 .35·✗ 501/773

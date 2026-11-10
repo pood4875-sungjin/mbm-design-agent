@@ -77,3 +77,13 @@ test('11-10 AI 층 결정: 글자–키비주얼 10%·낱말 안 줄바꿈은 �
   const r = fixLogoSize(html, { x: 420, y: 20, w: 140, h: 30 }, 96);
   assert.match(r.html, /width:96px/); assert.match(r.html, /right:20px/);
 });
+
+test('11-10 지면 = 그림 비중 색(질감·평평한 바탕 없는 그림) · 흰 로고여도 브랜드 딥보다 먼저 · 너무 어둡게 안 함', async () => {
+  const { resolveField, kvShareColor } = await import('../core/field.js');
+  const { normalizeStyle } = await import('../core/style.js');
+  const tex = { kind: 'texture', opaque: 1, lum: 0.45, sat: 0.8, flatEdges: 0, edges: {} };
+  const f = resolveField(normalizeStyle({ colors: ['#080858'], keyVisual: 'x.png', kvMeta: { field: tex, colors: ['#1F6CF3', '#042FA1'] }, logoTone: 'light' }));
+  assert.equal(f.source, 'kv-share'); assert.equal(f.stops[0], '#1F6CF3');
+  assert.equal(kvShareColor(['#87CAF9']), '#87CAF9', '밝은 하늘색은 진하게 안 바꾸고 그대로(글자를 어둡게)');
+  assert.equal(kvShareColor(['#9A9A9A']), null, '무채색뿐이면 이 규칙 안 씀');
+});

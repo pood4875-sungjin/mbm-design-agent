@@ -171,6 +171,11 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
       stops = [mix(base, WHITE, K.tint ?? 0.78), WHITE]; angle = 180; source = 'kv-harmony-tint';
     }
   }
+  // 11-10 비중 색 지면(CANON.kvShare): 질감·평평한 바탕 없는 그림 — 그림에서 비중이 가장 큰 유채색으로, 너무 어둡지 않게(흰 로고 → 브랜드 딥보다 먼저 — 그림과 지면이 따로 놀던 midas-facets)
+  else if (CANON.kvShare && f && f.kind !== 'photo' && f.opaque >= 0.5 && kvShareColor(style.kvMeta?.colors ?? [], CANON.kvShare)) {
+    const K = CANON.kvShare, c = kvShareColor(style.kvMeta.colors, K);
+    stops = [c, shiftHue(c, 0, -K.grad, 0)]; angle = 135; source = 'kv-share';
+  }
   else if (style.logoTone === 'light') {
     // 흰색 로고만 있다 — 그림이 지면을 정하지 않는 경우(사진·누끼·그림 없음) 로고가 지면을 정한다: 어두운 브랜드색. 브랜드색이 밝으면 검정을 섞는다
     const brand = p.primary ?? '#2456D6';
@@ -276,6 +281,14 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
 }
 
 // 분위기 지면(CANON kvMood) — 그림 바탕의 색감이 브랜드 지면색보다 먼저다. 없으면 null
+// 비중 색(11-10): 비중 순 색 목록에서 첫 유채색(없으면 null) → 흰 글자 대비 minContrast 까지 어둡히되 HSL 밝기 lMin 밑으로는 안 내림
+export function kvShareColor(colors = [], K = CANON.kvShare) {
+  const hsl = h => rgbToHsl(hexToRgb(h));
+  const base = colors.find(h => /^#[0-9A-Fa-f]{6}$/.test(String(h)) && hsl(h)[1] >= (K.minSat ?? 0.18));
+  if (!base) return null;
+  for (let d = 0; d <= (K.maxDrop ?? 0.15) + 1e-9; d += K.step) { const n = shiftHue(base, 0, -d, 0); if (hsl(n)[2] < K.lMin) break; if (contrast(n, WHITE) >= K.minContrast) return n.toUpperCase(); }
+  return base.toUpperCase();   // 상한 안에서 흰 글자가 안 되면 그 색 그대로 — 글자색은 뒤 규칙이 지면 밝기로 고른다(어두운 글자)
+}
 export function moodStops(style, e, f, K = CANON.kvMood) {
   if (!K || !f) return null;
   const sat = h => rgbToHsl(hexToRgb(h))[1];
