@@ -68,7 +68,7 @@ export function briefOf(ctx) { const c = ctx?.core ?? {}; const b = {}; for (con
 let healthP = null;
 export function freeHealth(force = false) {
   if (healthP && !force) return healthP;
-  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, engines: Array.isArray(j.freedesign?.engines) ? j.freedesign.engines : null, quick: !!j.freedesign?.quick, model: j.model ?? null }; } catch { return { server: false }; } })();
+  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, engines: Array.isArray(j.freedesign?.engines) ? j.freedesign.engines : null, quick: !!j.freedesign?.quick, elementEdit: !!j.elementEdit, model: j.model ?? null }; } catch { return { server: false }; } })();
   return healthP;
 }
 // 서버가 쓸 수 있다고 한 엔진(11-09 계약: /api/health freedesign.engines — API 키 경로는 FREEDESIGN_API=1 일 때만 오른다). 옛 서버(engines 없음)는 claudeCode·hasKey 로 추정

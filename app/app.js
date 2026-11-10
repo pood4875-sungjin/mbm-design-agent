@@ -23,7 +23,8 @@ import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승�
 import { htmlHash, templateChoices, variantSubOf } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
 import { rasterize, rasterizeCanvas, download, downloadText, openPrintPdf } from './raster.js';
-import { createFreeDesign, freeFontIds } from './freedesign.js';
+import { createFreeDesign, freeFontIds, freeHealth } from './freedesign.js';
+import { createElAi, AI_ICON } from './elai.js';   // 11-10 요소 AI 편집(선택 상자 옆 AI 아이콘 → 말로 고치기)
 import { createAiDesign } from './aidesign.js';   // 11-09 인스펙터 「AI 디자인」 칸 — 제안·말로 고치기·펼치기(docs/ai-design-flow.md)   // 11-05 「대화로 시안 뽑기」 — Claude 가 만든 자유 시안(배경·타이포 HTML)을 안(kind 'free')으로 쓰고 저장해 재사용
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
@@ -230,7 +231,55 @@ const EL = createElementSelect({
   live: (a, x) => LIVE.push({ style: state.campaign.style, only: a.key ?? a.specId, ...x }),
   liveText: (a, id, k) => textScaleLive(a, id, k), commitTextScale: (a, id, k) => textScaleCommit(a, id, k),
   pick: (a, id) => select(a.key ?? a.specId, id), up: a => select(a.key ?? a.specId), locks: (a, id) => elLocks(a, id),
+  aiOpen: (a, id, anchor) => ELAI.open(a, id, anchor), aiIcon: AI_ICON,
 });
+// 요소 AI 편집(11-10, app/elai.js · core/elementai.js · server/elementedit.js) — 재료(ctxOf)와 적용(applyElOps, 되돌리기 한 걸음)
+const ELAI = createElAi({ ctxOf: (a, id) => elAiCtx(a, id), apply: (a, id, ops, label) => applyElOps(a, id, ops, label), undo: () => undo(), health: () => freeHealth(), toast: t => toast(t) });
+const cssHex = v => { const m = String(v ?? '').match(/[\d.]+/g); return m && m.length >= 3 ? '#' + m.slice(0, 3).map(x => Math.round(+x).toString(16).padStart(2, '0')).join('').toUpperCase() : null; };
+function elAiCtx(a, id) {
+  const it = EL.find(a, id); if (!it) return null;
+  const spec = SPECS[a.specId], c = state.campaign, W = spec.w, H = spec.h;
+  const sa = spec.rules?.safeArea ?? {}, n = v => (typeof v === 'number' ? v : 0);
+  const others = EL.list(a).filter(o => o.id !== id).map(o => ({ id: o.id, box: o.box }));
+  const base = { W, H, role: parseElementId(id).role, roleName: elementName(id), box: it.box, others, safe: { x: n(sa.left), y: n(sa.top), w: W - n(sa.left) - n(sa.right), h: H - n(sa.top) - n(sa.bottom) }, client: c.context.core.client ?? '', brand: c.style.palette ?? {} };
+  if (it.kind !== 'text') return { ...base, locks: { size: false } };
+  const win = it.el.ownerDocument.defaultView, cs = win.getComputedStyle(it.el), root = it.el.ownerDocument.querySelector('[data-ad]');
+  const rcs = root ? win.getComputedStyle(root) : null;
+  const bg = (rcs && cssHex(rcs.backgroundColor) && !/rgba\(.*,\s*0\)$/.test(rcs.backgroundColor) ? cssHex(rcs.backgroundColor) : null) ?? (/(#[0-9a-fA-F]{6})/.exec(rcs?.backgroundImage ?? '')?.[1]?.toUpperCase() ?? cssHex(/rgba?\([^)]*\)/.exec(rcs?.backgroundImage ?? '')?.[0])) ?? null;
+  const fs = parseFloat(cs.fontSize) || 16;
+  return { ...base, text: it.el.textContent, textLen: it.el.textContent.length, lines: it.el.innerText.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim(), runs: a.overrides.elements?.[id]?.runs ?? [],
+    cur: { px: Math.round(fs * 10) / 10, w: +cs.fontWeight || 400, color: cssHex(cs.color), align: cs.textAlign, ls: cs.letterSpacing === 'normal' ? 0 : Math.round(parseFloat(cs.letterSpacing) / fs * 1000) / 10 },
+    weights: fontWeightsOf(cs), minPx: spec.rules?.minFontPx ?? 10, bg,
+    locks: { color: !!(elLocks(a, id).color || rangeColorLockOf(spec)), style: styleLockOf(spec), size: sizeLockedOf(spec) } };
+}
+// 연산(ops) → overrides(한 번에 커밋 = 되돌리기 한 걸음). 글자: 요소 값 먼저(그 속성의 범위 서식 걷기) → 범위. 그림·로고: 변형 층(patchBox)
+function applyElOps(a, id, ops, label) {
+  const it = EL.find(a, id); if (!it) return;
+  if (it.kind !== 'text') {
+    const b = ops.box ?? {}, e0 = a.overrides.elements?.[id] ?? {};
+    const patch = { dx: (e0.dx ?? 0) + (b.dx ?? 0), dy: (e0.dy ?? 0) + (b.dy ?? 0), scale: (e0.scale ?? 1) * (b.scale ?? 1), ox: e0.ox ?? 0.5, oy: e0.oy ?? 0.5 };
+    elCommit(a, { elements: withElementEdit(a.overrides.elements, id, patch) }, label);
+    return;
+  }
+  const { role } = parseElementId(id), styled = isStyleRole(id), text = it.el.textContent, ed = a.overrides.elements?.[id] ?? {}, el = ops.el ?? {};
+  let runs = ops.clearRuns ? null : (ed.runs ?? null);
+  const elPatch = {};
+  if (el.weight) { elPatch.weight = el.weight; runs = stripRuns(runs, ['w'], text); }
+  if (el.ls != null) { elPatch.ls = el.ls || null; runs = stripRuns(runs, ['ls'], text); }
+  if (el.lh != null) elPatch.lh = el.lh;
+  if (el.align) elPatch.align = el.align;
+  let style = null;
+  if (el.color) { runs = stripRuns(runs, ['c'], text); if (styled) style = { ...(a.overrides.style ?? {}), roleColors: { ...(a.overrides.style?.roleColors ?? {}), [role]: el.color } }; else elPatch.color = el.color; }
+  if (el.scale) {
+    if (styled) { const cur = a.overrides.style?.roleScale?.[role] ?? 1, v = Math.round(Math.min(1.6, Math.max(0.6, cur * el.scale)) * 100) / 100; style = { ...(style ?? a.overrides.style ?? {}), roleScale: { ...(a.overrides.style?.roleScale ?? {}), [role]: v } }; if (runs?.some(r => r.px)) runs = scaleRuns(runs, v / cur); }
+    else elPatch.scale = (ed.scale ?? 1) * el.scale;
+  }
+  for (const r of ops.runs ?? []) runs = addRun(runs, r, text);
+  elPatch.runs = runs ?? null;
+  if (ops.text && !ops.runs?.length && !Object.keys(el).length && !ops.clearRuns) { charText(a, id, ops.text, it.el.innerText); return; }
+  elCommit(a, { elements: withElementEdit(a.overrides.elements, id, elPatch), ...(style ? { style } : {}) }, label);
+  if (ops.text) setTimeout(() => charText(a, id, ops.text, it.el.innerText), 0);   // 「한 줄로」 + 서식 — 문구 바꾸기는 캔버스 글자 고치기와 같은 길
+}
 // 「대화로 시안 뽑기」 창(11-05, app/freedesign.js) — 검수는 보드와 같은 길(measureArtifact → lintArtifact → approvalGate)
 const FREE = createFreeDesign({
   state, SPECS, $, escH: s => escH(s), previewDoc: (h, f) => previewDoc(h, f), measureArtifact, lintArtifact, approvalGate, STATE_LABEL, adEffCtx: a => adEffCtx(a), apiCopy, rasterizeCanvas,

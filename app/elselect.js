@@ -117,7 +117,18 @@ export function createElementSelect(E) {
     btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — 화살표 1px 이동 · Shift+화살표 10px${locks.size ? '' : ' · +/− 크기'} · Esc 위로`);
     place(btn, it.box, ds);
     btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}</span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
-    el.appendChild(btn); f.frame.appendChild(el);
+    el.appendChild(btn);
+    // 11-10 AI 아이콘(피그마 AI 처럼) — 선택 상자 오른쪽 위 바깥. 누르면 E.aiOpen 팝오버(app/elai.js)
+    if (E.aiOpen) {
+      const ai = document.createElement('button'); ai.type = 'button'; ai.className = 'eai-btn'; ai.dataset.el = id;
+      ai.setAttribute('aria-label', `${elementName(id)} AI로 고치기`); ai.title = 'AI로 고치기';
+      ai.innerHTML = E.aiIcon ?? 'AI';
+      ai.style.left = `${(it.box.x + it.box.w) * ds + 4}px`; ai.style.top = `${it.box.y * ds}px`;
+      ai.addEventListener('pointerdown', e => e.stopPropagation());
+      ai.addEventListener('click', e => { e.stopPropagation(); E.aiOpen(a, id, ai); });
+      el.appendChild(ai);
+    }
+    f.frame.appendChild(el);
     ovl = { a, id, el, box: btn };
     bind(a, id, btn, ds);
     if (hadFocus) btn.focus({ preventScroll: true });
