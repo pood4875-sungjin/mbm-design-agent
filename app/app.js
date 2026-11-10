@@ -2621,8 +2621,6 @@ function toolImage() {   // 고른 소재가 있으면 그 소재 그림(이 소
   select(null); $('iKvFile')?.click();
 }
 $('tMove').onclick = () => setTool('move'); $('tHand').onclick = () => setTool('hand');
-$('tImage').onclick = () => { if (state.campaign) toolImage(); };
-$('tAi').onclick = () => { if (!state.campaign) return; const a = state.selected ? state.campaign.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null; FREE.open(a?.channel === 'ad' ? a : null); };
 document.addEventListener('keydown', e => {
   if (!state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex' || typingIn(e.target) || CS.on || e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
