@@ -77,3 +77,16 @@ test('가로형 × 사진: 로고는 오른쪽 위(다른 가로형과 같게), 
   const st = normalizeStyle({ colors: ['#5A3018'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1.58, field: { kind: 'photo', opaque: 1, focus: { x: 0.45, y: 0.62, w: 0.58, h: 0.76 } } }, logo: 'data:image/png;base64,iVBORw0KGgo=', logoMeta: { px: [437, 128], tone: 'dark' } });
   for (const sid of ['albamon-pc-main-big', 'albamon-m-sub']) { const h = renderArtifact(sid, ctx, st); const slot = h.match(/data-logo-slot="1" style="([^"]*)"/)?.[1] ?? ''; assert.match(slot, /right:\d+px/, `${sid} ${slot}`); }
 });
+
+test('잠기지 않은 틀에서 바탕 있는 일러스트도 사진처럼 글자 칸 오른쪽부터 — 패턴(질감)은 그대로', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js');
+  const ctx = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', startDate: '2026-11-12', deadline: '2026-11-25' }, 'recruit');
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const IMG = 'data:image/png;base64,iVBORw0KGgo=';
+  const ill = normalizeStyle({ colors: ['#1428A0'], keyVisual: IMG, kvMeta: { ar: 1.5, field: { kind: 'illust', opaque: 1, focus: { x: 0.6, y: 0.5, w: 0.4, h: 0.6 } } } });
+  const t = tr(renderArtifact('naver-gfa-mobile-da-1250x560', ctx, ill));
+  assert.ok(t.rules.includes('templateMold.photoAfterText'), t.rules.join(','));
+  const pat = normalizeStyle({ colors: ['#1428A0'], keyVisual: IMG, kvTypeOverride: 'texture', kvMeta: { ar: 1.5, field: { kind: 'illust', opaque: 1 } } });
+  assert.ok(!tr(renderArtifact('naver-gfa-mobile-da-1250x560', ctx, pat)).rules.includes('templateMold.photoAfterText'));
+});

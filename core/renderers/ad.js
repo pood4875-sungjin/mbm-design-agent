@@ -1302,9 +1302,9 @@ function renderAdBase(ctx, style, spec) {
   // 11-10 사용자 「가이드가 저렇지 않는 이상 이미지일 땐 옆으로 넓게 — 저 영역 지키려고 저렇게 하면 안 돼」: 가로형(w ≥ 1.8h) 틀의 고정 그림 칸(kv slot)이
   //   매체 공식 칸(mold.slotOfficial — 카카오·NAP 비즈보드 썸네일)이 아니고 키비주얼이 이미지형이면, 칸 왼변부터 오른쪽 끝·전체 높이(리멤버 썸네일형). 누끼는 칸 그대로
   if (mold?.kv === 'slot' && !mold.slotOfficial && tImage && !moldCutZone && kvImg0 && w >= 1.8 * h && (tImage.y > 0 || tImage.x + tImage.w < w || tImage.h < h)) { tImage = { x: tImage.x, y: 0, w: w - tImage.x, h }; fired('templateMold.slotWide'); }
-  // 11-10 밤(네이버 DA × 인물 사진: 타이틀 둘째 줄이 사람 어깨 위): 잠기지 않은 틀에서 사진(바탕 있는 그림 중 실사)은 글자 칸 오른쪽부터 — 녹임 구간에도 사람이 보인다. 누끼·그래픽은 그대로
+  // 11-10 밤(네이버 DA × 인물 사진: 타이틀 둘째 줄이 사람 어깨 위): 잠기지 않은 틀에서 사진(바탕 있는 그림 중 실사)은 글자 칸 오른쪽부터 — 녹임 구간에도 사람이 보인다. 밤 23: 바탕 있는 일러스트(네이버 DA × 3D 사람·지구본)도 같게. 누끼·질감(패턴)·액자는 그대로
   { const colR = mold && !mold.slotOfficial && Math.round(((mold.x ?? 0) + (mold.rows?.main?.w ?? mold.w ?? 0)) * tScale) + 24;
-    if (colR && tImage && kvImg0 && (style.kvMeta?.field?.kind === 'photo') && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && tImage.x < colR && colR < w * 0.8 && !CANON.lockedMedia.includes(spec.medium) && (mold.align ?? 'left') === 'left') { tImage = { ...tImage, x: colR, w: Math.max(1, tImage.x + tImage.w - colR) }; fired('templateMold.photoAfterText'); } }
+    if (colR && tImage && kvImg0 && (['photo', 'illust'].includes(style.kvMeta?.field?.kind) && kvTypeOf(style.kvMeta)?.id !== 'texture' && !kvTypeOf(style.kvMeta)?.flags?.frame) && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && tImage.x < colR && colR < w * 0.8 && !CANON.lockedMedia.includes(spec.medium) && (mold.align ?? 'left') === 'left') { tImage = { ...tImage, x: colR, w: Math.max(1, tImage.x + tImage.w - colR) }; fired('templateMold.photoAfterText'); } }
   // 11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함 — 누끼도 센터 정렬로 돼야 안 비어 보이고 정렬돼 보임(인스타)」: 틀 자체가 가운데 정렬(인스타 1080·구글 300×600)이면
   //   정렬 프리셋이 없어도 누끼 그림 칸만 가운데로(로고는 틀 그대로). 사진·바탕 있는 그림은 칸 그대로
   const cutCenterOnly = !TA && !!mold && mold.align === 'center' && kvCut0 && !kvImg0 && !!tImage && !moldCutZone && !moldFreeKv;
@@ -2044,7 +2044,7 @@ function renderAdBase(ctx, style, spec) {
       for (const d0 of cands0) {
         // 11-10 밤(새 그림 JEIL × 325): 뱃지 꼴에서 기간 값이 칸보다 길면 「11.12(목) - / 11.25(수) / 18시」로 쪼개졌다 — 한 줄에 드는 짧은 날짜 후보로
         let d = d0;
-        if (stackTags && d0.label === '접수기간' && detailSlot.maxCharsPerLine == null) { const one = v => Math.ceil(textWidth(String(v)) * fs * 1.02 / Math.max(1, detailW)) <= 1; if (!one(d0.value)) { const alt = (ladder.date ?? []).find(one); if (alt) d = { ...d0, value: alt }; } }
+        if (stackTags && d0.label === '접수기간' && detailSlot.maxCharsPerLine == null) { const one = v => Math.ceil(textWidth(String(v)) * fs * 1.02 / Math.max(1, detailW)) <= 1; if (!one(d0.value)) { if ((!copy.sub || (core.client && copy.sub === core.client && String(copy.main ?? '').includes(core.client))) && slots.sub && want.sub && !want.date && !mold && !strip) { skipped++; continue; } const alt = (ladder.date ?? []).find(one); if (alt) d = { ...d0, value: alt }; } }   // 밤 23: 서브 자리가 비어 있으면 짧은 「~11/25」 대신 기간을 빼고 서브 자리에 온전한 일정(subAsDate) — 시작일·시각이 사라지지 않게
         if (d.extraRow && extraOut) { skipped++; continue; }   // 11-10 추가 행은 뒤에서부터 빠진다 — 앞 행이 안 들어가면 뒤 행도 넣지 않는다(순서 지킴)
         const inline = `${d.label} : ${d.value}`;
         // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
