@@ -1,5 +1,6 @@
 // 이미지 요소(키비주얼·로고) 패널 — hub/pro 의 「이미지 레이어 고름」(11-10 이식 1·2단계, docs/hub-to-app-plan.md §2-1·§2-2).
 //   1단계 채움: 이 소재만 그림·로고 바꾸기(core/artasset.js → overrides.style) · 맞춤(kvUse) · 이 소재 색도 맞춤 · 영역 지정 · 캔버스에 파일 끌어 놓기
+//   2단계 외관: 정렬 6 · 비율 고정(그림은 늘 비율대로) · 불투명도 · 모서리 · 뒤집기(누끼만) → overrides.elements.kv|logo { op, hid, r, flip }(core/elementedit.js patchBox)
 //   혼합·효과·선은 넣지 않는다(11-10 총괄 결정 4 — 섹션도 숨김). 회전은 SVG 내보내기 충실도 때문에 아직 없음.
 //   app.js 의 지역 함수는 D 로 받는다(elselect.js 와 같은 방식).
 import { withArtKv, clearArtKv, withArtKvColors, withArtKvUse, withArtLogo, clearArtLogo, hasArtKv, hasArtLogo, isCutoutMeta, ART_ASSET_KEYS } from '../core/artasset.js';
@@ -84,10 +85,11 @@ export function createArtKv(D) {
   function boxHtml(a, it, head, posRow, sizeRow, whyNote) {
     const kind = it.kind;
     return `<section class="isec">${head}
+      <div class="flab sub"><span>정렬</span></div>${alignHtml(moldWhy(D.partsOf(a), kind) ? '틀이 정한 칸이라 정렬은 잠겨 있어요(위치 칸으로 조금씩은 옮길 수 있어요)' : '')}
       <div class="flab sub"><span>위치</span></div>${posRow}
       <div class="flab sub"><span>크기</span></div><div class="frow3 wh">${sizeRow}${ratioBtn(kind)}</div>
       ${whyNote}
-      </section>${kind === 'kv' ? kvFillHtml(a, it) : logoFillHtml(a)}`;
+      </section>${lookHtml(a, kind, it)}${kind === 'kv' ? kvFillHtml(a, it) : logoFillHtml(a)}`;
   }
 
   /* ── 바꾸기 실행 ── */

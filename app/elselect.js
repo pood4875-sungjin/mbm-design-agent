@@ -103,7 +103,7 @@ export function createElementSelect(E) {
   const previewOf = (a, it, st, q) => st.mode === 'text' ? textPatch(a, it, q.p, st) : withKind(a, it.kind, q.p, st.mode);
 
   function hide() { ovl?.el?.remove(); ovl = null; }
-  function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; }
+  function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; const sz = btn.querySelector?.('.esel-size'); if (sz) sz.textContent = `${Math.round(box.w)} × ${Math.round(box.h)}`; }   // 11-10 hub 이식: 크기 배지(hub 파랑 「572 × 496」) — 끄는 동안 같이
 
   function show(a, id) {
     const hadFocus = ovl?.box && document.activeElement === ovl.box;
@@ -115,8 +115,7 @@ export function createElementSelect(E) {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = `esel esel-${it.kind}`; btn.dataset.el = id;
     btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — 화살표 1px 이동 · Shift+화살표 10px${locks.size ? '' : ' · +/− 크기'} · Esc 위로`);
-    place(btn, it.box, ds);
-    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}</span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
+    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}</span><span class="esel-size" aria-hidden="true"></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
     el.appendChild(btn);
     // 11-10 AI 아이콘(피그마 AI 처럼) — 선택 상자 오른쪽 위 바깥. 누르면 E.aiOpen 팝오버(app/elai.js)
     if (E.aiOpen) {
@@ -129,6 +128,7 @@ export function createElementSelect(E) {
       el.appendChild(ai);
     }
     f.frame.appendChild(el);
+    place(btn, it.box, ds);   // 크기 배지까지(innerHTML 뒤)
     ovl = { a, id, el, box: btn };
     bind(a, id, btn, ds);
     if (hadFocus) btn.focus({ preventScroll: true });

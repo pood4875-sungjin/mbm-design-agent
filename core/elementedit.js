@@ -45,6 +45,9 @@ export function normElementEdits(edits) {
     if (e.lh != null && Number.isFinite(+e.lh) && +e.lh >= 50 && +e.lh <= 400) q.lh = round1(+e.lh);
     if (e.op != null && Number.isFinite(+e.op) && +e.op >= 0 && +e.op < 100) q.op = Math.round(+e.op);
     if (e.hid) q.hid = 1;
+    // 11-10 hub 이식 2단계 — 그림 모서리 r(px) · 뒤집기 flip('h'|'v'|'hv'). 키비주얼만(로고는 불투명도·숨김만)
+    if (id === 'kv' && e.r != null && Number.isFinite(+e.r) && +e.r >= 1) q.r = Math.min(2000, Math.round(+e.r));
+    if (id === 'kv' && typeof e.flip === 'string') { const f = [...new Set(e.flip.split('').filter(x => x === 'h' || x === 'v'))].sort().join(''); if (f) q.flip = f; }
     const runs = normRuns(e.runs); if (runs) q.runs = runs;
     if (Object.keys(q).length) out[id] = q;
   }
@@ -265,15 +268,34 @@ function patchText(html, tag, e) {
   return html.slice(0, tag.t) + setStyle(open, s) + inner + html.slice(end);
 }
 // 틀 칸이라 렌더러 manualLayout 이 안 듣는 그림·로고 — 렌더러의 kvWrap 과 같은 캔버스 크기 층으로 감싸 변형(svgexport 가 data-edit 을 「옮긴 것」으로 읽는다)
+// 그림·로고 외관(11-10 hub 이식 2단계) — 불투명도·숨김·모서리는 그 층 자체에. 녹임(마스크)·스크림 층은 같은 data-object 안이라 같이 따른다
+function lookStyle(s, e, kind) {
+  let o = s;
+  if (e.hid) o = `${dropDecl(o, /(^|;)\s*opacity\s*:[^;]*/g)};opacity:0`;
+  else if (e.op != null) o = `${dropDecl(o, /(^|;)\s*opacity\s*:[^;]*/g)};opacity:${e.op / 100}`;
+  if (kind === 'kv' && e.r > 0) o = `${dropDecl(o, /(^|;)\s*(border-radius|overflow)\s*:[^;]*/g)};border-radius:${e.r}px;overflow:hidden`;
+  return o;
+}
+// 뒤집기 — 그 층의 가운데 기준 scale(-1,1)·(1,-1). svgexport 가 같은 행렬을 <g transform> 으로 옮긴다
+const flipCss = f => (f ? `scale(${f.includes('h') ? -1 : 1},${f.includes('v') ? -1 : 1})` : '');
+const addTransform = (s, t) => (!t ? s : /(^|;)\s*transform\s*:/.test(s) ? s.replace(/(^|;)(\s*transform\s*:\s*)([^;]*)/, (m, a, b, v) => `${a}${b}${v.trim() === 'none' ? '' : v + ' '}${t}`) : `${s};transform:${t}`);
+// 틀 칸이라 렌더러 manualLayout 이 안 듣는 그림·로고 — 렌더러의 kvWrap 과 같은 캔버스 크기 층으로 감싸 변형(svgexport 가 data-edit 을 「옮긴 것」으로 읽는다)
 function patchBox(html, tag, kind, e, size) {
-  if (!size?.w || !size?.h) return html;
   const end = closeEnd(html, tag.t, tag.name, tag.oe);
-  const piece = html.slice(tag.t, end), css = transformCss({ dx: num(e.dx), dy: num(e.dy), scale: e.scale ?? 1, ox: e.ox, oy: e.oy }, size.w, size.h);
-  if (!/(^|;)\s*position\s*:\s*absolute/.test(styleOf(html.slice(tag.t, tag.oe + 1)))) {
-    const open = html.slice(tag.t, tag.oe + 1), s = styleOf(open);
-    const px = v => Math.round(v * 10) / 10;
-    return html.slice(0, tag.t) + setStyle(addAttr(open, `data-edit="${kind}"`), `${s};transform:translate(${px(num(e.dx) * size.w)}px,${px(num(e.dy) * size.h)}px) scale(${e.scale ?? 1})`) + html.slice(tag.oe + 1);
+  const open0 = html.slice(tag.t, tag.oe + 1), s0 = styleOf(open0), flip = kind === 'kv' ? flipCss(e.flip) : '';
+  const moved = !!(num(e.dx) || num(e.dy) || (e.scale != null && Math.abs(num(e.scale) - 1) > 1e-3));
+  const abs = /(^|;)\s*position\s*:\s*absolute/.test(s0);
+  let s = lookStyle(s0, e, kind);
+  if (!moved || !size?.w || !size?.h) {   // 옮김·크기 없이 외관만(또는 캔버스 크기를 모름)
+    s = addTransform(s, flip);
+    return s === s0 ? html : html.slice(0, tag.t) + setStyle(open0, s) + html.slice(tag.oe + 1);
   }
+  if (!abs) {
+    const px = v => Math.round(v * 10) / 10;
+    return html.slice(0, tag.t) + setStyle(addAttr(open0, `data-edit="${kind}"`), `${dropDecl(s, /(^|;)\s*transform\s*:[^;]*/g)};transform:translate(${px(num(e.dx) * size.w)}px,${px(num(e.dy) * size.h)}px) scale(${e.scale ?? 1})${flip ? ' ' + flip : ''}`) + html.slice(tag.oe + 1);
+  }
+  const css = transformCss({ dx: num(e.dx), dy: num(e.dy), scale: e.scale ?? 1, ox: e.ox, oy: e.oy }, size.w, size.h);
+  const piece = setStyle(open0, addTransform(s, flip)) + html.slice(tag.oe + 1, end);
   return `${html.slice(0, tag.t)}<div data-edit="${kind}" style="position:absolute;left:0;top:0;width:${size.w}px;height:${size.h}px;${css}pointer-events:none">${piece}</div>${html.slice(end)}`;
 }
 function boxTags(html, kind) {

@@ -322,6 +322,15 @@ export function svgFrame(w, h, submitW = null, submitH = null) {   // eslint-dis
 
 /* ═══ 브라우저: DOM → SVG ═══ */
 
+// 뒤집기 행렬(matrix(±1,0,0,±1,…) 이 중 하나 이상 −1)인가 — 이동이 섞이면(옮긴 층) null
+export function flipOf(t) {
+  const m = /^matrix\(\s*([-\d.e]+),\s*([-\d.e]+),\s*([-\d.e]+),\s*([-\d.e]+),\s*([-\d.e]+),\s*([-\d.e]+)\)/.exec(String(t ?? ''));
+  if (!m) return null;
+  const [a, b, c, d, e, f] = m.slice(1).map(Number);
+  if (Math.abs(b) > 1e-6 || Math.abs(c) > 1e-6 || Math.abs(e) > 0.01 || Math.abs(f) > 0.01) return null;
+  if (Math.abs(Math.abs(a) - 1) > 1e-6 || Math.abs(Math.abs(d) - 1) > 1e-6 || (a > 0 && d > 0)) return null;
+  return { sx: a < 0 ? -1 : 1, sy: d < 0 ? -1 : 1 };
+}
 const UNSUPPORTED = ['boxShadow', 'transform', 'filter', 'mixBlendMode', 'backdropFilter', 'clipPath'];
 const NO_EFFECT = { boxShadow: 'none', transform: 'none', filter: 'none', mixBlendMode: 'normal', backdropFilter: 'none', clipPath: 'none' };
 const EFFECT_LABEL = { boxShadow: '그림자(box-shadow)', transform: '변형(transform)', filter: '필터(filter)', mixBlendMode: '혼합(mix-blend-mode)', backdropFilter: '배경 흐림(backdrop-filter)', clipPath: '자르기(clip-path)' };
@@ -664,6 +673,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
       if (el.tagName === 'IMG' && k === 'filter') continue;
       // 편집 직접 수정(10-14)의 이동·배율은 상자(getBoundingClientRect)에 이미 들어 있다 — 같은 비율 확대 + 이동(matrix(s,0,0,s,x,y))이면 옮긴 것으로 친다
       if (k === 'transform' && /^matrix\(\s*([-\d.e]+),\s*0,\s*0,\s*\1,/.test(String(cs.transform)) && (el.hasAttribute('data-edit') || el.hasAttribute('data-logo-slot'))) continue;
+      if (k === 'transform' && flipOf(cs.transform)) continue;   // 11-10 hub 이식: 그림 뒤집기는 아래에서 <g transform> 으로 옮긴다
       const v = cs[k]; if (v && v !== NO_EFFECT[k] && v !== 'auto') note(`${EFFECT_LABEL[k]} — SVG 로 옮기지 않음(${String(v).slice(0, 40)})`);
     }
     const parts = [];
@@ -715,6 +725,8 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     let body = parts.filter(Boolean).join('');
     if (!body) return '';
     body = maskWrap(cs, b, body);
+    // 11-10 hub 이식 2단계: 그림 뒤집기(scale(-1,1)·(1,-1), 가운데 기준) — 상자(b)는 뒤집어도 같으니 그린 조각 전체를 가운데 기준으로 뒤집는다(마스크 포함 = CSS 와 같음)
+    { const f = flipOf(cs.transform); if (f) { const cx = round(b.x + b.w / 2), cy = round(b.y + b.h / 2); body = `<g transform="translate(${cx} ${cy}) scale(${f.sx} ${f.sy}) translate(${-cx} ${-cy})">${body}</g>`; } }
     const op = parseFloat(cs.opacity);
     const needGroup = name || op < 1;
     if (!needGroup) return body;
