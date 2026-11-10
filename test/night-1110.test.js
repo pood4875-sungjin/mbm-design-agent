@@ -56,3 +56,14 @@ test('생성 하한(하위 10%와 중앙 사이) — 인스타 스토리 상세 
   assert.ok(t.fonts.detail.px / t.fonts.main.px >= 0.42 - 0.005, JSON.stringify(t.fonts.detail));
   assert.doesNotMatch(h, /<b style="font-weight:\d+;display:block">/, '라벨만 선 줄 없음');
 });
+
+test('20자 붙임 회사명: 띠·가로형은 줄 제한에 잘리지 않게 채용 구분 든 후보로 · 구글 580 틀은 회사명만 남지 않고 채용 구분', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js'); const { extractRecruit } = await import('../core/brief.js');
+  const ctx = createContext(extractRecruit('한국마이다스아이티글로벌엔지니어링솔루션 2026년 하반기 신입/경력 공개채용. 접수 11월 12일(목) ~ 11월 25일(수) 18:00. 모집분야: 연구개발, 기술영업. 근무지: 판교', new Date(2026, 10, 10)), 'recruit');
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const st = normalizeStyle({ colors: ['#1428A0'], logo: 'data:image/png;base64,iVBORw0KGgo=', logoMeta: { px: [437, 128], tone: 'dark' } });
+  assert.match(tr(renderArtifact('google-gdn-580x400', ctx, st)).copy.main, /신입\/경력 공개채용/);
+  const sb = tr(renderArtifact('albamon-pc-sub-bottom', ctx, st));
+  assert.ok(!/^한국마이다스아이티글로벌엔지니어링솔루션 신입/.test(sb.copy.main) || sb.rules.includes('mainWrapGuard'), sb.copy.main);
+});

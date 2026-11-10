@@ -1990,6 +1990,9 @@ function renderAdBase(ctx, style, spec) {
     // 줄여도 결국 맨 끝 문구면 원래 크기로 — 정보 없는 문구를 작게까지 쓸 이유가 없다
     if (info.last) { mainCap = stated.main ?? capMain; info = pickInfo('main', mainW, mainCap, mainLinesCap); }
     copy.main = info.text;
+    // 11-10 밤(문구 바꿔 보기 — 20자 붙임 회사명이 띠 495×110 에서 세 줄로 접혀 두 줄 제한에 잘림): 고른 문구를 글꼴 폭으로 한 번 더 세어 줄 수를 넘으면 채용 구분이 든 더 짧은 후보로
+    { const rowsEst = t => String(t).split('\n').reduce((n, ln) => n + Math.max(1, Math.ceil(textWidth(ln) * mainCap * 1.02 / Math.max(1, mainW))), 0), capL = Number.isFinite(mainLinesCap) ? mainLinesCap : null, hs = hireFor(core);
+      if (!mold && capL && copy.main && rowsEst(copy.main) > capL) { const alt = (ladder.main ?? []).find(c => c && rowsEst(c) <= capL && (!hs || String(c).includes(hs))); if (alt) { copy.main = alt; fired('mainWrapGuard'); } } }
   }
   const preferMain = copy.main;   // 세로 예산 때문에 한 줄로 몰리면서 이 문구가 떨어지면(일화 970 "㈜일화 …" → "신입/경력 …") 두 줄로 줄여서라도 되살린다
   for (const r of ['sub', 'date', 'extra', 'label']) copy[r] = pickIn(r, textW);
@@ -2641,6 +2644,13 @@ function renderAdBase(ctx, style, spec) {
   const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio))))
     : (LC && mold && !officialMold && moldMainPx && !moldLogoObj) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;   // 로고가 오브젝트 자리를 맡으면(moldLogoObj) 글자 대비 상한을 안 건다
   const capW = mw => Math.min(mw, logoCapW);
+  // 11-10 밤: 그리기 직전 최종 크기·줄 수로 한 번 더 — 넘치면(줄 제한에 잘림) 채용 구분이 든, 들어가는 후보로(긴 붙임 회사명 × 띠·가로형)
+  if (!mold && copy.main && Number.isFinite(mainLines) && mainLines >= 1 && !CANON.lockedMedia.includes(spec.medium)) {
+    const colWf = Math.max(1, Math.max(textW, mainW ?? 0)) * 0.9, sp = textWidth(' ') * mainFs, rowsAt = t => String(t).split('\n').reduce((n, ln) => { let rows = 1, cur = 0; for (const wd of ln.split(/\s+/).filter(Boolean)) { const ww = textWidth(wd) * mainFs * 1.03; if (ww > colWf) { if (cur > 0) rows++; rows += Math.floor(ww / colWf); cur = ww % colWf; } else if (cur > 0 && cur + sp + ww > colWf) { rows++; cur = ww; } else cur += (cur > 0 ? sp : 0) + ww; } return n + rows; }, 0), hs = hireFor(core);
+    const longWord = String(copy.main).split(/\s+/).some(wd => textWidth(wd) * mainFs * 1.03 > colWf);   // 칸보다 긴 붙임 낱말이 있을 때만(20자 회사명) — 보통 문구는 앞 단계 어림을 믿는다
+    if (longWord && rowsAt(copy.main) > mainLines) { const pool = [...new Set([...(ladder.main ?? []), ...(ladder.mainWide ?? []), ...(ladder.mainNarrow ?? [])])].filter(c => c && rowsAt(c) <= mainLines && (!hs || String(c).includes(hs)));
+      const cl = String(core.client ?? ''), alt = pool.find(c => cl && String(c).includes(cl)) ?? pool[0]; if (alt) { copy.main = alt; fired('mainWrapGuard'); } }
+  }
   { const subRole = showSub ? (subAbove ? 'eyebrow' : ((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan')) : null;
     const tk = guide?.tracking ?? {}; const trk = (tk.main ?? 0) && mainFs >= (tk.mainMinPx ?? 28) ? tk.main : 0;
     TR.fonts = { main: { px: mainFs, weight: fwOf('main', mainFs), lh: mainLine, tracking: trk, lines: mainLines, cap: capMain, floor: floorMain, sqFloor }, sub: showSub ? { px: z.subFs, weight: fwOf(subRole, z.subFs), role: subRole, lh: useRef ? L.subLine : line } : null,
@@ -3028,6 +3038,8 @@ ${tplLogo}${kvWrap(tplObject)}
     { const cl = ctx.kind === 'recruit' ? String(ctx.core?.client ?? '').trim() : '', txt = t => String(t ?? '').replace(/[\u00a0\u200b\u2060]/g, ' ');
       // 11-09: 메인이 실제 채용구분(「신입/경력 채용」)을 품고 있으면 기업명으로 바꾸지 않는다 — 채용구분은 항상 살리고 기업명 생략이 마지막(위 사다리 ④ templateMold.clientDropped 의 결과를 되돌리지 않게). 채용구분이 없는 브리프(「채용 공고」·직무만)는 예전대로 기업명
       const hs0 = cl ? hireFor(ctx.core ?? {}) : '';
+      // 11-10 밤(문구 바꿔 보기 — 20자 회사명 × 구글 580): 메인에 채용 구분이 없고 채용 구분이 틀 줄 수에 들어가면 채용 구분을 먼저(11-09 「채용 구분은 항상 · 안 들어가면 채용 구분만」). 회사는 로고가 보여 준다. 광고주 필수 규격은 그대로
+      if (hs0 && MR.main?.px != null && !lockedMold && !rules.mainMustIncludeClient && !spec.mainMustIncludeClient && !txt(copy.main).includes(hs0) && wrapRows(hs0, Math.round(MR.main.px * k), Math.max(1, mainColW) * 0.95, true) <= (MR.main.lines ?? 1)) { copy.main = hs0; fired('templateMold.hireFirst'); }
       if (cl && MR.main?.px != null && !txt(copy.main).includes(cl) && !txt(copy.sub).includes(cl) && !rules.visualOnly && !spec.visualOnly && !mold.clientLen && !(hs0 && txt(copy.main).includes(hs0))) {
         const mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null, rowsK = kk => wrapRows(cl, Math.round(MR.main.px * k * kk), Math.max(1, mainColW) * 0.95, true), lim = MR.main.lines ?? 1, kks = spec.medium === 'jasoseol' ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85], kk = kks.find(v => rowsK(v) <= lim);
         if ((mx == null || countChars(cl, counting) <= mx) && kk) { copy.main = cl; mainShrink = kk; mainExtraLine = false; fired('templateMold.clientFirst'); }
