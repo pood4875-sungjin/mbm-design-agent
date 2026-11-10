@@ -83,6 +83,14 @@ const ALIGN_KO = { left: '왼쪽', center: '가운데', right: '오른쪽' };
 const MOLD_MODES = new Set(['mold', 'template']);
 const FULL_MODES = new Set(['full', 'bg-room', 'bg-texture', 'bg-frame']);
 // 부제 — 무엇이 바뀌었나(앱 「레이아웃 안」 썸네일 아래 한 줄). style 만으로 정해진다(저장된 안 style 에서 다시 만든다)
+// 실제 그려진 태그(trace.tags)로 부제 — 「라벨 각진 태그 + 날짜 알약」처럼. 태그 말고 같이 바뀐 것(정렬·지면)은 variantSubOf 그대로 덧붙인다
+export function tagSubOf(tags, st = {}) {
+  if (!Array.isArray(tags) || !tags.length) return null;
+  const name = t => t.kind === 'label' ? `라벨 ${t.shape === 'pill' ? '둥근' : '각진'} 태그` : `날짜 ${t.shape === 'square' ? '각진 태그' : '알약'}`;
+  const parts = [...new Set([...tags].sort((a, b) => (a.kind === 'label' ? 0 : 1) - (b.kind === 'label' ? 0 : 1)).map(name))];
+  const rest = variantSubOf(Object.fromEntries(Object.entries(st).filter(([k]) => k !== 'infoTag' && k !== 'tagShape')));
+  return [parts.join(' + '), rest].filter(Boolean).join(' · ');
+}
 export function variantSubOf(st, spec = null) {
   if (!st || !Object.keys(st).length) return '';
   if (st.tpl) { const f = familyById(st.tpl); return `시안 「${(spec && f && frameFor(f, spec)?.name) || f?.name || st.tpl}」`; }
@@ -242,7 +250,8 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
     if (keys.length && banned.length) { const hit = (tr.field?.stops ?? []).find(c => banned.some(b => deltaE(c, b) <= (spec.mediumRules?.backgroundColors?.blockDeltaE ?? 1) || nearHex(c, b))); if (hit) return { why: `매체 금지색에 가까운 지면 ${hit}` }; }
     const hash = htmlHash(html); if (seen.has(hash)) return { why: '기본안·다른 안과 같은 그림' };
     const ax = axesOf(cand, tr, spec, html);
-    const rec = { id: out.length, slot: meta.slot ?? null, label: meta.label ?? (!keys.length ? '기본안' : cand.tpl ? axesLabel(ax) : labelOf(cand, spec)), sub: meta.sub ?? variantSubOf(cand, spec), style: cand, hash, axes: ax, trace: { rules: tr.rules ?? [], edit: tr.edit ?? null, place: tr.place ? { mode: tr.place.mode, objectSide: tr.place.objectSide } : null, ...(meta.substitute ? { substitute: meta.substitute } : {}), ...(tr.text?.light ? { light: tr.text.light } : {}) } };
+    const drawnSub = cand.infoTag && !cand.tpl ? tagSubOf(tr.tags, cand) : null;   // 11-10: 틀에 라벨 칸이 없으면 both 여도 날짜 알약만 그려진다 — 이름은 실제 그려진 태그로
+    const rec = { id: out.length, slot: meta.slot ?? null, label: meta.label ?? (!keys.length ? '기본안' : cand.tpl ? axesLabel(ax) : labelOf(cand, spec)), sub: drawnSub ?? meta.sub ?? variantSubOf(cand, spec), style: cand, hash, axes: ax, trace: { rules: tr.rules ?? [], edit: tr.edit ?? null, place: tr.place ? { mode: tr.place.mode, objectSide: tr.place.objectSide } : null, ...(meta.substitute ? { substitute: meta.substitute } : {}), ...(tr.text?.light ? { light: tr.text.light } : {}) } };
     if (accept && keys.length && accept(html, rec) === false) return { why: '호출자 검사(lint) 탈락' };
     seen.add(hash);
     return { rec, html };

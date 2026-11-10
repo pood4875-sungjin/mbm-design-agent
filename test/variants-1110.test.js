@@ -28,3 +28,15 @@ test('리멤버 1005×360(규정 틀)도 기본 외 추가 안 — 바탕 축만
     for (const c of tr(renderArtifact('remember-main-top-mo', ctx, { ...st, ...v.style })).field?.stops ?? []) assert.ok(!banned.includes(String(c).toUpperCase()), c);
   }
 });
+
+test('B안 이름은 실제 그려진 태그로(11-10) — 라벨 칸 없는 틀에서 both 를 줘도 「날짜 알약」', async () => {
+  const { tagSubOf } = await import('../core/variants.js');
+  assert.equal(tagSubOf([{ kind: 'date', shape: 'pill' }], { infoTag: 'both' }), '날짜 알약');
+  assert.equal(tagSubOf([{ kind: 'date', shape: 'pill' }, { kind: 'label', shape: 'square' }], { infoTag: 'both' }), '라벨 각진 태그 + 날짜 알약');
+  assert.equal(tagSubOf([{ kind: 'date', shape: 'square' }], { infoTag: 'date', tagShape: 'square', bgFill: 'brand' }), '날짜 각진 태그 · 브랜드색 지면');
+  const st = styleOf('fox-cutout'); const vs = variantCandidates('google-gdn-580x400', ctx, st);
+  for (const v of vs.filter(x => x.style.infoTag && !x.style.tpl)) {
+    const tags = tr(renderArtifact('google-gdn-580x400', ctx, { ...st, ...v.style })).tags ?? [];
+    if (!tags.some(t => t.kind === 'label')) assert.doesNotMatch(v.sub, /라벨/, v.sub);
+  }
+});
