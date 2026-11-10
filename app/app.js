@@ -336,9 +336,9 @@ function log(text) {
 function show(view) {
   for (const v of ['home', 'intake', 'work']) $(v).style.display = v === view ? (v === 'home' ? 'flex' : 'block') : 'none';
   $('campPill').style.display = view === 'work' ? 'block' : 'none';
-  $('approveAll').style.display = view === 'work' ? 'block' : 'none';
-  $('exportAll').style.display = view === 'work' ? 'block' : 'none';
-  $('selectMode').style.display = view === 'work' ? 'block' : 'none'; if (view !== 'work') SEL.setOn(false);   // 선택하기는 작업 화면에서만 · 나가면 해제
+  $('approveAll').style.display = view === 'work' ? '' : 'none';
+  $('exportAll').style.display = view === 'work' ? '' : 'none';
+  $('selectMode').style.display = view === 'work' ? '' : 'none'; if (view !== 'work') SEL.setOn(false);   // 선택하기는 작업 화면에서만 · 나가면 해제
   if (view === 'home') renderSidebar();
 }
 function openHtml(html) {
@@ -2568,6 +2568,7 @@ const scheduleLint = debounce(() => lintAds(), 400);
 /* zoom · pan */
 function applyTransform() {
   $('artboard').style.transform = `translate(${state.panX}px,${state.panY}px) scale(${state.zoom})`;
+  $('artboard').style.setProperty('--iz', String(1 / (state.zoom || 1)));   // 11-10 hub 2차: 소재 이름표는 화면 크기 고정(hub 프레임 이름)
   $('artboard').style.setProperty('--z', state.zoom);   // 선택 테두리·핸들을 화면 크기 그대로
   $('zoomPct').textContent = Math.round(state.zoom * 100) + '%';
   RULER?.draw();
@@ -4750,6 +4751,7 @@ restoreCustomFonts();   // 지난 세션에 첨부한 폰트를 카탈로그에 
 // 묶은 무료 폰트의 @font-face 를 앱 문서에도 — SVG 내보내기(core/svgexport.js)는 앱 문서 안 상자에서 글자를 재므로 여기 있어야 같은 서체로 잰다. 브라우저는 쓰이는 굵기만 받는다
 document.head.insertAdjacentHTML('beforeend', `<style id="bundledFonts">${fontIds().filter(isBundledFont).map(id => localFaceCss(id)).join('')}</style>`);
 $('homeBtn').onclick = () => show('home');
+$('homeBtn').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show('home'); } };
 $('logHead').onclick = () => $('logCard').classList.toggle('open');
 // 캔버스 배경색(10-20 사용자 「배경 색 조정 가능하게 피그마처럼」) — 이 브라우저에만 저장(localStorage), 산출물·내보내기와 무관한 보기용
 {
