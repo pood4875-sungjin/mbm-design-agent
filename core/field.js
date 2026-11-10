@@ -614,7 +614,8 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
   if (!cutout && ar) {
     let c = coverPos(style, bw, bh, { seamless: !!field?.seamless, side });
     // 보일 부분(coverFit): cover 가 주인공을 60% 미만만 보이면 상자를 그림 크기로 줄여(한 축) 다시 놓는다 — 주인공 당김(subjectCrop)이 있으면 그쪽이 우선이라 아래에서 덮어쓴다
-    if (c.fit) { const fw = Math.min(bw, c.fit.dw), fh = Math.min(bh, c.fit.dh); fit = { w: fw, h: fh, k: c.fit.k, vis: c.fit.vis }; c = coverPos(style, fw, fh, { seamless: !!field?.seamless, side }); }
+    // 11-10 밤(사용자 「실사인데 좌우위아래 그라 주고 센터에 넣는 실수 하지 마」): 아래 띠는 폭을 줄이지 않는다 — 지면 폭 전체로 블리드하고 위(글자 쪽) 변만 녹인다. 폭을 줄이면 세로 사진이 가운데 섬이 되고 좌우가 떴다(desk-27·36 × 264·200 규격)
+    if (c.fit) { const fw = side === 'bottom' ? bw : Math.min(bw, c.fit.dw), fh = Math.min(bh, c.fit.dh); fit = { w: fw, h: fh, k: c.fit.k, vis: c.fit.vis }; c = coverPos(style, fw, fh, { seamless: !!field?.seamless, side }); }
     pos = c.pos; trueEdge = c.trueEdge; joinFrac = c.joinFrac;
   }
   // 주인공이 그림의 일부면 주인공으로 자리를 채운다 — 그러면 자리의 글자 쪽 변은 그림 한가운데라 지면과 같은 색이 아니다(녹인다)
