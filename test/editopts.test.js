@@ -13,7 +13,7 @@ import { templateKvMode } from '../core/renderers/ad-template.js';
 const { registerAll } = await import('../core/generate.js'); registerAll();
 
 const specs = adSpecEntries();
-const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', role: '영업, 재무', season: '2026년', startDate: '2026-06-20', deadline: '2026-07-02' }, 'recruit');
+const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', role: '영업, 재무', subText: '2026년' /* 11-10: 서브는 추가 문구로 */, startDate: '2026-06-20', deadline: '2026-07-02' }, 'recruit');
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
 const meta = id => JSON.parse(readFileSync(new URL(`../ref/learned/cases/${id}/meta.json`, import.meta.url), 'utf8'));
 const CASES = { cutout: 'desk-13-cut', photo: 'ilhwa-photo', illust: 'bc-illust' };

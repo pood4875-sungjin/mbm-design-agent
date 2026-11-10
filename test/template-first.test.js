@@ -17,6 +17,8 @@ const RING = { ar: 1.71, px: [1710, 1000], field: { kind: 'cutout', opaque: 0.04
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
 const fields = { client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기', slogan: '자소서 없는 간편지원', role: '자유직무, 경영·제품·사업 분야', employType: '신입·경력', startDate: '2025-09-22', deadline: '2025-10-12' };
 const ctx = createContext(fields, 'recruit');
+// 11-10 입력 개편: 서브는 추가 문구(옛 슬로건 → subText). 「2025 하반기」를 서브로 세우려면 추가 문구로 적는다(시즌은 메인 연도 판단에만)
+const ctxSub = createContext({ ...fields, slogan: null, subText: '2025 하반기' }, 'recruit');
 const glass = normalizeStyle({ colors: ['#00146E'], keyVisual: PNG, kvMeta: RING, logo: PNG, logoTone: 'dark', logoMeta: { px: [1043, 304], tone: 'dark', solid: 0.56, colors: [{ hex: '#0F0F0F', share: 1 }] } });   // 로고 실측 = sep-open-recruit MIDAS 1043×304(3.4:1)
 const traceOf = html => JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
 const tagOf = (html, role) => html.match(new RegExp(`<div data-field="${role}"[^>]*>`))?.[0] ?? '';
@@ -58,7 +60,7 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
   assert.match(html, /data-text-col="1" style="position:absolute;left:30px;top:75/);
   assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22\(월\) - 10\.12\(일\)/, '팝업 상세 라벨은 Bold, 값 Regular — 세아 28:124·보드 2798 세그먼트 실측(10-15 저녁 정정: 아침 「라벨까지 Regular」는 오독)');
   assert.match(html, /<b style="font-weight:700">모집직무 :<\/b> /);
-  assert.doesNotMatch(detailOf(html), /고용형태/, '틀 항목(모집일정·모집직무)만');
+  { const d = detailOf(html), i = d.indexOf('고용형태'); assert.ok(i < 0 || i > d.indexOf('모집직무'), '11-10: 추가 행(옛 고용형태 칸)은 모집직무 뒤, 남는 줄에만'); }
   assert.match(html, /data-logo-slot="1" style="position:absolute;left:375px;top:33px;width:143px;height:23px;[^"]*justify-content:flex-end/);
   assert.match(html, /<img data-logo="1"[^>]*max-width:100%/); assert.doesNotMatch(html, /max-width:min\(100%/, '로고 상한 없음(칸이 크기)');
   // 그림: 칸(293,187 249×183)의 위치·범위만 틀 — 처리는 디자인 가이드(모서리 상자: 누끼 contain 우하단, 바탕 있는 그림 cover + 녹임). 칸 밖으로 나가지 않는다
@@ -69,7 +71,7 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
 
 test('채용공고 160×600 틀 — 담당자 6유형(11-02, 컨시어지 30:1056~1712): 서브 16/700 y81.9 · 메인 24/700 y = 서브 1줄 117.5 / 2줄 141, 간격 34 · 상세 13 라벨 줄 + 값 줄, 블록 y = 마지막 메인 줄 + 57 · 로고 칸 130×30@15,23 가운데 · 그림 칸 160×200@0,400', () => {
   for (const id of ['jasoseol-pc-premium-jobpost-pc', 'jasoseol-pc-standard-jobpost-pc']) {
-    const html = renderAd(ctx, glass, specs[id]);
+    const html = renderAd(ctxSub, glass, specs[id]);
     const tr = traceOf(html), R = tr.mold.rows;
     assert.equal(tr.mode, 'templateMold', id);
     assert.equal(R.sub.y, 81.9); assert.equal(tr.mold.subN, 1, '「2025 하반기」 서브 1줄'); assert.equal(R.main.y, 117.5, '서브 1줄 → 메인 117.5(11-02 6유형 30:1588, 10-26 「141 고정」 대체)'); assert.equal(R.main.pitch, 34); assert.equal(tr.mold.mainN, 3, '마이다스 / 대규모 / 공개채용');
@@ -83,7 +85,7 @@ test('채용공고 160×600 틀 — 담당자 6유형(11-02, 컨시어지 30:105
     assert.ok(!tr.rules.includes('templateMold.bandBleed'));
   }
   // 서브 2줄이면 메인 첫 줄 y141(30:1331)
-  const long = createContext({ ...fields, season: '2025년 하반기 정기 공개채용 시즌' }, 'recruit');
+  const long = createContext({ ...fields, slogan: null, subText: '2025년 하반기 정기 공개채용 시즌' }, 'recruit');
   const tr2 = traceOf(renderAd(long, glass, specs['jasoseol-pc-premium-jobpost-pc']));
   if (tr2.copy.sub === '2025년 하반기 정기 공개채용 시즌') { assert.equal(tr2.mold.subN, 2); assert.equal(tr2.mold.rows.main.y, 141); }
 });
@@ -112,7 +114,7 @@ test('M팝업 600×880 틀 — 템플릿 28:1072·샘플 28:1292: 서브 30/700 
   assert.deepEqual([R.sub.y, R.sub.px, R.main.y, R.main.px, R.main.pitch, R.detail.px, R.detail.pitch], [159.5, 30, 210.9, 50, 69.6, 26, 44.5]);
   assert.equal(R.detail.y, tr.mold.mainN === 2 ? 404.9 : 335);
   assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22/);
-  assert.doesNotMatch(detailOf(html), /고용형태/);
+  { const d = detailOf(html), i = d.indexOf('고용형태'); assert.ok(i < 0 || i > d.indexOf('모집직무'), '11-10: 추가 행은 모집직무 뒤에만'); }
   assert.match(html, /data-logo-slot="1" style="position:absolute;left:294px;top:33px;width:268px;height:55px;[^"]*justify-content:flex-end/);
   const ob = html.match(/data-object="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);
   assert.ok(ob && Number(ob[2]) >= 544 && Number(ob[2]) + Number(ob[4]) <= 880, 'KV 는 그림 칸(y543.7~) 안 — 위로 침범 없음');

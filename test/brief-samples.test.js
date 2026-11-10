@@ -30,7 +30,7 @@ test('동서식품 — 대졸 신입/경력사원 · 9/28(월)~10/12(월) · (�
   assert.equal(r.client, '동서식품'); assert.equal(r.season, '2026년'); assert.equal(r.hiringType, '대졸 신입/경력사원');
   assert.equal(r.startDate, '2026-09-28'); assert.equal(r.deadline, '2026-10-12');
   assert.equal(r.role, '(신입) 영업, 일반관리, 제조, 연구, 물류, 전산 / (경력) 연구(QA), 디자인');
-  assert.equal(r.slogan, '동서식품의 새로운 인재를 찾습니다!');
+  assert.equal(r.subText, '동서식품의 새로운 인재를 찾습니다!');   // 11-10: 슬로건 = 추가 문구
 });
 
 test('한진정보통신 — 경력직 · 마감 없음 + 고지 「채용 일정은 공고별 상이」 · 모집직무 칩', () => {
@@ -43,7 +43,7 @@ test('한진정보통신 — 경력직 · 마감 없음 + 고지 「채용 일�
 test('제일약품 — 「ETC 영업 채용(전국)」: 채용 구분 = 직무 구절 + (전국), 근무지 전국, ~1/18(일) 23:59까지', () => {
   const r = extractRecruit(SAMPLES[3], NOW);
   assert.equal(r.client, '제일약품'); assert.equal(r.season, '2026년'); assert.equal(r.role, 'ETC 영업');
-  assert.equal(r.hiringType, 'ETC 영업 채용(전국)'); assert.equal(r.location, '전국');
+  assert.equal(r.hiringType, 'ETC 영업 채용(전국)'); assert.equal(r.rows, undefined, '11-10: 「(전국)」은 채용 구분에 이미 있다 — 근무지 행으로 또 넣지 않는다(한 항목 한 곳)');
   assert.equal(r.deadline, '2026-01-18');   // 시즌 2026년 + (일) 요일 일치(11-02) assert.equal(r.deadlineTime, '23:59'); assert.equal(r.startDate, undefined);
 });
 

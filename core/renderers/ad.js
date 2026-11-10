@@ -24,6 +24,7 @@ import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack, fontRuleOf, textColorLocked } from '../fonts.js';
 import { adSpecEntries } from '../adspecs.js';   // 캠페인 공통 메인(리멤버 PC·MO 동일) — 같은 매체 규격을 한 번씩 돌려 본다(런타임에만 부른다: contract.js 와 순환)
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
+import { migrateRecruitCore, cleanRows, rowValue } from '../context.js';
 import { designOf } from '../design.js';
 import { aiEligible } from '../trackb/analyze.js';
 import { resolveField, lightFieldOf, brandDeep, flatLightBg, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltGradientFrom, meltLength, seamHexes, meltNeed, cutFadePct, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
@@ -44,7 +45,37 @@ const md = d => { const s = mmdd(d).replace(/^0/, '').replace(/\.0/, '.'); const
 // 채용 구분 → 메인에 붙는 말. "신입" → "신입 채용", "신입사원 공개채용"처럼 이미 채용·공채·모집이 들어 있으면 그대로.
 const hireOf = t => { const s = String(t ?? '').trim(); return !s ? '채용' : /채용|공채|모집/.test(s) ? s : `${s} 채용`; };
 // 채용 구분이 비면 「채용」을 지어 넣지 않는다(10-28 컨시어지 #1 한희하 「자동 채용 문구 제거」, 사용자 결정) — hiringType 이 없고 고용형태(employType)도 없으면 빈 문자열. 고용형태가 있으면 「정규직 채용」(데이터에 있는 말)
-const hireFor = c => (c?.hiringType || c?.employType) ? hireOf(c.hiringType || c.employType) : '';
+//   11-10: 고용형태 칸 폐지(추가 행) — 행 값을 메인에 끌어오면 한 항목이 두 곳에 나간다. 채용 구분만
+const hireFor = c => c?.hiringType ? hireOf(c.hiringType) : '';
+// 11-10 입력 개편(사용자 「서브 문구가 반영되는 곳이 별로 없어서 2025년을 쓰면 타이틀에도 쓸 때 중복」 · 「상세 쓴 건 어디에도 안 나와서 행을 추가한다는 개념으로」):
+//   ① 연도 한 번 — 시즌(연도) 서브 기본값 폐지. 메인(타이틀·채용 구분·고객사)에 연도가 없고 이 규격에 서브 자리가 없으면(리멤버 등) 메인 앞에 시즌. 메인에 연도가 있거나 서브 자리가 있으면 어디에도 안 쓴다
+//   ② 서브 = 추가 문구(subText, 옛 슬로건 포함) 한 덩어리 — 비우면 안 나온다
+//   ③ 상세 = 접수기간 · 모집직무 · 추가 행(rows) — 고용형태·근무지 고정 칸은 옛 데이터 호환으로 행에 옮긴다(core/context.js migrateRecruitCore)
+const YEAR_RE = /(?:19|20)\d{2}/;
+// 틀 상세 칸에 추가 행을 넣어도 되나 — 틀이 모집직무 줄을 주는 칸(같은 모양의 「라벨 : 값」)이면. 칩 라벨·값만 쓰는 칸(구글 알약·인스타 1080)과 날짜 한 줄 칸(리멤버)은 안 넣는다
+const moldItemOk = (R, d) => R.items.includes(d.label) || (!!d.extraRow && R.items.includes('모집직무') && !R.chip && !R.valuesOnly);
+// 이 규격에 서브(추가 문구) 자리가 실제로 서나 — 규정표만으로는 모른다(서브 칸이 있어도 날짜가 그 자리를 쓰는 잡다 PC·비즈보드, 규정이 없어 기본 슬롯만 있는 구글·NAP 은 서브가 안 섰다 — 11-10 실측 49규격 중 7).
+//   짧은 시험 문구로 한 번 그려 보고(규격·안마다 한 번, 캐시) 서브 줄에 그 문구가 섰는지 본다. 「모든 소재에서 빼기」한 서브는 자리가 없는 것과 같다
+const SUB_SHOWS = new Map(), SUB_PROBE = '추가문구';
+function subShows(ctx, style, spec) {
+  if (String(ctx.core?.omit ?? '').split(',').map(t => t.trim()).includes('sub')) return false;
+  const key = `${spec.id ?? spec.name}|${spec.variant ?? 0}`;
+  if (SUB_SHOWS.has(key)) return SUB_SHOWS.get(key);
+  SUB_SHOWS.set(key, false);   // 재진입 방지
+  const saved = LAST_TR; let ok = false;
+  try { renderAdBase({ ...ctx, core: { ...ctx.core, subText: SUB_PROBE, slogan: null, season: null, __subProbe: true } }, style, { ...spec, __unifyOff: true }); ok = String(LAST_TR?.copy?.sub ?? '').includes(SUB_PROBE); } catch { ok = false; }
+  LAST_TR = saved;
+  SUB_SHOWS.set(key, ok);
+  return ok;
+}
+export function adCore(core, subSlot = false) {
+  const c = migrateRecruitCore(core ?? {});
+  const extra = String(c.subText ?? '').trim() || null;
+  const mainTxt = c.headline ? [c.headline] : [c.hiringType, c.client];
+  const yearSaid = mainTxt.some(t => YEAR_RE.test(String(t ?? '')));
+  const season = c.season && !yearSaid && !subSlot ? String(c.season).trim() : null;
+  return { ...c, subText: extra, slogan: extra, season, __yearAuto: !!season, employType: null, location: null, qualification: null, process: null, rows: cleanRows(c.rows) };
+}
 // 긴 낱말을 음절 단위 덩어리로 — 줄당 글자수(lineChars)를 넘는 낱말을 고른 길이로 나눈다(「터너앤타운젠드코리아」 10자, 줄당 6자 → 5+5). 렌더는 덩어리 사이에 U+200B(줄바꿈 자리)를 넣는다
 export function syllableChunks(w, lineChars) { const cs = [...String(w)]; if (!(lineChars >= 2) || cs.length <= lineChars) return [String(w)]; const m = Math.ceil(cs.length / lineChars), size = Math.ceil(cs.length / m); const out = []; for (let i = 0; i < cs.length; i += size) out.push(cs.slice(i, i + size).join('')); return out; }
 // 글줄에 넣을 긴 낱말의 줄바꿈 자리: 빗금·가운뎃점·& 뒤가 먼저(한글/·&/ 뒤 우선 분리), 그래도 한 줄보다 길면 음절 덩어리 사이 — overflow-wrap:anywhere 가 칸 끝에서 아무 데나 끊는 대신 고른 자리에서
@@ -63,7 +94,7 @@ const shortNote = t => String(t).replace(/^[*※]\s*/, '').replace(/(\S)[은는]
 // 채용 헤드라인 문법은 보드 레퍼런스(한미글로벌·세아제강·안랩·삼진제약·신한캐피탈)에서: 서브 = 시즌, 메인 = 회사 + 채용구분, 직무는 상세 줄.
 // 좁은 세로 띠(도레이·PT코리아)는 회사가 서브로 올라가고 메인은 채용구분만 — *Narrow 사다리를 렌더러가 형태를 보고 고른다.
 export function copyLadder(ctx) {
-  const c = ctx.core ?? {};
+  const c = ctx.kind === 'recruit' ? migrateRecruitCore(ctx.core ?? {}) : (ctx.core ?? {});
   const uniq = arr => [...new Set(arr.filter(s => s != null && String(s).trim() !== ''))];
   if (ctx.kind === 'recruit') {
     // 마감 시각(deadlineTime 'HH:MM') — 정시는 「17시」, 아니면 「23:59」(10-14 t1014: GS에너지 「7.2(수) 17시」·LT소재·제일약품 「23:59」 디자이너 3곳). 날짜가 없으면 붙이지 않는다
@@ -71,29 +102,34 @@ export function copyLadder(ctx) {
     const d = c.deadline ? md(c.deadline) + tm : '', s0 = c.startDate ? md(c.startDate) : '';
     const dateTxt = String(c.dateText ?? '').trim();   // 11-09 날짜 문구 직접(패널·캔버스) — 있으면 시작일·마감일로 만든 기간 대신
     const period = dateTxt || (d ? (s0 ? `${s0} - ${d}` : `~${d}`) : '');
-    const qual = c.qualification ? String(c.qualification) : '';
+    const qual = c.qualification ? String(c.qualification) : '';   // 11-10: 옛 칸 — 지금은 추가 행(지원자격)으로 옮겨져 비어 있다
     const scheduleNote = (!period && c.notice && SCHEDULE_NOTE.test(String(c.notice))) ? String(c.notice).trim() : null;
     const season = c.season || null;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
-    const slogan0 = c.slogan || null;   // 좁은 띠(narrowMain 분기)와 구글 아이브로가 쓴다 · 11-09: 적은 슬로건만 — 「○○에서 함께할 인재를 찾습니다」 기본 문구 폐지(입력 안 한 문구는 넣지 않는다, 시즌과 같은 원칙)
-    const slogan = c.slogan ?? null;
+    // 11-10: 서브 = 추가 문구(subText, 옛 슬로건·「서브 문구 직접」을 합친 한 덩어리). 옛 시즌 자리에 선다 — 좁은 띠는 「추가 문구 회사」(회사는 서브, 메인은 채용 구분), 비면 회사만
+    const extra = c.subText ? String(c.subText) : null;
+    const slogan0 = null;   // 좁은 띠 메인 분기(narrowMain)는 옛 「시즌만 있을 때」 문법 — 회사가 서브로 간다
+    const slogan = null;
     const hire = hireFor(c);   // 채용구분이 없으면 고용형태로("정규직 채용"), 둘 다 없으면 ''(「채용」을 지어 넣지 않음 — 10-28 결정)
     const named = !!hire;
     const tag = hire && !/(모집|선발)$/.test(hire) ? '채용' : '';   // 직무·회사 뒤에 붙는 「채용」도 채용 구분이 있을 때만 · 11-09 채용 구분이 「…교육생 모집」처럼 모집·선발이면 「채용」을 지어 붙이지 않는다(「…재단 채용」)
     // 메인을 직접 적어 준 경우(한독 "전문의약품 의료기기 영업∙마케팅 공채 모집") 회사·구분은 서브로 간다
-    const subFull = [season, c.client, named ? hire : null].filter(Boolean).join(' ');
+    const subFull = [c.client, named ? hire : null].filter(Boolean).join(' ');   // 11-10: 시즌은 서브에 안 쓴다(연도 한 번)
     const clientHire = c.client ? [c.client, hire].filter(Boolean).join(' ') : null;
+    // 11-10 연도 자동(서브 자리 없는 규격, adCore 가 __yearAuto): 시즌 그대로 → 안 들어가면 연도만(「2026년 하반기」 → 「2026년」) → 그래도 안 되면 연도 없이(사다리 뒤 후보)
+    const yearHeads = c.__yearAuto && season && clientHire ? [...new Set([String(season), String(season).match(/(?:19|20)\d{2}년?/)?.[0]].filter(Boolean))] : [];
     // 세로 띠: 서브가 회사를 품으면 메인은 채용구분만(도레이·한독). 슬로건이 서브를 차지하면 회사·기수가 메인으로(PT코리아 "PTKOREA / 2026 8기 / 신입공개채용")
     const narrowMain = slogan0
       ? [c.headline, [c.client, c.season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
       : [c.headline, named ? hire : null, clientHire];
     return {
-      main: c.headline ? [String(c.headline)] : uniq([c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
-      sub: c.subText ? [String(c.subText)] : uniq([c.headline ? subFull : null, slogan, season, slogan0, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.employType]),   // 입력에 없는 「채용 공고」를 서브로 지어 넣지 않는다(11-02)
+      main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
+      // 11-10: 서브 = 추가 문구 한 덩어리(옛 시즌 자리). 비우면 시즌·고용형태로 채우지 않는다 — 고객사만 남긴다(메인이 채용명만 들어가는 좁은 칸에서 회사 이름이 사라지지 않게, 11-09 자소설 「메인 = 채용명, 서브 = 기업명」)
+      sub: uniq([extra, c.headline ? subFull : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null]),
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
       mainWide: c.headline ? [String(c.headline)] : uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),
-      mainNarrow: c.headline ? [String(c.headline)] : uniq([...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),
-      subNarrow: c.subText ? [String(c.subText)] : uniq([c.headline ? subFull : null, slogan, [season, c.client].filter(Boolean).join(' '), season, c.client, slogan0]),
+      mainNarrow: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), ...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),   // 11-10 연도 자동(서브 자리 없는 규격)
+      subNarrow: uniq([extra && c.client && !c.headline ? `${extra} ${c.client}` : null, extra, c.headline ? subFull : null, c.client]),
       // 날짜가 혼자 한 줄에 설 때(서브·날짜 줄)는 라벨을 붙이지 않는다 — Figma 9월 공채 디자이너 12/12 무라벨(10-08 typo A7). 상세 목록 안에서는 「접수기간」 라벨 유지(details)
       // 마감일이 없고 고지 문구가 일정을 말하면(「* 채용 일정은 공고별 상이합니다.」) 그 문구가 날짜 자리를 쓴다 — 자리표시 「0/00(월) ~ 0/00(일)」 대신(10-14 t1014 한진정보통신 디자이너 9/9 날짜 없음, 3/9 이 문구)
       date: uniq(period ? [period, d && !dateTxt ? `~${d}` : null] : scheduleNote ? [scheduleNote, shortNote(scheduleNote), shortNote(scheduleNote).split(/\s+/).slice(-2).join(' ')] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
@@ -102,14 +138,13 @@ export function copyLadder(ctx) {
       cta: uniq([c.ctaText, '지원하기', '지원']),
       notice: uniq([scheduleNote ? null : c.notice]),
       // 라벨 칩은 날짜 앞의 「접수기간」이 먼저(잡다 PC 5/5 「모집기간」 칩 + 날짜, NAP 320×480 「모집기간」 칩 — 10-12 매체별 규격정리). 날짜가 없으면 직무·고용형태
-      label: uniq([period ? '접수기간' : null, c.role ? `모집직무 : ${c.role}` : null, c.employType]),
+      label: uniq([period ? '접수기간' : null, c.role ? `모집직무 : ${c.role}` : null]),
       url: uniq([c.applyUrl ? String(c.applyUrl).replace(/^https?:\/\//, '') : null]),
       // 상세 정보 줄 — 우선순위 순. 자리(줄 수)가 모자라면 뒤에서부터 뺀다.
       details: [
         period ? { label: '접수기간', value: period } : null,
         c.role ? { label: '모집직무', value: c.role } : null,
-        c.location ? { label: '근무지', value: c.location } : null,
-        c.employType ? { label: '고용형태', value: c.employType } : null,
+        ...cleanRows(c.rows).map(r => ({ label: r.label, value: r.value, extraRow: true })),   // 11-10 추가 행 — 모집직무와 같은 모양, 자리가 모자라면 뒤에서부터 빠진다(TR.rowsDropped → 검수 경고)
         qual ? { label: '지원자격', value: qual } : null,
       ].filter(Boolean),
     };
@@ -936,6 +971,8 @@ function bustCrop(html, style, bust, spec) {
 
 function renderAdBase(ctx, style, spec) {
   const rules = spec.rules ?? {};
+  if (ctx?.kind === 'recruit' && !ctx.core?.__subProbe) ctx = { ...ctx, core: adCore(ctx.core, ctx.core?.season ? subShows(ctx, style, spec) : false) };   // 11-10 연도 한 번·추가 문구·추가 행(시즌이 있을 때만 서브 자리를 재 본다)
+  else if (ctx?.kind === 'recruit') ctx = { ...ctx, core: adCore(ctx.core, true) };
   // 오브젝트 누끼 — 투명 PNG 필수 자리와 그라데이션을 넣을 수 없는 상자 자리는 배경 노릇을 하는 키비주얼 대신 따로 올린 누끼를 쓴다(core/adfields.js objectNeedOf).
   // 없으면 그 자리는 글자만(hasKv 게이트). 누끼가 아닌 그림을 올렸어도 같은 게이트에 걸려 글자만 — 앱이 올릴 때 알려 준다
   const objectNeed = objectNeedOf(rules, style.kvMeta?.field ?? null);
@@ -1075,7 +1112,7 @@ function renderAdBase(ctx, style, spec) {
     const noCl = c => !String(c).includes(cl);
     if (n > (CL.mainMax ?? 6)) {
       for (const k0 of ['main', 'mainNarrow', 'mainWide']) { const kept = (ladder[k0] ?? []).filter(noCl); if (kept.length) ladder[k0] = kept; }
-      const season0 = ctx.core.season ? String(ctx.core.season) : null;
+      const season0 = (ctx.core.season || ctx.core.subText) ? String(ctx.core.season || ctx.core.subText) : null;   // 11-10: 서브 자리엔 시즌 대신 추가 문구 — 「추가 문구 회사」 한 줄이 안 들어가면 회사만(아래 칸 맞춤)
       if (inSub) { const first = [...new Set([n <= 8 && season0 ? `${season0} ${cl}` : null, cl].filter(Boolean))]; for (const k0 of ['sub', 'subNarrow']) ladder[k0] = [...first, ...(ladder[k0] ?? []).filter(c => !first.includes(c))]; fired('templateMold.clientToSub'); }
       else { for (const k0 of ['sub', 'subNarrow']) { const kept = (ladder[k0] ?? []).filter(noCl); if (kept.length) ladder[k0] = kept; } fired('templateMold.clientDropped'); }
     }
@@ -1087,8 +1124,9 @@ function renderAdBase(ctx, style, spec) {
       // 11-09: 「회사 / 채용」(채용구분을 뺀 「○○ 채용」 후보)은 두 줄로 앞세우지 않는다 — 달력 328×466 에서 「기업명 / 신입/경력 채용」이 안 들어가면 「기업명 / 채용」이 「신입/경력 채용」보다 먼저 잡혔다(컨시어지 「채용」만 남음)
       const two = (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(cl + ' ') && String(c).length > cl.length + 1 && !(String(c) === `${cl} 채용` && hireFor(ctx.core ?? {}) !== '채용')).map(c => `${cl}\n${String(c).slice(cl.length + 1)}`);
       /* mold.seasonMain(인스타 1080·구글 300×1050 수정본 10-16): 「시즌 회사명 / 채용구분」 두 줄을 회사명 두 줄보다 먼저 — 구글 가이드(seasonInMain) 사다리의 「회사명 시즌 채용구분」이 「ABL생명 / 2024 신입사원 공개채용」 3줄로 접히던 것 */
-      const sn = ctx.core?.season ? String(ctx.core.season) : null; const head = sn ? `${sn} ${cl}` : null;
-      const seasonTwo = (mold.seasonMain && head) ? (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(head + ' ') && String(c).length > head.length + 1).map(c => `${head}\n${String(c).slice(head.length + 1)}`) : [];
+      const sn = ctx.core?.season ? String(ctx.core.season) : null;
+      const heads = sn ? [...new Set([sn, sn.match(/(?:19|20)\d{2}년?/)?.[0]].filter(Boolean))].map(y => `${y} ${cl}`) : [];   // 11-10: 시즌 그대로 → 연도만(「2026년 한빛소프트 / 신입사원 공개채용」)
+      const seasonTwo = heads.flatMap(head => (ladder[k0] ?? []).filter(c => !String(c).includes('\n') && String(c).startsWith(head + ' ') && String(c).length > head.length + 1).map(c => `${head}\n${String(c).slice(head.length + 1)}`));
       if (two.length || seasonTwo.length) ladder[k0] = [...seasonTwo, ...two, ...(ladder[k0] ?? [])];
     }
   }
@@ -1927,8 +1965,9 @@ function renderAdBase(ctx, style, spec) {
       // 매체 값만 믿으면 이미지 옆 좁은 열(PC팝업 550×400)에서 실제로는 더 많이 접혀 상세 3줄 규정을 넘긴다
       const perLine = Math.min(detailSlot.maxCharsPerLine ?? Infinity, Math.max(6, Math.floor(detailW / (fs * 0.9))));
       const narrow = perLine <= 12;
-      const lines = []; let used = 0, skipped = 0;
+      const lines = []; let used = 0, skipped = 0, extraOut = false;
       for (const d of cands0) {
+        if (d.extraRow && extraOut) { skipped++; continue; }   // 11-10 추가 행은 뒤에서부터 빠진다 — 앞 행이 안 들어가면 뒤 행도 넣지 않는다(순서 지킴)
         const inline = `${d.label} : ${d.value}`;
         // 넓은 지면은 라벨 뒤에 값이 이어지고 길면 다음 줄로 흐른다(세아제강 "모집직무 : 인사, 연구개발, 전기, / 에너지…"). 좁은 띠는 라벨 줄 + 값 줄(도레이·PT코리아)
         // 틀(mold)은 칸 폭이 정확하므로 글자수 어림 대신 글꼴 폭으로 센다 — 「접수기간 ㅣ 9.22(월) - 10.12(일)」(M메인 24px·칸 457)은 한 줄인데 글자수(27자 > 21)로는 두 줄로 세어 모집직무가 떨어졌다(10-15)
@@ -1938,8 +1977,8 @@ function renderAdBase(ctx, style, spec) {
         const valTxt = stackTags ? String(d.value).split(/\s*,\s*/).filter(Boolean).join('ㅣ') : d.value;   // 쉼표로만 나눈다 — 「경영·제품·사업 분야」 가운뎃점 묶음은 한 항목(A5)
         const valRows = mold ? widthRows(String(d.value)) : (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
         const needed = useInline ? inlineRows : 1 + valRows;
-        if (used + needed > cap) { skipped++; continue; }
-        lines.push({ label: d.label, value: d.value, inline: useInline, rows: needed });
+        if (used + needed > cap) { skipped++; if (d.extraRow) extraOut = true; continue; }
+        lines.push({ label: d.label, value: d.value, inline: useInline, rows: needed, extraRow: !!d.extraRow });
         used += needed;
       }
       return { lines, skipped };
@@ -1956,6 +1995,9 @@ function renderAdBase(ctx, style, spec) {
     }
     detailLines.push(...r.lines);
   }
+  // 11-10 추가 행 중 상세 자리가 있는데 못 들어간 것 — 검수 경고(core/lint.js rows-dropped). 상세 자리가 없는 규격(want.detail 거짓)은 원래 안 넣는 것이라 경고하지 않는다
+  { const shown = new Set(detailLines.map(d => d.label)), said0 = v => [copy.main, copy.sub].some(t => String(t ?? '').replace(/\n/g, ' ').includes(String(v)));
+    TR.rowsDropped = want.detail ? (ladder.details ?? []).filter(d => d.extraRow && !shown.has(d.label) && !said0(d.value)).map(d => d.label) : []; }
 
   // 매체 글자 크기 띠가 레이아웃 메인보다 작으면(블라인드 56 < 75) 서브·상세도 같은 비율로 — 메인만 줄면 서브가 메인만 해진다
   const kRange = (useRef && fsRange?.max != null && L.main) ? Math.min(1, fsRange.max / L.main) : 1;
@@ -2769,11 +2811,13 @@ ${tplLogo}${kvWrap(tplObject)}
       //   11-09: 틀 밖 규격(글자 크기 줄임 허용)도 서브 칸이 비었거나 시즌만일 때는 같은 방식 — 줄임(kkSelf)으로 안 들어가면 메인은 채용구분, 기업명은 서브. 슬로건·헤드라인이 서브를 쓰고 있으면 안 올린다
       const moveClientToSub = () => {
         if (needClMain || !MR.sub || MR.sub.content === 'period' || !MR.sub.lines) return false;
-        if (!strictPx) { const s = String(copy.sub ?? '').trim(), sn = String(ctx.core?.season ?? '').trim(); if (s && s !== sn && !s.includes(cl0)) return false; }
+        const s0 = String(copy.sub ?? '').trim(), sn0 = String(ctx.core?.season || ctx.core?.subText || '').trim();   // 11-10: 서브의 추가 문구도 시즌처럼 회사 앞에 남긴다(「2026 하반기 세아제강」)
+        if (!strictPx) { const s = s0, sn = sn0; if (s && s !== sn && !s.includes(cl0)) return false; }
         const subPx = MR.sub.px * k, subW = MR.sub.w != null ? MR.sub.w * k : colW, parts = cl0.split(/\s+|(?<=[\/∙·&])/).filter(Boolean);
         if (moldW(cl0) * subPx > subW * MR.sub.lines || parts.some(pt => moldW(pt) * subPx > subW)) return false;
         const c = cands.find(c => !String(c).includes(cl0) && rowsOfMain(c) <= MR.main.lines); if (!c) return false;
-        copy.main = c; copy.sub = cl0; fired('templateMold.clientToSub');
+        const both = s0 && s0 === sn0 && !s0.includes(cl0) ? `${s0} ${cl0}` : null;
+        copy.main = c; copy.sub = (both && wrapRows(both, subPx, Math.max(1, subW)) <= MR.sub.lines) ? both : cl0; fired('templateMold.clientToSub');
         return true;
       };
       // 11-02 담당자(카카오 비즈보드 「하나증권 채용연계형 인턴십」 14자가 「하나증권 채용」으로): 고른 문구에 회사명이 있으면 짧은 후보로 바꾸기 전에 그 문구를 바닥(.85)까지 줄여 본다 — 정보 많은 문구를 작게 > 정보 뺀 문구를 크게
@@ -2907,6 +2951,7 @@ ${tplLogo}${kvWrap(tplObject)}
     if (copy.main && mR) put('main', mR, mR.lines ?? 2, mR.weight ?? fwOf('main', mainPx), mainFg, mainLines.join('<br/>'), copy.main);
     // 틀 상세의 글감: 틀이 항목(items)을 정했으면 사다리의 상세 후보(ladder.details)에서 그 항목을 그대로 — 일반 배치의 「서브에 이미 든 말·날짜 줄 분리」 추림을 타지 않는다
     //   (에브리타임 홈배너 1:1309 「모집기간: …」 둘째 줄 · 캐치 이미지형 기타문구 — 10-15 틀 확장). 행 수는 틀 칸 폭·글꼴 폭으로
+    let moldRowsShown = null;   // 11-10 틀 상세에 실제로 들어간 행(추가 행 빠짐 경고용)
     const moldDetailSrc = (() => {
       if (!MR.detail?.items) return detailLines;
       const dpx = pxOf(MR.detail), wr = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, rowW(MR.detail)))), sep0 = MR.detail.labelSep ?? ' :';   // 행 수는 상세 행 자체의 폭으로(열 폭이 아니라 — 블라인드 게시글 열 498 vs 상세 행 600, 네이버 479 vs 714; 10-15 저녁)
@@ -2915,17 +2960,18 @@ ${tplLogo}${kvWrap(tplObject)}
       // 라벨 열 + 값 열(mold.rows.detail.labelCol — 네이버 DA 107:657 「모집 기간 | 값」「모집 직무 | 값」, 10-16 오후): 행 수는 값 열 폭으로. 날짜(접수기간)는 한 줄(줄바꿈 금지 — 107:657 「2.28(수) - 3.10(일)」, 값 열 밖으로 나가도 칸 위쪽이라 그림과 안 겹침)
       const wrc = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k))));   // 값 열 폭 = valueW(107:657 직무 값 상자 240) 또는 칸 폭 − 라벨 열
       const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? 1 : wrc(String(value)) } : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
-      const rows0 = (ladder.details ?? []).filter(d => MR.detail.items.includes(d.label) && d.value && !seen.has(d.label) && seen.add(d.label))
+      const rows0 = (ladder.details ?? []).filter(d => moldItemOk(MR.detail, d) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           // 그 밖의 항목(모집직무 등)도 칸에 안 들어가면 짧은 후보 — 괄호 속 설명을 빼고(「일반(사업, 재무 등), 보훈(사업/경영지원)」 → 「일반, 보훈」), 그래도 넘치면 앞 항목만(10-22 루프 r1: 네이버 1250 직무 줄 잘림 A·C 공통)
           const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*[,·/]\s*/).filter(Boolean); return [s0, s1, ...items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ') + ' 등')].filter((x, i, a) => x && a.indexOf(x) === i); };
-          const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : shortOf(d.value);
+          const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : d.extraRow ? [d.value] : shortOf(d.value);   // 11-10 추가 행은 줄이지 않는다 — 들어가거나 빠지거나
           const opts = cands.map(v => rowOf(d.label, v));
-          return { ...(opts.find(r => r.rows <= cap0) ?? opts[0]), _opts: opts };
+          return { ...(opts.find(r => r.rows <= cap0) ?? opts[0]), _opts: opts, extraRow: !!d.extraRow };
         });
       // 합계도 칸 안에(줄 사이 간격 몫 0.25줄씩) — 넘치면 가장 긴 행부터 다음 짧은 후보로(10-22 네이버 1250: 접수기간 1 + 직무 3 + 간격 > 4줄 칸)
       { const gapRows = MR.detail.labelCol ? 0.25 : 0;   // 라벨 열 틀(네이버 DA)만 행 사이 간격(8px ≈ 0.25줄)이 있다 — 자소설·캐치는 간격 0
-        const total = () => rows0.reduce((a, r) => a + r.rows, 0) + Math.max(0, rows0.length - 1) * gapRows;
+        const base0 = () => rows0.filter(r => !r.extraRow);   // 11-10: 추가 행 때문에 기본 행(접수기간·모집직무)을 줄이지 않는다 — 추가 행은 남는 자리에만
+        const total = () => base0().reduce((a, r) => a + r.rows, 0) + Math.max(0, base0().length - 1) * gapRows;
         for (let guard = 0; guard < 8 && rows0.length && total() > cap0; guard++) {
           const i = rows0.reduce((bi, r, j) => (r._opts.findIndex(o => o.value === r.value) < r._opts.length - 1 && (bi < 0 || r.rows > rows0[bi].rows) ? j : bi), -1); if (i < 0) break;
           const r = rows0[i], k0 = r._opts.findIndex(o => o.value === r.value); rows0[i] = { ...r._opts[k0 + 1], _opts: r._opts };
@@ -2938,7 +2984,8 @@ ${tplLogo}${kvWrap(tplObject)}
       const dR = (dR0.afterMain != null && mR) ? { ...dR0, y: mR.y + (mainN - 1) * (mR.pitch ?? mR.px * 1.2) + dR0.afterMain } : dR0;
       const dLw = dR.labelWeight ?? 700; const cap = dR.lines ?? 3;
       const rows = []; let n = 0;
-      for (const d0 of moldDetailSrc.filter(d => !dR.items || dR.items.includes(d.label))) { const d = d0.rows <= cap - n ? d0 : d0._opts?.find(o => o.rows <= cap - n); if (!d) break; n += d.rows; rows.push(d); }   // 메인 2줄이면 상세 칸이 줄어든다 — 항목을 버리기 전에 짧은 후보(「~ 등」)로(11-02 노션: M메인 모집직무 자동 삭제)   // 틀이 정한 항목만(세아: 모집일정·모집직무 — 고용형태 줄 없음)
+      for (const d0 of moldDetailSrc.filter(d => !dR.items || moldItemOk(dR, d))) { const d = d0.rows <= cap - n ? d0 : d0._opts?.find(o => o.rows <= cap - n); if (!d) break; n += d.rows; rows.push(d); }
+      moldRowsShown = rows;   // 메인 2줄이면 상세 칸이 줄어든다 — 항목을 버리기 전에 짧은 후보(「~ 등」)로(11-02 노션: M메인 모집직무 자동 삭제)   // 틀이 정한 항목만(세아: 모집일정·모집직무 — 고용형태 줄 없음)
       const sep = dR.labelSep ?? ' :';   // M메인 샘플 「접수기간 ㅣ 값」(FITI 1:10459) — 라벨 뒤 구분자
       // 알약 칩 라벨(mold.rows.detail.chip — 구글 ABL 「모집분야」 흰 칩 Bold #0074E5 + 값 SemiBold/Medium, 세로형은 칩 아래 가운데 여러 줄, 10-15 저녁): 라벨은 칩에, 상세 행은 값만
       const CH = dR.chip ?? null;
@@ -2993,9 +3040,10 @@ ${tplLogo}${kvWrap(tplObject)}
       else if (txt) put('date', dateRow, MR.date.lines ?? 1, MR.date.weight ?? fwOf('date', pxOf(MR.date)), subFg, dateInner, txt);
     }
     // 태그 칩 행(mold.rows.tags — 잡다 PC 1:6026 「태그문구」 칸: y174 칩 h24 글자 12 SemiBold, 모서리 4, 안쪽 8, 칩 간격 8 · 샘플 5/8). 글감은 고용형태·직무 조각, 칸 폭에 들어가는 만큼. 칩 색은 기존 가이드(chipStyleOf)
-    if (MR.tags && (ctx.core?.employType || ctx.core?.role)) {
+    const empTag = rowValue(ctx.core, /고용/);   // 11-10: 고용형태는 추가 행에서
+    if (MR.tags && (empTag || ctx.core?.role)) {
       const tg = MR.tags, tpx = pxOf(tg), th = Math.round((tg.h ?? tg.px * 2) * k), padX = Math.round((tg.padX ?? 8) * k), gap = Math.round((tg.gap ?? 8) * k), rad = Math.round((tg.radius ?? 4) * k);
-      const toks = [...new Set([...String(ctx.core.employType ?? '').split(/\s*[,·\/]\s*/), ...String(ctx.core.role ?? '').split(/\s*,\s*/)].map(t => t.trim()).filter(t => t && t.length <= 14))];   // 고용형태는 「신입·경력」을 둘로(호남대 「정규직원」「경력」), 직무는 쉼표로만(A5: 「경영·제품·사업 분야」 한 항목)
+      const toks = [...new Set([...String(empTag ?? '').split(/\s*[,·\/]\s*/), ...String(ctx.core.role ?? '').split(/\s*,\s*/)].map(t => t.trim()).filter(t => t && t.length <= 14))];   // 고용형태는 「신입·경력」을 둘로(호남대 「정규직원」「경력」), 직무는 쉼표로만(A5: 「경영·제품·사업 분야」 한 항목)
       // 여러 줄(tg.rows — 구글 템플릿 580·300 「상세 문구」 칩 2×2, 10-16)·평문(tg.plain — 한국앤컴퍼니 샘플 「Sales · Business · R&D」 점 구분, 칩 바탕 없음)
       const tRows = Math.max(1, tg.rows ?? 1), rowGap = Math.round((tg.rowGap ?? 2) * k), tagW = tg.w != null ? Math.round(tg.w * k) : colW, plain = !!tg.plain, dotW = plain ? Math.round(tpx * 0.22) : 0, dotGap = plain ? Math.round(tpx * 0.55) : 0;
       const items = []; let used0 = 0, rowN = 1;
@@ -3042,7 +3090,9 @@ ${tplLogo}${kvWrap(tplObject)}
     const moldKv = kvWrap((AM && AM.kv !== 'keep' && AM.kv && imgCorner) ? alignObjectHtml(tplObject, TA) : tplObject);   // 정렬 프리셋(10-19): 거울 모서리 칸은 녹임 방향·배경 위치 낱말도 뒤집는다(왼쪽 열·아래 띠는 기존 분기가 그대로 맞다)
     TR.mode = 'templateMold';
     TR.place = { ...TR.place, mode: 'mold', tImage, imgCol: imgLeftCol ? 'left' : imgRightCol ? 'right' : imgBottomBand ? 'bottom' : imgCorner ? 'corner' : null, zone: { ...(TR.place?.zone ?? {}), col: { x: sx, y: top0, w: colW, h: Math.round(bot - top0) }, cut: null, side: 'template', align: TA ?? mold.align ?? 'left', v: 'top', margin: { left: sx, top: top0, right: w - sx - colW, bottom: h - bot } } };
-    TR.copy = { ...(TR.copy ?? {}), main: copy.main, sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.map(d => d.label) : [] };   // main: 틀 사다리가 바꾼 뒤의 문구(11-09: 전달 시트·검수 표가 렌더와 어긋나던 것)
+    TR.copy = { ...(TR.copy ?? {}), main: copy.main, sub: used.sub ? copy.sub : null, date: used.date ? copy.date : (TR.copy?.date ?? null), details: used.detail ? moldDetailSrc.filter(d => !d.extraRow || (moldRowsShown ?? []).some(r => r.label === d.label)).map(d => d.label) : [] };   // main: 틀 사다리가 바꾼 뒤의 문구(11-09: 전달 시트·검수 표가 렌더와 어긋나던 것)
+    { const R0 = MR.detail, ext = (ladder.details ?? []).filter(d => d.extraRow);
+      TR.rowsDropped = (R0?.items && R0.items.includes('모집직무') && !R0.chip && !R0.valuesOnly) ? ext.filter(d => !(moldRowsShown ?? []).some(r => r.label === d.label)).map(d => d.label) : []; }
     TR.mold = { source: mold.source ?? null, rows: used, mainN, subN, field: fz, logo: tLogo, image: tImage, labels: { period: labelOf('접수기간') }, color: moldFg };
     if (FIX?.textK && FIX.textK < 1) fired('overlapFix.text');
     // 글자 덩어리 어림 상자(겹침 교정 overlapFix): 틀 행마다 top·피치·줄 수, 폭은 글자 폭(textWidth×px×1.04, 행 폭 안) — 정렬대로 x

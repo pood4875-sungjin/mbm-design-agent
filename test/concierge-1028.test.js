@@ -52,7 +52,7 @@ test('#1 (a) 음절 덩어리 — syllableChunks 고른 길이 · softBreakLong 
 test('#1 (b) 자소설 PC채용공고 160×600 기업명 글자수 기준(mold.clientLen): 6자 이하 메인 두 줄 · 7~18자 서브로 — 노션 원문은 9자·16자 생략을 오류로 적었다(11-02 전수조사)', () => {
   const sp = specs['jasoseol-pc-premium-jobpost-pc'];
   assert.deepEqual(specOf('jasoseol-pc-standard-jobpost-pc').safeArea.measuredFromTemplate.mold.clientLen, sp.rules.safeArea.measuredFromTemplate.mold.clientLen);
-  const run = client => { const h = renderAd(ctxOf({ client, hiringType: '신입/경력 채용', role: '영업', deadline: '2026-11-20', season: '2026 하반기' }), style, sp); return { main: fieldOf(h, 'main'), sub: fieldOf(h, 'sub'), rules: rulesOf(h) }; };
+  const run = client => { const h = renderAd(ctxOf({ client, hiringType: '신입/경력 채용', role: '영업', deadline: '2026-11-20', subText: '2026 하반기' /* 11-10: 서브는 추가 문구로 */ }), style, sp); return { main: fieldOf(h, 'main'), sub: fieldOf(h, 'sub'), rules: rulesOf(h) }; };
   const r4 = run('세아제강'); assert.equal(r4.main, '세아제강\n신입/경력 채용'); assert.equal(r4.sub, '2026 하반기');
   const r8 = run('인천국제공항보안'); assert.equal(r8.main, '신입/경력 채용'); assert.ok(r8.sub.includes('인천국제공항보안'), r8.sub); assert.ok(r8.rules.includes('templateMold.clientToSub'));
   const r9 = run('인천국제공항보안공'); assert.equal(r9.main, '신입/경력 채용'); assert.ok(r9.sub.includes('인천국제공항보안공'), r9.sub);
@@ -65,7 +65,8 @@ test('#1 (d) 채용 구분이 비면 「채용」을 지어 넣지 않는다 —
   assert.equal(L.main[0], '현대오일터미널 주식회사'); assert.ok(!L.main.some(c => /^현대오일터미널 주식회사 채용$/.test(c)) && L.main.includes('생산전문직'));
   for (const id of ['jasoseol-pc-standard-main-pc', 'google-gdn-300x600', 'jasoseol-pc-calendar-pc']) assert.doesNotMatch(fieldOf(renderAd(ctxOf(HDOIL), style, specs[id]), 'main'), /채용/, id);
   assert.equal(fieldOf(renderAd(ctxOf(HDOIL), style, specs['jasoseol-pc-premium-jobpost-pc']), 'main'), '생산전문직');
-  assert.equal(copyLadder(ctxOf({ client: 'A', employType: '정규직' })).main[0], 'A 정규직 채용');
+  // 11-10: 고용형태는 추가 행(상세 줄) — 메인 「A 정규직 채용」으로 끌어오지 않는다(한 항목 한 곳)
+  { const L2 = copyLadder(ctxOf({ client: 'A', employType: '정규직' })); assert.equal(L2.main[0], 'A'); assert.ok(L2.details.some(d => d.label === '고용형태' && d.value === '정규직')); }
   // 사례: 인천국제공항보안(8자)·피에스케이 — 채용구분이 있으면 그대로
   assert.equal(fieldOf(renderAd(ctxOf(ICN), style, specs['jasoseol-pc-standard-main-pc']), 'main'), '인천국제공항보안\n일반직 채용');
   assert.equal(fieldOf(renderAd(ctxOf(PSK), style, specs['jasoseol-pc-premium-jobpost-pc']), 'main'), '피에스케이\n전문연구요원 채용');

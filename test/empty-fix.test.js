@@ -11,7 +11,7 @@ import { CANON } from '../core/canon.js';
 
 const specs = adSpecEntries();
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
-const SHORT = { client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' };
+const SHORT = { client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', hiringType: '정규직' /* 11-10: 고용형태 칸 → 추가 행. 옛 메인 그대로 */, employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' };
 const prof = (n, f) => Array.from({ length: n }, (_, i) => ({ bg: f(i / (n - 1)), hex: null }));
 // 파란 바탕 발광 큐브(pin-glow-cube 꼴): 세로형 1080×1440, 위·아래 변이 평평한 그라데이션(gradEdge → 그라데이션 바탕 일러스트), 주인공은 가운데 55%×40% — 열·행 프로필의 바탕 몫으로만 드러난다
 const CUBE = { ar: 0.75, px: [1080, 1440], edge: '#081A4E', colors: ['#2672FE', '#0B2A7A', '#9CC8FF'], field: {

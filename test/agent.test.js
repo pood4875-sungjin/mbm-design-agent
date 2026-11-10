@@ -30,9 +30,9 @@ test('the flow has three phases and only asks for what the big text needs', () =
 
 test('what the brief already says is read, not asked again', () => {
   const r = extractRecruit('한진정보통신 클라우드 플랫폼 엔지니어 채용 광고. 카카오 비즈보드, 자소설닷컴, 네이버에 나가요. 정규직, 서울 여의도, 10월 31일 마감.', NOW);
-  assert.deepEqual(r, { employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', hiringType: '클라우드 플랫폼 엔지니어 채용' });   // 10-21: 「○○ 채용」의 ○○이 직무면 채용 구분도 그 구절(서울아산병원 「디자이너 채용」)
+  assert.deepEqual(r, { deadline: '2026-10-31', client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', hiringType: '클라우드 플랫폼 엔지니어 채용', rows: [{ label: '근무지', value: '서울 여의도' }, { label: '고용형태', value: '정규직' }] });   // 11-10: 근무지·고용형태는 추가 행   // 10-21: 「○○ 채용」의 ○○이 직무면 채용 구분도 그 구절(서울아산병원 「디자이너 채용」)
   assert.equal(extractRecruit('한독의 영업 담당자 모집 (서울 강남구, 11/15까지)', NOW).deadline, '2026-11-15');
-  assert.equal(extractRecruit('SK하이닉스 신입 공정 엔지니어 모집, 경기 이천, 계약직', NOW).location, '경기 이천');
+  assert.deepEqual(extractRecruit('SK하이닉스 신입 공정 엔지니어 모집, 경기 이천, 계약직', NOW).rows, [{ label: '근무지', value: '경기 이천' }, { label: '고용형태', value: '계약직' }]);
   assert.equal(extractRecruit('지원은 https://x.y/apply/2026/10/31 에서', NOW).applyUrl, 'https://x.y/apply/2026/10/31');
 });
 
@@ -67,8 +67,8 @@ test('what the brief does not say stays blank — no guessing', () => {
   assert.equal(many.deadline, undefined, '날짜가 여럿이고 마감 표시도 기간 표시(~·부터)도 없으면 고르지 않는다');
   assert.equal(many.client, undefined);
   assert.deepEqual({ season: many.season, hiringType: many.hiringType }, { season: '2026 하반기', hiringType: '신입 공채' });
-  assert.equal(extractRecruit('부산은행 채용', NOW).location, undefined, '사명 안의 지명은 근무지가 아니다');
-  assert.equal(extractRecruit('서울 근무 개발자 채용', NOW).location, '서울');
+  assert.equal(extractRecruit('부산은행 채용', NOW).rows, undefined, '사명 안의 지명은 근무지가 아니다');
+  assert.deepEqual(extractRecruit('서울 근무 개발자 채용', NOW).rows, [{ label: '근무지', value: '서울' }]);
   assert.equal(extractRecruit('주소는 https://x.y/2026/10/31', NOW).deadline, undefined, '주소 안의 숫자는 날짜가 아니다');
 });
 

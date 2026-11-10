@@ -24,7 +24,7 @@ test('시즌(서브) 굵기 하한: 메인 700 이상인데 시즌 400 인 틀(g
   const spec = adSpecEntries()['google-gdn-970x250']; const fr = frameFor(f, spec); assert.ok(fr);
   assert.ok((fr.rows.find(r => r.role === 'season')?.wt ?? 700) < 500, '원본 시즌은 얇다');
   const PNG = 'data:image/png;base64,iVBORw0KGgo=';
-  const ctx = createContext({ client: '한진정보통신', role: '클라우드', employType: '신입 공채', location: '', deadline: '2026-10-31', season: '2026년' }, 'recruit');
+  const ctx = createContext({ client: '한진정보통신', role: '클라우드', hiringType: '신입 공채', deadline: '2026-10-31', subText: '2026년' }, 'recruit');   // 11-10: 시안 틀 서브 줄은 추가 문구(시즌은 서브에 안 쓴다), 고용형태 칸 → 채용 구분
   const prof = (n, g) => Array.from({ length: n }, (_, i) => ({ bg: g(i / (n - 1)) }));
   const PHOTO = { ar: 1.5, px: [1500, 1000], field: { kind: 'photo', opaque: 1, lum: 0.4, sat: 0.3, focus: { x: 0.6, y: 0.5, w: 0.5, h: 0.8, parts: 1, others: [] }, cols: prof(32, () => 0.4), rows: prof(32, () => 0.4) } };
   const style = normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: PHOTO, logo: PNG, logoMeta: { px: [1043, 304], tone: 'dark' }, tpl: f.id, fonts: { heading: f.font, body: f.font } });

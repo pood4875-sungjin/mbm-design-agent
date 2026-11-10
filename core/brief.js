@@ -65,18 +65,19 @@ export function extractRecruit(text, now = new Date()) {
   const tb = t.replace(/^[ \t]*[-–•·▶►]\s+/gm, '');   // 「* 」는 고지 줄이라 남긴다
 
   const emp = tb.match(EMPLOY);
-  if (emp) out.employType = emp[1].replace(/\s/g, ' ');
+  const employ0 = emp ? emp[1].replace(/\s/g, ' ') : null;   // 11-10: 고용형태는 추가 행으로(끝에서) — 채용 구분에 이미 든 말이면 빼고
   const hir = tb.match(HIRING);
   if (hir) out.hiringType = hir[1].replace(/\s+/g, ' ').replace(/\s?([\/·∙])\s?/g, '$1').trim();
   const sea = tb.match(SEASON);
   if (sea) out.season = sea[1].replace(/\s+/g, ' ').replace(/(\d{4})\s?년/, '$1년').trim();
 
   const loc = tb.match(REGION_RE);
+  let place0 = null;   // 11-10: 근무지도 추가 행으로(끝에서)
   if (loc) {
     // 뒤따르는 낱말은 지명일 때만 붙인다 — "서울 근무"의 근무는 지명이 아니다
     const w = loc[3];
     const next = w && !EMPLOY.test(w) && !NOT_PLACE.test(w) && (PLACE_TAIL.test(w) || REGION_ONE.test(w) || /^[가-힣]{2,4}$/.test(w)) ? ` ${w}` : '';
-    out.location = `${loc[1]}${loc[2] ?? ''}${next}`;
+    place0 = `${loc[1]}${loc[2] ?? ''}${next}`;
   }
 
   // 마감일 — "마감"·"까지"가 붙은 날짜가 먼저. 날짜가 하나뿐이면 그것. 여럿인데 표시가 없으면 고르지 않는다.
@@ -102,7 +103,8 @@ export function extractRecruit(text, now = new Date()) {
   // 직무 라벨 — "모집부문 건설사업관리 PM"·"모집직무: 인사, 연구개발"·"모집분야: 전장설계, 공정개발" 라벨 뒤의 구절이 직무다(레퍼런스 상세 줄의 라벨 그대로).
   // 10-28: 라벨이 있으면 제목 구절의 낱말보다 라벨이 먼저다 — 인천국제공항보안 「일반직 직원 채용 … 모집분야: 전산, 안전/보건」의 「일반직」은 직무가 아니라 채용 구분
   const lab = tb.match(/(?:모집\s?(?:부문|직무|분야)|대상\s?직무|채용\s?직무)\s*[:：]?\s*([^,.\n]+(?:,\s*[^,.\n]+)*)/);
-  const labRole = lab ? lab[1].replace(/\s*(?:입니다|이에요|예요)$/, '').trim() : null;
+  // 11-10: 한 줄에 「모집분야: 전산, 근무지: 판교」처럼 다음 라벨이 이어지면 거기서 끊는다(근무지는 추가 행)
+  const labRole = lab ? lab[1].replace(/\s*,\s*[가-힣][가-힣 ]{0,8}[가-힣]\s*[:：].*$/, '').replace(/\s*(?:입니다|이에요|예요)$/, '').trim() : null;
 
   // 11-09 라벨로 적은 공고(대구경북첨단의료산업진흥재단): 맨 앞 「[기관명]」·「고객사: …」은 고객사, 「채용명·공고명: …」은 채용 구분(메인 문구)
   const brk = tb.match(/^\s*[\[【「]([^\]】」\n]{2,30})[\]】」]/) ?? tb.match(/(?:고객사|기업명|회사명|기관명)\s*[:：]\s*([^\n,]{2,30})/);
@@ -141,13 +143,56 @@ export function extractRecruit(text, now = new Date()) {
   if (!out.hiringType && clause && rest.length && (out.client || out.role)) {
     const par = clause.match(/(?:채용|모집)\s?\(([가-힣A-Za-z· ]{2,8})\)/);
     out.hiringType = `${rest.join(' ')} 채용${par ? `(${par[1]})` : ''}`;
-    if (par && !out.location && /^(전국|전\s?지역|수도권|지방)$/.test(par[1])) out.location = par[1];
+    if (par && !place0 && /^(전국|전\s?지역|수도권|지방)$/.test(par[1])) place0 = par[1];
   }
   // 슬로건 — 「슬로건 "…"」 또는 따옴표 문구(바이오노트 BRINGING NEW INNOVATION·한샘 「당신과 함께 만드는 공간의 가치」)
   const slo = tb.match(/슬로건\s*[:：]?\s*["“'‘]([^"”'’\n]{2,60})["”'’]/) ?? tb.match(/["“]([^"”\n]{4,60})["”]/);
-  if (slo) out.slogan = slo[1].trim();
+  if (slo) out.subText = slo[1].trim();   // 11-10: 슬로건 = 추가 문구(서브 자리 있는 매체에만 나가는 한 덩어리)
   // 고지 문구 — 「* …」 줄, 또는 「채용 일정은 공고별 상이」(한진: 마감 대신 적는 말)
   const nt = tb.match(/(?:^|\s)\*\s?([^\n*]{4,80}?)(?=\s*(?:\n|$))/m) ?? (/일정은\s?공고별\s?상이/.test(tb) ? [null, '채용 일정은 공고별 상이합니다.'] : null);
   if (nt) out.notice = `* ${nt[1].trim().replace(/^\*\s?/, '')}`;
+  // 11-10 추가 행 — 공고의 「라벨: 값」(근무지·고용형태·전형절차·지원방법·우대사항…)을 행으로. 직무·기간·고객사·채용명·슬로건 라벨은 위에서 제 칸으로 갔으니 뺀다(한 항목이 두 곳에 안 들어가게).
+  //   라벨 없이 적은 고용형태(「…, 계약직」)·지역(「경기 이천」)도 행으로 — 채용 구분·직무·고객사에 이미 든 말이면 뺀다(「ETC 영업 채용(전국)」의 전국)
+  const rows = labeledRows(tb);
+  const said = v => [out.hiringType, out.role, out.client].some(t => t && String(t).includes(v));
+  const hasRow = l => rows.some(r => r.label === l);
+  if (place0 && !hasRow('근무지') && !said(place0)) rows.unshift({ label: '근무지', value: place0 });
+  if (employ0 && !hasRow('고용형태') && !said(employ0)) rows.splice(rows.findIndex(r => r.label === '근무지') + 1, 0, { label: '고용형태', value: employ0 });
+  if (rows.length) out.rows = rows;
   return out;
+}
+
+// 공고 라벨 → 짧은 행 라벨(정규화). 앞의 것이 먼저 맞는다. null = 제 칸이 따로 있는 라벨(직무·기간·고객사·채용명·슬로건·지원 경로·매체) — 행으로 안 만든다
+const ROW_LABELS = [
+  [/^근무\s?(?:지|지역|장소|처|위치|예정지)$/, '근무지'],
+  [/^(?:고용|근무|채용|계약)\s?(?:형태|구분)$/, '고용형태'],
+  [/^(?:전형|채용|선발)\s?(?:절차|과정|방법|단계|일정)$/, '전형절차'],
+  [/^(?:지원|접수|응시)\s?(?:방법|방식)$/, '지원방법'],
+  [/^우대\s?(?:사항|조건|요건)?$/, '우대사항'],
+  [/^(?:지원|응시)\s?자격$|^자격\s?(?:요건|조건|사항)$/, '지원자격'],
+  [/^(?:모집|채용|선발)\s?(?:인원|규모)$/, '모집인원'],
+  [/^복리\s?후생$/, '복리후생'],
+  [/^문의(?:처)?$/, '문의'],
+  [/모집|직무|분야|부문|기간|일정|일자|접수|마감|고객사|기업명|회사명|기관명|채용명|공고명|제목|슬로건|매체|링크|홈페이지|경로|URL/i, null],
+];
+function rowLabelOf(raw) {
+  const l = String(raw ?? '').trim();
+  for (const [re, to] of ROW_LABELS) if (re.test(l)) return to;
+  const k = l.replace(/\s+/g, '');
+  return k.length >= 2 && k.length <= 6 ? k : null;   // 그 밖의 짧은 라벨(급여·근무시간·수습기간…)은 띄어쓰기만 지워 그대로
+}
+function labeledRows(tb) {
+  const rows = [];
+  for (const line of String(tb).split('\n')) {
+    const LBL = /(^|[,;]\s*|\.\s+)([가-힣][가-힣 ]{0,8}[가-힣])\s*[:：]\s*/g;
+    const hits = [...line.matchAll(LBL)].map(m => ({ label: m[2], at: m.index + m[1].length, from: m.index + m[0].length }));
+    hits.forEach((h, i) => {
+      const label = rowLabelOf(h.label); if (!label) return;
+      let v = line.slice(h.from, i + 1 < hits.length ? hits[i + 1].at : line.length);
+      v = v.split(/\.\s/)[0].replace(/[\s,.;]+$/, '').replace(/^["“'‘]|["”'’]$/g, '').trim();
+      if (!v || v.length > 60) return;
+      if (!rows.some(r => r.label === label)) rows.push({ label, value: v });
+    });
+  }
+  return rows;
 }

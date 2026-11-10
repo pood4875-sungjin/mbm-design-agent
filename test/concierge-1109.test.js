@@ -63,7 +63,7 @@ test('틀 글자 행 기록은 실제 줄 수 — 메인은 칸 폭에서 접힌
   const t = traceOf(renderArtifact('jasoseol-pc-standard-jobpost-pc', med, st, {}));
   const n = role => t.textBox.rows.filter(r => r.role === role).length;
   assert.ok(n('main') >= 2, `메인 ${n('main')}줄 — 130px 칸에 접힌 줄`);
-  const one = traceOf(renderArtifact('jasoseol-pc-standard-jobpost-pc', createContext({ client: '토스플레이스', hiringType: '신입 채용', season: '채용 공고', role: '서버 개발', deadline: '2026-11-30' }, 'recruit'), st, {}));
+  const one = traceOf(renderArtifact('jasoseol-pc-standard-jobpost-pc', createContext({ client: '토스플레이스', hiringType: '신입 채용', subText: '채용 공고', role: '서버 개발', deadline: '2026-11-30' }, 'recruit'), st, {}));
   assert.equal(one.textBox.rows.filter(r => r.role === 'sub').length, 1, '서브 1줄이면 칸도 1줄');
 });
 

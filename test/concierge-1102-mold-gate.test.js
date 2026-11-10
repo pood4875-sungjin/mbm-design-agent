@@ -26,13 +26,13 @@ const r1 = n => Math.round(n * 10) / 10;
 const MAIN_Y = { 1: 117.5, 2: 141 };
 const FIGMA = { '2x4': { node: '30:1056', detail: 299.1 }, '2x3': { node: '30:1198', detail: 265.5 }, '2x2': { node: '30:1331', detail: 231.9 }, '1x4': { node: '30:1455', detail: 276.4 }, '1x3': { node: '30:1588', detail: 242.8 }, '1x2': { node: '30:1712', detail: 209.2 } };
 const COMBOS = [
-  { name: '서브 2 × 메인 1', f: { client: '현대오일터미널 주식회사', hiringType: '신입채용', season: '' }, sub: 2, main: 1 },   // 12자 기업명 → 서브 줄(2줄), 메인은 채용구분만 — 6유형 밖(메인 1줄), 수식만
-  { name: '서브 1 × 메인 2', f: { client: '한진정보통신', hiringType: '정규직 채용', season: '2026 하반기' }, sub: 1, main: 2 },
-  { name: '서브 1 × 메인 3', f: { client: '마이다스', hiringType: '대규모 공개채용', season: '2025 하반기' }, sub: 1, main: 3 },
-  { name: '서브 1 × 메인 4', f: { client: '케피코', hiringType: '신입 및 경력사원 대규모 공개채용', season: '2026' }, sub: 1, main: 4 },
-  { name: '서브 2 × 메인 2', f: { client: '세아제강', hiringType: '신입채용', season: '2026 하반기 정기 공개채용 시즌' }, sub: 2, main: 2 },
-  { name: '서브 2 × 메인 3', f: { client: '한국산업단지공단', hiringType: '신입 및 경력사원 공개채용', season: '2026 하반기' }, sub: 2, main: 3 },
-  { name: '서브 2 × 메인 4', f: { client: '세아제강', hiringType: '신입 및 경력사원 대규모 공개채용', season: '2026 하반기' }, sub: 2, main: 4 },
+  { name: '서브 2 × 메인 1', f: { client: '현대오일터미널 주식회사', hiringType: '신입채용', subText: '' }, sub: 2, main: 1 },   // 12자 기업명 → 서브 줄(2줄), 메인은 채용구분만 — 6유형 밖(메인 1줄), 수식만
+  { name: '서브 1 × 메인 2', f: { client: '한진정보통신', hiringType: '정규직 채용', subText: '2026 하반기' }, sub: 1, main: 2 },
+  { name: '서브 1 × 메인 3', f: { client: '마이다스', hiringType: '대규모 공개채용', subText: '2025 하반기' }, sub: 1, main: 3 },
+  { name: '서브 1 × 메인 4', f: { client: '케피코', hiringType: '신입 및 경력사원 대규모 공개채용', subText: '2026' }, sub: 1, main: 4 },
+  { name: '서브 2 × 메인 2', f: { client: '세아제강', hiringType: '신입채용', subText: '2026 하반기 정기 공개채용 시즌' }, sub: 2, main: 2 },
+  { name: '서브 2 × 메인 3', f: { client: '한국산업단지공단', hiringType: '신입 및 경력사원 공개채용', subText: '2026 하반기' }, sub: 2, main: 3 },
+  { name: '서브 2 × 메인 4', f: { client: '세아제강', hiringType: '신입 및 경력사원 대규모 공개채용', subText: '2026 하반기' }, sub: 2, main: 4 },
 ];
 
 test('채용공고 160×600 조합 — 서브·메인 줄 수가 문구 따라 바뀌고(2줄/4줄 고정 아님), 메인 y = 서브 1줄 117.5 / 2줄 141 · 상세 y = 메인 y + (메인 줄−1)×34 + 57 (담당자 6유형, docs/jasoseol-mold.md ②)', () => {
@@ -58,13 +58,13 @@ test('채용공고 160×600 조합 — 서브·메인 줄 수가 문구 따라 �
 });
 
 test('PC메인 1200×280 — 서브 Medium 22 y43 · 메인 Bold 32 y81(1줄이면 상세 166, 2줄이면 195 — 「메인 두 줄이면 상세 1행 입력 불가」) (docs/jasoseol-mold.md ③)', () => {
-  const two = render(MAIN, { client: '세아제강', hiringType: '신입/경력사원 채용', season: '2026 하반기' });
+  const two = render(MAIN, { client: '세아제강', hiringType: '신입/경력사원 채용', subText: '2026 하반기' });
   const R2 = two.tr.mold.rows;
   assert.equal(two.tr.mold.mainN, 2); assert.equal(R2.sub.y, 43); assert.equal(R2.sub.px, 22); assert.equal(R2.sub.weight, 500, '서브는 Medium(케피코 28:1002)');
   assert.equal(R2.main.y, 81); assert.equal(R2.main.px, 32); assert.equal(R2.main.weight, 700); assert.equal(R2.detail.y, 195);
   assert.match(two.html, /<div data-field="sub"[^>]*font-size:22px;line-height:26px;font-weight:500/, 'SVG 내보내기(core/svgexport.js)는 이 계산 스타일(font-weight 500)을 그대로 적는다');
   // 메인 1줄: 틀은 「회사 / 채용구분」을 두 줄로 나누므로 1줄은 기업명 없는 문구(9자 → 생략 규칙은 채용공고 clientLen 만, PC메인은 회사명 두 줄 분리) — 상세 y 로 조합을 본다
-  const one = render(MAIN, { client: '세아', hiringType: '채용', season: '2026 하반기' });
+  const one = render(MAIN, { client: '세아', hiringType: '채용', subText: '2026 하반기' });
   assert.ok(one.tr.mold.mainN >= 1);
   assert.equal(one.tr.mold.rows.detail.y, one.tr.mold.mainN === 1 ? 166 : 195);
 });

@@ -3,7 +3,7 @@
 // 편집: 우측 인스펙터 — 선택 없음 = 캠페인 전체(타이핑 즉시 전 산출물 일괄 반영),
 //        산출물 선택 = 그것만 즉시 반영(override, 일괄 반영에서 보존).
 
-import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS } from '../core/context.js';
+import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS, cleanRows, mergeRows, migrateRecruitCore } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
 import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
@@ -176,19 +176,24 @@ function charText(a, id, text, was) {
   let pairs = [];
   if (role === 'detail') {
     // 상세 칸 하나에 여러 줄(「모집일정 : …」「모집직무 : …」)이 들어 있다 — 줄마다 라벨로 칸을 찾고, 라벨 없는 줄은 앞 줄 값의 이어진 줄(사용자가 Enter 로 꺾은 줄)
-    const RE = /^\s*(접수\s*기간|모집\s*기간|모집\s*일정|모집\s*직무|모집\s*분야|직무|근무\s*지역?|근무지|고용\s*형태)\s*[:：|｜ㅣ]?\s*(.*)$/;
-    const fieldOf = l => /기간|일정/.test(l) ? 'dateText' : /직무|분야/.test(l) ? 'role' : /근무/.test(l) ? 'location' : 'employType';
+    // 11-10 추가 행: 라벨이 행 라벨(근무지·전형절차…)이면 그 행 값 — 「row:라벨」로 모아 아래에서 rows 하나로 접는다
+    const rowsNow = cleanRows({ ...c.context.core, ...(a.overrides.core ?? {}) }.rows), escR = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*');
+    const RE = new RegExp(`^\\s*(접수\\s*기간|모집\\s*기간|모집\\s*일정|모집\\s*직무|모집\\s*분야|직무${rowsNow.map(r => '|' + escR(r.label)).join('')})\\s*[:：|｜ㅣ]?\\s*(.*)$`);
+    const fieldOf = l => /기간|일정/.test(l) ? 'dateText' : /직무|분야/.test(l) && !rowsNow.some(r => r.label.replace(/\s+/g, '') === l.replace(/\s+/g, '')) ? 'role' : `row:${rowsNow.find(r => r.label.replace(/\s+/g, '') === l.replace(/\s+/g, ''))?.label ?? l}`;
     const rowsOf = t => { const out = []; for (const ln of String(t).split('\n')) { const m = ln.match(RE); if (m) out.push({ f: fieldOf(m[1]), v: m[2] }); else if (out.length) out[out.length - 1].v += '\n' + ln; else out.push({ f: null, v: ln }); } return out.map(r => ({ ...r, v: clean(r.v) })); };
     const now = rowsOf(text), prev = rowsOf(was);
     pairs = now.filter(r => r.f && (prev.find(p => p.f === r.f)?.v ?? null) !== r.v).map(r => [r.f, r.v]);
     if (!pairs.length && now.every(r => !r.f)) pairs = [['role', clean(text)]];   // 라벨 없는 값만 쓰는 틀(인스타 1080 값만)
+    const rowEd = pairs.filter(p => p[0].startsWith('row:'));
+    if (rowEd.length) pairs = [...pairs.filter(p => !p[0].startsWith('row:')), ['rows', mergeRows(rowsNow, rowEd.map(([f, v]) => ({ label: f.slice(4), value: v })))]];
   } else {
     const f = { main: 'headline', advertiser: 'headline', sub: 'subText', date: 'dateText' }[role];
     if (f) pairs = [[f, clean(text)]];
   }
   if (!pairs.length) { if (role !== 'detail') toast('이 줄은 캔버스에서 고칠 수 없어요 — 왼쪽 패널에서 고쳐 주세요'); refreshFrames(a.key ?? a.specId); return; }
   const o = { ...(a.overrides.core ?? {}) }; let changed = false;
-  for (const [f, v] of pairs) { if ((o[f] ?? c.context.core[f] ?? '') === v) continue; changed = true; if (v !== (c.context.core[f] ?? '')) o[f] = v; else delete o[f]; }
+  const same = (x, y) => Array.isArray(y) ? JSON.stringify(cleanRows(x)) === JSON.stringify(y) : x === y;   // 11-10 rows 는 목록
+  for (const [f, v] of pairs) { if (same(o[f] ?? c.context.core[f] ?? '', v)) continue; changed = true; if (!same(c.context.core[f] ?? '', v)) o[f] = v; else delete o[f]; }
   if (!changed) return;
   pushHistory(`${artLabel(a)} ${pairs.map(p => FIELD_LABEL[p[0]]).join('·')} 캔버스에서 고침`, false);
   a.overrides.core = o; a.status = 'draft'; a.gateOverride = null;
@@ -617,10 +622,11 @@ function initHome() {
     const txt = String(raw ?? '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 8000); $('briefText').value = txt;
     if (!txt) { toast(`${name} — 글자를 못 읽었어요(스캔 PDF 면 글자가 없어요)`); return; }
     const kind = detectKind(txt), f0 = kind === 'recruit' ? extractRecruit(txt) : {};
-    const KEY = ['client', 'hiringType', 'startDate', 'deadline', 'role', 'season', 'slogan', 'notice'];
+    const KEY = ['client', 'hiringType', 'startDate', 'deadline', 'role', 'season', 'subText', 'notice'];
     const got = KEY.filter(k => f0[k]);
-    const L = { client: '고객사', hiringType: '채용 구분', startDate: '접수 시작', deadline: '마감', role: '모집직무', season: '시즌', slogan: '슬로건', notice: '고지' };
-    toast(kind === 'recruit' ? `${name} 읽음 — 찾은 것: ${got.length ? got.map(k => `${L[k]} ${String(f0[k]).slice(0, 18)}`).join(' · ') : '없음'}${['client', 'hiringType', 'deadline', 'role'].some(k => !f0[k]) ? ' · 빈 필수 값은 시작하면 물어봐요' : ''}` : `${name} 읽음`, 6000);
+    const L = { client: '고객사', hiringType: '채용 구분', startDate: '접수 시작', deadline: '마감', role: '모집직무', season: '연도', subText: '추가 문구', notice: '고지' };
+    const rowsTxt = (f0.rows ?? []).map(r => `${r.label} ${String(r.value).slice(0, 12)}`);   // 11-10 추가 행(근무지·전형절차…)
+    toast(kind === 'recruit' ? `${name} 읽음 — 찾은 것: ${got.length || rowsTxt.length ? [...got.map(k => `${L[k]} ${String(f0[k]).slice(0, 18)}`), ...rowsTxt].join(' · ') : '없음'}${['client', 'hiringType', 'deadline', 'role'].some(k => !f0[k]) ? ' · 빈 필수 값은 시작하면 물어봐요' : ''}` : `${name} 읽음`, 6000);
   };
   const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs', PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
   const MAMMOTH = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
@@ -1130,7 +1136,9 @@ function applyPatch(patch = {}) {
   if (patch.kind && KINDS[patch.kind]) it.kind = patch.kind;
   if (patch.track && TRACKS[patch.track]) it.track = patch.track;
   if (patch.media?.length) it.media = [...new Set([...(it.media ?? []), ...patch.media])];
-  Object.assign(it.fields, patch.fields ?? {});
+  const pf = { ...(patch.fields ?? {}) };
+  if (pf.rows) { it.fields.rows = mergeRows(it.fields.rows, pf.rows); delete pf.rows; }   // 11-10 추가 행은 라벨별로 합친다(「근무지 판교로」가 다른 행을 지우지 않게)
+  Object.assign(it.fields, pf);
   if (patch.channels?.length) it.channels = [...new Set([...it.channels, ...patch.channels])];
   if (patch.drop?.media?.length) it.media = it.media.filter(id => !patch.drop.media.includes(id));
   if (patch.drop?.channels?.length) it.channels = it.channels.filter(c => !patch.drop.channels.includes(c));
@@ -1368,28 +1376,56 @@ function afterWhere() {
     : '브리프에서 이렇게 읽었어요. 맞으면 다음, 다르면 칸에서 바로 고치세요.');
   slotBrief();
 }
+// 11-10 추가 행 편집기(읽은 내용 카드·왼쪽 패널 공통) — 사용자 「모집기간, 모집분야 이외에 … 행을 추가한다는 개념으로」.
+//   한 행 = 라벨 | 값(예 근무지 | 판교, 전형절차 | 서류→면접). 위·아래로 순서 바꾸기, × 로 삭제, 「+ 행 추가」. onChange(rows, { now }) — now: 추가·삭제·순서처럼 바로 반영할 변경
+function rowsEditor(host, rows0, onChange, { multi = true } = {}) {
+  if (!host) return;
+  let rows = (rows0 ?? []).map(r => ({ label: r.label ?? '', value: r.value ?? '' }));
+  const draw = (focus = null) => {
+    const n = rows.length;
+    host.innerHTML = rows.map((r, i) => `<div class="lrow" data-ri="${i}" style="display:grid;grid-template-columns:minmax(4.5em,32%) 1fr auto;gap:4px;align-items:start;margin:0 0 4px">
+      <input type="text" data-rl value="${escH(r.label)}" placeholder="라벨" aria-label="${i + 1}번째 행 라벨" autocomplete="off" style="min-width:0">
+      ${multi ? `<textarea data-rv rows="${Math.min(3, Math.max(1, String(r.value).split('\n').length))}" placeholder="값" aria-label="${i + 1}번째 행 값" style="min-width:0">${escH(r.value)}</textarea>` : `<input type="text" data-rv value="${escH(r.value)}" placeholder="값" aria-label="${i + 1}번째 행 값" autocomplete="off" style="min-width:0">`}
+      <span style="display:flex;gap:2px;align-items:center">
+        <button type="button" class="lnk" data-rmv="-1" aria-label="${i + 1}번째 행 위로" title="위로"${i ? '' : ' disabled'}>↑</button>
+        <button type="button" class="lnk" data-rmv="1" aria-label="${i + 1}번째 행 아래로" title="아래로"${i < n - 1 ? '' : ' disabled'}>↓</button>
+        <button type="button" class="lnk" data-rdel aria-label="${i + 1}번째 행 삭제" title="삭제">×</button></span></div>`).join('')
+      + `<button type="button" class="lnk" data-radd>+ 행 추가</button>`;
+    host.querySelectorAll('.lrow').forEach(el => {
+      const i = +el.dataset.ri;
+      el.querySelector('[data-rl]').oninput = e => { rows[i].label = e.target.value; onChange(rows); };
+      el.querySelector('[data-rv]').oninput = e => { rows[i].value = e.target.value; onChange(rows); };
+      el.querySelectorAll('[data-rmv]').forEach(b => b.onclick = () => { const j = i + +b.dataset.rmv; if (j < 0 || j >= rows.length) return; [rows[i], rows[j]] = [rows[j], rows[i]]; draw({ i: j, sel: `[data-rmv="${b.dataset.rmv}"]` }); onChange(rows, { now: true }); });
+      el.querySelector('[data-rdel]').onclick = () => { rows.splice(i, 1); draw({ i: Math.min(i, rows.length - 1), sel: '[data-rdel]' }); onChange(rows, { now: true }); };
+    });
+    host.querySelector('[data-radd]').onclick = () => { rows.push({ label: '', value: '' }); draw({ i: rows.length - 1, sel: '[data-rl]' }); onChange(rows, { now: true }); };
+    if (focus) (host.querySelector(`[data-ri="${focus.i}"] ${focus.sel}`) ?? host.querySelector('[data-radd]'))?.focus();
+  };
+  draw();
+}
 // 읽은 내용 카드 — 필수 칸(채용: 고객사·채용 구분·모집 직무·지원 마감 / 행사: 행사명) + 접힌 선택 칸.
 // 「다음」을 막는 건 ESSENTIAL(고객사)뿐 — 채용 구분·직무·마감은 비워 둘 수 있고 그 줄이 소재에서 빠진다(11-02). 날짜 칸은 떠날 때 YYYY-MM-DD 로 정리한다
 const BRIEF_FIELDS = {
-  recruit: { must: ['client', 'hiringType', 'role', 'deadline'], more: ['startDate', 'season', 'slogan', 'notice', 'employType', 'location'] },   // 마감 시각은 칸으로 안 받는다(10-21 사용자 「마감 시각까진 필요 없을 것 같음」) — 공고에 「17시」「23:59」가 있으면 파서가 읽어 날짜 뒤에 붙인다
+  recruit: { must: ['client', 'hiringType', 'role', 'deadline'], more: ['startDate', 'season', 'subText', 'notice'] },   // 11-10: 고용형태·근무지 칸 폐지 → 아래 「추가 행」(공고의 「라벨: 값」), 슬로건 → 추가 문구   // 마감 시각은 칸으로 안 받는다(10-21 사용자 「마감 시각까진 필요 없을 것 같음」) — 공고에 「17시」「23:59」가 있으면 파서가 읽어 날짜 뒤에 붙인다
   event: { must: ['name'], more: ['date', 'venue', 'audience', 'cta'] },
 };
 const BRIEF_HINT = {
   client: '예: 한진정보통신', hiringType: '예: 신입사원 공개채용 · 경력직 채용', role: '예: 클라우드 플랫폼 엔지니어', deadline: 'YYYY-MM-DD — 없으면 비워 두세요',
-  startDate: 'YYYY-MM-DD', season: '예: 2026 하반기', slogan: '큰 글자 위 한 줄', notice: '예: 공고별 상이', employType: '예: 정규직', location: '예: 서울 여의도',
+  startDate: 'YYYY-MM-DD', season: '예: 2026 하반기 — 서브 없는 매체의 타이틀 앞에만(타이틀에 연도가 있으면 안 붙임)', subText: '서브 자리 있는 매체에만 — 예: 슬로건. 비우면 안 나와요', notice: '예: 공고별 상이',
   name: '예: 2026 AX 세미나', date: 'YYYY-MM-DD', venue: '예: 코엑스 그랜드볼룸', audience: '예: 재직자', cta: '예: 사전등록',
 };
 const DATE_FIELDS = ['deadline', 'startDate', 'date'];
-const WIDE_FIELDS = ['role', 'slogan', 'notice', 'name'];
+const WIDE_FIELDS = ['role', 'subText', 'notice', 'name', 'season'];
 function slotBrief() {
   const it = state.intake, f = it.fields;
   const { must, more } = BRIEF_FIELDS[it.kind === 'recruit' ? 'recruit' : 'event'];
   const need = ESSENTIAL[it.kind] ?? [];
   const row = (id, req) => `<div class="f ${WIDE_FIELDS.includes(id) ? 'wide' : ''}"><label for="bf-${id}">${escH(FIELD_LABEL[id] ?? id)}${req ? ' <span class="req">*</span>' : ''}</label><input type="text" id="bf-${id}" data-f="${id}" class="${need.includes(id) && !f[id] ? 'miss' : ''}" value="${escH(f[id] ?? '')}" placeholder="${escH(BRIEF_HINT[id] ?? '')}" autocomplete="off"></div>`;
-  const got = more.filter(id => f[id]).length;
+  const rec = it.kind === 'recruit';
+  const got = more.filter(id => f[id]).length + (rec ? cleanRows(f.rows).length : 0);
   const box = slot(`<div class="card2 bcard"><h4>브리프에서 읽은 내용</h4>
     <div class="bf">${must.map(id => row(id, need.includes(id))).join('')}</div>
-    <details class="bmore" ${got ? 'open' : ''}><summary>선택 항목 ${more.length}개${got ? ` · ${got}개 읽음` : ''}</summary><div class="bf">${more.map(id => row(id, false)).join('')}</div></details>
+    <details class="bmore" ${got ? 'open' : ''}><summary>선택 항목${got ? ` · ${got}개 읽음` : ''}</summary><div class="bf">${more.map(id => row(id, false)).join('')}</div>${rec ? `<div class="f wide" style="margin-top:6px"><label>추가 행 <span style="font-weight:400;opacity:.7">— 모집직무 아래 상세 줄(라벨 | 값)</span></label><div data-brows></div></div>` : ''}</details>
     <div class="sfoot2"><span class="smsg" id="bMsg" role="status"></span><button type="button" class="btn" id="bBack">이전</button><button type="button" class="btn pri" id="bOk">다음</button></div></div>`);
   const missing = () => need.filter(id => !f[id]);
   const foot = () => {
@@ -1404,6 +1440,7 @@ function slotBrief() {
     if (DATE_FIELDS.includes(id)) inp.onblur = () => { const iso = normDate(inp.value.trim()); if (iso && iso !== inp.value) { inp.value = iso; f[id] = iso; } };
     inp.onkeydown = e => { if (e.key === 'Enter') { inp.blur(); $('bOk').click(); } };
   });
+  if (rec) rowsEditor(box.querySelector('[data-brows]'), cleanRows(f.rows), rows => { const r = cleanRows(rows); if (r.length) f.rows = r; else delete f.rows; }, { multi: false });
   $('bBack').onclick = () => { it.targetDone = false; clearSlot(); it.phase = 'target'; renderSteps(); slotWhere(); };
   $('bOk').onclick = () => {
     const miss = missing();
@@ -1422,7 +1459,7 @@ function readLine(it) {
   const f = it.fields;
   const day = d => { const iso = normDate(d); if (!iso) return d; const t = new Date(iso + 'T00:00'); return `${t.getMonth() + 1}.${t.getDate()}(${'일월화수목금토'[t.getDay()]})`; };
   const parts = it.kind === 'recruit'
-    ? [f.season, f.client, f.hiringType, f.role, f.employType, f.location, f.deadline && `${f.startDate ? day(f.startDate) + ' ~ ' : ''}${day(f.deadline)} 마감`]
+    ? [f.client, f.hiringType, f.role, ...cleanRows(f.rows).map(r => `${r.label} ${r.value}`), f.deadline && `${f.startDate ? day(f.startDate) + ' ~ ' : ''}${day(f.deadline)} 마감`]
     : [f.name, f.date && day(f.date), f.venue, f.audience];
   return parts.filter(Boolean).join(' · ');
 }
@@ -2010,8 +2047,8 @@ function campaignName(ctx) {
 }
 // 편집 칸(인스펙터 캠페인 공통 + 산출물별). 10-19 사용자: 「모집기간은 언제부터 언제까지로 · 텍스트는 수정 가능하게」 → 접수 시작(startDate)과 글자 자리(시즌·채용 구분·메인 문구)를 칸으로 연다.
 //   날짜 둘 다 있으면 렌더러가 「2.28(수) - 3.10(일)」, 마감만 있으면 「~3.10(일)」. 메인 문구를 적으면 그 문장이 메인(회사·구분은 서브·상세로).
-const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'season', 'slogan', 'notice', 'employType', 'location', 'headline', 'subText', 'dateText'];   // 마감 시각 칸은 뺐다(10-21) — 파서가 읽은 값은 그대로 쓰인다   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
-const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)', deadline: 'YYYY-MM-DD', season: '예: 2026 하반기', hiringType: '예: 신입사원 공개채용', headline: '예: ○○그룹 2026 하반기 신입 채용 — 비우면 고객사·시즌·채용 구분으로 자동' };
+const RECRUIT_EDIT_FIELDS = ['client', 'hiringType', 'role', 'startDate', 'deadline', 'season', 'notice', 'headline', 'subText', 'dateText'];   // 11-10: 고용형태·근무지·슬로건 칸 폐지(추가 행·추가 문구)   // 마감 시각 칸은 뺐다(10-21) — 파서가 읽은 값은 그대로 쓰인다   // 10-21: 필수(고객사·채용 구분·마감·직무) 먼저, 레퍼런스에 드문 고용 형태·근무지는 뒤
+const FIELD_HINT = { startDate: 'YYYY-MM-DD (비우면 마감만 「~날짜」)', deadline: 'YYYY-MM-DD', season: '예: 2026 하반기 — 서브 없는 매체 타이틀 앞에만', notice: '예: * 채용 일정은 공고별 상이합니다.', subText: '예: 2026 하반기 · 자소서 없는 간편지원 — 비우면 안 나와요', hiringType: '예: 신입사원 공개채용', headline: '예: ○○그룹 2026 하반기 신입 채용 — 비우면 고객사·시즌·채용 구분으로 자동' };
 function campaignFields(c) {
   return c.kind === 'recruit' ? RECRUIT_EDIT_FIELDS : ['name', 'date', 'venue', 'cta'];
 }
@@ -2791,11 +2828,13 @@ function campaignStat(c = state.campaign) {
 //   캔버스에서 요소를 고르면 같은 묶음이 강조된다. 개별 수정은 캔버스 글자 편집(app/charsel.js → charText)
 const LEFT_GROUPS = [   // text: 찍히는 문구 그대로 한 칸(비면 자동) · fields: 그 문구를 자동으로 만들 때 쓰는 재료(「기본 정보」에 접어 둔다)
   { role: 'main', name: '메인 문구', text: 'headline', auto: '고객사 + 채용 구분', hint: '고치면 모든 소재의 메인 문구가 이 글이에요. 줄바꿈도 그대로 반영돼요. 고객사·채용 구분은 서브로 내려가요.' },
-  { role: 'sub', name: '서브', text: 'subText', auto: '시즌 · 슬로건' },
+  // 11-10 사용자 「서브 문구가 반영되는 곳이 별로 없어서 … 2025년을 쓰면 타이틀에도 쓸 때 중복」: 서브 = 추가 문구 한 덩어리(선택, 자동 없음). 연도는 기본 정보의 「연도·시즌」 — 서브 없는 매체의 타이틀 앞에만 한 번
+  { role: 'sub', name: '추가 문구', text: 'subText', auto: null, hint: '서브 자리가 있는 매체(자소설·에브리타임 홈 카드 등)에만 나가요.', empty: '비우면 안 나와요(좁은 칸은 고객사가 서브로 갈 수 있어요). 서브 자리가 있는 매체에만 나가요.' },
   { role: 'date', name: '날짜', text: 'dateText', auto: '접수 시작 + 지원 마감' },
-  { role: 'detail', name: '상세', fields: ['role', 'employType', 'location', 'notice'] },
+  // 11-10 「상세 쓴 건 어디에도 안 나와서 … 행을 추가한다는 개념으로, 모집분야 모집기간 같은 수준으로」: 상세 = 접수기간(날짜 칸) · 모집직무 · 추가 행(라벨 | 값). 고용형태·근무지 고정 칸 폐지
+  { role: 'detail', name: '상세', rows: true, fields: ['notice'] },
 ];
-const BASE_FIELDS = ['client', 'hiringType', 'season', 'slogan', 'startDate', 'deadline'];
+const BASE_FIELDS = ['client', 'hiringType', 'season', 'startDate', 'deadline'];
 const ROLE_GROUP = { main: 'main', advertiser: 'main', sub: 'sub', date: 'date', detail: 'detail', chip: 'detail', tags: 'detail', tag: 'detail' };
 // 캠페인 전체 칸 하나 바꾸기(일괄) — 왼쪽 패널·되돌리기 공통
 // 정보 일괄 변경(core/propagate.js 와 같은 판정 — 손으로 고친 칸과 겹치면 그 산출물은 건드리지 않고 확인 목록) — 그리기는 뒤의 regen 한 번만.
@@ -2813,7 +2852,7 @@ function propagateCore(c, corePatch) {
   return { impacted, conflicts };
 }
 function commitBrief(c, f, v, note = () => {}) {
-  if (v === (c.context.core[f] ?? '')) return false;
+  if (Array.isArray(v) ? JSON.stringify(v) === JSON.stringify(cleanRows(c.context.core[f])) : v === (c.context.core[f] ?? '')) return false;   // 11-10 추가 행(rows)은 목록
   pushHistory(`${FIELD_LABEL[f]} 일괄 변경`);
   const { impacted, conflicts } = propagateCore(c, { [f]: v });
   regen(c);   // 개별값·요소 편집까지 얹어 한 번에
@@ -2843,19 +2882,26 @@ function renderLeft() {
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
   body.dataset.sig = sig;
   const core = c.context.core;
-  const MULTI = new Set(['role', 'employType', 'location', 'notice']);   // 상세 값은 줄바꿈 가능(캔버스와 같게)
+  const MULTI = new Set(['role', 'notice']);   // 상세 값은 줄바꿈 가능(캔버스와 같게)
   const input = f => MULTI.has(f) && c.kind === 'recruit'
     ? `<label>${FIELD_LABEL[f]}</label><textarea data-f="${f}" rows="${Math.min(3, Math.max(1, String(core[f] ?? '').split('\n').length))}" placeholder="${escH(FIELD_HINT[f] ?? '')}">${escH(core[f] ?? '')}</textarea>`
     : `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`;
   const overN = c.artifacts.filter(x => Object.keys(x.overrides?.core ?? {}).length).length;
-  const textBox = g => { const own = core[g.text] ?? ''; const shown = own || liveText(c, g.role);
+  const textBox = g => { const own = core[g.text] ?? ''; const shown = own || (g.auto ? liveText(c, g.role) : '');
+    if (!g.auto) return `<label for="lt-${g.text}">${g.name}</label>
+      <textarea id="lt-${g.text}" data-f="${g.text}" rows="${Math.min(4, Math.max(1, String(own).split('\n').length))}" placeholder="${escH(FIELD_HINT[g.text] ?? '')}">${escH(own)}</textarea>
+      <div class="fnote">${own ? g.hint : g.empty}</div>`;   // 11-10 추가 문구: 자동 문구 없음 — 비우면 안 나온다
     return `<label>${g.role === 'main' ? '타이틀' : `${g.name} 문구`} ${own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.text}"`) : '<span class="lauto">자동</span>'}</label>
       <textarea data-f="${g.text}" data-auto="${escH(own ? '' : shown)}" rows="${Math.min(4, Math.max(2, shown.split('\n').length))}" aria-label="${g.name} 문구">${escH(shown)}</textarea>
       <div class="fnote">${own ? (g.hint ?? '직접 쓴 문구가 모든 소재에 나가요.') : `비워 두면 ${g.auto}(으)로 만들어요. 고치면 이 글이 모든 소재에 나가요.`}</div>`; };
+  // 11-10 상세: 접수기간(위 날짜 칸) · 모집직무 · 추가 행. 추가 행은 모집직무와 같은 모양으로 상세 줄 자리가 있는 규격에만, 넘치면 뒤 행부터 빠지고 검수 경고
+  const rowsBox = () => `<div class="fnote" style="margin:0 0 4px">접수기간은 위 날짜 칸 값이 상세 첫 줄에 들어가요.</div>${input('role')}
+      <label style="margin-top:6px">추가 행</label><div data-lrows></div>
+      <div class="fnote">모집직무와 같은 모양(라벨 : 값)으로, 상세 줄 자리가 있는 규격에만 나가요. 자리가 모자라면 아래 행부터 빠지고 검수에 경고가 떠요.</div>`;
   const briefHtml = c.kind === 'recruit'
     ? LEFT_GROUPS.map(g => { const off = omitList(core.omit).includes(g.role);
-        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lgh">${g.name}${g.role !== 'main' ? `<button type="button" class="lnk" data-lomit="${g.role}">${off ? '다시 넣기' : '모든 소재에서 빼기'}</button>` : ''}</div>${off ? '<div class="fnote">모든 소재에서 뺐어요</div>' : `${g.text ? textBox(g) : ''}${(g.fields ?? []).map(input).join('')}`}</div>`; }).join('')
-      + `<details class="lbase"><summary>기본 정보 — 자동 문구·파일 이름에 쓰여요</summary>${BASE_FIELDS.map(input).join('')}</details>`
+        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lgh">${g.name}${g.role !== 'main' ? `<button type="button" class="lnk" data-lomit="${g.role}">${off ? '다시 넣기' : '모든 소재에서 빼기'}</button>` : ''}</div>${off ? '<div class="fnote">모든 소재에서 뺐어요</div>' : `${g.text ? textBox(g) : ''}${g.rows ? rowsBox() : ''}${(g.fields ?? []).map(input).join('')}`}</div>`; }).join('')
+      + `<details class="lbase"><summary>기본 정보 — 자동 문구·파일 이름에 쓰여요</summary>${BASE_FIELDS.map(input).join('')}<div class="fnote">연도·시즌: 타이틀에 연도가 없을 때 서브 자리가 없는 매체(리멤버 등)의 타이틀 앞에만 한 번 붙어요.</div></details>`
     : campaignFields(c).map(input).join('');
   body.innerHTML = `<section class="isec"><h3>브리프 <span class="mode">전체 일괄</span></h3>
     <div class="fnote" style="margin:-2px 0 8px">여기서 고치면 모든 소재에 반영돼요. 소재 하나만 고치려면 캔버스에서 글자를 더블클릭하세요.${overN ? ` · 따로 고친 소재 ${overN}종` : ''}</div>
@@ -2875,6 +2921,13 @@ function renderLeft() {
     commitBrief(c, f, v, note);
   };
   body.querySelectorAll('[data-f]').forEach(i => { i.oninput = debounce(() => commit(i), 450); });
+  const rowsHost = body.querySelector('[data-lrows]');
+  if (rowsHost) rowsEditor(rowsHost, [...cleanRows(core.rows), ...(state.rowDraft?.cid === c.id ? state.rowDraft.rows : [])], (rows, { now } = {}) => {
+    state.rowDraft = { cid: c.id, rows: rows.filter(r => !(String(r.label ?? '').trim() && String(r.value ?? '').trim())) };   // 라벨·값 둘 다 있어야 행 — 쓰는 중인 행은 화면에만 둔다
+    (now ? commitRows : commitRowsLater)(cleanRows(rows));
+  });
+  const commitRows = rows => { if (commitBrief(c, 'rows', rows, note)) body.dataset.sig = '-'; };
+  const commitRowsLater = debounce(commitRows, 450);
   $('lApply').onclick = () => body.querySelectorAll('[data-f]').forEach(commit);
   body.querySelectorAll('[data-lomit]').forEach(b => b.addEventListener('click', () => { const r = b.dataset.lomit, cur0 = omitList(core.omit); const next = cur0.includes(r) ? cur0.filter(x => x !== r) : [...cur0, r]; if (commitBrief(c, 'omit', next.join(','), note)) { body.dataset.sig = '-'; renderLeft(); } }));
   body.querySelectorAll('[data-ltreset]').forEach(b => b.addEventListener('click', () => { if (commitBrief(c, b.dataset.ltreset, '', note)) { body.dataset.sig = '-'; setTimeout(renderLeft, 300); } }));
@@ -4532,8 +4585,24 @@ async function migrateLogos(c) {
   if (changed) { regen(c); layoutArtboard(); log('로고 손질 — 투명 여백을 잘라 크게 보이게'); }
   autosave();
 }
+// 11-10 입력 개편 — 저장된 캠페인(IndexedDB 스냅샷 context.core · 산출물 overrides.core)의 고용형태·근무지(·자격·전형) 칸을 추가 행으로, 슬로건을 추가 문구로.
+//   산출물별로 따로 고친 값(캔버스 편집)은 그 산출물의 행 목록(공통 행 + 그 값)으로 옮긴다. 바뀐 게 없으면 손대지 않는다
+function migrateStoredRecruit(c, saved) {
+  if (c.kind !== 'recruit' || !c.context?.core) return;
+  const base = migrateRecruitCore(c.context.core);
+  if (base !== c.context.core) { c.context = { ...c.context, core: base }; log('저장된 캠페인 이전 — 고용형태·근무지 칸 → 추가 행, 슬로건 → 추가 문구'); }
+  for (const s of saved.artifacts ?? []) {
+    const o = s.overrides?.core; if (!o) continue;
+    const m = migrateRecruitCore({ ...o, rows: o.rows ?? (['employType', 'location', 'qualification', 'process'].some(k => o[k] != null) ? base.rows : o.rows) });
+    if (m === o) continue;
+    const LEG = ['employType', 'location', 'qualification', 'process', 'slogan'], next = {};
+    for (const [k, v] of Object.entries(m)) if (!LEG.includes(k) && (v != null || k in o)) next[k] = v;
+    s.overrides = { ...s.overrides, core: next };
+  }
+}
 function openStored(saved) {
   state.campaign = { ...saved, log: saved.log ?? [], signage: saved.signage ?? {}, roster: saved.roster ?? [], excluded: saved.excluded ?? [], media: saved.media ?? [], adSpecIds: saved.adSpecIds ?? [] };
+  migrateStoredRecruit(state.campaign, saved);   // 11-10 옛 고용형태·근무지·슬로건 → 추가 행·추가 문구(저장 데이터 이전 — 다음 자동 저장 때 새 구조로 쓰인다)
   // 저장된 대화도 되살린다 — 무엇을 어떻게 정했는지가 이력의 핵심이다
   state.intake = { ...(state.intake ?? {}), history: saved.conversation ?? [] };
   registerAll();

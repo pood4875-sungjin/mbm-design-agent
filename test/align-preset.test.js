@@ -12,7 +12,7 @@ import { normalizeStyle } from '../core/style.js';
 
 const specs = adSpecEntries();
 const S = id => ({ ...specs[id], id });
-const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
+const ctx = createContext({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', hiringType: '정규직' /* 11-10: 고용형태 칸 → 추가 행. 옛 메인 「○○ 정규직 채용」 그대로 보려고 채용 구분으로 */, employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
 const meta = id => JSON.parse(readFileSync(new URL(`../ref/learned/cases/${id}/meta.json`, import.meta.url), 'utf8'));
 const styleOf = (kv, extra = {}) => normalizeStyle({ colors: ['#1428A0'], keyVisual: `file:///kv/${kv}.png`, kvMeta: meta(kv), logo: 'file:///logo.png', logoMeta: { px: [200, 60] }, ...extra });
 const noTrace = h => h.replace(/ data-trace="[^"]*"/, '');

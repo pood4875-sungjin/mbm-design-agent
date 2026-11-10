@@ -10,7 +10,7 @@
 // 키가 없으면 규칙 기반 진행자로 폴백해 같은 계약을 흉내 낸다 — 데모는 항상 돈다.
 
 import * as LLM from './llm.js';
-import { KINDS } from '../core/context.js';
+import { KINDS, cleanRows, mergeRows, migrateRecruitCore } from '../core/context.js';
 import { FONT_IDS } from '../core/fonts.js';
 import { MEDIA } from '../core/media.js';
 
@@ -73,7 +73,7 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
     "kind": "event|recruit",
     "track": "online|offline",
     "media": [${MEDIA_IDS.map(id => `"${id}"`).join(',')}] 중 확정된 것,
-    "fields": { 행사: name,date(YYYY-MM-DD),venue,audience,cta,headline,slogan,host,deadline(사전등록 마감 YYYY-MM-DD),applyUrl / 채용: client,hiringType(채용 구분 — 신입 공채·경력직 채용·대졸 신입/경력사원 채용 같은 공고 제목의 구분 어구),role(모집직무 — 쉼표 나열),deadline(YYYY-MM-DD),startDate(접수 시작 YYYY-MM-DD),deadlineTime(마감 시각 HH:MM, 적혀 있을 때만),season(2026 하반기 같은 시즌),slogan,notice(「* 채용 일정은 공고별 상이」 같은 고지),employType,location,applyUrl,qualification,process },
+    "fields": { 행사: name,date(YYYY-MM-DD),venue,audience,cta,headline,slogan,host,deadline(사전등록 마감 YYYY-MM-DD),applyUrl / 채용: client,hiringType(채용 구분 — 신입 공채·경력직 채용·대졸 신입/경력사원 채용 같은 공고 제목의 구분 어구),role(모집직무 — 쉼표 나열),deadline(YYYY-MM-DD),startDate(접수 시작 YYYY-MM-DD),deadlineTime(마감 시각 HH:MM, 적혀 있을 때만),season(2026 하반기 같은 연도·시즌 — 따로 적힌 것만),subText(추가 문구 — 슬로건 같은 한 덩어리, 적혀 있을 때만),notice(「* 채용 일정은 공고별 상이」 같은 고지),applyUrl,rows(추가 행 [{"label":"근무지","value":"판교"}] — 근무지·고용형태·전형절차·지원방법·우대사항·지원자격처럼 위 칸에 없는 「라벨: 값」. 라벨은 짧게 정규화(근무 지역→근무지, 채용 절차→전형절차). 직무·기간·고객사·채용명은 행으로 넣지 않는다) },
     "channels": [${CHANNELS.map(c => `"${c}"`).join(',')}] 중 확정된 것(오프라인),
     "signage": { "xbanner":[{"purpose":"main|way|agenda|reception","arrow":"up|down|left|right|null"}] },
     "style": { "mode":"light|dark", "colors":["#RRGGBB",...], "font":"${FONT_IDS.join('|')}", "mood":"쉼표구분" },
@@ -88,6 +88,7 @@ const SYSTEM = `너는 캠페인 디자인 에이전트다. 담당자와 대화�
 - **[현재 상태]에 이미 있는 것은 절대 다시 묻지 않는다.** "확정됨"·"등록됨"으로 표시된 항목을 되묻는 것은 금지다.
   매체·오프라인 세트·명단·스타일은 화면의 카드에서 사용자가 직접 정한다 — 대화로 캐묻지 말고 다음 단계로 넘어간다.
 - 고객사와 직무는 나눠서 담는다. 예: "한진정보통신 클라우드 엔지니어 채용" → client=한진정보통신, role=클라우드 엔지니어.
+- 한 항목은 한 칸에만 담는다. 기간 → startDate·deadline, 직무·분야 → role, 그 밖의 「라벨: 값」 → rows, 슬로건 → subText. 채용 구분(hiringType)에 이미 든 말(연도·고용형태·지역)을 season·rows 에 또 넣지 않는다.
 - say는 1~2문장. 목록을 나열하지 않는다.
 - 사용자가 "알아서 해"라고 하면 합리적 기본값을 patch에 넣고 무엇을 정했는지 say에 알린다.
 - 내용이 정해졌고 스타일도 끝났거나, 내용이 정해진 뒤 사용자가 "알아서 해"라고 하면 phase="draft", ready=true.
@@ -97,7 +98,7 @@ function stateBrief(state) {
   const kind = state.kind ?? 'event';
   const f = state.fields ?? {};
   const req = fieldsFor(kind);
-  const known = req.filter(k => f[k]).map(k => `${labelOf(kind, k)}=${f[k]}`);
+  const known = [...req.filter(k => f[k]).map(k => `${labelOf(kind, k)}=${f[k]}`), ...cleanRows(f.rows).map(r => `${r.label}=${r.value}`)];   // 11-10 추가 행도 아는 정보
   const missing = req.filter(k => !f[k]).map(k => labelOf(kind, k));
   return [
     `phase=${state.phase}`,
@@ -138,7 +139,12 @@ export function normalize(out, state) {
   const kind = KINDS[patch.kind] ? patch.kind : (state.kind ?? 'event');
   const fields = {};
   const had = state.fields ?? {};
-  for (const k of KINDS[kind].fields) if (patch.fields?.[k] && (state.briefDone || !had[k])) fields[k] = String(patch.fields[k]).trim();
+  // 11-10: AI 가 옛 칸(employType·location·slogan…)으로 답해도 새 구조(rows·subText)로 옮겨 받는다 — 규칙 파서와 같은 결과 모양
+  const pf = kind === 'recruit' && patch.fields ? migrateRecruitCore(patch.fields) : (patch.fields ?? {});
+  for (const k of KINDS[kind].fields) {
+    if (k === 'rows') { const r = cleanRows(pf.rows); if (r.length) { const keep = state.briefDone ? r : r.filter(x => !cleanRows(had.rows).some(h => h.label === x.label)); if (keep.length) fields.rows = keep; } continue; }   // 이미 읽은 행은 덮지 않는다(브리프 확정 전) — 합치는 건 applyPatch(mergeRows)
+    if (pf?.[k] && (state.briefDone || !had[k])) fields[k] = String(pf[k]).trim();
+  }
   const channels = (patch.channels ?? []).filter(c => CHANNELS.includes(c));
   const media = (patch.media ?? []).filter(id => MEDIA_IDS.includes(id));
   const style = {};
@@ -182,7 +188,14 @@ export function scriptedTurn({ state, userText, now }) {
 
   // 말에 적힌 값만 읽는다. 처음(브리프)에는 이미 있는 값을 덮지 않고, 내용이 정해진 뒤에 오는 값은 고치는 말로 본다.
   if (kind === 'recruit') {
-    for (const [k, v] of Object.entries(extractRecruit(t, now))) if (v && (state.briefDone ? f[k] !== v : !f[k])) { patch.fields[k] = v; f[k] = v; }
+    for (const [k, v] of Object.entries(extractRecruit(t, now))) {
+      if (k === 'rows') {   // 11-10 추가 행: 라벨별로 — 처음엔 없는 라벨만, 내용이 정해진 뒤엔 같은 라벨의 값을 고친다
+        const add = cleanRows(v).filter(r => state.briefDone ? !cleanRows(f.rows).some(h => h.label === r.label && h.value === r.value) : !cleanRows(f.rows).some(h => h.label === r.label));
+        if (add.length) { patch.fields.rows = add; f.rows = mergeRows(f.rows, add); }
+        continue;
+      }
+      if (v && (state.briefDone ? f[k] !== v : !f[k])) { patch.fields[k] = v; f[k] = v; }
+    }
   }
 
   // 트랙·매체·채널 키워드
@@ -204,7 +217,7 @@ export function scriptedTurn({ state, userText, now }) {
   // 내용이 정해지기 전에는 화면이 "무엇을·어디에"를 묻는다 — 진행자의 말은 쓰이지 않는다
   if (!state.briefDone) return { say: '무엇을 만들지 골라 주세요.', patch, phase: 'target', ready: false };
   // 내용이 정해진 뒤 들어온 값은 고친 것이다 — 무엇을 바꿨는지만 말한다
-  const fixed = Object.keys(patch.fields).map(k => `${labelOf(kind, k)}: ${patch.fields[k]}`);
+  const fixed = Object.keys(patch.fields).flatMap(k => k === 'rows' ? patch.fields.rows.map(r => `${r.label}: ${r.value}`) : [`${labelOf(kind, k)}: ${patch.fields[k]}`]);
   if (!state.styleDone && !/알아서|바로 만들|그냥 진행/.test(t)) {
     return {
       say: fixed.length ? `바꿨어요. ${fixed.join(' · ')}. 스타일을 이어서 골라 주세요.`

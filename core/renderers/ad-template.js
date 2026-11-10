@@ -1,5 +1,6 @@
 // core/renderers/ad-template.js — 시안 틀 렌더러. 피그마 시안의 칸(글자·뱃지·이미지·로고)에 캠페인 내용을 채운다.
 //   배경은 키비주얼에서 뽑은 지면(resolveField), 색은 역할(fg·accent)로만 받는다. 내용이 없는 칸은 비우고 아래 줄을 끌어올린다.
+import { migrateRecruitCore } from '../context.js';
 import { esc, textWidth } from './banner.js';
 import { fontStack, textColorLocked } from '../fonts.js';
 import { TEMPLATE_NORMS } from '../template-norms.js';
@@ -40,10 +41,10 @@ export function renderTemplate(ctx, style, spec) {
   const family = familyById(style.tpl), fr = frameFor(family, spec);
   const { w: W, h: H } = spec;
   const sx = W / fr.w, sy = H / fr.h, sf = Math.min(sx, sy);
-  const core = ctx.core ?? {};
+  const core = ctx.kind === 'recruit' ? migrateRecruitCore(ctx.core ?? {}) : (ctx.core ?? {});   // 11-10 옛 슬로건 → 추가 문구, 고용형태·근무지 → 추가 행
   const client = String(core.client ?? '').trim();
-  const hire = String(core.hiringType ?? core.employType ?? '').trim();
-  const season = String(core.subText ?? '').trim() || String(core.season ?? '').trim();   // 11-09 서브 문구 직접이면 그 문구
+  const hire = String(core.hiringType ?? '').trim();   // 11-10: 고용형태 칸은 추가 행 — 메인 재료가 아니다
+  const season = String(core.subText ?? '').trim() || String(core.slogan ?? '').trim();   // 11-10: 서브 = 추가 문구(옛 슬로건 포함). 시즌(연도)은 서브에 안 쓴다 — 시안 틀은 서브 칸이 있어 연도 자동도 없다
   const dateText = String(core.dateText ?? '').trim() || (() => {
     const md = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s ?? '')); if (!m) return ''; const d = new Date(+m[1], +m[2] - 1, +m[3]); return `${+m[2]}.${+m[3]}(${'일월화수목금토'[d.getDay()]})`; };
     const a = md(core.startDate), b = md(core.deadline);
@@ -122,7 +123,7 @@ export function renderTemplate(ctx, style, spec) {
       return t;
     }
     if (r.role === 'client') return client && hire && !headline ? client : null;
-    if (r.role === 'slogan') return omit.has('sub') ? null : String(core.slogan ?? '').trim() || null;
+    if (r.role === 'slogan') return omit.has('sub') || fr.rows.some(x => x.role === 'season') ? null : season || null;   // 11-10: 추가 문구는 한 곳 — 서브(season) 줄이 있으면 거기
     if (r.role === 'role' && roleText && r.stack) return roleText.split(/\s*,\s*/).filter(Boolean).join('\n');
     if (r.role === 'season') return omit.has('sub') ? null : season || null;
     if (r.role === 'date') return omit.has('date') ? null : dateText || null;

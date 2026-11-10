@@ -289,7 +289,7 @@ test('an object cut-out is used only where the spec needs one; elsewhere the key
   registerAll();
   const texture = { kind: 'texture', opaque: 1, flatEdges: 2, edges: {}, focus: null, room: null, rows: null, cols: null, quadrants: { tl: '#90AEFE', tr: '#B2BDFE', bl: '#BECCFE', br: '#96D3FE' } };
   const cutout = { kind: 'cutout', opaque: 0.3, flatEdges: 0, edges: {}, focus: { x: 0.5, y: 0.6, w: 0.8, h: 0.8 }, room: null, rows: null, cols: null };
-  const ctx = createContext({ client: '한진정보통신', role: '클라우드 엔지니어', employType: '정규직', deadline: '2026-10-31' }, 'recruit');
+  const ctx = createContext({ client: '한진정보통신', role: '클라우드 엔지니어', hiringType: '정규직' /* 11-10: 고용형태 칸 → 추가 행 */, employType: '정규직', deadline: '2026-10-31' }, 'recruit');
   const base = { colors: ['#1428A0'], keyVisual: 'kv.png', kvMeta: { ar: 0.56, px: [1051, 1869], field: texture, colors: ['#A6C3FE'] }, logo: 'logo.png' };
   // 투명 PNG 필수 자리(알바몬 스플래시): 질감 그림은 빠지고 글자만 — 누끼를 올리면 그 자리에 누끼
   assert.equal(needsCutout({ background: '투명 배경 사용 필수 (투명 png)' }), true);
@@ -343,7 +343,7 @@ test('상세 라벨 알약은 기본이 틴트(밝은 지면 검정 7%·어두�
   const E = { hex: '#FFF7D3', flat: true, std: 0 };
   const rows = Array.from({ length: 16 }, () => ({ hex: '#FFF7D3', bg: 1 }));
   const kvMeta = { ar: 0.953, px: [936, 982], edge: '#FFF7D3', field: { opaque: 1, kind: 'illust', flatEdges: 4, rows, cols: rows, focus: { x: 0.52, y: 0.55, w: 0.86, h: 0.74 }, edges: { top: E, left: E, bottom: E, right: E } } };
-  const ctx = createContextChip({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
+  const ctx = createContextChip({ client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', hiringType: '정규직' /* 11-10: 고용형태 칸 → 추가 행 */, employType: '정규직', location: '서울 여의도', deadline: '2026-10-31' }, 'recruit');
   const base = { colors: ['#EA8F3D'], keyVisual: 'fox.png', kvMeta, logo: 'logo.png' };
   const tint = renderArtifact('sq', ctx, normalizeStyle(base), {});
   assert.match(tint, /data-chip="1"[^>]*background:rgba\(0,0,0,\.07\)/);                 // 밝은 지면: 검정 7%

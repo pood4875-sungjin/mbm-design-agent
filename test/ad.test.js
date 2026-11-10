@@ -13,6 +13,9 @@ const ctx = createContext({
   deadline: '2026-10-31', applyUrl: 'https://example.com/apply', notice: '본 광고는 고용정책기본법에 따릅니다',
 }, 'recruit');
 const ctxSeason = createContext({ ...ctx.core, season: '2026 하반기' }, 'recruit');
+// 11-10 입력 개편: 서브는 추가 문구(subText)로만 선다(시즌은 서브에 안 쓴다) · 고용형태는 추가 행이라 메인 「○○ 채용」 재료가 아니다 — 채용 구분을 적은 맥락
+const ctxSub = createContext({ ...ctx.core, subText: '2026 하반기' }, 'recruit');
+const ctxHire = createContext({ ...ctx.core, hiringType: '정규직' }, 'recruit');
 const style = normalizeStyle({ colors: ['#0B3C8C'] });
 
 const attrs = html => [...html.matchAll(/\s(data-[a-z-]+)(?=[\s>])/g)].map(m => m[1]);
@@ -49,7 +52,7 @@ test('a transparent-background spec renders no fill and says so', () => {
 });
 
 test('font sizes stated by the medium are used as-is (jasoseol 35/22/17 on the 550×400 popup)', () => {
-  const html = renderAd(ctxSeason, style, specs['jasoseol-pc-premium-popup-pc']);   // 11-09: 서브(시즌)는 적어 줄 때만 선다
+  const html = renderAd(ctxSub, style, specs['jasoseol-pc-premium-popup-pc']);   // 11-10: 서브는 추가 문구를 적어 줄 때만 선다
   assert.match(html, /data-field="main"[^>]*font-size:35px/);
   assert.match(html, /data-field="sub"[^>]*font-size:22px/);
 });
@@ -70,10 +73,12 @@ test('no button is drawn — not even where the medium has a CTA field', () => {
 
 test('copy comes from the recruit context; an event context still renders through the same slots', () => {
   const c = copyFor(ctx);
-  // 레퍼런스 문법(2026-10-06): 메인 = 회사 + 채용구분(없으면 고용형태) + 채용, 직무는 상세 줄로
-  assert.equal(c.main, '한진정보통신 정규직 채용');
+  // 레퍼런스 문법(2026-10-06): 메인 = 회사 + 채용구분 + 채용, 직무는 상세 줄로. 11-10: 고용형태는 추가 행 — 메인 재료가 아니다(한 항목 한 곳)
+  assert.equal(c.main, '한진정보통신');
+  assert.equal(copyFor(ctxHire).main, '한진정보통신 정규직 채용');
   assert.notEqual(c.sub, '2026 하반기', '11-09 컨시어지: 시즌을 적지 않으면 마감일로 유추해 넣지 않는다');
-  assert.equal(copyFor(ctxSeason).sub, '2026 하반기', '적어 준 시즌은 서브 첫 후보');
+  assert.notEqual(copyFor(ctxSeason).sub, '2026 하반기', '11-10: 시즌은 서브에 쓰지 않는다(연도 한 번 — 메인 판단에만)');
+  assert.equal(copyFor(ctxSub).sub, '2026 하반기', '적어 준 추가 문구는 서브 첫 후보');
   assert.equal(c.advertiser, '한진정보통신');
   assert.match(c.date, /10\.31|10-31|10\/31/);
   const ev = createContext({ name: 'MBM 2026', date: '2026-11-05', venue: '코엑스', audience: '고객사', cta: '사전등록' });
@@ -153,7 +158,7 @@ test('a light-field medium (자소설 9/13 밝은 단색) paints a light backgro
 test('every shape is left-aligned like the references; the logo floats top-right (tall) or top-centre (tower)', () => {
   // 그림이 있을 때 로고는 작게 위에 뜬다. (그림이 없으면 로고가 오브젝트 자리로 간다 — 아래 별도 테스트)
   const withLogo = { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } };
-  const tallHtml = renderAd(ctx, withLogo, specs['google-gdn-300x600']);   // 10-16: 구글 300 세로형은 템플릿 64:1090 틀 — 가운데 정렬, 로고 우측 칸 (188,20) 누끼 그대로
+  const tallHtml = renderAd(ctxHire, withLogo, specs['google-gdn-300x600']);   // 10-16: 구글 300 세로형은 템플릿 64:1090 틀 — 가운데 정렬, 로고 우측 칸 (188,20) 누끼 그대로
   assert.match(tallHtml, /data-field="main"[^>]*text-align:center/);
   assert.match(tallHtml, /data-logo-slot="1" style="position:absolute;left:194px;top:19px;width:91px;height:18px/   /* 10-16 저녁 사용자 수정본 135:1353: 300×600 로고 오른쪽 위(전 가운데 79,35) */, '세로형 로고 = 비씨월드 CI 자리 (79,35) 가운데(10-16)');
   assert.match(tallHtml, /data-field="main"[^>]*>[\s\S]{0,200}?정규직 채용/, '메인에 채용구분'); assert.doesNotMatch(tallHtml, /data-field="main"[^>]*>[^<]*(<br\/>[^<]*){4}/, '메인 ≤4줄(비씨)');
@@ -171,7 +176,7 @@ test('every shape is left-aligned like the references; the logo floats top-right
 
 test('wide formats follow the references: company and job on two lines where the medium gives two main rows', () => {
   // 리멤버 메인 상단 MO: "메인 문구 1"·"메인 문구 2" 각 12자 — 안랩 "AhnLab / 신입/경력 채용"처럼 회사 / 채용 문구
-  const html = renderAd(ctx, style, specs['remember-main-top-mo']);
+  const html = renderAd(ctxHire, style, specs['remember-main-top-mo']);
   assert.match(html, /data-field="main"[^>]*>한진정보통신<br\/>[^<]+</);
   // 카카오 비즈보드: 메인 1줄 15자 — 쪼개지 않는다. 둘째 줄(서브)은 접수기간 — 혼자 선 날짜 줄은 라벨 없이(Figma 9월 공채 12/12, typo A7)
   const biz = renderAd(ctx, style, specs['kakao-bizboard-mo']);
@@ -235,7 +240,7 @@ test('template measurements taken on a 2x frame are scaled to the 1x canvas (자
 
 /* ── 자소설 실제 소재의 위계: 로고 칸 → 서브(시즌) → 메인 → 상세("라벨 : 값") → 이미지 띠 ── */
 test('자소설 jobpost renders sub above main, detail lines below, in the template text column', () => {
-  const html = renderAd(ctxSeason, style, specs['jasoseol-pc-standard-jobpost-pc']);
+  const html = renderAd(ctxSub, style, specs['jasoseol-pc-standard-jobpost-pc']);
   const iSub = html.indexOf('data-field="sub"'), iMain = html.indexOf('data-field="main"'), iDet = html.indexOf('data-field="detail"');
   assert.ok(iSub > 0 && iMain > 0 && iDet > 0, '세 슬롯이 모두 있어야 한다');
   assert.ok(iSub < iMain && iMain < iDet, '서브 → 메인 → 상세 순');

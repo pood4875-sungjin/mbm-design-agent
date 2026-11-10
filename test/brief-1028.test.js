@@ -75,7 +75,7 @@ test('앱 경로(AI 답 정리 normalize) — 브리프가 정해지기 전에�
   const st = { ...fresh(), fields: { ...seed } };
   const ai = { say: '읽었어요', patch: { kind: 'recruit', fields: { client: '피에스케이 2026년', hiringType: '전문연구요원', deadline: '2026-12-31', location: '경기 화성' } }, phase: 'target', ready: false };
   const r = normalize(ai, st);
-  assert.deepEqual(r.patch.fields, { location: '경기 화성' }, '이미 읽은 고객사·채용 구분·마감은 두고 근무지만 더한다');
+  assert.deepEqual(r.patch.fields, { rows: [{ label: '근무지', value: '경기 화성' }] }, '이미 읽은 고객사·채용 구분·마감은 두고 근무지만 더한다 — 11-10: AI 가 옛 칸(location)으로 답해도 추가 행으로');
   // 내용이 정해진 뒤의 AI 답은 고치는 말이다 — 그대로 덮는다
   const r2 = normalize(ai, { ...st, briefDone: true });
   assert.equal(r2.patch.fields.client, '피에스케이 2026년');

@@ -14,9 +14,10 @@ const textOf = (html, role) => { const m = html.match(new RegExp(`data-field="${
 const tagOf = (html, role) => html.match(new RegExp(`data-field="${role}"[^>]*>`))?.[0] ?? null;
 const px = (html, role) => { const t = tagOf(html, role); return t ? Number(t.match(/font-size:(\d+)px/)?.[1]) : null; };
 
-const seah = createContext({ client: '세아제강', season: '2026년 하반기', hiringType: '신입/경력사원 채용', role: '인사, 연구개발, 전기, 에너지/환경, 노무/총무 外 다수', startDate: '2026-08-14', deadline: '2026-08-23' }, 'recruit');
-const kefico = createContext({ client: '현대케피코', season: '2026 상반기', hiringType: '신입채용 (채용연계형 인턴)', role: '생산기술,SCM,영업,선행품질,구매,재경', startDate: '2026-01-24', deadline: '2026-02-01' }, 'recruit');
-const ahnlab = createContext({ client: '안랩', season: '2026년 9월', hiringType: '신입/경력 채용', startDate: '2026-09-04', deadline: '2026-09-13', role: 'SW개발, 영업, 컨설팅, 제품기획, IT운영 등' }, 'recruit');
+// 11-10 입력 개편: 디자이너 샘플의 서브 「2026 상반기」 등은 추가 문구(subText)로 적는다 — 시즌은 서브에 안 쓴다(메인 연도 판단에만)
+const seah = createContext({ client: '세아제강', subText: '2026년 하반기', hiringType: '신입/경력사원 채용', role: '인사, 연구개발, 전기, 에너지/환경, 노무/총무 外 다수', startDate: '2026-08-14', deadline: '2026-08-23' }, 'recruit');
+const kefico = createContext({ client: '현대케피코', subText: '2026 상반기', hiringType: '신입채용 (채용연계형 인턴)', role: '생산기술,SCM,영업,선행품질,구매,재경', startDate: '2026-01-24', deadline: '2026-02-01' }, 'recruit');
+const ahnlab = createContext({ client: '안랩', subText: '2026년 9월', hiringType: '신입/경력 채용', startDate: '2026-09-04', deadline: '2026-09-13', role: 'SW개발, 영업, 컨설팅, 제품기획, IT운영 등' }, 'recruit');
 const hs = createContext({ client: 'HS화성', hiringType: '경력사원 현장별 채용', startDate: '2026-08-14', deadline: '2026-08-27', role: '건축, 설비, 전기' }, 'recruit');
 const celltrion = createContext({ client: '셀트리온', hiringType: '신입/경력 수시채용', startDate: '2026-06-26', deadline: '2026-07-12', role: 'IT, 신약연구, 공정기술/연구관리' }, 'recruit');
 
@@ -93,7 +94,7 @@ test('정보가 없으면 그 줄을 뺀다(11-02) — 자리표시를 찍지 �
 });
 
 test('인스타 피드 1080: 틀(사용자 수정본 10-16) — 메인 Bold 72 행간 94 2줄 가운데(y131) · 날짜 Regular 43 · 모집직무 값만 Bold 43 — 회사·채용구분을 「세방그룹 채용」으로 줄이지 않는다', () => {   // 10-16 전: 자유 배치 메인 90px(짧은 변 8.3%, 샘플 9/9 중앙값) — 사용자 수정본 틀 135:1185 가 생겨 72 Bold 로
-  const ctx = createContext({ client: '세방그룹', season: '2023', hiringType: '3월 신입 채용연계형 인턴/경력 모집', startDate: '2023-03-01', deadline: '2023-03-07', role: '물류, 제조, IT 6개 계열사' }, 'recruit');
+  const ctx = createContext({ client: '세방그룹', subText: '2023', hiringType: '3월 신입 채용연계형 인턴/경력 모집', startDate: '2023-03-01', deadline: '2023-03-07', role: '물류, 제조, IT 6개 계열사' }, 'recruit');
   const html = renderAd(ctx, style, specs['instagram-feed-1080']);
   const tr = JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
   assert.equal(tr.mode, 'templateMold');
@@ -113,7 +114,7 @@ test('에브리타임 커뮤니티보드: 날짜가 「기타 문구」 칸에 �
 });
 
 test('자소설 채용공고배너 160×600: 「GC녹십자그룹」(half-latin 셈 6자, 폭 6.24em)은 메인 한 줄에 못 들어가니 회사가 서브로 간다 — 잘리지 않는다', () => {
-  const gc = createContext({ client: 'GC녹십자그룹', season: '2026 하반기', hiringType: '정규직 채용', role: '클라우드 플랫폼 엔지니어', deadline: '2026-10-31' }, 'recruit');
+  const gc = createContext({ client: 'GC녹십자그룹', subText: '2026 하반기', hiringType: '정규직 채용', role: '클라우드 플랫폼 엔지니어', deadline: '2026-10-31' }, 'recruit');
   const html = renderAd(gc, style, specs['jasoseol-pc-premium-jobpost-pc']);
   assert.doesNotMatch(textOf(html, 'main'), /GC녹십자그룹/);
   assert.match(textOf(html, 'sub'), /GC녹십자그룹/);
