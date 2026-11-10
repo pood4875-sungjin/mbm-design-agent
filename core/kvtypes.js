@@ -71,9 +71,11 @@ export const KV_SUBTYPES = {
     // 10-08 Figma 9월 공채(유리 행성) 한 건에서 — 사용자 결정: 케이스 하나여도 채택, 예외가 나오면 조정
     { id: 'cutout-glass', name: '반사·유리·크롬 누끼', when: f => f.glass, why: '무채(채도 < 0.35)·중간 밝기(lum 0.35~0.6) + 반투명 가장자리(보이는 픽셀의 10% 이상이 10<α<230)',
       guide: ['지면은 어두운 브랜드색 — 매체의 밝은 지면(구글 lightField·자소설 bgLight)보다 먼저(디자이너 13/13 다크). 밝은 틴트 위에선 회색으로 탁해진다', '매체가 금지한 색·규정(자소설 형광·분할 배경 불가, 리멤버 #000000)은 그대로 지킨다', '반사광이 브랜드색이 아니다 — KV 대표색을 지면색으로 쓰지 않는다'] },
+    { id: 'cutout-group-character', name: '캐릭터 여럿(사람·캐릭터 떼)', when: f => f.charGroup, why: '덩어리가 여럿이고 윗선에 머리 봉우리가 3개 이상(또는 세로로 선 주인공들)',
+      guide: ['머리·얼굴은 자르지 않는다 — 자르기 선은 캐릭터 사이 빈 틈에서만', '틀 칸에서는 떼 전체가 칸을 채우게 키우되, 가장자리 캐릭터도 85% 이상 보이게', '지면은 캐릭터에서 가장 선명한 색'] },
     { id: 'cutout-character', name: '캐릭터·인물 누끼', when: f => f.character, why: '주인공이 세로로 서 있다(상자 높이 ≥ 55%, 그림 비율 ≤ 1.05)',
       guide: ['열에 세운다 — 발은 지면 바닥에, 머리는 자르지 않는다(머리 위 숨 4%)', '가로형에선 오른쪽 열 폭의 60~70%를 캐릭터에, 세로형에선 아래 띠 높이의 45~55%', '글자는 캐릭터 몸 위로 올리지 않는다 — 어깨선 위 여백만 허용', '지면은 브랜드색(어두운 매체)·브랜드 틴트(밝은 매체), 발밑에 옅은 그림자 없음(누끼 그대로)'] },
-    { id: 'cutout-group', name: '여러 오브젝트·캐릭터 떼', when: f => f.group, why: '덩어리가 둘 이상(parts > 1) — 맞닿은 떼는 열 투명 프로필의 봉우리 둘 이상(틈 열 ≥ 75%)',
+    { id: 'cutout-group', name: '여러 오브젝트 떼', when: f => f.group && !f.charGroup, why: '덩어리가 둘 이상(parts > 1) — 맞닿은 떼는 열 투명 프로필의 봉우리 둘 이상(틈 열 ≥ 75%)',
       guide: ['얼굴·몸통을 가르지 않는다 — 자르기 선은 캐릭터 사이 틈(열 투명 ≥75%)에서만("틈 창"), 틈이 없으면 통째로 맞춰 넣기', '오른쪽 열은 넓혀 키 70%까지, 세로 띠·정사각은 틈 창으로 두세 명을 크게', '정사각 규격은 모서리 상자 대신 폭 전체 아래 띠(30~55%)'] },
     // 덩어리가 여럿일 때만 장면 — 덩어리 하나에 속이 빈 것(고리·링·프레임: 유리 행성 density 0.57)은 성글어도 단일 사물(10-08 Figma 9월 공채)
     { id: 'cutout-scene', name: '장면·건물 누끼(아이소메트릭)', when: f => f.wide && (f.density ?? 1) < 0.6 && f.multi, why: '가로로 넓고(비율 > 1.3) 상자 안이 성글고(밀도 < 0.6) 덩어리가 여럿(parts > 1 또는 열 봉우리 ≥ 2)',
@@ -124,6 +126,13 @@ const dist = (a, b) => {
 
 // 행 투명 프로필(rows, 누끼 32칸)의 머리 꼭대기 — 위 두 칸의 불투명 폭 / 가장 넓은 칸. 사람·캐릭터는 머리가 둥글어 0.00~0.14(동서 모델·연사·여우·강아지),
 // 세로로 긴 사물(상자·병·기둥)은 윗면이 평평해 0.35~0.57(taihan 상자 fig-17 0.50, 스타디움 0.57, 책 0.35). 프로필이 없으면 null(판정에 안 씀).
+// 11-10 아래 몸통(사용자 예시 로켓 누끼가 캐릭터로 잡힘): 행 프로필 아래 1/4 의 평균 불투명 폭 ÷ 최대 폭. 사람·캐릭터는 몸·다리가 바닥까지 넓다(0.5 이상: 여우 0.53·연사 0.7·동서 모델 0.8),
+//   비스듬히 선 사물(로켓)은 아래로 갈수록 가늘어진다(0.19). 프로필이 없으면 null(판정 안 바꿈)
+export function bottomMass(rows) {
+  if (!rows?.length || rows.length < 8) return null;
+  const op = rows.map(r => 1 - (r?.bg ?? 1)), mx = Math.max(...op); if (!(mx > 0)) return null;
+  const q = op.slice(Math.floor(op.length * 0.75)); return Math.round(q.reduce((a, v) => a + v, 0) / q.length / mx * 100) / 100;
+}
 export function headApex(rows) {
   if (!rows?.length || rows.length < 8) return null;
   const op = rows.map(r => 1 - (r?.bg ?? 1)), mx = Math.max(...op), mn = Math.min(...op);
@@ -169,7 +178,7 @@ export function kvTypeOf(kvMeta) {
     // 바탕 있는 그림은 주인공 상자가 바탕 일부를 품을 수 있어(삼성 3D 호) 예전대로 그림 비율로
     // 누끼는 상자 밀도도 본다(10-09 figma-dg): 사람·캐릭터 0.59~0.72(연사 둘·동서 모델·여우) — 별표 3D 0.48(팔이 뻗은 사물)·폴더·책 0.79~0.92(네모난 사물)는 캐릭터가 아니다
     // 사진은 인물 상자(Apple Vision 인물 분리, palette.js personFocus)로 잡은 주인공일 때만 인물 — 색 덩어리는 사람인지 모른다(10-12 hr-doctor·AI 간호사)
-    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 && !((headApex(f.rows) ?? 0) >= 0.3) : ar < 1.05)),   // 머리 꼭대기가 평평·넓으면(윗 두 칸 ≥ 최대 폭 30%) 세로 사물이지 사람이 아니다(11-03 fig-17 taihan 상자 0.50 vs 사람 ≤ 0.14)
+    character: !!(focus && focus.h >= 0.55 && (kind === 'photo' ? (focus.source === 'person' || focus.source === 'override') : true) && (kind === 'photo' ? true : kind === 'cutout' ? (focus.w * ar) / focus.h < 1.2 && (focus.density ?? 0.65) >= 0.55 && (focus.density ?? 0.65) < 0.75 && !((headApex(f.rows) ?? 0) >= 0.3) && !((bottomMass(f.rows) ?? 1) < (CANON.charBottomMin ?? 0.35)) : ar < 1.05)),   // 머리 꼭대기가 평평·넓으면(윗 두 칸 ≥ 최대 폭 30%) 세로 사물이지 사람이 아니다(11-03 fig-17 taihan 상자 0.50 vs 사람 ≤ 0.14)
     group: !!(focus && ((focus.parts ?? 1) > 1 || (focus.others?.length ?? 0) > 0 || (kind === 'cutout' && colHumps(f.cols) >= 2) || crowdTop)),   // 덩어리 여럿(캐릭터 떼·호 + 글로우, 맞닿은 누끼 떼는 열 봉우리) → 창이 덩어리를 가르면 안 됨
     // 장면 판정용 「덩어리 여럿」 — 연결 성분이 둘 이상이거나 열 봉우리 둘 이상(덩어리 하나에 속이 빈 고리는 아니다)
     multi: !!(focus && ((focus.parts ?? 1) > 1 || (kind === 'cutout' && colHumps(f.cols) >= 2))),   // 맞닿은 사람 떼(crowdTop)는 장면이 아니라 떼 — 장면의 「누끼 위 빈 곳까지 글자 겹침 허용」을 받으면 머리 위로 상세가 올라갔다(10-14 ABL 580×400·300×250)
@@ -200,6 +209,10 @@ export function kvTypeOf(kvMeta) {
   flags.crowd = kind === 'photo' && f.lum != null && f.lum < 0.4 && (!focus || subjectArea >= 0.85);
   // 단일 사물 누끼 — 캐릭터도 떼도 아닌 덩어리 하나. 크게·우하단 블리드(CANON objectBleed)의 대상
   flags.single = kind === 'cutout' && !!focus && !flags.character && !flags.group && !flags.frame;
+  // 11-10 사용자 그림 종류 트리(누끼 → 캐릭터 1개·여럿 / 오브젝트): 떼 가운데 사람·캐릭터 떼를 따로 — 윗선 봉우리(머리)가 3개 이상이거나 캐릭터 깃발(세로로 선 주인공)이 함께 선 떼.
+  //   실측: 사람·캐릭터 떼 ABL 6~7 · 고양이 3 · 여우 셋 7 / 사물 떼(책·상자·건물) 2. 캐릭터 떼는 머리 보존·틈에서만 자르기, 사물 떼는 통째로 크게
+  //   조각이 아주 많으면(흩어 놓은 아이콘·스티커 fig-29 조각 19) 사물 떼 — 캐릭터 떼는 1~3조각
+  flags.charGroup = kind === 'cutout' && flags.group && !flags.frame && (focus?.parts ?? 1) <= (CANON.charGroupMaxParts ?? 7) && (flags.character || (f.topPeaks ?? 0) >= (CANON.charGroupPeaks ?? 3));
   // 사람이 유형을 직접 지정했으면(applyKvTypeOverride) 그 세분 유형이 걸리는 깃발을 켠다 — 렌더러 분기는 모두 이 깃발을 본다
   const ov = kvMeta.typeOverride ? overrideOf(kvMeta.typeOverride) : null;
   if (ov?.sub) Object.assign(flags, OVERRIDE_FLAGS[ov.sub.id] ?? {});
@@ -223,7 +236,8 @@ const OVERRIDE_FLAGS = {
   'cutout-frame': { frame: true, character: false, group: false, multi: false, single: false },
   'cutout-glass': { glass: true },
   'cutout-character': { character: true, group: false, multi: false, frame: false, single: false },
-  'cutout-group': { group: true, multi: true, character: false, frame: false, single: false },
+  'cutout-group-character': { group: true, multi: true, charGroup: true, frame: false, single: false },
+  'cutout-group': { group: true, multi: true, charGroup: false, character: false, frame: false, single: false },
   'cutout-scene': { wide: true, multi: true, group: true, character: false, frame: false, single: false },
   'cutout-object': { single: true, character: false, group: false, multi: false, frame: false },
   'illust-character': { character: true, group: false },

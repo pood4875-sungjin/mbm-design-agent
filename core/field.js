@@ -171,6 +171,11 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
       stops = [mix(base, WHITE, K.tint ?? 0.78), WHITE]; angle = 180; source = 'kv-harmony-tint';
     }
   }
+  // 11-10 비중 색 지면(CANON.kvShare): 질감·평평한 바탕 없는 그림 — 그림에서 비중이 가장 큰 유채색으로, 너무 어둡지 않게(흰 로고 → 브랜드 딥보다 먼저 — 그림과 지면이 따로 놀던 midas-facets)
+  else if (CANON.kvShare && f && f.kind !== 'photo' && f.opaque >= 0.5 && kvShareColor(style.kvMeta?.colors ?? [], CANON.kvShare)) {
+    const K = CANON.kvShare, c = kvShareColor(style.kvMeta.colors, K);
+    stops = [c, shiftHue(c, 0, -K.grad, 0)]; angle = 135; source = 'kv-share';
+  }
   else if (style.logoTone === 'light') {
     // 흰색 로고만 있다 — 그림이 지면을 정하지 않는 경우(사진·누끼·그림 없음) 로고가 지면을 정한다: 어두운 브랜드색. 브랜드색이 밝으면 검정을 섞는다
     const brand = p.primary ?? '#2456D6';
@@ -276,6 +281,14 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
 }
 
 // 분위기 지면(CANON kvMood) — 그림 바탕의 색감이 브랜드 지면색보다 먼저다. 없으면 null
+// 비중 색(11-10): 비중 순 색 목록에서 첫 유채색(없으면 null) → 흰 글자 대비 minContrast 까지 어둡히되 HSL 밝기 lMin 밑으로는 안 내림
+export function kvShareColor(colors = [], K = CANON.kvShare) {
+  const hsl = h => rgbToHsl(hexToRgb(h));
+  const base = colors.find(h => /^#[0-9A-Fa-f]{6}$/.test(String(h)) && hsl(h)[1] >= (K.minSat ?? 0.18));
+  if (!base) return null;
+  for (let d = 0; d <= (K.maxDrop ?? 0.15) + 1e-9; d += K.step) { const n = shiftHue(base, 0, -d, 0); if (hsl(n)[2] < K.lMin) break; if (contrast(n, WHITE) >= K.minContrast) return n.toUpperCase(); }
+  return base.toUpperCase();   // 상한 안에서 흰 글자가 안 되면 그 색 그대로 — 글자색은 뒤 규칙이 지면 밝기로 고른다(어두운 글자)
+}
 export function moodStops(style, e, f, K = CANON.kvMood) {
   if (!K || !f) return null;
   const sat = h => rgbToHsl(hexToRgb(h))[1];
@@ -431,7 +444,7 @@ function keepClamp(o, lo, hi, k0, k1, box) {
 //   · 통째로 덮는 배율(s0)과 비슷하면(1.25배 미만) 그대로 둔다 — 레퍼런스처럼 주인공이 이미 큰 그림은 건드리지 않는다
 //   · 원본 픽셀보다 25% 넘게 키우지 않는다(흐려진다). 단 자리는 덮어야 하니 s0 아래로는 안 내려간다
 //   · 사진(주인공을 못 찾음)·누끼(배경 없음)는 해당 없다
-export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGain = 1.25, sMul = 1 } = {}) {
+export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGain = 1.25, sMul = 1, fit = false } = {}) {   // fit(11-10): 주인공 상자가 칸에 통째로 들어가는 배율까지만(덮기 대신 맞추기) — 오브젝트가 칸 변에서 안 잘린다
   const f = effectiveField(style.kvMeta?.field), focus = f?.focus, ar = style.kvMeta?.ar, keep = f?.keep ?? null;
   if (!focus || !ar || (f?.opaque ?? 1) < 0.5 || !(bw > 0 && bh > 0)) return null;
   const px = style.kvMeta?.px;
@@ -440,7 +453,7 @@ export function subjectCrop(style, bw, bh, { margin = 0.08, maxUp = 1.25, minGai
   const x0 = Math.max(0, focus.x - focus.w / 2 - focus.w * margin), x1 = Math.min(1, focus.x + focus.w / 2 + focus.w * margin);
   const y0 = Math.max(0, focus.y - focus.h / 2 - focus.h * margin), y1 = Math.min(1, focus.y + focus.h / 2 + focus.h * margin);
   const fw = Math.max(1, (x1 - x0) * iw), fh = Math.max(1, (y1 - y0) * ih);
-  let s = Math.max(bw / fw, bh / fh);
+  let s = fit ? Math.min(bw / fw, bh / fh) : Math.max(bw / fw, bh / fh);
   if (px) s = Math.min(s, Math.max(s0, maxUp));
   // 보일 부분(CANON.kvCrop.minVisible, 10-28 컨시어지 #2 김혜원 「세로형(리멤버 사이드)에서 KV 가 일부만 크롭」): 주인공 상자와 자리의 비율이 어긋나면 한 축을 덮는 배율이 다른 축의 주인공을 잘라낸다(일화 사옥 띠 2.36:1 → 1.17:1 칸에 폭 50% 만).
   //   주인공 상자의 minVisible(60%) 은 보이도록 배율을 낮춘다(s ≤ 양 축 다 들어가는 배율 ÷ minVisible) — 통째 배율(s0) 아래로는 안 간다. 작은 주인공(그림 일부)은 비율이 맞으면 그대로 당긴다

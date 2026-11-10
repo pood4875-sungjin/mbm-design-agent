@@ -26,13 +26,16 @@ export const OVERRIDE = Object.fromEntries([
   // 정보 정확성 — 지어내지 않기·빠뜨리지 않기·같은 말 두 번 금지(AI 문구 화이트리스트 copyOptions 가 지켜야 함)
   ...L1('block', ['required-date', 'keep-info', 'hire-no-auto', 'season-slogan-no-default', 'year-once', 'label-no-double', 'label-role-dedup', 'schedule-note-date', 'deadline-time', 'main-keep-client', 'mold-client-first', 'no-cta', 'count-chars-invisible'], '정보 정확성'),
   // 가독 — 대비·작은 글자·사진 위 글자
-  ...L1('fix', ['photo-text-scrim', 'small-dark-weight', 'date-box-text-contrast', 'check-busy-under-text'], '가독(대비)'),
+  ...L1('fix', ['small-dark-weight', 'date-box-text-contrast', 'check-busy-under-text'], '가독(대비)'),
+  // 11-10 사용자 결정 ②: 「낱말 안 줄바꿈 금지」·「사진 위 글자 스크림 필수」는 AI 에 강제 안 함 → 룰 레시피(L2 참고). 대비 자체는 L1(AI 게이트 대비 검사)
+  ...L2('hint', ['photo-text-scrim', 'orphan-glue', 'middot-keep', 'client-keep', 'long-word-syllable-break', 'slash-split-word', 'word-width-check'], '사용자 11-10 「안 지켜도 됨」(AI) — 룰 트랙은 그대로'),
+  // 11-10 사용자 결정 ④ 「지키면 좋을듯」: 로고 비중 상한은 두 트랙 다(AI 게이트 4항-2 logo-big → 자동 축소)
+  ...L1('fix', ['logo-cap'], '로고 비중 상한(사용자 11-10)'),
   // 그림 보존 — 주인공 가림·잘림·흐림·로고 가림
   ...L1('block', ['logo-upscale-cap'], '그림·로고 보존'),
   ...L2('hint', ['logo-right-col-below'], '배치 방법 — 결과(로고 가림)는 check-logo-covered 가 L1'),
   ...L2('off', ['mold-text-rows', 'mold-logo-box', 'mold-image-box', 'mold-measured-gate', 'tpl-pass', 'tpl-norm'], '룰 트랙 틀·시안 틀 검사'),
   ...[['check-profile-focus', ['M', 'input', '주인공 어림 방법']], ['check-subject-tolerance', ['M', 'input', '잘림 여유 — 측정 방법']], ['remember-bg-banned-same-only-1028', ['L0', 'block', '리멤버 배경 금지색(규정)']]],
-  ...L1('fix', ['orphan-glue', 'middot-keep', 'client-keep', 'long-word-syllable-break', 'slash-split-word', 'word-width-check'], '줄바꿈 품질(낱말 안 끊김)'),
   // 자동 검사 중 룰 트랙 운영용(AI 와 무관하거나 참고)
   ...[['check-warn-only', ['L1', 'off', '집계 방식']], ['ship-rules-grade-a', ['L0', 'off', '출고 체크리스트']], ['quality-audit-loop', ['L2', 'off', '룰 트랙 품질 루프']],
     ['check-empty-band', ['L2', 'hint', '빈 띠 — 자유 구성은 여백이 의도일 수 있음']], ['check-short-melt', ['L2', 'hint', '녹임 길이 — 룰 트랙 레시피']], ['check-band-seam', ['L2', 'hint', '이음 — 룰 트랙']],

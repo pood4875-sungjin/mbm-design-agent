@@ -411,6 +411,19 @@ export function fixLogoGap(html, rows, logo, { want, H, safe = null }) {
   return { html: E.apply(), moves };
 }
 
+// ── 로고 크기 상한 자동 고침(11-10 사용자 「로고 상한 지키면 좋을듯」 — 4항-2 logo-big): 로고 폭을 cap 으로 줄인다(비율 유지 — width·height 같이). right·bottom 기준이면 그 모서리가 그대로
+export function fixLogoSize(html, logo, cap) {
+  if (!logo || !(cap > 0) || !(logo.w > cap)) return null;
+  const Rt = rootInfo(String(html ?? '')); if (!Rt) return null;
+  const ln = Rt.nodes.find(n => n.logo); if (!ln) return null;
+  const f = cap / logo.w; let st = styleOf(ln.tag);
+  const w = pxOf(st, 'width'), h = pxOf(st, 'height');
+  if (w == null && h == null) st = setDecl(st, 'width', `${r1(cap)}px`);
+  else { if (w != null) st = setDecl(st, 'width', `${r1(w * f)}px`); if (h != null) st = setDecl(st, 'height', `${r1(h * f)}px`); }
+  const E = edits(String(html)); E.replace(ln.index, ln.tag, withStyle(ln.tag, st));
+  return { html: E.apply(), moves: [{ role: 'logo', scale: +f.toFixed(3) }] };
+}
+
 // ── 누끼 키비주얼 간격 자동 고침(11-09 6단계 r1 — 「4항-2 kv-overlap·asset-tight 글자·키비주얼」 반려 10건, 재요청(sonnet)이 거의 못 고침).
 //   주인공 상자(subject, 지면 좌표)가 글자 덩어리 오른쪽/아래에 있으면 키비주얼 요소를 먼 모서리(오른쪽·아래) 기준으로 줄여 간격을 만든다(비율 유지 — width·height 같이).
 //   왼쪽/위에 있으면 왼·위 모서리 기준. 줄이는 몫이 25%를 넘으면 null(재요청으로). rows: 글자 잉크, subject: {x,y,w,h}, want: 필요한 간격 px

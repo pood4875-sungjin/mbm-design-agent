@@ -101,6 +101,9 @@ export const CANON = {
   // 레이아웃 안(10-20 2단계 「여러 레이아웃 생성 → 선택 → 추출」): 안 = 편집 프리셋 조합. 규정 매체(fonts.required)는 1(정답 하나), 등급 C(자유)는 free, 그 외 default.
   //   후보는 CANDIDATE_ORDER 순서로 렌더해 프리셋이 안 먹거나(ignored) 겹침 교정이 실패하거나 그림이 같으면 버린다 — 「많이」가 아니라 「쓸 수 있는 안만」
   variants: { regulated: 1, default: 4, free: 4, maxRender: 28 },
+  // 11-10 사용자 「비주얼 기반으로 색 선택 — 그 비중의 색으로, 너무 어두워도 안 되고」: 질감·평평한 바탕 없는 그림(일러스트·3D)은 지면 = 그림에서 비중이 가장 큰 유채색(kvMeta.colors[0], 평평한 바탕색 제외·비중 순).
+  //   흰 글자 대비 minContrast 까지 같은 색상으로 어둡히되 HSL 밝기 lMin 밑·maxDrop 넘게는 안 내림 — 그 안에서 안 되면 원래 색 + 어두운 글자(너무 어두운 남색 방지). 둘째 정지점은 grad 만큼만 어둡게. 흰 로고 → 어두운 브랜드색(brand-dark-logo)보다 먼저
+  kvShare: { lMin: 0.34, maxDrop: 0.15, minContrast: 4.5, step: 0.01, grad: 0.06, minSat: 0.18 },   // maxDrop: 밝기를 이만큼 넘게 내려야 흰 글자가 되면 색은 그대로 두고 글자를 어둡게(밝은 하늘색 질감이 진한 파랑이 되던 것)
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5, photoChroma: 0.15, photoHueNear: 40, photoSat: [0.4, 0.5], photoTintLum: 0.55, photoLightL: 0.6, photoLightMix: 0.55 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7 (누끼만)
   //   11-09 사용자(이음·비중 검수 결정 「유채 A′ + 무채 브랜드색」): 사진은 왼변 색 채도가 photoChroma 이상이면 그 색상 ±photoHueNear° 안의 사진 속 유채색을 채도 photoSat·명도 lMin~lMax 로, 흰 글자 4.5:1(photoEdgeField — 피그마 시안 236:3717·236:3742 기준).
   //   무채 변(흰 가운·회색 사무실)은 사진에서 색을 만들지 않는다 — 밝은 사진(lum ≥ photoTintLum)은 옅은 브랜드 틴트 + 어두운 글자(brand-tint-photo), 어두운 사진은 브랜드 딥 + 사진 쪽 끝 브릿지(brand-photo-bridge). 전엔 채도 .7 로 올려 이음 색 차 평균 .35·✗ 501/773
@@ -113,6 +116,16 @@ export const CANON = {
   // 벡터 그림 판정(GS에너지 2026 svg 장면): 평평한 변 하나 · 주인공 못 가름이면 사진으로 보던 것을, 이웃 픽셀 같은 색 몫(palette flatFillOf) ≥ 이 값이면 일러스트로 둔다.
   //   장부 사진 최대 0.782(desk-19, 평평한 변 0이라 이 갈래 밖) · gs2026 0.824 — 근거 1건
   flatVector: 0.8,
+  // 11-10 실사 판정 보강(사용자 그림 종류 트리 「이미지 → 실사 / 그래픽」): 평평한 변이 있어 일러스트로 잡혀도 결이 거칠고(texture.rough ≥ rough) 같은 색이 이어지는 면이 적으면(flatFill < flatMax) 사진 — 흰 벽 앞 인물(fig-32)·세미나홀(hdot-hall). 그래픽은 디테일이 많아도 면이 고르다(bc 0.48·fig-08 0.71)
+  photoGrain: { rough: 0.03, flatMax: 0.4 },
+  // 11-10 그래픽 판정(사용자 폴더 「키비주얼-1」 그래픽-이미지형 11장 중 3장이 사진으로 잡힘 — 별 앱 아이콘·파란 카드·파란 선): 가장자리에 한 색 바탕이 없어도 결이 매끈하고(rough < roughMax) 색이 진하면(sat ≥ satMin) 3D·그래픽 렌더 — 사진(의사 0.13·일화 0.4·책 0.46)은 안 걸림
+  graphicSmooth: { roughMax: 0.016, satMin: 0.5 },
+  // 11-10 캐릭터 떼: 누끼 윗선 봉우리가 이만큼 이상이면 사람·캐릭터 떼(사물 떼는 2)
+  charGroupPeaks: 3, charGroupMaxParts: 7,
+  // 11-10 누끼 캐릭터는 아래 1/4 평균 폭이 최대 폭의 이만큼 이상(몸·다리) — 로켓처럼 아래로 가늘어지는 사물은 캐릭터가 아니다(kvtypes bottomMass)
+  charBottomMin: 0.35,
+  // 11-10 떼를 틀 칸에 넣을 때 칸을 채우게 키우는 몫 — 가장자리가 잘려도 이만큼은 보인다(캐릭터 떼는 얼굴 때문에 더 보이게)
+  groupFill: { visObject: 0.7, visChar: 1, maxH: 0.95, minGain: 1.05 },   // visChar 1 = 캐릭터 떼는 키우지 않는다(넘치면 가장자리 캐릭터 얼굴이 잘린다 — ABL 곰). 사물 떼만
   // 누끼 사람 떼(맞닿아 틈 열이 없는 떼): 윗선 봉우리 ≥ peaks 이고 가로로 넓으면(비율 ≥ minAr) 떼(ABL 6명 어깨동무 봉우리 7 · 장부 단일 사물 최대 3, 장식 프레임 5~7은 frame 이 먼저)
   crowdPeaks: { peaks: 5, minAr: 1.3 },
   // 전신 인물·캐릭터 누끼 → 상반신(동서식품 디자이너 9/9 머리~허리 · 바이오노트 개 1/1 머리~가슴): 그림 비율 < maxAr(0.6 — 동서식품 전신 0.42·바이오노트 앉은 개 0.59 는 들고, 이미 허리 위인 연사 hdot-speaker-b 0.62·세로로 긴 3D 사물 desk-03-cut 0.63 은 뺀다) 인 세로로 선 누끼는 위 vis 몫만 있는 그림으로 배치하고,

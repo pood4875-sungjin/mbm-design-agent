@@ -18,10 +18,22 @@ const DEFAULT_MODEL = MODELS[0].id;
 const realKey = v => { v = (v || '').trim(); return /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(v) ? v : ''; };
 export function getKey() { try { return realKey(localStorage.getItem(KEY_LS)) || realKey(EMBEDDED); } catch { return realKey(EMBEDDED); } }
 export function setKey(v) { v = (v || '').trim(); try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch {} }
-export function hasKey() { return !!getKey(); }
-export function maskKey() { const k = getKey(); return k ? (k.length <= 12 ? '••••' : k.slice(0, 7) + '…' + k.slice(-4)) : ''; }
+// 11-10 개인 Claude 계정(로컬 앱 · CLI): 키가 없고 Claude 가 연결돼 있으면 서버(/api/claude/ask)로 — API 비용 없이 그 계정 플랜 한도 안에서(app/claudelink.js 가 켠다)
+let CLAUDE_CLI = false;
+export function setClaudeCli(v) { CLAUDE_CLI = !!v; }
+export function hasKey() { return !!getKey() || CLAUDE_CLI; }
+export function maskKey() { const k = getKey(); return k ? (k.length <= 12 ? '••••' : k.slice(0, 7) + '…' + k.slice(-4)) : CLAUDE_CLI ? 'Claude 계정' : ''; }
 
 async function messages(system, user, maxTokens = 800, timeoutMs = 25000) {
+  if (!getKey() && CLAUDE_CLI) {   // 개인 Claude 계정(CLI) — 한 턴 5~15초라 기다림을 넉넉히
+    const ac = new AbortController(); const timer = setTimeout(() => ac.abort(), Math.max(timeoutMs, 90000));
+    try {
+      const r = await fetch('/api/claude/ask', { method: 'POST', signal: ac.signal, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ system, user, maxTokens }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error ?? `HTTP ${r.status}`);
+      return String(j.text ?? '');
+    } finally { clearTimeout(timer); }
+  }
   // 응답이 안 오면 무한정 기다리지 않는다 — 호출자가 규칙 진행으로 넘어갈 수 있게 끊는다
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);

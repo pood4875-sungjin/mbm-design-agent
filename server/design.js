@@ -10,6 +10,7 @@ import { kvTypeOf, kvTypeSummary } from '../core/kvtypes.js';
 import { LAYOUT_SCHEMA, validateLayout } from '../core/trackb/schema.js';
 import { buildFixed, buildPrompt, retryPrompt, SYSTEM_PROMPT } from '../core/trackb/prompt.js';
 import { estimateCost, sumUsage, DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
+import { runClaudeCode } from './freedesign.js';   // 11-10 API 키 없이 개인 Claude 계정(CLI)으로
 import { ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis, parseAnalysisText, parseAnalysisFull, metaForSent } from '../core/trackb/analyze.js';
 
 registerAll();
@@ -89,6 +90,22 @@ export async function designLayout(client, input = {}) {
 // 하이브리드(A+AI) — 그림 판단 1회. 입력: { kv:{dataUrl, meta}, logo?:{dataUrl, meta}, brief, brand, requests, model(기본 Sonnet), effort(기본 medium) }
 // 출력: { analysis, fixes, usage, cost, calls, ms, model, effort, raw, prompt }
 export const ANALYZE_MODEL = 'claude-sonnet-5-5';
+// 11-10 「AI 그림 판단」 CLI 판 — 키가 없으면 로컬 Claude Code(개인 계정 플랜)로 같은 프롬프트를 돌린다. 형식이 깨지면 한 번 더
+export async function analyzeKvCli(input = {}) {
+  if (!input.kv?.dataUrl) throw new Error('키비주얼이 필요합니다');
+  const kvMeta = metaForSent(input.kv.meta ?? null, input.kv.dataUrl), logoMeta = input.logo?.meta ?? null, hasLogo = !!input.logo?.dataUrl;
+  const userText = analysisPrompt({ kvMeta, logoMeta, brief: input.brief ?? {}, brand: input.brand ?? {}, requests: input.requests ?? '' });
+  const images = [{ dataUrl: input.kv.dataUrl }, ...(hasLogo ? [{ dataUrl: input.logo.dataUrl }] : [])];
+  const t0 = Date.now(); let raw = null, lastErr = null, calls = 0, model = null;
+  for (let i = 0; i < 2 && !raw; i++) {
+    const r = await runClaudeCode(i ? userText + '\n\n(앞 답이 형식이 깨졌다 — JSON 하나만, 설명·코드펜스 없이)' : userText, { images, imageMode: 'stream', tools: false, model: process.env.ANALYZE_CC_MODEL ?? 'sonnet', effort: 'medium', timeoutMs: 240_000, system: ANALYSIS_SYSTEM });
+    calls++; model = r.model;
+    try { raw = parseAnalysisFull(r.text); } catch (e) { lastErr = e; }
+  }
+  if (!raw) throw lastErr ?? new Error('JSON 을 받지 못했습니다');
+  const { analysis, fixes } = validateAnalysis(raw, { kvMeta, hasLogo });
+  return { analysis, fixes, usage: null, cost: 0, calls, ms: Date.now() - t0, model, effort: 'medium', engine: 'claude-code', raw, sentPx: kvMeta?.px ?? null, prompt: { system: ANALYSIS_SYSTEM, user: userText } };
+}
 export async function analyzeKv(client, input = {}) {
   if (!input.kv?.dataUrl) throw new Error('키비주얼이 필요합니다');
   const model = PRICES[input.model] ? input.model : ANALYZE_MODEL;
