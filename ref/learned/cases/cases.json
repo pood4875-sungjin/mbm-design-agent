@@ -1213,8 +1213,8 @@
         "applyUrl": "https://hanjin.example"
       },
       "addedAt": "2026-10-09",
-      "type": "photo",
-      "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 어두운 바탕 · 정사각형",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 어두운 바탕 · 정사각형",
       "verdicts": [],
       "logoMono": null
     },
@@ -1909,8 +1909,8 @@
         "applyUrl": "https://hanjin.example"
       },
       "addedAt": "2026-10-09",
-      "type": "photo",
-      "summary": "여백 있는 사진(하늘·벽) · 주인공 12% · 덩어리 여럿 · 정사각형",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 12% · 덩어리 여럿 · 정사각형",
       "verdicts": [],
       "logoMono": "logo-mono.png"
     },
@@ -3686,8 +3686,8 @@
       "logoMono": null,
       "fields": null,
       "addedAt": "2026-10-21",
-      "type": "photo",
-      "summary": "꽉 찬 사진 · 가장자리 그라데이션 · 어두운 바탕 · 정사각형",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 어두운 바탕 · 정사각형",
       "verdicts": []
     },
     {
@@ -3896,8 +3896,8 @@
       "logoMono": null,
       "fields": null,
       "addedAt": "2026-10-21",
-      "type": "photo",
-      "summary": "여백 있는 사진(하늘·벽) · 주인공 12% · 덩어리 여럿 · 정사각형",
+      "type": "illust",
+      "summary": "배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 12% · 덩어리 여럿 · 정사각형",
       "verdicts": []
     },
     {
@@ -5533,6 +5533,267 @@
       "addedAt": "2026-11-03",
       "type": "illust",
       "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 15% · 덩어리 여럿 · 가장자리 그라데이션 · 어두운 바탕 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-walk-people",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/누끼형/Rectangle.png) · 사용자 분류 누끼형·캐릭터 여럿 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "cutout",
+      "summary": "캐릭터 여럿(사람·캐릭터 떼) · 덩어리 여럿 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-cart",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/누끼형/image 1.png) · 사용자 분류 누끼형·오브젝트 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "cutout",
+      "summary": "여러 오브젝트 떼 · 덩어리 여럿 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-rocket-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/누끼형/img_kv_desk-13.png) · 사용자 분류 누끼형·오브젝트 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "cutout",
+      "summary": "캐릭터·인물 누끼 · 캐릭터(머리 보존) · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-bcworld-cut",
+      "kv": "kv.png",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/누끼형/비씨월드제약,헬스케어 공고 로고 2.png) · 사용자 분류 누끼형·오브젝트 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "cutout",
+      "summary": "단일 사물 누끼 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-g-0c9a",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/그래픽-이미지형/0c9ab2b6932c885b68fe5883d8643aa4.jpg) · 사용자 분류 그래픽-이미지형 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-g-31fb",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/그래픽-이미지형/31fb7935aa899a614928dc5a6c30b66f.jpg) · 사용자 분류 그래픽-이미지형 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+배경형(빈 자리 있는 바탕 그림)+오브젝트 느낌 3D·일러스트 · 배경형 가능 · 주인공 1% · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-g-70ce",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/그래픽-이미지형/70ceaaac8c5c6d647dd93dbaebd6cc42.jpg) · 사용자 분류 그래픽-이미지형·오브젝트+배경 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "illust",
+      "summary": "그라데이션 바탕 일러스트·3D+오브젝트 느낌 3D·일러스트 · 주인공 37% · 덩어리 여럿 · 가장자리 그라데이션 · 가로형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-g-97f4",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/그래픽-이미지형/97f408e8da6cdc32799f673bbc8255ed.jpg) · 사용자 분류 그래픽-이미지형 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "illust",
+      "summary": "바탕 있는 캐릭터+오브젝트 느낌 3D·일러스트 · 주인공 40% · 캐릭터(머리 보존) · 덩어리 여럿 · 정사각형",
+      "verdicts": []
+    },
+    {
+      "id": "ex-g-eba5",
+      "kv": "kv.jpg",
+      "logo": "logo.png",
+      "note": "11-10 사용자 예시(키비주얼-1/그래픽-이미지형/eba5fc72f02b3bc7c4dbc10e3f172f1f.jpg) · 사용자 분류 그래픽-이미지형 · 로고 MIDAS 회색 워드마크",
+      "primary": null,
+      "logoMeta": {
+        "px": [
+          437,
+          128
+        ],
+        "lum": 0,
+        "sat": 0,
+        "solid": 0.57,
+        "tone": "dark",
+        "colors": [
+          {
+            "hex": "#000000",
+            "share": 1
+          }
+        ]
+      },
+      "logoMono": null,
+      "fields": null,
+      "addedAt": "2026-11-10",
+      "type": "illust",
+      "summary": "배경과 엮인 장면 일러스트·3D · 덩어리 여럿 · 어두운 바탕 · 가로형",
       "verdicts": []
     }
   ]

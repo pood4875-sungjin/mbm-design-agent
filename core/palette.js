@@ -320,7 +320,8 @@ export function fieldFromImage(rgba, w, h, band = 0.06) {
   // 단, 면이 고르게 칠해진 벡터 그림(이웃 픽셀이 같은 색인 몫 flatFill ≥ CANON flatVector — 사진 최대 0.77, 10-14 t1014 GS에너지 2026 svg 장면 0.82)은 사진이 아니다(바탕이 구름·건물로 갈려 주인공을 못 가른 일러스트)
   const flatFill = cutout ? null : flatFillOf(rgba, w, h);
   if (kind === 'illust' && flatEdges === 1 && !focus && !(flatFill >= (CANON.flatVector ?? 2))) kind = 'photo';
-  { const PG = CANON.photoGrain; if (PG && kind === 'illust' && (tex.rough ?? 0) >= PG.rough && flatFill != null && flatFill < PG.flatMax) kind = 'photo'; }   // 11-10 결 거칠고 면이 고르지 않은 「일러스트」는 사진(CANON.photoGrain)
+  { const PG = CANON.photoGrain; if (PG && kind === 'illust' && (tex.rough ?? 0) >= PG.rough && flatFill != null && flatFill < PG.flatMax) kind = 'photo'; }
+  { const GS = CANON.graphicSmooth; if (GS && kind === 'photo' && !focus?.source && (tex.rough ?? 1) < GS.roughMax && (sat ?? 0) >= GS.satMin) kind = 'illust'; }   // 11-10 매끈하고 진한 「사진」은 그래픽(CANON.graphicSmooth)   // 11-10 결 거칠고 면이 고르지 않은 「일러스트」는 사진(CANON.photoGrain)
   // 누끼 윗선의 봉우리 수(머리·꼭대기) — 맞닿아 연결 성분 하나·틈 열 없는 사람 떼(10-14 t1014 ABL 6명 어깨동무: 봉우리 7)를 단일 사물과 가른다(kvtypes group)
   const topPeaks = cutout ? topPeaksOf(rgba, w, h) : null;
   return { edges, opaque, flatEdges, kind, lum, lumSpread, sat, semi: semiRatio, texture: tex, quadrants, focus, ...(topPeaks != null ? { topPeaks } : {}), ...(flatFill != null ? { flatFill } : {}), rows: cutout ? alphaProfile('rows', 32) : bgProfile(rgba, w, h, bw, 'rows', 16, ref), cols: cutout ? alphaProfile('cols', 32) : bgProfile(rgba, w, h, bw, 'cols', 16, ref), room: cutout ? null : roomOf(rgba, w, h, bw, 8, ref) };
