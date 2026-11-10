@@ -39,3 +39,20 @@ AI 기능은 **내 컴퓨터에서 켠 앱**에서 **내 Claude 계정**으로 �
 | 서버가 예전 버전이에요 | `git pull` 후 `MBM 시작.command` 다시 |
 
 서버 쪽 코드: `server/claudelink.js`(상태·로그인·그림 종류 판단·일반 질문), 앱: `app/claudelink.js`(칩·연결 창).
+
+## 나중에 API 로 바꿀 때 (지금은 안 해요)
+2026-11-10 결정: **지금은 로컬 앱 + 각자 Claude 계정 로그인으로 가요.** API 키 방식은 나중에 필요할 때 개발해요. 그때 볼 것만 적어 둬요.
+
+- **왜 지금은 로그인인가요?** 디자인 생성은 여러 번 주고받아서 API 로 하면 토큰 비용을 미리 알기 어려워요. 로그인은 월 구독료 고정이에요. 대신 플랜 사용 한도에 걸릴 수 있어요.
+- **claude.ai 밖 우리 서버에 「Claude 로그인」을 붙이는 건 안 돼요.** 다른 서비스가 Claude 계정 로그인을 붙여 주는 건 Anthropic 이 허락하지 않아요. 서버에 올리려면 API 키(회사 키 또는 각자 키)이거나, 앱을 claude.ai 안(Artifact)에 올려 보는 사람 계정으로 부르는 방법이 있어요.
+- **지금 기능별 상태**
+
+  | 기능 | 지금 | API 로 바꿀 때 |
+  |---|---|---|
+  | 그림 종류 판단 `/api/kvjudge` | 계정만(`server/claudelink.js judgeKv`) | API 길 새로 |
+  | 기획 해석 `/api/claude/ask` | 계정만(`server/claudelink.js ask`) · 브라우저 키 길은 `app/llm.js` 에 남음(입력 칸만 뺌) | 서버 API 길 새로 |
+  | AI 그림 판단 `/api/analyze` | `server/.env` 키 있으면 API, 없으면 계정(`server/design.js analyzeKvCli`) | 이미 됨 |
+  | 자유 디자인 `/api/freedesign` | 계정 · `FREEDESIGN_API=1` + 키면 API | 이미 됨 |
+  | A/B 디자인 `/api/design` | API 만 | 계정 길은 없음 |
+
+- **바꿀 때 하면 좋은 것:** Claude 부르는 곳을 함수 하나로 모으고, 설정 한 줄(`MBM_ENGINE=cli|api`)로 다섯 기능을 한꺼번에 바꿔요. 칩은 「API 키 사용 중」으로 보여 줘요. 바꾸기 전에 Claude Code 결과에 나오는 「API 로 했으면 얼마였을지」를 기능별로 쌓아 보면 비용을 숫자로 가늠할 수 있어요.
