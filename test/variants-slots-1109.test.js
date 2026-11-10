@@ -62,7 +62,7 @@ test('정렬-비주얼 짝(11-09 피드백): 가운데 정렬인데 비주얼이
 });
 
 test('3슬롯: 규정 아닌 틀 규격은 기본안 + A·B·C(또는 대체) = 4안, 부제가 있고 밝은 지면이 안 되면 사유를 남기고 다른 슬롯으로 채운다', () => {
-  assert.deepEqual(SLOTS.map(s => s.label), ['정렬 변경형', '일정 강조형', '밝은 지면형']);
+  assert.deepEqual(SLOTS.map(s => s.label), ['정렬 변경형', '일정 강조형', '타이포 강조형']);
   for (const sid of ['google-gdn-580x400', 'google-gdn-970x250', 'google-gdn-300x600', 'instagram-feed-1080', 'nap-dsp-full-300x250', 'blind-post-banner']) {
     const stats = {}; const vs = variantCandidates(sid, ctx, styleOf('fox-cutout'), { stats });
     assert.equal(vs.length, 4, `${sid}: ${vs.map(v => v.label).join(' | ')}`);
@@ -71,8 +71,10 @@ test('3슬롯: 규정 아닌 틀 규격은 기본안 + A·B·C(또는 대체) = 
     assert.equal(stats.slots.length, 3);
   }
   const stats = {}; const vs = variantCandidates('google-gdn-580x400', ctx, styleOf('ilhwa-photo'), { stats });
-  assert.equal(vs.length, 4); const c = stats.slots.find(s => s.slot === 'C'); assert.equal(c.ok, false); assert.match(c.why.join(' '), /이음 쪽 밝기/);
-  assert.ok(vs.some(v => v.trace.substitute), '대체 안에 실패 사유');
+  // 11-10: C = 타이포 강조형(밝은 지면은 슬롯에서 빠지고 인스펙터 「배경」 프리셋으로) — 사진 그림에서도 C 가 선다
+  assert.equal(vs.length, 4); const c = stats.slots.find(s => s.slot === 'C'); assert.equal(c.ok, true); assert.deepEqual(c.style, { titleEmph: 'mix' });
+  // 매체가 굵기를 정한 규격은 C 후보가 없어서 대체 안 — 사유가 남는다
+  { const st2 = {}; const v2 = variantCandidates('jasoseol-pc-premium-popup-pc', ctx, styleOf('fox-cutout'), { stats: st2 }); assert.ok(!v2.some(v => v.style.titleEmph), '규정 매체는 강약형 없음'); }
   assert.ok(variantCandidates('jasoseol-pc-premium-popup-pc', ctx, styleOf('fox-cutout')).slice(1).every(v => !('textAlign' in v.style) && !('infoTag' in v.style)), '규정 매체는 바탕 안만(11-10)');
   assert.equal(variantSubOf({ textAlign: 'center', kvPlace: 'bottom' }), '가운데 정렬 · 비주얼 아래 칸');
 });

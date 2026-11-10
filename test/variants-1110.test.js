@@ -76,3 +76,15 @@ test('타이포 간격·프레임 패딩 규칙(11-10 사용자 「내가 말한
   const m = h.match(/data-field="sub"[^>]*style="[^"]*margin-top:(\d+)px/); const mainPx = +(h.match(/data-field="main"[^>]*font-size:(\d+)px/)?.[1] ?? 0);
   assert.ok(m && mainPx && +m[1] >= mainPx * 0.5, `타이틀 아래 간격 ${m?.[1]}px / 메인 ${mainPx}px`);
 });
+
+test('타이포 강조형(11-10): 타이틀 강약 = 회사명 얇게 · 채용 구분 굵게, C 자리 · 매체가 굵기를 정한 규격은 그대로', async () => {
+  const { SLOTS } = await import('../core/variants.js'); const { TITLE_EMPH } = await import('../core/renderers/ad.js');
+  assert.equal(SLOTS.find(s => s.id === 'C').label, '타이포 강조형');
+  const st = { ...styleOf('desk-02'), titleEmph: 'mix' };
+  const h = renderArtifact('google-gdn-580x400', ctx, st);
+  assert.match(h, new RegExp(`data-emph="light" style="font-weight:${TITLE_EMPH.light}">[^<]*GS에너지`));
+  assert.match(h, /data-emph="bold"/);
+  assert.doesNotMatch(renderArtifact('remember-main-top-mo', ctx, st), /data-emph=/, '리멤버는 굵기 변경 불가');
+  const vs = variantCandidates('google-gdn-580x400', ctx, styleOf('desk-02'));
+  assert.ok(vs.some(v => v.slot === 'C' && v.style.titleEmph === 'mix'));
+});

@@ -57,7 +57,7 @@ test('자동 안은 기본안 포함 최대 4개(기본안 + 3슬롯), 슬롯이
   const vs = variantCandidates('google-gdn-580x400', ctx, styleOf(CUT));
   assert.equal(vs.length, 4);
   assert.deepEqual(vs[0].style, {}, '첫 안은 기본안');
-  for (const v of vs.slice(1)) { assert.ok(['정렬 변경형', '일정 강조형', '밝은 지면형', '지면 반전형'].includes(v.label) || /^(기본 타이포|타이포 강조) · .+ · .+ · .+ 지면$/.test(v.label), '라벨: ' + v.label); assert.ok(v.axes?.layout); }
+  for (const v of vs.slice(1)) { assert.ok(['정렬 변경형', '일정 강조형', '타이포 강조형'].includes(v.label) || /^(기본 타이포|타이포 강조) · .+ · .+ · .+ 지면$/.test(v.label), '라벨: ' + v.label); assert.ok(v.axes?.layout); }
   const [a, b] = recipeStyles(specs['google-gdn-580x400'], CUT, true, 'GS에너지').map(s => familyById(s.tpl));
   assert.notEqual(a.typo, b.typo, '타이포 특징이 다르다');
 });
