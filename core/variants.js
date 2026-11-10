@@ -277,23 +277,33 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
     const log = runSlot(S.id, slotPresets(S.id, spec, baseTr, style, ctx));
     slotLog.push(log); if (!log.ok) failed.push(log);
   }
-  // 대체(결정 4): 실패한 슬롯 자리는 ①의 다른 변형 → ②의 다른 태그 구성 → 시안 틀·기존 프리셋 후보
-  if (out.length < target) {
-    const more = [...slotPresets('A', spec, baseTr, style, ctx).map(x => ({ ...x, slot: 'A' })), ...slotPresets('B', spec, baseTr, style, ctx).map(x => ({ ...x, slot: 'B' })), { st: { infoTag: 'both', tagShape: 'pill' }, slot: 'B' }, { st: { infoTag: 'label', tagShape: 'pill' }, slot: 'B' }];
-    for (const m of more) {
-      if (out.length >= target) break;
-      if (used.has(keyOf(m.st))) continue; used.add(keyOf(m.st));
-      const r = tryCand(m.st, { slot: m.slot, label: SLOT_OF[m.slot].label, sub: variantSubOf(m.st, spec), substitute: failed.map(f => `${f.slot}: ${f.why.slice(-1)[0] ?? '후보 없음'}`).join(' / ') || null });
-      if (r.rec) push(r.rec);
-    }
-  }
+  // 대체(결정 4, 11-10 순서 고침 — 사용자 「응, 바꿔줘」): 실패한 슬롯 자리는
+  //   ① 아직 없는 슬롯 종류(A 가 없으면 A 의 다른 변형, B 가 없으면 B 의 다른 태그) → ② 시안 틀·기존 프리셋(다른 모양) → ③ 마지막에만 이미 있는 슬롯의 다른 변형.
+  //   예전엔 ①③ 구분 없이 A·B 다른 변형이 먼저라 C(밝은 지면)가 빠지면 「일정 태그 강조」가 두 개 나왔다(580·300×600·300×1050)
+  const subst = () => failed.map(f => `${f.slot}: ${f.why.slice(-1)[0] ?? '후보 없음'}`).join(' / ') || null;
+  const more = [...slotPresets('A', spec, baseTr, style, ctx).map(x => ({ ...x, slot: 'A' })), ...slotPresets('B', spec, baseTr, style, ctx).map(x => ({ ...x, slot: 'B' })), { st: { infoTag: 'both', tagShape: 'pill' }, slot: 'B' }, { st: { infoTag: 'label', tagShape: 'pill' }, slot: 'B' }];
+  const trySlotAlt = m => {
+    if (out.length >= target || used.has(keyOf(m.st))) return; used.add(keyOf(m.st));
+    const r = tryCand(m.st, { slot: m.slot, label: SLOT_OF[m.slot].label, sub: variantSubOf(m.st, spec), substitute: subst() });
+    if (r.rec) push(r.rec);
+  };
+  const hasSlot = id => out.some(v => v.slot === id);
+  if (out.length < target) for (const m of more) if (!hasSlot(m.slot)) trySlotAlt(m);
   if (out.length < target) {
     const order = [...spreadByAxes(recipe.slice(0, 8).map(familyStyle), spec), ...CANDIDATE_ORDER.slice(1), { bgFill: 'brand', infoTag: 'date' }, { textAnchor: 'center' }, { textAnchor: 'bottom' }, { bgGrad: 'd' }, { bgGrad: 'none' }, { bgFill: 'kv' }, { bgFill: 'brand', textAlign: 'right' }, { bgFill: 'brand', textAnchor: 'center' }];   // 마지막 채움(11-09 전수: 질감 그림·날짜 없는 작은 규격에서 3안 미만 51건)
     for (const cand of order) {
       if (out.length >= target) break;
-      if (used.has(keyOf(cand))) continue; used.add(keyOf(cand));
-      const r = tryCand(cand); if (r.rec) push(r.rec);
+      if (used.has(keyOf(cand))) continue;
+      // 이미 있는 슬롯과 같은 종류(태그만 · 정렬만 바꾼 프리셋)는 ③으로 미룬다
+      const onlyTag = Object.keys(cand).every(k => k === 'infoTag' || k === 'tagShape'), onlyAlign = Object.keys(cand).every(k => k === 'textAlign' || k === 'kvPlace');
+      if ((onlyTag && hasSlot('B')) || (onlyAlign && hasSlot('A'))) continue;
+      used.add(keyOf(cand));
+      const r = tryCand(cand, failed.length ? { substitute: subst() } : {}); if (r.rec) push(r.rec);
     }
+  }
+  if (out.length < target) for (const m of more) trySlotAlt(m);
+  if (out.length < target) {   // ③ 미룬 프리셋까지
+    for (const cand of CANDIDATE_ORDER.slice(1)) { if (out.length >= target) break; if (used.has(keyOf(cand))) continue; used.add(keyOf(cand)); const r = tryCand(cand); if (r.rec) push(r.rec); }
   }
   if (stats) { stats.rendered = rendered; stats.tried = rendered; stats.slots = slotLog; }
   return out;
