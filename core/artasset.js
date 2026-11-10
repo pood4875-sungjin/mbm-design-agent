@@ -55,9 +55,11 @@ export function withArtLogo(st, key, { src, orig = null, mono = null, meta = nul
     return o;
   }
   Object.assign(o, { logo: src, logoOrig: orig ?? src, logoMono: mono ?? null, logoMeta: meta ?? null });
-  const hasLight = !!(o.logoLight ?? base.logoLight);
-  if (tone === 'light') { o.logoTone = 'light'; if (!hasLight) o.logoLight = src; }
-  else o.logoTone = hasLight ? 'both' : 'dark';
+  // 11-10 고침: 캠페인 흰색 로고는 옛 로고라 이 소재엔 물려받지 않는다 — 어두운 지면에서 옛 흰 로고가 그대로 보였다.
+  //   이 소재가 따로 올린 흰색 로고가 있으면 그것, 없으면 비워서 렌더러가 새 원색 로고를 반전해 쓴다(흰 로고면 그 자체)
+  if (!st?.logoLight) o.logoLight = tone === 'light' ? src : null;
+  o.logoTone = tone === 'light' ? 'light' : o.logoLight ? 'both' : 'dark';
+  void base;
   return o;
 }
 export function clearArtLogo(st) {

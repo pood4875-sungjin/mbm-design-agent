@@ -47,6 +47,7 @@ function serveStatic(req, res) {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/v\/[^/]+\//, '/');   // scripts/serve.py 와 같은 /v/<값>/ 벗기기
   if (p.endsWith('/')) p += 'index.html';
   const file = path.normalize(path.join(ROOT, p));
+  if (p === '/app/config.local.js' && !existsSync(file)) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' }); return res.end('// config.local.js 없음 — 키는 server/.env 나 환경변수에서\n'); }
   if (!file.startsWith(ROOT) || !existsSync(file) || !statSync(file).isFile()) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return res.end('404 ' + p); }
   res.writeHead(200, { 'content-type': MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream', 'cache-control': 'no-store, max-age=0' });
   createReadStream(file).pipe(res);

@@ -663,6 +663,16 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
 
   // 요소 하나 → SVG 조각. clip = 조상 overflow 감춤 칸(글자 가리기용)
   const paint = async (el, clip, isRoot = false) => {
+    // 11-10 회전(elementedit data-rot): 상자·자식 상자가 회전 전 값이어야 그릴 수 있으니 그 층 회전을 잠깐 빼고 그린 뒤, 가운데 기준 <g rotate> 로 감싼다(녹임 마스크 포함 = CSS 와 같음)
+    const rotA = !isRoot && el.getAttribute?.('data-rot') && !el.__unrot ? parseFloat(el.getAttribute('data-rot')) : 0;
+    if (rotA) {
+      const prev = el.style.transform;
+      el.__unrot = 1; el.style.transform = prev.replace(/\s*rotate\([^)]*\)/g, '').trim() || 'none';
+      try {
+        const b0 = box(el), g = await paint(el, clip, isRoot);
+        return g ? `<g transform="rotate(${round(rotA, 2)} ${round(b0.x + b0.w / 2)} ${round(b0.y + b0.h / 2)})">${g}</g>` : '';
+      } finally { el.style.transform = prev; delete el.__unrot; }
+    }
     const cs = win.getComputedStyle(el);
     if (cs.display === 'none' || cs.visibility === 'hidden' && !el.children.length) return '';
     const b = box(el);

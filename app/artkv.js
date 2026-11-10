@@ -1,6 +1,6 @@
 // 이미지 요소(키비주얼·로고) 패널 — hub/pro 의 「이미지 레이어 고름」(11-10 이식 1·2단계, docs/hub-to-app-plan.md §2-1·§2-2).
 //   1단계 채움: 이 소재만 그림·로고 바꾸기(core/artasset.js → overrides.style) · 맞춤(kvUse) · 이 소재 색도 맞춤 · 영역 지정 · 캔버스에 파일 끌어 놓기
-//   2단계 외관: 정렬 6 · 비율 고정(그림은 늘 비율대로) · 불투명도 · 모서리 · 뒤집기(누끼만) → overrides.elements.kv|logo { op, hid, r, flip }(core/elementedit.js patchBox)
+//   2단계 외관: 정렬 6 · 비율 고정(그림은 늘 비율대로) · 불투명도 · 모서리 · 회전(11-10 오후, 그림·로고) · 뒤집기 → overrides.elements.kv|logo { op, hid, r, flip, rot }(core/elementedit.js patchBox)
 //   혼합·효과·선은 넣지 않는다(11-10 총괄 결정 4 — 섹션도 숨김). 회전은 SVG 내보내기 충실도 때문에 아직 없음.
 //   app.js 의 지역 함수는 D 로 받는다(elselect.js 와 같은 방식).
 import { withArtKv, clearArtKv, withArtKvColors, withArtKvUse, withArtLogo, clearArtLogo, hasArtKv, hasArtLogo, isCutoutMeta, ART_ASSET_KEYS } from '../core/artasset.js';
@@ -26,7 +26,8 @@ export function createArtKv(D) {
     const spec = D.SPECS[a.specId], eff = effOf(a), full = it.box.w >= spec.w - 1 && it.box.h >= spec.h - 1;
     const cut = isCutoutMeta(eff.kvMeta);
     return {
-      flip: kind !== 'kv' ? '로고는 뒤집지 않아요' : cut ? '' : '사진·배경 있는 그림은 뒤집으면 녹임·스크림 층과 어긋나요 — 누끼(투명 PNG)만 뒤집을 수 있어요',
+      flip: kind !== 'kv' ? '로고는 뒤집지 않아요' : '',   // 11-10 오후 결정 「회전 전부」 — 사진형도 녹임 층째 돌리고 뒤집는다(잠금 풂)
+      melt: kind === 'kv' && !cut ? '사진형은 녹임(가장자리 흐림) 층이 그림과 같이 돌아요' : '',
       r: kind !== 'kv' ? '로고엔 모서리를 쓰지 않아요' : /bizboard/.test(spec.id ?? a.specId) ? '비즈보드는 그림 칸 모서리가 매체 규정이에요' : full ? '지면 전체에 깐 그림이라 모서리가 보이지 않아요' : '',
       use: moldWhy(D.partsOf(a), 'kv') ? '틀이 정한 그림 칸 — 맞춤은 틀이 정해요' : spec.medium === 'jasoseol' ? '자소설은 그림 칸이 규정이에요' : '',
     };
@@ -40,16 +41,16 @@ export function createArtKv(D) {
   function lookHtml(a, kind, it) {
     const ed = a.overrides.elements?.[kind] ?? {}, L = looks(a, kind, it);
     const op = ed.hid ? 0 : ed.op ?? 100, r = ed.r ?? 0, rMax = Math.max(1, Math.floor(Math.min(it.box.w, it.box.h) / 2));
-    const fl = ed.flip ?? '';
+    const fl = ed.flip ?? '', rot = ed.rot ?? 0;
     const slider = (id, v, max, dis, label) => `<input type="range" class="fslider" id="${id}" min="0" max="${max}" value="${Math.min(v, max)}" style="--p:${Math.round(Math.min(v, max) / max * 100)}%" aria-label="${label}" ${dis ? 'disabled' : ''}>`;
     return `<section class="isec" id="iElLookSec"><h3>외관</h3>
       <div class="flab sub"><span>불투명도</span></div>
       <div class="frow3">${numField({ id: 'iElKvOp', value: op, label: '불투명도(%)', icon: 'opacity', unit: '%' })}${slider('iElKvOpR', op, 100, false, '불투명도 슬라이더')}${iconBtn(ed.hid ? 'eye-off' : 'eye', ed.hid ? '보이기' : '숨기기(이 소재에서 안 보이게)', `id="iElKvEye" aria-pressed="${!!ed.hid}"`)}</div>
       ${kind === 'kv' ? `<div class="flab sub"><span>모서리</span></div>
       <div class="frow3"${L.r ? ` title="${escH(L.r)}"` : ''}>${numField({ id: 'iElKvR', value: r, label: '모서리 반경(px)', icon: 'radius', attrs: L.r ? 'disabled' : '' })}${slider('iElKvRR', r, rMax, !!L.r, '모서리 슬라이더')}<span></span></div>
-      <div class="flab sub"><span>뒤집기</span></div>
-      <div class="fline2"${L.flip ? ` title="${escH(L.flip)}"` : ''}>${iconBtn('flip-h', L.flip || '좌우 뒤집기', `id="iElFlipH" aria-pressed="${fl.includes('h')}" ${L.flip ? 'disabled' : ''}`)}${iconBtn('flip-v', L.flip || '상하 뒤집기', `id="iElFlipV" aria-pressed="${fl.includes('v')}" ${L.flip ? 'disabled' : ''}`)}</div>
-      ${[L.r, L.flip].filter(Boolean).length ? `<div class="fnote">${[L.r, L.flip].filter(Boolean).map(escH).join(' · ')}</div>` : ''}` : ''}
+      ` : ''}<div class="flab sub"><span>회전</span></div>
+      <div class="frot">${numField({ id: 'iElRot', value: rot, label: '회전(도)', icon: 'rot', unit: '°' })}${iconBtn('rot', '90° 돌리기', 'id="iElRot90"')}${kind === 'kv' ? `${iconBtn('flip-h', '좌우 뒤집기', `id="iElFlipH" aria-pressed="${fl.includes('h')}"`)}${iconBtn('flip-v', '상하 뒤집기', `id="iElFlipV" aria-pressed="${fl.includes('v')}"`)}` : ''}</div>
+      ${(() => { const n = [kind === 'kv' ? L.r : '', rot || fl ? L.melt : ''].filter(Boolean); return n.length ? `<div class="fnote">${n.map(escH).join(' · ')}</div>` : ''; })()}
     </section>`;
   }
 
@@ -137,7 +138,11 @@ export function createArtKv(D) {
     const rOf = v => ({ r: Math.round(Math.max(0, v)) || null });
     if (rN && !rN.disabled) rN.addEventListener('change', () => { const v = parseFloat(rN.value); if (Number.isFinite(v)) edit(rOf(v), '모서리'); });
     if (rR && !rR.disabled) { rR.oninput = () => { rR.style.setProperty('--p', `${Math.round(rR.value / rR.max * 100)}%`); if (rN) rN.value = rR.value; live(rOf(+rR.value)); }; rR.onchange = () => edit(rOf(+rR.value), '모서리'); }
-    // 뒤집기(누끼만)
+    // 회전(11-10 오후) — 칸 입력(식 가능) · 90° 버튼. 값은 -180~180 으로 접힌다(core normElementEdits)
+    const rotN = q('#iElRot');
+    if (rotN) rotN.addEventListener('change', () => { const v = parseFloat(rotN.value); if (Number.isFinite(v)) edit({ rot: v || null }, '회전'); });
+    q('#iElRot90')?.addEventListener('click', () => { const v = (a.overrides.elements?.[kind]?.rot ?? 0) + 90; edit({ rot: v % 360 || null }, '90° 회전'); });
+    // 뒤집기
     for (const [sel, axis] of [['#iElFlipH', 'h'], ['#iElFlipV', 'v']]) {
       const b = q(sel); if (!b || b.disabled) continue;
       b.onclick = () => { const f = a.overrides.elements?.kv?.flip ?? ''; const next = (f.includes(axis) ? f.replace(axis, '') : f + axis).split('').sort().join(''); edit({ flip: next || null }, axis === 'h' ? '좌우 뒤집기' : '상하 뒤집기'); };

@@ -1655,8 +1655,6 @@ function slotStyleBody() {
       <!-- 오브젝트 누끼 칸은 숨김(11-02 사용자: 키비주얼은 한 통로, 누끼인지 풀이미지인지는 알아서 판단). 데이터(it.object)·렌더 경로는 그대로 두고 입구만 닫는다 -->
       <div hidden><div class="kvthumb logo" id="objThumb" style="${it.object ? `background-image:url(${it.object})` : ''}"></div>
         <input type="file" id="objFile" accept="image/png,image/webp" style="display:none"></div>
-      <div><div class="kvthumb logo ref" id="refThumb" title="레퍼런스(참고용): 공고문·전 시안·무드 이미지. 저장해서 카드에 썸네일로만 보여 주고, 소재 렌더·AI 그림 판단에는 쓰지 않습니다 — 키비주얼 칸에 넣으면 소재에 그려져요" style="${it.references?.[0] ? `background-image:url(${it.references[0]})` : ''}">${it.references?.length ? `<b class="refn">${it.references.length}장</b>` : '레퍼런스<br>(참고용 · 렌더 안 씀)'}</div>
-        <input type="file" id="refFile" accept="image/*" multiple style="display:none"></div>
       <div class="f" style="flex:1;min-width:210px">
         <label>브랜드 컬러 <span id="kvHint" style="color:var(--gen1)"></span></label>
         <div class="fstack">${[['c1', '주색'], ['c2', '보조'], ['c3', '포인트']].map(([k, n], i) => colorRowHtml({ id: k, value: it.colors[i], label: n, tail: n })).join('')}</div>
@@ -1668,7 +1666,6 @@ function slotStyleBody() {
         <input type="file" id="fontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
       </div>
     </div>
-    <div class="refnote">공고문·전 시안 같은 <b>참고 이미지는 「레퍼런스(참고용)」</b>에 올려 주세요 — 키비주얼 칸은 소재에 그려지는 그림(사진·일러스트·누끼)만 받습니다.${it.references?.length ? ` <span class="reflist">${it.references.map((r, i) => `<span class="refi" style="background-image:url(${r})"><button type="button" class="refx" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 빼기">×</button></span>`).join('')}</span>` : ''}</div>
     <div class="sfoot2"><span class="smsg" id="stMsg" role="status"></span><button class="btn pri" id="stOk" ${(it.kv && it.logo) ? '' : 'disabled aria-disabled="true"'}>이 스타일로 진행</button></div></div>`);
   $('fontSel').value = it.font;
   $('fontSel').onchange = () => { it.font = $('fontSel').value; };
@@ -1745,16 +1742,7 @@ function slotStyleBody() {
   });
   if ($('logoMakeWhite')) $('logoMakeWhite').onclick = async () => { const w = await makeWhiteLogo(it.logo, it.logoMono).catch(() => null); if (!w) { toast(WHITE_LOGO_FAIL); return; } it.logoLight = w; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' ? 'light' : 'both'; slotStyle(); };
   bindUpload($('logoLightThumb'), $('logoLightFile'), async d => { d = (await prepLogo(d)).dataUrl; it.logoLight = d; it.logoLightManual = true; it.logoTone = it.logoTone === 'light' || !it.logo ? 'light' : 'both'; slotStyle(); });
-  // 레퍼런스(참고용, 10-28) — 여러 장, 긴 변 1200px 로 줄여 저장. 렌더·AI 에는 안 간다
-  $('refThumb').onclick = () => $('refFile').click();
-  $('refFile').onchange = async () => {
-    const files = [...$('refFile').files]; if (!files.length) return;
-    const added = await readReferenceFiles(files, 8 - (it.references?.length ?? 0));
-    it.references = [...(it.references ?? []), ...added];
-    slotStyle();
-    say(added.length ? `레퍼런스 ${added.length}장을 참고용으로 저장했어요 — 소재에는 그리지 않고 카드에서만 볼 수 있어요.${files.length > added.length ? ' (최대 8장)' : ''}` : '레퍼런스를 읽지 못했어요.');
-  };
-  $('slot').querySelectorAll('.refx').forEach(b => b.onclick = e => { e.stopPropagation(); it.references = it.references.filter((_, i) => i !== +b.dataset.ref); slotStyle(); });
+  // 레퍼런스 칸(10-28)은 11-10 사용자 결정으로 뺐다 — 렌더·AI 에 안 쓰여 혼란만. 저장된 값(style.references)은 그대로 둔다
   // 오브젝트 누끼 — 누끼가 필요한 자리에만 쓴다. 배경이 있는 그림이면 그 자리에 못 쓰니 바로 알려 준다
   bindUpload($('objThumb'), $('objFile'), async d => {
     d = await prepKv(d);
@@ -1893,22 +1881,6 @@ function inputSpecHtml(kvCheck, logoCheck) {
 }
 async function kvCheckOf(orig, meta) { const T = kvTypeOf(meta); return checkKv((await imgSize(orig)) ?? meta?.px ?? null, T?.type?.id ?? meta?.field?.kind ?? null); }
 async function logoCheckOf(orig, { changed = null, tone = null } = {}) { return checkLogo(await imgSize(orig), { transparent: changed == null ? null : !changed, tone }); }
-// 레퍼런스 파일 읽기(10-28) — 긴 변 1200px 로 줄인 JPEG/PNG data URL. 실패한 파일은 건너뛴다
-async function readReferenceFiles(files, limit = 8) {
-  const out = [];
-  for (const f of files.slice(0, Math.max(0, limit))) {
-    try {
-      const d = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
-      const img = await loadImage(d); if (!img) continue;
-      const k = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
-      if (k >= 1) { out.push(d); continue; }
-      const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
-      const g = cv.getContext('2d'); g.drawImage(img, 0, 0, cv.width, cv.height);
-      out.push(/png|gif|webp/.test(f.type) ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.85));
-    } catch {}
-  }
-  return out;
-}
 function bindUpload(thumb, file, set) {
   thumb.onclick = () => file.click();
   file.onchange = () => {
@@ -2153,7 +2125,7 @@ function enterWork(opts = {}) {
   $('campPill').textContent = campaignName(state.campaign.context);
   $('logBody').innerHTML = ''; $('logCount').textContent = '';
   state.selected = null; state.elSel = null; EL.hide();
-  document.getElementById('work').classList.toggle('noL', innerWidth <= 1024);   // 좁은 창은 왼쪽 패널 접고 시작(토글로 연다)
+  document.getElementById('work').classList.toggle('noL', innerWidth <= 1200);   // 좁은 창(1200 이하, 11-10 결정)은 왼쪽 입력 패널 접고 시작 — 툴바 패널 버튼으로 연다
   resetHistory();       // 캠페인이 바뀌면 이전 캠페인의 되돌리기 이력은 의미가 없다
   toggleHelp(false);
   layoutArtboard({ blank: !!opts.staged });
@@ -2931,73 +2903,10 @@ function liveText(c, role) {
   return [...cnt.entries()].sort((p, q) => q[1] - p[1] || q[0].replace(/\n/g, '').length - p[0].replace(/\n/g, '').length)[0]?.[0] ?? '';
 }
 const leftLiveRefresh = debounce(() => { const b = $('leftBody'); if (!b || b.contains(document.activeElement)) return; if ([...b.querySelectorAll('textarea[data-auto]')].some(t => t.dataset.auto !== undefined)) { b.dataset.sig = '-'; renderLeft(); } }, 400);
-/* ═══ 11-10 hub 이식 4단계 — 왼쪽 레일(hub .rail): 입력(기본) · 에셋 · 파일 · 검수. 입력 = 브리프(renderLeft 본문 그대로) ═══ */
-const LTABS = [['input', 'edit', '입력'], ['assets', 'layers', '에셋'], ['file', 'file', '파일'], ['review', 'check', '검수']];
-function drawRail() {
-  const r = $('lRail'); if (!r) return; const cur = state.leftTab ?? 'input';
-  if (!r.childElementCount) {
-    r.innerHTML = LTABS.map(([k, icn, n]) => `<button type="button" role="tab" id="lTab-${k}" data-ltab="${k}" aria-controls="lMain" title="${n}">${ic(icn)}<span>${n}</span></button>`).join('');
-    r.querySelectorAll('[data-ltab]').forEach(b => b.onclick = () => { state.leftTab = b.dataset.ltab; $('leftBody').dataset.sig = '-'; renderLeft(); });
-    r.onkeydown = e => { const i = LTABS.findIndex(t => t[0] === (state.leftTab ?? 'input')), d = { ArrowDown: 1, ArrowUp: -1 }[e.key]; if (!d) return; e.preventDefault(); state.leftTab = LTABS[(i + d + LTABS.length) % LTABS.length][0]; renderLeft(); $(`lTab-${state.leftTab}`)?.focus(); };
-  }
-  r.querySelectorAll('[data-ltab]').forEach(b => { const on = b.dataset.ltab === cur; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
-}
-function renderLeftTab(body, c, tab) {
-  body.dataset.sig = `tab:${tab}:${state.selected ?? ''}:${state.elSel ?? ''}`;
-  const ads = c.artifacts.filter(a => a.channel === 'ad' || a.channel === 'asset');
-  // 오른쪽 「선택 없음」 칸을 그대로 쓴다(같은 입력 id) — 재료 관리 진입점
-  const viaRight = id => { select(null); $(id)?.click(); };
-  if (tab === 'assets') {
-    const st = c.style, chip = (n, v) => `<div><i style="background:${v}"></i>${n}<em>${escH(String(v).toUpperCase())}</em></div>`;
-    body.innerHTML = `<section class="isec"><h3>키비주얼 <span class="mode">모든 소재</span></h3>
-      <div class="lasset"><div class="kvthumb" style="${st.keyVisual ? `background-image:url(${refOf(st.keyVisual)})` : ''}">${st.keyVisual ? '' : '없음'}</div>
-        <div class="lasset-btns"><button type="button" class="btn" data-lv="iKvFile">바꾸기</button>${st.keyVisual ? '<button type="button" class="btn" data-lv="iKvColors">색 다시 맞춤</button>' : ''}</div></div>
-      ${st.keyVisual ? `<div class="fnote">가로형 ${st.kvVariants?.wide ? '있음' : '없음'} · 세로형 ${st.kvVariants?.tall ? '있음' : '없음'} — 오른쪽 「키비주얼 · 지면」에서 올려요 · 소재 하나만 바꾸려면 그 프레임에 그림 파일을 끌어 놓으세요</div>` : ''}
-      </section>
-      <section class="isec"><h3>로고 <span class="mode">모든 소재</span></h3>
-      <div class="lasset"><div class="kvthumb logo" style="${st.logo ? `background-image:url(${refOf(st.logo)})` : ''}">${st.logo ? '' : '원색'}</div><div class="lasset-btns"><button type="button" class="btn" data-lv="iLogoFile">원색 로고 바꾸기</button></div></div>
-      <div class="lasset"><div class="kvthumb logo dark" style="${st.logoLight ? `background-image:url(${refOf(st.logoLight)})` : ''}">${st.logoLight ? '' : '흰색'}</div><div class="lasset-btns"><button type="button" class="btn" data-lv="iLogoLightFile">흰색 로고 바꾸기</button></div></div>
-      </section>
-      <section class="isec"><h3>색 스타일</h3><div class="lchips">${chip('주색', st.palette.primary)}${chip('보조', st.palette.secondary)}${chip('포인트', st.palette.accent)}</div>
-      <div class="fnote">렌더러가 쓰는 역할색 세 칸 — 오른쪽 「스타일」에서 바꿔요</div></section>
-      <section class="isec"><h3>레퍼런스 <span class="mode">참고용</span></h3>
-      <div class="reflist insp">${(st.references ?? []).map((r, i) => `<span class="refi" style="background-image:url(${r})" title="레퍼런스 ${i + 1}"></span>`).join('') || '<span class="fnote">없음</span>'}</div>
-      <button type="button" class="btn" data-lv="iRefFile" style="width:100%;margin-top:6px">레퍼런스 추가</button></section>`;
-    body.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => viaRight(b.dataset.lv));
-    return;
-  }
-  if (tab === 'file') {
-    const byMed = new Map();
-    for (const a of ads) { const m = SPECS[a.specId]?.mediumName ?? CHANNEL_LABEL[a.channel] ?? '기타'; if (!byMed.has(m)) byMed.set(m, []); byMed.get(m).push(a); }
-    const selA = state.selected ? c.artifacts.find(x => (x.key ?? x.specId) === state.selected) : null;
-    const els = selA?.channel === 'ad' ? EL.list(selA) : [];
-    const omitted = selA ? omitOf(c, selA) : [];
-    body.innerHTML = `<section class="isec"><h3>레이어 <span class="mode">${ads.length}</span></h3>
-      <div class="ltree" role="tree" aria-label="매체 › 소재 › 요소">${[...byMed].map(([m, list]) => `<div class="lt-med" role="presentation"><span>${escH(m)}</span><span>${list.length}</span></div>${list.map(a => { const k = a.key ?? a.specId, sp = SPECS[a.specId], on = k === state.selected;
-        return `<button type="button" role="treeitem" class="${on && !state.elSel ? 'on' : ''}" data-lfk="${escH(k)}" aria-selected="${on}"><span class="lt-ok" aria-label="${a.status === 'approved' ? '승인됨' : ''}">${a.status === 'approved' ? '✓' : ''}</span><span class="lt-name">${escH(String(sp?.title ?? artLabel(a)).replace(`${m} · `, ''))}</span><span class="lt-sz">${sp?.w ?? ''}×${sp?.h ?? ''}</span></button>${on ? els.map(it => { const role = parseElementId(it.id).role, om = OMIT_ROLE[role];
-          return `<div class="lt-row${state.elSel === it.id ? ' on' : ''}"><button type="button" role="treeitem" class="lt-el" data-lfe="${escH(it.id)}" aria-selected="${state.elSel === it.id}"><i class="layer-k layer-${it.kind}" aria-hidden="true"></i><span class="lt-name">${escH(elementName(it.id))}</span></button>${om && !omitted.includes(om) ? iconBtn('eye', `이 소재에서 ${OMIT_NAME[om]} 빼기`, `data-lfo="${escH(it.id)}"`) : ''}</div>`; }).join('') : ''}`; }).join('')}`).join('')}</div>
-      <div class="fnote">소재를 누르면 그 프레임으로 가요 · 눈 = 이 소재에서 빼기(되돌리기 ⌘Z) · 순서·잠금은 렌더러가 정해요</div></section>`;
-    body.querySelectorAll('[data-lfk]').forEach(b => b.onclick = () => { select(b.dataset.lfk); zoomToFrame(b.dataset.lfk); });
-    body.querySelectorAll('[data-lfe]').forEach(b => b.onclick = () => select(state.selected, b.dataset.lfe));
-    body.querySelectorAll('[data-lfo]').forEach(b => b.onclick = e => { e.stopPropagation(); if (selA) omitElement(selA, b.dataset.lfo); });
-    return;
-  }
-  if (tab === 'review') {
-    const sumA = ED.approveSummary(), ok = ads.filter(a => a.status === 'approved').length;
-    const bad = ads.filter(a => a.status !== 'approved' && a.guide?.rows?.some(r => r.ok === false && !a.guideSkips?.[r.id]));
-    body.innerHTML = `<section class="isec"><h3>가이드 검수 <span class="mode">승인 ${ok}/${ads.length}</span></h3>
-      <div class="fnote">가이드 ✗ ${sumA.fail}${sumA.pending ? ` · 재는 중 ${sumA.pending}` : ''} — 겹침·프레임 밖·최소 글자·로고·대비</div>
-      ${sumA.top.length ? `<ul class="gok-list">${sumA.top.map(([n, k]) => `<li>${escH(n)} <span>${k}</span></li>`).join('')}</ul>` : ''}
-      <button type="button" class="btn" id="lApproveAll" style="width:100%;margin-top:8px">문제 없는 것 전체 승인</button></section>
-      ${bad.length ? `<section class="isec"><h3>확인할 소재 <span class="mode">${bad.length}</span></h3><div class="ltree">${bad.map(a => `<button type="button" data-lfk="${escH(a.key ?? a.specId)}"><span class="lt-ok"></span><span class="lt-name">${escH(SPECS[a.specId]?.title ?? artLabel(a))}</span><span class="lt-sz">${escH(a.guide.rows.filter(r => r.ok === false).map(r => r.name).slice(0, 2).join('·'))}</span></button>`).join('')}</div></section>` : ''}`;
-    $('lApproveAll').onclick = () => $('approveAll').click();
-    body.querySelectorAll('[data-lfk]').forEach(b => b.onclick = () => { select(b.dataset.lfk); zoomToFrame(b.dataset.lfk); state.rightTab = 'review'; renderInspector(); });
-  }
-}
+/* 11-10 오후 사용자 「좌측은 입력만 — 나머지 없애고 입력 패널만」: 레일(입력·에셋·파일·검수) 걷음. 에셋은 오른쪽 「선택 없음」, 검수는 오른쪽 검수 탭에 있다 */
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
   $('lName').textContent = campaignName(c.context); $('lStat').textContent = campaignStat(c);
-  drawRail(); if ((state.leftTab ?? 'input') !== 'input') { renderLeftTab(body, c, state.leftTab); return; }   // 11-10 hub 이식 4단계 — 에셋·파일·검수 탭
   const focusGroup = state.elSel ? ROLE_GROUP[parseElementId(state.elSel).role] ?? null : null;
   const sig = `${focusGroup ?? ''}`;
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
@@ -3021,19 +2930,18 @@ function renderLeft() {
       <div class="fnote">모집직무와 같은 모양(라벨 : 값)으로, 상세 줄 자리가 있는 규격에만 나가요. 자리가 모자라면 아래 행부터 빠지고 검수에 경고가 떠요.</div>`;
   const briefHtml = c.kind === 'recruit'
     ? LEFT_GROUPS.map(g => { const off = omitList(core.omit).includes(g.role);
-        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lgh">${g.name}${g.role !== 'main' ? `<button type="button" class="lnk" data-lomit="${g.role}">${off ? '다시 넣기' : '모든 소재에서 빼기'}</button>` : ''}</div>${off ? '<div class="fnote">모든 소재에서 뺐어요</div>' : `${g.text ? textBox(g) : ''}${g.rows ? rowsBox() : ''}${(g.fields ?? []).map(input).join('')}`}</div>`; }).join('')
-      + `<details class="lbase"><summary>기본 정보 — 자동 문구·파일 이름에 쓰여요</summary>${BASE_FIELDS.map(input).join('')}<div class="fnote">연도·시즌: 타이틀에 연도가 없을 때 서브 자리가 없는 매체(리멤버 등)의 타이틀 앞에만 한 번 붙어요.</div></details>`
+        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lsec">${g.name}${g.role !== 'main' ? iconBtn(off ? 'eye-off' : 'eye', off ? `${g.name} 다시 넣기 — 모든 소재` : `${g.name} 모든 소재에서 빼기`, `data-lomit="${g.role}" aria-pressed="${off}"`) : ''}</div><div class="lgb">${off ? '<div class="fnote">모든 소재에서 뺐어요 — 눈을 누르면 다시 넣어요</div>' : `${g.text ? textBox(g) : ''}${g.rows ? rowsBox() : ''}${(g.fields ?? []).map(input).join('')}`}</div></div>`; }).join('')
+      + `<details class="lgrp lbase"><summary class="lsec">기본 정보<span class="lsec-t">자동 문구·파일 이름</span>${ic('chev')}</summary><div class="lgb">${BASE_FIELDS.map(input).join('')}<div class="fnote">연도·시즌: 타이틀에 연도가 없을 때 서브 자리가 없는 매체(리멤버 등)의 타이틀 앞에만 한 번 붙어요.</div></div></details>`
     : campaignFields(c).map(input).join('');
-  body.innerHTML = `<section class="isec"><h3>브리프 <span class="mode">전체 일괄</span></h3>
-    <div class="fnote" style="margin:-2px 0 8px">여기서 고치면 모든 소재에 반영돼요. 소재 하나만 고치려면 캔버스에서 글자를 더블클릭하세요.${overN ? ` · 따로 고친 소재 ${overN}종` : ''}</div>
+  body.innerHTML = `<section class="lbrief"><div class="lsec lsec-top">브리프<button type="button" class="btn sm" id="lApply" title="쓰는 중인 칸까지 지금 모든 소재에 반영">글자에 반영</button></div>
+    <div class="fnote lgb">여기서 고치면 모든 소재에 반영돼요 · 소재 하나만은 캔버스에서 글자 더블클릭${overN ? ` · 따로 고친 소재 ${overN}종` : ''}</div>
+    <div id="lNote" class="fnote lgb" role="status"></div>
     ${briefHtml}
-    <button class="btn" id="lApply" style="width:100%;margin-top:10px">글자에 반영</button>
-    <div id="lNote" class="fnote" role="status"></div>
     </section>
-    <section class="isec"><h3>프롬프트</h3>
-    <textarea id="lPrompt" rows="3" aria-label="변경 지시"></textarea>
-    <button class="btn" id="lPromptGo" style="width:100%;margin-top:6px">적용</button>
-    </section>`;
+    <section class="lgrp lprompt"><div class="lsec">프롬프트</div><div class="lgb">
+    <textarea id="lPrompt" rows="4" aria-label="변경 지시" placeholder="예: 메인 문구를 더 짧게 · 날짜를 강조"></textarea>
+    <button class="btn" id="lPromptGo" style="width:100%;margin-top:8px">적용</button>
+    </div></section>`;
   const note = t => { const n = $('lNote'); if (n) n.textContent = t; };
   const commit = i => {
     const f = i.dataset.f, multi = i.tagName === 'TEXTAREA';
@@ -3336,7 +3244,15 @@ function bindTextRoles(insp, a, c) {
 }
 // 캔버스 클릭 → 누른 자리의 글자 줄(iframe 문서 좌표로 환산)
 function textRoleAt(a, e) { const f = frames.get(a.key ?? a.specId), ifr = f?.iframe, doc = ifr?.contentDocument; if (!doc) return null; const r = ifr.getBoundingClientRect(), k = r.width / (ifr.offsetWidth || r.width), x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k; let hit = null; for (const el of doc.querySelectorAll('[data-field]')) { const b = el.getBoundingClientRect(); if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom && TEXT_ROLES.some(([n]) => n === el.dataset.field)) hit = el.dataset.field; } return hit; }
-function renderInspector() { renderLeft(); renderInspectorBody(); wireFui($('inspector')); }
+function renderInspector() { renderLeft(); renderInspectorBody(); wireFui($('inspector')); swatchList(); }
+// 색 고르기 칸 견본(11-10) — 캠페인 3색 + 사용자 색을 datalist 로. 크롬·엣지는 색 고르기 창에 견본으로 띄운다
+function swatchList() {
+  const c = state.campaign; if (!c) return;
+  let dl = $('mbmSwatches'); if (!dl) { dl = document.createElement('datalist'); dl.id = 'mbmSwatches'; document.body.appendChild(dl); }
+  const p = c.style?.palette ?? {}, list = [...new Set([p.primary, p.secondary, p.accent, ...(c.swatches ?? [])].filter(v => /^#[0-9A-Fa-f]{6}$/.test(v ?? '')).map(v => v.toLowerCase()))];
+  dl.innerHTML = list.map(v => `<option value="${v}"></option>`).join('');
+  for (const el of document.querySelectorAll('#inspector input[type=color], #leftPanel input[type=color]')) el.setAttribute('list', 'mbmSwatches');
+}
 /* ═══ 11-10 hub 이식 3단계 — 오른쪽 「선택 없음」 hub 섹션(pagePanel): 페이지 · 키비주얼·지면 · 로고 · 스타일 · 전체 글자 · 내보내기 · 도구 ═══ */
 function exportSecHtml(c) {
   const ads = c.artifacts.filter(a => a.channel === 'ad'); if (!ads.length) return '';
@@ -3416,9 +3332,10 @@ function renderInspectorBody() {
       ${c.style.logo ? `<button class="btn" id="iLogoMakeWhite" style="width:100%;margin-top:6px">원색 로고로 흰색 로고 만들기</button>` : ''}
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       </section>
-      <section class="isec" id="secStyle"><h3>스타일</h3>
+      <section class="isec" id="secStyle"><h3>스타일 ${(c.swatches?.length ?? 0) < 8 ? iconBtn('plus', '사용자 색 추가 — 색 고르기 칸에 견본으로 떠요', 'id="iSwAdd"') : ''}</h3>
       <div class="flab sub"><span>색 스타일</span></div>
       <div class="fstack">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => colorRowHtml({ id: k, value: v, label: n, tail: n })).join('')}</div>
+      ${c.swatches?.length ? `<div class="flab sub"><span>사용자 색</span></div><div class="fstack">${c.swatches.map((v, i) => colorRowHtml({ id: `iSw${i}`, value: v, label: `사용자 색 ${i + 1}`, tail: '견본', after: iconBtn('minus', `사용자 색 ${i + 1} 빼기`, `data-swdel="${i}"`) })).join('')}</div>` : ''}
       </section>
       <section class="isec" id="secText"><h3>전체 글자</h3>
       <label>폰트</label>
@@ -3437,12 +3354,6 @@ function renderInspectorBody() {
       ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
       <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(로컬 Claude Code 또는 API 키 서버). 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
-      <section class="isec">
-      <h3>레퍼런스 <span class="mode">참고용</span></h3>
-      <div class="reflist insp">${(c.style.references ?? []).map((r, i) => `<span class="refi" style="background-image:url(${r})" title="레퍼런스 ${i + 1} — 클릭하면 크게"><button type="button" class="refo" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 크게"></button><button type="button" class="refx" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 빼기">×</button></span>`).join('')}
-        ${(c.style.references?.length ?? 0) < 8 ? '<button type="button" class="refadd" id="iRefAdd" aria-label="레퍼런스 추가">+</button>' : ''}</div>
-      <input type="file" id="iRefFile" accept="image/*" multiple style="display:none">
-      </section>
       ${c.kind !== undefined && (c.media?.length || c.adSpecIds?.length) ? mediaAddHtml(c) : ''}
       </div>
       <div id="paneReview" role="tabpanel" aria-label="검수"${state.rightTab === 'review' ? '' : ' hidden'}>
@@ -3472,6 +3383,11 @@ function renderInspectorBody() {
     }
     insp.querySelector('#iFont').onchange = () => styleChange();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
+    // 사용자 색(11-10 hub 「색 스타일 +」) — 렌더에는 안 쓰는 견본. 모든 색 고르기 칸(input[type=color])의 견본 목록에 뜬다(datalist)
+    const swSave = (next, label) => { pushHistory(label); c.swatches = next; autosave(); renderInspector(); };
+    insp.querySelector('#iSwAdd')?.addEventListener('click', () => swSave([...(c.swatches ?? []), c.style.palette.primary.toUpperCase()], '사용자 색 추가'));
+    insp.querySelectorAll('[data-swdel]').forEach(b => b.onclick = () => swSave(c.swatches.filter((_, i) => i !== +b.dataset.swdel), '사용자 색 빼기'));
+    (c.swatches ?? []).forEach((_, i) => { const el = insp.querySelector(`#iSw${i}`); if (el) el.onchange = () => { const v = el.value.toUpperCase(); if (v === c.swatches[i]) return; swSave(c.swatches.map((x, j) => j === i ? v : x), '사용자 색 바꾸기'); }; });
     const setBg = (patch, label) => { softly(() => restyle({ background: { ...c.style.background, ...patch } }, label)); renderInspector(); };
     insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
     const bgIn = insp.querySelector('#iBgColor');
@@ -3635,12 +3551,6 @@ function renderInspectorBody() {
       renderInspector();
     });
     insp.querySelector('#iAdd')?.addEventListener('click', () => addArtifactModal());   // 10-15 밤: 인스펙터 간소화로 버튼 없음(상단 메뉴·모달은 그대로)
-    // 레퍼런스(참고용, 10-28) — 저장만 바꾼다(렌더에 안 쓰니 다시 그리지 않는다)
-    const refIn = insp.querySelector('#iRefFile');
-    insp.querySelector('#iRefAdd')?.addEventListener('click', () => refIn.click());
-    if (refIn) refIn.onchange = async () => { const added = await readReferenceFiles([...refIn.files], 8 - (c.style.references?.length ?? 0)); if (!added.length) return; c.style = { ...c.style, references: [...(c.style.references ?? []), ...added] }; autosave(); renderInspector(); log(`레퍼런스 ${added.length}장 저장(참고용)`); toast(`레퍼런스 ${added.length}장 — 참고용으로만 저장, 소재에는 그리지 않아요`); };
-    insp.querySelectorAll('.reflist .refx').forEach(b => b.onclick = () => { c.style = { ...c.style, references: (c.style.references ?? []).filter((_, i) => i !== +b.dataset.ref) }; autosave(); renderInspector(); });
-    insp.querySelectorAll('.reflist .refo').forEach(b => b.onclick = () => { const r = c.style.references?.[+b.dataset.ref]; if (r) openHtml(`<body style="margin:0;background:#222;display:grid;place-items:center;min-height:100vh"><img src="${r}" style="max-width:100%;max-height:100vh"></body>`); });
     bindMediaAdd(insp, c);
     ED.bindPresetCampaign(insp, restyle);
     ED.bindAlignCampaign(insp, restyle);   // 글자 정렬 세그먼트(10-19)

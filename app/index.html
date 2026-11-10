@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Campaign Agent</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%230A74CC%27/%3E%3Cpath d=%27M9 22V10h3l4 7 4-7h3v12h-3v-7l-4 6-4-6v7z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
 <style>
   /* ═══ 토큰 ═══
      역할(시맨틱) 토큰만 컴포넌트에서 쓴다 — 다크 모드는 아래 미디어 쿼리에서 역할 토큰만 갈아 끼운다.
@@ -42,7 +43,7 @@
     --border:#E6E6E6; --border2:#D9D9D9; --hover:#F0F0F0; --soft:#F5F5F5;
     --r-in:5px; --r-card:8px; --r-menu:13px; --r-tool:13px;
     --sh-menu:0 2px 14px rgba(0,0,0,.15),0 0 0 .5px rgba(0,0,0,.1);
-    --rail:56px; --sec-h:40px; --row-h:32px;
+    --sec-h:40px; --row-h:32px;
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -446,6 +447,9 @@
   .frow3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 24px;gap:8px;align-items:center}
   .frow3.wh{grid-template-columns:1fr 1fr 24px}
   .fline2{display:flex;gap:4px}
+  /* 회전 행(hub 「회전 ∟ 0° ↻ ⇋ ⇵」) — 칸 + 아이콘 24 셋 */
+  .frot{display:grid;grid-template-columns:1fr repeat(3,24px);gap:4px;align-items:center}
+  .frot .fib{width:24px;height:24px;min-height:24px;padding:0;justify-content:center}
   .fib[aria-pressed="true"]{background:color-mix(in srgb,var(--focus) 14%,transparent);color:var(--focus)}
   .fib[aria-pressed="true"]:disabled{background:transparent;color:var(--sub)}
   #inspector input[type=range].fslider{width:100%;background:linear-gradient(to right,var(--focus) var(--p,0%),var(--line) var(--p,0%))}
@@ -475,7 +479,12 @@
   body .hbtn.pri,body header .hbtn.pri,body .btn.pri{background:var(--pri);color:var(--on-pri);border-color:transparent}
   body .hbtn.pri:hover,body header .hbtn.pri:hover,body .btn.pri:hover{background:var(--pri);opacity:.9}
   body[data-view="work"] header .hbtn{height:32px;border-radius:var(--r-in);padding:0 12px;font-size:12px;font-weight:500}
-  #inspector,#leftPanel,#lRail,.isec,.scope,#leftPanel .lhead{border-color:var(--border)}
+  /* 11-10 오후 — 작업 화면 머리 48(hub 탭스트립 문법): 불투명 판 · 아래 1px 선 · 그림자·유리 없음 · 로고 글자 13/600 */
+  body[data-view="work"]{--gnb:48px}
+  body[data-view="work"] header{height:var(--gnb);padding:0 8px 0 12px;background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:1px solid var(--border);box-shadow:none}
+  body[data-view="work"] header .logo{height:32px;font-size:13px;font-weight:600;margin-right:2px}
+  body[data-view="work"] header .hbtn.icon{width:32px;padding:0}
+  #inspector,#leftPanel,.isec,.scope,#leftPanel .lhead{border-color:var(--border)}
   #inspector .isec,#leftPanel .isec{border-bottom-color:var(--border)}
   #work #boardCtl{left:calc(var(--lw) + (100% - var(--lw) - var(--rw)) / 2);right:auto;transform:translateX(-50%);gap:0;padding:4px;background:var(--panel);border-radius:var(--r-tool);box-shadow:var(--sh-menu);align-items:center}
   #work #boardCtl .ctlGrp{background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;padding:0 4px}
@@ -489,37 +498,9 @@
   #viewport.tool-hand{cursor:grab}
   #viewport.tool-hand .frame .hit,#viewport.tool-hand .eov{pointer-events:none}
   #viewport.tool-hand.panning{cursor:grabbing}
-  /* 11-10 hub 이식 4단계 — 왼쪽 레일(hub .rail: 56 · 아이콘 24 + 이름 10px · 고른 탭 파랑) + 탭 내용 */
+  /* 11-10 오후 — 왼쪽은 입력 패널 하나(레일 걷음). 폭 = hub 패널 284 */
   #work #leftPanel{display:flex;overflow:hidden}
-  #lRail{width:56px;flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-right:1px solid var(--line);background:var(--panel)}
-  #lRail button{width:48px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:8px;background:none;color:var(--sub);font-size:10px;line-height:1;cursor:pointer;padding:0}
-  #lRail button svg{width:20px;height:20px}
-  #lRail button:hover{background:var(--soft);color:var(--ink)}
-  #lRail button[aria-selected="true"]{color:var(--focus)}
-  #lRail button[aria-selected="true"] svg{background:color-mix(in srgb,var(--focus) 12%,transparent);border-radius:6px;box-shadow:0 0 0 4px color-mix(in srgb,var(--focus) 12%,transparent)}
-  #lRail button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
   #lMain{flex:1;min-width:0;overflow-y:auto;scrollbar-width:thin}
-  .ltree{display:flex;flex-direction:column;margin:0 -8px}
-  .ltree .lt-med{display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;font-size:11px;font-weight:600;color:var(--sub)}
-  .ltree .lt-med span:last-child{margin-left:auto;font-weight:400}
-  .ltree button{display:flex;align-items:center;gap:8px;min-height:32px;padding:0 8px;border:0;border-radius:5px;background:none;color:var(--ink);font-size:11px;text-align:left;width:100%;cursor:pointer}
-  .ltree button:hover{background:var(--soft)}
-  .ltree button.on{background:color-mix(in srgb,var(--focus) 12%,transparent)}
-  .ltree button .lt-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .ltree button .lt-sz{color:var(--sub);font-variant-numeric:tabular-nums;flex:none}
-  .ltree button .lt-ok{color:var(--good);flex:none;width:12px}
-  .ltree .lt-row{display:flex;align-items:center;border-radius:5px;padding-right:4px}
-  .ltree .lt-row:hover{background:var(--soft)}
-  .ltree .lt-row.on{background:color-mix(in srgb,var(--focus) 12%,transparent)}
-  .ltree .lt-row .lt-el{flex:1;min-width:0;padding-left:32px;min-height:28px;background:none}
-  .ltree .lt-row .fib{width:24px;min-height:24px;height:24px;flex:none;padding:0;justify-content:center}
-  .lasset{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;margin-top:4px}
-  .lasset .kvthumb{width:64px;height:48px;font-size:10px}
-  .lasset .lasset-btns{display:flex;flex-direction:column;gap:4px}
-  .lchips{display:flex;flex-direction:column;gap:4px}
-  .lchips div{display:flex;align-items:center;gap:8px;font-size:11px;height:24px}
-  .lchips i{width:16px;height:16px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--line)}
-  .lchips em{font-style:normal;color:var(--sub);margin-left:auto;font-variant-numeric:tabular-nums}
   /* 11-10 hub 이식 3단계 — 오른쪽 섹션 문법(hub .sec: 머리 40 · 12px 600 · 오른쪽 아이콘 24) */
   #inspector .isec{padding:4px 16px 16px}
   #inspector .isec > h3{min-height:36px;margin:0;font-size:12px;font-weight:600;justify-content:flex-start}
@@ -563,10 +544,10 @@
   .bigbtn:disabled{opacity:.35;cursor:default}
 
   /* ═══ work (아트보드) ═══ */
-  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:340px;--rw:248px;--ruler-bg:var(--panel)}   /* 11-10 hub 이식 4단계: 왼쪽 = 레일 56 + 패널 284 */
+  #work{position:absolute;inset:0;display:none;--dock:0px;--lw:284px;--rw:248px;--ruler-bg:var(--panel)}   /* 11-10 오후: 왼쪽 = 입력 패널 284(hub 패널 폭), 레일 없음 */
   #work.noL{--lw:0px} #work.noR{--rw:0px}
   #work.noL #leftPanel,#work.noR #inspector{display:none}
-  #viewport{position:absolute;inset:52px var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
+  #viewport{position:absolute;inset:var(--gnb,52px) var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
   #viewport.panning{cursor:grabbing}
   #artboard{position:absolute;left:0;top:0;transform-origin:0 0}
   #rulerT,#rulerL{position:absolute;pointer-events:none;z-index:4;display:block}
@@ -618,16 +599,6 @@
   #artboard .flabel .badge{display:none!important}   /* 10-15 밤: 보드 카드는 매체 · 사이즈만 */
   #artboard .flabel .badge.gate:not(:empty){display:inline-block!important}   /* 10-20: 게이트 한 단어만 예외 — 규격·디자인·샘플 배지 다섯을 하나로 합친 것 */
   .badge.fit{background:var(--amber-soft);color:var(--amber);cursor:help}
-  /* 레퍼런스(참고용, 10-28) — 인테이크 칸·인스펙터 카드 */
-  .kvthumb.ref{border-style:dotted}
-  .kvthumb .refn{font-size:13px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:var(--r-pill)}
-  .refnote{font-size:11.5px;color:var(--sub);line-height:1.55;margin:8px 0 2px}
-  .reflist{display:inline-flex;flex-wrap:wrap;gap:6px;vertical-align:middle;margin-left:6px}
-  .reflist.insp{display:flex;margin:0}
-  .refi{position:relative;width:48px;height:48px;border-radius:6px;background:var(--soft) center/cover no-repeat;border:1px solid var(--line);flex:none}
-  .refo{position:absolute;inset:0;background:transparent;border:0;cursor:zoom-in;border-radius:6px}
-  .refx{position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;border:0;background:var(--ink);color:var(--on-ink,#fff);font-size:12px;line-height:18px;padding:0;cursor:pointer}
-  .refadd{width:48px;height:48px;border-radius:6px;border:1px dashed var(--accent-line);background:transparent;color:var(--sub);font-size:20px;cursor:pointer}
   /* 레이아웃 가이드 오버레이(10-28) — 틀 칸을 소재 위에 반투명으로. 보기용, 내보내기·검사 무관 */
   .gov{position:absolute;inset:0;pointer-events:none;z-index:3}
   .gb{position:absolute;box-sizing:border-box;border:1.5px dashed;border-radius:2px}
@@ -695,7 +666,7 @@
 
   /* ─ 우측 편집 패널 — 유리 판, 안쪽은 흰 카드(.isec)로 쌓는다. 라벨은 작게 회색, 입력은 둥근 연회색 ─ */
   /* 3단(11-02 사용자 「좌측 내용 · 우측 비주얼·배경·폰트·정렬·컬러」, hub/fui/ui3.css 패널) — 캔버스를 덮지 않는 붙박이 패널. 섹션은 선으로 나눈다 */
-  #inspector,#leftPanel{position:absolute;top:52px;bottom:0;background:var(--panel);overflow-y:auto;z-index:10;scrollbar-width:thin}
+  #inspector,#leftPanel{position:absolute;top:var(--gnb,52px);bottom:0;background:var(--panel);overflow-y:auto;z-index:10;scrollbar-width:thin}
   #inspector{right:0;width:var(--rw);border-left:1px solid var(--line)}
   #leftPanel{left:0;width:var(--lw);border-right:1px solid var(--line)}
   #leftPanel .lhead{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
@@ -719,23 +690,49 @@
   .layer em{font-style:normal;font-size:8px;color:var(--focus)}
   .layer-k{width:10px;height:10px;border-radius:2px;flex:none;background:var(--focus)}
   .layer-logo{background:#17a673}.layer-kv{background:#e0571f}
-  #leftPanel h3{font-size:12.5px;color:var(--ink);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-  /* 11-09 왼쪽 브리프 — 캔버스 요소 이름(메인 문구·서브·날짜·상세)으로 묶는다. 캔버스에서 그 요소를 고르면 묶음이 강조된다 */
-  #leftPanel .lgrp{margin:0 -8px 10px;padding:8px 8px 10px;border-radius:10px;border:1px solid transparent;transition:background .15s,border-color .15s}
-  #leftPanel .lgrp.on{background:var(--accent-soft);border-color:var(--accent)}
-  #leftPanel .lgh{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px;display:flex;justify-content:space-between;align-items:center}
-  #leftPanel .lgh .lnk{font-size:11px;font-weight:600}
-  #leftPanel .lgrp.off .lgh{color:var(--sub)}
-  #leftPanel .lgrp textarea{width:100%;box-sizing:border-box;resize:vertical;font:inherit;font-size:13px;line-height:1.45}
-  #leftPanel .lauto{font-size:10.5px;font-weight:600;color:var(--sub);background:var(--bg2,#f1f2f4);border-radius:var(--r-pill);padding:1px 7px;margin-left:4px}
-  #leftPanel details.lbase{margin:4px 0 0;font-size:12px}
-  #leftPanel details.lbase summary{cursor:pointer;color:var(--sub);font-weight:600;padding:4px 0}
-  #leftPanel .mode{font-size:10.5px;background:var(--accent-soft);color:var(--accent);border-radius:var(--r-pill);padding:2px 8px;font-weight:700}
-  #leftPanel label{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--sub);margin:10px 0 4px;min-height:16px}
-  #leftPanel input[type=text],#leftPanel textarea{width:100%;border:1px solid transparent;background:var(--soft);color:var(--ink);box-sizing:border-box;border-radius:5px;font-size:11px;padding:0 8px;height:32px}
-  #leftPanel textarea{height:auto;min-height:64px;padding:8px;line-height:16px;resize:vertical}
-  #leftPanel input[type=text]:focus-visible,#leftPanel textarea:focus-visible{border-color:var(--focus);outline:none;background:var(--card)}
-  #leftPanel .btn{min-height:32px;padding:0 12px;border-radius:5px;font-size:11px;font-weight:500}
+  /* 11-10 오후 왼쪽 입력 패널 = hub/fui/ui3.css 문법 그대로(사용자 「전체 스타일은 피그마 스타일」): 섹션 머리 40 · 12px 600 · 오른쪽 아이콘 24 /
+     본문 0 16 12 / 라벨 11 회색 24 높이 / 입력 32 · r5 · 연회색 · 11px / 섹션 사이 1px 선. 고른 요소의 묶음 = 선택 파랑 바탕(카드 테두리 없음) */
+  #leftPanel .lhead{padding:12px 16px;border-bottom:1px solid var(--border)}
+  #leftPanel .lhead b{font-size:13px;font-weight:600;line-height:18px}
+  #leftPanel .lhead span{font-size:11px;line-height:16px;color:var(--sub)}
+  #leftPanel .lsec{display:flex;align-items:center;gap:4px;height:var(--sec-h);padding:0 8px 0 16px;font-size:12px;font-weight:600;color:var(--ink);list-style:none}
+  #leftPanel .lsec::-webkit-details-marker{display:none}
+  #leftPanel .lsec > .fib,#leftPanel .lsec > .btn{margin-left:auto}
+  #leftPanel .lsec .fib{width:24px;height:24px;min-height:24px;padding:0;justify-content:center;color:var(--sub)}
+  #leftPanel .lsec .fib:hover{color:var(--ink)}
+  #leftPanel .lsec-top > .btn{margin-right:0}
+  #leftPanel .lgb{padding:0 16px 12px}
+  #leftPanel .lbrief > .fnote.lgb{padding-bottom:4px;margin:-4px 0 0}
+  #leftPanel .lbrief > #lNote:empty{display:none}
+  #leftPanel .lgrp{border-top:1px solid var(--border);transition:background .15s}
+  #leftPanel .lbrief > .lgrp:first-of-type{margin-top:8px}
+  #leftPanel .lgrp.on{background:var(--sel)}
+  #leftPanel .lgrp.on > .lsec{color:var(--ink)}
+  #leftPanel .lgrp.off > .lsec{color:var(--sub)}
+  #leftPanel details.lbase > summary{cursor:pointer}
+  #leftPanel details.lbase .lsec-t{font-weight:400;color:var(--sub);font-size:11px;margin-left:4px}
+  #leftPanel details.lbase > summary svg{margin-left:auto;margin-right:4px;color:var(--sub);transition:transform .15s}
+  #leftPanel details.lbase[open] > summary svg{transform:rotate(180deg)}
+  #leftPanel .lprompt{border-top:1px solid var(--border)}
+  #leftPanel label{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:11px;color:var(--sub);height:24px;margin:4px 0 0}
+  #leftPanel .lgb > label:first-child,#leftPanel .lgb > .fnote:first-child + label{margin-top:0}
+  #leftPanel label .fib{width:24px;height:24px;min-height:24px;padding:0;justify-content:center}
+  #leftPanel .lauto{font-size:10px;font-weight:500;color:var(--sub);background:var(--soft);border-radius:4px;padding:0 6px;line-height:16px}
+  #leftPanel .fnote{font-size:11px;line-height:16px;color:var(--sub);margin-top:4px}
+  #leftPanel input[type=text],#leftPanel textarea{display:block;width:100%;border:1px solid transparent;background:var(--soft);color:var(--ink);box-sizing:border-box;border-radius:var(--r-in);font:inherit;font-size:11px;padding:0 8px;height:32px}
+  #leftPanel textarea{height:auto;min-height:48px;padding:8px;line-height:16px;resize:vertical}
+  #leftPanel input[type=text]:hover,#leftPanel textarea:hover{border-color:var(--border2)}
+  #leftPanel input[type=text]:focus,#leftPanel textarea:focus{border-color:var(--focus);outline:none;background:var(--card);box-shadow:inset 0 0 0 1px var(--focus)}
+  #leftPanel input::placeholder,#leftPanel textarea::placeholder{color:var(--sub);opacity:.7}
+  #leftPanel .btn{min-height:32px;padding:0 12px;border-radius:var(--r-in);font-size:11px;font-weight:500}
+  #leftPanel .btn.sm{min-height:24px;height:24px;padding:0 8px;font-size:11px;border:1px solid var(--border2);background:var(--card)}
+  #leftPanel .btn.sm:hover{background:var(--hover)}
+  /* 추가 행 편집기 — 밑줄 링크 대신 hub 아이콘 버튼(24) · 「+ 행 추가」는 hub .btn.ghost */
+  #leftPanel [data-lrows] .lnk{text-decoration:none;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-in);color:var(--sub);font-size:12px;padding:0}
+  #leftPanel [data-lrows] .lnk:hover:not(:disabled){background:var(--hover);color:var(--ink)}
+  #leftPanel [data-lrows] .lnk:disabled{opacity:.35}
+  #leftPanel [data-lrows] textarea{min-height:32px;padding:7px 8px}
+  #leftPanel [data-lrows] .lnk[data-radd]{width:auto;height:24px;padding:0 8px;margin-left:-8px;font-size:11px;color:var(--ink)}
   /* 프레임 안 요소 선택(app/elselect.js) — 테두리·핸들은 확대율과 상관없이 같은 굵기 */
   .esel{position:absolute;pointer-events:auto;padding:0;background:transparent;border:0;outline:calc(1.5px / var(--z,1)) solid var(--focus);cursor:move;touch-action:none}
   .esel:focus-visible{outline:calc(2.5px / var(--z,1)) solid var(--focus);outline-offset:calc(1px / var(--z,1))}
@@ -884,7 +881,7 @@
      ≤1024: 우측 패널이 캔버스를 덮지 않도록 아래로 내려 가로로 눕힌다(두 열) — 플로팅 바는 그 위로 올라간다. */
   @media (max-width:1180px){ #cmdBar{width:min(560px,36%)} }
   @media (max-width:1024px){
-    #work{--lw:288px;--rw:248px}
+    #work{--lw:284px;--rw:248px}
     #work.noL{--lw:0px} #work.noR{--rw:0px}
     #sidebar{width:260px}
   }
@@ -1186,7 +1183,6 @@
 
   <div id="work">
     <aside id="leftPanel" aria-label="내용">
-      <nav id="lRail" role="tablist" aria-label="왼쪽 패널" aria-orientation="vertical"></nav><!-- 11-10 hub 이식 4단계: 레일 56 — 입력 · 에셋 · 파일 · 검수 -->
       <div id="lMain"><div class="lhead"><b id="lName"></b><span id="lStat"></span></div>
       <div id="leftBody"></div></div>
     </aside>
@@ -1230,7 +1226,10 @@
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="config.local.js" onerror="void 0"></script>
+<script>
+  // 로컬 전용 키 파일(gitignore). 공개 앱에선 요청 자체를 안 해 콘솔 404 를 없앤다.
+  if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) document.write('<script src="config.local.js"><\/script>');
+</script>
 <script>
   // ─ 셸 배선 — 앱 로직(app.js)은 건드리지 않는다. 새 GNB 버튼을 기존 기능(id)에 잇는 얇은 접착층.
   (function () {

@@ -47,6 +47,8 @@ export function normElementEdits(edits) {
     if (e.hid) q.hid = 1;
     // 11-10 hub 이식 2단계 — 그림 모서리 r(px) · 뒤집기 flip('h'|'v'|'hv'). 키비주얼만(로고는 불투명도·숨김만)
     if (id === 'kv' && e.r != null && Number.isFinite(+e.r) && +e.r >= 1) q.r = Math.min(2000, Math.round(+e.r));
+    // 11-10 오후 사용자 결정 「회전 전부」 — 그림·로고 층 회전 rot(°, -180~180, 0 은 지움). 녹임·스크림은 같은 층이라 같이 돈다
+    if (isBox && e.rot != null && Number.isFinite(+e.rot)) { let r = ((+e.rot % 360) + 360) % 360; if (r > 180) r -= 360; r = round1(r); if (Math.abs(r) >= 0.1) q.rot = r; }
     if (id === 'kv' && typeof e.flip === 'string') { const f = [...new Set(e.flip.split('').filter(x => x === 'h' || x === 'v'))].sort().join(''); if (f) q.flip = f; }
     const runs = normRuns(e.runs); if (runs) q.runs = runs;
     if (Object.keys(q).length) out[id] = q;
@@ -282,13 +284,15 @@ const addTransform = (s, t) => (!t ? s : /(^|;)\s*transform\s*:/.test(s) ? s.rep
 // 틀 칸이라 렌더러 manualLayout 이 안 듣는 그림·로고 — 렌더러의 kvWrap 과 같은 캔버스 크기 층으로 감싸 변형(svgexport 가 data-edit 을 「옮긴 것」으로 읽는다)
 function patchBox(html, tag, kind, e, size) {
   const end = closeEnd(html, tag.t, tag.name, tag.oe);
-  const open0 = html.slice(tag.t, tag.oe + 1), s0 = styleOf(open0), flip = kind === 'kv' ? flipCss(e.flip) : '';
+  const rot = e.rot ? `rotate(${e.rot}deg)` : '';
+  const open1 = html.slice(tag.t, tag.oe + 1), open0 = rot ? addAttr(open1, `data-rot="${e.rot}"`) : open1;   // svgexport 가 이 층의 회전을 잠깐 빼고 그린 뒤 <g rotate> 로 감싼다
+  const s0 = styleOf(open1), flip = [kind === 'kv' ? flipCss(e.flip) : '', rot].filter(Boolean).join(' ');   // 회전은 가운데 기준, 뒤집은 뒤 돌린다
   const moved = !!(num(e.dx) || num(e.dy) || (e.scale != null && Math.abs(num(e.scale) - 1) > 1e-3));
   const abs = /(^|;)\s*position\s*:\s*absolute/.test(s0);
   let s = lookStyle(s0, e, kind);
   if (!moved || !size?.w || !size?.h) {   // 옮김·크기 없이 외관만(또는 캔버스 크기를 모름)
     s = addTransform(s, flip);
-    return s === s0 ? html : html.slice(0, tag.t) + setStyle(open0, s) + html.slice(tag.oe + 1);
+    return s === s0 && open0 === open1 ? html : html.slice(0, tag.t) + setStyle(open0, s) + html.slice(tag.oe + 1);
   }
   if (!abs) {
     const px = v => Math.round(v * 10) / 10;

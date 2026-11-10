@@ -84,6 +84,17 @@ test('로고: 원색 바꾸면 tone·meta, 흰색 로고는 both', () => {
   assert.equal(Object.keys(clearArtLogo(o)).length, 0);
 });
 
+test('로고: 원색만 바꾸면 캠페인 옛 흰색 로고를 물려받지 않는다(어두운 지면에 옛 로고가 남던 버그, 11-10)', () => {
+  const o = withArtLogo({}, 'logo', { src: 'data:NEW', tone: 'dark' }, { logo: 'data:OLD', logoLight: 'data:OLDW', logoTone: 'both' });
+  assert.equal(o.logoLight, null, '흰 자리 비움 → 렌더러가 새 로고를 반전');
+  assert.equal(o.logoTone, 'dark');
+  const eff = { logo: 'data:OLD', logoLight: 'data:OLDW', ...o };
+  assert.notEqual(eff.logoLight, 'data:OLDW');
+  // 이 소재가 따로 올린 흰 로고는 지킨다
+  const o2 = withArtLogo({ logoLight: 'data:MYW' }, 'logo', { src: 'data:NEW2', tone: 'dark' }, { logoLight: 'data:OLDW' });
+  assert.equal(o2.logoLight, 'data:MYW'); assert.equal(o2.logoTone, 'both');
+});
+
 test('로고 바꾸기가 그 규격 렌더에 들어간다', () => {
   const LOGO = 'data:image/png;base64,TE9HTzE' + 'B'.repeat(200);
   const c = camp({ logo: 'data:image/png;base64,TE9HTzA' + 'B'.repeat(200) }); generateArtifacts(c);

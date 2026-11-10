@@ -23,6 +23,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # 조건부 요청에 304로 답하지 않는다 — 항상 본문을 보낸다
         if 'If-Modified-Since' in self.headers:
             del self.headers['If-Modified-Since']
+        # 로컬 키 파일이 없으면 빈 스크립트로 답한다(콘솔 404 없애기)
+        if self.path.split('?')[0] == '/app/config.local.js' and not os.path.exists(os.path.join(ROOT, 'app', 'config.local.js')):
+            b = b'// config.local.js \xec\x97\x86\xec\x9d\x8c\n'
+            self.send_response(200); self.send_header('Content-Type', 'text/javascript; charset=utf-8')
+            self.send_header('Content-Length', str(len(b))); self.end_headers(); self.wfile.write(b); return
         super().do_GET()
 
     def do_POST(self):
