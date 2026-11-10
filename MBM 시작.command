@@ -1,6 +1,6 @@
 #!/bin/bash
 # MBM 디자인 에이전트 — 로컬 앱 시작(더블클릭). 서버를 켜고 브라우저로 앱을 연다.
-# Claude 계정 연결은 앱 위쪽 「Claude」 칩에서 한다(docs/local-ai-setup.md).
+# Claude 계정 연결은 앱 위쪽 「Claude Code 연결」 칩에서 한다(docs/local-ai-setup.md).
 cd "$(dirname "$0")" || exit 1
 PORT=${PORT:-4796}
 if ! command -v node >/dev/null 2>&1; then echo "Node.js 가 없어요 — https://nodejs.org 에서 설치한 뒤 다시 더블클릭해 주세요."; read -r -p "엔터를 누르면 닫혀요"; exit 1; fi
