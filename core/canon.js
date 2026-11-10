@@ -160,7 +160,7 @@ export const CANON = {
   cutFade: { base: 8, k: 2, min: 10, max: 36, photo: 28, minGap: 2, insetFixed: true, keep: 0.4 },
   // 주인공 당김(field.js subjectCrop) 보일 부분(10-28 컨시어지 #2 김혜원): 주인공 상자의 60% 는 보여야 한다 — 리멤버 사이드 235×200 칸에 일화 사옥(주인공 띠 2.36:1)을 1.9배 당겨 주인공 폭 50% 만 보이던 것 → 1.4배 60%(장부 kv-crop-min-visible). 비율이 맞는 작은 주인공은 그대로 당긴다
   //   whole(11-02 재현): 주인공 상자가 그림의 95% 이상이면(상자를 못 찾은 사진 — focus 1×1) 보일 부분 규칙 해당 없음. cover 경로(field.js coverFit — 리멤버 사이드 열·자소설 M팝업 아래 띠·틀 그림 칸)도 같은 60%: 미만이면 배율을 낮추고 상자를 그림 크기로 줄여 지면 변에 붙인다(장부 kv-cover-min-visible)
-  kvCrop: { minVisible: 0.6, whole: 0.95 },
+  kvCrop: { minVisible: 0.6, whole: 0.95, minVisibleCharacter: 0.9 },   // 캐릭터(머리 보존)는 90%(11-10 밤 눈 검수 — 3D 별 캐릭터 끝 잘림)
   // 겹침 교정 사다리(10-19 사용자 「키비주얼과 텍스트가 겹쳐서 텍스트가 안 보일 땐 텍스트를 줄이던지 띄어쓰던지 키비주얼 위치를 조정」): 글자 행 × 주인공 상자 겹침이 문턱(검수와 같음: 캐릭터·인물 2%, 그 외 15%)을 넘으면
   //   ① 글자 배율 textSteps(바닥 textFloor, 규정 매체 틀은 textFloorRegulated) ② 메인 두 줄 ③ 키비주얼 배율 kvSteps 순으로 다시 그려 처음 문턱 아래를 쓴다
   overlapFix: { character: 0.02, other: 0.15, textSteps: [0.92, 0.84, 0.75], textFloor: 0.75, textFloorRegulated: 0.85, kvSteps: [0.85, 0.7], cellOpaque: 0.3 },
