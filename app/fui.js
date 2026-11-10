@@ -35,6 +35,7 @@ const ICONS = {
   opacity: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="2" ${L}/><path d="M5 5h2v2H5zM9 5h2v2H9zM7 7h2v2H7zM5 9h2v2H5zM9 9h2v2H9z" fill="currentColor"/>`),
   ratio: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="2" ${L}/><path d="M6 10l4-4M6.5 6h3.5v3.5" ${L}/>`),
   lock: s(`<path d="M5 7V5a3 3 0 016 0v2" ${L}/><rect x="3.5" y="7" width="9" height="6.5" rx="1" ${L}/>`),
+  export: s(`<path d="M8 10V2.5M5 5.5l3-3 3 3" ${L}/><path d="M3 9v3.5a1 1 0 001 1h8a1 1 0 001-1V9" ${L}/>`),
   img: s(`<rect x="2.5" y="2.5" width="11" height="11" rx="1.5" ${L}/><path d="M3 12l3.5-4 2.5 3 1.5-1.5L13 12" ${L} stroke-linejoin="round"/><circle cx="10.5" cy="5.5" r="1" fill="currentColor"/>`),
 };
 export const ic = name => ICONS[name] ?? '';

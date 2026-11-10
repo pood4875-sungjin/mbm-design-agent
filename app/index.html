@@ -449,6 +449,13 @@
   .fchk input{width:14px;height:14px;margin:0;accent-color:var(--focus)}
   #inspector .isec .flab.sub + .falign,#inspector .isec .flab.sub + .fgrid2,#inspector .isec .flab.sub + .frow3{margin-top:2px}
   #inspector .isec .flab.sub{margin-top:8px}
+  /* 11-10 hub 이식 3단계 — 오른쪽 섹션 문법(hub .sec: 머리 40 · 12px 600 · 오른쪽 아이콘 24) */
+  #inspector .isec{padding:4px 16px 16px}
+  #inspector .isec > h3{min-height:36px;margin:0;font-size:12px;font-weight:600;justify-content:flex-start}
+  #inspector .isec > h3 > .fib:last-child,#inspector .isec > h3 > .ovr{margin-left:auto}
+  #inspector .isec > h3 .mode{font-size:10px;font-weight:500;padding:1px 6px}
+  #inspector .isec select{width:100%}
+  #viewport.noruler #rulerT,#viewport.noruler #rulerL{display:none}
   .frame.drop-kv .fbody{outline:3px solid var(--focus);outline-offset:2px}
   .esel-size{position:absolute;left:50%;top:100%;transform:translateX(-50%) scale(calc(1 / var(--z,1)));transform-origin:50% 0;margin-top:3px;padding:1px 5px;border-radius:3px;background:var(--focus);color:#fff;font:600 10px/14px var(--font, inherit);white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
   .esel.oob .esel-size{background:var(--danger)}

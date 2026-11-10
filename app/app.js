@@ -319,6 +319,7 @@ function useFree(a, free) {
   log(`${a.specId} 자유 시안 ${n}`);
 }
 const RULER = createRuler({ top: $('rulerT'), left: $('rulerL'), view: () => state, range: () => { const f = state.selected && frames.get(state.selected); if (!f) return null; const b = f.frame.querySelector('.fbody'); return { x: f.frame.offsetLeft, y: f.frame.offsetTop, w: b.clientWidth, h: b.clientHeight }; } });
+applyRulerPref();   // 11-10 hub 이식 — 「도구 › 룰러 끄기」 기억
 
 /* ═══ helpers ═══ */
 function toast(t) {
@@ -3227,6 +3228,48 @@ function bindTextRoles(insp, a, c) {
 // 캔버스 클릭 → 누른 자리의 글자 줄(iframe 문서 좌표로 환산)
 function textRoleAt(a, e) { const f = frames.get(a.key ?? a.specId), ifr = f?.iframe, doc = ifr?.contentDocument; if (!doc) return null; const r = ifr.getBoundingClientRect(), k = r.width / (ifr.offsetWidth || r.width), x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k; let hit = null; for (const el of doc.querySelectorAll('[data-field]')) { const b = el.getBoundingClientRect(); if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom && TEXT_ROLES.some(([n]) => n === el.dataset.field)) hit = el.dataset.field; } return hit; }
 function renderInspector() { renderLeft(); renderInspectorBody(); wireFui($('inspector')); }
+/* ═══ 11-10 hub 이식 3단계 — 오른쪽 「선택 없음」 hub 섹션(pagePanel): 페이지 · 키비주얼·지면 · 로고 · 스타일 · 전체 글자 · 내보내기 · 도구 ═══ */
+function exportSecHtml(c) {
+  const ads = c.artifacts.filter(a => a.channel === 'ad'); if (!ads.length) return '';
+  const ok = ads.filter(a => a.status === 'approved').length, picked = SEL.selected(), pk = picked ? ads.filter(a => picked.has(a.key ?? a.specId)).length : 0;
+  return `<section class="isec" id="secExport"><h3>내보내기 ${iconBtn('export', '내보내기', 'id="iExpGo"')}</h3>
+    <div class="fgrid2"><select id="iExpRange" aria-label="내보낼 범위"><option value="ok">승인한 것 ${ok}</option><option value="all">전체 ${ads.length}(미승인 검토용 폴더)</option>${pk ? `<option value="pick" selected>고른 것 ${pk}</option>` : ''}</select>
+    <select id="iExpFmt" aria-label="형식"><option value="zip">PNG · ZIP</option><option value="svg">ZIP + SVG</option></select></div>
+    <div class="fnote">매체 규격 1배(용량 상한에 맞춤) · 매체별 폴더 ZIP${ok ? '' : ' · 아직 승인한 소재가 없어요'}</div>
+    </section>`;
+}
+function toolSecHtml(c) {
+  const edited = c.artifacts.filter(a => a.overrides?.layout || a.overrides?.elements).length;
+  const rulerOff = (() => { try { return localStorage.getItem('mbm-ruler-off') === '1'; } catch { return false; } })();
+  return `<section class="isec" id="secTools"><h3>도구</h3>
+    <div class="fgrid2"><button type="button" class="btn" id="iToolRegen" ${edited ? '' : 'disabled'} title="옮기거나 크기를 바꾼 요소를 모두 지우고 규칙대로 다시 그려요(되돌리기 한 걸음)">규칙대로 다시 그리기</button>
+    <button type="button" class="btn" id="iToolRuler" aria-pressed="${!rulerOff}">${rulerOff ? '룰러 켜기' : '룰러 끄기'}</button></div>
+    <div class="fnote">${edited ? `직접 옮긴·고친 소재 ${edited}종` : '직접 옮긴 요소 없음'}</div>
+    </section>`;
+}
+function applyRulerPref() { let off = false; try { off = localStorage.getItem('mbm-ruler-off') === '1'; } catch {} $('viewport')?.classList.toggle('noruler', off); if (!off) RULER?.draw(); }
+function bindHubSecs(insp, c) {
+  const q = s => insp.querySelector(s);
+  // 페이지(캔버스) 색 — 보드 아래 색 칸(#canvasBg)과 같은 값
+  const pc = q('#iPageColor');
+  if (pc) { const set = v => { const i = $('canvasBg'); if (!i) return; i.value = v; i.dispatchEvent(new Event('input')); }; pc.oninput = () => set(pc.value); }
+  q('#iPageReset')?.addEventListener('click', () => { $('canvasBgReset')?.click(); renderInspector(); });
+  q('#iKvPick')?.addEventListener('click', () => q('#iKvFile')?.click());
+  q('#iExpGo')?.addEventListener('click', () => {
+    const r = q('#iExpRange').value, svg = q('#iExpFmt').value === 'svg';
+    if (r === 'ok' && !c.artifacts.some(a => a.channel === 'ad' && a.status === 'approved')) { toast('승인한 소재가 없어요 — 범위를 「전체」로 바꾸거나 먼저 승인하세요'); return; }
+    exportAdZip(svg, { includeUnapproved: r === 'all', only: r === 'pick' ? SEL.selected() : null });
+  });
+  q('#iToolRegen')?.addEventListener('click', () => {
+    const list = c.artifacts.filter(a => a.overrides?.layout || a.overrides?.elements);
+    if (!list.length || !confirm(`직접 옮기거나 고친 요소(위치·크기·글자 서식) — 소재 ${list.length}종을 모두 지우고 규칙대로 다시 그릴까요? 되돌리기(⌘Z)로 돌아올 수 있어요`)) return;
+    pushHistory('규칙대로 다시 그리기');
+    for (const a of list) { delete a.overrides.layout; delete a.overrides.elements; a.status = 'draft'; a.gateOverride = null; }
+    logEvent(c, 'manual_edit', { style: 'regen-all' });
+    regen(c); autosave(); refreshFrames(); renderInspector(); toast(`${list.length}종을 규칙대로 다시 그렸어요`);
+  });
+  q('#iToolRuler')?.addEventListener('click', () => { let off = false; try { off = localStorage.getItem('mbm-ruler-off') === '1'; localStorage.setItem('mbm-ruler-off', off ? '0' : '1'); } catch {} applyRulerPref(); renderInspector(); });
+}
 function renderInspectorBody() {
   const insp = $('inspector');
   const c = state.campaign;
@@ -3236,20 +3279,25 @@ function renderInspectorBody() {
     const adsN = c.artifacts.filter(x => x.channel === 'ad' || x.channel === 'asset');
     insp.innerHTML = `${scopeTop}
       <div id="paneDesign" role="tabpanel" aria-label="디자인"${state.rightTab === 'review' ? ' hidden' : ''}>
-      <section class="isec" id="secVisual">
-      <h3>비주얼</h3>
+      <section class="isec" id="secPage"><h3>페이지 ${iconBtn('swap', '캔버스 색 기본으로', 'id="iPageReset"')}</h3>
+      <div class="fstack">${colorRowHtml({ id: 'iPageColor', value: $('canvasBg')?.value ?? '#F6F7F9', label: '캔버스 색', tail: '캔버스' })}</div>
+      <div class="fnote">작업 화면 바탕색 — 내보내기에는 안 들어가요</div>
+      </section>
+      <section class="isec" id="secVisual"><h3>키비주얼 · 지면 <span class="mode">모든 소재</span></h3>
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${refOf(c.style.keyVisual)})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
       ${c.style.keyVisual ? `<div class="kvvrow">${[['wide', '가로형'], ['tall', '세로형']].map(([k, n]) => { const v = c.style.kvVariants?.[k]; return `<div class="kvthumb logo" id="iKvV-${k}" title="${k === 'wide' ? '폭이 긴' : '세로로 긴'} 규격에 쓸 그림 — 없으면 기본 키비주얼" style="${v ? `background-image:url(${refOf(v.keyVisual)})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="iKvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-ikvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}`; }).join('')}</div>` : ''}
+      ${c.style.keyVisual ? `<div class="fgrid2" style="margin-top:8px"><button type="button" class="btn" id="iKvPick">바꾸기</button><button class="btn" id="iKvColors">색 다시 맞춤</button></div>` : ''}
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
-      ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
-        <button class="btn" id="iKvColors" style="flex:1">색 다시 맞춤</button>
-        <button class="btn" id="iKvClear" style="flex:1">제거</button></div>
+      ${c.style.keyVisual ? `<div style="display:flex;justify-content:flex-end;margin-top:2px"><button type="button" class="lnk" id="iKvClear">키비주얼 제거</button></div>
       <div style="display:flex;gap:6px;margin-top:6px">
         ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고(캠페인당 1회, 약 $0.02~0.03) 모양 묶음마다 그림 자리·크기·지면을 정합니다. 글자·타이포·검수는 규칙 그대로. 기본안에만 효과(시안 틀은 이 값을 안 읽음). 키: 로컬 서버 또는 「AI 키 · 환경 설정」">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
-      <label>로고 <span style="opacity:.6">· 원색 / 다크 지면용 흰색</span></label>
+      <div style="margin-top:12px">${bgControlHtml(c.style, 'iBg')}</div>
+      </section>
+      <section class="isec" id="secLogo"><h3>로고 <span class="mode">모든 소재</span></h3>
+      <div class="flab sub"><span>원색 / 다크 지면용 흰색</span></div>
       <div style="display:flex;gap:6px">
         <div class="kvthumb logo" id="iLogo" style="flex:1;height:44px;${c.style.logo ? `background-image:url(${refOf(c.style.logo)})` : ''}">${c.style.logo ? '' : '원색 로고'}</div>
         <div class="kvthumb logo dark" id="iLogoLight" style="flex:1;height:44px;${c.style.logoLight ? `background-image:url(${refOf(c.style.logoLight)})` : ''}">${c.style.logoLight ? '' : '흰색 로고'}</div>
@@ -3259,16 +3307,11 @@ function renderInspectorBody() {
       ${c.style.logo ? `<button class="btn" id="iLogoMakeWhite" style="width:100%;margin-top:6px">원색 로고로 흰색 로고 만들기</button>` : ''}
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       </section>
-      ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
-      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(로컬 Claude Code 또는 API 키 서버). 규칙은 검수기가 강제.</div>
-      <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
-      <section class="isec"><h3>배경</h3>${bgControlHtml(c.style, 'iBg')}</section>
-      <section class="isec">
-      <h3>컬러</h3>
+      <section class="isec" id="secStyle"><h3>스타일</h3>
+      <div class="flab sub"><span>색 스타일</span></div>
       <div class="fstack">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => colorRowHtml({ id: k, value: v, label: n, tail: n })).join('')}</div>
       </section>
-      <section class="isec">
-      <h3>글자</h3>
+      <section class="isec" id="secText"><h3>전체 글자</h3>
       <label>폰트</label>
       <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
       <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
@@ -3280,6 +3323,11 @@ function renderInspectorBody() {
       ${ED.alignCampaignHtml()}
       ${ED.presetCampaignHtml(['textAnchor'])}
       </section>
+      ${exportSecHtml(c)}
+      ${toolSecHtml(c)}
+      ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
+      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(로컬 Claude Code 또는 API 키 서버). 규칙은 검수기가 강제.</div>
+      <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
       <section class="isec">
       <h3>레퍼런스 <span class="mode">참고용</span></h3>
       <div class="reflist insp">${(c.style.references ?? []).map((r, i) => `<span class="refi" style="background-image:url(${r})" title="레퍼런스 ${i + 1} — 클릭하면 크게"><button type="button" class="refo" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 크게"></button><button type="button" class="refx" data-ref="${i}" aria-label="레퍼런스 ${i + 1} 빼기">×</button></span>`).join('')}
@@ -3296,6 +3344,7 @@ function renderInspectorBody() {
       </section></div>
       <div id="inspNote"></div>`;
     bindScope(insp, null, c);
+    bindHubSecs(insp, c);   // 11-10 hub 이식 3단계 — 페이지 · 바꾸기 · 내보내기 · 도구
     insp.querySelector('#iApproveAll').onclick = () => $('approveAll').click();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     const restyle = (patch = {}, label = '스타일 변경', coalesce = false) => restyleWith(c, patch, label, coalesce, {
