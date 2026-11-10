@@ -10,6 +10,7 @@ import { kvTypeOf, massBand } from '../kvtypes.js';
 import { familyById, frameFor } from '../recipes.js';
 import { KV_SIZE_K } from '../editlayout.js';
 import { BP, blueprintOf } from '../typoaudit.js';
+import { CANON } from '../canon.js';
 
 const WHITE = '#FFFFFF', DARK = '#1A1A1A';
 const KO = (t, fs) => textWidth(t) * fs;
@@ -385,7 +386,9 @@ export function renderTemplate(ctx, style, spec) {
   // 로고: 시안 자리 → 글자와 닿으면 다른 모서리
   if (logoSrc) {
     const ar = style.logoMeta?.px ? style.logoMeta.px[0] / Math.max(1, style.logoMeta.px[1]) : 3;
-    const lh = Math.round(Math.min(Math.max(16, Math.sqrt(W * H) * 0.05), (Math.min(W * 0.26, W - saL - saR) / ar))), lw = Math.round(lh * ar);
+    // 11-10 밤: 로고 가로 ≤ 타이틀 글자 × 2.4(CANON.logoCap — 일반 규칙과 같은 값). 시안 틀 B 안에서 로고가 타이틀의 2.5~2.9배로 컸다
+    const mainFsT = plan.find(p => p.r.role === 'main')?.fs ?? null, capWT = mainFsT ? mainFsT * (CANON?.logoCap?.perMainPx ?? 2.4) : Infinity;
+    const lh = Math.round(Math.min(Math.max(16, Math.sqrt(W * H) * 0.05), (Math.min(W * 0.26, W - saL - saR, capWT) / ar))), lw = Math.round(lh * ar);
     const pad = Math.round(Math.min(W, H) * 0.06), xs = [W - lw - Math.max(pad, saR), Math.max(pad, saL), Math.round(W / 2 - lw / 2)], ys = [Math.max(pad * 0.7, saT), H - lh - Math.max(pad * 0.7, saB)];
     const estTw = p => p.tw;
     const touches = (x, y) => plan.some(p => { const tw = estTw(p), x0 = frameAlign === 'center' ? p.anchor - tw / 2 : frameAlign === 'right' ? p.anchor - tw : p.left0; const m = Math.min(W, H) * 0.03; return x < x0 + tw + m && x + lw > x0 - m && y < p.top + p.blockH + m && y + lh > p.top - m; });
