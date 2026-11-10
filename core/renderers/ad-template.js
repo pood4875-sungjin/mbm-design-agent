@@ -171,12 +171,15 @@ export function renderTemplate(ctx, style, spec) {
     for (const p of plan) {
       if (p === mp) continue;
       const role = { season: 'sub', client: 'sub', date: 'date', role: 'detail', slogan: 'detail' }[p.r.role] ?? 'detail', b0 = bpRef.ratio[role];
-      if (b0 == null) continue;
+      if (b0 == null) { if (role === 'date' && !p.pill && !p.r.badge) { const capD = Math.floor(mp.fs * BP.date), lo0 = Math.min(capD, Math.ceil(mp.fs * (BP.min?.date ?? 0))); if (p.fs < lo0) sizeRow(p, lo0); } continue; }   // 청사진에 날짜 줄이 없는 세트도 날짜 하한(11-10 밤)
       const glob = p.pill ? (BP.badgePx[role] ?? BP[role]) : BP[role];
       let bound = Math.min(glob, b0 * BP.kRel);
       if (p.pill) { const hb = bpRef.badgeH[role], hg = BP.badgeH[role] ?? 1.1, hbound = hb == null ? hg : Math.min(hg, hb * BP.kRel); bound = Math.min(bound, hbound / 1.8); }
       const cap = Math.floor(mp.fs * bound);
       if (p.fs > cap && cap >= 8) sizeRow(p, cap);
+      // 11-10 밤: 하한도 — 청사진 분포 하위 10%(BP.min) 아래면 올린다(시안 틀 A/B 날짜가 타이틀의 36~39%, 사용자 「청사진보다 작으면 비정상」). 상한보다는 안 크게
+      const lo = Math.min(cap, Math.ceil(mp.fs * (BP.min?.[role] ?? 0)));
+      if (p.fs < lo && role === 'date' && !p.pill && !p.r.badge) sizeRow(p, lo);   // 알약 날짜는 빼요 — 키우면 그림 자리가 25% 아래로(구글 580 떼 누끼)   // 날짜만 — 상세까지 키우면 줄이 늘어 타이틀이 줄어드는 연쇄(구글 580 유리 알약 시안)   // 알약은 뱃지 높이 상한이 먼저
     }
     return plan;
   };
