@@ -252,7 +252,10 @@ const AK = createArtKv({
   campaignKvFile: f => { select(null); const inp = $('iKvFile'); if (!inp) { toast('오른쪽 패널에서 키비주얼을 바꿔 주세요'); return; } const dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files; inp.dispatchEvent(new Event('change')); },   // hub 이식: 빈 곳에 놓기 = 선택 없음 「키비주얼 바꾸기」와 같은 길
 });
 AK.bindDrop($('viewport'));   // 11-10 hub 이식 1단계 — 캔버스에 그림 파일 끌어 놓기(프레임 위 = 그 소재만, 빈 곳 = 확인 후 모든 소재)
-const ELAI = createElAi({ ctxOf: (a, id) => elAiCtx(a, id), apply: (a, id, ops, label) => applyElOps(a, id, ops, label), undo: () => undo(), health: () => freeHealth(), toast: t => toast(t) });
+const ELAI = createElAi({ ctxOf: (a, id) => elAiCtx(a, id), apply: (a, id, ops, label) => applyElOps(a, id, ops, label), undo: () => undo(), health: () => freeHealth(), toast: t => toast(t),
+  // 11-10 저녁 그림 말로 고치기(/api/kv-edit) — 보낼 그림은 이 소재가 지금 쓰는 원본(손질 전), 결과는 이 소재만 새 그림
+  imageOf: (a, id) => { const st = { ...state.campaign.style, ...(a.overrides?.style ?? {}) }; return id === 'logo' ? (st.logoOrig ?? st.logo ?? null) : (st.kvOrig ?? st.keyVisual ?? null); },
+  applyImage: (a, id, dataUrl) => id === 'logo' ? AK.replaceLogo(a, 'logo', dataUrl) : AK.replaceKv(a, dataUrl) });
 const cssHex = v => { const m = String(v ?? '').match(/[\d.]+/g); return m && m.length >= 3 ? '#' + m.slice(0, 3).map(x => Math.round(+x).toString(16).padStart(2, '0')).join('').toUpperCase() : null; };
 function elAiCtx(a, id) {
   const it = EL.find(a, id); if (!it) return null;

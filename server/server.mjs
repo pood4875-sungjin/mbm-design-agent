@@ -13,6 +13,7 @@ import { handleFreeLoop } from './freeloop.js';   // 자유 시안 평가 루프
 import { handleFreeJobs, handleFreeExtra } from './freejobs.js';   // 「AI 추가 제안」 백그라운드 작업(/api/freedesign/jobs) — 11-06 · 즉시 수정·통계(/api/freedesign/quick·stats) — 11-09
 import { DEFAULT_MODEL, PRICES } from '../core/trackb/cost.js';
 import { handleElementEdit } from './elementedit.js';
+import { handleKvEdit } from './kvedit.js';   // 11-10 저녁: 그림·로고 말로 고치기(배경 제거 — Claude 판단·검수 + 로컬 누끼 도구)
 import { handleClaudeLink } from './claudelink.js';   // 11-10 개인 Claude 계정 연결(CLI) — 상태·로그인·그림 종류 판단·일반 질문   // 요소 하나 말로 고치기(11-10 — 캔버스 AI 아이콘)
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -59,10 +60,11 @@ const server = http.createServer(async (req, res) => {
     const u = new URL(req.url, 'http://x');
     if (req.method === 'GET' && u.pathname === '/api/health') {
       const cc = await claudeCodeAvailable();
-      return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })), freedesign: { claudeCode: cc.ok, version: cc.version, loggedIn: cc.loggedIn, api: API_ENGINE_ENABLED && !!client, engines: enginesAvailable({ client, cc: cc.ok }), jobs: true, modes: ['suggest', 'revise', 'spread'], quick: true, stats: true }, elementEdit: true });
+      return json(res, 200, { ok: true, hasKey: !!client, keyFrom: KEY.from, model: DEFAULT_MODEL, analyzeModel: ANALYZE_MODEL, models: Object.entries(PRICES).map(([id, p]) => ({ id, label: p.label, in: p.in, out: p.out })), freedesign: { claudeCode: cc.ok, version: cc.version, loggedIn: cc.loggedIn, api: API_ENGINE_ENABLED && !!client, engines: enginesAvailable({ client, cc: cc.ok }), jobs: true, modes: ['suggest', 'revise', 'spread'], quick: true, stats: true }, elementEdit: true, kvEdit: true });
     }
     if (u.pathname.startsWith('/api/claude/') || u.pathname === '/api/kvjudge') { if (await handleClaudeLink(req, res, u, { json, readBody })) return; }
     if (u.pathname === '/api/element-edit') { if (await handleElementEdit(req, res, { json, readBody })) return; }
+    if (u.pathname === '/api/kv-edit') { if (await handleKvEdit(req, res, { json, readBody })) return; }
     if (u.pathname === '/api/freedesign/quick' || u.pathname === '/api/freedesign/stats') { if (await handleFreeExtra(req, res, u, { json, readBody })) return; }   // 즉시 수정(LLM 없음)·속도 통계 — 11-09
     if (u.pathname.startsWith('/api/freedesign/jobs')) { if (await handleFreeJobs(req, res, u, { json, readBody, client, freeDesign })) return; }   // 백그라운드 작업(큐) — 아래 동기 호출과 같은 엔진
     if (req.method === 'POST' && u.pathname === '/api/freedesign') {   // 자유 디자인 — engine 'claude-code'(로그인 계정, 키 없음) | 'api'(키 있을 때)

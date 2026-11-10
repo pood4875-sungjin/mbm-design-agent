@@ -9,7 +9,8 @@ import { elementName, parseElementId } from '../core/elementedit.js';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const AI_ICON = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5l1.5 4 4 1.5-4 1.5L8 12.5 6.5 8.5l-4-1.5 4-1.5z" fill="currentColor"/><path d="M13 10.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="currentColor"/></svg>';
 
-// deps: { ctxOf(a,id) → 요청 재료, apply(a,id,ops,label) → 커밋(되돌리기 한 걸음), undo(), health() → Promise<{ server, elementEdit }>, toast }
+// deps: { ctxOf(a,id) → 요청 재료, apply(a,id,ops,label) → 커밋(되돌리기 한 걸음), undo(), health() → Promise<{ server, elementEdit, kvEdit }>, toast,
+//         imageOf(a,id) → 지금 그 소재 그림 dataUrl(원본 우선), applyImage(a,id,dataUrl,label) → 이 소재만 새 그림 }
 export function createElAi(deps) {
   let pop = null, cur = null, ac = null, tick = 0;
   const kindOf = id => (id === 'kv' ? 'kv' : id === 'logo' ? 'logo' : 'text');
@@ -71,7 +72,7 @@ export function createElAi(deps) {
       if (cur) cur.last = { path: 'rule', ms, applied: q.applied, notes: v.notes };
       return;
     }
-    if (kind !== 'text') { paint({ msg: `그림·로고는 크게·작게·왼쪽/오른쪽/위/아래로만 돼요 (${q.reason})`, instr }); return; }
+    if (kind !== 'text') return sendImage(a, id, kind, instr, q.reason);
     // ② 로컬 AI 서버
     const h = await deps.health();
     if (!h?.server || !h?.elementEdit) { paint({ msg: `이 지시는 로컬 앱(AI 서버)에서만 돼요 — 여기서 바로 되는 것: 굵게·얇게·크게·작게·색·정렬·자간·강약·한 줄로·「낱말」만 ~ (${q.reason})`, instr }); return; }
@@ -90,6 +91,34 @@ export function createElAi(deps) {
       const ms = Date.now() - started;
       paint({ done: true, instr, msg: `AI · ${(ms / 1000).toFixed(1)}s${j.note ? ` — ${j.note}` : ''}${j.notes?.length ? ` · ${j.notes.join(' · ')}` : ''}` });
       cur.last = { path: 'ai', ms, serverMs: j.ms, note: j.note, notes: j.notes, ops: j.ops };
+    } catch (e) {
+      clearInterval(tick);
+      if (e?.name === 'AbortError') { cur && paint({ msg: '취소했어요', instr }); return; }
+      cur && paint({ msg: `AI 서버에 닿지 못했어요: ${e.message}`, instr });
+    } finally { ac = null; }
+  }
+  // ③ 그림·로고(11-10 저녁 사용자 「배경 제거 같은 것도 연결된 Claude 로 확실하게」): 로컬 서버 POST /api/kv-edit —
+  //   Claude 가 누끼 옵션을 고르고 로컬 도구가 따고 Claude(opus)가 원본과 나란히 검수, 4점 이상만 넣는다(3점은 「작은 흠」, 2점 이하는 그대로 둠).
+  //   결과는 이 소재만 새 그림(deps.applyImage → 이 소재 그림 바꾸기와 같은 길, 되돌리기 한 걸음)
+  async function sendImage(a, id, kind, instr, reason) {
+    const h = await deps.health();
+    if (!h?.server || !h?.kvEdit || !deps.imageOf || !deps.applyImage) { paint({ msg: `여기서 바로 되는 것: 크게·작게·왼쪽/오른쪽/위/아래로. 배경 제거 같은 그림 편집은 로컬 앱(Claude 연결)에서 돼요 (${reason})`, instr }); return; }
+    const image = deps.imageOf(a, id); if (!image) { paint({ msg: '이 요소의 그림을 찾지 못했어요', instr }); return; }
+    ac = new AbortController();
+    const started = Date.now();
+    paint({ busy: true, instr, msg: 'Claude가 그림을 보고 따는 중… 0s' });
+    clearInterval(tick); tick = setInterval(() => { const s = pop?.querySelector('.eai-status'); if (s) s.textContent = `Claude가 그림을 보고 따는 중… ${Math.round((Date.now() - started) / 1000)}s (보통 20~60초)`; }, 1000);
+    try {
+      const r = await fetch('/api/kv-edit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ instr, kind, image, roleName: elementName(id) }), signal: ac.signal });
+      const j = await r.json().catch(() => ({}));
+      clearInterval(tick);
+      if (!r.ok) { cur && paint({ msg: `AI 수정 실패: ${j.error ?? r.status}`, instr }); return; }
+      if (!cur || cur.a !== a || cur.id !== id) return;
+      const ms = Date.now() - started, n = j.tries?.length ?? 0;
+      if (!j.image) { paint({ msg: `그림은 그대로 뒀어요 — ${j.note ?? '할 수 없는 지시예요'}${n ? ` (${n}번 시도)` : ''}`, instr }); cur.last = { path: 'kv', ms, ok: false, tries: j.tries, note: j.note }; return; }
+      await deps.applyImage(a, id, j.image, `AI 「${instr}」`);
+      cur && paint({ done: true, instr, msg: `Claude · ${(ms / 1000).toFixed(0)}s · 검수 ${j.score ?? '?'}/5${n > 1 ? ` · ${n}번째 시도` : ''} — ${j.note ?? ''}` });
+      if (cur) cur.last = { path: 'kv', ms, ok: true, score: j.score, tries: j.tries, note: j.note };
     } catch (e) {
       clearInterval(tick);
       if (e?.name === 'AbortError') { cur && paint({ msg: '취소했어요', instr }); return; }
