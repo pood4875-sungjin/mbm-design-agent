@@ -2050,7 +2050,22 @@ function renderAdBase(ctx, style, spec) {
         const valTxt = stackTags ? String(d.value).split(/\s*,\s*/).filter(Boolean).join('ㅣ') : d.value;   // 쉼표로만 나눈다 — 「경영·제품·사업 분야」 가운뎃점 묶음은 한 항목(A5)
         const valRows = mold ? widthRows(String(d.value)) : (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(valTxt) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(d.value, perLine, counting);
         const needed = useInline ? inlineRows : 1 + valRows;
-        if (used + needed > cap) { skipped++; if (d.extraRow) extraOut = true; continue; }
+        if (used + needed > cap) {
+          // 11-10 밤(문구 바꿔 보기 — 직무 6개): 모집직무가 안 들어가면 통째로 빼지 않고 짧은 후보(「연구개발, 기술영업 등」)부터 — 덜 중요한 추가 행만 남던 것
+          if (d.label === '모집직무' && !d.extraRow) {
+            const items = String(d.value).split(/\s*,\s*/).filter(Boolean);
+            for (let n = items.length - 1; n >= 1; n--) {
+              const v2 = items.slice(0, n).join(', ') + ' 등', inl2 = `${d.label} : ${v2}`;
+              const r2 = mold ? widthRows(`${d.label}${mold.rows?.detail?.labelSep ?? ' :'} ${v2}`) : estimateLines(inl2, perLine, counting);
+              const ui2 = (stackTags || mold?.rows?.detail?.labelRow) ? false : (r2 <= 1 || !narrow);
+              const vt2 = stackTags ? items.slice(0, n).join('ㅣ') + ' 등' : v2;
+              const vr2 = (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(vt2) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(v2, perLine, counting);
+              const need2 = ui2 ? r2 : 1 + vr2;
+              if (used + need2 <= cap && need2 <= (ui2 ? 1 : 2)) { lines.push({ label: d.label, value: v2, inline: ui2, rows: need2, extraRow: false }); used += need2; break; }   /* 값은 한 줄일 때만 — 좁은 칸에서 세로 목록이 되던 것 */
+            }
+            if (lines.some(l => l.label === d.label)) continue;
+          }
+          skipped++; if (d.extraRow) extraOut = true; continue; }
         lines.push({ label: d.label, value: d.value, inline: useInline, rows: needed, extraRow: !!d.extraRow });
         used += needed;
       }
