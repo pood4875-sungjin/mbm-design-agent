@@ -14,10 +14,10 @@ const prof = (n, f) => Array.from({ length: n }, (_, i) => ({ bg: f(i / (n - 1))
 const CROWD = { ar: 1.6, px: [1600, 1000], field: { kind: 'cutout', opaque: 0.05, lum: 0.5, sat: 0.4, focus: { x: 0.5, y: 0.58, w: 0.8, h: 0.8, parts: 6, others: [] }, cols: prof(32, t => (t < 0.12 || t > 0.92) ? 0.97 : 0.35), rows: prof(32, t => t < 0.2 ? 0.95 : 0.4) } };
 const style = normalizeStyle({ colors: ['#1428A0'], keyVisual: PNG, kvMeta: CROWD, logo: PNG, logoMeta: { px: [1043, 304], tone: 'dark' } });
 
-test('안 수는 등급·규정으로 정해진다: 규정 매체(fonts.required) 1 · 등급 C 는 free · 그 외 default', () => {
-  assert.equal(variantCountFor(specs['jasoseol-pc-premium-popup-pc']), 1, '자소설');
-  assert.equal(variantCountFor(specs['remember-main-top-pc']), 1, '리멤버');
-  assert.equal(variantCountFor(specs['kakao-bizboard-mo']), 1, '카카오 비즈보드(폰트 고정 매체)');
+test('안 수는 등급·규정으로 정해진다: 규정 매체(fonts.required) regulated(11-10 → 4) · 등급 C 는 free · 그 외 default', () => {
+  assert.equal(variantCountFor(specs['jasoseol-pc-premium-popup-pc']), CANON.variants.regulated, '자소설');
+  assert.equal(variantCountFor(specs['remember-main-top-pc']), CANON.variants.regulated, '리멤버');
+  assert.equal(CANON.variants.regulated, 4, '11-10 사용자 「기본 외 3개는 추가 있어야 돼」');
   assert.equal(variantCountFor(specs['google-gdn-580x400']), CANON.variants.default);
   assert.equal(variantCountFor(specs['daangn-native-feed-image']), CANON.variants.free);
   assert.equal(variantCountFor(specs['naver-gfa-native-mo-342x228']), 1, '비주얼만(B) 파일 규격은 1안');
@@ -47,10 +47,11 @@ test('자유 배치 규격(알바몬 PC 메인 보드, 아래 띠): 키비주얼
   for (const v of vs) if (v.style.kvPlace) assert.equal(v.trace.edit?.place?.ok, true, v.label);
 });
 
-test('규정 매체는 기본안 하나만 돌려준다(렌더 1회) — 자소설·리멤버·카카오 비즈보드', () => {
-  for (const id of ['jasoseol-pc-premium-popup-pc', 'remember-main-top-pc', 'kakao-bizboard-mo']) {
-    const stats = {}; const vs = variantCandidates(id, ctx, style, { stats });
-    assert.equal(vs.length, 1, id); assert.deepEqual(vs[0].style, {}); assert.equal(stats.rendered, 1, `${id} 렌더 1회`);
+test('규정 매체(11-10): 기본안 + 바탕만 바꾼 안 — 글자·정렬·태그는 그대로, 금지색 지면 없음', () => {
+  for (const id of ['jasoseol-pc-premium-popup-pc', 'remember-main-top-pc', 'remember-main-top-mo']) {
+    const vs = variantCandidates(id, ctx, style);
+    assert.ok(vs.length >= 3, `${id}: ${vs.length}`); assert.deepEqual(vs[0].style, {});
+    for (const v of vs.slice(1)) assert.ok(!('textAlign' in v.style) && !('infoTag' in v.style), `${id} ${JSON.stringify(v.style)}`);
   }
 });
 

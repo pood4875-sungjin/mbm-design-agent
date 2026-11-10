@@ -100,7 +100,7 @@ export const CANON = {
   textOn: { darkIfLum: 0.45 },   // .45: 연보라 #C7AEFF(.49)·복숭아는 검정, 중간 파랑 #6AA7F2(.37)·주황 #F07020(.37)·초록 #2EBA56(.38)은 흰색
   // 레이아웃 안(10-20 2단계 「여러 레이아웃 생성 → 선택 → 추출」): 안 = 편집 프리셋 조합. 규정 매체(fonts.required)는 1(정답 하나), 등급 C(자유)는 free, 그 외 default.
   //   후보는 CANDIDATE_ORDER 순서로 렌더해 프리셋이 안 먹거나(ignored) 겹침 교정이 실패하거나 그림이 같으면 버린다 — 「많이」가 아니라 「쓸 수 있는 안만」
-  variants: { regulated: 1, default: 4, free: 4, maxRender: 28 },
+  variants: { regulated: 4, default: 4, free: 4, maxRender: 28 },   // regulated 1 → 4(11-10 사용자 「기본 외 3개는 추가 있어야 돼」 — 리멤버 1005×360 등). 규정 틀은 글자·칸이 고정이라 바탕(브랜드색·그라데이션·단색) 축으로만 갈린다
   // 11-10 사용자 「비주얼 기반으로 색 선택 — 그 비중의 색으로, 너무 어두워도 안 되고」: 질감·평평한 바탕 없는 그림(일러스트·3D)은 지면 = 그림에서 비중이 가장 큰 유채색(kvMeta.colors[0], 평평한 바탕색 제외·비중 순).
   //   흰 글자 대비 minContrast 까지 같은 색상으로 어둡히되 HSL 밝기 lMin 밑·maxDrop 넘게는 안 내림 — 그 안에서 안 되면 원래 색 + 어두운 글자(너무 어두운 남색 방지). 둘째 정지점은 grad 만큼만 어둡게. 흰 로고 → 어두운 브랜드색(brand-dark-logo)보다 먼저
   kvShare: { lMin: 0.34, maxDrop: 0.15, minContrast: 4.5, step: 0.01, grad: 0.06, minSat: 0.18 },   // maxDrop: 밝기를 이만큼 넘게 내려야 흰 글자가 되면 색은 그대로 두고 글자를 어둡게(밝은 하늘색 질감이 진한 파랑이 되던 것)
