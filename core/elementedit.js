@@ -35,7 +35,7 @@ export function normElementEdits(edits) {
     if (isBox && (q.dx != null || q.dy != null || q.scale != null)) { q.ox = num(e.ox ?? 0.5); q.oy = num(e.oy ?? 0.5); }
     if (!isBox && (q.dx != null || q.dy != null) && Math.abs(num(e.sdy)) > 0.04) q.sdy = round1(num(e.sdy));
     // R3(11-09): 흐름 안 글자(자유 배치 flex·시안 틀 열)를 옮기면 옮기기 전 자리(fx·fy = 위치 기준 조상 안 offset, fw = 폭)를 적어 절대 위치로 뺀다 — 나머지는 스택
-    if (!isBox && (q.dx != null || q.dy != null) && e.fx != null && e.fy != null && Number.isFinite(+e.fx) && Number.isFinite(+e.fy)) { q.fx = round1(num(e.fx)); q.fy = round1(num(e.fy)); if (num(e.fw) > 0) q.fw = round1(num(e.fw)); }   // 오토레이아웃(11-09 2b): 옮길 때의 스택 밀림(data-stack-dy) — 옮긴 요소는 「자유 위치」라 스택이 다시 밀려도 그 자리에 남는다
+    if (!isBox && (q.dx != null || q.dy != null) && e.fx != null && e.fy != null && Number.isFinite(+e.fx) && Number.isFinite(+e.fy)) { q.fx = round1(num(e.fx)); q.fy = round1(num(e.fy)); if (num(e.fw) > 0) q.fw = round1(num(e.fw)); if (num(e.fh) > 0) q.fh = round1(num(e.fh)); }   // 오토레이아웃(11-09 2b): 옮길 때의 스택 밀림(data-stack-dy) — 옮긴 요소는 「자유 위치」라 스택이 다시 밀려도 그 자리에 남는다
     if (/^#[0-9A-Fa-f]{6}$/.test(e.color ?? '')) q.color = e.color.toUpperCase();
     if (WEIGHTS.includes(+e.weight)) q.weight = +e.weight;
     if (typeof e.font === 'string' && e.font) q.font = e.font;
@@ -264,10 +264,19 @@ function patchText(html, tag, e) {
   //   흐름 안 요소(자유 배치 flex 열·시안 틀 열 — 11-09 R3)는 옮기기 전 자리(fx·fy·fw)에서 절대 위치로 뺀다: 다른 글자 줄 수가 바뀌어도 그 자리, 나머지는 빈자리를 메워 스택.
   //   fx 가 없는 옛 저장값은 예전처럼 relative 로 민다
   const absNow = /(^|;)\s*position\s*:\s*absolute/.test(s);
-  if (moved && !absNow && e.fx != null && e.fy != null) s = `${dropDecl(s, /(^|;)\s*(position|left|top|right|bottom|margin[a-z-]*)\s*:[^;]*/g)};position:absolute;left:${round1(num(e.fx) + num(e.dx))}px;top:${round1(num(e.fy) + num(e.dy))}px${num(e.fw) > 0 ? `;width:${round1(num(e.fw))}px;box-sizing:border-box;max-width:none` : ''};margin:0`;
+  // 11-10 밤 사용자 「옮기니까 오토레이아웃처럼 틀어진다 — 해제해줘」: 흐름에서 뺀 자리에 같은 크기의 빈칸(data-ph)을 남긴다 → 나머지 글자는 옮기기 전 자리 그대로(빈자리 메움·가운데 다시 맞춤 없음)
+  let ph = '';
+  if (moved && !absNow && e.fx != null && e.fy != null) {
+    const mg = (s.match(/(^|;)\s*margin[a-z-]*\s*:[^;]*/g) ?? []).map(x => x.replace(/^;/, '').trim()).join(';');
+    const fs = +(decl(s, 'font-size')?.[2] ?? 16), lhPx = decl(s, 'line-height')?.[2], lhU = /(^|;)\s*line-height\s*:\s*([\d.]+)\s*(;|$)/.exec(s)?.[2];
+    const lines = (inner.match(/<br\s*\/?>/gi)?.length ?? 0) + 1;
+    const h = num(e.fh) > 0 ? num(e.fh) : round1(lines * (lhPx != null ? +lhPx : fs * (lhU != null ? +lhU : 1.2)));   // fh 없는 옛 저장값은 줄 수 × 행간으로 어림
+    ph = `<div data-ph="1" aria-hidden="true" style="flex:none;visibility:hidden;pointer-events:none;width:${num(e.fw) > 0 ? round1(num(e.fw)) : 0}px;max-width:100%;height:${round1(h)}px${mg ? ';' + mg : ''}"></div>`;
+    s = `${dropDecl(s, /(^|;)\s*(position|left|top|right|bottom|margin[a-z-]*)\s*:[^;]*/g)};position:absolute;left:${round1(num(e.fx) + num(e.dx))}px;top:${round1(num(e.fy) + num(e.dy))}px${num(e.fw) > 0 ? `;width:${round1(num(e.fw))}px;box-sizing:border-box;max-width:none` : ''};margin:0`;
+  }
   else s = moveStyle(s, num(e.dx), num(e.dy) + (moved ? num(e.sdy) - stackNow : 0));
   if (moved) open = addAttr(open, 'data-free="1"');
-  return html.slice(0, tag.t) + setStyle(open, s) + inner + html.slice(end);
+  return html.slice(0, tag.t) + ph + setStyle(open, s) + inner + html.slice(end);
 }
 // 틀 칸이라 렌더러 manualLayout 이 안 듣는 그림·로고 — 렌더러의 kvWrap 과 같은 캔버스 크기 층으로 감싸 변형(svgexport 가 data-edit 을 「옮긴 것」으로 읽는다)
 // 그림·로고 외관(11-10 hub 이식 2단계) — 불투명도·숨김·모서리는 그 층 자체에. 녹임(마스크)·스크림 층은 같은 data-object 안이라 같이 따른다

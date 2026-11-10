@@ -3173,7 +3173,7 @@ function bindElementPanel(insp, a, c, spec, id) {
   const q = s => insp.querySelector(s);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
   if (role === 'kv' || role === 'logo') AK.bind(insp, a, id);   // 11-10 hub 이식 — 외관·정렬·채움
-  q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null }) }, `${elementName(id)} 자동 배치로`));
+  q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null, fh: null }) }, `${elementName(id)} 자동 배치로`));
   // 11-10 글자·칠 칸: 고른 범위(pk)가 있으면 범위에, 없으면 요소 전체에(그 속성의 범위 서식은 걷어 낸다 — 피그마처럼 전체 값이 이긴다)
   const pk = CS.on && CS.key === key && CS.pick?.id === id ? CS.pick : null;
   const it = EL.find(a, id), text = it?.el?.textContent ?? '', ed = a.overrides.elements?.[id] ?? {};

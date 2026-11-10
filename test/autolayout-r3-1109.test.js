@@ -23,3 +23,18 @@ test('저장 정리: fx·fy·fw 는 옮겼을 때만 남고, 자동 배치로 �
   const e = withElementEdit({ date: { dy: 12, fx: 10, fy: 96, fw: 300, color: '#112233' } }, 'date', { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null });
   assert.deepEqual(e, { date: { color: '#112233' } });
 });
+
+// 11-10 밤 사용자 「옮기니까 오토레이아웃처럼 틀어진다 — 해제해줘」: 흐름에서 뺀 자리에 같은 크기 빈칸(data-ph) — 나머지 글자는 제자리
+test('흐름 안 글자를 옮기면 그 자리에 빈칸을 남긴다(높이 fh · 원래 여백 그대로)', () => {
+  const out = applyElementEdits(flex, { date: { dy: 12, fx: 10, fy: 96, fw: 300, fh: 28 } });
+  const ph = out.match(/<div data-ph="1"[^>]*><\/div>/)?.[0];
+  assert.ok(ph, '빈칸'); assert.match(ph, /height:28px/); assert.match(ph, /margin-top:8px/); assert.match(ph, /visibility:hidden/);
+  assert.ok(out.indexOf('data-ph') < out.indexOf('data-field="date"'), '빈칸은 옮긴 글자 앞(원래 자리)');
+  assert.deepEqual(normElementEdits({ date: { dy: 12, fx: 10, fy: 96, fw: 300, fh: 28.04 } }), { date: { dy: 12, fx: 10, fy: 96, fw: 300, fh: 28 } });
+});
+test('fh 없는 옛 저장값은 줄 수 × 행간으로 어림 · 이미 절대인 틀은 빈칸 없음', () => {
+  const two = flex.replace('>b</div>', ' style2="">b<br>c</div>').replace('font-size:20px;margin-top:8px', 'font-size:20px;line-height:30px;margin-top:8px');
+  assert.match(applyElementEdits(two, { date: { dy: 12, fx: 10, fy: 96, fw: 300 } }), /data-ph="1"[^>]*height:60px/);
+  const mold = '<div data-ad="1"><div data-field="date" style="position:absolute;left:0px;top:200px">x</div></div>';
+  assert.doesNotMatch(applyElementEdits(mold, { date: { dy: 10, fx: 0, fy: 0, fh: 20 } }), /data-ph/);
+});

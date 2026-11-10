@@ -92,12 +92,12 @@ export function createElementSelect(E) {
   // R3(11-09): 흐름 안 글자(자유 배치 flex 열·시안 틀 열)는 옮기기 전 자리(위치 기준 조상 안 offset·폭)를 적는다 → elementedit 가 절대 위치로 뺀다(틀 경로는 이미 절대 — sdy 로)
   const flowOf = (a, it) => {
     const e = a.overrides?.elements?.[it.id] ?? {};
-    if (e.fx != null && e.fy != null) return { fx: e.fx, fy: e.fy, fw: e.fw ?? null };
+    if (e.fx != null && e.fy != null) return { fx: e.fx, fy: e.fy, fw: e.fw ?? null, fh: e.fh ?? null };
     const el = it.el; if (!el?.ownerDocument?.defaultView) return {};
     const cs = el.ownerDocument.defaultView.getComputedStyle(el);
     if (cs.position === 'absolute' || cs.position === 'fixed') return {};
     const rx = cs.position === 'relative' ? (parseFloat(cs.left) || 0) : 0, ry = cs.position === 'relative' ? (parseFloat(cs.top) || 0) : 0;   // 옛 저장값(relative 로 민 것)은 그만큼 되짚는다
-    return { fx: el.offsetLeft - rx, fy: el.offsetTop - ry, fw: el.offsetWidth };
+    return { fx: el.offsetLeft - rx, fy: el.offsetTop - ry, fw: el.offsetWidth, fh: el.offsetHeight };   // fh: 남길 빈칸 높이(11-10 밤)
   };
   const textPatch = (a, it, p, st) => ({ elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy, sdy: sdyOf(a, it), ...(st?.flow ?? flowOf(a, it)) }) });
   const previewOf = (a, it, st, q) => st.mode === 'text' ? textPatch(a, it, q.p, st) : withKind(a, it.kind, q.p, st.mode);
