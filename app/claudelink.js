@@ -1,5 +1,6 @@
 // 11-10 개인 Claude 계정 연결(로컬 앱) — 사용자 「API 빼고 CLI 로 개인 계정 연결, 화면까지 같이」.
-//   위쪽 막대에 「Claude」 칩 → 누르면 연결 창(로컬 서버 · Claude Code 설치 · 계정 연결 세 단계).
+//   위쪽 막대 버튼은 이 칩 하나(11-10 사용자 「하나로 합쳐져야」): 연결 전 「Claude 연결하기」, 연결 뒤 「Claude 연결됨」.
+//   호버 → 계정·플랜 요약, 클릭 → 창(연결 단계 또는 계정 정보 · 연결 끊기 · 캠페인 JSON 내보내기 같은 extras).
 //   연결되면 그림 종류 판단(kvjudge)·AI 그림 판단·기획 해석이 이 계정(플랜 한도 안)으로 돈다. 서버 없는 공개 앱은 칩이 「규칙만」.
 //   서버: server/claudelink.js(/api/claude/status·login·logout·ask, /api/kvjudge)
 
@@ -60,20 +61,21 @@ const CSS = `
 #claudeDlg .note{font-size:12.5px;color:var(--sub,#666);background:var(--soft,#f5f5f5);border-radius:8px;padding:10px 12px}
 `;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const chipText = s => !s ? 'Claude Code 확인 중' : !s.server ? 'Claude Code · 규칙만' : !s.installed ? 'Claude Code 설치 필요' : s.login === 'waiting' && !s.loggedIn ? 'Claude Code 로그인 중…' : !s.loggedIn ? 'Claude Code 연결' : `Claude Code 연결됨${s.plan ? ` · ${s.plan}` : ''}`;
+const chipText = s => !s ? 'Claude 확인 중' : claudeReady() ? 'Claude 연결됨' : s.login === 'waiting' ? 'Claude 로그인 중…' : 'Claude 연결하기';
+const chipTip = s => !s ? '' : claudeReady() ? `${s.email ?? ''}${s.plan ? ` · ${s.plan} 플랜` : ''}${s.version ? ` · ${s.version}` : ''}\n그림 종류 판단·AI 그림 판단·기획 해석이 이 계정으로 돌아요` : !s.server ? '로컬 앱에서만 연결할 수 있어요 — 지금은 규칙으로 판단해요' : !s.installed ? 'Claude Code 설치가 필요해요 — 눌러서 방법 보기' : '내 Claude 계정을 연결하면 그림을 Claude가 직접 보고 판단해요';
 const chipSt = s => !s ? 'wait' : claudeReady() ? 'on' : s.login === 'waiting' ? 'wait' : 'off';
 
-export function mountClaudeChip({ before = document.getElementById('keyBtn'), onChange } = {}) {
+export function mountClaudeChip({ before = document.getElementById('keyBtn'), onChange, extras = () => [] } = {}) {
   if (document.getElementById('claudeChip')) return;
   const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
   const chip = document.createElement('button'); chip.type = 'button'; chip.className = 'hbtn'; chip.id = 'claudeChip';
-  chip.innerHTML = '<span class="dot" aria-hidden="true"></span><span class="t">Claude Code 확인 중</span>';
+  chip.innerHTML = '<span class="dot" aria-hidden="true"></span><span class="t">Claude 확인 중</span>';
   chip.setAttribute('aria-haspopup', 'dialog');
   (before?.parentNode ?? document.querySelector('header'))?.insertBefore(chip, before ?? null);
   const dlg = document.createElement('dialog'); dlg.id = 'claudeDlg'; dlg.setAttribute('aria-labelledby', 'claudeDlgT'); document.body.appendChild(dlg);
   const paint = s => {
     chip.dataset.st = chipSt(s); chip.querySelector('.t').textContent = chipText(s);
-    chip.title = claudeReady() ? `${s.email ?? ''} · 그림 종류 판단·AI 그림 판단·기획 해석이 이 계정으로 돌아요` : 'Claude Code 연결';
+    chip.title = chipTip(s); chip.setAttribute('aria-label', `${chipText(s)}${chip.title ? ` — ${chip.title}` : ''}`);
     if (dlg.open) render(s);
     onChange?.(s);
   };
@@ -83,9 +85,9 @@ export function mountClaudeChip({ before = document.getElementById('keyBtn'), on
   function render(s) {
     s = s ?? { server: false };
     const step = (ok, title, body) => `<li data-ok="${ok ? 1 : 0}"><span class="mk" aria-hidden="true">${ok ? '✓' : ''}</span><div><b>${title}</b><span>${body}</span></div></li>`;
-    const ready = claudeReady();
+    const ready = claudeReady(); const ex = extras() ?? [];
     dlg.innerHTML = `<div class="in">
-      <h2 id="claudeDlgT">${ready ? 'Claude 계정이 연결됐어요' : 'Claude Code 연결'}</h2>
+      <h2 id="claudeDlgT">${ready ? 'Claude 계정이 연결됐어요' : 'Claude 연결'}</h2>
       <p>${ready ? '그림 종류 판단, AI 그림 판단, 기획 해석을 이 계정으로 해요. API 키는 쓰지 않고, 이 계정 플랜의 사용 한도 안에서 돌아요.' : '내 Claude 계정을 연결하면 그림을 Claude가 직접 보고 판단해요. 연결 전에는 규칙으로 판단해요.'}</p>
       <ol>
         ${step(s.server, '로컬 앱에서 열기', s.server ? '이 컴퓨터에서 켠 앱이에요' : '공개 주소에서는 연결할 수 없어요. 저장소 폴더의 「MBM 시작.command」를 더블클릭해 로컬 앱으로 열어 주세요')}
@@ -94,12 +96,14 @@ export function mountClaudeChip({ before = document.getElementById('keyBtn'), on
       </ol>
       <div class="note">계정은 각자 자기 것으로 연결해 주세요. 한 계정을 여러 사람이 같이 쓰면 이용 약관에 걸릴 수 있어요.</div>
       <div class="row">
+        ${ex.map((x, i) => `<button type="button" data-ex="${i}">${esc(x.label)}</button>`).join('')}
         ${ready ? '<button type="button" id="claudeOut">연결 끊기</button>' : ''}
         <button type="button" id="claudeRe">다시 확인</button>
         ${s.server && s.installed && !ready ? `<button type="button" class="pri" id="claudeIn"${s.login === 'waiting' ? ' disabled' : ''}>${s.login === 'waiting' ? '로그인 기다리는 중…' : '계정 연결'}</button>` : ''}
         <button type="button" ${ready ? 'class="pri"' : ''} id="claudeClose">닫기</button>
       </div></div>`;
     dlg.querySelector('#claudeClose').onclick = () => dlg.close();
+    dlg.querySelectorAll('[data-ex]').forEach(b => { b.onclick = () => { if (ex[+b.dataset.ex].fn() !== false) dlg.close(); else render(STATUS); }; });
     dlg.querySelector('#claudeRe').onclick = () => refreshClaude();
     const inBtn = dlg.querySelector('#claudeIn');
     if (inBtn) inBtn.onclick = async () => { await fetch('/api/claude/login', { method: 'POST' }).catch(() => {}); STATUS = { ...STATUS, login: 'waiting' }; paint(STATUS); startPoll(); };
@@ -114,4 +118,5 @@ export function mountClaudeChip({ before = document.getElementById('keyBtn'), on
     POLL = setInterval(async () => { const s = await refreshClaude(); if (s.loggedIn || s.login !== 'waiting' || Date.now() - t0 > 10 * 60_000) clearInterval(POLL); }, 2000);
   }
   refreshClaude();
+  addEventListener('focus', () => { if (!claudeReady() && STATUS?.login !== 'waiting') refreshClaude(); });
 }

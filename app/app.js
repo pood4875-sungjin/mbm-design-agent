@@ -3327,7 +3327,7 @@ function renderInspectorBody() {
       <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       ${c.style.keyVisual ? `<div style="display:flex;justify-content:flex-end;margin-top:2px"><button type="button" class="lnk" id="iKvClear">키비주얼 제거</button></div>
       <div style="display:flex;gap:6px;margin-top:6px">
-        ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고 모양 묶음마다 그림 자리·크기·지면을 정해요. 글자·타이포·검수는 규칙 그대로예요. 기본안에만 효과가 있어요(시안 틀은 이 값을 안 읽어요). 위쪽 「Claude Code 연결」로 연결한 계정으로 돌아요">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
+        ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고 모양 묶음마다 그림 자리·크기·지면을 정해요. 글자·타이포·검수는 규칙 그대로예요. 기본안에만 효과가 있어요(시안 틀은 이 값을 안 읽어요). 위쪽 「Claude 연결하기」로 연결한 계정으로 돌아요">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
       <div style="margin-top:12px">${bgControlHtml(c.style, 'iBg')}</div>
@@ -3363,7 +3363,7 @@ function renderInspectorBody() {
       ${exportSecHtml(c)}
       ${toolSecHtml(c)}
       ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
-      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(위쪽 「Claude Code 연결」로 연결한 계정). 규칙은 검수기가 강제.</div>
+      <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(위쪽 「Claude 연결하기」로 연결한 계정). 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
       ${c.kind !== undefined && (c.media?.length || c.adSpecIds?.length) ? mediaAddHtml(c) : ''}
       </div>
@@ -4721,27 +4721,19 @@ function openStored(saved) {
   for (const e of (saved.log ?? []).slice(-8).reverse()) log(`· ${LOG_LABEL[e.type] ?? e.type}`);
 }
 
-/* ═══ 환경 설정 ═══ 11-10 API 키(BYOK) 입력은 뺐다 — AI 는 위쪽 「Claude Code 연결」 칩의 개인 Claude 계정(CLI)으로만 돈다 */
-$('keyBtn').onclick = () => {
-  const oldKey = !!LLM.getKey();
-  modal({
-    title: '환경 설정',
-    desc: 'AI 기능은 API 키 없이, 위쪽 「Claude Code 연결」에서 연결한 내 Claude 계정으로 돌아요.',
-    body: `<div style="font-size:12.5px;line-height:1.6;color:var(--sub)">${claudeReady() ? 'Claude 계정이 연결돼 있어요.' : '아직 연결 전이에요. 연결 전에는 규칙으로 판단해요.'}${oldKey ? '<br>예전에 넣어 둔 API 키가 이 브라우저에 남아 있어요. 지우면 Claude 계정으로만 돌아요.' : ''}</div>`,
-    actions: [
-      ...(oldKey ? [{ label: '남은 API 키 지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('API 키를 지웠어요'); } }] : []),
-      ...(claudeReady() ? [] : [{ label: 'Claude Code 연결', fn: () => { setTimeout(() => $('claudeChip')?.click(), 0); } }]),
-      { label: '캠페인 JSON 내보내기', fn: () => {   // 레이아웃 안 선택 집계(scripts/variant-stats.mjs)·사례 기록의 입구
-        campStore.exportParts().then(({ parts, count }) => {
-          if (!count) { toast('저장된 캠페인이 없어요'); return; }
-          download(new Blob(parts, { type: 'application/json' }), 'mbm-campaigns.json'); log(`내보내기: mbm-campaigns.json (${count}개)`);
-        }).catch(e => { console.warn(e); toast('내보내기 실패 — 저장소를 읽지 못했어요'); });
-        return false;
-      } },
-      { label: '닫기', pri: true, fn: () => {} },
-    ],
-  });
-};
+/* ═══ 위쪽 막대 = 「Claude」 칩 하나 ═══ 11-10 사용자 「이거 하나로 합쳐져야」 — 설정 버튼(keyBtn)은 숨기고, 캠페인 JSON 내보내기·남은 API 키 지우기는 칩 창 아래로 */
+function exportCampaigns() {   // 레이아웃 안 선택 집계(scripts/variant-stats.mjs)·사례 기록의 입구
+  campStore.exportParts().then(({ parts, count }) => {
+    if (!count) { toast('저장된 캠페인이 없어요'); return; }
+    download(new Blob(parts, { type: 'application/json' }), 'mbm-campaigns.json'); log(`내보내기: mbm-campaigns.json (${count}개)`);
+  }).catch(e => { console.warn(e); toast('내보내기 실패 — 저장소를 읽지 못했어요'); });
+  return false;
+}
+const claudeExtras = () => [
+  ...(LLM.getKey() ? [{ label: '남은 API 키 지우기', fn: () => { LLM.setKey(''); refreshAiChip(); toast('API 키를 지웠어요'); return false; } }] : []),
+  { label: '캠페인 JSON 내보내기', fn: exportCampaigns },
+];
+$('keyBtn').onclick = () => $('claudeChip')?.click();
 
 async function runKeyTest() {
   const box = $('modalBody');
@@ -4787,7 +4779,7 @@ async function claudeKvType(dataUrl, meta, apply) {
     apply(same ? null : r.override, r, same);
   } catch (e) { toast(`Claude 그림 판단을 못 했어요 — ${e.message}`, 5000); }
 }
-mountClaudeChip({ onChange: () => { LLM.setClaudeCli(claudeReady()); refreshAiChip(); } });
+mountClaudeChip({ onChange: () => { LLM.setClaudeCli(claudeReady()); refreshAiChip(); }, extras: claudeExtras });
 initHome();
 show('home');
 // 저장소를 다 읽으면(옛 localStorage 값 옮기기 포함) 목록을 그린다. 앱 시작은 붙들지 않는다
