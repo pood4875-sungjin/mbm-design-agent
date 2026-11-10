@@ -2926,12 +2926,17 @@ function renderLeft() {
       <textarea data-f="${g.text}" data-auto="${escH(own ? '' : shown)}" rows="${Math.min(4, Math.max(2, shown.split('\n').length))}" aria-label="${g.name} 문구">${escH(shown)}</textarea>
       <div class="fnote">${own ? (g.hint ?? '직접 쓴 문구가 모든 소재에 나가요.') : `비워 두면 ${g.auto}(으)로 만들어요. 고치면 이 글이 모든 소재에 나가요.`}</div>`; };
   // 11-10 상세: 접수기간(위 날짜 칸) · 모집직무 · 추가 행. 추가 행은 모집직무와 같은 모양으로 상세 줄 자리가 있는 규격에만, 넘치면 뒤 행부터 빠지고 검수 경고
-  const rowsBox = () => `<div class="fnote" style="margin:0 0 4px">접수기간은 위 날짜 칸 값이 상세 첫 줄에 들어가요.</div>${input('role')}
-      <label style="margin-top:6px">추가 행</label><div data-lrows></div>
-      <div class="fnote">모집직무와 같은 모양(라벨 : 값)으로, 상세 줄 자리가 있는 규격에만 나가요. 자리가 모자라면 아래 행부터 빠지고 검수에 경고가 떠요.</div>`;
+  // 11-10 저녁 사용자 「추가 행 설명이 필요하냐 — + 행 추가만, 근무지·고용형태 나오는 곳이 없지 않아?」: 긴 설명 대신 실제로 찍힌 소재 수 한 줄
+  //   (전 80규격 실측: 첫 행 11 · 둘째 행 5 · 필수 고지 2 — 상세 줄 자리가 있는 규격에만, 넘치면 뒤 행부터 빠짐)
+  const adsL = c.artifacts.filter(a => a.channel === 'ad' && a.html);
+  const shownIn = v => { const t = escH(String(v ?? '').trim().split('\n')[0]); return t ? adsL.filter(a => a.html.includes(t)).length : 0; };
+  const rowsNow = cleanRows(core.rows);
+  const reach = n => n ? `${n}개` : '안 나감';
+  const rowsNote = rowsNow.length ? `<div class="fnote">나가는 소재 — ${rowsNow.map(r => `${escH(r.label)} ${reach(shownIn(r.value))}`).join(' · ')} (전체 ${adsL.length}개)</div>` : '';
+  const rowsBox = () => `${input('role')}<div data-lrows style="margin-top:8px"></div>${rowsNote}`;
   const briefHtml = c.kind === 'recruit'
     ? LEFT_GROUPS.map(g => { const off = omitList(core.omit).includes(g.role);
-        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lsec">${g.name}${g.role !== 'main' ? iconBtn(off ? 'eye-off' : 'eye', off ? `${g.name} 다시 넣기 — 모든 소재` : `${g.name} 모든 소재에서 빼기`, `data-lomit="${g.role}" aria-pressed="${off}"`) : ''}</div><div class="lgb">${off ? '<div class="fnote">모든 소재에서 뺐어요 — 눈을 누르면 다시 넣어요</div>' : `${g.text ? textBox(g) : ''}${g.rows ? rowsBox() : ''}${(g.fields ?? []).map(input).join('')}`}</div></div>`; }).join('')
+        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lsec">${g.name}${g.role !== 'main' ? iconBtn(off ? 'eye-off' : 'eye', off ? `${g.name} 다시 넣기 — 모든 소재` : `${g.name} 모든 소재에서 빼기`, `data-lomit="${g.role}" aria-pressed="${off}"`) : ''}</div><div class="lgb">${off ? '<div class="fnote">모든 소재에서 뺐어요 — 눈을 누르면 다시 넣어요</div>' : `${g.text ? textBox(g) : ''}${g.rows ? rowsBox() : ''}${(g.fields ?? []).map(f => input(f) + (f === 'notice' && core.notice ? `<div class="fnote">${shownIn(core.notice) ? `나가는 소재 ${shownIn(core.notice)}개 (전체 ${adsL.length}개)` : `고른 매체에는 안 나가요 — 고지 자리가 있는 매체(알바몬 등)에만`}</div>` : '')).join('')}`}</div></div>`; }).join('')
       + `<details class="lgrp lbase"><summary class="lsec">기본 정보<span class="lsec-t">자동 문구·파일 이름</span>${ic('chev')}</summary><div class="lgb">${BASE_FIELDS.map(input).join('')}<div class="fnote">연도·시즌: 타이틀에 연도가 없을 때 서브 자리가 없는 매체(리멤버 등)의 타이틀 앞에만 한 번 붙어요.</div></div></details>`
     : campaignFields(c).map(input).join('');
   body.innerHTML = `<section class="lbrief"><div class="lsec lsec-top">브리프<button type="button" class="btn sm" id="lApply" title="쓰는 중인 칸까지 지금 모든 소재에 반영">글자에 반영</button></div>
