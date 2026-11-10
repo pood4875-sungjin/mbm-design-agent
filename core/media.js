@@ -12518,6 +12518,47 @@ export const MEDIA = [
             "w": 1440,
             "h": 240,
             "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.24"
+          },
+          "measuredFromTemplate": {
+            "frame": "1440×976",
+            "mold": {
+              "measuredAt": "2026-11-10",
+              "source": "pdf:잡코리아x알바몬 제작가이드.pdf p.23~27 — 「광고 브랜드 로고&문구는 상단 25% 내 중앙배치 · 로고/문구 영역 1440×240 · 문구·로고와 오브젝트 여백 88px · 오브젝트 최소 width 880px · 좌우 최소 여백 144px」 (케이스 ③ 문구+로고+오브젝트)",
+              "note": "11-10 밤샘 루프: 자유 배치가 글자 왼쪽·그림 오른쪽으로 나란히 놓아 가이드(위 25% 가운데)를 어겼다. 가이드 수치로 틀을 세움. 대문구 16자 한도라 회사명은 로고가, 문구는 채용 구분이 맡는다",
+              "x": 144,
+              "w": 1152,
+              "align": "center",
+              "color": "#171717",
+              "colorDark": "#FFFFFF",
+              "kv": "slot",
+              "rows": {
+                "main": {
+                  "y": 104,
+                  "px": 88,
+                  "pitch": 106,
+                  "weight": 700,
+                  "lines": 1,
+                  "x": 144,
+                  "w": 1152,
+                  "align": "center"
+                }
+              },
+              "logo": {
+                "x": 620,
+                "y": 28,
+                "w": 200,
+                "h": 52,
+                "align": "center",
+                "valign": "top"
+              },
+              "image": {
+                "x": 144,
+                "y": 328,
+                "w": 1152,
+                "h": 648
+              },
+              "logoToImageWhenNoKv": true
+            }
           }
         },
         "textLimits": [

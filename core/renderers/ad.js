@@ -140,12 +140,12 @@ export function copyLadder(ctx) {
       ? [c.headline, [c.client, season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
       : [c.headline, named ? hire : null, clientHire];
     return {
-      main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
+      main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, named ? null : '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
       // 11-10: 서브 = 추가 문구 한 덩어리(옛 시즌 자리). 비우면 시즌·고용형태로 채우지 않는다 — 고객사만 남긴다(메인이 채용명만 들어가는 좁은 칸에서 회사 이름이 사라지지 않게, 11-09 자소설 「메인 = 채용명, 서브 = 기업명」)
       sub: uniq([extra, c.headline ? subFull : null, c.client]),   // 11-10 피드백 4: 메인이 채용 구분을 품으니 서브에 「채용」을 또 붙이지 않는다(「마이다스아이티 채용」 → 「마이다스아이티」)
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
-      mainWide: c.headline ? [String(c.headline)] : uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),
-      mainNarrow: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), ...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),   // 11-10 연도 자동(서브 자리 없는 규격)
+      mainWide: c.headline ? [String(c.headline)] : uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, named ? null : '채용 공고']),
+      mainNarrow: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), ...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, named ? null : '채용 공고']),   // 11-10 연도 자동(서브 자리 없는 규격)
       subNarrow: uniq([extra && c.client && !c.headline ? `${extra} ${c.client}` : null, extra, c.headline ? subFull : null, c.client]),
       // 날짜가 혼자 한 줄에 설 때(서브·날짜 줄)는 라벨을 붙이지 않는다 — Figma 9월 공채 디자이너 12/12 무라벨(10-08 typo A7). 상세 목록 안에서는 「접수기간」 라벨 유지(details)
       // 마감일이 없고 고지 문구가 일정을 말하면(「* 채용 일정은 공고별 상이합니다.」) 그 문구가 날짜 자리를 쓴다 — 자리표시 「0/00(월) ~ 0/00(일)」 대신(10-14 t1014 한진정보통신 디자이너 9/9 날짜 없음, 3/9 이 문구)
@@ -1323,6 +1323,9 @@ function renderAdBase(ctx, style, spec) {
   const hasKv = !!style.keyVisual && !spec.flat
     && !(transparent && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && !rules.objectBox?.thumbnail)   // 매체가 썸네일 상자를 정한 규격(카카오 썸네일형)은 상자 안에 사진이 들어간다
     && !(rules.objectBox && kvKind === 'texture');                                        // 상자에 그라데이션 조각은 무의미 — 글자만
+  // 11-10 밤: 틀이 「그림 못 쓰면 로고를 오브젝트 칸으로」를 정하면(알바몬 스플래시 — 가이드 「오브젝트만 노출·오브젝트 없음 Bad」, 케이스 ② 문구+오브젝트) 로고를 그림 칸 가운데로 내린다
+  const moldLogoObj = !!(mold?.logoToImageWhenNoKv && mold.image && !hasKv && tLogo && style.logo);
+  if (moldLogoObj) { const im = mold.image, lw = Math.min(im.w, 760), lh = Math.round(im.h * 0.32); tLogo = rect({ x: im.x + Math.round((im.w - lw) / 2), y: im.y + Math.round((im.h - lh) / 2), w: lw, h: lh, align: 'center', valign: 'center' }, tScale); fired('templateMold.logoAsObject'); }
   // 질감 그림(블러 그라데이션, kind texture): 주인공도 바탕도 없다 — 지면 전체에 깔고 글자만 올린다. 자르면 뜻 없는 색 조각이 된다(10-06 사용자 "이런 그라데이션이라면?").
   // 템플릿 이미지 칸(자소설)도 무시하고 통째로 깐다 — 글자 칸은 템플릿대로. 투명 규격은 hasKv에서 이미 빠진다
   // 장식 프레임 누끼(kvtypes flags.frame — 가운데 빈 유리 슬랩): 질감처럼 지면 전체에 깐다. 단 그림이 아니라 어두운 브랜드 지면이 바탕이고, 오른쪽(세로형은 아래)을 크게 잘라 보인다(10-09 figma-dg)
@@ -1822,7 +1825,7 @@ function renderAdBase(ctx, style, spec) {
   const gObjH = kvWideBand ? guide.objectRatio.squareBand : gObj;
   const refObjW = gObj != null ? Math.round(w * gObj) : (L.objectW ?? Math.round(w * 0.42)), refObjH = gObjH != null ? Math.round(h * gObjH) : (L.objectH ?? Math.round(h * 0.4));   // ?? : 편집 프리셋이 형태 문법에 없는 자리(세로형 오른쪽 열)를 고를 때만 쓰인다
   let objW = objectSide !== 'right' ? 0
-    : logoAsObject ? Math.round(innerW * 0.34)
+    : logoAsObject ? Math.round(innerW * 0.22)   // 11-10 밤: 로고가 그림 자리를 대신할 때(투명 배경 매체 × 바탕 있는 그림) 34% 는 글자 칸을 먹어 채용 구분이 빠졌다(알바몬 스플래시 「채용 공고」) — 로고는 작아도 된다
     // 매체가 정한 상자: 글자 칸은 상자 왼쪽 선에서 간격(카카오 33px)만큼 떨어져 끝난다
     : oBox ? Math.max(0, Math.round(w - pad.right - innerW * 0.04 - (oBox.x - (oBox.gap ?? 33))))
     : useRef ? Math.max(0, refObjW - pad.right)
@@ -2611,7 +2614,7 @@ function renderAdBase(ctx, style, spec) {
   //   매체 공식 템플릿(글꼴 고정 매체 — 자소설·리멤버·카카오)은 칸이 곧 규정이라 그대로
   const moldMainPx = mold?.rows?.main?.px ? mold.rows.main.px * tScale : null, officialMold = !!(mold && (spec.mediumRules?.fonts?.required || mr?.fonts?.required));
   const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio))))
-    : (LC && mold && !officialMold && moldMainPx) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;
+    : (LC && mold && !officialMold && moldMainPx && !moldLogoObj) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;   // 로고가 오브젝트 자리를 맡으면(moldLogoObj) 글자 대비 상한을 안 건다
   const capW = mw => Math.min(mw, logoCapW);
   // 11-10 청사진 하한(core/typoaudit BP.min — 디자이너 프레임 188개 분포 하위 10%): 서브·날짜·상세가 타이틀에 비해 이보다 작으면 비정상(알바몬 메인 빅 날짜 33%, 인스타 스토리 상세 35%).
   //   매체가 글자 크기를 정한 규격(글자 띠·높이 규정·가이드 상세 px·적어 준 크기)은 그대로

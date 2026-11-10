@@ -12,3 +12,16 @@ test('인물 상자: 색 덩어리 상자가 그림 거의 전체(80%↑)면 주
   const g = personFocus({ kind: 'photo', focus: { x: 0.3, y: 0.4, w: 0.3, h: 0.4, density: 0.7 } }, person);
   assert.notEqual(g.focus.source, 'person');
 });
+
+test('알바몬 스플래시 = 가이드 틀(위 240 안 가운데 문구 · 88 아래 오브젝트 칸) · 바탕 있는 그림이면 로고가 오브젝트 칸으로 · 채용 구분은 「채용 공고」로 안 떨어짐', async () => {
+  const { renderArtifact } = await import('../core/contract.js'); (await import('../core/generate.js')).registerAll();
+  const { createContext } = await import('../core/context.js'); const { normalizeStyle } = await import('../core/style.js');
+  const ctx = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', startDate: '2026-11-12', deadline: '2026-11-25' }, 'recruit');
+  const tr = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+  const LOGO = 'data:image/png;base64,iVBORw0KGgo=';
+  const photo = normalizeStyle({ colors: ['#D02820'], keyVisual: LOGO, kvMeta: { ar: 1.5, field: { kind: 'photo', opaque: 1, focus: { x: 0.5, y: 0.5, w: 0.5, h: 0.6 } } }, logo: LOGO, logoMeta: { px: [437, 128], tone: 'dark' } });
+  const t = tr(renderArtifact('albamon-m-splash', ctx, photo));
+  assert.equal(t.mode ?? t.place?.mode, 'templateMold'); assert.ok(t.rules.includes('templateMold.logoAsObject'), t.rules.join(','));
+  assert.equal(t.copy.main, '신입/경력 공개채용');
+  for (const sid of ['albamon-m-main', 'albamon-pc-sky-recruit', 'google-gdn-300x600']) assert.notEqual(tr(renderArtifact(sid, ctx, photo)).copy.main, '채용 공고', sid);
+});
