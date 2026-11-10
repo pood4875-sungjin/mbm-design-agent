@@ -220,7 +220,7 @@ export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, nor
   for (const [name, o] of [['키비주얼', kv], ['로고', logo]]) {
     if (!o) continue; const g = gapTo(o); m[name === '로고' ? 'logoGap' : 'kvGap'] = Math.round(g);
     if (g < 0) fail(2, name === '로고' ? 'logo-overlap' : 'kv-overlap', `글자와 ${name} ${Math.round(-g)}px 겹침`);
-    else if (g < want - 1) fail(2, 'asset-tight', `글자·${name} 간격 ${Math.round(g)}px < 메인 0.5배(${Math.round(want)}px) — 너무 붙음`);
+    else if (g < want - 1) (m.notes ??= []).push(`asset-tight(참고): 글자·${name} 간격 ${Math.round(g)}px < 메인 0.5배(${Math.round(want)}px) — 너무 붙음`);   // 11-10 사용자 「그래」: 비중은 객관(가림·대비·로고 상한·겹침)만 검수(2층), 거리·붙음·비어 보임은 디자인 판단(3층) — AI 는 참고
     else if (name === '키비주얼' && g > cap + 1) (m.notes ??= []).push(`asset-loose(참고): 글자·${name} 간격 ${Math.round(g)}px > 규격 긴 변 10%(${Math.round(cap)}px)`);   // 11-10 사용자 「참고」 — 반려 안 함(docs/ai-rule-layers.md K9)
   }
   // 로고 비중 상한(L1 — 룰 logo-cap 과 같은 값): 로고 폭이 메인 글자 px × 2.4 를 넘으면 ✗ — 자동 고침이 줄인다(core/freequick.js fixLogoSize)
