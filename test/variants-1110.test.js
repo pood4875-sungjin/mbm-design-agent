@@ -40,3 +40,11 @@ test('B안 이름은 실제 그려진 태그로(11-10) — 라벨 칸 없는 틀
     if (!tags.some(t => t.kind === 'label')) assert.doesNotMatch(v.sub, /라벨/, v.sub);
   }
 });
+
+test('사진·그래픽을 가득 깔고 가운데 글자를 얹는 안은 빼요(11-10) — 패턴만 남김', () => {
+  for (const id of ['desk-32', 'ex-g-70ce']) {
+    const st = styleOf(id);
+    for (const sid of ['google-gdn-580x400', 'jobda-main-pc']) for (const v of variantCandidates(sid, ctx, st).slice(1))
+      assert.ok(!tr(renderArtifact(sid, ctx, { ...st, ...v.style })).scrim?.center, `${id} ${sid} ${JSON.stringify(v.style)}`);
+  }
+});

@@ -9,6 +9,7 @@ import { cleanAiSlots } from './aislots.js';
 import { renderArtifact } from './contract.js';
 import { adSpecEntries } from './adspecs.js';
 import { CANON } from './canon.js';
+import { kvTypeOf } from './kvtypes.js';
 import { deltaE } from './lint.js';
 import { familyById, familiesFor, familyStyle, frameFor, recipeEligible } from './recipes.js';
 import { shapeOf } from './layouts.js';
@@ -239,6 +240,8 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       if ((tr.tags ?? []).some(t => t.contrast < 4.5)) return { why: '태그 글자 대비 4.5 미만' };
       // R2(11-09): 가운데 정렬 전면 이미지 스크림이 0.9 로도 흰 글자 4.5:1 을 못 보장(렌더러 centerScrim.short) → 다른 A 변형으로
       // 11-10 사용자 「이 케이스는 절대 못 쓰니까 추천하지 말고 삭제」(잡다 792×240 가운데 정렬): 사진 전면 위 가운데 글자에 국소 막(글자 밑 어두운 덩어리)이 깔리는 안 — 그림 주인공 위에 글자가 얹힌다
+      // 11-10 사용자 「응, 빼줘」: 사진·그래픽을 가득 깔고 글자를 가운데 얹는 안(가운데 스크림)은 글자가 주인공(얼굴·사람·사물)을 덮는다 — 패턴(주인공 없음)만 남긴다
+      if (tr.scrim?.center && kvTypeOf(style?.kvMeta)?.id !== 'texture') return { why: '사진·그래픽 가운데 글자가 주인공을 덮음 — 안 씀' };
       if (tr.scrim?.center?.mode === 'local') return { why: '가운데 글자 밑 국소 막(그림 위 글자 덩어리) — 안 씀' };
       if (tr.scrim?.center?.short) return { why: `가운데 전면 스크림 부족(필요 ${tr.scrim.center.need ?? '>0.95'} · 복잡도 ${tr.scrim.center.busy})` };
       // R2: 밝은 지면에서 로고가 안 보임 — 칠할 수 없는 타일 로고가 지면과 3:1 미만(렌더러 logo.light.low)
