@@ -2059,8 +2059,15 @@ function renderAdBase(ctx, style, spec) {
     return { cap, subFs, smallFs, dFs, noticeFs, ctaFs, logoH };
   };
   const dLine = useRef ? (guide?.detailLineHeight ?? L.detailLine) : 1.65;
-  const detailGap = z => useRef ? Math.round(z.cap * (guide?.gapDetail ?? L.gapDetail)) : Math.round(z.cap * 0.9);
-  const subGap = z => useRef ? Math.round(z.subFs * L.gapSub) : Math.round(z.subFs * (subAbove ? 0.55 : 0.5));
+  // 11-10 타이포 간격 규칙(CANON.typoGap — 메인 글자 크기 배수): 작은 서브 ↔ 타이틀 < 서브텍스트 안 < 타이틀 ↔ 서브텍스트.
+  //   타이틀 바로 아래 첫 줄은 titleSub, 그다음 줄들은 inner
+  const TG = CANON.typoGap;
+  let gapMainPx = null;   // 메인 글자 크기가 정해지면(mainFs) 그 값으로 — 그 전(높이 예산)은 z.cap. 실제 메인이 줄었는데 예정 크기로 띄우면 간격이 규칙보다 커졌다
+  const gBase = z => gapMainPx ?? z.cap;
+  const subBelow = !!(want.sub && !subAbove), metaBelow = !!((want.date || want.label) && !guide?.dateAbove);
+  const detailGap = z => useRef ? Math.round(gBase(z) * ((subBelow || metaBelow) ? TG.inner : TG.titleSub)) : Math.round(z.cap * 0.9);
+  const subGap = z => useRef ? Math.round(gBase(z) * (subAbove ? TG.eyebrow : TG.titleSub)) : Math.round(z.subFs * (subAbove ? 0.55 : 0.5));
+  const metaGap = z => useRef ? Math.round(gBase(z) * (subBelow ? TG.inner : TG.titleSub)) : Math.max(8, Math.round(z.smallFs * 0.5));
   // 가로형은 상세 항목들이 한 행에 이어 흐르므로(일화 970 접수기간·모집부문 한 줄) 항목별 줄 수를 더하지 않고 전체 글자수로 센다
   const detailRows = z => {
     const rows = detailLines.reduce((n, d) => n + d.rows, 0);
@@ -2088,7 +2095,7 @@ function renderAdBase(ctx, style, spec) {
   const blocksOf = z => (flexLogo && !strip ? z.logoH + Math.round(z.logoH * 0.7) : 0)
     + (want.advertiser ? Math.round(z.smallFs * 1.3) + 4 : 0)
     + (want.sub ? Math.round(z.subFs * (useRef ? L.subLine : line)) + subGap(z) : 0)
-    + ((want.date || want.label) ? Math.round(z.smallFs * line) + Math.max(8, Math.round(z.smallFs * 0.5)) : 0)   // metaRow의 margin-top과 같은 값
+    + ((want.date || want.label) ? Math.round(z.smallFs * line) + metaGap(z) : 0)   // metaRow의 margin-top과 같은 값
     + ((IT && (want.date || want.label)) ? Math.max(0, Math.round(z.smallFs * Math.max(IT.date ? INFO_TAG.dateH : 0, IT.label ? INFO_TAG.labelH : 0)) - Math.round(z.smallFs * line)) : 0)   // 정보 태그 줄은 글줄보다 높다(알약 = 글자 × 1.9)
     + ((imgCorner && hasKv) ? 0 : detailBlockH(z))
     + (want.extra ? Math.round(z.smallFs * line) + 4 : 0)
@@ -2742,7 +2749,7 @@ function renderAdBase(ctx, style, spec) {
     else if (want.date && IT?.label && !IT?.date && !(guide?.dateAbove)) parts.push(tagHtml('label', 'label', labelOf('접수기간'), lfs));
     if (want.date) parts.push(IT?.date ? tagHtml('date', 'date', copy.date, tfs) : plain('date', copy.date, IT ? tfs : z.smallFs));
     if (!parts.length) return '';
-    return `<div style="display:flex;flex-wrap:wrap;gap:${IT ? `${Math.round(tfs * 0.3)}px ${Math.round(tfs * 0.45)}px;align-items:center` : '2px 12px'};justify-content:${align === 'center' ? 'center' : (IT && align === 'right') ? 'flex-end' : 'flex-start'};margin-top:${Math.max(8, Math.round(z.smallFs * 0.5))}px">${parts.join('')}</div>`;
+    return `<div style="display:flex;flex-wrap:wrap;gap:${IT ? `${Math.round(tfs * 0.3)}px ${Math.round(tfs * 0.45)}px;align-items:center` : '2px 12px'};justify-content:${align === 'center' ? 'center' : (IT && align === 'right') ? 'flex-end' : 'flex-start'};margin-top:${metaGap(z)}px">${parts.join('')}</div>`;
   };
 
   if (strip && !mold) {   // 틀(mold)이 있는 얇은 띠(NAP 320×50·320×100·PC 970/728, 10-15 저녁)는 띠 문법 대신 틀로
@@ -3177,6 +3184,7 @@ ${tplLogo}
   }
 
   /* ── 세로 스택 ── [로고] / (서브 위) / 메인 / (서브 아래) / [날짜·라벨 알약] / 상세 / 부가 / CTA / 고지 */
+  gapMainPx = mainFs;   // 11-10: 그리는 단계부터 간격은 실제 메인 글자 크기 기준(CANON.typoGap)
   const parts = [];
   const head = parts;                 // 로고·서브·메인·알약
   const tail = [];                    // 상세·부가·CTA·고지 (우하단 이미지 옆 열로 갈 수 있는 것들)

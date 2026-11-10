@@ -62,3 +62,17 @@ test('누끼는 글자 정렬을 따라가요(11-10) — 가운데면 글자·�
   const vs = variantCandidates('albamon-pc-company-left', ctx2, cut('ex-rocket-cut'));
   assert.ok(!vs.some(v => v.style.textAlign === 'center'), '알바몬 기업 왼쪽: 로켓이 마지막 글자 줄을 덮는 가운데 안은 안 나와요');
 });
+
+test('타이포 간격·프레임 패딩 규칙(11-10 사용자 「내가 말한 대로」): 작은 서브 < 서브텍스트 안 < 타이틀↔서브텍스트, 패딩 짧은 변 8%(가로로 긴 규격 높이 16%)', async () => {
+  const { CANON } = await import('../core/canon.js'); const { layoutFor } = await import('../core/layouts.js');
+  const T = CANON.typoGap;
+  assert.ok(T.eyebrow < T.inner && T.inner < T.titleSub, '위계');
+  for (const k of ['eyebrow', 'inner', 'titleSub']) assert.ok(T[k] >= T.range[k][0] && T[k] <= T.range[k][1], k);
+  const sq = layoutFor(580, 400), wide = layoutFor(970, 250);
+  assert.ok(sq.padX >= Math.round(400 * CANON.framePad.text) && sq.padY >= Math.round(400 * CANON.framePad.text));
+  assert.ok(wide.padY >= Math.round(250 * CANON.framePad.textWide) && wide.padX >= Math.round(250 * CANON.framePad.textWide));
+  // 가로로 긴 공통 규칙 규격: 타이틀 아래 줄이 붙지 않는다(전엔 메인의 4~6%)
+  const st = styleOf('desk-02'); const h = renderArtifact('albamon-pc-main-big', ctx, st);
+  const m = h.match(/data-field="sub"[^>]*style="[^"]*margin-top:(\d+)px/); const mainPx = +(h.match(/data-field="main"[^>]*font-size:(\d+)px/)?.[1] ?? 0);
+  assert.ok(m && mainPx && +m[1] >= mainPx * 0.5, `타이틀 아래 간격 ${m?.[1]}px / 메인 ${mainPx}px`);
+});
