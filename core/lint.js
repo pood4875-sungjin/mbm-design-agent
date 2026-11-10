@@ -24,6 +24,7 @@ import { limitsByRole, countChars, inImage } from './adfields.js';
 import { CANON } from './canon.js';
 import { fontRuleOf } from './fonts.js';
 import { contrast } from './palette.js';
+import { bpMinFor } from './typoaudit.js';
 
 const norm = c => String(c ?? '').trim().toLowerCase().replace(/^#?/, '#');
 const fmtNorm = f => ({ jpeg: 'jpg' })[String(f ?? '').toLowerCase()] ?? String(f ?? '').toLowerCase();
@@ -116,6 +117,15 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
       block('main-client', `메인카피에 광고주 「${client}」 없음 — 이 규격은 메인문구에 광고주(고객사명) 노출 필수`, 'main');
     }
   }
+  // 11-10 청사진 크기감(core/typoaudit BP.min — 디자이너 프레임 188개 분포 하위 10%): 서브·날짜·상세가 타이틀에 비해 이보다 작으면 비정상으로 알린다.
+  //   매체가 글자 크기를 정한 규격(공식 템플릿·글자 높이 규정)은 보지 않는다
+  { const T = measure.texts ?? [], mainPx = Math.max(0, ...T.filter(t => t.role === 'main').map(t => t.fontPx ?? 0));
+    const fixed = !!(spec.mediumRules?.fonts?.required || spec.fonts?.required || spec.textHeightPx);
+    if (mainPx > 0 && !fixed) for (const [role, k] of [['sub', 'sub'], ['date', 'date'], ['detail', 'detail']]) {
+      const px = Math.min(...T.filter(t => t.role === role && t.fontPx).map(t => t.fontPx));
+      const lo = bpMinFor(measure.w ?? spec.w ?? 1, measure.h ?? spec.h ?? 1)[k];
+      if (Number.isFinite(px) && px / mainPx < lo - 0.01) warn('size-below-blueprint', `${role} 글자 ${Math.round(px)}px = 타이틀의 ${Math.round(px / mainPx * 100)}% — 청사진 하한 ${Math.round(lo * 100)}%보다 작아요(비정상 크기감)`, role);
+    } }
   // 11-10 추가 행(근무지·전형절차…): 상세 줄 자리가 있는 규격인데 줄이 모자라 뒤 행부터 뺐다 — 막지는 않고 알린다(사용자 「행을 추가한다는 개념」 · 넘치면 뒤 행부터 빠짐)
   if (Array.isArray(measure.rowsDropped) && measure.rowsDropped.length) {
     warn('rows-dropped', `추가 행 ${measure.rowsDropped.length}개(${measure.rowsDropped.join('·')})가 상세 줄 자리가 모자라 빠짐 — 행 순서를 바꾸거나 줄여 주세요`, 'detail');

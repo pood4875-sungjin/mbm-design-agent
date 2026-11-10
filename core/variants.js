@@ -238,6 +238,9 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       const ig = ignored.find(x => keys.some(k => x.startsWith(k + '('))); if (ig) return { why: `무시됨 ${ig}` };
       if (cand.kvPlace && tr.edit?.place && tr.edit.place.ok === false) return { why: `위치 안 섬(${tr.edit.place.why ?? ''})` };
       if (tr.rules?.includes('overlapFix.fail')) return { why: '겹침 교정 실패' };
+      // 11-10 사용자: 같은 광고의 시안끼리 타이틀 문구가 달라지면 안 된다(알바몬 메인 빅 A 「2026년 하반기」가 빠짐 — 글자 칸이 좁아져 짧은 후보로). 시안 틀(tpl)은 칸이 달라 예외
+      const sqz = t => String(t ?? '').replace(/\s+/g, '');
+      if (!cand.tpl && baseTr?.copy?.main && tr.copy?.main && sqz(tr.copy.main) !== sqz(baseTr.copy.main)) return { why: `타이틀 문구가 기본안과 달라짐(${String(tr.copy.main).replace(/\n/g, ' ')})` };
       if (!cand.tpl && presetWorse(html, baseFixed)) return { why: '기본안보다 못함(겹침 교정)' };
       if (!cand.tpl && (baseKv || keys.some(k => KV_KEYS.has(k))) && !kvDrawn(html, style)) return { why: '키비주얼 빠짐' };
       const af = alignFollows(cand, tr, spec); if (!af.ok) return { why: af.why };

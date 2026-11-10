@@ -185,12 +185,12 @@ test('logo count: spec.logo.count 0 forbids any logo (block); count 1 allows up 
 
 test('uniform text colour (medium.textColors.uniform): two different text colours block, unless the spec marks a role free (자소설 PC달력 마감일)', () => {
   const med = { ...medium, textColors: { main: null, sub: [], uniform: true } };
-  const two = { ...ok, texts: [{ ...ok.texts[0] }, { role: 'detail', text: '상세', lines: 1, fontPx: 17, color: '#FF0000', bbox: { x: 40, y: 120, w: 100, h: 20 } }] };
+  const two = { ...ok, texts: [{ ...ok.texts[0] }, { role: 'detail', text: '상세', lines: 1, fontPx: 22, color: '#FF0000', bbox: { x: 40, y: 120, w: 100, h: 20 } }] };
   assert.deepEqual(codes(lintArtifact({ spec, medium: med, measure: two })), ['text-colors-uniform']);
   const one = { ...ok, texts: [{ ...ok.texts[0] }, { ...two.texts[1], color: '#000000' }] };
   assert.deepEqual(codes(lintArtifact({ spec, medium: med, measure: one })), []);
   const cal = { ...spec, textColors: { freeRoles: ['date'] } };
-  const dateFree = { ...ok, texts: [{ ...ok.texts[0] }, { role: 'date', text: '~5/26', lines: 1, fontPx: 16, color: '#FF0000', bbox: { x: 40, y: 150, w: 60, h: 20 } }] };
+  const dateFree = { ...ok, texts: [{ ...ok.texts[0] }, { role: 'date', text: '~5/26', lines: 1, fontPx: 24, color: '#FF0000', bbox: { x: 40, y: 150, w: 60, h: 20 } }] };
   assert.deepEqual(codes(lintArtifact({ spec: cal, medium: med, measure: dateFree })), []);
   // 서브의 70% 흐림(rgba) 은 같은 색으로 본다 — 앱 측정이 rgba 를 hex 로 바꿀 때 알파를 버리므로 여기선 hex 만 비교
 });
@@ -202,4 +202,12 @@ test('deliverable asset specs (spec.asset.minW) block when the original file is 
   assert.deepEqual(codes(r), ['asset-min']); assert.equal(r.level, 'block');
   assert.deepEqual(codes(lintArtifact({ spec: asset, medium, measure: { assetPx: [600, 200], format: 'jpg' } })), ['format']);
   assert.deepEqual(codes(lintArtifact({ spec: asset, medium, measure: { assetPx: null, format: null } })), []);
+});
+
+test('청사진 크기감(11-10): 서브·날짜·상세가 타이틀의 하위 10% 비율보다 작으면 size-below-blueprint 경고 · 글자 크기를 매체가 정한 규격은 안 봄', () => {
+  const m = px => ({ ...ok, w: 600, h: 600, texts: [{ ...ok.texts[0] }, { role: 'date', text: '11.12 - 11.25', lines: 1, fontPx: px, color: '#000000', bbox: { x: 40, y: 120, w: 100, h: 20 } }] });
+  assert.ok(codes(lintArtifact({ spec, medium, measure: m(13) })).includes('size-below-blueprint'), '알바몬 메인 빅처럼 날짜 33%');
+  assert.ok(!codes(lintArtifact({ spec, medium, measure: m(17) })).includes('size-below-blueprint'), '42% 는 정상');
+  assert.ok(!codes(lintArtifact({ spec: { ...spec, fonts: { required: true } }, medium, measure: m(13) })).includes('size-below-blueprint'), '공식 템플릿은 안 봄');
+  assert.ok(codes(lintArtifact({ spec, medium, measure: { ...m(20), w: 1500, h: 220 } })).includes('size-below-blueprint'), '가로로 긴 규격은 하한 55%(샘플 57~88%) — 50%도 작다');
 });

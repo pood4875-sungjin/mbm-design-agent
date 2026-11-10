@@ -68,7 +68,7 @@ export function layoutFor(w, h) {
   if (shape === 'wide') {
     // 2240×360·2240×240(PC)은 메인 한 줄 + 날짜 한 줄, 그보다 덜 납작한 것(MO)은 메인 두 줄("회사 / 채용 문구")
     const flat = w / h >= 5;
-    const main = r(Math.sqrt(w * h) * (flat ? 0.056 : 0.09));
+    const main = Math.max(r(Math.sqrt(w * h) * (flat ? 0.056 : 0.09)), r(h * (flat ? CANON.titleMin.flat : CANON.titleMin.cap)));   // 11-10 검수표: 납작한 가로형 타이틀이 작다 — 높이의 18% 아래로 안 내려감
     return {
       shape, align: 'left', vAlign: 'center',
       // 위 여백 < 아래 여백 — 글자 덩어리 가운데가 높이의 44~45%에 온다
@@ -102,7 +102,7 @@ export function layoutFor(w, h) {
     return {
       shape, align: 'left', vAlign: 'top',
       padX: Math.max(14, r(w * FP.text)), padY: Math.max(14, r(w * FP.text)), top: r(h * 0.178),
-      main: r(w * 0.087), mainLine: 1.28, mainLines: 3,
+      main: Math.max(r(w * 0.087), r(w * CANON.titleMin.cap)), mainLine: 1.28, mainLines: 3,   // 11-10 검수표: 짧은 변의 10%
       sub: Math.max(10, r(w * 0.05)), subLine: 1.3, subWeight: 700, subAbove: true, gapSub: 0.29,
       detail: Math.max(10, r(w * 0.047)), detailLine: 1.57, gapDetail: 1.0, detailLabelBold: true,
       object: 'bottom', objectH: r(h * 0.42),
@@ -115,7 +115,7 @@ export function layoutFor(w, h) {
   return {
     shape, align: 'left', vAlign: 'top',
     padX: Math.max(14, r(m * FP.text)), padY: Math.max(14, r(m * FP.text)), top: r(h * 0.15),
-    main: r(m * 0.087), mainLine: 1.28, mainLines: 3,   // 세로형과 같은 1.28(A2)
+    main: Math.max(r(m * 0.087), r(m * CANON.titleMin.cap)), mainLine: 1.28, mainLines: 3,   // 세로형과 같은 1.28(A2) · 11-10 검수표: 짧은 변의 10%
     sub: Math.max(9, r(m * 0.05)), subLine: 1.3, subWeight: 700, subAbove: true, gapSub: 0.29,
     detail: Math.max(9, r(m * 0.047)), detailLine: 1.57, gapDetail: 0.95, detailLabelBold: true,
     object: roomy && w / h >= 1.15 ? 'right' : 'bottom', objectW: r(w * 0.42), objectH: r(h * 0.36),

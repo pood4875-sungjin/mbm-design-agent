@@ -30,6 +30,7 @@ import { aiEligible } from '../trackb/analyze.js';
 import { resolveField, lightFieldOf, brandDeep, flatLightBg, kvLayer, kvPlacement, kvFull, coverPos, meltMask, meltMask2, meltMaskList, meltGradient, meltGradientFrom, meltLength, seamHexes, meltNeed, cutFadePct, profileFocus, subjectCrop, joinColour, joinField, objectBleedPlace, bleedLayer, cutoutCapW, meltMaskSides } from '../field.js';
 import { layoutFor } from '../layouts.js';
 import { guideFor, weightOf, CANON } from '../canon.js';
+import { bpMinFor } from '../typoaudit.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
 import { editOf, transformCss, KV_SIZE_K, SCRIM_A, GRAD_ANGLE, placeAvail, infoTagOf, INFO_TAG } from '../editlayout.js';
 import { kvTypeOf } from '../kvtypes.js';
@@ -141,7 +142,7 @@ export function copyLadder(ctx) {
     return {
       main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
       // 11-10: 서브 = 추가 문구 한 덩어리(옛 시즌 자리). 비우면 시즌·고용형태로 채우지 않는다 — 고객사만 남긴다(메인이 채용명만 들어가는 좁은 칸에서 회사 이름이 사라지지 않게, 11-09 자소설 「메인 = 채용명, 서브 = 기업명」)
-      sub: uniq([extra, c.headline ? subFull : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null]),
+      sub: uniq([extra, c.headline ? subFull : null, c.client]),   // 11-10 피드백 4: 메인이 채용 구분을 품으니 서브에 「채용」을 또 붙이지 않는다(「마이다스아이티 채용」 → 「마이다스아이티」)
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
       mainWide: c.headline ? [String(c.headline)] : uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, '채용 공고']),
       mainNarrow: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), ...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, '채용 공고']),   // 11-10 연도 자동(서브 자리 없는 규격)
@@ -1851,6 +1852,8 @@ function renderAdBase(ctx, style, spec) {
       objW = Math.max(0, innerW - gapX - tw);
     }
   }
+  // 11-10 가로로 긴 규격의 누끼 칸(블리드 없이 열로 설 때 — 거울 A 안): 칸 폭을 그려지는 그림 폭(높이 × 비율)까지만 — 404px 칸에 120px 로켓이 그려져 글자가 가운데 떠 있었다(알바몬 커튼)
+  if (L.shape === 'wide' && objectSide === 'right' && isCutout && !bleedP && !oBox && !logoAsObject && !strip && style.kvMeta?.ar) objW = Math.min(objW, Math.round(innerH * style.kvMeta.ar * 1.1));
   // 편집 「키비주얼 크기」(오른쪽 열): 열 폭 × 배율 — 글자 칸은 안쪽 폭의 42%(CANON objectBleed.minTextCol) 아래로 내려가지 않는다
   if (kvK !== 1 && objectSide === 'right' && !oBox && !logoAsObject && !bleedP && !strip) objW = Math.round(Math.max(innerW * 0.15, Math.min(innerW * (1 - (guide?.objectBleed?.minTextCol ?? 0.42)), objW * kvK)));
   let objH = objectSide !== 'bottom' ? 0 : logoAsObject ? Math.round(innerH * 0.3) : useRef ? Math.max(0, refObjH - pad.bottom) : Math.round(innerH * 0.33);
@@ -1932,9 +1935,12 @@ function renderAdBase(ctx, style, spec) {
   const capMain = th?.max != null ? Math.min(titleMax, th.max) : titleMax;
   // 정사각 규격 메인 하한 = 짧은 변 × 0.067(CANON mainFloor — 인스타 보드 관찰 0.067~0.09, 디자이너 1080에 91px). 가이드가 메인 px 띠를 정한 매체(구글)는 가이드
   const sqFloor = (useRef && L.shape === 'square' && guide?.mainFloor?.square && !guide?.mainPx) ? Math.round(Math.min(w, h) * guide.mainFloor.square) : 0;
+  // 11-10 검수표 피드백(4·6·8·10·69 「타이틀 왜 이렇게 작아」): 자유 배치 규격은 타이틀 최소 크기 — 짧은 변의 12%(납작한 규격 w/h ≥ 5 는 높이의 18%, CANON.titleMin).
+  //   상세·서브가 자리를 먹어도 이 밑으로 안 줄이고, 대신 짧은 문구로 바꾸거나(사다리) 상세를 뒤에서부터 뺀다(아래 titleMinDrop). 매체가 크기를 정한 경우(th·fsRange·stated)는 그대로
+  const titleMinFree = (useRef && !mold && !th && fsRange?.min == null) ? Math.round(Math.min(w, h) * (w / h >= 5 ? CANON.titleMin.flat : CANON.titleMin.base)) : 0;
   const floorMain = th?.min != null ? Math.max(11, th.min)
     : fsRange?.min != null ? Math.min(capMain, Math.max(11, fsRange.min))
-    : Math.min(capMain, Math.max(guide?.mainPx?.min ?? 11, sqFloor));
+    : Math.min(capMain, Math.max(guide?.mainPx?.min ?? 11, sqFloor, titleMinFree));
   const obsLines = profNum('mainLines');
   const mainLinesCap = slots.main.lines ?? (useRef ? (guide?.mainLines?.[L.shape] ?? L.mainLines) : (obsLines ? Math.max(2, Math.round(obsLines) + (tall ? 2 : 1)) : null));
   const noticeLines = slots.notice?.lines ?? 2;
@@ -2040,6 +2046,9 @@ function renderAdBase(ctx, style, spec) {
     const gMax = guide?.detailPx?.max ?? Infinity, gMin = guide?.detailPx?.min ?? null;
     let fs = Math.min(gMax, detailFs ?? Math.round((useRef ? L.detail : capMain * 0.5)));
     let r = fit(fs);
+    // 11-10 피드백 5·67·68·72: 자유 레이아웃의 서브텍스트는 「라벨 : 내용」 「라벨 ㅣ 내용」 「뱃지 + 내용(태그)」 셋만 — 굵은 라벨 줄 + 값 줄(라벨만 따로 선 꼴)은 안 쓴다.
+    //   한 줄에 「라벨 : 내용」이 안 들어가는 항목이 하나라도 있으면 그 광고의 상세는 모두 뱃지 + 내용으로(한 광고 안에서 형식 통일)
+    if (!stackTags && !mold && !guide?.detailLabels && !strip && r.lines.some(d => !d.inline)) { stackTags = true; const head0 = cands0.filter(d => d.label === '모집직무'); cands0.splice(0, cands0.length, ...head0, ...cands0.filter(d => !head0.includes(d))); r = fit(fs); fired('detail.badgeForm'); }
     // 가이드 매체(구글)는 접수기간·모집부문 둘 다 템플릿 칩이다 — 줄이 모자라면 줄을 빼기 전에 글자를 하한까지 줄여 본다
     if (gMin != null && detailFs == null) {
       let best = { fs, r };
@@ -2092,7 +2101,7 @@ function renderAdBase(ctx, style, spec) {
     return Math.max(1, Math.min(rows, Math.ceil(detailLines.reduce((n, d) => n + countChars(`${d.label} : ${d.value}`, counting) + 3, 0) / perLine)));
   };
   // 칩 줄 사이 숨 — 칩(알약) 높이가 글줄 높이와 거의 같아 줄 간격 1.45로는 알약끼리 붙는다(10-06 사용자 "태그들이 너무 붙어 있어"). 예시(일화 580·비씨 300×600)는 칩 줄 사이가 글자 높이의 절반쯤
-  const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : 0);
+  const chipRowGap = z => (guide?.detailLabels === 'chip' ? Math.round(z.dFs * 0.5) : !mold ? Math.round(z.dFs * CANON.detailGap.item) : 0);   // 11-10 피드백 10: 자유 레이아웃은 항목 사이를 라벨↔내용보다 조금 넓게
   // 한 행 흐름(구글 970 칩 2개가 한 줄)이면 줄 사이 숨은 높이에 안 들어간다 — 더하면 메인 예산이 줄어 두 줄 시즌이 떨어진다(동부 970 회귀)
   const rowFlowNow = () => useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
   const detailBlockH = z => {
@@ -2120,6 +2129,17 @@ function renderAdBase(ctx, style, spec) {
 
   let z = sizesAt(1);
   const slackPx = Math.round(h * 0.01);   // 추정과 실제 렌더의 어긋남 여유(1%h) — 예산을 꽉 채우면 몇 px 넘쳐 잘린다
+  // 11-10 검수표(사용자 「글자를 줄이지 말고 글을 빼든지」): 자유 배치 규격에서 타이틀(회사명 / 채용 구분)이 최소 크기로 들어갈 높이가 없으면
+  //   상세를 뒤에서부터 뺀다(근무지 → 모집직무 …). 예전엔 상세를 다 넣으려고 타이틀을 11px까지 줄이거나 「채용 공고」로 바꿨다(알바몬 기업 왼쪽)
+  if (titleMinFree && stated.main == null && detailLines.length) {
+    const needRows = String(preferMain ?? '').split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(textWidth(l) * 0.9 * titleMinFree / Math.max(1, mainW))), 0);
+    const needH = needRows * titleMinFree * (useRef ? L.mainLine : 1.25);
+    const dropped = [];
+    // 상세·서브는 원래 크기의 60%까지는 줄여서 맞춘다(아래 k 줄이기) — 그래도 안 들어갈 때만 뺀다
+    const isDate = d => /기간|일정|마감/.test(String(d?.label ?? ''));   // 날짜 줄은 빼지 않는다(2층 「마감 날짜 빼먹지 않기」)
+    for (let i = detailLines.length - 1; i >= 0 && textH - blocksOf(sizesAt(0.6)) - slackPx < needH; i--) if (!isDate(detailLines[i])) dropped.unshift(detailLines.splice(i, 1)[0].label);
+    if (dropped.length) { z = sizesAt(1); TR.rowsDropped = [...(TR.rowsDropped ?? []), ...dropped]; fired('titleMin.detailDropped'); }
+  }
   let titleBudget = textH - blocksOf(z) - slackPx;
   if (titleBudget < z.cap * line) {
     const k = Math.max(0.35, (textH - z.cap * line) / Math.max(1, blocksOf(z)));
@@ -2468,7 +2488,7 @@ function renderAdBase(ctx, style, spec) {
       const xOf = rw => align === 'center' ? col.x + (col.w - rw) / 2 : align === 'right' ? col.x + col.w - rw : col.x;
       let yy = y0; const rows = [];
       for (const r of mains) { rows.push({ role: 'main', x: Math.round(xOf(r.w)), y: Math.round(yy), w: r.w, h: r.h }); yy += r.h; }
-      if (rest.h > 0) rows.push({ role: 'rest', x: Math.round(xOf(rest.w)), y: Math.round(v === 'distribute' ? col.y + col.h - rest.h : yy), w: rest.w, h: rest.h });
+      if (rest.h > 0) rows.push({ role: 'rest', x: Math.round(xOf(rest.w)), y: Math.round(v === 'distribute' && mold ? col.y + col.h - rest.h : yy), w: rest.w, h: rest.h });
       TR.textBox = { v, align, rows };
     }
     TR.place.zone = { col, cut: (imgCorner && hasKv && tImage) ? { ...tImage } : null, detailW: (imgCorner && hasKv) ? detailW : null, spanW: Math.max(textW, mainW ?? 0, subW ?? 0), room: roomFull?.room ? { ...roomFull.room } : null, objTop: objectSide === 'bottom' ? h - pad.bottom - objReserve : null, side: objectSide === 'right' ? (mirrorX ? 'left' : 'right') : objectSide, align, v, margin: { left: mirrorX ? w - pad.left - colW : pad.left, top: pad.top, right: pad.right, bottom: pad.bottom } };
@@ -2571,7 +2591,7 @@ function renderAdBase(ctx, style, spec) {
   // 접수기간 라벨 이름은 매체·틀이 정한다(10-15): 자소설 「모집일정」(PC팝업 28:124·채용공고 28:333), PC메인 「채용일정」(28:1002). 기본 「접수기간」. 내부 키는 그대로 '접수기간'
   const labelOf = l => l === '접수기간' ? (mold?.labels?.period ?? guide?.labels?.period ?? l) : l === '모집직무' ? (mold?.labels?.role ?? l) : l;   // 틀이 라벨 이름을 정하면(NAP HS화성 샘플 「모집분야」 — mold.labels.role, 10-15 밤)
   const label = d => chip
-    ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * (stackTags ? 0.5 : 0.25)) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`
+    ? `<b data-chip="1" style="${chipCss};margin-right:${Math.round(z.dFs * 0.5)}px${d.inline ? '' : ';margin-bottom:' + Math.round(z.dFs * (stackTags && mold ? 0.5 : CANON.detailGap.label)) + 'px'}">${esc(d.label)}</b>${d.inline ? '' : '<br/>'}`
     : d.inline ? `<b style="font-weight:${lw}">${esc(labelOf(d.label))}</b> : ` : `<b style="font-weight:${lw};display:block">${esc(labelOf(d.label))}</b>`;
   // 가로형은 상세를 한 행에 가로로 푼다(일화 970: 접수기간·모집부문 라벨 2개 한 줄 / 중앙 템플릿 상세 4칸 한 행)
   const detailRow = useRef && (L.shape === 'wide' || gv?.detailFlow === 'row') && detailLines.every(d => d.inline);
@@ -2590,6 +2610,13 @@ function renderAdBase(ctx, style, spec) {
   const logoCapW = (LC && !mold) ? Math.max(24, Math.round(Math.min(mainFs * LC.perMainPx, w * (w <= 320 ? LC.wRatioTower : LC.wRatio))))
     : (LC && mold && !officialMold && moldMainPx) ? Math.max(24, Math.round(moldMainPx * LC.perMainPx)) : Infinity;
   const capW = mw => Math.min(mw, logoCapW);
+  // 11-10 청사진 하한(core/typoaudit BP.min — 디자이너 프레임 188개 분포 하위 10%): 서브·날짜·상세가 타이틀에 비해 이보다 작으면 비정상(알바몬 메인 빅 날짜 33%, 인스타 스토리 상세 35%).
+  //   매체가 글자 크기를 정한 규격(글자 띠·높이 규정·가이드 상세 px·적어 준 크기)은 그대로
+  if (!fsRange && !th && !(spec.mediumRules?.fonts?.required || mr?.fonts?.required) && stated.main == null) {   // 가이드 상세 px 띠(인스타 26~34 = 피드 샘플 절대값)보다 비율 하한이 먼저 — 스토리는 메인이 98px 라 34px 상세가 35%가 됐다
+    const BPM = bpMinFor(w, h), lo = (v, k, st) => st != null ? v : Math.max(v, Math.round(mainFs * BPM[k]));
+    const z0 = z; z = { ...z, subFs: lo(z.subFs, 'sub', stated.sub), smallFs: lo(z.smallFs, 'date', stated.date), dFs: lo(z.dFs, 'detail', detailFs) };
+    if (z.subFs !== z0.subFs || z.smallFs !== z0.smallFs || z.dFs !== z0.dFs) { fired('size.blueprintFloor'); TR.blueprintFloor = { sub: [z0.subFs, z.subFs], date: [z0.smallFs, z.smallFs], detail: [z0.dFs, z.dFs] }; }
+  }
   { const subRole = showSub ? (subAbove ? 'eyebrow' : ((ladder.date ?? []).includes(copy.sub) ? 'date' : 'slogan')) : null;
     const tk = guide?.tracking ?? {}; const trk = (tk.main ?? 0) && mainFs >= (tk.mainMinPx ?? 28) ? tk.main : 0;
     TR.fonts = { main: { px: mainFs, weight: fwOf('main', mainFs), lh: mainLine, tracking: trk, lines: mainLines, cap: capMain, floor: floorMain, sqFloor }, sub: showSub ? { px: z.subFs, weight: fwOf(subRole, z.subFs), role: subRole, lh: useRef ? L.subLine : line } : null,
@@ -3076,12 +3103,14 @@ ${tplLogo}${kvWrap(tplObject)}
       const lhOf = d => Math.round(dpx2 * (d.rows > 1 ? (dR.valueLh ?? 1.3) : 1.2) * 10) / 10;
       const colH = dR.labelCol ? rows.reduce((a, d, i) => a + d.rows * lhOf(d) + (i < rows.length - 1 ? gapPx : 0), 0) : 0;
       if (dR.labelCol && rows.length) fired('templateMold.labelCol');
+      // 11-10 사용자 「서브텍스트는 라벨 : 내용 / 라벨 ㅣ 내용 / 뱃지(+태그)만」: 라벨 없이 값만(valuesOnly)은 매체 공식 템플릿일 때만 — 디자이너 샘플(인스타 1080)은 「라벨 : 값」으로
+      if (dR.valuesOnly && !officialMold && !CH) { dR.valuesOnly = false; fired('templateMold.valuesOnlyLabeled'); }
       const inner = (CH || dR.valuesOnly)   /* valuesOnly: 라벨 없이 값만(인스타 1080 수정본 10-16 — 직무 값 가운데 2줄). 쉼표 항목 안에서는 안 끊는다(「상품/계리/리스크」가 / 에서 갈라지지 않게) */
         ? rows.map(d => `<div>${dR.valuesOnly ? String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join(', ') : esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`).join('')
         : dR.labelCol
         ? rows.map((d, i) => `<div style="display:flex;align-items:flex-start;line-height:${lhOf(d)}px;${i < rows.length - 1 ? `margin-bottom:${gapPx}px;` : ''}"><b style="flex:0 0 ${colW}px;font-weight:${dLw}">${esc(labelOf(d.label))}</b><span style="flex:1 1 auto;min-width:0${d.label === '접수기간' ? ';white-space:nowrap' : dR.valueW ? `;max-width:${Math.round(dR.valueW * k)}px` : ''}">${esc(nb(d.value)).replace(/\n/g, '<br/>')}</span></div>`).join('')
         : rows.map(d => d.inline
-        ? (IT?.label ? `<div>${tagHtml('label', null, labelOf(d.label), Math.max(tagFs(0, 0), Math.round(dpx2 * 0.86)), `vertical-align:middle;display:inline-flex;margin-right:${Math.round(dpx2 * 0.4)}px`)}${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`   // 라벨 태그(infoTag): 「라벨 :」 대신 각진 태그 + 값(같은 줄 오른쪽)
+        ? (IT?.label && !IT?.date ? `<div>${tagHtml('label', null, labelOf(d.label), Math.max(tagFs(0, 0), Math.round(dpx2 * 0.86)), `vertical-align:middle;display:inline-flex;margin-right:${Math.round(dpx2 * 0.4)}px`)}${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`   // 라벨 태그(infoTag): 「라벨 :」 대신 각진 태그 + 값(같은 줄 오른쪽)
           : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`)
         : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}</b></div><div${align === 'center' ? ' style="text-wrap:balance;word-break:keep-all;overflow-wrap:normal"' : ''}>${align === 'center' ? String(d.value).split(/,\s*/).map(it => `<span style="white-space:nowrap">${esc(nb(it))}</span>`).join(', ') : esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`).join('');   /* 가운데 정렬 틀(NAP 320×480 수정본 10-16)은 값 줄을 쉼표 항목 단위로 고르게 */
       // 「상세 입력 시 하단부터」(M메인 템플릿 1:8625): 쓰는 줄이 적으면 아래 줄부터 채운다 — 블록 y 를 빈 줄만큼 내린다
@@ -3226,8 +3255,10 @@ ${tplLogo}
   if (lg && logoAtBottom) tail.push(logoRow);
   if (!(imgCorner && hasKv)) {
     if (distribute && !anchorJ && (splitGap || towerCopyOnly)) { const at = (lg && !logoAtBottom) ? 1 : 0; parts.splice(at, 0, `<div style="flex:${towerCopyOnly ? 1 : 0.8} 1 auto;min-height:0"></div>`); }
-    if (distribute && !anchorJ) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
+    // 11-10 피드백 10·34·5: 자유 레이아웃은 타이틀↔서브텍스트를 띄우지 않는다(타이틀 글자의 0.8배까지) — 남는 높이는 글자 묶음 아래로. 틀(샘플·공식 템플릿)은 그대로 바닥 정렬
+    if (distribute && !anchorJ && mold) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
     parts.push(...tail);
+    if (distribute && !anchorJ && !mold) parts.push('<div style="flex:1 1 auto;min-height:0"></div>');
   }
 
   // 우하단 이미지 상자 옆으로 글자가 흐르게: 텍스트 열을 블록으로 두고 이미지 자리에 float 스페이서를 세운다(세아제강 팝업 — 메인은 전폭, 상세는 이미지 왼쪽).

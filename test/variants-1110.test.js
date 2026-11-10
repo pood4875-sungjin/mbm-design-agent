@@ -60,7 +60,12 @@ test('누끼는 글자 정렬을 따라가요(11-10) — 가운데면 글자·�
   }
   const ctx2 = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', role: '연구개발, 기술영업, 경영지원', startDate: '2026-11-12', deadline: '2026-11-25', rows: [{ label: '근무지', value: '판교' }] }, 'recruit');
   const vs = variantCandidates('albamon-pc-company-left', ctx2, cut('ex-rocket-cut'));
-  assert.ok(!vs.some(v => v.style.textAlign === 'center'), '알바몬 기업 왼쪽: 로켓이 마지막 글자 줄을 덮는 가운데 안은 안 나와요');
+  // 11-10 피드백 뒤: 좁은 칸은 상세를 덜어 글자가 짧아질 수 있다 — 그래서 「가운데 안이 없다」가 아니라 「나온 가운데 안은 누끼가 글자 줄을 안 덮는다」로 본다
+  for (const v of vs.filter(v => v.style.textAlign === 'center')) {
+    const h = renderArtifact('albamon-pc-company-left', ctx2, { ...cut('ex-rocket-cut'), ...v.style }), ob = objBoxOf(h, specOf('albamon-pc-company-left'));
+    const bottom = Math.max(...tr(h).textBox.rows.map(r => r.y + r.h));
+    assert.ok(ob.y >= bottom - 2, '알바몬 기업 왼쪽: 로켓이 마지막 글자 줄을 덮는 가운데 안은 안 나와요');
+  }
 });
 
 test('타이포 간격·프레임 패딩 규칙(11-10 사용자 「내가 말한 대로」): 작은 서브 < 서브텍스트 안 < 타이틀↔서브텍스트, 패딩 짧은 변 8%(가로로 긴 규격 높이 16%)', async () => {
@@ -87,4 +92,33 @@ test('타이포 강조형(11-10): 타이틀 강약 = 회사명 얇게 · 채용 
   assert.doesNotMatch(renderArtifact('remember-main-top-mo', ctx, st), /data-emph=/, '리멤버는 굵기 변경 불가');
   const vs = variantCandidates('google-gdn-580x400', ctx, styleOf('desk-02'));
   assert.ok(vs.some(v => v.slot === 'C' && v.style.titleEmph === 'mix'));
+});
+
+test('청사진 크기감(11-10 사용자 「청사진이 정상 — 작아지면 비정상」): 자유 배치 전 규격·시안에서 서브·날짜·상세 ≥ 타이틀 × 하위 10% 비율', async () => {
+  const { bpMinFor } = await import('../core/typoaudit.js'); const { adSpecEntries } = await import('../core/adspecs.js');
+  const c2 = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', season: '2026년 하반기', role: '연구개발, 기술영업, 경영지원', startDate: '2026-11-12', deadline: '2026-11-25', rows: [{ label: '근무지', value: '판교' }] }, 'recruit');
+  const st = styleOf('ex-rocket-cut'); const bad = [];
+  for (const [id, sp] of Object.entries(adSpecEntries())) {
+    for (const v of [{}, { textAlign: 'center' }, { titleEmph: 'mix' }]) {
+      let t; try { t = tr(renderArtifact(id, c2, { ...st, ...v })); } catch { continue; }
+      if (t.mold || !t.fonts?.main?.px || sp.fonts?.required || sp.mediumRules?.fonts?.required) continue;
+      const M = t.fonts.main.px;
+      for (const [k, f] of [['sub', t.fonts.sub], ['date', t.fonts.date], ['detail', t.fonts.detail]]) {
+        const kk = k === 'sub' && f?.role === 'date' ? 'date' : k;
+        if (f?.px && f.px / M < bpMinFor(sp.w, sp.h)[kk] - 0.02) bad.push(`${id}${v.textAlign ? ' 가운데' : v.titleEmph ? ' 강조' : ''} ${k} ${f.px}/${M}`);
+      }
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+test('시안끼리 타이틀 문구가 같아요(11-10 알바몬 메인 빅 A 「2026년 하반기」 빠짐) · 가로로 긴 거울 안은 그림 칸 바로 옆에서 글자 시작', async () => {
+  const c2 = createContext({ client: '마이다스아이티', hiringType: '신입/경력 공개채용', season: '2026년 하반기', startDate: '2026-11-12', deadline: '2026-11-25' }, 'recruit');
+  const st = styleOf('ex-rocket-cut');
+  for (const sid of ['albamon-pc-main-big', 'albamon-pc-main-curtain', 'specup-maintop-pc', 'google-gdn-580x400', 'instagram-feed-1080']) {
+    const vs = variantCandidates(sid, c2, st); const mains = vs.map(v => tr(renderArtifact(sid, c2, { ...st, ...v.style })).copy?.main?.replace(/\s+/g, ''));
+    assert.equal(new Set(mains).size, 1, `${sid} ${JSON.stringify(mains)}`);
+  }
+  const t = tr(renderArtifact('albamon-pc-main-curtain', c2, { ...st, kvPlace: 'left' }));
+  assert.ok(t.place.objW < 2160 * 0.12, `커튼 거울 그림 칸 ${t.place.objW}`);
 });

@@ -397,7 +397,7 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.match(hi, /data-field="main"[^>]*font-size:72px;line-height:94px;font-weight:700;[^"]*text-align:center/, '메인 Bold 72/94 가운데');
   assert.match(hi, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 Regular 43 가운데, 라벨 없이');
   assert.match(hi, /data-field="detail"[^>]*font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/, '모집직무 Bold 43 가운데');
-  assert.doesNotMatch(detailOf(hi), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
+  assert.match(detailOf(hi), /모집직무 :/, '11-10 사용자 「서브텍스트는 라벨 : 내용 · 라벨 ㅣ 내용 · 뱃지만」 — 10-16 값만(valuesOnly)은 공식 템플릿에서만');
   assert.match(hi, /data-logo-slot="1" style="position:absolute;left:835px;top:45px;width:195px;height:39px;[^"]*justify-content:flex-end/, '로고 오른쪽 위 (835,45) 195×39');
   assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 131, y: 587, w: 818, h: 493 });   // 10-19: 786 → 818 (오른쪽 가장자리까지) · 11-10: 누끼면 칸이 가운데(실제 그린 칸)
   assert.deepEqual(ti.place.tImage, { x: 131, y: 587, w: 818, h: 493 }, '11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함」: 가운데 틀의 누끼는 칸도 가운데'); assert.ok(ti.rules.includes('templateMold.cutoutCenter')); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)'); assert.ok(!ti.rules.includes('templateMold.slotBleed'), '인스타는 모서리 칸이어도 블리드 없음(image.bleed false)');
