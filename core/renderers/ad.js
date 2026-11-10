@@ -1226,6 +1226,9 @@ function renderAdBase(ctx, style, spec) {
   // 11-09 사용자 기준 「가운데 정렬 안의 키비주얼 — 유형별」: 누끼·오브제는 글자와 함께 가운데(글자 아래 빈 칸에 맞춰, alignMoldSlots cutout),
   //   이미지(사진·바탕 있는 그림)는 칸에 반쪽만 두면 뚝 끊긴다 → 지면 가득(cover) + 글자 쪽 스크림. 애매하면 이미지 쪽
   const kvCut0 = (style.kvMeta?.field?.opaque ?? 1) < 0.5, kvImg0 = !!style.keyVisual && !kvCut0 && (style.kvMeta?.field?.kind ?? null) !== 'texture' && !kvTypeOf(style.kvMeta)?.flags.frame;
+  // 11-10 사용자 「가이드가 저렇지 않는 이상 이미지일 땐 옆으로 넓게 — 저 영역 지키려고 저렇게 하면 안 돼」: 가로형(w ≥ 1.8h) 틀의 고정 그림 칸(kv slot)이
+  //   매체 공식 칸(mold.slotOfficial — 카카오·NAP 비즈보드 썸네일)이 아니고 키비주얼이 이미지형이면, 칸 왼변부터 오른쪽 끝·전체 높이(리멤버 썸네일형). 누끼는 칸 그대로
+  if (mold?.kv === 'slot' && !mold.slotOfficial && tImage && !moldCutZone && kvImg0 && w >= 1.8 * h && (tImage.y > 0 || tImage.x + tImage.w < w || tImage.h < h)) { tImage = { x: tImage.x, y: 0, w: w - tImage.x, h }; fired('templateMold.slotWide'); }
   const AM = (TA && mold) ? alignMoldSlots({ mold, w, h, k: tScale, tImage, tLogo, align: TA, free: moldFreeKv, cutout: kvCut0 && !kvImg0 }) : null;
   if (AM) {
     tImage = AM.tImage;

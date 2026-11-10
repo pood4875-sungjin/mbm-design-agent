@@ -25,13 +25,14 @@ test('누끼가 지면 변에서 잘리면 그 변을 녹인다 — 구글 300×
   const e = fadeOf(renderAd(ctx, cut, specs['everytime-home-card-image'])); assert.ok(e && /R\d+/.test(e) && /B\d+/.test(e), '에브리타임 우하단: ' + e);
 });
 
-test('사진 상자의 안쪽 변만 녹인다 — 네이버 DA 사진 칸 오른쪽·아래(지면 변에 붙은 변은 그대로)', () => {
-  // __fix: {} 로 빈 지면 보정(emptyFix, 10-21)을 끄고 칸 그대로 — 칸 바닥이 지면 바닥에서 20px 떠 있어 오른쪽·아래 두 변이 안쪽 변
+test('네이버 DA 이미지형 키비주얼 — 고정 칸(누끼 기준) 대신 칸 왼변부터 오른쪽 끝·전체 높이, 글자 쪽(왼쪽)만 녹임(11-10 사용자 「가이드가 저렇지 않는 이상 이미지일 땐 옆으로 넓게」 · 콜마 시안 22136:1101)', () => {
   const h = renderAd(ctx, { ...photo, __fix: {} }, specs['naver-gfa-mobile-da-1250x560']);
-  const f = fadeOf(h); assert.ok(f && /R28/.test(f) && /B28/.test(f) && !/L/.test(f), '네이버: ' + f);
-  // 빈 지면 보정(emptyFix)은 키운 칸(상자 기준)에 글자가 들어가면 안 키운다 — 네이버 DA 는 상세 값 행이 칸 왼쪽으로 닿아 보정 없이 그대로(녹임도 같다)
-  const g = renderAd(ctx, photo, specs['naver-gfa-mobile-da-1250x560']);
-  assert.ok(!/data-empty="/.test(g) && fadeOf(g) === f, '네이버(보정 없음): ' + fadeOf(g));
+  const ob = h.match(/data-object="1"[^>]*style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);
+  assert.ok(ob && +ob[2] === 0 && +ob[1] + +ob[3] === 1250 && +ob[4] === 560, '네이버 사진 칸: ' + (ob && ob[0]));
+  assert.match(h, /data-object="1"[^>]*mask-image:linear-gradient\(to right,transparent 0%/, '글자 쪽 녹임');
+  // 공식 칸(카카오 비즈보드 썸네일 slotOfficial)은 그대로
+  const k = renderAd(ctx, photo, specs['kakao-bizboard-mo']);
+  assert.doesNotMatch(k, /templateMold\.slotWide/);
 });
 
 test('제외 — 둥근 상자(카카오 썸네일) · 템플릿 여백 변(자소설 PC팝업 8/30) · 칸 안 contain 누끼(자소설 160×600·네이버 DA)', () => {

@@ -1106,7 +1106,8 @@
             "labels": {
               "period": "",
               "note": "날짜 줄 라벨 없음"
-            }
+            },
+            "slotOfficial": true
           }
         }
       },

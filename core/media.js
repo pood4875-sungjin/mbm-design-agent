@@ -7045,7 +7045,8 @@ export const MEDIA = [
               "labels": {
                 "period": "",
                 "note": "날짜 줄 라벨 없음"
-              }
+              },
+              "slotOfficial": true
             }
           }
         },
@@ -7996,7 +7997,8 @@ export const MEDIA = [
               "labels": {
                 "period": "",
                 "note": "날짜 줄 라벨 없음"
-              }
+              },
+              "slotOfficial": true
             }
           }
         },
@@ -8193,7 +8195,8 @@ export const MEDIA = [
               "labels": {
                 "period": "",
                 "note": "날짜 줄 라벨 없음(보드 샘플 12/12)"
-              }
+              },
+              "slotOfficial": true
             }
           }
         },
@@ -11382,7 +11385,9 @@ export const MEDIA = [
           "h": null,
           "note": "자료 없음"
         },
-        "layoutNotes": [],
+        "layoutNotes": [
+          "이미지 안 글자 50% 미만 · 너무 작은 글자 금지 · 광고 제목 30자·브랜드 이름 20자는 이미지 밖(당근 UI) — figma:sZMBhkuLMEiyMLPPpGxvC1 1:57"
+        ],
         "examples": [],
         "boardFrame": {
           "w": 200,
@@ -11394,6 +11399,8 @@ export const MEDIA = [
         "confidence": "보드",
         "note": "10-14 컨시어지 보드: 프레임 「당근_네이티브 피드 광고」 200×200 (frame 1:59)이 유일한 치수. 포맷·용량은 보드에 없어 officialSources 의 당근비즈니스 제작 가이드(JPG/JPEG/PNG · 10MB 이하 · 최소 200×200 1:1)로 채움. 글자수·여백·배경 규정은 자료 없음 — 확인 필요. 사용자 추출 목록 「당근 1종」이 이 규격이다.",
         "maxKBRule": "10MB 이하 (당근비즈니스 공식 제작 가이드)",
+        "visualOnly": true,
+        "visualOnlyNote": "11-10 사용자 「내용 쓰는 게 맞아?」 + 당근01(소재가이드) 1:57 참고 가이드: 광고 제목·브랜드 이름은 당근 화면이 이미지 밖에 올린다. 「이미지 내 텍스트가 지나치게 크거나 50% 이상 차지하는 경우 승인 불가」「지나치게 작아 가독성이 떨어지는 경우 승인 불가」 — 200×200 에 접수기간·모집직무를 쓰면 둘 다 걸린다 → 이미지 = 키비주얼만(사진·바탕 그림은 꽉 채움 cover, 누끼는 지면 위 contain). 문구는 전달 시트",
         "frame": "rules",
         "extract": true
       },

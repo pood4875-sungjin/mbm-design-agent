@@ -330,16 +330,11 @@ test('without a key visual the logo becomes the object (셀트리온·LX·CMTX �
   assert.match(tpl, /data-logo-slot="1"/); assert.doesNotMatch(tpl, /data-object="logo"/);
 });
 
-test('a floating logo stays inside the medium safe area and the copy starts below it', () => {
-  // 에브리타임 커뮤니티 네이티브 288×288: 안전영역 상하좌우 20px. 그림이 있어야 로고가 위에 뜬다 (10-16: 네이버 네이티브 342×228 은 「비주얼만」 규격이 되어 로고·글자를 안 그리므로 여기서 뺌)
-  const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600] } }, specs['daangn-native-feed-image']);   // 10-16: 에브리타임 288 은 비주얼만(글자·로고 없음)이 되어 당근 200×200 으로
-  const m = html.match(/data-logo-slot="1" style="position:absolute;top:(\d+)px;right:(\d+)px;[^"]*height:(\d+)px/);
-  assert.ok(m, '로고가 떠 있다');
-  const [top, right, lh] = m.slice(1).map(Number);
-  const sa = specs['daangn-native-feed-image'].rules?.safeArea ?? {}; const minT = typeof sa.top === 'number' ? sa.top : 10, minR = typeof sa.right === 'number' ? sa.right : 10;   // 당근 200×200: 안전영역 숫자가 있으면 그 값, 없으면 권장 여백 10
-  assert.ok(top >= minT && right >= minR, `안전영역 안 (top ${top}, right ${right})`);
-  const padTop = Number(html.match(/padding:(\d+)px/)[1]);
-  assert.ok(padTop >= top + lh, '글자는 로고 아래에서 시작한다');
+// 11-10: 당근 200×200 은 「비주얼만」(가이드 — 광고 제목·브랜드는 이미지 밖, 글자 50% 미만)이 되어 떠 있는 로고·글자 시험 대상이 없어졌다. 대신 비주얼만 시험:
+test('당근 200×200 은 비주얼만 — 이미지 안에 글자·로고를 그리지 않고 키비주얼을 꽉 채운다(당근01 소재가이드 1:57)', () => {
+  const html = renderAd(ctx, { ...style, logo: 'data:image/png;base64,iVBORw0KGgo=', keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: { ar: 1, px: [600, 600], field: { kind: 'photo', opaque: 1 } } }, specs['daangn-native-feed-image']);
+  assert.doesNotMatch(html, /data-field="(main|date|detail)"|data-logo="1"/);
+  assert.match(html, /data-kv-only="1"[^>]*inset:0[^>]*cover/);
 });
 
 test('the text height rule caps every line, not only the headline (네이버 22~52px)', () => {
