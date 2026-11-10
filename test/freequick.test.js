@@ -9,7 +9,7 @@ const H = `<div data-ad="1" data-spec="google-gdn-580x400" data-free="1" style="
 <svg style="position:absolute;left:0;top:0" width="580" height="400"><circle cx="500" cy="80" r="60" fill="#2A75CE"/></svg>
 <div data-object="1" style="position:absolute;left:300px;top:40px;width:260px;height:320px;background:url('data:image/png;base64,AAAA') center/contain no-repeat"></div>
 <img data-logo="1" src="data:image/png;base64,BBBB" style="position:absolute;left:38px;top:34px;width:88px;height:24px">
-<div data-field="sub" style="position:absolute;left:38px;top:118px;font-size:16px;line-height:22px;color:#fff">2025 하반기</div>
+<div data-field="sub" style="position:absolute;left:38px;top:118px;font-size:16px;line-height:22px;color:#fff">자소서 없는 간편지원</div>
 <div data-field="main" style="position:absolute;left:38px;top:146px;font-size:40px;line-height:48px;font-weight:700;color:#fff">마이다스<br>공개채용</div>
 <div data-field="date" style="position:absolute;left:38px;top:270px;font-size:16px;line-height:24px;color:#fff"><span style="display:inline-block;width:70px;background:#fff;color:#111;font-size:13px">모집기간</span><span style="color:#fff">~10.12</span></div>
 <div data-field="detail" style="position:absolute;left:38px;top:300px;font-size:16px;line-height:24px;color:#fff"><span style="display:inline-block;width:70px;background:#fff;color:#111;font-size:13px">모집직무</span><span style="color:#fff">엔지니어</span></div>

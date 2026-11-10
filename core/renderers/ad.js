@@ -69,12 +69,19 @@ function subShows(ctx, style, spec) {
   return ok;
 }
 // seasonToSub(11-10 사용자 「응」 — 자소설만): 서브 자리가 서고 추가 문구가 비어 있으면 시즌·연도를 서브로(자소설 샘플 4/4 「2026년 하반기」 서브). 메인에 연도가 있으면 안 함(연도 한 번)
+// 서브에 시즌을 쓸 수 있나(자소설만 · 추가 문구 없음 · 메인 글감에 연도 없음) — 룰 렌더(adCore)와 AI 문구 후보(server/freedesign.js copyOptions·core/trackb/prompt.js)가 같은 판정을 쓴다(11-10 사용자 「맞춰줘」)
+export function seasonSubOf(core, seasonToSub) {
+  const c = migrateRecruitCore(core ?? {});
+  const mainTxt = c.headline ? [c.headline] : [c.hiringType, c.client];
+  if (!seasonToSub || String(c.subText ?? '').trim() || !c.season || mainTxt.some(t => YEAR_RE.test(String(t ?? '')))) return null;
+  return String(c.season).trim();
+}
 export function adCore(core, subSlot = false, { seasonToSub = false } = {}) {
   const c = migrateRecruitCore(core ?? {});
   let extra = String(c.subText ?? '').trim() || null;
   const mainTxt = c.headline ? [c.headline] : [c.hiringType, c.client];
   const yearSaid = mainTxt.some(t => YEAR_RE.test(String(t ?? '')));
-  if (seasonToSub && subSlot && !extra && c.season && !yearSaid) extra = String(c.season).trim();
+  if (subSlot && !extra) extra = seasonSubOf(c, seasonToSub);
   const season = c.season && !yearSaid && !subSlot ? String(c.season).trim() : null;
   return { ...c, subText: extra, slogan: extra, season, __yearAuto: !!season, employType: null, location: null, qualification: null, process: null, rows: cleanRows(c.rows) };
 }

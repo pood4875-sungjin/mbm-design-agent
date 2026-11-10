@@ -18,8 +18,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { SPECS } from '../core/contract.js';
 import { registerAll } from '../core/generate.js';
-import { createContext } from '../core/context.js';
-import { copyFor } from '../core/renderers/ad.js';
+import { createContext, migrateRecruitCore } from '../core/context.js';
+import { copyFor, copyLadder, seasonSubOf } from '../core/renderers/ad.js';
 import { limitsByRole, inImage, countChars } from '../core/adfields.js';
 import { FONTS, DEFAULT_FONT, fontIds, isBundledFont, fontRuleOf, effectiveFontId } from '../core/fonts.js';
 import { safeAreaOf } from '../core/trackb/prompt.js';
@@ -234,18 +234,23 @@ export function rulesForSpec(specId, { fontId = DEFAULT_FONT } = {}) {
 }
 
 // 브리프 → 역할별 글감(사다리는 A 트랙과 같은 copyFor). 모델은 이 글만 쓴다.
-export function copyOptions(brief = {}) {
-  const ctx = createContext(brief, 'recruit'); const c = copyFor(ctx);
+// 11-10 사용자 「맞춰줘」 — AI 문구 후보도 룰 렌더와 같은 규칙(docs/ai-rule-layers.md K1): 서브 = 추가 문구(subText)만, 연도는 메인에 한 번,
+//   자소설만 추가 문구가 비면 서브 = 시즌(그때 메인 후보는 연도 없는 것), 상세엔 「시즌 + 채용구분」·슬로건 안 씀, 모집직무가 채용 구분에 든 말이면 상세 없음(결정 ②)
+export function copyOptions(brief = {}, specId = null) {
+  const b = migrateRecruitCore(brief ?? {}) ?? {};   // 옛 slogan → subText, 고용형태·근무지 → 추가 행
+  const ctx = createContext(b, 'recruit'); const c = copyFor(ctx);
   const uniq = a => a.filter(s => s && String(s).trim()).map(s => String(s).trim()).filter((s, i, arr) => arr.indexOf(s) === i);
   const mains = uniq([c.mainWide, c.main, c.mainNarrow]);
-  const season = brief.season ? String(brief.season).trim() : '';
+  const sea = seasonSubOf(b, /^jasoseol-/.test(String(specId ?? '')));
+  const yr = sea?.match(/(?:19|20)\d{2}/)?.[0];
+  const roleRow = copyLadder(ctx).details.find(d => d.label === '모집직무');
   return {
-    main: mains,
-    sub: uniq([brief.slogan, c.sub, season, season && brief.hiringType ? `${season} ${brief.hiringType}` : '']),
+    main: sea ? (mains.filter(m => !m.includes(yr)).length ? mains.filter(m => !m.includes(yr)) : mains) : mains,
+    sub: uniq([b.subText, sea, c.sub]),
     date: c.date ? uniq([`${c.label ?? '접수기간'} ${c.date}`, `모집기간 ${c.date}`, c.date]) : [],
-    detail: uniq([brief.role ? `모집직무 ${brief.role}` : '', season && brief.hiringType ? `${season} ${brief.hiringType}` : '', brief.role ?? '', brief.slogan ?? '']),
-    notice: brief.notice ? [String(brief.notice).trim()] : [],
-    advertiser: c.advertiser ?? brief.client ?? '',
+    detail: roleRow ? uniq([`모집직무 ${roleRow.value}`, roleRow.value]) : [],
+    notice: b.notice ? [String(b.notice).trim()] : [],
+    advertiser: c.advertiser ?? b.client ?? '',
   };
 }
 
@@ -263,7 +268,7 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   const { specId, brief = {}, rules, brand = {}, kv, logo, history = [], prev = null } = input;
   const dir = typeof style === 'string' ? styleOf(style) : style;
   if (!rules) throw new Error('rules 가 없습니다');
-  const copy = copyOptions(brief);
+  const copy = copyOptions(brief, specId);
   const kvMeta = kv?.meta ?? {}; const f = kvMeta.field ?? {};
   const L = [];
   L.push(`너는 채용 광고 소재를 만드는 아트디렉터이자 프런트엔드 디자이너다. 아래 규격·브리프·키비주얼로 ${rules.w}×${rules.h}px 광고 한 장을 HTML/CSS(인라인 SVG 허용)로 **직접 디자인**한다. 템플릿을 고르는 게 아니라 이 그림·이 문구에 맞는 새 배경 디자인(그라데이션·도형·블러·패턴·스크림·키비주얼 합성)과 타이포를 만든다. 그림 파일을 새로 만들지는 않는다 — 배경은 CSS/SVG 로만.`);
@@ -291,10 +296,10 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   for (const n of rules.notes ?? []) L.push(`- ${n}`);
   L.push('');
   L.push(`## 브리프 (글은 아래 것만 — 지어내거나 바꾸지 않는다)`);
-  L.push(`- 고객사: ${brief.client ?? ''}${brief.hiringType ? ` · 채용 종류: ${brief.hiringType}` : ''}${brief.season ? ` · 시즌: ${brief.season}` : ''}`);
+  L.push(`- 고객사: ${brief.client ?? ''}${brief.hiringType ? ` · 채용 종류: ${brief.hiringType}` : ''}${brief.season ? ` · 시즌: ${brief.season}(연도는 광고 전체에 한 번 — 아래 문구 후보에 이미 있으면 다른 데 또 쓰지 않는다)` : ''}`);
   if (brief.role) L.push(`- 모집 직무: ${brief.role}`);
   if (brief.startDate || brief.deadline) L.push(`- 접수: ${brief.startDate ?? ''} ~ ${brief.deadline ?? ''}${brief.deadlineTime ? ` ${brief.deadlineTime}` : ''}`);
-  if (brief.slogan) L.push(`- 슬로건: ${brief.slogan}`);
+  { const ex = String(brief.subText ?? brief.slogan ?? '').trim(); if (ex) L.push(`- 추가 문구(서브 자리에만): ${ex}`); }
   if (brief.notice) L.push(`- 고지(토씨 하나 못 바꿈): ${brief.notice}`);
   L.push(`- 역할별 쓸 수 있는 문구(각 역할에 정확히 이 중 하나, 줄바꿈만 <br> 로 네가 정한다):`);
   for (const role of FIELD_ROLES) if (copy[role]?.length) L.push(`  - ${role}: ${copy[role].map(s => `「${s}」`).join(' / ')}${role === 'main' ? ` — 고객사 이름 「${copy.advertiser}」이 반드시 보인다` : ''}`);
@@ -438,8 +443,8 @@ const squash = s => String(s ?? '').replace(/\s+/g, '').replace(/[~\-–—]/g, 
 export const isCopyError = e => /^(main|sub|date|detail) 문구 「[\s\S]*」 — 브리프 문구가 아님/.test(String(e));
 const bigrams = t => { const x = squash(t); const out = new Set(); for (let i = 0; i < x.length - 1; i++) out.add(x.slice(i, i + 2)); return out; };
 const simOf = (a, b) => { const A = bigrams(a), B = bigrams(b); if (!A.size || !B.size) return 0; let k = 0; for (const g of A) if (B.has(g)) k++; return 2 * k / (A.size + B.size); };
-export function fixCopy(html, brief, errors) {
-  let h = String(html ?? ''); const copy = copyOptions(brief);
+export function fixCopy(html, brief, errors, specId = null) {
+  let h = String(html ?? ''); const copy = copyOptions(brief, specId);
   for (const role of new Set(errors.map(e => /^(\w+) 문구/.exec(e)?.[1]).filter(Boolean))) {
     const opts = copy[role] ?? []; if (!opts.length) return null;
     const re = new RegExp(`(<([a-z0-9]+)\\b[^>]*data-field="${role}"[^>]*>)([\\s\\S]*?)(</\\2>)`, 'i'); const m = re.exec(h); if (!m) return null;
@@ -484,14 +489,17 @@ export function validateFreeHtml(html, input) {
   if (!roles.includes('main')) errors.push('data-field="main" 요소가 없음');
   for (const r of roles) if (!FIELD_ROLES.includes(r)) errors.push(`알 수 없는 data-field 역할 "${r}" (main|sub|date|detail|notice 만)`);
   for (const r of new Set(roles)) if (roles.filter(x => x === r).length > 1) errors.push(`data-field="${r}" 가 ${roles.filter(x => x === r).length}개 — 한 역할에 한 요소`);
-  const copy = copyOptions(brief);
+  const copy = copyOptions(brief, specId);
   for (const f of fields) {
     if (!f.text.trim()) { errors.push(`${f.role} 글자가 비어 있음`); continue; }
     if (f.role === 'main' && copy.advertiser && !squash(f.text).includes(squash(copy.advertiser))) errors.push(`main 에 고객사 이름 「${copy.advertiser}」이 없음`);
     if (f.role === 'notice' && copy.notice[0] && squash(f.text) !== squash(copy.notice[0])) errors.push('notice 문구가 브리프와 다름(토씨 하나 못 바꿈)');
     const opts = copy[f.role] ?? [];
     if (opts.length && !opts.some(o => squash(o) === squash(f.text))) errors.push(`${f.role} 문구 「${f.text.replace(/\n/g, ' ')}」 — 브리프 문구가 아님(허용: ${opts.map(o => `「${o}」`).join(' / ')})`);
-  }
+  }  // 11-10 연도 한 번(L1 year-once — 룰 렌더와 같은 규칙): 같은 연도가 메인·서브·상세에 두 번 이상이면 반려
+  { const yc = {}; for (const f of fields) for (const y of f.text.match(/(?:19|20)\d{2}/g) ?? []) yc[y] = (yc[y] ?? 0) + 1;
+    for (const [y, n] of Object.entries(yc)) if (n > 1) errors.push(`연도 「${y}」가 ${n}번 — 메인에 한 번만(서브·상세에 또 쓰지 않는다)`); }
+
   for (const t of rules.textLimits ?? []) {
     const f = fields.find(x => x.role === t.role); if (!f) continue;
     if (t.maxChars != null) { const n = countChars(f.text.replace(/\n/g, ''), rules.textCounting ?? 'all-1'); if (n > t.maxChars) errors.push(`${t.role} ${n}자 — 최대 ${t.maxChars}자`); }
@@ -812,7 +820,7 @@ async function designVariant(inp, dir, X, { doReview = false, onStage = null, ki
     let sub = substituteAssets(rr, X.assets);
     let v = validateFreeHtml(sub, inp);
     if (!v.ok && v.errors.every(isCopyError)) {   // 문구만 틀렸으면(브리프 문구 아님) 가장 가까운 허용 문구로 바꿔 끼운다 — 0초(11-09 r3: 첫 시도 3안 중 2안이 직무 문구를 줄여 써 통째로 버려졌다)
-      const fc = fixCopy(rr, inp.brief ?? {}, v.errors); if (fc) { const s2 = substituteAssets(fc, X.assets); const v2 = validateFreeHtml(s2, inp); if (v2.ok) { tries.push({ attempt: attempts, errors: v.errors, autofix: [{ role: 'copy' }] }); rr = fc; sub = s2; v = v2; } }
+      const fc = fixCopy(rr, inp.brief ?? {}, v.errors, inp.specId); if (fc) { const s2 = substituteAssets(fc, X.assets); const v2 = validateFreeHtml(s2, inp); if (v2.ok) { tries.push({ attempt: attempts, errors: v.errors, autofix: [{ role: 'copy' }] }); rr = fc; sub = s2; v = v2; } }
     }
     if (fix && raw && !/LANGUAGE\s*[:：]/i.test(r.text ?? '')) text = `${r.text}\n${(text.match(/LANGUAGE\s*[:：][^\n]*/i) ?? [''])[0]}`; else text = r.text;   // 고치기 응답엔 LANGUAGE 가 없다 — 첫 응답 것을 잇는다
     raw = rr; html = sub; notes = extractNotes(r.text) || notes; errors = v.errors; gate = null;
@@ -932,7 +940,7 @@ export async function freeDesign(input = {}, deps = {}) {
 // ── revise — 이전 HTML + 지시만. 자기 검토 없음, 검증기만, 기본 모델 sonnet, 그림 안 봄(도구 없음). 목표 ≤ 60초
 export function buildRevisePrompt(input, { html, instruction, retryErrors = null, fix = false }) {
   const { specId, rules, brief = {} } = input; const sa = rules.safeArea ?? {}; const fo = rules.fonts ?? {}; const lg = rules.logo ?? {};
-  const copy = copyOptions(brief);
+  const copy = copyOptions(brief, specId);
   const L = [];
   L.push(`아래 ${rules.w}×${rules.h}px 채용 광고 HTML 을 지시대로 고쳐 **전체 HTML** 을 다시 내라. 지시 밖의 디자인(구성·색·그래픽)은 유지한다.`);
   L.push('');
