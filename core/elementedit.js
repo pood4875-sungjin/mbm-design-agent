@@ -11,7 +11,9 @@ import { transformCss } from './editlayout.js';
 export const ROLE_NAME = { main: '메인 문구', sub: '서브', detail: '상세', advertiser: '기업명', chip: '뱃지', cta: '버튼', tags: '태그', tag: '태그', date: '날짜', kv: '키비주얼', logo: '로고' };
 // renderer 가 색·크기를 직접 받는 역할(style.roleColors·roleScale)
 export const STYLE_ROLES = ['main', 'sub', 'detail'];
-export const WEIGHTS = [300, 400, 500, 600, 700, 800, 900];
+export const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];   // 11-10: 그 글꼴이 가진 굵기만 패널에 보인다(app — FONTS[].weights)
+// 피그마 굵기 이름(UI3 글자 패널) — 숫자 대신 이름으로 보인다
+export const WEIGHT_NAME = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
 
 export const elementId = (role, n = 0) => (n ? `${role}#${n}` : role);
 export function parseElementId(id) { const [role, n] = String(id).split('#'); return { role, n: +n || 0 }; }
@@ -38,29 +40,101 @@ export function normElementEdits(edits) {
     if (WEIGHTS.includes(+e.weight)) q.weight = +e.weight;
     if (typeof e.font === 'string' && e.font) q.font = e.font;
     if (['left', 'center', 'right'].includes(e.align)) q.align = e.align;
+    // 11-10 피그마 UI3 글자 패널: 자간 ls(% — 글자 크기 대비) · 행간 lh(% — 글자 크기 대비, 피그마 %) · 칠 불투명도 op(%) · 칠 숨김 hid
+    if (e.ls != null && Number.isFinite(+e.ls) && +e.ls >= -50 && +e.ls <= 200) q.ls = round1(+e.ls);
+    if (e.lh != null && Number.isFinite(+e.lh) && +e.lh >= 50 && +e.lh <= 400) q.lh = round1(+e.lh);
+    if (e.op != null && Number.isFinite(+e.op) && +e.op >= 0 && +e.op < 100) q.op = Math.round(+e.op);
+    if (e.hid) q.hid = 1;
     const runs = normRuns(e.runs); if (runs) q.runs = runs;
     if (Object.keys(q).length) out[id] = q;
   }
   return Object.keys(out).length ? out : null;
 }
-// 글자 범위 색(11-09 사용자 「글자색 편집은 글자 하나하나 단위로 — 드래그해서」): runs = [{ s, e, c, t }] — 요소 글자(textContent, <br> 은 0글자)의 [s, e) 를 색 c 로.
-//   t = 고를 때의 그 글자 조각. 문구가 바뀌어 자리가 밀리면 t 를 다시 찾아 붙이고, 없으면 그 범위는 버린다(applyRuns)
+// 글자 범위 서식(11-09 색 → 11-10 사용자 「드래그한 부분만 굵기·컬러 바꿀 수 있게 — 피그마처럼」): runs = [{ s, e, c?, o?, w?, px?, ls?, t }]
+//   요소 글자(textContent, <br> 은 0글자)의 [s, e) 에 속성별 값 — c 색(#RRGGBB) · o 칠 불투명도 %(c 와 함께) · w 굵기(100~900) · px 크기 · ls 자간 %(글자 크기 대비, 피그마 %).
+//   속성은 서로 따로다: 같은 범위에 색만 바꿔도 굵기는 남는다(addRun 이 글자마다 속성을 겹쳐 쓰고 같은 값끼리 다시 묶는다).
+//   t = 그 범위의 글자 조각. 문구가 바뀌어 자리가 밀리면 t 를 다시 찾아 붙이고, 없으면 그 범위는 버린다(locateRuns)
+export const RUN_KEYS = ['c', 'o', 'w', 'px', 'ls'];
+const okRun = {
+  c: v => /^#[0-9A-Fa-f]{6}$/.test(v ?? ''),
+  o: v => Number.isFinite(v) && v >= 0 && v < 100,
+  w: v => Number.isInteger(v) && v >= 100 && v <= 900 && v % 100 === 0,
+  px: v => Number.isFinite(v) && v >= 4 && v <= 600,
+  ls: v => Number.isFinite(v) && v >= -50 && v <= 200,
+};
+function cleanRun(r) {
+  const q = {};
+  if (okRun.c(r.c)) q.c = r.c.toUpperCase();
+  if (q.c && okRun.o(+r.o) && r.o != null) q.o = Math.round(+r.o);
+  if (r.w != null && okRun.w(+r.w)) q.w = +r.w;
+  if (r.px != null && okRun.px(+r.px)) q.px = round1(+r.px);
+  if (r.ls != null && okRun.ls(round1(+r.ls))) q.ls = round1(+r.ls);
+  return q;
+}
 export function normRuns(runs) {
   if (!Array.isArray(runs)) return null;
-  const out = runs.filter(r => r && Number.isInteger(r.s) && Number.isInteger(r.e) && r.e > r.s && r.s >= 0 && /^#[0-9A-Fa-f]{6}$/.test(r.c ?? '')).map(r => ({ s: r.s, e: r.e, c: r.c.toUpperCase(), ...(typeof r.t === 'string' && r.t ? { t: r.t } : {}) }));
+  const out = [];
+  for (const r of runs) {
+    if (!r || !Number.isInteger(r.s) || !Number.isInteger(r.e) || r.e <= r.s || r.s < 0) continue;
+    const q = cleanRun(r); if (!Object.keys(q).length) continue;
+    out.push({ s: r.s, e: r.e, ...q, ...(typeof r.t === 'string' && r.t ? { t: r.t } : {}) });
+  }
   return out.length ? out.sort((a, b) => a.s - b.s) : null;
 }
-// 새 범위를 얹는다 — 겹치는 옛 범위는 겹친 몫만 잘라 낸다(나중에 칠한 색이 이긴다). c 가 null 이면 그 범위의 색을 지운다
-export function addRun(runs, run, text = null) {
-  const out = [];
-  for (const r of runs ?? []) {
-    if (r.e <= run.s || r.s >= run.e) { out.push(r); continue; }
-    if (r.s < run.s) out.push({ ...r, e: run.s, ...(text != null ? { t: text.slice(r.s, run.s) } : {}) });
-    if (r.e > run.e) out.push({ ...r, s: run.e, ...(text != null ? { t: text.slice(run.e, r.e) } : {}) });
+// 자리 다시 맞추기: [s,e) 가 t 와 다르면 t 를 가장 가까운 곳에서 찾는다. 못 찾으면 버린다
+export function locateRuns(text, runs0) {
+  const runs = [];
+  for (const r of runs0 ?? []) {
+    if (!r.t || text.slice(r.s, r.e) === r.t) { if (r.e <= text.length) runs.push(r); continue; }
+    let best = -1, i = text.indexOf(r.t); while (i >= 0) { if (best < 0 || Math.abs(i - r.s) < Math.abs(best - r.s)) best = i; i = text.indexOf(r.t, i + 1); }
+    if (best >= 0) runs.push({ ...r, s: best, e: best + r.t.length });
   }
-  if (run.c) out.push({ s: run.s, e: run.e, c: run.c, ...(text != null ? { t: text.slice(run.s, run.e) } : run.t ? { t: run.t } : {}) });
+  return runs;
+}
+// 글자마다 속성 표 → 같은 속성끼리 다시 묶는다
+function charProps(runs, n) {
+  const P = Array.from({ length: n }, () => ({}));
+  for (const r of runs) for (let k = Math.max(0, r.s); k < Math.min(n, r.e); k++) for (const key of RUN_KEYS) if (r[key] != null) P[k][key] = r[key];
+  return P;
+}
+function packRuns(P, text) {
+  const out = []; const sig = p => RUN_KEYS.map(k => p[k] ?? '').join('|');
+  let k = 0;
+  while (k < P.length) {
+    const g = sig(P[k]); let j = k + 1; while (j < P.length && sig(P[j]) === g) j++;
+    if (Object.keys(P[k]).length) out.push({ s: k, e: j, ...P[k], ...(text != null ? { t: text.slice(k, j) } : {}) });
+    k = j;
+  }
   return normRuns(out);
 }
+// 범위에 속성을 얹는다 — patch 의 키만 바꾼다(값 null = 그 속성 지우기, 없는 키 = 그대로). 겹치는 옛 범위의 다른 속성은 남는다.
+//   예전 호출(addRun(runs, { s, e, c }, text)) 그대로 — c 만 바꾼다. 색을 지우면 불투명도도 함께 지운다
+export function addRun(runs, run, text = null) {
+  const locd = text != null ? locateRuns(text, runs ?? []) : (runs ?? []);
+  const n = text != null ? text.length : Math.max(run.e, ...locd.map(r => r.e), 0);
+  const P = charProps(locd, n);
+  const patch = {}; for (const key of RUN_KEYS) if (key in run) patch[key] = run[key];
+  if ('c' in patch && patch.c == null) patch.o = null;
+  if (patch.o != null && patch.o >= 100) patch.o = null;
+  for (let k = Math.max(0, run.s); k < Math.min(n, run.e); k++) for (const [key, v] of Object.entries(patch)) { if (v == null) delete P[k][key]; else P[k][key] = v; }
+  // 불투명도는 색에 붙는다 — 색이 없는 글자의 o 는 버린다
+  for (const p of P) if (p.o != null && !p.c) delete p.o;
+  return packRuns(P, text);
+}
+// 요소 전체 값을 바꿀 때(범위를 안 고르고 굵기·색·크기를 바꿈 — 피그마처럼 전체에 먹는다) 그 속성을 범위에서 걷어 낸다
+export function stripRuns(runs, keys, text = null) {
+  if (!runs?.length) return null;
+  const R = runs.map(r => { const q = { ...r }; for (const k of keys) delete q[k]; if (keys.includes('c')) delete q.o; return q; });
+  const n = text != null ? text.length : Math.max(...R.map(r => r.e));
+  return packRuns(charProps(text != null ? locateRuns(text, R) : R, n), text);
+}
+// 요소 크기를 k 배로 — 범위 크기도 같은 비율로
+export function scaleRuns(runs, k) {
+  if (!runs?.length || !(k > 0)) return runs ?? null;
+  return normRuns(runs.map(r => (r.px ? { ...r, px: round1(r.px * k) } : r)));
+}
+const rgba = (hex, o) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${Math.round(o) / 100})`; };
+const runCss = p => [p.c ? `color:${p.o != null && p.o < 100 ? rgba(p.c, p.o) : p.c}` : '', p.w ? `font-weight:${p.w}` : '', p.px ? `font-size:${p.px}px` : '', p.ls != null ? `letter-spacing:${round1(p.ls / 100 * 1000) / 1000}em` : ''].filter(Boolean).join(';');
 // 한 요소 값만 고친 새 편집 묶음(patch 의 값이 null 이면 그 항목 지움)
 export function withElementEdit(edits, id, patch) {
   const cur = { ...(edits?.[id] ?? {}) };
@@ -135,29 +209,33 @@ const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00A0' }
 const decodeEnt = x => x.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, n) => n[0] === '#' ? String.fromCodePoint(n[1] === 'x' || n[1] === 'X' ? parseInt(n.slice(2), 16) : +n.slice(1)) : (ENT[n.toLowerCase()] ?? m));
 const encodeTxt = x => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 export const textOfInner = inner => decodeEnt(inner.replace(/<[^>]*>/g, ''));
-// runs 를 안쪽 html 에 입힌다 — 글자 토막을 범위 경계로 나눠 <span data-run> 으로 감싼다(색만 다른 토막이라 SVG 는 한 줄 글자 노드 안 색 구간이 된다)
+// runs 를 안쪽 html 에 입힌다 — 글자 토막을 범위 경계로 나눠 <span data-run> 으로 감싼다(색만 다르면 SVG 는 한 글자 노드 안 색 구간, 굵기·크기가 다르면 tspan·text 를 나눈다)
 export function applyRuns(inner, runs0) {
   const text = textOfInner(inner);
-  // 자리 다시 맞추기: [s,e) 가 t 와 다르면 t 를 가장 가까운 곳에서 찾는다
-  const runs = [];
-  for (const r of runs0 ?? []) {
-    if (!r.t || text.slice(r.s, r.e) === r.t) { if (r.e <= text.length) runs.push(r); continue; }
-    let best = -1, i = text.indexOf(r.t); while (i >= 0) { if (best < 0 || Math.abs(i - r.s) < Math.abs(best - r.s)) best = i; i = text.indexOf(r.t, i + 1); }
-    if (best >= 0) runs.push({ ...r, s: best, e: best + r.t.length });
-  }
+  const runs = locateRuns(text, runs0);
   if (!runs.length) return inner;
-  const colorAt = k => { let c = null; for (const r of runs) if (k >= r.s && k < r.e) c = r.c; return c; };
+  const P = charProps(runs, text.length);
   let pos = 0;
   return inner.replace(/(<[^>]*>)|([^<]+)/g, (m, tag, txt) => {
     if (tag) return tag;
-    const chars = [...decodeEnt(txt)]; let out = '', buf = '', cur;
-    const flush = () => { if (!buf) return; out += cur ? `<span data-run="1" style="color:${cur}">${encodeTxt(buf)}</span>` : encodeTxt(buf); buf = ''; };
-    for (const ch of chars) { const c = colorAt(pos); if (buf && c !== cur) flush(); cur = c; buf += ch; pos += ch.length; }
+    const chars = [...decodeEnt(txt)]; let out = '', buf = '', cur = '';
+    const flush = () => { if (!buf) return; out += cur ? `<span data-run="1" style="${cur}">${encodeTxt(buf)}</span>` : encodeTxt(buf); buf = ''; };
+    for (const ch of chars) { const css = P[pos] ? runCss(P[pos]) : ''; if (buf && css !== cur) flush(); cur = css; buf += ch; pos += ch.length; }
     flush();
     return out;
   });
 }
+// 범위 크기로 커지는 높이 — 줄(<br> 로 나뉜 조각)마다 (가장 큰 범위 px − 바탕 px) × 행간 비율. <br> 없이 감싸 넘어가는 줄은 한 줄로 본다
+function runGrowth(inner, runs, basePx, ratio) {
+  const text = textOfInner(inner), R = locateRuns(text, runs).filter(r => r.px > basePx);
+  if (!R.length) return 0;
+  const parts = inner.split(/<br\s*\/?>/i).map(textOfInner);
+  let pos = 0, grow = 0;
+  for (const p of parts) { const a = pos, b = pos + p.length; const mx = Math.max(0, ...R.filter(r => r.s < b && r.e > a).map(r => r.px)); if (mx > basePx) grow += (mx - basePx) * ratio; pos = b; }
+  return grow;
+}
 function patchText(html, tag, e) {
+  let grow = 0;
   const end = closeEnd(html, tag.t, tag.name, tag.oe);
   let open = html.slice(tag.t, tag.oe + 1), inner = html.slice(tag.oe + 1, end);
   let s = styleOf(open);
@@ -167,6 +245,14 @@ function patchText(html, tag, e) {
   if (e.weight) { s = `${s};font-weight:${e.weight}`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*font-weight\s*:[^;]*/g)); }
   if (fontCss) { s = `${s};font-family:${fontCss}`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*font-family\s*:[^;]*/g)); open = addAttr(open, `data-el-font="${e.font}"`); }
   if (e.align) s = `${s};text-align:${e.align}${/(^|;)\s*display\s*:\s*(inline-)?flex/.test(s) ? `;justify-content:${e.align === 'center' ? 'center' : e.align === 'right' ? 'flex-end' : 'flex-start'}` : ''}`;
+  if (e.ls != null) { s = `${dropDecl(s, /(^|;)\s*letter-spacing\s*:[^;]*/g)};letter-spacing:${round1(e.ls / 100 * 1000) / 1000}em`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*letter-spacing\s*:[^;]*/g)); }
+  if (e.lh != null) s = `${dropDecl(s, /(^|;)\s*line-height\s*:[^;]*/g)};line-height:${round1(e.lh) / 100}`;
+  // 범위 크기(runs px)가 있으면 px 행간을 글자 크기 대비 비율로 — 큰 글자 줄이 그만큼 높아진다(피그마 Auto 행간처럼). 고정 px 이면 큰 글자가 윗줄과 겹친다
+  else if (e.runs?.some(r => r.px)) { const lh = decl(s, 'line-height'), fs = decl(s, 'font-size'); if (lh && fs && +fs[2] > 0) { grow = runGrowth(inner, e.runs, +fs[2], +lh[2] / +fs[2]); s = `${dropDecl(s, /(^|;)\s*line-height\s*:[^;]*/g)};line-height:${Math.round(+lh[2] / +fs[2] * 1000) / 1000}`; } }
+  // 커진 줄만큼 글상자 세로 hug(피그마 Auto height) — 렌더러가 건 줄 수 상한(max-height)을 늘린다. 아래 형제는 applyElementEdits 가 민다(stackBelow)
+  if (grow > 0) { const mh = decl(s, 'max-height'); if (mh) s = s.replace(/(^|;)(\s*max-height\s*:\s*)(-?[\d.]+)px/, (m, a, b, v) => `${a}${b}${round1(+v + grow)}px`); open = addAttr(open, `data-run-grow="${round1(grow)}"`); }
+  if (e.hid) s = `${s};opacity:0`;
+  else if (e.op != null) s = `${s};opacity:${e.op / 100}`;
   if (e.runs) inner = applyRuns(inner, e.runs);
   // 자유 위치(오토레이아웃 2b — 피그마 absolute): 옮긴 요소는 스택에서 빠진다. 렌더러가 적은 지금 스택 밀림(data-stack-dy)을 빼고, 옮길 때의 밀림(sdy)을 더해 옮긴 자리를 지킨다
   const moved = !!(num(e.dx) || num(e.dy)), stackNow = moved ? num(/\sdata-stack-dy="(-?[\d.]+)"/.exec(open)?.[1]) : 0;
@@ -208,6 +294,37 @@ function boxTags(html, kind) {
   return out;
 }
 
+// 오토레이아웃(세로 hug): 범위 크기로 글상자가 커지면(data-run-grow) 같은 부모 안에서 그 아래(top ≥ 원래 바닥)에 있는 절대 위치 글자·줄을 같은 만큼 내린다.
+//   옮긴 요소(data-free — 자유 위치)는 그 자리에 둔다. 부모 글자 열(data-text-col)의 높이도 늘린다
+function stackBelow(html, tag) {
+  if (!tag) return html;
+  const open = html.slice(tag.t, tag.oe + 1), g = +(/\sdata-run-grow="(-?[\d.]+)"/.exec(open)?.[1] ?? 0);
+  if (!(g > 0)) return html;
+  const st = styleOf(open), top = decl(st, 'top'), mh = decl(st, 'max-height');
+  if (!/(^|;)\s*position\s*:\s*absolute/.test(st) || !top || !mh) return html;
+  const bottom0 = +top[2] + +mh[2] - g;
+  // 부모: 앞쪽 여는 태그 중 이 요소를 감싸는 가장 가까운 것
+  const mEnd = closeEnd(html, tag.t, tag.name, tag.oe);
+  let p = tag.t, par = null;
+  while ((p = html.lastIndexOf('<', p - 1)) >= 0) {
+    if (html[p + 1] === '/' || html[p + 1] === '!') continue;
+    const oe = openEnd(html, p), name = /^<([a-zA-Z0-9]+)/.exec(html.slice(p, p + 16))?.[1]?.toLowerCase(); if (!name || VOID.has(name)) continue;
+    if (closeEnd(html, p, name, oe) >= mEnd) { par = { t: p, oe, name }; break; }
+  }
+  if (!par) return html;
+  const pEnd = closeEnd(html, par.t, par.name, par.oe);
+  let body = html.slice(par.oe + 1, pEnd);
+  body = body.replace(/<([a-zA-Z0-9]+)\s[^>]*data-(field|tag-row)="[^"]*"[^>]*>/g, m => {
+    if (m.includes('data-run-grow') || /\sdata-free="1"/.test(m)) return m;
+    const s0 = styleOf(m), t0 = decl(s0, 'top');
+    if (!/(^|;)\s*position\s*:\s*absolute/.test(s0) || !t0 || +t0[2] < bottom0 - 1) return m;
+    return setStyle(m, shift(s0, 'top', g));
+  });
+  // 부모 높이(글자 열)
+  let pOpen = html.slice(par.t, par.oe + 1); const ph = decl(styleOf(pOpen), 'height');
+  if (ph && /data-text-col/.test(pOpen)) pOpen = setStyle(pOpen, shift(styleOf(pOpen), 'height', g));
+  return html.slice(0, par.t) + pOpen + body + html.slice(pEnd);
+}
 // 그려진 html 에 요소 편집을 입힌다. size: { w, h } 캔버스(틀 칸 그림·로고 변형에만 필요). 없는 요소는 조용히 넘긴다(문구가 바뀌어 줄이 없어진 경우)
 export function applyElementEdits(html, edits, size = null) {
   const E = normElementEdits(edits);
@@ -221,7 +338,7 @@ export function applyElementEdits(html, edits, size = null) {
     }
     const { role, n } = parseElementId(id);
     const tag = findTag(out, `data-field="${role}"`, n);
-    if (tag) out = patchText(out, tag, e);
+    if (tag) { out = patchText(out, tag, e); out = stackBelow(out, findTag(out, `data-field="${role}"`, n)); }
   }
   return out;
 }

@@ -12,7 +12,40 @@ const hexOf = css => { const m = String(css).match(/\d+(\.\d+)?/g); if (!m || m.
 const EDITABLE = '[data-field="main"],[data-field="sub"],[data-field="date"],[data-field="detail"]';
 const textOfEl = el => el.innerText.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
 // 11-09 사용자 「피그마 UI 랑 비슷해야」: 더블클릭 = 누른 자리에 커서(바로 수정) · 끌어 고르면 오른쪽 패널에 그 범위의 색(onPick) — 글자 옆 팝오버는 쓰지 않는다
-export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPick = () => {}, onState = () => {}, toast = () => {} }) {
+// 11-10 고른 범위의 지금 서식(피그마 글자 패널처럼 값을 보이고, 섞이면 null = 「혼합」) — 글자마다 그 글자를 감싼 요소의 계산 스타일
+const MIXED = Symbol('mixed');
+export function rangeStyle(fieldEl, s, e) {
+  const win = fieldEl.ownerDocument.defaultView, acc = {};
+  const put = (k, v) => { if (!(k in acc)) acc[k] = v; else if (acc[k] !== v) acc[k] = MIXED; };
+  let pos = 0;
+  const walker = fieldEl.ownerDocument.createTreeWalker(fieldEl, 4);
+  for (let n = walker.nextNode(); n && pos < e; n = walker.nextNode()) {
+    const len = n.nodeValue.length, a = Math.max(s, pos), b = Math.min(e, pos + len);
+    if (b > a && n.nodeValue.slice(a - pos, b - pos).trim()) {
+      const cs = win.getComputedStyle(n.parentElement), fs = parseFloat(cs.fontSize) || 1;
+      const m = String(cs.color).match(/[\d.]+/g) ?? ['0', '0', '0'];
+      put('w', +cs.fontWeight || 400); put('px', Math.round(fs * 10) / 10);
+      put('color', hexOf(cs.color)); put('o', Math.round((m.length > 3 ? +m[3] : 1) * 100));
+      put('ls', cs.letterSpacing === 'normal' ? 0 : Math.round(parseFloat(cs.letterSpacing) / fs * 1000) / 10);
+    }
+    pos += len;
+  }
+  const out = {}; for (const [k, v] of Object.entries(acc)) out[k] = v === MIXED ? null : v;
+  return out;
+}
+// [s, e) 글자 자리를 DOM 범위로(다시 그려진 뒤 고른 범위를 되살릴 때)
+function rangeOf(fieldEl, s, e) {
+  const doc = fieldEl.ownerDocument, r = doc.createRange(), walker = doc.createTreeWalker(fieldEl, 4);
+  let pos = 0, started = false;
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const len = n.nodeValue.length;
+    if (!started && s <= pos + len) { r.setStart(n, s - pos); started = true; }
+    if (started && e <= pos + len) { r.setEnd(n, e - pos); return r; }
+    pos += len;
+  }
+  return null;
+}
+export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPick = () => {}, onState = () => {}, onBold = () => {}, toast = () => {} }) {
   let cur = null;   // { a, key, f, doc, pick: { id, s, e, text } }
   let pop = null;
 
@@ -37,7 +70,15 @@ export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPic
   }
   const hidePop = () => { if (pop) pop.hidden = true; };
 
-  function onKey(e) { if (e.key === 'Escape' && cur) { e.preventDefault(); exit(); } }
+  // ⌘B = 굵게 토글(피그마처럼, 고른 범위가 없으면 요소 전체). ⌘I·⌘U 는 contenteditable 이 <i>·<u> 를 끼워 넣지 않게 막는다
+  const fmtKey = e => {
+    if (!cur || !(e.metaKey || e.ctrlKey) || e.altKey) return false;
+    const k = e.key.toLowerCase();
+    if (k === 'b') { e.preventDefault(); e.stopPropagation(); onBold(cur.a, cur.pick); return true; }
+    if (k === 'i' || k === 'u') { e.preventDefault(); return true; }
+    return false;
+  };
+  function onKey(e) { if (fmtKey(e)) return; if (e.key === 'Escape' && cur) { e.preventDefault(); exit(); } }
   function arm() {
     if (!cur) return;
     const doc = docOf(cur.f); if (!doc?.head) return;
@@ -57,13 +98,15 @@ export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPic
     };
     doc.addEventListener('focusout', e => commitEl(e.target?.closest?.(EDITABLE)));
     doc.addEventListener('keydown', e => {
+      if (fmtKey(e)) return;
       const el = e.target?.closest?.(EDITABLE); if (!el) return;
       // 11-09 사용자 「엔터 하면 여기서 줄바꿈 되고 조절되도록」: Enter = 커서 자리 줄바꿈(피그마처럼). 저장은 바깥 클릭·Esc(저장하고 끝내기) · 취소는 ⌘Z
       if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); doc.execCommand('insertLineBreak'); }
       else if (e.key === 'Escape') { e.preventDefault(); commitEl(el); el.blur(); }   // 저장하고 끝내기(keyup 에서 exit)
     });
     doc.addEventListener('mouseup', () => setTimeout(check, 0));
-    doc.addEventListener('keyup', e => { if (e.key === 'Escape') exit(); else check(); });
+    doc.addEventListener('keyup', e => { if (e.key === 'Escape') exit(); else if (!(e.metaKey || e.ctrlKey)) check(); });
+    if (cur.pick && !restorePick()) { cur.pick = null; onPick(null, cur.a); }   // 새로 실린 문서(srcdoc) — 고른 범위 되살리기
   }
   function check() {
     if (!cur) return;
@@ -79,9 +122,9 @@ export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPic
     if (e <= s) return clear();
     const role = f0.dataset.field, n = [...doc.querySelectorAll(`[data-field="${role}"]`)].indexOf(f0);
     const text = f0.textContent;
-    const color = hexOf(doc.defaultView.getComputedStyle((r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement)).color);
-    const pick = { id: n > 0 ? `${role}#${n}` : role, s, e, text, part: text.slice(s, e), color };
-    if (cur.pick && cur.pick.id === pick.id && cur.pick.s === s && cur.pick.e === e) return;
+    const st = rangeStyle(f0, s, e);
+    const pick = { id: n > 0 ? `${role}#${n}` : role, s, e, text, part: text.slice(s, e), color: st.color ?? hexOf(doc.defaultView.getComputedStyle((r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement)).color), st };
+    if (cur.pick && cur.pick.id === pick.id && cur.pick.s === s && cur.pick.e === e && JSON.stringify(cur.pick.st) === JSON.stringify(st)) return;
     cur.pick = pick; onPick(pick, cur.a);
   }
 
@@ -121,6 +164,19 @@ export function createCharSel({ frames, keyOf, onApply, onText = () => {}, onPic
     const a = cur.a, hadPick = !!cur.pick; cur = null; hidePop(); if (hadPick) onPick(null, a); onState(false, a);
   }
   // 프레임이 새로 그려진 뒤(색 적용 · 실시간 미리보기) — 글자 고르기 스타일·이벤트를 다시 건다
-  function rearm(key) { if (cur && (!key || key === cur.key)) { cur.f = frames.get(cur.key) ?? cur.f; arm(); hidePop(); if (cur.pick) { cur.pick = null; onPick(null, cur.a); } } }
-  return { enter, exit, rearm, get key() { return cur?.key ?? null; }, get on() { return !!cur; }, get pick() { return cur?.pick ?? null; } };
+  //   11-10 피그마처럼 고른 범위는 서식을 바꾼 뒤에도 그대로 — 같은 [s, e) 를 새 문서에서 다시 고르고 지금 서식을 다시 잰다(굵기 바꾸고 이어서 색)
+  function restorePick() {
+    const p = cur?.pick; if (!p) return false;
+    const doc = docOf(cur.f); if (!doc) return false;
+    const { role, n } = (() => { const [r0, k] = p.id.split('#'); return { role: r0, n: +k || 0 }; })();
+    const el = doc.querySelectorAll(`[data-field="${role}"]`)[n];
+    if (!el || el.textContent !== p.text) return false;
+    const rg = rangeOf(el, p.s, p.e), sel = doc.getSelection?.(); if (!rg || !sel) return false;
+    sel.removeAllRanges(); sel.addRange(rg);
+    cur.pick = { ...p, st: rangeStyle(el, p.s, p.e) }; cur.pick.color = cur.pick.st.color ?? p.color;
+    onPick(cur.pick, cur.a);
+    return true;
+  }
+  function rearm(key) { if (cur && (!key || key === cur.key)) { cur.f = frames.get(cur.key) ?? cur.f; arm(); hidePop(); if (cur.pick && !restorePick()) { cur.pick = null; onPick(null, cur.a); } } }
+  return { enter, exit, rearm, restorePick, get key() { return cur?.key ?? null; }, get on() { return !!cur; }, get pick() { return cur?.pick ?? null; } };
 }

@@ -44,8 +44,8 @@ import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
 import { createElementSelect } from './elselect.js';   // 11-02 프레임 안 요소 고르기
 import { createRuler } from './ruler.js';
-import { applyElementEdits, elementFontIds, elementName, parseElementId, withElementEdit, addRun, STYLE_ROLES, WEIGHTS } from '../core/elementedit.js';
-import { createCharSel } from './charsel.js';   // 11-09 글자 범위 색(드래그로 고른 글자만)
+import { applyElementEdits, applyRuns, elementFontIds, elementName, parseElementId, withElementEdit, addRun, stripRuns, scaleRuns, STYLE_ROLES, WEIGHTS, WEIGHT_NAME } from '../core/elementedit.js';
+import { createCharSel, rangeStyle } from './charsel.js';   // 11-09 글자 범위 색(드래그로 고른 글자만)
 import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
 import { getKey as aiGetKey } from './llm.js';
@@ -102,16 +102,71 @@ const frames = new Map();  // artifact.key → {frame, iframe, badge, label}
 // 선택하기(11-02, app/select.js) — 선택은 세션만(저장 안 함). 켜져 있으면 카드 클릭·빈 곳 드래그가 선택이 되고, 내보내기 모달에 「선택한 소재만」이 뜬다
 const SEL = createSelect({ state, frames, $ });
 // 글자 범위 색(11-09 사용자 「글자 하나하나 단위로 — 드래그해서」, app/charsel.js): 고른 프레임 글자 더블클릭 → 끌어 고르기 → 그 글자만 색(overrides.elements[요소].runs)
-const CS = createCharSel({ frames, keyOf: a => a.key ?? a.specId, onApply: (a, id, run, text) => charApply(a, id, run, text), onText: (a, id, text, was) => charText(a, id, text, was), toast: t => toast(t),
+const CS = createCharSel({ frames, keyOf: a => a.key ?? a.specId, onApply: (a, id, run, text) => charApply(a, id, run, text), onText: (a, id, text, was) => charText(a, id, text, was), onBold: (a, pick) => boldToggle(a, pick), toast: t => toast(t),
   // 피그마처럼: 편집 중엔 선택 손잡이를 숨기고, 끌어 고른 범위는 오른쪽 패널(고른 글자 · 칠)로
   onPick: (p, a) => { if (p && state.selected === (a.key ?? a.specId) && state.elSel !== p.id) state.elSel = p.id; if (state.campaign) renderInspector(); },
   onState: (on, a) => { if (on) EL.hide(); else if (state.elSel && state.selected === (a?.key ?? a?.specId)) EL.show(a, state.elSel); if (state.campaign) renderInspector(); } });
-function charApply(a, id, run, text) {
-  if (textColorRegulated(SPECS[a.specId])) { toast('이 매체는 글자색이 규정으로 정해져 있어 글자 일부 색을 바꿀 수 없어요'); return; }
+function charApply(a, id, run, text) { rangeApply(a, id, run, text); }
+// 11-10 범위 서식(피그마 UI3 글자 패널): run = { s, e, c?, o?, w?, px?, ls? } — 준 속성만 바꾸고 나머지는 남긴다(null = 그 속성 지우기). 매체 규정 잠금은 사유 한 줄로 막는다
+const RUN_LABEL = { c: '색', o: '불투명도', w: '굵기', px: '크기', ls: '자간' };
+function rangeApply(a, id, run, text) {
+  const spec = SPECS[a.specId], keys = Object.keys(run).filter(k => k in RUN_LABEL);
+  const why = (keys.includes('c') || keys.includes('o')) && rangeColorLockOf(spec) ? rangeColorLockOf(spec)
+    : (keys.includes('w') || keys.includes('ls')) && styleLockOf(spec) ? '이 매체는 굵기·자간 같은 글꼴 스타일을 바꿀 수 없어요(규정)'
+    : keys.includes('px') && sizeLockedOf(spec) ? '이 규격은 글자 크기가 규정으로 정해져 있어 바꿀 수 없어요' : null;
+  if (why) { toast(why); return; }
   const runs = addRun(a.overrides.elements?.[id]?.runs ?? null, run, text);
-  elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: runs ?? null }) }, `${elementName(id)} 글자 ${run.c ? '색' : '색 지우기'}`);
+  const label = keys.map(k => RUN_LABEL[k]).join('·');
+  elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: runs ?? null }) }, `${elementName(id)} 고른 글자 ${label}${keys.every(k => run[k] == null) ? ' 지우기' : ''}`);
   setTimeout(() => CS.rearm(a.key ?? a.specId), 80);
 }
+// ⌘B(피그마): 고른 범위(없으면 문구 전체)가 모두 Bold 이상이면 Regular 쪽으로, 아니면 Bold 쪽으로 — 그 글꼴이 가진 굵기 중 가장 가까운 것
+function boldToggle(a, pick) {
+  const id = pick?.id ?? state.elSel; if (!id || /^(kv|logo)$/.test(id)) return;
+  const it = EL.find(a, id); if (!it?.el) return;
+  const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el), ws = fontWeightsOf(cs);
+  const cur = pick ? pick.st?.w : rangeStyle(it.el, 0, it.el.textContent.length).w;
+  const toBold = !(cur != null && cur >= 700);
+  const near = t => ws.reduce((p, q) => (Math.abs(q - t) < Math.abs(p - t) ? q : p), ws[0]);
+  const w = toBold ? (ws.filter(x => x >= 700)[0] ?? near(700)) : near(400);
+  if (pick) rangeApply(a, id, { s: pick.s, e: pick.e, w }, pick.text);
+  else {
+    if (styleLockOf(SPECS[a.specId])) { toast('이 매체는 굵기·자간 같은 글꼴 스타일을 바꿀 수 없어요(규정)'); return; }
+    const ed = a.overrides.elements?.[id] ?? {};
+    elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { weight: w, runs: stripRuns(ed.runs, ['w'], it.el.textContent) }) }, `${elementName(id)} ${toBold ? '굵게' : '굵게 풀기'}`);
+  }
+}
+// 11-10 사용자 「피그마처럼 실시간으로」: 색 피커 끌기·숫자 칸 입력 중엔 보이는 프레임의 그 글자에 직접 입힌다(재렌더·안 후보 계산 없음).
+//   처음 칠할 때의 안쪽 html 을 기억해 두고 매번 그 위에 범위 서식 하나를 얹는다(applyRuns) — 손을 떼면(change) runs 에 한 번 커밋 + 되돌리기 한 걸음, 정식 그림이 이 미리보기를 덮는다
+let liveOrig = new WeakMap();   // 글자 요소 → { inner, style } — 커밋(elCommit)하면 비운다
+function liveFieldEl(a, id) {
+  const doc = frames.get(a.key ?? a.specId)?.iframe?.contentDocument; if (!doc) return null;
+  const { role, n } = parseElementId(id);
+  return doc.querySelectorAll(`[data-field="${role}"]`)[n] ?? null;
+}
+function livePaint(a, id, run) {   // run: { s, e, c?, o?, w?, px?, ls? } 범위 · 또는 { whole: { color?, op?, ls?, lh? } } 문구 전체
+  const el = liveFieldEl(a, id); if (!el) return;
+  let o = liveOrig.get(el); if (!o) { o = { inner: el.innerHTML, style: el.getAttribute('style') ?? '' }; liveOrig.set(el, o); }
+  const doc = el.ownerDocument; doc.__liveHtml = null; const f = frames.get(a.key ?? a.specId); if (f) f.shown = null;   // 정식 그림이 같은 html 이어도 다시 입히게
+  if (run.whole) {
+    const w = run.whole; let st = o.style;
+    if (w.color) st += `;color:${w.color}`;
+    if (w.op != null) st += `;opacity:${w.op / 100}`;
+    if (w.ls != null) st += `;letter-spacing:${w.ls / 100}em`;
+    if (w.lh != null) st += `;line-height:${w.lh / 100}`;
+    if (w.weight) st += `;font-weight:${w.weight}`;
+    if (w.px) st += `;font-size:${w.px}px`;
+    if (w.color) { if (!o.cleared) { el.innerHTML = o.inner; for (const n of el.querySelectorAll('[style]')) n.style.removeProperty('color'); o.cleared = true; } }   // 문구 전체 색은 안쪽 강조색·범위 색도 덮는다(커밋도 같다)
+    el.setAttribute('style', st);
+    return;
+  }
+  const { s, e, ...patch } = run;
+  el.innerHTML = applyRuns(o.inner, [{ s, e, ...patch }]);
+  if (o.style !== el.getAttribute('style')) el.setAttribute('style', o.style);
+}
+function liveForget(a, id) { const el = liveFieldEl(a, id); if (el) liveOrig.delete(el); }
+// 입력하다 그만두면(Esc·같은 값으로 닫기) 정식 그림으로 되돌린다
+function liveCancel(a, id) { const el = liveFieldEl(a, id); if (!el || !liveOrig.has(el)) return; const o = liveOrig.get(el); el.innerHTML = o.inner; el.setAttribute('style', o.style); liveOrig.delete(el); setTimeout(() => CS.rearm(a.key ?? a.specId), 0); }
 // 11-09 캔버스 글자 고치기 = 그 소재만(일괄은 왼쪽 패널). 요소 → 브리프 칸: 메인 → 공고 타이틀 · 서브 → 서브 문구 · 날짜 → 날짜 문구 · 상세 줄 → 라벨로 모집 직무·근무지·고용 형태·날짜
 function charText(a, id, text, was) {
   const c = state.campaign; if (!c) return;
@@ -2060,7 +2115,7 @@ function layoutArtboard(opts = {}) {
         const ds = ch === 'ad' ? Math.min(1, 460 / nw, 300 / nh) : (DISPLAY_SCALE[ch] ?? 1);
         const w = nw * ds, h = nh * ds;
         const frame = document.createElement('div');
-        frame.className = 'frame';
+        frame.className = 'frame'; frame.dataset.key = a.key ?? a.specId;   // 실측·자동화가 프레임을 찾는 열쇠
         frame.style.left = x + 'px'; frame.style.top = y + 'px';
         frame.innerHTML = `
           <div class="flabel"><span class="fname"${a.channel === 'ad' && twinTitle(a.specId) ? ` title="${escH(twinTitle(a.specId))}"` : ''}>${opts.blank ? '생성 중…' : boardLabel(a)}</span><span class="badge ${a.status}">${badgeText(a.status)}</span><span class="badge gate"></span><span class="badge lint" style="display:none"></span><span class="badge design" style="display:none"></span><span class="badge sample" style="display:none"></span><span class="badge guide" style="display:none"></span><span class="badge edited" style="display:none"></span><span class="badge fit" style="display:none" title=""></span></div>
@@ -2326,7 +2381,7 @@ function designCheck(a) {
   try { const n = f.iframe.contentDocument.querySelectorAll('[data-sample]').length; if (f.sample) { f.sample.style.display = n ? '' : 'none'; f.sample.textContent = n ? `샘플 문구 ${n}` : ''; f.sample.title = n ? '비어 있는 정보 자리에 넣은 샘플 문구 — 승인 전에 실제 정보로 바꾸세요' : ''; } } catch {}
   if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
   leftLiveRefresh();   // 11-09 왼쪽 문구 칸의 자동값은 그려진 소재에서 읽는다 — 그려지면 다시 채운다
-  if (state.selected === (a.key ?? a.specId) && state.elSel) { EL.show(a, state.elSel); if (!$('inspector').contains(document.activeElement)) renderInspector(); }   // 다시 그려진 뒤 선택 테두리·패널 수치를 새 자리에
+  if (state.selected === (a.key ?? a.specId) && state.elSel) { if (!(CS.on && CS.key === (a.key ?? a.specId))) EL.show(a, state.elSel); if (!$('inspector').contains(document.activeElement)) renderInspector(); }   // 다시 그려진 뒤 선택 테두리·패널 수치를 새 자리에
   ED.afterRender(a);   // 같은 모양 옮기기 경계 맞춤 → 직접 수정 손잡이 → 가이드 검수(10-14)
 }
 const designWarnings = a => (a.design?.warnings ?? []).filter(w => w.level !== 'info');
@@ -2841,11 +2896,8 @@ function elementPanelHtml(a, spec, id) {
   const ed = a.overrides.elements?.[id] ?? {}, st = a.overrides.style ?? {};
   const own = !!(a.overrides.elements?.[id] || (isStyleRole(id) && (st.roleColors?.[role] || st.roleScale?.[role])) || a.overrides.layout?.[role]);
   const head = `<h3>${escH(elementName(id))} ${own ? `<button type="button" class="ovr" id="iElReset" title="일괄값으로 되돌리기" aria-label="${escH(elementName(id))} 일괄값으로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>`;
-  // 11-09 피그마식: 글자 편집 중 끌어 고른 범위 — 그 범위의 칠(색)을 여기서 바꾼다
+  // 11-10 피그마 UI3 글자 패널: 글자 편집 중 끌어 고른 범위가 있으면 아래 「글자」·「칠」 칸이 그 범위의 값(섞이면 혼합)을 보이고 그 범위에 먹는다
   const pk = CS.on && CS.key === (a.key ?? a.specId) && CS.pick?.id === id ? CS.pick : null;
-  const pickSec = pk ? `<section class="isec" id="iPickSec"><h3>고른 글자 <span class="mode">「${escH(pk.part.slice(0, 18))}${pk.part.length > 18 ? '…' : ''}」 ${pk.part.length}글자</span></h3>
-      ${textColorRegulated(spec) ? '<div class="fnote">이 매체는 글자색이 규정이라 색을 바꿀 수 없어요</div>' : `<label>칠</label><div class="fstack" style="display:flex;gap:6px;align-items:center"><input type="color" id="iPickColor" value="${pk.color}" aria-label="고른 글자 색"><input type="text" id="iPickHex" value="${pk.color}" maxlength="7" spellcheck="false" aria-label="색 코드" style="width:90px"><button type="button" class="btn" id="iPickClear">색 지우기</button></div>
-      <div class="fnote">이 소재의 고른 글자만 바뀌어요</div>`}</section>` : '';
   const posRow = `<div class="fgrid2">${numField({ id: 'iElX', value: r1(box.x), label: 'X 위치', prefix: 'X' })}${numField({ id: 'iElY', value: r1(box.y), label: 'Y 위치', prefix: 'Y' })}</div>`;
   if (it.kind !== 'text') {
     const P = ED.partsOf(a), why = !P?.[it.kind] ? P?.why?.[it.kind] : null;
@@ -2858,31 +2910,73 @@ function elementPanelHtml(a, spec, id) {
       <button class="btn" data-goall="kv" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button></section>` : `<section class="isec"><button class="btn" data-goall="logo" style="width:100%">로고 바꾸기</button></section>`}`;
   }
   const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el);
-  const px = Math.round(parseFloat(cs.fontSize) * 10) / 10, w = +cs.fontWeight || 400, curColor = (isStyleRole(id) ? st.roleColors?.[role] : ed.color) ?? hexOfCss(cs.color);
-  const al = ed.align ?? (['left', 'center', 'right'].includes(cs.textAlign) ? cs.textAlign : 'left');
-  const fontRule = fontRuleOf(spec?.mediumRules, spec?.rules);
   // 오토레이아웃(11-09 2b): 옮긴 글자 = 자유 위치(스택에서 빠짐). 다른 글자와 겹치면 경고 · 「자동 배치로 되돌리기」
   const freeSec = (ed.dx || ed.dy) ? (() => { const hit = EL.list(a).filter(o => o.kind === 'text' && o.id !== id && o.box.x < box.x + box.w && box.x < o.box.x + o.box.w && o.box.y < box.y + box.h && box.y < o.box.y + o.box.h); return `<div class="fnote" id="iElFree">자유 위치(옮김) — 다른 글자 줄 수가 바뀌어도 이 자리에 남아요${hit.length ? ` · <b style="color:var(--danger,#c00)">${escH(hit.map(o => elementName(o.id)).join('·'))}와 겹침</b>` : ''}</div><button type="button" class="btn" id="iElAuto" style="width:100%;margin-top:6px">자동 배치로 되돌리기</button>`; })() : '';
-  return `${pickSec}<section class="isec">${head}
+  return `<section class="isec">${head}
     ${posRow}${freeSec}
     <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비(글자에 맞춤)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이(글자에 맞춤)', prefix: 'H', attrs: 'disabled' })}</div>
     </section>
-    <section class="isec"><h3>글자</h3>
-    ${locks.font ? `<label>글꼴</label><div class="fnote">이 매체는 ${escH(fontRule.required)} 고정</div>` : `<label for="iElFont">글꼴</label><select id="iElFont"><option value="" ${ed.font ? '' : 'selected'}>공통 따름</option>${fontOptions(ed.font ?? '')}</select>`}
-    <div class="fgrid2" style="margin-top:6px">
-      <div><label for="iElWeight">굵기</label><select id="iElWeight">${WEIGHTS.map(v => `<option value="${v}" ${v === w ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
-      <div><label for="iElSize">크기</label>${numField({ id: 'iElSize', value: px, label: '글자 크기', unit: 'px', attrs: locks.size ? 'disabled' : '' })}</div>
-    </div>
-    <label>정렬</label>
-    <div class="vseg" id="iElAlign" role="group" aria-label="정렬">${[['left', 'ta-l', '왼쪽'], ['center', 'ta-c', '가운데'], ['right', 'ta-r', '오른쪽']].map(([k, icn, n]) => `<button type="button" data-ela="${k}" class="${al === k ? 'on' : ''}" aria-pressed="${al === k}" aria-label="${n}" title="${n}">${ic(icn)}</button>`).join('')}</div>
-    ${pk ? `<label>색</label><div class="fnote">글자 범위를 고르는 중이에요 — 위 「고른 글자 · 칠」에서 그 부분만 바꿔요(문구 전체 색은 글자 편집을 끝낸 뒤)</div>` : `<label>색</label>
-    <div class="fstack">${colorRowHtml({ id: 'iElColor', value: curColor, label: `${elementName(id)} 색`, disabled: locks.color })}</div>`}
-    ${(() => { const nr = (ed.runs ?? []).length; return `<button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:6px">${CS.on && CS.key === (a.key ?? a.specId) ? '글자 편집 끝내기' : locks.color ? '이 소재 글자 고치기' : '이 소재 글자 고치기 · 일부 색'}</button>${nr ? `<div class="fnote">따로 칠한 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : `<div class="fnote">미리보기 글자를 더블클릭해도 돼요. 이 소재만 바뀌어요 — 모든 소재는 왼쪽 패널에서${locks.color ? ' · 이 매체는 글자색이 규정이라 색은 못 바꿔요' : ''}</div>`}`; })()}
-      ${OMIT_ROLE[role] ? `<button type="button" class="btn" id="iElOmit" style="width:100%;margin-top:6px">이 소재에서 ${OMIT_NAME[OMIT_ROLE[role]]} 빼기 <span style="opacity:.6">Delete</span></button>` : ''}
-    ${(() => { const notes = [locks.color ? '글자색이 규정으로 정해진 규격' : spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색' : '', locks.size ? '글자 크기가 규정으로 정해진 규격' : ''].filter(Boolean); return notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''; })()}
+    ${typoSecHtml(a, spec, id, it, cs, ed, locks, pk)}`;
+}
+// 글자 패널 값 — 범위를 고르면 그 범위(pk.st), 아니면 요소 글자 전체를 잰 값(따로 서식 준 범위가 섞이면 혼합)
+const MIX = '혼합';
+const FONT_PX_PRESETS = [10, 11, 12, 13, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120];
+const famOfCss = ff => String(ff ?? '').split(',')[0].replace(/['"]/g, '').trim();
+// 그 글꼴이 가진 굵기만(묶은 글꼴 FONTS[].weights) — 모르는 글꼴(올린 글꼴·시스템)은 100~900
+function fontWeightsOf(cs) { const fam = famOfCss(cs.fontFamily), f = Object.values(FONTS).find(x => x.family === fam); return f?.weights?.length ? f.weights : WEIGHTS; }
+// 매체 규정으로 글꼴 스타일(굵기·자간)이 잠긴 규격 — 자소설 「폰트 스타일도 변경 불가」, 카카오·NAP 비즈보드 「기울기·왜곡·자간·장평 등 글꼴 스타일 변경 불가」
+function styleLockOf(spec) { const note = String(spec?.mediumRules?.fonts?.note ?? ''); return /폰트 스타일도 변경 불가/.test(note) || (/글꼴 스타일 변경 불가/.test(note) && sizeLockedOf(spec)); }
+// 범위 색 잠금 — 글자색 규정 + 「모든 문구 한 색」 매체(자소설)
+const rangeColorLockOf = spec => textColorRegulated(spec) ? '이 매체는 글자색이 규정이라 글자 일부 색을 바꿀 수 없어요' : spec?.mediumRules?.textColors?.uniform ? '이 매체는 모든 문구를 한 색으로 통일하는 규정이라 글자 일부 색을 바꿀 수 없어요' : null;
+function typoState(a, id, it, cs, ed, pk) {
+  const st = pk ? pk.st : (() => { try { return rangeStyle(it.el, 0, it.el.textContent.length); } catch { return {}; } })();
+  const fs = parseFloat(cs.fontSize) || 1;
+  const lhPct = ed.lh ?? (cs.lineHeight === 'normal' ? null : Math.round(parseFloat(cs.lineHeight) / fs * 100));
+  return { st, lhPct };
+}
+function typoSecHtml(a, spec, id, it, cs, ed, locks, pk) {
+  const { st, lhPct } = typoState(a, id, it, cs, ed, pk), fontRule = fontRuleOf(spec?.mediumRules, spec?.rules), { role } = parseElementId(id);
+  const styleLock = styleLockOf(spec), colorLock = pk ? rangeColorLockOf(spec) : (locks.color ? '이 매체는 글자색이 규정이라 바꿀 수 없어요' : null);
+  const ws = fontWeightsOf(cs), wv = st.w ?? null;
+  const wOpts = [...new Set([...ws, ...(wv != null && !ws.includes(wv) ? [wv] : [])])].sort((x, y) => x - y);
+  const wSel = `<select id="iElWeight" aria-label="굵기" ${styleLock ? 'disabled' : ''}>${wv == null ? `<option value="" selected>${MIX}</option>` : ''}${wOpts.map(v => `<option value="${v}" ${v === wv ? 'selected' : ''}>${WEIGHT_NAME[v] ?? v}</option>`).join('')}</select>`;
+  const sizeF = `<div class="fin pre ico"><span class="k" aria-hidden="true">${ic('fsize')}</span><input type="text" inputmode="decimal" class="fnum" id="iElSize" list="iElSizeList" value="${st.px ?? MIX}" aria-label="글자 크기(px)" ${locks.size ? 'disabled' : ''}></div><datalist id="iElSizeList">${FONT_PX_PRESETS.map(v => `<option value="${v}">`).join('')}</datalist>`;
+  const lhF = numField({ id: 'iElLh', value: lhPct ?? 'Auto', label: '행간(글자 크기 대비 %) — 문구 전체', icon: 'lh', unit: '%' });
+  const lsF = numField({ id: 'iElLs', value: st.ls ?? MIX, label: `자간(글자 크기 대비 %)${pk ? ' — 고른 글자' : ''}`, icon: 'ls', unit: '%', attrs: styleLock ? 'disabled' : '' });
+  const al = ed.align ?? (['left', 'center', 'right'].includes(cs.textAlign) ? cs.textAlign : 'left');
+  const alignSeg = `<div class="vseg" id="iElAlign" role="group" aria-label="가로 정렬">${[['left', 'ta-l', '왼쪽'], ['center', 'ta-c', '가운데'], ['right', 'ta-r', '오른쪽']].map(([k, icn, n]) => `<button type="button" data-ela="${k}" class="${al === k ? 'on' : ''}" aria-pressed="${al === k}" aria-label="${n} 정렬" title="${n} 정렬">${ic(icn)}</button>`).join('')}</div>`;
+  // 세로 정렬: 글상자가 글자에 맞춤(피그마 Auto height)이라 위·가운데·아래가 같은 자리 — 모양만 두고 끈다
+  const vNote = '글상자 높이가 글자에 맞춤(Auto height)이라 세로 정렬은 효과가 없어요';
+  const vSeg = `<div class="vseg" role="group" aria-label="세로 정렬">${[['tv-t', '위'], ['tv-m', '가운데'], ['tv-b', '아래']].map(([icn, n], i) => `<button type="button" class="${i === 0 ? 'on' : ''}" disabled aria-label="세로 ${n} 정렬" title="${vNote}">${ic(icn)}</button>`).join('')}</div>`;
+  const head = pk ? `<span class="mode">고른 글자 「${escH(pk.part.slice(0, 14))}${pk.part.length > 14 ? '…' : ''}」 ${pk.part.length}글자</span>` : '';
+  // 칠(Fill): 색 칩 · 헥스 · 불투명도 % · 보이기 · 빼기
+  const curColor = pk ? st.color : ((isStyleRole(id) ? a.overrides.style?.roleColors?.[role] : ed.color) ?? st.color);
+  const op = pk ? (st.o ?? null) : (ed.hid ? 0 : ed.op ?? 100);
+  const hidden = pk ? st.o === 0 : !!ed.hid;
+  const hasOwn = pk ? (ed.runs ?? []).some(r => r.c && r.s < pk.e && r.e > pk.s) : !!((isStyleRole(id) ? a.overrides.style?.roleColors?.[role] : ed.color) || ed.op != null || ed.hid || (ed.runs ?? []).some(r => r.c));
+  const fillRow = colorRowHtml({ id: 'iElColor', value: curColor ?? '#888888', label: pk ? '고른 글자 색' : `${elementName(id)} 색`, idle: !curColor, disabled: !!colorLock,
+    tail: '', after: `${iconBtn(hidden ? 'eye-off' : 'eye', hidden ? '칠 보이기' : '칠 숨기기', `id="iElEye" aria-pressed="${hidden}" ${colorLock ? 'disabled' : ''}`)}${iconBtn('minus', pk ? '고른 글자 칠 지우기(문구 색으로)' : '따로 지정한 칠 지우기(자동 색으로)', `id="iElFillClear" ${hasOwn && !colorLock ? '' : 'disabled'}`)}` })
+    .replace('</div><button', `<span class="fop"><input type="text" inputmode="decimal" class="fnum fopn" id="iElOp" value="${op ?? MIX}" aria-label="칠 불투명도(%)" ${colorLock ? 'disabled' : ''}><i aria-hidden="true">%</i></span></div><button`)
+    .replace(/(class="fhex" value=")([^"]*)(")/, (m0, x, v, y) => curColor ? m0 : `${x}${y} placeholder="${MIX}"`);
+  const notes = [styleLock ? '이 매체는 굵기·자간 같은 글꼴 스타일을 바꿀 수 없어요(규정)' : '', locks.size ? '글자 크기가 규정으로 정해진 규격' : '', colorLock ?? (spec.mediumRules?.textColors?.uniform ? '이 매체는 문구 전체가 한 색' : '')].filter(Boolean);
+  const nr = (ed.runs ?? []).length, on = CS.on && CS.key === (a.key ?? a.specId);
+  return `<section class="isec" id="iTypoSec"><h3>글자 ${head}</h3>
+    ${locks.font ? `<div class="fnote" style="margin:0 0 6px">글꼴: 이 매체는 ${escH(fontRule.required)} 고정</div>` : `<select id="iElFont" aria-label="글꼴(문구 전체)"><option value="" ${ed.font ? '' : 'selected'}>공통 따름</option>${fontOptions(ed.font ?? '')}</select>`}
+    <div class="fgrid2" style="margin-top:8px">${wSel}${sizeF}</div>
+    <div class="fgrid2" style="margin-top:8px">${lhF}${lsF}</div>
+    <div class="fgrid2" style="margin-top:8px">${alignSeg}${vSeg}</div>
+    ${pk ? '<div class="fnote">굵기·크기·자간·칠은 고른 글자만 · 글꼴·행간·정렬은 문구 전체 · ⌘B 굵게 · Esc 끝내기</div>' : ''}
+    </section>
+    <section class="isec" id="iFillSec"><h3>칠 ${pk ? '<span class="mode">고른 글자</span>' : ''}</h3>
+    <div class="fstack">${fillRow}</div>
+    ${notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''}
+    <button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:8px">${on ? '글자 편집 끝내기 (Esc)' : '이 소재 글자 고치기 · 일부 서식'}</button>
+    ${nr ? `<div class="fnote">따로 서식 준 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : on ? '' : '<div class="fnote">미리보기 글자를 더블클릭하고 끌어 고르면 그 글자만 바꿔요. 이 소재만 바뀌어요 — 모든 소재는 왼쪽 패널에서</div>'}
+    ${OMIT_ROLE[role] ? `<button type="button" class="btn" id="iElOmit" style="width:100%;margin-top:6px">이 소재에서 ${OMIT_NAME[OMIT_ROLE[role]]} 빼기 <span style="opacity:.6">Delete</span></button>` : ''}
     </section>`;
 }
 function elCommit(a, patch, label, coalesce = false) {
+  liveOrig = new WeakMap();   // 실시간 미리보기 끝 — 정식 그림이 덮는다
   const c = state.campaign, k = a.key ?? a.specId, focusId = $('inspector').contains(document.activeElement) ? document.activeElement.id : null;
   pushHistory(`${artLabel(a)} ${label}`, coalesce);
   if ('elements' in patch) { if (patch.elements) a.overrides.elements = patch.elements; else delete a.overrides.elements; }
@@ -2892,21 +2986,23 @@ function elCommit(a, patch, label, coalesce = false) {
   logEvent(c, 'manual_edit', { specId: a.specId, element: state.elSel ?? null });
   regen(c); autosave(); softly(() => refreshFrames(k));
   renderInspector();
-  if (state.elSel && state.selected === k) EL.show(a, state.elSel);
+  if (state.elSel && state.selected === k && !(CS.on && CS.key === k)) EL.show(a, state.elSel);   // 글자 편집 중엔 선택 손잡이를 다시 띄우지 않는다(끌기가 글자 고르기 대신 요소 옮기기가 됐다 — 11-10 실측)
   if (focusId) $(focusId)?.focus();   // 패널 칸에서 고쳤으면 그 칸에 그대로(Tab 흐름이 끊기지 않게)
   ED.editedBadge(a);
   log(`${a.specId} ${label}`);
 }
 // 글자 크기 배율 — 메인·서브·상세는 roleScale(렌더러가 줄바꿈까지 다시 잡는다), 그 밖은 요소 편집
-function textScaleCommit(a, id, k) {
+function textScaleCommit(a, id, k, runsTo) {   // runsTo: 범위 서식을 이것으로(혼합 크기를 한 크기로 맞출 때 — 범위 크기를 걷은 runs)
   if (elLocks(a, id).size) return;
   const { role } = parseElementId(id);
   if (isStyleRole(id)) {
     const cur = a.overrides.style?.roleScale?.[role] ?? 1, v = Math.round(Math.min(1.6, Math.max(0.6, cur * k)) * 100) / 100;
     const rs = { ...(a.overrides.style?.roleScale ?? {}) }; if (v === 1) delete rs[role]; else rs[role] = v;
     const st = { ...(a.overrides.style ?? {}), roleScale: rs }; if (!Object.keys(rs).length) delete st.roleScale;
-    elCommit(a, { style: st }, `${elementName(id)} 크기`);
-  } else elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { scale: (a.overrides.elements?.[id]?.scale ?? 1) * k }) }, `${elementName(id)} 크기`);
+    const runs = a.overrides.elements?.[id]?.runs;   // 11-10 범위 크기도 같은 비율로(혼합 크기를 한 크기로 맞추면 runsTo)
+    const nextRuns = runsTo !== undefined ? runsTo : runs?.some(r => r.px) ? scaleRuns(runs, v / cur) : undefined;
+    elCommit(a, { style: st, ...(nextRuns !== undefined ? { elements: withElementEdit(a.overrides.elements, id, { runs: nextRuns }) } : {}) }, `${elementName(id)} 크기`);
+  } else elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { scale: (a.overrides.elements?.[id]?.scale ?? 1) * k, ...(runsTo !== undefined ? { runs: runsTo } : {}) }) }, `${elementName(id)} 크기`);
 }
 function textScaleLive(a, id, k) {
   const key = a.key ?? a.specId, { role } = parseElementId(id);
@@ -2918,30 +3014,65 @@ function bindElementPanel(insp, a, c, spec, id) {
   const q = s => insp.querySelector(s);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
   q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null }) }, `${elementName(id)} 자동 배치로`));
-  { const pk = CS.pick, pc = q('#iPickColor'), ph = q('#iPickHex');
-    if (pk && pc) {
-      const go = v => { if (/^#[0-9A-Fa-f]{6}$/.test(v)) charApply(a, pk.id, { s: pk.s, e: pk.e, c: v.toUpperCase() }, pk.text); };
-      pc.oninput = () => { ph.value = pc.value.toUpperCase(); };
-      pc.onchange = () => go(pc.value);   // 피그마처럼 고르면 바로
-      ph.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(ph.value.trim()); } };
-      q('#iPickClear').onclick = () => charApply(a, pk.id, { s: pk.s, e: pk.e, c: null }, pk.text);
-    } }
+  // 11-10 글자·칠 칸: 고른 범위(pk)가 있으면 범위에, 없으면 요소 전체에(그 속성의 범위 서식은 걷어 낸다 — 피그마처럼 전체 값이 이긴다)
+  const pk = CS.on && CS.key === key && CS.pick?.id === id ? CS.pick : null;
+  const it = EL.find(a, id), text = it?.el?.textContent ?? '', ed = a.overrides.elements?.[id] ?? {};
+  const rng = (patch, label) => rangeApply(a, id, { s: pk.s, e: pk.e, ...patch }, pk.text);
   const edit = (patch, label) => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, patch) }, `${elementName(id)} ${label}`);
+  const strip = keys => (ed.runs?.length ? { runs: stripRuns(ed.runs, keys, text) } : {});
   for (const [sel, set] of [['#iElX', v => EL.setXY(a, id, v, null)], ['#iElY', v => EL.setXY(a, id, null, v)], ['#iElW', v => EL.setSize(a, id, v, null)], ['#iElH', v => EL.setSize(a, id, null, v)]]) {
     const n = q(sel); if (n && !n.disabled) n.addEventListener('change', () => { const v = parseFloat(n.value); if (Number.isFinite(v)) set(v); });
   }
   const fnt = q('#iElFont'); if (fnt) fnt.onchange = () => edit({ font: fnt.value || null }, '글꼴');
-  const wgt = q('#iElWeight'); if (wgt) wgt.onchange = () => edit({ weight: +wgt.value }, '굵기');
-  const sz = q('#iElSize'); if (sz && !sz.disabled) { const px0 = parseFloat(sz.value); sz.addEventListener('change', () => { const v = parseFloat(sz.value); if (v > 0 && v !== px0) textScaleCommit(a, id, v / px0); }); }
+  const wgt = q('#iElWeight'); if (wgt && !wgt.disabled) wgt.onchange = () => { const v = +wgt.value; if (!v) return; if (pk) rng({ w: v }); else edit({ weight: v, ...strip(['w']) }, '굵기'); };
+  const sz = q('#iElSize');
+  if (sz && !sz.disabled) {
+    const base = parseFloat(it?.el ? it.el.ownerDocument.defaultView.getComputedStyle(it.el).fontSize : sz.value), px0 = parseFloat(sz.value);
+    sz.addEventListener('change', () => {
+      const v = Math.round(parseFloat(sz.value) * 10) / 10; if (!(v > 0) || v === px0) return;
+      if (pk) { rng({ px: Math.abs(v - base) < 0.05 ? null : v }); return; }
+      if (Number.isFinite(px0)) textScaleCommit(a, id, v / px0);
+      else { // 혼합 → 문구 전체를 그 크기로: 범위 크기를 걷고 바탕 크기를 맞춘다
+        textScaleCommit(a, id, v / base, ed.runs?.length ? stripRuns(ed.runs, ['px'], text) : undefined);
+      }
+    });
+  }
+  const lh = q('#iElLh'); if (lh) lh.addEventListener('change', () => { const t = lh.value.trim(); if (/^auto$/i.test(t) || t === '') edit({ lh: null }, '행간'); else { const v = parseFloat(t); if (v > 0) edit({ lh: v }, '행간'); } });
+  const ls = q('#iElLs'); if (ls && !ls.disabled) ls.addEventListener('change', () => { const v = parseFloat(ls.value); if (!Number.isFinite(v)) return; if (pk) rng({ ls: v }); else edit({ ls: v || null, ...strip(['ls']) }, '자간'); });
   insp.querySelectorAll('#iElAlign [data-ela]').forEach(b => b.onclick = () => { edit({ align: b.dataset.ela }, '정렬'); q(`#iElAlign [data-ela="${b.dataset.ela}"]`)?.focus(); });
+  // 11-10 실시간: 입력(input)마다 보이는 프레임 글자에 직접(livePaint), 확정(change)에 한 번 커밋
+  const pv = (num, toRun, toWhole) => { if (!num || num.disabled) return; num.addEventListener('input', () => { const v = parseFloat(num.value); if (!Number.isFinite(v)) return; if (pk) livePaint(a, id, { s: pk.s, e: pk.e, ...toRun(v) }); else if (toWhole) livePaint(a, id, { whole: toWhole(v) }); }); num.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== num) liveCancel(a, id); }, 120)); };
+  pv(q('#iElSize'), v => ({ px: v }), v => ({ px: v }));
+  pv(q('#iElLs'), v => ({ ls: v }), v => ({ ls: v }));
+  pv(q('#iElLh'), null, v => ({ lh: v }));
+  pv(q('#iElOp'), v => ({ c: pk?.st?.color ?? undefined, o: v }), v => ({ op: v }));
   const col = q('#iElColor');
   if (col && !col.disabled) {
-    const ov = v => styled ? { roleColors: { ...(a.overrides.style?.roleColors ?? {}), [role]: v } } : null;
-    col.oninput = () => { const v = col.value.toUpperCase(); if (styled) LIVE.push({ style: c.style, only: key, ov: ov(v) }); else LIVE.push({ style: c.style, only: key, elements: withElementEdit(a.overrides.elements, id, { color: v }) }); };
-    col.onchange = () => { const v = col.value.toUpperCase(); if (styled) elCommit(a, { style: { ...(a.overrides.style ?? {}), ...ov(v) } }, `${elementName(id)} 색`); else edit({ color: v }, '색'); };
+    col.addEventListener('input', () => { const v = col.value.toUpperCase(); if (pk) livePaint(a, id, { s: pk.s, e: pk.e, c: v, ...(pk.st?.o != null && pk.st.o < 100 ? { o: pk.st.o } : {}) }); else livePaint(a, id, { whole: { color: v } }); });
+    if (pk) col.onchange = () => rng({ c: col.value.toUpperCase() });   // 손을 떼면(피커 닫기·헥스 Enter) 한 걸음
+    else {
+      const ov = v => styled ? { roleColors: { ...(a.overrides.style?.roleColors ?? {}), [role]: v } } : null;
+      col.onchange = () => { const v = col.value.toUpperCase(); if (styled) elCommit(a, { style: { ...(a.overrides.style ?? {}), ...ov(v) }, ...(ed.runs?.some(r => r.c) ? { elements: withElementEdit(a.overrides.elements, id, strip(['c'])) } : {}) }, `${elementName(id)} 색`); else edit({ color: v, ...strip(['c']) }, '색'); };
+    }
   }
+  const opn = q('#iElOp');
+  if (opn && !opn.disabled) opn.addEventListener('change', () => {
+    const v = Math.max(0, Math.min(100, Math.round(parseFloat(opn.value)))); if (!Number.isFinite(v)) return;
+    if (pk) { const cc = pk.st?.color; if (!cc) { toast('고른 글자의 색이 섞여 있어요 — 색을 하나로 맞춘 뒤 불투명도를 바꿔요'); return; } rng({ c: cc, o: v >= 100 ? null : v }); }
+    else edit({ op: v >= 100 ? null : v, hid: null }, '칠 불투명도');
+  });
+  q('#iElEye')?.addEventListener('click', () => {
+    if (pk) { const cc = pk.st?.color; if (pk.st?.o === 0) rng({ o: null }); else if (cc) rng({ c: cc, o: 0 }); else toast('고른 글자의 색이 섞여 있어요 — 색을 하나로 맞춘 뒤 숨겨요'); }
+    else edit({ hid: ed.hid ? null : 1 }, ed.hid ? '칠 보이기' : '칠 숨기기');
+  });
+  q('#iElFillClear')?.addEventListener('click', () => {
+    if (pk) { rng({ c: null }); return; }
+    const st = { ...(a.overrides.style ?? {}) };
+    if (styled && st.roleColors?.[role]) { const o = { ...st.roleColors }; delete o[role]; if (Object.keys(o).length) st.roleColors = o; else delete st.roleColors; }
+    elCommit(a, { style: st, elements: withElementEdit(a.overrides.elements, id, { color: null, op: null, hid: null, ...strip(['c']) }) }, `${elementName(id)} 칠 지우기`);
+  });
   q('#iElRuns')?.addEventListener('click', () => { if (CS.on && CS.key === key) CS.exit(); else charEnter(a); });
-  q('#iElRunsClear')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: null }) }, `${elementName(id)} 글자 색 모두 지우기`));
+  q('#iElRunsClear')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: null }) }, `${elementName(id)} 글자 서식 모두 지우기`));
   q('#iElReset')?.addEventListener('click', () => {
     const st = { ...(a.overrides.style ?? {}) };
     for (const k of ['roleColors', 'roleScale']) if (styled && st[k]) { const o = { ...st[k] }; delete o[role]; if (Object.keys(o).length) st[k] = o; else delete st[k]; }

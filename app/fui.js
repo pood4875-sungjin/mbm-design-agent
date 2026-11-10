@@ -14,6 +14,15 @@ const ICONS = {
   'ta-l': s(`<path d="M2.5 3.5h11M2.5 6.5h7M2.5 9.5h11M2.5 12.5h7" ${L}/>`),
   'ta-c': s(`<path d="M2.5 3.5h11M4.5 6.5h7M2.5 9.5h11M4.5 12.5h7" ${L}/>`),
   'ta-r': s(`<path d="M2.5 3.5h11M6.5 6.5h7M2.5 9.5h11M6.5 12.5h7" ${L}/>`),
+  // 11-10 글자 패널(hub/fui/icons3.js 와 같은 모양) — 세로 정렬 · 행간 · 자간 · 크기 · 칠 보이기/숨기기
+  'tv-t': s(`<path d="M2.5 2.5h11" ${L}/><path d="M5 5h6M5 8h6M5 11h6" ${L}/>`),
+  'tv-m': s(`<path d="M5 4h6M5 7h6M5 10h6" ${L}/><path d="M2.5 13.5h11M2.5 2.5h11" ${L} opacity=".4"/>`),
+  'tv-b': s(`<path d="M2.5 13.5h11" ${L}/><path d="M5 5h6M5 8h6M5 11h6" ${L}/>`),
+  lh: s(`<path d="M9 3.5h5M9 8h5M9 12.5h5M4 3v10M2.5 4.5L4 3l1.5 1.5M2.5 11.5L4 13l1.5-1.5" ${L}/>`),
+  ls: s(`<path d="M3.5 3v10M12.5 3v10M5.5 8h5M7 6.5L5.5 8 7 9.5M9 6.5L10.5 8 9 9.5" ${L}/>`),
+  fsize: s(`<path d="M2.5 13l3.5-9 3.5 9M3.8 10h4.4M10 13l2-5 2 5M10.7 11.5h2.6" ${L}/>`),
+  eye: s(`<path d="M1.5 8C3 5.3 5.3 4 8 4s5 1.3 6.5 4C13 10.7 10.7 12 8 12S3 10.7 1.5 8z" ${L} stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor"/>`),
+  'eye-off': s(`<path d="M1.5 6.5C3 8.7 5.3 10 8 10s5-1.3 6.5-3.5M4 9l-1.5 1.5M12 9l1.5 1.5M8 10v2M5.8 9.7l-.8 1.8M10.2 9.7l.8 1.8" ${L}/>`),
 };
 export const ic = name => ICONS[name] ?? '';
 
@@ -29,8 +38,9 @@ export function colorRowHtml({ id = '', value, label, tail = '', after = '', dis
 }
 
 // 숫자 칸(hub field) — 앞 글자(W·H)나 뒤 단위(%·°)를 칸 안에
-export const numField = ({ id = '', value, label, prefix = '', unit = '', attrs = '' }) =>
-  `<div class="fin${unit ? ' unit' : ''}${prefix ? ' pre' : ''}">${prefix ? `<span class="k" aria-hidden="true">${esc(prefix)}</span>` : ''}<input type="text" inputmode="decimal" class="fnum" ${id ? `id="${esc(id)}"` : ''} value="${esc(value)}" aria-label="${esc(label)}" ${attrs}>${unit ? `<span class="u" aria-hidden="true">${esc(unit)}</span>` : ''}</div>`;
+//   icon: 앞 글자 대신 아이콘(글자 패널 행간·자간·크기 — hub field icon)
+export const numField = ({ id = '', value, label, prefix = '', icon = '', unit = '', attrs = '' }) =>
+  `<div class="fin${unit ? ' unit' : ''}${prefix || icon ? ' pre' : ''}${icon ? ' ico' : ''}">${icon ? `<span class="k" aria-hidden="true">${ic(icon)}</span>` : prefix ? `<span class="k" aria-hidden="true">${esc(prefix)}</span>` : ''}<input type="text" inputmode="decimal" class="fnum" ${id ? `id="${esc(id)}"` : ''} value="${esc(value)}" aria-label="${esc(label)}" ${attrs}>${unit ? `<span class="u" aria-hidden="true">${esc(unit)}</span>` : ''}</div>`;
 
 // 수치 입력(hub panel.js num): 숫자 또는 사칙 식(100+20). 못 읽으면 fallback
 export function evalNum(raw, fallback = 0) {
