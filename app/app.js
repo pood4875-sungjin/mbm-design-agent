@@ -3611,7 +3611,7 @@ function renderInspectorBody() {
       <textarea id="iRoster" placeholder="엑셀에서 복사해 붙여넣기\n이름\t소속\t직급" style="width:100%;min-height:76px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
       <div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iRosterFileBtn" style="flex:1">CSV 열기</button>
-        <button class="btn pri" id="iRosterApply" style="flex:1">명단 적용</button>
+        <button class="btn weak" id="iRosterApply" style="flex:1">명단 적용</button>
       </div>
       <input type="file" id="iRosterFile" accept=".csv,.tsv,.txt" style="display:none">` : ''}
     ${isPrint ? `
@@ -4031,7 +4031,7 @@ function mediaAddHtml(c) {
     <h3>매체 추가 생성 <span class="mode">같은 캠페인</span></h3>
     <div class="hint">지금 캠페인에 매체를 더 고르면 그 매체의 추출 규격만 추가로 만들어요 — 이미 만든 소재·편집값·승인은 그대로입니다. 있는 매체의 규격 하나를 더하려면 「+ 산출물 추가」.</div>
     ${cands.length ? `<div class="mcards" id="iMediaCards">${cands.map(id => `<button type="button" class="mcard" data-m="${id}" aria-pressed="false"><span class="mc-ck" aria-hidden="true"></span><b>${escH(mediumName(id))}</b><small>소재 ${nOf(id)}종</small></button>`).join('')}</div>
-    <div class="row"><button class="btn pri" id="iMediaAddGo" style="flex:1">추가 생성</button><button class="btn" id="iAddSpec" style="flex:1">+ 산출물 추가</button></div>` : `<div style="font-size:12px;color:var(--sub)">고를 수 있는 매체를 전부 썼어요.</div><button class="btn" id="iAddSpec" style="width:100%">+ 산출물 추가</button>`}
+    <div class="row"><button class="btn weak" id="iMediaAddGo" style="flex:1">추가 생성</button><button class="btn" id="iAddSpec" style="flex:1">+ 산출물 추가</button></div>` : `<div style="font-size:12px;color:var(--sub)">고를 수 있는 매체를 전부 썼어요.</div><button class="btn" id="iAddSpec" style="width:100%">+ 산출물 추가</button>`}
     </section>`;
 }
 function bindMediaAdd(insp, c) {
