@@ -3129,12 +3129,16 @@ ${tplLogo}${kvWrap(tplObject)}
       const cap0 = MR.detail.lines ?? 3;
       // 라벨 열 + 값 열(mold.rows.detail.labelCol — 네이버 DA 107:657 「모집 기간 | 값」「모집 직무 | 값」, 10-16 오후): 행 수는 값 열 폭으로. 날짜(접수기간)는 한 줄(줄바꿈 금지 — 107:657 「2.28(수) - 3.10(일)」, 값 열 밖으로 나가도 칸 위쪽이라 그림과 안 겹침)
       const wrc = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k))));   // 값 열 폭 = valueW(107:657 직무 값 상자 240) 또는 칸 폭 − 라벨 열
-      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? (textWidth(String(value)) * dpx * 1.02 <= (MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k)) + 2 ? 1 : 99) : wrc(String(value)) }   /* 기간은 줄바꿈 금지 — 안 들어가면 짧은 날짜 후보로 */ : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + wr(String(value)) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
+      // 11-12 노션(자소설 PC 채용공고 「상세 최대 5줄 → 가이드 6줄」): 날짜는 숫자·마침표·괄호가 대부분이라 글자 폭 어림(textWidth)이 실제보다 ~20% 넓다 —
+      //   「11.9(월) - 11.22(일)」(실제 ~112px)를 130 칸에서 2줄로 세어 모집직무가 짧은 후보로 줄었다. 날짜 값 줄은 줄바꿈하지 않으므로(nb) 한 줄로 세고, 어림 × 0.85 가 칸을 넘을 때만 짧은 날짜 후보로
+      const DATE_W = 0.85;
+      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? (textWidth(String(value)) * dpx * 1.02 <= (MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k)) + 2 ? 1 : 99) : wrc(String(value)) }   /* 기간은 줄바꿈 금지 — 안 들어가면 짧은 날짜 후보로 */ : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + (label === '접수기간' ? (textWidth(String(value)) * dpx * DATE_W <= rowW(MR.detail) ? 1 : 99) : wr(String(value))) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
       const rows0 = (ladder.details ?? []).filter(d => moldItemOk(MR.detail, d) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           // 그 밖의 항목(모집직무 등)도 칸에 안 들어가면 짧은 후보 — 괄호 속 설명을 빼고(「일반(사업, 재무 등), 보훈(사업/경영지원)」 → 「일반, 보훈」), 그래도 넘치면 앞 항목만(10-22 루프 r1: 네이버 1250 직무 줄 잘림 A·C 공통)
-          const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*[,·/]\s*/).filter(Boolean); return [s0, s1, ...items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ') + ' 등')].filter((x, i, a) => x && a.indexOf(x) === i); };
-          const cands = d.label === '접수기간' ? [...new Set([d.value, ...(ladder.date ?? [])])] : d.extraRow ? [d.value] : shortOf(d.value);   // 11-10 추가 행은 줄이지 않는다 — 들어가거나 빠지거나
+          // 11-12: 항목은 쉼표로만 나눈다 — 「R/D」·「사업/경영지원」·「경영·제품」은 한 항목(「R, D 등」으로 쪼개지던 것)
+          const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*,\s*/).filter(Boolean); return [s0, s1, ...items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ') + ' 등')].filter((x, i, a) => x && a.indexOf(x) === i); };
+          const cands = d.label === '접수기간' ? [...new Set([d.value, ...(MR.detail.labelRow && / - /.test(String(d.value)) ? [String(d.value).replace(/\s+(\d{1,2}시|\d{2}:\d{2})$/, '')] : []), ...(ladder.date ?? [])])]   /* 11-12: 라벨 줄 + 값 줄 틀(자소설 채용공고)은 칸이 좁으면 마감 시각만 빼고 시작일은 살린다(「11.12(목) - 11.25(수)」, 디자이너 BBQ 샘플도 시각 없음) — 「~11.25(수) 18시」보다 먼저. 다른 틀(NAP·팝업·M메인)은 그대로 */ : d.extraRow ? [d.value] : shortOf(d.value);   // 11-10 추가 행은 줄이지 않는다 — 들어가거나 빠지거나
           const opts = cands.map(v => rowOf(d.label, v));
           return { ...(opts.find(r => r.rows <= cap0) ?? opts[0]), _opts: opts, extraRow: !!d.extraRow };
         });
