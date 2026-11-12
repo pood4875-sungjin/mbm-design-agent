@@ -1720,7 +1720,7 @@ function slotStyleBody() {
       announceDpi();
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
-        : `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.`)
+        : `키비주얼에서 뽑은 색을 넓은 순서대로 주색·보조·포인트에 놓았어요${it.logoSuggests?.length ? '(모자란 자리는 로고 색)' : ''} — ${it.colors.join(', ')}.`)
         );
     } catch { $('kvHint').textContent = ''; }
   });
@@ -1848,9 +1848,9 @@ function applyDerived() {
 }
 
 // 주색을 맡는 자료 — 사용자가 고르지 않았으면 로고(색이 뽑혔을 때), 아니면 키비주얼
-function leadOf(it) {
-  if (it.colorLead === 'kv' && it.suggests?.length) return 'kv';
-  return it.logoSuggests?.length ? 'logo' : 'kv';
+function leadOf(it) {   // 11-12 사용자 「키비주얼 먼저로」 — 기본은 키비주얼, 로고 색 칩을 누르면 로고
+  if (it.colorLead === 'logo' && it.logoSuggests?.length) return 'logo';
+  return it.suggests?.length ? 'kv' : 'logo';
 }
 
 function renderSuggests() {
@@ -1860,7 +1860,7 @@ function renderSuggests() {
   const L = it.logoSuggests ?? [], K = it.suggests ?? [];
   const lead = leadOf(it);
   if ($('kvHint')) {
-    $('kvHint').textContent = L.length && K.length ? (lead === 'logo' ? '· 주색은 로고, 나머지는 키비주얼에서' : '· 키비주얼에서 추출해 배치')
+    $('kvHint').textContent = L.length && K.length ? (lead === 'logo' ? '· 주색은 로고, 나머지는 키비주얼에서' : '· 키비주얼 색 먼저, 모자라면 로고 색')
       : L.length ? '· 로고에서 추출해 배치' : K.length ? '· 키비주얼에서 추출해 배치' : '';
   }
   const chips = (list, src, label) => list.length
@@ -2027,7 +2027,7 @@ async function rolesFromAssets({ logo, keyVisual, mode, kvColors = null, kvMeta 
   let L = [], K = kvColors ?? [];
   try { if (logo) L = await analyzeLogo(logo); } catch {}
   try { if (!kvColors && keyVisual) K = (await analyzeKeyVisual(keyVisual)).suggests; } catch {}
-  const roles = alignPrimaryToField(rolesFromSources({ logo: L, kv: K }, mode), { keyVisual, kvMeta, logoLeads: L.length > 0 });
+  const roles = alignPrimaryToField(rolesFromSources({ logo: L, kv: K }, mode), { keyVisual, kvMeta, logoLeads: !K.length });
   return { roles, fromLogo: L.length > 0, fromKv: K.length > 0 };
 }
 

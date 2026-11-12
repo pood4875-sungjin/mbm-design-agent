@@ -113,25 +113,27 @@ test('analyzeRegion picks readable text color and flags busy backgrounds', async
   assert.equal(busy.scrim, true, '명암 편차가 크면 가림막을 켠다');
 });
 
-test('logo leads the primary colour; the key visual fills the rest', async () => {
+test('key visual leads the colour roles (11-12); the logo fills only missing slots or leads when picked', async () => {
   const { rolesFromSources } = await import('../core/palette.js');
   const logo = ['#E4002B'], kv = ['#1B50C8', '#E67814', '#1EAA5A'];
-  const both = rolesFromSources({ logo, kv });
-  assert.equal(both[0], '#E4002B', '주색은 로고 — 브랜드 색이 지면 색이 된다');
-  assert.equal(both[1], '#1B50C8', '보조는 키비주얼에서');
-  assert.ok(kv.includes(both[2]), '포인트도 키비주얼에서');
+  assert.deepEqual(rolesFromSources({ logo, kv }), ['#1B50C8', '#E67814', '#1EAA5A'], '기본: 키비주얼 색이 넓은 순서대로 세 자리');
+  assert.deepEqual(rolesFromSources({ logo, kv: ['#1B50C8'] }).slice(0, 2), ['#1B50C8', '#E4002B'], '키비주얼 색이 모자라면 로고 색이 다음 자리');
+  const byLogo = rolesFromSources({ logo, kv, lead: 'logo' });
+  assert.equal(byLogo[0], '#E4002B', '로고 색 칩을 고르면 주색은 로고');
+  assert.equal(byLogo[1], '#1B50C8', '보조는 키비주얼에서');
   assert.deepEqual(rolesFromSources({ logo: [], kv }), ['#1B50C8', '#E67814', '#1EAA5A'], '로고가 무채색이면 키비주얼이 전부 맡는다');
   assert.equal(rolesFromSources({ logo, kv: [] })[0], '#E4002B', '로고만 있으면 로고 색으로 세 자리');
   assert.equal(rolesFromSources({ logo, kv: [] }).length, 3);
-  assert.deepEqual(rolesFromSources({ logo, kv, lead: 'kv' }), ['#1B50C8', '#E67814', '#1EAA5A'], '키비주얼 색을 주색으로 고르면 키비주얼이 맡는다');
   assert.equal(rolesFromSources({ logo: [], kv: [] }), null, '뽑은 색이 없으면 배치할 것도 없다');
 });
 
-test('a key visual colour that repeats the logo colour is not used twice', async () => {
+test('a colour that repeats across logo and key visual is not used twice', async () => {
   const { rolesFromSources } = await import('../core/palette.js');
-  const r = rolesFromSources({ logo: ['#1B50C8'], kv: ['#1C52CA', '#E67814'] });
+  const r = rolesFromSources({ logo: ['#1B50C8'], kv: ['#1C52CA', '#E67814'], lead: 'logo' });
   assert.equal(r[0], '#1B50C8');
   assert.equal(r[1], '#E67814', '로고와 거의 같은 키비주얼 색은 건너뛴다');
+  const k = rolesFromSources({ logo: ['#1B50C8'], kv: ['#1C52CA', '#E67814'] });
+  assert.deepEqual(k.slice(0, 2), ['#1C52CA', '#E67814'], '키비주얼 먼저일 때도 키비주얼과 거의 같은 로고 색은 안 끼운다');
 });
 
 test('the field colour is read from the image edge: flat edge → one colour, graded edge → two, busy or cut-out edge → flagged', async () => {

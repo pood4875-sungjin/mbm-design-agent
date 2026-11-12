@@ -154,15 +154,16 @@ export function rolesFromKeyVisual(colors = [], mode = 'light') {
 // 로고와 키비주얼에서 뽑은 색을 세 자리에 배치한다 — 고객사는 매번 다르므로 색은 저장해 두지 않고 올린 자료에서 읽는다.
 //   로고만      → 로고 색으로 세 자리
 //   키비주얼만  → 키비주얼 색으로 세 자리
-//   둘 다       → 주색은 로고(브랜드 색이 지면 색이 된다), 보조·포인트는 키비주얼(분위기)
-//                 키비주얼이 사진이면 대표색이 살색·회색으로 나온다 — 그걸 지면에 깔면 브랜드가 사라진다.
+//   둘 다(기본 lead='kv', 11-12 사용자 「키비주얼 > 로고 순으로」) → 키비주얼 색을 넓은 순서대로 주색·보조·포인트에 채우고,
+//                 키비주얼 색이 모자란 자리만 로고 색(키비주얼과 겹치지 않는 것)이 채운다
+//   lead='logo' 는 사용자가 로고 색 칩을 누른 경우 — 주색은 로고, 보조·포인트는 키비주얼(11-11까지의 기본)
 //   로고가 무채색(검정·흰색 로고)이면 뽑힌 색이 없으므로 키비주얼이 전부 맡는다.
-// lead='kv' 는 사용자가 키비주얼 색을 주색으로 고른 경우 — 그때는 키비주얼이 세 자리를 다 맡는다.
-export function rolesFromSources({ logo = [], kv = [], lead = 'logo' } = {}, mode = 'light') {
+export function rolesFromSources({ logo = [], kv = [], lead = 'kv' } = {}, mode = 'light') {
   const ok = list => (list ?? []).filter(c => typeof c === 'string' && /^#[0-9A-Fa-f]{6}$/.test(c));
   const L = ok(logo), K = ok(kv);
-  if (!L.length || (lead === 'kv' && K.length)) return rolesFromKeyVisual(K.length ? K : L, mode);
+  if (!L.length) return rolesFromKeyVisual(K, mode);
   if (!K.length) return rolesFromKeyVisual(L, mode);
+  if (lead !== 'logo') return rolesFromKeyVisual([...K, ...L.filter(c => !K.some(k => tooClose(k, c)))].slice(0, 3), mode);
   const primary = L[0];
   return rolesFromKeyVisual([primary, ...K.filter(c => !tooClose(c, primary))], mode);
 }
