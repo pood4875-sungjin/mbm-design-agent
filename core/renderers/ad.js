@@ -321,7 +321,9 @@ function regionFit(html, style, spec, tr) {
     let st2 = st, f = fit(bw, bh, opaque);
     // 칸이 영역보다 훨씬 납작·길쭉해서 덮기로는 영역이 잘리면(리멤버 2240×240 띠) 영역을 다 보이는 배율로 그리고 칸을 그림만큼 줄인다 — 글자에서 먼 쪽 변은 그대로. 틀 칸 규정으로 막히는 자소설·지면 전체 그림은 덮기 그대로
     const fw = fit(bw, bh, false);
-    if (opaque && !full && spec.medium !== 'jasoseol' && f.dw > fw.dw + 0.5 && (fw.dw < bw - 0.5 || fw.dh < bh - 0.5)) {
+    //   11-15 노션 [01]: 매체가 크기를 못 박은 칸(카카오·NAP 비즈보드 썸네일 320×222 — 틀 mold.slotOfficial · 둥근 규정 칸 data-slot-round)도 덮기 그대로 — 가로형 키비주얼에 영역을 지정하면 썸네일 폭이 183px 로 줄었다
+    const fixedSlot = !!(spec.rules ?? spec)?.safeArea?.measuredFromTemplate?.mold?.slotOfficial || /data-slot-round="1"/.test(attrs);
+    if (opaque && !full && !fixedSlot && spec.medium !== 'jasoseol' && f.dw > fw.dw + 0.5 && (fw.dw < bw - 0.5 || fw.dh < bh - 0.5)) {
       const nw = Math.min(bw, fw.dw), nh = Math.min(bh, fw.dh), l0 = num(st, 'left'), t0 = num(st, 'top');
       if (l0 != null && t0 != null) {
         const nl = l0 + bw / 2 >= W / 2 ? l0 + bw - nw : l0, nt = t0 + bh / 2 >= H / 2 ? t0 + bh - nh : t0;
@@ -1413,7 +1415,8 @@ function renderAdBase(ctx, style, spec) {
     else { const nw = Math.max(Math.round(w * 0.15), Math.min(Math.round(w * 0.75), Math.round(tImage.w * k))); tImage = { x: w - nw, y: h - nh, w: nw, h: nh }; }
   }
   // 겹침 교정(kvK<1) — 틀의 사진·바탕 그림 칸: 칸 자체를 배율만큼 줄여 우하단(글자 반대쪽)에 붙인다. 누끼는 칸은 두고 그림만 줄인다(containSz)
-  if (FIX?.kvK && FIX.kvK < 1 && mold && tImage && (style.kvMeta?.field?.opaque ?? 1) >= 0.5) { const nw = Math.max(8, Math.round(tImage.w * FIX.kvK)), nh = Math.max(8, Math.round(tImage.h * FIX.kvK)); tImage = { ...tImage, x: tImage.x + tImage.w - nw, y: tImage.y + tImage.h - nh, w: nw, h: nh }; }
+  //   매체가 크기를 정한 칸(mold.slotOfficial — 비즈보드 썸네일 320×222, 11-15 노션 [01] 「크기 고정」)은 줄이지 않는다
+  if (FIX?.kvK && FIX.kvK < 1 && mold && !mold.slotOfficial && tImage && (style.kvMeta?.field?.opaque ?? 1) >= 0.5) { const nw = Math.max(8, Math.round(tImage.w * FIX.kvK)), nh = Math.max(8, Math.round(tImage.h * FIX.kvK)); tImage = { ...tImage, x: tImage.x + tImage.w - nw, y: tImage.y + tImage.h - nh, w: nw, h: nh }; }
   // 빈 지면 보정(kvK>1, emptyFix — 10-21): 틀 그림 칸은 지면 변에 닿은 변을 그대로 두고 글자 쪽으로 키운다. 오른쪽·왼쪽 열은 폭만, 아래 띠는 높이만(열·띠 판정이 바뀌지 않게), 모서리 칸은 둘 다 — 상한 CANON.emptyFix.slotCap(아래 띠는 fill.maxObject).
   //   둥근 칸(비즈보드 r10)·bleed:false 칸(인스타 1080)·자유 자리(moldFreeKv)는 안 키운다. 글자 칸과의 충돌은 emptyFix 가 overlapRatio 로 거른다
   if (FIX?.kvK > 1 && mold && tImage && tImage.radius == null && mold.image?.bleed !== false && !moldFreeKv && !moldCutZone) {
@@ -3137,7 +3140,10 @@ ${tplLogo}${kvWrap(tplObject)}
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           // 그 밖의 항목(모집직무 등)도 칸에 안 들어가면 짧은 후보 — 괄호 속 설명을 빼고(「일반(사업, 재무 등), 보훈(사업/경영지원)」 → 「일반, 보훈」), 그래도 넘치면 앞 항목만(10-22 루프 r1: 네이버 1250 직무 줄 잘림 A·C 공통)
           // 11-12: 항목은 쉼표로만 나눈다 — 「R/D」·「사업/경영지원」·「경영·제품」은 한 항목(「R, D 등」으로 쪼개지던 것)
-          const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*,\s*/).filter(Boolean); return [s0, s1, ...items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ') + ' 등')].filter((x, i, a) => x && a.indexOf(x) === i); };
+          // 11-15 노션 [03] 「상세의 「/」·「 · 」가 「,」로」: 줄일 때도 입력한 기호 그대로 — 쉼표가 없고 띄어 쓴 구분자(「인사 · 경영 / 지원」)로만 나열했으면 그 구분자 자리에서 앞부분만 남긴다(기호는 바꾸지 않는다). 붙여 쓴 「R/D」·「경영·제품」은 한 항목 그대로
+          const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*,\s*/).filter(Boolean);
+            const heads = items.length > 1 ? items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ')) : (() => { const parts = s1.split(/(\s+[·/|ㅣ]\s+)/); const out = []; for (let j = parts.length - 2; j >= 1; j -= 2) out.push(parts.slice(0, j).join('')); return out; })();
+            return [s0, s1, ...heads.map(x => x + ' 등')].filter((x, i, a) => x && a.indexOf(x) === i); };
           const cands = d.label === '접수기간' ? [...new Set([d.value, ...(MR.detail.labelRow && / - /.test(String(d.value)) ? [String(d.value).replace(/\s+(\d{1,2}시|\d{2}:\d{2})$/, '')] : []), ...(ladder.date ?? [])])]   /* 11-12: 라벨 줄 + 값 줄 틀(자소설 채용공고)은 칸이 좁으면 마감 시각만 빼고 시작일은 살린다(「11.12(목) - 11.25(수)」, 디자이너 BBQ 샘플도 시각 없음) — 「~11.25(수) 18시」보다 먼저. 다른 틀(NAP·팝업·M메인)은 그대로 */ : d.extraRow ? [d.value] : shortOf(d.value);   // 11-10 추가 행은 줄이지 않는다 — 들어가거나 빠지거나
           const opts = cands.map(v => rowOf(d.label, v));
           return { ...(opts.find(r => r.rows <= cap0) ?? opts[0]), _opts: opts, extraRow: !!d.extraRow };

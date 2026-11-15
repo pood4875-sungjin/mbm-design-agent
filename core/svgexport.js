@@ -348,7 +348,9 @@ const loadImg = (src, cache) => {
 };
 const urlOf = layer => layer.match(/^url\(\s*["']?([\s\S]*?)["']?\s*\)$/)?.[1] ?? null;
 
-export const SVG_IMG_MAX_PX = 3600;   // SVG 안 그림 조각의 긴 변 상한(px)
+export const SVG_IMG_MAX_PX = 3600;
+// 그림 조각 해상도 배율(표시 1배 대비) — 제출 배수(submitW/W, 자소설 2배)만큼 더 담는다. 3배 × 제출 배수, 제출 배수가 없으면 3배
+export function svgImgScale(W, submitW = null) { const k = W > 0 && submitW > 0 ? submitW / W : 1; return 3 * Math.max(1, Math.min(4, k)); }   // SVG 안 그림 조각의 긴 변 상한(px)
 // 캔버스에 그려 data URI — 알파가 전부 255 면 JPEG(가볍다), 아니면 PNG
 function canvasUri(cv, quality = 0.95) {
   const g = cv.getContext('2d');
@@ -452,6 +454,8 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
   const defs = [], fallbacks = [], used = new Set(), ascCache = new Map();
   let nid = 0; const gid = p => `${p}${++nid}`;
   const stats = { texts: 0, tspans: 0, images: 0, gradients: 0, masks: 0, vectorLogos: 0 };
+  // 11-15 노션 [00] 「SVG 안 그림 화질 저하」: SVG 는 작업 크기(1배)인데 디자이너는 피그마에서 제출 크기(2배)로 키워 본다 — 그림 해상도를 「표시 1배의 3배」가 아니라 「제출 배수 × 3배」까지(긴 변 SVG_IMG_MAX_PX 상한·원본 픽셀 상한은 그대로)
+  const imgScale = svgImgScale(W, submitW);
   const note = (msg) => { if (!fallbacks.includes(msg)) fallbacks.push(msg); };
   const box = el => { const r = el.getBoundingClientRect(); return { x: r.left - ox, y: r.top - oy, w: r.width, h: r.height }; };
 
@@ -565,7 +569,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
         if (!/no-repeat/.test(pick(reps) ?? 'repeat') && pick(reps) !== 'no-repeat no-repeat') note('반복 배경(background-repeat) — 한 번만 그림');
         const place = bgPlacement({ size: pick(sizes), position: pick(poss), area: b, natural: [im.naturalWidth, im.naturalHeight] });
         const clip = { x: Math.max(b.x, 0), y: Math.max(b.y, 0), w: Math.min(b.x + b.w, W) - Math.max(b.x, 0), h: Math.min(b.y + b.h, H) - Math.max(b.y, 0) };
-        const lay = await imageLayer(im, place, clip.w > 0 && clip.h > 0 ? clip : b, { bound: { x: 0, y: 0, w: W, h: H } });
+        const lay = await imageLayer(im, place, clip.w > 0 && clip.h > 0 ? clip : b, { bound: { x: 0, y: 0, w: W, h: H }, maxScale: imgScale });
         if (!lay) continue;
         const cid = gid('clip');
         defs.push(`<clipPath id="${cid}">${roundRect(b.x, b.y, b.w, b.h, radii)}</clipPath>`);
@@ -628,7 +632,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     }
     if (filter) note(`로고 단색 변환(filter: ${filter}) — 캔버스로 색을 입힌 PNG 로 대체(Figma 는 SVG 필터를 못 읽는다)`);
     const clip = fit === 'cover' ? cb : { x: place.x, y: place.y, w: place.w, h: place.h };
-    const lay = await imageLayer(im, place, clip, { filter, maxScale: 3 });
+    const lay = await imageLayer(im, place, clip, { filter, maxScale: imgScale });
     if (!lay) return '';
     stats.images++;
     const img = `<image x="${round(lay.x)}" y="${round(lay.y)}" width="${round(lay.w)}" height="${round(lay.h)}" preserveAspectRatio="none" xlink:href="${lay.uri}"/>`;

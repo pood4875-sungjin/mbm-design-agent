@@ -46,13 +46,13 @@ test('자소설 전 규격이 브리프 그대로: 메인 = 채용명, 서브 = 
   assert.equal(colors.size, 1, [...colors].join(','));
 });
 
-test('카카오 비즈보드 좌측형: 「키비주얼 왼쪽」이면 그림 칸 x41 · 카피 x393(틀째 좌우), 다른 틀 규격은 여전히 못 고른다', () => {
+test('카카오 비즈보드 좌측형: 「키비주얼 왼쪽」이면 그림 칸 x39 · 카피 x391(틀째 좌우, 11-15 여백 43/39), 다른 틀 규격은 여전히 못 고른다', () => {
   const meta = JSON.parse(readFileSync(new URL('../ref/learned/cases/fig-28/meta.json', import.meta.url), 'utf8'));
   const ctx = createContext({ client: '하나증권', hiringType: '채용연계형 인턴십', deadline: '2026-12-17' }, 'recruit');
   const base = traceOf(renderArtifact('kakao-bizboard-mo', ctx, normalizeStyle({ colors: ['#1B6FD8'], keyVisual: KV, kvMeta: meta.kv ?? meta }), {}));
   const left = traceOf(renderArtifact('kakao-bizboard-mo', ctx, normalizeStyle({ colors: ['#1B6FD8'], keyVisual: KV, kvMeta: meta.kv ?? meta, kvPlace: 'left' }), {}));
-  assert.equal(base.place.tImage.x, 599); assert.equal(left.place.tImage.x, 41);
-  assert.ok(left.textBox.rows.every(r => r.x === 393), JSON.stringify(left.textBox.rows));
+  assert.equal(base.place.tImage.x, 601); assert.equal(left.place.tImage.x, 39);
+  assert.ok(left.textBox.rows.every(r => r.x === 391), JSON.stringify(left.textBox.rows));
   assert.ok(left.rules.includes('templateMold.sideSwap'));
   const E = adSpecEntries();
   assert.equal(placeAvail(E['kakao-bizboard-mo'], 'left', { gate: { hasKv: true, template: true } }).ok, true);
