@@ -86,6 +86,6 @@ test('긴 단일 사물(비율 ≥ 1.8)은 폭이 넓은 세로형에서도 좌�
     const left = Number(html.match(/data-bleed="1" style="position:absolute;left:(-?\d+)px/)?.[1]);
     assert.ok(left <= 0, `${id}: 왼쪽도 지면 밖(left ${left})`);
   }
-  const sq = renderAd(ctx, styleOf(DOME, '#0E5A8A'), specs['albamon-m-splash']);   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 albamon-m-splash 로(1440×976, 남은 자유 규격 중 정사각에 가장 가까운 가로형)
+  const sq = renderAd(ctx, styleOf(DOME, '#0E5A8A'), specs['specup-square-big-pc']);   // 11-10 밤: 알바몬 스플래시는 가이드 틀(위 25% 문구·아래 오브젝트)이 생겨 자유 정사각 specup 400×340 으로   // 10-16 인스타 1080 은 틀(사용자 수정본)이 생겨 자유 규격 albamon-m-splash 로(1440×976, 남은 자유 규격 중 정사각에 가장 가까운 가로형)
   assert.ok(Number(sq.match(/data-bleed="1" style="position:absolute;left:(-?\d+)px/)?.[1]) > 0, '세로형이 아니면 왼쪽 경계(30%) 안');
 });

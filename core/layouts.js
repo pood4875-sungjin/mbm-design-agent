@@ -68,7 +68,7 @@ export function layoutFor(w, h) {
   if (shape === 'wide') {
     // 2240×360·2240×240(PC)은 메인 한 줄 + 날짜 한 줄, 그보다 덜 납작한 것(MO)은 메인 두 줄("회사 / 채용 문구")
     const flat = w / h >= 5;
-    const main = r(Math.sqrt(w * h) * (flat ? 0.056 : 0.09));
+    const main = Math.max(r(Math.sqrt(w * h) * (flat ? 0.056 : 0.09)), r(h * (flat ? CANON.titleMin.flat : CANON.titleMin.cap)));   // 11-10 검수표: 납작한 가로형 타이틀이 작다 — 높이의 18% 아래로 안 내려감
     return {
       shape, align: 'left', vAlign: 'center',
       // 위 여백 < 아래 여백 — 글자 덩어리 가운데가 높이의 44~45%에 온다
@@ -79,7 +79,7 @@ export function layoutFor(w, h) {
       detail: Math.max(9, r(main * 0.62)), detailLine: 1.3, gapDetail: 0, detailLabelBold: false,
       object: 'right', objectW: Math.min(r(w * 0.42), r(h * 2.2)),
       // 가로형도 로고를 둔다 — 우상단 소형(Figma 9월 공채 디자이너 가로형 6/6에 로고, 높이 = 지면 높이의 6~8%). 매체가 로고를 금하면(리멤버 count 0) 렌더러가 생략
-      logo: 'top-right', logoH: Math.max(12, r(h * 0.065)), logoTop: Math.max(8, r(h * FP.logoWide)),
+      logo: 'top-right', logoH: Math.max(12, r(h * 0.08)), logoTop: Math.max(8, r(h * FP.logoWide)),   // 11-10 피드백 3 「로고가 살짝 작아」: 6.5% → 8%(디자이너 가로형 6~8% 위쪽 · 샘플 가로형 9~16%)
     };
   }
   if (shape === 'tower') {
@@ -90,7 +90,7 @@ export function layoutFor(w, h) {
       main: r(w * 0.15), mainLine: 1.4, mainLines: 4,
       sub: Math.max(9, r(w * 0.1)), subLine: 1.32, subWeight: 700, subAbove: true, gapSub: 0.8,
       detail: Math.max(9, r(w * 0.081)), detailLine: 1.65, gapDetail: 1.0, detailLabelBold: true,
-      object: 'bottom', objectH: r(h * 0.33),
+      object: 'bottom', objectH: r(h * 0.5),   // 11-10 밤: .33 → .5 — 120×600 에서 글자 아래·그림 위가 38~43% 비었다(사진·오브젝트+배경·사람 여럿)
       logo: 'top-center', logoH: Math.max(12, r(h * 0.046)), logoTop: r(h * 0.04),
     };
   }
@@ -102,7 +102,7 @@ export function layoutFor(w, h) {
     return {
       shape, align: 'left', vAlign: 'top',
       padX: Math.max(14, r(w * FP.text)), padY: Math.max(14, r(w * FP.text)), top: r(h * 0.178),
-      main: r(w * 0.087), mainLine: 1.28, mainLines: 3,
+      main: Math.max(r(w * 0.087), r(w * CANON.titleMin.cap)), mainLine: 1.28, mainLines: 3,   // 11-10 검수표: 짧은 변의 10%
       sub: Math.max(10, r(w * 0.05)), subLine: 1.3, subWeight: 700, subAbove: true, gapSub: 0.29,
       detail: Math.max(10, r(w * 0.047)), detailLine: 1.57, gapDetail: 1.0, detailLabelBold: true,
       object: 'bottom', objectH: r(h * 0.42),
@@ -115,7 +115,7 @@ export function layoutFor(w, h) {
   return {
     shape, align: 'left', vAlign: 'top',
     padX: Math.max(14, r(m * FP.text)), padY: Math.max(14, r(m * FP.text)), top: r(h * 0.15),
-    main: r(m * 0.087), mainLine: 1.28, mainLines: 3,   // 세로형과 같은 1.28(A2)
+    main: Math.max(r(m * 0.087), r(m * CANON.titleMin.cap)), mainLine: 1.28, mainLines: 3,   // 세로형과 같은 1.28(A2) · 11-10 검수표: 짧은 변의 10%
     sub: Math.max(9, r(m * 0.05)), subLine: 1.3, subWeight: 700, subAbove: true, gapSub: 0.29,
     detail: Math.max(9, r(m * 0.047)), detailLine: 1.57, gapDetail: 0.95, detailLabelBold: true,
     object: roomy && w / h >= 1.15 ? 'right' : 'bottom', objectW: r(w * 0.42), objectH: r(h * 0.36),

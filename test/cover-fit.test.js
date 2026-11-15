@@ -28,14 +28,14 @@ test('coverFit: 세로 그림(0.67, 주인공 85×82%)을 2:1 열에 cover 하�
   assert.equal(coverFit({ x: 0.5, y: 0.5, w: 0.3, h: 0.3 }, 300, 300, 450, 300), null);   // 작은 주인공은 cover 로도 다 보인다
 });
 
-test('kvPlacement/kvLayer: desk-16 × 오른쪽 열 556×276 — 상자가 374×276 으로 줄어 오른쪽에 붙고 data-kv-fit · 아래 띠 600×336 — 455 폭으로 바닥 가운데', () => {
+test('kvPlacement/kvLayer: desk-16 × 오른쪽 열 556×276 — 상자가 374×276 으로 줄어 오른쪽에 붙고 data-kv-fit · 아래 띠 600×336 — 폭은 지면 전체(11-10 밤 사용자 「실사 가운데 + 사방 페이드 금지」)', () => {
   const style = caseStyle('desk-16'), field = { stops: ['#113F9E', '#05183F'], text: '#fff' };
   const p = kvPlacement(style, field, { side: 'right', w: 1125, h: 276, size: 556 });
   assert.ok(p.fit && p.fit.w === 374 && p.fit.h === 276, JSON.stringify(p.fit));
   const el = kvLayer(style, field, { side: 'right', w: 1125, h: 276, size: 556 });
   assert.match(el, /right:0px;width:374px;height:276px/); assert.match(el, /data-kv-fit="0\.673" data-kv-fit-vis="0\.4"/);
   const b = kvLayer(style, field, { side: 'bottom', w: 600, h: 880, size: 336 });
-  assert.match(b, /left:73px;bottom:0;width:455px;height:336px/);
+  assert.match(b, /left:0px;bottom:0;width:600px;height:336px/);
   // hr-doctor(가로 1.94, 주인공 폭 66%) × 같은 열은 폭이 잘리지만 92% 보여 그대로 cover
   assert.equal(coverPos(caseStyle('hr-doctor'), 235, 200, { side: 'right' }).fit, null);
 });

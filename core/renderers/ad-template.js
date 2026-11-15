@@ -10,6 +10,7 @@ import { kvTypeOf, massBand } from '../kvtypes.js';
 import { familyById, frameFor } from '../recipes.js';
 import { KV_SIZE_K } from '../editlayout.js';
 import { BP, blueprintOf } from '../typoaudit.js';
+import { CANON } from '../canon.js';
 
 const WHITE = '#FFFFFF', DARK = '#1A1A1A';
 const KO = (t, fs) => textWidth(t) * fs;
@@ -171,12 +172,15 @@ export function renderTemplate(ctx, style, spec) {
     for (const p of plan) {
       if (p === mp) continue;
       const role = { season: 'sub', client: 'sub', date: 'date', role: 'detail', slogan: 'detail' }[p.r.role] ?? 'detail', b0 = bpRef.ratio[role];
-      if (b0 == null) continue;
+      if (b0 == null) { if (role === 'date' && !p.pill && !p.r.badge) { const capD = Math.floor(mp.fs * BP.date), lo0 = Math.min(capD, Math.ceil(mp.fs * (BP.min?.date ?? 0))); if (p.fs < lo0) sizeRow(p, lo0); } continue; }   // 청사진에 날짜 줄이 없는 세트도 날짜 하한(11-10 밤)
       const glob = p.pill ? (BP.badgePx[role] ?? BP[role]) : BP[role];
       let bound = Math.min(glob, b0 * BP.kRel);
       if (p.pill) { const hb = bpRef.badgeH[role], hg = BP.badgeH[role] ?? 1.1, hbound = hb == null ? hg : Math.min(hg, hb * BP.kRel); bound = Math.min(bound, hbound / 1.8); }
       const cap = Math.floor(mp.fs * bound);
       if (p.fs > cap && cap >= 8) sizeRow(p, cap);
+      // 11-10 밤: 하한도 — 청사진 분포 하위 10%(BP.min) 아래면 올린다(시안 틀 A/B 날짜가 타이틀의 36~39%, 사용자 「청사진보다 작으면 비정상」). 상한보다는 안 크게
+      const lo = Math.min(cap, Math.ceil(mp.fs * (BP.min?.[role] ?? 0)));
+      if (p.fs < lo && role === 'date' && !p.pill && !p.r.badge) sizeRow(p, lo);   // 알약 날짜는 빼요 — 키우면 그림 자리가 25% 아래로(구글 580 떼 누끼)   // 날짜만 — 상세까지 키우면 줄이 늘어 타이틀이 줄어드는 연쇄(구글 580 유리 알약 시안)   // 알약은 뱃지 높이 상한이 먼저
     }
     return plan;
   };
@@ -233,7 +237,8 @@ export function renderTemplate(ctx, style, spec) {
     for (const p of plan) {
       if (!prev) { p.top = Math.max(safeT, p.top0); cur = p.top + p.blockH; prev = p; continue; }
       const gap0 = p.top0 - prev.bot0;
-      const gap = Math.max(Math.min(p.fs, prev.fs) * 0.12, Math.min(gap0, H * 0.12) * gapK);   // 바닥은 글자의 .12(행간에 이미 여유가 있다). 청사진이 붙여 둔 시즌·제목을 .4 로 벌리던 것(11-03 검사기 gap)
+      const gapCap = prev.r.role === 'main' ? prev.fs * 0.6 : Math.max(p.fs, prev.fs) * 0.8;   // 11-10 밤: 타이틀↔서브텍스트 ≤ 타이틀 0.8배(사용자 규칙) · 서브텍스트끼리 ≤ 글자 1배 — 세로로 긴 규격에서 틀 간격을 높이로 늘려 2.9배까지 벌어졌다
+      const gap = Math.max(Math.min(p.fs, prev.fs) * 0.12, Math.min(gap0, H * 0.12, gapCap) * gapK);   // 바닥은 글자의 .12(행간에 이미 여유가 있다). 청사진이 붙여 둔 시즌·제목을 .4 로 벌리던 것(11-03 검사기 gap)
       p.gap = Math.round(gap); p.top = cur + gap; cur = p.top + p.blockH; prev = p;
     }
     return cur;
@@ -382,7 +387,9 @@ export function renderTemplate(ctx, style, spec) {
   // 로고: 시안 자리 → 글자와 닿으면 다른 모서리
   if (logoSrc) {
     const ar = style.logoMeta?.px ? style.logoMeta.px[0] / Math.max(1, style.logoMeta.px[1]) : 3;
-    const lh = Math.round(Math.min(Math.max(16, Math.sqrt(W * H) * 0.05), (Math.min(W * 0.26, W - saL - saR) / ar))), lw = Math.round(lh * ar);
+    // 11-10 밤: 로고 가로 ≤ 타이틀 글자 × 2.4(CANON.logoCap — 일반 규칙과 같은 값). 시안 틀 B 안에서 로고가 타이틀의 2.5~2.9배로 컸다
+    const mainFsT = plan.find(p => p.r.role === 'main')?.fs ?? null, capWT = mainFsT ? mainFsT * (CANON?.logoCap?.perMainPx ?? 2.4) : Infinity;
+    const lh = Math.round(Math.min(Math.max(16, Math.sqrt(W * H) * 0.05), (Math.min(W * 0.26, W - saL - saR, capWT) / ar))), lw = Math.round(lh * ar);
     const pad = Math.round(Math.min(W, H) * 0.06), xs = [W - lw - Math.max(pad, saR), Math.max(pad, saL), Math.round(W / 2 - lw / 2)], ys = [Math.max(pad * 0.7, saT), H - lh - Math.max(pad * 0.7, saB)];
     const estTw = p => p.tw;
     const touches = (x, y) => plan.some(p => { const tw = estTw(p), x0 = frameAlign === 'center' ? p.anchor - tw / 2 : frameAlign === 'right' ? p.anchor - tw : p.left0; const m = Math.min(W, H) * 0.03; return x < x0 + tw + m && x + lw > x0 - m && y < p.top + p.blockH + m && y + lh > p.top - m; });

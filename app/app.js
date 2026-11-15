@@ -1732,7 +1732,7 @@ function slotStyleBody() {
       announceDpi();
       bub('agent', (leadOf(it) === 'logo'
         ? `주색은 로고 색(${it.colors[0]}) 그대로 두고, 보조·포인트를 키비주얼에서 뽑았어요 — ${it.colors.slice(1).join(', ')}.`
-        : `키비주얼에서 뽑은 색을 주색·보조·포인트에 배치했어요 — ${it.colors.join(', ')}.`)
+        : `키비주얼에서 뽑은 색을 넓은 순서대로 주색·보조·포인트에 놓았어요${it.logoSuggests?.length ? '(모자란 자리는 로고 색)' : ''} — ${it.colors.join(', ')}.`)
         );
     } catch { $('kvHint').textContent = ''; }
   });
@@ -1860,9 +1860,9 @@ function applyDerived() {
 }
 
 // 주색을 맡는 자료 — 사용자가 고르지 않았으면 로고(색이 뽑혔을 때), 아니면 키비주얼
-function leadOf(it) {
-  if (it.colorLead === 'kv' && it.suggests?.length) return 'kv';
-  return it.logoSuggests?.length ? 'logo' : 'kv';
+function leadOf(it) {   // 11-12 사용자 「키비주얼 먼저로」 — 기본은 키비주얼, 로고 색 칩을 누르면 로고
+  if (it.colorLead === 'logo' && it.logoSuggests?.length) return 'logo';
+  return it.suggests?.length ? 'kv' : 'logo';
 }
 
 function renderSuggests() {
@@ -1872,7 +1872,7 @@ function renderSuggests() {
   const L = it.logoSuggests ?? [], K = it.suggests ?? [];
   const lead = leadOf(it);
   if ($('kvHint')) {
-    $('kvHint').textContent = L.length && K.length ? (lead === 'logo' ? '· 주색은 로고, 나머지는 키비주얼에서' : '· 키비주얼에서 추출해 배치')
+    $('kvHint').textContent = L.length && K.length ? (lead === 'logo' ? '· 주색은 로고, 나머지는 키비주얼에서' : '· 키비주얼 색 먼저, 모자라면 로고 색')
       : L.length ? '· 로고에서 추출해 배치' : K.length ? '· 키비주얼에서 추출해 배치' : '';
   }
   const chips = (list, src, label) => list.length
@@ -2039,7 +2039,7 @@ async function rolesFromAssets({ logo, keyVisual, mode, kvColors = null, kvMeta 
   let L = [], K = kvColors ?? [];
   try { if (logo) L = await analyzeLogo(logo); } catch {}
   try { if (!kvColors && keyVisual) K = (await analyzeKeyVisual(keyVisual)).suggests; } catch {}
-  const roles = alignPrimaryToField(rolesFromSources({ logo: L, kv: K }, mode), { keyVisual, kvMeta, logoLeads: L.length > 0 });
+  const roles = alignPrimaryToField(rolesFromSources({ logo: L, kv: K }, mode), { keyVisual, kvMeta, logoLeads: !K.length });
   return { roles, fromLogo: L.length > 0, fromKv: K.length > 0 };
 }
 
@@ -3629,7 +3629,7 @@ function renderInspectorBody() {
       <textarea id="iRoster" placeholder="엑셀에서 복사해 붙여넣기\n이름\t소속\t직급" style="width:100%;min-height:76px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
       <div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn" id="iRosterFileBtn" style="flex:1">CSV 열기</button>
-        <button class="btn pri" id="iRosterApply" style="flex:1">명단 적용</button>
+        <button class="btn weak" id="iRosterApply" style="flex:1">명단 적용</button>
       </div>
       <input type="file" id="iRosterFile" accept=".csv,.tsv,.txt" style="display:none">` : ''}
     ${isPrint ? `
@@ -4049,7 +4049,7 @@ function mediaAddHtml(c) {
     <h3>매체 추가 생성 <span class="mode">같은 캠페인</span></h3>
     <div class="hint">지금 캠페인에 매체를 더 고르면 그 매체의 추출 규격만 추가로 만들어요 — 이미 만든 소재·편집값·승인은 그대로입니다. 있는 매체의 규격 하나를 더하려면 「+ 산출물 추가」.</div>
     ${cands.length ? `<div class="mcards" id="iMediaCards">${cands.map(id => `<button type="button" class="mcard" data-m="${id}" aria-pressed="false"><span class="mc-ck" aria-hidden="true"></span><b>${escH(mediumName(id))}</b><small>소재 ${nOf(id)}종</small></button>`).join('')}</div>
-    <div class="row"><button class="btn pri" id="iMediaAddGo" style="flex:1">추가 생성</button><button class="btn" id="iAddSpec" style="flex:1">+ 산출물 추가</button></div>` : `<div style="font-size:12px;color:var(--sub)">고를 수 있는 매체를 전부 썼어요.</div><button class="btn" id="iAddSpec" style="width:100%">+ 산출물 추가</button>`}
+    <div class="row"><button class="btn weak" id="iMediaAddGo" style="flex:1">추가 생성</button><button class="btn" id="iAddSpec" style="flex:1">+ 산출물 추가</button></div>` : `<div style="font-size:12px;color:var(--sub)">고를 수 있는 매체를 전부 썼어요.</div><button class="btn" id="iAddSpec" style="width:100%">+ 산출물 추가</button>`}
     </section>`;
 }
 function bindMediaAdd(insp, c) {

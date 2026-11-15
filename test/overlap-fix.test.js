@@ -24,7 +24,9 @@ const overlapAttr = html => (html.match(/data-overlap="([^"]*)"/) ?? [])[1] ?? n
 test('네이버 DA 틀 + 긴 직무 값 + 떼 누끼: 상세 값이 그림 칸으로 흘러 첫 사람과 겹침 → 칸 안 누끼 축소(kv)로 2% 아래 · trace overlapFix.ok · data-overlap "전>후:단계"', () => {
   const ctx = createContext(LONG, 'recruit');
   const html = renderAd(ctx, crowd, specs['naver-gfa-mobile-da-1250x560']);
-  const ov = overlapAttr(html); assert.ok(ov, '교정 표시');
+  const ov = overlapAttr(html);
+  // 11-10 피드백 56(규정 4줄 · 날짜 칸 넓힘): 긴 직무 값이 짧은 후보로 한 줄에 서면 그림 칸까지 흐르지 않는다 — 그때는 교정할 일도 없다
+  if (!ov) { const t0 = traceOf(html); assert.ok(t0.rules.includes('templateMold.guideLines') && !t0.rules.includes('overlapFix.fail'), t0.rules.join(',')); return; }
   const m = ov.match(/^(\d+)>(\d+):(\w+)$/); assert.ok(m, ov);
   assert.ok(+m[1] > 2 && +m[2] <= 2, `전 ${m[1]}% → 후 ${m[2]}%`); assert.equal(m[3], 'kv', '틀은 그림 축소부터');
   const tr = traceOf(html); assert.ok(tr.rules.includes('overlapFix.ok') && !tr.rules.includes('overlapFix.text'), tr.rules.join(','));

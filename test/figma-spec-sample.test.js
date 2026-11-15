@@ -103,7 +103,7 @@ test('인스타 피드 1080: 틀(사용자 수정본 10-16) — 메인 Bold 72 �
   assert.equal(px(html, 'main'), 72, `메인 ${px(html, 'main')}px`); assert.match(tagOf(html, 'main'), /font-weight:700;[^"]*text-align:center/);
   assert.equal(px(html, 'date'), 43); assert.match(tagOf(html, 'date'), /font-weight:400/);
   assert.match(tagOf(html, 'detail'), /font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/);
-  const i = html.indexOf('<div data-field="detail"'); assert.doesNotMatch(html.slice(i, html.indexOf('</div></div></div>', i)), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
+  const i = html.indexOf('<div data-field="detail"'); assert.match(html.slice(i, html.indexOf('</div></div></div>', i)), /모집직무 :/, '11-10 사용자: 서브텍스트는 라벨 : 내용 · 라벨 ㅣ 내용 · 뱃지만 — 값만은 공식 템플릿에서만');
 });
 
 // 10-13 매체 규정 전수 검사에서 잡은 두 가지 (history/2026-10-13_규격정리_샘플_전체대조.md)

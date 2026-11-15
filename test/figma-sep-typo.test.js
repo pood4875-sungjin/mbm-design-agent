@@ -53,7 +53,7 @@ test('A3 메인 자간 −2.5%(28px 이상) — 자소설·에브리타임(템�
     // 메인 밖 글자는 자간을 건드리지 않는다
     for (const role of ['sub', 'date', 'detail']) assert.doesNotMatch(tagOf(html, role) ?? '', /letter-spacing/, `${id} ${role}`);
   }
-  assert.ok(on > 10 && off > 10, `켜짐 ${on} · 꺼짐 ${off}`);
+  assert.ok(on > 10 && off >= 8, `켜짐 ${on} · 꺼짐 ${off}`);   // 11-10 밤: 납작한 가로형 타이틀 하한 .23 으로 28px 미만 메인이 줄었다
 });
 
 test('A4 상세 블록은 text-wrap:pretty, 끝 어절 2자 이하(「분야」)는 앞 어절에 붙는다 — 가운뎃점 묶음도 끊기지 않는다', () => {
@@ -72,7 +72,7 @@ test('A5 쌓기 값은 쉼표로만 나눈다 — 「경영·제품·사업 분�
   const html = renderAd(ctx2, plain, specs['albamon-pc-sky-job']);   // 10-15: 에브리타임 홈 카드는 틀(mold) 규격이 됐다 → 쌓기 문법은 알바몬 PC 스카이(560×700)로 본다
   const det = detailOf(html);
   assert.match(det, /data-chip="1"/, '쌓기(알약 + 값)');
-  assert.match(det, /자유직무ㅣ​경영⁠·⁠제품/);
+  assert.match(det, /자유직무(ㅣ|<br\/>)경영⁠?·⁠?제품/);   // 11-10 밤: 넘치면 항목 사이에서 줄바꿈(줄 끝 ㅣ 없음)
   assert.doesNotMatch(det, /경영ㅣ|제품ㅣ/);
 });
 
@@ -125,7 +125,7 @@ test('B4 인스타 1080 — 틀(사용자 수정본 10-16): 날짜는 혼자 한
   const html = renderAd(ctx, style, specs['instagram-feed-1080']);
   const css = tagOf(html, 'detail');
   // 10-12 매체별 규격정리: 인스타 샘플 7/9 가 날짜를 혼자 한 줄(43px)에 둔다 — 수정본 틀도 날짜 줄 43 Regular(afterMain 108)
-  assert.match(html, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수) Regular 43 가운데');
+  assert.match(html, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>접수기간 : 9\.22\(월\) - 10\.12\(일\)</, '날짜 줄(필수) Regular 43 가운데 — 11-10 밤: 상세가 「모집직무 : …」로 함께 서면 날짜도 「접수기간 :」(사용자 「둘 다 이렇게 맞춰야」)');
   assert.equal(num(css, 'font-size'), 43, '상세 43 Bold(틀)'); assert.equal(num(css, 'font-weight'), 700); assert.match(css, /text-align:center/);
-  assert.doesNotMatch(detailOf(html), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
+  assert.match(detailOf(html), /모집직무 :/, '11-10 사용자: 서브텍스트는 라벨 : 내용 · 라벨 ㅣ 내용 · 뱃지만 — 값만은 공식 템플릿에서만');
 });

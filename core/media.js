@@ -5440,7 +5440,14 @@ export const MEDIA = [
                   "afterMain": 72,
                   "pitch": 29,
                   "align": "center",
-                  "note": "수정본: 메인 셋째 줄(248) + 42 + gap 30 = 320 → afterMain 72"
+                  "note": "수정본: 메인 셋째 줄(248) + 42 + gap 30 = 320 → afterMain 72",
+                  "chip": {
+                    "h": 34,
+                    "padX": 10,
+                    "bg": "brand",
+                    "color": "#FFFFFF",
+                    "note": "11-10 사용자 피드백 28 「기간은 뱃지로」 — 둥근 알약, 폭은 글자대로"
+                  }
                 },
                 "detail": {
                   "y": 379,
@@ -5457,7 +5464,9 @@ export const MEDIA = [
                   "items": [
                     "모집직무"
                   ],
-                  "note": "수정본: 날짜(320)+29+gap 30 = 379 → afterMain 131 · 「모집분야」 Bold 20 줄 + 값 Regular 20 최대 3줄 가운데(알약 없음)"
+                  "note": "수정본: 날짜(320)+29+gap 30 = 379 → afterMain 131 · 「모집분야」 Bold 20 줄 + 값 Regular 20 최대 3줄 가운데(알약 없음)",
+                  "labelBadge": true,
+                  "labelBadgeNote": "11-10 사용자 피드백 28·「서브텍스트는 라벨 : 내용 / 라벨 ㅣ 내용 / 뱃지(+태그)만」 — 라벨 줄을 둥근 뱃지로, 값은 ㅣ 태그"
                 }
               },
               "logo": {
@@ -12242,6 +12251,13 @@ export const MEDIA = [
             "original": "카피 가로정렬 시 한줄 5자 이내 권장",
             "note": "가로·세로 정렬 모두 가능. 줄당 5자 — 줄 수는 규정에 없어 120×600 세로 띠 관례로 3줄(해석, 2026-10-08: 1줄로 읽으면 '채용 공고'만 남아 띠의 44%가 빈다)",
             "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.15"
+          },
+          {
+            "field": "마감 날짜(서브텍스트)",
+            "maxChars": 6,
+            "lines": 1,
+            "note": "11-10 사용자 피드백 11 「비어 있어 — 서브텍스트 추가」: 줄당 5자 권장 띠라 짧은 마감일(「~11/25」)만 한 줄. 규정 표에는 없는 줄(해석)",
+            "source": "user:2026-11-10 검수표 11"
           }
         ],
         "logo": null,
@@ -12502,6 +12518,47 @@ export const MEDIA = [
             "w": 1440,
             "h": 240,
             "source": "pdf:잡코리아x알바몬 제작가이드.pdf (AD배너 가이드 2025.08.22 ver) p.24"
+          },
+          "measuredFromTemplate": {
+            "frame": "1440×976",
+            "mold": {
+              "measuredAt": "2026-11-10",
+              "source": "pdf:잡코리아x알바몬 제작가이드.pdf p.23~27 — 「광고 브랜드 로고&문구는 상단 25% 내 중앙배치 · 로고/문구 영역 1440×240 · 문구·로고와 오브젝트 여백 88px · 오브젝트 최소 width 880px · 좌우 최소 여백 144px」 (케이스 ③ 문구+로고+오브젝트)",
+              "note": "11-10 밤샘 루프: 자유 배치가 글자 왼쪽·그림 오른쪽으로 나란히 놓아 가이드(위 25% 가운데)를 어겼다. 가이드 수치로 틀을 세움. 대문구 16자 한도라 회사명은 로고가, 문구는 채용 구분이 맡는다",
+              "x": 144,
+              "w": 1152,
+              "align": "center",
+              "color": "#171717",
+              "colorDark": "#FFFFFF",
+              "kv": "slot",
+              "rows": {
+                "main": {
+                  "y": 104,
+                  "px": 88,
+                  "pitch": 106,
+                  "weight": 700,
+                  "lines": 1,
+                  "x": 144,
+                  "w": 1152,
+                  "align": "center"
+                }
+              },
+              "logo": {
+                "x": 620,
+                "y": 28,
+                "w": 200,
+                "h": 52,
+                "align": "center",
+                "valign": "top"
+              },
+              "image": {
+                "x": 144,
+                "y": 328,
+                "w": 1152,
+                "h": 648
+              },
+              "logoToImageWhenNoKv": true
+            }
           }
         },
         "textLimits": [

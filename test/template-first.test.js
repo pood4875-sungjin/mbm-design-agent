@@ -326,12 +326,15 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
   const h1050 = renderAd(ctx, glass, specs['google-gdn-300x1050']); const t1050 = traceOf(h1050);
   assert.equal(t1050.mode, 'templateMold'); assert.ok(!t1050.mold.rows.sub, '1050 아이브로 없음');
   assert.deepEqual([t1050.mold.rows.main.px, t1050.mold.rows.main.pitch, t1050.mold.rows.main.lines, t1050.mold.rows.detail?.px, t1050.mold.rows.detail?.weight], [32, 42, 3, 20, 400]);
-  assert.match(h1050, /<div><b style="font-weight:700">모집분야<\/b><\/div><div/, '1050 「모집분야」 라벨 줄 + 값 줄(알약 없음)'); assert.doesNotMatch(h1050, /data-field="chip"/);
+  // 11-10 사용자 피드백 28: 「모집분야」는 둥근 뱃지 + 값은 ㅣ 태그, 기간도 뱃지(알약)
+  assert.match(h1050, /border-radius:999px[^"]*">모집분야<\/span>/, '1050 「모집분야」 뱃지'); assert.match(h1050, /연구개발|ㅣ/); assert.doesNotMatch(h1050, /data-field="chip"/);
+  assert.match(h1050, /data-field="date"[^>]*>\s*<span data-chip="1"/, '1050 기간 뱃지');
   assert.match(h1050, /data-logo-slot="1" style="position:absolute;left:104px;top:35px;width:91px;height:18px;[^"]*justify-content:center/, '1050 로고 가운데 위');
   assert.ok(!t1050.rules.includes('templateMold.freeKv') && t1050.place.tImage && t1050.place.tImage.y + t1050.place.tImage.h === 1050, '1050 키비주얼 칸 바닥 맞닿음: ' + JSON.stringify(t1050.place.tImage));
   const h930 = renderAd(ctx, glass, specs['google-gdn-930x180']); const t930 = traceOf(h930);
   assert.deepEqual([t930.mold.rows.main.px, t930.mold.rows.main.lines, t930.mold.rows.date.y], [36, 2, 115]);
-  assert.match(h930, /<span data-chip="1" style="display:inline-flex;align-items:center;width:237px;/, '930 날짜 상자 237×30');
+  // 11-10 사용자 피드백 31: 날짜 상자(237 고정 폭·각진) → 둥근 알약 · 폭은 글자대로 · 좌우 여백 좁게
+  assert.match(h930, /<span data-chip="1" style="display:inline-flex;align-items:center;height:30px;padding:0 9px;border-radius:200px/, '930 날짜 알약(글자 폭)');
   assert.doesNotMatch(h930, /data-band="1"/);
 });
 
@@ -395,9 +398,9 @@ test('네이버 모바일 DA·블라인드 피드/게시글 틀(공식 템플릿
   assert.deepEqual([ti.mold.rows.main.y, ti.mold.rows.main.px, ti.mold.rows.main.pitch, ti.mold.rows.main.weight, ti.mold.rows.main.x, ti.mold.rows.main.w, ti.mold.rows.main.align], [131, 72, 94, 700, 89, 934, 'center']);
   assert.deepEqual([ti.mold.rows.date?.y, ti.mold.rows.date?.px, ti.mold.rows.date?.weight, ti.mold.rows.detail?.px, ti.mold.rows.detail?.weight], [333, 43, 400, 43, 700], '날짜 y 333 = 131 + 94 + afterMain 108(메인 2줄) · Regular 43 · 상세 Bold 43');
   assert.match(hi, /data-field="main"[^>]*font-size:72px;line-height:94px;font-weight:700;[^"]*text-align:center/, '메인 Bold 72/94 가운데');
-  assert.match(hi, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 Regular 43 가운데, 라벨 없이');
+  assert.match(hi, /data-field="date"[^>]*font-size:43px;line-height:64px;font-weight:400;[^"]*text-align:center[^>]*>접수기간 : 9\.22\(월\) - 10\.12\(일\)</, '날짜 Regular 43 가운데 — 11-10 밤: 상세가 「모집직무 : …」로 함께 서면 날짜도 「접수기간 :」(사용자 「둘 다 이렇게 맞춰야」)');
   assert.match(hi, /data-field="detail"[^>]*font-size:43px;line-height:64px;font-weight:700;[^"]*text-align:center/, '모집직무 Bold 43 가운데');
-  assert.doesNotMatch(detailOf(hi), /<b/, '모집직무 값만(valuesOnly) — 라벨 없음');
+  assert.match(detailOf(hi), /모집직무 :/, '11-10 사용자 「서브텍스트는 라벨 : 내용 · 라벨 ㅣ 내용 · 뱃지만」 — 10-16 값만(valuesOnly)은 공식 템플릿에서만');
   assert.match(hi, /data-logo-slot="1" style="position:absolute;left:835px;top:45px;width:195px;height:39px;[^"]*justify-content:flex-end/, '로고 오른쪽 위 (835,45) 195×39');
   assert.deepEqual(ti.mold.logo, { x: 835, y: 45, w: 195, h: 39 }); assert.deepEqual(ti.mold.image, { x: 131, y: 587, w: 818, h: 493 });   // 10-19: 786 → 818 (오른쪽 가장자리까지) · 11-10: 누끼면 칸이 가운데(실제 그린 칸)
   assert.deepEqual(ti.place.tImage, { x: 131, y: 587, w: 818, h: 493 }, '11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함」: 가운데 틀의 누끼는 칸도 가운데'); assert.ok(ti.rules.includes('templateMold.cutoutCenter')); assert.ok(!ti.rules.includes('templateMold.freeKv'), '키비주얼 칸 고정(mold.kv slot)'); assert.ok(!ti.rules.includes('templateMold.slotBleed'), '인스타는 모서리 칸이어도 블리드 없음(image.bleed false)');

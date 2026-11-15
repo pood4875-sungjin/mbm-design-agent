@@ -582,14 +582,16 @@ export function coverPos(style, bw, bh, { seamless = false, side = 'bottom', fal
   const pos = oyPx != null ? `${Math.round(px * 100)}% ${oyPx}px` : `${Math.round(px * 100)}% ${Math.round(py * 100)}%`;
   const trueEdge = seamless && (side === 'right' ? (px === 0 || imgW <= bw + 0.5) : (oyPx == null && (py === 0 || imgH <= bh + 0.5)));
   const joinFrac = side === 'right' ? (imgW > bw + 0.5 ? px * (imgW - bw) / imgW : 0) : (imgH > bh + 0.5 ? (oyPx != null ? -oyPx / imgH : py * (imgH - bh) / imgH) : 0);
-  return { pos, joinFrac, trueEdge, fit: coverFit(focus, bw, bh, imgW, imgH) };
+  // 11-10 밤(눈 검수 「3D 캐릭터 별이 가로 띠에서 위아래 잘림」): 캐릭터(머리 보존)는 주인공이 90% 넘게 보여야 cover 그대로 — 아니면 칸을 그림 크기로(오른쪽 열은 폭이 줄어 열에 붙는다)
+  const charMV = (kvTypeOf(style.kvMeta)?.flags?.character && style.kvMeta?.field?.kind !== 'photo') ? (CANON.kvCrop.minVisibleCharacter ?? null) : null;   // 사진 인물은 머리만 지키면 된다(subjectCrop) — 그림 캐릭터만
+  return { pos, joinFrac, trueEdge, fit: coverFit(focus, bw, bh, imgW, imgH, charMV) };
 }
 // 보일 부분(CANON.kvCrop.minVisible, 11-02 컨시어지 #2 재현): cover 는 한 축이 넘쳐 잘린다 — 그 축에서 주인공 상자(focus)가 minVisible(60%) 미만만 보이면(세로 그림 0.67 → 리멤버 사이드 열 2:1 에 40%, 자소설 M팝업 아래 띠 46%)
 //   주인공 60% 가 보이는 배율(k < 1)로 낮춘다. 그림이 통째로 들어가는 배율(contain) 아래로는 안 간다. 그림이 상자보다 작아지는 축은 호출자가 상자를 그림 크기로 줄여 지면 변 쪽에 붙인다 —
 //   그러면 글자 쪽 변 녹임(meltMask)·안쪽 변 끊김 녹임(ad.js cutFade)이 그림 변에서 시작한다. 주인공이 그림 거의 전부(whole 이상 — 상자를 못 찾은 사진)면 자를 게 없으니 해당 없음
 //   돌려주는 값: null(그대로 cover) | { k: 통째 배율 대비, dw, dh: 낮춘 그림 px, vis: cover 였다면 보였을 몫 }
-export function coverFit(focus, bw, bh, imgW, imgH) {
-  const K = CANON.kvCrop; const MV = K?.minVisible ?? 0;
+export function coverFit(focus, bw, bh, imgW, imgH, mvOverride = null) {
+  const K = CANON.kvCrop; const MV = mvOverride ?? K?.minVisible ?? 0;
   if (!(MV > 0) || !focus || !(bw > 0 && bh > 0)) return null;
   if (focus.w * focus.h >= (K.whole ?? 0.95)) return null;
   const cropV = imgH > bh + 0.5, cropH = imgW > bw + 0.5;
@@ -614,7 +616,8 @@ export function kvPlacement(style, field, { side, w, h, size, edgePad = 0, inset
   if (!cutout && ar) {
     let c = coverPos(style, bw, bh, { seamless: !!field?.seamless, side });
     // 보일 부분(coverFit): cover 가 주인공을 60% 미만만 보이면 상자를 그림 크기로 줄여(한 축) 다시 놓는다 — 주인공 당김(subjectCrop)이 있으면 그쪽이 우선이라 아래에서 덮어쓴다
-    if (c.fit) { const fw = Math.min(bw, c.fit.dw), fh = Math.min(bh, c.fit.dh); fit = { w: fw, h: fh, k: c.fit.k, vis: c.fit.vis }; c = coverPos(style, fw, fh, { seamless: !!field?.seamless, side }); }
+    // 11-10 밤(사용자 「실사인데 좌우위아래 그라 주고 센터에 넣는 실수 하지 마」): 아래 띠는 폭을 줄이지 않는다 — 지면 폭 전체로 블리드하고 위(글자 쪽) 변만 녹인다. 폭을 줄이면 세로 사진이 가운데 섬이 되고 좌우가 떴다(desk-27·36 × 264·200 규격)
+    if (c.fit) { const fw = side === 'bottom' ? bw : Math.min(bw, c.fit.dw), fh = Math.min(bh, c.fit.dh); fit = { w: fw, h: fh, k: c.fit.k, vis: c.fit.vis }; c = coverPos(style, fw, fh, { seamless: !!field?.seamless, side }); }
     pos = c.pos; trueEdge = c.trueEdge; joinFrac = c.joinFrac;
   }
   // 주인공이 그림의 일부면 주인공으로 자리를 채운다 — 그러면 자리의 글자 쪽 변은 그림 한가운데라 지면과 같은 색이 아니다(녹인다)
