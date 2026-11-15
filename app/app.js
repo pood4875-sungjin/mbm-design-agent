@@ -39,6 +39,7 @@ import { gradientFrom, normGradient } from '../core/gradient.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
 import { htmlToSvg } from '../core/svgexport.js';
+import { moldImageGuides } from '../core/guideboxes.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA, whitenLogo as whitenLogoRGBA } from '../core/logo.js';
@@ -2294,7 +2295,7 @@ function guideBoxesOf(spec, a = null) {
     out.push({ kind: 'text', label: `${GUIDE_ROLE[role] ?? role}${row.px ? ` ${row.px}px` : ''}${(row.lines ?? 1) > 1 ? ` ×${row.lines}` : ''}`, x, y: row.y, w, h });
   }
   if (mold?.logo && Number.isFinite(mold.logo.x) && mold.logo.w > 0) out.push({ kind: 'logo', label: '로고 칸', x: mold.logo.x, y: mold.logo.y, w: mold.logo.w, h: mold.logo.h });
-  if (mold?.image && Number.isFinite(mold.image.x) && mold.image.w > 0) out.push({ kind: 'image', label: '그림 칸', x: mold.image.x, y: mold.image.y, w: mold.image.w, h: mold.image.h });
+  out.push(...moldImageGuides(spec, a ? traceOfHtml(a.html) : null));   // 11-15 노션 [08]: 실제 그림 칸(좌측형·오브젝트형) + 광고주체 표기 칸 — core/guideboxes.js
   const ins = ['top', 'right', 'bottom', 'left'].map(k => Number.isFinite(sa[k]) ? sa[k] : null);
   if (ins.some(v => v != null) && spec.w && spec.h) { const [t, r, b, l] = ins.map(v => v ?? 0); out.push({ kind: 'safe', label: `안전 영역 ${[t, r, b, l].join('/')}`, x: l, y: t, w: spec.w - l - r, h: spec.h - t - b }); }
   return out;
@@ -2440,7 +2441,7 @@ function refreshFrames(only = null) {
     framePending.delete(k);
     if (vis.has(k) || k === state.selected || softNext) loadFrame(a, f, doc, softNext);
     else { framePending.set(k, doc); f.shown = null; }
-    if (a.channel === 'ad') { a.lint = null; a.design = undefined; a.guide = null; a.fitNote = null; fitBadge(a); ED.guideBadge(a); }   // 다시 그렸으니 이전 판정(규격·디자인·가이드)은 무효 — 다시 잰다(design undefined = 검수 전 → 게이트 pending)
+    if (a.channel === 'ad') { a.lint = null; a.design = undefined; a.guide = null; a.fitNote = null; fitBadge(a); ED.guideBadge(a); guideOverlay(a); }   // 11-15 노션 [08]: 다시 그리면 레이아웃 가이드도 새 렌더 기록으로(2줄형 전환 뒤 1줄 칸에 머물던 것)   // 다시 그렸으니 이전 판정(규격·디자인·가이드)은 무효 — 다시 잰다(design undefined = 검수 전 → 게이트 pending)
     if (a.channel === 'asset') a.lint = null;   // 전달물도 로고·이미지를 바꾸면 다시 잰다
     lintBadge(a);
   }
