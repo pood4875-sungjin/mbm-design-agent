@@ -6,6 +6,15 @@
 
 import { normLayout, invertBox, applyBox, anchorOf, outOfBounds, snapDelta, clampScale } from '../core/editlayout.js';
 import { elementId, elementName, withElementEdit } from '../core/elementedit.js';
+import { CANON } from '../core/canon.js';
+
+// 11-15 노션 [06]: 매체 가이드상 문구 위치가 고정된 규격 — 글자 요소는 끌기·화살표·X/Y 로 못 옮긴다(내용·서식은 그대로). 목록은 core/canon.js textPosLock 한 곳
+export const POS_LOCK_NOTE = '매체 가이드에 따라 위치가 고정되어 있어요';
+export function textPosLocked(spec) {
+  if (!spec) return false;
+  const id = String(spec.id ?? '');
+  return (CANON.textPosLock ?? []).some(m => spec.medium === m || id === m || id.startsWith(m + '-'));
+}
 
 const rel = (el, base) => { const r = el.getBoundingClientRect(); return { x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height }; };
 const union = rs => { const v = rs.filter(r => r && r.w > 0 && r.h > 0); if (!v.length) return null; const x0 = Math.min(...v.map(r => r.x)), y0 = Math.min(...v.map(r => r.y)), x1 = Math.max(...v.map(r => r.x + r.w)), y1 = Math.max(...v.map(r => r.y + r.h)); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; };
@@ -118,12 +127,13 @@ export function createElementSelect(E) {
     hide();
     if (!a || !id) return;
     const it = find(a, id), f = frameOf(a); if (!it || !f) return;
-    const body = f.frame.querySelector('.fbody'), ds = dsOf(a), locks = E.locks(a, id);
+    const body = f.frame.querySelector('.fbody'), ds = dsOf(a), locks = E.locks(a, id), posLock = it.kind === 'text' && textPosLocked(E.specOf(a));
     const el = document.createElement('div'); el.className = 'eov'; el.style.cssText = `width:${body.clientWidth}px;height:${body.clientHeight}px`;
     const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = `esel esel-${it.kind}`; btn.dataset.el = id;
-    btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — 화살표 1px 이동 · Shift+화살표 10px${locks.size ? '' : ' · +/− 크기'} · Esc 위로`);
-    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}</span><span class="esel-size" aria-hidden="true"></span><span class="egd egd-l" aria-hidden="true"><b></b></span><span class="egd egd-t" aria-hidden="true"><b></b></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
+    btn.type = 'button'; btn.className = `esel esel-${it.kind}${posLock ? ' poslock' : ''}`; btn.dataset.el = id;
+    if (posLock) btn.title = POS_LOCK_NOTE;
+    btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — ${posLock ? `${POS_LOCK_NOTE} · ` : '화살표 1px 이동 · Shift+화살표 10px'}${locks.size ? '' : ' · +/− 크기'} · Esc 위로`);
+    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}${posLock ? ' · 위치 고정' : ''}</span><span class="esel-size" aria-hidden="true"></span><span class="egd egd-l" aria-hidden="true"><b></b></span><span class="egd egd-t" aria-hidden="true"><b></b></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
     el.appendChild(btn);
     // 11-10 AI 아이콘(피그마 AI 처럼) — 선택 상자 오른쪽 위 바깥. 누르면 E.aiOpen 팝오버(app/elai.js)
     if (E.aiOpen) {
@@ -150,11 +160,13 @@ export function createElementSelect(E) {
       const it = find(a, id); if (!it) return;
       const st = { ...xform(a, it), spec: E.specOf(a) };
       const corner = e.target.dataset?.c ?? null, z = E.zoom() * ds, x0 = e.clientX, y0 = e.clientY;
-      let last = null, movedAny = false;
+      const locked = !corner && it.kind === 'text' && textPosLocked(E.specOf(a));   // 위치 고정 규격 글자 — 끌어도 안 움직이고 안내만(모서리 = 크기는 크기 잠금이 따로)
+      let last = null, movedAny = false, told = false;
       try { btn.setPointerCapture(e.pointerId); } catch {}
       const move = ev => {
         const dX = (ev.clientX - x0) / z, dY = (ev.clientY - y0) / z;
         if (!movedAny && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 3) return;
+        if (locked) { if (!told) { told = true; E.posLockNote?.(); } return; }
         movedAny = true;
         if (corner) {
           const q = resized(a, it, st, corner, dX, dY); last = q;
@@ -182,7 +194,7 @@ export function createElementSelect(E) {
       e.preventDefault(); e.stopPropagation();
       const it = find(a, id); if (!it) return;
       const st = { ...xform(a, it), spec: E.specOf(a) };
-      if (mv) { settle(a, it, st, moved(a, it, st, mv[0], mv[1]), `${elementName(id)} 미세 이동`, true); return; }
+      if (mv) { if (it.kind === 'text' && textPosLocked(E.specOf(a))) { if (!e.repeat) E.posLockNote?.(); return; } settle(a, it, st, moved(a, it, st, mv[0], mv[1]), `${elementName(id)} 미세 이동`, true); return; }
       if (E.locks(a, id).size) return;
       if (st.mode === 'text') { E.commitTextScale?.(a, id, sc); return; }
       const c0 = st.cur?.scale ?? 1, s = clampScale(c0 * sc), p = { dx: st.cur?.dx ?? 0, dy: st.cur?.dy ?? 0, scale: s, ox: st.anchor.ox, oy: st.anchor.oy };
@@ -228,6 +240,7 @@ export function createElementSelect(E) {
   // 패널 숫자 칸 — 위치 X·Y(캔버스 px), W·H(그림·로고)
   function setXY(a, id, x, y) {
     const it = find(a, id); if (!it) return;
+    if (it.kind === 'text' && textPosLocked(E.specOf(a))) { E.posLockNote?.(); return; }
     const st = { ...xform(a, it), spec: E.specOf(a) };
     const dx = (x ?? it.box.x) - it.box.x, dy = (y ?? it.box.y) - it.box.y; if (!dx && !dy) return;
     settle(a, it, st, moved(a, it, st, dx, dy), `${elementName(id)} 위치`, false);

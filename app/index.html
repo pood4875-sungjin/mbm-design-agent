@@ -502,6 +502,18 @@
   #inspector .isec > h3 > .fib:last-child,#inspector .isec > h3 > .ovr{margin-left:auto}
   #inspector .isec > h3 .mode{font-size:10px;font-weight:500;padding:1px 6px}
   #inspector .isec select{width:100%}
+  /* 11-15 노션 [13] 요소 목록 아코디언(기본 접힘) — 머리 한 줄 전체가 누르는 자리, 오른쪽 셰브론 */
+  #inspector details.iacc{padding-bottom:4px}
+  #inspector details.iacc[open]{padding-bottom:16px}
+  #inspector details.iacc > summary{list-style:none;cursor:pointer;margin:0 -16px;padding:0 16px;border-radius:0}
+  #inspector details.iacc > summary::-webkit-details-marker{display:none}
+  #inspector details.iacc > summary:hover{background:var(--soft)}
+  #inspector details.iacc > summary:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+  #inspector details.iacc > summary > h3{display:flex;align-items:center;gap:6px;min-height:36px;margin:0;font-size:12px;font-weight:600}
+  #inspector details.iacc .iacc-n{font-size:11px;font-weight:500;color:var(--sub)}
+  #inspector details.iacc > summary > h3 > svg{margin-left:auto;color:var(--sub);transition:transform .15s}
+  #inspector details.iacc[open] > summary > h3 > svg{transform:rotate(180deg)}
+  @media (prefers-reduced-motion: reduce){ #inspector details.iacc > summary > h3 > svg{transition:none} }
   #viewport.noruler #rulerT,#viewport.noruler #rulerL{display:none}
   .frame.drop-kv .fbody{outline:3px solid var(--focus);outline-offset:2px}
   .esel-size{position:absolute;left:50%;top:100%;transform:translateX(-50%) scale(calc(1 / var(--z,1)));transform-origin:50% 0;margin-top:3px;padding:1px 5px;border-radius:3px;background:var(--focus);color:#fff;font:600 10px/14px var(--font, inherit);white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
@@ -718,6 +730,36 @@
   #leftPanel textarea{height:auto;min-height:48px;padding:8px;line-height:16px;resize:vertical}
   #leftPanel input[type=text]:hover,#leftPanel textarea:hover{border-color:var(--border2)}
   #leftPanel input[type=text]:focus,#leftPanel textarea:focus{border-color:var(--focus);outline:none;background:var(--card);box-shadow:inset 0 0 0 1px var(--focus)}
+  /* 11-15 노션 [10]·[12] 좌측 패널 시안(10_16·10_17): 상태 줄 → 「전체 일괄 ?」 → 문구 네 칸(이름 + 자동 꼬리표 · 큰 입력 칸) → 반영하기(L 40) → 기본 정보·추가 작성 아코디언.
+     설명 문구는 ? 말풍선으로(industry-examples.md > 토스 UX — 화면당 목적 하나, 설명은 필요할 때). 크기·버튼은 11-11 버튼 시스템 그대로 */
+  #leftPanel .lhead{padding:10px 16px}
+  #leftPanel .lbrief{position:relative}
+  #leftPanel .lsec-top{height:48px;gap:6px}
+  #leftPanel .lsec-top .ltitle{font-size:14px;font-weight:700;color:var(--ink)}
+  #leftPanel .lhelp{width:18px;height:18px;padding:0;border-radius:50%;border:1.5px solid currentColor;background:none;color:var(--sub);font:700 11px/1 inherit;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  #leftPanel .lhelp:hover,#leftPanel .lhelp[aria-expanded="true"]{color:var(--ink)}
+  #leftPanel .lhelp[aria-expanded="true"]{position:relative;z-index:31;background:var(--card);border-color:var(--card);box-shadow:0 0 0 2px var(--card)}
+  #leftPanel .lhelp:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  #leftPanel .lmeta{margin-left:auto;margin-right:8px;font-size:11px;font-weight:400;color:var(--sub)}
+  #leftPanel .ltip{position:absolute;z-index:31;left:72px;top:40px;width:200px;padding:10px 12px;background:var(--card);color:var(--ink);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:12px;line-height:18px;word-break:keep-all}
+  #leftPanel .ldim{position:fixed;z-index:30;left:0;top:var(--gnb,52px);bottom:0;width:var(--lw);background:rgba(0,0,0,.36)}
+  #leftPanel .lfields{padding:0 16px}
+  #leftPanel .lfld{margin:0 -16px;padding:4px 16px 16px;transition:background .15s}
+  #leftPanel .lfld.on{background:var(--sel)}
+  #leftPanel .lfld > label{height:28px;margin:0 0 4px;font-size:12px;font-weight:500;color:var(--ink)}
+  #leftPanel .lfld textarea{min-height:80px;padding:10px 12px;font-size:12px;line-height:18px;border-radius:var(--btn-r,6px)}
+  #leftPanel .lfld textarea::placeholder,#leftPanel .lacc input::placeholder,#leftPanel .lacc textarea::placeholder{color:var(--sub);opacity:.75}
+  #leftPanel .lapply{padding:4px 16px 16px}
+  #leftPanel .lapply #lNote:empty{display:none}
+  #leftPanel .lsub{font-weight:400;opacity:.75;margin-left:4px;margin-right:auto}
+  #leftPanel details.lacc{border-top:1px solid var(--border)}
+  #leftPanel details.lacc > summary{height:52px;cursor:pointer;font-size:13px;font-weight:500;padding-right:12px}
+  #leftPanel details.lacc > summary:hover{background:var(--soft)}
+  #leftPanel details.lacc > summary:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+  #leftPanel details.lacc > summary svg{margin-left:auto;width:16px;height:16px;color:var(--ink);transition:transform .15s}
+  #leftPanel details.lacc[open] > summary svg{transform:rotate(180deg)}
+  #leftPanel details.lacc:last-child{border-bottom:1px solid var(--border)}
+  @media (prefers-reduced-motion: reduce){ #leftPanel details.lacc > summary svg,#leftPanel .lfld{transition:none} }
   #leftPanel input::placeholder,#leftPanel textarea::placeholder{color:var(--sub);opacity:.7}
   #leftPanel .btn{min-height:32px;padding:0 12px;border-radius:var(--r-in);font-size:11px;font-weight:500}
   #leftPanel .btn.sm{min-height:24px;height:24px;padding:0 8px;font-size:11px;border:1px solid var(--border2);background:var(--card)}
@@ -734,6 +776,7 @@
   .esel.oob{outline-color:var(--danger)}
   .esel-tag{position:absolute;left:0;bottom:100%;transform:scale(calc(1 / var(--z,1)));transform-origin:0 100%;margin-bottom:2px;padding:1px 5px;border-radius:3px;background:var(--focus);color:#fff;font-size:10px;font-weight:600;line-height:14px;white-space:nowrap;pointer-events:none}
   .esel.oob .esel-tag{background:var(--danger)}
+  .esel.poslock{cursor:default}   /* 11-15 노션 [06] 문구 위치 고정 규격 — 끌어도 안 움직인다 */
   .egrip{position:absolute;width:8px;height:8px;background:#fff;border:1.5px solid var(--focus);border-radius:1px;box-sizing:border-box;transform:scale(calc(1 / var(--z,1)))}
   .egrip::before{content:"";position:absolute;inset:-5px}
   .egrip-tl{left:-4px;top:-4px;cursor:nwse-resize}.egrip-tr{right:-4px;top:-4px;cursor:nesw-resize}.egrip-bl{left:-4px;bottom:-4px;cursor:nesw-resize}.egrip-br{right:-4px;bottom:-4px;cursor:nwse-resize}
@@ -1307,7 +1350,7 @@
 
   <div id="work">
     <aside id="leftPanel" aria-label="내용">
-      <div id="lMain"><div class="lhead"><b id="lName"></b><span id="lStat"></span></div>
+      <div id="lMain"><div class="lhead"><span id="lStat"></span></div>
       <div id="leftBody"></div></div>
     </aside>
     <div id="viewport"><div id="artboard"></div><canvas id="rulerT" aria-hidden="true"></canvas><canvas id="rulerL" aria-hidden="true"></canvas></div>

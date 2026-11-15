@@ -58,6 +58,9 @@ export const CANON = {
   // 손대지 않는 매체(11-10 사용자 「공식 템플릿이면 건들지 말고 · 자유인 것만」 — 1회차 검수표 기준 블라인드·캐치·에브리타임·자소설 포함, NAP 는 10-15 「HS화성 샘플 그대로」, 잡다·리멤버·카카오는 공식 템플릿).
   //   이 매체의 틀(mold)에는 11-10 이후 「서브텍스트 꼴·날짜 알약·라벨 맞추기」 같은 틀 고침을 걸지 않는다
   lockedMedia: ['jasoseol', 'remember', 'kakao', 'blind', 'catch', 'everytime', 'jobda', 'nap-dsp', 'nap'],
+  // 문구 위치 고정 규격(11-15 노션 [06] 「매체 가이드상 문구 위치가 고정된 규격은 문구 수동 이동 잠금 — 자소설닷컴·리멤버·카카오(NAP DSP) 비즈보드·잡다」).
+  //   앱 캔버스에서 글자 끌기·화살표 이동·X/Y 칸만 막는다(내용·서식 편집은 그대로). 매체 id 또는 규격 id 앞머리. 렌더에는 안 쓴다 — 판정은 app/elselect.js textPosLocked
+  textPosLock: ['jasoseol', 'remember', 'jobda', 'kakao-bizboard', 'nap-dsp-bizboard'],
   detailGap: { label: 0.25, item: 0.45, itemInline: 0.12 },   // itemInline: 「라벨 : 내용」 한 줄 항목끼리(11-10 밤 — 답안지 캐치 MO 사이 .33 「살짝 붙여」 · PC −.21 「살짝 벌려」 → 줄 상자 사이 0.1 안팎)
   framePad: { text: 0.08, textWide: 0.16, logo: 0.06, logoWide: 0.08 },
   // 로고 색 = 지면 색이면 단색으로(10-12 데스크탑 desk-37: 주황 로고(동부건설) × 주황 지면(브랜드색 #E86800) 카카오 1200×600 — 로고가 지면에 녹아 안 보였다).

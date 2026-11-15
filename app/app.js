@@ -44,7 +44,7 @@ import { assessForSpecs } from '../core/imagequality.js';
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA, whitenLogo as whitenLogoRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
-import { createElementSelect } from './elselect.js';   // 11-02 프레임 안 요소 고르기
+import { createElementSelect, textPosLocked, POS_LOCK_NOTE } from './elselect.js';   // 11-02 프레임 안 요소 고르기
 import { createArtKv } from './artkv.js';   // 11-10 hub 이식 1·2단계 — 이미지 요소 패널(이 소재만 그림·로고 바꾸기 · 외관 · 정렬)
 import { ART_ASSET_KEYS } from '../core/artasset.js';   // 11-10 hub 이식 — 이 소재 그림·로고 개별값
 import { createRuler } from './ruler.js';
@@ -240,6 +240,7 @@ const EL = createElementSelect({
   liveText: (a, id, k) => textScaleLive(a, id, k), commitTextScale: (a, id, k) => textScaleCommit(a, id, k),
   pick: (a, id) => select(a.key ?? a.specId, id), up: a => select(a.key ?? a.specId), locks: (a, id) => elLocks(a, id),
   aiOpen: (a, id, anchor) => ELAI.open(a, id, anchor), aiIcon: AI_ICON,
+  posLockNote: () => toast(`${POS_LOCK_NOTE} — 글자 내용·서식은 고칠 수 있어요`),   // 11-15 노션 [06]
 });
 // 요소 AI 편집(11-10, app/elai.js · core/elementai.js · server/elementedit.js) — 재료(ctxOf)와 적용(applyElOps, 되돌리기 한 걸음)
 // 11-10 hub 이식 1·2단계(app/artkv.js): 이미지 요소 패널 — 이 소재만 그림·로고(채움) · 외관 · 정렬 · 캔버스에 파일 끌어 놓기
@@ -1658,7 +1659,7 @@ function slotStyleBody() {
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
     <div class="styleRow">
-      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())} — 누끼·사진·일러스트 어느 것이든 한 칸에. 누끼(투명 PNG)면 오브젝트형 가이드, 배경 있는 그림이면 썸네일/풀이미지형으로 자동 판정합니다. 공고문·전 시안 같은 참고 이미지는 「레퍼런스(참고용)」 칸에" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수 · 누끼도 여기)'}</div>
+      <div><div class="kvthumb" id="kvThumb" title="${escH(kvGuideText())} — 누끼·사진·일러스트 어느 것이든 한 칸에. 누끼(투명 PNG)면 오브젝트형 가이드, 배경 있는 그림이면 썸네일/풀이미지형으로 자동 판정합니다" style="${it.kv ? `background-image:url(${it.kv})` : ''}">${it.kv ? '' : '키비주얼<br>(필수 · 누끼도 여기)'}</div>
         <input type="file" id="kvFile" accept="image/*" style="display:none"></div>
       ${[['wide', '가로형', '폭이 긴 규격(가로 띠·배너)에 쓸 그림 — 없으면 기본 키비주얼'], ['tall', '세로형', '세로로 긴 규격(세로 배너·스토리)에 쓸 그림 — 없으면 기본 키비주얼']].map(([k, n, t]) => { const v = it.kvVariants?.[k]; return it.kv ? `<div><div class="kvthumb logo" id="kvV-${k}" title="${t}" style="${v ? `background-image:url(${refOf(v.keyVisual)})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="kvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-kvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}</div>` : ''; }).join('')}
       <div><div class="kvthumb logo" id="logoThumb" title="${escH(logoGuideText())}" style="${it.logo ? `background-image:url(${it.logo})` : ''}">${it.logo ? '' : '로고<br>(필수)'}</div>
@@ -2322,12 +2323,17 @@ function guideOvHtml(a) {
   const g = state.guideOv, spec = SPECS[a.specId], boxes = guideBoxesOf(spec);
   const kinds = [...new Set(boxes.map(b => b.kind))];
   const legend = { text: '글자 칸', logo: '로고 칸', image: '그림 칸', safe: '안전 영역' };
-  return `<label>레이아웃 가이드 <span style="opacity:.55">${escH(spec.mediumName)} 틀 · 보기용</span></label>
+  return `<label>레이아웃 가이드 <span style="opacity:.55">${escH(spec.mediumName)} 틀 · 보기용 · Shift+G</span></label>
     <div class="row" style="align-items:center;gap:8px">
       <label class="gswitch"><input type="checkbox" id="iGuideOv" ${g.on ? 'checked' : ''}> 가이드 켜기</label>
       <input type="range" id="iGuideAlpha" min="10" max="100" value="${Math.round(g.alpha * 100)}" aria-label="가이드 투명도" style="flex:1" ${g.on ? '' : 'disabled'}><span id="iGuideAlphaV" style="font-size:11px;color:var(--sub);width:34px;text-align:right">${Math.round(g.alpha * 100)}%</span>
     </div>
     <div class="glegend">${kinds.map(k => `<span class="gl gl-${k}">${legend[k]}</span>`).join('')}<span style="color:var(--sub)">전 소재에 같이 켜져요 · 내보내기에는 안 들어가요</span></div>`;
+}
+function toggleGuideOv() {
+  const on = !state.guideOv.on; setGuideOv({ on });
+  const cb = $('iGuideOv'), rg = $('iGuideAlpha'); if (cb) cb.checked = on; if (rg) rg.disabled = !on;
+  toast(`레이아웃 가이드 ${on ? '켬' : '끔'} (Shift+G)`); log(`레이아웃 가이드 ${on ? '켬' : '끔'} — Shift+G`);
 }
 function bindGuideOv(insp) {
   const cb = insp.querySelector('#iGuideOv'), rg = insp.querySelector('#iGuideAlpha'), v = insp.querySelector('#iGuideAlphaV');
@@ -2645,6 +2651,7 @@ document.addEventListener('keydown', e => {
   if (!state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex' || typingIn(e.target) || CS.on || e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
   if (k === 'v') { setTool('move'); e.preventDefault(); } else if (k === 'h') { setTool('hand'); e.preventDefault(); } else if (k === 'i' && !e.shiftKey) { e.preventDefault(); toolImage(); }
+  else if (k === 'g' && e.shiftKey && !e.repeat) { e.preventDefault(); toggleGuideOv(); }   // 11-15 노션 [09] 레이아웃 가이드 켜고 끄기 Shift+G(피그마와 같은 키) — 입력 칸·글자 편집 중엔 위에서 걸러진다
 });
 // 11-10 hub 이식 6단계 — 캔버스 단축키: ⌘+ / ⌘− / ⌘0(100%) · ⇧1 전체 보기 · Space 누른 채 끌기(손) · ⌘E 내보내기. 입력 칸·글자 편집 중엔 안 먹는다
 document.addEventListener('keydown', e => {
@@ -2829,6 +2836,7 @@ $('helpPop').innerHTML = `
     <dt><kbd>I</kbd></dt><dd>그림 바꾸기 — 고른 소재만 / 없으면 모든 소재</dd>
     <dt><kbd>⌘+</kbd> <kbd>⌘−</kbd> <kbd>⌘0</kbd></dt><dd>확대 · 축소 · 100%</dd>
     <dt><kbd>⇧1</kbd> <kbd>⇧2</kbd></dt><dd>전체 보기 · 고른 소재로</dd>
+    <dt><kbd>⇧G</kbd></dt><dd>레이아웃 가이드 켜기 · 끄기</dd>
     <dt><kbd>⌥</kbd></dt><dd>요소를 고른 채 누르고 다른 요소에 올리면 간격</dd>
     <dt><kbd>⌘E</kbd></dt><dd>내보내기</dd>
   </dl>
@@ -2879,13 +2887,15 @@ function campaignStat(c = state.campaign) {
 // 11-09 사용자 「일괄 수정은 왼쪽 패널, 개별은 캔버스에서」 · 「타이틀은 하나로 묶어 줘야」 · 「매칭이 잘 안 돼」:
 //   왼쪽 브리프는 항상 전체 일괄. 칸을 캔버스 요소 이름(메인 문구·서브·날짜·상세)으로 묶고, 메인 문구는 「타이틀」 한 칸(= 공고 타이틀 headline, 비면 고객사+채용 구분).
 //   캔버스에서 요소를 고르면 같은 묶음이 강조된다. 개별 수정은 캔버스 글자 편집(app/charsel.js → charText)
-const LEFT_GROUPS = [   // text: 찍히는 문구 그대로 한 칸(비면 자동) · fields: 그 문구를 자동으로 만들 때 쓰는 재료(「기본 정보」에 접어 둔다)
-  { role: 'main', name: '메인 문구', text: 'headline', auto: '고객사 + 채용 구분', hint: '고치면 모든 소재의 메인 문구가 이 글이에요. 줄바꿈도 그대로 반영돼요. 고객사·채용 구분은 서브로 내려가요.' },
-  // 11-10 사용자 「서브 문구가 반영되는 곳이 별로 없어서 … 2025년을 쓰면 타이틀에도 쓸 때 중복」: 서브 = 추가 문구 한 덩어리(선택, 자동 없음). 연도는 기본 정보의 「연도·시즌」 — 서브 없는 매체의 타이틀 앞에만 한 번
-  { role: 'sub', name: '추가 문구', text: 'subText', auto: null, hint: '서브 자리가 있는 매체(자소설·에브리타임 홈 카드 등)에만 나가요.', empty: '비우면 안 나와요(좁은 칸은 고객사가 서브로 갈 수 있어요). 서브 자리가 있는 매체에만 나가요.' },
-  { role: 'date', name: '날짜', text: 'dateText', auto: '접수 시작 + 지원 마감' },
-  // 11-10 「상세 쓴 건 어디에도 안 나와서 … 행을 추가한다는 개념으로, 모집분야 모집기간 같은 수준으로」: 상세 = 접수기간(날짜 칸) · 모집직무 · 추가 행(라벨 | 값). 고용형태·근무지 고정 칸 폐지
-  { role: 'detail', name: '상세', rows: true, fields: ['notice'] },
+// 11-15 노션 [10] 좌측 패널 시안(전체 일괄 · 메인/서브/날짜/상세 문구 네 칸 · 반영하기 · 기본 정보/추가 작성 아코디언):
+//   네 칸 = 소재에 찍히는 문구 그대로(비면 자동). 설명 문구·「모든 소재에서 빼기」는 시안대로 걷고, 고친 값은 「반영하기」로 한 번에(실시간 반영 아님)
+const LEFT_GROUPS = [
+  { role: 'main', name: '메인 문구', f: 'headline', auto: '고객사 + 채용 구분', ph: '메인 문구를 입력해주세요.' },
+  // 11-10 사용자 「서브 문구가 반영되는 곳이 별로 없어서」: 서브 = 추가 문구(선택, 자동 없음 — 비우면 안 나옴)
+  { role: 'sub', name: '서브 문구', f: 'subText', auto: null, ph: '서브 문구를 입력해주세요.' },
+  { role: 'date', name: '날짜', f: 'dateText', auto: '접수 시작 + 지원 마감', ph: '모집(접수) 기간을 입력해주세요.' },
+  // 11-10 상세 = 접수기간(날짜 칸) · 모집직무 · 추가 행(라벨 | 값) — 추가 행·필수 고지는 「추가 작성」에
+  { role: 'detail', name: '상세 문구', f: 'role', auto: null, ph: '모집 직무를 입력해주세요.' },
 ];
 const BASE_FIELDS = ['client', 'hiringType', 'season', 'startDate', 'deadline'];
 const ROLE_GROUP = { main: 'main', advertiser: 'main', sub: 'sub', date: 'date', detail: 'detail', chip: 'detail', tags: 'detail', tag: 'detail' };
@@ -2910,7 +2920,6 @@ function commitBrief(c, f, v, note = () => {}) {
   const { impacted, conflicts } = propagateCore(c, { [f]: v });
   regen(c);   // 개별값·요소 편집까지 얹어 한 번에
   refreshFrames();
-  $('lName').textContent = campaignName(c.context);
   note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}종은 캔버스에서 따로 고친 값 유지` : `${impacted.length}종 모두 반영됨`);
   log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
   autosave();
@@ -2930,68 +2939,94 @@ const leftLiveRefresh = debounce(() => { const b = $('leftBody'); if (!b || b.co
 /* 11-10 오후 사용자 「좌측은 입력만 — 나머지 없애고 입력 패널만」: 레일(입력·에셋·파일·검수) 걷음. 에셋은 오른쪽 「선택 없음」, 검수는 오른쪽 검수 탭에 있다 */
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
-  $('lName').textContent = campaignName(c.context); $('lStat').textContent = campaignStat(c);
+  $('lStat').textContent = campaignStat(c);   // 11-15 노션 [12] 캠페인 이름은 머리줄에만(왼쪽 제목 칸 걷음) · 상태 줄은 남김
   const focusGroup = state.elSel ? ROLE_GROUP[parseElementId(state.elSel).role] ?? null : null;
   const sig = `${focusGroup ?? ''}`;
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
   body.dataset.sig = sig;
   const core = c.context.core;
+  // 11-15 [10] 고친 값은 「반영하기」 전까지 초안(state.leftDraft) — 다시 그려도(요소 고르기 등) 쓰던 글이 남게
+  if (state.leftDraft?.cid !== c.id) state.leftDraft = { cid: c.id, vals: {}, rows: null };
+  const D = state.leftDraft;
+  const val = (f, base) => (f in D.vals ? D.vals[f] : base);
   const MULTI = new Set(['role', 'notice']);   // 상세 값은 줄바꿈 가능(캔버스와 같게)
-  const input = f => MULTI.has(f) && c.kind === 'recruit'
-    ? `<label>${FIELD_LABEL[f]}</label><textarea data-f="${f}" rows="${Math.min(3, Math.max(1, String(core[f] ?? '').split('\n').length))}" placeholder="${escH(FIELD_HINT[f] ?? '')}">${escH(core[f] ?? '')}</textarea>`
-    : `<label>${FIELD_LABEL[f]}</label><input type="text" data-f="${f}" value="${escH(core[f] ?? '')}" placeholder="${escH(FIELD_HINT[f] ?? '')}">`;
+  const input = (f, opt = {}) => MULTI.has(f) && c.kind === 'recruit'
+    ? `<label for="lf-${f}">${opt.label ?? FIELD_LABEL[f]}</label><textarea id="lf-${f}" data-f="${f}" data-init="${escH(core[f] ?? '')}" rows="${opt.rows ?? Math.min(3, Math.max(1, String(val(f, core[f] ?? '')).split('\n').length))}" placeholder="${escH(opt.ph ?? FIELD_HINT[f] ?? '')}">${escH(val(f, core[f] ?? ''))}</textarea>`
+    : `<label for="lf-${f}">${opt.label ?? FIELD_LABEL[f]}</label><input type="text" id="lf-${f}" data-f="${f}" data-init="${escH(core[f] ?? '')}" value="${escH(val(f, core[f] ?? ''))}" placeholder="${escH(opt.ph ?? FIELD_HINT[f] ?? '')}">`;
   const overN = c.artifacts.filter(x => Object.keys(x.overrides?.core ?? {}).length).length;
-  const textBox = g => { const own = core[g.text] ?? ''; const shown = own || (g.auto ? liveText(c, g.role) : '');
-    if (!g.auto) return `<label for="lt-${g.text}">${g.name}</label>
-      <textarea id="lt-${g.text}" data-f="${g.text}" rows="${Math.min(4, Math.max(1, String(own).split('\n').length))}" placeholder="${escH(FIELD_HINT[g.text] ?? '')}">${escH(own)}</textarea>
-      <div class="fnote">${own ? g.hint : g.empty}</div>`;   // 11-10 추가 문구: 자동 문구 없음 — 비우면 안 나온다
-    return `<label>${g.role === 'main' ? '타이틀' : `${g.name} 문구`} ${own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.text}"`) : '<span class="lauto">자동</span>'}</label>
-      <textarea data-f="${g.text}" data-auto="${escH(own ? '' : shown)}" rows="${Math.min(4, Math.max(2, shown.split('\n').length))}" aria-label="${g.name} 문구">${escH(shown)}</textarea>
-      <div class="fnote">${own ? (g.hint ?? '직접 쓴 문구가 모든 소재에 나가요.') : `비워 두면 ${g.auto}(으)로 만들어요. 고치면 이 글이 모든 소재에 나가요.`}</div>`; };
-  // 11-10 상세: 접수기간(위 날짜 칸) · 모집직무 · 추가 행. 추가 행은 모집직무와 같은 모양으로 상세 줄 자리가 있는 규격에만, 넘치면 뒤 행부터 빠지고 검수 경고
-  // 11-10 저녁 사용자 「추가 행 설명이 필요하냐 — + 행 추가만, 근무지·고용형태 나오는 곳이 없지 않아?」: 긴 설명 대신 실제로 찍힌 소재 수 한 줄
-  //   (전 80규격 실측: 첫 행 11 · 둘째 행 5 · 필수 고지 2 — 상세 줄 자리가 있는 규격에만, 넘치면 뒤 행부터 빠짐)
+  const omitted = omitList(core.omit);
+  // 문구 칸 하나 — 이름 + 「자동」 꼬리표(자동 문구가 있는 칸만) · 직접 쓴 값이면 자동으로 되돌리기. 시안대로 설명 문구는 뺐다
+  const textBox = g => {
+    const own = core[g.f] ?? '', shown = own || (g.auto ? liveText(c, g.role) : ''), cur = val(g.f, shown);
+    const tail = g.auto ? (own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.f}"`) : `<span class="lauto" title="비우면 ${escH(g.auto)}(으)로 만들어요">자동</span>`) : '';
+    const off = omitted.includes(g.role) ? `<div class="fnote">모든 소재에서 뺐어요 · <button type="button" class="lnk" data-lomit="${g.role}">다시 넣기</button></div>` : '';
+    return `<div class="lfld${focusGroup === g.role ? ' on' : ''}" data-lgrp="${g.role}"><label for="lf-${g.f}">${g.name}${tail}</label>
+      <textarea id="lf-${g.f}" data-f="${g.f}" data-init="${escH(shown)}" ${g.auto && !own ? `data-auto="${escH(shown)}"` : ''} rows="3" placeholder="${escH(g.ph)}">${escH(cur)}</textarea>${off}</div>`;
+  };
+  // 11-10 상세 추가 행: 실제로 찍힌 소재 수 한 줄(전 80규격 실측: 첫 행 11 · 둘째 행 5 · 필수 고지 2)
   const adsL = c.artifacts.filter(a => a.channel === 'ad' && a.html);
-  // 소재 글(태그·스타일 뺀 것)에서 찾는다. 행은 「라벨 : 값」 모양 그대로 — 한 글자 값(「오」)이 다른 낱말에 걸려 부풀던 것(11-10 사용자 화면 「오오 12개」)
-  const plainOf = new Map(), plain = a => { if (!plainOf.has(a)) plainOf.set(a, a.html.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\u2060/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ')); return plainOf.get(a); };
+  const plainOf = new Map(), plain = a => { if (!plainOf.has(a)) plainOf.set(a, a.html.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/⁠/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ')); return plainOf.get(a); };
   const reEsc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*');
   const shownIn = (v, label = null) => { const t = String(v ?? '').trim().split('\n')[0].trim(); if (!t) return 0; const re = new RegExp(label ? `${reEsc(String(label).trim())}\\s*:?\\s*${reEsc(t)}` : reEsc(t)); return adsL.filter(a => re.test(plain(a))).length; };
   const rowsNow = cleanRows(core.rows);
   const reach = n => n ? `${n}개` : '안 나감';
   const rowsNote = rowsNow.length ? `<div class="fnote">나가는 소재 — ${rowsNow.map(r => `${escH(r.label)} ${reach(shownIn(r.value, r.label))}`).join(' · ')} (전체 ${adsL.length}개)</div>` : '';
-  const rowsBox = () => `${input('role')}<div data-lrows style="margin-top:8px"></div>${rowsNote}`;
-  const briefHtml = c.kind === 'recruit'
-    ? LEFT_GROUPS.map(g => { const off = omitList(core.omit).includes(g.role);
-        return `<div class="lgrp${focusGroup === g.role ? ' on' : ''}${off ? ' off' : ''}" data-lgrp="${g.role}"><div class="lsec">${g.name}${g.role !== 'main' ? iconBtn(off ? 'eye-off' : 'eye', off ? `${g.name} 다시 넣기 — 모든 소재` : `${g.name} 모든 소재에서 빼기`, `data-lomit="${g.role}" aria-pressed="${off}"`) : ''}</div><div class="lgb">${off ? '<div class="fnote">모든 소재에서 뺐어요 — 눈을 누르면 다시 넣어요</div>' : `${g.text ? textBox(g) : ''}${g.rows ? rowsBox() : ''}${(g.fields ?? []).map(f => input(f) + (f === 'notice' && core.notice ? `<div class="fnote">${shownIn(core.notice) ? `나가는 소재 ${shownIn(core.notice)}개 (전체 ${adsL.length}개)` : `고른 매체에는 안 나가요 — 고지 자리가 있는 매체(알바몬 등)에만`}</div>` : '')).join('')}`}</div></div>`; }).join('')
-      + `<details class="lgrp lbase"><summary class="lsec">기본 정보<span class="lsec-t">자동 문구·파일 이름</span>${ic('chev')}</summary><div class="lgb">${BASE_FIELDS.map(input).join('')}<div class="fnote">연도·시즌: 타이틀에 연도가 없을 때 서브 자리가 없는 매체(리멤버 등)의 타이틀 앞에만 한 번 붙어요.</div></div></details>`
-    : campaignFields(c).map(input).join('');
-  body.innerHTML = `<section class="lbrief"><div class="lsec lsec-top">브리프<button type="button" class="btn sm" id="lApply" title="쓰는 중인 칸까지 지금 모든 소재에 반영">글자에 반영</button></div>
-    <div class="fnote lgb">여기서 고치면 모든 소재에 반영돼요 · 소재 하나만은 캔버스에서 글자 더블클릭${overN ? ` · 따로 고친 소재 ${overN}종` : ''}</div>
-    <div id="lNote" class="fnote lgb" role="status"></div>
-    ${briefHtml}
+  const noticeNote = core.notice ? `<div class="fnote">${shownIn(core.notice) ? `나가는 소재 ${shownIn(core.notice)}개 (전체 ${adsL.length}개)` : '고른 매체에는 안 나가요 — 고지 자리가 있는 매체(알바몬 등)에만'}</div>` : '';
+  const acc = (key, name, inner) => `<details class="lacc" data-lacc="${key}" ${state.leftAcc?.[key] ? 'open' : ''}><summary class="lsec">${name}${ic('chev')}</summary><div class="lgb">${inner}</div></details>`;
+  const fieldsHtml = c.kind === 'recruit'
+    ? LEFT_GROUPS.map(textBox).join('')
+    : campaignFields(c).map(f => `<div class="lfld">${input(f)}</div>`).join('');
+  const accHtml = c.kind === 'recruit'
+    ? acc('base', '기본 정보', `${BASE_FIELDS.map(f => input(f)).join('')}<div class="fnote">연도·시즌은 타이틀에 연도가 없을 때 서브 자리가 없는 매체(리멤버 등)의 타이틀 앞에만 한 번 붙어요.</div>`)
+      + acc('more', '추가 작성', `<label>추가 행 <span class="lsub">고용형태·근무지 등 (라벨 | 값)</span></label><div data-lrows></div>${rowsNote}${input('notice')}${noticeNote}`)
+    : '';
+  body.innerHTML = `<section class="lbrief">
+    <div class="lsec lsec-top"><span class="ltitle">전체 일괄</span><button type="button" class="lhelp" id="lHelp" aria-label="전체 일괄 도움말" aria-expanded="false" aria-controls="lTip">?</button>${overN ? `<span class="lmeta">따로 고친 소재 ${overN}종</span>` : ''}</div>
+    <div class="ltip" id="lTip" role="tooltip" hidden>여기서 고치면 모든 소재에 반영돼요.<br>소재 하나만 고치려면 캔버스에서 글자를 더블클릭하세요.</div>
+    <div class="ldim" id="lDim" hidden></div>
+    <div class="lfields">${fieldsHtml}</div>
+    <div class="lgb lapply"><button type="button" class="btn lg full" id="lApply" disabled>반영하기</button><div id="lNote" class="fnote" role="status"></div></div>
     </section>
-    <section class="lgrp lprompt"><div class="lsec">프롬프트</div><div class="lgb">
-    <textarea id="lPrompt" rows="4" aria-label="변경 지시" placeholder="예: 메인 문구를 더 짧게 · 날짜를 강조"></textarea>
-    <button class="btn" id="lPromptGo" style="width:100%;margin-top:8px">적용</button>
-    </div></section>`;
+    ${accHtml}
+    ${acc('prompt', '프롬프트', `<textarea id="lPrompt" rows="4" aria-label="변경 지시" placeholder="예: 메인 문구를 더 짧게 · 날짜를 강조"></textarea><button class="btn full" id="lPromptGo" style="margin-top:8px">적용</button>`)}`;
   const note = t => { const n = $('lNote'); if (n) n.textContent = t; };
-  const commit = i => {
-    const f = i.dataset.f, multi = i.tagName === 'TEXTAREA';
-    const v = multi ? i.value.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim() : i.value.trim();   // 문구 칸은 줄바꿈을 지킨다
-    if (multi && i.dataset.auto && v === i.dataset.auto) return;   // 자동 문구를 그대로 두면 고정하지 않는다
-    commitBrief(c, f, v, note);
-  };
-  body.querySelectorAll('[data-f]').forEach(i => { i.oninput = debounce(() => commit(i), 450); });
+  const norm = i => i.tagName === 'TEXTAREA' ? i.value.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim() : i.value.trim();   // 문구 칸은 줄바꿈을 지킨다
+  const apply = $('lApply');
+  const rowsDirty = () => !!D.rows && JSON.stringify(cleanRows(D.rows)) !== JSON.stringify(rowsNow);
+  const dirty = () => Object.keys(D.vals).length > 0 || rowsDirty();
+  const syncBtn = () => { const on = dirty(); apply.disabled = !on; apply.classList.toggle('pri', on); };
+  body.querySelectorAll('[data-f]').forEach(i => { i.oninput = () => { const v = norm(i); if (v === (i.dataset.init ?? '')) delete D.vals[i.dataset.f]; else D.vals[i.dataset.f] = i.value; syncBtn(); }; });
   const rowsHost = body.querySelector('[data-lrows]');
-  if (rowsHost) rowsEditor(rowsHost, [...cleanRows(core.rows), ...(state.rowDraft?.cid === c.id ? state.rowDraft.rows : [])], (rows, { now } = {}) => {
-    state.rowDraft = { cid: c.id, rows: rows.filter(r => !(String(r.label ?? '').trim() && String(r.value ?? '').trim())) };   // 라벨·값 둘 다 있어야 행 — 쓰는 중인 행은 화면에만 둔다
-    (now ? commitRows : commitRowsLater)(cleanRows(rows));
-  });
-  const commitRows = rows => { if (commitBrief(c, 'rows', rows, note)) body.dataset.sig = '-'; };
-  const commitRowsLater = debounce(commitRows, 450);
-  $('lApply').onclick = () => body.querySelectorAll('[data-f]').forEach(commit);
-  body.querySelectorAll('[data-lomit]').forEach(b => b.addEventListener('click', () => { const r = b.dataset.lomit, cur0 = omitList(core.omit); const next = cur0.includes(r) ? cur0.filter(x => x !== r) : [...cur0, r]; if (commitBrief(c, 'omit', next.join(','), note)) { body.dataset.sig = '-'; renderLeft(); } }));
-  body.querySelectorAll('[data-ltreset]').forEach(b => b.addEventListener('click', () => { if (commitBrief(c, b.dataset.ltreset, '', note)) { body.dataset.sig = '-'; setTimeout(renderLeft, 300); } }));
+  if (rowsHost) rowsEditor(rowsHost, D.rows ?? rowsNow, rows => { D.rows = rows.map(r => ({ ...r })); syncBtn(); });
+  // 반영하기 — 고친 칸을 한 번에(되돌리기 한 걸음 · 그리기 한 번)
+  apply.onclick = () => {
+    const patch = {};
+    for (const [f, raw] of Object.entries(D.vals)) {
+      const el = body.querySelector(`[data-f="${f}"]`), v = el ? norm(el) : String(raw).trim();
+      if (el?.dataset.auto && v === el.dataset.auto) continue;   // 자동 문구를 그대로 두면 고정하지 않는다
+      if (v !== (core[f] ?? '')) patch[f] = v;
+    }
+    if (rowsDirty()) patch.rows = cleanRows(D.rows);
+    D.vals = {}; if (D.rows && !D.rows.some(r => !(String(r.label ?? '').trim() && String(r.value ?? '').trim()))) D.rows = null;   // 쓰는 중인 행(라벨·값 하나만)은 화면에 남긴다
+    if (!Object.keys(patch).length) { syncBtn(); return; }
+    pushHistory(`전체 일괄 반영 — ${Object.keys(patch).map(f => FIELD_LABEL[f] ?? f).join('·')}`);
+    const { impacted, conflicts } = propagateCore(c, patch);
+    regen(c); refreshFrames(); autosave();
+    log(`전체 일괄 반영 ${Object.keys(patch).join(',')} (${impacted.length}종${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+    body.dataset.sig = '-'; document.activeElement?.blur?.(); renderLeft();
+    note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}종은 캔버스에서 따로 고친 값 유지` : `${impacted.length}종 모두 반영됨`);
+  };
+  syncBtn();
+  body.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !apply.disabled && e.target.dataset?.f != null) { e.preventDefault(); apply.click(); } };   // ⌘Enter = 반영하기
+  body.querySelectorAll('[data-lomit]').forEach(b => b.addEventListener('click', () => { const r = b.dataset.lomit; if (commitBrief(c, 'omit', omitted.filter(x => x !== r).join(','), note)) { body.dataset.sig = '-'; renderLeft(); } }));
+  body.querySelectorAll('[data-ltreset]').forEach(b => b.addEventListener('click', () => { delete D.vals[b.dataset.ltreset]; if (commitBrief(c, b.dataset.ltreset, '', note)) { body.dataset.sig = '-'; setTimeout(renderLeft, 300); } }));
+  body.querySelectorAll('[data-lacc]').forEach(d => d.ontoggle = () => { state.leftAcc = { ...(state.leftAcc ?? {}), [d.dataset.lacc]: d.open }; });
+  // 「전체 일괄 ?」 도움말 — 누르면 말풍선 + 패널 어둡게, 바깥을 누르거나 Esc 면 닫힘(시안 10_17)
+  const help = $('lHelp'), tip = $('lTip'), dim = $('lDim');
+  const tipSet = on => { tip.hidden = dim.hidden = !on; tip.classList.toggle('open', on); help.setAttribute('aria-expanded', String(on)); if (on) setTimeout(() => document.addEventListener('pointerdown', away, true), 0); else document.removeEventListener('pointerdown', away, true); };
+  const away = e => { if (e.target === help) return; tipSet(false); };
+  help.onclick = () => tipSet(tip.hidden);
+  help.onkeydown = e => { if (e.key === 'Escape' && !tip.hidden) { e.stopPropagation(); tipSet(false); } };
   if (focusGroup) body.querySelector(`[data-lgrp="${focusGroup}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   const pr = $('lPrompt'), go = () => { const t = pr.value.trim(); if (t) { pr.value = ''; onCommand(t); } };
   $('lPromptGo').onclick = go;
@@ -3036,6 +3071,7 @@ function bindScope(insp, a, c) {
   insp.querySelectorAll('[data-ovr]').forEach(b => b.onclick = () => resetKeys(OV_GROUP[b.dataset.ovr], '일괄값으로'));
   insp.querySelector('[data-ovrall]')?.addEventListener('click', () => resetKeys(OV_KEYS, '개별값 전부 일괄값으로', { layout: true, elements: true }));
   insp.querySelectorAll('[data-elpick]').forEach(b => b.onclick = () => select(a.key ?? a.specId, b.dataset.elpick));
+  const lay = insp.querySelector('#iLayers'); if (lay) lay.ontoggle = () => { state.layersOpen = lay.open; };
   insp.querySelectorAll('[data-goall]').forEach(b => b.onclick = () => { select(null); $('secVisual')?.scrollIntoView({ block: 'start' }); });
 }
 // 프레임 안 요소 목록(hub 레이어 패널) — 키보드로도 고를 수 있게. 개별값이 있으면 점
@@ -3043,7 +3079,8 @@ function layerListHtml(a) {
   const items = EL.list(a); if (!items.length) return '';
   const st = a.overrides.style ?? {}, ed = a.overrides.elements ?? {}, lay = a.overrides.layout ?? {};
   const own = it => !!(ed[it.id] || (it.kind === 'text' && (st.roleColors?.[it.id] || st.roleScale?.[it.id])) || (it.kind !== 'text' && lay[it.kind]));
-  return `<section class="isec"><h3>요소</h3><div class="layers">${items.map(it => `<button type="button" class="layer" data-elpick="${escH(it.id)}"><i class="layer-k layer-${it.kind}" aria-hidden="true"></i><span>${escH(elementName(it.id))}</span>${own(it) ? '<em title="개별값 있음" aria-label="개별값 있음">●</em>' : ''}</button>`).join('')}</div></section>`;
+  // 11-15 노션 [13] 「캔버스에서 바로 고르는데 같은 요소가 패널 위에 또 — 아코디언, 기본 접힘」: 접어 두고, 연 상태는 이 세션 동안 기억(state.layersOpen)
+  return `<details class="isec iacc" id="iLayers" ${state.layersOpen ? 'open' : ''}><summary><h3>요소 <span class="iacc-n">${items.length}</span>${ic('chev')}</h3></summary><div class="layers">${items.map(it => `<button type="button" class="layer" data-elpick="${escH(it.id)}"><i class="layer-k layer-${it.kind}" aria-hidden="true"></i><span>${escH(elementName(it.id))}</span>${own(it) ? '<em title="개별값 있음" aria-label="개별값 있음">●</em>' : ''}</button>`).join('')}</div></details>`;
 }
 const hexOfCss = v => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(v ?? ''); return m ? '#' + [m[1], m[2], m[3]].map(x => (+x).toString(16).padStart(2, '0')).join('').toUpperCase() : '#333333'; };
 function elLocks(a, id) {
@@ -3061,7 +3098,8 @@ function elementPanelHtml(a, spec, id) {
   const head = `<h3>${escH(elementName(id))} ${own ? `<button type="button" class="ovr" id="iElReset" title="일괄값으로 되돌리기" aria-label="${escH(elementName(id))} 일괄값으로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>`;
   // 11-10 피그마 UI3 글자 패널: 글자 편집 중 끌어 고른 범위가 있으면 아래 「글자」·「칠」 칸이 그 범위의 값(섞이면 혼합)을 보이고 그 범위에 먹는다
   const pk = CS.on && CS.key === (a.key ?? a.specId) && CS.pick?.id === id ? CS.pick : null;
-  const posRow = `<div class="fgrid2">${numField({ id: 'iElX', value: r1(box.x), label: 'X 위치', prefix: 'X' })}${numField({ id: 'iElY', value: r1(box.y), label: 'Y 위치', prefix: 'Y' })}</div>`;
+  const posLock = it.kind === 'text' && textPosLocked(spec);   // 11-15 노션 [06] 문구 위치 고정 규격
+  const posRow = `<div class="fgrid2">${numField({ id: 'iElX', value: r1(box.x), label: 'X 위치', prefix: 'X', ...(posLock ? { attrs: 'disabled' } : {}) })}${numField({ id: 'iElY', value: r1(box.y), label: 'Y 위치', prefix: 'Y', ...(posLock ? { attrs: 'disabled' } : {}) })}</div>${posLock ? `<div class="fnote" id="iElPosLock">${POS_LOCK_NOTE} · 내용·서식은 고칠 수 있어요</div>` : ''}`;
   if (it.kind !== 'text') {   // 11-10 hub 이식: 이름 · 정렬 · 위치 · 크기(비율 고정) → 외관 → 채움(이 소재만 그림·로고) — app/artkv.js
     const P = ED.partsOf(a), why = !P?.[it.kind] ? P?.why?.[it.kind] : null;
     const sizeRow = `${numField({ id: 'iElW', value: r1(box.w), label: '너비', prefix: 'W' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이', prefix: 'H' })}`;

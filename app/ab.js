@@ -18,6 +18,7 @@ import { kvTypeSummary } from '../core/kvtypes.js';
 import { validateLayout, ROLE_LABEL, WEIGHTS, TEXT_ROLES } from '../core/trackb/schema.js';
 import { renderLayout, layerList } from '../core/trackb/render.js';
 import { buildFixed } from '../core/trackb/prompt.js';
+import { WEIGHT_NAME } from '../core/elementedit.js';   // 11-15 노션 [11] 굵기는 이름(피그마와 같은 영문)
 import { PRICES, DEFAULT_MODEL } from '../core/trackb/cost.js';
 import { measureArtifact } from './measure.js';
 import { rasterize, download, downloadText } from './raster.js';
@@ -307,7 +308,7 @@ function renderFields() {
     h += field('역할', 'role', 'select', { options: TEXT_ROLES.map(v => ({ v, l: ROLE_LABEL[v] })), value: o.role });
     h += field('문구 (줄바꿈 = Enter)', 'text', 'textarea', { value: o.text, wide: true });
     for (const k of ['x', 'y', 'w']) h += field(k.toUpperCase(), k, 'number', { value: o[k] });
-    h += field('크기', 'size', 'number', { value: o.size }) + field('굵기', 'weight', 'select', { options: WEIGHTS.map(v => ({ v, l: String(v) })), value: o.weight }) + field('색', 'color', 'text', { value: o.color });
+    h += field('크기', 'size', 'number', { value: o.size }) + field('굵기', 'weight', 'select', { options: WEIGHTS.map(v => ({ v, l: WEIGHT_NAME[v] ?? String(v) })), value: o.weight }) + field('색', 'color', 'text', { value: o.color });
     h += field('정렬', 'align', 'select', { options: [{ v: 'left', l: '왼쪽' }, { v: 'center', l: '가운데' }, { v: 'right', l: '오른쪽' }], value: o.align }) + field('행간', 'lineHeight', 'number', { value: o.lineHeight, step: '0.05' }) + field('자간(em)', 'letterSpacing', 'number', { value: o.letterSpacing, step: '0.01' });
   }
   el.innerHTML = h;
