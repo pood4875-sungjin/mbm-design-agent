@@ -41,6 +41,8 @@ import { buildZip } from './zip.js';
 import { htmlToSvg } from '../core/svgexport.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
+import { guideBoxes, traceOfHtml, GUIDE_LEGEND } from '../core/layoutguide.js';
+import { ruleFileName } from '../core/filename-rules.js';   // 11-15 매체별 파일명 표   // 11-15 레이아웃 가이드 칸(문구별 줄 띠)
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA, whitenLogo as whitenLogoRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
@@ -2266,39 +2268,9 @@ const twinTitle = specId => { const shared = sharedTwins(specId); return shared.
 /* ═══ 레이아웃 가이드 오버레이(10-28 담당자 「프로그램 내 레이아웃 가이드」) ═══
    가이드가 명확한 매체(자소설·카카오·리멤버·에브리타임 …)의 틀(core/media.js spec.rules.safeArea.measuredFromTemplate.mold: 글자 칸·로고 칸·그림 칸)과
    safeArea 여백을 소재 위에 반투명 칸으로 그린다. 보기용 — 렌더·검사에는 영향 없음. 틀도 여백 수치도 없는 매체는 토글을 숨긴다 */
-const GUIDE_ROLE = { sub: '서브', main: '메인', detail: '상세', date: '날짜', cta: 'CTA', extra: '부가' };
-// 11-09 컨시어지 「문구별 가이드 영역으로 세분화」(자소설 PC채용공고 메인×2·상세×6 등 6유형, PC·M메인 메인 2줄이면 상세 1행 없음, M팝업 상세 위치, 달력 메인만):
-//   틀의 최대 칸 대신 이 산출물이 실제로 쓴 줄 — 렌더 기록(data-trace textBox.rows: 역할·줄마다 x·y·w·h)을 역할별로 묶어 그린다. 기록이 없으면 틀 칸(예전 방식)
-const traceOfHtml = html => { try { return JSON.parse(String(html ?? '').match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch { return null; } };
-function usedTextBoxes(a, mold) {
-  const tr = traceOfHtml(a?.html); const rows = tr?.textBox?.rows; if (!Array.isArray(rows) || !rows.length) return null;
-  const out = [];
-  for (const r of rows) {
-    const last = out[out.length - 1];
-    if (last && last.role === r.role && Math.abs(r.y - (last.y + last.h)) < Math.max(4, r.h * 0.6)) { const x2 = Math.max(last.x + last.w, r.x + r.w); last.x = Math.min(last.x, r.x); last.w = x2 - last.x; last.h = r.y + r.h - last.y; last.n++; continue; }
-    out.push({ role: r.role, x: r.x, y: r.y, w: r.w, h: r.h, n: 1 });
-  }
-  return out.map(b => { const px = tr.fonts?.[b.role]?.px ?? mold?.rows?.[b.role]?.px ?? null; const colW = mold?.rows?.[b.role]?.w ?? mold?.w ?? null;
-    return { kind: 'text', label: `${GUIDE_ROLE[b.role] ?? b.role}${px ? ` ${Math.round(px)}px` : ''}${b.n > 1 ? ` ×${b.n}` : ''}`, x: b.x, y: b.y, w: Math.max(b.w, colW ?? 0), h: b.h }; });   // 폭은 틀 칸 폭(글자가 짧아도 칸 폭을 보여야 넘침을 가늠한다)
-}
-function guideBoxesOf(spec, a = null) {
-  const sa = spec?.rules?.safeArea; if (!sa) return [];
-  const mold = sa.measuredFromTemplate?.mold ?? null;
-  const out = [];
-  const used = a ? usedTextBoxes(a, mold) : null;
-  if (used) out.push(...used);
-  else if (mold?.rows) for (const [role, row] of Object.entries(mold.rows)) {
-    if (!row || !Number.isFinite(row.y)) continue;
-    const x = row.x ?? mold.x ?? 0, w = row.w ?? mold.w ?? spec.w - x;
-    const h = (row.pitch ?? (row.px ? row.px * 1.25 : 24)) * (row.lines ?? 1);
-    out.push({ kind: 'text', label: `${GUIDE_ROLE[role] ?? role}${row.px ? ` ${row.px}px` : ''}${(row.lines ?? 1) > 1 ? ` ×${row.lines}` : ''}`, x, y: row.y, w, h });
-  }
-  if (mold?.logo && Number.isFinite(mold.logo.x) && mold.logo.w > 0) out.push({ kind: 'logo', label: '로고 칸', x: mold.logo.x, y: mold.logo.y, w: mold.logo.w, h: mold.logo.h });
-  if (mold?.image && Number.isFinite(mold.image.x) && mold.image.w > 0) out.push({ kind: 'image', label: '그림 칸', x: mold.image.x, y: mold.image.y, w: mold.image.w, h: mold.image.h });
-  const ins = ['top', 'right', 'bottom', 'left'].map(k => Number.isFinite(sa[k]) ? sa[k] : null);
-  if (ins.some(v => v != null) && spec.w && spec.h) { const [t, r, b, l] = ins.map(v => v ?? 0); out.push({ kind: 'safe', label: `안전 영역 ${[t, r, b, l].join('/')}`, x: l, y: t, w: spec.w - l - r, h: spec.h - t - b }); }
-  return out;
-}
+// 11-15 노션 「문구별 가이드 영역으로 세분화(특정 가이드만)」: 칸 계산은 core/layoutguide.js — 대상 매체(네이버·리멤버·자소설·잡다·카카오 비즈보드·에브리타임)는 줄마다 한 칸,
+//   줄 위치·줄 수는 렌더 기록(data-trace)의 실제 줄, 칸 폭은 틀 칸 값. 그 밖의 틀 매체는 역할마다 한 칸(11-09)
+const guideBoxesOf = (spec, a = null) => guideBoxes(spec, a ? traceOfHtml(a.html) : null);
 const hasGuide = a => a?.channel === 'ad' && guideBoxesOf(SPECS[a.specId]).length > 0;
 function loadGuideOv() { try { const v = JSON.parse(localStorage.getItem('mbm-guide-ov') || 'null'); if (v && typeof v === 'object') return { on: !!v.on, alpha: Math.min(1, Math.max(0.1, +v.alpha || 0.55)) }; } catch {} return { on: false, alpha: 0.55 }; }
 state.guideOv = loadGuideOv();
@@ -2312,7 +2284,7 @@ function guideOverlay(a) {
   for (const b of guideBoxesOf(spec, a)) {
     const d = document.createElement('div'); d.className = `gb gb-${b.kind}`;
     d.style.cssText = `left:${b.x * ds}px;top:${b.y * ds}px;width:${Math.max(2, b.w * ds)}px;height:${Math.max(2, b.h * ds)}px`;
-    d.innerHTML = `<i>${escH(b.label)}</i>`; el.appendChild(d);
+    d.innerHTML = b.label ? `<i>${escH(b.label)}</i>` : ''; el.appendChild(d);   // 줄 띠는 역할 첫 줄에만 이름표
   }
   body.appendChild(el);
 }
@@ -2321,7 +2293,7 @@ function guideOvHtml(a) {
   if (!hasGuide(a)) return '';
   const g = state.guideOv, spec = SPECS[a.specId], boxes = guideBoxesOf(spec);
   const kinds = [...new Set(boxes.map(b => b.kind))];
-  const legend = { text: '글자 칸', logo: '로고 칸', image: '그림 칸', safe: '안전 영역' };
+  const legend = GUIDE_LEGEND;
   return `<label>레이아웃 가이드 <span style="opacity:.55">${escH(spec.mediumName)} 틀 · 보기용</span></label>
     <div class="row" style="align-items:center;gap:8px">
       <label class="gswitch"><input type="checkbox" id="iGuideOv" ${g.on ? 'checked' : ''}> 가이드 켜기</label>
@@ -4153,7 +4125,7 @@ async function assetFileOf(a) {
   const src = item === '로고' ? (c.style.logoOrig ?? c.style.logo) : (c.style.kvOrig ?? c.style.keyVisual); if (!src || !/^data:/.test(src)) return null;
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 40);
   const core = c.context.core; const who = [clean(c.kind === 'recruit' ? core.client : core.name)];   // 10-28 파일명 양식: 기업명_매체_상품_파일(직무·회차 없음)
-  const base = [...who, clean(spec.mediumName), 'M시작배너패키지', item === '로고' ? '로고파일' : '이미지파일'].filter(Boolean).join('_');
+  const base = ruleFileName(spec.id, { client: c.kind === 'recruit' ? core.client : core.name }) ?? [...who, clean(spec.mediumName), 'M시작배너패키지', item === '로고' ? '로고파일' : '이미지파일'].filter(Boolean).join('_');   // 11-15 엑셀 표(「기업명_자소설_시작배너(로고)」) 먼저
   const toBytes = (dataUrl) => { const m = dataUrl.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null; const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const data = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i); return { data, mime: m[1] }; };
   const img = await loadImage(src);
   const w0 = img?.naturalWidth || 0, h0 = img?.naturalHeight || 0;
