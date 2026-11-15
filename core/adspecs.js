@@ -7,6 +7,7 @@
 import { MEDIA, EXTRACT } from './media.js';
 import { SPECS } from './contract.js';
 import { submitSize } from './lint.js';
+import { ruleFileName } from './filename-rules.js';   // 11-15 매체별 파일명 표(노션 엑셀)
 
 // 난이도·적용 차수(10-21 사용자 표, core/media/_extract.json stages): 하·1차 20(자소설 11·리멤버 8·비즈보드 1) → 중·2차 9 → 상·3차 10 → 4 로고·프로필·보조 12(표에 없는 B등급 9 + 캐치 3). 참고 규격은 5.
 //   캔버스 줄·매체 고르기·규격 묶음이 이 순서를 따른다(사용자 「난이도 하를 제일 위에 생성되게」). 차수 안에서는 표에 적힌 매체 순(stages 배열 순), 4·5 는 보드 순(EXTRACT.order) 뒤 매체 JSON 순
@@ -108,7 +109,10 @@ export function extractSpecGroups(media = null) { return adSpecGroups(media, { e
 //   · 치수는 제출 크기(exportScale 반영 — 매체가 받는 파일 그대로)
 //   · 매체 JSON 에 fileName(NAP DSP 「기업명_띠배너_320*50(640*100)」)이 있으면 그 양식 우선 — 「기업명」만 바꿔 넣고 파일명에 못 쓰는 문자(*·괄호)는 정리
 //   · 직무·회차는 넣지 않는다 — 회차는 ZIP 폴더명(v회차)으로
-export function adFileNameOf({ client, mediumName, spec, ext = 'png' }) {
+// 11-15 노션 「파일명 수정」: 엑셀 「소재 10곳 파일명 총 정리」 표(core/filename-rules.js)에 있는 규격은 그 꼴이 먼저 — 아래 규칙은 표에 없는 규격만
+export function adFileNameOf({ client, mediumName, spec, ext = 'png', date = new Date() }) {
+  const ruled = ruleFileName(spec?.id, { client, date });
+  if (ruled) return `${ruled}.${ext}`;
   const clean = v => String(v ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
   const compact = v => String(v ?? '').replace(/\([^)]*\)/g, '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '').slice(0, 40);   // 이름 조각: 괄호 설명 제거 + 띄어쓰기 없이
   const W = spec?.submitW ?? spec?.w, H = spec?.submitH ?? spec?.h;
