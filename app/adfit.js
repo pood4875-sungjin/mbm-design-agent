@@ -8,6 +8,7 @@
 import { renderAd } from '../core/renderers/ad.js';
 import { lintArtifact } from '../core/lint.js';
 import { measureArtifact } from './measure.js';
+import { fitLadder } from '../core/png8.js';
 
 // post(html) — 렌더 결과에 내보내기용 @font-face 를 끼우는 자리(app.js, 묶은 무료 폰트 10-14). 재는 것·검사는 그 HTML 로 한다
 export async function renderFit(ctx, style, spec, post = h => h) {
@@ -36,17 +37,15 @@ export async function renderFit(ctx, style, spec, post = h => h) {
   //   ② 디자인 그대로 PNG 재양자화 64→32→16단계 (PNG 만 허용하거나 알파가 있을 때)
   //   ③ 단색 배경(그라데이션 → 단색) → ④ 단색 + JPG 사다리 → ⑤ 단색 + PNG 재양자화
   //   맞춘 단계는 attempts 마지막 항목 · fitted 로 알린다(카드 「용량 맞춤」 배지 · 내보내기 로그)
+  //   11-15: 단계 목록은 core/png8.js fitLadder — JPG 0.92→0.45, PNG 는 팔레트 PNG 256→128→64색(오차 확산) 뒤 채널 16단계. 해상도는 그대로
   const fmts = spec.format ?? [];
-  const jpgOk = fmts.some(f => /^jpe?g$/.test(f)), pngOk = fmts.includes('png');
   const alpha = r.measure.transparent === true;
   const done = x => ({ ...x, attempts, fitted: attempts[attempts.length - 1] });
-  if (jpgOk && !alpha) for (const q of [0.92, 0.85, 0.75, 0.65]) { r = await run(spec, { format: 'jpg', quality: q }, `JPG 품질 ${q}`); if (!over(r)) return done(r); }
-  if (pngOk && (!jpgOk || alpha)) for (const lv of [64, 32, 16]) { r = await run(spec, { format: 'png', quantize: lv }, `PNG 색 ${lv}단계`); if (!over(r)) return done(r); }
-
+  const step = (s, st) => run(s, { format: st.format, quality: st.quality, quantize: st.quantize ?? null, png8: st.png8 ?? null }, st.label);
+  for (const st of fitLadder(fmts, alpha)) { r = await step(spec, st); if (!over(r)) return done(r); }
   const flat = { ...spec, flat: true };
   r = await run(flat, {}, '단색 배경');
   if (!over(r)) return done(r);
-  if (jpgOk && !alpha) for (const q of [0.85, 0.72, 0.6, 0.5]) { r = await run(flat, { format: 'jpg', quality: q }, `단색 배경 + JPG 품질 ${q}`); if (!over(r)) return done(r); }
-  if (pngOk && (!jpgOk || alpha)) for (const lv of [32, 16, 8]) { r = await run(flat, { format: 'png', quantize: lv }, `단색 배경 + PNG 색 ${lv}단계`); if (!over(r)) return done(r); }
+  for (const st of fitLadder(fmts, alpha, { flat: true })) { r = await step(flat, st); if (!over(r)) return done(r); }
   return { ...r, attempts, fitted: null };   // 끝까지 못 맞춤 — lint 'weight' 차단 그대로
 }

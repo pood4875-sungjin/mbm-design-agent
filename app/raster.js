@@ -1,11 +1,21 @@
+import { quantize as quantize8, encodePng8, browserDeflate } from '../core/png8.js';   // 11-15 팔레트 PNG(용량 맞춤)
 // 브라우저 내 래스터화 — 자기완결 HTML(인라인 스타일)을 SVG foreignObject로 감싸
 // canvas에 그려 PNG/JPG로 뽑는다. 외부 라이브러리 0. 배수(1~4x) 지원.
 // 전제: 우리 렌더러 산출물은 태그가 정형(XML-safe)이고 리소스가 인라인(dataURL)이다.
 
 // quantize: PNG 색 단계(채널당 레벨 수, 예 32) — 용량 상한을 넘는 PNG 를 재양자화해 가볍게(10-28 용량 다운그레이드). null 이면 그대로
-export async function rasterizeCanvas(html, w, h, scale = 1, type = 'png', quality = 0.92, quantize = null) {
+// png8: 팔레트 PNG 색 수(≤256, 11-15) — core/png8.js 로 색인 PNG 를 직접 쓴다(해상도 그대로). 캔버스는 색 줄인 그림으로 바꿔 둔다(재는 쪽이 같은 그림을 본다)
+export async function rasterizeCanvas(html, w, h, scale = 1, type = 'png', quality = 0.92, quantize = null, png8 = null) {
   const canvas = await drawCanvas(html, w, h, scale, type);
-  if (quantize && type !== 'jpg') posterize(canvas, quantize);
+  if (png8 && type !== 'jpg' && browserDeflate) {
+    const ctx = canvas.getContext('2d'), im = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const q = quantize8(im.data, canvas.width, canvas.height, png8, { dither: true });
+    const bytes = await encodePng8(q, canvas.width, canvas.height, browserDeflate);
+    for (let i = 0; i < q.index.length; i++) im.data.set(q.palette.subarray(q.index[i] * 4, q.index[i] * 4 + 4), i * 4);
+    ctx.putImageData(im, 0, 0);
+    return { canvas, blob: new Blob([bytes], { type: 'image/png' }) };
+  }
+  if ((quantize || png8) && type !== 'jpg') posterize(canvas, quantize ?? 32);
   const blob = await new Promise(res => canvas.toBlob(res, type === 'jpg' ? 'image/jpeg' : 'image/png', quality));
   return { canvas, blob };
 }

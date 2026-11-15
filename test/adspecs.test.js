@@ -83,21 +83,31 @@ test('규격 등급 grade 가 추출 엔트리마다 A/B/C 로 배선되고, EXT
   for (const e of entries) assert.ok(['A', 'B', 'C'].includes(e.grade), `${e.id}: grade 가 A/B/C 가 아니다 (${e.grade})`);
 });
 
-// 파일명(10-28 담당자 양식) — 기업명_매체_상품명_배너이름_WxH, 직무·회차 없음
-test('adFileNameOf: 기업명_매체_상품명 (배너이름), 상품 없으면 (폭_높이) — 괄호 설명 제거, 플랫폼은 이름에 없을 때만, 치수는 제출 크기', () => {
-  const E = adSpecEntries();
-  assert.equal(adFileNameOf({ client: '드라마앤컴퍼니', mediumName: '리멤버', spec: E['remember-main-top-pc'] }), '드라마앤컴퍼니_리멤버_메인상단배너_PC (2240_360).png');
-  assert.equal(adFileNameOf({ client: '세아제강', mediumName: '자소설닷컴', spec: E['jasoseol-pc-premium-popup-pc'], ext: 'png' }), '세아제강_자소설_PC프리미엄패키지 (PC팝업배너).png');
-  assert.equal(adFileNameOf({ client: '현대제철', mediumName: '구글 GDN', spec: E['google-gdn-580x400'], ext: 'jpg' }), '현대제철_GDN_(580_400).jpg');
-  assert.equal(adFileNameOf({ client: 'A/B 주식회사', mediumName: '카카오톡', spec: E['kakao-bizboard-mo'], ext: 'jpg' }), 'AB_주식회사_카카오톡_카카오비즈보드_MO (960_300).jpg');
-  assert.equal(adFileNameOf({ client: '동서식품', mediumName: '에브리타임', spec: E['everytime-community-board'] }), '동서식품_에브리타임_커뮤니티보드_APP (1029_258).png');
-  assert.ok(!adFileNameOf({ client: 'X', mediumName: 'Y', spec: E['remember-main-top-pc'] }).includes('_v'), '회차는 파일명이 아니라 ZIP 폴더명');
+// 파일명(11-15 노션 엑셀 「소재 10곳 파일명 총 정리」 — core/filename-rules.js). 기업명 자리는 예시 「기업명」만
+test('adFileNameOf: 엑셀 표 규격은 표 꼴 그대로 — 자소설 상품(배너) · 리멤버 제작일 · 잡다 기업명 맨 뒤 · NAP·GDN 사이즈의 * 는 _', () => {
+  const E = adSpecEntries(), d = new Date(2026, 10, 15);
+  const f = (id, ext = 'png') => adFileNameOf({ client: '기업명', mediumName: E[id].mediumName, spec: E[id], ext, date: d });
+  assert.equal(f('jasoseol-pc-premium-popup-pc'), '기업명_자소설_PC프리미엄패키지(PC팝업배너).png');
+  assert.equal(f('jasoseol-m-start-logo-mo'), '기업명_자소설_시작배너(로고).png');
+  assert.equal(f('jasoseol-pc-calendar-pc'), '기업명_자소설_PC달력배너.png');
+  assert.equal(f('remember-main-top-mo'), '기업명_메인상단배너_MobileAPP_20261115.png');
+  assert.equal(f('jobda-main-pc', 'jpg'), '잡다 메인 배너_PC_기업명.jpg');
+  assert.equal(f('nap-dsp-band-320x50'), '기업명_띠배너_320_50(640_100).png');
+  assert.equal(f('google-gdn-300x1050'), '기업명_GDN(300_1050).png');
+  assert.equal(f('kakao-bizboard-mo'), '기업명_카카오_비즈보드.png');
+  assert.equal(f('everytime-home-card-image'), '기업명_에브리타임_홈 카드(카드 이미지).png');
+  assert.equal(f('naver-gfa-mobile-da-1250x560'), '기업명_네이버(모바일 DA).png');
+  assert.equal(f('blind-post-banner'), '기업명_블라인드(게시글 배너,띠배너).png');
+  assert.equal(adFileNameOf({ client: 'A/B 주식회사', mediumName: '카카오톡', spec: E['kakao-bizboard-mo'] }), 'AB 주식회사_카카오_비즈보드.png', '기업명의 못 쓰는 문자는 지운다');
 });
-test('adFileNameOf: 매체 JSON fileName 양식(NAP DSP 「기업명_띠배너_320*50(640*100)」)이 있으면 그것 우선 — 기업명만 바꾸고 * 와 괄호는 파일명에 쓸 수 있게', () => {
+test('adFileNameOf: 엑셀 45행이 전부 규격에 붙고, 한 ZIP 안에서 이름이 겹치지 않는다 · 표 밖 규격은 기본 꼴', async () => {
+  const { FILE_NAME_RULES } = await import('../core/filename-rules.js');
   const E = adSpecEntries();
-  const band = Object.values(E).find(e => e.rules?.fileName);
-  assert.ok(band, 'NAP DSP 띠배너에 fileName 이 있어야 한다');
-  const n = adFileNameOf({ client: '한진정보통신', mediumName: 'NAP DSP', spec: band, ext: 'png' });
-  assert.match(n, /^한진정보통신_띠배너_320x50_640x100\.png$|^한진정보통신_띠배너_320x100\.png$|^한진정보통신_전면배너_300_250\.png$/);
-  assert.ok(!/[*()]/.test(n), '파일명에 * 괄호 없음');
+  for (const id of Object.keys(FILE_NAME_RULES)) assert.ok(E[id], );
+  const fromXl = new Set(Object.values(FILE_NAME_RULES).filter(t => !/1029\*258|M통합/.test(t)));
+  assert.equal(fromXl.size, 45, '엑셀 filename_formats 45행이 서로 다른 꼴로 다 들어 있다(구규격·M통합 네이티브 3개는 엑셀 밖)');
+  const { adSpecGroups } = await import('../core/adspecs.js');
+  const names = adSpecGroups(null).map(g => adFileNameOf({ client: '기업명', mediumName: g.entry.mediumName, spec: g.entry }));
+  assert.equal(new Set(names).size, names.length, names.filter((n, i) => names.indexOf(n) !== i).join(','));
+  assert.match(adFileNameOf({ client: '기업명', mediumName: '캐치', spec: E['catch-mainlarge-image-pc'] }), /^기업명_캐치_/);
 });
