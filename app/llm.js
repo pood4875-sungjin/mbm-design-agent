@@ -2,6 +2,8 @@
 // 키는 이 브라우저 localStorage에만 저장, api.anthropic.com 직접 호출.
 // 키가 없으면 app.js가 정규식 파서로 폴백 — 데모는 항상 동작.
 
+import { serverOn } from './runtime.js';   // 11-17 공개 링크(규칙판)는 LLM 을 부르지 않는다 — 회사 방침상 브라우저 API 키 금지, 기획 해석은 규칙 파서(core/brief.js)
+
 const KEY_LS = 'mbm-ai-key';
 // 로컬 배포용 자동 주입 — app/config.local.js 가 있으면 그 키를 쓴다(gitignore됨).
 // 공유되는 페이지에는 키를 넣지 말 것: 클라이언트 코드의 키는 누구나 볼 수 있다.
@@ -21,7 +23,7 @@ export function setKey(v) { v = (v || '').trim(); try { v ? localStorage.setItem
 // 11-10 개인 Claude 계정(로컬 앱 · CLI): 키가 없고 Claude 가 연결돼 있으면 서버(/api/claude/ask)로 — API 비용 없이 그 계정 플랜 한도 안에서(app/claudelink.js 가 켠다)
 let CLAUDE_CLI = false;
 export function setClaudeCli(v) { CLAUDE_CLI = !!v; }
-export function hasKey() { return !!getKey() || CLAUDE_CLI; }
+export function hasKey() { return serverOn() && (!!getKey() || CLAUDE_CLI); }
 export function maskKey() { const k = getKey(); return k ? (k.length <= 12 ? '••••' : k.slice(0, 7) + '…' + k.slice(-4)) : CLAUDE_CLI ? 'Claude 계정' : ''; }
 
 async function messages(system, user, maxTokens = 800, timeoutMs = 25000) {

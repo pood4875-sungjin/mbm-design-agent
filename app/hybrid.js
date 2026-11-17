@@ -3,6 +3,7 @@
 import { SHAPES, groupFor, shapeOfSpec, presetPatch, kvMetaWithAi, aiEligible, ANALYSIS_SYSTEM, analysisPrompt, validateAnalysis, parseAnalysisText, parseAnalysisFull, metaForSent } from '../core/trackb/analyze.js';
 import { estimateCost, sumUsage } from '../core/trackb/cost.js';
 import { getKey } from './llm.js';
+import { whenServer } from './runtime.js';   // 11-17 서버 유무 판정 한 곳
 
 // 10-22 공개 페이지(GitHub Pages)에서도 돌게: 로컬 서버(/api/health 가 키 있음)가 있으면 서버, 없으면 이 브라우저에 저장한 키(앱 「AI 키 · 환경 설정」, localStorage — 저장소엔 없음)로 api.anthropic.com 직접 호출.
 //   프롬프트·스키마·검증은 서버와 같은 core/trackb/analyze.js — 결과 모양도 같다.
@@ -10,6 +11,7 @@ export const ANALYZE_MODEL = 'claude-sonnet-5-5';
 let serverOk = null;
 export async function hasServer(fetchFn = fetch) {
   if (serverOk != null) return serverOk;
+  if (!(await whenServer())) return (serverOk = false);   // 공개 링크(규칙판) — /api/health 를 부르지 않는다
   // 11-10: 키가 없어도 로컬 서버가 Claude 계정(CLI)으로 판단한다(server.mjs /api/analyze → analyzeKvCli) — 서버가 있으면 서버로
   try { const r = await fetchFn('/api/health', { cache: 'no-store' }); const h = r.ok ? await r.json() : null; serverOk = !!(h && (h.hasKey || h.freedesign?.claudeCode)); } catch { serverOk = false; }
   return serverOk;

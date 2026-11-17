@@ -4,6 +4,8 @@
 //   연결되면 그림 종류 판단(kvjudge)·AI 그림 판단·기획 해석이 이 계정(플랜 한도 안)으로 돈다. 서버 없는 공개 앱은 칩이 「규칙만」.
 //   서버: server/claudelink.js(/api/claude/status·login·logout·ask, /api/kvjudge)
 
+import { whenServer, serverOn, SETUP_DOC } from './runtime.js';   // 11-17 서버 유무 판정 한 곳 — 공개 링크(규칙판)는 /api/claude/* 를 부르지 않는다
+
 let STATUS = null, POLL = null;
 const listeners = new Set();
 export const claudeReady = () => !!(STATUS?.server && STATUS.installed && STATUS.loggedIn);
@@ -11,7 +13,8 @@ export const onClaudeStatus = fn => { listeners.add(fn); if (STATUS) fn(STATUS);
 
 export async function refreshClaude() {
   let s;
-  try {
+  if (!(await whenServer())) s = { server: false, installed: false, loggedIn: false, ruleOnly: true };   // 공개 링크 — 호출 없이 「규칙 모드」
+  else try {
     const r = await fetch('/api/claude/status', { cache: 'no-store' });
     if (!r.ok) throw new Error(String(r.status));
     s = { server: true, ...(await r.json()) };
@@ -58,12 +61,16 @@ const CSS = `
 #claudeDlg button.pri{background:var(--accent,#111);border-color:var(--accent,#111);color:var(--on-ink,#fff)}
 #claudeDlg button[disabled]{opacity:.6;cursor:default}
 #claudeDlg button:focus-visible{outline:2px solid var(--accent,#3182f6);outline-offset:2px}
+#claudeDlg a.lnk{font-size:13.5px;color:var(--accent,#3182f6);text-decoration:underline;text-underline-offset:3px;padding:0}
 #claudeDlg .note{font-size:12.5px;color:var(--sub,#666);background:var(--soft,#f5f5f5);border-radius:8px;padding:10px 12px}
 `;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const chipText = s => !s ? 'Claude 확인 중' : claudeReady() ? 'Claude 연결됨' : s.login === 'waiting' ? 'Claude 로그인 중…' : 'Claude 연결하기';
-const chipTip = s => !s ? '' : claudeReady() ? `${s.email ?? ''}${s.plan ? ` · ${s.plan} 플랜` : ''}${s.version ? ` · ${s.version}` : ''}\n그림 종류 판단·AI 그림 판단·기획 해석이 이 계정으로 돌아요` : !s.server ? '로컬 앱에서만 연결할 수 있어요 — 지금은 규칙으로 판단해요' : !s.installed ? 'Claude Code 설치가 필요해요 — 눌러서 방법 보기' : '내 Claude 계정을 연결하면 그림을 Claude가 직접 보고 판단해요';
-const chipSt = s => !s ? 'wait' : claudeReady() ? 'on' : s.login === 'waiting' ? 'wait' : 'off';
+// 11-17 공개 링크(서버 없음) = 「규칙 모드 · AI는 로컬 앱에서」 — 눌러도 오류 없이 짧은 설명 + 로컬 앱 켜는 방법 링크
+const ruleOnly = s => !!s && !s.server;
+const chipText = s => !s ? 'Claude 확인 중' : ruleOnly(s) ? '규칙 모드 · AI는 로컬 앱에서' : claudeReady() ? 'Claude 연결됨' : s.login === 'waiting' ? 'Claude 로그인 중…' : 'Claude 연결하기';
+const chipTip = s => !s ? '' : ruleOnly(s) ? '이 주소에선 규칙으로 만들어요. AI 기능은 내 컴퓨터에서 켠 로컬 앱에서 써요' : claudeReady() ? `${s.email ?? ''}${s.plan ? ` · ${s.plan} 플랜` : ''}${s.version ? ` · ${s.version}` : ''}\n그림 종류 판단·AI 그림 판단·기획 해석이 이 계정으로 돌아요` : !s.server ? '로컬 앱에서만 연결할 수 있어요 — 지금은 규칙으로 판단해요' : !s.installed ? 'Claude Code 설치가 필요해요 — 눌러서 방법 보기' : '내 Claude 계정을 연결하면 그림을 Claude가 직접 보고 판단해요';
+const chipSt = s => !s ? (serverOn() ? 'wait' : 'off') : ruleOnly(s) ? 'rule' : claudeReady() ? 'on' : s.login === 'waiting' ? 'wait' : 'off';
+export const chipView = s => ({ text: chipText(s), tip: chipTip(s), st: chipSt(s) });   // 11-17 테스트용(test/public-mode-1117.test.js)
 
 export function mountClaudeChip({ before = document.getElementById('keyBtn'), onChange, extras = () => [] } = {}) {
   if (document.getElementById('claudeChip')) return;
@@ -80,10 +87,11 @@ export function mountClaudeChip({ before = document.getElementById('keyBtn'), on
     onChange?.(s);
   };
   onClaudeStatus(paint);
-  chip.onclick = async () => { render(STATUS); dlg.showModal(); await refreshClaude(); };
+  chip.onclick = async () => { render(STATUS); dlg.showModal(); if (STATUS?.server !== false) await refreshClaude(); };
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
   function render(s) {
     s = s ?? { server: false };
+    if (ruleOnly(s)) { renderRuleOnly(); return; }
     const step = (ok, title, body) => `<li data-ok="${ok ? 1 : 0}"><span class="mk" aria-hidden="true">${ok ? '✓' : ''}</span><div><b>${title}</b><span>${body}</span></div></li>`;
     const ready = claudeReady(); const ex = extras() ?? [];
     dlg.innerHTML = `<div class="in">
@@ -113,10 +121,24 @@ export function mountClaudeChip({ before = document.getElementById('keyBtn'), on
       fetch('/api/claude/logout', { method: 'POST' }).catch(() => {}).finally(() => refreshClaude());
     };
   }
+  function renderRuleOnly() {   // 공개 링크 — 연결 단계 대신 짧은 설명(누르면 실패하는 버튼 없음)
+    const ex = extras() ?? [];
+    dlg.innerHTML = `<div class="in">
+      <h2 id="claudeDlgT">규칙 모드예요</h2>
+      <p>이 주소에선 정해진 디자인 규칙으로 소재를 만들어요. 기본안, 추가 시안, 편집, 검수, 내보내기는 모두 돼요.</p>
+      <p>AI 기능(그림 판단, AI 추가 제안, 말로 고치기)은 내 컴퓨터에서 켠 로컬 앱에서 쓸 수 있어요.</p>
+      <p><a class="lnk" href="${SETUP_DOC}" target="_blank" rel="noopener">로컬 앱 켜는 방법 보기</a></p>
+      <div class="row">
+        ${ex.map((x, i) => `<button type="button" data-ex="${i}">${esc(x.label)}</button>`).join('')}
+        <button type="button" class="pri" id="claudeClose">닫기</button>
+      </div></div>`;
+    dlg.querySelector('#claudeClose').onclick = () => dlg.close();
+    dlg.querySelectorAll('[data-ex]').forEach(b => { b.onclick = () => { if (ex[+b.dataset.ex].fn() !== false) dlg.close(); else renderRuleOnly(); }; });
+  }
   function startPoll() {
     clearInterval(POLL); const t0 = Date.now();
     POLL = setInterval(async () => { const s = await refreshClaude(); if (s.loggedIn || s.login !== 'waiting' || Date.now() - t0 > 10 * 60_000) clearInterval(POLL); }, 2000);
   }
   refreshClaude();
-  addEventListener('focus', () => { if (!claudeReady() && STATUS?.login !== 'waiting') refreshClaude(); });
+  addEventListener('focus', () => { if (STATUS?.server && !claudeReady() && STATUS?.login !== 'waiting') refreshClaude(); });
 }

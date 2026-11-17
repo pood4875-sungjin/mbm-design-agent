@@ -28,6 +28,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             b = b'// config.local.js \xec\x97\x86\xec\x9d\x8c\n'
             self.send_response(200); self.send_header('Content-Type', 'text/javascript; charset=utf-8')
             self.send_header('Content-Length', str(len(b))); self.end_headers(); self.wfile.write(b); return
+        # 11-17 정적 표시(app/runtime.js) — html 의 자리표시를 'static' 으로: 공개 링크와 같은 「규칙판」, /api/* 를 부르지 않는다(콘솔 404 0)
+        f = self.translate_path(self.path.split('?')[0])
+        if os.path.isdir(f) and self.path.split('?')[0].endswith('/'):
+            f = os.path.join(f, 'index.html')
+        if f.endswith('.html') and os.path.isfile(f):
+            b = open(f, 'rb').read().replace(b'/*MBM_RUNTIME*/null', b"'static'")
+            self.send_response(200); self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(b))); self.end_headers(); self.wfile.write(b); return
         super().do_GET()
 
     def do_POST(self):

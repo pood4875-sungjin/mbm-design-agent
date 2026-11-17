@@ -10,6 +10,7 @@
 // 서버가 없을 때(배포 앱): 엔진 없음 안내만 — 브라우저에서 api.anthropic.com 직접 호출은 이번엔 만들지 않는다(안내 문구만).
 import { toTemplate, fillTemplate, validateFreeHtml, normalizeFreeHtml, fontNamesIn, freeTemplateRecord, FREE_FIELDS } from '../core/freetpl.js';
 import { FONTS, fontRuleOf, fontIdOfName, isBundledFont } from '../core/fonts.js';
+import { whenServer } from './runtime.js';   // 11-17 서버 유무 판정 한 곳 — 공개 링크(규칙판)는 /api/* 를 부르지 않는다(콘솔 404 0)
 import { scoreCandidates, exemplarsFor, prefRecord, prefStats, mergePrefs, fingerprintOf, RATING_LABEL, SCOPE_LABEL, normRating } from '../core/freeprefs.js';   // 취향 학습(11-05): 좋음/보통/절대 안 됨 → 5점 셀렉이 정렬·프롬프트 참고가 된다
 
 export const PREFS_DB = 'mbm-free-prefs';   // IndexedDB(mbm-free-prefs / prefs, keyPath id) → 안 되면 localStorage 같은 키. 파일 ref/learned/free-prefs.json 과 같은 레코드(core/freeprefs.js prefRecord)
@@ -22,7 +23,7 @@ export async function loadPrefs() {
   try { const db = await prefsDb(); local = await new Promise((ok, no) => { const q = db.transaction('prefs').objectStore('prefs').getAll(); q.onsuccess = () => ok(q.result ?? []); q.onerror = () => no(q.error); }); }
   catch { try { local = JSON.parse(ls()?.getItem(PREFS_DB) ?? '[]'); } catch { local = []; } }
   let file = [];   // 레포 파일(다른 컴퓨터·대화창 평가) — 서버가 있으면 /api/freeprefs, 없으면 정적 파일
-  try { const r = await fetch('/api/freeprefs', { cache: 'no-store' }); if (r.ok) file = (await r.json()).prefs ?? []; } catch {}
+  if (await whenServer()) { try { const r = await fetch('/api/freeprefs', { cache: 'no-store' }); if (r.ok) file = (await r.json()).prefs ?? []; } catch {} }
   if (!file.length) { try { const r = await fetch('../ref/learned/free-prefs.json', { cache: 'no-store' }); if (r.ok) file = (await r.json()).prefs ?? []; } catch {} }
   PREFS = mergePrefs(local, file);
   return PREFS;
@@ -31,7 +32,7 @@ export async function savePrefRecord(rec) {
   PREFS = mergePrefs(PREFS, [rec]);
   try { const db = await prefsDb(); await new Promise((ok, no) => { const tx = db.transaction('prefs', 'readwrite'); tx.objectStore('prefs').put(rec); tx.oncomplete = ok; tx.onerror = () => no(tx.error); }); }
   catch { try { ls()?.setItem(PREFS_DB, JSON.stringify(PREFS.map(({ png, ...p }) => p))); } catch {} }
-  try { fetch('/api/freeprefs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefs: [{ ...rec, png: undefined }] }) }).catch(() => {}); } catch {}   // 로컬 서버가 있으면 파일에도(없으면 조용히)
+  if (await whenServer()) try { fetch('/api/freeprefs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefs: [{ ...rec, png: undefined }] }) }).catch(() => {}); } catch {}   // 로컬 서버가 있으면 파일에도(없으면 조용히)
   return rec;
 }
 export const currentPrefs = () => PREFS;
@@ -68,7 +69,7 @@ export function briefOf(ctx) { const c = ctx?.core ?? {}; const b = {}; for (con
 let healthP = null;
 export function freeHealth(force = false) {
   if (healthP && !force) return healthP;
-  healthP = (async () => { try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, engines: Array.isArray(j.freedesign?.engines) ? j.freedesign.engines : null, quick: !!j.freedesign?.quick, elementEdit: !!j.elementEdit, kvEdit: !!j.kvEdit, model: j.model ?? null }; } catch { return { server: false }; } })();
+  healthP = (async () => { if (!(await whenServer())) return { server: false }; try { const r = await fetch('/api/health', { cache: 'no-store' }); if (!r.ok) return { server: false }; const j = await r.json(); return { server: true, hasKey: !!j.hasKey, claudeCode: !!j.freedesign?.claudeCode, loggedIn: j.freedesign?.loggedIn ?? null, jobs: !!j.freedesign?.jobs, engines: Array.isArray(j.freedesign?.engines) ? j.freedesign.engines : null, quick: !!j.freedesign?.quick, elementEdit: !!j.elementEdit, kvEdit: !!j.kvEdit, model: j.model ?? null }; } catch { return { server: false }; } })();
   return healthP;
 }
 // 서버가 쓸 수 있다고 한 엔진(11-09 계약: /api/health freedesign.engines — API 키 경로는 FREEDESIGN_API=1 일 때만 오른다). 옛 서버(engines 없음)는 claudeCode·hasKey 로 추정

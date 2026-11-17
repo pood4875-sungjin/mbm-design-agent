@@ -56,8 +56,9 @@ import { createCharSel, rangeStyle } from './charsel.js';   // 11-09 글자 범�
 import { PRESET_KEYS } from '../core/editlayout.js';
 import { requestAnalysis, buildGroupStyles, apiCopy, shapeOfSpec } from './hybrid.js';
 import { getKey as aiGetKey } from './llm.js';
+import { serverOn, onServerChange } from './runtime.js';   // 11-17 서버 유무 판정 한 곳(공개 링크 = 규칙판)
 // 11-03 사용자 결정: 「AI 그림 판단」 버튼은 AI 키가 있을 때만(기본 숨김) — 시안 틀은 이 값을 안 읽어 기본안에만 효과
-const aiKeyReady = () => { try { return !!aiGetKey() || claudeReady(); } catch { return false; } };   // 11-10: Claude 계정이 연결돼 있으면 「AI 그림 판단」도 그 계정으로(서버가 CLI 로 돈다)
+const aiKeyReady = () => { try { return serverOn() && (!!aiGetKey() || claudeReady()); } catch { return false; } };   // 11-17 공개 링크(규칙판)는 AI 그림 판단 버튼 없음   // 11-10: Claude 계정이 연결돼 있으면 「AI 그림 판단」도 그 계정으로(서버가 CLI 로 돈다)
 import { createSelect, pickForExport } from './select.js';   // 11-02 선택하기(컨시어지 박진화 「선택한 소재만 추출」) — 카드·드래그·매체 머리글로 골라 그것만 ZIP
 import { mountKvFocus, withManual } from './kvfocus.js';   // 11-02 주인공 확인·직접 지정(컨시어지 한희하) — 썸네일 위 네모, 클릭/드래그   // 10-22 하이브리드(A+AI): 그림 판단 1회 → 모양 묶음별 crop·프리셋
 import { resolveAiStyle, aiEligible } from '../core/trackb/analyze.js';
@@ -4857,6 +4858,7 @@ async function claudeKvType(dataUrl, meta, apply) {
   } catch (e) { toast(`Claude 그림 판단을 못 했어요 — ${e.message}`, 5000); }
 }
 mountClaudeChip({ onChange: () => { LLM.setClaudeCli(claudeReady()); refreshAiChip(); }, extras: claudeExtras });
+onServerChange(() => { if (state.campaign) renderInspector(); });   // 11-17 옛 로컬 서버를 늦게 확인한 경우(app/runtime.js probe) — AI 버튼을 다시 그린다
 initHome();
 show('home');
 // 저장소를 다 읽으면(옛 localStorage 값 옮기기 포함) 목록을 그린다. 앱 시작은 붙들지 않는다

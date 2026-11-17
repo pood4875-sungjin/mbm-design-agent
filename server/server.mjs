@@ -45,6 +45,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 const json = (res, code, body) => { res.writeHead(code, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)); };
 const readBody = req => new Promise((ok, no) => { const c = []; let n = 0; req.on('data', d => { n += d.length; if (n > 40 * 1024 * 1024) { no(new Error('본문이 40MB 를 넘습니다')); req.destroy(); } c.push(d); }); req.on('end', () => ok(Buffer.concat(c))); req.on('error', no); });
 
+export const markServer = html => html.replace('/*MBM_RUNTIME*/null', "'server'");
 function serveStatic(req, res) {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/v\/[^/]+\//, '/');   // scripts/serve.py 와 같은 /v/<값>/ 벗기기
   if (p.endsWith('/')) p += 'index.html';
@@ -52,6 +53,8 @@ function serveStatic(req, res) {
   if (p === '/app/config.local.js' && !existsSync(file)) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-store' }); return res.end('// config.local.js 없음 — 키는 server/.env 나 환경변수에서\n'); }
   if (!file.startsWith(ROOT) || !existsSync(file) || !statSync(file).isFile()) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return res.end('404 ' + p); }
   res.writeHead(200, { 'content-type': MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream', 'cache-control': 'no-store, max-age=0' });
+  // 11-17 서버 표시(app/runtime.js) — html 의 자리표시를 'server' 로: 앱이 첫 그리기 전에 「AI 켬」을 안다(공개 링크는 그대로 null = 규칙판)
+  if (path.extname(file).toLowerCase() === '.html') return res.end(markServer(readFileSync(file, 'utf8')));
   createReadStream(file).pipe(res);
 }
 
