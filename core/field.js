@@ -15,6 +15,13 @@ import { CANON } from './canon.js';
 import { kvTypeOf } from './kvtypes.js';
 
 const ROUGH_MAX = 0.035;   // 이보다 거칠면 "바탕"이 아니라 사진의 디테일이다
+// 11-17 AI 지면이 그림 변 색에서 벗어난 정도 — 정지점마다 가장 가까운 평평한 변 색과의 거리 중 최댓값
+function aiFarFromEdge(aiStops, f, flatEdge) {
+  const edges = ['top', 'bottom', 'left', 'right'].map(k => f?.edges?.[k]).filter(flatEdge).flatMap(x => [x.hex, x.from, x.to].filter(Boolean));
+  if (!edges.length) return false;
+  const far = Math.max(...aiStops.map(c => Math.min(...edges.map(h => colorDistance(c, h)))));
+  return far > (CANON.aiFieldEdgeMax ?? 0.1);
+}
 const GRADIENT_MIN = 0.045; // 두 끝이 이만큼은 달라야 그라데이션이라 부른다
 // 11-09 흰/밝은 단색 바탕 RGB 그림(세아 항만 아이소 — 흰 종이 위 그림): palette.js 의 변 판정은 「평평」(std < 15)에 못 미쳐(std 22~32) 사진으로 분류되고, 그러면 지면이 kv-vivid 파랑이 되어
 //   흰 바탕이 파란 지면 위에 후광 사각형으로 드러났다(자소설 M팝업·네이버 DA·리멤버·잡다, _out/figma-1109/compare). 시안은 흰 지면에 누끼처럼 얹는다.
@@ -140,7 +147,9 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 보조색 그라데이션 135°. 비주얼 우선(kv-vivid)·AI 지면(1차 추출 색은 처음 값일 뿐)보다 앞
   //   11-02 담당자 「보조색을 바꿔도 변화 없음」→ 11-09 재지적(자동 모드에서 보조색 무시): 모드와 무관하게 두 번째 정지점 = 보조색. 보조색이 없거나 주색과 같을 때만 주색을 조금 어둡힌 색. 단색(solid)은 아래서 가운데 색 하나로 접힌다
   else if (style.colorsManual && p.primary) { const sec = p.secondary && p.secondary.toUpperCase() !== p.primary.toUpperCase() ? p.secondary : null; stops = [p.primary, sec ?? shiftHue(p.primary, 0, -0.08, 0)]; angle = 135; source = 'palette-manual'; }
-  else if (opt.ai?.stops?.length) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
+  // 11-17 사용자 「컬러 배경 왜 칙칙해지나」: 바탕 있는 그림(kv-edge 가능)인데 AI 가 그림 변과 동떨어진 진한 색(밝은 하늘색 그림 #60ADF1 → #2B65B0)을 고르면
+  //   이음매가 생기고 그림 옆이 탁해진다 — AI 정지점이 그림 변 색에서 CANON.aiFieldEdgeMax 넘게 벗어나면 AI 지면을 버리고 그림 변 지면(kv-edge)을 쓴다
+  else if (opt.ai?.stops?.length && !(hasBg && (flatEdge(e) || other) && aiFarFromEdge(opt.ai.stops, f, flatEdge))) { stops = opt.ai.stops.slice(0, 3); angle = opt.ai.angle ?? 180; source = 'ai'; }
   // 그림 변 지면(kv-edge): 규격(facing)과 무관하게 그림 네 변에서 한 번 정한다(edgeField, 10-20 캠페인 공통 지면). seamless 는 배치용(글자 쪽 변이 평평해 그 변을 기준으로 붙인다) — 색은 바꾸지 않는다
   else if (hasBg && (flatEdge(e) || other)) {
     // 밝은 단색 바탕(flatLight)은 단색으로 — 종이 결의 미세한 명도 차(from→to)를 그라데이션으로 만들지 않는다. 글자 쪽 변이 밝은 바탕이면 그 변, 아니면 왼쪽→위→오른쪽→아래 순

@@ -11,6 +11,7 @@
 // 매체 가이드가 같은 키를 정하면 그 값이 이긴다(구글: mainScale·padX·lightField·seasonInMain 등).
 
 export const CANON = {
+  aiFieldEdgeMax: 0.1,   // 11-17 바탕 있는 그림에서 AI 지면 정지점이 그림 변 색에서 이만큼 넘게 벗어나면 AI 지면 대신 그림 변 지면(이음매·탁함 방지, #60ADF1 vs #2B65B0 = .25)
   canon: true,
   note: '배너 공통 조형 기준 — 매체 가이드가 없는 매체에 적용. 보드 예시 141장·레퍼런스 13장에서 읽음(2026-10-06)',
   // 배경 금지색 검사(bg-banned) — 리멤버 PDF p.8 금지 5색, ±12 는 #F7F7F0↔#FFFFFF 가 서로 안 덮이는 폭 / grid 는 바탕 샘플 격자(가장자리 6%) / boxPad 는 글자·로고·그림 상자 둘레 여유 px
