@@ -351,6 +351,16 @@ const urlOf = layer => layer.match(/^url\(\s*["']?([\s\S]*?)["']?\s*\)$/)?.[1] ?
 export const SVG_IMG_MAX_PX = 3600;
 // 그림 조각 해상도 배율(표시 1배 대비) — 제출 배수(submitW/W, 자소설 2배)만큼 더 담는다. 3배 × 제출 배수, 제출 배수가 없으면 3배
 export function svgImgScale(W, submitW = null) { const k = W > 0 && submitW > 0 ? submitW / W : 1; return 3 * Math.max(1, Math.min(4, k)); }   // SVG 안 그림 조각의 긴 변 상한(px)
+// 11-17 노션 [00] 내보내기 화면 안내 — 실제 배수(svgImgScale)에서 문구를 만든다. 배수: 작업 크기(SVG 1배) 기준, 긴 변 SVG_IMG_MAX_PX·원본 픽셀이 먼저 차면 거기서 멈춘다
+const nf = v => String(Math.round(v * 10) / 10);
+export function svgImgNote(spec) {
+  const W = spec?.w, sub = W > 0 && spec?.submitW > 0 ? spec.submitW / W : 1, k = svgImgScale(W, spec?.submitW);
+  const where = sub > 1 ? `작업 크기의 ${nf(k)}배(제출 크기 ${spec.submitW}×${spec.submitH}의 ${nf(k / sub)}배)` : `작업 크기의 ${nf(k)}배`;
+  const capK = Math.max(1, SVG_IMG_MAX_PX / Math.max(1, W ?? 0, spec?.h ?? 0));   // 프레임을 채운 그림이면 긴 변 상한이 먼저 온다
+  const cap = capK < k ? ` 이 규격은 프레임을 채운 그림이면 긴 변 ${SVG_IMG_MAX_PX.toLocaleString('en-US')}px 상한 때문에 약 ${nf(capK)}배예요.` : '';
+  return `SVG 안 그림은 ${where}까지 담겨요(긴 변 ${SVG_IMG_MAX_PX.toLocaleString('en-US')}px·원본 픽셀까지).${cap} 피그마에서 그보다 크게 키우면 흐려질 수 있어요.`;
+}
+export const SVG_IMG_NOTE_ALL = `SVG 안 그림은 작업 크기의 ${svgImgScale(1, null)}배(제출 2배 매체는 ${svgImgScale(1, 2)}배 = 제출 크기의 ${svgImgScale(1, 2) / 2}배)까지 담겨요. 피그마에서 그보다 크게 키우면 흐려질 수 있어요.`;
 // 캔버스에 그려 data URI — 알파가 전부 255 면 JPEG(가볍다), 아니면 PNG
 function canvasUri(cv, quality = 0.95) {
   const g = cv.getContext('2d');

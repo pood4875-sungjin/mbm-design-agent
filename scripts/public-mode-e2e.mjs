@@ -88,7 +88,12 @@ try {
   R.chipDialog = await ev(`const d=document.getElementById('claudeDlg'); return d ? { open:d.open, text:d.innerText.slice(0,400), buttons:[...d.querySelectorAll('button')].map(b=>b.textContent.trim()), links:[...d.querySelectorAll('a')].map(a=>a.getAttribute('href')) } : null`);
   await shot('02-chip-dialog');
   step('칩 창 열림', !!R.chipDialog?.open, (R.chipDialog?.buttons ?? []).join('·'));
-  if (R.chipDialog?.links?.length) { const href = await ev(`return new URL(document.querySelector('#claudeDlg a').getAttribute('href'), location.href).href`); const r = await fetch(href); step('설치 방법 링크', r.ok, `${href.replace(ORIGIN, '')} → ${r.status}`); }
+  if (R.chipDialog?.links?.length) {
+    const href = await ev(`return new URL(document.querySelector('#claudeDlg a').getAttribute('href'), location.href).href`), tgt = await ev(`return document.querySelector('#claudeDlg a').target`);
+    // 11-17: GitHub 렌더 페이지(바깥 주소)는 내려받지 않고 주소·새 탭만 본다 — 저장소 안 원본 파일이 있는지는 로컬 서버로
+    if (/^https:\/\/github\.com\//.test(href)) { const local = await fetch(`${ORIGIN}/docs/local-ai-setup.md`); step('설치 방법 링크', /\/blob\/main\/docs\/local-ai-setup\.md$/.test(href) && tgt === '_blank' && local.ok, `${href} (새 탭 ${tgt === '_blank'}) · 원본 ${local.status}`); }
+    else { const r = await fetch(href); step('설치 방법 링크', r.ok, `${href.replace(ORIGIN, '')} → ${r.status}`); }
+  }
   await ev(`document.getElementById('claudeClose')?.click(); const d=document.getElementById('claudeDlg'); if(d?.open) d.close(); return true`);
 
   stepName = '공고 입력';

@@ -16,6 +16,16 @@ export function textPosLocked(spec) {
   return (CANON.textPosLock ?? []).some(m => spec.medium === m || id === m || id.startsWith(m + '-'));
 }
 
+// 11-17 노션 재검수: 놓을 때 할 일 — 'commit'(옮김·크기 저장) · 'pick'(안 끌고 눌렀다 → 그 자리 요소로) · 'stay'(끌었지만 안 움직였다 = 위치 고정 글자 → 선택 그대로)
+//   전에는 위치 고정 글자를 끌어 놓으면 「안 끈 클릭」으로 쳐서 놓은 자리의 다른 요소(상세 등)로 선택이 넘어갔다
+export function releaseAction({ movedAny, dragged }) { return movedAny ? 'commit' : dragged ? 'stay' : 'pick'; }
+// 11-17 노션 재검수 [겹침]: 글자 상자끼리 겹침 — 패널 「자유 위치 … 와 겹침」(11-10 오토레이아웃)과 캔버스 선택 상자가 같은 판정을 쓴다. 맞닿기만 한 것(1px 미만)은 안 센다
+export function textOverlaps(items, id, box) {
+  const ov = (p, q) => Math.min(p.x + p.w, q.x + q.w) - Math.max(p.x, q.x) >= 1 && Math.min(p.y + p.h, q.y + q.h) - Math.max(p.y, q.y) >= 1;
+  return (items ?? []).filter(o => o.kind === 'text' && o.id !== id && ov(o.box, box));
+}
+export const overlapNote = (hits, nameOf = elementName) => hits.length ? `${hits.map(o => nameOf(o.id)).join('·')}와 겹침` : '';
+
 const rel = (el, base) => { const r = el.getBoundingClientRect(); return { x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height }; };
 const union = rs => { const v = rs.filter(r => r && r.w > 0 && r.h > 0); if (!v.length) return null; const x0 = Math.min(...v.map(r => r.x)), y0 = Math.min(...v.map(r => r.y)), x1 = Math.max(...v.map(r => r.x + r.w)), y1 = Math.max(...v.map(r => r.y + r.h)); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; };
 
@@ -122,6 +132,18 @@ export function createElementSelect(E) {
     }
   }   // 11-10 hub 이식: 크기 배지(hub 파랑 「572 × 496」) — 끄는 동안 같이
 
+  // 11-17 노션 재검수: 옮긴 글자(자유 위치)가 다른 글자와 겹치면 선택 상자를 빨갛게 + 「날짜와 겹침」 — 패널 경고(11-10)와 같은 판정(textOverlaps)
+  //   옮기지 않은 글자는 렌더러 배치라 디자인 검수(core/adcheck.js) 몫 — 여기선 사람이 옮긴(끄는 중 포함) 글자만 본다
+  function markOverlap(a, id, btn, box, live = false) {
+    const ed = a.overrides?.elements?.[id] ?? {};
+    const hits = (live || ed.dx || ed.dy) ? textOverlaps(list(a), id, box) : [];
+    const t = overlapNote(hits), tag = btn.querySelector?.('.esel-olap');
+    btn.classList.toggle('olap', !!hits.length);
+    if (tag) { tag.hidden = !hits.length; tag.textContent = t ? ` · ${t}` : ''; }
+    const lab = btn.getAttribute?.('aria-label') ?? '', baseLab = lab.replace(/ · [^·]*와 겹침$/, '');
+    btn.setAttribute?.('aria-label', hits.length ? `${baseLab} · ${t}` : baseLab);
+    return hits;
+  }
   function show(a, id) {
     const hadFocus = ovl?.box && document.activeElement === ovl.box;
     hide();
@@ -132,8 +154,8 @@ export function createElementSelect(E) {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = `esel esel-${it.kind}${posLock ? ' poslock' : ''}`; btn.dataset.el = id;
     if (posLock) btn.title = POS_LOCK_NOTE;
-    btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — ${posLock ? `${POS_LOCK_NOTE} · ` : '화살표 1px 이동 · Shift+화살표 10px'}${locks.size ? '' : ' · +/− 크기'} · Esc 위로`);
-    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}${posLock ? ' · 위치 고정' : ''}</span><span class="esel-size" aria-hidden="true"></span><span class="egd egd-l" aria-hidden="true"><b></b></span><span class="egd egd-t" aria-hidden="true"><b></b></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
+    btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — ${[posLock ? POS_LOCK_NOTE : '화살표 1px 이동 · Shift+화살표 10px', locks.size ? '' : '+/− 크기', 'Esc 위로'].filter(Boolean).join(' · ')}`);   // 11-17: 위치 고정 + 크기 잠금이면 「·  ·」 빈 칸이 생기던 것
+    btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}${posLock ? ' · 위치 고정' : ''}<span class="esel-olap" hidden></span></span><span class="esel-size" aria-hidden="true"></span><span class="egd egd-l" aria-hidden="true"><b></b></span><span class="egd egd-t" aria-hidden="true"><b></b></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
     el.appendChild(btn);
     // 11-10 AI 아이콘(피그마 AI 처럼) — 선택 상자 오른쪽 위 바깥. 누르면 E.aiOpen 팝오버(app/elai.js)
     if (E.aiOpen) {
@@ -147,6 +169,7 @@ export function createElementSelect(E) {
     }
     f.frame.appendChild(el);
     place(btn, it.box, ds);   // 크기 배지까지(innerHTML 뒤)
+    if (it.kind === 'text') markOverlap(a, id, btn, it.box);
     ovl = { a, id, el, box: btn };
     bind(a, id, btn, ds);
     if (hadFocus) btn.focus({ preventScroll: true });
@@ -161,11 +184,12 @@ export function createElementSelect(E) {
       const st = { ...xform(a, it), spec: E.specOf(a) };
       const corner = e.target.dataset?.c ?? null, z = E.zoom() * ds, x0 = e.clientX, y0 = e.clientY;
       const locked = !corner && it.kind === 'text' && textPosLocked(E.specOf(a));   // 위치 고정 규격 글자 — 끌어도 안 움직이고 안내만(모서리 = 크기는 크기 잠금이 따로)
-      let last = null, movedAny = false, told = false;
+      let last = null, movedAny = false, dragged = false, told = false;
       try { btn.setPointerCapture(e.pointerId); } catch {}
       const move = ev => {
         const dX = (ev.clientX - x0) / z, dY = (ev.clientY - y0) / z;
         if (!movedAny && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 3) return;
+        dragged = true;
         if (locked) { if (!told) { told = true; E.posLockNote?.(); } return; }
         movedAny = true;
         if (corner) {
@@ -175,11 +199,14 @@ export function createElementSelect(E) {
         } else {
           const q = moved(a, it, st, dX, dY); last = q;
           place(btn, q.nb, ds); btn.classList.toggle('oob', !!checkBad(it, st, q.nb, q.p)); E.live(a, previewOf(a, it, st, q));
+          if (it.kind === 'text') markOverlap(a, id, btn, q.nb, true);
         }
       };
       const up = ev => {
         btn.removeEventListener('pointermove', move); btn.removeEventListener('pointerup', up); btn.removeEventListener('pointercancel', up);
-        if (!movedAny) { const next = at(a, ev); if (next && next !== id) E.pick(a, next); return; }   // 끌지 않고 눌렀으면 그 자리의 요소로(큰 그림 위 글자)
+        const act = releaseAction({ movedAny, dragged });
+        if (act === 'stay') return;   // 위치 고정 글자를 끌었다 놓음 — 선택은 처음 잡은 요소에 남는다(11-17 노션 재검수)
+        if (act === 'pick') { const next = at(a, ev); if (next && next !== id) E.pick(a, next); return; }   // 끌지 않고 눌렀으면 그 자리의 요소로(큰 그림 위 글자)
         if (corner && st.mode === 'text') { E.commitTextScale?.(a, id, last.k); return; }
         settle(a, it, st, last, `${elementName(id)} ${corner ? '크기' : '옮김'}`, false);
       };
