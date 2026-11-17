@@ -41,7 +41,7 @@ test('사진 지면(피그마 시안 기준): 이음 쪽 사진과 같은 색 �
   assert.ok(hd(park, '#51701E') < 3 && ps >= 0.39 && ps <= 0.51 && pl >= 0.3, `잔디 계열 ${park}`);
   for (const e of ['#6E85A0', '#9A7A9D', '#4E606A', '#6895CB', '#AEE0F6']) {   // ilhwa-roomy · desk-33 · midas-city · desk-28 · fig-03
     const c = photoEdgeField(e, []);
-    assert.ok(c && contrast(c, '#FFFFFF') >= 4.5, e + ' 흰 글자');
+    assert.ok(c && contrast(c, '#FFFFFF') >= 3, e + ' 흰 글자');   // 11-17 CANON.contrastMin.small 4.5 → 3
     assert.ok(hd(c, e) <= 40, `${e} → ${c} 같은 색 계열`);
   }
   // 변 색상과 먼 사진 속 색은 쓰지 않는다(회색 변 + 주황 셔츠 → 주황 지면이 됐다)

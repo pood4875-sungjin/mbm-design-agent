@@ -11,6 +11,9 @@
 // 매체 가이드가 같은 키를 정하면 그 값이 이긴다(구글: mainScale·padX·lightField·seasonInMain 등).
 
 export const CANON = {
+  // 11-17 사용자 「대비 기준이 너무 빡세 좀 풀어」 — 밝은 하늘색(#60ADF1) 위 흰 글자 2.4:1 도 괜찮다.
+  //   글자 대비 최소: 큰 글자(largePx 이상) large, 그 밖 small. 예전 WCAG 3 / 4.5 → 2.2 / 3. 검수·AI 게이트·자동 어둡힘이 모두 이 값을 본다
+  contrastMin: { large: 2.2, small: 3, largePx: 24 },
   aiFieldEdgeMax: 0.1,   // 11-17 바탕 있는 그림에서 AI 지면 정지점이 그림 변 색에서 이만큼 넘게 벗어나면 AI 지면 대신 그림 변 지면(이음매·탁함 방지, #60ADF1 vs #2B65B0 = .25)
   canon: true,
   note: '배너 공통 조형 기준 — 매체 가이드가 없는 매체에 적용. 보드 예시 141장·레퍼런스 13장에서 읽음(2026-10-06)',
@@ -84,7 +87,7 @@ export const CANON = {
   //   지면 모든 색이 HSL 채도 ≥ minSat 이고 상대 휘도가 minLum~maxLum, HSL 명도 ≤ maxL(파스텔 제외 — desk-03-cut 라벤더는 검정 유지)이면, 같은 색상(hue)으로 명도만 내려(브랜드 딥과 같은 방식)
   //   흰 큰 글자 minContrastLarge(3:1)에 닿는지 본다 — maxDL(HSL 명도 0.12) 안에서 못 닿으면(노랑 #F8C808: 0.14 필요) 검정 그대로. 탁해지지 않게 상한을 둔다.
   //   닿으면 작은 글자 smallMin(4.5:1)까지 smallMaxDL 안에서 더 내린다. 그림 변에서 읽은 지면(kv-edge)이면 그림도 같은 비율로 어둡혀(brightness) 이음매를 지킨다
-  vividWhite: { minSat: 0.45, minLum: 0.1, maxLum: 0.42, maxL: 0.62, minContrastLarge: 3, smallMin: 4.5, maxDL: 0.12, smallMaxDL: 0.14, step: 0.01, dimKv: true, dimMin: 0.94 },
+  vividWhite: { minSat: 0.45, minLum: 0.1, maxLum: 0.42, maxL: 0.62, minContrastLarge: 2.2, smallMin: 3, maxDL: 0.12, smallMaxDL: 0.14, step: 0.01, dimKv: true, dimMin: 0.94 },
   // 녹임(그림 → 지면) 길이와 곡선 — 그림 변 색과 지면색의 거리(colorDistance)에 비례해 min~max(그림 칸·띠 길이의 몫), fullAt 거리에서 max.
   //   10-12 desk-15(한국산업단지공단 파랑→복숭아 그라데이션)·GC녹십자(밝은 3D × 네이비): 「뚝 끊기는 느낌」. 곡선은 smoothstep 여러 마디(직선 끝이 선으로 읽힌다)
   //   bridgeFrom·bridgeMax: 브랜드 지면이 그림 변과 멀면(≥ bridgeFrom) 지면의 이음매 쪽 끝을 그림 변 색 쪽으로 최대 bridgeMax 만큼(흰 글자 4.5:1 안에서) 당긴다(GC녹십자 1080)
@@ -105,7 +108,7 @@ export const CANON = {
   //   누끼는 원본 바탕 팔레트(kvMeta.bgPalette — 케이스 장부가 kv-orig 에서 잰다)가 있으면 그 색으로. 앱에서 누끼만 올리면(원본 없음) 지금처럼 브랜드 규칙
   //   maxHueGap(10-22 사용자 「뭔가 부자연스럽고 색도 자연스럽지 못해」 — pin-28 지구본 일러스트: 위변 하늘 파랑 #2A65CF·아랫변 잔디 초록 #73BB2A 를 그라데이션으로 읽어 파랑→초록 지면, 흰 글자 대비로 남색→올리브):
   //     두 변의 HSL 색상 차가 이 각도(60°)를 넘으면 그라데이션이 아니라 「다른 면 둘」(하늘/잔디·벽/바닥)이라 분위기 지면을 안 깐다 → 비주얼 우선 단색(kv-vivid-photo)으로. 기아 라벤더→파랑(≈30°)·GC 민트→파랑(≈50°)은 그대로
-  kvMood: { darkPhotoLum: 0.4, darkMin: 4.5, minSat: 0.5, minGrad: 0.15, maxHueGap: 60 },
+  kvMood: { darkPhotoLum: 0.4, darkMin: 3, minSat: 0.5, minGrad: 0.15, maxHueGap: 60 },
   // 지면은 비주얼이 우선(10-16 사용자 「배경색은 비주얼에 어울리게 뽑아야 — 비주얼이 우선」): 이음매(kv-edge)·분위기(kv-mood)가 없는 사진·누끼도 브랜드색이 아니라 그림 색에서 —
   //   사진은 글자 쪽 변 색(photoFrom edge), 누끼는 대표색(cutoutFrom dominant). 어두운 지면 매체는 그 색을 흰 글자 4.5:1 까지 어둡힌 같은 색상(brandDeep), 밝은 지면 매체는 옅은 틴트(tint)→흰색.
   //   브랜드색은 포인트(칩·날짜 상자·강조)에만. 채도가 아주 낮은 그림(무채)은 그대로 회색 계열
@@ -122,7 +125,7 @@ export const CANON = {
   variants: { regulated: 4, default: 4, free: 4, maxRender: 28 },   // regulated 1 → 4(11-10 사용자 「기본 외 3개는 추가 있어야 돼」 — 리멤버 1005×360 등). 규정 틀은 글자·칸이 고정이라 바탕(브랜드색·그라데이션·단색) 축으로만 갈린다
   // 11-10 사용자 「비주얼 기반으로 색 선택 — 그 비중의 색으로, 너무 어두워도 안 되고」: 질감·평평한 바탕 없는 그림(일러스트·3D)은 지면 = 그림에서 비중이 가장 큰 유채색(kvMeta.colors[0], 평평한 바탕색 제외·비중 순).
   //   흰 글자 대비 minContrast 까지 같은 색상으로 어둡히되 HSL 밝기 lMin 밑·maxDrop 넘게는 안 내림 — 그 안에서 안 되면 원래 색 + 어두운 글자(너무 어두운 남색 방지). 둘째 정지점은 grad 만큼만 어둡게. 흰 로고 → 어두운 브랜드색(brand-dark-logo)보다 먼저
-  kvShare: { lMin: 0.34, maxDrop: 0.15, minContrast: 4.5, step: 0.01, grad: 0.06, minSat: 0.18 },   // maxDrop: 밝기를 이만큼 넘게 내려야 흰 글자가 되면 색은 그대로 두고 글자를 어둡게(밝은 하늘색 질감이 진한 파랑이 되던 것)
+  kvShare: { lMin: 0.34, maxDrop: 0.15, minContrast: 3, step: 0.01, grad: 0.06, minSat: 0.18 },   // maxDrop: 밝기를 이만큼 넘게 내려야 흰 글자가 되면 색은 그대로 두고 글자를 어둡게(밝은 하늘색 질감이 진한 파랑이 되던 것)
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5, photoChroma: 0.15, photoHueNear: 40, photoSat: [0.4, 0.5], photoTintLum: 0.55, photoLightL: 0.6, photoLightMix: 0.55 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7 (누끼만)
   //   11-09 사용자(이음·비중 검수 결정 「유채 A′ + 무채 브랜드색」): 사진은 왼변 색 채도가 photoChroma 이상이면 그 색상 ±photoHueNear° 안의 사진 속 유채색을 채도 photoSat·명도 lMin~lMax 로, 흰 글자 4.5:1(photoEdgeField — 피그마 시안 236:3717·236:3742 기준).
   //   무채 변(흰 가운·회색 사무실)은 사진에서 색을 만들지 않는다 — 밝은 사진(lum ≥ photoTintLum)은 옅은 브랜드 틴트 + 어두운 글자(brand-tint-photo), 어두운 사진은 브랜드 딥 + 사진 쪽 끝 브릿지(brand-photo-bridge). 전엔 채도 .7 로 올려 이음 색 차 평균 .35·✗ 501/773
@@ -180,6 +183,9 @@ export const CANON = {
 };
 
 // 매체 가이드 위에 공통 기준을 깐다 — 가이드가 정한 키가 이긴다
+// 글자 크기(px)에 맞는 최소 대비 — CANON.contrastMin
+export function contrastNeed(px) { const K = CANON.contrastMin; return (px ?? 0) >= K.largePx ? K.large : K.small; }
+
 export function guideFor(medium) {
   return { ...CANON, ...(medium?.guide ?? {}) };
 }

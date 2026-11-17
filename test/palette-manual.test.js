@@ -23,9 +23,9 @@ test('글자색 톤(textTone): 규정 없는 매체는 다크 → #333 글자, �
   const trace = h => JSON.parse(h.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
   const base = { colors: ['#1428A0', '#F2D24B', '#5CB85C'], keyVisual: PNG, kvMeta: cutoutMeta };
   const dark = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, textTone: 'dark' }), {}));
-  assert.equal(dark.text.mainFg, '#333333'); assert.match(dark.text.subFg, /rgba\(51,51,51,0\.7\)/); assert.ok(dark.rules.includes('textTone.dark'));
+  assert.equal(dark.text.mainFg, '#333333'); assert.match(dark.text.subFg, /rgba\(51,51,51,0\.7\)|^#333333$/);   // 11-17: 다크 톤은 #333 으로 잰 대비가 빠듯하면(진초록 2.7:1) 서브도 흐리게 안 함 assert.ok(dark.rules.includes('textTone.dark'));
   const light = trace(renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ ...base, textTone: 'light' }), {}));
-  assert.equal(light.text.mainFg, '#FFFFFF'); assert.match(light.text.subFg, /rgba\(255,255,255,0\.7\)/);
+  assert.equal(light.text.mainFg, '#FFFFFF'); assert.match(light.text.subFg, /rgba\(255,255,255,0\.7\)|^#FFFFFF$/);   // 11-17: 지면 어둡힘이 흰 3:1 까지만이라(4.5 → 3) 빠듯한 지면은 서브도 같은 흰색
   const jaso = trace(renderArtifact('jasoseol-pc-premium-popup-pc', ctx, normalizeStyle({ ...base, textTone: 'light' }), {}));
   assert.ok(jaso.rules.includes('textTone.light') && jaso.text.mainFg === '#FFFFFF', '자소설(글자색 고정 없음)은 톤을 따른다 — 틀 colorDark 흰색(10-20 「일괄 바꿀 수 있어야」)');
   const kakao = trace(renderArtifact('kakao-bizboard-mo', ctx, normalizeStyle({ ...base, textTone: 'light' }), {}));

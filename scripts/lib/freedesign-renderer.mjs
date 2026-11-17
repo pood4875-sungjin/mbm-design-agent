@@ -115,7 +115,7 @@ function measureOverlap(d, root, free, texts, nt, S, full) {
   for (const el of root.querySelectorAll('[data-field]')) {
     const role = el.dataset.field; const f = free && free.fields && free.fields[role]; const t = texts.find(x => x.role === role);
     const b = (f && f.ink) || (t && t.bbox); if (!b || b.w < 2 || b.h < 2) continue;
-    const fontPx = (f && f.fontPx) || (t && t.fontPx) || 16; const need = fontPx >= 24 ? 3 : 4.5;
+    const fontPx = (f && f.fontPx) || (t && t.fontPx) || 16; const need = fontPx >= ${CANON.contrastMin.largePx} ? ${CANON.contrastMin.large} : ${CANON.contrastMin.small};
     const step = Math.max(2, Math.sqrt(b.w * b.h / 2500));
     const tl = t && t.color && /^#[0-9a-f]{6}$/i.test(t.color) ? hexL(t.color) : null;
     let n = 0, nk = 0, bad = 0; const ratios = []; const decos = new Map();
@@ -266,7 +266,7 @@ function renderFinish(P, dom) {
   const focus = P.kvFocus ?? K?.meta?.field?.focus ?? null, kind = P.kvKind ?? K?.meta?.field?.kind ?? null;
   const info = measure ? infoBlockIssues(html, { free }) : null;
   const typoRules = measure ? typoRulesOf({ specId: e.specId, rules, measure, free, kvFocus: focus, kvKind: kind, subj: q.subj && !q.subj.error ? q.subj : null }) : null;
-  const lowContrast = (q.contrast ?? []).filter(c => c.ratio != null && c.ratio < 4.5);
+  const lowContrast = (q.contrast ?? []).filter(c => c.ratio != null && c.ratio < CANON.contrastMin.small);
   const overlap = Array.isArray(q.overlap) ? overlapAudit({ W: spec.w, H: spec.h, fields: q.overlap }) : null;   // 11-09 글자 ↔ 사진(실측 대비)·장식 겹침
   // 11-09 6단계: 앱 디자인 검수와 같은 주인공 판정(글자-주인공 15% · 로고 가림 5%). 주인공 = profileFocus(kvMeta.field) — 앱(core/adcheck.js)과 같은 함수
   const km = P.kvMeta ?? K?.meta ?? null; let subject = null;

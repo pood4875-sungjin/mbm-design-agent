@@ -43,7 +43,7 @@ test('작은 글자 4.5:1 — 흰 글자로 바꾼 지면은 내린 뒤 지면 �
     const v = vividWhite([c]);
     assert.ok(v, c);
     const worst = Math.min(...v.stops.map(s => contrast(s, WHITE)));
-    assert.ok(v.small != null ? worst >= 4.5 : worst >= 3, `${c} ${worst}`);
+    assert.ok(v.small != null ? worst >= CANON.vividWhite.smallMin : worst >= CANON.vividWhite.minContrastLarge, `${c} ${worst}`);   // 11-17 4.5/3 → 3/2.2
   }
   assert.ok(relLum('#2EBA56') > 0.3 && relLum('#2EBA56') < CANON.vividWhite.maxLum);
 });

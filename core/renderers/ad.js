@@ -1727,7 +1727,9 @@ function renderAdBase(ctx, style, spec) {
   const mainFg = rcOf('main') ?? customFg ?? moldFg ?? lightInk ?? (brandMain ? p.primary : (tc.main ?? defMain));
   if (!regulatedText) fired('textDefault');
   // 보조 글자는 한 단계 흐리게 쓰지만, 지면 대비가 빠듯하면(4.5 미만) 흐리게 하지 않는다 — 작은 글자가 먼저 안 읽힌다
-  const tight = !!field && (field.contrast < 4.5 || field.source === 'ai');   // AI 지면(10-22 루프 r1 「회색 보조 문구 대비 약함」 19건)은 보조 글자도 흐리게 안 함
+  // 11-17: 글자색 톤(toneOv)으로 바꾼 글자는 그 색으로 잰다 — field.contrast 는 지면이 고른 글자색(흰/검) 기준이라, 대비 기준을 푼 뒤 다크 톤 #333 이 흰색 대비로 빠듯 판정돼 서브 70% 를 잃었다
+  const fieldC = (toneOv && field?.stops?.length && HEXC.test(mainFg)) ? Math.min(...field.stops.map(s => contrast(s, mainFg))) : field?.contrast;
+  const tight = !!field && (fieldC < 4.5 || field.source === 'ai');   // AI 지면(10-22 루프 r1 「회색 보조 문구 대비 약함」 19건)은 보조 글자도 흐리게 안 함
   const customSub = customFg ? ((tight || mr.textColors?.uniform) ? customFg /* 자소설 「모든 문구 한 색」 */ : `rgba(${hexToRgb(customFg).join(',')},${TD.subOpacity})`) : null;   // 지정 색도 서브·상세는 같은 색 70%(빠듯하면 그대로)
   const subFg = rcOf('sub') ?? customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : (lightInk || tight) ? mainFg : defSub);   // 반전 지면은 서브·날짜도 메인과 같은 딥(시안 E·H)
   const detailFg = rcOf('detail') ?? customSub ?? moldFg ?? tc.sub?.[0] ?? (tc.main ? tc.main : (lightInk || tight) ? mainFg : defSub);

@@ -68,7 +68,7 @@ test('게이트 — 측정 위반이면 사유 + 방금 HTML 로 1회 재요청 
   // 모두 HTML 없음 → 에러
   await assert.rejects(freeDesign(input('google-gdn-580x400'), { run: async () => ({ text: '없음' }) }), /HTML 을 받지 못함/);
   // gateIssues — 용량·포맷 lint 는 막지 않는다, 대비는 24px 이상 3:1
-  const g = gateIssues({ lint: { issues: [{ level: 'block', code: 'weight', msg: '300KB' }, { level: 'block', code: 'safe-area', msg: '밖' }, { level: 'warn', code: 'x', msg: 'w' }] }, measure: { texts: [{ role: 'main', fontPx: 40 }, { role: 'date', fontPx: 14 }] }, contrast: [{ role: 'main', ratio: 3.2 }, { role: 'date', ratio: 4.0 }], info: { issues: ['3항 x'] }, typoRules: { issues: ['4항 y'] } });
+  const g = gateIssues({ lint: { issues: [{ level: 'block', code: 'weight', msg: '300KB' }, { level: 'block', code: 'safe-area', msg: '밖' }, { level: 'warn', code: 'x', msg: 'w' }] }, measure: { texts: [{ role: 'main', fontPx: 40 }, { role: 'date', fontPx: 14 }] }, contrast: [{ role: 'main', ratio: 2.4 }, { role: 'date', ratio: 2.6 }], info: { issues: ['3항 x'] }, typoRules: { issues: ['4항 y'] } });
   assert.deepEqual(g.map(x => x.split(' ')[0]), ['규정', '대비', '3항', '4항']); assert.ok(g[1].includes('date'));
 });
 

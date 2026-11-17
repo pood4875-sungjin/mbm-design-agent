@@ -153,7 +153,7 @@ export const RULES = [
   { id: 'frame.bg', group: '배치', name: '장식 프레임 누끼는 어두운 지면 전체에', source: 'kvtypes.cutout-frame.guide',
     text: '장식 프레임(유리 슬랩): 지면 전체에 깔고 지면은 어두운 브랜드색, 오른쪽을 크게(지면 폭 1.7배) 잘라',
     when: C => !!(C.kt?.flags?.frame && C.trace?.gate?.hasKv && !C.trace?.gate?.transparent && !C.trace?.gate?.template),
-    eval: C => { const use = C.m?.ad?.['data-kv-use']; const f = C.trace?.field; const dark = f?.stops ? Math.min(...f.stops.map(s => contrast(s, WHITE))) >= 4.5 : false; return { expect: 'kv-use bg · 지면 kv-frame(어두움, 흰 글자 4.5:1)', actual: `${use} · ${f?.source ?? '—'} 대비 ${f?.contrast ?? '—'}`, ok: use === 'bg' && f?.source === 'kv-frame' && dark }; } },
+    eval: C => { const use = C.m?.ad?.['data-kv-use']; const f = C.trace?.field; const dark = f?.stops ? Math.min(...f.stops.map(s => contrast(s, WHITE))) >= CANON.contrastMin.small : false; return { expect: 'kv-use bg · 지면 kv-frame(어두움, 흰 글자 4.5:1)', actual: `${use} · ${f?.source ?? '—'} 대비 ${f?.contrast ?? '—'}`, ok: use === 'bg' && f?.source === 'kv-frame' && dark }; } },
   { id: 'photo.column.logoLeft', group: '로고', name: '사진 오른쪽 열이면 로고는 글자 쪽', source: 'kvtypes.photo.place[3]',
     text: '사진이 오른쪽 열인 가로형은 로고를 글자 쪽 지면(좌상단)에 — 사진 위 흰 로고는 밝은 벽·하늘에서 사라진다',
     when: C => !!(C.trace?.gate?.photoCol && C.m?.logo?.box),
@@ -202,7 +202,7 @@ export const RULES = [
   { id: 'vividWhite', group: '지면', name: '채도 높은 지면엔 흰 글자', source: 'canon.vividWhite',
     text: '채도 ≥ 0.45·중간 밝기 지면은 같은 색상으로 명도만 내려 흰 글자 3:1(작은 글자 4.5:1)',
     when: C => { const f = C.trace?.field; return !!(f?.stops?.length && ['brand', 'kv-edge', 'kv-mood', 'kv-colour', 'brand-photo', 'kv-mood-dark', 'brand-tint'].some(s => f.source?.startsWith(s)) && (vividWhite(f.stops) || f.vivid != null)); },
-    eval: C => { const mt = mainOf(C); const c = textContrast(mt); return { expect: '흰 글자 · 대비 ≥ 3:1', actual: `${mt?.color ?? '—'} · ${c == null ? '—' : num(c) + ':1'}`, ok: mt ? isWhite(mt.color) && (c == null || c >= 2.9) : null, note: C.trace.field.vivid != null ? `명도 −${C.trace.field.vivid}` : (mt && isWhite(mt.color)) ? '원래 흰 글자(어두운 지면) — 명도 내림 없음' : '지면이 채도 조건을 만족하는데 vividWhite 가 안 걸림' }; } },
+    eval: C => { const mt = mainOf(C); const c = textContrast(mt); return { expect: '흰 글자 · 대비 ≥ 3:1', actual: `${mt?.color ?? '—'} · ${c == null ? '—' : num(c) + ':1'}`, ok: mt ? isWhite(mt.color) && (c == null || c >= CANON.contrastMin.large - 0.1) : null, note: C.trace.field.vivid != null ? `명도 −${C.trace.field.vivid}` : (mt && isWhite(mt.color)) ? '원래 흰 글자(어두운 지면) — 명도 내림 없음' : '지면이 채도 조건을 만족하는데 vividWhite 가 안 걸림' }; } },
   { id: 'textColour.brand', group: '글자', name: '밝은 지면의 메인은 브랜드색', source: 'canon.textColour',
     text: '밝은 지면의 메인은 브랜드색(지면 어디서나 4.5:1 넘을 때) — 어두운 지면은 흰색. 10-19 사용자 결정(textDefault: 규정 없는 매체는 #333/#fff, 서브 70%)이 걸린 지면은 제외',
     when: C => !!(C.guide.textColour === 'brand' && C.trace?.field && C.trace.text?.mainFg && !isWhite(C.trace.text.mainFg) && C.primary && !C.rules?.textColors?.main && !(C.trace.rules ?? []).includes('textDefault') && !isMold(C) && !C.mr?.fonts?.required),   // 틀 글자색(mold.color — 자소설 #555)·규정 매체(fonts.required)는 매체가 정한 색
@@ -286,17 +286,17 @@ export const RULES = [
     text: '메인은 렌더러가 잡은 줄 수 안에서 접힌다 — 넘치면 「…」로 잘린다',
     when: C => !!mainOf(C) && C.trace?.fonts?.main?.lines != null,
     eval: C => { const mt = mainOf(C), cap = C.trace.fonts.main.lines; return { expect: `≤ ${cap}줄`, actual: `${mt.lines?.length ?? '—'}줄 (${(mt.lines ?? []).join(' / ')})`, ok: mt.lines ? mt.lines.length <= cap : null }; } },
-  { id: 'contrast.main', group: '글자', name: '메인 대비', source: 'canon(WCAG 큰 글자 3:1)',
-    text: '큰 글자(메인) 지면 대비 ≥ 3:1 — 그림 위면 스크림 포함 표본',
+  { id: 'contrast.main', group: '글자', name: '메인 대비', source: 'canon contrastMin.large(11-17 3 → 2.2)',
+    text: `큰 글자(메인) 지면 대비 ≥ ${CANON.contrastMin.large}:1 — 그림 위면 스크림 포함 표본`,
     when: C => !!mainOf(C),
-    eval: C => { const mt = mainOf(C), c = textContrast(mt); const exempt = c != null && c < 2.95 && mt.contrastSampled == null && isWhite(mt.colorHex ?? mt.color) && whiteOnColourField(C); return { expect: '≥ 3:1', actual: c == null ? '측정 불가' : `${num(c)}:1${mt.contrastSampled != null ? ' (그림 위 표본)' : ''}`, ok: c == null ? null : exempt ? null : c >= 2.95, note: exempt ? '10-20 사용자 결정 — 색 지면은 흰 글자(대비 3:1 미만이어도) · 면제' : '' }; } },
-  { id: 'contrast.small', group: '글자', name: '작은 글자 대비', source: 'canon(WCAG 4.5:1) / kvtypes.illust-grad-bg.guide[2]',
-    text: '서브·날짜·상세 같은 작은 글자는 지면 가장 불리한 곳에서 4.5:1',
+    eval: C => { const mt = mainOf(C), c = textContrast(mt); const exempt = c != null && c < CANON.contrastMin.large - 0.05 && mt.contrastSampled == null && isWhite(mt.colorHex ?? mt.color) && whiteOnColourField(C); return { expect: `≥ ${CANON.contrastMin.large}:1`, actual: c == null ? '측정 불가' : `${num(c)}:1${mt.contrastSampled != null ? ' (그림 위 표본)' : ''}`, ok: c == null ? null : exempt ? null : c >= CANON.contrastMin.large - 0.05, note: exempt ? '10-20 사용자 결정 — 색 지면은 흰 글자(대비 기준 미만이어도) · 면제' : '' }; } },
+  { id: 'contrast.small', group: '글자', name: '작은 글자 대비', source: 'canon contrastMin.small(11-17 4.5 → 3) / kvtypes.illust-grad-bg.guide[2]',
+    text: `서브·날짜·상세 같은 작은 글자는 지면 가장 불리한 곳에서 ${CANON.contrastMin.small}:1`,
     when: C => textsOf(C).some(t => t.role !== 'main' && textContrast(t) != null),
-    eval: C => { const rows = textsOf(C).filter(t => t.role !== 'main' && textContrast(t) != null).map(t => ({ t, c: textContrast(t), large: t.fs >= 24 || (t.fs >= 18.66 && Number(t.fw) >= 700) })); const bad = rows.filter(r => r.c < (r.large ? 2.95 : 4.45));
+    eval: C => { const rows = textsOf(C).filter(t => t.role !== 'main' && textContrast(t) != null).map(t => ({ t, c: textContrast(t), large: t.fs >= 24 || (t.fs >= 18.66 && Number(t.fw) >= 700) })); const bad = rows.filter(r => r.c < (r.large ? CANON.contrastMin.large : CANON.contrastMin.small) - 0.05);
       // 10-20 사용자 결정(색 지면 흰 글자 · 서브·상세는 같은 색 70%, CANON.textDefault.subOpacity): 자동 색 지면 위 흰 계열 작은 글자가 모자라면 결정으로 면제(–)
       const exempt = bad.length > 0 && bad.every(r => r.t.contrastSampled == null && isWhite(r.t.colorHex ?? r.t.color)) && whiteOnColourField(C);
-      return { expect: '≥ 4.5:1(큰 글자 3:1)', actual: rows.map(r => `${r.t.role} ${num(r.c, 1)}`).join(' · '), ok: exempt ? null : !bad.length, note: exempt ? '10-20 사용자 결정 — 색 지면 흰 글자(서브 70%) · 면제' : bad.length ? `모자람: ${bad.map(r => r.t.role).join(', ')}${C.trace?.field?.vivid != null ? ' — vividWhite 가 명도 상한(smallMaxDL) 안에서 4.5 에 못 닿아 3:1 에서 멈춤(가이드 vs 코드 틈)' : ''}` : '' }; } },
+      return { expect: `≥ ${CANON.contrastMin.small}:1(큰 글자 ${CANON.contrastMin.large}:1)`, actual: rows.map(r => `${r.t.role} ${num(r.c, 1)}`).join(' · '), ok: exempt ? null : !bad.length, note: exempt ? '10-20 사용자 결정 — 색 지면 흰 글자(서브 70%) · 면제' : bad.length ? `모자람: ${bad.map(r => r.t.role).join(', ')}${C.trace?.field?.vivid != null ? ' — vividWhite 가 명도 상한(smallMaxDL) 안에서 4.5 에 못 닿아 3:1 에서 멈춤(가이드 vs 코드 틈)' : ''}` : '' }; } },
   { id: 'hierarchy', group: '글자', name: '위계(메인 ≥ 상세 1.8배·서브 1.6배)', source: 'ad.js 위계',
     text: '메인은 상세의 1.8배·서브의 1.6배는 돼야 한다(매체가 px 를 정한 경우 제외)',
     when: C => !!mainOf(C) && !C.trace?.fonts?.stated && !isMold(C) && !C.guide.detailPx && !C.rules?.textHeightPx && !C.trace?.fonts?.fsRange && textsOf(C).some(t => t.role === 'detail' || t.role === 'sub'),

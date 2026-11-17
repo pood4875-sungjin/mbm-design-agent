@@ -252,7 +252,7 @@ export function variantCandidates(specId, ctx, style, opts = {}) {
       if (cand.infoTag && !(tr.tags ?? []).length) return { why: '태그 붙일 정보 없음' };
       // R2(11-09 전수 jobda-main-mo 몰락스 both → overflow:main): 태그만 바꾸는 안이 메인 칸(폭·크기)까지 바꾸면 거른다
       if (cand.infoTag && Object.keys(cand).every(k => k === 'infoTag' || k === 'tagShape') && baseMain && mainTag && mainTag !== baseMain) return { why: '태그가 메인 칸을 바꿈' };
-      if ((tr.tags ?? []).some(t => t.contrast < 4.5)) return { why: '태그 글자 대비 4.5 미만' };
+      if ((tr.tags ?? []).some(t => t.contrast < CANON.contrastMin.small)) return { why: `태그 글자 대비 ${CANON.contrastMin.small} 미만` };
       // R2(11-09): 가운데 정렬 전면 이미지 스크림이 0.9 로도 흰 글자 4.5:1 을 못 보장(렌더러 centerScrim.short) → 다른 A 변형으로
       // 11-10 사용자 「이 케이스는 절대 못 쓰니까 추천하지 말고 삭제」(잡다 792×240 가운데 정렬): 사진 전면 위 가운데 글자에 국소 막(글자 밑 어두운 덩어리)이 깔리는 안 — 그림 주인공 위에 글자가 얹힌다
       // 11-10 사용자 「응, 빼줘」: 사진·그래픽을 가득 깔고 글자를 가운데 얹는 안(가운데 스크림)은 글자가 주인공(얼굴·사람·사물)을 덮는다 — 패턴(주인공 없음)만 남긴다

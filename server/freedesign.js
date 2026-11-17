@@ -29,6 +29,7 @@ import { kvTypeOf } from '../core/kvtypes.js';
 import { languageLines, languageOf, languageFromHtml, mergeLanguage } from '../core/freelang.js';
 import { fixStack, fixStackCandidates, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast, fixLogoSize } from '../core/freequick.js';
 import { profileFocus } from '../core/field.js';
+import { CANON, contrastNeed } from '../core/canon.js';
 
 // 주인공 상자(원본 비율) — 앱 디자인 검수(core/adcheck.js)와 같은 profileFocus(meta.field). 사진에 focus 가 없으면 줄·열 프로필로 어림한 상자
 export function focusOf(meta) { try { if (meta?.field) return profileFocus(meta.field) ?? null; } catch {} return meta?.focus ?? null; }
@@ -332,13 +333,13 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
     L.push(`2. 키비주얼은 아래 구성 지시의 크기로. 비율 유지(늘이기 금지), 주인공 잘림 금지(사진·일러스트는 한 변으로 흘려도 되지만 주인공은 온전히), 누끼는 누끼답게(바탕 네모가 보이지 않게). 주인공 위에는 글자를 올리지 않는다.`);
     L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·그라데이션·마스크(mask-image)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다(카드·프레임처럼 의도한 테두리는 예외).`);
     L.push(`4. 지면·그래픽·패턴·컬러·강조(태그·색·굵기)·글꼴 섞기는 자유 — 키비주얼과 어울리는 그래픽(키비주얼의 모양·색에서 뽑은 SVG/CSS 도형·패턴)을 과감하게. 단 글자 가독과 위계를 해치지 않는다.`);
-    L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 4.5:1 이상(24px 이상 굵은 글자는 3:1). 강조색 한 가지까지.`);
+    L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 ${CANON.contrastMin.small}:1 이상(${CANON.contrastMin.largePx}px 이상 글자는 ${CANON.contrastMin.large}:1). 강조색 한 가지까지.`);
     L.push(`   - 글자 상자(가장 긴 줄 끝까지)가 사진 위로 넘어가지 않게 — 넘으면 줄을 나누거나 글자 뒤에 판·스크림. 장식(SVG 도형·별·선·원·호·물결)은 글자 덩어리 밖에 — 도형의 가장자리·선이 글자 상자를 지나가면 반려(검증기가 글자 없는 렌더로 실측). 큰 원·호를 글자 뒤로 걸치는 연출은 쓰지 않는다.`);
   } else {
   L.push(`2. 키비주얼이 작거나 허전하지 않게 — 캔버스의 35~55%를 차지하게, 누끼는 지면 높이의 70% 이상, 사진·일러스트는 한 변으로 흘려도 된다(잘리는 몫 ≤ 30%). 주인공 위에는 글자를 올리지 않는다.`);
   L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·한 방향 그라데이션·마스크(mask-image 의 linear-gradient)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다. 글자 가독을 위한 스크림은 단색→투명 linear-gradient 한 장까지.`);
   L.push(`4. 배경은 네 디자인이지만 절제한다 — 단색 또는 같은 색상의 2색 그라데이션(각도 하나). 비는 곳은 장식이 아니라 키비주얼·글자를 키워 채운다.`);
-  L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 4.5:1 이상. 글자는 흰 또는 #111 단색, 강조는 브랜드 포인트색 한 단어까지.`);
+  L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 ${CANON.contrastMin.small}:1 이상(${CANON.contrastMin.largePx}px 이상 글자는 ${CANON.contrastMin.large}:1). 글자는 흰 또는 #111 단색, 강조는 브랜드 포인트색 한 단어까지.`);
   }
   const nl = normsLine(specId, rules.w, rules.h); if (nl) L.push(`6. 청사진 분포 참고 — ${nl}.`);
   if (input.language) {
@@ -670,13 +671,13 @@ async function loadRenderer() { if (_renderer === null) { try { _renderer = awai
 export const MIN_TEXT_FRAC = 0.022;   // 가장 작은 글자(고지 제외) 하한 = √(w·h) × 2.2% — 580×400 11px · 1080 24px · 300×250 6px→ 10px 바닥
 export const minTextPx = sp => Math.max(10, Math.round(Math.sqrt(sp.w * sp.h) * MIN_TEXT_FRAC));
 export const GATE_SKIP_LINT = new Set(['weight', 'format']);   // 용량·포맷은 내보내기(JPG/PNG 선택)에서 정해진다 — PNG 측정으로 막지 않는다(11-05 기록)
-// 렌더 감사(audit) → 추천 막는 사유. 매체 규정 block · 대비(24px 이상 3:1, 그 밖 4.5:1) · 정보 블록 3항 · 간격 4항 · 그림 못 읽음
+// 렌더 감사(audit) → 추천 막는 사유. 매체 규정 block · 대비(CANON.contrastMin — 11-17 24px 이상 2.2:1, 그 밖 3:1) · 정보 블록 3항 · 간격 4항 · 그림 못 읽음
 export function gateIssues(a) {
   if (!a) return [];
   const out = [];
   for (const i of a.lint?.issues ?? []) if (i.level === 'block' && !GATE_SKIP_LINT.has(i.code)) out.push(`규정 ${i.code}: ${i.msg}`);
   const byRole = Object.fromEntries((a.measure?.texts ?? []).map(t => [t.role, t]));
-  for (const c of a.contrast ?? []) { if (c.ratio == null) continue; const need = (byRole[c.role]?.fontPx ?? 0) >= 24 ? 3 : 4.5; if (c.ratio < need) out.push(`대비 ${c.role} ${c.ratio}:1 < ${need}:1 — 글자 뒤 바탕을 정리(스크림·판)하거나 글자색을 바꾼다`); }
+  for (const c of a.contrast ?? []) { if (c.ratio == null) continue; const need = contrastNeed(byRole[c.role]?.fontPx); if (c.ratio < need) out.push(`대비 ${c.role} ${c.ratio}:1 < ${need}:1 — 글자 뒤 바탕을 정리(스크림·판)하거나 글자색을 바꾼다`); }
   for (const x of a.info?.issues ?? []) out.push(x);
   for (const x of a.typoRules?.issues ?? []) out.push(x);
   for (const x of a.subject?.issues ?? []) out.push(x);

@@ -11,6 +11,7 @@
 //   순수 함수 — 브라우저·서버·테스트가 같이 쓴다. test/elementai-1110.test.js
 
 import { colorFrom, contrast } from './freequick.js';
+import { CANON } from './canon.js';
 
 const r1 = v => Math.round(v * 10) / 10;
 const BIG = /크게|키워|키우|확대|늘려|커지|크게/, SMALL = /작게|줄여|줄이|축소|작아/;
@@ -131,7 +132,7 @@ export function validateElementOps(ops0, ctx = {}) {
   if (!ops0 || typeof ops0 !== 'object') return { ops: {}, notes: ['연산 없음'] };
   const ws = ctx.weights?.length ? ctx.weights : [100, 200, 300, 400, 500, 600, 700, 800, 900];
   const minPx = ctx.minPx ?? 10, L = ctx.locks ?? {};
-  const okColor = c => { if (!/^#[0-9A-Fa-f]{6}$/.test(c ?? '')) return false; if (ctx.bg && contrast(c, ctx.bg) < 4.5) { notes.push(`색 ${c} — 지면 ${ctx.bg} 와 대비 ${contrast(c, ctx.bg).toFixed(1)}:1(4.5 미만)이라 뺐어요`); return false; } return true; };
+  const okColor = c => { if (!/^#[0-9A-Fa-f]{6}$/.test(c ?? '')) return false; if (ctx.bg && contrast(c, ctx.bg) < CANON.contrastMin.small) { notes.push(`색 ${c} — 지면 ${ctx.bg} 와 대비 ${contrast(c, ctx.bg).toFixed(1)}:1(${CANON.contrastMin.small} 미만)이라 뺐어요`); return false; } return true; };
   const snapW = w => { const v = near(ws, +w); if (v !== +w) notes.push(`굵기 ${w} → ${v}(이 글꼴이 가진 굵기)`); return v; };
   if (ctx.kind === 'kv' || ctx.kind === 'logo') {
     const b = ops0.box ?? {}, box = {};
@@ -208,7 +209,7 @@ export function elementEditPrompt(b) {
     `낱말 위치: ${wordsOf(b.lines ?? b.text ?? '').map(x => `${x.w}[${x.s},${x.e})`).join(' ')}`,
     `지금 스타일: 크기 ${b.cur?.px}px · 굵기 ${b.cur?.w} · 색 ${b.cur?.color} · 정렬 ${b.cur?.align} · 자간 ${b.cur?.ls ?? 0}%`,
     `기존 범위 서식: ${JSON.stringify(b.runs ?? [])}`,
-    `이 글꼴이 가진 굵기: ${(b.weights ?? []).join(', ')} · 최소 글자 크기 ${b.minPx ?? 10}px · 지면색 ${b.bg ?? '모름'}(색은 대비 4.5:1 이상)`,
+    `이 글꼴이 가진 굵기: ${(b.weights ?? []).join(', ')} · 최소 글자 크기 ${b.minPx ?? 10}px · 지면색 ${b.bg ?? '모름'}(색은 대비 ${CANON.contrastMin.small}:1 이상)`,
     b.client ? `회사명: ${b.client}` : '',
     b.brand?.primary ? `브랜드색: ${b.brand.primary}${b.brand.accent ? ` · 보조 ${b.brand.accent}` : ''}` : '',
     `잠김(바꾸면 안 됨): ${[b.locks?.color && '색', b.locks?.style && '굵기·자간', b.locks?.size && '크기'].filter(Boolean).join(', ') || '없음'}`,

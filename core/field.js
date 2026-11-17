@@ -48,7 +48,7 @@ export function warmLightBrand(brand) {
 }
 export function brandDeep(brand) {
   let d = -0.06;
-  while (d < 0.5 && contrast(shiftHue(brand, 0, -d, 0), WHITE) < 4.5) d += 0.02;
+  while (d < 0.5 && contrast(shiftHue(brand, 0, -d, 0), WHITE) < CANON.contrastMin.small) d += 0.02;
   return [shiftHue(brand, 0, -d, 0), shiftHue(brand, 0, -(d + 0.14), 0)];
 }
 
@@ -72,7 +72,7 @@ export function photoEdgeField(hex, pal = [], K = CANON.kvHarmony, brand = null)
   const [sMin, sMax] = K.photoSat ?? [0.4, 0.5];
   s = Math.min(Math.max(s, sMin), sMax); l = Math.min(Math.max(l, K.lMin ?? 0.34), K.lMax ?? 0.5);
   let c = rgbToHex(hslToRgb([h, s, l])), guard = 0;
-  while (contrast(c, WHITE) < 4.5 && guard++ < 100) { l -= 0.01; c = rgbToHex(hslToRgb([h, s, Math.max(0.05, l)])); }
+  while (contrast(c, WHITE) < CANON.contrastMin.small && guard++ < 100) { l -= 0.01; c = rgbToHex(hslToRgb([h, s, Math.max(0.05, l)])); }
   return c;
 }
 
@@ -91,7 +91,7 @@ export function vividOf(cands, K = CANON.kvHarmony) {
   let [h, s, l] = pick.hsl;
   s = Math.max(s, K.sat ?? 0.55); l = Math.min(Math.max(l, K.lMin ?? 0.34), K.lMax ?? 0.5);
   let c = rgbToHex(hslToRgb([h, s, l])), guard = 0;
-  while (contrast(c, WHITE) < 4.5 && guard++ < 40) { l -= 0.02; c = rgbToHex(hslToRgb([h, s, Math.max(0.08, l)])); }
+  while (contrast(c, WHITE) < CANON.contrastMin.small && guard++ < 40) { l -= 0.02; c = rgbToHex(hslToRgb([h, s, Math.max(0.08, l)])); }
   return c;
 }
 
@@ -212,7 +212,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
       // 밝은 사진만(그림 밝기 ≥ bridgeMinLum) — 어두운 사진(한진 빌딩 0.40)은 브랜드 딥 그대로 녹인다: 당기면 남색이 청록 회색으로 탁해졌다(10-14 t1014 한진정보통신 디자이너 9/9 남색 브랜드)
       if (eh && B?.bridgeFrom && colorDistance(eh, stops[stops.length - 1]) >= B.bridgeFrom && (f?.lum ?? 1) >= (B.bridgeMinLum ?? 0)) {
         let t = B.bridgeMax ?? 0.6, end = null;
-        while (t > 0.05) { const c = mix(stops[0], eh, t); if (contrast(c, WHITE) >= 4.5) { end = c; break; } t -= 0.05; }
+        while (t > 0.05) { const c = mix(stops[0], eh, t); if (contrast(c, WHITE) >= CANON.contrastMin.small) { end = c; break; } t -= 0.05; }
         if (end) { stops = [stops[0], end]; angle = 90; source += '-bridge'; }
       }
     }
@@ -257,7 +257,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     // 10-23 r7: 규칙 지면과 같은 원칙(CANON.textOn — 사용자 「이 수준이면 화이트」) — 글자 쪽 지면이 파스텔·흰 계열일 때만 검정, 중간 밝기 색면은 흰색. 대비만 보면 중간 청회색(사장교) 위에 진회색 글자가 나와 흐릿했다
     const lightSide = relLum(side) >= (CANON.textOn?.darkIfLum ?? 0.55);
     // AI 톤은 4.5:1(작은 글자 기준)을 넘을 때 따른다 — 분석 검증(validateAnalysis)이 글자 쪽 색을 그 톤에 4.5:1 로 맞춰 둔다
-    text = (want && contrast(side, want) >= 4.5) ? want : lightSide ? BLACK : WHITE;
+    text = (want && contrast(side, want) >= CANON.contrastMin.small) ? want : lightSide ? BLACK : WHITE;
     void cw; void cb;
     const css0 = stops.length > 1 ? `linear-gradient(${angle}deg,${stops.map((c0, i) => `${c0} ${Math.round(100 * i / (stops.length - 1))}%`).join(',')})` : stops[0];
     return { stops, angle, css: css0, text, source, seamless, gradient: stops.length > 1, contrast: Math.round(contrast(side, text) * 100) / 100, ...(align && stops.length > 1 ? { align } : {}) };
@@ -277,7 +277,7 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
   // 채도 높은 지면엔 흰 글자(CANON vividWhite, 10-12 desk-12) — 같은 색상으로 명도만 조금 내려 흰 큰 글자 3:1, 되면 작은 글자 4.5:1까지
   let dim = null;
   const vv = vividWhite(stops, { manual: !!opt.color || source === 'palette-manual' || source === 'manual-gradient' });
-  if (vv && (text === BLACK || worst(WHITE) < 3)) {   // 10-20: 흰 글자로 정해졌어도 큰 글자 3:1 이 안 되면 같은 색상으로 명도만 내린다
+  if (vv && (text === BLACK || worst(WHITE) < CANON.contrastMin.small)) {   // 10-20: 흰 글자로 정해졌어도 큰 글자 3:1 이 안 되면 같은 색상으로 명도만 내린다
     // 그림 변이 곧 지면(kv-edge) — 그림도 같은 비율로 어둡혀 이음매를 지킨다(CANON vividWhite.dimKv). 단 그림 속 흰 주인공이 회색으로 죽으면 안 된다:
     //   어둡힘이 dimMin 보다 세면 그림은 dimMin 까지만, 남는 차이는 녹임이 잇는다(seamless 해제 → CANON melt 길이)
     if ((seamless || source === 'kv-edge') && CANON.vividWhite.dimKv !== false && vv.dim) { dim = Math.max(vv.dim, CANON.vividWhite.dimMin ?? 0); if (dim > vv.dim + 0.005) seamless = false; if (dim >= 0.995) dim = null; }
