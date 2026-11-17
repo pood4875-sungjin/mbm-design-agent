@@ -25,7 +25,7 @@ export const FONTS = {
     source: '사용자 제공 Paperlogy-1.000.zip (2026-10-15) · redesigned by Lee Juim, glyphs from Gmarket Sans & Montserrat',
   },
   Pretendard: {
-    label: 'Pretendard', group: 'free', maker: '길형진(orioncactus)',
+    label: 'Pretendard', group: 'default', maker: '길형진(orioncactus)',   // 11-17 노션 확인요청: 규정 없는 매체 기본도 Pretendard
     family: 'Pretendard',
     stack: `'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif`,
     css: 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css',
@@ -78,7 +78,7 @@ export const FONTS = {
     source: 'https://hangeul.naver.com/fonts (nanum-square-round.zip)',
   },
   KakaoBigSans: {
-    label: '카카오 큰글씨 (Kakao Big Sans)', group: 'default', maker: '카카오',   // 10-15 밤: 규정 없는 매체 기본
+    label: '카카오 큰글씨 (Kakao Big Sans)', group: 'free', maker: '카카오',   // 10-15 밤 ~ 11-17: 규정 없는 매체 기본이었음 → 11-17 노션 요청으로 고를 수 있는 무료 폰트
     family: 'Kakao Big Sans',
     stack: `'Kakao Big Sans','Apple SD Gothic Neo',sans-serif`,
     dir: 'fonts/kakao-big-sans', weights: [400, 700, 800],
@@ -125,7 +125,9 @@ export const FONTS = {
 // 목록이 필요하면 fontIds()를 쓴다(FONT_IDS는 모듈 로드 시점에 굳는 값이다).
 export const FONT_IDS = Object.keys(FONTS);
 export function fontIds() { return Object.keys(FONTS); }
-export const DEFAULT_FONT = 'KakaoBigSans';   // 10-15 밤 사용자: 「텍스트 디폴트는 Pretendard + 카카오빅산스 — 가이드 없는 건 카카오 빅산스로」(규정 매체 자소설·카카오·리멤버 = Pretendard 는 그대로). 저녁의 Paperlogy 기본은 폐기
+// 기본 폰트 이력: 10-15 저녁 Paperlogy → 10-15 밤 카카오 큰글씨(「가이드 없는 건 카카오 빅산스로」) →
+// 11-17 노션 컨시어지 확인요청 「[공통] 기본 폰트 수정 — 카카오 큰글씨 → Pretendard」. 규정 매체(자소설·카카오·리멤버 = Pretendard)와 같은 폰트가 됐다.
+export const DEFAULT_FONT = 'Pretendard';
 export function isBundledFont(id) { return !!FONTS[id]?.dir; }
 export function fontGroup(id) { return FONTS[id]?.custom ? 'custom' : (FONTS[id]?.group ?? 'free'); }
 

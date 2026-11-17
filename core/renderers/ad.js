@@ -34,6 +34,7 @@ import { bpGenFor } from '../typoaudit.js';
 import { contrast, mix, hexToRgb, colorDistance, shiftHue, WHITE, BLACK } from '../palette.js';
 import { editOf, transformCss, KV_SIZE_K, SCRIM_A, GRAD_ANGLE, placeAvail, infoTagOf, INFO_TAG } from '../editlayout.js';
 import { kvTypeOf } from '../kvtypes.js';
+import { applyLogoKv } from '../logokv.js';   // 11-17 노션 N2 비즈보드 「이미지 대신 로고 사용」
 import { recipeActive } from '../recipes.js';
 import { renderTemplate } from './ad-template.js';
 import { textAlignOf, alignLockOf, ALIGN_KV_PLACE, ALIGN_JUSTIFY, alignMoldSlots, alignObjectHtml, flipLR } from '../alignrule.js';   // 글자 정렬 프리셋(10-19) — 잠금·거울 계산은 저쪽, 여기는 훅만
@@ -408,6 +409,7 @@ export function renderAd(ctx, style, spec) {
     const logo = style.free.logoTone === 'light' ? (style.logoLight ?? style.logo ?? null) : (style.logo ?? style.logoLight ?? null);
     return fillTemplate(style.free.tpl, { texts: style.free.texts ?? freeTextsOf(ctx), kv: kvS.keyVisual ?? null, logo });
   }
+  style = applyLogoKv(style, spec);   // 11-17 노션 N2: 비즈보드에서 「이미지 대신 로고 사용」을 켜면 그림 계열을 걷고 로고가 그림 칸에(흰 로고 썸네일형 · 그 밖 오브젝트형)
   style = pickKvVariant(style, spec);
   return withAiShapes(renderAdInner(ctx, style, spec), style, spec);
 }
@@ -1304,7 +1306,7 @@ function renderAdBase(ctx, style, spec) {
     return best ? { x: best.x, y: best.y, w: best.w, h: best.h } : null;
   })();
   // 틀 오브젝트형 칸(mold.imageCutout — 리멤버 메인·공고 배너, 11-02 담당자): 누끼 키비주얼이면 썸네일 칸·자유 자리 대신 매체가 정한 오브젝트 영역(844×284 등)에 통째로(contain·가운데·블리드 없음)
-  const moldCutZone = (!!mold?.imageCutout && (style.kvMeta?.field?.opaque ?? 1) < 0.5 && !kvTypeOf(style.kvMeta)?.flags.frame) ? rect(mold.imageCutout, tScale) : null;
+  const moldCutZone = (!!mold?.imageCutout && ((style.kvMeta?.field?.opaque ?? 1) < 0.5 || style.logoKv === 'object') && !kvTypeOf(style.kvMeta)?.flags.frame) ? rect(mold.imageCutout, tScale) : null;   // 11-17 N2: 오브젝트형 로고도 오브젝트 칸(314×300)
   if (moldCutZone) fired('templateMold.cutoutZone');
   let tImage = moldCutZone ?? (moldFreeKv ? moldFreeRect : rect(mold?.image ?? tpl?.image ?? tpl?.imageMain ?? null, tScale));
   // 정렬 프리셋(10-19) — 틀 규격: 글자 칸은 그대로, 그림 칸·로고 칸만 거울(오른쪽: w−x−폭 · 가운데: 가로 가운데). 틀 좌표 데이터는 손대지 않고 렌더 값만(core/alignrule.js alignMoldSlots)
@@ -1340,6 +1342,7 @@ function renderAdBase(ctx, style, spec) {
     && !(rules.objectBox && kvKind === 'texture');                                        // 상자에 그라데이션 조각은 무의미 — 글자만
   // 11-10 밤: 틀이 「그림 못 쓰면 로고를 오브젝트 칸으로」를 정하면(알바몬 스플래시 — 가이드 「오브젝트만 노출·오브젝트 없음 Bad」, 케이스 ② 문구+오브젝트) 로고를 그림 칸 가운데로 내린다
   const moldLogoObj = !!(mold?.logoToImageWhenNoKv && mold.image && !hasKv && tLogo && style.logo);
+  if (style.logoKv && tLogo) { tLogo = null; fired('logoKv.noLogoSlot'); }   // 11-17 N2: 로고가 그림 칸으로 가면 틀 로고 칸(NAP 960 썸네일 위 로고)은 비운다 — 같은 로고가 두 번 나오지 않게
   if (moldLogoObj) { const im = mold.image, lw = Math.min(im.w, 760), lh = Math.round(im.h * 0.32); tLogo = rect({ x: im.x + Math.round((im.w - lw) / 2), y: im.y + Math.round((im.h - lh) / 2), w: lw, h: lh, align: 'center', valign: 'center' }, tScale); fired('templateMold.logoAsObject'); }
   // 질감 그림(블러 그라데이션, kind texture): 주인공도 바탕도 없다 — 지면 전체에 깔고 글자만 올린다. 자르면 뜻 없는 색 조각이 된다(10-06 사용자 "이런 그라데이션이라면?").
   // 템플릿 이미지 칸(자소설)도 무시하고 통째로 깐다 — 글자 칸은 템플릿대로. 투명 규격은 hasKv에서 이미 빠진다
@@ -1772,7 +1775,7 @@ function renderAdBase(ctx, style, spec) {
   const logoUnder = (mold?.logo?.onImage && hasKv && (style.kvMeta?.field?.opaque ?? 1) >= 0.5) ? (style.kvMeta?.field?.quadrants?.[mold.swapped ? 'tl' : 'tr'] ?? null) : null;
   const logoOnDarkImg = logoUnder ? contrast(logoUnder, WHITE) >= 3 : null;
   if (logoUnder) fired(logoOnDarkImg ? 'templateMold.logoOnImage.white' : 'templateMold.logoOnImage');
-  const logoFilter = logoTile ? ''
+  const logoFilter = (logoTile || style.logoKv) ? ''   // 11-17 N2: 그림 칸에 들어간 로고는 원색 그대로(흰 로고는 썸네일 상자 위, 원색 로고는 투명 지면 위)
     : logoOnDarkImg === true ? 'filter:brightness(0) invert(1)'
     : logoOnDarkImg === false ? (style.logoTone === 'light' ? 'filter:brightness(0)' : '')
     : (!fgIsDark && !style.logoLight) ? 'filter:brightness(0) invert(1)'
@@ -1794,7 +1797,7 @@ function renderAdBase(ctx, style, spec) {
   TR.field = field ? { source: field.source, stops: field.stops, angle: field.angle, css: field.css, text: field.text, contrast: field.contrast, seamless: field.seamless, gradient: field.gradient, vivid: field.vivid ?? null, dim: field.dim ?? null, joined: !!field.joined, align: field.align ?? null, deviation: field.deviation ?? null } : null;
   TR.text = { mainFg, brandMain, subFg, detailFg, tight, lightProfile, glassKv, textColor: textColorTr, ...(LF ? { light: { ok: LF.ok, why: LF.why ?? null, hex: LF.hex ?? null, L: LF.L ?? null, deep: LF.deep ?? null, accent: LF.accent ?? null, kind: LF.kind, edgeLum: LF.edgeLum ?? null, applied: !!lightInk } } : {}) };
   TR.scrim = photoFull ? { kind: 'photo-full', base: scrimInk, a: phA ?? [0.94, 0.82], end: scrimEnd, dir: scrimDir, crowd: crowdKv, ...(centerScrim ? { center: { busy: centerScrim.busy, need: centerScrim.need, short: centerScrim.short } } : {}) } : (textureFull && field && field.contrast < 4.5) ? { kind: 'texture-contrast', base: scrimBase, a: [0.9, 0.75], end: scrimEnd, dir: scrimDir } : calm ? { kind: 'calm', ...calm, dir: scrimDir } : frameFull ? { kind: 'frame', a: [0.85, 0.55], dir: scrimDir } : null;
-  TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : inkDefs ? 'ink' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, ...(logoLowOnLight ? { light: { ...logoLowOnLight, ink: !!(logoFilter && inkDefs), low: !!(logoTile && logoLowOnLight.share != null && logoLowOnLight.share >= 0.3) } } : {}), mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo,
+  TR.logo = { emblem: emblemX, place: logoPlace, tone: logoFilter.includes('invert') ? 'white' : inkDefs ? 'ink' : logoFilter ? 'black' : 'original', srcTone: style.logoTone ?? null, clash: logoClash, tile: logoTile, ...(logoLowOnLight ? { light: { ...logoLowOnLight, ink: !!(logoFilter && inkDefs), low: !!(logoTile && logoLowOnLight.share != null && logoLowOnLight.share >= 0.3) } } : {}), mono: !!(style.logoMono && logoSrc === style.logoMono), box: logoBox, allow: allowLogo, has: hasLogo, asObject: logoAsObject, template: !!tLogo, ...(style.logoKv ? { kv: style.logoKv } : {}),
     // 가이드 배치 규칙(10-14 place.logoSlot): 자동 로고 자리 — 모서리(왼쪽 배치면 좌우 뒤집음)·칸 종류(abs 모서리 칸 · flex 글자 열 안 · template 매체 로고 칸 · object 그림 자리)
     corner: (mirrorX && /-(left|right)$/.test(logoPlace)) ? logoPlace.replace(/(left|right)$/, x => (x === 'left' ? 'right' : 'left')) : logoPlace, slot: logoAsObject ? 'object' : tLogo ? 'template' : logoBox ? 'abs' : 'flex', tplRect: tLogo ?? null };
   if (logoWhite) fired('logoOnly.white'); if (brandMain) fired('textColour.brand'); if (field?.vivid != null) fired('vividWhite'); if (/kv-harmony|kv-vivid/.test(field?.source ?? '')) fired('kvHarmony'); if (/kv-mood/.test(field?.source ?? '')) fired('kvMood'); if (calm) fired('textureCalm'); if (logoClash) fired('logoClash'); if (/-bridge$/.test(field?.source ?? '')) fired('melt.bridge'); if (field?.joined) fired('joinField'); if (field?.dim) fired('vividWhite.dimKv');
@@ -2792,7 +2795,14 @@ function renderAdBase(ctx, style, spec) {
     if (pull) fired('templateMold.subjectPull');
     return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${pull ? `${pull.pos}/${pull.size}` : `${c.pos}/cover`} no-repeat;${meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
   })() : null;
-  const tplObject = bgRuleLayer ? bgRuleLayer : (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
+  // 11-17 노션 N2 비즈보드 「이미지 대신 로고 사용」: 썸네일형 = 공식 썸네일 상자(320×222 r18)에 바탕색 + 흰 로고, 오브젝트형 = 오브젝트 칸(314×300)에 로고만(가로 가득·높이 60% 안)
+  //   표식은 style 뒤(data-logo-kv) — variants.js 로고 칸 정규식(data-object="logo" style="position:absolute;left…)이 그대로 읽게
+  const logoKvLayer = (style.logoKv && logoAsObject && tImage) ? (() => {
+    const b = tImage, x = mirrorX ? w - b.x - b.w : b.x;
+    if (style.logoKv === 'thumb') { fired('logoKv.thumb'); return `<div data-object="logo" style="position:absolute;left:${x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;border-radius:${b.radius ?? 0}px;background:${style.logoKvBg ?? '#191919'};overflow:hidden;display:flex;align-items:center;justify-content:center" data-logo-kv="thumb"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:62%;max-height:42%;height:auto;object-fit:contain"/></div>`; }
+    fired('logoKv.object'); return `<div data-object="logo" style="position:absolute;left:${x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px;display:flex;align-items:center;justify-content:center" data-logo-kv="object"><img data-logo="1" src="${esc(logoSrc)}" alt="" style="width:100%;max-height:60%;height:auto;object-fit:contain"/></div>`;
+  })() : null;
+  const tplObject = bgRuleLayer ? bgRuleLayer : logoKvLayer ? logoKvLayer : (logoAsObject && tImage) ? logoZone(tImage.x + Math.round(tImage.w * 0.1), tImage.y + Math.round(tImage.h * 0.1), Math.round(tImage.w * 0.8), Math.round(tImage.h * 0.8))
     : moldContain
     ? (() => { const mL0 = fadeFor('to right'), mR0 = fadeFor('to left');
         // 윗변(그림 변)이 지면색과 0.15 넘게 다르면 윗변도 녹인다(10-20 전수 감사 desk-11 네 변 평평한 일러스트 — 왼·오른쪽만 녹여 윗변이 네모 선). 길이는 CANON.melt, 같은 색이면 0

@@ -6,6 +6,7 @@
 import { withArtKv, clearArtKv, withArtKvColors, withArtKvUse, withArtLogo, clearArtLogo, hasArtKv, hasArtLogo, isCutoutMeta, ART_ASSET_KEYS } from '../core/artasset.js';
 import { withElementEdit } from '../core/elementedit.js';
 import { mountKvFocus, withManual } from './kvfocus.js';
+import { logoKvSpec, logoKvForm } from '../core/logokv.js';   // 11-17 노션 N2 비즈보드 「이미지 대신 로고 사용」
 
 const PREF = 'mbm.artKvColors';
 // 틀이 정한 칸인가(app editor partsOf — 그 몫이 manualLayout 으로 안 움직이고 이유가 있으면)
@@ -54,6 +55,19 @@ export function createArtKv(D) {
     </section>`;
   }
 
+  /* ── 11-17 노션 N2: 비즈보드 「이미지 대신 로고 사용」 토글(이 소재만) ──
+     그림 패널(이미지 칸 아래, 노션 그림 N2_logo_2)과 로고 패널 둘 다에 둔다 — 켜면 그림 요소가 사라지고 로고가 그 칸에 들어가 로고 패널에서 끈다.
+     비즈보드(core/logokv.js logoKvSpec)·로고가 있을 때만 보인다. 모양은 로고 색이 정한다(흰 로고 썸네일형 · 원색·검은 로고 오브젝트형) */
+  function logoKvHtml(a) {
+    const spec = D.SPECS[a.specId], eff = effOf(a);
+    if (!logoKvSpec(spec) || !eff.logo) return '';
+    const on = !!a.overrides?.style?.logoAsKv, form = logoKvForm(eff);
+    const note = on ? (form === 'thumb' ? '흰 로고라 썸네일형이에요 — 320×222 상자에 브랜드색 바탕을 깔고 로고를 얹었어요' : '원색·검은 로고라 오브젝트형이에요 — 배경 없이 오브젝트 칸(314×300)에 로고만 넣었어요')
+      : '그림이 애매하거나 요청이 있으면 켜요. 흰 로고는 썸네일형, 원색·검은 로고는 오브젝트형으로 자동으로 바뀌어요';
+    return `<label class="fswitch" id="iElLogoKvRow"><span>이미지 대신 로고 사용</span><input type="checkbox" role="switch" id="iElLogoKv" ${on ? 'checked' : ''} aria-describedby="iElLogoKvNote"></label>
+      <div class="fnote" id="iElLogoKvNote">${escH(note)} · 이 소재만</div>`;
+  }
+
   /* ── 1단계: 채움(이 소재만 그림·로고) ── */
   function kvFillHtml(a, it) {
     const c = D.state.campaign, eff = effOf(a), own = hasArtKv(a), L = looks(a, 'kv', it);
@@ -67,6 +81,7 @@ export function createArtKv(D) {
         ${iconBtn('img', '그림 바꾸기 — 이 소재만', 'id="iElKvPick"')}</div>
       <input type="file" id="iElKvFile" accept="image/*" style="display:none">
       ${eff.keyVisual && eff.kvMeta ? `<div class="kvthumb" id="iElKvThumb" style="width:100%;height:120px;margin-top:8px;background-image:url(${D.refOf(eff.keyVisual)})" title="끌어서 이 소재에 보여 줄 영역 지정"></div>` : ''}
+      ${logoKvHtml(a)}
       <label class="fchk"><input type="checkbox" id="iElKvColors" ${colorsOn ? 'checked' : ''}> 이 소재 색도 새 그림에 맞춤</label>
       <div class="fnote">${own ? '이 소재만 다른 그림이에요 · 가로형/세로형 그림은 이 소재엔 안 쓰여요' : '바꾸면 이 소재만 다른 그림이 돼요. 색은 캠페인 색 그대로(체크하면 새 그림 색)'}${why ? ' · 틀이 정한 칸이라 칸은 그대로, 그림만 바뀌어요' : ''}${L.use ? ` · ${escH(L.use)}` : ''}</div>
       <button type="button" class="lnk" data-goall="kv" style="margin-top:6px">모든 소재 키비주얼 바꾸기 →</button>
@@ -77,6 +92,7 @@ export function createArtKv(D) {
     const sw = (id, v, label, dark) => `<div class="fimgrow"><span class="fimgsw logo${dark ? ' dark' : ''}" style="background-image:url(${v ? D.refOf(v) : ''})" role="img" aria-label="${label}"></span><span class="fimgname">${label}${v ? '' : ' — 없음'}</span>${iconBtn('img', `${label} 바꾸기 — 이 소재만`, `id="${id}Pick"`)}</div><input type="file" id="${id}File" accept="image/*" style="display:none">`;
     return `<section class="isec" id="iElFillSec"><h3>채움 <span class="mode">이 소재만</span>${own ? `<button type="button" class="ovr" id="iElLogoReset" title="공통 로고로 되돌리기" aria-label="이 소재 로고를 공통 로고로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>
       ${sw('iElLogo', eff.logo, '원색 로고', false)}${sw('iElLogoLight', eff.logoLight, '흰색 로고', true)}
+      ${logoKvHtml(a)}
       <div class="fnote">지면 밝기에 따라 원색/흰색은 렌더러가 고르고, 매체 로고 규정(크기 상한·공식 칸)은 그대로예요</div>
       <button type="button" class="lnk" data-goall="logo" style="margin-top:6px">모든 소재 로고 바꾸기 →</button>
     </section>`;
@@ -174,6 +190,16 @@ export function createArtKv(D) {
       inp.onchange = async () => { const f = inp.files[0]; if (!f) return; await replaceLogo(a, k, await readFile(f)); };
     }
     q('#iElLogoReset')?.addEventListener('click', () => save(a, clearArtLogo(a.overrides.style), '이 소재 로고 공통으로'));
+    // 11-17 N2: 이미지 대신 로고 — 켜면 그림 칸 요소가 로고로 바뀌니 고른 요소도 따라 옮긴다(그림 ↔ 로고)
+    q('#iElLogoKv')?.addEventListener('change', async e => {
+      const on = e.target.checked, st = { ...(a.overrides?.style ?? {}) };
+      if (on) st.logoAsKv = true; else delete st.logoAsKv;
+      save(a, st, on ? '이 소재 이미지 대신 로고' : '이 소재 이미지 되살리기');
+      const want = on ? 'logo' : 'kv';
+      for (let i = 0; i < 30 && !D.EL.find(a, want); i++) await new Promise(r => setTimeout(r, 100));
+      if (D.EL.find(a, want)) D.select(key, want);
+      D.toast(on ? `이 소재만 그림 대신 로고를 넣었어요(${logoKvForm(effOf(a)) === 'thumb' ? '썸네일형' : '오브젝트형'}) · 되돌리기 ⌘Z` : '이 소재 그림을 되살렸어요');
+    });
     void key;
   }
 

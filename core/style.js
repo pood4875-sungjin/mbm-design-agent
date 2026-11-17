@@ -1,6 +1,6 @@
 // Campaign Style — 3경로(업로드·프리셋·AI 생성 추후) 어디서 와도 이 구조 하나로 정규화 (PRD 불변식 2)
 
-import { FONTS } from './fonts.js';
+import { FONTS, DEFAULT_FONT } from './fonts.js';
 import { buildPalette, MODES } from './palette.js';
 import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
 import { PRESETS, PRESET_KEYS } from './editlayout.js';
@@ -61,8 +61,8 @@ export function normalizeStyle(input = {}) {
       mode,
     }),
     fonts: {
-      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : 'KakaoBigSans',   // 10-15 밤: 기본 카카오 빅산스(규정 매체는 렌더러가 Pretendard 강제)
-      body: FONTS[input.fonts?.body] ? input.fonts.body : 'KakaoBigSans',
+      heading: FONTS[input.fonts?.heading] ? input.fonts.heading : DEFAULT_FONT,   // 11-17: 기본 Pretendard(10-15 밤~11-17 은 카카오 빅산스). 규정 매체는 렌더러가 Pretendard 강제
+      body: FONTS[input.fonts?.body] ? input.fonts.body : DEFAULT_FONT,
     },
     logo: input.logo ?? null,
     // 지면(배경) — 기본은 키비주얼에서 읽는다(core/field.js). 사람이 고정할 수 있는 것은 단색/그라데이션과 색 하나뿐이다.
@@ -87,7 +87,8 @@ export function normalizeStyle(input = {}) {
     ...(input.roleColors && typeof input.roleColors === 'object' ? { roleColors: Object.fromEntries(['main', 'sub', 'detail'].filter(k => HEX.test(input.roleColors[k] ?? '')).map(k => [k, input.roleColors[k].toUpperCase()])) } : {}),   // 글자별 색(N6)
     ...(input.roleScale && typeof input.roleScale === 'object' ? { roleScale: Object.fromEntries(['main', 'sub', 'detail'].filter(k => Number.isFinite(input.roleScale[k]) && input.roleScale[k] !== 1).map(k => [k, Math.min(1.6, Math.max(0.6, input.roleScale[k]))])) } : {}),   // 글자별 크기 배율(N6)
     textColor: HEX.test(input.textColor ?? '') ? input.textColor.toUpperCase() : null,   // 직접 고른 글자색(11-02 컨시어지 「브랜드컬러 외 폰트 색상 지정」) — 규정 없는 매체에서만 렌더러가 쓴다(core/renderers/ad.js customFg). null = 톤(textTone)대로   // 글자색 톤(10-19 사용자 「폰트 컬러 다크/라이트 선택」) — 규정 없는 매체에서 'dark' = #333 글자 · 'light' = 흰 글자. 'auto' 는 지면 밝기로   // 사람이 색 자리를 손으로 고쳤다(10-19) — 지면이 주색을 따라간다(core/field.js palette-manual)
-    logoMono: input.logoMono ?? null,     // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
+    ...(input.logoAsKv === true ? { logoAsKv: true } : {}),   // 11-17 노션 N2: 비즈보드 「이미지 대신 로고 사용」(보통 소재 개별값 overrides.style — core/logokv.js). 꺼짐이면 키 없음
+    logoMono: input.logoMono ?? null,    // 단색 변환용 로고(글자 속까지 지운 사본, core/logo.js prepLogoRGBA mono) — 렌더러가 흰/검정 단색으로 바꿀 때만 쓴다(10-12 결정 12)
     logoLight: input.logoLight ?? null,   // 어두운 지면용(흰색) 로고 — 없으면 렌더러가 원색 로고를 흰 판 위에 올린다
     // 올린 원본(손질 전) — 전달물(자소설 M시작배너 로고 500px↑·이미지 720px↑)은 손질본이 아니라 원본 파일을 그대로 넘긴다(10-16). 손질본과 같으면 비워 둔다
     logoOrig: typeof input.logoOrig === 'string' && input.logoOrig !== input.logo ? input.logoOrig : null,

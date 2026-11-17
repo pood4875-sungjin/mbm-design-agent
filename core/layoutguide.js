@@ -133,7 +133,8 @@ export function guideBoxes(spec, trace = null, measured = null) {   // measured:
   // 11-17: 기록에 틀 칸(trace.mold)이 있는데 로고 칸이 비었으면(NAP 오브젝트형 — 누끼 칸엔 로고를 안 그린다) 틀 기본 로고 칸을 그리지 않는다
   const logo = okRect(trace?.mold?.logo) ? trace.mold.logo : (trace?.mold ? null : sc(mold?.logo)), image = okRect(trace?.mold?.image) ? trace.mold.image : sc(mold?.image);
   if (logo) out.push({ kind: 'logo', label: '로고 칸', x: logo.x, y: logo.y, w: logo.w, h: logo.h });
-  if (image) out.push({ kind: 'image', label: '그림 칸', x: image.x, y: image.y, w: image.w, h: image.h });
+  const lk = trace?.logo?.kv;   // 11-17 노션 N2: 비즈보드 「이미지 대신 로고 사용」 — 같은 칸, 이름만 로고
+  if (image) out.push({ kind: 'image', label: lk ? `로고 칸(${lk === 'thumb' ? '썸네일형' : '오브젝트형'})` : '그림 칸', x: image.x, y: image.y, w: image.w, h: image.h });
   const ins = ['top', 'right', 'bottom', 'left'].map(key => Number.isFinite(sa[key]) ? sa[key] : null);
   if (ins.some(v => v != null) && spec.w && spec.h) { const [t, r, b, l] = ins.map(v => v ?? 0); out.push({ kind: 'safe', label: `안전 영역 ${[t, r, b, l].join('/')}`, x: l, y: t, w: spec.w - l - r, h: spec.h - t - b }); }
   return out;

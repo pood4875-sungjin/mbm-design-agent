@@ -7,7 +7,7 @@
 //   · 저장: 같은 그림 data URL 은 campstore dehydrate 가 내용 해시로 한 번만 쓴다 — 소재마다 넣어도 IndexedDB 는 한 벌
 export const ART_KV_KEYS = ['keyVisual', 'kvOrig', 'kvMeta', 'kvReadability', 'kvVariants', 'kvOwnColors'];
 export const ART_LOGO_KEYS = ['logo', 'logoLight', 'logoMono', 'logoMeta', 'logoTone', 'logoOrig'];
-export const ART_ASSET_KEYS = [...ART_KV_KEYS, 'kvUse', ...ART_LOGO_KEYS];
+export const ART_ASSET_KEYS = [...ART_KV_KEYS, 'kvUse', ...ART_LOGO_KEYS, 'logoAsKv'];   // logoAsKv: 11-17 노션 N2 비즈보드 「이미지 대신 로고 사용」(core/logokv.js)
 const AI_KEYS = ['aiShape', 'aiKvBox', 'aiFade', 'aiKvOrig', 'aiKvMetaOrig', 'aiShapes', 'kvTypeOverride'];
 
 const dropAi = st => {

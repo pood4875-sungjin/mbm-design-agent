@@ -8,7 +8,8 @@ export function moldImageGuides(spec, trace = null) {
   const t = trace?.place?.tImage;
   const im = (t && Number.isFinite(t.x) && t.w > 0) ? t : mold.image;
   if (!im) return out;
-  out.push({ kind: 'image', label: '그림 칸', x: im.x, y: im.y, w: im.w, h: im.h });
+  const lk = trace?.logo?.kv;   // 11-17 노션 N2: 비즈보드 「이미지 대신 로고 사용」 — 칸은 같은 자리(썸네일형 320×222 · 오브젝트형 314×300), 이름만 로고로
+  out.push({ kind: 'image', label: lk ? `로고 칸(${lk === 'thumb' ? '썸네일형' : '오브젝트형'})` : '그림 칸', x: im.x, y: im.y, w: im.w, h: im.h });
   const AL = mold?.adLabel;
   if (AL) {
     const H = spec?.h ?? 0;

@@ -101,7 +101,7 @@ const STORE_LS = 'mbm-campaigns';
 import { SAMPLES } from './samples.js';   // 10-21 샘플 입력(테스트 test/brief-samples.test.js 가 같은 파일을 읽는다)
 
 const state = {
-  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'KakaoBigSans', mood: '', kvReadability: null, suggests: [], step: 0 },
+  intake: { kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {}, mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: DEFAULT_FONT, mood: '', kvReadability: null, suggests: [], step: 0 },
   campaign: null,
   selected: null,          // specId | null
   zoom: 1, panX: 0, panY: 0,
@@ -435,10 +435,10 @@ function artifactFontId(a, c = state.campaign) {
   return effectiveFontId(spec.mediumRules, sel, spec.rules);
 }
 /* 내보내기용 폰트 바이트 — SVG foreignObject(raster.js)는 바깥 파일을 못 받으니 묶은 폰트는 dataURL 로 넣는다(커스텀 폰트와 같은 길).
-   기본 Pretendard 는 예전처럼 설치된 폰트에 맡긴다(산출물마다 1.1MB 를 더 싣지 않게). 한 번 읽은 폰트는 세션 동안 캐시. */
+   기본 폰트도 넣는다(11-17 — 예전엔 기본 폰트를 설치된 폰트에 맡겼다). 한 번 읽은 폰트는 세션 동안 캐시. */
 const fontBytesCache = new Map();
 async function exportFaceCss(fontId, force = false) {
-  if (!fontId || !isBundledFont(fontId) || (fontId === DEFAULT_FONT && !force)) return '';
+  if (!fontId || !isBundledFont(fontId)) return '';   // 11-17: 기본이 Pretendard 로 바뀌어도 바이트째 넣는다(규정 매체 Pretendard 는 원래 넣고 있었음 — 설치 안 된 컴퓨터에서 대체 글꼴로 나가지 않게). force 는 옛 호출 호환
   if (!fontBytesCache.has(fontId)) {
     fontBytesCache.set(fontId, (async () => {
       const urls = {};
@@ -1061,7 +1061,7 @@ function renderSteps() {
 async function startIntake(text) {
   state.intake = {
     kind: 'event', track: null, media: [], fields: {}, channels: [], extra: {}, kv: null, logo: null, signage: {}, sizes: {},
-    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: 'KakaoBigSans', mood: '',
+    mode: 'light', colors: ['#0A3D91', '#11095F', '#B56705'], font: DEFAULT_FONT, mood: '',
     kvReadability: null, kvMeta: null, suggests: [], roster: [], phase: 'target', styleDone: false, signageDone: false, history: [],
     // 무엇을(track: online·offline·both) → 어디에(targetDone) 를 대화에서 고른다. suggestTrack = 브리프에서 읽은 제안(고르기 전까지 확정 아님)
     targetDone: false, suggestTrack: null,
@@ -2875,7 +2875,8 @@ function campaignStat(c = state.campaign) {
 }
 // 11-09 사용자 「일괄 수정은 왼쪽 패널, 개별은 캔버스에서」 · 「타이틀은 하나로 묶어 줘야」 · 「매칭이 잘 안 돼」:
 //   왼쪽 브리프는 항상 전체 일괄. 칸을 캔버스 요소 이름(메인 문구·서브·날짜·상세)으로 묶고, 메인 문구는 「타이틀」 한 칸(= 공고 타이틀 headline, 비면 고객사+채용 구분).
-//   캔버스에서 요소를 고르면 같은 묶음이 강조된다. 개별 수정은 캔버스 글자 편집(app/charsel.js → charText)
+//   (11-17 노션 N3: 캔버스에서 요소를 골라도 왼쪽 칸은 강조하지 않는다 — 「고른 문구만 고치는 칸」으로 오해해 전체가 바뀌었다. 이 소재 그 문구만 고치는 칸은 오른쪽 「이 요소만」 패널 맨 위 「문구」)
+//   개별 수정은 오른쪽 「문구」 칸 · 캔버스 글자 편집(app/charsel.js → charText)
 // 11-15 노션 [10] 좌측 패널 시안(전체 일괄 · 메인/서브/날짜/상세 문구 네 칸 · 반영하기 · 기본 정보/추가 작성 아코디언):
 //   네 칸 = 소재에 찍히는 문구 그대로(비면 자동). 설명 문구·「모든 소재에서 빼기」는 시안대로 걷고, 고친 값은 「반영하기」로 한 번에(실시간 반영 아님)
 const LEFT_GROUPS = [
@@ -2929,8 +2930,8 @@ const leftLiveRefresh = debounce(() => { const b = $('leftBody'); if (!b || b.co
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
   $('lStat').textContent = campaignStat(c);   // 11-15 노션 [12] 캠페인 이름은 머리줄에만(왼쪽 제목 칸 걷음) · 상태 줄은 남김
-  const focusGroup = state.elSel ? ROLE_GROUP[parseElementId(state.elSel).role] ?? null : null;
-  const sig = `${focusGroup ?? ''}`;
+  // 11-17 노션 N3 「문구 요소 선택 시 좌측 문구 박스 강조 해제」: 캔버스에서 고른 요소를 왼쪽 칸 강조·스크롤에 쓰지 않는다(왼쪽은 늘 전체 일괄)
+  const sig = '';
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
   body.dataset.sig = sig;
   const core = c.context.core;
@@ -2951,7 +2952,7 @@ function renderLeft() {
     const tail = g.auto ? (own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.f}"`) : `<span class="lauto" title="비우면 ${escH(g.auto)}(으)로 만들어요">자동</span>`) : '';
     const off = omitted.includes(g.role) ? `<div class="fnote">모든 소재에서 뺐어요 · <button type="button" class="lnk" data-lomit="${g.role}">다시 넣기</button></div>`
       : own ? (t => t ? `<div class="fnote lnoslot" data-lnoslot="${g.f}">${escH(t)}</div>` : '')(missingSlotNote(g.f, adHtmls)) : '';   // 11-17 노션 재검수: 값은 있는데 이번 소재 어디에도 그 자리가 없으면
-    return `<div class="lfld${focusGroup === g.role ? ' on' : ''}" data-lgrp="${g.role}"><label for="lf-${g.f}">${g.name}${tail}</label>
+    return `<div class="lfld" data-lgrp="${g.role}"><label for="lf-${g.f}">${g.name}${tail}</label>
       <textarea id="lf-${g.f}" data-f="${g.f}" data-init="${escH(shown)}" ${g.auto && !own ? `data-auto="${escH(shown)}"` : ''} rows="3" placeholder="${escH(g.ph)}">${escH(cur)}</textarea>${off}</div>`;
   };
   // 11-10 상세 추가 행: 실제로 찍힌 소재 수 한 줄(전 80규격 실측: 첫 행 11 · 둘째 행 5 · 필수 고지 2)
@@ -3020,7 +3021,6 @@ function renderLeft() {
   const away = e => { if (e.target === help) return; tipSet(false); };
   help.onclick = () => tipSet(tip.hidden);
   help.onkeydown = e => { if (e.key === 'Escape' && !tip.hidden) { e.stopPropagation(); tipSet(false); } };
-  if (focusGroup) body.querySelector(`[data-lgrp="${focusGroup}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   const pr = $('lPrompt'), go = () => { const t = pr.value.trim(); if (t) { pr.value = ''; onCommand(t); } };
   $('lPromptGo').onclick = go;
   pr.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); go(); } };
@@ -3102,11 +3102,23 @@ function elementPanelHtml(a, spec, id) {
   const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el);
   // 오토레이아웃(11-09 2b): 옮긴 글자 = 자유 위치(스택에서 빠짐). 다른 글자와 겹치면 경고 · 「자동 배치로 되돌리기」
   const freeSec = (ed.dx || ed.dy) ? (() => { const hit = textOverlaps(EL.list(a), id, box); return `<div class="fnote" id="iElFree">자유 위치(옮김) — 다른 글자 줄 수가 바뀌어도 이 자리에 남아요${hit.length ? ` · <b style="color:var(--danger,#c00)">${escH(overlapNote(hit))}</b>` : ''}</div><button type="button" class="btn" id="iElAuto" style="width:100%;margin-top:6px">자동 배치로 되돌리기</button>`; })() : '';
-  return `<section class="isec">${head}
+  return `${elTextSecHtml(a, id, it)}<section class="isec">${head}
     ${posRow}${freeSec}
     <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비(글자에 맞춤)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이(글자에 맞춤)', prefix: 'H', attrs: 'disabled' })}</div>
     </section>
     ${typoSecHtml(a, spec, id, it, cs, ed, locks, pk)}`;
+}
+// 11-17 노션 N3: 오른쪽 「이 요소만」 패널 맨 위 문구 칸 — 이 소재의 그 문구만 고친다(charText → a.overrides.core, 캔버스 글자 고치기와 같은 길).
+//   왼쪽 브리프 칸은 전체 일괄이라 요소를 골라도 강조하지 않는다. 고칠 수 있는 문구(메인·광고주·서브·날짜·상세)만 칸을 보인다
+const EL_TEXT_ROLES = new Set(['main', 'advertiser', 'sub', 'date', 'detail']);
+function elTextSecHtml(a, id, it) {
+  const { role } = parseElementId(id); if (!EL_TEXT_ROLES.has(role)) return '';
+  const cur = (it?.el?.innerText ?? '').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
+  const own = Object.keys(a.overrides?.core ?? {}).some(f => ({ main: ['headline'], advertiser: ['headline'], sub: ['subText'], date: ['dateText'], detail: ['role', 'dateText', 'rows'] })[role].includes(f));
+  return `<section class="isec" id="iElTextSec"><h3>문구 <span class="mode">이 소재만</span></h3>
+    <textarea id="iElText" class="eltext" rows="${Math.min(5, Math.max(2, cur.split('\n').length))}" aria-label="${escH(elementName(id))} — 이 소재만 고치기" aria-describedby="iElTextNote">${escH(cur)}</textarea>
+    <div class="fnote" id="iElTextNote">여기서 고치면 이 소재의 ${escH(elementName(id))}만 바뀌어요${own ? ' (이미 따로 고친 소재)' : ''} · 칸 밖을 누르거나 ⌘Enter 로 반영 · 모든 소재는 왼쪽 패널에서</div>
+    </section>`;
 }
 // 글자 패널 값 — 범위를 고르면 그 범위(pk.st), 아니면 요소 글자 전체를 잰 값(따로 서식 준 범위가 섞이면 혼합)
 const MIX = '혼합';
@@ -3203,6 +3215,11 @@ function bindElementPanel(insp, a, c, spec, id) {
   const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
   const q = s => insp.querySelector(s);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
+  // 11-17 노션 N3: 문구 칸(이 소재만) — 바뀐 값만 charText 로(캔버스 글자 고치기와 같은 길 · 되돌리기 한 걸음)
+  { const ta = q('#iElText');
+    if (ta) { const was = ta.value; const go = () => { if (ta.value.trim() && ta.value !== was) charText(a, id, ta.value, was); };
+      ta.addEventListener('change', go);
+      ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); ta.blur(); } else if (e.key === 'Escape') { ta.value = was; ta.blur(); } }); } }
   if (role === 'kv' || role === 'logo') AK.bind(insp, a, id);   // 11-10 hub 이식 — 외관·정렬·채움
   q('#iElAuto')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { dx: null, dy: null, sdy: null, fx: null, fy: null, fw: null, fh: null }) }, `${elementName(id)} 자동 배치로`));
   // 11-10 글자·칠 칸: 고른 범위(pk)가 있으면 범위에, 없으면 요소 전체에(그 속성의 범위 서식은 걷어 낸다 — 피그마처럼 전체 값이 이긴다)

@@ -309,7 +309,7 @@ test('구글GDN 틀 = 비씨월드제약 4장 그대로(64:721·731·741·710, �
   assert.equal(t580.mode, 'templateMold');
   assert.deepEqual([t580.mold.rows.main.y, t580.mold.rows.main.px, t580.mold.rows.main.pitch, t580.mold.rows.main.weight, t580.mold.rows.main.lines, t580.mold.rows.date.px, t580.mold.rows.sub, t580.mold.rows.tags], [104.5, 43, 53.3, 700, 2, 22, undefined, undefined]);
   assert.ok(!t580.rules.includes('templateMold.font') && !t580.rules.includes('templateMold.dateChip') && !t580.rules.includes('templateMold.freeKv') && !t580.rules.includes('templateMold.logoBox'), t580.rules.join(','));
-  assert.match(h580, /font-family:'Kakao Big Sans'/, '기본 글꼴(고정 아님)');   // 10-16 저녁 사용자 「구글 4종 폰트는 고정 아닐 텐데」 → 틀 글꼴 제거: 고른 글꼴이 그대로 들어간다
+  assert.match(h580, /font-family:'Pretendard'/, '기본 글꼴(고정 아님 — 11-17 기본 Pretendard)');   // 10-16 저녁 사용자 「구글 4종 폰트는 고정 아닐 텐데」 → 틀 글꼴 제거: 고른 글꼴이 그대로 들어간다
   assert.match(renderAd(ctx, normalizeStyle({ ...glass, fonts: { heading: 'Paperlogy', body: 'Paperlogy' } }), specs['google-gdn-580x400']), /font-family:'Paperlogy'/, '사용자가 고른 글꼴(Paperlogy)이 구글 틀에 들어간다');
   assert.match(h580, /data-field="date"[^>]*font-size:22px;[^>]*>9\.22\(월\) - 10\.12\(일\)</, '날짜 평문 22(상자 없음)');
   assert.match(h580, /data-logo-slot="1" style="position:absolute;left:427px;top:24px;width:127px;height:25px;[^"]*justify-content:flex-end/, 'CI (427,24) 127×25 우상단');

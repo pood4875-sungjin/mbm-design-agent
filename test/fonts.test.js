@@ -20,8 +20,8 @@ test('catalog starts with Paperlogy(default) · Pretendard · Freesentation, the
 
 test('unknown font falls back to Paperlogy (default since 10-15)', () => {
   const s = normalizeStyle({ fonts: { heading: 'Comic Sans', body: 'Comic Sans' } });
-  assert.equal(s.fonts.heading, 'KakaoBigSans');   // 10-15 밤: 기본 카카오 빅산스
-  assert.match(fontStack(s.fonts.heading), /Kakao Big Sans/);
+  assert.equal(s.fonts.heading, 'Pretendard');   // 11-17 노션: 기본 Pretendard
+  assert.match(fontStack(s.fonts.heading), /^'Pretendard'/);
 });
 
 test('chosen font reaches the rendered stack', () => {

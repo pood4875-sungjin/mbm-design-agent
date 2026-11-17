@@ -34,7 +34,8 @@ test('#1 긴 기업명 — 띄어쓰기 없는 16자 「한미글로벌&터너�
   }
   for (const id of ['remember-job-side-pc', 'remember-main-top-mo']) { const main = fieldOf(renderAd(ctx, style, specs[id]), 'main'); assert.equal(main, '신입/경력 채용', `${id}: 리멤버 10자 규정 — 16자 기업명은 생략, 채용구분만 — 「${main}」`); }
   // GDN 300×600 줄 수 상한 2: 「기업명 / 채용구분」 한 줄 더(상자 안에서 글자·행간 축소) — 11-09 전엔 기업명 두 줄만
-  const g = renderAd(ctx, style, specs['google-gdn-300x600']);
+  // 11-17: 기본 글꼴이 Pretendard 로 바뀌며 이 기업명이 한 줄에 들어가 줄바꿈 자리가 필요 없어졌다 — 줄바꿈 자리 규칙은 폭이 넓은 카카오 큰글씨로 계속 확인
+  const g = renderAd(ctx, normalizeStyle({ colors: ['#0B3C8C'], fonts: { heading: 'KakaoBigSans', body: 'KakaoBigSans' } }), specs['google-gdn-300x600']);
   assert.equal(fieldOf(g, 'main'), '한미글로벌&터너앤타운젠드코리아\n신입/경력 채용'); assert.ok(rulesOf(g).includes('templateMold.mainExtraLine'));
   // 음절 줄바꿈 자리(U+200B)가 긴 낱말 안에 — & 뒤가 먼저
   assert.match(g, /한미글로벌&amp;\u200B터너앤타운/, '& 뒤 줄바꿈 자리(U+200B)');
