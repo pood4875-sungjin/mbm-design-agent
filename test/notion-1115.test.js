@@ -57,7 +57,7 @@ test('레이아웃 가이드 그림 칸·광고주체 표기 칸은 실제 그�
 
 test('자소설 상세: 입력한 「/」·「·」·「 · 」를 쉼표로 바꾸지 않는다 — 줄일 때도 입력 기호 그대로', () => {
   const ids = ['jasoseol-pc-premium-popup-pc', 'jasoseol-pc-premium-jobpost-pc', 'jasoseol-pc-standard-main-pc', 'jasoseol-pc-standard-jobpost-pc', 'jasoseol-m-premium-popup-mo', 'jasoseol-m-standard-main-mo'];
-  const textOf = h => h.replace(/<[^>]+>/g, ' ').replace(/⁠/g, '').replace(/&[a-z#0-9]+;/g, ' ');
+  const textOf = h => h.replace(/<[^>]+>/g, ' ').replace(/⁠/g, '').replace(/\u00A0/g, ' ').replace(/&[a-z#0-9]+;/g, ' ');   // 11-17: 구분 기호 앞 NBSP(줄머리 금칙)는 띄어쓰기로 본다
   for (const role of ['인사·경영/지원, 영업·포워딩, 물류운영, 품질·안전', '인사 · 경영 / 지원 · 영업 · 포워딩 · 물류운영 · 품질 · 안전']) {
     const c = createContext({ client: '세방그룹', hiringType: '신입·인턴·경력 정기채용', role, startDate: '2026-11-06', deadline: '2026-11-15' }, 'recruit');
     for (const id of ids) {
