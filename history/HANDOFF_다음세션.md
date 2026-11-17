@@ -8,7 +8,7 @@
 
 ### 다른 컴퓨터에서 받기
 1. `git clone https://github.com/pood4875-sungjin/mbm-design-agent.git && cd mbm-design-agent`
-2. **케이스 그림(git 밖, 고객사 그림이라 공개 저장소에 안 올림)**: 인계 폴더 `~/Downloads/mbm-handover_2026-11-17/ref-learned-cases.zip` 을 저장소 루트에서 풀기 → `ref/learned/cases/<id>/…`. 없으면 테스트 약 66개가 그림 없음으로 실패하고, 렌더·검수 스크립트가 케이스를 못 읽어요. (렌더 산출물 `cases/_out` 6.5GB 는 뺐어요 — 필요하면 다시 렌더)
+2. **케이스 그림(git 밖, 고객사 그림이라 공개 저장소에 안 올림)**: 인계 폴더 `~/Downloads/mbm-handover_2026-11-17/ref-learned-cases.zip` 을 저장소 루트에서 `unzip -o` 로 풀기(11-17 새 clone 에 풀어 npm test 954 통과 확인) → `ref/learned/cases/<id>/…`. 없으면 테스트 약 66개가 그림 없음으로 실패하고, 렌더·검수 스크립트가 케이스를 못 읽어요. (렌더 산출물 `cases/_out` 6.5GB 는 뺐어요 — 필요하면 다시 렌더)
 3. 서버 의존성: `cd server && npm install && cd ..`. Claude Code: `npm install -g @anthropic-ai/claude-code` → `claude auth login`(각자 계정).
 4. 앱: `MBM 시작.command` 더블클릭(서버 4796 + 앱). 테스트: `npm test`(954).
 5. 헤드리스 렌더·검수: Google Chrome 필요(다른 경로면 `CHROME=경로`).
