@@ -16,7 +16,8 @@ if (typeof location !== 'undefined' && typeof window !== 'undefined' && /[?&]ais
 export const STAGES = [['kv', '키비주얼 보는 중'], ['design', '설계'], ['review', '검수']];
 export const ETA_MS = { suggest: 240000, revise: 60000, spread: 120000 };   // 계약 목표: 3안 ≤ 4분 · AI 수정 ≤ 60초 — 서버가 etaMs 를 주면 그 값
 export const FIRST_MS = 90000;   // 첫 카드 목표 ≤ 90초
-export const SETUP_DOC = '../docs/local-ai-setup.md';
+import { SETUP_DOC } from './runtime.js';   // 11-17 GitHub 렌더 페이지 — 한 곳(app/runtime.js)
+export { SETUP_DOC };
 const JOBS_KEY = 'mbm-ai-jobs', POLL_MS = 1500, TICK_MS = 1000;
 
 // 규정 틀 매체(자소설·리멤버·카카오 비즈보드) — 틀(mold)이 정해져 AI 자유 디자인을 하지 않는다

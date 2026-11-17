@@ -52,4 +52,5 @@ export const AI_ONLY_SELECTORS = [
   '#iKvAi',            // 「AI 그림 판단」 버튼
   '.ai-only',          // 그 밖에 손으로 표시한 것
 ];
-export const SETUP_DOC = '../docs/local-ai-setup.md';
+// 11-17 노션 재검수: Pages 는 .md 를 원문 그대로 보여 줘서 GitHub 저장소의 렌더 페이지로(새 탭). 원본은 docs/local-ai-setup.md
+export const SETUP_DOC = 'https://github.com/pood4875-sungjin/mbm-design-agent/blob/main/docs/local-ai-setup.md';

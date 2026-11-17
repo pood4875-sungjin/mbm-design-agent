@@ -85,5 +85,7 @@ test('칩 창(규칙판): 짧은 설명 + 로컬 앱 켜는 방법 링크 · 실
   const body = s.slice(s.indexOf('function renderRuleOnly'), s.indexOf('function startPoll'));
   assert.match(body, /규칙 모드예요/); assert.match(body, /href="\$\{SETUP_DOC\}"/);
   assert.doesNotMatch(body, /claudeRe|claudeIn|claudeOut/);
-  assert.match(read('app/runtime.js'), /SETUP_DOC = '\.\.\/docs\/local-ai-setup\.md'/);
+  // 11-17 노션 재검수: Pages 는 .md 원문으로 보여 줘서 GitHub 렌더 페이지(새 탭)
+  assert.match(read('app/runtime.js'), /SETUP_DOC = 'https:\/\/github\.com\/pood4875-sungjin\/mbm-design-agent\/blob\/main\/docs\/local-ai-setup\.md'/);
+  assert.match(body, /href="\$\{SETUP_DOC\}" target="_blank" rel="noopener"/);
 });

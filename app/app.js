@@ -38,7 +38,7 @@ import { colorRowHtml, iconBtn, numField, wireFui, ic } from './fui.js';   // 11
 import { gradientFrom, normGradient } from '../core/gradient.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
-import { htmlToSvg } from '../core/svgexport.js';
+import { htmlToSvg, svgImgNote, SVG_IMG_NOTE_ALL } from '../core/svgexport.js';
 import { moldImageGuides } from '../core/guideboxes.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
@@ -47,7 +47,8 @@ import { ruleFileName } from '../core/filename-rules.js';   // 11-15 매체별 �
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA, whitenLogo as whitenLogoRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
 import { createEditor } from './editor.js';
-import { createElementSelect, textPosLocked, POS_LOCK_NOTE } from './elselect.js';   // 11-02 프레임 안 요소 고르기
+import { createElementSelect, textPosLocked, POS_LOCK_NOTE, textOverlaps, overlapNote } from './elselect.js';
+import { slotReach, applyNoteText, missingSlotNote } from './leftnote.js';   // 11-17 노션 재검수: 반영 결과 · 자리 없는 칸 안내   // 11-02 프레임 안 요소 고르기
 import { createArtKv } from './artkv.js';   // 11-10 hub 이식 1·2단계 — 이미지 요소 패널(이 소재만 그림·로고 바꾸기 · 외관 · 정렬)
 import { ART_ASSET_KEYS } from '../core/artasset.js';   // 11-10 hub 이식 — 이 소재 그림·로고 개별값
 import { createRuler } from './ruler.js';
@@ -2904,7 +2905,7 @@ function commitBrief(c, f, v, note = () => {}) {
   const { impacted, conflicts } = propagateCore(c, { [f]: v });
   regen(c);   // 개별값·요소 편집까지 얹어 한 번에
   refreshFrames();
-  note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}종은 캔버스에서 따로 고친 값 유지` : `${impacted.length}종 모두 반영됨`);
+  note(applyNoteText({ impacted: impacted.length, conflicts: conflicts.length, patch: { [f]: v }, htmls: c.artifacts.map(a => a.html ?? '') }));
   log(`${FIELD_LABEL[f]} → ${v} (${impacted.length}종 일괄${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
   autosave();
   return true;
@@ -2940,10 +2941,12 @@ function renderLeft() {
   const overN = c.artifacts.filter(x => Object.keys(x.overrides?.core ?? {}).length).length;
   const omitted = omitList(core.omit);
   // 문구 칸 하나 — 이름 + 「자동」 꼬리표(자동 문구가 있는 칸만) · 직접 쓴 값이면 자동으로 되돌리기. 시안대로 설명 문구는 뺐다
+  const adHtmls = c.artifacts.map(a => a.html ?? '');   // 「N종」은 반영 수(propagateCore, 전 산출물)와 같은 바탕
   const textBox = g => {
     const own = core[g.f] ?? '', shown = own || (g.auto ? liveText(c, g.role) : ''), cur = val(g.f, shown);
     const tail = g.auto ? (own ? iconBtn('swap', `${g.name} 자동으로(${g.auto})`, `data-ltreset="${g.f}"`) : `<span class="lauto" title="비우면 ${escH(g.auto)}(으)로 만들어요">자동</span>`) : '';
-    const off = omitted.includes(g.role) ? `<div class="fnote">모든 소재에서 뺐어요 · <button type="button" class="lnk" data-lomit="${g.role}">다시 넣기</button></div>` : '';
+    const off = omitted.includes(g.role) ? `<div class="fnote">모든 소재에서 뺐어요 · <button type="button" class="lnk" data-lomit="${g.role}">다시 넣기</button></div>`
+      : own ? (t => t ? `<div class="fnote lnoslot" data-lnoslot="${g.f}">${escH(t)}</div>` : '')(missingSlotNote(g.f, adHtmls)) : '';   // 11-17 노션 재검수: 값은 있는데 이번 소재 어디에도 그 자리가 없으면
     return `<div class="lfld${focusGroup === g.role ? ' on' : ''}" data-lgrp="${g.role}"><label for="lf-${g.f}">${g.name}${tail}</label>
       <textarea id="lf-${g.f}" data-f="${g.f}" data-init="${escH(shown)}" ${g.auto && !own ? `data-auto="${escH(shown)}"` : ''} rows="3" placeholder="${escH(g.ph)}">${escH(cur)}</textarea>${off}</div>`;
   };
@@ -2969,17 +2972,19 @@ function renderLeft() {
     <div class="ltip" id="lTip" role="tooltip" hidden>여기서 고치면 모든 소재에 반영돼요.<br>소재 하나만 고치려면 캔버스에서 글자를 더블클릭하세요.</div>
     <div class="ldim" id="lDim" hidden></div>
     <div class="lfields">${fieldsHtml}</div>
-    <div class="lgb lapply"><button type="button" class="btn lg full" id="lApply" disabled>반영하기</button><div id="lNote" class="fnote" role="status"></div></div>
+    <div class="lgb lapply"><button type="button" class="btn lg full" id="lApply" disabled>반영하기</button><div id="lNote" class="fnote" role="status">${state.leftNote?.cid === c.id ? escH(state.leftNote.text) : ''}</div></div>
     </section>
     ${accHtml}
     ${acc('prompt', '프롬프트', `<textarea id="lPrompt" rows="4" aria-label="변경 지시" placeholder="예: 메인 문구를 더 짧게 · 날짜를 강조"></textarea><button class="btn full" id="lPromptGo" style="margin-top:8px">적용</button>`)}`;
-  const note = t => { const n = $('lNote'); if (n) n.textContent = t; };
+  // 11-17 노션 재검수: 반영 결과는 state 에 남긴다 — 그려진 소재가 자동값을 다시 채우며(leftLiveRefresh) 패널을 다시 그려도 지워지지 않게
+  const note = t => { state.leftNote = { cid: c.id, text: t }; const n = $('lNote'); if (n) n.textContent = t; };
   const norm = i => i.tagName === 'TEXTAREA' ? i.value.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim() : i.value.trim();   // 문구 칸은 줄바꿈을 지킨다
+  const note0 = () => { const n = $('lNote'); if (n) n.textContent = ''; };
   const apply = $('lApply');
   const rowsDirty = () => !!D.rows && JSON.stringify(cleanRows(D.rows)) !== JSON.stringify(rowsNow);
   const dirty = () => Object.keys(D.vals).length > 0 || rowsDirty();
   const syncBtn = () => { const on = dirty(); apply.disabled = !on; apply.classList.toggle('pri', on); };
-  body.querySelectorAll('[data-f]').forEach(i => { i.oninput = () => { const v = norm(i); if (v === (i.dataset.init ?? '')) delete D.vals[i.dataset.f]; else D.vals[i.dataset.f] = i.value; syncBtn(); }; });
+  body.querySelectorAll('[data-f]').forEach(i => { i.oninput = () => { if (state.leftNote) { state.leftNote = null; note0(); } const v = norm(i); if (v === (i.dataset.init ?? '')) delete D.vals[i.dataset.f]; else D.vals[i.dataset.f] = i.value; syncBtn(); }; });
   const rowsHost = body.querySelector('[data-lrows]');
   if (rowsHost) rowsEditor(rowsHost, D.rows ?? rowsNow, rows => { D.rows = rows.map(r => ({ ...r })); syncBtn(); });
   // 반영하기 — 고친 칸을 한 번에(되돌리기 한 걸음 · 그리기 한 번)
@@ -2997,8 +3002,8 @@ function renderLeft() {
     const { impacted, conflicts } = propagateCore(c, patch);
     regen(c); refreshFrames(); autosave();
     log(`전체 일괄 반영 ${Object.keys(patch).join(',')} (${impacted.length}종${conflicts.length ? `, 충돌 ${conflicts.length}` : ''})`);
+    note(applyNoteText({ impacted: impacted.length, conflicts: conflicts.length, patch, htmls: c.artifacts.map(a => a.html ?? '') }));
     body.dataset.sig = '-'; document.activeElement?.blur?.(); renderLeft();
-    note(conflicts.length ? `${impacted.length}종 반영 · ${conflicts.length}종은 캔버스에서 따로 고친 값 유지` : `${impacted.length}종 모두 반영됨`);
   };
   syncBtn();
   body.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !apply.disabled && e.target.dataset?.f != null) { e.preventDefault(); apply.click(); } };   // ⌘Enter = 반영하기
@@ -3092,7 +3097,7 @@ function elementPanelHtml(a, spec, id) {
   }
   const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el);
   // 오토레이아웃(11-09 2b): 옮긴 글자 = 자유 위치(스택에서 빠짐). 다른 글자와 겹치면 경고 · 「자동 배치로 되돌리기」
-  const freeSec = (ed.dx || ed.dy) ? (() => { const hit = EL.list(a).filter(o => o.kind === 'text' && o.id !== id && o.box.x < box.x + box.w && box.x < o.box.x + o.box.w && o.box.y < box.y + box.h && box.y < o.box.y + o.box.h); return `<div class="fnote" id="iElFree">자유 위치(옮김) — 다른 글자 줄 수가 바뀌어도 이 자리에 남아요${hit.length ? ` · <b style="color:var(--danger,#c00)">${escH(hit.map(o => elementName(o.id)).join('·'))}와 겹침</b>` : ''}</div><button type="button" class="btn" id="iElAuto" style="width:100%;margin-top:6px">자동 배치로 되돌리기</button>`; })() : '';
+  const freeSec = (ed.dx || ed.dy) ? (() => { const hit = textOverlaps(EL.list(a), id, box); return `<div class="fnote" id="iElFree">자유 위치(옮김) — 다른 글자 줄 수가 바뀌어도 이 자리에 남아요${hit.length ? ` · <b style="color:var(--danger,#c00)">${escH(overlapNote(hit))}</b>` : ''}</div><button type="button" class="btn" id="iElAuto" style="width:100%;margin-top:6px">자동 배치로 되돌리기</button>`; })() : '';
   return `<section class="isec">${head}
     ${posRow}${freeSec}
     <div class="fgrid2" style="margin-top:6px">${numField({ id: 'iElW', value: r1(box.w), label: '너비(글자에 맞춤)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iElH', value: r1(box.h), label: '높이(글자에 맞춤)', prefix: 'H', attrs: 'disabled' })}</div>
@@ -3315,6 +3320,7 @@ function exportSecHtml(c) {
     <div class="fgrid2"><select id="iExpRange" aria-label="내보낼 범위"><option value="ok">승인한 것 ${ok}</option><option value="all">전체 ${ads.length}(미승인 검토용 폴더)</option>${pk ? `<option value="pick" selected>고른 것 ${pk}</option>` : ''}</select>
     <select id="iExpFmt" aria-label="형식"><option value="zip">PNG · ZIP</option><option value="svg">ZIP + SVG</option></select></div>
     <div class="fnote">매체 규격 1배(용량 상한에 맞춤) · 매체별 폴더 ZIP${ok ? '' : ' · 아직 승인한 소재가 없어요'}</div>
+    <div class="fnote" id="iExpSvgNote" hidden>${SVG_IMG_NOTE_ALL}</div>
     </section>`;
 }
 function toolSecHtml(c) {
@@ -3334,6 +3340,7 @@ function bindHubSecs(insp, c) {
   if (pc) { const set = v => { const i = $('canvasBg'); if (!i) return; i.value = v; i.dispatchEvent(new Event('input')); }; pc.oninput = () => set(pc.value); }
   q('#iPageReset')?.addEventListener('click', () => { $('canvasBgReset')?.click(); renderInspector(); });
   q('#iKvPick')?.addEventListener('click', () => q('#iKvFile')?.click());
+  q('#iExpFmt')?.addEventListener('change', () => { const n = q('#iExpSvgNote'); if (n) n.hidden = q('#iExpFmt').value !== 'svg'; });   // 11-17 노션 [00] SVG 안 그림 화질 안내
   q('#iExpGo')?.addEventListener('click', () => {
     const r = q('#iExpRange').value, svg = q('#iExpFmt').value === 'svg';
     if (r === 'ok' && !c.artifacts.some(a => a.channel === 'ad' && a.status === 'approved')) { toast('승인한 소재가 없어요 — 범위를 「전체」로 바꾸거나 먼저 승인하세요'); return; }
@@ -4413,7 +4420,8 @@ function exportAdModal(a) {
       <div style="margin-top:10px">${lintHtml(a)}</div>
       ${blocked ? '<div style="font-size:12px;color:var(--danger);line-height:1.6;margin-top:8px">차단 사유를 고치면 그대로 내보낼 수 있어요. 지금 이미지가 필요하면 「확인하고 다운로드」 — 매체에서 반려될 수 있어요. SVG 는 수정용이에요.</div>' : ''}
       <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">${exportFontLine([a])}</div>
-      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${SVG_NOTE}</div>`,
+      <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${SVG_NOTE}</div>
+      <div id="expSvgImg" style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${svgImgNote(spec)}</div>`,
     actions: [
       { label: '닫기' },
       { label: blocked ? 'SVG (수정용)' : 'SVG (Figma 편집용)', pri: blocked, fn: () => { doAdSvg(a); return false; } },
@@ -4523,7 +4531,7 @@ function exportAllModal() {
       ${pickedN ? `<label style="display:block;font-size:12px;margin-top:8px;font-weight:700"><input type="checkbox" id="expOnly" checked> 선택한 소재만(${pickedN}장) — 보드에서 고른 소재만 ZIP 에 (끄면 전체)</label>` : ''}
       ${ads.some(x => (x.variants?.length ?? 0) > 1) ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expAllVariants"> 전체 안 포함 — 안이 여러 개인 규격은 규격 폴더에 안1·안2… (승인은 선택안 기준)</label>` : ''}
       ${ads.length > adsOk.length ? `<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="expUnapproved"> 미승인도 포함(검토용) — 미승인 ${ads.length - adsOk.length}장을 「미승인_검토용/」 폴더에 같이 (매체 전달은 승인분만 · 차단 소재는 「ZIP + SVG」일 때 수정용 SVG 만)</label>` : ''}
-      ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div>` : ''}`,
+      ${ads.length ? `<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:8px">「ZIP + SVG」는 같은 ZIP 안 <b>svg/</b> 폴더에 소재마다 SVG를 함께 넣습니다. ${SVG_NOTE}</div><div id="expSvgImg" style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:6px">${SVG_IMG_NOTE_ALL}</div>` : ''}`,
     actions: [
       { label: '닫기' },
       { label: 'HTML 일괄', fn: () => { htmls.forEach(a => downloadText(resolveRefs(a.html), `${a.specId}.html`)); log(`내보내기: HTML ${htmls.length}개`); } },
