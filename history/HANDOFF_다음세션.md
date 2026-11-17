@@ -1,7 +1,9 @@
 # 다음 세션 이어하기 (2026-11-17 갱신 — 계정·컴퓨터 이동)
 
 ## 000. 11-17 지금 상태 (가장 먼저 읽기)
-- **배포 완료**: main 을 push 했어요(85a5581 → 217c7ff → 이 인계 커밋). 공개 앱 https://pood4875-sungjin.github.io/mbm-design-agent/app/ = 최신. 로컬 미push 0. 테스트 **954** 전부 통과.
+- **11-17 오후 추가(가장 최신)**: ① AI 지면이 그림 변 색보다 진하면 그림 변 지면으로(159e3f1, 「배경 칙칙」) ② 글자 대비 기준 완화 CANON.contrastMin 큰 2.2·작은 3(11536ab) ③ 노션 재확인에서 빠졌던 확인요청 3건 반영(1d245e0): N1 기본 폰트 Pretendard · N2 비즈보드 「이미지 대신 로고 사용」 · N3 문구 골라도 왼쪽 강조 안 함 ④ 노션 20건 비포/애프터 검증 문서 https://claude.ai/artifact/AEtEnrekr3d5Xh15gBca2F (비공개 — 원 계정 소유, 그림·측정은 원 컴퓨터 `_out/notion-verify-1117/` 에만 있음) — ✅15 🟡4 ⏸1. 테스트 **972**. 전부 push 됨. 기록: [2026-11-17_노션20건_비포애프터_검증.md](2026-11-17_노션20건_비포애프터_검증.md).
+- **노션 읽을 때 주의**: 「현재상태=확인요청」을 queryCollection 으로 전부 세요(11-15 엔 14건만 봐서 3건을 놓쳤어요).
+- **배포 완료**: main 을 push 했어요(85a5581 → 217c7ff → 이 인계 커밋). 공개 앱 https://pood4875-sungjin.github.io/mbm-design-agent/app/ = 최신. 로컬 미push 0. 테스트 **954** 전부 통과(→ 11-17 오후 972).
 - **공개 링크 = 「규칙판」**(11-17 사용자 A안): 서버가 없어 AI 기능(그림 판단·AI 추가 제안·말로 고치기·요소 AI)은 숨기고, 칩이 「규칙 모드 · AI는 로컬 앱에서」. AI 까지 쓰려면 로컬 앱(`MBM 시작.command` → http://localhost:4796/app/) + 각자 Claude 계정 로그인([docs/local-ai-setup.md](../docs/local-ai-setup.md)). 회사 방침상 LLM API 키는 안 써요.
 - **11-15~17 한 일**: 노션 마케팅 에이전트 대시보드(https://app.notion.com/p/kimhaewon/406615396ca480138af7dc9d7813d143) 17건 반영 → 에이전트 재검수 2갈래 → 고침 2회 → 배포. 결과 ✅13 🟡3 ⏸1 — 표는 [2026-11-17_노션17건_재검수_배포_인계.md](2026-11-17_노션17건_재검수_배포_인계.md). 노션 원문 정리 [docs/concierge-context-2026-11-15.md](../docs/concierge-context-2026-11-15.md).
 - 세션 브랜치(규칙 세션 vigorous-mestorf · 편집 세션 intelligent-morse · 11-15~17 에이전트 worktree 6개) 는 **전부 main 에 합쳐짐**. 새 계정은 main 만 보면 돼요.
@@ -10,7 +12,7 @@
 1. `git clone https://github.com/pood4875-sungjin/mbm-design-agent.git && cd mbm-design-agent`
 2. **케이스 그림(git 밖, 고객사 그림이라 공개 저장소에 안 올림)**: 인계 폴더 `~/Downloads/mbm-handover_2026-11-17/ref-learned-cases.zip` 을 저장소 루트에서 `unzip -o` 로 풀기(11-17 새 clone 에 풀어 npm test 954 통과 확인) → `ref/learned/cases/<id>/…`. 없으면 테스트 약 66개가 그림 없음으로 실패하고, 렌더·검수 스크립트가 케이스를 못 읽어요. (렌더 산출물 `cases/_out` 6.5GB 는 뺐어요 — 필요하면 다시 렌더)
 3. 서버 의존성: `cd server && npm install && cd ..`. Claude Code: `npm install -g @anthropic-ai/claude-code` → `claude auth login`(각자 계정).
-4. 앱: `MBM 시작.command` 더블클릭(서버 4796 + 앱). 테스트: `npm test`(954).
+4. 앱: `MBM 시작.command` 더블클릭(서버 4796 + 앱). 테스트: `npm test`(972, 11-17 오후).
 5. 헤드리스 렌더·검수: Google Chrome 필요(다른 경로면 `CHROME=경로`).
 6. Claude Code 메모리(선택): 인계 폴더 `claude-memory.zip` → `~/.claude/projects/<저장소 경로 슬러그>/memory/`. 없어도 이 파일과 00_브리핑이 같은 역할.
 7. `app/config.local.js`·`server/.env`(키)는 옮기지 않아요(회사 방침: API 키 안 씀).
@@ -38,6 +40,9 @@
 17. 11-09 검수기 녹임 기준(43~55%)을 피그마 시안(26~40%)에 맞출지 · 이음·비중(떠 있는 칸, 누끼 칸 밖 넘침 1.3~1.6배 허용).
 18. 마이다스 브랜드색 #00146E 맞는지(브랜드 담당 확인).
 19. ~~(11-17) 밝은 지면 흰 글자 대비 2.4~~ → **해결**: 사용자 「괜찮음, 기준 풀어」 — CANON.contrastMin 큰 글자 2.2 · 작은 글자 3 (history/2026-11-17_대비기준_완화.md).
+20. N1 기본 폰트 Pretendard 가 10-15 결정(규정 없는 매체 = 카카오 빅산스)을 뒤집어요 — 확정할지(새 캠페인부터 적용, 이전 캠페인은 저장 폰트 그대로). 984장 회귀 비교는 아직.
+21. N2 「이미지 대신 로고 사용」: 원색+흰 로고 둘 다 있으면 지금 원색(오브젝트형) — 흰(썸네일형)도 고르게 할지 · 캠페인 전체 스위치 필요한지 · 로고 크기(어림) 카카오 PSD 로 확정.
+22. 검증에서 새로 찾은 것(안 고침): [16] PNG 줄이기를 손실 적은 단계부터(지금 PSNR 7~8dB 낮음) · [08] 썸네일 좌측형 안전 영역 가이드 좌우 반전(4px 밖) · [14] 자소설 M채팅목록 로고 자리 글자에 띠 없음 · [15] 엑셀 「네이버(네이티브)」≠ 실제 「네이버(M통합 네이티브)」(의도) · [10] 아코디언 꺾쇠 연함.
 
 ### 세션 나누는 법(11-10부터)
 ① 취합 세션 = HANDOFF·브리핑 읽고 결정·병합·push ② 기능 세션(앱 UI) ③ 규칙 세션(파서·디자인 규칙). 일은 서브에이전트(worktree)로 병렬 → 취합 세션이 main 에 합치고 `npm test` → push 는 사용자 말할 때만. 노션 읽는 법: 브라우저에서 대시보드 열고 JS 로 `/api/v3/syncRecordValues`(본문)·`/api/v3/getSignedFileUrls`(이미지 서명 주소) → curl 로 내려받기. 노션 상태값은 담당자 몫(안 바꿈).
