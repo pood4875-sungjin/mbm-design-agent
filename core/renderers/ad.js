@@ -55,6 +55,16 @@ const hireFor = c => c?.hiringType ? hireOf(c.hiringType) : '';
 const YEAR_RE = /(?:19|20)\d{2}/;
 // 틀 상세 칸에 추가 행을 넣어도 되나 — 틀이 모집직무 줄을 주는 칸(같은 모양의 「라벨 : 값」)이면. 칩 라벨·값만 쓰는 칸(구글 알약·인스타 1080)과 날짜 한 줄 칸(리멤버)은 안 넣는다
 const moldItemOk = (R, d) => R.items.includes(d.label) || (!!d.extraRow && R.items.includes('모집직무') && !R.chip && !R.valuesOnly);
+// 11-17 노션 재검수 [03]: 쉼표 없이 기호로만 붙여 쓴 직무 나열(「인사/경영지원/영업/…」·「인사·경영·지원·…」)의 짧은 후보 — 기호는 그대로 두고 앞에서부터 들어가는 만큼(긴 것부터).
+//   기호가 둘 이상(항목 셋 이상)일 때만 — 「R/D」·「사업/경영지원」 같은 한 항목은 쪼개지 않는다(11-12). 쉼표·띄어 쓴 구분자 나열은 호출하는 쪽이 먼저 나눈다
+export function joinedRoleHeads(s) {
+  const t = String(s ?? '').trim();
+  if (/,|\s[·∙\/|ㅣ]\s/.test(t)) return [];
+  const parts = t.split(/([·∙\/|ㅣ])/);
+  if (parts.length < 5) return [];
+  const out = []; for (let j = parts.length - 2; j >= 1; j -= 2) { const head = parts.slice(0, j).join('').trim(); if (head) out.push(head); }
+  return out;
+}
 // 이 규격에 서브(추가 문구) 자리가 실제로 서나 — 규정표만으로는 모른다(서브 칸이 있어도 날짜가 그 자리를 쓰는 잡다 PC·비즈보드, 규정이 없어 기본 슬롯만 있는 구글·NAP 은 서브가 안 섰다 — 11-10 실측 49규격 중 7).
 //   짧은 시험 문구로 한 번 그려 보고(규격·안마다 한 번, 캐시) 서브 줄에 그 문구가 섰는지 본다. 「모든 소재에서 빼기」한 서브는 자리가 없는 것과 같다
 const SUB_SHOWS = new Map(), SUB_PROBE = '추가문구';
@@ -2061,12 +2071,13 @@ function renderAdBase(ctx, style, spec) {
         if (used + needed > cap) {
           // 11-10 밤(문구 바꿔 보기 — 직무 6개): 모집직무가 안 들어가면 통째로 빼지 않고 짧은 후보(「연구개발, 기술영업 등」)부터 — 덜 중요한 추가 행만 남던 것
           if (d.label === '모집직무' && !d.extraRow) {
-            const items = String(d.value).split(/\s*,\s*/).filter(Boolean);
+            const items0 = String(d.value).split(/\s*,\s*/).filter(Boolean), heads = items0.length > 1 ? null : joinedRoleHeads(d.value);   // 11-17: 붙여 쓴 기호만이면 기호 그대로 앞부분
+            const items = heads ? [...[...heads].reverse(), String(d.value)] : items0;
             for (let n = items.length - 1; n >= 1; n--) {
-              const v2 = items.slice(0, n).join(', ') + ' 등', inl2 = `${d.label} : ${v2}`;
+              const v2 = (heads ? items[n - 1] : items.slice(0, n).join(', ')) + ' 등', inl2 = `${d.label} : ${v2}`;
               const r2 = mold ? widthRows(`${d.label}${mold.rows?.detail?.labelSep ?? ' :'} ${v2}`) : estimateLines(inl2, perLine, counting);
               const ui2 = (stackTags || mold?.rows?.detail?.labelRow) ? false : (r2 <= 1 || !narrow);
-              const vt2 = stackTags ? items.slice(0, n).join('ㅣ') + ' 등' : v2;
+              const vt2 = (stackTags && !heads) ? items.slice(0, n).join('ㅣ') + ' 등' : v2;
               const vr2 = (stackTags && detailSlot.maxCharsPerLine == null) ? Math.max(1, Math.ceil(textWidth(vt2) * fs * 1.02 / Math.max(1, detailW))) : estimateLines(v2, perLine, counting);
               const need2 = ui2 ? r2 : 1 + vr2;
               if (used + need2 <= cap && need2 <= (ui2 ? 1 : 2)) { lines.push({ label: d.label, value: v2, inline: ui2, rows: need2, extraRow: false }); used += need2; break; }   /* 값은 한 줄일 때만 — 좁은 칸에서 세로 목록이 되던 것 */
@@ -2577,7 +2588,9 @@ function renderAdBase(ctx, style, spec) {
   //   줄바꿈 자리는 줄이 좁을 때만(한 줄 7.5자 미만 — 메인 칸 폭 ÷ 메인 px) — 넓은 칸에서 열면 균형 줄바꿈이 「대졸 신입/ / 경력사원 채용」처럼 빗금 뒤에서 끊었다(구글 300×600)
   const narrowLine = (textW / Math.max(1, mainFs)) < 7.5;
   // 기업명이 한 줄 폭보다 길면 묶지 않는다 — 묶으면 띄어쓰기에서 못 끊고 「주식회|사」처럼 낱말 속에서 잘린다(11-02 실제 ZIP 현대오일터미널 주식회사)
-  const nb = (t, orphan = true, lineChars = null) => { const s0 = (lineChars && clientKeep && [...clientKeep].length > lineChars ? String(t ?? '') : keepClient(t)).replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, ([...w].length > 6 && narrowLine) ? '$1\u200B' : '$1\u2060')); const s1 = lineChars ? softBreakLong(s0, lineChars) : s0; return orphan && /\S \S/.test(s1) ? glue(s1) : s1; };   // lineChars: 한 줄 글자수 — 넘는 낱말은 음절 덩어리 사이에 줄바꿈 자리(10-28 긴 기업명)
+  // 11-17 노션 재검수: 구분 기호(「 · 」「 / 」「 | 」, 붙여 쓴 긴 나열의 「·」「|」)는 줄 머리에 오지 않게 앞 줄 끝에 붙인다(한국어 조판 줄머리 금칙) — 기호 앞은 붙이고(NBSP·WJ) 뒤에서 줄이 갈린다
+  const sepTail = t => String(t).replace(/ ([·∙\/|ㅣ]) /g, '\u00A0$1 ');
+  const nb = (t, orphan = true, lineChars = null) => { const s0 = sepTail((lineChars && clientKeep && [...clientKeep].length > lineChars ? String(t ?? '') : keepClient(t)).replace(/[^\s\u200B]+/g, w => [...w].length > 8 ? w.replace(/(?<=\S)([∙·|])(?=\S)/g, '\u2060$1') : w.replace(/(?<=\S)([∙·])(?=\S)/g, '\u2060$1\u2060').replace(/([\/])(?=\S)/g, ([...w].length > 6 && narrowLine) ? '$1\u200B' : '$1\u2060'))); const s1 = lineChars ? softBreakLong(s0, lineChars) : s0; return orphan && /\S \S/.test(s1) ? glue(s1) : s1; };   // lineChars: 한 줄 글자수 — 넘는 낱말은 음절 덩어리 사이에 줄바꿈 자리(10-28 긴 기업명)
   // 메인 자간(CANON tracking): 메인 글자 28px 이상이면 −2.5%em. 매체 guide가 0으로 끄면(자소설·에브리타임 템플릿 실측 0%) 없음
   const trackMain = fs => { const tk = guide?.tracking ?? {}; const v = tk.main ?? 0; return v && fs >= (tk.mainMinPx ?? 28) ? `letter-spacing:${v}em;` : ''; };
   // 역할별 굵기(core/canon.js weights · 매체 guide.weights가 이김) — 메인 700 > 아이브로 600 > 슬로건·날짜 500 > 값 400. 어두운 지면 14px 미만은 500 하한(weightOf)
@@ -3142,7 +3155,7 @@ ${tplLogo}${kvWrap(tplObject)}
           // 11-12: 항목은 쉼표로만 나눈다 — 「R/D」·「사업/경영지원」·「경영·제품」은 한 항목(「R, D 등」으로 쪼개지던 것)
           // 11-15 노션 [03] 「상세의 「/」·「 · 」가 「,」로」: 줄일 때도 입력한 기호 그대로 — 쉼표가 없고 띄어 쓴 구분자(「인사 · 경영 / 지원」)로만 나열했으면 그 구분자 자리에서 앞부분만 남긴다(기호는 바꾸지 않는다). 붙여 쓴 「R/D」·「경영·제품」은 한 항목 그대로
           const shortOf = v => { const s0 = String(v), s1 = s0.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim(), items = s1.split(/\s*,\s*/).filter(Boolean);
-            const heads = items.length > 1 ? items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ')) : (() => { const parts = s1.split(/(\s+[·/|ㅣ]\s+)/); const out = []; for (let j = parts.length - 2; j >= 1; j -= 2) out.push(parts.slice(0, j).join('')); return out; })();
+            const heads = items.length > 1 ? items.slice(0, -1).map((_, i) => items.slice(0, items.length - 1 - i).join(', ')) : (() => { const parts = s1.split(/(\s+[·/|ㅣ]\s+)/); const out = []; for (let j = parts.length - 2; j >= 1; j -= 2) out.push(parts.slice(0, j).join('')); return out.length ? out : joinedRoleHeads(s1); })();   /* 11-17: 붙여 쓴 기호만이면 기호 그대로 앞부분 + 「등」 */
             return [s0, s1, ...heads.map(x => x + ' 등')].filter((x, i, a) => x && a.indexOf(x) === i); };
           const cands = d.label === '접수기간' ? [...new Set([d.value, ...(MR.detail.labelRow && / - /.test(String(d.value)) ? [String(d.value).replace(/\s+(\d{1,2}시|\d{2}:\d{2})$/, '')] : []), ...(ladder.date ?? [])])]   /* 11-12: 라벨 줄 + 값 줄 틀(자소설 채용공고)은 칸이 좁으면 마감 시각만 빼고 시작일은 살린다(「11.12(목) - 11.25(수)」, 디자이너 BBQ 샘플도 시각 없음) — 「~11.25(수) 18시」보다 먼저. 다른 틀(NAP·팝업·M메인)은 그대로 */ : d.extraRow ? [d.value] : shortOf(d.value);   // 11-10 추가 행은 줄이지 않는다 — 들어가거나 빠지거나
           const opts = cands.map(v => rowOf(d.label, v));
@@ -3382,7 +3395,7 @@ function swapMoldSide(m, W) {
   const fx = (o, dw) => (o && Number.isFinite(o.x) && Number.isFinite(o.w ?? dw)) ? { ...o, x: Math.round((W - o.x - (o.w ?? dw)) * 10) / 10 } : o;
   const out = { ...m, ...(Number.isFinite(m.x) && Number.isFinite(m.w) ? { x: W - m.x - m.w } : {}), swapped: true };
   if (m.rows) out.rows = Object.fromEntries(Object.entries(m.rows).map(([k, r]) => [k, r && Number.isFinite(r.x) ? fx(r, m.w) : r]));
-  for (const k of ['image', 'imageCutout', 'logo']) if (m[k]) { out[k] = fx(m[k]); if (m[k].edgeInset) { const e = m[k].edgeInset; out[k].edgeInset = { ...(e.left != null ? { right: e.left } : {}), ...(e.right != null ? { left: e.right } : {}), ...(e.top != null ? { top: e.top } : {}), ...(e.bottom != null ? { bottom: e.bottom } : {}) }; } }
+  for (const k of ['image', 'imageCutout', 'logo']) if (m[k]) { out[k] = fx(m[k]); if (m[k].edgeInset) { const e = m[k].edgeInset; out[k].edgeInset = { ...(e.left != null ? { right: e.left } : {}), ...(e.right != null ? { left: e.right } : {}), ...(e.top != null ? { top: e.top } : {}), ...(e.bottom != null ? { bottom: e.bottom } : {}) }; } if (k === 'logo' && (m.logo.align === 'right' || m.logo.align === 'left')) out.logo.align = m.logo.align === 'right' ? 'left' : 'right'; }   // 11-17: 로고 칸 맞춤도 거울로 — NAP 좌측형 로고가 썸네일 왼끝에서 8px(칸 오른쪽에 붙어 로고 폭만큼 안으로 들어가던 것)
   return out;
 }
 

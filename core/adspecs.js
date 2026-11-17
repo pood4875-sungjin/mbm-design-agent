@@ -136,3 +136,18 @@ export function adFileNameOf({ client, mediumName, spec, ext = 'png', date = new
   const tail = product ? `${product} (${banner2})` : /GDN/i.test(short) ? sizeTag : [banner2, sizeTag].filter(Boolean).join(' ');
   return `${[clean(client), clean(short), tail].filter(Boolean).join('_')}.${ext}`;
 }
+
+// 11-17 노션 재검수 [15]: 같은 파일을 쓰는 쌍둥이 규격(자소설 PC채용공고 프리미엄/스탠다드 · M채팅목록 로고 프리미엄/스탠다드 — 보드 카드 「+1 같이 추출」)은
+//   한 번 그린 그림을 쌍둥이 이름으로도 ZIP 에 넣는다. 엑셀 「소재 10곳 파일명 총 정리」 4행(스탠다드 PC채용공고)·8행(M스탠다드 로고) 이름이 실제 ZIP 에 나오게.
+//   files = exportAdFiles 결과([{ spec, name, … }]) · twinsOf(specId) = 같이 추출할 규격 id · nameOf(twinId, file) = 그 규격의 파일명. 같은 이름은 두 번 넣지 않는다
+export function withTwinFiles(files, twinsOf, nameOf) {
+  const out = [], seen = new Set(files.map(f => f.name));
+  for (const f of files) {
+    out.push(f);
+    for (const id of twinsOf(f.spec?.id ?? f.a?.specId) ?? []) {
+      const name = nameOf(id, f); if (!name || seen.has(name)) continue; seen.add(name);
+      out.push({ ...f, twinOf: f.spec?.id ?? null, name });
+    }
+  }
+  return out;
+}

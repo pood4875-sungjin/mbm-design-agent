@@ -5,7 +5,7 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS, cleanRows, mergeRows, migrateRecruitCore } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
-import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups } from '../core/adspecs.js';
+import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups, withTwinFiles } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { textColorLocked, FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
@@ -42,7 +42,7 @@ import { htmlToSvg } from '../core/svgexport.js';
 import { moldImageGuides } from '../core/guideboxes.js';
 import { parseRoster } from '../core/roster.js';
 import { assessForSpecs } from '../core/imagequality.js';
-import { guideBoxes, traceOfHtml, GUIDE_LEGEND } from '../core/layoutguide.js';
+import { guideBoxes, traceOfHtml, GUIDE_LEGEND, measureLineRows } from '../core/layoutguide.js';
 import { ruleFileName } from '../core/filename-rules.js';   // 11-15 매체별 파일명 표   // 11-15 레이아웃 가이드 칸(문구별 줄 띠)
 import { knockoutLogo as knockoutLogoRGBA, trimBox, logoToneOf as logoToneOfRGBA, logoMeta as logoMetaRGBA, whitenLogo as whitenLogoRGBA } from '../core/logo.js';
 import { upscale } from './upscale.js';
@@ -2273,9 +2273,10 @@ const twinTitle = specId => { const shared = sharedTwins(specId); return shared.
 // 11-15 노션 「문구별 가이드 영역으로 세분화(특정 가이드만)」: 칸 계산은 core/layoutguide.js — 대상 매체(네이버·리멤버·자소설·잡다·카카오 비즈보드·에브리타임)는 줄마다 한 칸,
 //   줄 위치·줄 수는 렌더 기록(data-trace)의 실제 줄, 칸 폭은 틀 칸 값. 그 밖의 틀 매체는 역할마다 한 칸(11-09)
 // 11-15 노션 [08]: 그림 칸은 실제로 그린 칸(좌측형·오브젝트형) + 광고주체 표기 칸 — core/guideboxes.js 가 있으면 그쪽으로 바꿔 끼움
-function guideBoxesOf(spec, a = null) {
+function guideBoxesOf(spec, a = null, doc = null) {   // doc: 그린 미리보기 문서 — 줄 띠를 실제로 그린 줄로(11-17 노션 재검수 [14])
   const tr = a ? traceOfHtml(a.html) : null;
-  const out = guideBoxes(spec, tr);
+  let measured = null; try { const root = doc?.querySelector('[data-ad]'); if (root) measured = measureLineRows(root); } catch {}
+  const out = guideBoxes(spec, tr, measured);
   const img = moldImageGuides(spec, tr);
   if (!img.length) return out;
   const i = out.findIndex(b => b.kind === 'image');
@@ -2293,10 +2294,12 @@ function guideOverlay(a) {
   if (!state.guideOv.on || !hasGuide(a)) return;
   const spec = effSpec(a); const ds = body.clientWidth / spec.w;
   const el = document.createElement('div'); el.className = 'gov'; el.style.opacity = String(state.guideOv.alpha); el.setAttribute('aria-hidden', 'true');
-  for (const b of guideBoxesOf(spec, a)) {
+  for (const b of guideBoxesOf(spec, a, f.iframe?.contentDocument)) {
     const d = document.createElement('div'); d.className = `gb gb-${b.kind}`;
     d.style.cssText = `left:${b.x * ds}px;top:${b.y * ds}px;width:${Math.max(2, b.w * ds)}px;height:${Math.max(2, b.h * ds)}px`;
-    d.innerHTML = b.label ? `<i>${escH(b.label)}</i>` : ''; el.appendChild(d);   // 줄 띠는 역할 첫 줄에만 이름표
+    // 11-17: 줄 띠 이름표는 글자 뒤 빈 곳에 — 자리가 없으면 띠 위 바깥(작게). 띠 안 오른쪽에 두면 작은 규격(달력·홈배너)에서 글자를 가렸다
+    const lp = (b.kind === 'line' && b.label && Number.isFinite(b.tx)) ? ((b.tx - b.x) * ds + 4 + b.label.length * 5.4 + 8 <= (spec.w - b.x) * ds - 2 ? ` style="left:${Math.round((b.tx - b.x) * ds + 4)}px;right:auto"` : ' class="up"') : '';
+    d.innerHTML = b.label ? `<i${lp}>${escH(b.label)}</i>` : ''; el.appendChild(d);   // 줄 띠는 역할 첫 줄에만 이름표
   }
   body.appendChild(el);
 }
@@ -2462,6 +2465,7 @@ function designCheck(a) {
   const f = frames.get(a.key ?? a.specId); if (!f?.iframe?.contentDocument) return;
   try { a.design = checkAdDoc(f.iframe.contentDocument, { kvMeta: state.campaign.style.kvMeta }); } catch (e) { a.design = { warnings: [{ code: 'design-failed', level: 'warn', msg: '디자인 검수 실패 — 사람이 확인' }] }; }   // 실패도 조용히 통과시키지 않는다 → 게이트 review
   designBadge(a);
+  if (state.guideOv.on) { guideOverlay(a); f.iframe.contentDocument.fonts?.ready?.then(() => guideOverlay(a)); }   // 11-17: 그려진 뒤 실제 줄로 가이드 다시
   // 샘플 문구(data-sample — 마감일·직무가 비어 있어 샘플 밀도를 맞추려 넣은 자리표시) 배지: 승인 전에 디자이너가 실제 정보로 바꾼다(10-12 매체별 규격정리)
   try { const n = f.iframe.contentDocument.querySelectorAll('[data-sample]').length; if (f.sample) { f.sample.style.display = n ? '' : 'none'; f.sample.textContent = n ? `샘플 문구 ${n}` : ''; f.sample.title = n ? '비어 있는 정보 자리에 넣은 샘플 문구 — 승인 전에 실제 정보로 바꾸세요' : ''; } } catch {}
   if (state.selected === (a.key ?? a.specId)) { const box = $('inspLint'); if (box) box.innerHTML = lintHtml(a); }
@@ -4250,7 +4254,8 @@ async function exportAdFiles(ads, opts = {}) {
       out.push({ a, spec, fit: fitV, variant: i, variantLabel: v.label, name: base.replace(/(\.[a-z]+)$/, `__안${i + 1}$1`) });
     }
   }
-  return out;
+  // 11-17 노션 재검수 [15]: 「+1 같이 추출」 쌍둥이 규격은 같은 그림을 그 규격 파일명으로도(엑셀 4·8행)
+  return opts.twins === false ? out : withTwinFiles(out, sharedTwins, (id, f) => { const n = adFileNameOf({ client: state.campaign.kind === 'recruit' ? state.campaign.context.core.client : state.campaign.context.core.name, mediumName: SPECS[id].mediumName, spec: SPECS[id], ext: f.fit.measure.format === 'jpeg' ? 'jpg' : f.fit.measure.format }); return f.variant != null ? n.replace(/(\.[a-z]+)$/, `__안${f.variant + 1}$1`) : n; });
 }
 async function doAdExport(a, { force = false } = {}) {   // force: 차단 소재를 확인하고 내보냄(11-09 사용자 「차단된 것도 추출되게 — 확인만 하고」)
   toast('소재 생성 중…');
