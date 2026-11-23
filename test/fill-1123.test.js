@@ -116,3 +116,17 @@ test('채우기에 키비주얼 자리 — 자리 위 층은 키비주얼 위·�
   const plain = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ colors: ['#2456D6'] }));
   assert.ok(!plain.includes('data-stroke') && !plain.includes('data-bg-above'), '안 넣으면 그대로');
 });
+
+test('스크림 색 — 직접 정한 그라데이션이면 막이 시작하는 가장자리의 실제 지면색(첫 정지점 아님) · 자동 지면은 예전 그대로', async () => {
+  const { colorAtPoint } = await import('../core/gradient.js');
+  const g = { type: 'linear', angle: 265, from: 29.3, to: 92.8, stops: [{ color: '#0041CC', pos: 0 }, { color: '#000000', pos: 50 }, { color: '#000000', pos: 100 }] };
+  assert.equal(colorAtPoint(g, 0, 280, 1250, 560), '#000000', '왼쪽(끝 손잡이 쪽) = 검정');
+  assert.equal(colorAtPoint(g, 1249, 280, 1250, 560), '#0041CC', '오른쪽(시작 손잡이 너머) = 파랑');
+  assert.equal(colorAtPoint({ type: 'linear', angle: 90, stops: [{ color: '#000000', pos: 0 }, { color: '#FFFFFF', pos: 100 }] }, 50, 10, 100, 20), '#808080');
+  const { renderArtifact, normalizeStyle, createContext } = await setup();
+  const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', startDate: '2026-06-20', deadline: '2026-07-02' }, 'recruit');
+  const meta = { field: { kind: 'illust', opaque: 1, focus: { x: 0.5, y: 0.5, w: 0.5, h: 0.5 } }, ar: 1.5, colors: ['#2244AA'] };
+  const scrimOf = bg => renderArtifact('naver-gfa-mobile-da-1250x560', ctx, normalizeStyle({ colors: ['#2456D6'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: meta, scrim: 'low', background: bg })).match(/<div data-scrim=[^>]*>/)?.[0] ?? '';
+  assert.match(scrimOf({ mode: 'gradient', gradient: g }), /rgba\(0,0,0,0\.35\) 0%/);
+  assert.match(scrimOf({}), /rgba\(34,68,170,0\.35\) 0%/, '자동 지면은 첫 색 그대로');
+});

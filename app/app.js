@@ -1254,8 +1254,7 @@ function mediaPickerHtml(it) {
     const allOn = pickable.length > 0 && pickable.every(id => it.media.includes(id));
     const pickAll = `<div class="pspec"><span>매체 ${pickable.length}곳 · 소재 ${all.filter(x => pickable.includes(x.medium)).length}종</span>
       <button type="button" class="lnk" id="mAll" aria-pressed="${allOn}">${allOn ? '전체 해제' : '전체 선택'}</button></div>
-      <div class="pspec stages"><span>차수로 고르기</span>${[1, 2, 3, 4].map(st => { const gs = stageGroups(it, st); if (!gs.length) return ''; const on = stageOn(it, st);
-        return `<button type="button" class="stg ${on ? 'on' : ''}" data-stage="${st}" aria-pressed="${on}" title="${gs.map(g => mediumName(g.medium)).filter((m, i, a) => a.indexOf(m) === i).join(' · ')}">${STAGE_NAMES[st] ?? st + '차'} <small>${stageSpecCount(it, st)}종</small></button>`; }).join('')}</div>`;
+`;   // 11-23 사용자 「난이도 하·중·상 나누지 말아 줘」: 차수로 고르기 줄을 걷었다(매체 카드 · 전체 선택 · 규격 하나씩 고르기만)
     const cards = pickAll + ['채용포털', '디지털', '커뮤니티', '기타'].map(g => {
       const ms = kindMedia.filter(m => m.group === g);
       if (!ms.length) return '';
@@ -1925,6 +1924,22 @@ function inputSpecHtml(kvCheck, logoCheck) {
 }
 async function kvCheckOf(orig, meta) { const T = kvTypeOf(meta); return checkKv((await imgSize(orig)) ?? meta?.px ?? null, T?.type?.id ?? meta?.field?.kind ?? null); }
 async function logoCheckOf(orig, { changed = null, tone = null } = {}) { return checkLogo(await imgSize(orig), { transparent: changed == null ? null : !changed, tone }); }
+// 11-23 사용자 「로고 첨부가 자꾸 안 된다」: 그림 칸(.kvthumb — 키비주얼·로고·흰색 로고·가로형·세로형, 스타일 단계·오른쪽 패널)에 파일을 끌어다 놓아도 받는다.
+//   칸 옆 파일 입력(id = 칸 id + File, 또는 …Thumb → …File)에 그 파일을 넣어 누른 것과 같은 길로. 칸 밖에 놓으면 브라우저가 그림을 열어 앱이 사라지던 것도 막는다
+{
+  const hasFiles = e => [...(e.dataTransfer?.types ?? [])].includes('Files');
+  const inputOf = t => t && (document.getElementById(`${t.id}File`) ?? document.getElementById(t.id.replace(/Thumb$/, 'File')));
+  const clear = () => document.querySelectorAll('.kvthumb.drop').forEach(x => x.classList.remove('drop'));
+  document.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); const t = e.target.closest?.('.kvthumb'); const ok = !!inputOf(t); e.dataTransfer.dropEffect = ok ? 'copy' : 'none'; document.querySelectorAll('.kvthumb.drop').forEach(x => { if (x !== t) x.classList.remove('drop'); }); if (ok) t.classList.add('drop'); });
+  document.addEventListener('dragleave', e => { if (!e.relatedTarget) clear(); });
+  document.addEventListener('drop', e => {
+    if (!hasFiles(e)) return; e.preventDefault(); clear();
+    const t = e.target.closest?.('.kvthumb'), inp = inputOf(t), f = [...(e.dataTransfer.files ?? [])].find(x => /^image\//.test(x.type) || /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(x.name));
+    if (!inp) { if (f) toast('그림은 키비주얼·로고 칸 위에 놓아 주세요'); return; }
+    if (!f) { toast('그림 파일(PNG·JPG·SVG 등)만 넣을 수 있어요'); return; }
+    const dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files; inp.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}
 function bindUpload(thumb, file, set) {
   thumb.onclick = () => file.click();
   file.onchange = () => {
@@ -3441,8 +3456,17 @@ function elBoxOf(a, id, text = true) {
   const r = t.getBoundingClientRect(), k = B.rect.width / B.w; if (!(r.width > 0)) return null;
   return { rect: { left: B.rect.left + r.left * k, top: B.rect.top + r.top * k, width: r.width * k, height: r.height * k }, w: r.width, h: r.height };
 }
+// 지면 칸 — 틀 규격(네이버 GFA 등)은 지면 그라데이션이 소재 전체가 아니라 틀이 정한 지면 칸(data-mold-field)에 그려진다. 손잡이도 그 칸 기준
+function fieldBoxOf(a) {
+  const B = frameBoxOf(a); if (!B) return null;
+  const doc = frames.get(a.key ?? a.specId)?.iframe?.contentDocument, mf = doc?.querySelector('[data-mold-field="1"]'); if (!mf) return B;
+  const r = mf.getBoundingClientRect(), k = B.rect.width / B.w; if (!(r.width > 0)) return B;
+  return { rect: { left: B.rect.left + r.left * k, top: B.rect.top + r.top * k, width: r.width * k, height: r.height * k }, w: r.width, h: r.height };
+}
 // 캠페인 일괄 배경: 고른 소재가 있으면 그것, 없으면 보이는 첫 광고 소재 위에 손잡이를 띄운다(값은 모든 소재에 같다 — 각도·비율이라 크기가 달라도 같은 모양)
-const campBoxOf = () => { const c = state.campaign; const a = c?.artifacts.find(x => (x.key ?? x.specId) === state.selected) ?? c?.artifacts.find(x => x.channel === 'ad' && frameBoxOf(x)); return frameBoxOf(a); };
+const campArtOf = () => { const c = state.campaign; return c?.artifacts.find(x => (x.key ?? x.specId) === state.selected) ?? c?.artifacts.find(x => x.channel === 'ad' && frameBoxOf(x)); };
+const campBoxOf = () => frameBoxOf(campArtOf());
+const campFieldBoxOf = () => { const a = campArtOf(); return a ? fieldBoxOf(a) : null; };
 // 11-23 이 소재만 채우기(피그마 Fill) — 지면 줄 + 채우기 층. 값은 a.overrides.style.background(캠페인 배경을 통째로 덮는다)
 const artBgOf = (a, c) => a.overrides.style?.background ?? c.style.background ?? {};
 const artBgOwn = a => !!(a.overrides.style?.background || a.overrides.style?.bgFill || a.overrides.style?.bgGrad);
@@ -3462,7 +3486,7 @@ function artSelItems(a, c) {
   const save = (patch, label) => elCommit(a, { style: { ...(a.overrides.style ?? {}), ...patch } }, label);
   const bgNow = () => artBgOf(a, c);
   const baseP = p => ({ bgFill: 'custom', bgGrad: 'auto', background: { ...bgNow(), ...basePatchOf(p) } });
-  items.push({ paint: baseFillOf(st, f, false), label: '지면', types: ['solid', 'linear', 'radial'], set: (p, l) => save(baseP(p), l ?? '지면 칠'), live: p => LIVE.push({ style: c.style, only: key, ov: baseP(p) }) });
+  items.push({ paint: baseFillOf(st, f, false), label: '지면', box: () => fieldBoxOf(a), types: ['solid', 'linear', 'radial'], set: (p, l) => save(baseP(p), l ?? '지면 칠'), live: p => LIVE.push({ style: c.style, only: key, ov: baseP(p) }) });
   (bgNow().layers ?? []).forEach((p, i) => { if (p.type === 'kv' || p.type === 'image' || p.hidden) return;
     items.push({ paint: p, label: `채우기 층`, types: ['solid', 'linear', 'radial'], allowAlpha: true, set: (q, l) => { const L = [...bgNow().layers]; L[i] = q; save({ background: { ...bgNow(), layers: L } }, l ?? '채우기'); } }); });
   const doc = frames.get(key)?.iframe?.contentDocument, lock = textColorRegulated(SPECS[a.specId]);
@@ -3491,7 +3515,7 @@ function bindArtifactStyle(insp, a, c) {
   const save = (patch, label) => { const st = { ...(a.overrides.style ?? {}), ...patch }; elCommit(a, { style: st }, label); };
   const bgNow = () => artBgOf(a, c);
   bindFillSection(insp, 'iArtBg', {
-    title: '채우기', allowImage: true, addPaint: () => newPaint('bg'), box: () => frameBoxOf(a),
+    title: '채우기', allowImage: true, addPaint: () => newPaint('bg'), box: () => frameBoxOf(a), baseBox: () => fieldBoxOf(a),
     fills: () => shownLayers(bgNow().layers, adEffStyle(a).keyVisual), base: () => { const st = adEffStyle(a); return baseFillOf(st, resolveField(st, { facing: 'left' }), false); },
     onKv: anchor => openCustomPopover(anchor, '키비주얼', `<div class="fpi-prev" style="background-image:url(&quot;${escH(refOf(adEffStyle(a).keyVisual) ?? '')}&quot;)"></div>${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'], 'inspPresetK', { compact: true })}<button class="btn" data-kvgo="1" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button>`, el => { ED.bindPresetArtifact(el, a); el.querySelector('[data-kvgo]').onclick = () => { closePaintPopover(); select(null); setTimeout(() => $('secVisual')?.scrollIntoView({ block: 'start' }), 50); }; }),
     onChange: (f, label) => save({ background: { ...bgNow(), layers: normFills(f, { allowImage: true, allowKv: true }) ?? [], image: undefined } }, label ?? '채우기'),
@@ -3683,7 +3707,7 @@ function renderInspectorBody() {
     // 11-23 피그마식 채우기 — 지면 줄(불투명) + 채우기 층(app/fillpanel.js). 끄는 동안은 보드 미리보기만(liveStyle), 놓으면 한 번 저장
     const bgFull = () => c.style.keyVisual && c.style.kvMeta?.field?.kind === 'photo' && (c.style.kvUse ?? 'auto') === 'full';
     bindFillSection(insp, 'iBg', {
-      title: '배경', allowImage: true, addPaint: () => newPaint('bg'), box: campBoxOf,
+      title: '배경', allowImage: true, addPaint: () => newPaint('bg'), box: campBoxOf, baseBox: campFieldBoxOf,
       fills: () => shownLayers(c.style.background?.layers, c.style.keyVisual), base: () => baseFillOf(c.style, resolveField(c.style, { facing: 'left' }), bgFull()),
       onKv: () => $('secVisual')?.scrollIntoView({ block: 'start', behavior: 'smooth' }),
       onChange: (f, label) => setBg({ layers: f, image: null }, label ?? '배경 채우기'),

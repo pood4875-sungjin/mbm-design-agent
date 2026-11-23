@@ -19,6 +19,7 @@
 // 모든 글자 요소에 data-field="<role>"을 심어 measure.js가 재고 lint.js가 판정한다. 렌더러는 검사하지 않는다.
 // 절대배치는 템플릿이 좌표를 정한 로고 칸·이미지 영역에만 쓴다 — 글자는 그 영역을 피한 흐름 배치다.
 
+import { normGradient, colorAtPoint } from '../gradient.js';
 import { paintLayerCss, rgba } from '../paint.js';
 import { bgLayersOf } from '../style.js';
 import { fillTemplate } from '../freetpl.js';
@@ -2588,8 +2589,12 @@ function renderAdBase(ctx, style, spec) {
   }
   // 편집 「스크림 세기」(사진 전체형 밖): 글자 쪽에서 시작해 사라지는 지면색 막 — 글자 아래 그림을 진정시킨다
   const scrimEl = (ED?.scrim && ED.scrim !== 'none' && SCRIM_A[ED.scrim] && !photoFull && field && !transparent) ? (() => {
-    const a = SCRIM_A[ED.scrim], base = field.stops[0];
+    const a = SCRIM_A[ED.scrim];
     const dir = (roomFull || textureFull) ? scrimDir : objectSide === 'bottom' ? 'to bottom' : mirrorX ? 'to left' : 'to right';
+    // 11-23: 직접 정한 그라데이션 지면이면 막의 색 = 막이 시작하는 가장자리에 실제로 보이는 지면색(첫 정지점이 아니라) — 검정 쪽에 파랑 막이 덮여 남색이 되던 것
+    const mg = field.source === 'manual-gradient' ? normGradient(style.background?.gradient) : null;
+    const at = { 'to right': [0, h / 2], 'to left': [w, h / 2], 'to bottom': [w / 2, 0] }[dir];
+    const base = (mg && at ? colorAtPoint(mg, at[0], at[1], w, h) : null) ?? field.stops[0];
     return `<div data-scrim="${ED.scrim}" style="position:absolute;left:0;top:0;width:${w}px;height:${h}px;background:linear-gradient(${dir},${rgba(base, a)} 0%,${rgba(base, Math.round(a * 0.6 * 100) / 100)} 40%,${rgba(base, 0)} 80%);pointer-events:none"></div>`;
   })() : '';
   // 직접 수정(overrides.layout → style.manualLayout) — 자동 배치가 끝난 뒤 마지막 변형. 그림이 지면 전체(배경형·질감·사진 전체)면 키비주얼은 못 옮긴다

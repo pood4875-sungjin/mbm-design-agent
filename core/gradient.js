@@ -65,3 +65,19 @@ export function moveStop(g0, index, pos) {
 }
 export const flipGradient = g0 => { const g = normGradient(g0); return g && { ...g, stops: g.stops.map(s => ({ ...s, pos: r1(100 - s.pos) })).sort((a, b) => a.pos - b.pos) }; };
 export const rotateGradient = (g0, by = 90) => { const g = normGradient(g0); return g && { ...g, angle: normAngle(g.angle + by) }; };
+
+// 11-23 상자 안 한 점(x·y, px)에 그 그라데이션이 칠하는 색 — 선형은 CSS 그라데이션 선(손잡이 from·to 포함), 방사형은 타원(없으면 가운데 원·가장 먼 모서리)
+//   스크림처럼 「그 자리 지면색」이 필요한 층이 첫 정지점 대신 쓴다(사용자 「설정한 대로 안 나온다」 — 검정 쪽에 파랑 막이 덮였다)
+export function colorAtPoint(g0, x, y, w, h) {
+  const g = normGradient(g0); if (!g) return null;
+  let t;
+  if (g.type === 'radial') {
+    if (g.rx != null) t = Math.hypot((x - g.cx / 100 * w) / (g.rx / 100 * w || 1), (y - g.cy / 100 * h) / (g.ry / 100 * h || 1)) * 100;
+    else t = Math.hypot(x - w / 2, y - h / 2) / (Math.hypot(w / 2, h / 2) || 1) * 100;
+  } else {
+    const th = g.angle * Math.PI / 180, d = [Math.sin(th), -Math.cos(th)], L = Math.abs(w * d[0]) + Math.abs(h * d[1]) || 1;
+    const u = (((x - w / 2) * d[0] + (y - h / 2) * d[1]) / L + 0.5) * 100;
+    t = g.from != null ? (u - g.from) / ((g.to - g.from) || 1) * 100 : u;
+  }
+  return colorAt(g, clamp(t, 0, 100));
+}

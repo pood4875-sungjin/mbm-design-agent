@@ -70,7 +70,7 @@ export function bindFillSection(root, id, opts) {
     openPaintPopover(anchor, paintOf(k), {
       types: isBase ? (opts.baseTypes ?? ['solid', 'linear', 'radial']) : ['solid', 'linear', 'radial', ...(opts.allowImage ? ['image'] : [])],
       allowAlpha: !isBase && opts.allowAlpha !== false,
-      title: isBase ? (opts.baseTitle ?? '지면') : `${opts.title ?? '채우기'} ${fills().length - k}`, box: opts.box ?? null,
+      title: isBase ? (opts.baseTitle ?? '지면') : `${opts.title ?? '채우기'} ${fills().length - k}`, box: (isBase ? opts.baseBox ?? opts.box : opts.box) ?? null,   // 지면은 틀의 지면 칸에 그려진다(손잡이도 그 칸 기준)
       onLive: p => { if (isBase) opts.onBaseLive?.(p); else { const f = fills(); f[k] = p; opts.onLive?.(f); } },
       onChange: (p, label) => { if (isBase) opts.onBase(p, label); else { const f = fills(); f[k] = p; set(f, label); } },
     });
