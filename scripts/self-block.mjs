@@ -6,7 +6,7 @@ import { createServer } from 'node:http';
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const argv = process.argv.slice(2); const opt = (k, d = null) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 import { BRIEFS } from './lib/briefs.mjs';

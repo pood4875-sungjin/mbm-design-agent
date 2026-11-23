@@ -53,8 +53,8 @@ test('용량 맞춤 사다리: JPG 허용·알파 없음이면 JPG 품질만, PN
   const j = fitLadder(['jpg', 'png'], false);
   assert.deepEqual(j.map(s => s.quality), [0.92, 0.85, 0.75, 0.65, 0.55, 0.45]); assert.ok(j.every(s => s.format === 'jpg'));
   const p = fitLadder(['png'], false);
-  assert.deepEqual(p.map(s => s.png8 ?? `q${s.quantize}`), [256, 128, 64, 'q16']);
-  assert.deepEqual(fitLadder(['jpg', 'png'], true).map(s => s.format), ['png', 'png', 'png', 'png'], '알파가 있으면 JPG 로 안 바꾼다');
+  assert.deepEqual(p.map(s => s.png8 ?? `q${s.quantize}`), ['q64', 'q32', 256, 128, 64, 'q16'], '11-20: 손실 적은 채널 64·32단계가 팔레트 PNG 보다 먼저(11-17 재검수 PSNR 7~8dB 낮음)');
+  assert.ok(fitLadder(['jpg', 'png'], true).every(s => s.format === 'png'), '알파가 있으면 JPG 로 안 바꾼다');
   assert.ok(fitLadder(['png'], false, { flat: true }).every(s => s.label.startsWith('단색 배경')));
   for (const s of [...j, ...p]) assert.ok(!('w' in s) && !('scale' in s));
 });

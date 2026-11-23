@@ -497,6 +497,76 @@ export function fixLogoPlate(html, colors, candidates) {
   const E = edits(String(html)); E.replace(n.index, n.tag, plate + n.tag);
   return { html: E.apply(), moves: [{ role: 'logo-plate', color: p.color }] };
 }
+// ── 로고 판 걷어내기(11-19 rq2 사용자 「로고 면 채우지 마」 — 프롬프트로 막아도 모델이 로고 바로 앞에 단색 둥근 판 div 를 깔았다).
+//   data-logo 바로 앞(형제)의 글자·그림 없는 div 가 배경을 갖고, 로고 상자를 여유 ≤ 로고 높이 1.5배 안에서 감싸면 판으로 보고 지운다.
+export function stripLogoPlate(html) {
+  const h = String(html ?? ''); const m = /<img\b[^>]*data-logo="1"[^>]*>/i.exec(h); if (!m) return { html: h, removed: 0 };
+  const ls = styleOf(m[0]); const lx = pxOf(ls, 'left'), ly = pxOf(ls, 'top'), lw = pxOf(ls, 'width'), lh = pxOf(ls, 'height');
+  if ([lx, ly, lw, lh].some(v => v == null)) return { html: h, removed: 0 };
+  const before = h.slice(0, m.index); const pm = /<div\b([^>]*)><\/div>\s*$/i.exec(before); if (!pm) return { html: h, removed: 0 };
+  if (/data-(field|object|kv|logo)/i.test(pm[1])) return { html: h, removed: 0 };
+  const ps = styleOf(pm[0]); if (!/background/i.test(ps)) return { html: h, removed: 0 };
+  const px = pxOf(ps, 'left'), py = pxOf(ps, 'top'), pw = pxOf(ps, 'width'), ph = pxOf(ps, 'height'); if ([px, py, pw, ph].some(v => v == null)) return { html: h, removed: 0 };
+  const pad = lh * 1.5 + 4;
+  const wraps = px <= lx + 1 && py <= ly + 1 && px + pw >= lx + lw - 1 && py + ph >= ly + lh - 1 && lx - px <= pad && ly - py <= pad && px + pw - (lx + lw) <= pad && py + ph - (ly + lh) <= pad;
+  if (!wraps) return { html: h, removed: 0 };
+  return { html: h.slice(0, pm.index) + h.slice(pm.index + pm[0].length), removed: 1 };
+}
+// ── 정보 블록 행 당기기(11-20 AI 품질 rq3 — 사용자 「접수기간·모집직무 너무 떨어져 있음」 7건: 프롬프트는 피치 1.7배인데 모델은 2.3배로 둔다).
+//   같은 열(left 같음)에 세로로 쌓인 date·detail·notice 를 위 행 기준 피치 = (줄 수−1)×line-height + 글자 1.7배로 당긴다(AI 하한 0.15em — core/typoaudit AI_TYPO_RULE).
+//   한 행 가로 배치(top 같음)·top 없는 행·자동 줄바꿈(nowrap 아님) 행 아래는 건드리지 않는다. 더 벌어진 경우만 당기고 벌리지는 않는다.
+export const INFO_PITCH = 1.7;   // 잉크 간격 ≈ 0.2~0.3em(괄호·숫자 잉크 ~1.4em) ≥ AI 하한 0.15em
+export function tightenInfoRows(html, pitch = INFO_PITCH) {
+  const h = String(html ?? '');
+  const rows = [...h.matchAll(/<([a-z0-9]+)\b[^>]*data-field="(date|detail|notice)"[^>]*>([\s\S]*?)<\/\1>/gi)].map(m => {
+    const tag = /^<[^>]*>/.exec(m[0])[0]; const st = styleOf(tag);
+    const fs = pxOf(st, 'font-size'), lh = pxOf(st, 'line-height') ?? (fs ? fs * 1.4 : null);
+    return { role: m[2], index: m.index, tag, st, left: pxOf(st, 'left'), top: pxOf(st, 'top'), fs, lh, lines: (m[3].match(/<br\s*\/?>/gi) ?? []).length + 1, nowrap: /white-space\s*:\s*nowrap/i.test(st) };
+  }).filter(r => r.left != null && r.top != null && r.fs);
+  if (rows.length < 2) return { html: h, moved: 0 };
+  rows.sort((a, b) => a.top - b.top);
+  const E = edits(h); let moved = 0, prev = rows[0], shift = 0;
+  for (const r of rows.slice(1)) {
+    if (!prev.nowrap || Math.abs(r.left - prev.left) > 4 || Math.abs(r.top - prev.top) < Math.min(r.fs, prev.fs) * 0.5) { prev = r; shift = 0; continue; }
+    const want = Math.round((prev.top - shift) + (prev.lines - 1) * prev.lh + Math.max(prev.fs, r.fs) * pitch);
+    const nowTop = r.top - shift;   // 위 행이 당겨진 만큼 같이 올린 자리
+    const top = Math.min(nowTop, want);
+    if (top !== r.top) { E.replace(r.index, r.tag, withStyle(r.tag, setDecl(r.st, 'top', `${top}px`))); moved++; }
+    shift = r.top - top; prev = r;
+  }
+  return { html: moved ? E.apply() : h, moved };
+}
+// ── 정보 행 앞 세로 막대 걷기(11-20 rq3 「좌측 라인 그은거 이상함」·「라인 이상함」 — 프롬프트로 막아도 border-left 막대가 남았다).
+//   세로로 쌓인 date·detail·notice 의 border-left·padding-left 를 지운다(가로 1행 구분선형은 둔다). 글자 없는 가는 막대 div(폭 ≤ 4px·높이 ≥ 12px)도 지운다.
+export function stripInfoBars(html) {
+  const h = String(html ?? '');
+  const rows = [...h.matchAll(/<([a-z0-9]+)\b[^>]*data-field="(date|detail|notice)"[^>]*>/gi)].map(m => ({ index: m.index, tag: m[0], st: styleOf(m[0]) })).map(r => ({ ...r, top: pxOf(r.st, 'top') }));
+  const oneRow = rows.length >= 2 && rows.every(r => r.top != null && Math.abs(r.top - rows[0].top) < 6);
+  const E = edits(h); let removed = 0;
+  if (!oneRow) for (const r of rows) {
+    if (!/border-left\s*:\s*(?!none|0)/i.test(r.st)) continue;
+    E.replace(r.index, r.tag, withStyle(r.tag, setDecl(setDecl(r.st, 'border-left', null), 'padding-left', null))); removed++;
+  }
+  for (const m of h.matchAll(/<div\b([^>]*)><\/div>/gi)) {
+    if (/data-(field|object|kv|logo)/i.test(m[1])) continue;
+    const st = styleOf(m[0]); if (!/background/i.test(st)) continue;
+    const w = pxOf(st, 'width'), ht = pxOf(st, 'height');
+    if (w != null && ht != null && w <= 4 && ht >= 12) { E.replace(m.index, m[0], ''); removed++; }
+  }
+  return { html: removed ? E.apply() : h, removed };
+}
+// ── 로고 단색 자동 고침(11-19 AI 품질 rq1 — 사용자 「퀄리티 구림」: 로고 뒤 둥근 판이 별로 1위 원인. 디자이너는 흰 단색 로고를 그대로 얹는다).
+//   판 대신 로고를 흰 단색(어두운 바탕) · 검정 단색(밝은 바탕) 두 후보로 — 게이트가 실측해 묻힘이 풀리는 쪽을 고른다. 자동 고침 후보 배열.
+export function fixLogoMono(html) {
+  const Rt = rootInfo(String(html ?? '')); if (!Rt) return null;
+  const n = Rt.nodes.find(x => x.logo); if (!n) return null;
+  const st = styleOf(n.tag); const prev = getDecl(st, 'filter');
+  if (prev && /brightness\(0\)/.test(prev)) return null;   // 이미 단색
+  return [['white', 'brightness(0) invert(1)'], ['black', 'brightness(0)']].map(([tone, f]) => {
+    const E = edits(String(html)); E.replace(n.index, n.tag, withStyle(n.tag, setDecl(st, 'filter', f)));
+    return { html: E.apply(), moves: [{ role: 'logo-mono', tone }] };
+  });
+}
 
 // ── 작은 글자 자동 고침(11-09 6단계 r1 — 1080 에서 정보 글자 14~22px). byRole: { role: 배수 } — 즉시 수정의 「글자 크게」와 같은 동작(글자 안 px 전부 비례)
 export function fixTextSize(html, byRole) {

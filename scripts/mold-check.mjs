@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const argv = process.argv.slice(2);
 const dir = argv.find(a => !a.startsWith('--'));
 const mediaOpt = argv.includes('--media') ? argv[argv.indexOf('--media') + 1] : null;

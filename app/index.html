@@ -1319,6 +1319,10 @@
   body[data-view="work"] header #newBtn:is(#b,*){width:44px;height:40px;border:0;border-radius:0;background:none}
   /* 11-17 공개 링크 = 규칙판: 서버(AI)가 없으면 AI 진입점을 숨긴다 — 목록은 app/runtime.js AI_ONLY_SELECTORS 와 같게(test/public-mode-1117.test.js) */
   .no-server .eai-btn, .no-server #elAiPop, .no-server #iAi, .no-server #iAiMore, .no-server #iAiJob, .no-server .isec-free, .no-server #iKvAi, .no-server .ai-only{display:none !important}
+  /* 11-18 노션 「화면 이동 시 오류」: 캔버스 위 글자·그림은 끌어도 선택·끌기 사본이 생기지 않게(입력칸은 그대로) */
+  #viewport{-webkit-user-select:none;user-select:none}
+  #viewport img{-webkit-user-drag:none;user-drag:none}
+  #viewport input,#viewport textarea,#viewport [contenteditable="true"]{-webkit-user-select:text;user-select:text}
 </style>
 </head>
 <body data-view="home">

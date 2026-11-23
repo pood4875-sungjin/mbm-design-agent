@@ -16,7 +16,7 @@ import { normalizeStyle } from '../core/style.js';
 import { adSpecEntries } from '../core/adspecs.js';
 import { BRIEFS } from './lib/briefs.mjs';
 registerAll();
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const files = process.argv[2].split(',');   // 결과 파일 여러 개는 쉼표로(11-05: 10규격 전수 + 21규격 전수)
 const rows = files.flatMap(f => JSON.parse(readFileSync(f, 'utf8'))).filter(r => r.recipe && r.skip !== 'asset');
 const min = +(process.argv[3] ?? 0.7), cap = +(process.argv[4] ?? 12), by = {}, caseOf = {}, specs = adSpecEntries();

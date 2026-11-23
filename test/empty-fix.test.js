@@ -25,7 +25,7 @@ const PHOTO = { ar: 1.5, px: [1500, 1000], field: { kind: 'photo', opaque: 1, lu
 const cube = normalizeStyle({ colors: ['#2672FE'], keyVisual: PNG, kvMeta: CUBE });
 const photo = normalizeStyle({ colors: ['#8C5A2B'], keyVisual: PNG, kvMeta: PHOTO });
 const traceOf = html => JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
-const emptyAttr = html => (html.match(/data-empty="([^"]*)"/) ?? [])[1] ?? null;
+const emptyAttr = html => (html.match(/data-empty="([^"]*)"/) ?? [])[1]?.replace(/&gt;/g, '>') ?? null;
 const ctx = createContext(SHORT, 'recruit');
 
 test('구글 580 모서리 칸 × 세로형 그라데이션 바탕 일러스트(큐브): 덮는 몫 30% 미만 → 칸을 글자 쪽으로 키워(emptyFix.slot) 30% 이상 · data-empty "전>후:배율" · 겹침 없음', () => {

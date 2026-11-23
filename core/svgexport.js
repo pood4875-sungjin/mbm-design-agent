@@ -576,8 +576,17 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
       if (u) {
         const im = await loadImg(u, imgCache);
         if (!im) { note('불러오지 못한 배경 그림 — 빠짐'); continue; }
-        if (!/no-repeat/.test(pick(reps) ?? 'repeat') && pick(reps) !== 'no-repeat no-repeat') note('반복 배경(background-repeat) — 한 번만 그림');
         const place = bgPlacement({ size: pick(sizes), position: pick(poss), area: b, natural: [im.naturalWidth, im.naturalHeight] });
+        // 11-18 노션 배경 이미지 「반복(Tile)」: 반복 배경은 타일 한 장을 만들어 영역을 덮을 만큼 되풀이한다(예전: 한 번만 그림)
+        if (!/no-repeat/.test(pick(reps) ?? 'repeat') && place.w >= 2 && place.h >= 2) {
+          const tile = await imageLayer(im, place, { x: place.x, y: place.y, w: place.w, h: place.h }, { bound: { x: place.x, y: place.y, w: place.w, h: place.h }, maxScale: imgScale });
+          if (!tile) continue;
+          const x0 = place.x - Math.ceil((place.x - b.x) / place.w) * place.w, y0 = place.y - Math.ceil((place.y - b.y) / place.h) * place.h, imgs = [];
+          for (let yy = y0; yy < b.y + b.h && imgs.length < 400; yy += place.h) for (let xx = x0; xx < b.x + b.w && imgs.length < 400; xx += place.w) imgs.push(`<image x="${round(xx)}" y="${round(yy)}" width="${round(place.w)}" height="${round(place.h)}" preserveAspectRatio="none" xlink:href="${tile.uri}"/>`);
+          const cid = gid('clip'); defs.push(`<clipPath id="${cid}">${roundRect(b.x, b.y, b.w, b.h, radii)}</clipPath>`);
+          out.push({ kind: 'image', svg: `<g clip-path="url(#${cid})">${imgs.join('')}</g>` }); stats.images++;
+          continue;
+        }
         const clip = { x: Math.max(b.x, 0), y: Math.max(b.y, 0), w: Math.min(b.x + b.w, W) - Math.max(b.x, 0), h: Math.min(b.y + b.h, H) - Math.max(b.y, 0) };
         const lay = await imageLayer(im, place, clip.w > 0 && clip.h > 0 ? clip : b, { bound: { x: 0, y: 0, w: W, h: H }, maxScale: imgScale });
         if (!lay) continue;

@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readd
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const CASES = path.join(ROOT, 'ref/learned/cases'), OUTC = path.join(CASES, '_out');
 const DEST = process.argv[2]; if (!DEST) throw new Error('출력 폴더가 필요합니다');
 mkdirSync(path.join(DEST, '시트'), { recursive: true }); mkdirSync(path.join(DEST, '데이터'), { recursive: true }); mkdirSync(path.join(DEST, '렌더'), { recursive: true }); mkdirSync(path.join(DEST, '그림'), { recursive: true });

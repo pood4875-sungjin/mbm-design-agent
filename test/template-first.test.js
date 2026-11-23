@@ -59,7 +59,7 @@ test('팝업 550×400 틀 — 세아제강 28:124: 서브 22/700 y75 · 메인 3
   assert.match(tagOf(html, 'detail'), /font-size:17px;line-height:27px;font-weight:400/);
   assert.match(html, /data-text-col="1" style="position:absolute;left:30px;top:75/);
   assert.match(html, /<b style="font-weight:700">모집일정 :<\/b> 9\.22\(월\) - 10\.12\(일\)/, '팝업 상세 라벨은 Bold, 값 Regular — 세아 28:124·보드 2798 세그먼트 실측(10-15 저녁 정정: 아침 「라벨까지 Regular」는 오독)');
-  assert.match(html, /<b style="font-weight:700">모집직무 :<\/b> /);
+  assert.match(html, /<b style="(?:flex:0 0 auto;white-space:pre;)?font-weight:700">모집직무 : ?<\/b>/);   // 11-18 노션: 넘어가는 행은 내어쓰기(라벨 칸 + 값 칸) — 라벨 Bold 그대로
   { const d = detailOf(html), i = d.indexOf('고용형태'); assert.ok(i < 0 || i > d.indexOf('모집직무'), '11-10: 추가 행(옛 고용형태 칸)은 모집직무 뒤, 남는 줄에만'); }
   assert.match(html, /data-logo-slot="1" style="position:absolute;left:375px;top:33px;width:143px;height:23px;[^"]*justify-content:flex-end/);
   assert.match(html, /<img data-logo="1"[^>]*max-width:100%/); assert.doesNotMatch(html, /max-width:min\(100%/, '로고 상한 없음(칸이 크기)');

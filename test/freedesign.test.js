@@ -122,7 +122,7 @@ test('프롬프트 — 스타일 방향·정보 블록 프리셋 3종·4항 간�
   const N = typoNormsFor('google-gdn-580x400'); assert.equal(N.gap.hi, 0.996); assert.equal(N.padL.lo, 0.06);
 });
 
-test('infoBlockIssues — 라벨 섞임 ✗(뱃지+볼드) · 행 간격 ✗(렌더 측정 0.6배 미만) · 한 규칙 ✓(둘 다 뱃지·같은 폭·같은 값 x·간격 넉넉)', () => {
+test('infoBlockIssues — 라벨 섞임 ✗(뱃지+볼드) · 행 간격 ✗(렌더 측정 AI 하한 0.15배 미만 — 11-20) · 한 규칙 ✓(둘 다 뱃지·같은 폭·같은 값 x·간격 넉넉)', () => {
   const badge = (role, t) => `<div data-field="${role}" style="font-size:20px"><span style="background:#111;color:#fff;font-weight:700">${t[0]}</span>${t[1]}</div>`;
   const bold = (role, t) => `<div data-field="${role}" style="font-size:20px"><b style="font-weight:700">${t[0]}</b>${t[1]}</div>`;
   const mixed = badge('date', ['모집기간', '~10.31(토)']) + bold('detail', ['모집직무', '엔지니어']);
@@ -133,8 +133,8 @@ test('infoBlockIssues — 라벨 섞임 ✗(뱃지+볼드) · 행 간격 ✗(렌
   const free = (gap, lw2 = 70, vx2 = 100) => ({ free: { fields: {
     date: { fontPx: 20, ink: { x: 40, y: 200, w: 300, h: 26 }, label: { bbox: { x: 40, y: 200, w: 70, h: 26 }, bg: true, weight: 700, border: false }, valueX: 100 },
     detail: { fontPx: 20, ink: { x: 40, y: 226 + gap, w: 300, h: 26 }, label: { bbox: { x: 40, y: 226 + gap, w: lw2, h: 26 }, bg: true, weight: 700, border: false }, valueX: vx2 } } } });
-  const r2 = infoBlockIssues(same, free(6));
-  assert.ok(!r2.ok && r2.issues.length === 1 && /행 간격 date→detail 6px < 글자 0.6배\(12px\)/.test(r2.issues[0]), r2.issues.join());
+  const r2 = infoBlockIssues(same, free(1));
+  assert.ok(!r2.ok && r2.issues.length === 1 && /행 간격 date→detail 1px < 글자 0.15배\(3px\)/.test(r2.issues[0]), r2.issues.join());
   const r3 = infoBlockIssues(same, free(14));
   assert.ok(r3.ok && r3.issues.length === 0 && r3.labels.every(l => l.kind === '뱃지'), r3.issues.join());
   const r4 = infoBlockIssues(same, free(14, 90, 120)); assert.ok(r4.issues.some(i => /라벨 폭 다름/.test(i)) && r4.issues.some(i => /값 시작 x 다름/.test(i)));

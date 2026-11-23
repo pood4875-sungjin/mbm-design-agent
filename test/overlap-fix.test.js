@@ -19,7 +19,7 @@ const PHOTO = { ar: 1.5, px: [1500, 1000], field: { kind: 'photo', opaque: 1, lu
 const crowd = normalizeStyle({ colors: ['#E2401A'], keyVisual: PNG, kvMeta: CROWD });
 const photo = normalizeStyle({ colors: ['#8C5A2B'], keyVisual: PNG, kvMeta: PHOTO });
 const traceOf = html => JSON.parse(html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"'));
-const overlapAttr = html => (html.match(/data-overlap="([^"]*)"/) ?? [])[1] ?? null;
+const overlapAttr = html => (html.match(/data-overlap="([^"]*)"/) ?? [])[1]?.replace(/&gt;/g, '>') ?? null;
 
 test('네이버 DA 틀 + 긴 직무 값 + 떼 누끼: 상세 값이 그림 칸으로 흘러 첫 사람과 겹침 → 칸 안 누끼 축소(kv)로 2% 아래 · trace overlapFix.ok · data-overlap "전>후:단계"', () => {
   const ctx = createContext(LONG, 'recruit');
@@ -64,4 +64,29 @@ test('겹침 계산은 녹인 변(data-melt)과 빈 칸을 주인공에서 뺀�
   const objs = objectRects(html, photo, specs['jobda-main-mo']); assert.equal(objs.length, 1);
   assert.ok(objs[0].clip.x > objs[0].box.x + 20, `녹임 구간 제외: clip ${JSON.stringify(objs[0].clip)} box ${JSON.stringify(objs[0].box)}`);
   const r = overlapRatio(html, traceOf(html), photo, specs['jobda-main-mo']); assert.ok(r != null && r < 0.15, `겹침 ${r}`);
+});
+
+// 11-17 사용자 화면(블라인드 1200×628): data-overlap="35>12:kv" 의 날 「>」를 [^>]* 로 태그를 찾는 후처리가 태그 끝으로 읽어
+// 루트 태그가 끊기고 data-spec·data-trace 가 그림 위 글자로 쏟아졌다 — 값의 「>」는 &gt; 로 쓴다
+test('교정 표시(data-overlap·data-empty)가 붙어도 루트 태그가 끊기지 않는다 — 값 안에 날 「>」 없음', () => {
+  const ctx = createContext(LONG, 'recruit');
+  let marked = 0;
+  for (const [id, spec] of Object.entries(specs)) for (const st of [crowd, photo]) {
+    const html = renderAd(ctx, st, spec);
+    const tag = html.match(/<div data-ad="1"[^>]*>/)?.[0] ?? '';
+    if (!/data-(overlap|empty)=/.test(html)) continue;
+    marked++;
+    assert.match(tag, /data-trace="[^"]*" style="/, `${id}: 루트 태그가 data-trace 앞에서 끊김`);
+    assert.doesNotMatch(html, /data-(overlap|empty)="[^"]*>[^"]*"/, id);
+  }
+  assert.ok(marked > 0, '교정 표시가 붙는 규격이 하나는 있어야 시험이 된다');
+});
+
+// 11-17 사용자 「위에 뭐 덧댄 느낌」 — 로고 전용 규격(카카오 프로필 300×300)에 AI 배경 도형이 로고 위로 그려졌다
+test('AI 배경 도형은 로고 전용 규격에 넣지 않는다 — 다른 규격엔 그대로', () => {
+  const ctx = createContext(SHORT, 'recruit');
+  const st = { ...normalizeStyle({ colors: ['#2F5DA8'], keyVisual: PNG, kvMeta: CROWD, logo: PNG, logoTone: 'dark' }), aiShapes: [{ kind: 'circle', x: 0, y: 0, w: .6, h: .6, color: '#DCEBFF', opacity: .8, blur: .2 }] };
+  const prof = renderAd(ctx, st, specs['kakao-display-pc-profile']);
+  assert.match(prof, /data-logo-only="1"/); assert.doesNotMatch(prof, /data-ai-shape=/);
+  assert.match(renderAd(ctx, st, specs['instagram-feed-1080']), /data-ai-shape="0"/);
 });

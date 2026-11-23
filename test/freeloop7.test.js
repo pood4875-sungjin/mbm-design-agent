@@ -17,31 +17,31 @@ const html = `<div data-ad="1" data-spec="google-gdn-580x400" data-free="1" styl
 </div>`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const reply = () => ({ text: '```html\n' + html + '\n```\nNOTES: 메모', usage: { input_tokens: 1, output_tokens: 1 }, model: 'stub-model' });
-const idOf = p => /## 구성: [^(]+\((\w+)\)/.exec(p)?.[1];
+const idOf = p => /## 구성: .*\((\w+)\) —/.exec(p)?.[1];
 // 신호를 듣는 stub — 끊으면 cancelError(실제 runClaudeCode 와 같음)
 const runWith = delay => (p, o = {}) => new Promise((ok, no) => { const id = idOf(p); const t = setTimeout(() => ok(reply()), delay[id] ?? 5); o.signal?.addEventListener?.('abort', () => { clearTimeout(t); no(cancelError()); }, { once: true }); });
 
 test('과생성(eager) — 구성 4개를 동시에, 게이트 통과 3안이 먼저 차면 노출 3 · 남은 예비 호출은 끊고 센다', async () => {
   assert.equal(SPARE, 2);
-  const delay = { bleed: 10, diagonal: 20, frame: 30, typehero: 400 };
+  const delay = { bleed: 10, diagonal: 20, typehero: 30, motif: 400 };
   const shown = [];
   const out = await freeDesign(input({ spareMode: 'eager' }), { run: runWith(delay), measure: async () => ({ issues: [] }), onVariant: v => shown.push(v.style.id) });
-  assert.deepEqual(shown, ['bleed', 'diagonal', 'frame'], '먼저 통과한 3안');
+  assert.deepEqual(shown, ['bleed', 'diagonal', 'typehero'], '먼저 통과한 3안');
   assert.equal(out.variants.length, 3); assert.ok(out.variants.every(v => v.ok));
-  assert.equal(out.planned, 4); assert.equal(out.cut.length, 1); assert.equal(out.cut[0].style.id, 'typehero');
+  assert.equal(out.planned, 4); assert.equal(out.cut.length, 1); assert.equal(out.cut[0].style.id, 'motif');
   const cc = out.calls.filter(c => c.cancelled); assert.equal(cc.length, 1, '끊은 호출도 기록'); assert.ok(cc[0].ms < 200, '오래 기다리지 않음');
   const row = statsRowOf({ id: 'x', mode: 'suggest', status: 'done', startedAt: 0, finishedAt: 1, progress: { total: 3 }, result: out });
   assert.equal(row.cut, 1); assert.equal(row.retries, 0);
 });
 
 test('과생성 — 반려 안은 숨겨 두고 예비가 메운다 · 모자라면 반려를 보내 「N안 제외」 안내 · 방향 지정·1안은 예비 없음', async () => {
-  const delay = { bleed: 5, diagonal: 10, frame: 15, typehero: 30 };
+  const delay = { bleed: 5, diagonal: 10, typehero: 15, motif: 30 };
   const shown = [];
   const out = await freeDesign(input({ thirdTry: false }), { run: runWith(delay), measure: async (h, dir) => ({ issues: dir.id === 'diagonal' ? ['대비 main 2.1:1 < 3:1'] : [] }), onVariant: v => shown.push(`${v.style.id}:${v.ok ? 'ok' : 'rej'}`) });
-  assert.deepEqual(shown, ['bleed:ok', 'frame:ok', 'typehero:ok'], '반려(diagonal)는 안 보이고 예비(typehero)가 3안째');
+  assert.deepEqual(shown, ['bleed:ok', 'typehero:ok', 'motif:ok'], '반려(diagonal)는 안 보이고 예비(motif)가 3안째');
   assert.equal(out.spares.length, 1); assert.equal(out.spares[0].style.id, 'diagonal'); assert.equal(out.rejected, 0);
   const shown2 = [];
-  const out2 = await freeDesign(input({ thirdTry: false }), { run: runWith(delay), measure: async (h, dir) => ({ issues: ['frame', 'diagonal'].includes(dir.id) ? ['대비 main 2.1:1 < 3:1'] : [] }), onVariant: v => shown2.push(v.ok) });
+  const out2 = await freeDesign(input({ thirdTry: false }), { run: runWith(delay), measure: async (h, dir) => ({ issues: ['typehero', 'diagonal'].includes(dir.id) ? ['대비 main 2.1:1 < 3:1'] : [] }), onVariant: v => shown2.push(v.ok) });
   assert.deepEqual(shown2, [true, true, false], '통과 2 + 반려 1(숨김 카드) = 3칸');
   assert.equal(out2.variants.length, 3); assert.equal(out2.spares.length, 1);
   const calls = [];
@@ -50,14 +50,14 @@ test('과생성 — 반려 안은 숨겨 두고 예비가 메운다 · 모자라
 });
 
 test('과생성(staged, 기본) — 3안 먼저 · 첫 시도가 걸리면 예비를 깨우고, 아무도 안 걸리면 예비는 안 띄운다(호출 3)', async () => {
-  const delay = { bleed: 5, diagonal: 10, frame: 15, typehero: 10 };
+  const delay = { bleed: 5, diagonal: 10, typehero: 15, motif: 10 };
   const ids = [];
   const run = (p, o) => { const id = idOf(p); if (id) ids.push(id); return runWith(delay)(p, o); };
   const out = await freeDesign(input(), { run, measure: async () => ({ issues: [] }) });
-  assert.deepEqual(ids.sort(), ['bleed', 'diagonal', 'frame'], '예비 안 띄움'); assert.equal(out.planned, 4); assert.equal(out.made, 3); assert.equal(out.cut[0].notStarted, true); assert.equal(out.spareMode, 'staged');
+  assert.deepEqual(ids.sort(), ['bleed', 'diagonal', 'typehero'], '예비 안 띄움'); assert.equal(out.planned, 4); assert.equal(out.made, 3); assert.equal(out.cut[0].notStarted, true); assert.equal(out.spareMode, 'staged');
   const ids2 = [];
-  const out2 = await freeDesign(input({ thirdTry: false }), { run: (p, o) => { const id = idOf(p); if (id) ids2.push(id); return runWith(delay)(p, o); }, measure: async (h, dir, i, k) => ({ issues: dir.id === 'frame' && k === 1 ? ['대비 main 2.1:1 < 3:1'] : [] }) });
-  assert.ok(ids2.includes('typehero'), '첫 시도 걸림 → 예비 띄움'); assert.equal(out2.spareStarts[0].why, 'retry');
+  const out2 = await freeDesign(input({ thirdTry: false }), { run: (p, o) => { const id = idOf(p); if (id) ids2.push(id); return runWith(delay)(p, o); }, measure: async (h, dir, i, k) => ({ issues: dir.id === 'typehero' && k === 1 ? ['대비 main 2.1:1 < 3:1'] : [] }) });
+  assert.ok(ids2.includes('motif'), '첫 시도 걸림 → 예비 띄움'); assert.equal(out2.spareStarts[0].why, 'retry');
   assert.equal(out2.variants.length, 3); assert.ok(out2.variants.every(v => v.ok));
 });
 

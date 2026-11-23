@@ -141,6 +141,12 @@ export function extractRecruit(text, now = new Date()) {
     else if (toks[0] && /(의|에서)$/.test(toks[0]) && toks[0].replace(/(의|에서)$/, '').length >= 2 && toks.length > 1) {
       client = toks[0].replace(/(의|에서)$/, ''); toks = toks.slice(1);
     } else if (looksCompany(toks[0])) { client = toks[0]; toks = toks.slice(1); }
+    // 11-18 노션 「영문 고객사명 자동 인식 오류」: 「AK PLAZA 경력 채용」「LG CNS 신입 공채」 — 구절 맨 앞의 영문 대문자 낱말 묶음(2자 이상, 최대 4낱말)이 고객사
+    else if (toks[0] && /^[A-Z][A-Z0-9&.\-]+$/.test(toks[0]) && toks.length >= 2) {
+      let n = 1; while (n < 4 && toks[n] && /^[A-Z][A-Za-z0-9&.\-]*$/.test(toks[n]) && !JOB.test(toks[n])) n++;
+      // 한 낱말짜리는 4자 이상만(「AI 엔지니어 채용」의 AI 는 직무 약어 — brief-1028)
+      if (n >= 2 || (toks[0].length >= 4 && !JOB.test(toks[0]))) { client = toks.slice(0, n).join(' '); toks = toks.slice(n); }
+    }
     // 10-28 담당자 사례(피에스케이·인천국제공항보안·현대오일터미널): 법인 표기도 흔한 사명 끝말도 없는 이름은 「공고 제목의 첫 명사구」로 읽는다 —
     //   문장의 첫 구절이고(시즌은 떼고), 뒤에 채용 구분이 더 있고, 기간이나 직무 라벨이 적힌 공고꼴일 때만. 「백엔드 개발자 채용」 한 줄의 「백엔드」는 회사가 아니다
     else if (ci === clauses.findIndex(c => c.trim()) && ((toks.length >= 2 && (dates.length || labRole)) || (hadHire && toks.length === 1)) && firstNoun(toks[0])) { client = toks[0]; toks = toks.slice(1); }
@@ -150,6 +156,12 @@ export function extractRecruit(text, now = new Date()) {
     toksAfter = toks;
     rest = toks.filter(w => !NOT_ROLE.test(w) && !EMPLOY.test(w) && !REGION_ONE.test(w));
     if (!labRole && rest.length && rest.some(w => JOB.test(w))) out.role = rest.join(' ');
+  }
+  // 11-18 노션 「영문 고객사명 자동 인식 오류」(AK PLAZA): 채용 구절이 둘째 줄이고 첫 줄이 이름 한 줄뿐이면 그 줄이 고객사다 —
+  //   날짜·라벨(:)·채용 낱말·문장 부호가 없고 4낱말 이하. 「AK PLAZA ⏎ 경력 전문직 채용 모집 ⏎ 지원기간: …」
+  if (!out.client && ci > 0) {
+    const first = clauses.findIndex(c => c.trim()), line = first >= 0 && first < ci ? clauses[first].trim() : null;
+    if (line && line.length <= 30 && line.split(/\s+/).length <= 4 && !/[:：~\d]/.test(line) && !/채용|모집|구인|공채|접수|마감|지원/.test(line) && /^[A-Za-z가-힣(㈜]/.test(line) && !JOB.test(line.split(/\s+/)[0])) out.client = line;
   }
   if (labRole && !out.role) out.role = labRole;
   // 채용 구분이 없으면 고객사 뒤 ~ 「채용」 앞 구절이 채용 구분이다 — 「○○ 채용」(서울아산병원 「디자이너 채용」·제일약품 「ETC 영업 채용(전국)」·

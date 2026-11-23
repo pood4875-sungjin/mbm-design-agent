@@ -196,8 +196,11 @@ export function typoNormsFor(specId) {
   return r;
 }
 // rows: [{ role, px, lines, x,y,w,h(상자), ink:{x,y,w,h}|null, clip, wb }] · logo/kv: {x,y,w,h}|null (kv 는 주인공 상자 — 누끼일 때만 넘긴다)
-export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, norms = null, safe = null }) {
-  const N = norms ?? typoNormsFor(specId), F = TYPO_RULE_FIXED, fails = [], m = { norms: N };
+// AI 생성 트랙 전용(11-20 AI 품질 rq3): 정보 행 잉크 하한 0.6em → 0.15em. 괄호·숫자 잉크가 1.4em 이라 0.6em 이면 피치 2.2배가 강제돼
+//   「접수기간·모집직무 너무 떨어져」 7건 — 디자이너 시안은 피치 1.7배(잉크 간격 ≈ 0.2em). 룰베이스 렌더러는 TYPO_RULE_FIXED 그대로.
+export const AI_TYPO_RULE = { ...TYPO_RULE_FIXED, gapInfoRow: 0.15 };
+export function typoAuditNorms({ W, H, rows, logo = null, kv = null, specId, norms = null, safe = null, fixed = TYPO_RULE_FIXED }) {
+  const N = norms ?? typoNormsFor(specId), F = fixed, fails = [], m = { norms: N };
   const fail = (rule, code, msg) => fails.push({ rule, code, msg });
   const main = rows.find(r => r.role === 'main');
   if (!main) return { ok: false, fails: [{ rule: 0, code: 'no-main', msg: '메인 없음' }], m };

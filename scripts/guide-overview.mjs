@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const core = f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
 const F = await core('fonts.js'); const { CANON } = await core('canon.js'); const { resolveField } = await core('field.js'); const { normalizeStyle } = await core('style.js');
 const { INPUT_SPEC } = await core('input-spec.js'); const { KV_TYPES, KV_SUBTYPES } = await core('kvtypes.js');

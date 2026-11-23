@@ -24,10 +24,10 @@ import { limitsByRole, inImage, countChars } from '../core/adfields.js';
 import { FONTS, DEFAULT_FONT, fontIds, isBundledFont, fontRuleOf, effectiveFontId } from '../core/fonts.js';
 import { safeAreaOf } from '../core/trackb/prompt.js';
 import { TEMPLATE_NORMS } from '../core/template-norms.js';
-import { typoNormsFor, TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';
+import { typoNormsFor, AI_TYPO_RULE as TYPO_RULE_FIXED, BP } from '../core/typoaudit.js';   // 11-20: AI 트랙은 정보 행 하한 0.15em(룰베이스와 갈림)
 import { kvTypeOf } from '../core/kvtypes.js';
 import { languageLines, languageOf, languageFromHtml, mergeLanguage } from '../core/freelang.js';
-import { fixStack, fixStackCandidates, fixLogoGap, fixKvGap, fixLogoPlate, fixTextSize, fixContrast, fixLogoSize } from '../core/freequick.js';
+import { fixStack, fixStackCandidates, fixLogoGap, fixKvGap, fixLogoPlate, fixLogoMono, stripLogoPlate, stripInfoBars, tightenInfoRows, fixTextSize, fixContrast, fixLogoSize } from '../core/freequick.js';
 import { profileFocus } from '../core/field.js';
 import { CANON, contrastNeed } from '../core/canon.js';
 
@@ -72,17 +72,33 @@ export const COMPOSITION_BAN = '「글자 왼쪽 · 키비주얼 오른쪽」을
 export const COMPOSITIONS = [
   { id: 'bleed', name: '전면 비주얼 + 글자 오버레이', kind: 'composition', kvArea: [0.85, 1],
     hint: '키비주얼이 지면 전체를 덮는다 — 사진·바탕 있는 그림은 background-size:cover 로 캔버스 전체(주인공이 잘리지 않게 background-position 을 주인공 쪽으로), 누끼는 지면 높이 90~130%로 크게 키워 한 변 밖으로 흘린다. 글자는 그림의 빈 쪽(하늘·바닥·여백) 위에 올리고, 가독은 단색→투명 스크림 한 장 또는 글자 뒤 반투명 판 하나로. 주인공 얼굴·몸통 위 글자 금지. 그림 비율이 지면과 많이 달라도 그림을 작은 상자에 넣고 옆에 회색·단색 띠를 남기지 않는다(cover 로 채우거나, 한쪽에 붙이고 가장자리색으로 녹인다 — 11-09 r1 1080 에서 띠 남긴 안 2점).' },
-  { id: 'motif', name: '그래픽 모티프 지면', kind: 'composition', kvArea: [0.3, 0.45],
-    hint: '키비주얼에서 뽑은 모양(원·호·띠·격자·물결·별·셀 등 그림의 형태 언어)과 대표색으로 인라인 SVG(또는 CSS 도형)를 만들어 지면에 반복·확대 배치한다 — 최소 2개 요소가 리듬을 이룬다. 키비주얼은 캔버스 30~45% 중간 크기로 모티프와 엮는다(모티프가 그림 뒤를 지나가거나 그림을 감싼다). 모티프 도형은 글자 덩어리(글자 상자 + 여백 0.5em)와 겹치지 않게 비운 자리에 둔다 — 도형 가장자리·선이 글자를 가로지르면 반려(11-09 r2 반려 1위). 글자 전체를 덮는 넓은 바탕 면은 예외.' },
-  { id: 'typehero', name: '타이포 주도 + 키비주얼 작게', kind: 'composition', kvArea: [0.15, 0.25],
-    hint: '메인 글자가 지면의 주인 — 분포 상위 이상으로 크게(메인 글자 덩어리 높이가 캔버스 짧은 변의 30~45%), 강조 한 단어는 색 또는 태그. 키비주얼은 캔버스 15~25%로 작게 — 원형·라운드 창, 글자 줄 끝에 붙는 스티커, 또는 메인 글자와 맞물리게. 지면은 단색 또는 아주 약한 같은 색상 그라데이션.' },
-  { id: 'diagonal', name: '분할 대각·곡선', kind: 'composition', kvArea: [0.35, 0.55],
-    hint: '지면을 대각선(15~35°) 또는 큰 곡선(호)으로 두 면으로 나눈다(clip-path polygon 또는 인라인 SVG path). 한 면 = 키비주얼 면(사진·바탕 있는 그림은 이 면 안에만 clip-path 로 cover — 주인공이 면 안에 온전히), 다른 면 = **글자 면: 단색 또는 같은 색 2색 그라데이션만**(사진·패턴·도형이 글자 아래를 지나가지 않는다). 글자 상자(가장 긴 줄 끝까지)는 전부 글자 면 안, 사선 경계에서 메인 글자 1em 이상 떨어뜨린다 — 사선이 글자 쪽으로 기울어 끝 글자가 사진 위로 넘어가면 반려. 키비주얼 면은 사진으로 꽉 채운다(면 안에 회색·단색 빈 띠 금지 — 11-09 r2). 누끼만 경계선을 넘어 걸쳐 두 면을 잇는다. 장식 원·도형은 키비주얼 면 쪽에만. 세로 직선 50:50 분할은 금지.' },
-  { id: 'frame', name: '카드·프레임', kind: 'composition', kvArea: [0.4, 0.6],
-    hint: '지면 위에 라운드 카드(창) 하나를 띄우고 키비주얼을 카드 안에 cover 로 담는다(radius 16~32px, 얇은 테두리 또는 부드러운 그림자). 글자는 카드 밖 지면 또는 카드 아래 띠에. 카드는 캔버스의 40~60%, 살짝 기울이거나 두 장을 겹쳐도 좋다. 누끼는 카드 밖으로 머리·몸 일부가 튀어나오게.' },
+  { id: 'motif', name: '그래픽 모티프 지면', kind: 'composition', kvArea: [0.35, 0.5],
+    hint: '키비주얼 **안에 실제로 있는** 모양 하나(그림 속 고리·띠·물결·건물 선 등)를 크게 확대해 지면에 은은하게(불투명도 낮게, 지면색과 같은 계열) 한 번 깐다 — 그림의 연장처럼 보여야 한다. 그림에 없는 모양(점 격자·빈 네모·체크·삼각형·별·궤도선·UI 아이콘)은 쓰지 않는다(11-19 사용자 「안 어울리는 그래픽」). 키비주얼은 캔버스 35~50%. 모티프 도형은 글자 덩어리(글자 상자 + 여백 0.5em)와 겹치지 않게 비운 자리에 둔다 — 도형 가장자리·선이 글자를 가로지르면 반려(11-09 r2 반려 1위). 글자 전체를 덮는 넓은 바탕 면은 예외.' },
+  { id: 'typehero', name: '타이포 주도', kind: 'composition', kvArea: [0.25, 0.4],
+    hint: '글자 덩어리가 지면의 중심 — 메인은 또렷하되 과하지 않게(메인 글자 덩어리 높이가 캔버스 짧은 변의 25~35%), 강조는 한 단어 색만. 키비주얼은 캔버스 25~40%로 지면 위에 자연스럽게 놓는다 — **원·라운드 창·카드에 가두지 않는다**(11-19 rq1 별로): 누끼는 그대로, 바탕 있는 그림은 한쪽 끝에 붙이고 그림 바탕색으로 지면에 녹인다. 지면은 단색 또는 아주 약한 같은 색상 그라데이션.' },
+  { id: 'diagonal', name: '분할 녹임 사선·곡선', kind: 'composition', kvArea: [0.35, 0.55],
+    hint: '(11-19 rq1: 단색 블록으로 사진을 딱 자른 안은 별로 — 디자이너는 사진 끝을 그림 가장자리색 지면으로 부드럽게 녹인다) 지면을 사선·곡선 방향으로 두 면으로 나누되 **경계는 mask-image 그라데이션으로 녹인다**(녹임 폭 = 그림 면 폭의 10~20%만 — 넓게 번지면 사진이 뿌옇게 번진 「애매한 그라데이션」(11-20 rq3 별로); 딱딱한 clip-path 직선 경계도 금지). 글자 면의 색은 **녹이는 그 가장자리에 실제로 있는 색**(그림 끝 색을 그대로 집은 색) — 다른 색으로 녹이면(초록 사진 끝을 파랑 지면으로) 탁해진다. 바탕 있는 일러스트(그림 바탕이 그라데이션·단색)는 이 구성을 쓰지 말고 그림 바탕을 지면 전체로 늘린다. 한 면 = 키비주얼 면(사진·바탕 있는 그림은 요소 상자를 이 면 크기로 두고 cover — 주인공이 면 안에 온전히, 글자 쪽 끝은 mask-image 로 투명하게), 다른 면 = **글자 면: 단색 또는 같은 색 2색 그라데이션만**(사진·패턴·도형이 글자 아래를 지나가지 않는다). 글자 상자(가장 긴 줄 끝까지)는 전부 글자 면 안, 사선 경계에서 메인 글자 1em 이상 떨어뜨린다 — 사선이 글자 쪽으로 기울어 끝 글자가 사진 위로 넘어가면 반려. 키비주얼 면은 사진으로 꽉 채운다(면 안에 회색·단색 빈 띠 금지 — 11-09 r2). 누끼만 경계선을 넘어 걸쳐 두 면을 잇는다. 장식 도형은 넣지 않는다. 세로 직선 50:50 분할은 금지.' },
+  { id: 'frame', name: '카드·프레임', kind: 'composition', kvArea: [0.4, 0.6],   // 11-19 rq1 평균 최하(8안 중 별로 7) — 기본 후보에서 뺌, 예비로만
+    hint: '지면 위에 라운드 카드(창) 하나를 띄우고 키비주얼을 카드 안에 cover 로 담는다(radius 16~32px, 얇은 테두리 또는 부드러운 그림자). 글자는 카드 밖 지면 또는 카드 아래 띠에. 카드는 캔버스의 40~60%. 카드 뒤 겹친 판·기울인 판은 쓰지 않는다.' },
   { id: 'axis', name: '가운데 축(대칭)', kind: 'composition', kvArea: [0.4, 0.6],
-    hint: '글자(서브·메인·정보 블록)를 **한 덩어리로** 가운데 정렬해 위 또는 아래 한쪽에만 모으고(키비주얼 위아래로 글자를 나누면 간격 규칙에 걸려 반려) 키비주얼을 가운데 축에 크게 세운다(캔버스 40~60%). 좌우 대칭의 안정감 — 정보 블록도 가운데 정렬(라벨 규칙은 그대로). 배경은 주인공 뒤 후광(원형 그라데이션)이나 바닥 그림자로 깊이를 준다.' },
+    hint: '글자(서브·메인·정보 블록)를 **한 덩어리로** 가운데 정렬해 위 또는 아래 한쪽에만 모으고(키비주얼 위아래로 글자를 나누면 간격 규칙에 걸려 반려) 키비주얼을 가운데 축에 크게 세운다(캔버스 40~60%). 좌우 대칭의 안정감 — 정보 블록도 가운데 정렬(라벨 규칙은 그대로). 배경은 주인공 뒤 후광(원형 그라데이션)이나 바닥 그림자로 깊이를 준다. 사진·바탕 있는 그림을 가운데 떠 있는 사각형(가장자리 뿌옇게)으로 두지 않는다 — 그림은 캔버스 좌우 끝까지 넓게(11-20 rq3 「이미지 비중 이상함, 차라리 좌우로 넓게」).' },
 ];
+// ── 타이포 방향(11-19 사용자 「타이포도 여러 스타일로 나와도 되잖아」 — rq1·rq2 100안 메인이 전부 Pretendard 700 한 가지였다).
+//   구성마다 다른 타이포 방향을 붙여 3안이 글자 인상도 갈리게. 서체는 그 규격 허용 목록 안에서만(자소설처럼 고정 서체면 굵기·크기 대비·자간으로만).
+export const TYPE_STYLES = {
+  display: { name: '굵은 디스플레이', fonts: ['Gmarket Sans', 'Paperlogy', 'A2Z'], hint: '메인은 각지고 단단한 디스플레이 서체를 가장 굵게, 자간 −0.03~−0.05em 로 촘촘히 — 힘 있는 헤드라인. 정보 블록은 본문 고딕(Pretendard·SUIT) Regular/Medium 으로 대비.' },
+  classic: { name: '정석 고딕', fonts: ['Pretendard', 'SUIT', 'NanumSquare Neo'], hint: '깔끔한 고딕 한 서체로 굵기(700/400)와 크기 위계만으로 정돈 — 기업 공채 안내문 같은 신뢰감. 장식적 강조 없이 줄 간격·여백으로 품위.' },
+  mixed: { name: '굵기 대비 혼합', fonts: ['Pretendard', 'SUIT', 'Freesentation'], hint: '메인 한 덩어리 안에서 굵기를 섞는다 — 회사명·연도는 가늘게(400~500), 「공개채용·신입사원 채용」 같은 핵심어는 굵게(700), 또는 그 반대. 한 줄에 두 굵기가 리듬을 만든다.' },
+  round: { name: '부드러운 라운드', fonts: ['NanumSquareRound', 'Kakao Big Sans', 'SUIT'], hint: '모서리가 둥근 서체로 친근하게 — 메인은 굵게, 서브·정보는 같은 계열 가는 굵기. 차갑고 딱딱한 그림이면 쓰지 않고 정석 고딕으로.' },
+};
+export const TYPE_OF_COMPOSITION = { bleed: 'mixed', diagonal: 'classic', axis: 'mixed', typehero: 'display', motif: 'round', frame: 'classic' };   // 11-20: 기본 3안이 bleed+typehero 를 같이 쓰게 돼 bleed 는 굵기 대비로
+export function typeStyleLines(compId, rules) {
+  const t = TYPE_STYLES[TYPE_OF_COMPOSITION[compId]]; if (!t) return [];
+  const fo = rules?.fonts ?? {}; const allowed = fo.required ? [fo.required] : (fo.allowed ?? []);
+  const fonts = t.fonts.filter(f => allowed.includes(f));
+  return [`## 타이포 방향: ${t.name} — 다른 안과 글자 인상이 갈리게`, `- ${t.hint}`,
+    fonts.length ? `- 메인 서체: ${fonts.join(' / ')} 중 하나(이 규격 허용 서체). 정보 블록은 읽기 쉬운 본문 고딕.` : `- 이 규격은 서체가 ${fo.required ?? allowed.join(', ')}(으)로 정해져 있다 — 서체는 그대로 두고 굵기·크기 대비·자간·줄바꿈으로 이 방향을 낸다.`];
+}
 export const compositionOf = id => COMPOSITIONS.find(c => c.id === id) ?? null;
 export const styleOf = id => STYLE_DIRECTIONS.find(s => s.id === id) ?? compositionOf(id) ?? null;
 // KV 유형 → 서로 다른 구성 3개. 캔버스 비율: 아주 긴 가로 띠(≥3)는 가운데 축 대신 타이포 주도, 세로형은 대각 대신 가운데 축
@@ -92,8 +108,9 @@ export function pickCompositions(kvMeta = null, rules = null, n = 3) {
   try { if (kvMeta?.field) character = !!kvTypeOf(kvMeta)?.flags?.character; } catch {}
   let ids;
   if (!kind) ids = ['typehero', 'motif', 'diagonal'];
-  else if (kind === 'photo') ids = ['bleed', 'diagonal', 'frame'];
-  else if (kind === 'illust') ids = ['bleed', 'frame', 'typehero'];
+  // 11-19 rq1: 카드·프레임 별로 7/8 → 뺌 · 11-20 rq3: 가운데 축 2.42(사진·일러스트 9안 중 ≥3 은 1) → 타이포 주도(3.27)로. 바탕 있는 일러스트는 분할도 이음매가 보여(2.0) 모티프로
+  else if (kind === 'photo') ids = ['bleed', 'typehero', 'diagonal'];
+  else if (kind === 'illust') ids = ['bleed', 'typehero', 'motif'];
   else if (kind === 'texture' || kind === 'pattern') ids = ['bleed', 'typehero', 'motif'];
   else if (kind === 'cutout') ids = character ? ['axis', 'motif', 'typehero'] : ['motif', 'typehero', 'axis'];   // 11-09 6단계 r1: 누끼 전면(bleed)은 1/6 통과(주인공이 글자와 겹치거나 아래가 뚝 잘림) → 가운데 축
   else ids = ['typehero', 'motif', 'diagonal'];
@@ -101,8 +118,8 @@ export function pickCompositions(kvMeta = null, rules = null, n = 3) {
   const swap = (from, to) => { const i = ids.indexOf(from); if (i >= 0 && !ids.includes(to)) ids[i] = to; };
   const swapAny = (from, tos) => { const i = ids.indexOf(from); if (i < 0) return; const to = tos.find(t => !ids.includes(t)); if (to) ids[i] = to; };
   if (ar >= 3) { swapAny('axis', ['typehero', 'motif', 'diagonal', 'bleed']); swap('frame', 'motif'); }
-  if (ar <= 0.8) swap('diagonal', 'axis');
-  const spare = ['typehero', 'motif', 'diagonal', 'frame', 'bleed', 'axis'].filter(x => !ids.includes(x));
+  if (ar <= 0.8) swapAny('diagonal', ['motif', 'axis']);   // 11-20 rq3: 세로형 가운데 축 별로
+  const spare = ['typehero', 'motif', 'diagonal', 'bleed', 'axis', 'frame'].filter(x => !ids.includes(x));
   while (ids.length < n && spare.length) ids.push(spare.shift());
   return ids.slice(0, n);
 }
@@ -110,11 +127,11 @@ export function pickCompositions(kvMeta = null, rules = null, n = 3) {
 // ── 정보 블록 프리셋 3종(규칙 3항). 글자 크기는 {px}(정보 글자), 라벨 폭 {lw}. 모델은 하나를 통째로 쓰고 크기만 맞춘다.
 export const INFO_PRESETS = [
   { id: 'badge', name: '뱃지형 2행', html: `<div data-field="date" style="position:absolute;left:48px;top:260px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="display:inline-block;width:76px;box-sizing:border-box;text-align:center;background:#111;color:#fff;font-weight:700;font-size:14px;line-height:24px;border-radius:5px;margin-right:10px;vertical-align:top;margin-top:2px">모집기간</span><span style="display:inline-block;vertical-align:top;font-weight:700">~10.31(토)</span></div>
-<div data-field="detail" style="position:absolute;left:48px;top:298px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="display:inline-block;width:76px;box-sizing:border-box;text-align:center;background:#111;color:#fff;font-weight:700;font-size:14px;line-height:24px;border-radius:5px;margin-right:10px;vertical-align:top;margin-top:2px">모집직무</span><span style="display:inline-block;vertical-align:top;font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
-    note: '두 행 모두 뱃지(같은 폭·같은 배경·같은 굵기), 행 피치 = 글자 2.1배(예 18px → 38px), 값은 vertical-align:top 으로 라벨과 같은 줄' },
+<div data-field="detail" style="position:absolute;left:48px;top:291px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="display:inline-block;width:76px;box-sizing:border-box;text-align:center;background:#111;color:#fff;font-weight:700;font-size:14px;line-height:24px;border-radius:5px;margin-right:10px;vertical-align:top;margin-top:2px">모집직무</span><span style="display:inline-block;vertical-align:top;font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
+    note: '두 행 모두 뱃지(같은 폭·같은 배경·같은 굵기), 행 피치 = 글자 1.7배(예 18px → 31px — 11-19·11-20 사용자 「접수기간·모집직무 사이 너무 멀어」, 더 벌리면 받는 쪽에서 자동으로 당긴다), 값은 vertical-align:top 으로 라벨과 같은 줄' },
   { id: 'bold', name: '볼드 라벨형 2행', html: `<div data-field="date" style="position:absolute;left:48px;top:260px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><b style="display:inline-block;width:5em;font-weight:700">모집기간</b><span style="font-weight:400">~10.31(토)</span></div>
-<div data-field="detail" style="position:absolute;left:48px;top:294px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><b style="display:inline-block;width:5em;font-weight:700">모집직무</b><span style="font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
-    note: '라벨은 <b> 고정 폭 5em(값 시작 x 같음), 값은 Regular, 행 피치 = 글자 1.9배(예 18px → 34px)' },
+<div data-field="detail" style="position:absolute;left:48px;top:291px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><b style="display:inline-block;width:5em;font-weight:700">모집직무</b><span style="font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
+    note: '라벨은 <b> 고정 폭 5em(값 시작 x 같음), 값은 Regular, 행 피치 = 글자 1.7배(예 18px → 31px)' },
   { id: 'divider', name: '세로 구분선형 가로 1행', html: `<div data-field="date" style="position:absolute;left:48px;top:270px;font-size:18px;line-height:28px;color:#111;white-space:nowrap"><span style="font-weight:700;margin-right:8px">모집기간</span><span style="font-weight:400">~10.31(토)</span></div>
 <div data-field="detail" style="position:absolute;left:240px;top:270px;font-size:18px;line-height:28px;color:#111;white-space:nowrap;border-left:1px solid rgba(17,17,17,.35);padding-left:16px"><span style="font-weight:700;margin-right:8px">모집직무</span><span style="font-weight:400">클라우드 플랫폼 엔지니어</span></div>`,
     note: '한 행에 가로로, 두 번째 요소의 border-left 가 구분선. 라벨 span 스타일은 둘이 같다(볼드 + margin-right). 가로형 규격에서 글자 덩어리 폭이 허락할 때만' },
@@ -287,7 +304,8 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   else if (logo?.dataUrl) {
     const lc = (logo.colors ?? []).filter(c => c?.hex);
     L.push(`- 로고: 최대 ${lg.count ?? 1}개${lg.w || lg.h ? ` · 크기 ${lg.w ?? '?'}×${lg.h ?? '?'}px` : ''} · 원본 비율 유지(object-fit:contain) · 안전영역 안 · 톤 ${logo.tone === 'light' ? '밝음(어두운 바탕 필요)' : '어두움/유색(밝은 바탕 필요)'}${lc.length ? ` · 로고 색 ${lc.map(c => `${c.hex} ${Math.round((c.share ?? 0) * 100)}%`).join(' · ')}` : ''}`);
-    L.push(`  - **로고가 바탕에 묻히면 반려**(검증기가 로고 픽셀마다 바로 아래 바탕과 대비를 잰다 — 픽셀 절반 이상이 2:1 이상). ${lc.length >= 2 && lc.some(c => /^#F[0-9A-F]F[0-9A-F]F[0-9A-F]$/i.test(c.hex)) && lc.some(c => !/^#F/i.test(c.hex)) ? '흰색과 진한 색이 섞인 로고 — 흰 부분과 진한 부분이 모두 보이는 중간 톤(브랜드 원색·채도 있는 색) 바탕, 또는 로고 뒤에 그런 색 판을 둔다. 흰 지면·크림 지면 위에 그대로 두지 않는다.' : '로고 톤과 반대 밝기의 바탕에 둔다.'}`);
+    L.push(`  - **로고 뒤에 판·알약·박스·둥근 바탕을 깔지 않는다**(11-19 사용자 평가 「퀄리티 구림」 1위 원인) — 로고는 지면 위에 그대로 얹는다.`);
+    L.push(`  - **로고가 바탕에 묻히면 반려**(검증기가 로고 픽셀마다 바로 아래 바탕과 대비를 잰다 — 픽셀 절반 이상이 2:1 이상). ${lc.length >= 2 && lc.some(c => /^#F[0-9A-F]F[0-9A-F]F[0-9A-F]$/i.test(c.hex)) && lc.some(c => !/^#F/i.test(c.hex)) ? '흰색과 진한 색이 섞인 로고 — **원본 색 그대로** 흰 부분과 진한 부분이 모두 보이는 중간 톤(브랜드 원색·채도 있는 색) 지면 위에 둔다(디자이너 시안 방식 — 로고 자리의 지면 톤을 맞춘다). 그래도 안 되면 마지막으로 단색(filter:brightness(0) invert(1) / brightness(0)) — 판·박스는 어떤 경우에도 쓰지 않는다(넣으면 자동으로 지운다).' : '로고 톤과 반대 밝기의 바탕에 둔다.'}`);
   }
   else L.push(`- 로고: 없음 — data-logo 요소를 만들지 않는다.`);
   if (rules.background) L.push(`- 배경 규정: ${String(rules.background).slice(0, 500)}`);
@@ -313,6 +331,12 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
     const fc0 = focusOf(kvMeta); const fc = fc0 ? { x: r2(fc0.x), y: r2(fc0.y), w: r2(fc0.w), h: r2(fc0.h) } : null;
     L.push(`- 유형 ${kvKindLabel(f.kind ?? kvMeta.kind)} · 원본 ${px} 비율 ${kvMeta.ar ? Number(kvMeta.ar).toFixed(3) : '?'}${kvMeta.colors?.length ? ` · 대표색 ${kvMeta.colors.join(' ')}` : ''}${kvMeta.edge ? ` · 가장자리색 ${kvMeta.edge}` : ''}${f.lum != null ? ` · 밝기 ${f.lum}` : ''}${fc ? ` · 주인공 위치(원본 비율) 중심 (${fc.x}, ${fc.y}) 크기 ${fc.w}×${fc.h}` : ''}`);
     if (images.kv) L.push(`- 그림 파일: ${images.kv} — **먼저 Read 도구로 열어 눈으로 본 뒤** 디자인한다.`);
+    if ((f.kind ?? kvMeta.kind) === 'illust' && f.edges) {   // 11-20 rq4 시트: 바탕 있는 일러스트 옆을 브랜드 남색 면으로 덮어 이음매 — 지면은 그림 바탕색 계열로
+      const lum = h => { const n = parseInt(String(h).slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 255000; };
+      const deep = [...(kvMeta.colors ?? [])].filter(c => /^#[0-9a-f]{6}$/i.test(c)).sort((a, b) => lum(a) - lum(b))[0];
+      const ed = ['top', 'left', 'right', 'bottom'].filter(k => f.edges[k]?.hex).map(k => `${({ top: '위', left: '왼쪽', right: '오른쪽', bottom: '아래' })[k]} ${f.edges[k].hex}`).join(' · ');
+      L.push(`- **지면색은 이 그림 바탕색 계열로**: 그림 가장자리 ${ed}. 흰 글자 대비가 모자라면 그림 안의 진한 색${deep ? ` ${deep}` : ''}을 지면으로 쓰고 그림 쪽으로 가장자리색까지 한 방향 그라데이션으로 이어 한 판처럼 보이게. 브랜드 남색·회색처럼 그림에 없는 어두운 색 면을 그림 옆에 붙이지 않는다(11-20 rq4 「그림 옆 다른 색 면」 이음매).`);
+    }
     else if (images.inline) L.push(`- 그림은 첫 번째 이미지로 첨부했다.`);
     if (fc) {   // 11-09 6단계: 앱 디자인 검수와 같은 판정을 게이트가 실측 — 주인공 상자를 지면 좌표로 환산해 글자·로고를 피한다
       L.push(`- **주인공 상자**(원본 그림 비율 0~1): x ${r2(fc.x - fc.w / 2)}~${r2(fc.x + fc.w / 2)} · y ${r2(fc.y - fc.h / 2)}~${r2(fc.y + fc.h / 2)}. 그림을 그린 위치·크기(cover·position)로 지면 좌표에 환산해, **글자 잉크가 이 상자와 15% 이상 겹치거나 로고가 5% 넘게 겹치면 반려**(검증기가 렌더로 실측 — 앱 디자인 검수와 같은 기준). 검증기는 키비주얼 요소 상자와 background-size·position(또는 object-fit)으로 그림이 그려진 자리를 잰다 — clip-path·mask 로 가린 부분도 그림으로 센다. 그러니 그림을 한 면에만 두려면 **요소 상자 자체를 그 면 크기로** 만들거나 background-size·position 으로 그 면에만 그린다.`);
@@ -327,12 +351,18 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
   L.push(`- 브랜드 색: ${cols.length ? cols.join(' ') : '없음 — 키비주얼 대표색에서 고른다'}`);
   L.push('');
   L.push(`## 디자인 원칙`);
-  L.push(`1. 타이포·패딩·여백이 안정적일 것 — 메인은 크고 굵게(지면의 주인), 서브는 메인의 40~55%, 가장 작은 글자도 메인의 0.3배 이상. 글자 상자 간 간격·바깥 여백은 일정한 리듬.`);
+  L.push(`1. 타이포·패딩·여백이 안정적일 것 — 메인은 위계가 분명할 만큼(키비주얼을 밀어낼 만큼 키우지 않는다), 서브는 메인의 40~55%, 가장 작은 글자도 메인의 0.3배 이상. 글자 상자 간 간격·바깥 여백은 일정한 리듬. **글자·로고는 지면 가장자리에서 짧은 변의 8% 이상 띄운다 — 특히 아래**(11-19 rq1 「아래 너무 붙음」). 메인 문구는 후보 중 시즌·채용 구분이 든 것을 먼저(디자이너 시안처럼 정보를 줄이지 않는다).`);
+    L.push(`   - 글자 덩어리는 위쪽 또는 세로 가운데에 — **아래로 처지지 않게**(덩어리 아래 여백 ≥ 위 여백, 11-19 rq2 「너무 아래로 쳐짐」).`);
+    L.push(`   - 정보 블록(접수기간·모집직무·고지): 행 사이 빈 간격은 정보 글자 크기의 0.2~0.4배로(피치 1.7배 — 디자이너 시안) **모든 행이 똑같이**(멀면 따로 노는 줄로 보인다 — rq2 「접수기간이랑 모집직무 사이 너무 멀어」·「간격 다 동일하게」). 라벨(접수기간·모집직무)은 값과 굵기 또는 색이 달라 한눈에 갈린다(rq2 「구분이 없어」). 행 앞 세로 줄(border-left 막대)은 쓰지 않는다 — 구분선은 가로 1행 프리셋의 두 요소 사이에만(세로 행의 막대는 받는 쪽에서 지운다).`);
+    L.push(`   - 정보 글자는 작게 숨기지 않는다 — 메인 글자의 1/3 안팎, 접수기간 **값**은 굵게(600~700): 지원자가 가장 먼저 찾는 정보(11-20 rq3 「모집 기간 텍스트 좀 커져도」·「접수기간이 볼드하면」).`);
   const comp = dir?.kind === 'composition' || input.language;
   if (comp) {   // 11-09 AI 트랙: 그래픽·패턴·컬러·강조는 자유 — 구성 지시와 가이드(대비·간격·잘림)만
     L.push(`2. 키비주얼은 아래 구성 지시의 크기로. 비율 유지(늘이기 금지), 주인공 잘림 금지(사진·일러스트는 한 변으로 흘려도 되지만 주인공은 온전히), 누끼는 누끼답게(바탕 네모가 보이지 않게). 주인공 위에는 글자를 올리지 않는다.`);
     L.push(`3. 이음이 자연스럽게 — 키비주얼과 지면 사이는 같은 계열 색·그라데이션·마스크(mask-image)로 잇는다. 테두리가 뚝 끊겨 보이면 안 된다(카드·프레임처럼 의도한 테두리는 예외).`);
-    L.push(`4. 지면·그래픽·패턴·컬러·강조(태그·색·굵기)·글꼴 섞기는 자유 — 키비주얼과 어울리는 그래픽(키비주얼의 모양·색에서 뽑은 SVG/CSS 도형·패턴)을 과감하게. 단 글자 가독과 위계를 해치지 않는다.`);
+    L.push(`   - 녹임은 짧고 정확하게: 녹임 폭은 그림 면의 10~20%, 녹여 닿는 지면색 = 그 가장자리의 실제 색. 넓고 뿌연 그라데이션·다른 색으로 녹이기·반투명 색 판 덮기는 「애매한 그라데이션」(11-20 rq3 별로 다수). 색이 안 맞으면 녹이지 말고 그림을 지면 끝까지 꽉 채운다.`);
+    L.push(`   - **바탕 있는 일러스트(그림 바탕이 그라데이션·단색)는 그림 바탕이 곧 지면** — 그림을 캔버스 전체에 cover 로 깔고(주인공은 position 으로 한쪽에), 그 위에 다른 색 면·반투명 판·스크림을 덮지 않는다. 글자는 그림 바탕의 빈 쪽에 바로 올린다(디자이너 시안 방식 — 11-20 rq3 일러스트 12안 중 ≥3 은 1: 그림 옆에 다른 색 면을 붙여 이음매가 보였다).`);
+    L.push(`   - 사진·바탕 있는 그림은 캔버스 두 변 이상에 닿게 둔다 — 가운데 떠 있는 사각형(가장자리만 뿌옇게)은 「이미지 비중 이상함」.`);
+    L.push(`4. 장식은 기본 **없음** — 디자이너 시안처럼 지면·키비주얼·글자 셋으로 완성한다(11-19 사용자 평가: 장식이 들어간 안 대부분 「별로」·「안 어울리는 그래픽」, 장식 없이 누끼를 넉넉히 둔 안이 「좋음」). 넣는다면 키비주얼 안 모양을 확장한 것 하나만 은은하게. **금지**: 점 격자·빈 네모·체크/UI 아이콘·삼각형·별·궤도선·정보 블록 앞 세로 줄·글자 뒤 알약/박스 강조·로고 판. 지면색은 키비주얼 가장자리색·대표색에서 먼저 고르고 브랜드색은 포인트로. 바탕 있는 그림(사진·일러스트)은 카드·원·창에 가두지 말고 그림 바탕을 지면으로 이어 쓴다.`);
     L.push(`5. 대비 — 글자와 그 바로 아래 바탕의 대비 ${CANON.contrastMin.small}:1 이상(${CANON.contrastMin.largePx}px 이상 글자는 ${CANON.contrastMin.large}:1). 강조색 한 가지까지.`);
     L.push(`   - 글자 상자(가장 긴 줄 끝까지)가 사진 위로 넘어가지 않게 — 넘으면 줄을 나누거나 글자 뒤에 판·스크림. 장식(SVG 도형·별·선·원·호·물결)은 글자 덩어리 밖에 — 도형의 가장자리·선이 글자 상자를 지나가면 반려(검증기가 글자 없는 렌더로 실측). 큰 원·호를 글자 뒤로 걸치는 연출은 쓰지 않는다.`);
   } else {
@@ -354,6 +384,7 @@ export function buildFreePrompt(input, { images = {}, retryErrors = null, retryH
     L.push(`- ${dir.hint}`);
     L.push(`- 키비주얼 면적 목표: 캔버스의 ${Math.round(dir.kvArea[0] * 100)}~${Math.round(dir.kvArea[1] * 100)}%.`);
     L.push(`- 금지: ${COMPOSITION_BAN}`);
+    L.push('', ...typeStyleLines(dir.id, rules));
   } else if (dir) {
     L.push('');
     L.push(`## 스타일 방향: ${dir.name}(${dir.id})`);
@@ -416,7 +447,8 @@ export function extractHtml(text) {
   // 루트 div 의 짝 </div> 까지만 — 뒤에 NOTES 등이 붙어 있을 수 있다
   let depth = 0, pos = 0; const re = /<div\b[^>]*>|<\/div>/gi; let m;
   while ((m = re.exec(body))) { depth += m[0][1] === '/' ? -1 : 1; if (depth === 0) { pos = m.index + m[0].length; break; } }
-  return pos ? body.slice(0, pos) : body;
+  // 11-19 rq2: 로고 판은 모델이 넣어도 걷어낸다 · 11-20 rq3: 정보 행 앞 막대 걷기 + 행 간격 1.7배로 당기기
+  return tightenInfoRows(stripInfoBars(stripLogoPlate(pos ? body.slice(0, pos) : body).html).html).html;
 }
 export function extractNotes(text) {
   const m = /^\s*NOTES?\s*[:：]\s*(.+)$/im.exec(String(text ?? '').replace(/```[\s\S]*?```/g, ''));
@@ -731,7 +763,7 @@ export async function tryAutoFix(X, html, raw, gate, dir, inp, k, restore = h =>
     { is: isContrastIssue, run: (r, f) => { const bad = (cur.gate.issues ?? []).filter(isContrastIssue).map(x => /^대비 (\w+)/.exec(x)?.[1]).filter(Boolean); const by = {}; for (const role of bad) { const c = (f.contrast ?? []).find(x => x.role === role); if (c?.bg == null) continue; by[role] = (1.05 / (c.bg + 0.05)) >= ((c.bg + 0.05) / 0.0555) ? '#FFFFFF' : '#111111'; } return Object.keys(by).length ? fixContrast(r, by, inp.rules) : null; } },
     { is: isStackIssue, tries: STACK_TRIES, run: (r, f) => { const sp = SPECS[inp.specId]; return fixStackCandidates(r, f.rows, { rules: TYPO_RULE_FIXED, hi: f.hi, H: f.H, safe: f.safe, obstacles: [f.subject, f.logo], want: f.want ?? 0, minPx: sp ? minTextPx(sp) : 0, legacy: stackBounds(f) }); } },   // 11-09 7단계: 후보 여러 개(붙는 쪽·글자 한 단계 축소) 중 게이트가 고른다
     { is: isLogoGapIssue, run: (r, f) => f.logo && f.want ? fixLogoGap(r, f.rows, f.logo, { want: f.want, H: f.H, safe: f.safe }) : null },
-    { is: isLogoBuried, run: r => (inp.logo?.colors ?? []).length ? fixLogoPlate(r, inp.logo.colors, [inp.brand?.primary, inp.brand?.secondary, ...(inp.kv?.meta?.colors ?? [])]) : null },
+    { is: isLogoBuried, tries: 2, run: r => fixLogoMono(r) },   // 11-19 rq1: 로고 판(fixLogoPlate)은 「퀄리티 구림」 1위 원인 → 흰/검정 단색 로고 후보
     { is: isKvGapIssue, run: (r, f) => f.subject && f.want ? fixKvGap(r, f.rows, f.subject, { want: f.want, cap: f.cap }) : null },
     { is: isLogoBigIssue, run: (r, f) => { const main = (f.rows ?? []).find(x => x.role === 'main'); return f.logo && main?.px ? fixLogoSize(r, f.logo, main.px * TYPO_RULE_FIXED.logoMaxMain) : null; } },
   ];

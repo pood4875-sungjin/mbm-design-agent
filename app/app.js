@@ -1628,7 +1628,43 @@ function bgControlHtml(styleLike, id) {
       <div class="fseg" id="${id}Seg" role="group" aria-label="배경 방식">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button type="button" data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
     ${cands.length ? `<div class="fchips"><span>${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
       `<button type="button" class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
-    ${grad ? gradientEditorHtml(editGradientOf(styleLike, f), id) : colorRowHtml({ id: `${id}Color`, value: f.stops[0], label: '배경 색' })}</div>`;
+    ${grad ? gradientEditorHtml(editGradientOf(styleLike, f), id) : colorRowHtml({ id: `${id}Color`, value: f.stops[0], label: '배경 색' })}
+    ${bgImageHtml(styleLike.background?.image ?? null, id)}</div>`;
+}
+// 11-18 노션 「[공통] 배경 이미지 삽입 및 채우기·편집 기능 확장」: 배경 = 색 + (선택) 장식 그림 한 장. 키비주얼(필수 영역이 있는 핵심 그림)과 따로 —
+//   배치 꽉 채우기(Fill) · 전체 보기(Fit) · 반복(Tile, 크기 조절) + 투명도 · 위치. 지면 위·키비주얼 아래에 깔린다(core/renderers/ad.js withBgImage)
+const BG_FITS = [['cover', '꽉 채우기'], ['contain', '전체 보기'], ['tile', '반복']];
+function bgImageHtml(B, id) {
+  if (!B?.src) return `<div class="flab sub" style="margin-top:8px"><span>배경 이미지</span></div>
+    <button type="button" class="btn full" id="${id}ImgAdd">배경 이미지 넣기</button><input type="file" id="${id}ImgFile" accept="image/*" hidden>
+    <div style="font-size:11px;color:var(--sub);margin-top:4px">사진·패턴을 소재 전체 배경으로 깔아요. 키비주얼은 그대로 위에 놓여요.</div>`;
+  const rng = (k, label, v, min, max, unit) => `<label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><span style="flex:0 0 64px">${label}</span><input type="range" id="${id}Img${k}" min="${min}" max="${max}" value="${Math.round(v)}" style="flex:1"><output style="flex:0 0 38px;text-align:right">${Math.round(v)}${unit}</output></label>`;
+  return `<div class="flab sub" style="margin-top:8px"><span>배경 이미지${B.name ? ` <em>· ${escH(B.name)}</em>` : ''}</span>${iconBtn('minus', '배경 이미지 빼기', `id="${id}ImgDel"`)}</div>
+    <div class="fline"><span class="bgprev" style="background:url(&quot;${escH(B.src)}&quot;) center/cover" role="img" aria-label="배경 이미지 미리보기"></span>
+      <div class="fseg" id="${id}ImgFit" role="group" aria-label="배경 이미지 배치">${BG_FITS.map(([k, v]) => `<button type="button" data-fit="${k}" class="${B.fit === k ? 'on' : ''}" aria-pressed="${B.fit === k}">${v}</button>`).join('')}</div></div>
+    ${rng('Op', '투명도', (B.opacity ?? 1) * 100, 0, 100, '%')}
+    ${B.fit === 'tile' ? rng('Tile', '반복 크기', B.tile ?? 30, 10, 100, '%') : `${rng('X', '가로 위치', B.x ?? 50, 0, 100, '%')}${rng('Y', '세로 위치', B.y ?? 50, 0, 100, '%')}`}
+    <button type="button" class="btn full" id="${id}ImgAdd" style="margin-top:6px">다른 이미지로 바꾸기</button><input type="file" id="${id}ImgFile" accept="image/*" hidden>`;
+}
+// 올린 그림은 긴 변 2400px 까지 줄여 data URL 로(캠페인 저장 용량) — 반복 패턴은 작아도 된다
+function readBgImageFile(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onerror = () => rej(new Error('그림을 읽지 못했어요'));
+    r.onload = () => { const im = new Image(); im.onerror = () => rej(new Error('그림 형식을 읽지 못했어요')); im.onload = () => { const k = Math.min(1, 2400 / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 1 && file.size < 3e6) return res(r.result); const cv = document.createElement('canvas'); cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); res(cv.toDataURL(/png|gif|webp/.test(file.type) ? 'image/png' : 'image/jpeg', 0.9)); }; im.src = r.result; };
+    r.readAsDataURL(file); });
+}
+// 배경 이미지 칸 묶기 — set(nextImageOrNull, label) 은 저장·다시 그리기, live(next) 는 끄는 동안 미리보기(없으면 set)
+function bindBgImage(root, id, cur, set, live = null) {
+  const q = s => root.querySelector('#' + id + s);
+  q('ImgAdd')?.addEventListener('click', () => q('ImgFile')?.click());
+  q('ImgFile')?.addEventListener('change', async e => { const f = e.target.files?.[0]; if (!f) return; try { const src = await readBgImageFile(f); set({ ...(cur ?? { fit: 'cover', opacity: 1, tile: 30, x: 50, y: 50 }), src, name: f.name }, '배경 이미지 넣기'); } catch (err) { toast(err.message); } });
+  q('ImgDel')?.addEventListener('click', () => set(null, '배경 이미지 빼기'));
+  root.querySelectorAll(`#${id}ImgFit button`).forEach(b => b.onclick = () => set({ ...cur, fit: b.dataset.fit }, '배경 이미지 배치'));
+  for (const [k, f, div] of [['Op', 'opacity', 100], ['Tile', 'tile', 1], ['X', 'x', 1], ['Y', 'y', 1]]) {
+    const el = q('Img' + k); if (!el) continue;
+    const val = () => ({ ...cur, [f]: +el.value / div });
+    el.oninput = () => { const o = el.nextElementSibling; if (o) o.textContent = el.value + '%'; (live ?? set)(val(), null); };
+    el.onchange = () => set(val(), { opacity: '배경 이미지 투명도', tile: '배경 이미지 반복 크기', x: '배경 이미지 위치', y: '배경 이미지 위치' }[f]);
+  }
 }
 
 // 고른 소재 중 지금 키비주얼로는 그림이 빠지고 오브젝트 누끼가 필요한 자리 — "알바몬·에브리타임 3곳"
@@ -1659,7 +1695,7 @@ function reslotStyle() { const t = $('slot').querySelector('.card2')?.scrollTop 
 function slotStyle() { slotStyleBody(); wireFui($('slot')); }
 function slotStyleBody() {
   const it = state.intake;
-  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor } };
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor, ...(it.bgImage ? { image: it.bgImage } : {}) } };
   const bgStyle = { ...adStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: !!it.colorsManual, background: { ...adStyle.background, gradient: it.bgGradient ?? null } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
@@ -1697,6 +1733,7 @@ function slotStyleBody() {
   if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
   if ($('bgGrad')) bindGradientEditor($('bgGrad'), editGradientOf(bgStyle, resolveField(bgStyle, { facing: 'left' })), { id: 'bg', onChange: g => { it.bgGradient = g; reslotStyle(); }, onPreview: css => { const p = $('slot').querySelector('.bgprev'); if (p) p.style.background = css; } });
   if ($('bgGradReset')) $('bgGradReset').onclick = () => { it.bgGradient = null; reslotStyle(); };
+  bindBgImage(document, 'bg', it.bgImage ?? null, (img, label) => { it.bgImage = img; if (label) reslotStyle(); });   // 11-18 노션 배경 이미지
   $('bgUse')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.kvUse = b.dataset.u; slotStyle(); });
   if ($('kvTypeSel')) $('kvTypeSel').onchange = () => {
     const v = $('kvTypeSel').value; it.kvTypeOverride = v === 'auto' ? null : v;
@@ -2097,7 +2134,7 @@ function buildAndGenerate() {
     objectMeta: it.objectMeta ?? null,
     references: it.references ?? [],   // 참고용(10-28) — 렌더 안 씀
     mode: it.mode,
-    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null, gradient: it.bgGradient ?? null },
+    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null, gradient: it.bgGradient ?? null, ...(it.bgImage ? { image: it.bgImage } : {}) },
     kvUse: it.kvUse ?? 'auto',
     kvTypeOverride: it.kvTypeOverride ?? null,
     aiSlots: it.aiSlots ?? null,
@@ -2201,10 +2238,8 @@ function layoutArtboard(opts = {}) {
   for (const { name, arts: rowArts, stage } of rows) {
     if (!rowArts.length) continue;
     let x = 60, rowH = 0;
-    if (stage && stage !== lastStage) {   // 차수 머리글(하 · 1차 적용 …) — 차수가 바뀌는 줄 위에
+    if (stage && stage !== lastStage) {   // 차수가 바뀌는 줄 — 11-18 노션 「상단 문구 삭제요청」: 차수 머리글(하 · 1차 적용 · 15장 → 17종)은 걷고 매체명이 맨 위. 차수 사이 간격만 남긴다
       if (lastStage != null) y += 36;
-      const sh = document.createElement('div'); sh.className = 'stagehead'; sh.style.left = '60px'; sh.style.top = (y - 126) + 'px';
-      sh.textContent = `${STAGE_NAMES[stage] ?? (stage === 5 ? '참고 규격' : `${stage}차`)} · ${countText(rows.filter(r => r.stage === stage).flatMap(r => r.arts))}`; board.appendChild(sh);
       lastStage = stage;
     }
     const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${countText(rowArts)}`; head.onclick = () => SEL.toggleGroup(rowArts.map(a => a.key ?? a.specId)); board.appendChild(head);   // 선택 모드에서 매체 머리글 = 그 매체 전체 토글
@@ -2671,11 +2706,16 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
 {
   const vp = $('viewport');
   let panning = false, sx = 0, sy = 0;
+  // 11-18 노션 「[공통] 화면 이동 시 오류 현상」: 끌어서 이동할 때 브라우저 기본 동작(글자 선택 파랗게 · 그림 끌기 반투명 사본·🚫 · 놓아도 안 풀림 · 우클릭 메뉴)이 같이 일어났다 —
+  //   왼쪽(·가운데) 버튼만 이동, 기본 선택·끌기를 막고, 포인터를 놓치면(취소·캡처 잃음·창 밖에서 놓음) 이동을 끝낸다
+  const endPan = () => { if (!panning) return; panning = false; vp.classList.remove('panning'); };
   vp.addEventListener('pointerdown', e => {
+    if (e.button !== 0 && e.button !== 1) return;   // 오른쪽 버튼은 이동이 아니다
     if (SEL.pointerDown(e)) return;   // 선택 모드: 빈 곳 드래그 = 선택 상자(Space 누르면 화면 이동)
     if (e.target.closest('.hit')) return;
+    if (!e.target.closest('input,textarea,select,[contenteditable="true"]')) e.preventDefault();   // 글자 선택·그림 끌기 시작을 막는다(입력칸은 그대로)
     panning = true; sx = e.clientX - state.panX; sy = e.clientY - state.panY;
-    vp.classList.add('panning'); vp.setPointerCapture(e.pointerId);
+    vp.classList.add('panning'); try { vp.setPointerCapture(e.pointerId); } catch {}
     if (!e.target.closest('.frame') && (state.selected != null || state.elSel != null)) select(null);   // 이미 해제면 인스펙터를 다시 그리지 않는다(11-09 성능 — 팬 시작마다 autoTrace 47장)
   });
   vp.addEventListener('pointermove', e => {
@@ -2684,7 +2724,14 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
     state.panX = e.clientX - sx; state.panY = e.clientY - sy;
     applyTransform();
   });
-  vp.addEventListener('pointerup', () => { SEL.pointerUp(); panning = false; vp.classList.remove('panning'); });
+  vp.addEventListener('pointerup', () => { SEL.pointerUp(); endPan(); });
+  vp.addEventListener('pointercancel', () => { SEL.pointerUp(); endPan(); });
+  vp.addEventListener('lostpointercapture', endPan);
+  window.addEventListener('blur', endPan);
+  vp.addEventListener('dragstart', e => { if (!e.target.closest?.('[draggable="true"]')) e.preventDefault(); });   // 그림·글자를 끌어 사본이 따라오던 것(🚫)
+  vp.addEventListener('selectstart', e => { if (!e.target.closest?.('input,textarea,[contenteditable="true"]')) e.preventDefault(); });
+  vp.addEventListener('contextmenu', e => { if (panning) e.preventDefault(); });
+  vp.addEventListener('pointermove', e => { if (panning && e.buttons === 0) endPan(); }, true);   // 버튼이 이미 떼어졌는데 이동이 이어지던 것
   SEL.bind();
   vp.addEventListener('wheel', e => {
     e.preventDefault();
@@ -3477,6 +3524,7 @@ function renderInspectorBody() {
     insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
     if (insp.querySelector('#iBgGrad')) { const f0 = resolveField(c.style, { facing: 'left' }); bindGradientEditor(insp.querySelector('#iBgGrad'), editGradientOf(c.style, f0), { id: 'iBg', onChange: g => setBg({ gradient: g }, '그라데이션 직접 설정'), onLive: g => liveStyle(c, { background: { ...c.style.background, gradient: g } }, { colors: curColors(), keepPrev: true }), onPreview: css => { const p = insp.querySelector('.bgprev'); if (p) p.style.background = css; } }); }
     insp.querySelector('#iBgGradReset')?.addEventListener('click', () => setBg({ gradient: null }, '그라데이션 자동으로'));
+    bindBgImage(insp, 'iBg', c.style.background?.image ?? null, (img, label) => { if (!label) return liveStyle(c, { background: { ...c.style.background, image: img } }, { colors: curColors(), keepPrev: true }); const { image, ...rest } = c.style.background ?? {}; softly(() => restyle({ background: img ? { ...rest, image: img } : rest }, label)); renderInspector(); });   // 11-18 노션 배경 이미지
     insp.querySelector('#iKvType')?.addEventListener('change', e => {
       const v = e.target.value === 'auto' ? null : e.target.value;
       restyle({ kvTypeOverride: v }, v ? '키비주얼 유형 지정' : '키비주얼 유형 자동');
@@ -4317,11 +4365,11 @@ function artifactFontHtml(a, c) {
   return `<label>폰트 <span style="opacity:.6">공통: ${escH(FONTS[c.style.fonts.heading]?.label ?? c.style.fonts.heading)}</span></label>
       <select id="iFontOv"><option value="" ${ov ? '' : 'selected'}>공통 따름</option>${fontOptions(ov)}</select>${r.recommended ? `<div style="font-size:11px;color:var(--sub);margin-top:4px">매체 권장: ${escH(r.recommended)}</div>` : ''}`;
 }
-async function adSvgOf(a, imgCache) {
-  const spec = SPECS[a.specId];
+async function adSvgOf(a, imgCache, nameSpecId = null) {   // nameSpecId: 「+1 같이 추출」 쌍둥이 규격 — 그림은 원본 규격, 파일 이름은 쌍둥이 규격(11-18 노션 「SVG 파일명 중복」)
+  const spec = SPECS[a.specId], nameSpec = SPECS[nameSpecId] ?? spec;
   const html = applyElementEdits(renderArtifact(a.specId, adEffCtx(a), adEffStyle(a), artRenderOpts(a)), a.overrides?.elements, spec);   // 보드와 같은 옵션(시안 번호·용도·화살표·규격) — renderAd 직접 호출은 variant 를 잃었다
   // SVG 파일 이름의 치수는 프레임 크기(작업 1배) — 제출 2배로 적으면 「…1100x800.svg」를 열었는데 550×400 이라 혼란(노션 SVG 프레임)
-  const c0 = state.campaign, core0 = c0.context.core, svgName = adFileNameOf({ client: c0.kind === 'recruit' ? core0.client : core0.name, mediumName: spec.mediumName, spec: { ...spec, submitW: spec.w, submitH: spec.h }, ext: 'svg' });
+  const c0 = state.campaign, core0 = c0.context.core, svgName = adFileNameOf({ client: c0.kind === 'recruit' ? core0.client : core0.name, mediumName: nameSpec.mediumName, spec: { ...nameSpec, submitW: nameSpec.w, submitH: nameSpec.h }, ext: 'svg' });
   const r = await htmlToSvg(html, spec, { imgCache, title: svgName.replace(/\.svg$/, '') });
   return { ...r, name: svgName };
 }
@@ -4396,7 +4444,7 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
       P.phase('SVG(피그마 편집용) 만드는 중'); P.grow(svgTargets.length);
       for (const f of svgTargets) {
         await P.step(boardLabel(f.a));
-        const r = await adSvgOf(f.a, cache); P.tick();
+        const r = await adSvgOf(f.a, cache, f.twinId ?? null); P.tick();
         r.fallbacks.forEach(x => svgFallbacks.add(x));
         const isBlocked = f.fit.lint.level === 'block'; if (isBlocked) svgBlocked++;
         const pre = (isBlocked || unapprovedKey.has(f.a?.key ?? f.a?.specId ?? f.spec.id)) ? '미승인_검토용/' : '';

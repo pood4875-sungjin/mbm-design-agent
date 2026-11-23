@@ -8,7 +8,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '../..');
 const OUT = path.join(ROOT, 'ref/learned/cases/_out/figma-frames');
 const PLAN = path.join(OUT, '_plan'), CODE = path.join(OUT, '_code');
 const MEDIA_ORDER = ['jasoseol', 'remember', 'jobda', 'catch', 'google-gdn', 'nap-dsp', 'instagram', 'kakao', 'naver-gfa', 'everytime', 'blind', 'daangn', 'albamon', 'gamejob', 'specup'];

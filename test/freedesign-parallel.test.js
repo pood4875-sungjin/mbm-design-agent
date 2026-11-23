@@ -23,26 +23,26 @@ const reply = (html, extra = '') => ({ text: '```html\n' + html + '\n```\nNOTES:
 
 test('구성 축 — KV 유형별로 서로 다른 구성 3개 · 아주 긴 띠는 가운데 축 대신 타이포 · 프롬프트에 구성 지시 + 분할 금지 + LANGUAGE 요청', () => {
   const r580 = rulesForSpec('google-gdn-580x400');
-  assert.deepEqual(pickCompositions({ kind: 'photo', field: { kind: 'photo' } }, r580), ['bleed', 'diagonal', 'frame']);
+  assert.deepEqual(pickCompositions({ kind: 'photo', field: { kind: 'photo' } }, r580), ['bleed', 'typehero', 'diagonal']);
   assert.deepEqual(pickCompositions({ kind: 'cutout', field: { kind: 'cutout' } }, r580), ['motif', 'typehero', 'axis']);
-  assert.deepEqual(pickCompositions({ field: { kind: 'illust' } }, r580), ['bleed', 'frame', 'typehero']);
+  assert.deepEqual(pickCompositions({ field: { kind: 'illust' } }, r580), ['bleed', 'typehero', 'motif']);
   assert.deepEqual(pickCompositions(null, r580), ['typehero', 'motif', 'diagonal']);
   for (const m of [{ kind: 'photo', field: { kind: 'photo' } }, { field: { kind: 'texture' } }, { field: { kind: 'cutout' } }]) { const ids = pickCompositions(m, r580); assert.equal(new Set(ids).size, 3, '서로 다름'); assert.ok(ids.every(id => COMPOSITIONS.some(c => c.id === id))); }
   const wide = pickCompositions({ field: { kind: 'cutout', focus: { x: .5, y: .5, w: .5, h: .9, density: .7 } }, ar: .6, focus: { x: .5, y: .5, w: .5, h: .9 } }, { w: 2240, h: 360 });
   assert.ok(!wide.includes('axis'), wide.join());
   const p = buildFreePrompt(input('google-gdn-580x400'), { images: { kv: '/tmp/kv.png' }, style: 'diagonal' });
-  assert.ok(p.includes('## 구성: 분할 대각·곡선(diagonal)') && p.includes(COMPOSITION_BAN) && p.includes('LANGUAGE:') && p.includes('키비주얼 면적 목표'));
+  assert.ok(p.includes('## 구성: 분할 녹임 사선·곡선(diagonal)') && p.includes(COMPOSITION_BAN) && p.includes('LANGUAGE:') && p.includes('키비주얼 면적 목표'));
   assert.ok(!p.includes('배경은 네 디자인이지만 절제한다'), '구성 모드에선 「배경 절제」 원칙 대신 그래픽 자유');
   const hint = buildFreePrompt(input('google-gdn-580x400', { prompt: '밝고 경쾌하게, 일정 강조' }), { style: 'bleed' }); assert.ok(hint.includes('사용자 요청') && hint.includes('밝고 경쾌하게'));
   const legacy = buildFreePrompt(input('google-gdn-580x400'), { style: 'dark' }); assert.ok(legacy.includes('## 스타일 방향: 어두운 비주얼형(dark)') && !legacy.includes('LANGUAGE:'), '옛 톤 방향은 그대로');
 });
 
 test('병렬 3안 — 방향마다 별도 호출이 동시에(상한 3) · 끝난 순서대로 onVariant · 결과 variants 는 방향 순서 · language 가 붙는다', async () => {
-  let live = 0, maxLive = 0; const delay = { bleed: 60, diagonal: 10, frame: 35 };
-  const run = async (prompt) => { live++; maxLive = Math.max(maxLive, live); const id = /## 구성: [^(]+\((\w+)\)/.exec(prompt)[1]; await sleep(delay[id]); live--; return reply(htmlFor('google-gdn-580x400', 580, 400), `LANGUAGE: {"ground":"linear-gradient(135deg,#0B1440,#17296B)","palette":["#0B1440","#2A75CE"],"emphasis":{"kind":"tag","color":"#2A75CE"},"note":"${id}"}`); };
+  let live = 0, maxLive = 0; const delay = { bleed: 60, diagonal: 10, typehero: 35 };
+  const run = async (prompt) => { live++; maxLive = Math.max(maxLive, live); const id = /## 구성: .*\((\w+)\) —/.exec(prompt)[1]; await sleep(delay[id]); live--; return reply(htmlFor('google-gdn-580x400', 580, 400), `LANGUAGE: {"ground":"linear-gradient(135deg,#0B1440,#17296B)","palette":["#0B1440","#2A75CE"],"emphasis":{"kind":"tag","color":"#2A75CE"},"note":"${id}"}`); };
   const order = []; const stages = [];
   const out = await freeDesign(input('google-gdn-580x400', { spare: 0 }), { run, onVariant: v => order.push(v.style.id), onStage: s => stages.push(s) });   // 예비 없음(옛 3안 계약) — 예비는 freeloop7 테스트
-  assert.equal(maxLive, 3, '3안 동시'); assert.deepEqual(order, ['diagonal', 'frame', 'bleed'], '끝난 순서'); assert.deepEqual(out.variants.map(v => v.style.id), ['bleed', 'diagonal', 'frame']);
+  assert.equal(maxLive, 3, '3안 동시'); assert.deepEqual(order, ['diagonal', 'typehero', 'bleed'], '끝난 순서'); assert.deepEqual(out.variants.map(v => v.style.id), ['bleed', 'typehero', 'diagonal']);
   assert.equal(stages[0], 'kv');
   for (const v of out.variants) { assert.ok(v.ok && !v.rejected && v.valid.ok && v.html.includes(KV) && typeof v.ms === 'number'); assert.equal(v.language.source, 'mixed'); assert.equal(v.language.emphasis.kind, 'tag'); assert.equal(v.language.composition.id, v.style.id); assert.ok(v.language.palette.includes('#2A75CE')); }
   assert.equal(out.calls.length, 3); assert.ok(out.calls.every(c => c.kind === 'gen' && c.model === 'stub-model' && c.ms >= 0)); assert.ok(out.firstMs < 60);
@@ -53,12 +53,12 @@ test('병렬 3안 — 방향마다 별도 호출이 동시에(상한 3) · 끝�
 
 test('게이트 — 측정 위반이면 사유 + 방금 HTML 로 1회 재요청 → 통과면 채택, 그래도 위반이면 rejected(숨김) · 계약 위반도 같은 예산', async () => {
   const prompts = [], opts = [];
-  const run = async (prompt, o) => { prompts.push(prompt); opts.push(o); if (prompt.includes('## 다시 —')) return reply(htmlFor('google-gdn-580x400', 580, 400)); const id = /## 구성: [^(]+\((\w+)\)/.exec(prompt)[1]; return reply(htmlFor('google-gdn-580x400', 580, 400, { bad: id === 'frame' })); };
+  const run = async (prompt, o) => { prompts.push(prompt); opts.push(o); if (prompt.includes('## 다시 —')) return reply(htmlFor('google-gdn-580x400', 580, 400)); const id = /## 구성: .*\((\w+)\) —/.exec(prompt)[1]; return reply(htmlFor('google-gdn-580x400', 580, 400, { bad: id === 'typehero' })); };
   const measure = async (html, dir, inp, k) => ({ issues: dir.id === 'diagonal' ? ['대비 main 2.1:1 < 3:1 — 글자 뒤 바탕을 정리'] : dir.id === 'bleed' && k === 1 ? ['4항-1 gap-tight: sub>main 간격 2px'] : [], png: null });
   const out = await freeDesign(input('google-gdn-580x400', { spare: 0 }), { run, measure });
   const by = Object.fromEntries(out.variants.map(v => [v.style.id, v]));
   assert.ok(by.bleed.ok && by.bleed.attempts === 2 && !by.bleed.rejected, '측정 위반 → 재요청 → 통과');
-  assert.ok(by.frame.ok && by.frame.attempts === 2, '계약 위반(자간) → 재요청 → 통과');
+  assert.ok(by.typehero.ok && by.typehero.attempts === 2, '계약 위반(자간) → 재요청 → 통과');
   assert.ok(by.diagonal.rejected && !by.diagonal.valid.ok && by.diagonal.attempts === 2 && /대비/.test(by.diagonal.errors[0]), '두 번 다 위반 → rejected');
   const retryP = prompts.filter(p => p.includes('## 다시 —'));
   assert.equal(retryP.length, 3); assert.ok(retryP.every(p => p.includes('## 현재 HTML') && p.includes(KV_PLACEHOLDER) && !p.includes(KV) && !p.includes('## 구성:')), '재요청 = 걸린 것만 고치기 짧은 프롬프트 + 방금 HTML(자리표시)');
@@ -111,8 +111,8 @@ test('jobs — suggest 병렬: partial 이 끝난 순서로 쌓이고 progress·
   const tmp = mkdtempSync(path.join(tmpdir(), 'fdp-'));
   const json = (res, code, body) => { res.code = code; res.body = body; };
   const readBody = req => Promise.resolve(Buffer.from(JSON.stringify(req._body ?? {})));
-  const delay = { bleed: 220, diagonal: 10, frame: 130 };
-  const run = async (prompt) => { const id = /## 구성: [^(]+\((\w+)\)/.exec(prompt)?.[1]; if (id) await sleep(delay[id]); return reply(htmlFor('google-gdn-580x400', 580, 400)); };
+  const delay = { bleed: 220, diagonal: 10, typehero: 130 };
+  const run = async (prompt) => { const id = /## 구성: .*\((\w+)\) —/.exec(prompt)?.[1]; if (id) await sleep(delay[id]); return reply(htmlFor('google-gdn-580x400', 580, 400)); };
   const engine = (body, hooks) => freeDesign({ ...body, spare: 0 }, { ...hooks, run, measure: async () => ({ issues: [] }) });
   const deps = { json, readBody, freeDesign: engine, freeRevise: (b, h) => freeRevise(b, { ...h, run }), freeSpread: (b, h) => freeSpread(b, { ...h, run: async p => { const sid = /규격 id: ([\w-]+)/.exec(p)[1]; return reply(htmlFor(sid, ...{ 'nap-dsp-full-300x250': [300, 250], 'google-gdn-580x400': [580, 400] }[sid])); } }), check: async () => ({ ok: true, loggedIn: true }), dir: tmp };
   const call = async (method, p, body) => { const res = {}; await handleFreeJobs({ method, _body: body }, res, { pathname: p }, deps); return res; };
@@ -122,7 +122,7 @@ test('jobs — suggest 병렬: partial 이 끝난 순서로 쌓이고 progress·
   const mid = await call('GET', '/api/freedesign/jobs/' + a.body.jobId);
   assert.equal(mid.body.status, 'running'); assert.ok(['kv', 'review'].includes(mid.body.stage), mid.body.stage); assert.equal(mid.body.partial.length, 1); assert.equal(mid.body.partial[0].style.id, 'diagonal'); assert.deepEqual(mid.body.progress, { done: 1, total: 3 });
   const j = await waitJob(a.body.jobId);
-  assert.deepEqual(j.partial.map(v => v.style.id), ['diagonal', 'frame', 'bleed'], '옛 톤 3종 → 구성 자동(사진 KV)'); assert.equal(j.stage, 'done'); assert.equal(j.result.engine, 'claude-code', 'api 엔진은 FREEDESIGN_API=1 일 때만');
+  assert.deepEqual(j.partial.map(v => v.style.id), ['diagonal', 'typehero', 'bleed'], '옛 톤 3종 → 구성 자동(사진 KV)'); assert.equal(j.stage, 'done'); assert.equal(j.result.engine, 'claude-code', 'api 엔진은 FREEDESIGN_API=1 일 때만');
   assert.equal(API_ENGINE_ENABLED, false); assert.deepEqual(enginesAvailable({ client: {}, cc: true }), ['claude-code']);
   const done = await call('GET', '/api/freedesign/jobs/' + a.body.jobId); assert.equal(done.body.etaMs, 0); assert.equal(done.body.result.variants.length, 3); assert.ok(done.body.stats.firstMs < done.body.stats.totalMs); assert.equal(done.body.stats.calls.length, 3);
   const file = JSON.parse(readFileSync(path.join(tmp, a.body.jobId + '.json'), 'utf8')); assert.equal(file.partial, undefined, '파일엔 result 만'); assert.equal(file.result.variants.length, 3);

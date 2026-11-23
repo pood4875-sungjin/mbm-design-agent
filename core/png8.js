@@ -92,6 +92,8 @@ export function fitLadder(formats = [], alpha = false, { flat = false } = {}) {
   const out = [];
   if (jpgOk && !alpha) for (const q of flat ? [0.85, 0.72, 0.6, 0.5, 0.4] : [0.92, 0.85, 0.75, 0.65, 0.55, 0.45]) out.push({ format: 'jpg', quality: q, label: `${flat ? '단색 배경 + ' : ''}JPG 품질 ${q}` });
   if (pngOk && (!jpgOk || alpha)) {
+    // 11-20 노션 「사이트 내 용량 수정」 재검수(11-17 [16] PSNR 7~8dB 낮음): 손실 적은 단계부터 — 채널 64·32단계(색 수는 그대로, 미세한 계조만) → 팔레트 PNG → 채널 16단계
+    if (!flat) for (const q of [64, 32]) out.push({ format: 'png', quantize: q, label: `PNG 색 ${q}단계` });
     for (const c of flat ? [128, 64, 32] : [256, 128, 64]) out.push({ format: 'png', png8: c, label: `${flat ? '단색 배경 + ' : ''}PNG ${c}색` });
     out.push({ format: 'png', quantize: flat ? 8 : 16, label: `${flat ? '단색 배경 + ' : ''}PNG 색 ${flat ? 8 : 16}단계` });
   }

@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const core = f => import(pathToFileURL(path.join(ROOT, 'core', f)).href);
 const { adSpecEntries } = await core('adspecs.js'); const { registerAll } = await core('generate.js'); const { renderArtifact } = await core('contract.js');
 const { createContext } = await core('context.js'); const { normalizeStyle } = await core('style.js');

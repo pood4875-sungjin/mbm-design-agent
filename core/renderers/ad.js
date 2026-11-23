@@ -69,6 +69,16 @@ export function joinedRoleHeads(s) {
 // 이 규격에 서브(추가 문구) 자리가 실제로 서나 — 규정표만으로는 모른다(서브 칸이 있어도 날짜가 그 자리를 쓰는 잡다 PC·비즈보드, 규정이 없어 기본 슬롯만 있는 구글·NAP 은 서브가 안 섰다 — 11-10 실측 49규격 중 7).
 //   짧은 시험 문구로 한 번 그려 보고(규격·안마다 한 번, 캐시) 서브 줄에 그 문구가 섰는지 본다. 「모든 소재에서 빼기」한 서브는 자리가 없는 것과 같다
 const SUB_SHOWS = new Map(), SUB_PROBE = '추가문구';
+// 11-18 노션 「가이드 범위 초과 시 초과 글자만 생략」: 적은 문구를 들어가는 데까지(낱말 단위, 줄바꿈 유지)만 — 첫 낱말도 안 들어가면 글자 단위. 아무것도 안 들어가면 ''
+// 서브에 적은 말이 시즌·기수(「2026 하반기」「8기」)면 디자이너 시안처럼 기업명을 뒤에 붙여도 된다(「2026 하반기 GC녹십자그룹」, figma-spec-sample) — 그 밖의 말(회사명·슬로건)은 적은 그대로(11-18 노션)
+export const seasonish = t => { const v = String(t ?? '').trim(); return !!v && [...v].length <= 14 && /^(?:(?:19|20)\d{2}\s?년?\s?)?(?:상반기|하반기|상·하반기|[1-9]\d?\s?기|(?:19|20)\d{2}\s?년?)(?:\s?(?:신입|경력|수시|공채|채용|공개채용|정기))*$/.test(v); };
+export function cutToFit(text, fits) {
+  const t = String(text ?? '').trim(); if (!t) return '';
+  if (fits(t)) return t;
+  const toks = t.split(/(\s+)/); let out = '';
+  for (let i = 0; i < toks.length; i++) { const next = (out + toks[i]); if (/^\s+$/.test(toks[i])) { out = next; continue; } if (fits(next.trim())) out = next; else { if (!out.trim()) { let c = ''; for (const ch of toks[i]) { if (fits(c + ch)) c += ch; else break; } out = c; } break; } }
+  return out.trim();
+}
 function subShows(ctx, style, spec) {
   if (String(ctx.core?.omit ?? '').split(',').map(t => t.trim()).includes('sub')) return false;
   const key = `${spec.id ?? spec.name}|${spec.variant ?? 0}`;
@@ -132,7 +142,7 @@ export function copyLadder(ctx) {
     const season = yr0 && [c.hiringType, c.employType, c.headline].some(v => String(v ?? '').includes(yr0)) ? null : season0;   // 11-09 컨시어지 「시즌 미작성 시 예시가 자동 입력」: 적은 시즌만 쓴다(10-06 마감일 유추 「2026 하반기」 폐지 — 입력 안 한 정보는 넣지 않는다, 11-02 「없으면 그 줄이 빠진다」와 같은 원칙)
     // 슬로건이 없으면 회사명을 넣은 기본 아이브로 — 세로형·정사각에서 글자가 얇아 비어 보이지 않게. 지어낸 사실이 아니라 채용 안내의 상투구
     // 11-10: 서브 = 추가 문구(subText, 옛 슬로건·「서브 문구 직접」을 합친 한 덩어리). 옛 시즌 자리에 선다 — 좁은 띠는 「추가 문구 회사」(회사는 서브, 메인은 채용 구분), 비면 회사만
-    const extra = c.subText ? String(c.subText) : null;
+    const extra = c.subText ? String(c.subText) : null, sq0 = v => String(v ?? '').replace(/\s+/g, '');
     const slogan0 = null;   // 좁은 띠 메인 분기(narrowMain)는 옛 「시즌만 있을 때」 문법 — 회사가 서브로 간다
     const slogan = null;
     const hire = hireFor(c);   // 채용구분이 없으면 고용형태로("정규직 채용"), 둘 다 없으면 ''(「채용」을 지어 넣지 않음 — 10-28 결정)
@@ -147,9 +157,11 @@ export function copyLadder(ctx) {
     // 11-10 연도 자동(서브 자리 없는 규격, adCore 가 __yearAuto): 시즌 그대로 → 안 들어가면 연도만(「2026년 하반기」 → 「2026년」) → 그래도 안 되면 연도 없이(사다리 뒤 후보)
     const yearHeads = c.__yearAuto && season && clientHire ? [...new Set([String(season), String(season).match(/(?:19|20)\d{2}년?/)?.[0]].filter(Boolean))] : [];
     // 세로 띠: 서브가 회사를 품으면 메인은 채용구분만(도레이·한독). 슬로건이 서브를 차지하면 회사·기수가 메인으로(PT코리아 "PTKOREA / 2026 8기 / 신입공개채용")
+    //   11-18: 서브를 적었는데 고객사가 그 안에 없으면 고객사는 메인으로(좁은 띠에서 회사 이름이 사라지지 않게 — 서브에 붙이던 것 대신)
+    const extraHasClient = extra && c.client && sq0(extra).includes(sq0(c.client));
     const narrowMain = slogan0
       ? [c.headline, [c.client, season, hire].filter(Boolean).join(' '), clientHire, named ? hire : null]
-      : [c.headline, named ? hire : null, clientHire];
+      : extra && !extraHasClient ? [c.headline, clientHire, named ? hire : null] : [c.headline, named ? hire : null, clientHire];
     return {
       main: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), c.headline, clientHire, named ? hire : null, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, named ? null : '채용 공고']),   // 회사명만(「한미글로벌&터너앤타운젠드코리아」 — 글자수 한도(리멤버 18자)에 「채용」까지는 안 들어갈 때, 10-28)
       // 11-10: 서브 = 추가 문구 한 덩어리(옛 시즌 자리). 비우면 시즌·고용형태로 채우지 않는다 — 고객사만 남긴다(메인이 채용명만 들어가는 좁은 칸에서 회사 이름이 사라지지 않게, 11-09 자소설 「메인 = 채용명, 서브 = 기업명」)
@@ -157,7 +169,8 @@ export function copyLadder(ctx) {
       // 가로형은 메인 한 줄에 시즌까지(삼진제약 "2026년 삼진제약 부문별 채용") — 적어 준 시즌만. 마감일로 유추한 시즌은 넣지 않는다
       mainWide: c.headline ? [String(c.headline)] : uniq([c.headline, season ? [season, c.client, hire].filter(Boolean).join(' ') : null, clientHire, named ? hire : null, c.client ? [c.client, tag].filter(Boolean).join(' ') : null, c.client, named ? null : '채용 공고']),
       mainNarrow: c.headline ? [String(c.headline)] : uniq([...yearHeads.map(y => `${y} ${clientHire}`), ...narrowMain, c.role ? [c.role, tag].filter(Boolean).join(' ') : null, named ? null : '채용 공고']),   // 11-10 연도 자동(서브 자리 없는 규격)
-      subNarrow: uniq([extra && c.client && !c.headline ? `${extra} ${c.client}` : null, extra, c.headline ? subFull : null, c.client]),
+      // 11-18 노션 「[자소설닷컴] 서브문구 입력 시 문구 오류」: 적은 서브 문구에 고객사를 지어 붙이지 않는다(「AK PLAZA AK PLAZA」·「에이케이플라자(주) AK PLAZA」) — 적은 그대로만
+      subNarrow: extra ? (seasonish(extra) && c.client && !c.headline ? uniq([`${extra} ${c.client}`, extra]) : [extra]) : uniq([c.headline ? subFull : null, c.client]),
       // 날짜가 혼자 한 줄에 설 때(서브·날짜 줄)는 라벨을 붙이지 않는다 — Figma 9월 공채 디자이너 12/12 무라벨(10-08 typo A7). 상세 목록 안에서는 「접수기간」 라벨 유지(details)
       // 마감일이 없고 고지 문구가 일정을 말하면(「* 채용 일정은 공고별 상이합니다.」) 그 문구가 날짜 자리를 쓴다 — 자리표시 「0/00(월) ~ 0/00(일)」 대신(10-14 t1014 한진정보통신 디자이너 9/9 날짜 없음, 3/9 이 문구)
       date: uniq(period ? [period, d && !dateTxt ? `~${d}` : null, (() => { const m = String(c.deadline ?? '').match(/^\d{4}-(\d{2})-(\d{2})/); return m && !dateTxt ? `~${+m[1]}/${+m[2]}` : null; })()] : scheduleNote ? [scheduleNote, shortNote(scheduleNote), shortNote(scheduleNote).split(/\s+/).slice(-2).join(' ')] : []),   // 칸이 좁으면 마감일만(자소설 달력 「~02/01」 3/3, 블라인드·NAP 「~9/16(수)」) — byWidth 가 들어가는 쪽을 고른다
@@ -171,7 +184,8 @@ export function copyLadder(ctx) {
       // 상세 정보 줄 — 우선순위 순. 자리(줄 수)가 모자라면 뒤에서부터 뺀다.
       details: [
         period ? { label: '접수기간', value: period } : null,
-        roleShow ? { label: '모집직무', value: roleShow } : null,
+        // 11-18 노션(GS리테일): 타이틀에 든 모집직무는 「보이는 메인」에 실제로 있을 때만 뺀다(dupMain) — 넘친 타이틀이 잘리면 모집직무 줄은 다시 나온다
+        roleShow ? { label: '모집직무', value: roleShow } : (c.role && !(sq(hire) && sq(hire).includes(sq(c.role))) ? { label: '모집직무', value: c.role, dupMain: true } : null),
         ...cleanRows(c.rows).map(r => ({ label: r.label, value: r.value, extraRow: true })),   // 11-10 추가 행 — 모집직무와 같은 모양, 자리가 모자라면 뒤에서부터 빠진다(TR.rowsDropped → 검수 경고)
         qual ? { label: '지원자격', value: qual } : null,
       ].filter(Boolean),
@@ -383,6 +397,9 @@ function fieldAlign(html, style, spec, tr) {
 // AI 배경 도형(10-22) — 뿌리 바로 안 맨 앞(그림·글자 뒤)에 넣는다. 캔버스 몫 → px, blur 는 짧은 변 몫. 틀 고정 매체·비즈보드는 넣지 않는다
 export function withAiShapes(html, style, spec) {
   const S = style?.aiShapes; if (!S?.length || !aiEligible(spec)) return html;
+  // 11-17 사용자 「위에 뭐 덧댄 느낌」(카카오 프로필 300×300): 로고 전용 규격은 흰 바탕 + 원색 로고(샘플 5/5) — 도형을 넣지 않는다.
+  //   넣으면 position:absolute 도형이 흐름 배치(static)인 로고 위에 그려져 로고가 뿌옇게 덮였다
+  if (/^<div data-ad="1"[^>]*\sdata-logo-only="1"/.test(html)) return html;
   const W = spec.w, H = spec.h, m = Math.min(W, H), r1 = v => Math.round(v * 10) / 10;
   const divs = S.map((sh, i) => `<div data-ai-shape="${i}" aria-hidden="true" style="position:absolute;left:${r1(sh.x * W)}px;top:${r1(sh.y * H)}px;width:${r1(sh.w * W)}px;height:${r1(sh.h * H)}px;background:${sh.color};opacity:${sh.opacity};border-radius:${sh.kind === 'rect' ? '0' : sh.kind === 'pill' ? '9999px' : '50%'};${sh.blur ? `filter:blur(${r1(sh.blur * m)}px);` : ''}pointer-events:none"></div>`).join('');
   return html.replace(/(<div data-ad="1"[^>]*>)/, `$1${divs}`);
@@ -407,11 +424,24 @@ export function renderAd(ctx, style, spec) {
   if (style?.free?.tpl) {
     const kvS = pickKvVariant(style, spec);
     const logo = style.free.logoTone === 'light' ? (style.logoLight ?? style.logo ?? null) : (style.logo ?? style.logoLight ?? null);
-    return fillTemplate(style.free.tpl, { texts: style.free.texts ?? freeTextsOf(ctx), kv: kvS.keyVisual ?? null, logo });
+    return withBgImage(fillTemplate(style.free.tpl, { texts: style.free.texts ?? freeTextsOf(ctx), kv: kvS.keyVisual ?? null, logo }), style, spec);
   }
   style = applyLogoKv(style, spec);   // 11-17 노션 N2: 비즈보드에서 「이미지 대신 로고 사용」을 켜면 그림 계열을 걷고 로고가 그림 칸에(흰 로고 썸네일형 · 그 밖 오브젝트형)
   style = pickKvVariant(style, spec);
-  return withAiShapes(renderAdInner(ctx, style, spec), style, spec);
+  return withBgImage(withAiShapes(renderAdInner(ctx, style, spec), style, spec), style, spec);
+}
+// 11-18 노션 「배경 이미지 삽입 및 채우기·편집 기능 확장」: 지면(배경색·그라데이션) 바로 위, 키비주얼·글자·로고 아래에 장식 그림 한 층.
+//   꽉 채우기(cover, 비율 유지·넘치는 곳 잘림) · 전체 보기(contain) · 반복(tile, 짧은 변의 tile% 크기). 투명도·위치(x·y %)는 이미지 요소처럼 고친다. 키비주얼과 역할이 다르다(필수 영역 없음)
+export function withBgImage(html, style, spec) {
+  const B = style?.background?.image; if (!B?.src || !html) return html;
+  const W = spec?.w ?? 0, H = spec?.h ?? 0;
+  const size = B.fit === 'tile' ? `${Math.max(8, Math.round(Math.min(W || 100, H || 100) * (B.tile ?? 30) / 100))}px auto` : B.fit === 'contain' ? 'contain' : 'cover';
+  const layer = `<div data-bg-image="1" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:${Math.round((B.opacity ?? 1) * 1000) / 1000};background-image:url(&quot;${esc(B.src)}&quot;);background-size:${size};background-position:${B.x ?? 50}% ${B.y ?? 50}%;background-repeat:${B.fit === 'tile' ? 'repeat' : 'no-repeat'}"></div>`;
+  // 틀 지면 영역(data-mold-field)이 있으면 그 위 — 아니면 루트 바로 안 맨 앞(지면 = 루트 배경 바로 위)
+  const mf = html.match(/<div data-mold-field="1"[^>]*><\/div>/);
+  if (mf) return html.replace(mf[0], mf[0] + layer);
+  const root = html.match(/<div data-ad="1"[^>]*>/); if (!root) return html;
+  return html.replace(root[0], root[0] + layer);
 }
 function renderAdInner(ctx, style, spec) {
   // 시안 틀(11-02 홍보사업셀): 고른 시안의 칸에 채운다. 규정 매체·문구가 없는 경우는 일반 경로
@@ -637,7 +667,7 @@ function emptyFix(ctx, style, spec, first) {
   const mark = best.cov >= C.min ? 'emptyFix.ok' : 'emptyFix.max';
   return best.html
     .replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`)
-    .replace('<div data-ad="1"', `<div data-ad="1" data-empty="${Math.round(c0.all * 100)}>${Math.round(best.cov * 100)}:${best.k}"`);
+    .replace('<div data-ad="1"', `<div data-ad="1" data-empty="${Math.round(c0.all * 100)}&gt;${Math.round(best.cov * 100)}:${best.k}"`);
 }
 // 덮는 몫(0~1): 글자 행(TR.textBox.rows) ∪ 그림 주인공(focus, 없으면 열·행 프로필 상자 profileFocus, 그것도 없으면 그림 전체 — 실제 그림 사각형에 투영 ∩ 상자 ∩ 지면) ÷ 지면. 격자 48×48 근사. 글자 행이 없으면 null
 export function coverageOf(html, tr, style, spec) {
@@ -689,7 +719,7 @@ function overlapFix(ctx, style, spec, first) {
   const mark = ok ? 'overlapFix.ok' : 'overlapFix.fail';
   return best.html
     .replace('&quot;rules&quot;:[', `&quot;rules&quot;:[&quot;${mark}&quot;,`)
-    .replace('<div data-ad="1"', `<div data-ad="1" data-overlap="${Math.round(r0 * 100)}>${Math.round(best.ratio * 100)}${stepName ? ':' + stepName : ''}"`);
+    .replace('<div data-ad="1"', `<div data-ad="1" data-overlap="${Math.round(r0 * 100)}&gt;${Math.round(best.ratio * 100)}${stepName ? ':' + stepName : ''}"`);
 }
 // 글자 행 × 주인공 상자 겹침 비율(0~1) — 그림이 없거나 글자 상자를 못 세면 null
 export function overlapRatio(html, tr, style, spec, opt = null) {
@@ -1159,8 +1189,11 @@ function renderAdBase(ctx, style, spec) {
     const noCl = c => !String(c).includes(cl);
     if (n > (CL.mainMax ?? 6)) {
       for (const k0 of ['main', 'mainNarrow', 'mainWide']) { const kept = (ladder[k0] ?? []).filter(noCl); if (kept.length) ladder[k0] = kept; }
-      const season0 = (ctx.core.season || ctx.core.subText) ? String(ctx.core.season || ctx.core.subText) : null;   // 11-10: 서브 자리엔 시즌 대신 추가 문구 — 「추가 문구 회사」 한 줄이 안 들어가면 회사만(아래 칸 맞춤)
-      if (inSub) { const first = [...new Set([n <= 8 && season0 ? `${season0} ${cl}` : null, cl].filter(Boolean))]; for (const k0 of ['sub', 'subNarrow']) ladder[k0] = [...first, ...(ladder[k0] ?? []).filter(c => !first.includes(c))]; fired('templateMold.clientToSub'); }
+      const season0 = ctx.core.season ? String(ctx.core.season) : null;
+      // 11-18 노션 「서브문구 입력 시 문구 오류」: 서브 문구를 적었으면 서브 줄은 적은 그대로 — 기업명을 그 뒤에 붙이거나 서브를 기업명으로 바꾸지 않는다(기업명은 로고가 대신, 틀의 9자·16자 규칙과 같은 모양)
+      const typedSub = String(ctx.core.subText ?? '').trim(), season1 = season0 ?? (seasonish(typedSub) ? typedSub : null);
+      if (inSub && typedSub && !seasonish(typedSub)) fired('templateMold.clientDropped');
+      else if (inSub) { const first = [...new Set([n <= 8 && season1 ? `${season1} ${cl}` : null, cl].filter(Boolean))]; for (const k0 of ['sub', 'subNarrow']) ladder[k0] = [...first, ...(ladder[k0] ?? []).filter(c => !first.includes(c))]; fired('templateMold.clientToSub'); }
       else { for (const k0 of ['sub', 'subNarrow']) { const kept = (ladder[k0] ?? []).filter(noCl); if (kept.length) ladder[k0] = kept; } fired('templateMold.clientDropped'); }
     }
   }
@@ -2042,7 +2075,8 @@ function renderAdBase(ctx, style, spec) {
   if (want.detail) {
     // 메인·서브에 이미 들어 있는 말은 상세로 되풀이하지 않는다("신입/경력" 고용형태는 메인 "신입/경력사원 채용"에 있다 — 보드 예시에 고용형태 줄은 없다)
     const saidIn = v => [copy.main, copy.sub].some(t => String(t ?? '').replace(/\n/g, ' ').includes(String(v)));
-    const cands0 = ladder.details.filter(d => !saidIn(d.value) && !(want.date && d.label === '접수기간') && !(want.date && sampleText.has(d.value) && d.label === '접수기간'));   // 날짜 줄이 따로 서면(블라인드 4줄) 상세엔 모집직무만
+    const sqIn = v => [copy.main, copy.sub].some(t => String(t ?? '').replace(/\s+/g, '').includes(String(v).replace(/\s+/g, '')));
+    const cands0 = ladder.details.filter(d => !saidIn(d.value) && !(d.dupMain && sqIn(d.value)) && !(want.date && d.label === '접수기간') && !(want.date && sampleText.has(d.value) && d.label === '접수기간'));   // 날짜 줄이 따로 서면(블라인드 4줄) 상세엔 모집직무만
     stackTags = !guide?.detailLabels && !strip && !(tImage && !cutCorner) && !(useRef && (L.shape === 'wide' || gv?.detailFlow === 'row')) && S >= 420 && cands0.length > 0 && cands0.length <= 3;   // 자소설 템플릿 칸은 제외, 누끼 모서리 상자(합성)는 포함
     const cap = detailSlot.lines ?? guide?.detailRows?.[L.shape] ?? 3;
     // 쌓으면 한도를 넘는데 하나는 들어가면 하나만 쌓는다(코엑스 홈 카드: 상세 2줄에 '모집분야' 하나) — 그때 직무가 먼저. 하나도 못 쌓으면 인라인
@@ -2994,7 +3028,9 @@ ${tplLogo}${kvWrap(tplObject)}
       //   11-09: 틀 밖 규격(글자 크기 줄임 허용)도 서브 칸이 비었거나 시즌만일 때는 같은 방식 — 줄임(kkSelf)으로 안 들어가면 메인은 채용구분, 기업명은 서브. 슬로건·헤드라인이 서브를 쓰고 있으면 안 올린다
       const moveClientToSub = () => {
         if (needClMain || !MR.sub || MR.sub.content === 'period' || !MR.sub.lines) return false;
-        const s0 = String(copy.sub ?? '').trim(), sn0 = String(ctx.core?.season || ctx.core?.subText || '').trim();   // 11-10: 서브의 추가 문구도 시즌처럼 회사 앞에 남긴다(「2026 하반기 세아제강」)
+        const ts0 = String(ctx.core?.subText ?? '').trim();
+        if (ts0 && !seasonish(ts0)) return false;   // 11-18 노션: 적은 서브 문구(회사명·슬로건)는 그대로 — 기업명으로 바꾸거나 뒤에 붙이지 않는다. 시즌·기수만 「시즌 기업명」
+        const s0 = String(copy.sub ?? '').trim(), sn0 = String(ctx.core?.season || ts0 || '').trim();
         if (!strictPx) { const s = s0, sn = sn0; if (s && s !== sn && !s.includes(cl0)) return false; }
         const subPx = MR.sub.px * k, subW = MR.sub.w != null ? MR.sub.w * k : colW, parts = cl0.split(/\s+|(?<=[\/∙·&])/).filter(Boolean);
         if (moldW(cl0) * subPx > subW * MR.sub.lines || parts.some(pt => moldW(pt) * subPx > subW)) return false;
@@ -3108,6 +3144,19 @@ ${tplLogo}${kvWrap(tplObject)}
         else if (cl && String(copy.main).includes(cl) && [1, 0.95, 0.9, floor0].some(v => softAt(cl, v) <= lim0)) { copy.main = cl; mainShrink = [1, 0.95, 0.9, floor0].find(v => softAt(cl, v) <= lim0); mainExtraLine = false; fired('templateMold.mainShrink'); }
       }
     }
+    // 11-18 노션 「[공통] 가이드 범위 초과 시 초과 글자만 생략 제안」: 직접 적은 메인 문구(headline)가 틀 줄 수·글자수를 넘어 다른 후보(고객사 등)로 바뀌었으면 —
+    //   적은 문구를 지키고 들어가는 데까지(낱말 단위)만 보인다. 넘친 뒷부분만 빠지고 입력 원문은 그대로(줄이면 다시 보임). TR.textCut → 검수 필요(lint text-cut)
+    if (ctx.kind === 'recruit' && MR.main?.px != null && String(ctx.core?.headline ?? '').trim()) {
+      const typed = String(ctx.core.headline).trim(), nz = t => String(t ?? '').replace(/[\s\u00a0\u200b\u2060]/g, '');
+      if (nz(copy.main) !== nz(typed)) {
+        const lim = MR.main.lines ?? 2, mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null;
+        const kks = spec.medium === 'jasoseol' || !!(rules.mainTwoLine ?? spec.mainTwoLine) ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85];
+        const fitsAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, mainColW), true) <= lim && (mx == null || countChars(String(t).replace(/\n/g, ''), counting) <= mx);
+        const kkFull = kks.find(kk => fitsAt(typed, kk));
+        if (kkFull) { copy.main = typed; mainShrink = kkFull; mainExtraLine = false; fired('typed.mainKept'); }
+        else { const cut = cutToFit(typed, t => fitsAt(t, kks[kks.length - 1])); if (cut) { copy.main = cut; mainShrink = kks[kks.length - 1]; mainExtraLine = false; (TR.textCut ??= []).push({ role: 'main', shown: cut, full: typed }); fired('typed.mainCut'); } }
+      }
+    }
     const mainPxUsed = mainShrink < 1 ? Math.round(MR.main.px * k * mainShrink * ((FIX?.textK && FIX.textK < 1) ? FIX.textK : 1)) : mainPx;
     const moldMainChars = Math.floor(Math.max(1, colW) / (mainPxUsed * HANGUL_ADV));   // 틀 메인 한 줄 글자수 어림(긴 기업명 음절 줄바꿈 자리용) — 한글 실측 폭(0.95 로 세면 「한진정보통신」 6자에도 줄바꿈 자리가 들어갔다, 11-02)
     // 실제 줄 수 어림: 적어 둔 줄바꿈 + 칸 폭(colW)에서 접히는 줄(채용공고 130px: 「대규모 공개채용」이 두 줄)
@@ -3115,7 +3164,15 @@ ${tplLogo}${kvWrap(tplObject)}
     { const cl = String(ctx.core?.client ?? '').trim(), m0 = String(copy.main ?? '');
       if (!lockedMold && cl && (MR.main?.lines ?? 2) >= 2 && !m0.includes('\n') && m0.startsWith(cl + ' ') && wrapRows(m0, mainPxUsed, Math.max(1, mainColW), true) > 1 && wrapRows(m0.slice(cl.length + 1), mainPxUsed, Math.max(1, mainColW), true) === 1) { copy.main = cl + '\n' + m0.slice(cl.length + 1); fired('templateMold.breakAfterClient'); } }
     const mainN = Math.max(1, Math.min((MR.main?.lines ?? 2) + (mainExtraLine ? 1 : 0), wrapRows(copy.main, mainPxUsed, Math.max(1, mainColW), true)));   // 그린 뒤 실제 줄 수 어림은 빗금·& 뒤도 끊긴다(softBreakLong) — 후보 고르기(rowsOfMain)는 그대로
-    const subN = (showSub && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)))) : 0;
+    // 11-18 노션 「가이드 범위 초과 시 초과 글자만 생략」·「서브문구 입력 시 문구 오류」: 직접 적은 서브 문구는 다른 후보(고객사)로 바꾸거나 통째로 빼지 않는다 — 들어가는 데까지만(낱말 단위), 넘친 뒷부분만 빠진다
+    const typedSub = ctx.kind === 'recruit' ? String(ctx.core?.subText ?? '').trim() : '';
+    let subTyped = null;
+    if (typedSub && !seasonish(typedSub) && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && want.sub !== false && String(copy.sub ?? '').trim() !== typedSub) {
+      const sx = limitsByRole((rules.textLimits ?? []).filter(inImage)).sub?.maxChars ?? null, fitsS = t => wrapRows(t, pxOf(MR.sub), Math.max(1, rowW(MR.sub))) <= MR.sub.lines && (sx == null || countChars(String(t), counting) <= sx);
+      if (fitsS(typedSub)) { copy.sub = typedSub; subTyped = true; fired('typed.subKept'); }
+      else { const cut = cutToFit(typedSub, fitsS); if (cut) { copy.sub = cut; subTyped = true; (TR.textCut ??= []).push({ role: 'sub', shown: cut, full: typedSub }); fired('typed.subCut'); } }
+    }
+    const subN = ((showSub || subTyped) && MR.sub) ? Math.max(1, Math.min(MR.sub.lines ?? 1, Math.max(Math.ceil(textWidth(copy.sub) * pxOf(MR.sub) / Math.max(1, colW)), subTyped ? wrapRows(copy.sub, pxOf(MR.sub), Math.max(1, rowW(MR.sub))) : 1))) : 0;   // 11-18: 적은 서브는 낱말 단위로 접히는 줄 수까지(「자소서 없는 / 간편지원」이 메인과 겹치던 것)
     // 틀의 서브 줄이 접수기간이면(mold.rows.sub.content 'period' — 잡다 PC 템플릿 1:6026 「서브문구」 자리에 샘플 8/8 「모집기간 날짜」) 시즌·슬로건 대신 「라벨 날짜」 한 줄(라벨·날짜 같은 굵기, 셀트리온 1:6223)
     if (MR.sub?.content === 'period') copy.sub = (copy.date || ctx.core?.deadline) ? `${labelOf('접수기간')}${MR.sub.sep ?? ' '}${copy.date || ''}`.trim() : '';
     // 글자 수 상한(카카오 비즈보드 서브 16자, 11-02 사용자 「이건 왜 차단?」 — 「6.20(금) - 7.2(수) 17시」 20자): 시각 떼기 → 「~」로 붙이기 → 요일 떼기 → 마감만 순으로 줄인다
@@ -3127,11 +3184,12 @@ ${tplLogo}${kvWrap(tplObject)}
       copy.sub = (lab + dt).trim(); fired('mold.periodShort');
       if (countChars(copy.sub) > by.sub.maxChars) copy.sub = /상이/.test(copy.sub) ? (lab + '공고별 상이').trim() : '';   // 일정 고지 문구(「* 채용 일정은 공고별 상이합니다.」 19자)는 사다리로 안 줄어든다(11-02 전수)
     }   // 날짜가 없으면 서브 줄 없음(틀의 서브 = 접수기간). 구분자는 틀이 정한다(네이버 한국콜마 64:4793 「모집 기간 | …」)
-    const showSubM = MR.sub?.content === 'period' ? !!copy.sub : showSub;
+    const showSubM = MR.sub?.content === 'period' ? !!copy.sub : (showSub || !!subTyped);
+    const showSubT = showSubM;
     // 틀 서브 줄 수 한도(구글 ABL 580 서브 1줄 297px): 넘기면 사다리의 들어가는 첫 후보(시즌 등)로 — 칸은 max-height 로 잘리므로 반 토막 대신 짧은 말(10-15 저녁)
     const rowsIn = (t, r) => wrapRows(t, pxOf(r), Math.max(1, rowW(r)));
-    if (showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; else if (mold.subOptional) { copy.sub = ''; fired('templateMold.subDropped'); } }   // 틀 서브 칸(1줄)에 들어가는 후보가 없으면 비운다(mold.subOptional — 구글 템플릿 서브문구, 10-16: 잘린 채 그리지 않는다)
-    if (showSubM && MR.sub) put('sub', (mainExtraLine && MR.sub.byMainLines?.['2']?.y != null) ? { ...MR.sub, y: MR.sub.byMainLines['2'].y } : MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub, true, Math.floor(Math.max(1, rowW(MR.sub)) / (pxOf(MR.sub) * 0.95)))), copy.sub);
+    if ((!typedSub || seasonish(typedSub)) && !subTyped && showSubM && MR.sub && MR.sub.lines && MR.sub.content !== 'period' && rowsIn(copy.sub, MR.sub) > MR.sub.lines) { const alt = (ladder.sub ?? []).find(c => c && rowsIn(c, MR.sub) <= MR.sub.lines); if (alt) copy.sub = alt; else if (mold.subOptional) { copy.sub = ''; fired('templateMold.subDropped'); } }   // 틀 서브 칸(1줄)에 들어가는 후보가 없으면 비운다(mold.subOptional — 구글 템플릿 서브문구, 10-16: 잘린 채 그리지 않는다)
+    if (showSubT && MR.sub) put('sub', (mainExtraLine && MR.sub.byMainLines?.['2']?.y != null) ? { ...MR.sub, y: MR.sub.byMainLines['2'].y } : MR.sub, MR.sub.lines ?? 1, MR.sub.weight ?? fwOf('eyebrow', pxOf(MR.sub)), subFg, esc(nb(copy.sub, true, Math.floor(Math.max(1, rowW(MR.sub)) / (pxOf(MR.sub) * 0.95)))), copy.sub);
     const mR = MR.main ? { ...MR.main, ...(MR.main.bySubLines?.[String(subN)] ?? {}), ...(mainShrink < 1 ? { px: MR.main.px * mainShrink } : {}), ...(mainExtraLine ? { pitch: mainExtraPitch ?? (MR.main.pitch ?? MR.main.px * 1.2) * MR.main.lines / (MR.main.lines + 1), lines: MR.main.lines + 1, ...(MR.main.twoLineY != null ? { y: MR.main.twoLineY } : {}) } : {}) } : null;   // 줄인 배율은 px 에만(줄 간격 pitch 는 템플릿 그대로)   // 채용공고: 서브 2줄이면 메인 첫 줄 y141(템플릿 28:190)
     // 회사명 강조색(mold.rows.main.accentClient — NAP HS화성 샘플 「HS화성」 빨강 #D6061C = 브랜드 보조색, 나머지 네이비, 10-15 밤): 밝은 지면에서만, 강조색(style.accent·팔레트 accent)이 없으면 그대로
     const accentFg = (mR?.accentClient && fgIsDark && ctx.core?.client && (!!tc.main || !!mr.fonts?.required)) ? (accentHex ?? p.accent ?? null) : null;   /* 10-19: 규정 없는 매체(NAP)는 타이틀 한 색(#333) — 회사명 강조색 끔 */
@@ -3140,6 +3198,7 @@ ${tplLogo}${kvWrap(tplObject)}
     // 틀 상세의 글감: 틀이 항목(items)을 정했으면 사다리의 상세 후보(ladder.details)에서 그 항목을 그대로 — 일반 배치의 「서브에 이미 든 말·날짜 줄 분리」 추림을 타지 않는다
     //   (에브리타임 홈배너 1:1309 「모집기간: …」 둘째 줄 · 캐치 이미지형 기타문구 — 10-15 틀 확장). 행 수는 틀 칸 폭·글꼴 폭으로
     let moldRowsShown = null;   // 11-10 틀 상세에 실제로 들어간 행(추가 행 빠짐 경고용)
+    const hangIndent = spec.medium === 'jasoseol' && !!MR.detail && !MR.detail.labelCol && !MR.detail.labelRow;   // 11-18 노션 내어쓰기(아래 rowOf · 상세 행 HTML)
     const moldDetailSrc = (() => {
       if (!MR.detail?.items) return detailLines;
       // 11-10 피드백 56(네이버 모바일 DA 1250×560, 「가이드에 맞게」): ① 날짜는 줄바꿈 금지라 상세 칸(440)을 넘으면 잘렸다 — 글자를 줄이지 않고 칸을 글자 칸 안(mold.w 740 = 규정 좌우 여백 안)까지 넓힌다(값 열 상한도 함께).
@@ -3160,8 +3219,11 @@ ${tplLogo}${kvWrap(tplObject)}
       // 11-12 노션(자소설 PC 채용공고 「상세 최대 5줄 → 가이드 6줄」): 날짜는 숫자·마침표·괄호가 대부분이라 글자 폭 어림(textWidth)이 실제보다 ~20% 넓다 —
       //   「11.9(월) - 11.22(일)」(실제 ~112px)를 130 칸에서 2줄로 세어 모집직무가 짧은 후보로 줄었다. 날짜 값 줄은 줄바꿈하지 않으므로(nb) 한 줄로 세고, 어림 × 0.85 가 칸을 넘을 때만 짧은 날짜 후보로
       const DATE_W = 0.85;
-      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? (textWidth(String(value)) * dpx * 1.02 <= (MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k)) + 2 ? 1 : 99) : wrc(String(value)) }   /* 기간은 줄바꿈 금지 — 안 들어가면 짧은 날짜 후보로 */ : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + (label === '접수기간' ? (textWidth(String(value)) * dpx * DATE_W <= rowW(MR.detail) ? 1 : 99) : wr(String(value))) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
-      const rows0 = (ladder.details ?? []).filter(d => moldItemOk(MR.detail, d) && d.value && !seen.has(d.label) && seen.add(d.label))
+      // 11-18 노션 「[자소설닷컴] 상세문구 3번째 줄 앞 공백 정렬」(PC·M 프리미엄 팝업): 「라벨 : 값」이 접히면 다음 줄은 값 시작 자리에서(내어쓰기) — 담당자가 전각 공백 4 + 공백 2 로 맞추던 것.
+      //   줄 수도 값 칸 폭(행 폭 − 라벨 폭)으로 센다
+      const rowOf = (label, value) => MR.detail.labelCol ? { label, value, inline: true, col: true, rows: label === '접수기간' ? (textWidth(String(value)) * dpx * 1.02 <= (MR.detail.valueW ? Math.round(MR.detail.valueW * k) : rowW(MR.detail) - Math.round((MR.detail.labelCol ?? 0) * k)) + 2 ? 1 : 99) : wrc(String(value)) }   /* 기간은 줄바꿈 금지 — 안 들어가면 짧은 날짜 후보로 */ : MR.detail.labelRow ? { label, value, inline: false, rows: 1 + (label === '접수기간' ? (textWidth(String(value)) * dpx * DATE_W <= rowW(MR.detail) ? 1 : 99) : wr(String(value))) } : hangIndent ? { label, value, inline: true, rows: Math.max(1, Math.ceil(textWidth(String(value)) * dpx * 1.02 / Math.max(1, rowW(MR.detail) - Math.ceil(textWidth(`${labelOf(label)}${sep0} `) * dpx * 1.02)))) } : { label, value, inline: true, rows: wr(`${label}${sep0} ${value}`) };
+      const mainSq = String(copy.main ?? '').replace(/\s+/g, '');
+      const rows0 = (ladder.details ?? []).filter(d => !(d.dupMain && mainSq.includes(String(d.value).replace(/\s+/g, ''))) && moldItemOk(MR.detail, d) && d.value && !seen.has(d.label) && seen.add(d.label))
         .map(d => {   // 접수기간이 칸에 안 들어가면 짧은 날짜 후보(「~10.12(일)」 — ladder.date)로 — 에브리타임 홈배너 1줄 칸 344px(케이뱅크 「모집기간: 10/27(월) 17시까지」)
           // 그 밖의 항목(모집직무 등)도 칸에 안 들어가면 짧은 후보 — 괄호 속 설명을 빼고(「일반(사업, 재무 등), 보훈(사업/경영지원)」 → 「일반, 보훈」), 그래도 넘치면 앞 항목만(10-22 루프 r1: 네이버 1250 직무 줄 잘림 A·C 공통)
           // 11-12: 항목은 쉼표로만 나눈다 — 「R/D」·「사업/경영지원」·「경영·제품」은 한 항목(「R, D 등」으로 쪼개지던 것)
@@ -3220,6 +3282,7 @@ ${tplLogo}${kvWrap(tplObject)}
         ? rows.map((d, i) => `<div style="display:flex;align-items:flex-start;line-height:${lhOf(d)}px;${i < rows.length - 1 ? `margin-bottom:${gapPx}px;` : ''}"><b style="flex:0 0 ${colW}px;font-weight:${dLw}">${esc(labelOf(d.label))}</b><span style="flex:1 1 auto;min-width:0${d.label === '접수기간' ? ';white-space:nowrap' : dR.valueW ? `;max-width:${Math.round(dR.valueW * k)}px` : ''}">${esc(nb(d.value)).replace(/\n/g, '<br/>')}</span></div>`).join('')
         : rows.map(d => d.inline
         ? (IT?.label && !IT?.date ? `<div>${tagHtml('label', null, labelOf(d.label), Math.max(tagFs(0, 0), Math.round(dpx2 * 0.86)), `vertical-align:middle;display:inline-flex;margin-right:${Math.round(dpx2 * 0.4)}px`)}${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`   // 라벨 태그(infoTag): 「라벨 :」 대신 각진 태그 + 값(같은 줄 오른쪽)
+          : (hangIndent && d.rows > 1) ? `<div style="display:flex;align-items:flex-start"><b style="flex:0 0 auto;white-space:pre;font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)} </b><span style="flex:1 1 auto;min-width:0">${esc(nb(d.value)).replace(/\n/g, '<br/>')}</span></div>`   // 11-18 노션 내어쓰기(값 시작 자리에 다음 줄)
           : `<div><b style="font-weight:${dLw}">${esc(labelOf(d.label))}${esc(sep)}</b> ${esc(nb(d.value)).replace(/\n/g, '<br/>')}</div>`)
         : (!lockedMold && dR.labelBadge)
         // 11-10 피드백 28(구글 300×1050 「모집분야」) · 사용자 「서브텍스트는 라벨 : 내용 / 라벨 ㅣ 내용 / 뱃지(+태그)만」: 라벨만 따로 선 줄은 뱃지(둥근 알약, 좌우 여백 좁게)로, 값은 태그(ㅣ로 잇기) — 공식 템플릿은 그대로
@@ -3339,10 +3402,19 @@ ${tplLogo}${kvWrap(tplObject)}
         for (let i = 0; i < n; i++) { const t = role === 'main' ? (lines.length === n ? lines[i] ?? '' : String(u.text ?? '')) : (lines[0] ?? ''); const rw = role === 'tags' ? u.w : role === 'detail' ? Math.min(u.w, Math.round(Math.max(0, ...(detailLines ?? []).map(d => textWidth(`${labelOf(d.label)} : ${d.value ?? ''}`))) * u.px * 1.04) || u.w) : Math.min(u.w, Math.round(textWidth(t) * u.px * 1.04) || u.w);   /* 상세 행 폭 = 가장 긴 「라벨 : 값」 글자 폭(행 폭 전체로 잡으면 그림 칸까지 닿아 거짓 겹침 — 자소설 팝업) */ const x = u.align === 'center' ? u.x + (u.w - rw) / 2 : u.align === 'right' ? u.x + u.w - rw : u.x; rows.push({ role, x: Math.round(x), y: Math.round((u.top + i * u.pitch) * 10) / 10, w: rw, h: u.pitch }); } }
       TR.textBox = { v: 'mold', align: mold.align ?? 'left', rows }; }
     TR.fonts = { ...TR.fonts, main: used.main ? { ...(TR.fonts?.main ?? {}), px: used.main.px, weight: used.main.weight, lh: Math.round(used.main.pitch / used.main.px * 100) / 100, lines: mainN } : TR.fonts?.main, sub: used.sub ? { ...(TR.fonts?.sub ?? {}), px: used.sub.px, weight: used.sub.weight, lh: Math.round(used.sub.pitch / used.sub.px * 100) / 100 } : null, detail: used.detail ? { ...(TR.fonts?.detail ?? {}), px: used.detail.px, value: used.detail.weight, lh: Math.round(used.detail.pitch / used.detail.px * 100) / 100 } : null, logoCapW: null };
+    // 11-17 노션 「[카카오] 비즈보드 가이드 추가」 추가사항: 광고주체 표기 가이드(mold.adLabel — 썸네일형 썸네일 왼쪽 위 8·8 안쪽 120×46, 오브젝트형 오브젝트 칸 왼쪽 위) 안에 로고를 자동으로 넣는다(예전: 가이드 점선만).
+    //   칸은 실제로 그린 그림 칸(tImage) 기준 — core/guideboxes.js 와 같은 셈. 「이미지 대신 로고 사용」(logoKv)이면 그림 칸이 이미 로고라 넣지 않는다
+    const ALB = mold.adLabel; let adLabelLogo = '';
+    if (ALB && style.logo && !style.logoKv && hasKv && tImage && !tplLogo.includes('data-logo="1"')) {
+      const cutAL = tImage.h >= h - 1, r = cutAL ? ALB.cutout : ALB.thumbnail;
+      if (r) { const ax = Math.round(tImage.x + (r.dx ?? 0)), ay = Math.round(tImage.y + (r.dy ?? 0));
+        adLabelLogo = `<div data-logo-slot="adlabel" style="position:absolute;left:${ax}px;top:${ay}px;width:${r.w}px;height:${r.h}px;display:flex;align-items:center;justify-content:flex-start;z-index:3;pointer-events:none"><img data-logo="1" src="${esc(logoSrc ?? style.logo)}" alt="" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;${cutAL ? logoFilter : ''}"/></div>`;   // 오브젝트형(지면 위)은 지면에 맞춘 로고 톤(흰 로고 → 단색), 썸네일형(사진 위)은 원본
+        TR.logo = { ...(TR.logo ?? {}), adLabel: { x: ax, y: ay, w: r.w, h: r.h, kind: cutAL ? 'cutout' : 'thumbnail' } }; fired('templateMold.adLabelLogo'); }
+    }
     return `${open('')}
 ${moldField}${moldKv}${scrimEl}${bandEl}
 ${textCol}
-${tplLogo}
+${tplLogo}${adLabelLogo}
 </div>`;
   }
 

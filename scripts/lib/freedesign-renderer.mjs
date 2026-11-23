@@ -15,7 +15,7 @@ import { SPECS } from '../../core/contract.js';
 import { lintArtifact } from '../../core/lint.js';
 import { CANON } from '../../core/canon.js';
 import { TEMPLATE_NORMS } from '../../core/template-norms.js';
-import { typoAuditNorms, overlapAudit, subjectAudit, subjectBoxes, clipBoxOf } from '../../core/typoaudit.js';
+import { typoAuditNorms, AI_TYPO_RULE, overlapAudit, subjectAudit, subjectBoxes, clipBoxOf } from '../../core/typoaudit.js';
 import { profileFocus } from '../../core/field.js';
 import * as F from '../../core/fonts.js';
 
@@ -230,7 +230,7 @@ export function typoRulesOf({ specId, rules, measure, free, kvFocus = null, kvKi
   const sb = kvKind === 'cutout' && subj?.objects?.length ? subjectBoxes(subj.objects, kvFocus)[0]?.s ?? null : null;
   const kv = kvKind === 'cutout' ? (sb && sb.w > 0 && sb.h > 0 ? sb : kvSubjectBox(free?.kvRect, kvFocus)) : null;   // 배경 있는 그림은 글자 쪽을 녹이므로 안 잰다(core/typoaudit 과 같은 원칙)
   const sa = rules?.safeArea ?? {};
-  const out = typoAuditNorms({ W: spec.w, H: spec.h, rows, logo: measure.logo?.bbox ?? null, kv, specId, safe: sa.hard ? { l: sa.left, r: sa.right, t: sa.top, b: sa.bottom } : null });
+  const out = typoAuditNorms({ fixed: AI_TYPO_RULE, W: spec.w, H: spec.h, rows, logo: measure.logo?.bbox ?? null, kv, specId, safe: sa.hard ? { l: sa.left, r: sa.right, t: sa.top, b: sa.bottom } : null });
   return { ...out, issues: out.fails.map(f => `4항-${f.rule} ${f.code}: ${f.msg}`) };
 }
 
@@ -273,7 +273,7 @@ function renderFinish(P, dom) {
   if (q.subj && !q.subj.error && q.subj.objects?.length) { let sf = null; try { sf = km?.field ? profileFocus(km.field) : (P.kvFocus ?? null); } catch { sf = P.kvFocus ?? null; } subject = subjectAudit({ texts: q.subj.texts, logo: q.subj.logo, objects: q.subj.objects, focus: sf, cutout: ((km?.field?.opaque ?? 1) < 0.5) || (P.kvKind ?? km?.field?.kind) === 'cutout' }); }
   // 로고 보임(11-09 6단계): 로고 불투명 픽셀의 절반 이상이 바탕과 2:1 이상이어야 한다
   const logoVis = q.logoVis && !q.logoVis.error ? q.logoVis : null;
-  const logoIssues = logoVis && logoVis.visible < LOGO_VISIBLE_MIN ? [`로고 묻힘: 로고 픽셀 ${Math.round(logoVis.visible * 100)}%만 바탕과 구분(2:1 이상) — 로고 톤에 맞는 바탕(흰 로고는 어두운 바탕, 어두운 로고는 밝은 바탕)으로 자리를 옮기거나 로고 뒤에 판`] : [];
+  const logoIssues = logoVis && logoVis.visible < LOGO_VISIBLE_MIN ? [`로고 묻힘: 로고 픽셀 ${Math.round(logoVis.visible * 100)}%만 바탕과 구분(2:1 이상) — 로고 톤에 맞는 바탕(흰 로고는 어두운 바탕, 어두운 로고는 밝은 바탕)으로 자리를 옮기거나 로고 자리의 지면 톤을 맞춘다(판·박스는 금지 — 11-19)`] : [];
   const audit = { logoVis, logoIssues, subject, overlap, specId: e.specId, caseId: e.caseId ?? null, png: base + '.png', ms: Date.now() - P.t0, bytes, kvLoaded: q.kvLoaded ?? null, validate: v, lint, typo, info, typoRules, free, contrast: q.contrast ?? null, lowContrast, imgArea: q.imgArea ?? null, measure, notes: e.notes ?? '' };
   writeFileSync(base + '.audit.json', JSON.stringify(audit, null, 1));
   audit.verdict = !v.ok ? '계약✗' : lint.level === 'block' ? 'lint 차단' : lint.level === 'warn' ? 'lint 경고' : '통과';

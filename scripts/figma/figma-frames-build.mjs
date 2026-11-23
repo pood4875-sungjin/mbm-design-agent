@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '../..');
 const OUT = path.join(ROOT, 'ref/learned/cases/_out/figma-frames');
 const CODE = path.join(OUT, '_code'), PLAN = path.join(OUT, '_plan');
 mkdirSync(CODE, { recursive: true }); mkdirSync(PLAN, { recursive: true });

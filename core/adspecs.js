@@ -146,7 +146,7 @@ export function withTwinFiles(files, twinsOf, nameOf) {
     out.push(f);
     for (const id of twinsOf(f.spec?.id ?? f.a?.specId) ?? []) {
       const name = nameOf(id, f); if (!name || seen.has(name)) continue; seen.add(name);
-      out.push({ ...f, twinOf: f.spec?.id ?? null, name });
+      out.push({ ...f, twinOf: f.spec?.id ?? null, twinId: id, name });   // twinId: SVG 도 이 규격 이름으로(11-18 노션)
     }
   }
   return out;

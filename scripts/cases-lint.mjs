@@ -15,7 +15,7 @@ import { extraChecks, coverageOf, MEASURE_JS } from './lib/lint-extra.mjs';
 import { limitsByRole, inImage, countChars } from '../core/adfields.js';
 import { decodeDump } from './lib/lint-extra.mjs';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const CASES = path.join(ROOT, 'ref/learned/cases');
 const OUT = path.join(CASES, '_out/lint');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';

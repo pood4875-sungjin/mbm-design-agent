@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { rulesForSpec } from '../../server/freedesign.js';
 
-export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+export const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '../..');
 export const CASES = path.join(ROOT, 'ref/learned/cases');
 export const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const DEFAULT_FIELDS = { client: '한진정보통신', role: '클라우드 플랫폼 엔지니어', employType: '정규직', location: '서울 여의도', deadline: '2026-10-31', applyUrl: 'https://hanjin.example' };

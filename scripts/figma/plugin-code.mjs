@@ -5,7 +5,7 @@
 // 이름: locate · page-inventory · frame-boxes · kv-transforms · text-styles · export-node
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-const DIR = path.join(path.dirname(new URL(import.meta.url).pathname), 'plugin');
+const DIR = path.join(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), 'plugin');
 const [name, args = '{}'] = process.argv.slice(2);
 const names = readdirSync(DIR).filter(f => f.endsWith('.js')).map(f => f.slice(0, -3));
 if (!name || !names.includes(name)) { console.error('사용법: node scripts/figma/plugin-code.mjs <' + names.join('|') + "> '<ARGS JSON>'"); process.exit(1); }

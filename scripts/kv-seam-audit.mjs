@@ -28,7 +28,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { decodePng, encodePng, cropPng, pixelAt } from './lib/png.mjs';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const argv = process.argv.slice(2);
 const opt = (k, d = null) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const TAG = opt('--tag') ?? 'after';

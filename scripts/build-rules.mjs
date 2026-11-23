@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { RULES_JSON_MAP } from '../core/guidecheck.js';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const src = path.join(ROOT, 'ref/learned/rules.json');
 const out = path.join(ROOT, 'core/rules-data.js');
 const json = JSON.parse(readFileSync(src, 'utf8'));

@@ -17,7 +17,7 @@ import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '../..');
 // 번들 폰트(app/fonts) 를 하네스 페이지에도 넣는다 — 기본 글꼴 Paperlogy(10-15 저녁)는 CDN 이 없어 파일로만 그려진다
 const BUNDLED_FACES = await (async () => { const F = await import(pathToFileURL(path.join(ROOT, 'core/fonts.js')).href); const pre = pathToFileURL(path.join(ROOT, 'app')).href + '/'; return F.fontIds().filter(id => F.isBundledFont(id)).map(id => F.localFaceCss(id, pre)).join(''); })();
 const CASES = path.join(ROOT, 'ref/learned/cases');

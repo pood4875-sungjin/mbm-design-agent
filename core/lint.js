@@ -14,6 +14,7 @@
 //   bgColors,             바탕 샘플색 hex 목록 — 글자·로고·그림 상자를 피한 점 (null=측정 못 함)
 //   assetPx: [w,h],       전달물(spec.asset) 원본 파일 픽셀 (null=측정 못 함)
 //   client,               캠페인 고객사명(광고주) — 메인카피 광고주 노출 검사(spec.mainMustIncludeClient)에 쓴다. 없으면 ctx.core.client, 둘 다 없으면 측정 못 한 것
+//   textCut,              적은 문구 중 칸을 넘어 안 보이는 뒷부분 [{role, shown, full}] — 경고만(11-18 노션)
 //   rowsDropped,          추가 행 중 상세 자리가 모자라 빠진 라벨 목록(렌더 기록 data-trace) — 경고만(11-10)
 // }
 // 측정 못 한 값(null)은 위반이 아니다 — "모름"과 "틀림"을 섞으면 검사기를 못 믿게 된다.
@@ -127,6 +128,11 @@ export function lintArtifact({ spec, medium, measure, ctx = null }) {
       if (Number.isFinite(px) && px / mainPx < lo - 0.01) warn('size-below-blueprint', `${role} 글자 ${Math.round(px)}px = 타이틀의 ${Math.round(px / mainPx * 100)}% — 청사진 하한 ${Math.round(lo * 100)}%보다 작아요(비정상 크기감)`, role);
     } }
   // 11-10 추가 행(근무지·전형절차…): 상세 줄 자리가 있는 규격인데 줄이 모자라 뒤 행부터 뺐다 — 막지는 않고 알린다(사용자 「행을 추가한다는 개념」 · 넘치면 뒤 행부터 빠짐)
+  // 11-18 노션 「가이드 범위 초과 시 초과 글자만 생략」: 적은 문구가 칸을 넘어 뒷부분만 빼고 보였다 — 입력 원문은 그대로라 줄이면 다시 보인다. 막지 않고 검수 필요로
+  if (Array.isArray(measure.textCut) && measure.textCut.length) for (const c of measure.textCut) {
+    const name = { main: '메인 문구', sub: '서브 문구' }[c.role] ?? c.role, hidden = String(c.full ?? '').replace(/\s+/g, ' ').slice(String(c.shown ?? '').replace(/\s+/g, ' ').length).trim();
+    warn('text-cut', `${name}가 가이드 범위를 넘어 뒷부분 「${hidden}」은 안 보여요 — 문구를 줄이면 다시 나타나요`, c.role);
+  }
   if (Array.isArray(measure.rowsDropped) && measure.rowsDropped.length) {
     warn('rows-dropped', `추가 행 ${measure.rowsDropped.length}개(${measure.rowsDropped.join('·')})가 상세 줄 자리가 모자라 빠짐 — 행 순서를 바꾸거나 줄여 주세요`, 'detail');
   }

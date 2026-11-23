@@ -65,7 +65,8 @@ export function spreadByAxes(styles, spec) {
   return out.map(p => p.st);
 }   // 안 최소 수(11-06 사용자 「무조건 후보는 3개」). 규정 매체(1안)는 예외
 // 겹침 교정이 실제로 글자·그림을 줄였나(data-overlap="처음>끝:단계") — 처음 겹침이 문턱을 넘었다는 뜻
-export const overlapFixed = html => /data-overlap="\d+>\d+:/.test(String(html ?? ''));
+// 11-17: 값의 「>」는 &gt; 로 쓴다 — 날 「>」면 [^>]* 로 태그를 찾는 후처리가 태그를 끊어 속성이 글자로 쏟아졌다(블라인드 1200×628)
+export const overlapFixed = html => /data-overlap="\d+(?:>|&gt;)\d+:/.test(String(html ?? ''));
 // 키비주얼이 그려졌나 — 그림 원본 주소(data: 앞부분)가 결과에 있는지. 캐치 메인 라지 틀에서 「키비주얼 왼쪽」이 그림 없이 서던 것(11-05)
 export const kvDrawn = (html, style) => { const u = String(style?.keyVisual ?? ''); return !!u && String(html ?? '').includes(u.slice(0, 160)); };
 // 프리셋 안 품질 거름(11-05): 기본안은 교정 없이 섰는데 이 안은 교정이 필요했으면 뺀다. 기본안도 교정했으면 비교 기준이 없어 남긴다

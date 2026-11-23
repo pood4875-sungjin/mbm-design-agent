@@ -11,6 +11,12 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 
 // RGB → CMYK 근사(naive). 인쇄 사양서·화면 표기용 참고값이며,
 // 실제 분판은 인쇄소 ICC 프로파일 기준이다(브라우저는 CMYK를 직접 출력하지 못함).
+// 배경 이미지(11-18 노션) — 키비주얼(필수 영역이 있는 핵심 그림)과 따로, 소재 전체를 덮는 장식 그림. 꽉 채우기 · 전체 보기 · 반복
+export function normBgImage(v) {
+  if (!v || typeof v !== 'object' || typeof v.src !== 'string' || !/^(data:image\/|https?:|file:|blob:)/.test(v.src)) return null;
+  const num = (x, lo, hi, d) => Number.isFinite(+x) ? Math.min(hi, Math.max(lo, +x)) : d;
+  return { src: v.src, fit: ['cover', 'contain', 'tile'].includes(v.fit) ? v.fit : 'cover', opacity: num(v.opacity, 0, 1, 1), tile: num(v.tile, 10, 100, 30), x: num(v.x, 0, 100, 50), y: num(v.y, 0, 100, 50), ...(v.name ? { name: String(v.name).slice(0, 80) } : {}) };
+}
 export function toCmyk(hex) {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -71,6 +77,8 @@ export function normalizeStyle(input = {}) {
       color: HEX.test(input.background?.color ?? '') ? input.background.color.toUpperCase() : null,
       // 직접 그라데이션(11-02 N3, 피그마식 편집기 app/gradedit.js) — mode 'gradient' 일 때만 쓴다. 단색으로 바꿨다 돌아와도 남아 있게 값은 지우지 않는다
       ...(normGradient(input.background?.gradient) ? { gradient: normGradient(input.background.gradient) } : {}),
+      // 11-18 노션 「배경 이미지 삽입 및 채우기·편집 기능 확장」: 지면 위·키비주얼 아래에 까는 장식 그림 {src, fit:'cover'|'contain'|'tile', opacity 0~1, tile 10~100(짧은 변 %), x·y 0~100(%)}
+      ...(normBgImage(input.background?.image) ? { image: normBgImage(input.background.image) } : {}),
       // 10-22 하이브리드: AI 가 정한 지면 {stops:[#hex 1~3], angle, text:'light'|'dark'|null, melt:0|0.3~0.75} — 글자색 대비·녹임 상한은 렌더러 규칙이 그대로 검사한다
       ...(input.background?.ai && Array.isArray(input.background.ai.stops) && input.background.ai.stops.every(c => HEX.test(c)) && (input.background.ai.stops.length || input.background.ai.melt > 0) ? { ai: { stops: input.background.ai.stops.slice(0, 3).map(c => c.toUpperCase()), angle: Number.isFinite(input.background.ai.angle) ? input.background.ai.angle : 180, text: ['light', 'dark'].includes(input.background.ai.text) ? input.background.ai.text : null, melt: Number.isFinite(input.background.ai.melt) ? input.background.ai.melt : 0 } } : {}),
     },

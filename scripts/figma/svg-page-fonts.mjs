@@ -5,7 +5,7 @@
 //   Figma 에 그 폰트가 없으면(listAvailableFontsAsync) 건너뛰고 missing 으로 보고 — 카카오 큰글씨는 맥에 설치돼 있어도 Figma 데스크톱을 다시 켜야 보인다(10-16).
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '../..');
 const argv = process.argv.slice(2); const opt = (k, d = null) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const CASE = opt('--case', 't1014-abl'); const D = path.join(ROOT, 'ref/learned/cases/_out/figma-svg', CASE);
 const up = JSON.parse(readFileSync(path.join(D, 'uploaded.json'), 'utf8'));

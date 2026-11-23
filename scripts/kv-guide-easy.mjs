@@ -12,7 +12,7 @@ import { CANON } from '../core/canon.js';
 import { FONTS, fontRuleOf } from '../core/fonts.js';   // 폰트 절(10-14)
 import { MEDIA } from '../core/media.js';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const CASES = path.join(ROOT, 'ref/learned/cases');
 const DEST = process.argv[2]; if (!DEST) throw new Error('kv-guide 출력 폴더가 필요합니다');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

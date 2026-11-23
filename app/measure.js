@@ -93,8 +93,12 @@ export async function measureArtifact(html, spec, opts = {}) {
     logoCount: dom.logoCount,
     bgColors,
     blob,
-    rowsDropped: rowsDroppedOf(html),   // 11-10 추가 행 중 상세 자리가 모자라 빠진 것(렌더 기록) — core/lint.js rows-dropped 경고
+    rowsDropped: rowsDroppedOf(html),
+    textCut: traceOf(html)?.textCut ?? null,   // 11-18 노션 「가이드 범위 초과 시 초과 글자만 생략」: 적은 문구 중 칸을 넘어 안 보이는 뒷부분 — core/lint.js text-cut 경고   // 11-10 추가 행 중 상세 자리가 모자라 빠진 것(렌더 기록) — core/lint.js rows-dropped 경고
   };
+}
+function traceOf(html) {
+  try { const m = String(html ?? '').match(/data-trace="([^"]*)"/); return m ? JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')) : null; } catch { return null; }
 }
 function rowsDroppedOf(html) {
   try { const m = String(html ?? '').match(/data-trace="([^"]*)"/); if (!m) return null; const t = JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')); return Array.isArray(t.rowsDropped) && t.rowsDropped.length ? t.rowsDropped : null; } catch { return null; }

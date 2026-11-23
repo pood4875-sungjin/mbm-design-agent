@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import path from 'node:path';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '../..');
 const PLAN = path.join(ROOT, 'ref/learned/cases/_out/figma-frames/_plan');
 const [page, urlsF] = process.argv.slice(2);
 const from = Number((process.argv.indexOf('--from') >= 0) ? process.argv[process.argv.indexOf('--from') + 1] : 0);

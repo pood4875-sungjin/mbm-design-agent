@@ -11,7 +11,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { judgeGap, MIN_GAP, MAX_RATIO } from './lib/kv-gap.mjs';   // 판정은 공용 모듈(quality-audit ②축과 같은 자, 10-20)
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)), '..');
 const argv = process.argv.slice(2);
 const opt = (k, d = null) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const CASE_IDS = (opt('--cases') ?? 't1014-abl,midas-glass-mint,dongbu_illust,bc-illust,t1014-hanssem').split(',');

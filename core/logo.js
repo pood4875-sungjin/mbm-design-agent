@@ -39,8 +39,30 @@ export function knockoutLogo(d, W, H, opts = {}) {
     for (let x = 0; x < W; x += st) { ring.push(px(x, inset), px(x, H - 1 - inset)); } for (let y = 0; y < H; y += st) { ring.push(px(inset, y), px(W - 1 - inset, y)); }
     for (const c0 of corners) { const same = ring.filter(c => c[3] >= 250 && dist(c, c0) <= 30); if (same.length >= ring.length * 0.6) { bgc = same; break; } }
   }
+  // 11-17 LINE 로고: 글자가 그림 끝까지 꽉 찬 로고는 2% 안쪽 네 모서리가 전부 글자(초록)에 떨어져 글자를 바탕으로 보고 지웠다 —
+  //   남은 흰 틈만 로고가 돼 「흰색 로고」·연두 주색으로 읽혔다. 진짜 모서리(0,0 …) 셋 이상이 다른 한 색으로 모이고,
+  //   그 색이 가장자리에서 이어져 2% 이상 번지고 안쪽 모서리 깊이보다 깊이 들어가면(테두리 선이 아니면) 그 색이 바탕이다
+  const bgOf = cs => cs.reduce((a, c) => [a[0] + c[0] / cs.length, a[1] + c[1] / cs.length, a[2] + c[2] / cs.length], [0, 0, 0]);
+  {
+    const outer = [px(0, 0), px(W - 1, 0), px(0, H - 1), px(W - 1, H - 1)];
+    let oc = null;
+    for (const c0 of outer) { const same = outer.filter(c => c[3] >= 250 && dist(c, c0) <= 30); if (same.length >= 3) { oc = same; break; } }
+    if (oc && (!bgc || dist(bgOf(oc), bgOf(bgc)) > 30)) {
+      const ob = bgOf(oc), seen0 = new Uint8Array(W * H), st0 = [];
+      const p0 = (x, y) => { const k = y * W + x; if (!seen0[k]) { seen0[k] = 1; st0.push(k); } };
+      for (let x = 0; x < W; x++) { p0(x, 0); p0(x, H - 1); } for (let y = 0; y < H; y++) { p0(0, y); p0(W - 1, y); }
+      let n0 = 0, deep = 0;
+      while (st0.length) {
+        const k = st0.pop(), i = k * 4; if (Math.abs(d[i] - ob[0]) + Math.abs(d[i + 1] - ob[1]) + Math.abs(d[i + 2] - ob[2]) >= 110) continue;
+        n0++; const x = k % W, y = (k - x) / W;
+        deep = Math.max(deep, Math.min(x, y, W - 1 - x, H - 1 - y));
+        if (x > 0) p0(x - 1, y); if (x < W - 1) p0(x + 1, y); if (y > 0) p0(x, y - 1); if (y < H - 1) p0(x, y + 1);
+      }
+      if (n0 >= W * H * 0.02 && n0 <= W * H * 0.98 && deep > inset * 2) bgc = oc;
+    }
+  }
   if (!bgc) return null;   // 단색 배경이 아니다
-  const bg = bgc.reduce((a, c) => [a[0] + c[0] / bgc.length, a[1] + c[1] / bgc.length, a[2] + c[2] / bgc.length], [0, 0, 0]);
+  const bg = bgOf(bgc);
   const seen = new Uint8Array(W * H); const stack = [];
   const push = (x, y) => { const k = y * W + x; if (!seen[k]) { seen[k] = 1; stack.push(k); } };
   for (let x = 0; x < W; x++) { push(x, 0); push(x, H - 1); } for (let y = 0; y < H; y++) { push(0, y); push(W - 1, y); }
