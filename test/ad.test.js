@@ -278,7 +278,7 @@ test('on a dark field the white logo variant is used as-is; without one the colo
   const edgeW = (from, to) => ({ hex: from, from, to, rough: 0.004, opaque: 1, flat: true });
   const whiteBg = { ar: 1.4, px: [700, 500], colors: ['#3366CC'], field: { opaque: 1, kind: 'illust', flatEdges: 4, edges: { left: edgeW('#FFFFFF', '#FFFFFF'), top: edgeW('#FFFFFF', '#FFFFFF'), right: edgeW('#FFFFFF', '#FFFFFF'), bottom: edgeW('#FFFFFF', '#FFFFFF') } } };
   const clash = renderAd(ctx, { ...style, keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: whiteBg, logo: 'data:image/png;base64,WWWW', logoLight: 'data:image/png;base64,WWWW', logoTone: 'light' }, specs['jasoseol-pc-premium-popup-pc']);
-  assert.match(clash, /data-field-source="kv-edge"/, '그림 가장자리 색이 지면');
+  assert.match(clash, /data-field-source="kv-edge-tint"/, '그림 가장자리(흰) 바탕 → 그림 색 옅은 틴트 지면(11-23 CANON.whiteLift)');
   assert.match(clash, /data-logo="1" src="data:image\/png;base64,WWWW"[^>]*filter:brightness\(0\)(?! invert)/, '밝은 지면의 흰색 로고는 검정 단색으로 변환');
   // 밝은 지면(자소설)에서는 원색 로고 그대로
   const light = renderAd(ctx, both, specs['jasoseol-pc-premium-popup-pc']);

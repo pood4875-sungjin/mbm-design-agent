@@ -223,6 +223,16 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
     stops = [dominant];   // 10-20: 밝은 매체 틴트 분기 제거(캠페인 공통 지면)
     source = 'kv-colour';
   }
+  // 11-23 흰 바탕 그림(CANON.whiteLift): 그림 변이 거의 흰색이면 지면을 그림 유채색의 옅은 틴트로 — 흰 종이 위에 흰 바탕 그림이 묻히고, 흰 바탕 금지 매체(리멤버)에서 차단되던 것
+  if (source === 'kv-edge' && CANON.whiteLift && stops?.length) {
+    const WL = CANON.whiteLift, satOf = h => rgbToHsl(hexToRgb(h))[1], lumOf = h => { const [r, g, b] = hexToRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };   // 아래 지역 relLum(const)은 여기서 아직 못 쓴다
+    if (stops.every(s => lumOf(s) >= WL.lum && satOf(s) <= WL.maxSat)) {
+      const c = (style.kvMeta?.colors ?? []).find(h => /^#[0-9A-Fa-f]{6}$/.test(h ?? '') && satOf(h) >= WL.minSat && lumOf(h) < WL.lum) ?? p.primary ?? null;
+      const near = h => (WL.avoid ?? []).some(a => hexToRgb(a).every((v, i) => Math.abs(v - hexToRgb(h)[i]) <= (WL.avoidTol ?? 12)));
+      let t = WL.tint; while (c && t > (WL.minTint ?? 0.6) && near(mix(c, WHITE, t))) t -= WL.step ?? 0.03;
+      if (c) { stops = [mix(c, WHITE, t)]; angle = 180; align = null; source = 'kv-edge-tint'; }   // seamless(배치)는 그대로 — 풀면 칸 배치가 바뀌어 주인공까지 녹았다(카카오 1200×600). 그림 쪽 변은 짧은 녹임(18%)이 잇는다
+    }
+  }
   if (!stops && style.keyVisual && style.kvMeta?.edge) { stops = [style.kvMeta.edge]; source = 'kv-edge'; }   // 예전에 저장된 캠페인
   if (!stops) {
     const brand = p.primary ?? '#2456D6';

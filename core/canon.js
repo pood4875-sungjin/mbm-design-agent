@@ -126,6 +126,11 @@ export const CANON = {
   // 11-10 사용자 「비주얼 기반으로 색 선택 — 그 비중의 색으로, 너무 어두워도 안 되고」: 질감·평평한 바탕 없는 그림(일러스트·3D)은 지면 = 그림에서 비중이 가장 큰 유채색(kvMeta.colors[0], 평평한 바탕색 제외·비중 순).
   //   흰 글자 대비 minContrast 까지 같은 색상으로 어둡히되 HSL 밝기 lMin 밑·maxDrop 넘게는 안 내림 — 그 안에서 안 되면 원래 색 + 어두운 글자(너무 어두운 남색 방지). 둘째 정지점은 grad 만큼만 어둡게. 흰 로고 → 어두운 브랜드색(brand-dark-logo)보다 먼저
   kvShare: { lMin: 0.34, maxDrop: 0.15, minContrast: 3, step: 0.01, grad: 0.06, minSat: 0.18 },   // maxDrop: 밝기를 이만큼 넘게 내려야 흰 글자가 되면 색은 그대로 두고 글자를 어둡게(밝은 하늘색 질감이 진한 파랑이 되던 것)
+  // 11-23 사용자 「배경이 하얀색일 때 비주얼이 잘 안 보이는 경우 보완」 + 리멤버 「차단」(금지색 #FFFFFF): 흰 바탕 그림의 변을 그대로 지면으로 쓰면(kv-edge) 소재 전체가 흰 종이 —
+  //   그림이 떠 보이지 않고 흰 바탕 금지 매체(리멤버)는 막힌다. 지면 정지점이 모두 상대휘도 ≥ lum · 채도 ≤ maxSat 이면 그림 속 첫 유채색(채도 ≥ minSat, 없으면 브랜드색)을 흰색에 tint 만큼 섞은 옅은 지면으로 바꾸고
+  //   그림 쪽 이음은 녹임(seamless 해제)이 잇는다. 손으로 고른 색·AI 지면은 건드리지 않는다
+  //   avoid: 틴트가 흰·근접 흰 금지색(리멤버 #F7F7F0·#E8E7E0) 채널당 ±avoidTol 안이면 tint 를 step 씩 줄여 색을 조금 더 낸다(경고 bg-banned-near 도 피함)
+  whiteLift: { lum: 0.9, maxSat: 0.12, minSat: 0.25, tint: 0.86, step: 0.03, minTint: 0.6, avoid: ['#FFFFFF', '#F7F7F0', '#E8E7E0'], avoidTol: 14 },
   kvHarmony: { photoFrom: 'edge', cutoutFrom: 'dominant', tint: 0.78, minSat: 0.18, prefSat: 0.4, sat: 0.7, lMin: 0.34, lMax: 0.5, photoChroma: 0.15, photoHueNear: 40, photoSat: [0.4, 0.5], photoTintLum: 0.55, photoLightL: 0.6, photoLightMix: 0.55 },   // 10-19 사용자: 「흰 글자 그대로, 채도만 더 올려 화사하게(명도 그대로)」 sat .55 → .7 (누끼만)
   //   11-09 사용자(이음·비중 검수 결정 「유채 A′ + 무채 브랜드색」): 사진은 왼변 색 채도가 photoChroma 이상이면 그 색상 ±photoHueNear° 안의 사진 속 유채색을 채도 photoSat·명도 lMin~lMax 로, 흰 글자 4.5:1(photoEdgeField — 피그마 시안 236:3717·236:3742 기준).
   //   무채 변(흰 가운·회색 사무실)은 사진에서 색을 만들지 않는다 — 밝은 사진(lum ≥ photoTintLum)은 옅은 브랜드 틴트 + 어두운 글자(brand-tint-photo), 어두운 사진은 브랜드 딥 + 사진 쪽 끝 브릿지(brand-photo-bridge). 전엔 채도 .7 로 올려 이음 색 차 평균 .35·✗ 501/773
