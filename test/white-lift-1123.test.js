@@ -68,3 +68,17 @@ test('그림을 옮겨도 감싸는 층(data-edit kv)에 multiply', () => {
   const plain = applyElementEdits(renderAd(ctx, st(kv({ top: edge('#BFE0FF'), bottom: edge('#BFE0FF'), left: edge('#BFE0FF'), right: edge('#BFE0FF') }, ['#1579E9'])), specs['kakao-display-pc-promo']), { kv: { dx: -0.15, dy: 0 } }, { w: 1200, h: 600 });
   assert.doesNotMatch(plain, /mix-blend-mode/);
 });
+
+// 11-23 사용자 「이런 거 센터로 와야 하는 거 아냐」: 가운데 정렬 틀(인스타 1080)의 흰 바탕 그림 칸은 누끼처럼 가운데로
+test('인스타 1080: 흰 바탕 그림 칸이 지면 가운데 · 녹임 없음', () => {
+  const specs = adSpecEntries(), ctx = createContext({ client: '동서식품', main: '2026년 동서식품\n대졸 신입/경력사원 채용' }, 'recruit');
+  const html = renderAd(ctx, st(kv({ top: W, bottom: W, left: W, right: W }, ['#2FBB61', '#3794FE'])), specs['instagram-feed-1080']);
+  const m = html.match(/<div data-object="1" style="position:absolute;left:(-?\d+)px;top:\d+px;width:(\d+)px/);
+  assert.ok(m, '그림 칸');
+  assert.ok(Math.abs(+m[1] + +m[2] / 2 - 540) <= 2, `칸 가운데 ${+m[1] + +m[2] / 2}`);
+  assert.doesNotMatch(html.match(/<div data-object="1"[^>]*>/)[0], /mask-image/);
+  // 색 있는 바탕 그림은 예전 칸 그대로(오른쪽 아래)
+  const B = edge('#BFE0FF');
+  const blue = renderAd(ctx, st(kv({ top: B, bottom: B, left: B, right: B }, ['#1579E9'])), specs['instagram-feed-1080']);
+  assert.match(blue, /<div data-object="1" style="position:absolute;left:262px/);
+});

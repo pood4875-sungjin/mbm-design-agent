@@ -1409,8 +1409,11 @@ function renderAdBase(ctx, style, spec) {
     if (colR && tImage && kvImg0 && (['photo', 'illust'].includes(style.kvMeta?.field?.kind) && kvTypeOf(style.kvMeta)?.id !== 'texture' && !kvTypeOf(style.kvMeta)?.flags?.frame) && (style.kvMeta?.field?.opaque ?? 1) >= 0.5 && tImage.x < colR && colR < w * 0.8 && !CANON.lockedMedia.includes(spec.medium) && (mold.align ?? 'left') === 'left') { tImage = { ...tImage, x: colR, w: Math.max(1, tImage.x + tImage.w - colR) }; fired('templateMold.photoAfterText'); } }
   // 11-10 사용자 「텍스트 정렬에 따라 누끼 오브제는 따라가야 함 — 누끼도 센터 정렬로 돼야 안 비어 보이고 정렬돼 보임(인스타)」: 틀 자체가 가운데 정렬(인스타 1080·구글 300×600)이면
   //   정렬 프리셋이 없어도 누끼 그림 칸만 가운데로(로고는 틀 그대로). 사진·바탕 있는 그림은 칸 그대로
-  const cutCenterOnly = !TA && !!mold && mold.align === 'center' && kvCut0 && !kvImg0 && !!tImage && !moldCutZone && !moldFreeKv;
-  const AM = ((TA || cutCenterOnly) && mold) ? alignMoldSlots({ mold, w, h, k: tScale, tImage, tLogo: cutCenterOnly ? null : tLogo, align: TA ?? 'center', free: moldFreeKv, cutout: kvCut0 && !kvImg0 }) : null;
+  // 11-23 사용자 「이런 거 센터로 와야 하는 거 아냐」(인스타 1080 × 흰 바탕 일러스트가 오른쪽 아래 칸): 흰 바탕 그림(kv-edge-tint)은 흰 바탕이 곱하기(whiteMelt)로 지면에 녹아 누끼처럼 보인다 — 누끼와 같이 가운데로
+  const whiteKv = kvImg0 && !TA && !!mold && mold.align === 'center' && (() => { try { return resolveField(style, { facing: 'left' }).source === 'kv-edge-tint'; } catch { return false; } })();
+  const cutCenterOnly = !TA && !!mold && mold.align === 'center' && ((kvCut0 && !kvImg0) || whiteKv) && !!tImage && !moldCutZone && !moldFreeKv;
+  if (whiteKv && cutCenterOnly) fired('templateMold.whiteKvCenter');
+  const AM = ((TA || cutCenterOnly) && mold) ? alignMoldSlots({ mold, w, h, k: tScale, tImage, tLogo: cutCenterOnly ? null : tLogo, align: TA ?? 'center', free: moldFreeKv, cutout: (kvCut0 && !kvImg0) || whiteKv }) : null;
   if (AM && cutCenterOnly) { AM.tLogo = tLogo; if (/^center/.test(AM.kv ?? '')) fired('templateMold.cutoutCenter'); }
   if (AM) {
     tImage = AM.tImage;
@@ -2895,7 +2898,11 @@ function renderAdBase(ctx, style, spec) {
     const pull = (kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.subject) ? subjectCrop(style, r.w, r.h, bandFill ? { margin: 0.04 } : { fit: true, margin: 0.12 }) : null;
     if (pull && bandFill) fired('templateMold.bandFill');
     if (pull) fired('templateMold.subjectPull');
-    return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${pull ? `${pull.pos}/${pull.size}` : `${c.pos}/cover`} no-repeat;${meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
+    // 11-23 가운데로 옮긴 흰 바탕 그림(whiteKv): 흰 바탕이 곱하기로 녹으니 누끼처럼 통째로(contain·바닥 가운데) · 녹임 없음 — 모서리 칸 녹임(왼·위)이 남으면 좌우가 어긋났다
+    const whiteCut = whiteKv && cutCenterOnly;
+    const wPull = whiteCut ? subjectCrop(style, r.w, r.h, { fit: true, margin: 0.04, minGain: 1.05 }) : null;   // 흰 여백을 빼고 주인공 상자가 칸에 꼭 맞게(통째로 넣으면 여백만큼 작았다)
+    const bgPos = whiteCut ? (wPull ? `${wPull.pos}/${wPull.size}` : 'center bottom/contain') : pull ? `${pull.pos}/${pull.size}` : `${c.pos}/cover`;
+    return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${bgPos} no-repeat;${whiteCut ? '' : meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
   })() : null;
   // 11-17 노션 N2 비즈보드 「이미지 대신 로고 사용」: 썸네일형 = 공식 썸네일 상자(320×222 r18)에 바탕색 + 흰 로고, 오브젝트형 = 오브젝트 칸(314×300)에 로고만(가로 가득·높이 60% 안)
   //   표식은 style 뒤(data-logo-kv) — variants.js 로고 칸 정규식(data-object="logo" style="position:absolute;left…)이 그대로 읽게
