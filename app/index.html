@@ -590,7 +590,9 @@
   :is(#inspector,*) .fpk-in input.fhex{flex:1;min-width:0;padding:0;border:0;background:none;outline:0;font-size:11px;text-transform:uppercase}
   .fpk-in .fop{display:flex;align-items:center;gap:1px;padding-left:8px;border-left:1px solid var(--line);height:16px}
   :is(#inspector,*) .fpk-in .fop input.fopn{width:26px;padding:0;border:0;background:none;font-size:11px;text-align:right}
-  .fpg-top{display:grid;grid-template-columns:1fr 24px 24px;gap:4px;align-items:center}
+  .fpg-top{display:grid;grid-template-columns:1fr 60px 24px 24px;gap:4px;align-items:center}
+  .fpg-top .fsel{height:28px;min-width:0}
+  .fpg-stop .fop input:disabled{opacity:.5}
   .fpg-bar{margin:22px 8px 2px;background:var(--bar),repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/8px 8px}
   .fpg-stops{display:flex;flex-direction:column;gap:2px;margin:0 -4px}
   .fpg-stop{display:grid;grid-template-columns:52px 1fr 24px;gap:4px;align-items:center;padding:2px 4px;border-radius:5px}
@@ -608,6 +610,14 @@
   .prow{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;margin-top:4px}
   :is(#inspector,*) .prow label{display:block;margin:0;font-size:11px;color:var(--sub)}
   .prow select{width:100%;min-width:0}
+  /* 11-23 캔버스 그라데이션 손잡이(피그마) — 선 · 시작/끝(방사형: 중심 · 반지름) 손잡이 */
+  .fgh{position:fixed;inset:0;z-index:3900;pointer-events:none}
+  .fgh svg{position:absolute;inset:0;overflow:visible}
+  .fgh line,.fgh ellipse{stroke:#fff;stroke-width:1.5;fill:none;filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}
+  .fgh circle{fill:#fff;stroke:rgba(0,0,0,.4)}
+  .fgh-h{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;padding:0;border:2px solid #fff;border-radius:4px;background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/6px 6px;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);pointer-events:auto;cursor:grab;touch-action:none}
+  .fgh-h:active{cursor:grabbing}
+  .fgh-h:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   .bgpick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);cursor:pointer}
   .bgpick input{width:24px;height:24px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
   .sgrp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}

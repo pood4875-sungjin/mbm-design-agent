@@ -87,3 +87,15 @@ test('[카카오] 비즈보드 썸네일(공식 둥근 칸 320×222)은 줄이�
     const l = h.match(/data-logo-slot="adlabel" style="position:absolute;left:(\d+)px/); assert.equal(+l[1], 609);
   }
 });
+
+test('캔버스 방향 손잡이 — 선형 from·to(선 위 자리) · 방사형 타원 중심·반지름이 CSS 로 · 손잡이 두 점 → 각도·from·to', async () => {
+  const { gradientCss } = await import('../core/gradient.js');
+  assert.equal(gradientCss({ type: 'linear', angle: 90, from: 20, to: 80, stops: [{ color: '#000000', pos: 0 }, { color: '#FFFFFF', pos: 50 }, { color: '#FF0000', pos: 100 }] }), 'linear-gradient(90deg,#000000 20%,#FFFFFF 50%,#FF0000 80%)');
+  assert.equal(gradientCss({ type: 'radial', cx: 30, cy: 40, rx: 50, ry: 60, stops: [{ color: '#000000', pos: 0 }, { color: '#FFFFFF', pos: 100 }] }), 'radial-gradient(ellipse 50% 60% at 30% 40%,#000000 0%,#FFFFFF 100%)');
+  assert.equal(gradientCss({ type: 'linear', angle: 180, from: 0, to: 100, stops: [{ color: '#000000', pos: 0 }, { color: '#FFFFFF', pos: 100 }] }), 'linear-gradient(180deg,#000000 0%,#FFFFFF 100%)', '기본값은 예전 그대로');
+  const { linearFromPoints } = await import('../app/fillpanel.js');
+  assert.deepEqual(linearFromPoints([0, 50], [100, 50], 100, 100), { angle: 90, from: 0, to: 100 }, '왼쪽 → 오른쪽 끝에서 끝');
+  assert.deepEqual(linearFromPoints([50, 25], [50, 75], 100, 100), { angle: 180, from: 25, to: 75 }, '위 → 아래 가운데 절반');
+  assert.deepEqual(linearFromPoints([20, 25], [80, 75], 100, 100).angle, 130);
+  assert.equal(linearFromPoints([50, 50], [50.5, 50], 100, 100), null, '너무 가까우면 무시');
+});

@@ -65,7 +65,7 @@ export function bindFillSection(root, id, opts) {
     openPaintPopover(anchor, paintOf(k), {
       types: isBase ? (opts.baseTypes ?? ['solid', 'linear', 'radial']) : ['solid', 'linear', 'radial', ...(opts.allowImage ? ['image'] : [])],
       allowAlpha: !isBase && opts.allowAlpha !== false,
-      title: isBase ? (opts.baseTitle ?? '지면') : `${opts.title ?? '채우기'} ${fills().length - k}`,
+      title: isBase ? (opts.baseTitle ?? '지면') : `${opts.title ?? '채우기'} ${fills().length - k}`, box: opts.box ?? null,
       onLive: p => { if (isBase) opts.onBaseLive?.(p); else { const f = fills(); f[k] = p; opts.onLive?.(f); } },
       onChange: (p, label) => { if (isBase) opts.onBase(p, label); else { const f = fills(); f[k] = p; set(f, label); } },
     });
@@ -102,21 +102,91 @@ export function bindFillSection(root, id, opts) {
 
 /* ── 팝업 ── */
 let POP = null;   // { el, state, opts }
-export function closePaintPopover() { if (!POP) return; POP.el.remove(); document.removeEventListener('pointerdown', POP.outside, true); document.removeEventListener('keydown', POP.key, true); POP = null; }
+export function closePaintPopover() { if (!POP) return; cancelAnimationFrame(POP.raf); POP.gh?.remove(); POP.el.remove(); document.removeEventListener('pointerdown', POP.outside, true); document.removeEventListener('keydown', POP.key, true); POP = null; }
 export const paintPopoverOpen = () => !!POP;
 
 export function openPaintPopover(anchor, paint0, opts) {
   closePaintPopover();
   const el = document.createElement('div'); el.className = 'fpop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', `${opts.title ?? '채우기'} 편집`);
   document.body.appendChild(el);
-  const S = { p: normPaint(paint0, { allowImage: true }) ?? newPaint(), sel: 0, opts };
-  const outside = e => { if (!el.contains(e.target) && !e.target.closest?.('[data-flsw],[data-flopen]')) closePaintPopover(); };
+  const S = { p: normPaint(paint0, { allowImage: true }) ?? newPaint(), sel: 0, opts, pk: false };
+  if (!opts.allowAlpha) S.p = opaqueOf(S.p);
+  const outside = e => { if (!el.contains(e.target) && !POP?.gh?.contains(e.target) && !e.target.closest?.('[data-flsw],[data-flopen]')) closePaintPopover(); };
   const key = e => { if (e.key === 'Escape') { e.stopPropagation(); closePaintPopover(); anchor?.querySelector?.('[data-flsw]')?.focus?.(); } };
   document.addEventListener('pointerdown', outside, true); document.addEventListener('keydown', key, true);
-  POP = { el, S, outside, key };
+  POP = { el, S, outside, key, gh: null, raf: 0 };
   renderPop(el, S); place(el, anchor);
+  // 11-23 캔버스 방향 손잡이(피그마): 칠한 상자(opts.box) 위에 그라데이션 선·손잡이를 띄운다 — 캔버스를 옮기거나 확대해도 따라가게 매 프레임 자리만 맞춘다
+  if (opts.box) { const tick = () => { if (!POP || POP.S !== S) return; drawHandles(S); POP.raf = requestAnimationFrame(tick); }; tick(); }
 }
-function place(el, anchor) {
+
+/* ── 캔버스 손잡이 ── */
+// 선형: CSS 각도 θ 의 그라데이션 선(상자 가운데를 지나는 길이 |w sinθ|+|h cosθ|) 위 from·to(%) 자리가 시작·끝 손잡이
+function linGeom(p, w, h) {
+  const th = (p.angle ?? 180) * Math.PI / 180, d = [Math.sin(th), -Math.cos(th)], L = Math.abs(w * d[0]) + Math.abs(h * d[1]);
+  const at = u => [w / 2 + d[0] * L * (u - 0.5), h / 2 + d[1] * L * (u - 0.5)];
+  return { p1: at((p.from ?? 0) / 100), p2: at((p.to ?? 100) / 100), at };
+}
+// 두 손잡이 자리 → 각도·from·to(손잡이를 선에 수직으로 옮긴 것은 같은 그림 — 선 위로 투영)
+export function linearFromPoints(P1, P2, w, h) {
+  const vx = P2[0] - P1[0], vy = P2[1] - P1[1]; if (Math.hypot(vx, vy) < 2) return null;
+  const angle = normAngle(Math.atan2(vx, -vy) * 180 / Math.PI), th = angle * Math.PI / 180, d = [Math.sin(th), -Math.cos(th)], L = Math.abs(w * d[0]) + Math.abs(h * d[1]);
+  const pr = P => Math.round((((P[0] - w / 2) * d[0] + (P[1] - h / 2) * d[1]) / L + 0.5) * 1000) / 10;
+  return { angle, from: pr(P1), to: pr(P2) };
+}
+// 방사형: 중심 cx·cy(%) · 반지름 rx(폭 %)·ry(높이 %) — 없으면 예전 「가운데 원, 가장 먼 모서리까지」와 같은 값
+function radGeom(p, w, h) {
+  if (p.rx != null) return { cx: p.cx, cy: p.cy, rx: p.rx, ry: p.ry };
+  const R = Math.hypot(w / 2, h / 2); return { cx: 50, cy: 50, rx: Math.round(R / w * 1000) / 10, ry: Math.round(R / h * 1000) / 10 };
+}
+const stopCss = s => s.a != null ? `rgba(${rgbOf(s.color).join(',')},${s.a / 100})` : s.color;
+function drawHandles(S) {
+  let gh = POP.gh;
+  const B = isGrad(S.p) ? S.opts.box?.() : null;
+  if (!B?.rect || !(B.w > 0)) { if (gh) gh.hidden = true; return; }
+  if (!gh) { gh = POP.gh = document.createElement('div'); gh.className = 'fgh'; gh.setAttribute('aria-label', '그라데이션 방향 손잡이'); document.body.appendChild(gh); }
+  gh.hidden = false;
+  const { rect, w, h } = B, k = rect.width / w, X = x => rect.left + x * k, Y = y => rect.top + y * k, p = S.p;
+  let svg, hs;
+  if (p.type === 'linear') {
+    const g = linGeom(p, w, h), mid = p.stops.slice(1, -1).map(s => g.at(((p.from ?? 0) + s.pos * ((p.to ?? 100) - (p.from ?? 0)) / 100) / 100));
+    svg = `<line x1="${X(g.p1[0])}" y1="${Y(g.p1[1])}" x2="${X(g.p2[0])}" y2="${Y(g.p2[1])}"/>${mid.map(m => `<circle cx="${X(m[0])}" cy="${Y(m[1])}" r="3"/>`).join('')}`;
+    hs = [['p1', g.p1, p.stops[0]], ['p2', g.p2, p.stops[p.stops.length - 1]]];
+  } else {
+    const r = radGeom(p, w, h), cx = r.cx / 100 * w, cy = r.cy / 100 * h, rx = r.rx / 100 * w, ry = r.ry / 100 * h;
+    svg = `<ellipse cx="${X(cx)}" cy="${Y(cy)}" rx="${rx * k}" ry="${ry * k}"/><line x1="${X(cx)}" y1="${Y(cy)}" x2="${X(cx + rx)}" y2="${Y(cy)}"/><line x1="${X(cx)}" y1="${Y(cy)}" x2="${X(cx)}" y2="${Y(cy + ry)}"/>`;
+    hs = [['c', [cx, cy], p.stops[0]], ['rx', [cx + rx, cy], p.stops[p.stops.length - 1]], ['ry', [cx, cy + ry], p.stops[p.stops.length - 1]]];
+  }
+  const sig = svg + hs.map(x => x[0] + stopCss(x[2])).join('');
+  if (gh.__sig === sig) return; gh.__sig = sig;
+  gh.innerHTML = `<svg width="100%" height="100%" aria-hidden="true">${svg}</svg>${hs.map(([id, pt, st]) => `<button type="button" class="fgh-h" data-gh="${id}" style="left:${X(pt[0])}px;top:${Y(pt[1])}px;--c:${stopCss(st)}" aria-label="${{ p1: '시작점', p2: '끝점', c: '중심', rx: '가로 반지름', ry: '세로 반지름' }[id]} — 끌어서 옮기기 · Shift 45° 단위"></button>`).join('')}`;
+  gh.querySelectorAll('[data-gh]').forEach(b => b.onpointerdown = e => dragHandle(e, b.dataset.gh, S));
+}
+function dragHandle(e, id, S) {
+  if (e.button !== 0) return; e.preventDefault(); e.stopPropagation();
+  const B = S.opts.box?.(); if (!B) return;
+  const { rect, w, h } = B, k = rect.width / w, el = POP.el;
+  const P = ev => [(ev.clientX - rect.left) / k, (ev.clientY - rect.top) / k];
+  const move = ev => {
+    let q = P(ev), p = S.p;
+    if (p.type === 'linear') {
+      const g = linGeom(p, w, h), other = id === 'p1' ? g.p2 : g.p1;
+      if (ev.shiftKey) { const v = [q[0] - other[0], q[1] - other[1]], len = Math.hypot(...v), a = Math.round(Math.atan2(v[1], v[0]) / (Math.PI / 4)) * (Math.PI / 4); q = [other[0] + len * Math.cos(a), other[1] + len * Math.sin(a)]; }
+      const r = id === 'p1' ? linearFromPoints(q, other, w, h) : linearFromPoints(other, q, w, h);
+      if (r) S.p = { ...p, ...r };
+    } else {
+      const r = radGeom(p, w, h), r1 = v => Math.round(v * 10) / 10;
+      if (id === 'c') S.p = { ...p, ...r, cx: r1(q[0] / w * 100), cy: r1(q[1] / h * 100) };
+      else if (id === 'rx') S.p = { ...p, ...r, rx: Math.max(1, r1(Math.abs(q[0] - r.cx / 100 * w) / w * 100)), ...(ev.shiftKey ? { ry: Math.max(1, r1(Math.abs(q[0] - r.cx / 100 * w) / h * 100)) } : {}) };
+      else S.p = { ...p, ...r, ry: Math.max(1, r1(Math.abs(q[1] - r.cy / 100 * h) / h * 100)), ...(ev.shiftKey ? { rx: Math.max(1, r1(Math.abs(q[1] - r.cy / 100 * h) / w * 100)) } : {}) };
+    }
+    renderPop(el, S); drawHandles(S); live(S);
+  };
+  const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); commit(el, S, '그라데이션 방향'); };
+  addEventListener('pointermove', move); addEventListener('pointerup', up);
+}
+function place(el, anchor, keep = false) {
+  if (keep) { const h = el.offsetHeight, t = parseFloat(el.style.top) || 8; if (t + h > innerHeight - 8) el.style.top = `${Math.max(8, innerHeight - h - 8)}px`; return; }
   const r = anchor?.getBoundingClientRect?.() ?? { left: innerWidth / 2, top: 80, right: innerWidth / 2, bottom: 80 };
   const w = el.offsetWidth || 248, h = el.offsetHeight || 420;
   let x = r.left - w - 10; if (x < 8) x = Math.min(innerWidth - w - 8, r.right + 10);
@@ -124,6 +194,13 @@ function place(el, anchor) {
   el.style.left = `${Math.max(8, x)}px`; el.style.top = `${Math.max(8, y)}px`;
 }
 const isGrad = p => p.type === 'linear' || p.type === 'radial';
+// 투명이 안 되는 칸(지면): 정지점 불투명도를 걷고, 단색 → 그라데이션은 「그 색 → 투명」 대신 「그 색 → 조금 어두운 색」
+function opaqueOf(p) {
+  if (!isGrad(p)) return p;
+  const st = p.stops.map(({ a, ...x }) => x);
+  if (p.stops.some(x => x.a === 0) && st.length === 2 && st[0].color === st[1].color) st[1] = { ...st[1], color: hexOf(rgbOf(st[0].color).map(v => v * 0.6)) };
+  return { ...p, stops: st };
+}
 // 지금 고른 색(단색 = 칠 색 · 그라데이션 = 고른 정지점) — 불투명도는 단색이면 층 불투명도, 그라데이션이면 정지점 불투명도
 function curColor(S) { const p = S.p; if (isGrad(p)) { const s = p.stops[Math.min(S.sel, p.stops.length - 1)]; return { hex: s.color, a: s.a ?? 100 }; } return { hex: p.type === 'solid' ? p.color : '#D9D9D9', a: p.opacity ?? 100 }; }
 function setColor(S, hex, a) {
@@ -149,16 +226,19 @@ function pickerHtml(S) {
   </div>`;
 }
 function gradHtml(S) {
+  // 피그마 Custom › 그라데이션: 종류 드롭다운 · 돌리기 · 뒤집기 → 막대(정지점 손잡이) → 정지점 목록(위치 · 색 · 불투명도 · 빼기). 색 판은 정지점을 누르면 열린다
   const p = S.p, sel = Math.min(S.sel, p.stops.length - 1), alpha = S.opts.allowAlpha;
-  const bar = `linear-gradient(90deg,${p.stops.map(s => `${s.a != null ? `rgba(${rgbOf(s.color).join(',')},${s.a / 100})` : s.color} ${s.pos}%`).join(',')})`;
-  return `<div class="fpg-top">${p.type === 'linear' ? `<div class="fin unit pre"><span class="k" aria-hidden="true">${ic('rot')}</span><input type="text" inputmode="decimal" class="fnum" data-pg="ang" value="${p.angle}" aria-label="각도(도)"><span class="u" aria-hidden="true">°</span></div>${iconBtn('rot', '90도 돌리기', 'data-pg="rot"')}` : '<span class="fnote" style="margin:0">가운데에서 바깥으로</span>'}${iconBtn('flip-h', '색 순서 뒤집기', 'data-pg="flip"')}</div>
-    <div class="gbar fpg-bar" data-pg="bar" title="누르면 정지점 추가 · 끌어서 옮기기 · Delete 로 지우기" style="--bar:${bar}">${p.stops.map((s, i) => `<button type="button" class="gpin ${i === sel ? 'on' : ''}" data-pgpin="${i}" style="left:${s.pos}%;--c:${s.color}" aria-label="정지점 ${i + 1} ${s.color} 위치 ${s.pos}%"></button>`).join('')}</div>
-    ${pickerHtml(S)}
+  const css = s => s.a != null ? `rgba(${rgbOf(s.color).join(',')},${s.a / 100})` : s.color;
+  const bar = `linear-gradient(90deg,${p.stops.map(s => `${css(s)} ${s.pos}%`).join(',')})`;
+  return `<div class="fpg-top"><select class="fsel" data-pg="type" aria-label="그라데이션 종류">${[['linear', '선형'], ['radial', '방사형']].map(([k, n]) => `<option value="${k}" ${p.type === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      ${p.type === 'linear' ? `<div class="fin unit"><input type="text" inputmode="decimal" class="fnum" data-pg="ang" value="${p.angle}" aria-label="각도(도) — 180 = 위에서 아래"><span class="u" aria-hidden="true">°</span></div>${iconBtn('rot', '90도 돌리기', 'data-pg="rot"')}` : '<span></span><span></span>'}${iconBtn('flip-h', '색 순서 뒤집기', 'data-pg="flip"')}</div>
+    <div class="gbar fpg-bar" data-pg="bar" title="누르면 정지점 추가 · 끌어서 옮기기 · Delete 로 지우기" style="--bar:${bar}">${p.stops.map((s, i) => `<button type="button" class="gpin ${i === sel ? 'on' : ''}" data-pgpin="${i}" style="left:${s.pos}%;--c:${css(s)}" aria-label="정지점 ${i + 1} ${s.color} 위치 ${s.pos}%"></button>`).join('')}</div>
     <div class="ghead"><span>정지점</span>${iconBtn('plus', '정지점 더하기', `data-pg="add" ${p.stops.length >= GRAD_MAX_STOPS ? 'disabled' : ''}`)}</div>
     <div class="fpg-stops">${p.stops.map((s, i) => `<div class="fpg-stop ${i === sel ? 'on' : ''}" data-pgrow="${i}">
       <div class="fin unit"><input type="text" inputmode="decimal" class="fnum" data-pgpos="${i}" value="${Math.round(s.pos)}" aria-label="정지점 ${i + 1} 위치"><span class="u" aria-hidden="true">%</span></div>
-      <div class="fcin"><button type="button" class="flsw" data-pgsel="${i}" style="--sw:${s.a != null ? `rgba(${rgbOf(s.color).join(',')},${s.a / 100})` : s.color}" aria-label="정지점 ${i + 1} 고르기"><i></i></button><input type="text" class="fhex" data-pghex="${i}" value="${s.color.slice(1)}" maxlength="7" spellcheck="false" aria-label="정지점 ${i + 1} 헥스">${alpha ? `<span class="fop"><input type="text" inputmode="decimal" class="fnum fopn" data-pga="${i}" value="${s.a ?? 100}" aria-label="정지점 ${i + 1} 불투명도(%)"><i aria-hidden="true">%</i></span>` : ''}</div>
-      ${iconBtn('minus', `정지점 ${i + 1} 빼기`, `data-pgdel="${i}" ${p.stops.length <= 2 ? 'disabled' : ''}`)}</div>`).join('')}</div>`;
+      <div class="fcin"><button type="button" class="flsw" data-pgsel="${i}" style="--sw:${css(s)}" aria-label="정지점 ${i + 1} 색 판 열기" aria-expanded="${S.pk && i === sel}"><i></i></button><input type="text" class="fhex" data-pghex="${i}" value="${s.color.slice(1)}" maxlength="7" spellcheck="false" aria-label="정지점 ${i + 1} 헥스"><span class="fop"><input type="text" inputmode="decimal" class="fnum fopn" data-pga="${i}" value="${s.a ?? 100}" aria-label="정지점 ${i + 1} 불투명도(%)" ${alpha ? '' : 'disabled title="지면은 불투명 — 위에 채우기 층을 더하면 투명을 쓸 수 있어요"'}><i aria-hidden="true">%</i></span></div>
+      ${iconBtn('minus', `정지점 ${i + 1} 빼기`, `data-pgdel="${i}" ${p.stops.length <= 2 ? 'disabled' : ''}`)}</div>`).join('')}</div>
+    ${S.pk ? pickerHtml(S) : ''}`;
 }
 const FITS = [['cover', '꽉 채우기'], ['contain', '전체 보기'], ['tile', '반복']];
 function imageHtml(S) {
@@ -172,7 +252,8 @@ function imageHtml(S) {
 }
 function renderPop(el, S) {
   const p = S.p, types = S.opts.types;
-  el.innerHTML = `<div class="fpop-h"><div class="fpop-tabs" role="tablist" aria-label="칠 종류">${types.map(t => `<button type="button" role="tab" class="fib${p.type === t ? ' on' : ''}" data-pt="${t}" aria-selected="${p.type === t}" title="${PAINT_NAME[t]}" aria-label="${PAINT_NAME[t]}">${TYPE_ICON[t]}</button>`).join('')}</div>
+  const on = t => p.type === t || (t === 'linear' && p.type === 'radial');
+  el.innerHTML = `<div class="fpop-h"><div class="fpop-tabs" role="tablist" aria-label="칠 종류">${types.filter(t => t !== 'radial').map(t => `<button type="button" role="tab" class="fib${on(t) ? ' on' : ''}" data-pt="${t}" aria-selected="${on(t)}" title="${t === 'linear' ? '그라데이션' : PAINT_NAME[t]}" aria-label="${t === 'linear' ? '그라데이션' : PAINT_NAME[t]}">${TYPE_ICON[t]}</button>`).join('')}</div>
     <span class="fpop-t">${esc(S.opts.title ?? '')}</span>${iconBtn('minus', '닫기', 'data-pclose="1"').replace(ic('minus'), '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-linecap="round"/></svg>')}</div>
     <div class="fpop-b">${p.type === 'image' ? imageHtml(S) : isGrad(p) ? gradHtml(S) : pickerHtml(S)}</div>`;
   wirePop(el, S);
@@ -198,7 +279,7 @@ function keySlide(node, el, S, step, label) {
 function wirePop(el, S) {
   wireFui(el);
   el.querySelector('[data-pclose]').onclick = () => closePaintPopover();
-  el.querySelectorAll('[data-pt]').forEach(b => b.onclick = () => { if (S.p.type === b.dataset.pt) return; S.p = convertPaint(S.p, b.dataset.pt); S.sel = 0; S.hsv = null; if (S.p.type === 'image' && !S.p.src) { renderPop(el, S); el.querySelector('[data-pi="file"]')?.click(); return; } commit(el, S, `칠 종류 ${PAINT_NAME[S.p.type]}`); });
+  el.querySelectorAll('[data-pt]').forEach(b => b.onclick = () => { if (S.p.type === b.dataset.pt || (b.dataset.pt === 'linear' && S.p.type === 'radial')) return; S.p = convertPaint(S.p, b.dataset.pt); if (!S.opts.allowAlpha) S.p = opaqueOf(S.p); S.sel = 0; S.hsv = null; S.pk = false; if (S.p.type === 'image' && !S.p.src) { renderPop(el, S); el.querySelector('[data-pi="file"]')?.click(); return; } commit(el, S, `칠 종류 ${PAINT_NAME[S.p.type]}`); });
   // 색 판
   const sv = el.querySelector('[data-pk="sv"]');
   if (sv) {
@@ -219,6 +300,7 @@ function wirePop(el, S) {
   // 그라데이션
   if (isGrad(S.p)) {
     const g = () => S.p;
+    el.querySelector('[data-pg="type"]').onchange = e => { S.p = { ...g(), type: e.target.value }; commit(el, S, `그라데이션 ${e.target.value === 'radial' ? '방사형' : '선형'}`); };
     const ang = el.querySelector('[data-pg="ang"]'); if (ang) ang.onchange = () => { const v = parseFloat(ang.value); if (!Number.isFinite(v)) { ang.value = g().angle; return; } S.p = { ...g(), angle: normAngle(v) }; commit(el, S, '그라데이션 각도'); };
     el.querySelector('[data-pg="rot"]')?.addEventListener('click', () => { S.p = { ...g(), ...rotateGradient(g(), 90), opacity: g().opacity, ...(g().hidden ? { hidden: true } : {}) }; commit(el, S, '그라데이션 90° 돌리기'); });
     el.querySelector('[data-pg="flip"]').onclick = () => { const f = flipGradient(g()); S.p = { ...g(), stops: f.stops }; S.sel = g().stops.length - 1 - S.sel; commit(el, S, '그라데이션 뒤집기'); };
@@ -231,7 +313,7 @@ function wirePop(el, S) {
       if (!pin) { const r = addStop(g(), posOf(e)); if (r.index < 0) return; S.p = { ...g(), stops: r.gradient.stops }; S.sel = r.index; S.hsv = null; commit(el, S, '정지점 더하기'); return; }
       S.sel = +pin.dataset.pgpin; S.hsv = null; let moved = false;
       const move = ev => { moved = true; const r = moveStop(g(), S.sel, posOf(ev)); S.p = { ...g(), stops: r.gradient.stops }; S.sel = r.index; renderPop(el, S); live(S); };
-      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); if (moved) commit(el, S, '정지점 옮기기'); else { renderPop(el, S); el.querySelector(`[data-pgpin="${S.sel}"]`)?.focus(); } };
+      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); if (moved) commit(el, S, '정지점 옮기기'); else { S.pk = true; renderPop(el, S); place(el, null, true); el.querySelector(`[data-pgpin="${S.sel}"]`)?.focus(); } };
       addEventListener('pointermove', move); addEventListener('pointerup', up);
     };
     el.querySelectorAll('[data-pgpin]').forEach(b => b.onkeydown = e => {
@@ -240,7 +322,7 @@ function wirePop(el, S) {
       const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key]; if (!d) return; e.preventDefault();
       const r = moveStop(g(), i, g().stops[i].pos + d * (e.shiftKey ? 10 : 1)); S.p = { ...g(), stops: r.gradient.stops }; S.sel = r.index; commit(el, S, '정지점 옮기기'); el.querySelector(`[data-pgpin="${S.sel}"]`)?.focus();
     });
-    el.querySelectorAll('[data-pgsel]').forEach(b => b.onclick = () => { S.sel = +b.dataset.pgsel; S.hsv = null; renderPop(el, S); });
+    el.querySelectorAll('[data-pgsel]').forEach(b => b.onclick = () => { const i = +b.dataset.pgsel; S.pk = !(S.pk && S.sel === i); S.sel = i; S.hsv = null; renderPop(el, S); place(el, null, true); });
     el.querySelectorAll('[data-pgrow]').forEach(r => r.addEventListener('focusin', () => { const i = +r.dataset.pgrow; if (S.sel !== i) { S.sel = i; S.hsv = null; el.querySelectorAll('.fpg-stop').forEach(x => x.classList.toggle('on', +x.dataset.pgrow === i)); el.querySelectorAll('.gpin').forEach(x => x.classList.toggle('on', +x.dataset.pgpin === i)); } }));
     el.querySelectorAll('[data-pgpos]').forEach(inp => inp.onchange = () => { const i = +inp.dataset.pgpos, v = parseFloat(inp.value); if (!Number.isFinite(v)) { inp.value = Math.round(g().stops[i].pos); return; } const r = moveStop(g(), i, v); S.p = { ...g(), stops: r.gradient.stops }; S.sel = r.index; commit(el, S, '정지점 위치'); });
     el.querySelectorAll('[data-pghex]').forEach(inp => inp.onchange = () => { const i = +inp.dataset.pghex, h = parseHex(inp.value); if (!h) { inp.value = g().stops[i].color.slice(1); return; } S.sel = i; S.hsv = null; setColor(S, h, g().stops[i].a ?? 100); commit(el, S, '정지점 색'); });

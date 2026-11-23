@@ -13,12 +13,24 @@ export function normGradient(g) {
   if (!g || !Array.isArray(g.stops)) return null;
   const stops = g.stops.filter(s => HEX.test(s?.color ?? '') && Number.isFinite(Number(s.pos))).map(s => ({ color: s.color.toUpperCase(), pos: r1(clamp(Number(s.pos), 0, 100)), ...(s.a != null && Number.isFinite(+s.a) && +s.a < 100 ? { a: Math.round(clamp(+s.a, 0, 99)) } : {}) })).sort((a, b) => a.pos - b.pos).slice(0, GRAD_MAX_STOPS);
   if (stops.length < 2) return null;
-  return { type: GRAD_TYPES.includes(g.type) ? g.type : 'linear', angle: g.angle == null ? 180 : normAngle(g.angle), stops };
+  const type = GRAD_TYPES.includes(g.type) ? g.type : 'linear', num = v => v != null && v !== '' && Number.isFinite(+v);
+  // 11-23 캔버스 방향 핸들(피그마): 선형 = 시작·끝 손잡이가 CSS 그라데이션 선의 어디(from·to %)에 있는가 — 기본 0·100(상자 끝에서 끝)
+  //   방사형 = 중심(cx·cy %) + 가로·세로 반지름(rx·ry, 상자 폭·높이 %) — 없으면 예전 「가운데 원(가장 먼 모서리까지)」
+  const ext = type === 'linear'
+    ? (num(g.from) && num(g.to) && (+g.from !== 0 || +g.to !== 100) && Math.abs(+g.to - +g.from) >= 1 ? { from: r1(clamp(+g.from, -300, 400)), to: r1(clamp(+g.to, -300, 400)) } : {})
+    : (num(g.cx) && num(g.cy) && num(g.rx) && num(g.ry) ? { cx: r1(clamp(+g.cx, -100, 200)), cy: r1(clamp(+g.cy, -100, 200)), rx: r1(clamp(+g.rx, 1, 400)), ry: r1(clamp(+g.ry, 1, 400)) } : {});
+  return { type, angle: g.angle == null ? 180 : normAngle(g.angle), stops, ...ext };
+}
+// 그라데이션 머리(방향·모양)와 정지점 목록 — 정지점 색은 colorOf(s)(층 불투명도를 굽는 쪽이 넘긴다)
+export const gradientHead = g => g.type === 'radial' ? (g.rx != null ? `ellipse ${g.rx}% ${g.ry}% at ${g.cx}% ${g.cy}%` : 'circle at center') : `${g.angle}deg`;
+export const stopPosOf = (g, pos) => g.type === 'linear' && g.from != null ? r1(g.from + pos * (g.to - g.from) / 100) : pos;
+export function gradientCssWith(g, colorOf) {
+  const list = g.stops.map(s => `${colorOf(s)} ${stopPosOf(g, s.pos)}%`).join(',');
+  return `${g.type === 'radial' ? 'radial' : 'linear'}-gradient(${gradientHead(g)},${list})`;
 }
 export function gradientCss(g0) {
   const g = normGradient(g0); if (!g) return null;
-  const list = g.stops.map(s => `${s.a != null ? `rgba(${rgb(s.color).join(',')},${s.a / 100})` : s.color} ${s.pos}%`).join(',');
-  return g.type === 'radial' ? `radial-gradient(circle at center,${list})` : `linear-gradient(${g.angle}deg,${list})`;
+  return gradientCssWith(g, s => s.a != null ? `rgba(${rgb(s.color).join(',')},${s.a / 100})` : s.color);
 }
 // 자동 지면(색 목록 + 각도)을 편집 시작값으로 — 「1차는 AI 자동 추출 색상」(노션 N3), 그다음 사람이 고친다. 색이 하나면 같은 색 두 끝
 export function gradientFrom(colors, angle = 180) {

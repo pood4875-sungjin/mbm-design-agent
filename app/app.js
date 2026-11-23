@@ -3322,7 +3322,7 @@ function bindElementPanel(insp, a, c, spec, id) {
   });
   // 11-23 피그마식 채우기 — 한 장 단색이면 예전 값(색 · 불투명도 · 숨김), 여러 겹·그라데이션이면 ed.fill
   bindFillSection(insp, 'iElT', {
-    title: '칠', fills: () => textFillsOf(a, id, it, it.el.ownerDocument.defaultView.getComputedStyle(it.el)),
+    title: '칠', box: () => elBoxOf(a, id), fills: () => textFillsOf(a, id, EL.find(a, id) ?? it, (EL.find(a, id) ?? it).el.ownerDocument.defaultView.getComputedStyle((EL.find(a, id) ?? it).el)),
     onChange: (f, label) => {
       const lab = label ?? '칠';
       const st0 = { ...(a.overrides.style ?? {}) }, rc = { ...(st0.roleColors ?? {}) };
@@ -3336,7 +3336,7 @@ function bindElementPanel(insp, a, c, spec, id) {
     },
   });
   bindFillSection(insp, 'iElB', {
-    title: '상자 칠', fills: () => { const ed1 = a.overrides.elements?.[id] ?? {}; if (ed1.bfill) return ed1.bfill; const cs1 = it.el.ownerDocument.defaultView.getComputedStyle(it.el); return [{ type: 'solid', color: hexOfCss(cs1.backgroundColor), opacity: 100 }]; },
+    title: '상자 칠', box: () => elBoxOf(a, id, false), fills: () => { const ed1 = a.overrides.elements?.[id] ?? {}; if (ed1.bfill) return ed1.bfill; const cs1 = it.el.ownerDocument.defaultView.getComputedStyle(it.el); return [{ type: 'solid', color: hexOfCss(cs1.backgroundColor), opacity: 100 }]; },
     onChange: (f, label) => edit({ bfill: f.length ? f : null }, label ?? '상자 칠'),
   });
   q('#iElRuns')?.addEventListener('click', () => { if (CS.on && CS.key === key) CS.exit(); else charEnter(a); });
@@ -3349,6 +3349,20 @@ function bindElementPanel(insp, a, c, spec, id) {
     elCommit(a, { style: st, layout: Object.keys(L).length ? L : null, elements: Object.keys(E0).length ? E0 : null }, `${elementName(id)} 일괄값으로`);
   });
 }
+// 11-23 캔버스 그라데이션 손잡이(app/fillpanel.js opts.box): 칠한 상자의 화면 자리(rect)와 설계 크기(w·h)
+function frameBoxOf(a) {
+  const f = a && frames.get(a.key ?? a.specId), spec = a && SPECS[a.specId]; if (!f?.iframe || !spec) return null;
+  const r = f.iframe.getBoundingClientRect(); if (!(r.width > 0)) return null;
+  return { rect: r, w: spec.w, h: spec.h };
+}
+function elBoxOf(a, id, text = true) {
+  const B = frameBoxOf(a); if (!B) return null;
+  const el = EL.find(a, id)?.el, t = (text && el?.querySelector?.('[data-tfill]')) || el; if (!t) return null;
+  const r = t.getBoundingClientRect(), k = B.rect.width / B.w; if (!(r.width > 0)) return null;
+  return { rect: { left: B.rect.left + r.left * k, top: B.rect.top + r.top * k, width: r.width * k, height: r.height * k }, w: r.width, h: r.height };
+}
+// 캠페인 일괄 배경: 고른 소재가 있으면 그것, 없으면 보이는 첫 광고 소재 위에 손잡이를 띄운다(값은 모든 소재에 같다 — 각도·비율이라 크기가 달라도 같은 모양)
+const campBoxOf = () => { const c = state.campaign; const a = c?.artifacts.find(x => (x.key ?? x.specId) === state.selected) ?? c?.artifacts.find(x => x.channel === 'ad' && frameBoxOf(x)); return frameBoxOf(a); };
 // 11-23 이 소재만 채우기(피그마 Fill) — 지면 줄 + 채우기 층. 값은 a.overrides.style.background(캠페인 배경을 통째로 덮는다)
 const artBgOf = (a, c) => a.overrides.style?.background ?? c.style.background ?? {};
 const artBgOwn = a => !!(a.overrides.style?.background || a.overrides.style?.bgFill || a.overrides.style?.bgGrad);
@@ -3363,7 +3377,7 @@ function bindArtifactStyle(insp, a, c) {
   const save = (patch, label) => { const st = { ...(a.overrides.style ?? {}), ...patch }; elCommit(a, { style: st }, label); };
   const bgNow = () => artBgOf(a, c);
   bindFillSection(insp, 'iArtBg', {
-    title: '채우기', allowImage: true, addPaint: () => newPaint('bg'),
+    title: '채우기', allowImage: true, addPaint: () => newPaint('bg'), box: () => frameBoxOf(a),
     fills: () => bgNow().layers ?? [], base: () => { const st = adEffStyle(a); return baseFillOf(st, resolveField(st, { facing: 'left' }), false); },
     onChange: (f, label) => save({ background: { ...bgNow(), layers: normFills(f, { allowImage: true }) ?? [], image: undefined } }, label ?? '채우기'),
     onLive: f => LIVE.push({ style: c.style, only: key, ov: { background: { ...bgNow(), layers: f } } }),
@@ -3551,7 +3565,7 @@ function renderInspectorBody() {
     // 11-23 피그마식 채우기 — 지면 줄(불투명) + 채우기 층(app/fillpanel.js). 끄는 동안은 보드 미리보기만(liveStyle), 놓으면 한 번 저장
     const bgFull = () => c.style.keyVisual && c.style.kvMeta?.field?.kind === 'photo' && (c.style.kvUse ?? 'auto') === 'full';
     bindFillSection(insp, 'iBg', {
-      title: '배경', allowImage: true, addPaint: () => newPaint('bg'),
+      title: '배경', allowImage: true, addPaint: () => newPaint('bg'), box: campBoxOf,
       fills: () => c.style.background?.layers ?? [], base: () => baseFillOf(c.style, resolveField(c.style, { facing: 'left' }), bgFull()),
       onChange: (f, label) => setBg({ layers: f, image: null }, label ?? '배경 채우기'),
       onLive: f => liveStyle(c, { background: { ...c.style.background, layers: f, image: null } }, { colors: curColors(), keepPrev: true }),

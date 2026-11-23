@@ -6,7 +6,7 @@
 //     { type:'image',  src, fit:'cover'|'contain'|'tile', tile:10~100, x, y, opacity, hidden?, name? }   — 배경에만
 //   각진(angular)·다이아몬드는 없다: SVG 내보내기(피그마 편집용)로 옮길 수 없다(core/gradient.js 와 같은 이유).
 //   순수 함수만 — 렌더러(core/renderers/ad.js 배경 층) · 요소 편집(core/elementedit.js 글자·상자 칠) · 앱 패널(app/fillpanel.js)이 같이 쓴다
-import { normGradient, normAngle, GRAD_MAX_STOPS } from './gradient.js';
+import { normGradient, normAngle, GRAD_MAX_STOPS, gradientCssWith } from './gradient.js';
 
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 export const PAINT_TYPES = ['solid', 'linear', 'radial', 'image'];
@@ -30,8 +30,8 @@ export function normPaint(p, { allowImage = false, opaque = false } = {}) {
     const num = (x, lo, hi, d) => Number.isFinite(+x) ? clamp(+x, lo, hi) : d;
     return { type: 'image', src: p.src, fit: ['cover', 'contain', 'tile'].includes(p.fit) ? p.fit : 'cover', tile: num(p.tile, 10, 100, 30), x: num(p.x, 0, 100, 50), y: num(p.y, 0, 100, 50), ...base, ...(p.name ? { name: String(p.name).slice(0, 80) } : {}) };
   }
-  const g = normGradient({ type: p.type, angle: p.angle, stops: p.stops }); if (!g) return null;
-  return { type: g.type, angle: g.angle, stops: opaque ? g.stops.map(({ a, ...s }) => s) : g.stops, ...base };
+  const { stops: _s, ...geo } = normGradient({ ...p }) ?? {}; const g = normGradient({ ...p }); if (!g) return null;
+  return { ...geo, stops: opaque ? g.stops.map(({ a, ...s }) => s) : g.stops, ...base };
 }
 // 층 목록 정리 — 맨 아래부터. 비면 null
 export function normFills(list, opts = {}) {
@@ -46,8 +46,7 @@ export function paintLayerCss(p) {
   if (!p || p.hidden || p.type === 'image') return null;
   const o = (p.opacity ?? 100) / 100;
   if (p.type === 'solid') { const c = rgba(p.color, o); return `linear-gradient(${c},${c})`; }
-  const list = p.stops.map(s => `${rgba(s.color, o * (s.a ?? 100) / 100)} ${s.pos}%`).join(',');
-  return p.type === 'radial' ? `radial-gradient(circle at center,${list})` : `linear-gradient(${p.angle}deg,${list})`;
+  return gradientCssWith(p, s => rgba(s.color, o * (s.a ?? 100) / 100));
 }
 // 층 목록 → background-image 값(CSS 는 첫 층이 맨 위라 뒤집는다). 그릴 층이 없으면 null
 export function fillsImageCss(fills) {
@@ -87,6 +86,6 @@ export const newPaint = (where = 'text') => where === 'bg' ? { type: 'solid', co
 
 // 예전 값 ↔ 칠: 배경 이미지(core/style.js normBgImage, 투명도 0~1) · 직접 그라데이션(core/gradient.js)
 export const paintFromBgImage = B => B?.src ? { type: 'image', src: B.src, fit: B.fit ?? 'cover', tile: B.tile ?? 30, x: B.x ?? 50, y: B.y ?? 50, opacity: Math.round((B.opacity ?? 1) * 100), ...(B.name ? { name: B.name } : {}) } : null;
-export const paintFromGradient = g0 => { const g = normGradient(g0); return g ? { type: g.type, angle: g.angle, stops: g.stops, opacity: 100 } : null; };
-export const gradientOfPaint = p => p && (p.type === 'linear' || p.type === 'radial') ? normGradient({ type: p.type, angle: p.angle, stops: p.stops }) : null;
+export const paintFromGradient = g0 => { const g = normGradient(g0); return g ? { ...g, opacity: 100 } : null; };
+export const gradientOfPaint = p => p && (p.type === 'linear' || p.type === 'radial') ? normGradient(p) : null;
 export { normAngle, GRAD_MAX_STOPS };
