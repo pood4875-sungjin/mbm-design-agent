@@ -304,7 +304,9 @@ function renderOnce(ctx, style, spec) {
 function whiteMelt(html, style) {
   if (!style?.keyVisual || !/data-field-source="kv-edge-tint"/.test(html)) return html;
   const url = esc(style.keyVisual);
-  return html.replace(/style="([^"]*)"/g, (m, css) => css.includes(url) && /url\(/.test(css) && !/mix-blend-mode/.test(css) ? `style="${css};mix-blend-mode:multiply" data-blend="multiply"` : m);
+  const out = html.replace(/style="([^"]*)"/g, (m, css) => css.includes(url) && /url\(/.test(css) && !/mix-blend-mode/.test(css) ? `style="${css};mix-blend-mode:multiply" data-blend="multiply"` : m);
+  // 직접 옮긴 그림(kvWrap data-edit="kv")은 transform 층이 쌓임 맥락을 새로 만든다 — 감싸는 층에도 같은 혼합을 걸어야 지면까지 섞인다
+  return out.replace(/<div data-edit="kv" style="([^"]*)"/g, (m, css) => /mix-blend-mode/.test(css) ? m : `<div data-edit="kv" style="${css};mix-blend-mode:multiply"`);
 }
 // 타이틀 강약형(11-10 PRESETS.titleEmph 'mix'): 메인 첫 줄(회사명) 얇게 · 나머지(채용 구분) 굵게. 한 줄 메인이면 회사명 부분만 얇게.
 //   매체가 글꼴·굵기를 정한 규격(fonts.required — 자소설·리멤버·카카오)은 그대로. 굵기 대비만 바꾸고 크기·줄은 그대로라 자리·검수는 기본안과 같다

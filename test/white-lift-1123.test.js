@@ -57,3 +57,14 @@ test('틴트 지면이면 그림 층이 mix-blend-mode:multiply, 아니면 없�
   const plain = renderAd(ctx, st(kv({ top: B, bottom: B, left: B, right: B }, ['#1579E9'])), specs['remember-job-side-pc']);
   assert.doesNotMatch(plain, /mix-blend-mode/);
 });
+
+// 11-23 사용자 「이동하면 갑자기 누끼 따져 있던 게 배경 생겨」: 옮긴 그림은 transform 층(data-edit="kv")에 감싸져 혼합이 지면까지 안 닿았다 — 감싸는 층에도 같은 혼합
+import { applyElementEdits } from '../core/elementedit.js';
+test('그림을 옮겨도 감싸는 층(data-edit kv)에 multiply', () => {
+  const specs = adSpecEntries(), ctx = createContext({ client: '동서식품', main: '동서식품 채용' }, 'recruit');
+  const html = renderAd(ctx, st(kv({ top: W, bottom: W, left: W, right: edge('#146E32') }, ['#146E32'])), specs['kakao-display-pc-promo']);
+  const moved = applyElementEdits(html, { kv: { dx: -0.15, dy: 0 } }, { w: 1200, h: 600 });
+  assert.match(moved, /<div data-edit="kv" style="[^"]*transform:[^"]*mix-blend-mode:multiply/);
+  const plain = applyElementEdits(renderAd(ctx, st(kv({ top: edge('#BFE0FF'), bottom: edge('#BFE0FF'), left: edge('#BFE0FF'), right: edge('#BFE0FF') }, ['#1579E9'])), specs['kakao-display-pc-promo']), { kv: { dx: -0.15, dy: 0 } }, { w: 1200, h: 600 });
+  assert.doesNotMatch(plain, /mix-blend-mode/);
+});

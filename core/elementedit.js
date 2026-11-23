@@ -327,7 +327,9 @@ function patchBox(html, tag, kind, e, size) {
   }
   const css = transformCss({ dx: num(e.dx), dy: num(e.dy), scale: e.scale ?? 1, ox: e.ox, oy: e.oy }, size.w, size.h);
   const piece = setStyle(open0, addTransform(s, flip)) + html.slice(tag.oe + 1, end);
-  return `${html.slice(0, tag.t)}<div data-edit="${kind}" style="position:absolute;left:0;top:0;width:${size.w}px;height:${size.h}px;${css}pointer-events:none">${piece}</div>${html.slice(end)}`;
+  // 11-23 흰 바탕 그림 곱하기(ad.js whiteMelt): transform 층은 쌓임 맥락을 새로 만들어 안쪽 혼합이 지면까지 안 닿는다(옮기면 흰 바탕이 되살아났다) — 감싸는 층에도 같은 혼합
+  const blend = /mix-blend-mode\s*:\s*multiply/.test(s0) ? 'mix-blend-mode:multiply;' : '';
+  return `${html.slice(0, tag.t)}<div data-edit="${kind}" style="position:absolute;left:0;top:0;width:${size.w}px;height:${size.h}px;${css}${blend}pointer-events:none">${piece}</div>${html.slice(end)}`;
 }
 function boxTags(html, kind) {
   if (kind === 'logo') {
