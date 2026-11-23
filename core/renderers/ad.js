@@ -297,7 +297,14 @@ function renderOnce(ctx, style, spec) {
   const bust = bustOf(style, spec);
   const html = !bust ? renderAdBase(ctx, style, spec) : bustCrop(renderAdBase(ctx, { ...style, kvMeta: bust.meta }, spec), style, bust, spec);
   const used = bust ? { ...style, kvMeta: bust.meta } : style;
-  return { html: titleEmph(logoCap(cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), style), style, spec, ctx), tr: LAST_TR, styleUsed: used };
+  return { html: whiteMelt(titleEmph(logoCap(cutFade(meltFix(fieldAlign(regionFit(html, style, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), used, spec, LAST_TR), style), style, spec, ctx), style), tr: LAST_TR, styleUsed: used };
+}
+// 11-23 사용자 「비주얼 부분만 하얗게 되면 어색해 — 자연스럽게 연결되어야」: 흰 바탕 그림을 틴트 지면(kv-edge-tint, CANON.whiteLift)에 얹으면 그림 칸만 흰 사각형으로 남았다.
+//   그림 층을 곱하기(multiply)로 섞으면 흰 바탕은 지면 틴트가 되고 그림 속 색은 거의 그대로(틴트가 옅어 어둡힘 ≤ 수 %) — 칸 경계가 사라진다. SVG 내보내기도 같은 혼합(core/svgexport.js)
+function whiteMelt(html, style) {
+  if (!style?.keyVisual || !/data-field-source="kv-edge-tint"/.test(html)) return html;
+  const url = esc(style.keyVisual);
+  return html.replace(/style="([^"]*)"/g, (m, css) => css.includes(url) && /url\(/.test(css) && !/mix-blend-mode/.test(css) ? `style="${css};mix-blend-mode:multiply" data-blend="multiply"` : m);
 }
 // 타이틀 강약형(11-10 PRESETS.titleEmph 'mix'): 메인 첫 줄(회사명) 얇게 · 나머지(채용 구분) 굵게. 한 줄 메인이면 회사명 부분만 얇게.
 //   매체가 글꼴·굵기를 정한 규격(fonts.required — 자소설·리멤버·카카오)은 그대로. 굵기 대비만 바꾸고 크기·줄은 그대로라 자리·검수는 기본안과 같다

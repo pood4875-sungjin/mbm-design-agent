@@ -716,7 +716,8 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
       if (el.tagName === 'IMG' && k === 'filter') continue;
       // 편집 직접 수정(10-14)의 이동·배율은 상자(getBoundingClientRect)에 이미 들어 있다 — 같은 비율 확대 + 이동(matrix(s,0,0,s,x,y))이면 옮긴 것으로 친다
       if (k === 'transform' && /^matrix\(\s*([-\d.e]+),\s*0,\s*0,\s*\1,/.test(String(cs.transform)) && (el.hasAttribute('data-edit') || el.hasAttribute('data-logo-slot'))) continue;
-      if (k === 'transform' && flipOf(cs.transform)) continue;   // 11-10 hub 이식: 그림 뒤집기는 아래에서 <g transform> 으로 옮긴다
+      if (k === 'transform' && flipOf(cs.transform)) continue;
+      if (k === 'mixBlendMode' && cs.mixBlendMode === 'multiply') continue;   // 11-23 흰 바탕 그림 곱하기(ad.js whiteMelt) — 아래에서 <g style="mix-blend-mode:multiply"> 로 옮긴다(피그마 레이어 혼합 Multiply)   // 11-10 hub 이식: 그림 뒤집기는 아래에서 <g transform> 으로 옮긴다
       const v = cs[k]; if (v && v !== NO_EFFECT[k] && v !== 'auto') note(`${EFFECT_LABEL[k]} — SVG 로 옮기지 않음(${String(v).slice(0, 40)})`);
     }
     const parts = [];
@@ -770,6 +771,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     body = maskWrap(cs, b, body);
     // 11-10 hub 이식 2단계: 그림 뒤집기(scale(-1,1)·(1,-1), 가운데 기준) — 상자(b)는 뒤집어도 같으니 그린 조각 전체를 가운데 기준으로 뒤집는다(마스크 포함 = CSS 와 같음)
     { const f = flipOf(cs.transform); if (f) { const cx = round(b.x + b.w / 2), cy = round(b.y + b.h / 2); body = `<g transform="translate(${cx} ${cy}) scale(${f.sx} ${f.sy}) translate(${-cx} ${-cy})">${body}</g>`; } }
+    if (cs.mixBlendMode === 'multiply') body = `<g style="mix-blend-mode:multiply">${body}</g>`;
     const op = parseFloat(cs.opacity);
     const needGroup = name || op < 1;
     if (!needGroup) return body;

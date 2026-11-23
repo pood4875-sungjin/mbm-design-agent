@@ -42,3 +42,18 @@ test('손으로 고른 흰색은 그대로', () => {
   const f = resolveField(st(kv({ top: W, bottom: W, left: W, right: W }, ['#146E32']), { background: { color: '#FFFFFF' } }), { facing: 'left' });
   assert.equal(f.stops[0].toUpperCase(), '#FFFFFF');
 });
+
+// 11-23 사용자 「비주얼 부분만 하얗게 되면 어색해 — 자연스럽게 연결」: 틴트 지면 위 흰 바탕 그림 층은 곱하기로 섞어 흰 칸이 지면에 녹는다
+import { renderAd } from '../core/renderers/ad.js';
+import { adSpecEntries } from '../core/adspecs.js';
+import { createContext } from '../core/context.js';
+test('틴트 지면이면 그림 층이 mix-blend-mode:multiply, 아니면 없음', () => {
+  const specs = adSpecEntries(), ctx = createContext({ client: '동서식품', main: '동서식품 채용' }, 'recruit');
+  const whiteKv = st(kv({ top: W, bottom: W, left: W, right: edge('#146E32') }, ['#146E32', '#2FBB61']));
+  const html = renderAd(ctx, whiteKv, specs['remember-job-side-pc']);
+  assert.match(html, /data-field-source="kv-edge-tint"/);
+  assert.match(html, /mix-blend-mode:multiply" data-blend="multiply"/);
+  const B = edge('#BFE0FF');
+  const plain = renderAd(ctx, st(kv({ top: B, bottom: B, left: B, right: B }, ['#1579E9'])), specs['remember-job-side-pc']);
+  assert.doesNotMatch(plain, /mix-blend-mode/);
+});
