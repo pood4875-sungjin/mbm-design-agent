@@ -2727,6 +2727,7 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
     if (!e.target.closest('.frame') && (state.selected != null || state.elSel != null)) select(null);   // 이미 해제면 인스펙터를 다시 그리지 않는다(11-09 성능 — 팬 시작마다 autoTrace 47장)
   });
   vp.addEventListener('pointermove', e => {
+    if (mq && !(e.buttons & 1)) { mqFinish(e); return; }   // 버튼이 이미 떼어졌는데 놓기를 못 받았다
     if (mq && !mq.box && e.buttons === 1 && Math.hypot(e.clientX - mq.x0, e.clientY - mq.y0) > 4) {
       const b = document.createElement('div'); b.className = 'selbox'; vp.appendChild(b); mq.box = b; try { vp.setPointerCapture(mq.id); } catch {}
       // 카드 자리는 끄는 동안 안 바뀐다 — 한 번만 잰다(움직일 때마다 재면 끊긴다)
@@ -2745,9 +2746,18 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
     if (e.target.closest?.('.hit')) mqSwallow = true;   // 손 도구로 소재 위에서 끌었으면 놓을 때 click(고르기)은 버린다
     applyTransform();
   });
-  vp.addEventListener('pointerup', e => {
+  // 11-23 사용자 「약간 계속 오류」 — 선택 상자가 화면에 남아 커서를 따라다녔다: 캡처를 잃거나(다른 층이 포인터를 가져감·창 밖에서 놓음)
+  //   패널 위에서 놓으면 viewport 에 pointerup 이 안 와 상자가 그대로였다. 놓친 놓기는 버튼 상태·창 전체 pointerup·캡처 잃음·창 흐려짐으로 잡아 끝낸다
+  const mqDrop = () => { if (!mq) return; if (mq.box) { mq.box.remove(); cancelAnimationFrame(mq.raf); for (const c of mq.cards ?? []) c.frame.classList.remove('mqhit'); } mq = null; };
+  const mqFinish = e => { if (mq?.box) mqUp(e, mq.last); else mqDrop(); };
+  window.addEventListener('pointerup', e => { if (mq?.box && !vp.contains(e.target)) mqFinish(e); }, true);   // viewport 밖(패널 등)에서 놓아도
+  vp.addEventListener('lostpointercapture', e => { if (mq?.box) mqFinish(e); });
+  window.addEventListener('blur', mqDrop);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && mq?.box) { e.stopPropagation(); mqDrop(); } }, true);
+  vp.addEventListener('pointerup', e => mqUp(e));
+  function mqUp(e, R0) {
     if (mq?.box) {
-      const R = mqRect(e); mq.box.remove(); cancelAnimationFrame(mq.raf); mqSwallow = true;
+      const R = R0 ?? mqRect(e); mq.box.remove(); cancelAnimationFrame(mq.raf); mqSwallow = !R0;
       for (const c of mq.cards) c.frame.classList.remove('mqhit');
       // 11-23 피그마식 선택 상자: 다 들어간 소재는 소재째, 걸치기만 한 소재는 상자에 걸친 요소(글자·로고·키비주얼) — 작게 잡으면 요소, 크게 잡으면 소재까지
       const inside = c => c.r.left >= R.x && c.r.top >= R.y && c.r.right <= R.x + R.w && c.r.bottom <= R.y + R.h;
@@ -2766,8 +2776,8 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
     }
     if (mq && !mq.e0.target.closest('.frame')) { if (SEL.on) SEL.setOn(false); if (state.selected != null || state.elSel != null) select(null); }   // 빈 곳 클릭 = 선택 해제(예전과 같게)
     mq = null; SEL.pointerUp(); endPan();
-  });
-  vp.addEventListener('pointercancel', () => { if (mq?.box) { mq.box.remove(); for (const c of mq.cards ?? []) c.frame.classList.remove('mqhit'); } mq = null; SEL.pointerUp(); endPan(); });
+  }
+  vp.addEventListener('pointercancel', () => { mqDrop(); SEL.pointerUp(); endPan(); });
   vp.addEventListener('lostpointercapture', endPan);
   window.addEventListener('blur', endPan);
   vp.addEventListener('dragstart', e => { if (!e.target.closest?.('[draggable="true"]')) e.preventDefault(); });   // 그림·글자를 끌어 사본이 따라오던 것(🚫)
