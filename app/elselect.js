@@ -49,6 +49,14 @@ export function listElements(doc) {
 export function createElementSelect(E) {
   // E: { frames, keyOf, specOf, zoom(), partsOf(a), commit(a,{elements,layout},label,coalesce), live(a,{elements,layout,ov}), liveStop(), pick(a,id), up(a), locks(a,id) }
   let ovl = null;   // { a, id, el(레이어), box(버튼) }
+  // 11-23 사용자 「Shift 눌러 객체 두 개 동시에 선택」: 같은 소재 안에서 처음 고른 요소(ovl.id) + Shift 로 더한 요소들 — 끌기·화살표가 함께 움직인다
+  //   다른 소재의 요소도(피그마: 프레임이 달라도 Shift 로 함께) — extra = 'key\u0000id'
+  const extra = new Set(), SEP = '\u0000';
+  const xk = (a, id) => `${E.keyOf(a)}${SEP}${id}`;
+  const extrasOf = a => [...extra].filter(s => s.startsWith(E.keyOf(a) + SEP)).map(s => s.slice(s.indexOf(SEP) + 1));
+  const selOf = (pa, pid) => [{ a: pa, id: pid }, ...[...extra].map(s => { const k = s.slice(0, s.indexOf(SEP)), a = E.artOf?.(k); return a ? { a, id: s.slice(s.indexOf(SEP) + 1) } : null; }).filter(x => x && !(x.a === pa && x.id === pid))];
+  const allSel = () => !ovl ? [] : selOf(ovl.a, ovl.id);
+  let xLayers = [];   // 다른 소재 위 선택 상자 층
   const frameOf = a => E.frames.get(E.keyOf(a));
   const docOf = a => frameOf(a)?.iframe?.contentDocument ?? null;
   const dsOf = a => { const f = frameOf(a), b = f?.frame.querySelector('.fbody'), s = E.specOf(a); return b && s?.w ? b.clientWidth / s.w : 1; };
@@ -121,7 +129,34 @@ export function createElementSelect(E) {
   const textPatch = (a, it, p, st) => ({ elements: withElementEdit(a.overrides?.elements, it.id, { dx: p.dx, dy: p.dy, sdy: sdyOf(a, it), ...(st?.flow ?? flowOf(a, it)) }) });
   const previewOf = (a, it, st, q) => st.mode === 'text' ? textPatch(a, it, q.p, st) : withKind(a, it.kind, q.p, st.mode);
 
-  function hide() { ovl?.el?.remove(); ovl = null; meas = null; }
+  // 여러 요소 값을 한 묶음으로(앞 요소가 바꾼 편집 묶음 위에 다음 요소를 얹는다) — 저장·미리보기 한 번
+  function groupPatch(a, rows) {
+    let elements = a.overrides?.elements, layout = a.overrides?.layout;
+    for (const { it, st, q } of rows) {
+      const a2 = { ...a, overrides: { ...(a.overrides ?? {}), elements, layout } };
+      const pt = st.mode === 'text' ? textPatch(a2, it, q.p, st) : withKind(a2, it.kind, q.p, st.mode);
+      if ('elements' in pt) elements = pt.elements; if ('layout' in pt) layout = pt.layout;
+    }
+    return { elements, layout };
+  }
+  // 함께 옮길 요소들 — 위치 고정 규격의 글자는 빠진다
+  function groupRows(a, ids) {
+    const spec = E.specOf(a);
+    return ids.map(id => find(a, id)).filter(it => it && !(it.kind === 'text' && textPosLocked(spec))).map(it => ({ it, st: { ...xform(a, it), spec } }));
+  }
+  function snapQ(it, st, q) {
+    const { p, nb } = q;
+    if (checkBad(it, st, nb, p)) { const d = snapDelta(it.kind === 'text' ? 'text' : it.kind, nb, st.spec, it.kind === 'kv' ? null : st.base); if (st.mode === 'text') { p.dx += d.ddx; p.dy += d.ddy; } else { p.dx += d.ddx / st.W; p.dy += d.ddy / st.H; } }
+    return q;
+  }
+  function moveGroup(a, ids, dx, dy, label, coalesce) {
+    const by = byArt(), n = [...by.values()].reduce((m, v) => m + v.length, 0), list = [];
+    for (const [a2, ids2] of by) { const rows = groupRows(a2, ids2).map(r => ({ ...r, q: snapQ(r.it, r.st, moved(a2, r.it, r.st, dx, dy)) })); if (rows.length) list.push({ a: a2, patch: groupPatch(a2, rows) }); }
+    if (list.length > 1 && E.commitMany) E.commitMany(list, `${n}개 ${label}`); else if (list.length) E.commit(list[0].a, list[0].patch, `${n}개 ${label}`, coalesce);
+  }
+  // 고른 것 전부를 소재별로(주 선택 소재가 먼저)
+  function byArt() { const m = new Map(); for (const { a, id } of allSel()) { if (!m.has(a)) m.set(a, []); m.get(a).push(id); } return m; }
+  function hide() { ovl?.el?.remove(); ovl = null; meas = null; for (const l of xLayers) l.remove(); xLayers = []; }
   function place(btn, box, ds) { btn.style.left = `${box.x * ds}px`; btn.style.top = `${box.y * ds}px`; btn.style.width = `${Math.max(6, box.w * ds)}px`; btn.style.height = `${Math.max(6, box.h * ds)}px`; const sz = btn.querySelector?.('.esel-size'); if (sz) sz.textContent = `${Math.round(box.w)} × ${Math.round(box.h)}`; guides(btn, box, ds); }
   // 11-10 hub 이식 6단계: 프레임 가장자리 거리 태그(hub 점선 + 파랑 숫자 — 왼쪽·위). 상자의 자식이라 끄는 동안 같이 움직이고 길이·숫자만 고친다
   function guides(btn, box, ds) {
@@ -157,6 +192,19 @@ export function createElementSelect(E) {
     btn.setAttribute('aria-label', `${elementName(id)} 선택됨 — ${[posLock ? POS_LOCK_NOTE : '화살표 1px 이동 · Shift+화살표 10px', locks.size ? '' : '+/− 크기', 'Esc 위로'].filter(Boolean).join(' · ')}`);   // 11-17: 위치 고정 + 크기 잠금이면 「·  ·」 빈 칸이 생기던 것
     btn.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(id)}${posLock ? ' · 위치 고정' : ''}<span class="esel-olap" hidden></span></span><span class="esel-size" aria-hidden="true"></span><span class="egd egd-l" aria-hidden="true"><b></b></span><span class="egd egd-t" aria-hidden="true"><b></b></span>${locks.size ? '' : ['tl', 'tr', 'bl', 'br'].map(c => `<span class="egrip egrip-${c}" data-c="${c}" aria-hidden="true"></span>`).join('')}`;
     el.appendChild(btn);
+    const xbox = (a2, xid, layer, ds2) => { const xi = find(a2, xid); if (!xi) return;
+      const xb = document.createElement('button'); xb.type = 'button'; xb.className = `esel esel-${xi.kind} esel-x`; xb.dataset.el = xid; xb.dataset.key = E.keyOf(a2); xb.tabIndex = -1;
+      xb.setAttribute('aria-label', `${elementName(xid)} 함께 선택됨 — 끌면 같이 옮겨요 · Shift+클릭으로 빼기`);
+      xb.innerHTML = `<span class="esel-tag" aria-hidden="true">${elementName(xid)}</span><span class="esel-size" aria-hidden="true"></span>`; place(xb, xi.box, ds2); layer.appendChild(xb);
+      xb.addEventListener('click', ev => ev.stopPropagation());
+      xb.addEventListener('pointerdown', ev => { ev.stopPropagation(); ev.preventDefault(); if (ev.button !== 0) return; if (ev.shiftKey) { toggleExtra(a2, xid); return; } groupDrag(a, id, ev, ds, xb); }); };
+    for (const { a: a2, id: xid } of selOf(a, id)) {   // show() 처음의 hide() 가 ovl 을 비우므로 지금 고른 (a, id) 기준
+      if (a2 === a && xid === id) continue;
+      if (a2 === a) { xbox(a, xid, el, ds); continue; }
+      const f2 = frameOf(a2); if (!f2) continue; const b2 = f2.frame.querySelector('.fbody');
+      const lay = document.createElement('div'); lay.className = 'eov'; lay.style.cssText = `width:${b2.clientWidth}px;height:${b2.clientHeight}px`; f2.frame.appendChild(lay); xLayers.push(lay);
+      xbox(a2, xid, lay, dsOf(a2));
+    }
     // 11-10 AI 아이콘(피그마 AI 처럼) — 선택 상자 오른쪽 위 바깥. 누르면 E.aiOpen 팝오버(app/elai.js)
     if (E.aiOpen) {
       const ai = document.createElement('button'); ai.type = 'button'; ai.className = 'eai-btn'; ai.dataset.el = id;
@@ -181,6 +229,7 @@ export function createElementSelect(E) {
       if (e.button !== 0) return;
       btn.focus({ preventScroll: true });
       const it = find(a, id); if (!it) return;
+      if (!e.target.dataset?.c && extra.size) { groupDrag(a, id, e, ds, btn); return; }   // 11-23 여러 개 골랐으면 함께 옮긴다
       const st = { ...xform(a, it), spec: E.specOf(a) };
       const corner = e.target.dataset?.c ?? null, z = E.zoom() * ds, x0 = e.clientX, y0 = e.clientY;
       const locked = !corner && it.kind === 'text' && textPosLocked(E.specOf(a));   // 위치 고정 규격 글자 — 끌어도 안 움직이고 안내만(모서리 = 크기는 크기 잠금이 따로)
@@ -221,6 +270,7 @@ export function createElementSelect(E) {
       e.preventDefault(); e.stopPropagation();
       const it = find(a, id); if (!it) return;
       const st = { ...xform(a, it), spec: E.specOf(a) };
+      if (mv && extra.size) { moveGroup(a, null, mv[0], mv[1], '미세 이동', true); return; }
       if (mv) { if (it.kind === 'text' && textPosLocked(E.specOf(a))) { if (!e.repeat) E.posLockNote?.(); return; } settle(a, it, st, moved(a, it, st, mv[0], mv[1]), `${elementName(id)} 미세 이동`, true); return; }
       if (E.locks(a, id).size) return;
       if (st.mode === 'text') { E.commitTextScale?.(a, id, sc); return; }
@@ -228,6 +278,48 @@ export function createElementSelect(E) {
       settle(a, it, st, { p, nb: applyBox(st.base, p, st.W, st.H) }, `${elementName(id)} 크기`, true);
     });
   }
+
+  // 여러 개 끌기 — 누른 상자에 포인터를 붙잡고, 모든 상자를 같은 만큼 옮겨 보이다가 놓을 때 한 번 저장(되돌리기 한 걸음)
+  function groupDrag(a, id, e, ds, holder) {
+    const sets = [...byArt()].map(([a2, ids2]) => ({ a: a2, rows: groupRows(a2, ids2), ds: dsOf(a2) })).filter(g => g.rows.length);
+    if (!sets.length) { E.posLockNote?.(); return; }
+    const zoom = E.zoom(), x0 = e.clientX, y0 = e.clientY, n = sets.reduce((m, g) => m + g.rows.length, 0);
+    const boxes = new Map(); for (const b of document.querySelectorAll('.eov .esel')) boxes.set(`${b.dataset.key ?? E.keyOf(a)}${SEP}${b.dataset.el}`, b);
+    let moved0 = false, last = null;
+    try { holder.setPointerCapture(e.pointerId); } catch {}
+    const move = ev => {
+      if (!moved0 && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 3) return; moved0 = true;
+      last = sets.map(g => { const z = zoom * g.ds, dX = (ev.clientX - x0) / z, dY = (ev.clientY - y0) / z; return { ...g, rows: g.rows.map(r => ({ ...r, q: moved(g.a, r.it, r.st, dX, dY) })) }; });
+      for (const g of last) for (const r of g.rows) { const b = boxes.get(`${E.keyOf(g.a)}${SEP}${r.it.id}`); if (b) place(b, r.q.nb, g.ds); }
+      const g0 = last.find(g => g.a === a) ?? last[0]; E.live(g0.a, groupPatch(g0.a, g0.rows));   // 미리보기는 주 선택 소재 — 나머지는 상자만 따라오고 놓을 때 그린다
+    };
+    const up = () => {
+      holder.removeEventListener('pointermove', move); holder.removeEventListener('pointerup', up); holder.removeEventListener('pointercancel', up);
+      if (!moved0 || !last) return;
+      const list = last.map(g => ({ a: g.a, patch: groupPatch(g.a, g.rows.map(r => ({ ...r, q: snapQ(r.it, r.st, r.q) }))) }));
+      if (list.length > 1 && E.commitMany) E.commitMany(list, `${n}개 옮김`); else E.commit(list[0].a, list[0].patch, `${n}개 옮김`, false);   // 되돌리기 한 걸음
+    };
+    holder.addEventListener('pointermove', move); holder.addEventListener('pointerup', up); holder.addEventListener('pointercancel', up);
+  }
+  // Shift+클릭: 처음 고른 요소는 그대로 두고 더하기·빼기
+  function toggleExtra(a, id) {
+    if (!ovl || (ovl.a === a && id === ovl.id)) return;
+    const k = xk(a, id); if (extra.has(k)) extra.delete(k); else extra.add(k);
+    show(ovl.a, ovl.id); focus(); E.multi?.(ovl.a, allSel());
+  }
+  function clearExtra() { extra.clear(); }
+  // 선택 상자로 여러 소재에 걸쳐 한꺼번에 — 주 선택(ovl)은 이미 show 된 것, 나머지 [{a,id}]
+  function setExtrasAll(items) { extra.clear(); for (const { a, id } of items) if (!(ovl?.a === a && ovl?.id === id)) extra.add(xk(a, id)); if (ovl) { show(ovl.a, ovl.id); E.multi?.(ovl.a, allSel()); } }
+  // 선택 상자로 한꺼번에(11-23 커서 도구 끌기): 처음 것 = 주 선택(이미 show 된 것), 나머지 = 함께
+  function setExtras(a, ids) { extra.clear(); for (const x of ids) if (!(ovl?.a === a && x === ovl?.id)) extra.add(xk(a, x)); if (ovl) show(ovl.a, ovl.id); E.multi?.(a, allSel()); }
+  // 화면 좌표 사각형 → 그 소재 안 요소 중 걸친 것(문서 순서)
+  function inRect(a, r0) {
+    const f = frameOf(a), ifr = f?.iframe; if (!ifr) return [];
+    const r = ifr.getBoundingClientRect(), k = r.width / (ifr.offsetWidth || r.width);
+    const x = (r0.x - r.left) / k, y = (r0.y - r.top) / k, w = r0.w / k, h = r0.h / k;
+    return list(a).filter(it => it.box.x < x + w && it.box.x + it.box.w > x && it.box.y < y + h && it.box.y + it.box.h > y).map(it => it.id);
+  }
+  function focus() { ovl?.box?.focus({ preventScroll: true }); }
 
   // 올려 둔 자리 표시 — 프레임을 고른 동안 어디를 누를 수 있는지
   let hov = null, meas = null;
@@ -280,5 +372,5 @@ export function createElementSelect(E) {
     settle(a, it, st, { p, nb }, `${elementName(id)} 크기`, false);
   }
 
-  return { list, find, at, show, hide, hover, setXY, setSize, get current() { return ovl ? { key: E.keyOf(ovl.a), id: ovl.id } : null; }, focus() { ovl?.box?.focus({ preventScroll: true }); } };
+  return { list, find, at, show, hide, hover, setXY, setSize, toggleExtra, clearExtra, setExtras, setExtrasAll, inRect, extrasOf, allSel, moveGroup, get current() { return ovl ? { key: E.keyOf(ovl.a), id: ovl.id } : null; }, focus };
 }

@@ -568,7 +568,7 @@
   .flsw,.fpk .flsw{position:relative;width:16px;height:16px;flex:none;padding:0;border:0;border-radius:3px;overflow:hidden;cursor:pointer;background:repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/8px 8px}
   .flsw i{position:absolute;inset:0;display:block;background:var(--sw);border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
   .flsw:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
-  .fllab{flex:1;min-width:0;padding:0;border:0;background:none;text-align:left;font-size:11px;color:var(--ink);cursor:pointer}
+  .fllab{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0;border:0;background:none;text-align:left;font-size:11px;color:var(--ink);cursor:pointer}
   .fpop{position:fixed;z-index:4000;width:248px;max-height:calc(100vh - 16px);overflow:auto;background:var(--card,#fff);color:var(--ink);border-radius:12px;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 10px 32px rgba(0,0,0,.18);font-size:11px}
   .fpop-h{display:flex;align-items:center;gap:4px;padding:8px 8px 6px;border-bottom:1px solid var(--line)}
   .fpop-tabs{display:flex;gap:2px}
@@ -618,6 +618,11 @@
   .fgh-h{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;padding:0;border:2px solid #fff;border-radius:4px;background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/6px 6px;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);pointer-events:auto;cursor:grab;touch-action:none}
   .fgh-h:active{cursor:grabbing}
   .fgh-h:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  /* 11-23 레이아웃 안 — 지금 안 한 줄(목록은 「다른 시안 보기」 모달) */
+  .vcur{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 10px;background:var(--soft);border-radius:6px}
+  .vcur-n{flex:none;width:20px;height:20px;border-radius:5px;display:grid;place-items:center;background:var(--card);font-size:11px;font-weight:700;box-shadow:inset 0 0 0 1px var(--line)}
+  .vcur-t{min-width:0;display:flex;flex-direction:column;font-size:12px;line-height:1.35}
+  .vcur-t em{font-style:normal;color:var(--sub);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bgpick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);cursor:pointer}
   .bgpick input{width:24px;height:24px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
   .sgrp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -634,8 +639,9 @@
   #work{position:absolute;inset:0;display:none;--dock:0px;--lw:284px;--rw:248px;--ruler-bg:var(--panel)}   /* 11-10 오후: 왼쪽 = 입력 패널 284(hub 패널 폭), 레일 없음 */
   #work.noL{--lw:0px} #work.noR{--rw:0px}
   #work.noL #leftPanel,#work.noR #inspector{display:none}
-  #viewport{position:absolute;inset:var(--gnb,52px) var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:grab;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
+  #viewport{position:absolute;inset:var(--gnb,52px) var(--rw) var(--dock) var(--lw);overflow:hidden;cursor:default;background:var(--canvas-bg,transparent)}   /* 10-20 사용자 「배경 색 조정 가능하게 피그마처럼」 — #canvasBg 가 --canvas-bg 를 바꾼다(localStorage mbm-canvas-bg) */   /* GNB(52) 바로 아래부터 — 뒤로·캠페인명은 GNB 안으로 들어갔다 */
   #viewport.panning{cursor:grabbing}
+  /* 11-23 피그마처럼: 커서(이동 V) 도구는 화살표 — 손 모양은 손 도구(H)·Space 일 때만(#viewport.tool-hand) */
   #artboard{position:absolute;left:0;top:0;transform-origin:0 0}
   #rulerT,#rulerL{position:absolute;pointer-events:none;z-index:4;display:block}
   #rulerT{left:20px;top:0;right:0;width:calc(100% - 20px);height:20px}
@@ -672,10 +678,11 @@
   /* 선택하기(11-02 박진화 「선택한 소재만 추출」, app/select.js) — 고른 카드는 보라 테두리 + 체크, 빈 곳 드래그는 선택 상자, 매체 머리글은 눌러서 매체 전체 */
   .frame.picked .fbody{outline:3px solid #6D5CF5;outline-offset:-1px;box-shadow:0 0 0 4px rgba(109,92,245,.22)}
   .frame.picked .flabel::before{content:"✓";display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#6D5CF5;color:#fff;font-size:11px;font-weight:800}
-  #viewport.selecting{cursor:crosshair}
+  #viewport.selecting{cursor:default}
   #viewport.selecting .rowhead{pointer-events:auto;cursor:pointer}
   #viewport.selecting .rowhead:hover{color:#6D5CF5;border-bottom-color:#6D5CF5}
-  .selbox{position:absolute;border:1.5px solid #6D5CF5;background:rgba(109,92,245,.12);pointer-events:none;z-index:5}
+  .selbox{position:absolute;border:1px solid var(--focus,#0D99FF);background:rgba(13,153,255,.08);pointer-events:none;z-index:5}   /* 11-23 피그마 선택 상자(파랑) */
+  .frame.mqhit .fbody{outline:2px solid var(--focus,#0D99FF);outline-offset:1px}
   header .hbtn#selectMode.on{background:#6D5CF5;border-color:transparent;color:#fff}
   header .hbtn#selectClear{height:28px;padding:0 10px;font-size:12px}
   .fbody iframe{border:0;transform-origin:0 0;pointer-events:none;background:#fff;display:block}
@@ -715,7 +722,7 @@
     .bub.think .tlabel{background:none;color:var(--gen1);-webkit-text-fill-color:var(--gen1)}
     .sendb:hover{transform:none}
   }
-  .fbody .hit{position:absolute;inset:0;cursor:pointer}
+  .fbody .hit{position:absolute;inset:0;cursor:default}
   /* 11-09 글자 범위 색 — 고르기 모드: 덮개를 끄고 미리보기 글자를 직접 끌어 고른다 */
   .frame.charsel .hit,.frame.charsel .eov,.frame.charsel .gov{pointer-events:none}
   .frame.charsel .fbody iframe{pointer-events:auto}
@@ -852,7 +859,7 @@
   #leftPanel [data-lrows] textarea{min-height:32px;padding:7px 8px}
   #leftPanel [data-lrows] .lnk[data-radd]{width:auto;height:24px;padding:0 8px;margin-left:-8px;font-size:11px;color:var(--ink)}
   /* 프레임 안 요소 선택(app/elselect.js) — 테두리·핸들은 확대율과 상관없이 같은 굵기 */
-  .esel{position:absolute;pointer-events:auto;padding:0;background:transparent;border:0;outline:calc(1.5px / var(--z,1)) solid var(--focus);cursor:move;touch-action:none}
+  .esel{position:absolute;pointer-events:auto;padding:0;background:transparent;border:0;outline:calc(1.5px / var(--z,1)) solid var(--focus);cursor:default;touch-action:none}
   .esel:focus-visible{outline:calc(2.5px / var(--z,1)) solid var(--focus);outline-offset:calc(1px / var(--z,1))}
   .esel.oob{outline-color:var(--danger)}
   .esel-tag{position:absolute;left:0;bottom:100%;transform:scale(calc(1 / var(--z,1)));transform-origin:0 100%;margin-bottom:2px;padding:1px 5px;border-radius:3px;background:var(--focus);color:#fff;font-size:10px;font-weight:600;line-height:14px;white-space:nowrap;pointer-events:none}

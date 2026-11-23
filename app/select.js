@@ -76,7 +76,7 @@ export function createSelect({ state, frames, $, onChange = () => {} }) {
     const v = vp();
     const el = document.createElement('div'); el.className = 'selbox'; v.appendChild(el);
     const r = v.getBoundingClientRect();
-    box = { sx: e.clientX - r.left, sy: e.clientY - r.top, el, base: new Set(keys), moved: false };
+    box = { sx: e.clientX - r.left, sy: e.clientY - r.top, el, base: new Set(keys), moved: false, rects: rects(), raf: 0, sig: '' };   // 11-23 카드 자리는 끄는 동안 안 바뀐다 — 처음 한 번만 잰다(움직일 때마다 47장 레이아웃 읽기 → 끊김)
     v.setPointerCapture(e.pointerId);
     return true;
   }
@@ -87,10 +87,16 @@ export function createSelect({ state, frames, $, onChange = () => {} }) {
     const x = Math.min(cx, box.sx), y = Math.min(cy, box.sy), w = Math.abs(cx - box.sx), h = Math.abs(cy - box.sy);
     if (w > 3 || h > 3) box.moved = true;
     Object.assign(box.el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
-    const [bx, by] = toBoard(x + r.left, y + r.top);
-    const hits = boxHits(rects(), { x: bx, y: by, w: w / state.zoom, h: h / state.zoom });
-    keys.clear(); for (const k of box.base) keys.add(k); for (const k of hits) keys.add(k);   // 드래그는 누적(Shift 없이도)
-    paint();
+    // 겹침 판정·카드 표시는 한 프레임에 한 번, 고른 것이 바뀔 때만 다시 칠한다
+    if (!box.raf) box.raf = requestAnimationFrame(() => {
+      if (!box) return; box.raf = 0;
+      const [bx, by] = toBoard(x + r.left, y + r.top);
+      const hits = boxHits(box.rects, { x: bx, y: by, w: w / state.zoom, h: h / state.zoom });
+      const next = new Set([...box.base, ...hits]), sig = [...next].sort().join('|');
+      if (sig === box.sig) return; box.sig = sig;
+      keys.clear(); for (const k of next) keys.add(k);   // 드래그는 누적(Shift 없이도)
+      paint();
+    });
     return true;
   }
   function pointerUp() {
@@ -101,7 +107,7 @@ export function createSelect({ state, frames, $, onChange = () => {} }) {
     paint();
     return true;
   }
-  function endBox() { box?.el?.remove(); box = null; }
+  function endBox() { if (box?.raf) cancelAnimationFrame(box.raf); box?.el?.remove(); box = null; }
 
   function bind() {
     btn()?.addEventListener('click', () => setOn(!on));

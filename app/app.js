@@ -35,8 +35,8 @@ import { morphDoc, createLiveScheduler } from './live.js';   // 11-02 끄는 동
 import { asEventContext } from '../core/context.js';
 import { colorRowHtml, iconBtn, numField, wireFui, ic } from './fui.js';   // 11-02 피그마 UI3 식 컨트롤(hub/panel.js 에서 옮김)
 import { gradientFrom, normGradient } from '../core/gradient.js';
-import { paintFromGradient, gradientOfPaint, newPaint, normFills, isPlainSolid, representativeColor } from '../core/paint.js';
-import { fillSectionHtml, bindFillSection, closePaintPopover } from './fillpanel.js';
+import { paintFromGradient, gradientOfPaint, newPaint, normFills, isPlainSolid, representativeColor, normStroke } from '../core/paint.js';
+import { fillSectionHtml, bindFillSection, closePaintPopover, strokeSectionHtml, bindStrokeSection, selColorsHtml, bindSelColors, openCustomPopover } from './fillpanel.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
 import { htmlToSvg, svgImgNote, SVG_IMG_NOTE_ALL } from '../core/svgexport.js';
@@ -244,7 +244,7 @@ const EL = createElementSelect({
   commit: (a, patch, label, coalesce) => elCommit(a, patch, label, coalesce),
   live: (a, x) => LIVE.push({ style: state.campaign.style, only: a.key ?? a.specId, ...x }),
   liveText: (a, id, k) => textScaleLive(a, id, k), commitTextScale: (a, id, k) => textScaleCommit(a, id, k),
-  pick: (a, id) => select(a.key ?? a.specId, id), up: a => select(a.key ?? a.specId), locks: (a, id) => elLocks(a, id),
+  pick: (a, id) => select(a.key ?? a.specId, id), up: a => select(a.key ?? a.specId), locks: (a, id) => elLocks(a, id), multi: () => renderInspector(), commitMany: (list, label) => elCommitMany(list, label), artOf: k => state.campaign?.artifacts.find(x => (x.key ?? x.specId) === k) ?? null,
   aiOpen: (a, id, anchor) => ELAI.open(a, id, anchor), aiIcon: AI_ICON,
   posLockNote: () => toast(`${POS_LOCK_NOTE} — 글자 내용·서식은 고칠 수 있어요`),   // 11-15 노션 [06]
 });
@@ -1622,13 +1622,18 @@ function bgControlHtml(styleLike, id) {
   return `<div class="fbg">
     ${kind === 'photo' ? `<div class="flab sub"><span>사진 쓰임</span></div>
       <div class="fseg" id="${id}Use" role="group" aria-label="사진 쓰임">${[['auto', '한쪽에 넣고 녹임'], ['full', '전체에 깔고 스크림']].map(([k, v]) => `<button type="button" data-u="${k}" class="${use === k ? 'on' : ''}" aria-pressed="${use === k}">${v}</button>`).join('')}</div>` : ''}
-    ${fillSectionHtml(id, { title: '배경', fills: styleLike.background?.layers ?? [], base: { paint: base, auto: mode === 'auto' && !styleLike.background?.color, sub: mode === 'auto' ? `자동${FIELD_SRC[f.source] ? ' · ' + FIELD_SRC[f.source] : ''}` : (full ? '스크림 색' : ''), reset: mode !== 'auto' || styleLike.background?.color ? '자동으로 되돌리기' : '' }, mode: full ? FIELD_SRC['photo-full'] : '' })}
+    ${fillSectionHtml(id, { title: '채우기', fills: shownLayers(styleLike.background?.layers, id === 'iBg' ? styleLike.keyVisual : null), base: { paint: base, auto: mode === 'auto' && !styleLike.background?.color, sub: mode === 'auto' ? `자동${FIELD_SRC[f.source] ? ' · ' + FIELD_SRC[f.source] : ''}` : (full ? '스크림 색' : ''), reset: mode !== 'auto' || styleLike.background?.color ? '자동으로 되돌리기' : '' }, mode: full ? FIELD_SRC['photo-full'] : '' })}
     ${cands.length ? `<div class="fchips"><span>${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
       `<button type="button" class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
     </div>`;
 }
 // 지면 줄 칠 — 지금 보이는 지면 그대로(자동이면 키비주얼에서 읽은 색·그라데이션)
 function baseFillOf(st, f, full = false) {
+  // 지면은 불투명 — 예전(11-23 이전 팝업)에 「색 → 투명」으로 저장된 지면 그라데이션도 그리는 대로(정지점 불투명도 없이) 보인다(core/field.js 가 걷는 것과 같게)
+  const p = baseFillOf0(st, f, full);
+  return p?.stops ? { ...p, stops: p.stops.map(({ a, ...x }) => x) } : p;
+}
+function baseFillOf0(st, f, full) {
   const mode = st.background?.mode ?? 'auto';
   if (full) return { type: 'solid', color: (st.background?.color ?? st.palette?.primary ?? f.stops[0]).toUpperCase(), opacity: 100 };
   if (mode === 'gradient') return paintFromGradient(editGradientOf(st, f));
@@ -1703,7 +1708,7 @@ function slotStyleBody() {
   bindFillSection($('slot'), 'bg', {
     title: '배경', allowImage: true, addPaint: () => newPaint('bg'),
     fills: () => it.bgLayers ?? [], base: () => baseFillOf(bgStyle, resolveField(bgStyle, { facing: 'left' }), bgStyle.kvMeta?.field?.kind === 'photo' && bgStyle.kvUse === 'full'),
-    onChange: f => { it.bgLayers = normFills(f, { allowImage: true }); it.bgImage = null; reslotStyle(); }, onLive: null,
+    onChange: f => { it.bgLayers = normFills(f, { allowImage: true, allowKv: true }); it.bgImage = null; reslotStyle(); }, onLive: null,
     onBase: p => { const q = basePatchOf(p); it.bgMode = q.mode; if (q.color) it.bgColor = q.color; if (q.gradient) it.bgGradient = q.gradient; reslotStyle(); },
     onBaseReset: () => { it.bgMode = 'auto'; it.bgColor = null; it.bgGradient = null; reslotStyle(); },
   });
@@ -2236,7 +2241,7 @@ function layoutArtboard(opts = {}) {
         const iframe = frame.querySelector('iframe'); let shownDoc = null;
         iframe.onload = () => designCheck(a);   // 그려질 때마다 디자인 검수(core/adcheck.js) — 글자-주인공 겹침·로고 가림·뚝 끊김·빈 여백
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = shownDoc = previewDoc(a.html, artifactFontId(a));
-        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { SEL.toggleKey(a.key ?? a.specId); return; } const k = a.key ?? a.specId; if (a.channel !== 'ad') { select(k); return; } if (state.selected !== k && !(e.metaKey || e.ctrlKey)) { select(k); return; } textRoleFocus = textRoleAt(a, e); select(k, EL.at(a, e)); };   // 한 번 = 프레임, 고른 프레임 안에서 한 번 더(또는 ⌘/Ctrl) = 그 자리 요소
+        frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { if (e.shiftKey) { SEL.toggleKey(a.key ?? a.specId); return; } SEL.setOn(false); } const k = a.key ?? a.specId; if (a.channel !== 'ad') { select(k); return; } if (e.shiftKey && state.elSel) { const xid0 = EL.at(a, e); if (xid0) { EL.toggleExtra(a, xid0); return; } } if (state.selected !== k && !(e.metaKey || e.ctrlKey)) { select(k); return; } if (e.shiftKey && state.elSel) { const xid = EL.at(a, e); if (xid) { EL.toggleExtra(a, xid); return; } } textRoleFocus = textRoleAt(a, e); select(k, EL.at(a, e)); };   // 11-23 Shift+클릭 = 요소 여러 개   // 한 번 = 프레임, 고른 프레임 안에서 한 번 더(또는 ⌘/Ctrl) = 그 자리 요소
         { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = e => { const k = a.key ?? a.specId; if (a.channel === 'ad' && !SEL.on) { const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { if (state.selected !== k || state.elSel !== id) select(k, id); charEnter(a, { x: e.clientX, y: e.clientY }); return; } } zoomToFrame(k); };
           frame.addEventListener('dblclick', e => { if (!e.target.closest?.('.eov') || SEL.on || a.channel !== 'ad') return; const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { e.stopPropagation(); if (state.elSel !== id) select(a.key ?? a.specId, id); charEnter(a, { x: e.clientX, y: e.clientY }); } }); }   // 요소를 고른 뒤에는 선택 테두리 층(.eov)이 위에 있다 — 거기서도 글자 더블클릭   // 고른 프레임의 글자 더블클릭 = 글자 범위 색(11-09), 그 밖은 확대
         board.appendChild(frame);
@@ -2635,6 +2640,7 @@ const TOOL = { cur: 'move', space: false };
 const typingIn = t => /^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName ?? '') || !!t?.isContentEditable;
 function setTool(t) {
   if (t) TOOL.cur = t;
+  if (TOOL.cur === 'hand' || TOOL.space) { SEL.pointerUp(); }   // 11-23 손으로 바꾸면 끌던 선택 상자는 끝낸다(남아 보이던 것)
   $('viewport').classList.toggle('tool-hand', TOOL.cur === 'hand' || TOOL.space);
   $('tMove')?.setAttribute('aria-pressed', String(TOOL.cur === 'move')); $('tHand')?.setAttribute('aria-pressed', String(TOOL.cur === 'hand'));
 }
@@ -2682,23 +2688,71 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
   // 11-18 노션 「[공통] 화면 이동 시 오류 현상」: 끌어서 이동할 때 브라우저 기본 동작(글자 선택 파랗게 · 그림 끌기 반투명 사본·🚫 · 놓아도 안 풀림 · 우클릭 메뉴)이 같이 일어났다 —
   //   왼쪽(·가운데) 버튼만 이동, 기본 선택·끌기를 막고, 포인터를 놓치면(취소·캡처 잃음·창 밖에서 놓음) 이동을 끝낸다
   const endPan = () => { if (!panning) return; panning = false; vp.classList.remove('panning'); };
+  // 11-23 사용자 「커서일 땐 장면 이동이 아니라 선택 — 드래그해서 객체 여러 개 선택」(피그마 Move V / Hand H):
+  //   커서 도구에서 끌기 = 선택 상자 — 고른 소재 안에서 시작하면 그 안의 요소들(글자·로고·키비주얼), 빈 캔버스나 다른 소재 위면 소재들(「선택하기」 상자).
+  //   화면 이동 = 손 도구 · Space 누른 채 · 가운데 버튼 · 휠/트랙패드
+  let mq = null;   // { x0, y0, kind:'el'|'frame', a?, box?, e0 }
+  const mqRect = e => ({ x: Math.min(e.clientX, mq.x0), y: Math.min(e.clientY, mq.y0), w: Math.abs(e.clientX - mq.x0), h: Math.abs(e.clientY - mq.y0) });
+  let mqSwallow = false;   // 선택 상자를 끈 뒤 따라오는 click 은 버린다
+  vp.addEventListener('click', e => { if (mqSwallow) { mqSwallow = false; e.stopPropagation(); e.preventDefault(); } }, true);
   vp.addEventListener('pointerdown', e => {
     if (e.button !== 0 && e.button !== 1) return;   // 오른쪽 버튼은 이동이 아니다
-    if (SEL.pointerDown(e)) return;   // 선택 모드: 빈 곳 드래그 = 선택 상자(Space 누르면 화면 이동)
-    if (e.target.closest('.hit')) return;
+    const hand = TOOL.cur === 'hand' || TOOL.space || e.button === 1;   // 손 도구·Space·가운데 버튼 = 언제나 화면 이동(선택 상자 안 만듦)
+    // 11-23: 커서 도구의 끌기는 아래 선택 상자 하나(소재째 + 요소) — 예전 「선택하기」 상자(SEL.pointerDown)는 쓰지 않는다
+    const hitEl = e.target.closest('.hit');
+    if (!hand) {
+      mq = { x0: e.clientX, y0: e.clientY, e0: e, id: e.pointerId };
+      if (!hitEl && !e.target.closest('input,textarea,select,[contenteditable="true"]')) e.preventDefault();
+      return;   // 끌지 않고 떼면 원래 click(프레임·요소 고르기, 빈 곳 = 해제)
+    }
+    if (hitEl && TOOL.cur !== 'hand' && !TOOL.space && e.button !== 1) return;
     if (!e.target.closest('input,textarea,select,[contenteditable="true"]')) e.preventDefault();   // 글자 선택·그림 끌기 시작을 막는다(입력칸은 그대로)
     panning = true; sx = e.clientX - state.panX; sy = e.clientY - state.panY;
     vp.classList.add('panning'); try { vp.setPointerCapture(e.pointerId); } catch {}
     if (!e.target.closest('.frame') && (state.selected != null || state.elSel != null)) select(null);   // 이미 해제면 인스펙터를 다시 그리지 않는다(11-09 성능 — 팬 시작마다 autoTrace 47장)
   });
   vp.addEventListener('pointermove', e => {
+    if (mq && !mq.box && e.buttons === 1 && Math.hypot(e.clientX - mq.x0, e.clientY - mq.y0) > 4) {
+      const b = document.createElement('div'); b.className = 'selbox'; vp.appendChild(b); mq.box = b; try { vp.setPointerCapture(mq.id); } catch {}
+      // 카드 자리는 끄는 동안 안 바뀐다 — 한 번만 잰다(움직일 때마다 재면 끊긴다)
+      mq.cards = [...frames].map(([k, f]) => { const fb = f.frame.querySelector('.fbody'); return fb ? { k, r: fb.getBoundingClientRect(), frame: f.frame } : null; }).filter(Boolean);
+    }
+    if (mq?.box) {
+      const r = mqRect(e), v = vp.getBoundingClientRect(); Object.assign(mq.box.style, { left: `${r.x - v.left}px`, top: `${r.y - v.top}px`, width: `${r.w}px`, height: `${r.h}px` });
+      mq.last = r;
+      if (!mq.raf) mq.raf = requestAnimationFrame(() => { if (!mq?.box) return; mq.raf = 0; const R = mq.last;   // 다 들어간 소재 = 소재째(미리 표시) · 걸친 소재 = 요소
+        for (const c of mq.cards) c.frame.classList.toggle('mqhit', c.r.left >= R.x && c.r.top >= R.y && c.r.right <= R.x + R.w && c.r.bottom <= R.y + R.h); });
+      return;
+    }
     if (SEL.pointerMove(e)) return;
     if (!panning) return;
     state.panX = e.clientX - sx; state.panY = e.clientY - sy;
+    if (e.target.closest?.('.hit')) mqSwallow = true;   // 손 도구로 소재 위에서 끌었으면 놓을 때 click(고르기)은 버린다
     applyTransform();
   });
-  vp.addEventListener('pointerup', () => { SEL.pointerUp(); endPan(); });
-  vp.addEventListener('pointercancel', () => { SEL.pointerUp(); endPan(); });
+  vp.addEventListener('pointerup', e => {
+    if (mq?.box) {
+      const R = mqRect(e); mq.box.remove(); cancelAnimationFrame(mq.raf); mqSwallow = true;
+      for (const c of mq.cards) c.frame.classList.remove('mqhit');
+      // 11-23 피그마식 선택 상자: 다 들어간 소재는 소재째, 걸치기만 한 소재는 상자에 걸친 요소(글자·로고·키비주얼) — 작게 잡으면 요소, 크게 잡으면 소재까지
+      const inside = c => c.r.left >= R.x && c.r.top >= R.y && c.r.right <= R.x + R.w && c.r.bottom <= R.y + R.h;
+      const touch = c => c.r.left < R.x + R.w && c.r.right > R.x && c.r.top < R.y + R.h && c.r.bottom > R.y;
+      const whole = mq.cards.filter(inside).map(c => c.k), els = [];
+      for (const c of mq.cards.filter(c => touch(c) && !inside(c))) { const a = state.campaign?.artifacts.find(x => (x.key ?? x.specId) === c.k); if (a?.channel === 'ad') for (const id of EL.inRect(a, R)) els.push({ a, id }); }
+      mq = null;
+      const add = e.shiftKey;   // Shift+끌기 = 지금 선택에 더하기(피그마)
+      const prevEls = add && state.elSel ? EL.allSel() : [], prevKeys = add && SEL.on ? [...SEL.keys] : [];
+      const allEls = [...prevEls, ...els.filter(x => !prevEls.some(p => p.a === x.a && p.id === x.id))];
+      if (allEls.length) { if (!prevEls.length) select(allEls[0].a.key ?? allEls[0].a.specId, allEls[0].id); EL.setExtrasAll(allEls.slice(1)); }
+      else if (!whole.length && !add && (state.selected != null || state.elSel != null)) select(null);
+      const keys = [...new Set([...prevKeys, ...whole])];
+      if (keys.length) { SEL.setOn(false); SEL.setOn(true); for (const k of keys) SEL.keys.add(k); SEL.paint(); } else if (SEL.on) SEL.setOn(false);
+      return;
+    }
+    if (mq && !mq.e0.target.closest('.frame')) { if (SEL.on) SEL.setOn(false); if (state.selected != null || state.elSel != null) select(null); }   // 빈 곳 클릭 = 선택 해제(예전과 같게)
+    mq = null; SEL.pointerUp(); endPan();
+  });
+  vp.addEventListener('pointercancel', () => { if (mq?.box) { mq.box.remove(); for (const c of mq.cards ?? []) c.frame.classList.remove('mqhit'); } mq = null; SEL.pointerUp(); endPan(); });
   vp.addEventListener('lostpointercapture', endPan);
   window.addEventListener('blur', endPan);
   vp.addEventListener('dragstart', e => { if (!e.target.closest?.('[draggable="true"]')) e.preventDefault(); });   // 그림·글자를 끌어 사본이 따라오던 것(🚫)
@@ -2706,10 +2760,19 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
   vp.addEventListener('contextmenu', e => { if (panning) e.preventDefault(); });
   vp.addEventListener('pointermove', e => { if (panning && e.buttons === 0) endPan(); }, true);   // 버튼이 이미 떼어졌는데 이동이 이어지던 것
   SEL.bind();
+  // 11-23 피그마처럼: 두 손가락 스크롤·마우스 휠 = 그 방향으로 화면 이동(Shift+휠 = 가로) · 핀치(브라우저가 ctrlKey 로 보냄)·⌘/Ctrl+휠 = 확대·축소
   vp.addEventListener('wheel', e => {
     e.preventDefault();
-    const r = vp.getBoundingClientRect();
-    setZoom(state.zoom * (e.deltaY < 0 ? 1.09 : 0.92), e.clientX - r.left, e.clientY - r.top);
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? vp.clientHeight : 1;
+    if (e.ctrlKey || e.metaKey) {
+      const r = vp.getBoundingClientRect(), d = Math.max(-60, Math.min(60, e.deltaY * unit));
+      setZoom(state.zoom * Math.exp(-d * 0.01), e.clientX - r.left, e.clientY - r.top);
+      return;
+    }
+    let dx = e.deltaX * unit, dy = e.deltaY * unit;
+    if (e.shiftKey && !dx) { dx = dy; dy = 0; }
+    state.panX -= dx; state.panY -= dy;
+    applyTransform();
   }, { passive: false });
 }
 
@@ -2861,7 +2924,8 @@ document.addEventListener('pointerdown', e => {
 
 /* ═══ 선택 · 인스펙터 ═══ */
 function select(specId, elId = null) {
-  if (CS.on && CS.key !== specId) CS.exit();   // 다른 프레임을 고르면 글자 고르기 끝
+  if (CS.on && CS.key !== specId) CS.exit();
+  EL.clearExtra?.();   // 11-23 새로 고르면 Shift 로 더한 요소는 풀린다   // 다른 프레임을 고르면 글자 고르기 끝
   state.selected = specId; state.elSel = specId ? elId : null;
   textRoleFocus = state.elSel ? parseElementId(state.elSel).role : null;
   for (const [id, f] of frames) f.frame.classList.toggle('sel', id === specId);
@@ -2902,7 +2966,8 @@ function campaignStat(c = state.campaign) {
 const LEFT_GROUPS = [
   { role: 'main', name: '메인 문구', f: 'headline', auto: '고객사 + 채용 구분', ph: '메인 문구를 입력해주세요.' },
   // 11-10 사용자 「서브 문구가 반영되는 곳이 별로 없어서」: 서브 = 추가 문구(선택, 자동 없음 — 비우면 안 나옴)
-  { role: 'sub', name: '서브 문구', f: 'subText', auto: null, ph: '서브 문구를 입력해주세요.' },
+  // 11-23 사용자 「서브 문구에 디폴트로 써져 있는 것 넣어 줘야」: 비워 둬도 매체가 넣는 서브(고객사·시즌 등)가 있으면 메인·날짜처럼 그 글자를 보이고 「자동」
+  { role: 'sub', name: '서브 문구', f: 'subText', auto: '매체 기본 서브(고객사·시즌 등)', ph: '서브 문구를 입력해주세요.' },
   { role: 'date', name: '날짜', f: 'dateText', auto: '접수 시작 + 지원 마감', ph: '모집(접수) 기간을 입력해주세요.' },
   // 11-10 상세 = 접수기간(날짜 칸) · 모집직무 · 추가 행(라벨 | 값) — 추가 행·필수 고지는 「추가 작성」에
   { role: 'detail', name: '상세 문구', f: 'role', auto: null, ph: '모집 직무를 입력해주세요.' },
@@ -2945,7 +3010,18 @@ function liveText(c, role) {
   // 가장 많은 소재가 쓰는 문구 — 같으면 긴 쪽(달력 「~7/2」 같은 줄임 대신 「6.20(금) - 7.2(수) 17시」)
   return [...cnt.entries()].sort((p, q) => q[1] - p[1] || q[0].replace(/\n/g, '').length - p[0].replace(/\n/g, '').length)[0]?.[0] ?? '';
 }
-const leftLiveRefresh = debounce(() => { const b = $('leftBody'); if (!b || b.contains(document.activeElement)) return; if ([...b.querySelectorAll('textarea[data-auto]')].some(t => t.dataset.auto !== undefined)) { b.dataset.sig = '-'; renderLeft(); } }, 400);
+// 11-23 사용자 「패널에 문구들 삭제됨」: 소재가 다 그려지기 전에 왼쪽 칸을 누르면(포커스) 다시 채우지 않아 빈 칸으로 멈췄다 —
+//   손대지 않은 자동 칸(지금 값 = 자동값)은 포커스가 있어도 그 자리에서 값만 바꿔 채운다(칸을 다시 그리지 않아 쓰던 자리는 그대로)
+const leftLiveRefresh = debounce(() => {
+  const b = $('leftBody'), c = state.campaign; if (!b || !c) return;
+  if (!b.contains(document.activeElement)) { if ([...b.querySelectorAll('textarea[data-auto]')].length) { b.dataset.sig = '-'; renderLeft(); } return; }
+  for (const t of b.querySelectorAll('textarea[data-auto]')) {
+    if (t.value !== t.dataset.auto) continue;   // 사람이 고친 칸은 그대로
+    const g = LEFT_GROUPS.find(x => x.f === t.dataset.f); if (!g?.auto) continue;
+    const v = liveText(c, g.role); if (!v || v === t.dataset.auto) continue;
+    t.value = v; t.dataset.auto = v; t.dataset.init = v;
+  }
+}, 400);
 /* 11-10 오후 사용자 「좌측은 입력만 — 나머지 없애고 입력 패널만」: 레일(입력·에셋·파일·검수) 걷음. 에셋은 오른쪽 「선택 없음」, 검수는 오른쪽 검수 탭에 있다 */
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
@@ -3083,7 +3159,7 @@ function bindScope(insp, a, c) {
   };
   insp.querySelectorAll('[data-ovr]').forEach(b => b.onclick = () => resetKeys(OV_GROUP[b.dataset.ovr], '일괄값으로'));
   insp.querySelector('[data-ovrall]')?.addEventListener('click', () => resetKeys(OV_KEYS, '개별값 전부 일괄값으로', { layout: true, elements: true }));
-  insp.querySelectorAll('[data-elpick]').forEach(b => b.onclick = () => select(a.key ?? a.specId, b.dataset.elpick));
+  insp.querySelectorAll('[data-elpick]').forEach(b => b.onclick = e => { if (e.shiftKey && state.elSel && state.selected === (a.key ?? a.specId)) { EL.toggleExtra(a, b.dataset.elpick); return; } select(a.key ?? a.specId, b.dataset.elpick); });   // 11-23 Shift = 더하기
   const lay = insp.querySelector('#iLayers'); if (lay) lay.ontoggle = () => { state.layersOpen = lay.open; };
   insp.querySelectorAll('[data-goall]').forEach(b => b.onclick = () => { select(null); $('secVisual')?.scrollIntoView({ block: 'start' }); });
 }
@@ -3108,7 +3184,8 @@ function elementPanelHtml(a, spec, id) {
   const box = it.box, r1 = v => Math.round(v * 10) / 10;
   const ed = a.overrides.elements?.[id] ?? {}, st = a.overrides.style ?? {};
   const own = !!(a.overrides.elements?.[id] || (isStyleRole(id) && (st.roleColors?.[role] || st.roleScale?.[role])) || a.overrides.layout?.[role]);
-  const head = `<h3>${escH(elementName(id))} ${own ? `<button type="button" class="ovr" id="iElReset" title="일괄값으로 되돌리기" aria-label="${escH(elementName(id))} 일괄값으로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>`;
+  const multi = (EL.allSel?.() ?? []).slice(1);
+  const head = `${multi.length ? `<div class="fnote" id="iElMulti" style="margin:0 0 6px"><b>${multi.length + 1}개 선택</b> — ${escH([{ a, id }, ...multi].map(x => (x.a === a ? '' : `${artLabel(x.a)} `) + elementName(x.id)).join(' · '))} · 끌기·화살표로 함께 옮겨요 · Shift+클릭으로 더하기/빼기</div>` : ''}<h3>${escH(elementName(id))} ${own ? `<button type="button" class="ovr" id="iElReset" title="일괄값으로 되돌리기" aria-label="${escH(elementName(id))} 일괄값으로 되돌리기">개별 ${ic('swap')}</button>` : ''}</h3>`;
   // 11-10 피그마 UI3 글자 패널: 글자 편집 중 끌어 고른 범위가 있으면 아래 「글자」·「칠」 칸이 그 범위의 값(섞이면 혼합)을 보이고 그 범위에 먹는다
   const pk = CS.on && CS.key === (a.key ?? a.specId) && CS.pick?.id === id ? CS.pick : null;
   const posLock = it.kind === 'text' && textPosLocked(spec);   // 11-15 노션 [06] 문구 위치 고정 규격
@@ -3218,10 +3295,13 @@ function boxFillHtml(a, id, it, cs) {
   const fills = ed.bfill ?? [{ type: 'solid', color: hexOfCss(cs.backgroundColor), opacity: Math.round((+(/rgba\([^)]*,\s*([\d.]+)\)/.exec(cs.backgroundColor ?? '')?.[1] ?? 1)) * 100) }];
   return `<section class="isec" id="iBoxSec">${fillSectionHtml('iElB', { title: '상자 칠', fills, note: ed.bfill ? '' : '렌더러가 고른 상자 색 — 바꾸면 이 소재만' })}</section>`;
 }
+// 11-23 여러 소재에 걸친 요소를 함께 옮길 때 — 되돌리기 한 걸음으로 묶는다(EL.commitMany)
+let elHistSkip = false;
+function elCommitMany(list, label) { pushHistory(label); elHistSkip = true; try { for (const { a, patch } of list) elCommit(a, patch, label); } finally { elHistSkip = false; } }
 function elCommit(a, patch, label, coalesce = false) {
   liveOrig = new WeakMap();   // 실시간 미리보기 끝 — 정식 그림이 덮는다
   const c = state.campaign, k = a.key ?? a.specId, focusId = $('inspector').contains(document.activeElement) ? document.activeElement.id : null;
-  pushHistory(`${artLabel(a)} ${label}`, coalesce);
+  if (!elHistSkip) pushHistory(`${artLabel(a)} ${label}`, coalesce);
   if ('elements' in patch) { if (patch.elements) a.overrides.elements = patch.elements; else delete a.overrides.elements; }
   if ('layout' in patch) { if (patch.layout) a.overrides.layout = patch.layout; else delete a.overrides.layout; }
   if (patch.style) a.overrides.style = patch.style;
@@ -3366,10 +3446,44 @@ const campBoxOf = () => { const c = state.campaign; const a = c?.artifacts.find(
 // 11-23 이 소재만 채우기(피그마 Fill) — 지면 줄 + 채우기 층. 값은 a.overrides.style.background(캠페인 배경을 통째로 덮는다)
 const artBgOf = (a, c) => a.overrides.style?.background ?? c.style.background ?? {};
 const artBgOwn = a => !!(a.overrides.style?.background || a.overrides.style?.bgFill || a.overrides.style?.bgGrad);
+// 채우기 목록에 보일 층 — 키비주얼이 있으면 그 자리(kv)를 한 줄로(없던 저장값은 맨 위 = 예전처럼 모든 층이 키비주얼 아래)
+function shownLayers(layers, kvSrc) {
+  const L = [...(layers ?? [])];
+  if (!kvSrc) return L.filter(p => p.type !== 'kv');
+  if (!L.some(p => p.type === 'kv')) L.push({ type: 'kv' });
+  return L.map(p => p.type === 'kv' ? { type: 'kv', src: refOf(kvSrc) } : p);
+}
+const subSizeOf = a => { const sp = SPECS[a.specId]; return [sp.submitW ?? sp.w, sp.submitH ?? sp.h]; };
+const subSizeText = a => subSizeOf(a).join('×');
+const subScaleText = a => `${Math.round(subSizeOf(a)[0] / SPECS[a.specId].w * 10) / 10}x`;
+// 선택 색(피그마 Selection colors): 이 소재에 실제로 쓰인 칠 — 지면 · 채우기 층 · 글자 색(같은 색끼리 묶음). 바꾸면 그 칠을 쓰는 곳이 다 바뀐다
+function artSelItems(a, c) {
+  const st = adEffStyle(a), f = resolveField(st, { facing: 'left' }), key = a.key ?? a.specId, items = [];
+  const save = (patch, label) => elCommit(a, { style: { ...(a.overrides.style ?? {}), ...patch } }, label);
+  const bgNow = () => artBgOf(a, c);
+  const baseP = p => ({ bgFill: 'custom', bgGrad: 'auto', background: { ...bgNow(), ...basePatchOf(p) } });
+  items.push({ paint: baseFillOf(st, f, false), label: '지면', types: ['solid', 'linear', 'radial'], set: (p, l) => save(baseP(p), l ?? '지면 칠'), live: p => LIVE.push({ style: c.style, only: key, ov: baseP(p) }) });
+  (bgNow().layers ?? []).forEach((p, i) => { if (p.type === 'kv' || p.type === 'image' || p.hidden) return;
+    items.push({ paint: p, label: `채우기 층`, types: ['solid', 'linear', 'radial'], allowAlpha: true, set: (q, l) => { const L = [...bgNow().layers]; L[i] = q; save({ background: { ...bgNow(), layers: L } }, l ?? '채우기'); } }); });
+  const doc = frames.get(key)?.iframe?.contentDocument, lock = textColorRegulated(SPECS[a.specId]);
+  if (doc) {
+    const by = new Map();
+    for (const el of doc.querySelectorAll('[data-field]')) {
+      const r = el.dataset.field; if (!['main', 'sub', 'detail', 'date', 'advertiser'].includes(r)) continue;
+      const cs = doc.defaultView.getComputedStyle(el); if (/text/.test(cs.webkitBackgroundClip || cs.backgroundClip || '') || el.querySelector('[data-tfill]')) continue;
+      const hx = hexOfCss(cs.color); if (!by.has(hx)) by.set(hx, new Set()); by.get(hx).add(r);
+    }
+    for (const [hx, roles] of by) items.push({ paint: { type: 'solid', color: hx, opacity: 100 }, label: `글자 · ${[...roles].map(r => elementName(r)).join('·')}`, types: ['solid'],
+      set: lock ? null : (p, l) => { const st0 = { ...(a.overrides.style ?? {}) }, rc = { ...(st0.roleColors ?? {}) }; let E = a.overrides.elements;
+        for (const r of roles) { if (STYLE_ROLES.includes(r)) rc[r] = p.color; else E = withElementEdit(E, r, { color: p.color }); }
+        st0.roleColors = rc; elCommit(a, { style: st0, elements: E }, l ?? '글자 색'); } });
+  }
+  return items;
+}
 function artFillHtml(a, c) {
   const st = adEffStyle(a), f = resolveField(st, { facing: 'left' }), bg = artBgOf(a, c), mode = bg.mode ?? 'auto';
   const auto = mode === 'auto' && !bg.color && (st.bgFill ?? 'auto') !== 'custom';
-  return `<section class="isec">${fillSectionHtml('iArtBg', { title: '채우기', fills: bg.layers ?? [], base: { paint: baseFillOf(st, f, false), auto, sub: auto ? `자동${FIELD_SRC[f.source] ? ' · ' + FIELD_SRC[f.source] : ''}` : '', reset: artBgOwn(a) ? '일괄값으로 되돌리기' : '' } })}</section>`;
+  return `<section class="isec">${fillSectionHtml('iArtBg', { title: '채우기', fills: shownLayers(bg.layers, st.keyVisual), base: { paint: baseFillOf(st, f, false), auto, sub: auto ? `자동${FIELD_SRC[f.source] ? ' · ' + FIELD_SRC[f.source] : ''}` : '', reset: artBgOwn(a) ? '일괄값으로 되돌리기' : '' } })}</section>`;
 }
 // 이 소재만: 배경색 · 컬러(끄는 동안 이 프레임만 실시간, 놓으면 한 걸음)
 function bindArtifactStyle(insp, a, c) {
@@ -3378,14 +3492,17 @@ function bindArtifactStyle(insp, a, c) {
   const bgNow = () => artBgOf(a, c);
   bindFillSection(insp, 'iArtBg', {
     title: '채우기', allowImage: true, addPaint: () => newPaint('bg'), box: () => frameBoxOf(a),
-    fills: () => bgNow().layers ?? [], base: () => { const st = adEffStyle(a); return baseFillOf(st, resolveField(st, { facing: 'left' }), false); },
-    onChange: (f, label) => save({ background: { ...bgNow(), layers: normFills(f, { allowImage: true }) ?? [], image: undefined } }, label ?? '채우기'),
+    fills: () => shownLayers(bgNow().layers, adEffStyle(a).keyVisual), base: () => { const st = adEffStyle(a); return baseFillOf(st, resolveField(st, { facing: 'left' }), false); },
+    onKv: anchor => openCustomPopover(anchor, '키비주얼', `<div class="fpi-prev" style="background-image:url(&quot;${escH(refOf(adEffStyle(a).keyVisual) ?? '')}&quot;)"></div>${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'], 'inspPresetK', { compact: true })}<button class="btn" data-kvgo="1" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button>`, el => { ED.bindPresetArtifact(el, a); el.querySelector('[data-kvgo]').onclick = () => { closePaintPopover(); select(null); setTimeout(() => $('secVisual')?.scrollIntoView({ block: 'start' }), 50); }; }),
+    onChange: (f, label) => save({ background: { ...bgNow(), layers: normFills(f, { allowImage: true, allowKv: true }) ?? [], image: undefined } }, label ?? '채우기'),
     onLive: f => LIVE.push({ style: c.style, only: key, ov: { background: { ...bgNow(), layers: f } } }),
     onBase: (p, label) => save({ bgFill: 'custom', bgGrad: 'auto', background: { ...bgNow(), ...basePatchOf(p) } }, label ?? '지면 칠'),
     onBaseLive: p => LIVE.push({ style: c.style, only: key, ov: { bgFill: 'custom', bgGrad: 'auto', background: { ...bgNow(), ...basePatchOf(p) } } }),
     onBaseReset: () => { const st = { ...(a.overrides.style ?? {}) }; delete st.bgFill; delete st.bgGrad; delete st.background; elCommit(a, { style: st }, '채우기 일괄값으로'); },
   });
   insp.querySelector('#iArtAdv')?.addEventListener('toggle', e => { state.artAdvOpen = e.target.open; });
+  bindStrokeSection(insp, 'iArtSt', { stroke: () => adEffStyle(a).stroke ?? null, onChange: (S, label) => save({ stroke: S ? normStroke(S) : null }, label), onLive: S => LIVE.push({ style: c.style, only: key, ov: { stroke: normStroke(S) } }) });
+  bindSelColors(insp, 'iArtSel', artSelItems(a, c), () => frameBoxOf(a));
   for (const k of ['primary', 'secondary', 'accent']) {
     const n = insp.querySelector(`#iPalOv-${k}`); if (!n) continue;
     n.addEventListener('input', () => { const i = n.parentElement.querySelector('i'); if (i) i.style.background = n.value; });
@@ -3483,6 +3600,7 @@ function renderInspectorBody() {
       <div class="fnote">작업 화면 바탕색 — 내보내기에는 안 들어가요</div>
       </section>
       <section class="isec" id="secFill">${bgControlHtml(c.style, 'iBg')}</section>
+      <section class="isec" id="secStroke">${strokeSectionHtml('iCampSt', c.style.stroke ?? null)}</section>
       <section class="isec" id="secVisual"><h3>키비주얼 <span class="mode">모든 소재</span></h3>
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${refOf(c.style.keyVisual)})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
@@ -3514,7 +3632,7 @@ function renderInspectorBody() {
       <div class="fstack" id="iTextColorRow">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자 칠(모든 소재)', tail: c.style.textColor ? '' : '자동', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '자동 글자색으로(지면에 맞춰 흰색·검정)', 'id="iTextColorReset"') : '' })}</div>
       ${ED.alignCampaignHtml()}
       </section>
-      <section class="isec" id="secStyle"><h3>선택 색 ${(c.swatches?.length ?? 0) < 8 ? iconBtn('plus', '사용자 색 추가 — 색 고르기 칸에 견본으로 떠요', 'id="iSwAdd"') : ''}</h3>
+      <section class="isec" id="secStyle"><h3>브랜드 색 ${(c.swatches?.length ?? 0) < 8 ? iconBtn('plus', '사용자 색 추가 — 색 고르기 칸에 견본으로 떠요', 'id="iSwAdd"') : ''}</h3>
       <div class="selcol">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => { const x = String(v ?? '#888888').toUpperCase(); return `<label class="selsw" title="${n} ${x} — 모든 소재"><span class="fsw"><i style="background:${x}"></i><input type="color" id="${k}" value="${x.toLowerCase()}" aria-label="${n}"></span><em>${n}</em></label>`; }).join('')}</div>
       ${c.swatches?.length ? `<div class="flab sub"><span>사용자 색</span></div><div class="fstack">${c.swatches.map((v, i) => colorRowHtml({ id: `iSw${i}`, value: v, label: `사용자 색 ${i + 1}`, tail: '견본', after: iconBtn('minus', `사용자 색 ${i + 1} 빼기`, `data-swdel="${i}"`) })).join('')}</div>` : ''}
       </section>
@@ -3566,13 +3684,15 @@ function renderInspectorBody() {
     const bgFull = () => c.style.keyVisual && c.style.kvMeta?.field?.kind === 'photo' && (c.style.kvUse ?? 'auto') === 'full';
     bindFillSection(insp, 'iBg', {
       title: '배경', allowImage: true, addPaint: () => newPaint('bg'), box: campBoxOf,
-      fills: () => c.style.background?.layers ?? [], base: () => baseFillOf(c.style, resolveField(c.style, { facing: 'left' }), bgFull()),
+      fills: () => shownLayers(c.style.background?.layers, c.style.keyVisual), base: () => baseFillOf(c.style, resolveField(c.style, { facing: 'left' }), bgFull()),
+      onKv: () => $('secVisual')?.scrollIntoView({ block: 'start', behavior: 'smooth' }),
       onChange: (f, label) => setBg({ layers: f, image: null }, label ?? '배경 채우기'),
       onLive: f => liveStyle(c, { background: { ...c.style.background, layers: f, image: null } }, { colors: curColors(), keepPrev: true }),
       onBase: (p, label) => setBg(basePatchOf(p), label ?? '지면 칠'),
       onBaseLive: p => liveStyle(c, { background: { ...c.style.background, ...basePatchOf(p) } }, { colors: curColors(), keepPrev: true }),
       onBaseReset: () => setBg({ mode: 'auto', color: null, gradient: null }, '지면 자동으로'),
     });
+    bindStrokeSection(insp, 'iCampSt', { stroke: () => c.style.stroke ?? null, onChange: (S, label) => { softly(() => restyle({ stroke: S ? normStroke(S) : null }, label ?? '테두리')); renderInspector(); }, onLive: S => liveStyle(c, { stroke: normStroke(S) }, { colors: curColors(), keepPrev: true }) });
     insp.querySelector('#iKvType')?.addEventListener('change', e => {
       const v = e.target.value === 'auto' ? null : e.target.value;
       restyle({ kvTypeOverride: v }, v ? '키비주얼 유형 지정' : '키비주얼 유형 자동');
@@ -3738,31 +3858,32 @@ function renderInspectorBody() {
   const omitA = a.channel === 'ad' ? omitOf(c, a) : [];
   const omitSec = omitA.length ? `<section class="isec"><h3>뺀 요소</h3>${omitA.map(r => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin:4px 0"><span>${OMIT_NAME[r] ?? r}${omitList(a.overrides?.core?.omit).includes(r) ? '' : ' <span style="opacity:.6">(일괄)</span>'}</span>${omitList(a.overrides?.core?.omit ?? null).includes(r) || a.overrides?.core?.omit != null ? `<button type="button" class="lnk" data-unomit="${r}">다시 넣기</button>` : ''}</div>`).join('')}</section>` : '';
   const designSections = state.elSel && a.channel === 'ad' && EL.find(a, state.elSel) ? elementPanelHtml(a, spec, state.elSel) : omitSec + `
+    ${a.channel === 'ad' ? `<section class="isec"><h3>레이아웃</h3><div class="fgrid2">${numField({ id: 'iArtW', value: SPECS[a.specId].w, label: '너비(규격 고정)', prefix: 'W', attrs: 'disabled' })}${numField({ id: 'iArtH', value: SPECS[a.specId].h, label: '높이(규격 고정)', prefix: 'H', attrs: 'disabled' })}</div><div class="fnote">매체 규격 크기 · 제출 ${escH(subSizeText(a))}</div></section>` : ''}
     ${(a.channel === 'ad' && ((a.variants?.length ?? 0) > 1 || FREE.templatesFor(a.specId).length || SPECS[a.specId]?.rules)) ? `<section class="isec isec-var">
       <h3>레이아웃 안 <span class="mode">${a.variants.length}안</span></h3>
-      <div class="vrow vrow-big" id="iVariants">${a.variants.map((v, i) => { const sub = v.kind === 'free' ? '' : (v.sub ?? variantSubOf(v.style, SPECS[a.specId])); return `<div class="vcard"><button class="vthumb ${currentVariantIndex(a) === i ? 'on' : ''}" data-vi="${i}" title="${escH(v.label)}${sub ? ' — ' + escH(sub) : ''}"><span class="vthumb-box" data-vi="${i}"></span><span class="vthumb-lab">${i + 1} ${escH(v.label)}</span>${sub ? `<span class="vthumb-sub">${escH(sub)}</span>` : ''}</button><button type="button" class="vzoom" data-vz="${i}" aria-label="안 ${i + 1} 크게 보기" title="크게 보기">⤢</button></div>`; }).join('')}</div>
-      <div class="row vbtns"><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${(templateChoices(a.specId, adEffCtx(a), c.style, artRenderOpts(a), { countOnly: true }) > 0 || FREE.templatesFor(a.specId).length || FREE.suggestionsFor(a, c).length) ? `<button class="btn" id="iTplMore" aria-expanded="false">다른 시안 보기</button>` : ''}${SPECS[a.specId]?.rules ? `<button class="btn" id="iAiMore" hidden title="서버가 백그라운드로 방향 3종(타이포·밝은·어두운)을 만들어요. 끝나면 알림 → 「다른 시안 보기」 맨 앞">AI 추가 제안</button>` : ''}</div>
+      <div class="vcur" id="iVariants">${(() => { const i = currentVariantIndex(a), v = a.variants[i]; const sub = !v || v.kind === 'free' ? '' : (v.sub ?? variantSubOf(v.style, SPECS[a.specId])); return v ? `<span class="vcur-n">${i + 1}</span><span class="vcur-t"><b>${escH(v.label)}</b>${sub ? `<em>${escH(sub)}</em>` : ''}</span>` : ''; })()}</div>
+      <div class="row vbtns"><button class="btn pri" id="iTplMore" aria-haspopup="dialog">다른 시안 보기</button><button class="btn" id="iVariantAll" ${Object.keys(a.variants[currentVariantIndex(a)]?.style ?? {}).length ? '' : 'disabled title="기본안은 전파할 값이 없음"'}>이 안으로 전부</button>${SPECS[a.specId]?.rules ? `<button class="btn" id="iAiMore" hidden title="서버가 백그라운드로 방향 3종(타이포·밝은·어두운)을 만들어요. 끝나면 알림 → 「다른 시안 보기」 맨 앞">AI 추가 제안</button>` : ''}</div>
       ${SPECS[a.specId]?.rules ? `<span id="iAiJob" data-key="${escH(a.key ?? a.specId)}">${FREE.jobBadge(a)}</span>` : ''}
     </section>` : ''}
     ${a.channel === 'ad' && SPECS[a.specId]?.rules ? AID.sectionHtml(a) : ''}
-    ${a.channel === 'ad' ? `${artFillHtml(a, c)}
-    <section class="isec"><h3>키비주얼 ${ovBtn(a, 'visual')}</h3>
-      ${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'], 'inspPresetA', { compact: true })}
-      <button class="btn" data-goall="kv" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button>
-    </section>
+    ${a.channel === 'ad' ? `    ${artFillHtml(a, c)}
+    <section class="isec">${strokeSectionHtml('iArtSt', adEffStyle(a).stroke ?? null)}</section>
     <section class="isec"><h3>글자 ${ovBtn(a, 'text')}</h3>
       ${artifactFontHtml(a, c)}
       <label>칠</label>
       ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자 칠(이 소재만)', tail: cur ? '' : '자동', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 소재 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div>${reg ? '<div class="fnote">매체 규정 색 고정 — 직접 지정 불가</div>' : ''}`; })()}
       ${ED.alignArtifactHtml(a)}
     </section>
-    <section class="isec"><h3>선택 색 ${ovBtn(a, 'color')}</h3>
-      <div class="selcol">${[['primary', '주색'], ['secondary', '보조'], ['accent', '포인트']].map(([k, n]) => { const v = (a.overrides.style?.palette?.[k] ?? c.style.palette[k] ?? '#888888').toUpperCase(); return `<label class="selsw" title="${n} ${v} — 이 소재만"><span class="fsw"><i style="background:${v}"></i><input type="color" id="iPalOv-${k}" value="${v.toLowerCase()}" aria-label="이 소재 ${n}"></span><em>${n}</em></label>`; }).join('')}</div>
-    </section>
+    <section class="isec">${selColorsHtml('iArtSel', artSelItems(a, c))}</section>
+    ${hasGuide(a) ? `<section class="isec">${guideOvHtml(a)}</section>` : ''}
+    <section class="isec" id="iArtExport"><h3>내보내기</h3><div class="fgrid2"><div class="fin pre"><span class="k" aria-hidden="true">배수</span><input type="text" class="fnum" value="${escH(subScaleText(a))}" disabled aria-label="제출 배수(규격)"></div><div class="fin pre"><span class="k" aria-hidden="true">형식</span><input type="text" class="fnum" value="${escH((SPECS[a.specId].format ?? ['png']).map(f => f.toUpperCase()).join(' · '))} · SVG" disabled aria-label="형식(규격)"></div></div>
+      <button class="btn" id="iExp" style="width:100%;margin-top:8px">${escH(artLabel(a))} 내보내기</button></section>
     ${layerListHtml(a)}
     <details class="isec iacc" id="iArtAdv" ${state.artAdvOpen ? 'open' : ''}><summary><h3>고급 ${ic('chev')}</h3></summary>
       ${ED.presetArtifactHtml(a, ['textAnchor', 'infoTag', 'tagShape'], 'inspPresetT', { compact: true })}
-      <label>가이드</label>${guideOvHtml(a) || '<div class="fnote">이 규격은 틀 가이드가 없어요</div>'}
+      <label>브랜드 색 ${ovBtn(a, 'color')}</label>
+      <div class="selcol">${[['primary', '주색'], ['secondary', '보조'], ['accent', '포인트']].map(([k, n]) => { const v = (a.overrides.style?.palette?.[k] ?? c.style.palette[k] ?? '#888888').toUpperCase(); return `<label class="selsw" title="${n} ${v} — 이 소재만"><span class="fsw"><i style="background:${v}"></i><input type="color" id="iPalOv-${k}" value="${v.toLowerCase()}" aria-label="이 소재 ${n}"></span><em>${n}</em></label>`; }).join('')}</div>
+      <div class="fnote">지면 자동 색 · 알약 · 강조색이 이 색에서 나와요</div>
     </details>` : ''}
     ${(nVar > 1 && a.channel !== 'ad') || a.channel === 'badge' || isPrint ? `<section class="isec">
     ${(nVar > 1 && a.channel !== 'ad') ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
@@ -3798,7 +3919,7 @@ function renderInspectorBody() {
     <section class="isec isec-foot">
     <div class="row">
       <button class="btn" id="iOpen">크게</button>
-      <button class="btn pri" id="iExp">내보내기</button>
+      ${a.channel === 'ad' ? '' : '<button class="btn pri" id="iExp">내보내기</button>'}
       <button class="btn" id="iDesel">해제</button>
     </div>
     <button class="btn danger" id="iDel" style="width:100%;margin-top:6px">이 산출물 빼기</button>
@@ -3878,47 +3999,9 @@ function renderInspectorBody() {
   { const fb = $('iFreeOpen'); if (fb) fb.onclick = () => FREE.open(a); }
   if (a.channel === 'ad' && insp.querySelector('#iVariants')) {
     const spec = SPECS[a.specId], [nw, nh] = naturalSize(spec);
-    // 11-09 사용자 「썸네일이 너무 작다」: 패널 폭에 1~2열(가로로 긴 규격은 1열), 규격 비율 그대로. 높이 상한 240
-    if (!document.getElementById('vthumbStyle1109')) document.head.insertAdjacentHTML('beforeend', `<style id="vthumbStyle1109">#inspector .vrow-big{display:grid;grid-template-columns:repeat(var(--vcols,2),minmax(0,1fr));gap:8px;overflow:visible}#inspector .vrow-big .vcard{position:relative;min-width:0}#inspector .vrow-big .vthumb{width:100%;display:block}#inspector .vrow-big .vthumb-box{width:100%;height:auto}#inspector .vthumb-sub{display:block;font-size:10px;line-height:1.3;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#inspector .vzoom{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;line-height:1;cursor:pointer;opacity:.9}#inspector .vzoom:focus-visible{outline:2px solid var(--focus)}#inspector .vbtns{display:flex;flex-wrap:wrap;gap:6px}#inspector .vbtns .btn{white-space:nowrap;flex:1 1 auto}</style>`);
-    const vrow = insp.querySelector('#iVariants'), cols = nw / nh > 1.5 ? 1 : 2; vrow.style.setProperty('--vcols', cols);
-    const boxW = Math.max(100, Math.floor(((vrow.clientWidth || 300) - 8 * (cols - 1)) / cols) - 10), k = Math.min(boxW / nw, 240 / nh);
-    for (const box of insp.querySelectorAll('.vthumb-box')) box.style.cssText = `width:${Math.round(nw * k)}px;height:${Math.round(nh * k)}px`;
-    // 크게 보기(「다른 시안 보기」와 같은 큰 카드 모달) — 고르면 썸네일 클릭과 같다
-    insp.querySelectorAll('#iVariants .vzoom').forEach(z => z.onclick = e => { e.stopPropagation(); const cur = currentVariantIndex(a); openTplPicker({ title: `레이아웃 안 · ${artLabel(a)}`, nw, nh, returnTo: z, current: `vi${cur}`,
-      choices: a.variants.map((v, i) => ({ label: `${i + 1} ${v.label}`, sub: v.kind === 'free' ? '' : (v.sub ?? variantSubOf(v.style, spec)), style: { ...v.style, tpl: `vi${i}` }, vi: i, html: (() => { try { return renderArtifact(a.specId, adEffCtx(a), refStyle({ ...c.style, ...v.style }), artRenderOpts(a)); } catch { return ''; } })() })),   // 미리보기만 — 그림은 참조로
-      docOf: ch => previewDoc(ch.html, a.variants[ch.vi]?.style?.fonts?.heading ?? artifactFontId(a)),
-      onPick: ch => insp.querySelector(`#iVariants .vthumb[data-vi="${ch.vi}"]`)?.click() }); });
-    for (const box of insp.querySelectorAll('.vthumb-box')) {
-      const v = a.variants[+box.dataset.vi]; if (!v) continue;
-      let html = ''; try { html = renderArtifact(a.specId, adEffCtx(a), refStyle({ ...c.style, ...v.style }), artRenderOpts(a)); } catch {}   // 썸네일 — 그림은 참조로(11-09 성능)   // 보드와 같은 옵션(시안 번호·용도·화살표·규격)
-      if (!html) continue;
-      const f = document.createElement('iframe'); f.width = nw; f.height = nh; f.style.transform = `scale(${k})`; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.srcdoc = previewDoc(html, v.style?.fonts?.heading ?? artifactFontId(a)); box.appendChild(f);
-    }
-    // 시안 더 보기(11-02): 자동 안 말고 이 규격·키비주얼에 맞는 시안 전부에서 고른다
-    const moreBtn = $('iTplMore');
-    if (moreBtn) moreBtn.onclick = () => openTplPicker({
-      title: `다른 시안 · ${artLabel(a)}`, nw, nh, returnTo: moreBtn,
-      current: (v => v?.tpl ?? v?.free?.id ?? null)(a.variants[currentVariantIndex(a)]?.style),
-      choices: [...FREE.choicesFor(a, c, artRenderOpts(a)), ...templateChoices(a.specId, adEffCtx(a), refStyle(c.style), artRenderOpts(a))],   // 미리보기 html 은 그림 참조로(11-09)   // 내 자유 시안(같은 규격, 11-05)이 맨 앞
-      docOf: ch => previewDoc(ch.html, ch.style.fonts?.heading ?? artifactFontId(a)),
-      onPick: ch => {
-        pushHistory(`${artLabel(a)} 시안 고르기`);
-        const prev = a.variants[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, ch.style);
-        a.overrides.style = st;
-        let i = a.variants.findIndex(v => ch.style.free ? v.style?.free?.id === ch.style.free.id : v.style?.tpl === ch.style.tpl);
-        if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '', ...(ch.style.free ? { kind: 'free', html: ch.style.free.tpl, notes: ch.style.free.notes ?? '' } : {}) }); i = a.variants.length - 1; }
-        a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
-        logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl ?? ch.style.free?.id ?? null, label: ch.label });
-        if (ch.suggested) FREE.notePick(ch, c, a);   // AI 제안 채택 = 좋음(5) 기록(평가 루프와 같은 경로)
-        regen(c); autosave(); refreshFrames(a.specId); renderInspector();
-        log(`${a.specId} 시안 ${ch.label}`);
-      },
-    });
-    // AI 추가 제안(11-06): 로컬 서버(큐 지원·엔진 있음)일 때만 버튼이 보인다 — health 는 비동기라 처음엔 숨기고 오면 보이게. 도착 배지 클릭 → 「다른 시안 보기」
-    { const ab = $('iAiMore'); if (ab) { FREE.hasServerJobs().then(ok => { if (ok && ab.isConnected) ab.hidden = false; }); ab.onclick = () => FREE.suggest(a, c); } }
-    { const jb = $('iAiJob'); if (jb) jb.onclick = e => { if (e.target.closest('.aijob.done')) { const mb = $('iTplMore'); if (mb) mb.click(); else { renderInspector(); $('iTplMore')?.click(); } } }; }
-    insp.querySelectorAll('#iVariants .vthumb').forEach(b => b.onclick = () => {
-      const cur = currentVariantIndex(a), i = +b.dataset.vi; if (i === cur) return;
+    // 11-23 사용자 「레이아웃 안은 나열하지 말고 다른 시안 보기 버튼만 — 모달에서 눌러 바꾸기」: 패널엔 지금 안 한 줄, 레이아웃 안 + 다른 시안은 큰 카드 모달(openTplPicker) 하나로
+    const pickVariant = i => {
+      const cur = currentVariantIndex(a); if (i === cur) return;
       pushHistory(`${artLabel(a)} 레이아웃 안 ${i + 1}`);
       const prev = a.variants[cur]?.style ?? {}; const next = a.variants[i].style;
       const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, next);   // 이전 안의 키는 지우고 새 안의 키만
@@ -3927,7 +4010,32 @@ function renderInspectorBody() {
       regen(c); autosave(); refreshFrames(a.specId); renderInspector();
       $('inspNote').textContent = `레이아웃 안 ${i + 1} — 이 산출물만`;
       log(`${a.specId} 레이아웃 안 ${i + 1} ${a.variants[i]?.label ?? ''}`);
-    });
+    };
+    const pickTemplate = ch => {
+      pushHistory(`${artLabel(a)} 시안 고르기`);
+      const prev = a.variants[currentVariantIndex(a)]?.style ?? {}; const st = { ...(a.overrides.style ?? {}) }; for (const key of Object.keys(prev)) delete st[key]; Object.assign(st, ch.style);
+      a.overrides.style = st;
+      let i = a.variants.findIndex(v => ch.style.free ? v.style?.free?.id === ch.style.free.id : v.style?.tpl === ch.style.tpl);
+      if (i < 0) { a.variants.push({ id: a.variants.length, label: ch.label, style: ch.style, hash: '', ...(ch.style.free ? { kind: 'free', html: ch.style.free.tpl, notes: ch.style.free.notes ?? '' } : {}) }); i = a.variants.length - 1; }
+      a.variantSel = i; a.status = 'draft'; a.gateOverride = null;
+      logEvent(c, 'template_selected', { specId: a.specId, tpl: ch.style.tpl ?? ch.style.free?.id ?? null, label: ch.label });
+      if (ch.suggested) FREE.notePick(ch, c, a);   // AI 제안 채택 = 좋음(5) 기록(평가 루프와 같은 경로)
+      regen(c); autosave(); refreshFrames(a.specId); renderInspector();
+      log(`${a.specId} 시안 ${ch.label}`);
+    };
+    const moreBtn = $('iTplMore');
+    if (moreBtn) moreBtn.onclick = () => {
+      const cur = currentVariantIndex(a);
+      const vch = a.variants.map((v, i) => ({ label: `안 ${i + 1} · ${v.label}`, sub: v.kind === 'free' ? '' : (v.sub ?? variantSubOf(v.style, spec)), style: { ...v.style, tpl: `vi${i}` }, vi: i, html: (() => { try { return renderArtifact(a.specId, adEffCtx(a), refStyle({ ...c.style, ...v.style }), artRenderOpts(a)); } catch { return ''; } })() }));
+      const seen = new Set(a.variants.map(v => v.style?.tpl ?? v.style?.free?.id).filter(Boolean));
+      const more = [...FREE.choicesFor(a, c, artRenderOpts(a)), ...templateChoices(a.specId, adEffCtx(a), refStyle(c.style), artRenderOpts(a))].filter(ch => !seen.has(ch.style.tpl ?? ch.style.free?.id));   // 미리보기 html 은 그림 참조로(11-09) · 내 자유 시안이 앞
+      openTplPicker({ title: `다른 시안 · ${artLabel(a)}`, nw, nh, returnTo: moreBtn, current: `vi${cur}`, choices: [...vch, ...more],
+        docOf: ch => previewDoc(ch.html, (ch.vi != null ? a.variants[ch.vi]?.style?.fonts?.heading : ch.style.fonts?.heading) ?? artifactFontId(a)),
+        onPick: ch => ch.vi != null ? pickVariant(ch.vi) : pickTemplate(ch) });
+    };
+    // AI 추가 제안(11-06): 로컬 서버(큐 지원·엔진 있음)일 때만 버튼이 보인다 — health 는 비동기라 처음엔 숨기고 오면 보이게. 도착 배지 클릭 → 「다른 시안 보기」
+    { const ab = $('iAiMore'); if (ab) { FREE.hasServerJobs().then(ok => { if (ok && ab.isConnected) ab.hidden = false; }); ab.onclick = () => FREE.suggest(a, c); } }
+    { const jb = $('iAiJob'); if (jb) jb.onclick = e => { if (e.target.closest('.aijob.done')) { const mb = $('iTplMore'); if (mb) mb.click(); else { renderInspector(); $('iTplMore')?.click(); } } }; }
     $('iVariantAll').onclick = () => {
       const v = a.variants[currentVariantIndex(a)]; if (!v || !Object.keys(v.style ?? {}).length) return;   // 기본안은 전파할 값이 없다(버튼도 disabled)
       const spread = { ...v.style };   // 전파할 키·값 — restyleWith 뒤 안 목록이 재계산되므로 미리 잡아 둔다
@@ -4011,7 +4119,8 @@ function renderInspectorBody() {
     };
   }
   insp.querySelector('#iOpen').onclick = () => openHtml(resolveRefs(a.html));   // 새 창·저장용 — 그림 바이트째
-  insp.querySelector('#iExp').onclick = () => { if (gateOf(a)?.state === 'blocked' && a.channel !== 'ad') { toast(a.channel === 'asset' ? (a.assetNote ?? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다') : '규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용. 차단 매체 소재는 이미지 전달만 막고 수정용 SVG 는 연다(10-28)
+  const expBtn = insp.querySelector('#iExp');   // 11-23: 광고 소재는 「내보내기」 섹션 안 — 요소를 고르면 그 섹션이 없다(없으면 건너뛴다)
+  if (expBtn) expBtn.onclick = () => { if (gateOf(a)?.state === 'blocked' && a.channel !== 'ad') { toast(a.channel === 'asset' ? (a.assetNote ?? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다') : '규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용. 차단 매체 소재는 이미지 전달만 막고 수정용 SVG 는 연다(10-28)
   // 산출물 하나 승인 — ready 는 바로, review·draft 는 사유를 적어야(사례 기록의 입력), blocked 는 불가
   const approveBtn = insp.querySelector('#iApprove');
   if (approveBtn) approveBtn.onclick = () => {

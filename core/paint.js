@@ -21,7 +21,8 @@ export const hexOf = c => '#' + c.map(v => Math.round(clamp(v, 0, 255)).toString
 export const rgba = (hex, a = 1) => a >= 0.9995 ? hex.toUpperCase() : `rgba(${rgbOf(hex).join(',')},${Math.round(clamp(a, 0, 1) * 1000) / 1000})`;
 
 // 칠 한 장 정리 — 틀리면 null. allowImage: 배경만 이미지 칠, opaque: 맨 아래 지면처럼 투명이 안 되는 자리(층·정지점 불투명도 100 고정)
-export function normPaint(p, { allowImage = false, opaque = false } = {}) {
+export function normPaint(p, { allowImage = false, opaque = false, allowKv = false } = {}) {
+  if (allowKv && p?.type === 'kv') return { type: 'kv' };   // 11-23 키비주얼 자리 표시 — 이 아래 층은 키비주얼 아래, 위 층은 키비주얼 위(글자·로고 아래)
   if (!p || typeof p !== 'object' || !PAINT_TYPES.includes(p.type)) return null;
   const base = { opacity: opaque ? 100 : pct(p.opacity), ...(p.hidden && !opaque ? { hidden: true } : {}) };
   if (p.type === 'solid') return HEX.test(p.color ?? '') ? { type: 'solid', color: p.color.toUpperCase(), ...base } : null;
@@ -36,14 +37,14 @@ export function normPaint(p, { allowImage = false, opaque = false } = {}) {
 // 층 목록 정리 — 맨 아래부터. 비면 null
 export function normFills(list, opts = {}) {
   if (!Array.isArray(list)) return null;
-  const out = list.map(p => normPaint(p, opts)).filter(Boolean).slice(-MAX_FILLS);
+  let kv = 0; const out = list.map(p => normPaint(p, opts)).filter(p => p && (p.type !== 'kv' || !kv++)).slice(-(MAX_FILLS + 1));
   return out.length ? out : null;
 }
 
 // 칠 한 장 → CSS background-image 한 층(층 불투명도·정지점 불투명도를 색에 굽는다). 이미지·숨김은 null
 //   단색도 한 층으로 쌓으려고 linear-gradient(c,c) 로 쓴다(background-color 는 한 장뿐이라 층 순서를 못 지킨다)
 export function paintLayerCss(p) {
-  if (!p || p.hidden || p.type === 'image') return null;
+  if (!p || p.hidden || p.type === 'image' || p.type === 'kv') return null;
   const o = (p.opacity ?? 100) / 100;
   if (p.type === 'solid') { const c = rgba(p.color, o); return `linear-gradient(${c},${c})`; }
   return gradientCssWith(p, s => rgba(s.color, o * (s.a ?? 100) / 100));
@@ -56,15 +57,16 @@ export function fillsImageCss(fills) {
 // 패널 견본(작은 칸) — 불투명도까지 보이는 그대로
 export function paintSwatchCss(p) {
   if (!p) return 'transparent';
+  if (p.type === 'kv') return p.src ? `center/cover no-repeat url("${p.src}")` : '#D9D9D9';
   if (p.type === 'image') return `center/cover no-repeat url("${p.src}")`;
   return paintLayerCss({ ...p, hidden: false }) ?? 'transparent';
 }
 // 패널 이름 칸 — 단색은 헥스, 그라데이션은 종류 이름(피그마: 「Linear」)
-export const paintLabel = p => !p ? '' : p.type === 'solid' ? p.color.slice(1) : p.type === 'image' ? (p.name || '이미지') : p.type === 'linear' ? '선형' : '방사형';
+export const paintLabel = p => !p ? '' : p.type === 'kv' ? '키비주얼' : p.type === 'solid' ? p.color.slice(1) : p.type === 'image' ? (p.name || '이미지') : p.type === 'linear' ? '선형' : '방사형';
 
 // 대표 색 — 글자 그라데이션의 대비 검수·SVG 밖 대체 색. 보이는 맨 위 층 정지점 평균(불투명도 무시)
 export function representativeColor(fills) {
-  const top = [...(fills ?? [])].reverse().find(p => !p.hidden && p.type !== 'image'); if (!top) return null;
+  const top = [...(fills ?? [])].reverse().find(p => !p.hidden && p.type !== 'image' && p.type !== 'kv'); if (!top) return null;
   if (top.type === 'solid') return top.color;
   const cs = top.stops.map(s => rgbOf(s.color)); return hexOf([0, 1, 2].map(k => cs.reduce((a, c) => a + c[k], 0) / cs.length));
 }
@@ -89,3 +91,9 @@ export const paintFromBgImage = B => B?.src ? { type: 'image', src: B.src, fit: 
 export const paintFromGradient = g0 => { const g = normGradient(g0); return g ? { ...g, opacity: 100 } : null; };
 export const gradientOfPaint = p => p && (p.type === 'linear' || p.type === 'radial') ? normGradient(p) : null;
 export { normAngle, GRAD_MAX_STOPS };
+
+// 11-23 테두리(피그마 Stroke) — 프레임(소재) 안쪽 선 { color, width:0.5~40px, opacity:0~100, hidden? }
+export function normStroke(v) {
+  if (!v || typeof v !== 'object' || !HEX.test(v.color ?? '')) return null;
+  const w = Number(v.width); return { color: v.color.toUpperCase(), width: Number.isFinite(w) ? Math.round(clamp(w, 0.5, 40) * 10) / 10 : 1, opacity: pct(v.opacity), ...(v.hidden ? { hidden: true } : {}) };
+}

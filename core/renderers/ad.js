@@ -19,7 +19,7 @@
 // 모든 글자 요소에 data-field="<role>"을 심어 measure.js가 재고 lint.js가 판정한다. 렌더러는 검사하지 않는다.
 // 절대배치는 템플릿이 좌표를 정한 로고 칸·이미지 영역에만 쓴다 — 글자는 그 영역을 피한 흐름 배치다.
 
-import { paintLayerCss } from '../paint.js';
+import { paintLayerCss, rgba } from '../paint.js';
 import { bgLayersOf } from '../style.js';
 import { fillTemplate } from '../freetpl.js';
 import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
@@ -435,25 +435,58 @@ export function renderAd(ctx, style, spec) {
 // 11-18 노션 「배경 이미지 삽입 및 채우기·편집 기능 확장」: 지면(배경색·그라데이션) 바로 위, 키비주얼·글자·로고 아래에 장식 그림 한 층.
 //   꽉 채우기(cover, 비율 유지·넘치는 곳 잘림) · 전체 보기(contain) · 반복(tile, 짧은 변의 tile% 크기). 투명도·위치(x·y %)는 이미지 요소처럼 고친다. 키비주얼과 역할이 다르다(필수 영역 없음)
 export function withBgImage(html, style, spec) {
-  // 11-23 피그마식 채우기 층(core/paint.js) — 지면 위·키비주얼 아래에 아래층부터 쌓는다. 이미지 층은 예전 배경 이미지와 같은 모양(data-bg-image),
-  //   단색·그라데이션 층은 불투명도를 색에 구운 background 한 장(data-bg-fill). 예전 저장값(background.image 한 장)은 bgLayersOf 가 층 하나로 옮긴다
-  const L = (style?.background?.layers ?? bgLayersOf(style?.background) ?? []).filter(p => !p.hidden);
-  if (!L.length || !html) return html;
+  // 11-23 피그마식 채우기 층(core/paint.js) — 0번이 맨 아래. 키비주얼 자리 표시({type:'kv'}) 아래 층은 지면 위·키비주얼 아래,
+  //   위 층은 키비주얼(과 스크림) 위·글자·로고 아래. 자리 표시가 없으면 모두 키비주얼 아래(예전).
+  //   이미지 층은 예전 배경 이미지와 같은 모양(data-bg-image), 단색·그라데이션 층은 불투명도를 색에 구운 background 한 장(data-bg-fill).
+  //   테두리(style.stroke — 피그마 Stroke, 안쪽)는 맨 위 선 한 겹(data-stroke)
+  if (!html) return html;
+  const all = style?.background?.layers ?? bgLayersOf(style?.background) ?? [];
+  const k = all.findIndex(p => p.type === 'kv');
+  const below = (k < 0 ? all : all.slice(0, k)).filter(p => !p.hidden && p.type !== 'kv'), above = k < 0 ? [] : all.slice(k + 1).filter(p => !p.hidden);
   const W = spec?.w ?? 0, H = spec?.h ?? 0;
   const box = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';
-  const layer = L.map(B => {
+  const layerOf = B => {
     if (B.type === 'image') {
       const size = B.fit === 'tile' ? `${Math.max(8, Math.round(Math.min(W || 100, H || 100) * (B.tile ?? 30) / 100))}px auto` : B.fit === 'contain' ? 'contain' : 'cover';
       return `<div data-bg-image="1" aria-hidden="true" style="${box};opacity:${Math.round((B.opacity ?? 100) * 10) / 1000};background-image:url(&quot;${esc(B.src)}&quot;);background-size:${size};background-position:${B.x ?? 50}% ${B.y ?? 50}%;background-repeat:${B.fit === 'tile' ? 'repeat' : 'no-repeat'}"></div>`;
     }
     const css = paintLayerCss(B); return css ? `<div data-bg-fill="1" aria-hidden="true" style="${box};background-image:${css}"></div>` : '';
-  }).join('');
-  if (!layer) return html;
-  // 틀 지면 영역(data-mold-field)이 있으면 그 위 — 아니면 루트 바로 안 맨 앞(지면 = 루트 배경 바로 위)
-  const mf = html.match(/<div data-mold-field="1"[^>]*><\/div>/);
-  if (mf) return html.replace(mf[0], () => mf[0] + layer);
-  const root = html.match(/<div data-ad="1"[^>]*>/); if (!root) return html;
-  return html.replace(root[0], () => root[0] + layer);
+  };
+  let out = html;
+  const lo = below.map(layerOf).join('');
+  if (lo) {
+    // 틀 지면 영역(data-mold-field)이 있으면 그 위 — 아니면 루트 바로 안 맨 앞(지면 = 루트 배경 바로 위)
+    const mf = out.match(/<div data-mold-field="1"[^>]*><\/div>/);
+    if (mf) out = out.replace(mf[0], () => mf[0] + lo);
+    else { const root = out.match(/<div data-ad="1"[^>]*>/); if (root) out = out.replace(root[0], () => root[0] + lo); }
+  }
+  const hi = above.map(B => layerOf(B).replace(/data-bg-(image|fill)="1"/, m => `${m} data-bg-above="1"`)).join('');
+  if (hi) {
+    // 키비주얼 위: 그림 칸(data-object)이 있으면 그 바로 뒤, 없으면(그림이 루트 배경 — 전면·질감) 아래 층 뒤 — 글자·로고는 뒤에 오는 형제라 그 위에 남는다
+    const at = endOfTag(out, out.search(/<div data-object="1"/));
+    if (at > 0) out = out.slice(0, at) + hi + out.slice(at);
+    else { const lastBelow = out.lastIndexOf('data-bg-fill="1"') > out.lastIndexOf('data-bg-image="1"') ? out.lastIndexOf('data-bg-fill="1"') : out.lastIndexOf('data-bg-image="1"'); const e = lastBelow > 0 ? endOfTag(out, out.lastIndexOf('<div', lastBelow)) : -1;
+      if (e > 0) out = out.slice(0, e) + hi + out.slice(e);
+      else { const root = out.match(/<div data-ad="1"[^>]*>/); if (root) out = out.replace(root[0], () => root[0] + hi); } }
+  }
+  const S = style?.stroke;
+  if (S && !S.hidden && S.width > 0) {
+    const end = out.lastIndexOf('</div>');
+    if (end > 0) out = out.slice(0, end) + `<div data-stroke="1" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;box-sizing:border-box;border:${S.width}px solid ${rgba(S.color, (S.opacity ?? 100) / 100)};pointer-events:none;z-index:60"></div>` + out.slice(end);
+  }
+  return out;
+}
+// 여는 태그 at 의 짝 닫는 </div> 뒤 위치(-1: 없음) — div 만 센다
+function endOfTag(h, at) {
+  if (at < 0) return -1;
+  let i = h.indexOf('>', at) + 1, depth = 1;
+  if (h[i - 2] === '/') return i;
+  while (depth && i > 0) {
+    const o = h.indexOf('<div', i), c = h.indexOf('</div>', i);
+    if (c < 0) return -1;
+    if (o >= 0 && o < c) { depth++; i = h.indexOf('>', o) + 1; } else { depth--; i = c + 6; }
+  }
+  return i;
 }
 function renderAdInner(ctx, style, spec) {
   // 시안 틀(11-02 홍보사업셀): 고른 시안의 칸에 채운다. 규정 매체·문구가 없는 경우는 일반 경로

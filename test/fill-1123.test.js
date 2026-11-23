@@ -99,3 +99,20 @@ test('캔버스 방향 손잡이 — 선형 from·to(선 위 자리) · 방사�
   assert.deepEqual(linearFromPoints([20, 25], [80, 75], 100, 100).angle, 130);
   assert.equal(linearFromPoints([50, 50], [50.5, 50], 100, 100), null, '너무 가까우면 무시');
 });
+
+test('채우기에 키비주얼 자리 — 자리 위 층은 키비주얼 위·글자 아래 · 테두리(안쪽)는 맨 위 한 겹', async () => {
+  const { renderArtifact, normalizeStyle, ctx } = await setup();
+  const meta = { field: { kind: 'illust', opaque: 1, focus: { x: 0.5, y: 0.5, w: 0.5, h: 0.5 } }, ar: 1, colors: ['#2244AA'] };
+  const st = normalizeStyle({ colors: ['#2456D6'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: meta, stroke: { color: '#000000', width: 2, opacity: 50 },
+    background: { layers: [{ type: 'solid', color: '#FF0000', opacity: 30 }, { type: 'kv' }, { type: 'kv' }, { type: 'linear', angle: 180, stops: [{ color: '#000000', pos: 0, a: 0 }, { color: '#000000', pos: 100 }], opacity: 60 }] } });
+  assert.deepEqual(st.background.layers.map(p => p.type), ['solid', 'kv', 'linear'], '키비주얼 자리는 하나');
+  assert.deepEqual(st.stroke, { color: '#000000', width: 2, opacity: 50 });
+  for (const sid of ['google-gdn-580x400', 'kakao-bizboard-mo']) {
+    const h = renderArtifact(sid, ctx, st);
+    const iBelow = h.indexOf('data-bg-fill="1" aria-hidden'), iObj = h.search(/<div data-object="1"/), iAbove = h.indexOf('data-bg-above="1"'), iMain = h.search(/data-field="main"/), iStroke = h.indexOf('data-stroke="1"');
+    assert.ok(iBelow > 0 && iBelow < iObj && iObj < iAbove && iAbove < iMain && iMain < iStroke, `${sid}: 아래 층 < 키비주얼 < 위 층 < 글자 < 테두리`);
+    assert.match(h.slice(iStroke, iStroke + 300), /border:2px solid rgba\(0,0,0,0\.5\)/);
+  }
+  const plain = renderArtifact('google-gdn-580x400', ctx, normalizeStyle({ colors: ['#2456D6'] }));
+  assert.ok(!plain.includes('data-stroke') && !plain.includes('data-bg-above'), '안 넣으면 그대로');
+});

@@ -35,6 +35,10 @@ export function fillSectionHtml(id, { title = '채우기', fills = [], base = nu
   const rows = [...fills.map((p, i) => ({ key: i, paint: p })).reverse(), ...(base ? [{ key: 'base', paint: base.paint, locked: true, sub: base.sub, auto: base.auto }] : [])];
   const row = r => {
     const p = r.paint, solid = p.type === 'solid', hid = !!p.hidden;
+    if (p.type === 'kv') return `<div class="flrow kv" data-fl="${r.key}" ${disabled ? '' : 'draggable="true"'}>
+      <span class="flgrip" aria-hidden="true">${GRIP}</span>
+      <div class="fcin"><button type="button" class="flsw" data-flsw="${r.key}" style="--sw:${esc(paintSwatchCss(p))}" aria-label="키비주얼 설정 열기" ${disabled ? 'disabled' : ''}><i></i></button><button type="button" class="fllab" data-flopen="${r.key}">키비주얼</button><span class="ft">이미지</span></div>
+      <span class="fib" aria-hidden="true"></span><span class="fib" aria-hidden="true"></span></div>`;
     const lab = solid ? `<input type="text" class="fhex" data-flhex="${r.key}" value="${r.auto ? '' : esc(p.color.slice(1))}" placeholder="${esc(p.color.slice(1))}" maxlength="7" spellcheck="false" aria-label="${esc(title)} 색 헥스" ${disabled ? 'disabled' : ''}>`
       : `<button type="button" class="fllab" data-flopen="${r.key}" ${disabled ? 'disabled' : ''}>${esc(paintLabel(p))}</button>`;
     return `<div class="flrow${hid ? ' hid' : ''}${r.locked ? ' base' : ''}" data-fl="${r.key}" ${r.locked || disabled ? '' : 'draggable="true"'}>
@@ -62,6 +66,7 @@ export function bindFillSection(root, id, opts) {
   const paintOf = k => k === 'base' ? opts.base() : fills()[k];
   const open = (anchor, k) => {
     const isBase = k === 'base';
+    if (!isBase && paintOf(k)?.type === 'kv') { opts.onKv?.(anchor); return; }
     openPaintPopover(anchor, paintOf(k), {
       types: isBase ? (opts.baseTypes ?? ['solid', 'linear', 'radial']) : ['solid', 'linear', 'radial', ...(opts.allowImage ? ['image'] : [])],
       allowAlpha: !isBase && opts.allowAlpha !== false,
@@ -351,3 +356,61 @@ async function readImage(file) {
   } catch { return url; }
 }
 export { colorAt };
+
+/* ── 테두리(피그마 Stroke) — 한 줄: 견본 · 헥스 · % · 눈 · 빼기 / 위치(안쪽) · 두께 ── */
+export function strokeSectionHtml(id, stroke, { title = '테두리', disabled = false } = {}) {
+  const S = stroke;
+  return `<div class="fill" id="${esc(id)}Stroke"><div class="flab"><span>${esc(title)}</span>${S ? '' : iconBtn('plus', `${title} 더하기`, `data-sadd="1" ${disabled ? 'disabled' : ''}`)}</div>
+    ${S ? `<div class="fllist"><div class="flrow${S.hidden ? ' hid' : ''}"><span class="flgrip"></span>
+      <div class="fcin"><button type="button" class="flsw" data-ssw="1" style="--sw:${esc(paintSwatchCss({ type: 'solid', color: S.color, opacity: S.opacity }))}" aria-label="${esc(title)} 색 편집 열기" ${disabled ? 'disabled' : ''}><i></i></button><input type="text" class="fhex" data-shex="1" value="${esc(S.color.slice(1))}" maxlength="7" spellcheck="false" aria-label="${esc(title)} 색 헥스" ${disabled ? 'disabled' : ''}><span class="fop"><input type="text" inputmode="decimal" class="fnum fopn" data-sop="1" value="${S.opacity ?? 100}" aria-label="${esc(title)} 불투명도(%)" ${disabled ? 'disabled' : ''}><i aria-hidden="true">%</i></span></div>
+      ${iconBtn(S.hidden ? 'eye-off' : 'eye', S.hidden ? '테두리 보이기' : '테두리 숨기기', `data-seye="1" aria-pressed="${!!S.hidden}" ${disabled ? 'disabled' : ''}`)}${iconBtn('minus', '테두리 빼기', `data-sdel="1" ${disabled ? 'disabled' : ''}`)}</div></div>
+    <div class="fgrid2" style="margin-top:6px"><div class="fin"><input type="text" class="fnum" value="안쪽" disabled aria-label="테두리 위치(안쪽)" title="테두리는 소재 안쪽에 그려요 — 크기가 바뀌지 않게"></div><div class="fin unit pre"><span class="k" aria-hidden="true">${ic('lh')}</span><input type="text" inputmode="decimal" class="fnum" data-sw="1" value="${S.width}" aria-label="테두리 두께(px)" ${disabled ? 'disabled' : ''}><span class="u" aria-hidden="true">px</span></div></div>` : ''}</div>`;
+}
+// opts: stroke() · onChange(stroke|null, label) · onLive(stroke)
+export function bindStrokeSection(root, id, opts) {
+  const box = root?.querySelector(`#${CSS.escape(id)}Stroke`); if (!box) return;
+  wireFui(box);
+  const cur = () => ({ ...(opts.stroke() ?? {}) });
+  box.querySelector('[data-sadd]')?.addEventListener('click', () => opts.onChange({ color: '#000000', width: 1, opacity: 100 }, '테두리 더하기'));
+  box.querySelector('[data-sdel]')?.addEventListener('click', () => { closePaintPopover(); opts.onChange(null, '테두리 빼기'); });
+  box.querySelector('[data-seye]')?.addEventListener('click', () => { const S = cur(); if (S.hidden) delete S.hidden; else S.hidden = true; opts.onChange(S, S.hidden ? '테두리 숨기기' : '테두리 보이기'); });
+  const hx = box.querySelector('[data-shex]'); if (hx) { hx.onchange = () => { const h = parseHex(hx.value); if (!h) { hx.value = cur().color?.slice(1) ?? ''; return; } opts.onChange({ ...cur(), color: h }, '테두리 색'); }; hx.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); hx.blur(); } }; }
+  const op = box.querySelector('[data-sop]'); if (op) op.onchange = () => { const v = Math.round(parseFloat(op.value)); if (!Number.isFinite(v)) { op.value = cur().opacity ?? 100; return; } opts.onChange({ ...cur(), opacity: clamp(v, 0, 100) }, '테두리 불투명도'); };
+  const w = box.querySelector('[data-sw]'); if (w) w.onchange = () => { const v = parseFloat(w.value); if (!(v > 0)) { w.value = cur().width ?? 1; return; } opts.onChange({ ...cur(), width: clamp(v, 0.5, 40) }, '테두리 두께'); };
+  box.querySelector('[data-ssw]')?.addEventListener('click', e => {
+    e.stopPropagation(); const S = cur();
+    openPaintPopover(e.currentTarget.closest('.flrow'), { type: 'solid', color: S.color, opacity: S.opacity ?? 100 }, { types: ['solid'], allowAlpha: true, title: '테두리',
+      onLive: p => opts.onLive?.({ ...cur(), color: p.color, opacity: p.opacity }), onChange: (p, label) => opts.onChange({ ...cur(), color: p.color, opacity: p.opacity }, label ?? '테두리 색') });
+  });
+}
+
+/* ── 선택 색(피그마 Selection colors) — 이 소재에 실제로 쓰인 칠. 바꾸면 그 칠을 쓰는 곳이 다 바뀐다 ── */
+// items: [{ paint, label, types, allowAlpha, set(paint, label), live?(paint) }]
+export function selColorsHtml(id, items, { title = '선택 색' } = {}) {
+  if (!items.length) return '';
+  return `<div class="fill" id="${esc(id)}Sel"><div class="flab"><span>${esc(title)}</span></div><div class="fllist">${items.map((it, i) => `<div class="flrow sel"><span class="flgrip"></span>
+    <div class="fcin"><button type="button" class="flsw" data-csw="${i}" style="--sw:${esc(paintSwatchCss(it.paint))}" aria-label="${esc(it.label)} 편집 열기" ${it.set ? '' : 'disabled'}><i></i></button><button type="button" class="fllab" data-csw="${i}" ${it.set ? '' : 'disabled'}>${esc(paintLabel(it.paint))}</button><span class="ft">${esc(it.label)}</span><span class="fop"><input type="text" class="fnum fopn" value="${it.paint.opacity ?? 100}" disabled aria-label="불투명도"><i aria-hidden="true">%</i></span></div>
+    <span class="fib" aria-hidden="true"></span><span class="fib" aria-hidden="true"></span></div>`).join('')}</div></div>`;
+}
+export function bindSelColors(root, id, items, box = null) {
+  const el = root?.querySelector(`#${CSS.escape(id)}Sel`); if (!el) return;
+  el.querySelectorAll('[data-csw]').forEach(b => b.onclick = e => {
+    e.stopPropagation(); const it = items[+b.dataset.csw]; if (!it?.set) return;
+    openPaintPopover(b.closest('.flrow'), it.paint, { types: it.types ?? ['solid'], allowAlpha: !!it.allowAlpha, title: it.label, box: it.box ?? box, onLive: p => it.live?.(p), onChange: (p, label) => it.set(p, label) });
+  });
+}
+
+/* ── 자유 팝업(키비주얼 칸 등) — 채우기 팝업과 같은 자리·닫기 ── */
+export function openCustomPopover(anchor, title, html, bind) {
+  closePaintPopover();
+  const el = document.createElement('div'); el.className = 'fpop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', title);
+  el.innerHTML = `<div class="fpop-h"><span class="fpop-t" style="text-align:left;color:var(--ink);font-weight:600">${esc(title)}</span>${iconBtn('minus', '닫기', 'data-pclose="1"').replace(ic('minus'), '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-linecap="round"/></svg>')}</div><div class="fpop-b">${html}</div>`;
+  document.body.appendChild(el);
+  const outside = e => { if (!el.contains(e.target) && !e.target.closest?.('[data-flsw],[data-flopen]')) closePaintPopover(); };
+  const key = e => { if (e.key === 'Escape') { e.stopPropagation(); closePaintPopover(); } };
+  document.addEventListener('pointerdown', outside, true); document.addEventListener('keydown', key, true);
+  POP = { el, S: null, outside, key, gh: null, raf: 0 };
+  el.querySelector('[data-pclose]').onclick = () => closePaintPopover();
+  wireFui(el); bind?.(el); place(el, anchor);
+  return el;
+}

@@ -1,6 +1,6 @@
 // Campaign Style — 3경로(업로드·프리셋·AI 생성 추후) 어디서 와도 이 구조 하나로 정규화 (PRD 불변식 2)
 
-import { normFills, paintFromBgImage } from './paint.js';
+import { normFills, paintFromBgImage, normStroke } from './paint.js';
 import { FONTS, DEFAULT_FONT } from './fonts.js';
 import { buildPalette, MODES } from './palette.js';
 import { applyKvTypeOverride, isKvTypeOverride } from './kvtypes.js';
@@ -14,7 +14,7 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 // 실제 분판은 인쇄소 ICC 프로파일 기준이다(브라우저는 CMYK를 직접 출력하지 못함).
 // 배경 이미지(11-18 노션) — 키비주얼(필수 영역이 있는 핵심 그림)과 따로, 소재 전체를 덮는 장식 그림. 꽉 채우기 · 전체 보기 · 반복
 export function bgLayersOf(bg) {
-  if (Array.isArray(bg?.layers)) return normFills(bg.layers, { allowImage: true });
+  if (Array.isArray(bg?.layers)) return normFills(bg.layers, { allowImage: true, allowKv: true });
   const im = normBgImage(bg?.image); return im ? normFills([paintFromBgImage(im)], { allowImage: true }) : null;
 }
 export function normBgImage(v) {
@@ -97,6 +97,7 @@ export function normalizeStyle(input = {}) {
     // 편집 프리셋(10-14, core/editlayout.js PRESETS) — 캠페인 일괄 값. 'auto'(기본)면 키를 두지 않는다(렌더 결과·저장 모양이 예전과 같게)
     ...Object.fromEntries(PRESET_KEYS.filter(k => input[k] && input[k] !== 'auto' && PRESETS[k].choices[input[k]]).map(k => [k, input[k]])),
     colorsManual: !!input.colorsManual,
+    ...(normStroke(input.stroke) ? { stroke: normStroke(input.stroke) } : {}),   // 11-23 테두리(피그마 Stroke) — 소재 안쪽 선
     textTone: ['dark', 'light'].includes(input.textTone) ? input.textTone : 'auto',
     ...(typeof input.tpl === 'string' && input.tpl ? { tpl: input.tpl } : {}),
     ...(input.roleColors && typeof input.roleColors === 'object' ? { roleColors: Object.fromEntries(['main', 'sub', 'detail'].filter(k => HEX.test(input.roleColors[k] ?? '')).map(k => [k, input.roleColors[k].toUpperCase()])) } : {}),   // 글자별 색(N6)
