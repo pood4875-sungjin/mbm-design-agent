@@ -92,3 +92,10 @@ test('[카카오] 비즈보드 광고주체 표기 칸에 로고 자동 삽입 �
   const noLogo = renderArtifact('kakao-bizboard-mo', ctx, normalizeStyle({ colors: ['#2456D6'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: meta }));
   assert.ok(!noLogo.includes('data-logo-slot="adlabel"'), '로고가 없으면 칸만(가이드)');
 });
+
+test('[공통] 좁은 창(≤768px)에서도 스타일 단계 로고 칸이 보인다 — 머리글 로고 규칙이 .kvthumb.logo 를 숨기지 않게(11-23)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync(new URL('../app/index.html', import.meta.url), 'utf8');
+  assert.ok(!/(^\s*|[{}]\s*)\.logo\s*\{[^}]*display\s*:\s*none/m.test(css), '맨 .logo 에 display:none 이 없어야 한다');
+  assert.match(css, /header \.logo\{display:none\}/);
+});
