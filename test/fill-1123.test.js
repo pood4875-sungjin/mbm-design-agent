@@ -75,3 +75,15 @@ test('글자 칠 — 여러 겹·그라데이션은 글자 모양으로 자른 �
   assert.ok(!/background:#EEEEEE/.test(h3), '렌더러 상자 색은 걷는다');
   assert.match(h3, /<span data-tfill="1" style="display:inline-block;background-image:linear-gradient\(180deg,#000000 0%,#FF0000 100%\);-webkit-background-clip:text/);
 });
+
+test('[카카오] 비즈보드 썸네일(공식 둥근 칸 320×222)은 줄이지 않는다 — 광고주체 로고 칸이 그림 왼쪽 위 8·8 안에 남는다', async () => {
+  const { renderArtifact, normalizeStyle, createContext } = await setup();
+  const ctx = createContext({ client: 'GS에너지', hiringType: '신입 공채', startDate: '2026-06-20', deadline: '2026-07-02' }, 'recruit');
+  for (const [ar, fw] of [[1, 0.95], [0.8, 0.9]]) {
+    const meta = { field: { kind: 'illust', opaque: 1, focus: { x: 0.5, y: 0.5, w: fw, h: fw } }, ar, colors: ['#2244AA'] };
+    const h = renderArtifact('kakao-bizboard-mo', ctx, normalizeStyle({ colors: ['#2456D6'], keyVisual: 'data:image/png;base64,iVBORw0KGgo=', kvMeta: meta, logo: 'data:image/png;base64,LOGO' }));
+    const o = h.match(/<div data-object="1" data-slot-round="1" style="position:absolute;left:(\d+)px;top:(\d+)px;width:(\d+)px;height:(\d+)px/);
+    assert.ok(o, `ar ${ar}`); assert.deepEqual([+o[1], +o[3], +o[4]], [601, 320, 222], `ar ${ar}: 칸 크기 고정`);
+    const l = h.match(/data-logo-slot="adlabel" style="position:absolute;left:(\d+)px/); assert.equal(+l[1], 609);
+  }
+});

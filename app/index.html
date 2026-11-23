@@ -599,6 +599,15 @@
   .fpi-prev{height:120px;border-radius:6px;background:repeating-conic-gradient(#e4e4e4 0 25%,#fff 0 50%) 0 0/12px 12px;background-size:contain;background-position:center;background-repeat:no-repeat;display:grid;place-items:center;color:var(--sub);box-shadow:inset 0 0 0 1px var(--line)}
   .fpi-r{display:grid;grid-template-columns:56px 1fr 34px;gap:6px;align-items:center;color:var(--sub)}
   .fpi-r b{font-weight:500;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+  /* 11-23 피그마식 오른쪽 패널 — 선택 색(주·보조·포인트 칩 한 줄) */
+  .selcol{display:flex;gap:6px}
+  .selsw .fsw{display:block}
+  :is(#inspector,*) .selsw{margin:0;flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;background:var(--soft);border-radius:5px;cursor:pointer;font-size:11px;color:var(--sub)}
+  .selsw em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .selsw:hover{box-shadow:inset 0 0 0 1px var(--accent-line)}
+  .prow{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;margin-top:4px}
+  :is(#inspector,*) .prow label{display:block;margin:0;font-size:11px;color:var(--sub)}
+  .prow select{width:100%;min-width:0}
   .bgpick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);cursor:pointer}
   .bgpick input{width:24px;height:24px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
   .sgrp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}

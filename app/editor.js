@@ -108,7 +108,7 @@ export function createEditor(E) {
   }
 
   /* ── ① 프리셋 — 산출물 개별(공통 따름 + 선택지) ── */
-  function presetArtifactHtml(a, keys = PRESET_KEYS, id = 'inspPresetA') {
+  function presetArtifactHtml(a, keys = PRESET_KEYS, id = 'inspPresetA', { compact = false } = {}) {
     const c = camp(); const t = autoTrace(a), now = traceOfHtml(a.html);
     const ov = a.overrides?.style ?? {};
     // 11-03 키비주얼 위치·크기·스크림은 이 소재(규격·시안 틀·그림 유형)에서 실제로 먹는 선택지만(core/editopts.js — 렌더러와 같은 가름 + 실제로 그려 비교). 안 먹는 컨트롤은 숨기고 한 줄로 말한다
@@ -122,6 +122,8 @@ export function createEditor(E) {
       if (kvCtl && !own && !(k === 'kvPlace' ? KO.place.length : kvOk(k, 'x'))) { hiddenKv.push(k); return ''; }
       const opts = Object.keys(PRESETS[k].choices).filter(v => !kvCtl || kvOk(k, v) || v === own);
       const dis = opts.map(v => [v, kvCtl ? (kvOk(k, v) ? { ok: true } : { ok: false, why: KO.whyOf[k] || '이 소재에선 결과가 안 바뀜' }) : availOf(k, a, v, t)]).filter(([, r]) => !r.ok);
+      // 11-23 피그마식 패널: 한 줄 = 이름 + 드롭다운(못 고르는 값은 비활성 + 이유는 title)
+      if (compact) return `<div class="prow"><label for="${id}-${k}">${PRESETS[k].label}</label><select id="${id}-${k}" data-aksel="${k}" title="자동: ${escH(autoLabel(k, t) || '—')}${camp0 !== 'auto' ? ` · 공통: ${escH(label(k, camp0))}` : ''}"><option value="" ${!own ? 'selected' : ''}>공통 따름${camp0 !== 'auto' ? ` (${escH(label(k, camp0))})` : ` (자동${autoLabel(k, t) ? ': ' + escH(autoLabel(k, t)) : ''})`}</option>${opts.filter(v => v !== 'auto' || own === 'auto').map(v => { const d = dis.find(([x]) => x === v); return `<option value="${v}" ${own === v ? 'selected' : ''} ${d ? 'disabled' : ''}>${escH(label(k, v))}${d ? ` — ${escH(d[1].why ?? '안 됨')}` : ''}</option>`; }).join('')}</select></div>`;
       const applied = now?.edit?.presets?.[k];
       const note = (k === 'kvPlace' && now?.edit?.place && !now.edit.place.ok) ? `지금 값 「${PRESETS.kvPlace.choices[now.edit.place.want]}」은 이 규격에서 안 됨 — ${now.edit.place.why ?? ''}` : '';
       return `<div class="pctl" role="group" aria-labelledby="pa-${k}"><div class="plab" id="pa-${k}">${PRESETS[k].label} <span class="pauto">자동: ${escH(autoLabel(k, t) || '—')}${camp0 !== 'auto' ? ` · 공통: ${escH(label(k, camp0))}` : ''}</span></div>
@@ -135,7 +137,9 @@ export function createEditor(E) {
     return `<div class="inspPreset" id="${id}">${body}${hiddenNote}</div>`;
   }
   function bindPresetArtifact(insp, a) {
-    insp.querySelectorAll('[data-ak]').forEach(b => b.onclick = () => {
+    insp.querySelectorAll('select[data-aksel]').forEach(sel => sel.onchange = () => { const b = document.createElement('button'); b.dataset.ak = sel.dataset.aksel; b.dataset.av = sel.value; apply(b); document.getElementById(sel.id)?.focus(); });
+    insp.querySelectorAll('[data-ak]').forEach(b => b.onclick = () => apply(b));
+    function apply(b) {
       const k = b.dataset.ak, v = b.dataset.av || null;
       if ((a.overrides.style?.[k] ?? null) === v) return;
       E.pushHistory(`${E.artLabel(a)} ${PRESETS[k].label} 개별`);
@@ -147,7 +151,7 @@ export function createEditor(E) {
       E.regen(); E.autosave(); E.refreshFrames(keyOf(a)); E.renderInspector();
       document.querySelector(`#inspector [data-ak="${k}"][data-av="${v ?? ''}"]`)?.focus();
       E.log(`${a.specId} ${PRESETS[k].label} ${v ? PRESETS[k].choices[v] : '공통 따름'}`);
-    });
+    }
   }
 
   /* ── ①-b 글자 정렬 세그먼트(10-19, 인스펙터 「스타일」) — 캠페인 일괄 + 산출물 개별. 잠긴 규격(규정 매체 틀·글자 없음)은 비활성 + 사유 한 줄(core/alignrule.js alignLockOf) ── */

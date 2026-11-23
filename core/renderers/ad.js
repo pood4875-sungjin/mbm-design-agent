@@ -2877,6 +2877,8 @@ function renderAdBase(ctx, style, spec) {
           // 보일 부분(field.js coverFit, 11-02 컨시어지 #2 재현): 칸 cover 가 주인공을 60% 미만만 보이면 칸을 그림 크기로 줄여 칸의 오른쪽·아래(지면 변 쪽)에 붙인다 — 글자 쪽 두 변 녹임이 그림 변에서 시작한다
           let rect = rect0, cover = photoCover ? coverPos(style, rect0.w, rect0.h, { fallback: kvPos, headroom: 0.04 }) : null;
           let slotFit = cover?.fit ?? null;
+          // 11-23: 매체가 크기를 못 박은 둥근 칸(카카오·NAP 비즈보드 썸네일 320×222 — roundSlot)은 줄이지 않는다(11-15 노션 [01] 「크기 고정」). 줄이면 광고주체 로고 칸(썸네일 왼쪽 위 8·8)이 그림 밖으로 어긋났다
+          if (slotFit && roundSlot) slotFit = null;
           if (slotFit) { const fw = Math.min(rect0.w, slotFit.dw), fh = Math.min(rect0.h, slotFit.dh); rect = { ...rect0, x: rect0.x + rect0.w - fw, y: rect0.y + rect0.h - fh, w: fw, h: fh }; cover = coverPos(style, fw, fh, { fallback: kvPos, headroom: 0.04 }); fired('templateMold.slotFit'); }
           // 모서리 칸 cover(cornerFill — contain 이 칸의 60% 미만이라 덮는 경우)도 같은 보일 부분 규칙(세로 그림 desk-16 × 자소설 PC팝업 310×216 칸 57% → 60%)
           const fillC = (!photoCover && cornerFill && !cornerCrop) ? fitCover(rect0, 'right', { fallback: 'center', headroom: 0.3 }) : null;

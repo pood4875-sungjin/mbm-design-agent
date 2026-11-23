@@ -3349,14 +3349,32 @@ function bindElementPanel(insp, a, c, spec, id) {
     elCommit(a, { style: st, layout: Object.keys(L).length ? L : null, elements: Object.keys(E0).length ? E0 : null }, `${elementName(id)} 일괄값으로`);
   });
 }
+// 11-23 이 소재만 채우기(피그마 Fill) — 지면 줄 + 채우기 층. 값은 a.overrides.style.background(캠페인 배경을 통째로 덮는다)
+const artBgOf = (a, c) => a.overrides.style?.background ?? c.style.background ?? {};
+const artBgOwn = a => !!(a.overrides.style?.background || a.overrides.style?.bgFill || a.overrides.style?.bgGrad);
+function artFillHtml(a, c) {
+  const st = adEffStyle(a), f = resolveField(st, { facing: 'left' }), bg = artBgOf(a, c), mode = bg.mode ?? 'auto';
+  const auto = mode === 'auto' && !bg.color && (st.bgFill ?? 'auto') !== 'custom';
+  return `<section class="isec">${fillSectionHtml('iArtBg', { title: '채우기', fills: bg.layers ?? [], base: { paint: baseFillOf(st, f, false), auto, sub: auto ? `자동${FIELD_SRC[f.source] ? ' · ' + FIELD_SRC[f.source] : ''}` : '', reset: artBgOwn(a) ? '일괄값으로 되돌리기' : '' } })}</section>`;
+}
 // 이 소재만: 배경색 · 컬러(끄는 동안 이 프레임만 실시간, 놓으면 한 걸음)
 function bindArtifactStyle(insp, a, c) {
   const key = a.key ?? a.specId;
   const save = (patch, label) => { const st = { ...(a.overrides.style ?? {}), ...patch }; elCommit(a, { style: st }, label); };
-  const bg = insp.querySelector('#iBgOv');
-  if (bg) { const pv = v => ({ bgFill: 'custom', background: { ...(c.style.background ?? {}), mode: 'solid', color: v } }); bg.oninput = () => LIVE.push({ style: c.style, only: key, ov: pv(bg.value.toUpperCase()) }); bg.onchange = () => save(pv(bg.value.toUpperCase()), '배경색'); }
+  const bgNow = () => artBgOf(a, c);
+  bindFillSection(insp, 'iArtBg', {
+    title: '채우기', allowImage: true, addPaint: () => newPaint('bg'),
+    fills: () => bgNow().layers ?? [], base: () => { const st = adEffStyle(a); return baseFillOf(st, resolveField(st, { facing: 'left' }), false); },
+    onChange: (f, label) => save({ background: { ...bgNow(), layers: normFills(f, { allowImage: true }) ?? [], image: undefined } }, label ?? '채우기'),
+    onLive: f => LIVE.push({ style: c.style, only: key, ov: { background: { ...bgNow(), layers: f } } }),
+    onBase: (p, label) => save({ bgFill: 'custom', bgGrad: 'auto', background: { ...bgNow(), ...basePatchOf(p) } }, label ?? '지면 칠'),
+    onBaseLive: p => LIVE.push({ style: c.style, only: key, ov: { bgFill: 'custom', bgGrad: 'auto', background: { ...bgNow(), ...basePatchOf(p) } } }),
+    onBaseReset: () => { const st = { ...(a.overrides.style ?? {}) }; delete st.bgFill; delete st.bgGrad; delete st.background; elCommit(a, { style: st }, '채우기 일괄값으로'); },
+  });
+  insp.querySelector('#iArtAdv')?.addEventListener('toggle', e => { state.artAdvOpen = e.target.open; });
   for (const k of ['primary', 'secondary', 'accent']) {
     const n = insp.querySelector(`#iPalOv-${k}`); if (!n) continue;
+    n.addEventListener('input', () => { const i = n.parentElement.querySelector('i'); if (i) i.style.background = n.value; });
     const pv = v => ({ palette: { ...c.style.palette, ...(a.overrides.style?.palette ?? {}), [k]: v } });
     n.oninput = () => LIVE.push({ style: c.style, only: key, ov: pv(n.value.toUpperCase()) });
     n.onchange = () => save(pv(n.value.toUpperCase()), '컬러');
@@ -3450,7 +3468,8 @@ function renderInspectorBody() {
       <div class="fstack">${colorRowHtml({ id: 'iPageColor', value: $('canvasBg')?.value ?? '#F6F7F9', label: '캔버스 색', tail: '캔버스' })}</div>
       <div class="fnote">작업 화면 바탕색 — 내보내기에는 안 들어가요</div>
       </section>
-      <section class="isec" id="secVisual"><h3>키비주얼 · 지면 <span class="mode">모든 소재</span></h3>
+      <section class="isec" id="secFill">${bgControlHtml(c.style, 'iBg')}</section>
+      <section class="isec" id="secVisual"><h3>키비주얼 <span class="mode">모든 소재</span></h3>
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${refOf(c.style.keyVisual)})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
       ${c.style.keyVisual ? `<div class="kvvrow">${[['wide', '가로형'], ['tall', '세로형']].map(([k, n]) => { const v = c.style.kvVariants?.[k]; return `<div class="kvthumb logo" id="iKvV-${k}" title="${k === 'wide' ? '폭이 긴' : '세로로 긴'} 규격에 쓸 그림 — 없으면 기본 키비주얼" style="${v ? `background-image:url(${refOf(v.keyVisual)})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="iKvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-ikvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}`; }).join('')}</div>` : ''}
@@ -3461,7 +3480,6 @@ function renderInspectorBody() {
         ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고 모양 묶음마다 그림 자리·크기·지면을 정해요. 글자·타이포·검수는 규칙 그대로예요. 기본안에만 효과가 있어요(시안 틀은 이 값을 안 읽어요). 위쪽 「Claude 연결하기」로 연결한 계정으로 돌아요">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
         ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
       ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
-      <div style="margin-top:12px">${bgControlHtml(c.style, 'iBg')}</div>
       </section>
       <section class="isec" id="secLogo"><h3>로고 <span class="mode">모든 소재</span></h3>
       <div class="flab sub"><span>원색 / 다크 지면용 흰색</span></div>
@@ -3474,25 +3492,23 @@ function renderInspectorBody() {
       ${c.style.logo ? `<button class="btn" id="iLogoMakeWhite" style="width:100%;margin-top:6px">원색 로고로 흰색 로고 만들기</button>` : ''}
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       </section>
-      <section class="isec" id="secStyle"><h3>스타일 ${(c.swatches?.length ?? 0) < 8 ? iconBtn('plus', '사용자 색 추가 — 색 고르기 칸에 견본으로 떠요', 'id="iSwAdd"') : ''}</h3>
-      <div class="flab sub"><span>색 스타일</span></div>
-      <div class="fstack">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => colorRowHtml({ id: k, value: v, label: n, tail: n })).join('')}</div>
-      ${c.swatches?.length ? `<div class="flab sub"><span>사용자 색</span></div><div class="fstack">${c.swatches.map((v, i) => colorRowHtml({ id: `iSw${i}`, value: v, label: `사용자 색 ${i + 1}`, tail: '견본', after: iconBtn('minus', `사용자 색 ${i + 1} 빼기`, `data-swdel="${i}"`) })).join('')}</div>` : ''}
-      </section>
-      <section class="isec" id="secText"><h3>전체 글자</h3>
-      <label>폰트</label>
-      <select id="iFont">${fontOptions(c.style.fonts.heading)}</select>
-      <button class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
+      <section class="isec" id="secText"><h3>글자 <span class="mode">모든 소재</span></h3>
+      <div class="prow" style="margin-top:0"><label for="iFont">폰트</label><select id="iFont">${fontOptions(c.style.fonts.heading)}</select></div>
+      <div style="display:flex;justify-content:flex-end"><button type="button" class="lnk" id="iFontUp">폰트 파일 첨부</button></div>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
-      <label>글자색</label>
-      <div class="vseg" id="iToneSeg">${[['auto', '기본'], ['light', '흰색'], ['dark', '검정']].map(([k, v]) => { const on = !c.style.textColor && (c.style.textTone ?? 'auto') === k; return `<button data-tt="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}">${v}</button>`; }).join('')}</div>
-      <div class="fstack" id="iTextColorRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자색 직접', tail: c.style.textColor ? '' : '직접', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '글자색 직접 지정 되돌리기', 'id="iTextColorReset"') : '' })}</div>
-      <div class="fnote">기본은 지면에 맞춰 흰색이나 검정입니다. 글자마다 바꾸려면 소재를 고른 뒤 글자별 편집에서 바꿉니다. 색이 정해진 매체(리멤버·카카오 비즈보드·NAP 비즈보드)는 제외</div>
+      <label>칠</label>
+      <div class="fstack" id="iTextColorRow">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자 칠(모든 소재)', tail: c.style.textColor ? '' : '자동', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '자동 글자색으로(지면에 맞춰 흰색·검정)', 'id="iTextColorReset"') : '' })}</div>
       ${ED.alignCampaignHtml()}
-      ${ED.presetCampaignHtml(['textAnchor'])}
+      </section>
+      <section class="isec" id="secStyle"><h3>선택 색 ${(c.swatches?.length ?? 0) < 8 ? iconBtn('plus', '사용자 색 추가 — 색 고르기 칸에 견본으로 떠요', 'id="iSwAdd"') : ''}</h3>
+      <div class="selcol">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => { const x = String(v ?? '#888888').toUpperCase(); return `<label class="selsw" title="${n} ${x} — 모든 소재"><span class="fsw"><i style="background:${x}"></i><input type="color" id="${k}" value="${x.toLowerCase()}" aria-label="${n}"></span><em>${n}</em></label>`; }).join('')}</div>
+      ${c.swatches?.length ? `<div class="flab sub"><span>사용자 색</span></div><div class="fstack">${c.swatches.map((v, i) => colorRowHtml({ id: `iSw${i}`, value: v, label: `사용자 색 ${i + 1}`, tail: '견본', after: iconBtn('minus', `사용자 색 ${i + 1} 빼기`, `data-swdel="${i}"`) })).join('')}</div>` : ''}
       </section>
       ${exportSecHtml(c)}
       ${toolSecHtml(c)}
+      <details class="isec iacc" id="iCampAdv" ${state.campAdvOpen ? 'open' : ''}><summary><h3>고급 ${ic('chev')}</h3></summary>
+      ${ED.presetCampaignHtml(['textAnchor'])}
+      </details>
       ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
       <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(위쪽 「Claude 연결하기」로 연결한 계정). 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
@@ -3520,9 +3536,10 @@ function renderInspectorBody() {
     // 11-09: 저장한 직접 그라데이션의 정지점도 팔레트를 따라간다(gradientFollowingPalette) — 그라데이션 편집기가 떠 있으면 정지점 UI 도 같은 값으로 다시 그린다
     const palettePatch = () => ({ colorsManual: true, background: { ...c.style.background, gradient: gradientFollowingPalette(c.style.background?.gradient, c.style, nextStyle(c, { colorsManual: true }, { colors: curColors() })) } });
     for (const k of ['#iColor1', '#iColor2', '#iColor3']) {
-      insp.querySelector(k).oninput = () => liveStyle(c, palettePatch(), { colors: curColors() });
-      insp.querySelector(k).onchange = () => { softly(() => restyle(palettePatch(), '색 직접 변경')); if (insp.querySelector('#iBgGrad')) renderInspector(); };
+      insp.querySelector(k).oninput = () => { const n = insp.querySelector(k), i = n.parentElement.querySelector('i'); if (i) i.style.background = n.value; liveStyle(c, palettePatch(), { colors: curColors() }); };
+      insp.querySelector(k).onchange = () => { softly(() => restyle(palettePatch(), '색 직접 변경')); renderInspector(); };
     }
+    insp.querySelector('#iCampAdv')?.addEventListener('toggle', e => { state.campAdvOpen = e.target.open; });
     insp.querySelector('#iFont').onchange = () => styleChange();
     insp.querySelector('#iFont').value = c.style.fonts.heading;
     // 사용자 색(11-10 hub 「색 스타일 +」) — 렌더에는 안 쓰는 견본. 모든 색 고르기 칸(input[type=color])의 견본 목록에 뜬다(datalist)
@@ -3714,28 +3731,25 @@ function renderInspectorBody() {
       ${SPECS[a.specId]?.rules ? `<span id="iAiJob" data-key="${escH(a.key ?? a.specId)}">${FREE.jobBadge(a)}</span>` : ''}
     </section>` : ''}
     ${a.channel === 'ad' && SPECS[a.specId]?.rules ? AID.sectionHtml(a) : ''}
-    ${a.channel === 'ad' ? `${layerListHtml(a)}
-    <section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>
-      ${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}
+    ${a.channel === 'ad' ? `${artFillHtml(a, c)}
+    <section class="isec"><h3>키비주얼 ${ovBtn(a, 'visual')}</h3>
+      ${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'], 'inspPresetA', { compact: true })}
       <button class="btn" data-goall="kv" style="width:100%;margin-top:8px">키비주얼 바꾸기 · 영역 지정</button>
-    </section>
-    <section class="isec"><h3>배경 ${ovBtn(a, 'bg')}</h3>
-      ${ED.presetArtifactHtml(a, ['bgFill', 'bgGrad'], 'inspPresetB')}
-      <div class="fstack" style="margin-top:8px">${colorRowHtml({ id: 'iBgOv', value: a.overrides.style?.background?.color ?? c.style.background?.color ?? c.style.palette.primary, label: '이 소재 배경색', tail: a.overrides.style?.background?.color ? '' : '직접', idle: !a.overrides.style?.background?.color })}</div>
-    </section>
-    <section class="isec"><h3>컬러 ${ovBtn(a, 'color')}</h3>
-      <div class="fstack">${[['primary', '주색'], ['secondary', '보조'], ['accent', '포인트']].map(([k, n]) => colorRowHtml({ id: `iPalOv-${k}`, value: a.overrides.style?.palette?.[k] ?? c.style.palette[k], label: `이 소재 ${n}`, tail: n, idle: !a.overrides.style?.palette })).join('')}</div>
     </section>
     <section class="isec"><h3>글자 ${ovBtn(a, 'text')}</h3>
       ${artifactFontHtml(a, c)}
-      <label>글자색</label>
-      <div class="vseg" id="iToneOv">${[['', '공통'], ['light', '흰색'], ['dark', '검정']].map(([k, v]) => { const on = !a.overrides.style?.textColor && (a.overrides.style?.textTone ?? '') === k; return `<button data-tto="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}">${v}</button>`; }).join('')}</div>
-      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자색 직접(이 소재만)', tail: cur ? '' : '직접', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 소재 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div>${reg ? '<div class="fnote">매체 규정 색 고정 — 직접 지정 불가</div>' : ''}`; })()}
+      <label>칠</label>
+      ${(() => { const reg = textColorRegulated(spec); const ov = a.overrides.style?.textColor ?? null; const cur = ov ?? c.style.textColor ?? null; return `<div class="fstack" id="iTextColorOvRow" style="margin-top:4px">${colorRowHtml({ id: 'iTextColorOv', value: cur ?? '#333333', label: '글자 칠(이 소재만)', tail: cur ? '' : '자동', idle: !cur, disabled: reg, after: ov ? iconBtn('swap', '이 소재 글자색 되돌리기(공통 따름)', 'id="iTextColorOvReset"') : '' })}</div>${reg ? '<div class="fnote">매체 규정 색 고정 — 직접 지정 불가</div>' : ''}`; })()}
       ${ED.alignArtifactHtml(a)}
-      ${ED.presetArtifactHtml(a, ['textAnchor', 'infoTag', 'tagShape'], 'inspPresetT')}
-      ${textRolesHtml(a, spec)}
     </section>
-    <section class="isec"><h3>가이드</h3>${guideOvHtml(a) || '<div class="fnote">이 규격은 틀 가이드가 없어요</div>'}</section>` : ''}
+    <section class="isec"><h3>선택 색 ${ovBtn(a, 'color')}</h3>
+      <div class="selcol">${[['primary', '주색'], ['secondary', '보조'], ['accent', '포인트']].map(([k, n]) => { const v = (a.overrides.style?.palette?.[k] ?? c.style.palette[k] ?? '#888888').toUpperCase(); return `<label class="selsw" title="${n} ${v} — 이 소재만"><span class="fsw"><i style="background:${v}"></i><input type="color" id="iPalOv-${k}" value="${v.toLowerCase()}" aria-label="이 소재 ${n}"></span><em>${n}</em></label>`; }).join('')}</div>
+    </section>
+    ${layerListHtml(a)}
+    <details class="isec iacc" id="iArtAdv" ${state.artAdvOpen ? 'open' : ''}><summary><h3>고급 ${ic('chev')}</h3></summary>
+      ${ED.presetArtifactHtml(a, ['textAnchor', 'infoTag', 'tagShape'], 'inspPresetT', { compact: true })}
+      <label>가이드</label>${guideOvHtml(a) || '<div class="fnote">이 규격은 틀 가이드가 없어요</div>'}
+    </details>` : ''}
     ${(nVar > 1 && a.channel !== 'ad') || a.channel === 'badge' || isPrint ? `<section class="isec">
     ${(nVar > 1 && a.channel !== 'ad') ? `<label>레이아웃 시안</label><div class="vseg">${Array.from({ length: nVar }, (_, i) =>
       `<button data-v="${i}" class="${(a.variant ?? 0) === i ? 'on' : ''}" aria-pressed="${(a.variant ?? 0) === i}">${gVars ? gVars[i].name : i + 1}</button>`).join('')}</div>` : ''}
