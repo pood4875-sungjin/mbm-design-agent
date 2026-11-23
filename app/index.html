@@ -554,6 +554,51 @@
   .gstop{display:grid;grid-template-columns:56px 1fr 24px;gap:4px;align-items:center;padding:2px 4px;border-radius:5px}
   .gstop.on{background:var(--fsel-bg)}
   .gstop.on .fin input.fnum,.gstop.on .fcin{background:var(--card)}
+  /* 11-23 피그마식 채우기(app/fillpanel.js) — 목록 줄(끌기 · 견본 · 헥스/종류 · % · 눈 · 빼기) + 팝업(종류 탭 · 색 판 · 막대 · 정지점) */
+  .fill{display:flex;flex-direction:column;gap:4px}
+  .fill .flab{display:flex;align-items:center;justify-content:space-between}
+  .fllist{display:flex;flex-direction:column;gap:2px}
+  .flrow{display:grid;grid-template-columns:10px 1fr 24px 24px;gap:2px;align-items:center;border-radius:5px;position:relative}
+  .flrow.hid .fcin{opacity:.45}
+  .flrow.dragging{opacity:.4}
+  .flrow.dropa::before,.flrow.dropb::after{content:"";position:absolute;left:10px;right:0;height:2px;background:var(--focus);border-radius:1px}
+  .flrow.dropa::before{top:-2px}.flrow.dropb::after{bottom:-2px}
+  .flgrip{display:grid;place-items:center;color:var(--sub);opacity:0;cursor:grab}
+  .flrow:hover .flgrip{opacity:.7}
+  .flsw,.fpk .flsw{position:relative;width:16px;height:16px;flex:none;padding:0;border:0;border-radius:3px;overflow:hidden;cursor:pointer;background:repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/8px 8px}
+  .flsw i{position:absolute;inset:0;display:block;background:var(--sw);border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+  .flsw:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .fllab{flex:1;min-width:0;padding:0;border:0;background:none;text-align:left;font-size:11px;color:var(--ink);cursor:pointer}
+  .fpop{position:fixed;z-index:4000;width:248px;max-height:calc(100vh - 16px);overflow:auto;background:var(--card,#fff);color:var(--ink);border-radius:12px;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 10px 32px rgba(0,0,0,.18);font-size:11px}
+  .fpop-h{display:flex;align-items:center;gap:4px;padding:8px 8px 6px;border-bottom:1px solid var(--line)}
+  .fpop-tabs{display:flex;gap:2px}
+  .fpop-tabs .fib.on{background:var(--sel,#e5f4ff);color:var(--focus);box-shadow:inset 0 0 0 1px var(--focus)}
+  .fpop-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);text-align:right;padding-right:2px}
+  .fpop-b{display:flex;flex-direction:column;gap:8px;padding:10px 12px 12px}
+  .fpk{display:flex;flex-direction:column;gap:8px}
+  .fpk-sv{position:relative;height:180px;border-radius:4px;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,var(--hue));cursor:crosshair;touch-action:none}
+  .fpk-sv i,.fpk-hue i,.fpk-al i{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);pointer-events:none}
+  .fpk-row{display:flex;align-items:center;gap:6px}
+  .fpk-bars{flex:1;display:flex;flex-direction:column;gap:8px}
+  .fpk-hue,.fpk-al{position:relative;height:12px;border-radius:6px;cursor:pointer;touch-action:none}
+  .fpk-hue{background:linear-gradient(90deg,#f00,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00)}
+  .fpk-al{background:linear-gradient(90deg,transparent,var(--c)),repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/8px 8px}
+  .fpk-hue i,.fpk-al i{top:50%}
+  .fpk-sv:focus-visible,.fpk-hue:focus-visible,.fpk-al:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .fpk-in{display:flex;align-items:center;gap:8px;height:28px;padding:0 8px;background:var(--soft);border-radius:5px}
+  .fpk-m{color:var(--sub)}
+  :is(#inspector,*) .fpk-in input.fhex{flex:1;min-width:0;padding:0;border:0;background:none;outline:0;font-size:11px;text-transform:uppercase}
+  .fpk-in .fop{display:flex;align-items:center;gap:1px;padding-left:8px;border-left:1px solid var(--line);height:16px}
+  :is(#inspector,*) .fpk-in .fop input.fopn{width:26px;padding:0;border:0;background:none;font-size:11px;text-align:right}
+  .fpg-top{display:grid;grid-template-columns:1fr 24px 24px;gap:4px;align-items:center}
+  .fpg-bar{margin:22px 8px 2px;background:var(--bar),repeating-conic-gradient(#d0d0d0 0 25%,#fff 0 50%) 0 0/8px 8px}
+  .fpg-stops{display:flex;flex-direction:column;gap:2px;margin:0 -4px}
+  .fpg-stop{display:grid;grid-template-columns:52px 1fr 24px;gap:4px;align-items:center;padding:2px 4px;border-radius:5px}
+  .fpg-stop.on{background:color-mix(in srgb,var(--focus) 14%,transparent)}
+  .fpg-stop .fcin{height:28px}
+  .fpi-prev{height:120px;border-radius:6px;background:repeating-conic-gradient(#e4e4e4 0 25%,#fff 0 50%) 0 0/12px 12px;background-size:contain;background-position:center;background-repeat:no-repeat;display:grid;place-items:center;color:var(--sub);box-shadow:inset 0 0 0 1px var(--line)}
+  .fpi-r{display:grid;grid-template-columns:56px 1fr 34px;gap:6px;align-items:center;color:var(--sub)}
+  .fpi-r b{font-weight:500;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
   .bgpick{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);cursor:pointer}
   .bgpick input{width:24px;height:24px;border:1px solid var(--line);border-radius:6px;padding:0;background:none;cursor:pointer}
   .sgrp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}

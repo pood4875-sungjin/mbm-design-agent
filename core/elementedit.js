@@ -5,6 +5,7 @@
 //   메인·서브·상세의 색·크기는 여기 안 쓴다 — style.roleColors·roleScale 이 맡는다(렌더러가 대비·규정을 본다).
 //   순수 함수(브라우저·파일 접근 없음) — 보드(generate)·실시간 미리보기·PNG/JPG·SVG 내보내기가 같은 함수를 지난다. test/element-edit.test.js
 
+import { normFills, fillsImageCss, representativeColor, isPlainSolid } from './paint.js';
 import { fontStack } from './fonts.js';
 import { transformCss } from './editlayout.js';
 
@@ -51,6 +52,8 @@ export function normElementEdits(edits) {
     if (isBox && e.rot != null && Number.isFinite(+e.rot)) { let r = ((+e.rot % 360) + 360) % 360; if (r > 180) r -= 360; r = round1(r); if (Math.abs(r) >= 0.1) q.rot = r; }
     if (id === 'kv' && typeof e.flip === 'string') { const f = [...new Set(e.flip.split('').filter(x => x === 'h' || x === 'v'))].sort().join(''); if (f) q.flip = f; }
     const runs = normRuns(e.runs); if (runs) q.runs = runs;
+    // 11-23 피그마식 채우기 층(core/paint.js): fill = 글자 칠(단색·선형·방사형 여러 겹), bfill = 상자(알약·버튼 등 배경이 있는 요소) 칠. 이미지 칠은 배경만
+    if (!isBox) { const f = normFills(e.fill); if (f) q.fill = f; const bf = normFills(e.bfill); if (bf) q.bfill = bf; }
     if (Object.keys(q).length) out[id] = q;
   }
   return Object.keys(out).length ? out : null;
@@ -256,6 +259,21 @@ function patchText(html, tag, e) {
   else if (e.runs?.some(r => r.px)) { const lh = decl(s, 'line-height'), fs = decl(s, 'font-size'); if (lh && fs && +fs[2] > 0) { grow = runGrowth(inner, e.runs, +fs[2], +lh[2] / +fs[2]); s = `${dropDecl(s, /(^|;)\s*line-height\s*:[^;]*/g)};line-height:${Math.round(+lh[2] / +fs[2] * 1000) / 1000}`; } }
   // 커진 줄만큼 글상자 세로 hug(피그마 Auto height) — 렌더러가 건 줄 수 상한(max-height)을 늘린다. 아래 형제는 applyElementEdits 가 민다(stackBelow)
   if (grow > 0) { const mh = decl(s, 'max-height'); if (mh) s = s.replace(/(^|;)(\s*max-height\s*:\s*)(-?[\d.]+)px/, (m, a, b, v) => `${a}${b}${round1(+v + grow)}px`); open = addAttr(open, `data-run-grow="${round1(grow)}"`); }
+  // 글자 칠 층 — 하나의 불투명 단색이면 색 그대로, 아니면 글자 모양으로 자른 배경(background-clip:text). 대표 색(color)은 대비 검수·SVG 밖 대체용.
+  //   상자 배경이 있는 요소(알약·버튼)는 상자 칠과 글자 칠이 한 배경을 다투므로 글자를 안쪽 span 으로 감싸 자른다
+  const boxed = /(^|;)\s*background(-color|-image)?\s*:\s*(?!transparent|none)[^;]+/.test(s) || !!e.bfill;   // 상자 배경이 있는 요소
+  if (e.bfill) { const css = fillsImageCss(e.bfill); s = `${dropDecl(s, /(^|;)\s*background(-color|-image)?\s*:[^;]*/g)};background-color:transparent;background-image:${css ?? 'none'}`; open = addAttr(open, 'data-bfill="1"'); }
+  if (e.fill) {
+    const rep = representativeColor(e.fill) ?? '#000000';
+    if (isPlainSolid(e.fill)) { s = `${s};color:${e.fill[0].color}`; inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*color\s*:[^;]*/g)); }
+    else {
+      const css = fillsImageCss(e.fill) ?? 'none', clip = `background-image:${css};-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:${rep}`;
+      inner = mapInner(inner, x => dropDecl(x, /(^|;)\s*(color|-webkit-text-fill-color)\s*:[^;]*/g));
+      if (boxed) inner = `<span data-tfill="1" style="display:inline-block;${clip}">${inner}</span>`;
+      else s = `${dropDecl(s, /(^|;)\s*color\s*:[^;]*/g)};${clip}`;
+      open = addAttr(open, 'data-tfill-host="1"');
+    }
+  }
   if (e.hid) s = `${s};opacity:0`;
   else if (e.op != null) s = `${s};opacity:${e.op / 100}`;
   if (e.runs) inner = applyRuns(inner, e.runs);

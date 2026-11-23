@@ -30,12 +30,13 @@ import { createAiDesign } from './aidesign.js';   // 11-09 인스펙터 「AI �
 import { agentTurn, scriptedTurn, PHASES, PHASE_LABEL, TRACKS, detectKind, detectTrack, detectMedia, fieldsFor,
   ESSENTIAL, ASK, normDate, extractRecruit } from './agent.js';
 import { measureArtifact } from './measure.js';
-import { gradientEditorHtml, bindGradientEditor } from './gradedit.js';
 import { showProgress, ProgressCancelled } from './progress.js';
 import { morphDoc, createLiveScheduler } from './live.js';   // 11-02 끄는 동안 실시간 미리보기
 import { asEventContext } from '../core/context.js';
 import { colorRowHtml, iconBtn, numField, wireFui, ic } from './fui.js';   // 11-02 피그마 UI3 식 컨트롤(hub/panel.js 에서 옮김)
 import { gradientFrom, normGradient } from '../core/gradient.js';
+import { paintFromGradient, gradientOfPaint, newPaint, normFills, isPlainSolid, representativeColor } from '../core/paint.js';
+import { fillSectionHtml, bindFillSection, closePaintPopover } from './fillpanel.js';
 import { renderFit } from './adfit.js';
 import { buildZip } from './zip.js';
 import { htmlToSvg, svgImgNote, SVG_IMG_NOTE_ALL } from '../core/svgexport.js';
@@ -1616,56 +1617,26 @@ function bgControlHtml(styleLike, id) {
   // 전체형의 스크림은 어두워야 흰 글자가 읽힌다 — 흰색 후보는 한쪽형(일화: 흰 지면에 사옥 사진)에서만
   const cands = kind === 'photo' ? [...new Set([styleLike.palette?.primary, ...(styleLike.kvMeta?.colors ?? []).slice(0, 3), ...(full ? [] : ['#FFFFFF'])].filter(Boolean).map(c => c.toUpperCase()))] : [];
   const candLabel = (c, i) => i === 0 ? '로고색' : c === '#FFFFFF' ? '흰색' : '사진색';
-  const prev = full ? (styleLike.background?.color ?? styleLike.palette?.primary ?? f.css) : f.css;
-  const grad = mode === 'gradient' && !full;
-  const reset = grad ? (styleLike.background?.gradient ? iconBtn('swap', '자동 색으로 되돌리기', `id="${id}GradReset"`) : '')
-    : (styleLike.background?.color ? iconBtn('swap', '키비주얼 색으로 되돌리기', `id="${id}Reset"`) : '');
-  // 피그마 채움 행처럼: 머리(이름 · 되돌리기) → 칩 + 종류 세그먼트 → 색 행 또는 그라데이션 편집기
-  return `<div class="fbg"><div class="flab"><span>배경${(full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source]) ? ` <em>· ${full ? FIELD_SRC['photo-full'] : FIELD_SRC[f.source]}</em>` : ''}</span>${reset}</div>
+  // 11-23 피그마식 채우기(app/fillpanel.js): 맨 아래 「지면」 줄(자동/단색/그라데이션 — 불투명) + 그 위 채우기 층(단색·그라데이션·이미지, 층 불투명도·숨김·순서)
+  const base = baseFillOf(styleLike, f, full);
+  return `<div class="fbg">
     ${kind === 'photo' ? `<div class="flab sub"><span>사진 쓰임</span></div>
       <div class="fseg" id="${id}Use" role="group" aria-label="사진 쓰임">${[['auto', '한쪽에 넣고 녹임'], ['full', '전체에 깔고 스크림']].map(([k, v]) => `<button type="button" data-u="${k}" class="${use === k ? 'on' : ''}" aria-pressed="${use === k}">${v}</button>`).join('')}</div>` : ''}
-    <div class="fline"><span class="bgprev" style="background:${prev}" role="img" aria-label="배경 미리보기 ${f.stops.join(' → ')}"></span>
-      <div class="fseg" id="${id}Seg" role="group" aria-label="배경 방식">${[['auto', '자동'], ['solid', '단색'], ['gradient', '그라데이션']].map(([k, v]) => `<button type="button" data-b="${k}" class="${mode === k ? 'on' : ''}" aria-pressed="${mode === k}">${v}</button>`).join('')}</div></div>
+    ${fillSectionHtml(id, { title: '배경', fills: styleLike.background?.layers ?? [], base: { paint: base, auto: mode === 'auto' && !styleLike.background?.color, sub: mode === 'auto' ? `자동${FIELD_SRC[f.source] ? ' · ' + FIELD_SRC[f.source] : ''}` : (full ? '스크림 색' : ''), reset: mode !== 'auto' || styleLike.background?.color ? '자동으로 되돌리기' : '' }, mode: full ? FIELD_SRC['photo-full'] : '' })}
     ${cands.length ? `<div class="fchips"><span>${full ? '스크림 색' : '지면색'}</span>${cands.map((c, i) =>
       `<button type="button" class="sugg" data-fc="${c}" aria-label="${full ? '스크림' : '지면'} 색 ${c}"><i style="background:${c}"></i>${candLabel(c, i)}</button>`).join('')}</div>` : ''}
-    ${grad ? gradientEditorHtml(editGradientOf(styleLike, f), id) : colorRowHtml({ id: `${id}Color`, value: f.stops[0], label: '배경 색' })}
-    ${bgImageHtml(styleLike.background?.image ?? null, id)}</div>`;
+    </div>`;
 }
-// 11-18 노션 「[공통] 배경 이미지 삽입 및 채우기·편집 기능 확장」: 배경 = 색 + (선택) 장식 그림 한 장. 키비주얼(필수 영역이 있는 핵심 그림)과 따로 —
-//   배치 꽉 채우기(Fill) · 전체 보기(Fit) · 반복(Tile, 크기 조절) + 투명도 · 위치. 지면 위·키비주얼 아래에 깔린다(core/renderers/ad.js withBgImage)
-const BG_FITS = [['cover', '꽉 채우기'], ['contain', '전체 보기'], ['tile', '반복']];
-function bgImageHtml(B, id) {
-  if (!B?.src) return `<div class="flab sub" style="margin-top:8px"><span>배경 이미지</span></div>
-    <button type="button" class="btn full" id="${id}ImgAdd">배경 이미지 넣기</button><input type="file" id="${id}ImgFile" accept="image/*" hidden>
-    <div style="font-size:11px;color:var(--sub);margin-top:4px">사진·패턴을 소재 전체 배경으로 깔아요. 키비주얼은 그대로 위에 놓여요.</div>`;
-  const rng = (k, label, v, min, max, unit) => `<label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><span style="flex:0 0 64px">${label}</span><input type="range" id="${id}Img${k}" min="${min}" max="${max}" value="${Math.round(v)}" style="flex:1"><output style="flex:0 0 38px;text-align:right">${Math.round(v)}${unit}</output></label>`;
-  return `<div class="flab sub" style="margin-top:8px"><span>배경 이미지${B.name ? ` <em>· ${escH(B.name)}</em>` : ''}</span>${iconBtn('minus', '배경 이미지 빼기', `id="${id}ImgDel"`)}</div>
-    <div class="fline"><span class="bgprev" style="background:url(&quot;${escH(B.src)}&quot;) center/cover" role="img" aria-label="배경 이미지 미리보기"></span>
-      <div class="fseg" id="${id}ImgFit" role="group" aria-label="배경 이미지 배치">${BG_FITS.map(([k, v]) => `<button type="button" data-fit="${k}" class="${B.fit === k ? 'on' : ''}" aria-pressed="${B.fit === k}">${v}</button>`).join('')}</div></div>
-    ${rng('Op', '투명도', (B.opacity ?? 1) * 100, 0, 100, '%')}
-    ${B.fit === 'tile' ? rng('Tile', '반복 크기', B.tile ?? 30, 10, 100, '%') : `${rng('X', '가로 위치', B.x ?? 50, 0, 100, '%')}${rng('Y', '세로 위치', B.y ?? 50, 0, 100, '%')}`}
-    <button type="button" class="btn full" id="${id}ImgAdd" style="margin-top:6px">다른 이미지로 바꾸기</button><input type="file" id="${id}ImgFile" accept="image/*" hidden>`;
+// 지면 줄 칠 — 지금 보이는 지면 그대로(자동이면 키비주얼에서 읽은 색·그라데이션)
+function baseFillOf(st, f, full = false) {
+  const mode = st.background?.mode ?? 'auto';
+  if (full) return { type: 'solid', color: (st.background?.color ?? st.palette?.primary ?? f.stops[0]).toUpperCase(), opacity: 100 };
+  if (mode === 'gradient') return paintFromGradient(editGradientOf(st, f));
+  if (mode === 'solid' || f.stops.length < 2) return { type: 'solid', color: (st.background?.color ?? f.stops[0]).toUpperCase(), opacity: 100 };
+  return paintFromGradient(f.gradientType === 'radial' ? { type: 'radial', angle: 180, stops: f.stops.map((c, i) => ({ color: c, pos: 100 * i / (f.stops.length - 1) })) } : gradientFrom(f.stops, f.angle || 180));
 }
-// 올린 그림은 긴 변 2400px 까지 줄여 data URL 로(캠페인 저장 용량) — 반복 패턴은 작아도 된다
-function readBgImageFile(file) {
-  return new Promise((res, rej) => { const r = new FileReader(); r.onerror = () => rej(new Error('그림을 읽지 못했어요'));
-    r.onload = () => { const im = new Image(); im.onerror = () => rej(new Error('그림 형식을 읽지 못했어요')); im.onload = () => { const k = Math.min(1, 2400 / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 1 && file.size < 3e6) return res(r.result); const cv = document.createElement('canvas'); cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); res(cv.toDataURL(/png|gif|webp/.test(file.type) ? 'image/png' : 'image/jpeg', 0.9)); }; im.src = r.result; };
-    r.readAsDataURL(file); });
-}
-// 배경 이미지 칸 묶기 — set(nextImageOrNull, label) 은 저장·다시 그리기, live(next) 는 끄는 동안 미리보기(없으면 set)
-function bindBgImage(root, id, cur, set, live = null) {
-  const q = s => root.querySelector('#' + id + s);
-  q('ImgAdd')?.addEventListener('click', () => q('ImgFile')?.click());
-  q('ImgFile')?.addEventListener('change', async e => { const f = e.target.files?.[0]; if (!f) return; try { const src = await readBgImageFile(f); set({ ...(cur ?? { fit: 'cover', opacity: 1, tile: 30, x: 50, y: 50 }), src, name: f.name }, '배경 이미지 넣기'); } catch (err) { toast(err.message); } });
-  q('ImgDel')?.addEventListener('click', () => set(null, '배경 이미지 빼기'));
-  root.querySelectorAll(`#${id}ImgFit button`).forEach(b => b.onclick = () => set({ ...cur, fit: b.dataset.fit }, '배경 이미지 배치'));
-  for (const [k, f, div] of [['Op', 'opacity', 100], ['Tile', 'tile', 1], ['X', 'x', 1], ['Y', 'y', 1]]) {
-    const el = q('Img' + k); if (!el) continue;
-    const val = () => ({ ...cur, [f]: +el.value / div });
-    el.oninput = () => { const o = el.nextElementSibling; if (o) o.textContent = el.value + '%'; (live ?? set)(val(), null); };
-    el.onchange = () => set(val(), { opacity: '배경 이미지 투명도', tile: '배경 이미지 반복 크기', x: '배경 이미지 위치', y: '배경 이미지 위치' }[f]);
-  }
-}
+const basePatchOf = p => p.type === 'solid' ? { mode: 'solid', color: p.color } : { mode: 'gradient', gradient: gradientOfPaint(p) };
+// 11-18 노션 배경 이미지(한 장) → 11-23 채우기 층의 이미지 칠로 옮김(app/fillpanel.js · core/paint.js)
 
 // 고른 소재 중 지금 키비주얼로는 그림이 빠지고 오브젝트 누끼가 필요한 자리 — "알바몬·에브리타임 3곳"
 function objectSlots(it, field = it.kvMeta?.field ?? null) {
@@ -1695,7 +1666,7 @@ function reslotStyle() { const t = $('slot').querySelector('.card2')?.scrollTop 
 function slotStyle() { slotStyleBody(); wireFui($('slot')); }
 function slotStyleBody() {
   const it = state.intake;
-  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor, ...(it.bgImage ? { image: it.bgImage } : {}) } };
+  const adStyle = { palette: { primary: it.colors[0] }, keyVisual: it.kv, kvMeta: applyKvTypeOverride(it.kvMeta, it.kvTypeOverride), kvTypeOverride: it.kvTypeOverride ?? null, kvUse: it.kvUse ?? 'auto', logo: it.logo ?? null, logoLight: it.logoLight ?? null, logoTone: it.logoTone ?? null, logoMeta: it.logoMeta ?? null, background: { mode: it.bgMode, color: it.bgColor, ...(it.bgLayers ? { layers: it.bgLayers } : it.bgImage ? { image: it.bgImage } : {}) } };
   const bgStyle = { ...adStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: !!it.colorsManual, background: { ...adStyle.background, gradient: it.bgGradient ?? null } };
   slot(`<div class="card2 scard"><h4>그래픽 가이드</h4>
     ${inputSpecHtml(it.kvCheck, it.logoCheck).replace('margin-top:8px', 'margin:-4px 0 10px')}
@@ -1728,12 +1699,14 @@ function slotStyleBody() {
   $('fontFile').onchange = () => pickFontFile($('fontFile'), id => { it.font = id; slotStyle(); });
   // 손으로 고른 색은 다시 덮지 않는다 — 모드를 바꿨다고 방금 고른 색이 사라지면 신뢰를 잃는다
   ['c1', 'c2', 'c3'].forEach((id, i) => { $(id).oninput = () => { it.colors[i] = $(id).value.toUpperCase(); it.colorsManual = true; }; $(id).onchange = () => { it.bgGradient = gradientFollowingPalette(it.bgGradient, bgStyle, { ...bgStyle, palette: { primary: it.colors[0], secondary: it.colors[1] }, colorsManual: true }); slotStyle(); }; });   // 고르고 나면 배경 미리보기도 따라간다(11-02) · 저장한 그라데이션도 팔레트를 따라간다(11-09)
-  $('bgSeg')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.bgMode = b.dataset.b; reslotStyle(); });
-  if ($('bgColor')) $('bgColor').onchange = () => { it.bgColor = $('bgColor').value.toUpperCase(); slotStyle(); };
-  if ($('bgReset')) $('bgReset').onclick = () => { it.bgColor = null; slotStyle(); };
-  if ($('bgGrad')) bindGradientEditor($('bgGrad'), editGradientOf(bgStyle, resolveField(bgStyle, { facing: 'left' })), { id: 'bg', onChange: g => { it.bgGradient = g; reslotStyle(); }, onPreview: css => { const p = $('slot').querySelector('.bgprev'); if (p) p.style.background = css; } });
-  if ($('bgGradReset')) $('bgGradReset').onclick = () => { it.bgGradient = null; reslotStyle(); };
-  bindBgImage(document, 'bg', it.bgImage ?? null, (img, label) => { it.bgImage = img; if (label) reslotStyle(); });   // 11-18 노션 배경 이미지
+  // 11-23 피그마식 채우기 — 지면 줄 + 채우기 층(app/fillpanel.js)
+  bindFillSection($('slot'), 'bg', {
+    title: '배경', allowImage: true, addPaint: () => newPaint('bg'),
+    fills: () => it.bgLayers ?? [], base: () => baseFillOf(bgStyle, resolveField(bgStyle, { facing: 'left' }), bgStyle.kvMeta?.field?.kind === 'photo' && bgStyle.kvUse === 'full'),
+    onChange: f => { it.bgLayers = normFills(f, { allowImage: true }); it.bgImage = null; reslotStyle(); }, onLive: null,
+    onBase: p => { const q = basePatchOf(p); it.bgMode = q.mode; if (q.color) it.bgColor = q.color; if (q.gradient) it.bgGradient = q.gradient; reslotStyle(); },
+    onBaseReset: () => { it.bgMode = 'auto'; it.bgColor = null; it.bgGradient = null; reslotStyle(); },
+  });
   $('bgUse')?.querySelectorAll('button').forEach(b => b.onclick = () => { it.kvUse = b.dataset.u; slotStyle(); });
   if ($('kvTypeSel')) $('kvTypeSel').onchange = () => {
     const v = $('kvTypeSel').value; it.kvTypeOverride = v === 'auto' ? null : v;
@@ -2134,7 +2107,7 @@ function buildAndGenerate() {
     objectMeta: it.objectMeta ?? null,
     references: it.references ?? [],   // 참고용(10-28) — 렌더 안 씀
     mode: it.mode,
-    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null, gradient: it.bgGradient ?? null, ...(it.bgImage ? { image: it.bgImage } : {}) },
+    background: { mode: it.bgMode ?? 'auto', color: it.bgColor ?? null, gradient: it.bgGradient ?? null, ...(it.bgLayers ? { layers: it.bgLayers } : it.bgImage ? { image: it.bgImage } : {}) },
     kvUse: it.kvUse ?? 'auto',
     kvTypeOverride: it.kvTypeOverride ?? null,
     aiSlots: it.aiSlots ?? null,
@@ -3216,13 +3189,34 @@ function typoSecHtml(a, spec, id, it, cs, ed, locks, pk) {
     <div class="fgrid2" style="margin-top:8px">${alignSeg}${vSeg}</div>
     ${pk ? '<div class="fnote">굵기·크기·자간·칠은 고른 글자만 · 글꼴·행간·정렬은 문구 전체 · ⌘B 굵게 · Esc 끝내기</div>' : ''}
     </section>
-    <section class="isec" id="iFillSec"><h3>칠 ${pk ? '<span class="mode">고른 글자</span>' : ''}</h3>
-    <div class="fstack">${fillRow}</div>
+    <section class="isec" id="iFillSec">${pk ? `<h3>칠 <span class="mode">고른 글자</span></h3>
+    <div class="fstack">${fillRow}</div>` : fillSectionHtml('iElT', { title: '칠', fills: textFillsOf(a, id, it, cs), disabled: !!colorLock })}
     ${notes.length ? `<div class="fnote">${notes.join(' · ')}</div>` : ''}
     <button type="button" class="btn" id="iElRuns" style="width:100%;margin-top:8px">${on ? '글자 편집 끝내기 (Esc)' : '이 소재 글자 고치기 · 일부 서식'}</button>
     ${nr ? `<div class="fnote">따로 서식 준 글자 ${nr}곳 · <button type="button" class="lnk" id="iElRunsClear">모두 지우기</button></div>` : on ? '' : '<div class="fnote">미리보기 글자를 더블클릭하고 끌어 고르면 그 글자만 바꿔요. 이 소재만 바뀌어요 — 모든 소재는 왼쪽 패널에서</div>'}
     ${OMIT_ROLE[role] ? `<button type="button" class="btn" id="iElOmit" style="width:100%;margin-top:6px">이 소재에서 ${OMIT_NAME[OMIT_ROLE[role]]} 빼기 <span style="opacity:.6">Delete</span></button>` : ''}
-    </section>`;
+    </section>
+    ${boxFillHtml(a, id, it, cs)}`;
+}
+// 11-23 피그마식 채우기 — 글자 칠 층(ed.fill)이 없으면 지금 색 한 장(예전 값: 색 · 불투명도 op · 숨김 hid)
+function textFillsOf(a, id, it, cs) {
+  const ed = a.overrides.elements?.[id] ?? {}, { role } = parseElementId(id);
+  if (ed.fill?.length) return ed.fill;
+  const own = isStyleRole(id) ? a.overrides.style?.roleColors?.[role] : ed.color;
+  return [{ type: 'solid', color: (own ?? hexOfCss(cs.color)).toUpperCase(), opacity: ed.op ?? 100, ...(ed.hid ? { hidden: true } : {}) }];
+}
+// 상자 칠 — 배경이 있는 요소(알약·버튼·날짜 상자 등)만. 글자 모양으로 자른 배경(글자 칠)은 상자가 아니다
+function boxOf(it, cs) {
+  if (!it?.el || it.el.hasAttribute('data-bfill')) return true;
+  if (/text/.test(cs.webkitBackgroundClip || cs.backgroundClip || '')) return false;
+  const bg = /rgba?\(([^)]+)\)/.exec(cs.backgroundColor ?? ''), a0 = bg ? (bg[1].split(',')[3] ?? '1') : '0';
+  return +a0 > 0.01 || (cs.backgroundImage && cs.backgroundImage !== 'none');
+}
+function boxFillHtml(a, id, it, cs) {
+  const ed = a.overrides.elements?.[id] ?? {};
+  if (!ed.bfill && !boxOf(it, cs)) return '';
+  const fills = ed.bfill ?? [{ type: 'solid', color: hexOfCss(cs.backgroundColor), opacity: Math.round((+(/rgba\([^)]*,\s*([\d.]+)\)/.exec(cs.backgroundColor ?? '')?.[1] ?? 1)) * 100) }];
+  return `<section class="isec" id="iBoxSec">${fillSectionHtml('iElB', { title: '상자 칠', fills, note: ed.bfill ? '' : '렌더러가 고른 상자 색 — 바꾸면 이 소재만' })}</section>`;
 }
 function elCommit(a, patch, label, coalesce = false) {
   liveOrig = new WeakMap();   // 실시간 미리보기 끝 — 정식 그림이 덮는다
@@ -3325,6 +3319,25 @@ function bindElementPanel(insp, a, c, spec, id) {
     const st = { ...(a.overrides.style ?? {}) };
     if (styled && st.roleColors?.[role]) { const o = { ...st.roleColors }; delete o[role]; if (Object.keys(o).length) st.roleColors = o; else delete st.roleColors; }
     elCommit(a, { style: st, elements: withElementEdit(a.overrides.elements, id, { color: null, op: null, hid: null, ...strip(['c']) }) }, `${elementName(id)} 칠 지우기`);
+  });
+  // 11-23 피그마식 채우기 — 한 장 단색이면 예전 값(색 · 불투명도 · 숨김), 여러 겹·그라데이션이면 ed.fill
+  bindFillSection(insp, 'iElT', {
+    title: '칠', fills: () => textFillsOf(a, id, it, it.el.ownerDocument.defaultView.getComputedStyle(it.el)),
+    onChange: (f, label) => {
+      const lab = label ?? '칠';
+      const st0 = { ...(a.overrides.style ?? {}) }, rc = { ...(st0.roleColors ?? {}) };
+      if (!f.length) { if (styled) { delete rc[role]; if (Object.keys(rc).length) st0.roleColors = rc; else delete st0.roleColors; } return elCommit(a, { style: st0, elements: withElementEdit(a.overrides.elements, id, { color: null, op: null, hid: null, fill: null, ...strip(['c']) }) }, `${elementName(id)} 칠 지우기`); }
+      if (f.length === 1 && f[0].type === 'solid') {
+        const p0 = f[0], patch = { fill: null, op: (p0.opacity ?? 100) < 100 ? p0.opacity : null, hid: p0.hidden ? 1 : null, ...strip(['c']) };
+        if (styled) { st0.roleColors = { ...rc, [role]: p0.color }; return elCommit(a, { style: st0, elements: withElementEdit(a.overrides.elements, id, { ...patch, color: null }) }, `${elementName(id)} ${lab}`); }
+        return edit({ ...patch, color: p0.color }, lab);
+      }
+      edit({ fill: f, op: null, hid: null, ...strip(['c']) }, lab);
+    },
+  });
+  bindFillSection(insp, 'iElB', {
+    title: '상자 칠', fills: () => { const ed1 = a.overrides.elements?.[id] ?? {}; if (ed1.bfill) return ed1.bfill; const cs1 = it.el.ownerDocument.defaultView.getComputedStyle(it.el); return [{ type: 'solid', color: hexOfCss(cs1.backgroundColor), opacity: 100 }]; },
+    onChange: (f, label) => edit({ bfill: f.length ? f : null }, label ?? '상자 칠'),
   });
   q('#iElRuns')?.addEventListener('click', () => { if (CS.on && CS.key === key) CS.exit(); else charEnter(a); });
   q('#iElRunsClear')?.addEventListener('click', () => elCommit(a, { elements: withElementEdit(a.overrides.elements, id, { runs: null }) }, `${elementName(id)} 글자 서식 모두 지우기`));
@@ -3518,13 +3531,17 @@ function renderInspectorBody() {
     insp.querySelectorAll('[data-swdel]').forEach(b => b.onclick = () => swSave(c.swatches.filter((_, i) => i !== +b.dataset.swdel), '사용자 색 빼기'));
     (c.swatches ?? []).forEach((_, i) => { const el = insp.querySelector(`#iSw${i}`); if (el) el.onchange = () => { const v = el.value.toUpperCase(); if (v === c.swatches[i]) return; swSave(c.swatches.map((x, j) => j === i ? v : x), '사용자 색 바꾸기'); }; });
     const setBg = (patch, label) => { softly(() => restyle({ background: { ...c.style.background, ...patch } }, label)); renderInspector(); };
-    insp.querySelectorAll('#iBgSeg button').forEach(b => b.onclick = () => setBg({ mode: b.dataset.b }, '배경 방식 변경'));
-    const bgIn = insp.querySelector('#iBgColor');
-    if (bgIn) { bgIn.oninput = () => liveStyle(c, { background: { ...c.style.background, color: bgIn.value.toUpperCase() } }, { colors: curColors() }); bgIn.onchange = () => setBg({ color: bgIn.value.toUpperCase() }, '배경색 직접 고르기'); }
-    insp.querySelector('#iBgReset')?.addEventListener('click', () => setBg({ color: null }, '배경색 되돌리기'));
-    if (insp.querySelector('#iBgGrad')) { const f0 = resolveField(c.style, { facing: 'left' }); bindGradientEditor(insp.querySelector('#iBgGrad'), editGradientOf(c.style, f0), { id: 'iBg', onChange: g => setBg({ gradient: g }, '그라데이션 직접 설정'), onLive: g => liveStyle(c, { background: { ...c.style.background, gradient: g } }, { colors: curColors(), keepPrev: true }), onPreview: css => { const p = insp.querySelector('.bgprev'); if (p) p.style.background = css; } }); }
-    insp.querySelector('#iBgGradReset')?.addEventListener('click', () => setBg({ gradient: null }, '그라데이션 자동으로'));
-    bindBgImage(insp, 'iBg', c.style.background?.image ?? null, (img, label) => { if (!label) return liveStyle(c, { background: { ...c.style.background, image: img } }, { colors: curColors(), keepPrev: true }); const { image, ...rest } = c.style.background ?? {}; softly(() => restyle({ background: img ? { ...rest, image: img } : rest }, label)); renderInspector(); });   // 11-18 노션 배경 이미지
+    // 11-23 피그마식 채우기 — 지면 줄(불투명) + 채우기 층(app/fillpanel.js). 끄는 동안은 보드 미리보기만(liveStyle), 놓으면 한 번 저장
+    const bgFull = () => c.style.keyVisual && c.style.kvMeta?.field?.kind === 'photo' && (c.style.kvUse ?? 'auto') === 'full';
+    bindFillSection(insp, 'iBg', {
+      title: '배경', allowImage: true, addPaint: () => newPaint('bg'),
+      fills: () => c.style.background?.layers ?? [], base: () => baseFillOf(c.style, resolveField(c.style, { facing: 'left' }), bgFull()),
+      onChange: (f, label) => setBg({ layers: f, image: null }, label ?? '배경 채우기'),
+      onLive: f => liveStyle(c, { background: { ...c.style.background, layers: f, image: null } }, { colors: curColors(), keepPrev: true }),
+      onBase: (p, label) => setBg(basePatchOf(p), label ?? '지면 칠'),
+      onBaseLive: p => liveStyle(c, { background: { ...c.style.background, ...basePatchOf(p) } }, { colors: curColors(), keepPrev: true }),
+      onBaseReset: () => setBg({ mode: 'auto', color: null, gradient: null }, '지면 자동으로'),
+    });
     insp.querySelector('#iKvType')?.addEventListener('change', e => {
       const v = e.target.value === 'auto' ? null : e.target.value;
       restyle({ kvTypeOverride: v }, v ? '키비주얼 유형 지정' : '키비주얼 유형 자동');

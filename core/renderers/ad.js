@@ -19,6 +19,8 @@
 // 모든 글자 요소에 data-field="<role>"을 심어 measure.js가 재고 lint.js가 판정한다. 렌더러는 검사하지 않는다.
 // 절대배치는 템플릿이 좌표를 정한 로고 칸·이미지 영역에만 쓴다 — 글자는 그 영역을 피한 흐름 배치다.
 
+import { paintLayerCss } from '../paint.js';
+import { bgLayersOf } from '../style.js';
 import { fillTemplate } from '../freetpl.js';
 import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
 import { fontStack, fontRuleOf, textColorLocked } from '../fonts.js';
@@ -433,15 +435,25 @@ export function renderAd(ctx, style, spec) {
 // 11-18 노션 「배경 이미지 삽입 및 채우기·편집 기능 확장」: 지면(배경색·그라데이션) 바로 위, 키비주얼·글자·로고 아래에 장식 그림 한 층.
 //   꽉 채우기(cover, 비율 유지·넘치는 곳 잘림) · 전체 보기(contain) · 반복(tile, 짧은 변의 tile% 크기). 투명도·위치(x·y %)는 이미지 요소처럼 고친다. 키비주얼과 역할이 다르다(필수 영역 없음)
 export function withBgImage(html, style, spec) {
-  const B = style?.background?.image; if (!B?.src || !html) return html;
+  // 11-23 피그마식 채우기 층(core/paint.js) — 지면 위·키비주얼 아래에 아래층부터 쌓는다. 이미지 층은 예전 배경 이미지와 같은 모양(data-bg-image),
+  //   단색·그라데이션 층은 불투명도를 색에 구운 background 한 장(data-bg-fill). 예전 저장값(background.image 한 장)은 bgLayersOf 가 층 하나로 옮긴다
+  const L = (style?.background?.layers ?? bgLayersOf(style?.background) ?? []).filter(p => !p.hidden);
+  if (!L.length || !html) return html;
   const W = spec?.w ?? 0, H = spec?.h ?? 0;
-  const size = B.fit === 'tile' ? `${Math.max(8, Math.round(Math.min(W || 100, H || 100) * (B.tile ?? 30) / 100))}px auto` : B.fit === 'contain' ? 'contain' : 'cover';
-  const layer = `<div data-bg-image="1" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:${Math.round((B.opacity ?? 1) * 1000) / 1000};background-image:url(&quot;${esc(B.src)}&quot;);background-size:${size};background-position:${B.x ?? 50}% ${B.y ?? 50}%;background-repeat:${B.fit === 'tile' ? 'repeat' : 'no-repeat'}"></div>`;
+  const box = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';
+  const layer = L.map(B => {
+    if (B.type === 'image') {
+      const size = B.fit === 'tile' ? `${Math.max(8, Math.round(Math.min(W || 100, H || 100) * (B.tile ?? 30) / 100))}px auto` : B.fit === 'contain' ? 'contain' : 'cover';
+      return `<div data-bg-image="1" aria-hidden="true" style="${box};opacity:${Math.round((B.opacity ?? 100) * 10) / 1000};background-image:url(&quot;${esc(B.src)}&quot;);background-size:${size};background-position:${B.x ?? 50}% ${B.y ?? 50}%;background-repeat:${B.fit === 'tile' ? 'repeat' : 'no-repeat'}"></div>`;
+    }
+    const css = paintLayerCss(B); return css ? `<div data-bg-fill="1" aria-hidden="true" style="${box};background-image:${css}"></div>` : '';
+  }).join('');
+  if (!layer) return html;
   // 틀 지면 영역(data-mold-field)이 있으면 그 위 — 아니면 루트 바로 안 맨 앞(지면 = 루트 배경 바로 위)
   const mf = html.match(/<div data-mold-field="1"[^>]*><\/div>/);
-  if (mf) return html.replace(mf[0], mf[0] + layer);
+  if (mf) return html.replace(mf[0], () => mf[0] + layer);
   const root = html.match(/<div data-ad="1"[^>]*>/); if (!root) return html;
-  return html.replace(root[0], root[0] + layer);
+  return html.replace(root[0], () => root[0] + layer);
 }
 function renderAdInner(ctx, style, spec) {
   // 시안 틀(11-02 홍보사업셀): 고른 시안의 칸에 채운다. 규정 매체·문구가 없는 경우는 일반 경로

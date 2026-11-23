@@ -141,7 +141,8 @@ export function resolveField(style, { facing = 'left', solidOnly = false, light 
 
   // 10-22 하이브리드: AI 가 정한 지면(background.ai) — 색·각도는 그대로, 글자색·그라데이션 접기·vividWhite 는 아래 규칙이 그대로 검사(대비 못 넘으면 규칙이 고친다)
   // 직접 그라데이션(11-02 N3 · 사용자 「피그마와 동일한」) — 사람이 정지점까지 정한 값이 AI·규칙보다 먼저. mode 'gradient' 일 때만(단색으로 돌리면 값은 두고 안 쓴다)
-  const manualGrad = opt.mode === 'gradient' ? normGradient(opt.gradient) : null;
+  const manualGrad0 = opt.mode === 'gradient' ? normGradient(opt.gradient) : null;
+  const manualGrad = manualGrad0 && { ...manualGrad0, stops: manualGrad0.stops.map(({ a, ...s0 }) => s0) };   // 11-23: 지면(맨 아래 층)은 불투명 — 정지점 불투명도는 걷는다
   if (manualGrad) { stops = manualGrad.stops.map(s => s.color); angle = manualGrad.angle; source = 'manual-gradient'; }
   else if (opt.color) { stops = [opt.color]; source = 'manual'; }
   // 사람이 색 자리를 손으로 고쳤으면(10-19 사용자 「저기서 바꾸면 배경이든 컬러가 반영돼야 — 그라데이션까지」) 지면 = 주색 → 보조색 그라데이션 135°. 비주얼 우선(kv-vivid)·AI 지면(1차 추출 색은 처음 값일 뿐)보다 앞

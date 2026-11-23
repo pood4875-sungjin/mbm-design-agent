@@ -552,6 +552,16 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     stats.texts++;
     const full = lines.map(l => l.runs.map(r => r.text).join('')).join(' ').replace(/\s+/g, ' ').trim();
     const texts = [...groups.values()].map((g, gi) => `<text xml:space="preserve" font-family="${escXml(psFamily(g.st.fam, g.st.fw))}" ${attrs(g.st)} data-name="${escXml((gi === 0 ? full : g.text.join('').trim()).slice(0, 40))}">${g.spans.join('')}</text>`);
+    // 11-23 글자 칠 층(core/paint.js · background-clip:text): 층마다 그라데이션 정의 하나 + 같은 글자 <text> 를 아래층부터 겹친다(Figma 는 글자 노드 칠 여러 장으로 읽는다)
+    const tclip = /text/.test(ecs.webkitBackgroundClip || ecs.backgroundClip || '') && ecs.backgroundImage && ecs.backgroundImage !== 'none' ? splitTopLevel(ecs.backgroundImage).map(parseGradient).filter(Boolean) : null;
+    if (tclip?.length) {
+      const tb = box(el), out = [];
+      for (let li = tclip.length - 1; li >= 0; li--) {
+        const id = gid('tgrad'); defs.push(gradientDef(tclip[li], id, tb)); stats.gradients++;
+        out.push(...texts.map(t => t.replace(/^(<text[^>]*?) fill="[^"]*"( fill-opacity="[^"]*")?/, `$1 fill="url(#${id})"`)));
+      }
+      return out.join('');
+    }
     return texts.join('');
   };
 
@@ -711,7 +721,7 @@ export async function adToSvg(root, { submitW = null, submitH = null, title = ''
     }
     const parts = [];
     // 배경
-    const bgs = await paintBackground(el, cs, b, isRoot);
+    const bgs = /text/.test(cs.webkitBackgroundClip || cs.backgroundClip || '') ? [] : await paintBackground(el, cs, b, isRoot);   // 글자 모양으로 자른 배경(글자 칠)은 글자가 그린다(textBlock)
     if (isRoot) {
       // 지면 / 키비주얼(배경형) / 스크림을 각각 묶는다
       const groups = [];

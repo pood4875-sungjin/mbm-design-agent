@@ -1,6 +1,6 @@
 // 직접 그라데이션(11-02 Notion 컨시어지 N3 「색상 스타일 설정」 · 사용자 「그라데이션은 직접 설정할 수 있는 기능을, 피그마와 동일한」)
 //   값 = { type:'linear'|'radial', angle(도, CSS 각도: 180 = 위→아래), stops:[{ color:'#RRGGBB', pos:0~100 }] } — 순수 함수만. 편집 UI 는 app/gradedit.js, 지면 반영은 core/field.js
-//   각진(angular)·다이아몬드는 없다: SVG 내보내기(피그마 편집용)로 옮길 수 없다. 정지점 투명도도 없다: 광고 지면은 불투명(투명 규격 검사와 부딪힌다)
+//   각진(angular)·다이아몬드는 없다: SVG 내보내기(피그마 편집용)로 옮길 수 없다. 정지점 불투명도 a(0~99, 11-23 채우기 층) — 맨 아래 지면에는 쓰지 않는다(core/field.js 가 걷는다: 광고 지면은 불투명)
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 export const GRAD_TYPES = ['linear', 'radial'];
 export const GRAD_MAX_STOPS = 8;
@@ -11,13 +11,13 @@ export const normAngle = a => { const v = ((Number(a) % 360) + 360) % 360; retur
 // 정지점 2개 미만이거나 색이 틀리면 null(직접 그라데이션 없음 = 자동) · 위치 순 정렬 · 8개까지
 export function normGradient(g) {
   if (!g || !Array.isArray(g.stops)) return null;
-  const stops = g.stops.filter(s => HEX.test(s?.color ?? '') && Number.isFinite(Number(s.pos))).map(s => ({ color: s.color.toUpperCase(), pos: r1(clamp(Number(s.pos), 0, 100)) })).sort((a, b) => a.pos - b.pos).slice(0, GRAD_MAX_STOPS);
+  const stops = g.stops.filter(s => HEX.test(s?.color ?? '') && Number.isFinite(Number(s.pos))).map(s => ({ color: s.color.toUpperCase(), pos: r1(clamp(Number(s.pos), 0, 100)), ...(s.a != null && Number.isFinite(+s.a) && +s.a < 100 ? { a: Math.round(clamp(+s.a, 0, 99)) } : {}) })).sort((a, b) => a.pos - b.pos).slice(0, GRAD_MAX_STOPS);
   if (stops.length < 2) return null;
   return { type: GRAD_TYPES.includes(g.type) ? g.type : 'linear', angle: g.angle == null ? 180 : normAngle(g.angle), stops };
 }
 export function gradientCss(g0) {
   const g = normGradient(g0); if (!g) return null;
-  const list = g.stops.map(s => `${s.color} ${s.pos}%`).join(',');
+  const list = g.stops.map(s => `${s.a != null ? `rgba(${rgb(s.color).join(',')},${s.a / 100})` : s.color} ${s.pos}%`).join(',');
   return g.type === 'radial' ? `radial-gradient(circle at center,${list})` : `linear-gradient(${g.angle}deg,${list})`;
 }
 // 자동 지면(색 목록 + 각도)을 편집 시작값으로 — 「1차는 AI 자동 추출 색상」(노션 N3), 그다음 사람이 고친다. 색이 하나면 같은 색 두 끝
@@ -51,5 +51,5 @@ export function moveStop(g0, index, pos) {
   const stops = g.stops.map((s, i) => i === index ? moving : s).sort((a, b) => a.pos - b.pos);
   return { gradient: { ...g, stops }, index: stops.indexOf(moving) };
 }
-export const flipGradient = g0 => { const g = normGradient(g0); return g && { ...g, stops: g.stops.map(s => ({ color: s.color, pos: r1(100 - s.pos) })).sort((a, b) => a.pos - b.pos) }; };
+export const flipGradient = g0 => { const g = normGradient(g0); return g && { ...g, stops: g.stops.map(s => ({ ...s, pos: r1(100 - s.pos) })).sort((a, b) => a.pos - b.pos) }; };
 export const rotateGradient = (g0, by = 90) => { const g = normGradient(g0); return g && { ...g, angle: normAngle(g.angle + by) }; };
