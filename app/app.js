@@ -3234,7 +3234,6 @@ function elTextSecHtml(a, id, it) {
 }
 // 글자 패널 값 — 범위를 고르면 그 범위(pk.st), 아니면 요소 글자 전체를 잰 값(따로 서식 준 범위가 섞이면 혼합)
 const MIX = '혼합';
-const FONT_PX_PRESETS = [10, 11, 12, 13, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120];
 const famOfCss = ff => String(ff ?? '').split(',')[0].replace(/['"]/g, '').trim();
 // 그 글꼴이 가진 굵기만(묶은 글꼴 FONTS[].weights) — 모르는 글꼴(올린 글꼴·시스템)은 100~900
 function fontWeightsOf(cs) { const fam = famOfCss(cs.fontFamily), f = Object.values(FONTS).find(x => x.family === fam); return f?.weights?.length ? f.weights : WEIGHTS; }
@@ -3254,7 +3253,7 @@ function typoSecHtml(a, spec, id, it, cs, ed, locks, pk) {
   const ws = fontWeightsOf(cs), wv = st.w ?? null;
   const wOpts = [...new Set([...ws, ...(wv != null && !ws.includes(wv) ? [wv] : [])])].sort((x, y) => x - y);
   const wSel = `<select id="iElWeight" aria-label="굵기" ${styleLock ? 'disabled' : ''}>${wv == null ? `<option value="" selected>${MIX}</option>` : ''}${wOpts.map(v => `<option value="${v}" ${v === wv ? 'selected' : ''}>${WEIGHT_NAME[v] ?? v}</option>`).join('')}</select>`;
-  const sizeF = `<div class="fin pre ico"><span class="k" aria-hidden="true">${ic('fsize')}</span><input type="text" inputmode="decimal" class="fnum" id="iElSize" list="iElSizeList" value="${st.px ?? MIX}" aria-label="글자 크기(px)" ${locks.size ? 'disabled' : ''}></div><datalist id="iElSizeList">${FONT_PX_PRESETS.map(v => `<option value="${v}">`).join('')}</datalist>`;
+  const sizeF = `<div class="fin pre ico"><span class="k" aria-hidden="true">${ic('fsize')}</span><input type="text" inputmode="decimal" class="fnum" id="iElSize" value="${st.px ?? MIX}" aria-label="글자 크기(px)" ${locks.size ? 'disabled' : ''}></div>`;
   const lhF = numField({ id: 'iElLh', value: lhPct ?? 'Auto', label: '행간(글자 크기 대비 %) — 문구 전체', icon: 'lh', unit: '%' });
   const lsF = numField({ id: 'iElLs', value: st.ls ?? MIX, label: `자간(글자 크기 대비 %)${pk ? ' — 고른 글자' : ''}`, icon: 'ls', unit: '%', attrs: styleLock ? 'disabled' : '' });
   const al = ed.align ?? (['left', 'center', 'right'].includes(cs.textAlign) ? cs.textAlign : 'left');
