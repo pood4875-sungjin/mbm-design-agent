@@ -2864,18 +2864,27 @@ function renderAdBase(ctx, style, spec) {
     const r = S0 ? { x: Math.round(S0.x * tScale), y: Math.round(S0.y * tScale), w: Math.round(S0.w * tScale), h: Math.round(S0.h * tScale) } : tImage;
     const inward = { right: 'to left', left: 'to right', top: 'to bottom', bottom: 'to top' };
     const pc = v => `${Math.round(v * 1000) / 10}%`;
-    const grads = (BR.fade ?? []).map(f => f.side === 'diag' ? diagFade(f, r.w, r.h) : f.mid == null ? `linear-gradient(${inward[f.side]},transparent 0%,#000 ${pc(f.frac)})` : `linear-gradient(${inward[f.side]},transparent 0%,rgba(0,0,0,0.2) ${pc(f.frac * f.mid)},#000 ${pc(f.frac)})`).filter(Boolean);
+    // 11-23 사용자 「위아래도 약간의 그라 주는 건 이유가 있나요?」(블라인드 1250×560 — 칸이 지면 위 끝까지 찼는데 PC팝업 시안의 위 40%·대각 녹임이 그대로 남았다):
+    //   지면 변에 닿은 칸 변은 자연스러운 끝이라 녹이지 않는다(CANON.cutFade 와 같은 원칙). 대각은 두 변(위·왼쪽 등) 사이를 잇는 것이라 둘 중 한 변이라도 지면 변이면 뺀다
+    const onEdge = { top: r.y <= 0, left: r.x <= 0, right: r.x + r.w >= w - 1, bottom: r.y + r.h >= h - 1 };
+    const fades = (BR.fade ?? []).filter(f => f.side === 'diag' ? !(f.corner ?? 'top-left').split('-').some(sd => onEdge[sd]) : !onEdge[f.side]);
+    if (fades.length < (BR.fade ?? []).length) fired('templateMold.bgRuleEdgeKeep');
+    const grads = fades.map(f => f.side === 'diag' ? diagFade(f, r.w, r.h) : f.mid == null ? `linear-gradient(${inward[f.side]},transparent 0%,#000 ${pc(f.frac)})` : `linear-gradient(${inward[f.side]},transparent 0%,rgba(0,0,0,0.2) ${pc(f.frac * f.mid)},#000 ${pc(f.frac)})`).filter(Boolean);
     const c = coverPos(style, r.w, r.h, { fallback: kvPos, headroom: 0.04 });
     // 칸 cover 가 주인공을 60% 미만만 보이면(11-02 컨시어지 #2 보일 부분 규칙) 시안 칸 대신 예전 보정(칸을 그림 크기로) — 11-09 (3) 좁힘: 주인공 상자가 있는 사진에서 그 상자를 잘라야만 할 때만.
     //   바탕 있는 그림(일러스트·밝은 단색 바탕 flatLight)은 상자가 그림 거의 전부(한림 알약 100×80%)라 시안 칸(0,355 160×245 + 53% 녹임)이 예전 칸(0,400 160×200 + 긴 곡선 녹임)으로 되돌아갔다 — 시안 칸 우선
     if (c.fit && kvKind === 'photo' && !flatLight) { fired('templateMold.bgRuleFitBack'); return null; }
-    const fr = side => Math.round(((BR.fade ?? []).find(f => f.side === side)?.frac ?? 0) * 100);
+    const fr = side => Math.round((fades.find(f => f.side === side)?.frac ?? 0) * 100);
     const mR = fr('right'), mL = fr('left'), mT = fr('top');
     const meltA = mR ? ` data-melt="${mR}" data-melt-dir="to left"` : mL ? ` data-melt="${mL}" data-melt-dir="to right"${mT ? ` data-melt-top="${mT}"` : ''}` : mT ? ` data-melt="${mT}" data-melt-dir="to bottom"` : '';
     fired('templateMold.bgRule');
     // 11-10 그래픽 「오브젝트 + 배경」(사용자 「오브젝트 비중이 잘 보이면서 배경색이 자연스럽게 연결」): 칸에 그림을 통째로 덮으면 주인공(오브젝트)이 작다(아크릴 상자) —
     //   주인공 상자가 칸에 통째로 들어가는 데까지 당겨 넣는다(subjectCrop fit — 덮기로 당기면 GS에너지 사람·삼성 3D·NIFCO 글자가 칸 변에서 잘렸다. 1.25배 이상 커질 때만). 칸 변은 그대로 지면 쪽으로 녹아서 바탕색과 이어진다. 사진은 예전대로
-    const pull = (kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.subject) ? subjectCrop(style, r.w, r.h, { fit: true, margin: 0.12 }) : null;
+    // 11-23 사용자 「중앙 정렬일 때 비주얼이 중앙 아래 풀로 차야」(NAP 320×480 — 다른 매체의 아래 띠 칸 autoBgRule bottom-band): 주인공 상자를 통째로 맞추면(fit·여백 12%)
+    //   곁가지(옆 원통·궤도)까지 다 넣느라 주인공이 작고 칸에 바탕만 넓다 → 아래 띠는 주인공 상자로 칸을 덮는다(fit 아님 · 여백 4% — 주인공 60% 이상은 늘 보임 CANON.kvCrop.minVisible, 머리 지킴 그대로)
+    const bandFill = BR.auto === 'bottom-band';
+    const pull = (kvKind !== 'photo' && kvTypeOf(style.kvMeta)?.flags.subject) ? subjectCrop(style, r.w, r.h, bandFill ? { margin: 0.04 } : { fit: true, margin: 0.12 }) : null;
+    if (pull && bandFill) fired('templateMold.bandFill');
     if (pull) fired('templateMold.subjectPull');
     return `<div data-object="1" style="position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:url('${esc(style.keyVisual)}') ${pull ? `${pull.pos}/${pull.size}` : `${c.pos}/cover`} no-repeat;${meltMaskList(grads)}${BR.imageOpacity ? `opacity:${BR.imageOpacity};` : ''}overflow:hidden" data-bgrule="1"${meltA}></div>`;   // 표식·녹임 속성은 style 뒤(objectRects·guide-trace 가 거기서 읽는다)
   })() : null;
