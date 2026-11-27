@@ -23,7 +23,7 @@ import { normGradient, colorAtPoint } from '../gradient.js';
 import { paintLayerCss, rgba } from '../paint.js';
 import { bgLayersOf } from '../style.js';
 import { fillTemplate } from '../freetpl.js';
-import { esc, WRAP, fitFontSize, textWidth } from './banner.js';
+import { esc, WRAP, fitFontSize, textWidth, wordRows } from './banner.js';
 import { fontStack, fontRuleOf, textColorLocked } from '../fonts.js';
 import { adSpecEntries } from '../adspecs.js';   // 캠페인 공통 메인(리멤버 PC·MO 동일) — 같은 매체 규격을 한 번씩 돌려 본다(런타임에만 부른다: contract.js 와 순환)
 import { limitsByRole, roleOf, countChars, estimateLines, inImage, objectNeedOf } from '../adfields.js';
@@ -440,7 +440,25 @@ export function renderAd(ctx, style, spec) {
   }
   style = applyLogoKv(style, spec);   // 11-17 노션 N2: 비즈보드에서 「이미지 대신 로고 사용」을 켜면 그림 계열을 걷고 로고가 그림 칸에(흰 로고 썸네일형 · 그 밖 오브젝트형)
   style = pickKvVariant(style, spec);
-  return withBgImage(withAiShapes(renderAdInner(ctx, style, spec), style, spec), style, spec);
+  return withKvFade(withBgImage(withAiShapes(renderAdInner(ctx, style, spec), style, spec), style, spec), style);
+}
+// 11-25 노션 「[공통] 이미지 그라데이션 조정 기능 추가」: 키비주얼(data-object) 가장자리 녹임 마스크의 길이를 변마다 사용자 %로 —
+//   50 = 규칙이 정한 그대로, 0 = 그 변 녹임 없음(그림 원형), 100 = 두 배(칸 끝까지 상한). 마스크 그라데이션의 정지점 %를 그 배율로 늘이고 줄인다.
+//   방향 → 변: to right = 왼쪽 변 · to left = 오른쪽 · to bottom = 위 · to top = 아래(대각은 두 변 평균). 0 이면 그 겹을 불투명 한 장으로(겹 목록·합성은 그대로)
+const FADE_SIDE = { 'to right': ['left'], 'to left': ['right'], 'to bottom': ['top'], 'to top': ['bottom'], 'to bottom right': ['top', 'left'], 'to right bottom': ['top', 'left'], 'to bottom left': ['top', 'right'], 'to left bottom': ['top', 'right'], 'to top right': ['bottom', 'left'], 'to right top': ['bottom', 'left'], 'to top left': ['bottom', 'right'], 'to left top': ['bottom', 'right'] };
+export function scaleMaskGradients(list, fade) {
+  return String(list).replace(/linear-gradient\((to [a-z ]+),([^()]*(?:\([^()]*\)[^()]*)*)\)/g, (m, dir, body) => {
+    const sides = FADE_SIDE[dir.trim()]; if (!sides) return m;
+    const pct = sides.reduce((a, s0) => a + (fade[s0] ?? 50), 0) / sides.length;
+    if (pct === 50) return m;
+    if (pct <= 0) return 'linear-gradient(#000,#000)';
+    const f = pct / 50;
+    return `linear-gradient(${dir},${body.replace(/(-?[\d.]+)%/g, (x, v) => `${Math.min(100, Math.round(+v * f * 10) / 10)}%`)})`;
+  });
+}
+export function withKvFade(html, style) {
+  const fade = style?.kvFade; if (!html || !fade) return html;
+  return html.replace(/<div data-object="1"[^>]*>/g, tag => tag.replace(/((?:-webkit-)?mask-image:)([^;"]*)/g, (m, prop, val) => prop + scaleMaskGradients(val, fade)));
 }
 // 11-18 노션 「배경 이미지 삽입 및 채우기·편집 기능 확장」: 지면(배경색·그라데이션) 바로 위, 키비주얼·글자·로고 아래에 장식 그림 한 층.
 //   꽉 채우기(cover, 비율 유지·넘치는 곳 잘림) · 전체 보기(contain) · 반복(tile, 짧은 변의 tile% 크기). 투명도·위치(x·y %)는 이미지 요소처럼 고친다. 키비주얼과 역할이 다르다(필수 영역 없음)
@@ -3225,9 +3243,13 @@ ${tplLogo}${kvWrap(tplObject)}
     //   적은 문구를 지키고 들어가는 데까지(낱말 단위)만 보인다. 넘친 뒷부분만 빠지고 입력 원문은 그대로(줄이면 다시 보임). TR.textCut → 검수 필요(lint text-cut)
     if (ctx.kind === 'recruit' && MR.main?.px != null && String(ctx.core?.headline ?? '').trim()) {
       const typed = String(ctx.core.headline).trim(), nz = t => String(t ?? '').replace(/[\s\u00a0\u200b\u2060]/g, '');
-      if (nz(copy.main) !== nz(typed)) {
+      const pxFixed0 = (CANON.guidePxFixed ?? []).includes(spec.medium);
+      if (nz(copy.main) !== nz(typed) || (pxFixed0 && mainShrink < 1)) {   // 가이드 고정 매체는 적은 문구가 줄여서 들어갔어도 다시 — 크기 그대로 넣거나 넘친 뒷부분만 숨김
         const lim = MR.main.lines ?? 2, mx = limitsByRole((rules.textLimits ?? []).filter(inImage)).main?.maxChars ?? null;
-        const kks = spec.medium === 'jasoseol' || !!(rules.mainTwoLine ?? spec.mainTwoLine) ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85];
+        // 11-25 노션 추가 요청(11-23) 「글자가 잘리는 소재의 폰트 크기가 모두 작게 나타남(자소설·리멤버·잡다), 작아지는 정도도 다름」:
+        //   가이드 고정 매체(CANON.guidePxFixed)는 적은 문구를 줄여 넣지 않는다 — 가이드 글자 크기 그대로, 넘친 뒷부분만 숨긴다
+        const pxFixed = (CANON.guidePxFixed ?? []).includes(spec.medium);
+        const kks = pxFixed ? [1] : spec.medium === 'jasoseol' || !!(rules.mainTwoLine ?? spec.mainTwoLine) ? [1, 0.95] : [1, 0.95, 0.9, CANON.overlapFix?.textFloorRegulated ?? 0.85];
         const fitsAt = (t, kk) => wrapRows(t, Math.round(MR.main.px * k * kk), Math.max(1, mainColW), true) <= lim && (mx == null || countChars(String(t).replace(/\n/g, ''), counting) <= mx);
         const kkFull = kks.find(kk => fitsAt(typed, kk));
         if (kkFull) { copy.main = typed; mainShrink = kkFull; mainExtraLine = false; fired('typed.mainKept'); }
@@ -3288,7 +3310,7 @@ ${tplLogo}${kvWrap(tplObject)}
       }
       const guideLines = (inLimits ?? []).find(t => t.lines && /광고 문구|메인/.test(String(t.field ?? '')))?.lines ?? null;
       if (guideLines && MR.detail.labelCol && !lockedMold) { const room = Math.max(1, guideLines - mainN); if ((MR.detail.lines ?? 3) > room + 0.5) { MR.detail = { ...MR.detail, lines: room + 0.5 }; fired('templateMold.guideLines'); } }
-      const dpx = pxOf(MR.detail), wr = t => Math.max(1, Math.ceil(textWidth(t) * dpx * 1.02 / Math.max(1, rowW(MR.detail)))), sep0 = MR.detail.labelSep ?? ' :';   // 행 수는 상세 행 자체의 폭으로(열 폭이 아니라 — 블라인드 게시글 열 498 vs 상세 행 600, 네이버 479 vs 714; 10-15 저녁)
+      const dpx = pxOf(MR.detail), wr = t => wordRows(t, dpx, rowW(MR.detail)) /* 11-25 어절 단위 줄 수(전체 폭 ÷ 칸 폭은 3줄을 2줄로 어림해 마지막 줄이 잘렸다) */, sep0 = MR.detail.labelSep ?? ' :';   // 행 수는 상세 행 자체의 폭으로(열 폭이 아니라 — 블라인드 게시글 열 498 vs 상세 행 600, 네이버 479 vs 714; 10-15 저녁)
       const seen = new Set();
       const cap0 = MR.detail.lines ?? 3;
       // 라벨 열 + 값 열(mold.rows.detail.labelCol — 네이버 DA 107:657 「모집 기간 | 값」「모집 직무 | 값」, 10-16 오후): 행 수는 값 열 폭으로. 날짜(접수기간)는 한 줄(줄바꿈 금지 — 107:657 「2.28(수) - 3.10(일)」, 값 열 밖으로 나가도 칸 위쪽이라 그림과 안 겹침)
@@ -3401,9 +3423,11 @@ ${tplLogo}${kvWrap(tplObject)}
     }
     // 태그 칩 행(mold.rows.tags — 잡다 PC 1:6026 「태그문구」 칸: y174 칩 h24 글자 12 SemiBold, 모서리 4, 안쪽 8, 칩 간격 8 · 샘플 5/8). 글감은 고용형태·직무 조각, 칸 폭에 들어가는 만큼. 칩 색은 기존 가이드(chipStyleOf)
     const empTag = rowValue(ctx.core, /고용/);   // 11-10: 고용형태는 추가 행에서
-    if (MR.tags && (empTag || ctx.core?.role)) {
+    // 11-25 노션 「[잡다] 하단 태그 편집」: core.tags(배열 또는 줄바꿈 글)가 있으면 그 태그를 그 순서 그대로 — 고용형태·직무에서 뽑지 않는다. 빈 배열 = 태그 없음
+    const tagsOwn = Array.isArray(ctx.core?.tags) ? ctx.core.tags.map(t => String(t ?? '').trim()).filter(Boolean) : (typeof ctx.core?.tags === 'string' ? ctx.core.tags.split(/\n/).map(t => t.trim()).filter(Boolean) : null);
+    if (MR.tags && (tagsOwn ? tagsOwn.length : (empTag || ctx.core?.role))) {
       const tg = MR.tags, tpx = pxOf(tg), th = Math.round((tg.h ?? tg.px * 2) * k), padX = Math.round((tg.padX ?? 8) * k), gap = Math.round((tg.gap ?? 8) * k), rad = Math.round((tg.radius ?? 4) * k);
-      const toks = [...new Set([...String(empTag ?? '').split(/\s*[,·\/]\s*/), ...String(ctx.core.role ?? '').split(/\s*,\s*/)].map(t => t.trim()).filter(t => t && t.length <= 14))];   // 고용형태는 「신입·경력」을 둘로(호남대 「정규직원」「경력」), 직무는 쉼표로만(A5: 「경영·제품·사업 분야」 한 항목)
+      const toks = tagsOwn ?? [...new Set([...String(empTag ?? '').split(/\s*[,·\/]\s*/), ...String(ctx.core.role ?? '').split(/\s*,\s*/)].map(t => t.trim()).filter(t => t && t.length <= 14))];   // 고용형태는 「신입·경력」을 둘로(호남대 「정규직원」「경력」), 직무는 쉼표로만(A5: 「경영·제품·사업 분야」 한 항목)
       // 여러 줄(tg.rows — 구글 템플릿 580·300 「상세 문구」 칩 2×2, 10-16)·평문(tg.plain — 한국앤컴퍼니 샘플 「Sales · Business · R&D」 점 구분, 칩 바탕 없음)
       const tRows = Math.max(1, tg.rows ?? 1), rowGap = Math.round((tg.rowGap ?? 2) * k), tagW = tg.w != null ? Math.round(tg.w * k) : colW, plain = !!tg.plain, dotW = plain ? Math.round(tpx * 0.22) : 0, dotGap = plain ? Math.round(tpx * 0.55) : 0;
       const items = []; let used0 = 0, rowN = 1;

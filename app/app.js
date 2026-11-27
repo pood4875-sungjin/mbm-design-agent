@@ -5,7 +5,7 @@
 
 import { createContext, updateContext, missingFields, CORE_FIELDS, KINDS, cleanRows, mergeRows, migrateRecruitCore } from '../core/context.js';
 import { MEDIA } from '../core/media.js';
-import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups, withTwinFiles } from '../core/adspecs.js';
+import { adSpecEntries, adSpecGroups, mediumRank, specStage, specRank, STAGE_NAMES, adFileNameOf, extractSpecGroups, withTwinFiles, packageOf, boardTitleOf } from '../core/adspecs.js';
 import { lintArtifact } from '../core/lint.js';
 import { normalizeStyle, cmykText } from '../core/style.js';
 import { textColorLocked, FONTS, fontIds, registerCustomFont, customFontCss, CUSTOM_MARK, BUNDLED_MARK, DEFAULT_FONT, isBundledFont, fontGroup, fontFiles, localFaceCss, embeddedFaceCss, fontInfoLine, fontRuleOf, effectiveFontId } from '../core/fonts.js';
@@ -18,7 +18,7 @@ import { kvGuideText, logoGuideText, checkKv, checkLogo, CHECK_TONE } from '../c
 import { SPECS, PURPOSES, ARROWS, SIZE_PRESETS, purposesFor, optionalSpecIds, specIdsOf, renderArtifact } from '../core/contract.js';
 import { registerAll, generateArtifacts, computeVariants, ensureArtifacts, logEvent, artifactKey } from '../core/generate.js';
 import { refStyle, refOf, resolveRefs } from '../core/assetref.js';   // 11-09 성능: 렌더 HTML 엔 그림 참조(blob:), 바이트는 내보내기·래스터 직전에만
-import { approvalGate, STATE_LABEL } from '../core/gate.js';
+import { approvalGate, STATE_LABEL, STATE_TIER, TIER_LABEL } from '../core/gate.js';
 import { MOLD_BLOCK_MEDIA } from '../core/guidecheck.js';   // 틀 ✗ 로 승인을 막는 매체(자소설) — 측정 전엔 게이트 pending
 import { htmlHash, templateChoices, variantSubOf } from '../core/variants.js';   // 일괄 전파 전후 그림 지문(승인 해제 판정)   // 승인 게이트(10-20 운영 모델 §4·§5)
 import * as LLM from './llm.js';
@@ -356,9 +356,10 @@ function log(text) {
 function show(view) {
   for (const v of ['home', 'intake', 'work']) $(v).style.display = v === view ? (v === 'home' ? 'flex' : 'block') : 'none';
   $('campPill').style.display = view === 'work' ? 'block' : 'none';
-  $('approveAll').style.display = view === 'work' ? '' : 'none';
+  // 11-25 노션 「상단바 버튼 제거」: 선택하기·전체 승인은 걷고 내보내기만 — 선택은 선택 도구에서 빈 곳 끌기·Shift+클릭(11-23), 승인은 검수 탭·소재별
+  $('approveAll').style.display = 'none';
   $('exportAll').style.display = view === 'work' ? '' : 'none';
-  $('selectMode').style.display = view === 'work' ? '' : 'none'; if (view !== 'work') SEL.setOn(false);   // 선택하기는 작업 화면에서만 · 나가면 해제
+  $('selectMode').style.display = 'none'; if (view !== 'work') SEL.setOn(false);
   if (view === 'home') renderSidebar();
 }
 function openHtml(html) {
@@ -791,8 +792,10 @@ function campRow(c, st, { showFolder = false, draggable = true } = {}) {
       <span class="m"><b>${escH(name)}</b>
         <span>${fname ? `<em class="cf-info">${IC.folder}${escH(fname)}</em>` : ''}${escH(c.context?.core?.date ?? '')} · ${c.artifacts?.length ?? 0}종${edits ? ` · 수정 ${edits}회` : ''}</span></span></button>
       <span class="badge ${c.status === 'approved' ? 'approved' : 'draft'}">${c.status === 'approved' ? '승인' : '작업 중'}</span>
-      <button type="button" class="cmove" aria-label="${escH(name)} — 폴더로 이동" title="폴더로 이동">${IC.move}</button>`;
+      <button type="button" class="cmove" aria-label="${escH(name)} — 폴더로 이동" title="폴더로 이동">${IC.move}</button>
+      <button type="button" class="cdel" aria-label="${escH(name)} — 캠페인 삭제" title="캠페인 삭제"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.6 8.5h4.8l.6-8.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   d.querySelector('.copen').onclick = () => openSavedCampaign(c.id);
+  d.querySelector('.cdel').onclick = () => openDeleteCampaignModal(c);
   d.querySelector('.cmove').onclick = e => openMoveModal(c, e.currentTarget);
   if (draggable) {
     d.draggable = true;
@@ -802,6 +805,41 @@ function campRow(c, st, { showFolder = false, draggable = true } = {}) {
   return d;
 }
 
+// 11-25 노션 「[공통] 제작한 캠페인 삭제 기능 요청」 — 확인 후 저장소에서 지운다(되돌릴 수 없음). 열려 있던 캠페인이면 홈으로
+function openDeleteCampaignModal(c) {
+  const name = displayName(c);
+  modal({
+    title: '캠페인 삭제',
+    desc: '삭제한 캠페인은 되돌릴 수 없어요.',
+    body: `<div style="font-size:13px;line-height:1.6"><b>${escH(name)}</b> · 소재 ${c.artifacts?.length ?? 0}종</div>`,
+    actions: [{ label: '취소' }, { label: '삭제', pri: true, fn: () => {
+      campStore.remove(c.id).then(() => {
+        const st = loadFolders(); let moved = false; for (const f of st.folders ?? []) { const i = (f.ids ?? []).indexOf(c.id); if (i >= 0) { f.ids.splice(i, 1); moved = true; } } if (moved) saveFolders(st);
+        if (state.campaign?.id === c.id) { state.campaign = null; show('home'); }
+        renderSidebar(); toast(`「${name}」 캠페인을 삭제했어요`);
+      }).catch(e => toast(`삭제 실패: ${e.message}`));
+    } }],
+  });
+}
+// 11-25 노션 「[공통] 이미지 그라데이션 조정 기능 추가」: 키비주얼 가장자리 녹임 세기 — 기본은 한 칸(%), 오른쪽 아이콘을 켜면 위·오른쪽·아래·왼쪽 따로. 0% = 녹임 없음(그림 원형)
+const FADE_SIDES = [['top', '위', '┌┐'], ['right', '오른쪽', '┐┘'], ['bottom', '아래', '└┘'], ['left', '왼쪽', '┌└']];
+function kvFadeHtml(f) {
+  const v = s0 => f?.[s0] ?? 50, same = FADE_SIDES.every(([s0]) => v(s0) === v('top')), each = !same || state.kvFadeEach;
+  return `<section class="isec" id="secKvFade"><h3>이미지 그라데이션</h3>
+    <div class="fadebar">${each ? `<div class="fade4">${FADE_SIDES.map(([s0, n, ico]) => `<label class="numf" title="${n} 가장자리"><span class="fico">${ico}</span><input type="number" min="0" max="100" step="5" value="${v(s0)}" data-fade="${s0}" aria-label="${n} 가장자리 그라데이션 %"><em>%</em></label>`).join('')}</div>`
+      : `<label class="numf" title="가장자리 그라데이션 폭(0% = 없음)"><span class="fico">▥</span><input type="number" min="0" max="100" step="5" value="${v('top')}" data-fade="all" aria-label="이미지 가장자리 그라데이션 %"><em>%</em></label>`}
+    <button type="button" class="iconb fadeeach${each ? ' on' : ''}" id="iFadeEach" aria-pressed="${each}" title="상하좌우 따로">⛶</button></div></section>`;
+}
+function bindKvFade(insp, c, restyle) {
+  const box = insp.querySelector('#secKvFade'); if (!box) return;
+  const cur = () => ({ top: 50, right: 50, bottom: 50, left: 50, ...(c.style.kvFade ?? {}) });
+  box.querySelectorAll('input[data-fade]').forEach(inp => inp.onchange = () => {
+    const n = Math.max(0, Math.min(100, Math.round(+inp.value || 0))), s0 = inp.dataset.fade;
+    const f = s0 === 'all' ? { top: n, right: n, bottom: n, left: n } : { ...cur(), [s0]: n };
+    restyle({ kvFade: f }, `이미지 그라데이션 ${s0 === 'all' ? '' : FADE_SIDES.find(x => x[0] === s0)?.[1] + ' '}${n}%`); renderInspector();
+  });
+  box.querySelector('#iFadeEach')?.addEventListener('click', () => { const f = cur(), same = FADE_SIDES.every(([s0]) => f[s0] === f.top); if (state.kvFadeEach && !same) { restyle({ kvFade: { top: f.top, right: f.top, bottom: f.top, left: f.top } }, '이미지 그라데이션 한 값으로'); } state.kvFadeEach = !state.kvFadeEach; renderInspector(); });
+}
 function folderSection(g, st, idx) {
   const s = document.createElement('section');
   s.className = 'cf-fold' + (g.folder ? '' : ' none'); s.dataset.fid = g.id;
@@ -2221,24 +2259,30 @@ function layoutArtboard(opts = {}) {
   //   한 매체가 두 차수에 걸치면(카카오 비즈보드 1차·PC 2차·프로필 4차, 네이버 DA 2차·네이티브 4차) 줄이 갈린다. 차수가 바뀌는 첫 줄 위에 차수 머리글
   const ads = c.artifacts.filter(a => (a.channel === 'ad' || a.channel === 'asset') && SPECS[a.specId]);
   const adRows = [];
-  for (const st of [1, 2, 3, 4, 5]) for (const m of [...(c.media ?? [])].sort((x, y) => mediumRank(x) - mediumRank(y))) {
-    const arts = ads.filter(a => SPECS[a.specId].medium === m && specStage(a.specId) === st).sort((a, b) => specRank(a.specId, m) - specRank(b.specId, m));
-    if (arts.length) adRows.push({ name: mediumName(m), arts, stage: st });
+  // 11-25 노션 「[카카오] 산출물 한 줄 정렬」: 차수마다 줄을 가르면 카카오(비즈보드 1차·PC 2차·프로필 4차)가 세 줄로 흩어졌다 — 매체마다 한 줄.
+  //   「패키지 단위 묶음 배치」: 그 줄 안에서 패키지(상품)별로 모으고 묶음 위에 패키지 이름표. 매체 순서·패키지 순서는 차수·규격 순위 그대로(처음 나온 자리)
+  for (const m of [...(c.media ?? [])].sort((x, y) => mediumRank(x) - mediumRank(y))) {
+    const arts0 = ads.filter(a => SPECS[a.specId].medium === m).sort((a, b) => specRank(a.specId, m) - specRank(b.specId, m));
+    if (!arts0.length) continue;
+    const order = []; for (const a of arts0) { const k = packageOf(SPECS[a.specId]) ?? ''; if (!order.includes(k)) order.push(k); }
+    const arts = order.flatMap(k => arts0.filter(a => (packageOf(SPECS[a.specId]) ?? '') === k));
+    adRows.push({ name: mediumName(m), arts, stage: Math.min(...arts.map(a => specStage(a.specId))), pkgs: order.length > 1 || (order[0] && order[0] !== mediumName(m)) });
   }
   const rows = [...adRows, { name: '온라인', arts: [...ONLINE, ...LEGACY].flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }, { name: '오프라인', arts: OFFLINE.flatMap(ch => c.artifacts.filter(a => a.channel === ch)) }];   // 10-15 밤: 매체마다 섹션(머리글 + 구분선)
   // 첫 줄 y: 라벨이 프레임 위에 붙는다(이름 2줄 + 뱃지 줄 ≈ 56px). 60이면 첫 줄 라벨이 보드 위로 잘린다
   let y = 104, lastStage = null;
-  for (const { name, arts: rowArts, stage } of rows) {
+  for (const { name, arts: rowArts, pkgs } of rows) {
     if (!rowArts.length) continue;
-    let x = 60, rowH = 0;
-    if (stage && stage !== lastStage) {   // 차수가 바뀌는 줄 — 11-18 노션 「상단 문구 삭제요청」: 차수 머리글(하 · 1차 적용 · 15장 → 17종)은 걷고 매체명이 맨 위. 차수 사이 간격만 남긴다
-      if (lastStage != null) y += 36;
-      lastStage = stage;
-    }
-    const head = document.createElement('div'); head.className = 'rowhead'; head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${countText(rowArts)}`; head.onclick = () => SEL.toggleGroup(rowArts.map(a => a.key ?? a.specId)); board.appendChild(head);   // 선택 모드에서 매체 머리글 = 그 매체 전체 토글
+    let x = 60, rowH = 0, pkgNow = null, pkgEl = null, pkgX = 60;
+    if (pkgs) y += 26;   // 패키지 이름표 한 줄 몫
+    const head = document.createElement('div'); head.className = 'rowhead' + (pkgs ? ' withpkg' : ''); head.style.left = '60px'; head.style.top = (y - 92) + 'px'; head.textContent = `${name} · ${countText(rowArts)}`; head.onclick = () => SEL.toggleGroup(rowArts.map(a => a.key ?? a.specId)); board.appendChild(head);   // 선택 모드에서 매체 머리글 = 그 매체 전체 토글
     {
       for (const a of rowArts) {
         const ch = a.channel;
+        if (pkgs && ch === 'ad' || pkgs && ch === 'asset') {   // 패키지 이름표(노션 예 「PC프리미엄 · PC팝업배너, PC채용공고배너」) — 묶음 첫 카드 위, 폭은 묶음 끝까지
+          const pk = packageOf(SPECS[a.specId]) ?? '';
+          if (pk !== pkgNow) { if (pkgEl) pkgEl.style.width = Math.max(80, x - pkgX - 70) + 'px'; pkgNow = pk; pkgX = x; pkgEl = document.createElement('div'); pkgEl.className = 'pkghead'; pkgEl.style.left = x + 'px'; pkgEl.style.top = (y - 92) + 'px'; pkgEl.textContent = pk; const keys = rowArts.filter(b => (packageOf(SPECS[b.specId]) ?? '') === pk).map(b => b.key ?? b.specId); pkgEl.onclick = () => SEL.toggleGroup(keys); board.appendChild(pkgEl); }
+        }
         const spec = effSpec(a);
         const [nw, nh] = naturalSize(spec);
         // 매체 규격은 1029×258부터 1440×976까지 제각각 — 한 줄에 놓이도록 폭·높이 상한으로 맞춘다
@@ -2258,7 +2302,7 @@ function layoutArtboard(opts = {}) {
         if (opts.blank) iframe.style.visibility = 'hidden'; else iframe.srcdoc = shownDoc = previewDoc(a.html, artifactFontId(a));
         frame.querySelector('.hit').onclick = e => { e.stopPropagation(); if (SEL.on) { if (e.shiftKey) { SEL.toggleKey(a.key ?? a.specId); return; } SEL.setOn(false); } const k = a.key ?? a.specId; if (a.channel !== 'ad') { select(k); return; } if (e.shiftKey && state.elSel) { const xid0 = EL.at(a, e); if (xid0) { EL.toggleExtra(a, xid0); return; } } if (state.selected !== k && !(e.metaKey || e.ctrlKey)) { select(k); return; } if (e.shiftKey && state.elSel) { const xid = EL.at(a, e); if (xid) { EL.toggleExtra(a, xid); return; } } textRoleFocus = textRoleAt(a, e); select(k, EL.at(a, e)); };   // 11-23 Shift+클릭 = 요소 여러 개   // 한 번 = 프레임, 고른 프레임 안에서 한 번 더(또는 ⌘/Ctrl) = 그 자리 요소
         { const hit = frame.querySelector('.hit'); let hovT = 0; hit.onpointermove = e => { if (state.selected !== (a.key ?? a.specId) || SEL.on || a.channel !== 'ad' || hovT) return; hovT = requestAnimationFrame(() => { hovT = 0; EL.hover(a, e); }); }; hit.onpointerleave = () => EL.hover(a, null); hit.ondblclick = e => { const k = a.key ?? a.specId; if (a.channel === 'ad' && !SEL.on) { const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { if (state.selected !== k || state.elSel !== id) select(k, id); charEnter(a, { x: e.clientX, y: e.clientY }); return; } } zoomToFrame(k); };
-          frame.addEventListener('dblclick', e => { if (!e.target.closest?.('.eov') || SEL.on || a.channel !== 'ad') return; const id = EL.at(a, e); if (id && !/^(kv|logo)$/.test(id)) { e.stopPropagation(); if (state.elSel !== id) select(a.key ?? a.specId, id); charEnter(a, { x: e.clientX, y: e.clientY }); } }); }   // 요소를 고른 뒤에는 선택 테두리 층(.eov)이 위에 있다 — 거기서도 글자 더블클릭   // 고른 프레임의 글자 더블클릭 = 글자 범위 색(11-09), 그 밖은 확대
+          frame.addEventListener('dblclick', e => { if (!e.target.closest?.('.eov') || SEL.on || a.channel !== 'ad') return; const id = EL.at(a, e); if (id && /^tags/.test(id)) { e.stopPropagation(); if (state.elSel !== id) select(a.key ?? a.specId, id); setTimeout(() => focusTagAt(a, e), 30); return; } if (id && !/^(kv|logo)$/.test(id)) { e.stopPropagation(); if (state.elSel !== id) select(a.key ?? a.specId, id); charEnter(a, { x: e.clientX, y: e.clientY }); } }); }   // 요소를 고른 뒤에는 선택 테두리 층(.eov)이 위에 있다 — 거기서도 글자 더블클릭   // 고른 프레임의 글자 더블클릭 = 글자 범위 색(11-09), 그 밖은 확대
         board.appendChild(frame);
         frames.set(a.key ?? a.specId, { frame, iframe, badge: frame.querySelector('.badge'), gate: frame.querySelector('.badge.gate'), lint: frame.querySelector('.badge.lint'), design: frame.querySelector('.badge.design'), sample: frame.querySelector('.badge.sample'), guide: frame.querySelector('.badge.guide'), edited: frame.querySelector('.badge.edited'), fit: frame.querySelector('.badge.fit'), label: frame.querySelector('.fname'), shown: shownDoc });   // shown: 지금 iframe 이 보여 주는 문서(refreshFrames 가 같으면 다시 안 싣는다)
         ED.guideBadge(a); ED.editedBadge(a);
@@ -2267,6 +2311,7 @@ function layoutArtboard(opts = {}) {
         rowH = Math.max(rowH, h);
       }
     }
+    if (pkgEl) pkgEl.style.width = Math.max(80, x - pkgX - 70) + 'px';
     head.style.width = Math.max(320, x - 60 - 70) + 'px';
     y += rowH + 170;
     state.boardW = Math.max(state.boardW ?? 0, x);
@@ -2360,6 +2405,8 @@ function boardLabel(a) {
   const spec = SPECS[a.specId];
   if (spec && a.channel === 'asset') return `${spec.mediumName ?? mediumName(spec.medium)} · 전달물 ${spec.asset?.item ?? ''} 파일`;
   if (!spec || a.channel !== 'ad') return artLabel(a);
+  // 11-25 노션 「소재 타이틀을 소재 이름으로」: 타이틀 = 패키지명 · 소재명 — 내보내기 파일명(adFileName)에서 기업명·매체명·날짜만 뺀 것
+  try { const t = boardTitleOf(spec, adFileName(a, 'png'), { client: state.campaign?.context?.core?.client ?? '' }); if (t) return `${t}${twinTail(a.specId)}`; } catch {}
   const sz = specSize(spec, a.size) || `${spec.w}×${spec.h}`;
   return `${spec.mediumName ?? mediumName(spec.medium)} · ${sz}${twinTail(a.specId)}`;
 }
@@ -2519,7 +2566,7 @@ function gateOf(a) {
   const f = frames.get(a.key ?? a.specId);
   if (a.channel === 'ad' && a.design === undefined) { a.gate = { state: 'pending', reasons: ['디자인 검수 전'] }; return a.gate; }   // iframe onload 전엔 「승인 가능」이 잠깐 뜨지 않게
   const samples = (() => { try { return f?.iframe?.contentDocument?.querySelectorAll('[data-sample]').length ?? 0; } catch { return 0; } })();
-  // design 은 adcheck 의 warnings 전체(level info 인 low-res·low-res-logo 포함) — 프레임 「디자인 n」 배지는 info 를 세지 않지만 게이트는 흐린 키비주얼도 「검수 필요」로 둔다(출고 불가 사유)
+  // design 은 adcheck 의 warnings 전체(level info 인 low-res·low-res-logo 포함) — 프레임 「디자인 n」 배지는 info 를 세지 않지만 게이트는 흐린 키비주얼도 「확인 필요」로 둔다(출고 불가 사유)
   // 틀 규격(자소설)은 가이드 검수 ✗ 도 차단 — Notion 컨시어지 2026-10-28 #9. 측정이 아직이면(가이드 큐는 비동기) ready 대신 pending, 측정 실패면 review — 11-02 재조사(가이드 측정 전에 「승인 가능」이 먼저 떴다)
   const needsGuide = a.channel === 'ad' && !!spec?.rules?.safeArea?.measuredFromTemplate?.mold && MOLD_BLOCK_MEDIA.has(spec?.medium);
   a.gate = approvalGate({ grade: spec?.grade ?? null, lint: a.lint ?? null, design: a.design ?? null, samples, guide: a.guide ?? null, needsGuide });
@@ -2532,8 +2579,11 @@ function gateBadge(a) {
   f.gate.textContent = ok ? '승인됨' : STATE_LABEL[g.state];
   f.gate.title = (ok && a.gateOverride ? [`사유: ${a.gateOverride.reason}`, ...a.gateOverride.reasons] : g.reasons).join('\n');
   if (state.selected === (a.key ?? a.specId)) { const box = $('iGate'); if (box) box.innerHTML = gateHtml(a); }
+  paintStatSoon();
 }
-// 인스펙터 「승인」 줄 — 상태 한 단어 + 사유 목록(검수 필요·초안은 여기 적힌 사유를 보고 사유를 적어 승인한다)
+let paintStatT = 0;
+function paintStatSoon() { clearTimeout(paintStatT); paintStatT = setTimeout(paintStat, 120); }
+// 인스펙터 「승인」 줄 — 상태 한 단어 + 사유 목록(확인 필요·초안은 여기 적힌 사유를 보고 사유를 적어 승인한다)
 function gateHtml(a) {
   const g = a.gate ?? gateOf(a); if (!g) return '';
   const ok = a.status === 'approved';
@@ -2548,7 +2598,7 @@ function statusBadges(only = null) {
     f.badge.className = 'badge ' + a.status; f.badge.textContent = badgeText(a.status);
     gateBadge(a);
   }
-  const st = $('lStat'); if (st) st.textContent = campaignStat();
+  paintStat();
 }
 function lintHtml(a) {
   const L = a.lint;
@@ -2668,6 +2718,10 @@ $('tMove').onclick = () => setTool('move'); $('tHand').onclick = () => setTool('
 document.addEventListener('keydown', e => {
   if (!state.campaign || $('work').style.display === 'none' || $('overlay').style.display === 'flex' || typingIn(e.target) || CS.on || e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
+  if (k === 'a' && e.shiftKey && !e.repeat) {   // 11-25 노션 「선택/편집 방식」: Shift+A = 보드의 소재 전체 선택(피그마식 선택 상자와 같은 선택 — 내보내기 대상)
+    e.preventDefault(); const keys = (state.campaign.artifacts ?? []).filter(a => a.channel === 'ad' || a.channel === 'asset').map(a => a.key ?? a.specId);
+    SEL.setOn(false); SEL.setOn(true); for (const k0 of keys) SEL.keys.add(k0); SEL.paint(); toast(`소재 ${keys.length}개 전체 선택 — 내보내기는 이 선택 기준`); return;
+  }
   if (k === 'v') { setTool('move'); e.preventDefault(); } else if (k === 'h') { setTool('hand'); e.preventDefault(); } else if (k === 'i' && !e.shiftKey) { e.preventDefault(); toolImage(); }
   else if (k === 'g' && e.shiftKey && !e.repeat) { e.preventDefault(); toggleGuideOv(); }   // 11-15 노션 [09] 레이아웃 가이드 켜고 끄기 Shift+G(피그마와 같은 키) — 입력 칸·글자 편집 중엔 위에서 걸러진다
 });
@@ -2680,7 +2734,8 @@ document.addEventListener('keydown', e => {
   if (mod && e.key === '0') { e.preventDefault(); setZoom(1); return; }
   if (mod && !e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportAllModal(); return; }
   if (!mod && e.shiftKey && (e.key === '!' || e.code === 'Digit1')) { e.preventDefault(); fitZoom(); return; }
-  if (e.code === 'Space' && !mod && !SEL.on && !e.repeat) { if (document.activeElement?.tagName === 'BUTTON') document.activeElement.blur(); e.preventDefault(); TOOL.space = true; setTool(); }
+  // 11-25 노션 「스페이스바+드래그」 ① 드래그로 소재를 여러 장 고른 뒤(SEL 켜짐)에도 Space = 손 — 예전엔 !SEL.on 이라 막혔다
+  if (e.code === 'Space' && !mod && !e.repeat) { if (document.activeElement?.tagName === 'BUTTON') document.activeElement.blur(); e.preventDefault(); TOOL.space = true; setTool(); }
 });
 document.addEventListener('keyup', e => { if (e.code === 'Space' && TOOL.space) { TOOL.space = false; setTool(); } });
 window.addEventListener('blur', () => { if (TOOL.space) { TOOL.space = false; setTool(); } });
@@ -2715,6 +2770,8 @@ document.addEventListener('keydown', e => {   // Esc: 요소 → 소재 → 전�
     const hand = TOOL.cur === 'hand' || TOOL.space || e.button === 1;   // 손 도구·Space·가운데 버튼 = 언제나 화면 이동(선택 상자 안 만듦)
     // 11-23: 커서 도구의 끌기는 아래 선택 상자 하나(소재째 + 요소) — 예전 「선택하기」 상자(SEL.pointerDown)는 쓰지 않는다
     const hitEl = e.target.closest('.hit');
+    // 11-25 노션 「스페이스바+드래그」 ② 글자를 더블클릭해 고친 뒤 빈 곳을 누르면 — 아래 preventDefault 로 포커스가 소재 iframe 에 남아 Space 키가 앱에 안 왔다. 빈 곳이면 iframe 포커스를 뺀다
+    if (!hitEl && document.activeElement?.tagName === 'IFRAME') { try { document.activeElement.blur(); window.focus(); } catch {} }
     if (!hand) {
       mq = { x0: e.clientX, y0: e.clientY, e0: e, id: e.pointerId };
       if (!hitEl && !e.target.closest('input,textarea,select,[contenteditable="true"]')) e.preventDefault();
@@ -2977,11 +3034,20 @@ function currentVariantIndex(a) {
 const TEXT_ROLES = [['main', '메인'], ['sub', '서브'], ['detail', '상세']];
 let textRoleFocus = null;
 /* ═══ 왼쪽 내용 패널(11-02 사용자 「좌측이 내용 관련」, hub/panel.js 입력 탭) — 브리프 칸 · 프롬프트. 프레임을 고르면 같은 칸이 「이 소재만」으로 바뀐다 ═══ */
+// 11-25 노션 「검수 알림 명칭 수정」: 왼쪽 위 상태 = 세 단계(가이드 위반 · 확인 필요 · 문제 없음) 중 가장 무거운 단계 하나와 그 수. 누르면 그 단계 소재만 보이는 필터(한 번 더 누르면 해제)
+function tierOf(a) { if (a.status === 'approved') return 'ok'; const g = a.gate ?? (a.channel === 'ad' || a.channel === 'asset' ? gateOf(a) : null); return g ? (STATE_TIER[g.state] ?? null) : null; }
+function tierCounts(c = state.campaign) { const n = { violation: 0, check: 0, ok: 0 }; for (const a of (c?.artifacts ?? []).filter(x => x.channel === 'ad' || x.channel === 'asset')) { const t = tierOf(a); if (t) n[t]++; } return n; }
 function campaignStat(c = state.campaign) {
-  const list = (c?.artifacts ?? []).filter(x => x.channel === 'ad' || x.channel === 'asset'), n = list.length || (c?.artifacts?.length ?? 0);
-  const done = (list.length ? list : c?.artifacts ?? []).filter(x => x.status === 'approved').length;
-  return `${done && done === n ? '승인 완료' : '초안'} · 검수 완료 ${done}/${n}`;
+  const n = tierCounts(c), top = ['violation', 'check', 'ok'].find(t => n[t] > 0);
+  if (!top) return '';
+  const on = state.tierFilter === top;
+  return `<button type="button" class="tierchip ${top}${on ? ' on' : ''}" id="lTier" data-tier="${top}" title="${['violation', 'check', 'ok'].map(t => `${TIER_LABEL[t]} ${n[t]}`).join(' · ')} — 누르면 ${TIER_LABEL[top]} 소재만 보기${on ? '(해제)' : ''}"><i></i>${TIER_LABEL[top]} ${n[top]}</button>`;
 }
+function applyTierFilter() {
+  const f = state.tierFilter; $('viewport')?.classList.toggle('tierfiltering', !!f);
+  for (const a of state.campaign?.artifacts ?? []) { const fr = frames.get(a.key ?? a.specId); if (fr?.frame) fr.frame.classList.toggle('tierhide', !!f && tierOf(a) !== f); }
+}
+function paintStat() { const st = $('lStat'); if (!st) return; st.innerHTML = campaignStat(); const b = st.querySelector('#lTier'); if (b) b.onclick = () => { state.tierFilter = state.tierFilter === b.dataset.tier ? null : b.dataset.tier; applyTierFilter(); paintStat(); }; if (state.tierFilter && !['violation', 'check', 'ok'].includes(state.tierFilter)) state.tierFilter = null; applyTierFilter(); }
 // 11-09 사용자 「일괄 수정은 왼쪽 패널, 개별은 캔버스에서」 · 「타이틀은 하나로 묶어 줘야」 · 「매칭이 잘 안 돼」:
 //   왼쪽 브리프는 항상 전체 일괄. 칸을 캔버스 요소 이름(메인 문구·서브·날짜·상세)으로 묶고, 메인 문구는 「타이틀」 한 칸(= 공고 타이틀 headline, 비면 고객사+채용 구분).
 //   (11-17 노션 N3: 캔버스에서 요소를 골라도 왼쪽 칸은 강조하지 않는다 — 「고른 문구만 고치는 칸」으로 오해해 전체가 바뀌었다. 이 소재 그 문구만 고치는 칸은 오른쪽 「이 요소만」 패널 맨 위 「문구」)
@@ -3050,7 +3116,7 @@ const leftLiveRefresh = debounce(() => {
 /* 11-10 오후 사용자 「좌측은 입력만 — 나머지 없애고 입력 패널만」: 레일(입력·에셋·파일·검수) 걷음. 에셋은 오른쪽 「선택 없음」, 검수는 오른쪽 검수 탭에 있다 */
 function renderLeft() {
   const body = $('leftBody'), c = state.campaign; if (!body || !c) return;
-  $('lStat').textContent = campaignStat(c);   // 11-15 노션 [12] 캠페인 이름은 머리줄에만(왼쪽 제목 칸 걷음) · 상태 줄은 남김
+  paintStat();   // 11-15 노션 [12] 캠페인 이름은 머리줄에만(왼쪽 제목 칸 걷음) · 상태 줄은 남김
   // 11-17 노션 N3 「문구 요소 선택 시 좌측 문구 박스 강조 해제」: 캔버스에서 고른 요소를 왼쪽 칸 강조·스크롤에 쓰지 않는다(왼쪽은 늘 전체 일괄)
   const sig = '';
   if (body.contains(document.activeElement) && body.dataset.sig === sig) return;   // 쓰는 중에는 칸을 다시 그리지 않는다
@@ -3094,7 +3160,7 @@ function renderLeft() {
       + acc('more', '추가 작성', `<label>추가 행 <span class="lsub">고용형태·근무지 등 (라벨 | 값)</span></label><div data-lrows></div>${rowsNote}${input('notice')}${noticeNote}`)
     : '';
   body.innerHTML = `<section class="lbrief">
-    <div class="lsec lsec-top"><span class="ltitle">전체 일괄</span><button type="button" class="lhelp" id="lHelp" aria-label="전체 일괄 도움말" aria-expanded="false" aria-controls="lTip">?</button>${overN ? `<span class="lmeta">따로 고친 소재 ${overN}종</span>` : ''}</div>
+    <div class="lsec lsec-top"><span class="ltitle">전체 문구</span><button type="button" class="lhelp" id="lHelp" aria-label="전체 문구 도움말" aria-expanded="false" aria-controls="lTip">?</button>${overN ? `<span class="lmeta">따로 고친 소재 ${overN}종</span>` : ''}</div>
     <div class="ltip" id="lTip" role="tooltip" hidden>여기서 고치면 모든 소재에 반영돼요.<br>소재 하나만 고치려면 캔버스에서 글자를 더블클릭하세요.</div>
     <div class="ldim" id="lDim" hidden></div>
     <div class="lfields">${fieldsHtml}</div>
@@ -3162,10 +3228,10 @@ function scopeHtml(a) {
   const elOn = !!(a && state.elSel && EL.find(a, state.elSel));
   const scope = !a ? 'all' : elOn ? 'el' : 'art';
   const own = a ? ownCount(a) : 0;
-  const crumb = !a ? `${(state.campaign?.artifacts ?? []).length}종` : elOn ? `${escH(artLabel(a))} › ${escH(elementName(state.elSel))}` : escH(artLabel(a));
+  const crumb = !a ? `모든 소재 · ${(state.campaign?.artifacts ?? []).length}종` : elOn ? `${escH(artLabel(a))} › ${escH(elementName(state.elSel))}` : escH(artLabel(a));
   return `<div class="scope">
     <div class="rtabs" role="tablist" aria-label="패널">${[['design', '디자인'], ['review', '검수']].map(([k, n]) => `<button type="button" role="tab" data-rtab="${k}" aria-selected="${(state.rightTab ?? 'design') === k}" class="${(state.rightTab ?? 'design') === k ? 'on' : ''}">${n}</button>`).join('')}</div>
-    <div class="fseg" id="iScope" role="group" aria-label="편집 범위">${[['all', '전체 일괄'], ['art', '이 소재만'], ['el', '이 요소만']].map(([k, n]) => `<button type="button" data-scope="${k}" class="${scope === k ? 'on' : ''}" aria-pressed="${scope === k}" ${(k === 'art' && !a) || (k === 'el' && !elOn) ? 'disabled' : ''}>${n}</button>`).join('')}</div>
+    ${''/* 11-25 노션 「선택/편집 방식 — 『전체 일괄』 탭 제거」: 범위 탭을 걷고 선택 상태가 범위 — 선택 없음 = 모든 소재, 소재 = 이 소재, 요소 = 이 요소. 지금 범위는 아래 경로(crumb)로 */}
     <div class="scope-crumb"><span>${crumb}</span>${a && own ? `<button type="button" class="ovr" data-ovrall="1" title="이 소재의 개별값을 모두 지우고 일괄값으로" aria-label="개별값 ${own}개 모두 일괄값으로 되돌리기">개별 ${own} ${ic('swap')}</button>` : ''}</div>
   </div>`;
 }
@@ -3221,6 +3287,7 @@ function elementPanelHtml(a, spec, id) {
     return AK.boxHtml(a, it, head, posRow, sizeRow, why ? '<div class="fnote">틀이 정한 칸 · 옮기면 검수에 걸릴 수 있어요</div>' : '')
       + (it.kind === 'kv' ? `<section class="isec"><h3>비주얼 ${ovBtn(a, 'visual')}</h3>${ED.presetArtifactHtml(a, ['kvPlace', 'kvSize', 'scrim'])}</section>` : '');
   }
+  if (role === 'tags') return tagEditHtml(a) + `<section class="isec">${head}${posRow}</section>`;   // 11-25 잡다 하단 태그 편집
   const cs = it.el.ownerDocument.defaultView.getComputedStyle(it.el);
   // 오토레이아웃(11-09 2b): 옮긴 글자 = 자유 위치(스택에서 빠짐). 다른 글자와 겹치면 경고 · 「자동 배치로 되돌리기」
   const freeSec = (ed.dx || ed.dy) ? (() => { const hit = textOverlaps(EL.list(a), id, box); return `<div class="fnote" id="iElFree">자유 위치(옮김) — 다른 글자 줄 수가 바뀌어도 이 자리에 남아요${hit.length ? ` · <b style="color:var(--danger,#c00)">${escH(overlapNote(hit))}</b>` : ''}</div><button type="button" class="btn" id="iElAuto" style="width:100%;margin-top:6px">자동 배치로 되돌리기</button>`; })() : '';
@@ -3356,9 +3423,44 @@ function textScaleLive(a, id, k) {
   if (isStyleRole(id)) { const cur = a.overrides.style?.roleScale?.[role] ?? 1; LIVE.push({ style: state.campaign.style, only: key, ov: { roleScale: { ...(a.overrides.style?.roleScale ?? {}), [role]: Math.round(Math.min(1.6, Math.max(0.6, cur * k)) * 100) / 100 } } }); }
   else LIVE.push({ style: state.campaign.style, only: key, elements: withElementEdit(a.overrides.elements, id, { scale: (a.overrides.elements?.[id]?.scale ?? 1) * k }) });
 }
+// 11-25 노션 「[잡다] 하단 태그 편집 기능 추가」: 태그 칸을 고르면 오른쪽에 「태그 편집」 — 행마다 끌기 손잡이 · 태그 n · 내용 · 빼기(−), 맨 아래 추가(+).
+//   값은 이 소재의 a.overrides.core.tags(순서 그대로 렌더러가 칩으로). 처음엔 지금 그려진 태그(고용형태·직무에서 뽑은 것)로 채운다
+function tagsShownOf(a) { try { const tr = JSON.parse(a.html.match(/data-trace="([^"]*)"/)[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')); return tr?.mold?.rows?.tags?.items ?? []; } catch { return []; } }
+function tagsOf(a) { const c = state.campaign, v = a.overrides?.core?.tags ?? c.context.core.tags; return Array.isArray(v) ? [...v] : tagsShownOf(a); }
+// 태그 더블클릭 = 오른쪽 「태그 편집」의 그 태그 칸으로(누른 칩의 순번)
+function focusTagAt(a, e) {
+  let n = 0; try { const f = frames.get(a.key ?? a.specId), doc = f?.iframe?.contentDocument, r = f?.iframe?.getBoundingClientRect(), sc = r.width / (f.iframe.width || r.width); const el = doc?.elementFromPoint((e.clientX - r.left) / sc, (e.clientY - r.top) / sc); const chip = el?.closest?.('[data-field="tags"] > *'); if (chip) n = [...chip.parentElement.children].indexOf(chip); } catch {}
+  const ins = document.querySelectorAll('#iTagList input[data-ti]'); const t = ins[Math.max(0, Math.min(n, ins.length - 1))]; t?.focus(); t?.select();
+}
+function tagEditHtml(a) {
+  const tags = tagsOf(a);
+  return `<section class="isec" id="secTags"><h3>태그 편집</h3>
+    <div class="tagedit" id="iTagList">${tags.map((t, i) => `<div class="tagrow" draggable="true" data-i="${i}"><span class="tg-h" aria-hidden="true">⋮⋮</span><span class="tg-n">태그 ${i + 1}</span><input type="text" value="${escH(t)}" data-ti="${i}" aria-label="태그 ${i + 1}"><button type="button" class="tg-x" data-tx="${i}" aria-label="태그 ${i + 1} 빼기">−</button></div>`).join('')}</div>
+    <button type="button" class="btn" id="iTagAdd" style="width:100%;margin-top:6px">+ 태그 추가</button></section>`;
+}
+function setArtTags(a, list, label) {
+  const c = state.campaign; pushHistory(`${artLabel(a)} ${label}`);
+  a.overrides.core = { ...(a.overrides.core ?? {}), tags: list.map(t => String(t).trim()).filter(Boolean) }; a.status = 'draft'; a.gateOverride = null;
+  regen(c); autosave(); refreshFrames(a.key ?? a.specId); renderInspector();
+}
+function bindTagEdit(insp, a) {
+  const box = insp.querySelector('#iTagList'); if (!box) return;
+  const cur = () => [...box.querySelectorAll('input[data-ti]')].map(i => i.value);
+  box.querySelectorAll('input[data-ti]').forEach(inp => { inp.onchange = () => setArtTags(a, cur(), '태그 수정'); inp.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) inp.blur(); }; });
+  box.querySelectorAll('[data-tx]').forEach(b => b.onclick = () => { const l = cur(); l.splice(+b.dataset.tx, 1); setArtTags(a, l, '태그 빼기'); });
+  insp.querySelector('#iTagAdd')?.addEventListener('click', () => { const l = cur(); l.push('새 태그'); setArtTags(a, l, '태그 추가'); setTimeout(() => { const ins = document.querySelectorAll('#iTagList input[data-ti]'); const last = ins[ins.length - 1]; last?.focus(); last?.select(); }, 60); });
+  let from = null;   // 끌어서 순서 바꾸기 — 놓은 자리로, 번호도 다시
+  box.querySelectorAll('.tagrow').forEach(r => {
+    r.ondragstart = e => { from = +r.dataset.i; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(from)); } catch {} };
+    r.ondragover = e => { e.preventDefault(); r.classList.add('over'); };
+    r.ondragleave = () => r.classList.remove('over');
+    r.ondrop = e => { e.preventDefault(); r.classList.remove('over'); const to = +r.dataset.i; if (from == null || from === to) return; const l = cur(); const [m] = l.splice(from, 1); l.splice(to, 0, m); from = null; setArtTags(a, l, '태그 순서'); };
+  });
+}
 function bindElementPanel(insp, a, c, spec, id) {
   const { role } = parseElementId(id), key = a.key ?? a.specId, styled = isStyleRole(id);
   const q = s => insp.querySelector(s);
+  if (role === 'tags') bindTagEdit(insp, a);
   q('#iElOmit')?.addEventListener('click', () => omitElement(a, id));
   // 11-17 노션 N3: 문구 칸(이 소재만) — 바뀐 값만 charText 로(캔버스 글자 고치기와 같은 길 · 되돌리기 한 걸음)
   { const ta = q('#iElText');
@@ -3590,12 +3692,12 @@ function toolSecHtml(c) {
   const edited = c.artifacts.filter(a => a.overrides?.layout || a.overrides?.elements).length;
   const rulerOff = (() => { try { return localStorage.getItem('mbm-ruler-off') === '1'; } catch { return false; } })();
   return `<section class="isec" id="secTools"><h3>도구</h3>
-    <div class="fgrid2"><button type="button" class="btn" id="iToolRegen" ${edited ? '' : 'disabled'} title="옮기거나 크기를 바꾼 요소를 모두 지우고 규칙대로 다시 그려요(되돌리기 한 걸음)">규칙대로 다시 그리기</button>
-    <button type="button" class="btn" id="iToolRuler" aria-pressed="${!rulerOff}">${rulerOff ? '룰러 켜기' : '룰러 끄기'}</button></div>
+    <button type="button" class="btn" id="iToolRegen" style="width:100%" ${edited ? '' : 'disabled'} title="옮기거나 크기를 바꾼 요소를 모두 지우고 규칙대로 다시 그려요(되돌리기 한 걸음)">규칙대로 다시 그리기</button>
     <div class="fnote">${edited ? `직접 옮긴·고친 소재 ${edited}종` : '직접 옮긴 요소 없음'}</div>
     </section>`;
 }
-function applyRulerPref() { let off = false; try { off = localStorage.getItem('mbm-ruler-off') === '1'; } catch {} $('viewport')?.classList.toggle('noruler', off); if (!off) RULER?.draw(); }
+// 11-25 노션 「우측 탭 항목 제거 — 도구 > 룰러 끄기 + 룰러 기능 제거」: 룰러는 늘 숨김(켜는 버튼도 걷음)
+function applyRulerPref() { $('viewport')?.classList.add('noruler'); }
 function bindHubSecs(insp, c) {
   const q = s => insp.querySelector(s);
   // 페이지(캔버스) 색 — 보드 아래 색 칸(#canvasBg)과 같은 값
@@ -3634,18 +3736,16 @@ function renderInspectorBody() {
       </section>
       <section class="isec" id="secFill">${bgControlHtml(c.style, 'iBg')}</section>
       <section class="isec" id="secStroke">${strokeSectionHtml('iCampSt', c.style.stroke ?? null)}</section>
-      <section class="isec" id="secVisual"><h3>키비주얼 <span class="mode">모든 소재</span></h3>
+      <section class="isec" id="secVisual"><h3>키비주얼</h3>
+      ${c.style.keyVisual ? `<div class="kvbar"><button type="button" class="btn" id="iKvPick">이미지 교체</button>${c.style.kvMeta?.manual?.region || c.style.kvMeta?.field?.manual?.region ? '<button type="button" class="btn" id="iKvAutoSel">자동 선택</button>' : ''}</div>` : ''}
       <div class="kvthumb" id="iKv" style="width:100%;height:${c.style.keyVisual && c.style.kvMeta ? 170 : 76}px;${c.style.keyVisual ? `background-image:url(${refOf(c.style.keyVisual)})` : ''}">${c.style.keyVisual ? '' : '업로드 · 교체'}</div>
       <input type="file" id="iKvFile" accept="image/*" style="display:none">
-      ${c.style.keyVisual ? `<div class="kvvrow">${[['wide', '가로형'], ['tall', '세로형']].map(([k, n]) => { const v = c.style.kvVariants?.[k]; return `<div class="kvthumb logo" id="iKvV-${k}" title="${k === 'wide' ? '폭이 긴' : '세로로 긴'} 규격에 쓸 그림 — 없으면 기본 키비주얼" style="${v ? `background-image:url(${refOf(v.keyVisual)})` : ''}">${v ? '' : `${n}<br>(선택)`}</div><input type="file" id="iKvV-${k}File" accept="image/*" style="display:none">${v ? `<button type="button" class="lnk" data-ikvvdel="${k}" style="font-size:11px">${n} 빼기</button>` : ''}`; }).join('')}</div>` : ''}
-      ${c.style.keyVisual ? `<div class="fgrid2" style="margin-top:8px"><button type="button" class="btn" id="iKvPick">바꾸기</button><button class="btn" id="iKvColors">색 다시 맞춤</button></div>` : ''}
-      <div id="iKvSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
-      ${c.style.keyVisual ? `<div style="display:flex;justify-content:flex-end;margin-top:2px"><button type="button" class="lnk" id="iKvClear">키비주얼 제거</button></div>
-      <div style="display:flex;gap:6px;margin-top:6px">
+      ${c.style.keyVisual && c.style.kvMeta ? `<div class="kvhint" id="iKvHint">${c.style.kvMeta?.manual?.region || c.style.kvMeta?.field?.manual?.region ? '모서리를 끌어 크기를 조절하세요.' : '드래그해서 보여줄 영역을 지정할 수 있어요.'}</div>` : ''}
+      ${c.style.keyVisual ? `<div style="display:flex;gap:6px;margin-top:6px">
         ${(aiKeyReady() || c.ai) ? `<button class="btn" id="iKvAi" style="flex:1" title="Claude 가 그림을 한 번 보고 모양 묶음마다 그림 자리·크기·지면을 정해요. 글자·타이포·검수는 규칙 그대로예요. 기본안에만 효과가 있어요(시안 틀은 이 값을 안 읽어요). 위쪽 「Claude 연결하기」로 연결한 계정으로 돌아요">${c.ai ? 'AI 그림 판단 다시' : 'AI 그림 판단'}</button>` : ''}
-        ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>
-      ${c.ai ? `<div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">AI 판단(${c.ai.model ?? ''} · $${c.ai.cost ?? '?'}): ${c.ai.analysis?.rationale ?? ''}</div>` : ''}` : ''}
+        ${c.ai ? `<button class="btn" id="iKvAiClear" style="flex:1">AI 판단 해제</button>` : ''}</div>` : ''}
       </section>
+      ${c.style.keyVisual ? kvFadeHtml(c.style.kvFade) : ''}
       <section class="isec" id="secLogo"><h3>로고 <span class="mode">모든 소재</span></h3>
       <div class="flab sub"><span>원색 / 다크 지면용 흰색</span></div>
       <div style="display:flex;gap:6px">
@@ -3657,27 +3757,25 @@ function renderInspectorBody() {
       ${c.style.logo ? `<button class="btn" id="iLogoMakeWhite" style="width:100%;margin-top:6px">원색 로고로 흰색 로고 만들기</button>` : ''}
       <div id="iLogoSpec" class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)"></div>
       </section>
-      <section class="isec" id="secText"><h3>글자 <span class="mode">모든 소재</span></h3>
-      <div class="prow" style="margin-top:0"><label for="iFont">폰트</label><select id="iFont">${fontOptions(c.style.fonts.heading)}</select></div>
-      <div style="display:flex;justify-content:flex-end"><button type="button" class="lnk" id="iFontUp">폰트 파일 첨부</button></div>
+      <section class="isec" id="secText"><h3>글자</h3>
+      <label for="iFont">글꼴</label>
+      <select id="iFont" style="width:100%">${fontOptions(c.style.fonts.heading)}</select>
+      <button type="button" class="btn" id="iFontUp" style="width:100%;margin-top:6px">폰트 파일 첨부</button>
       <input type="file" id="iFontFile" accept=".woff2,.woff,.ttf,.otf" style="display:none">
-      <label>칠</label>
-      <div class="fstack" id="iTextColorRow">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자 칠(모든 소재)', tail: c.style.textColor ? '' : '자동', idle: !c.style.textColor, after: c.style.textColor ? iconBtn('swap', '자동 글자색으로(지면에 맞춰 흰색·검정)', 'id="iTextColorReset"') : '' })}</div>
+      <label>색상</label>
+      ${(() => { const tc = String(c.style.textColor ?? '').toUpperCase(), k = !tc ? 'auto' : tc === '#FFFFFF' ? 'white' : tc === '#000000' ? 'black' : 'custom'; return `<div class="fseg" id="iTextTone" role="group" aria-label="글자 색">${[['auto', '자동'], ['white', '흰색'], ['black', '검정색']].map(([v, n]) => `<button type="button" data-tt="${v}" class="${k === v ? 'on' : ''}" aria-pressed="${k === v}">${n}</button>`).join('')}</div>`; })()}
+      <div class="fstack" id="iTextColorRow" style="margin-top:6px">${colorRowHtml({ id: 'iTextColor', value: c.style.textColor ?? '#333333', label: '글자 색(모든 소재)', tail: c.style.textColor ? '' : '자동', idle: !c.style.textColor, after: '' })}</div>
       ${ED.alignCampaignHtml()}
       </section>
       <section class="isec" id="secStyle"><h3>브랜드 색 ${(c.swatches?.length ?? 0) < 8 ? iconBtn('plus', '사용자 색 추가 — 색 고르기 칸에 견본으로 떠요', 'id="iSwAdd"') : ''}</h3>
       <div class="selcol">${[['iColor1', '주색', c.style.palette.primary], ['iColor2', '보조', c.style.palette.secondary], ['iColor3', '포인트', c.style.palette.accent]].map(([k, n, v]) => { const x = String(v ?? '#888888').toUpperCase(); return `<label class="selsw" title="${n} ${x} — 모든 소재"><span class="fsw"><i style="background:${x}"></i><input type="color" id="${k}" value="${x.toLowerCase()}" aria-label="${n}"></span><em>${n}</em></label>`; }).join('')}</div>
       ${c.swatches?.length ? `<div class="flab sub"><span>사용자 색</span></div><div class="fstack">${c.swatches.map((v, i) => colorRowHtml({ id: `iSw${i}`, value: v, label: `사용자 색 ${i + 1}`, tail: '견본', after: iconBtn('minus', `사용자 색 ${i + 1} 빼기`, `data-swdel="${i}"`) })).join('')}</div>` : ''}
       </section>
-      ${exportSecHtml(c)}
       ${toolSecHtml(c)}
-      <details class="isec iacc" id="iCampAdv" ${state.campAdvOpen ? 'open' : ''}><summary><h3>고급 ${ic('chev')}</h3></summary>
-      ${ED.presetCampaignHtml(['textAnchor'])}
-      </details>
       ${adsN.some(x => x.channel === 'ad') ? `<section class="isec isec-free"><h3>대화로 시안 뽑기</h3>
       <div class="fontNote" style="font-size:11px;line-height:1.5;color:var(--sub);margin-bottom:6px">Claude 가 키비주얼로 새 배경·자유 타이포를 만들어요(위쪽 「Claude 연결하기」로 연결한 계정). 규칙은 검수기가 강제.</div>
       <button class="btn" id="iFreeOpenAll" style="width:100%">대화로 시안 뽑기</button></section>` : ''}
-      ${c.kind !== undefined && (c.media?.length || c.adSpecIds?.length) ? mediaAddHtml(c) : ''}
+      ${''/* 11-25 매체 추가 생성은 왼쪽 패널 「매체」 아래로(패키지 단위) */}
       </div>
       <div id="paneReview" role="tabpanel" aria-label="검수"${state.rightTab === 'review' ? '' : ' hidden'}>
       <section class="isec"><h3>검수 <span class="mode">승인 ${adsN.filter(x => x.status === 'approved').length}/${adsN.length}</span></h3>
@@ -3694,6 +3792,7 @@ function renderInspectorBody() {
       colors: [insp.querySelector('#iColor1').value.toUpperCase(), insp.querySelector('#iColor2').value.toUpperCase(), insp.querySelector('#iColor3').value.toUpperCase()],
       fonts: { heading: insp.querySelector('#iFont').value, body: insp.querySelector('#iFont').value },
     });
+    bindKvFade(insp, c, restyle);   // 11-25 이미지 그라데이션
     // 컬러피커는 드래그하는 내내 값이 흐른다 — 한 번의 색 고르기가 되돌리기 한 걸음이 되도록 묶는다
     const styleChange = debounce(() => restyle({}, '스타일 변경', true), 350);
     // 끄는 동안 보드가 따라오고(liveStyle), 피커를 놓을 때 한 번 정식으로 — 되돌리기도 그 한 걸음(10-19: 손으로 고른 색은 지면까지 따라간다)
@@ -3741,6 +3840,7 @@ function renderInspectorBody() {
     // 글자색 직접 지정(style.textColor, 11-02 컨시어지 「브랜드컬러 외 폰트 색상」) — 일괄. 규정 매체는 렌더러가 무시(textColor.ignored). 되돌리기 = null(톤대로)
     const tcIn = insp.querySelector('#iTextColor'); if (tcIn) { tcIn.oninput = () => liveStyle(c, { textColor: tcIn.value.toUpperCase() }, { colors: curColors(), keepPrev: true }); tcIn.onchange = () => { const v = tcIn.value.toUpperCase(); if ((c.style.textColor ?? null) === v) { liveRevert(); return; } softly(() => restyle({ textColor: v, textTone: 'auto' }, `글자색 직접 ${v}`)); renderInspector(); }; }
     const tcRs = insp.querySelector('#iTextColorReset'); if (tcRs) tcRs.onclick = () => { restyle({ textColor: null }, '글자색 직접 지정 해제'); renderInspector(); };
+    insp.querySelectorAll('#iTextTone [data-tt]').forEach(b => b.onclick = () => { const v = { auto: null, white: '#FFFFFF', black: '#000000' }[b.dataset.tt]; restyle({ textColor: v }, v ? `글자색 ${b.textContent}` : '글자색 자동'); renderInspector(); });   // 11-25 노션 글자 설정: 자동 · 흰색 · 검정색
     insp.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => setBg({ color: b.dataset.fc }, '지면색 선택'));
     // 캠페인에 실제로 들어간 규격 기준으로 해상도를 판정한다
     const dpiBox = insp.querySelector('#iDpi');
@@ -3783,7 +3883,8 @@ function renderInspectorBody() {
     const kvIn = insp.querySelector('#iKvFile');
     insp.querySelector('#iKv').onclick = () => kvIn.click();
     // 보여 줄 영역 지정(11-02): 캠페인 kvMeta.manual — 바꾸면 restyle(regen) 으로 소재가 다시 그려진다
-    if (c.style.keyVisual && c.style.kvMeta) mountKvFocus(insp.querySelector('#iKv'), { kvMeta: c.style.kvMeta, onLive: region => liveStyle(c, { kvMeta: withManual(c.style.kvMeta, { region }) }, { colors: curColors(), keepPrev: true }), onLiveCancel: liveRevert, onChange: m => {
+    insp.querySelector('#iKvAutoSel')?.addEventListener('click', () => { softly(() => restyle({ kvMeta: withManual(c.style.kvMeta, null) }, '키비주얼 영역 자동')); renderInspector(); toast('자동 판정으로 다시 그렸어요'); });   // 11-25 「자동 선택」 = 지정 영역 버리고 기본값
+    if (c.style.keyVisual && c.style.kvMeta) mountKvFocus(insp.querySelector('#iKv'), { chrome: false, onRegion: r => { const h = insp.querySelector('#iKvHint'); if (h) h.textContent = r ? '모서리를 끌어 크기를 조절하세요.' : '드래그해서 보여줄 영역을 지정할 수 있어요.'; }, kvMeta: c.style.kvMeta, onLive: region => liveStyle(c, { kvMeta: withManual(c.style.kvMeta, { region }) }, { colors: curColors(), keepPrev: true }), onLiveCancel: liveRevert, onChange: m => {
       softly(() => restyle({ kvMeta: withManual(c.style.kvMeta, m) }, m ? '키비주얼 보여 줄 영역 지정' : '키비주얼 영역 자동'));
       renderInspector(); insp.querySelector('#iKv .kvfocus')?.focus();
       toast(m ? '지정한 영역으로 모든 규격을 다시 그렸어요' : '자동 판정으로 다시 그렸어요');
@@ -4153,7 +4254,7 @@ function renderInspectorBody() {
   }
   insp.querySelector('#iOpen').onclick = () => openHtml(resolveRefs(a.html));   // 새 창·저장용 — 그림 바이트째
   const expBtn = insp.querySelector('#iExp');   // 11-23: 광고 소재는 「내보내기」 섹션 안 — 요소를 고르면 그 섹션이 없다(없으면 건너뛴다)
-  if (expBtn) expBtn.onclick = () => { if (gateOf(a)?.state === 'blocked' && a.channel !== 'ad') { toast(a.channel === 'asset' ? (a.assetNote ?? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다') : '규정 차단 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용. 차단 매체 소재는 이미지 전달만 막고 수정용 SVG 는 연다(10-28)
+  if (expBtn) expBtn.onclick = () => { if (gateOf(a)?.state === 'blocked' && a.channel !== 'ad') { toast(a.channel === 'asset' ? (a.assetNote ?? '전달물 규정 미달 — 더 큰 원본을 받아야 합니다') : '가이드 위반 — 고치기 전에는 내보낼 수 없어요'); return; } exportArtifactModal(a); };   // 검토용 미승인 내보내기는 허용. 차단 매체 소재는 이미지 전달만 막고 수정용 SVG 는 연다(10-28)
   // 산출물 하나 승인 — ready 는 바로, review·draft 는 사유를 적어야(사례 기록의 입력), blocked 는 불가
   const approveBtn = insp.querySelector('#iApprove');
   if (approveBtn) approveBtn.onclick = () => {
@@ -4161,7 +4262,7 @@ function renderInspectorBody() {
     const after = () => { statusBadges(k); renderInspector(); saveCampaignToStore(); };
     if (a.status === 'approved') { a.status = 'draft'; a.gateOverride = null; logEvent(c, 'artifact_unapproved', { key: k }); after(); return; }
     const g = gateOf(a);
-    if (g?.state === 'blocked') { toast('규정 차단 — 고치기 전에는 승인할 수 없어요'); return; }
+    if (g?.state === 'blocked') { toast('가이드 위반 — 고치기 전에는 승인할 수 없어요'); return; }
     if (g?.state === 'pending') { toast('규격 검사 중 — 잠시 후 다시'); return; }
     if (g?.state === 'ready') { a.status = 'approved'; a.gateOverride = null; logEvent(c, 'artifact_approved', { key: k, gate: 'ready' }); after(); toast(`${artLabel(a)} 승인`); return; }
     modal({
@@ -4228,6 +4329,7 @@ function nextStyle(c, patch = {}, { colors, fonts } = {}) {
     mode: c.style.mode,
     background: c.style.background,
     kvUse: c.style.kvUse,
+    kvFade: c.style.kvFade ?? null,   // 11-25 이미지 그라데이션(녹임 세기) — 색·글꼴만 바꿔도 남는다
     kvTypeOverride: c.style.kvTypeOverride ?? null,
     aiSlots: c.style.aiSlots ?? null,   // 11-10 Claude 가 고른 추가 시안 방향 — 색·글꼴만 바꿔도 남는다
     chipTone: c.style.chipTone,
@@ -4355,6 +4457,40 @@ function bindMediaAdd(insp, c) {
     renderInspector();
   });
 }
+// 11-25 노션 「[UI] 좌측 패널 업데이트 — 매체 추가 생성을 패키지 단위로」: 매체마다 패키지 목록(자소설 PC 프리미엄·PC 스탠다드…, 리멤버 메인 상단·메인 중간…),
+//   매체 이름 옆 체크 = 그 매체 전체. 이미 만든 패키지는 체크·잠금. NAP DSP 는 매체 전체가 한 패키지. 고른 패키지의 추출 규격만 더 만든다(있는 소재·편집·승인 그대로)
+function packageAddModal() {
+  const c = state.campaign; if (!c) return;
+  const have = new Set(c.artifacts.map(a => a.specId));
+  const byMedium = new Map();
+  for (const g of extractSpecGroups()) { const sp = SPECS[g.id]; if (!sp || sp.channel !== 'ad' && sp.channel !== 'asset') continue; const m = sp.medium; const pk = packageOf(sp) ?? sp.mediumName ?? m; if (!byMedium.has(m)) byMedium.set(m, new Map()); const P = byMedium.get(m); if (!P.has(pk)) P.set(pk, []); P.get(pk).push(g.id); }
+  const media = [...byMedium.keys()].sort((x, y) => mediumRank(x) - mediumRank(y));
+  const body = `<div class="pkgpick">${media.map(m => { const P = byMedium.get(m); const all = [...P.values()].flat(), allHave = all.every(id => have.has(id));
+    return `<label class="pm"><input type="checkbox" data-pm="${m}" ${allHave ? 'checked disabled' : ''}>${escH(mediumName(m))}</label>${[...P].map(([pk, ids]) => { const h = ids.every(id => have.has(id)); return `<label class="pp${h ? ' have' : ''}"><input type="checkbox" data-pkm="${m}" data-pk="${escH(pk)}" ${h ? 'checked disabled' : ''}>${escH(pk)}<small>${ids.length}종${h ? ' · 만듦' : ''}</small></label>`; }).join('')}`; }).join('')}</div>`;
+  modal({ title: '매체 추가 생성', body, actions: [{ label: '취소' }, { label: '추가 생성', pri: true, fn: () => {
+    const picked = [...$('modalBody').querySelectorAll('input[data-pk]:checked:not(:disabled)')];
+    const ids = picked.flatMap(i => byMedium.get(i.dataset.pkm)?.get(i.dataset.pk) ?? []).filter(id => !have.has(id));
+    if (!ids.length) { toast('추가할 패키지를 고르세요'); return false; }
+    const before = c.artifacts.length;
+    pushHistory(`매체 추가 생성 ${picked.map(i => i.dataset.pk).join('·')}`);
+    addArtifacts(ids.map(specId => ({ specId, purpose: 'main', arrow: null })));
+    const n = c.artifacts.length - before;
+    logEvent(c, 'media_added', { packages: picked.map(i => `${i.dataset.pkm}:${i.dataset.pk}`), count: n });
+    toast(`소재 ${n}장 추가 — 기존 소재는 그대로`); renderInspector();
+  } }] });
+  const box = $('modalBody');
+  box.querySelectorAll('input[data-pm]').forEach(cb => cb.onchange = () => box.querySelectorAll(`input[data-pkm="${cb.dataset.pm}"]:not(:disabled)`).forEach(x => { x.checked = cb.checked; }));
+  box.querySelectorAll('input[data-pk]').forEach(cb => cb.onchange = () => { const m = cb.dataset.pkm, all = [...box.querySelectorAll(`input[data-pkm="${m}"]`)], head = box.querySelector(`input[data-pm="${m}"]`); if (head && !head.disabled) head.checked = all.every(x => x.checked); });
+}
+$('lMediaAdd')?.addEventListener('click', () => packageAddModal());
+// 11-25 왼쪽 패널 폭 조절 — 끌면 --lw(220~520), 기억
+{ const h = $('lResize'); const apply = w => { $('work')?.style.setProperty('--lw0', `${w}px`); };
+  try { const w0 = +localStorage.getItem('mbm-lw'); if (w0 >= 220 && w0 <= 520) apply(w0); } catch {}
+  if (h) h.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); h.classList.add('on'); try { h.setPointerCapture(e.pointerId); } catch {}
+    const x0 = e.clientX, w0 = $('leftPanel').getBoundingClientRect().width; let w = w0;
+    const mv = ev => { w = Math.round(Math.min(520, Math.max(220, w0 + ev.clientX - x0))); apply(w); };
+    const up = () => { h.classList.remove('on'); h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up); try { localStorage.setItem('mbm-lw', String(w)); } catch {} RULER?.draw(); };
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up); }); }
 function addArtifactModal() {
   const c = state.campaign;
   const have = new Set(c.artifacts.map(a => a.key ?? a.specId));
@@ -4521,8 +4657,8 @@ async function doAdExport(a, { force = false } = {}) {   // force: 차단 소재
   toast('소재 생성 중…');
   try {
     const [{ fit, name }] = await exportAdFiles([a]);
-    if (fit.lint.level === 'block' && !force) { toast(`규격 차단 — ${fit.lint.issues[0]?.msg ?? ''}`); return; }
-    if (fit.lint.level === 'block') toast('규정 차단 소재를 내보냈어요 — 매체에서 반려될 수 있어요');
+    if (fit.lint.level === 'block' && !force) { toast(`가이드 위반 — ${fit.lint.issues[0]?.msg ?? ''}`); return; }
+    if (fit.lint.level === 'block') toast('가이드 위반 소재를 내보냈어요 — 매체에서 반려될 수 있어요');
     download(fit.measure.blob, name);
     const kb = (fit.measure.bytes / 1024).toFixed(0);
     log(`내보내기: ${name} · ${kb}KB${fit.attempts.length > 1 ? ` (${fit.attempts.map(x => x.label).join('→')})` : ''}`);
@@ -4569,14 +4705,14 @@ async function doAdSvg(a) {
     closeModal();
   } catch (e) { toast(`실패: ${e.message}`); }
 }
-async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false, only = null, includeBlocked = null } = {}) {   // only: Set<키> — 선택한 소재만(11-02) · includeBlocked: 차단 소재 포함(null 이면 물어본다, 11-09)
+async function exportAdZip(withSvg = false, { allVariants = false, includeUnapproved = false, only = null, includeBlocked = null, svgOnly = false } = {}) {   // svgOnly: 11-25 내보내기 형식 「SVG」 — 이미지 없이 svg 만   // only: Set<키> — 선택한 소재만(11-02) · includeBlocked: 차단 소재 포함(null 이면 물어본다, 11-09)
   const c = state.campaign;
   // ZIP 은 승인분만(10-20 운영 모델) — 승인 게이트를 지난 것만 매체로 나간다. 검토용 낱장은 인스펙터 「내보내기」로.
-  // 「미승인도 포함(검토용)」(10-21 사용자 「전체 선택했는데 1단계 산출물만 추출됨」 — 2·3단계는 게이트가 검수 필요라 승인분만 ZIP 에 들어갔다)을 켜면 차단 아닌 미승인도 「미승인_검토용/」 폴더로 함께
+  // 「미승인도 포함(검토용)」(10-21 사용자 「전체 선택했는데 1단계 산출물만 추출됨」 — 2·3단계는 게이트가 확인 필요라 승인분만 ZIP 에 들어갔다)을 켜면 차단 아닌 미승인도 「미승인_검토용/」 폴더로 함께
   let { all, approved, ads, assets } = pickForExport(c.artifacts, { only, includeUnapproved });   // app/select.js — only 가 있으면 선택한 소재(전달물 포함)만
   // 11-09 차단 소재: 확인을 받고 「규정차단_확인필요/」 폴더로 함께(매체 전달분과 섞지 않는다)
   const blockedArts = all.filter(a => gateOf(a)?.state === 'blocked');
-  if (blockedArts.length && includeBlocked == null) { confirmBlockedExport(blockedArts, inc => exportAdZip(withSvg, { allVariants, includeUnapproved, only, includeBlocked: inc }), { canSkip: true }); return; }
+  if (blockedArts.length && includeBlocked == null) { confirmBlockedExport(blockedArts, inc => exportAdZip(withSvg, { allVariants, includeUnapproved, only, includeBlocked: inc, svgOnly }), { canSkip: true }); return; }
   if (includeBlocked && blockedArts.length) { const keep = new Set([...ads, ...blockedArts]); ads = all.filter(a => keep.has(a)); }
   const blockedKey = new Set(includeBlocked ? blockedArts.map(a => a.key ?? a.specId) : []);
   if (only && !all.length) { toast('선택한 소재 중 매체 소재가 없어요'); return; }
@@ -4593,8 +4729,8 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
   try {
     const files = await exportAdFiles(ads, { allVariants, progress: P });
     const blocked = files.filter(f => f.fit.lint.level === 'block');
-    if (blocked.length && includeBlocked) toast(`규정 차단 ${blocked.length}건은 「규정차단_확인필요/」 폴더에 — 매체에서 반려될 수 있어요`);
-    else if (blocked.length) { toast(`규격 차단 ${blocked.length}건 — 이미지는 ZIP 에서 제외${withSvg && includeUnapproved ? ' (수정용 SVG 는 미승인_검토용/svg/ 에)' : withSvg ? ' (「미승인도 포함」을 켜면 수정용 SVG 는 들어가요)' : ''}`); }
+    if (blocked.length && includeBlocked) toast(`가이드 위반 ${blocked.length}건은 「규정차단_확인필요/」 폴더에 — 매체에서 반려될 수 있어요`);
+    else if (blocked.length) { toast(`가이드 위반 ${blocked.length}건 — 이미지는 ZIP 에서 제외${withSvg && includeUnapproved ? ' (수정용 SVG 는 미승인_검토용/svg/ 에)' : withSvg ? ' (「미승인도 포함」을 켜면 수정용 SVG 는 들어가요)' : ''}`); }
     const entries = [];
     for (const f of files.filter(f => includeBlocked || f.fit.lint.level !== 'block')) {
       const k0 = f.a?.key ?? f.a?.specId ?? f.spec.id;
@@ -4639,10 +4775,11 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
       }
       if (svgBlocked) toast(`차단 소재 ${svgBlocked}장은 수정용 SVG 만 「미승인_검토용/svg/」에 — 이미지 매체 전달은 막혀 있어요`);
     }
+    if (svgOnly) entries.splice(0, entries.length, ...entries.filter(e => /(^|\/)svg\//.test(e.name)));
     P.phase('ZIP 으로 묶는 중'); await P.step('거의 다 됐어요');
     const vdir = `v${c.context.version}/`;   // 회차는 파일명이 아니라 폴더로(10-28 파일명 양식)
     const zip = buildZip(entries.map(e => ({ ...e, name: vdir + e.name })));
-    download(new Blob([zip], { type: 'application/zip' }), `${String((c.kind === 'recruit' ? c.context.core.client : c.context.core.name) ?? c.id).replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 40)}_매체소재${withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
+    download(new Blob([zip], { type: 'application/zip' }), `${String((c.kind === 'recruit' ? c.context.core.client : c.context.core.name) ?? c.id).replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_').slice(0, 40)}_매체소재${svgOnly ? '_SVG' : withSvg ? '+SVG' : ''}_v${c.context.version}.zip`);
     const fittedN = files.filter(f => f.fit.fitted).length;
     log(`내보내기: 매체 소재 ZIP ${rasterN}장${withSvg ? ` + SVG ${entries.length - rasterN}장` : ''} (${[...new Set(files.map(f => f.spec.mediumName))].join(', ')})${svgFallbacks.size ? ` · SVG 대체: ${[...svgFallbacks].join(' / ')}` : ''}${fittedN ? ` · 용량 맞춤 ${fittedN}장: ${files.filter(f => f.fit.fitted).map(f => `${f.name} ${f.fit.fitted.label} ${(f.fit.fitted.bytes / 1024).toFixed(0)}KB`).join(' / ')}` : ''}`);
     if (fittedN) toast(`용량 맞춤 ${fittedN}장 — 품질 단계·단색 배경으로 상한 아래로 (로그에 장별 용량)`);
@@ -4657,7 +4794,7 @@ async function exportAdZip(withSvg = false, { allVariants = false, includeUnappr
 function confirmBlockedExport(list, go, { canSkip = false } = {}) {
   const why = a => { const g = gateOf(a); const m = a.lint?.issues?.find(i => i.level === 'block')?.msg ?? g?.reasons?.[0] ?? '규정 미준수'; return `<li><b>${escH(artLabel(a))}</b> — ${escH(m)}</li>`; };
   modal({
-    title: `규정 차단 소재 ${list.length}건`,
+    title: `가이드 위반 소재 ${list.length}건`,
     desc: '매체 규정에 맞지 않아 반려될 수 있어요. 사유를 확인하고 내보낼지 골라 주세요.',
     body: `<ul style="font-size:12.5px;line-height:1.7;margin:0;padding-left:18px;max-height:260px;overflow:auto">${list.slice(0, 40).map(why).join('')}${list.length > 40 ? `<li>외 ${list.length - 40}건</li>` : ''}</ul>`,
     actions: [
@@ -4672,7 +4809,7 @@ function exportAdModal(a) {
   const blocked = gateOf(a)?.state === 'blocked';   // 차단 소재: 이미지(매체 전달)는 막고 수정용 SVG 만(10-28 담당자 「미승인이어도 2차 수정용 추출」)
   modal({
     title: `${artLabel(a)} 내보내기`,
-    desc: blocked ? '규정 차단 소재 — 차단 사유를 확인하면 이미지도 내보낼 수 있어요. 고치기 위한 SVG(Figma 편집용)도 뽑을 수 있어요.' : '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
+    desc: blocked ? '가이드 위반 소재 — 차단 사유를 확인하면 이미지도 내보낼 수 있어요. 고치기 위한 SVG(Figma 편집용)도 뽑을 수 있어요.' : '매체 규격 그대로 — 치수·포맷·용량을 맞춰 뽑고, 규정에 안 맞으면 내보내지 않습니다.',
     body: `<div style="font-size:12.5px;color:var(--sub);line-height:1.7">${adRulesText(spec)}<br>파일명: <b>${adFileName(a, spec.format[0])}</b> · SVG 는 작업 크기 ${spec.w}×${spec.h}(1배)${a.fitNote ? `<br>용량 맞춤: ${escH(a.fitNote)}` : ''}</div>
       <div style="margin-top:10px">${lintHtml(a)}</div>
       ${blocked ? '<div style="font-size:12px;color:var(--danger);line-height:1.6;margin-top:8px">차단 사유를 고치면 그대로 내보낼 수 있어요. 지금 이미지가 필요하면 「확인하고 다운로드」 — 매체에서 반려될 수 있어요. SVG 는 수정용이에요.</div>' : ''}
@@ -4765,7 +4902,32 @@ async function doBannerExport(a) {
   } catch (e) { toast(`실패: ${e.message}`); }
 }
 
+// 11-25 노션 「내보내기 팝업 단순화」: 제목 · 선택된 소재 N개(목록) · 형식 드롭다운 + 내보내기 버튼 한 줄. 설명·체크박스·버튼 여럿은 걷는다.
+//   대상 = 보드에서 고른 소재(선택 도구 끌기·Shift+클릭), 없으면 전체(「전체 소재」). 형식: ZIP(PNG+SVG) 기본 · PNG · SVG — HTML 일괄·인쇄 PDF 는 뺀다.
+//   승인 여부는 묻지 않는다(미승인은 ZIP 안 「미승인_검토용/」, 가이드 위반은 확인을 받고 따로 — exportAdZip 그대로)
 function exportAllModal() {
+  const c = state.campaign;
+  const adsAll = c.artifacts.filter(a => a.channel === 'ad' || a.channel === 'asset');
+  if (!adsAll.length) return exportAllModalOld();
+  const picked = SEL.selected(); const pickedArts = picked ? adsAll.filter(a => picked.has(a.key ?? a.specId)) : [];
+  const list = pickedArts.length ? pickedArts : adsAll;
+  const byMedium = new Map(); for (const a of list) { const m = SPECS[a.specId]?.mediumName ?? '기타'; if (!byMedium.has(m)) byMedium.set(m, []); byMedium.get(m).push(a); }
+  const sizeOf = a => { const sp = SPECS[a.specId]; const W = sp?.submitW ?? sp?.w, H = sp?.submitH ?? sp?.h; return a.channel === 'asset' ? '전달물' : (W && H ? `${W}×${H}` : ''); };
+  const nameOf = a => { const sp = SPECS[a.specId]; const n = String(sp?.rules?.name ?? sp?.title ?? a.specId); const i = n.search(/\s[-—]\s/); return (i > 0 ? n.slice(i + 3) : n).replace(/\s*\([^)]*\)/g, '').replace(/\s*\d+\s*[×x*]\s*\d+.*$/, '').trim(); };
+  modal({
+    title: '내보내기',
+    body: `<button type="button" class="expx" id="expX" aria-label="닫기">×</button><div class="expsel"><b>${pickedArts.length ? '선택된 소재' : '전체 소재'}</b> · ${list.length}개</div>
+      <div class="explist">${[...byMedium].map(([m, arr]) => `<div class="expm"><span>${escH(m)}</span><span>${arr.length}</span></div>${arr.map(a => `<div class="expr"><span>${escH(nameOf(a))}</span><span>${escH(sizeOf(a))}</span></div>`).join('')}`).join('')}</div>
+      <div class="expbar"><select id="expFmt" aria-label="내보내기 형식"><option value="zip" selected>ZIP (PNG+SVG)</option><option value="png">PNG</option><option value="svg">SVG</option></select><button type="button" class="btn pri" id="expGo">내보내기</button></div>`,
+    actions: [],
+  });
+  $('expX').onclick = () => closeModal();
+  const go = $('expGo'); if (go) go.onclick = () => {
+    const f = $('expFmt').value, only = pickedArts.length ? new Set(pickedArts.map(a => a.key ?? a.specId)) : null;
+    exportAdZip(f !== 'png', { includeUnapproved: true, only, svgOnly: f === 'svg' });
+  };
+}
+function exportAllModalOld() {
   const c = state.campaign;
   ensureAllVariants(c);   // 「전체 안 포함」 칸이 안 목록을 본다(편집 뒤 미뤄 둔 안, 11-09)
   const banners = c.artifacts.filter(a => a.channel === 'banner' || a.channel === 'gwthumb');
@@ -4865,18 +5027,18 @@ function approveAll() {
   const li = (arr, label) => arr.length ? `<li><b>${label} ${arr.length}장</b> — ${arr.slice(0, 6).map(a => escH(artLabel(a))).join(' · ')}${arr.length > 6 ? ' …' : ''}</li>` : '';
   modal({
     title: '승인 — 검사 통과분만',
-    desc: '규정 차단은 승인할 수 없습니다. 검수 필요·초안은 산출물을 열어 사유를 적고 하나씩 승인합니다.',
-    body: `<ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8">${li(ready, '승인 가능')}${li(others, '게이트 밖(인쇄·온라인)')}${li(review, '검수 필요')}${li(draft, '초안(자유 배치)')}${li(blocked, '차단')}</ul>`,
+    desc: '가이드 위반은 승인할 수 없습니다. 확인 필요·초안은 산출물을 열어 사유를 적고 하나씩 승인합니다.',
+    body: `<ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8">${li(ready, '문제 없음')}${li(others, '게이트 밖(인쇄·온라인)')}${li(review, '확인 필요')}${li(draft, '초안(자유 배치)')}${li(blocked, '차단')}</ul>`,
     actions: [
       { label: '돌아가기' },
       { label: `${n}장 승인`, pri: n > 0, fn: () => {
-        if (!n) { toast('승인 가능한 소재가 없어요'); return false; }
+        if (!n) { toast('문제 없는 소재가 없어요'); return false; }
         for (const a of [...ready, ...others]) { a.status = 'approved'; a.gateOverride = null; }
         logEvent(c, 'artifact_approved', { count: n, gate: 'ready', skipped: { review: review.length, draft: draft.length, blocked: blocked.length } });
         statusBadges(); renderInspector(); saveCampaignToStore();
         const kpi = c.log.reduce((m, e) => (m[e.type] = (m[e.type] ?? 0) + 1, m), {});
-        log(`통과분 승인 ${n}장 — 검수 필요 ${review.length} · 초안 ${draft.length} · 차단 ${blocked.length} (생성 ${kpi.artifact_generated ?? 0} · 편집 ${kpi.manual_edit ?? 0} · 전파 ${kpi.propagation_run ?? 0})`);
-        toast(`${n}장 승인 — 남은 검수 필요 ${review.length} · 초안 ${draft.length} · 차단 ${blocked.length}`);
+        log(`통과분 승인 ${n}장 — 확인 필요 ${review.length} · 초안 ${draft.length} · 차단 ${blocked.length} (생성 ${kpi.artifact_generated ?? 0} · 편집 ${kpi.manual_edit ?? 0} · 전파 ${kpi.propagation_run ?? 0})`);
+        toast(`${n}장 승인 — 남은 확인 필요 ${review.length} · 초안 ${draft.length} · 차단 ${blocked.length}`);
       } },
     ],
   });
@@ -4903,7 +5065,7 @@ function saveCampaignToStore() {
       purpose: a.purpose, arrow: a.arrow, overrides: a.overrides,
       guideSkips: a.guideSkips ?? null, guideHuman: a.guideHuman ?? null,   // 가이드 검수 넘김 이유·눈으로 확인(10-14)
       variant: a.variant ?? 0, size: a.size ?? null, status: a.status,
-      gateOverride: a.gateOverride ?? null,   // 검수 필요·초안을 사유 적고 승인한 기록(10-20 승인 게이트)
+      gateOverride: a.gateOverride ?? null,   // 확인 필요·초안을 사유 적고 승인한 기록(10-20 승인 게이트)
       variants: a.variants ?? null, variantSel: a.variantSel ?? 0,   // 레이아웃 안·고른 안(10-20 2단계) — 안은 다시 열 때 재계산되지만 기록으로 남긴다
     })),
     log: c.log,

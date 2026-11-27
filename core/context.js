@@ -22,13 +22,13 @@ export const KINDS = {
     // 11-10 입력 개편(사용자 「상세 쓴 건 어디에도 안 나와서 … 행을 추가한다는 개념으로」): 고용형태·근무지 고정 칸 폐지 → rows(추가 행 [{label, value}], 상세 줄에 모집직무 다음으로).
     //   employType·location·qualification·process 는 옛 데이터 호환으로 칸 이름만 남는다 — migrateRecruitCore 가 rows 로 옮긴다. slogan 은 subText(추가 문구)로 합친다
     fields: ['client', 'role', 'employType', 'location', 'deadline', 'applyUrl', 'qualification', 'process', 'notice',
-      'season', 'hiringType', 'startDate', 'headline', 'slogan', 'deadlineTime', 'subText', 'dateText', 'omit', 'rows'],   // omit: 뺀 요소(쉼표 목록 sub·date·detail — 11-09 사용자 「삭제하고 싶으면 할 수 있게」)   // subText·dateText: 11-09 사용자 「패널은 요소마다 찍히는 문구 그대로 한 칸」 — 비면 자동(시즌·슬로건 / 시작일·마감일)
+      'season', 'hiringType', 'startDate', 'headline', 'slogan', 'deadlineTime', 'subText', 'dateText', 'omit', 'rows', 'tags'],   // tags: 11-25 잡다 하단 태그 직접 편집(배열, 순서 그대로)   // omit: 뺀 요소(쉼표 목록 sub·date·detail — 11-09 사용자 「삭제하고 싶으면 할 수 있게」)   // subText·dateText: 11-09 사용자 「패널은 요소마다 찍히는 문구 그대로 한 칸」 — 비면 자동(시즌·슬로건 / 시작일·마감일)
     // 10-21 레퍼런스 13장 기준(사용자 결정): 메인 = 고객사 + 채용 구분, 상세 = 기간·모집직무. 고용 형태 0장·근무지 1장이라 선택으로. applyUrl 은 선택(10-19 「지원경로는 필요 없을 듯」)
     required: ['client', 'hiringType', 'deadline', 'role'],
     labels: {
       client: '고객사', role: '모집 직무', employType: '고용 형태', location: '근무지', deadline: '지원 마감', applyUrl: '지원 경로',
       qualification: '자격 요건', process: '전형 절차', notice: '필수 고지 문구',
-      season: '연도·시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '공고 타이틀', slogan: '슬로건', deadlineTime: '마감 시각', subText: '추가 문구', dateText: '날짜 문구', omit: '뺀 요소', rows: '추가 행',   // headline: 10-19 사용자 「고객사 이름 이외에 공고 타이틀이 필요 — ○○그룹 2026 하반기 신입 채용!」 → 적으면 그 문장이 메인, 비우면 회사·시즌·채용구분으로 자동
+      season: '연도·시즌', hiringType: '채용 구분', startDate: '접수 시작', headline: '공고 타이틀', slogan: '슬로건', deadlineTime: '마감 시각', subText: '추가 문구', dateText: '날짜 문구', omit: '뺀 요소', tags: '태그', rows: '추가 행',   // headline: 10-19 사용자 「고객사 이름 이외에 공고 타이틀이 필요 — ○○그룹 2026 하반기 신입 채용!」 → 적으면 그 문장이 메인, 비우면 회사·시즌·채용구분으로 자동
     },
   },
 };

@@ -236,7 +236,8 @@ export function createElementSelect(E) {
       let last = null, movedAny = false, dragged = false, told = false;
       try { btn.setPointerCapture(e.pointerId); } catch {}
       const move = ev => {
-        const dX = (ev.clientX - x0) / z, dY = (ev.clientY - y0) / z;
+        let dX = (ev.clientX - x0) / z, dY = (ev.clientY - y0) / z;
+        if (!corner && ev.shiftKey) { if (Math.abs(dX) >= Math.abs(dY)) dY = 0; else dX = 0; }   // 11-25 노션 「Shift 로 일직선 이동」: 더 많이 움직인 축으로만 — 끄는 중 Shift 를 누르거나 떼면 바로
         if (!movedAny && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 3) return;
         dragged = true;
         if (locked) { if (!told) { told = true; E.posLockNote?.(); } return; }
@@ -289,7 +290,8 @@ export function createElementSelect(E) {
     try { holder.setPointerCapture(e.pointerId); } catch {}
     const move = ev => {
       if (!moved0 && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 3) return; moved0 = true;
-      last = sets.map(g => { const z = zoom * g.ds, dX = (ev.clientX - x0) / z, dY = (ev.clientY - y0) / z; return { ...g, rows: g.rows.map(r => ({ ...r, q: moved(g.a, r.it, r.st, dX, dY) })) }; });
+      const ax = ev.shiftKey ? (Math.abs(ev.clientX - x0) >= Math.abs(ev.clientY - y0) ? 'x' : 'y') : null;   // 11-25 Shift = 한 축
+      last = sets.map(g => { const z = zoom * g.ds, dX = ax === 'y' ? 0 : (ev.clientX - x0) / z, dY = ax === 'x' ? 0 : (ev.clientY - y0) / z; return { ...g, rows: g.rows.map(r => ({ ...r, q: moved(g.a, r.it, r.st, dX, dY) })) }; });
       for (const g of last) for (const r of g.rows) { const b = boxes.get(`${E.keyOf(g.a)}${SEP}${r.it.id}`); if (b) place(b, r.q.nb, g.ds); }
       const g0 = last.find(g => g.a === a) ?? last[0]; E.live(g0.a, groupPatch(g0.a, g0.rows));   // 미리보기는 주 선택 소재 — 나머지는 상자만 따라오고 놓을 때 그린다
     };

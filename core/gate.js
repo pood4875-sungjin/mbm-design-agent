@@ -6,7 +6,11 @@
 //   draft    등급 C(자유 배치) 또는 등급 모름 — 디자이너 수정 전제. 개별 승인만
 // 원칙: 확신 없으면 내보내지 않고 표시한다(광고는 틀린 걸 내보내는 비용이 더 크다).
 export const REVIEW_CODES = new Set(['text-over-subject', 'logo-covered', 'text-clipped', 'low-res', 'low-res-logo', 'chip-overflow', 'design-failed']);   // design-failed: 검수 자체가 실패 → 사람이 본다
-export const STATE_LABEL = { blocked: '차단', pending: '검사 중', review: '검수 필요', ready: '승인 가능', draft: '초안' };
+// 11-25 노션 「검수 알림 명칭 수정」: 세 단계로 통일 — 가이드 위반(차단) · 확인 필요(검수 필요·초안) · 문제 없음(승인 가능)
+export const STATE_LABEL = { blocked: '가이드 위반', pending: '검사 중', review: '확인 필요', ready: '문제 없음', draft: '확인 필요' };
+// 상태 → 세 단계(필터·요약 칩). 검사 중은 셈에서 뺀다
+export const STATE_TIER = { blocked: 'violation', review: 'check', draft: 'check', ready: 'ok' };
+export const TIER_LABEL = { violation: '가이드 위반', check: '확인 필요', ok: '문제 없음' };
 
 // guide: 가이드 검수(core/guidecheck.js evaluate) 줄 목록 — 틀 규격(templateMold)의 level 'block' 규칙(mold.*: 글자 칸 x·줄 y·크기·굵기·로고 칸·그림 칸 ±2px)이 ✗ 면 규정 위반과 같이 차단(10-28 컨시어지 #9 자소설 「규정 미준수 소재 검수 승인 오류」, 장부 mold-measured-gate)
 // needsGuide: 틀 규격(자소설 mold)처럼 가이드 실측이 승인의 전제인 소재 — 측정 전(guide null)이면 pending, 측정 실패(guide.error)면 review(확신 없으면 내보내지 않는다).

@@ -36,6 +36,13 @@ export function cmykText(hex) {
   return `C${c} M${m} Y${y} K${k}`;
 }
 
+const clampPct = v => Number.isFinite(+v) ? Math.max(0, Math.min(100, Math.round(+v))) : null;
+export function normKvFade(f) {
+  if (!f || typeof f !== 'object') return null;
+  const all = clampPct(f.all), out = {};
+  for (const s0 of ['top', 'right', 'bottom', 'left']) { const v = clampPct(f[s0]) ?? all; if (v != null) out[s0] = v; }
+  return Object.keys(out).length && Object.values(out).some(v => v !== 50) ? out : null;   // 모두 50(규칙 그대로)이면 없는 것과 같다
+}
 export function normalizeStyle(input = {}) {
   const colors = input.colors ?? [];
   for (const c of colors) {
@@ -58,6 +65,8 @@ export function normalizeStyle(input = {}) {
     kvMeta: applyKvTypeOverride(input.kvMeta ?? null, isKvTypeOverride(input.kvTypeOverride) ? input.kvTypeOverride : null),                 // {ar, edge} — 비율 대응·여백 색   // {banner:{text,scrim},...} — 업로드 시 앱이 측정
     // 사진 쓰임 — auto: 한쪽 칸에 넣고 지면으로 녹인다(한독) · full: 지면 전체에 깔고 글자 쪽에 스크림(코엑스·원광대병원·호반). 담당자가 고른다 — 자동으로 켜면 다른 유형과 충돌한다
     kvUse: ['full', 'part'].includes(input.kvUse) ? input.kvUse : 'auto',
+    // 11-25 노션 「이미지 그라데이션 조정」: 키비주얼 가장자리 녹임 세기 % — { all } 또는 { top, right, bottom, left }(0 = 녹임 없음 · 50 = 규칙 그대로 · 100 = 두 배). 없으면 키를 두지 않는다(기본 그림 바이트 동일)
+    ...(normKvFade(input.kvFade) ? { kvFade: normKvFade(input.kvFade) } : {}),
     // 오브젝트 누끼(선택) — 투명 PNG 필수 자리·상자 자리에만 쓰는 두 번째 그림. 키비주얼은 배경 노릇을 그대로 한다(2026-10-06)
     object: input.object ?? null,
     objectMeta: input.objectMeta ?? null,

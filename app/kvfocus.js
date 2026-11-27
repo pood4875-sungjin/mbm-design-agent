@@ -31,7 +31,9 @@ export function dragRegion(mode, from, s, p) {
 
 // 썸네일(background-image 로 그림을 보여 주는 칸)에 오버레이를 붙인다. 다시 부르면 이전 오버레이를 갈아 끼운다.
 //   opts.kvMeta: 지금 kvMeta(유형 지정 입힌 것) · opts.onChange(manual|null) · opts.readOnly · opts.onLive(region): 끄는 동안 보드 미리보기 · opts.onLiveCancel: 취소
-export function mountKvFocus(thumb, { kvMeta, onChange, onLive, onLiveCancel, readOnly = false } = {}) {
+// 11-25 노션 「키비주얼 영역 정리」: chrome:false 면 그림 위에 안내·「자동으로」·「교체」를 올리지 않는다(그림에는 그림과 영역만) — 버튼은 칸 위, 안내는 칸 아래에 부르는 쪽이 둔다.
+//   onRegion(region|null): 영역이 생기거나 없어질 때(위 버튼 줄 「자동 선택」·아래 안내 문구를 바꾸려고)
+export function mountKvFocus(thumb, { kvMeta, onChange, onLive, onLiveCancel, readOnly = false, chrome = true, onRegion = null } = {}) {
   if (!thumb) return null;
   thumb.querySelector('.kvfocus')?.remove();
   const ar = kvMeta?.ar;
@@ -71,6 +73,8 @@ export function mountKvFocus(thumb, { kvMeta, onChange, onLive, onLiveCancel, re
       const d = document.createElement('div'); d.className = 'kvbox'; d.style.cssText = boxCss({ x: clamp01(auto.x - auto.w / 2), y: clamp01(auto.y - auto.h / 2), w: Math.min(auto.w, 1), h: Math.min(auto.h, 1) });
       ov.appendChild(d);
     }
+    onRegion?.(region);
+    if (!chrome) return;
     const tag = document.createElement('div'); tag.className = 'kvtag';
     tag.textContent = region ? '이 영역이 모든 규격에 보여요' : `${typeName ? typeName + ' · ' : ''}끌어서 보여 줄 영역 지정`;
     ov.appendChild(tag);
@@ -121,6 +125,7 @@ export function mountKvFocus(thumb, { kvMeta, onChange, onLive, onLiveCancel, re
     else if ((e.key === 'Escape' || e.key === 'Backspace') && region) { e.preventDefault(); e.stopPropagation(); onChange?.(null); }
     else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); thumb.onclick?.(); }   // 키보드로 교체
   };
+  if (!chrome) return ov;
   const rep = document.createElement('button'); rep.type = 'button'; rep.className = 'kvrep'; rep.textContent = '교체'; rep.title = '다른 그림으로 바꾸기';
   rep.onpointerdown = e => e.stopPropagation();
   rep.onclick = e => { e.stopPropagation(); thumb.onclick?.(e); };

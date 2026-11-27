@@ -53,6 +53,10 @@ export async function openIdbBackend() {
       ids.forEach((id, i) => { if (vals[i] != null) m.set(id, vals[i]); });
       return m;
     },
+    async remove(id) {   // 11-25 노션 「제작한 캠페인 삭제」 — 기록을 지우고, 아무도 안 쓰는 그림은 다음 sweep 이 치운다
+      const tx = db.transaction(RECS, 'readwrite'); const finished = done(tx);
+      tx.objectStore(RECS).delete(id); await finished;
+    },
     async sweep() {   // 교체돼 아무도 안 쓰는 그림 지우기 — 기록과 같은 트랜잭션이라 사이에 낀 저장과 엇갈리지 않는다
       const tx = db.transaction([RECS, ASSETS], 'readwrite');
       const finished = done(tx), store = tx.objectStore(ASSETS);

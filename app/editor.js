@@ -155,21 +155,36 @@ export function createEditor(E) {
   }
 
   /* ── ①-b 글자 정렬 세그먼트(10-19, 인스펙터 「스타일」) — 캠페인 일괄 + 산출물 개별. 잠긴 규격(규정 매체 틀·글자 없음)은 비활성 + 사유 한 줄(core/alignrule.js alignLockOf) ── */
+  // 11-25 노션 「[UI] 글자 설정 영역 정리」: 라벨 「정렬」 한 줄에 가로(왼쪽·가운데·오른쪽) + 세로(위·가운데·아래) 묶음, 그 아래 「전체 자동」. 설명 문구는 걷는다.
+  //   아무것도 안 누른 상태 = 자동. 잠긴 규격(규정 매체 틀)은 버튼 툴팁에만 수를 적는다
+  const VA_ICON = { top: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 2.5h10M8 13.5V5M5 8l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', center: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10M8 1.5v4M6 3.5l2 2 2-2M8 14.5v-4M6 12.5l2-2 2 2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>', bottom: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 13.5h10M8 2.5V11M5 8l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>' };
+  const VA_CHOICES = { top: '위', center: '가운데', bottom: '아래' };
   function alignCampaignHtml() {
     const c = camp(); const list = ads(); if (!list.length) return '';
-    const cur = c.style.textAlign ?? 'auto';
+    const cur = c.style.textAlign ?? 'auto', va = c.style.textAnchor ?? 'auto';
     const lock = lockedSummary(list.map(a => specOf(a)).filter(Boolean));
-    return `<label>글자 정렬 <span style="opacity:.6">· 키비주얼·로고 자리가 따라감</span></label>
-      <div class="vseg" id="iAlignSeg" role="group" aria-label="글자 정렬">${Object.entries(ALIGN_CHOICES).map(([k, v]) => `<button type="button" data-al="${k}" class="${cur === k ? 'on' : ''}" aria-pressed="${cur === k}" title="${escH(v)}" aria-label="${escH(v)}">${alignFace(k)}</button>`).join('')}</div>
-      <div class="fontNote" style="font-size:11px;line-height:1.5;margin-top:4px;color:var(--sub)">왼쪽 → 키비주얼 오른쪽 · 오른쪽 → 왼쪽(거울) · 가운데 → 아래 띠${lock.n ? `<br>${lock.n}개 규격은 규정으로 잠김 — ${escH(lock.reasons.map(([r, n]) => `${r} ${n}`).join(' · '))}` : ''}</div>`;
+    const lockT = lock.n ? ` — ${lock.n}개 규격은 규정으로 잠김` : '';
+    return `<label>정렬</label>
+      <div class="alrow"><div class="vseg" id="iAlignSeg" role="group" aria-label="가로 정렬">${Object.entries(ALIGN_CHOICES).filter(([k]) => k !== 'auto').map(([k, v]) => `<button type="button" data-al="${k}" class="${cur === k ? 'on' : ''}" aria-pressed="${cur === k}" title="${escH(v)}${lockT}" aria-label="${escH(v)}">${alignFace(k)}</button>`).join('')}</div>
+      <div class="vseg" id="iVAlignSeg" role="group" aria-label="세로 정렬">${Object.entries(VA_CHOICES).map(([k, v]) => `<button type="button" data-va="${k}" class="${va === k ? 'on' : ''}" aria-pressed="${va === k}" title="세로 ${escH(v)}${lockT}" aria-label="세로 ${escH(v)}">${VA_ICON[k]}</button>`).join('')}</div></div>
+      <button type="button" class="btn" id="iAlignAuto" style="width:100%;margin-top:8px"${cur === 'auto' && va === 'auto' ? ' aria-pressed="true"' : ''}>전체 자동</button>`;
   }
   function bindAlignCampaign(insp, restyle) {
     const c = camp();
     insp.querySelectorAll('#iAlignSeg [data-al]').forEach(b => b.onclick = () => {
-      const v = b.dataset.al; if ((c.style.textAlign ?? 'auto') === v) return;
+      const v = (c.style.textAlign ?? 'auto') === b.dataset.al ? 'auto' : b.dataset.al;   // 켜진 것을 다시 누르면 자동
       restyle({ textAlign: v }, `글자 정렬 ${ALIGN_CHOICES[v]}`);
       E.renderInspector();
-      document.querySelector(`#iAlignSeg [data-al="${v}"]`)?.focus();
+    });
+    insp.querySelectorAll('#iVAlignSeg [data-va]').forEach(b => b.onclick = () => {
+      const v = (c.style.textAnchor ?? 'auto') === b.dataset.va ? 'auto' : b.dataset.va;
+      restyle({ textAnchor: v }, `글자 세로 위치 ${v === 'auto' ? '자동' : VA_CHOICES[v]}`);
+      E.renderInspector();
+    });
+    insp.querySelector('#iAlignAuto')?.addEventListener('click', () => {
+      if ((c.style.textAlign ?? 'auto') === 'auto' && (c.style.textAnchor ?? 'auto') === 'auto') return;
+      restyle({ textAlign: 'auto', textAnchor: 'auto' }, '글자 정렬 전체 자동');
+      E.renderInspector();
     });
   }
   function alignArtifactHtml(a) {

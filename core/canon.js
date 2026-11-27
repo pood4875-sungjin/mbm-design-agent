@@ -65,6 +65,8 @@ export const CANON = {
   // 문구 위치 고정 규격(11-15 노션 [06] 「매체 가이드상 문구 위치가 고정된 규격은 문구 수동 이동 잠금 — 자소설닷컴·리멤버·카카오(NAP DSP) 비즈보드·잡다」).
   //   앱 캔버스에서 글자 끌기·화살표 이동·X/Y 칸만 막는다(내용·서식 편집은 그대로). 매체 id 또는 규격 id 앞머리. 렌더에는 안 쓴다 — 판정은 app/elselect.js textPosLocked
   textPosLock: ['jasoseol', 'remember', 'jobda', 'kakao-bizboard', 'nap-dsp-bizboard'],
+  // 11-25 노션 「가이드 범위 초과 시 초과 글자만 생략」 추가 요청(11-23): 직접 적은 문구가 넘쳐도 글자 크기는 가이드 그대로(줄이지 않고 뒷부분만 숨김) — 매체 id
+  guidePxFixed: ['jasoseol', 'remember', 'jobda'],
   detailGap: { label: 0.25, item: 0.45, itemInline: 0.12 },   // itemInline: 「라벨 : 내용」 한 줄 항목끼리(11-10 밤 — 답안지 캐치 MO 사이 .33 「살짝 붙여」 · PC −.21 「살짝 벌려」 → 줄 상자 사이 0.1 안팎)
   framePad: { text: 0.08, textWide: 0.16, logo: 0.06, logoWide: 0.08 },
   // 로고 색 = 지면 색이면 단색으로(10-12 데스크탑 desk-37: 주황 로고(동부건설) × 주황 지면(브랜드색 #E86800) 카카오 1200×600 — 로고가 지면에 녹아 안 보였다).

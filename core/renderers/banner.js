@@ -33,6 +33,23 @@ export const WRAP = 'word-break:keep-all;overflow-wrap:anywhere';
 
 // 한글은 한 글자가 거의 1em, 라틴은 그 절반쯤이다.
 // 글자 "수"가 아니라 "폭"으로 세야 한/영이 섞인 행사명의 줄 수를 맞게 볼 수 있다.
+// 11-25 노션 「[자소설닷컴] PC채용공고배너 상세문구」(5줄에서 잘림): keep-all 줄바꿈(어절 단위)으로 센 줄 수.
+//   전체 폭 ÷ 칸 폭은 어절이 통째로 다음 줄로 넘어가는 몫을 못 세어 「정보보안부문 보안전략운영팀 보안성 검토」(130px · 13px)를 2줄로 어림했고,
+//   실제 3줄이라 칸 높이(줄 수 합)에서 마지막 줄이 잘렸다. 글자 폭은 textWidth 그대로(넉넉한 쪽)
+export function wordRows(s, px, boxW, k = 1.02) {
+  const W = Math.max(1, boxW), sp = 0.35 * px * k;
+  let rows = 0;
+  for (const line of String(s ?? '').split('\n')) {
+    let cur = -1; rows++;
+    for (const word of line.split(/\s+/).filter(Boolean)) {
+      const ww = textWidth(word) * px * k;
+      if (cur < 0) { cur = ww; } else if (cur + sp + ww <= W) cur += sp + ww; else { rows++; cur = ww; }
+      if (cur > W) { const extra = Math.ceil(cur / W) - 1; rows += extra; cur -= extra * W; }
+    }
+  }
+  return Math.max(1, rows);
+}
+
 export function textWidth(s) {
   let w = 0;
   for (const ch of String(s ?? '')) {

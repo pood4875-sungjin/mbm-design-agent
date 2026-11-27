@@ -129,6 +129,7 @@ export function createCampStore({ open, legacy = null, onChange = null, channel 
     if (!isReady) return;
     try {
       const rows = await backend.readAll();
+      const ids = new Set(rows.map(r => r.id)); for (const k of [...cache.keys()]) if (!ids.has(k) && !failed.has(k)) cache.delete(k);
       for (const r of rows) if (!failed.has(r.id)) cache.set(r.id, r);
       onChange?.();
     } catch {}
@@ -148,6 +149,16 @@ export function createCampStore({ open, legacy = null, onChange = null, channel 
       failed.set(id, { ...failed.get(id), ...d.assets });
       return { ok: false, error };
     }
+  }
+
+  // 11-25 노션 「제작한 캠페인 삭제 기능」: 목록·저장소에서 지운다. 그림은 sweep 이 다른 기록이 안 쓰면 치운다
+  async function remove(id) {
+    if (!isReady) await ready;
+    cache.delete(id); failed.delete(id);
+    await enqueue(() => backend.remove?.(id));
+    Promise.resolve().then(() => backend.sweep?.()).catch(() => {});
+    channel?.postMessage?.({ id, removed: true });
+    return { ok: true };
   }
 
   async function hydrate(id) {
@@ -181,7 +192,7 @@ export function createCampStore({ open, legacy = null, onChange = null, channel 
     kind: () => backend?.kind ?? null,
     list: () => [...cache.values()],
     get: id => cache.get(id) ?? null,
-    put, hydrate, exportParts,
+    put, hydrate, exportParts, remove,
     takeNotices: () => notices.splice(0),
     hasUnsaved: () => pending > 0 || failed.size > 0,
   };
@@ -209,5 +220,10 @@ export function localBackend(ls, key, notice = null) {
       ls.setItem(key, JSON.stringify([...recs.values()].map(r => rehydrate(r, assets).rec)));
     },
     async getAssets(ids) { return new Map(ids.filter(i => assets.has(i)).map(i => [i, assets.get(i)])); },
+    async remove(id) {
+      recs.delete(id);
+      if (!ls) return;
+      ls.setItem(key, JSON.stringify([...recs.values()].map(r => rehydrate(r, assets).rec)));
+    },
   };
 }

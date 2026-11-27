@@ -41,7 +41,9 @@ test('잠금 판정 alignLockOf: 규정 매체 틀(자소설·리멤버·카카�
   for (const id of ['blind-brand-logo', 'everytime-home-card-profile', 'naver-gfa-native-pc-profile-300', 'catch-center-logo-mo']) { const L = alignLockOf(S(id)); assert.equal(L.locked, true, id); assert.match(L.why, /로고만/); }
   for (const id of ['jasoseol-m-start-logo-mo', 'jasoseol-m-start-image-mo']) { const L = alignLockOf(S(id)); assert.equal(L.locked, true, id); assert.match(L.why, /전달물/); }
   assert.equal(alignLockOf({ w: 580, h: 400, rules: { safeArea: { measuredFromTemplate: { mold: { alignLocked: true, rows: {} } } } }, mediumRules: { name: '테스트' } }).kind, 'mold');
-  for (const id of ['google-gdn-580x400', 'blind-post-banner', 'naver-gfa-mobile-da-1250x560', 'instagram-feed-1080', 'instagram-story-1080x1920', 'gamejob-community-pick-pc', 'jobda-main-pc', 'catch-mainlarge-image-pc', 'everytime-home-banner', 'nap-dsp-full-300x250', 'albamon-pc-main-board']) assert.equal(alignLockOf(S(id)).locked, false, id);
+  for (const id of ['google-gdn-580x400', 'blind-post-banner', 'naver-gfa-mobile-da-1250x560', 'instagram-feed-1080', 'instagram-story-1080x1920', 'gamejob-community-pick-pc', 'catch-mainlarge-image-pc', 'everytime-home-banner', 'nap-dsp-full-300x250', 'albamon-pc-main-board']) assert.equal(alignLockOf(S(id)).locked, false, id);
+  // 11-25 노션 「[잡다] 가이드 고정 요청」: 잡다 PC·MO 는 자소설·리멤버처럼 틀 고정(mold.alignLocked) — 정렬을 못 고른다
+  for (const id of ['jobda-main-pc', 'jobda-main-mo']) { const L = alignLockOf(S(id)); assert.equal(L.locked, true, id); assert.equal(L.kind, 'mold'); }
   // 전 규격 요약 — 잠김 수와 사유 묶음(앱 「n개 규격은 규정으로 잠김」)
   const sum = lockedSummary(Object.keys(specs).map(S));
   assert.ok(sum.n >= 28 && sum.n < Object.keys(specs).length / 2, `잠김 ${sum.n}`);

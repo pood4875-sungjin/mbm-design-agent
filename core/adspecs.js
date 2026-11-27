@@ -151,3 +151,31 @@ export function withTwinFiles(files, twinsOf, nameOf) {
   }
   return out;
 }
+
+// 11-25 노션 「산출물 패키지 단위 묶음 배치 및 소재 타이틀 표기 개선」 · 「좌측 패널 업데이트」(패키지 단위):
+//   패키지(상품) = 규격 이름 「 - 」·「 — 」 앞(자소설 「PC프리미엄패키지 - PC팝업배너」). 없으면 이름에서 플랫폼 괄호·치수를 뺀 것(리멤버 「메인 상단 배너 (PC)」→ 메인 상단 배너).
+//   NAP DSP 처럼 늘 전 규격이 같이 나가는 매체는 매체 전체가 한 패키지(노션 표 「NAPDSP | 전체가 하나의 패키지」).
+const ONE_PACKAGE_MEDIA = new Set(['nap-dsp']);
+export function packageOf(spec) {
+  if (!spec) return null;
+  if (ONE_PACKAGE_MEDIA.has(spec.medium)) return spec.mediumName ?? spec.medium;
+  const name = String(spec.rules?.name ?? spec.title ?? spec.id ?? '');
+  const m = name.match(/^(.+?)\s+[-—]\s+/);
+  const base = (m ? m[1] : name).replace(/\s*\([^)]*\)/g, '').replace(/\s*\d+\s*[×x*]\s*\d+.*$/, '').trim();
+  return base || null;
+}
+// 보드 카드 타이틀 = 내보내기 파일명에서 기업명·매체명·날짜·확장자를 뺀 것(노션: 「타이틀 규칙이 내보내기 파일명과 같도록 — 파일명에서 매체명만 제외」, 예 「PC프리미엄패키지 · PC채용공고배너」)
+export function boardTitleOf(spec, fileName, { client = '' } = {}) {
+  if (!spec) return '';
+  const medium = String(spec.mediumName ?? '');
+  const shorts = [medium, medium.replace(/닷컴$/, ''), medium.replace(/\s*\(.*\)$/, ''), medium.replace(/\s+/g, '_'), medium.replace(/\s*\(.*\)$/, '').replace(/\s+/g, '_')].filter(Boolean);
+  let s = String(fileName ?? '').replace(/\.[a-z0-9]+$/i, '');
+  const cl = String(client ?? '').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_');
+  s = s.replace(/(\d+)_(\d+)/g, '$1×$2').replace(/(\d+)x(\d+)/g, '$1×$2');   // 치수는 한 덩어리로(「580_400」→ 580×400)
+  if (cl) { s = s.split(cl).join('_'); const raw = String(client ?? '').trim(); if (raw) s = s.split(raw).join('_'); }   // 기업명(띄어쓰기는 _ 로 바뀌어 들어간다 — 「ACME_PLAZA」)
+  const parts = s.split('_').filter(p => p && p !== cl && !/^\d{8}$/.test(p) && !shorts.includes(p) && !(p.length >= 2 && medium.replace(/\s+/g, '').startsWith(p)) && !medium.split(/[\s()]+/).includes(p));   // 「카카오」(매체명 카카오톡의 앞부분)
+  s = parts.join('_');
+  for (const sh of shorts) s = s.replace(new RegExp(`^${sh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`), '');   // 「잡다 메인 배너」 → 「메인 배너」
+  s = s.replace(/\(([^)]*)\)/g, ' · $1').replace(/_/g, ' · ').replace(/\s*·\s*·\s*/g, ' · ').replace(/^\s*·\s*|\s*·\s*$/g, '').replace(/\s{2,}/g, ' ').trim();
+  return s || String(spec.rules?.name ?? spec.title ?? spec.id);
+}
